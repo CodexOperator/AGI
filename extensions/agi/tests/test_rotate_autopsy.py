@@ -551,7 +551,10 @@ def test_seating_season_resolves_through_season_branch(tmp_path, monkeypatch):
 # real `$HOME/logs` agi-reaper-*.log.
 
 
-def test_autopsy_probable_cause_external_term(tmp_path):
+def test_autopsy_probable_cause_external_term(tmp_path, monkeypatch):
+    # SL2#9 seam: an earlier test (or the suite runner) may leave AGI_REAPER_LOG
+    # in the env; the resolver honours env FIRST by design, so isolate here.
+    monkeypatch.delenv("AGI_REAPER_LOG", raising=False)
     """The external TERM/HUP signature: a fixture reaper-log line naming the
     pid and SIGTERM -> `probable cause: external TERM/HUP on idle seat`, with
     the offending line as the evidence."""
@@ -602,6 +605,7 @@ def test_reaper_log_resolves_to_fixture_not_home(tmp_path, monkeypatch):
     the autopsy never consulted a real `$HOME/logs` agi-reaper-*.log (with the
     empty HOME that fall-through would resolve to nothing / a different path).
     Also: the `AGI_REAPER_LOG` env seam outranks the crons.md fixture."""
+    monkeypatch.delenv("AGI_REAPER_LOG", raising=False)  # env outranks crons.md by design; isolate
     empty_home = tmp_path / "emptyhome"
     empty_home.mkdir()
     monkeypatch.setenv("HOME", str(empty_home))
