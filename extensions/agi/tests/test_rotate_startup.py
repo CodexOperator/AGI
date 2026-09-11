@@ -471,3 +471,52 @@ def test_env_prefix_allowed_still_applies(tmp_path):
     assert "refused" not in res[0], res
     assert res[0]["rc"] == 0, res
     assert "FOO=1" in res[0]["output"], res
+
+
+def test_r_placeholder_injection_refused_no_marker(tmp_path):
+    # hypothesis:l4-the-judge-runs-on-the-substituted-command — a placeholder
+    # VALUE carries `; touch <marker>`. The template judge sees the un-resolved
+    # `{seat}` and passes; the injected `touch` stage is only visible AFTER
+    # placeholder substitution. The re-judge of exec_cmd refuses it, the marker
+    # never appears, and the record holds the literal placeholder-expanded form.
+    marker = tmp_path / "pwned-MARKER"
+    vals = dict(VALUES, seat=f"seatA; touch {marker}")
+    template = "python3 {worktree}/extensions/list.py {seat}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "inj", "cmd": template}]}, vals)
+    assert "refused" in res[0], res
+    assert "not on startup.allow" in res[0]["refused"], res
+    assert "touch" in res[0]["refused"], res
+    assert not marker.exists(), res
+    assert res[0]["cmd"] == (
+        f"python3 /wt/extensions/list.py seatA; touch {marker}"), res
+
+
+def test_s_env_var_injection_refused_no_marker(monkeypatch, tmp_path):
+    # an env var VALUE carries `| touch <marker>`. The record keeps `$SEAT`
+    # literal (fix b), while exec_cmd expands it for execution; the re-judge of
+    # the substituted command refuses the injected `touch` stage before it runs.
+    marker = tmp_path / "pwned2-MARKER"
+    monkeypatch.setenv("SEAT", f"seatA | touch {marker}")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    assert "touch" in res[0]["refused"], res
+    assert not marker.exists(), res
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_q_clean_substitution_still_runs(tmp_path):
+    # a benign placeholder substitution still RUNS after the exec re-judge is
+    # added — the new gate must not refuse the legitimate happy path.
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    script = str(bin_dir / "ok.py")
+    (bin_dir / "ok.py").write_text("print('ok')\n", encoding="utf-8")
+    template = f"python3 {script} {{seat}}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "clean", "cmd": template}]}, VALUES)
+    assert "refused" not in res[0], res
+    assert res[0]["rc"] == 0, res
+    assert "ok" in res[0]["output"], res
