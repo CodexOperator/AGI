@@ -94,7 +94,8 @@ def commit_kid_node(wt: Path, name: str = "a00-kid.md",
 def write_seat_manifest(repo: Path, iter_id: str, *,
                         status: str = "done", branch: str = BRANCH,
                         dispatched_by: str = SEAT, parent: str = PARENT,
-                        kid_sessions: bool = True) -> None:
+                        kid_sessions: bool = True,
+                        base_branch: str = SEAT_REF) -> None:
     """Write the round's authoritative manifest under the SEAT worktree
     (`.agi/worktrees/seat-<S>/.agi/sessions/iter-*`), carrying the PARENT-tier
     record that names the branch. Also drops a KID-only manifest under the
@@ -113,7 +114,7 @@ def write_seat_manifest(repo: Path, iter_id: str, *,
         "agents": [{
             "id": parent, "tier": "parent", "status": status,
             "dispatched_by": dispatched_by, "branch": branch,
-            "base_branch": SEAT_REF,
+            "base_branch": base_branch,
             "target": "hypothesis:harvest-table-subcommand",
             "worktree": str(repo / ".agi" / "worktrees" / parent),
         }],
@@ -188,15 +189,21 @@ def test_worktree_removed_still_reports_branch_and_kids(tmp_path: Path) -> None:
     assert ".agi/nodes/experiment/a00-kid.md" in out
 
 
-def test_merged_round_recovers_own_changeset(tmp_path: Path) -> None:
-    """A round already MERGED into the seat branch has merge-base == its own
-    branch tip, so `mb..<branch>` is empty. The table must recover the round's
-    OWN changeset from the branch (`<branch>^..<branch>` for a single-commit
-    round) and still report kids + a non-empty diffstat naming the round's
-    files.
+def test_merged_round_reports_dash_no_own_commits(tmp_path: Path) -> None:
+    """A round already MERGED into the seat branch has every commit reachable
+    from the seat, so it owns nothing of its own: rev-list `<round> ^<seat>` is
+    empty and the row reports `-` with no kids — never the seat's commit or a
+    stale `<round_branch>^` changeset (hypothesis:
+    l4-harvest-table-attributes-only-the-rounds-own-commits). The old
+    `_harvest_diffstat` recovered the changeset from `<branch>^..<branch>`,
+    which on a ZERO-commit round attributed the SEAT's commit to the round —
+    the over-attribution this hypothesis removes. Once the round's work is
+    merged into the seat there is nothing PENDING on the branch to harvest,
+    so `-` is the honest row.
 
-    RED on the pre-fix code: `_harvest_diffstat` diffs `mb..<branch>`, which
-    is empty for a merged round -> kids `-` and diffstat `-`.
+    RED on the pre-fix code: `_harvest_diffstat` diffs `mb..<branch>`, which is
+    empty for a merged round, then falls into the `<branch>^..<branch>`
+    recovery and reports the (seat-merged) changeset.
     """
     repo = make_project_repo(tmp_path)
     wt = make_round_worktree(repo)
@@ -214,8 +221,10 @@ def test_merged_round_recovers_own_changeset(tmp_path: Path) -> None:
     assert res.returncode == 0, res.stderr
     out = res.stdout
     assert BRANCH in out
-    assert "experiment:a00-kid" in out
-    assert ".agi/nodes/experiment/a00-kid.md" in out  # OWN changeset, not empty
+    row = [ln for ln in out.splitlines() if ln.startswith("iter-91")][0]
+    assert row.split("|")[4].strip() == "-"       # diffstat-vs-merge-base
+    assert row.split("|")[5].strip() == "-"       # kids column
+    assert "experiment:a00-kid" not in out
 
 
 def test_live_worktree_round_all_live_filter(tmp_path: Path) -> None:
@@ -244,3 +253,155 @@ def test_seat_filter(tmp_path: Path) -> None:
     miss = run_harvest(repo, "--seat", "other-seat")
     assert "iter-81" not in miss.stdout
     assert "0 rows" in miss.stderr
+
+# --- over-attribution guard (hypothesis:l4-harvest-...) ---------------------
+def test_zero_commit_round_reports_dash_not_the_seat_commit(tmp_path: Path) -> None:
+    """A round whose branch tip IS the seat commit it was cut from (the round
+    added nothing of its own) must report `-` for diffstat and `-` for kids —
+    NEVER the seat commit's file. The old `_harvest_diffstat` fallback
+    `<branch>^..<branch>` on a zero-commit branch attributed the SEAT's
+    previous commit to the round (the L4.2xx over-attribution this
+    hypothesis fixes). FALSIFIER: a zero-commit fixture round whose row names
+    a file the seat commit touched.
+    """
+    repo = make_project_repo(tmp_path)
+    wt = make_round_worktree(repo)
+    # move the SEAT: create the seat ref at master, add a file to it (a seat
+    # commit), then re-cut the round branch AT the seat tip — so the round
+    # branch tip IS the seat commit (a zero-commit round that owns nothing).
+    _git(repo, "branch", SEAT_REF, "master")
+    _git(repo, "checkout", SEAT_REF)
+    (repo / ".agi" / "seat-file").write_text("touched by the seat",
+                                               encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "-c", "core.hooksPath=/dev/null", "commit",
+         "-m", "seat commit touching a file")
+    _git(repo, "checkout", "master")
+    # re-cut the round branch at the seat ref (== the seat commit) with NO
+    # own commits.
+    _git(repo, "worktree", "remove", "--force", str(wt))
+    _git(repo, "branch", "-D", BRANCH)
+    wt = repo / ".agi" / "worktrees" / PARENT
+    _git(repo, "worktree", "add", "-b", BRANCH, str(wt), SEAT_REF)
+    wt_branch_tip = _git(repo, "rev-parse", BRANCH).stdout.strip()
+    seat_tip = _git(repo, "rev-parse", SEAT_REF).stdout.strip()
+    assert wt_branch_tip == seat_tip   # zero-commit round fixture
+    write_seat_manifest(repo, "92", status="done")
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "92")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    row = [ln for ln in out.splitlines() if ln.startswith("iter-92")][0]
+    assert row.split("|")[4].strip() == "-"      # diffstat: nothing of the round
+    assert row.split("|")[5].strip() == "-"      # kids: none
+    assert ".agi/seat-file" not in out           # NEVER the seat commit's file
+    assert ".agi/nodes/experiment/a00-kid.md" not in row  # not even the disk kid
+
+
+def test_seat_moved_after_dispatch_excludes_the_later_seat_commit(
+        tmp_path: Path) -> None:
+    """A fixture where the SEAT moved after dispatch: the seat's LATER commit
+    must NOT appear in the round's row. The round was cut at the older seat
+    state, so its own commits exclude anything the seat added afterwards —
+    rev-list `<round> ^<seat>` re-derives the round's changes against the
+    seat's current tip, and the later seat file is not reachable from the
+    round and not part of `<first_own>^..<round>`.
+    """
+    repo = make_project_repo(tmp_path)
+    wt = make_round_worktree(repo)
+    commit_kid_node(wt)
+    # move the seat after dispatch: touch a NEW file on the seat ref.
+    _git(repo, "branch", SEAT_REF, "master")
+    _git(repo, "checkout", SEAT_REF)
+    (repo / ".agi" / "seat-after-dispatch").write_text(
+        "added by the seat AFTER the round was cut", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "-c", "core.hooksPath=/dev/null", "commit",
+         "-m", "seat moved after dispatch")
+    _git(repo, "checkout", "master")
+    write_seat_manifest(repo, "93", status="done")
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "93")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert "experiment:a00-kid" in out                  # round's own kid present
+    assert ".agi/nodes/experiment/a00-kid.md" in out
+    assert ".agi/seat-after-dispatch" not in out        # later seat commit absent
+
+
+def test_two_commit_round_reports_both_commits_files(tmp_path: Path) -> None:
+    """A round with several commits (kid commit + a parent `done:` commit, or
+    a director fix-up) must report BOTH commits' files. The old
+    `<round_branch>^..<round_branch>` recovery on a multi-commit branch
+    reported only the TIP commit's changeset (the under-attribution half of
+    the bug). FALSIFIER: a two-commit fixture whose row misses the first
+    commit's file.
+    """
+    repo = make_project_repo(tmp_path)
+    wt = make_round_worktree(repo)
+    commit_kid_node(wt, name="a00-kid1.md", node_id="experiment:a00-kid1")
+    # a second own commit on the branch (e.g. the parent's `done:` stamp).
+    n = wt / ".agi" / "nodes" / "experiment"
+    p = n / "a00-kid2.md"
+    p.write_text("---\nid: experiment:a00-kid2\ntype: experiment\n"
+                 "verdict: proved\n---\n\nsecond round commit\n",
+                 encoding="utf-8")
+    _git(wt, "add", "-A")
+    _git(wt, "-c", "core.hooksPath=/dev/null", "commit", "-m", "done: stamp")
+    write_seat_manifest(repo, "94", status="done")
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "94")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert "experiment:a00-kid1" in out   # FIRST commit's file (the old bug)
+    assert "experiment:a00-kid2" in out   # TIP commit's file
+    assert ".agi/nodes/experiment/a00-kid1.md" in out
+    assert ".agi/nodes/experiment/a00-kid2.md" in out
+
+
+def test_season_resolved_seat_ref_is_the_diff_base(tmp_path: Path) -> None:
+    """The seasonal seat ref `seat/<S>@s<N>` is the round's diff base.
+
+    Hypothesis:l4-harvest-table-attributes-only-the-rounds-own-commits.
+    The `@s<N>` segment must be built as `@s{season}` -- a `@2`-style literal
+    (int season interpolated raw) builds `seat/<S>@2`, which NO `seat/` ref in
+    this repo matches (the real refs are `seat/<S>@s2`), so rev-parse fails and
+    `seat_base` collapses to "". The round is then diffed against the
+    manifest's base_branch instead -- which here is a DELIBERATELY wrong,
+    ancestor base (master) that sits BEFORE the seat's own commit. Only the
+    season-resolved `seat/<S>@s2` can separate the round's own kid commit from
+    the seat's own file.
+
+    FALSIFIER: a round genuinely CUT from the seat ref whose manifest lies
+    that base_branch is an ancestor (master). On the malformed ref the seat's
+    OWN file leaks into the round's diffstat; on the fix only the round's kid
+    shows and the seat's file is excluded.
+    """
+    repo = make_project_repo(tmp_path)
+    # Give the seat ref an OWN commit (a file only the seat owns), then cut
+    # the round branch FROM the seat tip -- so the round derives from the
+    # seat, not from master. A wrong base_branch of master (an ancestor of
+    # everything) can only be rescued by the season-resolved seat ref.
+    _git(repo, "branch", SEAT_REF, "master")
+    _git(repo, "checkout", SEAT_REF)
+    (repo / ".agi" / "seat-owned.txt").write_text("only the seat owns this",
+                                                  encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "-c", "core.hooksPath=/dev/null", "commit",
+         "-m", "seat own commit")
+    _git(repo, "checkout", "master")
+    # round worktree is the parent's, cut from the seat tip
+    wt = repo / ".agi" / "worktrees" / PARENT
+    _git(repo, "worktree", "add", "-b", BRANCH, str(wt), SEAT_REF)
+    commit_kid_node(wt)
+    # base_branch is a lie: master is an ancestor, not the round's real base.
+    # Only the season-resolved `seat/<S>@s2` names the true base.
+    write_seat_manifest(repo, "95", status="done", base_branch="master")
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "95")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert BRANCH in out
+    assert "experiment:a00-kid" in out   # the round's OWN kid is present
+    assert ".agi/nodes/experiment/a00-kid.md" in out  # git-diff names the node
+    assert "seat-owned.txt" not in out   # the seat's own file NEVER leaks in
