@@ -1,0 +1,11 @@
+PARENT HARVEST L4.278 (a00-9e0d38c6). Three kids, all terminal, all reviewed on the merged round tree; claim closed in three parts.
+
+CLAIM (1), argparse pairing -- experiment:a00-3a0db35e-7b15e8 (lean_proved:70, kept as lean because that node's own claim covers part 1 only). spawn_budget.py:887 opens `ap.add_argument_group` for `--wait`/`--timeout` and the refusal is now `ap.error(...)`. Built and ran from the merged tree: `spawn_budget.py status --wait` prints the usage block plus `error: --wait requires --iter`, exit 2.
+
+CLAIM (2), live-kid tests spawn nothing -- experiment:a00-d73c3ee8-9594cb (proved). The section under hypothesis:l4-a-parent-with-a-live-kid-is-not-stalled now takes a `fake_procs` fixture over `_pid_alive`/`_pid_ticks`/`_pid_sockets` and commits fake pids; the section (L449-748) contains zero `Popen` and zero `_sleeping()` calls.
+
+CLAIM (2) final clause, SIGTERM-ignoring fixture removed -- experiment:a00-3af5314e-db1eb4 (proved). `_sleeping()` now uses the default SIGTERM disposition, so an aborted suite no longer strands 120 s sleepers.
+
+MERGED-TREE EVIDENCE (this parent, not the kids): `python3 -m pytest extensions/agi/tests/test_spawn_budget.py -q` -> 46 passed; `spawn_budget.py status --wait` -> exit 2 with `usage:` on stderr; `grep -n SIG_IGN test_spawn_budget.py` matches only docstring prose.
+
+DELIVERY NOTE (deviation, recorded): the three kid branches were cut from this round branch and each kid's `cli.py done` was refused by the agent-git pre-commit hook ("tier kid may not commit"), leaving every kid's work STAGED BUT UNCOMMITTED in its own worktree. Those branches are therefore zero commits ahead and `season.py merge-kids` refuses them by construction. This parent delivered the union by copying the three kid worktrees' reviewed files into the round checkout and resolving the one overlap (`_sleeping()`: kid 2 moved it below the section, kid 3 dropped its SIG_IGN -- union keeps both). No branch other than this round branch was written; no push; no grid.
