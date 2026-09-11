@@ -155,6 +155,68 @@ def test_every_verb_is_nameable_from_a_command_line():
         assert name == name.lower()
 
 
+def test_help_epilog_lists_every_verb_and_arity(capsys):
+    """hypothesis:write-py-help-epilog-lists-verb-grammar — a seat reads
+    `write.py -h` as its first_turn `write-verbs` fact, so the epilog must
+    enumerate every verb's name, its arity, and a one-line example, generated
+    to agree with VERBS/ARITY or the help-build raises."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    for name in write.VERBS:
+        # the verb name and its arity both appear, on one epilog line
+        assert any(f"{name}\t" in line and f"{write.ARITY[name]} arg" in line
+                   for line in out.splitlines()), \
+            f"epilog missing {name} (arity {write.ARITY[name]})"
+
+
+def test_help_epilog_drift_guard_refuses_a_verb_without_an_example(monkeypatch):
+    """The epilog is fail-closed: if a verb appears in VERBS but has no
+    entry in VERB_EXAMPLES (or in ARITY), `write.py -h` must REFUSE rather
+    than emit a help text that documents a grammar it does not know. Without
+    this guard, deleting VERB_EXAMPLES or letting it drift leaves the suite
+    green while a seat's first_turn `write-verbs` fact silently loses a
+    verb. hypothesis:write-py-help-epilog-lists-verb-grammar (g15 mutation-
+    survival guard)."""
+    drifted = dict(write.VERBS)
+    drifted["bogus_drift_verb"] = "<arity>"
+    monkeypatch.setattr(write, "VERBS", drifted)
+    with pytest.raises(SystemExit) as exc:
+        write.main(["-h"])
+    assert "bogus_drift_verb" in str(exc.value)
+    assert "drift" in str(exc.value)
+
+
+def test_help_epilog_drift_guard_refuses_a_verb_without_arity(monkeypatch):
+    """Same fail-closed guard, exercised from the other side: an example
+    whose verb has no ARITY entry must also stop the help build."""
+    drifted = dict(write.ARITY)
+    dropped = next(iter(set(write.VERBS) - {"adopt"}))
+    del drifted[dropped]
+    monkeypatch.setattr(write, "ARITY", drifted)
+    with pytest.raises(SystemExit) as exc:
+        write.main(["-h"])
+    assert dropped in str(exc.value)
+
+
+def test_help_epilog_block_is_nonempty_and_names_each_verb_exactly(capsys):
+    """Positive contract, checked tightly: the epilog block is present and
+    non-empty, and every verb appears on its own epilog line with its literal
+    name and `N arg(s)`. Already covered for name+arity above; this pins that
+    the block itself exists so an empty epilog cannot quietly pass."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    assert "verbs (each accepts a node_id first" in out
+    assert out.strip()
+    for name in write.VERBS:
+        assert f"{write.ARITY[name]} arg(s)" in out
+
+
 def test_values_are_coerced_because_frontmatter_is_typed():
     """A command line hands over strings; a schema's `types:` block will
     reject `confidence: "0.9"`."""

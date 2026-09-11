@@ -571,11 +571,20 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None]:
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, object]:
     """The agent.json `status` for this agent, if a record exists, plus which
     sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
-    None for none). The `worktree` hint is accepted for call-signature
+    None for none), plus the record's `overdue_since` value (epoch int, or
+    None when absent). The `worktree` hint is accepted for call-signature
     compatibility but is no longer authoritative: the search is a plain glob.
+
+    The overdue_since field is what lets the status reader print
+    `agent=running(overdue)` — the word the parent brief now names. heal.py
+    keeps a live-but-past-deadline agent's status `running` and adds
+    `overdue_since`/`overdue_reason` rather than a terminal `overdue`
+    status, so the overdue signal lives HERE, on the one record that is
+    read (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+    readers-print-it).
 
     `iter_val` is the lease's own `iter` field, which is the round's genuine
     id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
@@ -629,7 +638,16 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
 
     own = graph
     if own not in seen:
-        cands.append((own, "main" if own == main_graph else wt_label(own)))
+        # Label the OWN candidate from the WORKTREE directory, exactly as the
+        # glob candidates below: when the graph dir is `.agi` (the normal
+        # layout) the worktree root is its PARENT; otherwise the graph dir
+        # itself is the worktree root. The pre-fix line passed the graph dir
+        # to `wt_label`, whose `.name` is always `.agi`, so every record
+        # answered from its own non-main root printed `@wt:.agi` — the label
+        # depended on where you stood
+        # (hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name).
+        own_wt = graph.parent if graph.name == ".agi" else graph
+        cands.append((own, "main" if own == main_graph else wt_label(own_wt)))
         seen.add(own)
     if main_graph and main_graph not in seen:
         cands.append((main_graph, "main"))
@@ -654,8 +672,8 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
             rec = json.loads(p.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        return rec.get("status") or "(no status)", src
-    return "(no agent.json)", None
+        return rec.get("status") or "(no status)", src, rec.get("overdue_since")
+    return "(no agent.json)", None, None
 
 
 def _round_status(root: Path, iter_str: str) -> int:
@@ -692,8 +710,8 @@ def _round_status(root: Path, iter_str: str) -> int:
         started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
         elapsed = max(0, int(time.time()) - started)
         socks = _pid_sockets(pid)
-        status, src = _agent_status(root, rec.get("agent_id", "?"),
-                                    rec.get("iter"), rec.get("worktree"))
+        status, src, overdue = _agent_status(root, rec.get("agent_id", "?"),
+                                             rec.get("iter"), rec.get("worktree"))
         total_ticks += ticks
         total_socks += socks
         if tier == "kid":
@@ -705,9 +723,15 @@ def _round_status(root: Path, iter_str: str) -> int:
         # (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir).
         # Nothing when src is None — `(no agent.json)` already names that case.
         suffix = f"@{src}" if src else ""
+        # A live agent past its deadline keeps `status: running` and gains
+        # `overdue_since` (heal.py) — print `running(overdue)` so the word
+        # the parent brief names is a word THIS reader actually prints
+        # (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+        # readers-print-it).
+        mark = "(overdue)" if overdue else ""
         print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
               f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
-              f"agent={status}{suffix}")
+              f"agent={status}{mark}{suffix}")
     if kids >= 1:
         print(f"round L{nnn}: parent alive, {kids} live kid(s)")
         return 0

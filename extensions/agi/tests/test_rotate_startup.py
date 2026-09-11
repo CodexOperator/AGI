@@ -838,15 +838,45 @@ def test_git_off_allowlist_token_names_itself():
     assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
 
 
+def _live_first_turn_cmds() -> list:
+    """Every startup.first_turn cmd from BOTH templates, read from the LIVE
+    checked-in .agi/nodes/.geometry/rotations.md -- never a hand-copied mirror
+    (hypothesis:l4-a-test-of-live-config-reads-the-live-node). The rotations
+    node is `type: config`, owned by the owner/prime; a test reads it and
+    never writes it."""
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    rot = (Path(__file__).resolve().parents[3]
+           / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert rot.exists(), f"live rotations.md missing: {rot}"
+    nf = _fm.load_node_file(rot)
+    templates = nf.frontmatter.get("templates") or {}
+    cmds = []
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        ft = startup.get("first_turn") or []
+        for e in ft:
+            if isinstance(e, dict) and e.get("cmd"):
+                cmds.append(e["cmd"])
+    return cmds
+
+
 def test_git_live_template_commands_still_pass():
-    # every git command in the live rotations template
-    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist
-    shipped = [
-        "git -C {worktree} status -sb",
-        "git -C {repo} status -sb",
-    ]
-    for cmd in shipped:
-        assert rotate._producing_refusal(cmd) is None, cmd
+    # every git command in the LIVE rotations template
+    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist -- read
+    # from the node, never a hand-copied list (hypothesis:l4-a-test-of-live-
+    # config-reads-the-live-node). A NEW off-allowlist git line added to the
+    # live node must turn this test red.
+    import tempfile
+    git_cmds = [c for c in _live_first_turn_cmds() if "git" in c]
+    assert git_cmds, "no git commands in the live rotations.md first_turn lists"
+    with tempfile.TemporaryDirectory() as d:
+        wt, ro = d + "/worktree", d + "/repo"
+        for cmd in git_cmds:
+            rendered = (cmd.replace("{worktree}", wt)
+                        .replace("{repo}", ro))
+            assert rotate._producing_refusal(rendered) is None, rendered
 
 
 def test_git_benign_set_still_passes():
@@ -1072,3 +1102,41 @@ def test_fold_env_path_refused_even_when_allowlisted(tmp_path):
         assert res[0]["refused"], res
         assert f"env prefix {name} refused unconditionally" in res[0]["refused"], \
             (cmd, res)
+
+
+def test_git_fetch_off_the_allowlist():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: `fetch` was on
+    # _GIT_ALLOW and a bare `git fetch` returned None (accepted) — a NETWORK
+    # WRITE (it advances remote-tracking refs) that no rotation template uses.
+    # fetch is now NOT on the allowlist, so a git first stage naming it falls
+    # through to a named refusal. The FALSIFIER is acceptance: any `git fetch`
+    # accepted by the judge fails the claim.
+    for cmd in ["git fetch", "git fetch origin", "git fetch upstream"]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+        assert "fetch" in ref, (cmd, ref)
+
+
+def test_git_diff_requires_stat():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: `diff` REQUIRES
+    # `--stat`. A bare `git diff` would print the working-tree PATCH (file
+    # contents) into the rotation record and the successor's STARTUP OUTPUT;
+    # it is refused by name. `git diff HEAD` is refused (HEAD is not a diff
+    # operand on the allowlist). `git diff --stat` still passes.
+    for cmd in ["git diff", "git diff HEAD"]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+    assert "stat" in rotate._producing_refusal("git diff")
+    # --stat present -> passes; the flag also STAYS allowed on log
+    assert rotate._producing_refusal("git diff --stat") is None
+    assert rotate._producing_refusal("git log --stat -5") is None
+
+
+def test_git_readonly_subcmds_deleted():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: _GIT_READONLY_SUBCMDS
+    # had ONE remaining reference, its own definition — dead code whose
+    # `fetch`-inclusion kept implying a bare fetch was a safe read. It is
+    # deleted with no remaining reference (its name no longer binds).
+    assert not hasattr(rotate, "_GIT_READONLY_SUBCMDS")

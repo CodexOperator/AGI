@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-the-mid-scan-test-uses-a-fixture-fd-dir
+mint_id: 745b787ba0894225b8dabccfb846692b
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-a-pid-fd-scan-tolerates-the-process-exiting-mid-read
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 48b38115ef6057ea
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 36 BY NAME (wf_ad998696-022; goal:g17.1 at e385f3f47), ACCEPTED there as residue line 2 on L4.221/L4.223; minted by sanctuary-director gen XV 14:1xZ after re-measuring on the seat's bytes (tip past 4764f6070; test_spawn_budget.py moved +46 with L4.232, test_tier_gate.py +312 with L4.228). MEASURED (three documentary defects in tests, no engine bytes wrong): (i) test_spawn_budget.py `test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan` builds a FIXTURE `proc/123/fd` with `socket:[111]` (merge-up-36 bytes :828-831) but its `_redirect` (:862-867) answers `/proc/123/fd` with `make_bomb(s)` where `s` is the REAL string `/proc/123/fd` -- `make_bomb` wraps `_real(str(p))`, so the test iterates the HOST's `/proc/123/fd` (whatever pid 123 is on the box; on a box where it is unreadable the iteration is empty) and never reads the fixture; the docstring's mechanism (\":the walk collects inode 111 then the listing raises\") is not what runs, and the assertion `== 0` holds on pre-fix bytes too (empty walk -> 0), so the test is a NON-FALSIFIER of hypothesis:l4-a-pid-fd-scan-tolerates-the-process-exiting-mid-read; (ii) the docstring at :820-824 describes that non-falsifier as the proof; (iii) test_tier_gate.py:165-170 (`_plant_record_under_real_tree`'s docstring) claims \"A normal interrupt (SIGINT/SIGTERM) still runs Python's atexit stack\" -- FALSE for SIGTERM: CPython's default SIGTERM disposition terminates the process without unwinding, so neither `finally` nor atexit runs (only SIGINT -> KeyboardInterrupt unwinds); a SIGTERMed run CAN leave the marker under the real tree, and it is hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named (L4.238) that then names the phantom, not this docstring. CLAIM: (1) the mid-scan test's bomb wraps the FIXTURE fd dir (`proc/123/fd` under tmp_path), so the walk really yields `socket:[111]` and then raises FileNotFoundError on the second next(); a counterfactual assertion proves the bomb fired (the fixture dir is gone after the call) and a MUTATION check proves the guard is load-bearing (with the helper's try narrowed to the readlink only -- monkeypatched `_pid_sockets` variant or a documented manual run -- the same fixture raises); (2) the two docstrings state what runs; (3) test_tier_gate.py's docstring says atexit covers normal exit and SIGINT only, names SIGTERM/SIGKILL as the phantom path L4.238 covers, and the helper additionally installs a SIGTERM handler that rmtrees the marker then re-raises the default (so a `kill <pid>` mid-suite no longer strands a record) -- if the kid finds the SIGTERM handler unsafe under pytest (xdist, nested handlers) it records that deviation and lands the docstring correction alone. TESTS: the rewritten mid-scan test is RED when the bomb is pointed at a nonexistent real path and GREEN on the fixture; a subprocess pytest that plants a marker and is SIGTERMed leaves no `iter-test-*` dir under the record root (skip-marked if the handler half is dropped). FALSIFIER: a mid-scan test that passes with the fixture fd dir deleted before the call, or a docstring still claiming SIGTERM runs atexit. CEILING: 1 kid. FILE SCOPE: extensions/agi/tests/test_spawn_budget.py (that one test + its docstring) + extensions/agi/tests/test_tier_gate.py (`_plant_record_under_real_tree` + docstring) only; no engine file. SERIAL on test_tier_gate.py behind hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named (L4.238)."
+title: The mid-scan sockets test bombs the fixture fd dir, not the host's /proc; the tier-gate docstring stops claiming atexit runs on SIGTERM
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-the-mid-scan-test-uses-a-fixture-fd-dir
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
