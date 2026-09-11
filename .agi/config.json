@@ -114,6 +114,10 @@
     "director_model": "claude-fable-5-1"
   },
   "goal_body_cap": 0,
+  "comms": {
+    "lockdown": false,
+    "verify": "informational"
+  },
   "locations": {
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
