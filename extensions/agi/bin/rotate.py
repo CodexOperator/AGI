@@ -4274,6 +4274,32 @@ def _successor_window_id(seat: str, tmux_session: str,
     return None
 
 
+def transcript_from_registry(registry_json: Path) -> Path | None:
+    """Derive a Claude Code transcript path from a harness REGISTRY file.
+
+    The registry `<pid>.json` object carries `cwd` + `sessionId`, never a
+    transcript path. The transcript lives at
+    `~/.claude/projects/<cwd with every '/' and '.' replaced by '-'>/
+    <sessionId>.jsonl` (L4.122 — the derivation gen X pinned by hand when
+    `transcript` came back empty and meter_pin / model_confirm were SKIPPED).
+    Returns None when the file is unreadable, parses to a non-object, or lacks
+    `cwd` or `sessionId`. The caller decides whether an absent derived path is
+    a silent skip or a named refusal."""
+    try:
+        data = json.loads(registry_json.read_text(encoding="utf-8",
+                                                  errors="replace"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    cwd = data.get("cwd")
+    sess = data.get("session_id") or data.get("sessionId")
+    if not cwd or not sess:
+        return None
+    slug = str(cwd).replace("/", "-").replace(".", "-")
+    return CC_PROJECTS_DIR / slug / f"{sess}.jsonl"
+
+
 def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     registry_dir: str | None = None,
                     poll_secs: int | None = None) -> dict:
@@ -4314,17 +4340,15 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
                 sess = (data.get("session_id") or data.get("sessionId") or "")
                 transc = (data.get("transcript") or data.get("transcript_path")
                           or "")
-                if not transc and sess and data.get("cwd"):
+                if not transc:
                     # L4.122: the registry carries cwd + sessionId, never a
                     # transcript path — the live gen IX->X join returned
                     # `transcript: ""` and meter_pin / model_confirm were
                     # SKIPPED. Derive the Claude Code transcript the way gen X
-                    # pinned it by hand: `~/.claude/projects/<cwd with every
-                    # '/' and '.' replaced by '-'>/<sessionId>.jsonl` (measured
-                    # cwd .../worktree/seat-sanctuary-director ->
-                    # -home-ubuntu-work-agi--agi-worktrees-...).
-                    slug = str(data["cwd"]).replace("/", "-").replace(".", "-")
-                    transc = str(CC_PROJECTS_DIR / slug / f"{sess}.jsonl")
+                    # pinned it by hand (see transcript_from_registry).
+                    _derived = transcript_from_registry(fp)
+                    if _derived is not None:
+                        transc = str(_derived)
                 nm = data.get("name") or data.get("agent") or seat
                 return {"found": True, "window_id": window_id, "pid": pid,
                         "session_id": str(sess), "transcript": str(transc),
