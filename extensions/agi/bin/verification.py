@@ -422,23 +422,37 @@ def _scan_seat_transcript(path: Path, declared: str) -> dict:
     return {"live": live, "first_drift": first_drift, **fb}
 
 
-def _seat_transcript(groot: Path, seat: str) -> Path | None:
+def _seat_transcript(groot: Path, seat: str) -> tuple[Path | None, str]:
     """The transcript a seat's own pin names, or None when it does not resolve.
 
     Identity is SUPPLIED by the seat's pin (`rotate.find_pin_log` reads the
     seat-stable `<sessions>/<seat>.meter`), never inferred from a directory's
-    newest mtime -- trap 0c of the hypothesis. A missing/empty/absent pin or
-    a pin naming a missing file all resolve to None and the caller skips the
-    row silently.
+    newest mtime -- trap 0c of the hypothesis. A generation-bearing pin is
+    checked against the seat's CURRENT occupant generation (`rotate.
+    _read_generation`), mirroring rotate.resolve_transcript step 3 (rotate.py
+    ~380): a pin the rotation never re-pointed is a PREDECESSOR's, and is
+    reported as `stale-pin` and treated as unresolvable rather than silently
+    read as a session that already ended. A legacy pin with no generation
+    field (written_gen is None) predates gen-stamping and passes through
+    unchanged, exactly as rotate.py's own guard does. Returns
+    `(Path, "")` on success, or `(None, reason)` with the caller's skip line.
     """
+    reason = "no pin-to-transcript (skipped)"
     pin = rotate.find_pin_log(groot, seat)
     if pin is None:
-        return None
-    _, target = rotate._parse_pin_record(pin)
+        return None, reason
+    written_gen, target = rotate._parse_pin_record(pin)
     if not target:
-        return None
+        return None, reason
+    if written_gen is not None:
+        cur_gen = rotate._read_generation(groot, seat)
+        if written_gen != cur_gen:
+            return None, (f"stale-pin (gen {written_gen} vs current "
+                          f"{cur_gen}), skipped")
     lp = Path(target).expanduser().resolve()
-    return lp if lp.exists() else None
+    if not lp.exists():
+        return None, reason
+    return lp, ""
 
 
 def check_seat_model(groot: Path) -> CheckResult:
@@ -454,10 +468,10 @@ def check_seat_model(groot: Path) -> CheckResult:
     for row in candidate:
         seat = row.get("name") or "?"
         declared = (row.get("model") or "").strip()
-        tp = _seat_transcript(groot, seat)
+        tp, reason = _seat_transcript(groot, seat)
         if tp is None:
             skipped += 1
-            lines.append(f"{seat}: no pin-to-transcript (skipped)")
+            lines.append(f"{seat}: {reason}")
             continue
         scan = _scan_seat_transcript(tp, declared)
         live = scan["live"]
@@ -465,14 +479,17 @@ def check_seat_model(groot: Path) -> CheckResult:
             skipped += 1
             lines.append(f"{seat}: no assistant turns with a model (skipped)")
             continue
-        if live == declared:
-            lines.append(f"{seat}: model={live} row={declared}")
-            continue
+        # The last model_refusal_fallback event is surfaced on BOTH branches
+        # (Prime merge-up 24 residue b): a seat that is clean NOW but had a
+        # fallback blip earlier in its own transcript should still show it.
         fb = ""
         if scan["fallback_ts"] is not None:
             fb = (f"; last model_refusal_fallback ts={scan['fallback_ts']} "
                   f"category={scan['fallback_category']} "
                   f"requestId={scan['fallback_request_id']}")
+        if live == declared:
+            lines.append(f"{seat}: model={live} row={declared}{fb}")
+            continue
         lines.append(f"{seat}: DRIFT live={live} row={declared} "
                      f"first-drifted-turn={scan['first_drift']}{fb}")
         drifted.append(seat)
