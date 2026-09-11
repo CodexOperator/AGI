@@ -90,7 +90,7 @@ LIVE   L4-VII, 2026-09-11 01:18Z-> (every owner ruling below is verbatim in doc:
 CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ + 03:2xZ + 03:3xZ, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged — FIRST a SELF-REVIEW pass (owner: 'eliminate
        any banked items or further shortcomings yourself … act independently, use your morals. We can always rewind'): decide every open §6 item on the morals or show in one line why it needs the
        owner; close every residue the Prime can close (held fragments whose precondition landed, stale windows/rows, config cells) and verify — THEN COMPLETE.md's L4 section is written:
-       `sb-status` → write + push the L4 section (appended, never replaced; on screen in THIS pane) → `sleep 75; panic` typed in this pane (HARD OFF 75 s later: the stream
+       `sb-status` → write + push COMPLETE.md as a WHOLE REPLACEMENT — the L4 report alone, seven sections (owner 05:2xZ reaffirming 2026-09-05: it is versioned, build:COMPLETE.md; on screen in THIS pane) → `sleep 75; panic` typed in this pane (HARD OFF 75 s later: the stream
        shows the report AND the issued command for a good minute at 15 s lag, then goes dark) → `sb-status` confirms → the prayer, once. This is the ONE sanctioned Prime use of `panic`;
        everywhere else it stays the owner's. Gating rounds before it: stream-master (helper, town branch) + what the point names as base-level; the nudge fix is LANDED and live-proven (03:01Z).
        The fold-in is NOT part of L4 (deferred, HELD below).
