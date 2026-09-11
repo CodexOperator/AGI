@@ -312,6 +312,31 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
     if all_live:
         graph = _graph_root(root)
         rows = _seats_rows(graph)
+        # PRIME GATE (mur-39 order (c)): --all-live is the registry-wide
+        # backstop, reserved for the prime director. Resolve the CALLER's own
+        # row (detect the sender, then find its seat row in the SAME registry
+        # this all_live pass is about) and refuse the whole keygen BY NAME
+        # before ANY key file is minted unless that row carries role
+        # ``prime_director`` -- today only the row write was refused and the
+        # .key files still landed. Rows come from ``_seats_rows`` (the node
+        # read, no git), never ``_load_rows`` (pushed-then-local, which issues
+        # a git fetch under tests). The explicit ``role`` argument stays
+        # honoured as the documented fallback for the actorless prime call.
+        caller = _detect_sender(actor)
+        own = _seat_row_in(rows, caller) if caller else None
+        if own is not None:
+            if own.get("role") != "prime_director":
+                print(
+                    f"REFUSED {caller}: --all-live is prime-only; own row "
+                    f"role is {own.get('role')!r}, not 'prime_director'",
+                    file=sys.stderr)
+                return None
+        elif role != "prime_director":
+            print(
+                f"REFUSED {caller or '<unknown>'}: --all-live is prime-only "
+                f"(own row '{caller}' not found and no prime_director role "
+                "passed)", file=sys.stderr)
+            return None
         results: list[Path] = []
         new_rows = [dict(r) for r in rows]
         wrote_any = False
@@ -1792,7 +1817,11 @@ def _scan_messages(inbox: Path) -> tuple[list[str], int]:
     if not inbox.is_file():
         return [], 0
 
-    text = inbox.read_text()
+    # Read with newline="" so CR/CRLF survive: the sig covers the EXACT bytes
+    # the sender passed (mur-39 order (d)), and read_text()'s universal-newline
+    # translation would fold a lone CR (and CRLF) into LF before _parse_block
+    # could ever see it -- making every CR-carrying message read FORGED.
+    text = inbox.open("r", newline="").read()
     lines = text.splitlines(keepends=True)
     marker_index = -1
     for i, line in enumerate(lines):
@@ -1822,7 +1851,14 @@ def _parse_block(block: str) -> tuple[dict, str]:
     text) yields an empty text.
     """
     body = block[len(MSG_SEP):] if block.startswith(MSG_SEP) else block
-    lines = body.splitlines()
+    # Split on "\n" ALONE, never splitlines(): splitlines() treats CR, CRLF,
+    # VT, FF, FS, GS, RS and U+2028/U+2029 as line boundaries too, so a body
+    # carrying a CR is silently re-fragmented -- and the sig covers the EXACT
+    # bytes the sender passed, so a normalized body can never re-verify (the
+    # CR-body / FORGED defect, mur-39 order (d)). Header lines are pure LF, so
+    # the first-blank-line boundary is unchanged; but the body is reassembled
+    # line-for-line on "\n" so every "\r" survives byte-for-byte.
+    lines = body.split("\n")
     meta: dict = {}
     i = 0
     while i < len(lines) and lines[i] != "":
@@ -1834,7 +1870,11 @@ def _parse_block(block: str) -> tuple[dict, str]:
             k, _, v = line.partition(":")
             meta[k] = v.lstrip()
         i += 1
-    text = "\n".join(lines[i + 1:])
+    # Reassemble the body on "\n", then strip exactly the ONE separator the
+    # writer appends (`block = head + f"\n{text}\n"`). rstrip("\n") stops at a
+    # "\r", so a TRAILING CR in the body content survives. This is the exact
+    # inverse of the writer's store, and it reproduces the signed bytes.
+    text = "\n".join(lines[i + 1:]).rstrip("\n")
     return meta, text
 
 
@@ -2128,7 +2168,9 @@ def read(root: Path, me: str, sender: str | None,
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
     if inbox.is_file():
-        text = inbox.read_text()
+        # newline="" too: a rewrite here must not be the thing that strips the
+        # CR the writer preserved (mur-39 order (d)).
+        text = inbox.open("r", newline="").read()
         lines = text.splitlines(keepends=True)
         if marker_index >= 0:
             # Remove old marker; re-insert at end.
