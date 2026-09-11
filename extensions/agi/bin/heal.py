@@ -19,10 +19,13 @@ Returns 0 when ALL agents are in terminal status (done/pending/hung-then-healed/
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime
 import importlib.util
+import io
 import json
 import os
+import re
 import shlex
 import signal
 import subprocess
@@ -43,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
+import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
 def _default_role_for_tier(tier):
     """Mirror dispatch's default (role == tier) for the heal path."""
     return tier or "kid"
@@ -104,6 +108,8 @@ def main() -> int:
     # untouched so driver.sh's heal call parses identically.
     if len(sys.argv) > 1 and sys.argv[1] == "watch":
         return _main_watch()
+    if len(sys.argv) > 1 and sys.argv[1] == "sweep":
+        return _main_sweep()
     return _main_heal()
 
 
@@ -435,6 +441,322 @@ def _run_pending_after_joins(root: Path) -> None:
                        f"dm sent: {result.get('sent')})")
 
 
+def _sweep_season(branch: str) -> int | None:
+    """Season from a `loop/<slug>-<agent8>@s<N>` branch name, or None.
+    Used to fall back to `origin/season/s<N>` as the round's base when the
+    worktree's own session records no `base_branch`."""
+    if not branch:
+        return None
+    m = re.search(r"@s(\d+)\s*$", branch)
+    if not m:
+        return None
+    try:
+        return int(m.group(1))
+    except ValueError:
+        return None
+
+
+def _git(args: list[str], cwd: Path) -> tuple[list[str], int]:
+    """`git <args>` run in `cwd`, returning (stdout lines, returncode).
+    Best-effort: a broken git yields (empty, nonzero), never raises."""
+    try:
+        out = subprocess.run(["git", "-C", str(cwd), *args],
+                             capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return [], 1
+    return (out.stdout or "").splitlines(), out.returncode
+
+
+def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None:
+    """The branch this round was cut from, for the ancestry check.
+
+    Prefers the `base_branch` dispatch wrote into the worktree's own session
+    records (the same tuple season.py merge-up climbs); falls back to
+    `origin/season/s<N>` from the loop branch. None means the round's base
+    cannot be resolved, so its worktree is NOT removed (a round whose landing
+    cannot be proven must not be reaped)."""
+    sess = wt / ".agi" / "sessions"
+    if sess.is_dir():
+        for it in sorted(sess.glob("iter-*")):
+            ap = it / "agent.json"
+            if ap.exists():
+                try:
+                    bb = json.loads(ap.read_text()).get("base_branch")
+                except (json.JSONDecodeError, OSError):
+                    bb = None
+                if bb:
+                    return bb
+            mp = it / "manifest.json"
+            if mp.exists():
+                try:
+                    man = json.loads(mp.read_text())
+                except (json.JSONDecodeError, OSError):
+                    man = {}
+                for e in man.get("agents") or []:
+                    bb = e.get("base_branch")
+                    if bb:
+                        return bb
+    if season is not None:
+        return f"origin/season/s{season}"
+    return None
+
+
+def _sweep_iter_name(wt: Path) -> str:
+    """The round's iter-dir name as carried in the worktree, or `?` when the
+    worktree has none (the `worktree carries no iter-* dir` condition)."""
+    dirs = sorted(wt.glob(".agi/sessions/iter-*"))
+    return dirs[0].name if dirs else "?"
+
+
+def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
+    """The `git status --porcelain` entries that are NOT under a worktree's
+    own `.agi/sessions/` (per-worktree session scratch is the one tolerated
+    residue; everything else makes the tree dirty and therefore unremovable
+    without `--force`)."""
+    dirty: list[str] = []
+    for ln in status_lines:
+        path = ln[3:].strip().strip('"')
+        if path.startswith(".agi/sessions/"):
+            continue
+        dirty.append(path)
+    return dirty
+
+
+# session-complete refusal markers we reduce to short named reasons in the
+# `[sweep] refused ... session dir not home (<reason>)` line. Order matters:
+# the FIRST match below wins for a refusal whose stdout carries more than one.
+def _sweep_refusal_reason(text: str) -> str:
+    for needle, tag in (
+        ("not every agent record is terminal", "non-terminal"),
+        ("target already exists and is not empty", "target exists"),
+        ("a live lease is active", "live lease"),
+        ("this source's own contribution did not verify", "verify failed"),
+    ):
+        if needle in text:
+            return tag
+    return "home failed"
+
+
+def _sweep_bring_home(root: Path, main_sessions: Path, iter_name: str,
+                      dry_run: bool, homed: dict) -> str | None:
+    """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
+sweep-judges-it.
+
+    Bring a NOT-home round's session dir home via `cli._session_complete`, the
+    one sanctioned caller of that normally-manual command. Resolves `root`
+    (the main graph root the sweep already holds), calls it ONCE PER
+    ITERATION per pass (the `homed` memo guards a `--branch` round whose
+    iter dir sits in TWO worktrees -- `worktree=None` lets the one call
+    merge every source into one target). session-complete's OWN guards stay
+    the authority and are neither duplicated nor bypassed: no live lease for
+    the iteration, every agent record terminal, target not already
+    non-empty, copy-then-verify-then-remove-each-source-by-its-own-
+    contribution. Returns None when the iter dir came home (or would, in a
+    dry run); else a short refusal reason for the `session dir not home` log.
+    Never writes anything itself -- the migrate is session-complete's, this
+    only decides by its captured stdout (dry-run) or the on-disk target.
+    """
+    if iter_name in homed:
+        # already attempted this pass; the memoized outcome holds, but the
+        # on-disk target is always re-read because a sibling may have landed it
+        return None if (main_sessions / iter_name).is_dir() else homed[iter_name]
+    try:
+        import cli as _cli  # noqa: E402 — cli imports evidence_gate/locations/
+        # spawn_budget, so heal must NOT load it at module import time
+    except Exception as exc:  # noqa: BLE001
+        homed[iter_name] = f"cli import failed ({exc})"
+        return homed[iter_name]
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            _cli._session_complete(
+                root, locations.iteration_id(iter_name),
+                worktree=None, dry_run=dry_run)
+        text = buf.getvalue()
+    except Exception as exc:  # noqa: BLE001 — session-complete raised
+        homed[iter_name] = f"home failed (raised: {exc})"
+        return homed[iter_name]
+    if dry_run:
+        # a dry-run session-complete returns 0 for would-migrate, REFUSE and
+        # no-candidate alike -- decide by the CAPTURED stdout, never the rc.
+        if "WOULD migrate" in text and "REFUSE" not in text:
+            homed[iter_name] = ""
+            return None
+        homed[iter_name] = _sweep_refusal_reason(text)
+        return homed[iter_name]
+    # LIVE: only the on-disk target is the proof, never a return code.
+    if (main_sessions / iter_name).is_dir():
+        homed[iter_name] = ""
+        return None
+    homed[iter_name] = _sweep_refusal_reason(text)
+    return homed[iter_name]
+
+
+def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
+                              grace_min: int | None = None
+                              ) -> tuple[int, int, int]:
+    """hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest.
+
+    ONE pass over the main checkout's agent worktrees under
+    `<graph>/worktrees/a00-*`, removing each FINISHED round's worktree when
+    ALL hold:
+      (1) no live spawn-budget lease names the agent (the lease dir is the
+          liveness source, never ps by name);
+      (2) the worktree's HEAD is an ancestor of the branch it was cut from
+          (a round that never landed is NOT removed -- `unmerged`);
+      (3) `git status --porcelain` is empty apart from `.agi/sessions/`
+          paths (a dirty tree is REFUSED by name, never forced);
+      (4) the round's session dir has come home to the main checkout, or
+          the worktree carries no `iter-*` dir at all;
+      (5) the worktree directory is older than the grace
+          (`reaper.worktree_grace_min`, default 30; `.agi/config.json` is
+          read, never edited).
+    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force`, then
+    `git worktree prune`; the `loop/...` branch is KEPT (refs are history).
+    `--dry-run` logs the same `[sweep] removed` lines and removes nothing.
+    Logs one `[sweep]` line per action and a per-pass summary. Never raises
+    into the watch loop. Returns `(removed, refused, kept)`."""
+    removed = refused = kept = 0
+    wt_base = root / "worktrees"
+    if not wt_base.is_dir():
+        return (0, 0, 0)
+    main_checkout = locations.git_common_root(root)
+    if grace_min is None:
+        grace_min = 30
+        try:
+            cfg_path = locations.config_path(root)
+            if cfg_path is not None:
+                cfg = json.loads(cfg_path.read_text())
+                grace_min = int(cfg.get("reaper", {}).get(
+                    "worktree_grace_min", grace_min))
+        except (ValueError, TypeError, OSError, json.JSONDecodeError):
+            pass  # a malformed grace -> the default stays
+    try:
+        live_ids = {r.get("agent_id") for r in
+                    spawn_budget.live_agents(root) if r.get("agent_id")}
+    except Exception as exc:  # noqa: BLE001 — an unreadable budget must NOT
+        # open a removal window. Fail CLOSED: skip the whole sweep this pass --
+        # every worktree stays, live lease or not. `live_ids = set()` here would
+        # wrongly treat every agent as dead and let a merged+clean+grace-old
+        # live worktree be removed under a transient budget failure.
+        _watch_log(f"[sweep] skipped: budget unreadable ({exc})")
+        return (0, 0, 0)
+    main_sessions = locations.sessions_dir(root)
+    homed: dict[str, str] = {}  # iter dirname -> "" (home) | refusal reason,
+    # memoized per pass so a `--branch` round's TWO trees home its iter dir ONCE
+    now = time.time()
+    # Pre-resolve each worktree's BASE (the branch it was cut from) READ-ONLY
+    # BEFORE any bring-home runs. A `--branch` round's single merge-home
+    # (session-complete, worktree=None) removes the iter dir from EVERY tree it
+    # was found in, so a second tree's records would be gone by its turn in the
+    # loop -- pre-resolving here (hyp:l4-a-finished-rounds-session-dir-comes-
+    # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
+    base_pre: dict[str, str] = {}
+    for wt_p in sorted(wt_base.glob("a00-*")):
+        if not wt_p.is_dir():
+            continue
+        b0, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt_p)
+        base_pre[wt_p.name] = _sweep_worktree_base(
+            root, wt_p, _sweep_season(b0[0] if b0 else ""))
+    for wt in sorted(wt_base.glob("a00-*")):
+        if not wt.is_dir():
+            continue
+        agent_id = wt.name
+        # (1) liveness from the shared lease dir, never ps by name.
+        if agent_id in live_ids:
+            kept += 1
+            _watch_log(f"[sweep] kept {agent_id}: live")
+            continue
+        branch_lines, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt)
+        branch = branch_lines[0] if branch_lines else ""
+        season = _sweep_season(branch)
+        base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
+        if not base:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
+            continue
+        head_lines, _ = _git(["rev-parse", "HEAD"], wt)
+        head = head_lines[0] if head_lines else ""
+        # (2) a round that never landed is NOT removed.
+        if not head:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no HEAD)")
+            continue
+        _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
+                         main_checkout)
+        if anc_rc != 0:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged")
+            continue
+        # (3) a dirty tree is REFUSED by name, never forced.
+        status_lines, _ = _git(["status", "--porcelain"], wt)
+        dirty = _sweep_dirty_paths(status_lines)
+        if dirty:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: dirty "
+                       f"({len(dirty)} paths)")
+            continue
+        # (4)/(5) A finished round's session dir comes home before the sweep
+        # judges condition (4): for a leaseless+merged+clean round, the GRACE
+        # check moves AHEAD of the bring-home step, so a director's hand
+        # harvest inside the 30-minute window is never raced by the reaper --
+        # only a past-grace round is ever homed (or reaped) by the sweep.
+        # The worktree directory must be older than the configured grace.
+        try:
+            age_min = (now - wt.stat().st_mtime) / 60.0
+        except OSError:
+            age_min = 0.0
+        if age_min < grace_min:
+            kept += 1
+            _watch_log(f"[sweep] kept {agent_id}: grace "
+                       f"({age_min:.0f}m < {grace_min}m)")
+            continue
+        # (4) the round's session dir must have come home (or there is none).
+        wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
+        if wt_iters:
+            not_home = [d.name for d in wt_iters
+                        if not (main_sessions / d.name).is_dir()]
+            if not_home:
+                rejected: list[str] = []
+                homed_now: set[str] = set()
+                for dn in not_home:
+                    reason = _sweep_bring_home(root, main_sessions, dn,
+                                               dry_run, homed)
+                    if reason is None:
+                        homed_now.add(dn)
+                        _watch_log(f"[sweep] homed {agent_id} iter={dn}")
+                    else:
+                        rejected.append(f"{dn}:{reason}")
+                # condition (4) is re-read from DISK for a LIVE pass; a
+                # dry-run wrote nothing, so a would-home (helper returned
+                # None) counts as home for the removal decision here.
+                remaining = [d.name for d in wt_iters
+                             if not (main_sessions / d.name).is_dir()
+                             and d.name not in homed_now]
+                if remaining:
+                    refused += 1
+                    _watch_log(f"[sweep] refused {agent_id}: session dir not "
+                               f"home ({','.join(rejected)})")
+                    continue
+        iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
+        if dry_run:
+            _watch_log(f"[sweep] removed {agent_id} "
+                       f"iter={iter_name} base={base} (dry-run)")
+            removed += 1
+            continue
+        _, rm_rc = _git(["worktree", "remove", str(wt)], main_checkout)
+        if rm_rc != 0:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: remove failed")
+            continue
+        _git(["worktree", "prune"], main_checkout)
+        _watch_log(f"[sweep] removed {agent_id} "
+                   f"iter={iter_name} base={base}")
+        removed += 1
+    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}")
+    return (removed, refused, kept)
+
+
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
@@ -455,11 +777,18 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         _run_pending_after_joins(root)
         # hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human
         # (kid 1 of 2): the SAME seat rows the wake repair reads are now
-        # scanned for a DEAD seat each pass — pid gone, window @id gone and no
-        # window named for the seat, no rotation in flight — and the dead seat
-        # is NAMED once and recorded as a `crash-recovery` rotation record
-        # (the once-guard). kid 2 owns the respawn half.
+        # scanned for a DEAD seat each pass — pid gone, window @id gone (the
+        # live-first row; (1c) name-lineage deleted, prime XI 19:38Z), no
+        # rotation in flight — and the dead seat is NAMED once and recorded
+        # as a `crash-recovery` rotation record (the once-guard). kid 2 owns
+        # the respawn half.
         _watch_seats(root)
+        # hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest:
+        # once per pass, sweep finished rounds' worktrees. Run unconditionally
+        # (never gated on inline_reaper) so a harness that harvests with raw
+        # `git merge` still gets its residue cleaned by the persistent
+        # watcher. Best-effort; never raises into the watch loop.
+        _sweep_finished_worktrees(root)
         if once:
             break
         _watch_log(f"watch: pass complete over {len(rounds)} round(s); "
@@ -479,6 +808,22 @@ def _main_watch() -> int:
     given = Path(args.root).resolve()
     root = locations.find_project_root(given) or given
     _watch(root, once=args.once, poll_s=args.poll_s)
+    return 0
+
+
+def _main_sweep() -> int:
+    ap = argparse.ArgumentParser(prog="heal.py sweep")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root to sweep")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print what would be removed, remove nothing")
+    # `main()` already consumed the leading `sweep` token; parse what follows.
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    removed, refused, kept = _sweep_finished_worktrees(root,
+                                                       dry_run=args.dry_run)
+    print(f"sweep: removed={removed} refused={refused} kept-live={kept}")
     return 0
 
 
