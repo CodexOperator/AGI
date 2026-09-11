@@ -440,7 +440,7 @@ _NUDGE_INBOX_TAIL = " (+unread inbox, read {seat})"
 
 
 def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
-                trailing: str = "") -> str:
+                trailing: str = "") -> str | None:
     """The inline pane line for a dm nudge (hypothesis:l4-the-nudge-carries-\
     the-dm-body-inline): `[nudge: <from>]: <body>`. The body is FLATTENED
     to one line (newlines -> ` / `) and, if the delivered line would exceed
@@ -449,7 +449,14 @@ def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
     `trailing` (e.g. the `(+unread inbox, read <seat>)` deferred-delivery
     tail) is appended and counted INSIDE the `_NUDGE_LINE_MAX` budget, so no
     delivery path emits a line longer than the cap. The body STILL lands in
-    the dm file (the record); this line is delivery."""
+    the dm file (the record); this line is delivery.
+
+    Returns None when NO tail leaves room for at least one body character --
+    a pathological sender/seat whose `prefix` alone eats the whole
+    `_NUDGE_LINE_MAX` budget (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats). The caller DEFERS the dm instead of typing
+    a zero-body line (prefix + tails only): zero-body delivery is
+    unreachable. None is unobservable in the declared seat/sender range."""
     flat = " / ".join(p.strip() for p in body.splitlines() if p.strip())
     if not flat:
         flat = body
@@ -472,12 +479,17 @@ def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
                  trunc,                   # then shorten the trunc tail: drop +N more
                  ""):                     # drop every tail
         keep = _NUDGE_LINE_MAX - len(prefix) - len(tail)
-        if keep >= 0:
+        if keep >= 1:
+            # a body must keep at least ONE character -- keep == 0 would
+            # emit a zero-body line (prefix + tails only), which carries no
+            # dm; retreat to a leaner tail instead. Zero-body delivery is
+            # unreachable (hypothesis:l4-ownership-matches-the-rendered-line-
+            # and-zero-body-retreats).
             return prefix + flat[:keep].rstrip() + tail
-    # Unreachable in the declared seat/sender range (`prefix` alone fits),
-    # but floor at 0 so a pathological sender never yields a long slice.
-    keep = max(0, _NUDGE_LINE_MAX - len(prefix))
-    return prefix + flat[:keep].rstrip()
+    # No tail leaves room for a single body character (pathological
+    # sender/seat). Refuse the line: the caller defers, never emits a
+    # zero-body delivery (not reached in the declared seat/sender range).
+    return None
 
 
 def _nudge_token_head(token: str) -> str:
@@ -794,6 +806,18 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                            trailing=_NUDGE_INBOX_TAIL.format(seat=to))
     else:
         text = _build_nudge_token(to)
+    if text is None:
+        # `_nudge_line` found no tail leaving room for a single body
+        # character (a pathological sender/seat whose prefix eats the whole
+        # budget): never type a zero-body line -- defer the dm for a later
+        # retry (hypothesis:l4-ownership-matches-the-rendered-line-and-zero-
+        # body-retreats). Zero-body delivery is unreachable.
+        if body is not None:
+            if not _store_deferred(root, to, sender or "unknown", body):
+                _bump_pending(root, to)
+        print("nudge: deferred (no room to render the body inline)",
+              file=sys.stderr)
+        return False
     # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
     # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
     # target: never send-keys into a name-addressed window the row was
@@ -863,8 +887,24 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # keeps the head-only match.
         body_for_match = body if body is not None else (d_body if delivering_deferred else None)
         if body_for_match is not None:
-            our_line_was_stranded = (_nudge_token_head(text) in region
-                                     and body_for_match in region)
+            # CLAUSE (d) (hypothesis:l4-ownership-matches-the-rendered-line-
+            # and-zero-body-retreats): the pane holds the RENDERED line, not
+            # the raw body. A body truncated to the cap (with a `… (read
+            # <seat>)` / `(+N more)` tail) or flattened (newlines -> ` / `)
+            # never appears verbatim in `region`, so `body_for_match in
+            # region` misread our OWN stranded line as foreign and re-deferred
+            # it forever. Compare region against the line this body RENDERS
+            # (the same _nudge_line flatten + truncation), so a truncated /
+            # flattened own line is recognised as ours and submitted with
+            # Enter only. For a DIRECT dm that line IS `text`; for a DEFERRED
+            # delivery `text` also carries the `(+unread inbox...)` tail of
+            # THIS retry, but a stranded line left by the body's earlier
+            # (deferred-under-busy) attempt has NO inbox tail -- match the
+            # no-tail render so that own line is still recognised (residue B
+            # control).
+            own_line = (text if body is not None
+                        else _nudge_line(to, d_sender, d_body, more))
+            our_line_was_stranded = own_line in region
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
