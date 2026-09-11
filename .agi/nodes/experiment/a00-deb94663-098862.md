@@ -92,7 +92,11 @@ ts=2026-09-10T20:46:09.697Z category=cyber requestId=req_011CevQvLvpbLcLv2GE49WA
 the transcript itself.
 
 **Tests** — `pytest test_verification.py test_verification_seat_model.py`:
-42 passed (30 existing + 12 new). Suite run is out of scope this round by
+42 passed (35 existing in test_verification.py + 7 new in
+test_verification_seat_model.py -- the total; the split was corrected
+on 2026-09-11 per merge-up 24 residue (c), the prior "30 existing + 12
+new" mis-stated it; test_verification.py holds 35 test functions and the
+seat-model file 7). Suite run is out of scope this round by
 directory order (parallel seats share the tree; the full-suite advisory
 window is the Prime's).
 
