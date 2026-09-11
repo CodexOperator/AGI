@@ -5972,8 +5972,10 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     read-only git command allowed) and to a NAMED `SKIPPED: <reason>` where it
     cannot yet (a join-only or sibling-round fact — never the old blanket
     `0b owns deriving`). Every derived fact is stamped in `measured_at` with
-    the commit it was measured at, so `_bootstrap_stale` can refuse any record
-    that is not at HEAD. Returns the written path (string).
+    the commit it was measured at, so `_bootstrap_stale` can mark any
+    record not at HEAD stale per its `fact_bounds` entry (the facts are still
+    emitted, each with a `[stale: ...]` mark, never withheld). Returns the
+    written path (string).
 
     `join_pending` (a set of fact keys) and `overrides` (a key->value dict)
     support the PRE-SPAWN write (hypothesis:l4-startup-first-turn-is-
@@ -10488,7 +10490,8 @@ def main(argv: list[str] | None = None) -> int:
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
     p_bb = sub.add_parser(
         "bootstrap-block", help="emit the bootstrap block for a seat "
-                                 "successor, or REFUSE when absent/stale")
+                                 "successor, or REFUSE when absent/malformed "
+                                 "(a stale fact is MARKED stale, still emitted)")
     p_bb.add_argument("--seat", required=True, help="seat name")
     p_bb.add_argument("--root", default=None,
                       help="project root (default: resolve from cwd)")
