@@ -53,6 +53,14 @@ def _named_paths(args):
     return [a for a in (args or []) if a and not a.startswith("-")]
 
 
+#: Record paths already named as phantoms THIS session. A phantom running
+#: record (dead pid) is reported at most once per process even when several
+#: roots scan the same leftover record, so the trace stays one line per
+#: phantom, not one line per scan pass (hypothesis:l4-a-phantom-running-
+#: record-with-a-dead-pid-is-named).
+_phantom_reported = set()
+
+
 def _running_record_tiers(root) -> dict:
     """{pid: int: tier: str} for every agent.json under root/**/agent.json
     that records a LIVE running agent (status == "running", numeric pid,
@@ -82,8 +90,20 @@ def _running_record_tiers(root) -> dict:
         tier = rec.get("tier")
         if status != "running" or not isinstance(pid, int) or not isinstance(tier, str):
             continue
-        # A dead-pid running record is a phantom, not an agent: skip it.
+        # A dead-pid running record is a phantom, not an agent: skip it,
+        # but NAME it on stderr so a SIGKILLed leftover is visible instead of
+        # silently ignored (hypothesis:l4-a-phantom-running-record-with-a-
+        # dead-pid-is-named). One line per record path per session. This is
+        # trace, not action: the tests dir is not the record's owner, so we
+        # never delete -- cleaning the phantom is the reaper's job.
         if not os.path.exists(f"/proc/{pid}"):
+            if str(agent_file) not in _phantom_reported:
+                _phantom_reported.add(str(agent_file))
+                print(
+                    f"tier-gate: phantom running record {agent_file} "
+                    f"pid={pid} (dead) -- skipped",
+                    file=sys.stderr,
+                )
             continue
         result[pid] = tier
     return result
