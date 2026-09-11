@@ -899,6 +899,84 @@ def test_probe_failure_never_swallowed_into_noop(tmp_path, fake_systemctl):
         "a probe failure must never be swallowed into a false no-op"
 
 
+def _write_unit_then_dry_run_reapply(tmp_path, root, ud, fake_systemctl):
+    """Write the unit once (live apply runs the true write+seam path), reset
+    the fake's call log, then reapply with `dry_run=True` so the SECOND
+    apply's probes run (and are observed) under dry run. Returns the dry-run
+    result dict."""
+    crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                    unit_dir=ud)
+    fake_systemctl.write_text("")
+    return crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                           unit_dir=ud, dry_run=True)
+
+
+def test_dry_run_up_to_date_enabled_active_probes_real_state(tmp_path,
+                                                              fake_systemctl):
+    """hypothesis:l4-crons-dry-run-probes-answer-real-state. Up-to-date +
+    enabled + active + `--dry-run`: the READ-ONLY probes still RUN (they
+    mutate nothing), so the dry run reaches the SAME `(no-op)` branch a live
+    apply reaches — and it prints no seam intent for a unit the live pass
+    would leave alone (the original bug)."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    r2 = _write_unit_then_dry_run_reapply(tmp_path, root, ud, fake_systemctl)
+    assert any("enabled+active (no-op)" in a for a in r2["unit_actions"]), \
+        "dry run must answer the probe and reach the same no-op branch"
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls, "dry-run probes must run for real"
+    assert all(c.startswith("--user is-") for c in calls), \
+        "a dry-run no-op may only probe — no daemon-reload, no enable --now"
+    assert not any(("daemon-reload" in a or "enable --now" in a)
+                   for a in r2["unit_actions"]), \
+        "no dry-run seam-intent line for a unit the live pass leaves alone"
+    assert not any("(dry-run)" in a for a in r2["unit_actions"]), \
+        "the no-op branch emits no (dry-run) mutation lines"
+
+
+def test_dry_run_stale_file_still_writes_dry_run_only(tmp_path,
+                                                       fake_systemctl):
+    """Absent unit file + `--dry-run`: the write + seam intent still prints
+    with `(dry-run)` and NOTHING is written to disk — mutations never run
+    under dry run even though the read-only probes now do."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    result = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                             unit_dir=ud, dry_run=True)
+    assert any("write unit " in a and "(dry-run)" in a
+               for a in result["unit_actions"])
+    assert any("daemon-reload (dry-run)" in a
+               for a in result["unit_actions"])
+    assert any("enable --now" in a and "(dry-run)" in a
+               for a in result["unit_actions"])
+    assert not (ud / "agi-reaper.service").exists(), \
+        "dry-run must not write the unit file"
+
+
+def test_dry_run_up_to_date_not_enabled_claims_no_noop(tmp_path,
+                                                        fake_systemctl):
+    """Up-to-date file but the probe reports NOT enabled + `--dry-run`: the
+    dry run must NOT claim a no-op the live pass would not take — it prints
+    the seam-intent lines with `(dry-run)` instead."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    (fake_systemctl.parent / "systemctl.answers").write_text(
+        "is-enabled: 1\n")   # probe: not enabled
+    res = _write_unit_then_dry_run_reapply(tmp_path, root, ud, fake_systemctl)
+    assert not any("enabled+active (no-op)" in a
+                   for a in res["unit_actions"]), \
+        "a dry run must not claim a no-op the live pass would not take"
+    assert any("daemon-reload (dry-run)" in a for a in res["unit_actions"])
+    assert any("enable --now" in a and "(dry-run)" in a
+               for a in res["unit_actions"])
+
+
 def test_crons_live_false_removes_unit_and_runs_disable(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
