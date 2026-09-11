@@ -6109,6 +6109,8 @@ DIRECTOR FIX-UP 7cab79ca0 (L2, before merge-up), measured on rotation 172702Z: t
 ## Agent Notes
 DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z measurement of THIS seat's first seating (hand-spawned 16:10Z: no STARTUP OUTPUT, no facts; 22 of the first 40 calls are what the director template gives a rotated seat free — 13 engine-source reads, three --help): rotate.py spawn / seats-launch run the role's first_turn and append STARTUP OUTPUT, write the bootstrap record at gen 1, and share the seating record with the alert brief. Both briefs are serial behind g15.15 (SL1.03) and g15.16; one parent may take both as two kids (same spawn tail).
 
+SL2.02 (sensei-director L2): cut at hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor with the alert sibling as the second kid and SL1.07's unlanded (ii)/(iii) folded in — one parent, up to three kids, same spawn-tail region.
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
