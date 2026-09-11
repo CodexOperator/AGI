@@ -94,14 +94,75 @@ def _default_record_root():
 
 
 def _record_root():
-    """The root this invocation scans -- tree-derived and nothing else
+    """The invoking tree's OWN root -- tree-derived and nothing else
     (hypothesis:l4-the-record-root-has-no-test-seam-either). The old
     `--agent-records-root` option, the `_TEST_AGENT_RECORDS_ROOT` global and
     the `PYTEST_CURRENT_TEST` guard are gone: a kid cannot move the scan
     with any env var or any flag. In-process tests monkeypatch
-    `_default_record_root`.
+    `_default_record_root`. This single root is the FIRST of the multiple
+    roots `_record_roots()` scans (hypothesis:l4-the-kid-tier-gate-scans-
+    every-root-it-can-reach); it is kept separate so a test may isolate the
+    per-tree root from the reach-across-worktrees scan.
     """
     return _default_record_root()
+
+
+def _record_roots():
+    """Every sessions dir THIS invocation scans, as unique resolved paths
+    (hypothesis:l4-the-kid-tier-gate-scans-every-root-it-can-reach): first
+    the invoking tree's OWN sessions dir, then the project's shared sessions
+    dir, then the sessions dir of every worktree registered under the main
+    graph's `.agi/worktrees/*`.
+
+    Before this fix the gate derived its root from ONLY the conftest's own
+    tree (`find_project_root(Path(__file__))`). A kid that pointed pytest at
+    MAIN's absolute tests dir (`python3 -m pytest /home/.../extensions/agi/
+    tests/`) therefore scanned MAIN's sessions dir, found no agent.json for
+    its OWN pid chain, derived no tier and ran the bare directory suite it is
+    refused from its own worktree. Scanning every reachable root closes that:
+    the kid's running record lives in its OWN worktree's sessions, which this
+    scan reaches no matter which tree's tests dir the invocation names.
+    """
+    roots = []
+    seen = set()
+
+    def _add(p):
+        if p is None:
+            return
+        rp = str(Path(p).resolve())
+        if rp not in seen:
+            seen.add(rp)
+            roots.append(rp)
+
+    # 1) the invoking tree's own sessions dir (the per-worktree fork).
+    _add(_default_record_root())
+
+    # 2) the shared room + every worktree, resolved from the main checkout
+    #    through git_common_root so a scan from any worktree reaches the room
+    #    every seat writes (the boundary's recurring face -- shared state
+    #    resolved per-worktree instead of through git_common_root).
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is not None:
+        try:
+            main_graph = locations.shared_project_root(root)
+        except Exception:
+            main_graph = root
+        if main_graph:
+            wt_root = Path(main_graph) / "worktrees"
+            if wt_root.is_dir():
+                for wt in sorted(wt_root.iterdir()):
+                    if not wt.is_dir():
+                        continue
+                    wt_graph = locations.find_project_root(wt)
+                    if wt_graph is not None:
+                        _add(Path(wt_graph) / "sessions")
+            if (Path(main_graph) / "nodes").is_dir():
+                _add(Path(main_graph) / "sessions")
+            elif (Path(main_graph) / ".agi" / "nodes").is_dir():
+                _add(Path(main_graph) / ".agi" / "sessions")
+            else:
+                _add(Path(main_graph) / "sessions")
+    return roots
 
 
 def _ppid_of(pid):
@@ -142,12 +203,29 @@ def _effective_tier():
     clearable-from-inside-a-kid: prefer the tier of a running agent record
     (agent.json) whose pid is an ANCESTOR of the pytest process, so the gate
     derives the tier from the environment that actually spawned the run
-    rather than from AGI_TIER -- which a kid could simply `env -u`. Only when
-    NO running record matches any ancestor does it fall back to AGI_TIER,
-    exactly as before, so a plain interactive run at any tier keeps working.
+    rather than from AGI_TIER -- which a kid could simply `env -u`. The scan
+    spans EVERY reachable sessions root (hypothesis:l4-the-kid-tier-gate-
+    scans-every-root-it-can-reach), so a kid cannot escape by pointing pytest
+    at another tree's tests dir: its running record lives in ITS OWN
+    worktree's sessions, which `_record_roots()` reaches from any tree.
+    The pid->tier map is process-global, so EVERY reachable root is merged
+    into ONE dict BEFORE the ancestor chain is resolved. Merging first makes
+    the outcome independent of root scan order: a pytest process carries
+    multiple records on its own chain (its own record, the parent that
+    spawned it, the director above that) and they may live in different
+    roots. Resolving per-root and taking the first hit let root ORDER decide
+    which one won -- a kid whose own record sat in a later-scanned root while
+    a parent record sat in an earlier-scanned root cleared the gate. With the
+    merged map, nearest ancestor wins: the process's own pid is the nearest,
+    so its own record always beats an ambient (parent/director) record
+    farther up the chain. Only when NO running record in ANY root matches
+    any ancestor does it fall back to AGI_TIER, exactly as before, so a
+    plain interactive run at any tier keeps working.
     """
-    record_tier = _resolve_tier_from_ancestors(
-        _running_record_tiers(_record_root()), _ppid_of, os.getpid())
+    merged = {}
+    for root in _record_roots():
+        merged.update(_running_record_tiers(root))
+    record_tier = _resolve_tier_from_ancestors(merged, _ppid_of, os.getpid())
     if record_tier is not None:
         return record_tier
     return os.environ.get("AGI_TIER")
