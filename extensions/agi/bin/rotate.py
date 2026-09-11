@@ -4034,7 +4034,18 @@ _NUM_OPT_RE = re.compile(r"^-\d+$")
 #: Anything else — any `e`/`w`/`r`/`R`/`W` command, a `{`, a `:label`, a `b` —
 #: is refused as `filter sed program`, because sed commands can read (`r`),
 #: write (`w`), or execute (`e`) files/shell.
-_SED_SUB_RE = re.compile(r"^s(.)(.*?)\1(.*?)\1([gIp0-9]*)$", re.S)
+_SED_SUB_RE = re.compile(
+    # substitute `s`. The delimiter must be a punctuation SEPARATOR — not a
+    # flag char, not alphanumeric, not backslash — so a flag char can never
+    # be mistaken for a delimiter (under the old lazy `(.*?)` grammar
+    # `sgxgygeg`/`s0x0y0e0` let a delimiter that was itself a legal flag char
+    # absorb an `e`/`w` into the flags field). Each field is anchored to
+    # never contain a bare delimiter (an escaped `\.` pair is allowed, so
+    # `s/a\/b/c/g` still passes), and flags stay limited to `[gIp0-9]*`.
+    r"^s([^gIp0-9a-zA-Z\\])"
+    r"(?:(?:\\.)|(?!\1).)*\1"
+    r"(?:(?:\\.)|(?!\1).)*\1"
+    r"([gIp0-9]*)$", re.S)
 _SED_ADDR_RE = re.compile(
     r"^(?:(?:\d+|\$|/(?:\\.|[^/\\])*/)"
     r"(?:,(?:\d+|\$|/(?:\\.|[^/\\])*/))?)?"
@@ -4438,7 +4449,16 @@ def _producing_refusal(command: str) -> str | None:
             toks = toks[i:]
             if not toks:
                 continue
-            exe = os.path.basename(toks[0])
+            raw_exe = toks[0]
+            if "/" in raw_exe:
+                # a path-form exe token (any `/`, incl. `/tmp/x/head`, `./head`)
+                # is judged BY NAME, not by basename — basename would silently
+                # allow an off-allowlist binary behind a path. This holds for
+                # unit-leading producers AND pipe-fed filter stages alike
+                # (hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-
+                # grammar-anchors-its-fields).
+                return f"producer {raw_exe} is a path, not an allowlisted name"
+            exe = raw_exe
             args = toks[1:]
             if stageno > 0:
                 # a PIPE-FED stage: must be a stdio filter, judged on its
