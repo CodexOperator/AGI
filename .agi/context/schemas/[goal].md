@@ -150,6 +150,15 @@ mint it on the node.
 
 ## Conventions that are not mechanical checks
 
+- **`## Why this exists` (owner 2026-09-11 15:5xZ, verbatim in doc:l4-owner-decisions:
+  "Goal nodes should contain a 'why this exists' which goes hand-in-hand with
+  the parent/child edges to explain why a given graph node(s) became a
+  parent(s) for this specific goal node").** A goal minted by a director from
+  2026-09-11 on carries a body section `## Why this exists`: one paragraph per
+  parent edge, naming the parent and the measured thing it showed that made
+  it a parent of THIS goal. The 166 goals before it are grandfathered; the
+  section is prose, so it is a convention here and not in `validation:` —
+  `links.py schema` does not check it, a merge-up reviewer does.
 - **Goal ids are never renumbered.** A gap beats a renumber. Not checkable
   from one node, so it is not in `validation:`.
 - **Retire by marking `retired` and deprecating the seed node — never
