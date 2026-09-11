@@ -273,6 +273,34 @@ def test_watch_death_not_double_dm_on_second_pass(graph_project, monkeypatch):
     assert text.count("from:") == 1, "second pass must not re-send the dm"
 
 
+def test_watch_repairs_a_stranded_seat_wake_in_one_pass(
+        graph_project, monkeypatch):
+    """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+    the watch pass calls `send.wake` for every configured live seat row, with
+    no operator, so a stranded rotation-alert wake is repaired within ONE
+    `--once` pass. A row with no name is skipped; `send.wake` itself is a
+    read-only no-op when there is nothing to deliver, so polling every row
+    is safe."""
+    import send as _send
+    woke = []
+
+    def _fake_wake(root, to, tmux_session=None):
+        woke.append(to)
+        return True
+
+    monkeypatch.setattr(_send, "wake", _fake_wake)
+    monkeypatch.setattr(
+        _send, "_locally_loaded_rows",
+        lambda root: [{"name": "sanctuary-director"},
+                      {"name": "sanctuary-helper"},
+                      {"name": ""}])          # the "" row is skipped
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    assert sorted(woke) == ["sanctuary-director", "sanctuary-helper"]
+
+
 class _FlipFlopAdapter:
     """Exercises EXACTLY the transition the other dead-pid tests never reach
     (hypothesis:l4-heal-death-past-deadline-branch-has-a-test). is_alive

@@ -2622,6 +2622,23 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             continue
     print(f"announced rotation -> {len(delivered)} recipient(s) "
           f"{delivered!r}", file=sys.stderr)
+    # hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+    # `send_dm` nudges each recipient on the seat-transport hop; a recipient
+    # whose pane was BUSY at that moment now holds the dm UNREAD but unwoken
+    # (the nudge coalesced). Re-run `send.wake` once per delivered recipient
+    # right here, NON-fatal and never a gate -- the announcement is the proof.
+    # An immediately-woken recipient is already delivered (the per-seat
+    # coalesce-window marker stops a second type); one still busy coalesces
+    # again and heal.py's watch pass (next poll, <= 30 s) repairs the strand.
+    # This call site does NOT sleep 30 s on the rotation path: a daemon delay
+    # would die when the short-lived announce process exits, so the prompt
+    # re-wake is immediate and heal's poll is the delayed repair.
+    for recv in delivered:
+        try:
+            send.wake(root, recv)
+        except Exception as exc:                          # noqa: BLE001
+            print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
+                  file=sys.stderr)
     return delivered
 
 
