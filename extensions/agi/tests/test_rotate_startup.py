@@ -1307,3 +1307,86 @@ def test_git_readonly_subcmds_deleted():
     # `fetch`-inclusion kept implying a bare fetch was a safe read. It is
     # deleted with no remaining reference (its name no longer binds).
     assert not hasattr(rotate, "_GIT_READONLY_SUBCMDS")
+
+
+def test_probe_bare_separator_value_stays_one_stage(monkeypatch, tmp_path):
+    # hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage: an env
+    # VALUE that is EXACTLY a shlex punctuation char (`|` / `;`) must ride as
+    # ONE argv element through the stage split — it is DATA, not a separator.
+    # The OLD resolver round-tripped the resolved command through shlex.join
+    # then re-tokenized, which turned the value `'|'` back into a bare `|` and
+    # SPLIT one stage into two (`echo x` | `cat ...`). The structural resolver
+    # never re-parses: the boundary is fixed at tokenize time, so the value
+    # cannot inject a stage. Judge and executor must agree on ONE unit / ONE
+    # stage, and the executed argv must carry the char whole.
+    monkeypatch.setenv("PROBE", "|")
+    toks = rotate._resolve_shell_vars_per_token(
+        "echo x $PROBE cat /etc/hostname")
+    assert toks == [("arg", "echo"), ("arg", "x"), ("arg", "|"),
+                    ("arg", "cat"), ("arg", "/etc/hostname")], toks
+    # ONE unit, ONE stage; the `|` sits INSIDE the argv, not between stages
+    assert rotate._startup_units(toks) == \
+        [[["echo", "x", "|", "cat", "/etc/hostname"]]], \
+        rotate._startup_units(toks)
+    assert rotate._command_units(toks) == \
+        [[(["echo", "x", "|", "cat", "/etc/hostname"], {})]], \
+        rotate._command_units(toks)
+
+    monkeypatch.setenv("PROBE", ";")
+    toks = rotate._resolve_shell_vars_per_token(
+        "echo x $PROBE touch /tmp/pwn")
+    assert rotate._startup_units(toks) == \
+        [[["echo", "x", ";", "touch", "/tmp/pwn"]]], \
+        rotate._startup_units(toks)
+    assert rotate._command_units(toks) == \
+        [[(["echo", "x", ";", "touch", "/tmp/pwn"], {})]], \
+        rotate._command_units(toks)
+
+
+def test_probe_bare_separator_full_runner_one_argv(monkeypatch, tmp_path):
+    # End-to-end, through _run_first_turn_commands with a real allowlisted
+    # producer: the value exactly `|` (then `;`) is the WHOLE argv element. No
+    # second stage is split out, the judge sees ONE allowed stage (no refusal),
+    # and the mocked subprocess receives the char whole — nothing else runs.
+    marker = tmp_path / "probe-MARKER"
+    for val in ("|", ";"):
+        monkeypatch.setenv("PROBE", val)
+        captured = {}
+        def _run(cmd, **kwargs):
+            captured["argv"] = list(cmd)
+            return _Proc(rc=0)
+        monkeypatch.setattr(rotate.subprocess, "run", _run)
+        cmd = "python3 {worktree}/extensions/list.py $PROBE"
+        res = rotate._run_first_turn_commands(
+            {"first_turn": [{"label": "probe", "cmd": cmd}]}, VALUES)
+        assert "refused" not in res[0], (val, res)
+        assert res[0]["rc"] == 0, (val, res)
+        # ONE argv element holds the bare char; nothing injected
+        assert captured["argv"] == ["python3", "/wt/extensions/list.py",
+                                    val], (val, captured)
+        assert not marker.exists(), (val, res)
+
+
+def test_probe_judge_sees_one_stage_on_allowlisted_producer(monkeypatch):
+    # the JUDGE on the resolved structure must see ONE stage — the whole point:
+    # `_producing_refusal` consumed a two-stage split before, so `cat` was
+    # judged as a pipe-fed stage; now the `|` is one element of one allowed
+    # producer stage and the judge refuses nothing.
+    monkeypatch.setenv("PROBE", "|")
+    toks = rotate._resolve_shell_vars_per_token(
+        "python3 {worktree}/extensions/list.py x $PROBE y")
+    assert rotate._producing_refusal(toks) is None, \
+        rotate._producing_refusal(toks)
+    monkeypatch.setenv("PROBE", ";")
+    toks = rotate._resolve_shell_vars_per_token(
+        "python3 {worktree}/extensions/list.py x $PROBE y")
+    assert rotate._producing_refusal(toks) is None, \
+        rotate._producing_refusal(toks)
+
+
+def test_resolve_shell_vars_whole_string_gone():
+    # hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage,
+    # requirement 2: the whole-string `_resolve_shell_vars` had ZERO callers
+    # and was DELETE-d; its name no longer binds in the module, so a future
+    # reader cannot reintroduce a whole-string env round-trip.
+    assert not hasattr(rotate, "_resolve_shell_vars")
