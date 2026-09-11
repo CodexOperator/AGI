@@ -1,0 +1,88 @@
+---
+id: command:commands
+type: frag
+parents:
+  - hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council
+edited_by: a00-7f9e3d95
+season: 2
+frag_kind: commands.stream
+title: "The stream command group — sb-status, brb, back, panic — resolved from locations.streamer_stub"
+---
+<!-- BODY:BEGIN -->
+# commands.stream.fragment — the stream commands become our commands
+
+A **Prime-landed** fragment for `command:commands`
+(`.agi/nodes/.geometry/commands.md`). This round does not edit the geometry
+node; the Prime folds this `commands:` group in at merge-up. The
+`argv`/`about`/`workflow` shape is copied from the live commands block in
+`.agi/nodes/.geometry/commands.md` (frontmatter `commands:` entries, read at
+iteration L4.117); every entry here matches it cell for cell.
+
+## The `stream` group to add under `commands:`
+
+Each command's argv resolves its stub path from a configurable
+`locations.streamer_stub` (default `~/work/streamer-stub`); the `<stub>`
+token is substituted at resolve time the way `<root>` and `<engine>` already
+are in `commands.py`. The four commands are the streamer-stub's own CLI
+subcommands, so each argv is `<stub>/<subcommand>` (the stub script plus its
+argument). None of them is ever executed by these fragments; they are
+declarations for the operator table and `commands.py run`.
+
+```yaml
+  sb-status:
+    argv:
+      - <stub>
+      - sb-status
+    about: the streamer stub's live status (the stream is LIVE; read-only status reporting)
+    workflow: read
+  brb:
+    argv:
+      - <stub>
+      - brb
+    about: pause the streamer — operator sets the stub to be-right-back
+    workflow: see
+  back:
+    argv:
+      - <stub>
+      - back
+    about: resume the streamer after brb — operator brings the stub back to live
+    workflow: see
+  panic:
+    argv:
+      - <stub>
+      - panic
+    about: OWNER-ONLY — full emergency stop of the streamer
+    workflow: see
+```
+
+## `panic` is owner-only and is REFUSED for every other actor
+
+`panic` is marked owner-only in the node and must be **refused** for any
+other actor. This is a declaration, stated here so it is true at the config
+layer even before the runner enforces it:
+
+> **REFUSAL: any actor who is not the owner requesting `panic` is refused.**
+> The stream is LIVE; `panic` halts it and is never executed by a kid, a
+> test, or a non-owner operator. The commands.py runner (code residue, next
+> section) must gate `panic` on the caller being the owner and otherwise
+> refuse loudly. These fragments never run it — not even a dry run.
+
+`sb-status` reads stream health; `brb` and `back` are the operator's
+pause/resume pair. They are the two "hands" the stub exposes that are not
+destructive. `panic` is the one that is.
+
+## What the Prime must run to land this (and its residue)
+
+Land `config:seats` with the council rows and `town` cells from
+`seats.councils.fragment.md`, and fold this `stream` group into
+`command:commands`. The exact `write.py` create/set lines are in
+`experiment:a00-7f9e3d95-7b55f6`.
+
+**Code residue after this round, plainly named:** the commands.py runner
+change that (a) resolves `<stub>` from `locations.streamer_stub` and (b)
+gates `panic` on owner — it is NOT landed this round because the helper's
+round L4.113 is live on commands.py. Until that lands, `commands.py run
+sb-status` / `brb` / `back` / `panic` will not resolve these entries. The
+skill's auto-generated table reads this node, so the four appear there as
+soon as the Prime lands the fragment even before the runner resolves them.
+<!-- BODY:END -->
