@@ -520,6 +520,45 @@ def test_plain_seat_own_chain_reap_planned_then_observations(_fix, tmp_path,
     assert "@5 adv-alive.gen1" not in win.read_text(encoding="utf-8")
 
 
+def test_plain_seat_dry_run_resolves_own_id_touches_nothing(_fix, tmp_path,
+                                                            monkeypatch,
+                                                            capsys):
+    """g15-11 plain-seat half of the dry-run: on a PLAIN seat the dry-run must
+    resolve the own-window @id it WOULD reap from the CURRENT `<seat>` window
+    (a tmux rename preserves the @id; the rename target `<seat>.genN` does not
+    exist yet at dry-run time), print the @id + the named skip, and touch
+    NOTHING. Regression for the defect: the dry-run derived the @id from
+    pred_name (.genN) which never resolves -> @id always None."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    # the CURRENT seat window carries the @id (rename-to-.genN preserves it);
+    # the .genN rename target is NOT yet present (live step (2) creates it).
+    win.write_text("@9 adv-alive\n", encoding="utf-8")
+    before = win.read_text()
+    args = SimpleNamespace(
+        name="adv-alive", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=False, successor_argv=None, role="parent",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "adv-alive.gen1" in out      # the rename target it WOULD kill
+    assert "@9" in out                  # the OWN @id resolved from <seat>
+    assert "rename preserves the @id" in out
+    assert "SKIPPED: no pane pid" in out  # named skip when chain underivable
+    assert win.read_text() == before       # touched nothing (no rename)
+    rot = tmp_path / "sessions" / "rotations"
+    assert not rot.exists() or not list(rot.glob("adv-alive.*.json"))
+
+
 def test_chain_seat_dry_run_prints_fifo_plan_touches_nothing(_fix, tmp_path,
                                                              monkeypatch,
                                                              capsys):
@@ -560,6 +599,11 @@ def test_chain_seat_dry_run_prints_fifo_plan_touches_nothing(_fix, tmp_path,
     assert "belam-S1-L4-VII" in out        # the successor numeral name derived
     assert "GATES this off" in out         # s12 gating for a numeral-chain seat
     assert "ps -e" in out                  # (w) the dry-run says ps -e
+    # g15-11: the dry-run NAMES the OLDEST it would reap, its @id, and the
+    # named skip when the chain cannot be derived (no tmux pane pid here).
+    assert "belam-S1-L4-I" in out          # the OLDEST predecessor to reap
+    assert "@10" in out                    # its window @id
+    assert "SKIPPED: no pane pid" in out   # named skip when chain underivable
     assert win.read_text() == before       # touched nothing
     rot = tmp_path / "sessions" / "rotations"
     assert not rot.exists() or not list(rot.glob("belam.*.json"))
