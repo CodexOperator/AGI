@@ -622,11 +622,19 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
     layers = _bfs_neighbors(g, target, hops=2)
     seen = set(layers)
 
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — ONE
+    # town line, derived from the target's nearest vision (default core) via
+    # the shared helper; never a branch on a town NAME (goal:g8.2).
+    import spawn_gate
+    town = spawn_gate.nearest_vision_town(str(root / "nodes"), [target])
+
     lines = [
         f"# autoresearch-tree iteration {args.iter_n} — agent {args.agent_id}",
         "",
         f"## Zoom Level: SMALL (legacy alias for numeric level {LEGACY_LEVEL_MAP['small']} — {LEVEL_INFO[LEGACY_LEVEL_MAP['small']]['name']})",
         f"Target node: **{target}** (extending or branching from this point)",
+        f"Town: {town} — derived from the target's nearest vision "
+        "(hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council)",
         "",
         f"Subtree contains {len(seen)} nodes within 2 hops of target.",
         "",

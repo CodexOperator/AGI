@@ -6375,11 +6375,6 @@ MERGE-UP 23 (eb5648ffe, landed in the Prime's own checkout at 01:43Z while the P
 
 🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
 
-### G18.1 — The livestream goes live as L4's final round — verified working, accounts created by the agents — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g18.1
-
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
@@ -8656,7 +8651,24 @@ Per node at done and per session: model, harness, profile, tokens_in, tokens_out
 ## Agent Notes
 Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
 
-### G18 — Sanctuary as a managed subscription web app — the project pays for itself
+## App: streaming-suite
+
+The goals of this app/town share one vision, one council and one per-town
+vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
+Town is derived from a vision's `town:` cell; core is every other goal.
+
+#### G18.1 — The livestream goes live as L4's final round — verified working, accounts created by the agents — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g18.1
+
+## App: web-app-suite
+
+The goals of this app/town share one vision, one council and one per-town
+vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
+Town is derived from a vision's `town:` cell; core is every other goal.
+
+### G18 — Sanctuary as a managed subscription web app — the project pays for itself — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g18
