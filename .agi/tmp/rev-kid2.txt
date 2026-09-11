@@ -1,0 +1,9 @@
+PARENT REVIEW L4.278 (a00-9e0d38c6), accepted as proved.
+
+(1) INSTRUCTION SAID: "the tests under hypothesis:l4-a-parent-with-a-live-kid-is-not-stalled drive `_agent_status`/the stall predicate through the module's existing fake-table seams (`_ps_table`-style monkeypatch of the pid/CPU/socket readers) and spawn NO subprocess -- `grep -n Popen extensions/agi/tests/test_spawn_budget.py` returns nothing in that section".
+
+(2) WHAT THE MACHINE DOES, on the merged round tree: a `fake_procs` fixture monkeypatches `spawn_budget._pid_alive` to True, `_pid_ticks` to 0, `_pid_sockets` to 0; all six live-kid tests take it and commit fake pids 424242+. Re-measured, not read: `awk 'NR 449-748 range'` piped through `grep -n 'Popen|_sleeping'` returns nothing; `pytest test_spawn_budget.py -q` gives 46 passed.
+
+(3) NEAR MISS: monkeypatching only `_pid_ticks`/`_pid_sockets` (the seam the neighbouring `_FakeSampler` already used) while leaving `_pid_alive` real would make every fake-pid lease read DEAD at `_lease_is_live`, so the tests would silently drift to exercising the empty-round path while still reporting green. The third seam is the one that matters.
+
+(4) DEVIATION: `_sleeping()` was relocated below the section rather than deleted -- it is still called by the stall-candidate and `--wait` sections, which are other nodes' file territory. Recorded here because the node CLAIM third clause, "the SIGTERM-ignoring sleeper fixture is removed", is NOT met by this node alone; the next kid closed it.

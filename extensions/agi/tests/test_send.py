@@ -375,13 +375,201 @@ def test_send_wake_verb_busy_pane_coalesces(project: Path, monkeypatch,
 def test_send_wake_verb_idle_nothing_is_a_silent_noop(project: Path,
                                                       monkeypatch, capsys):
     """No stranded line and nothing pending -> `wake` types nothing and
-    prints nothing (heal polls every seat; an ungated bare token would retype
-    once the coalesce window lapses)."""
+    prints the ONE `nothing-pending` outcome (exit 1); an ungated bare token
+    would retype once the coalesce window lapses (the heal polls every seat).
+    """
     pane = _FixturePane()
     calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
-    send_mod.wake(project, "sanctuary-director")
+    assert send_mod.wake(project, "sanctuary-director") is False
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
-    assert capsys.readouterr().err == ""
+    cap = capsys.readouterr()
+    assert cap.out.strip() == "nothing-pending"
+    assert cap.err == ""
+
+
+# hypoth:l4-wake-repair-is-quiet-honest-and-readable -- clauses (1)-(3) ─────
+
+
+def test_wake_unchanged_inbox_types_once_even_after_window(project: Path,
+                                                          monkeypatch,
+                                                          capsys):
+    """Clause (1) falsifier: TWO consecutive `wake` passes over ONE unchanged
+    unread inbox -> exactly ONE typed token. Age the 30s coalesce window
+    between the passes so the guarantee is the DIGEST gate, not the window.
+    Assert the argv sequence (_send_keys calls), not the return value (a
+    return-value assertion passes on an implementation that types and then
+    reports nothing happened)."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 1, calls
+    assert capsys.readouterr().out.strip() == "typed-token"
+
+    # age the coalesce window: only the digest gate keeps the SAME state
+    # quiet once the window no longer would.
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is False
+    assert len(_typed(calls)) == 1, \
+        "an unchanged unread inbox must not retype the token"
+    assert capsys.readouterr().out.strip() == "nothing-pending"
+
+
+def test_wake_changed_inbox_types_again(project: Path, monkeypatch, capsys):
+    """Clause (1): a NEW unread block CHANGES the inbox state, so a later
+    wake types again (a second token) once the coalesce window has lapsed."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 1
+    capsys.readouterr()                       # clear the first outcome line
+    # the inbox CHANGES: a second unread block arrives
+    inbox.write_text(inbox.read_text() + "---\n hi2\n")
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+    assert capsys.readouterr().out.strip() == "typed-token"
+
+
+def test_read_clears_announced_so_new_state_types(project: Path, monkeypatch,
+                                                  capsys):
+    """Clause (1): the seat's own read clears the announced sidecar, so a
+    new unread state after a read is never mistaken for already-announced."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 1
+    send_mod.read(project, seat, "prime")     # the seat consumes its unread
+    assert send_mod._announced_digest(project, seat) is None, \
+        "a read must clear the announced-state sidecar"
+    # a fresh message now looks not-yet-announced -> a second token types
+    inbox.write_text(inbox.read_text() + "---\n hi2\n")
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+
+
+def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
+                                                       monkeypatch, capsys):
+    """Clause (3): when the row window @id is no longer a LISTED window,
+    wake prints `wake repair: <seat> row window <@id> is gone; falling back
+    to name` and THEN uses the by-NAME target (the same `_window_listed` path
+    a name-addressed row uses). Test both halves: the line appears AND the
+    fallback target is actually the send-keys target."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    inbox = send_mod._inbox_path(project, "sanctuary-director")
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    pane = _FixturePane()
+    # the fake lists ONLY the seat NAME -- the @id @246 is stale (gone)
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    assert send_mod.wake(project, "sanctuary-director") is True
+    cap = capsys.readouterr()
+    assert "wake repair: sanctuary-director row window @246 is gone; " \
+           "falling back to name" in cap.err, cap.err
+    typed = _typed(calls)
+    assert typed, "the by-name fallback must have typed a token"
+    assert typed[0][4] == "agi-rc:sanctuary-director", \
+        f"fallback target must be the seat NAME, not the stale @id: " \
+        f"{typed[0][4]}"
+    assert cap.out.strip() == "typed-token"
+
+
+def test_wake_live_id_keeps_id_target(project: Path, monkeypatch, capsys):
+    """Clause (3) control: a @id that IS still a listed window is used as
+    the target -- no `wake repair:` line, no by-name fallback."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    inbox = send_mod._inbox_path(project, "sanctuary-director")
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    pane = _FixturePane()
+    # the fake lists @246 as a CURRENT window -> the @id is live and wins
+    calls = _fake_tmux_pane(monkeypatch, ["@246", "sanctuary-director"],
+                            pane, [])
+    assert send_mod.wake(project, "sanctuary-director") is True
+    typed = _typed(calls)
+    assert typed[0][4] == "agi-rc:@246", typed[0][4]
+    assert "wake repair:" not in capsys.readouterr().err
+
+
+def test_wake_delivers_deferred_dm_inline(project: Path, monkeypatch,
+                                          capsys):
+    """Clause (2): a stored deferred dm body (no unread inbox needed) is
+    delivered INLINE by wake -> the ONE `delivered-deferred` outcome, and a
+    non-empty deferred proves a real delivery (exit 0)."""
+    seat = "director"
+    send_mod._store_deferred(project, seat, "prime", "the deferred body")
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is True
+    cap = capsys.readouterr()
+    assert cap.out.strip() == "delivered-deferred"
+    assert send_mod._read_deferred(project, seat) is None, \
+        "the deferred body must be cleared once delivered"
+    assert _typed(calls) and _enters(calls), calls
+
+
+def test_wake_busy_outcome(project: Path, monkeypatch, capsys):
+    """Clause (2): a BUSY pane with something pending -> the ONE
+    `busy-deferred` outcome, nothing typed (exit 1)."""
+    seat = "director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: director\nfrom: prime\n\n---\n hi\n")
+    pane = _FixturePane(busy=True)
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is False
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+    cap = capsys.readouterr()
+    assert cap.out.strip() == "busy-deferred"
+    assert "nudge: coalesced (pane busy" in cap.err
+
+
+def test_wake_no_target_outcome(project: Path, monkeypatch, capsys):
+    """Clause (2): a seat with no addressable window -> the ONE `no-target`
+    outcome (exit 1)."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    calls = _fake_tmux_pane(monkeypatch, [], _FixturePane(), [])
+    assert send_mod.wake(project, "ghost-seat") is False
+    assert capsys.readouterr().out.strip() == "no-target"
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+
+
+def test_wake_main_exit_code_honest(project: Path, monkeypatch):
+    """Clause (2): `send.py wake <seat>` exits 0 ONLY when something was
+    delivered, 1 otherwise -- main() maps the wake() bool to the code."""
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    for delivered, want in ((True, 0), (False, 1)):
+        monkeypatch.setattr(send_mod, "wake", lambda root, to: delivered)
+        assert send_mod.main(["wake", "director"]) == want
 
 
 def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
@@ -2866,3 +3054,270 @@ def test_truncated_deferred_body_typed_once_across_busy_strand_retry(
     # ONE delivery total: the single `[nudge:`-shaped line ever put in the box
     assert send_mod._read_deferred(root, seat) is None, \
         "the body was delivered -- the record is cleared, never typed twice"
+
+
+# ── hypothesis:l4-a-seat-signs-with-a-swappable-scheme (clauses 2 & 3) ──
+# seat keys under sessions/seats + signed inbox messages. send.py exercises
+# ONLY seatsig.get() and the Scheme methods through the module IT imports
+# (send_mod.seatsig), never the concrete ed25519 module directly. Rows are
+# stubbed through _pushed_seats (the same resolver whois uses), so no test
+# hits git or tmux.
+
+import os as _os
+import hashlib as _hl
+import stat as _stat
+
+
+class _DummyScheme:
+    """A toy scheme in send.py's OWN seatsig table, to prove the only
+    coupling is the interface: anything with keygen/sign/verify/
+    public_from_secret plugs in with no change to send.py."""
+    name = "dummy"
+
+    def keygen(self):
+        priv = _os.urandom(16)
+        return priv, b"DUMMY" + priv
+
+    def public_from_secret(self, priv):
+        return b"DUMMY" + priv
+
+    def sign(self, priv, msg):
+        return _hl.sha256(bytes(priv) + msg).digest()
+
+    def verify(self, pub, msg, sig):
+        return sig == _hl.sha256(bytes(pub[5:]) + msg).digest()
+
+
+def _stub_seat_rows(monkeypatch, rows):
+    """Point _pushed_seats (whois's resolver) at canned rows, no git."""
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: (rows, "deadbeef"))
+
+
+def _seat_key_file(project, seat):
+    return send_mod._seat_key_path(project, seat)
+
+
+# --- clause (2): seat keys -------------------------------------------------
+
+
+def test_keygen_writes_0600_seat_key_and_prints_cells(project, capsys):
+    path = send_mod.keygen(project, "probe-a")
+    assert path == _seat_key_file(project, "probe-a")
+    assert path.is_file()
+    mode = _stat.S_IMODE(path.stat().st_mode)
+    assert mode == 0o600, mode
+    obj = json.loads(path.read_text())
+    assert obj["scheme"] == "ed25519"
+    assert len(bytes.fromhex(obj["priv_hex"])) == 32
+    out = capsys.readouterr().out
+    assert "pubkey: " in out
+    assert "sig_scheme: ed25519" in out
+    # the PRIVATE seed is never printed
+    assert obj["priv_hex"] not in out
+
+
+def test_keygen_unknown_scheme_is_a_keyerror(project):
+    import pytest as _pt
+    with _pt.raises(KeyError):
+        send_mod.keygen(project, "probe-b", "not-a-scheme")
+
+
+# --- clause (3): signed inbox messages -------------------------------------
+
+
+def test_unsigned_send_is_byte_identical_to_today(project):
+    send_mod.send(project, "recv", "hello", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig:" not in content
+    assert content.endswith("hello\n")
+    # the plain header shape is exactly today's
+    assert "to: recv\n\nhello\n" in content
+
+
+def test_signed_send_and_read_prints_verified(project, capsys, monkeypatch):
+    send_mod.keygen(project, "seat-a")
+    pub = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = None
+    # recover the public key from the printed cells by re-reading via
+    # _sign_line's own public_from_secret path: derive from the stored seed
+    scheme = send_mod.seatsig.get("ed25519")
+    priv = bytes.fromhex(pub["priv_hex"])
+    pub_hex = scheme.public_from_secret(priv).hex()
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello world", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig: ed25519:" in content
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519)" in out
+    assert "hello world" in out, "the label is never a drop"
+
+
+def test_signed_bytes_are_exactly_ts_from_to_blank_text(project):
+    send_mod.keygen(project, "seat-a")
+    send_mod.send(project, "recv", "hello", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    block_text = inbox.read_text().split(send_mod.MSG_SEP)[1]
+    meta, text = send_mod._parse_block(block_text)
+    sig = meta["sig"].split(":", 2)[2]
+    canonical = send_mod._canonical_msg(
+        meta["ts"], meta["from"], meta["to"], text)
+    # the canonical bytes assert EXACTLY the shape ts\nfrom\nto\n\ntext
+    assert canonical == f"{meta['ts']}\n{meta['from']}\n{meta['to']}\n\nhello"
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub = scheme.public_from_secret(bytes.fromhex(obj["priv_hex"]))
+    assert scheme.verify(pub, canonical.encode(), bytes.fromhex(sig))
+
+
+def test_body_altered_on_disk_is_forged(project, capsys, monkeypatch):
+    send_mod.keygen(project, "seat-a")
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = scheme.public_from_secret(
+        bytes.fromhex(obj["priv_hex"])).hex()
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello world", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    # tamper with the BODY on disk; the header (ts/from/sig) is untouched
+    tampered = inbox.read_text().replace("hello world", "tampered!!")
+    inbox.write_text(tampered)
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out
+    assert "tampered!!" in out, "the block still prints in full under FORGED"
+
+
+def test_sig_under_scheme_row_does_not_name_is_forged(project, capsys,
+                                                      monkeypatch):
+    send_mod.keygen(project, "seat-a")          # signs with ed25519
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = scheme.public_from_secret(
+        bytes.fromhex(obj["priv_hex"])).hex()
+    # the row declares a DIFFERENT scheme: the sig is under one the row does
+    # not name -> FORGED even though the ed25519 signature is genuine
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "dummy", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello", "seat-a")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out
+
+
+def test_no_key_file_is_unsigned_and_equals_todays_bytes(project):
+    send_mod.send(project, "recv", "hello", "seat-a")   # no .key file
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    content = inbox.read_text()
+    assert "sig:" not in content
+    # today's unchanged block shape: `---\nts: T\nfrom: seat-a\nto: recv\n\nhello\n`
+    ts = content.split("ts: ")[1].split("\n")[0]
+    expected = (f"{send_mod.MSG_SEP}ts: {ts}\nfrom: seat-a\nto: recv\n"
+                f"\nhello\n")
+    assert content == expected
+
+
+def test_dummy_scheme_plugs_in_without_changing_send(project, capsys,
+                                                     monkeypatch):
+    """The swappable-scheme claim, end to end: register a toy scheme in
+    send.py's own seatsig table; keygen + send + read VERIFIED need no change
+    to send.py beyond get()/Scheme calls."""
+    send_mod.seatsig.SCHEMES["dummy"] = _DummyScheme()
+    try:
+        send_mod.keygen(project, "seat-d", "dummy")
+        obj = json.loads(_seat_key_file(project, "seat-d").read_text())
+        d = _DummyScheme()
+        pub_hex = d.public_from_secret(bytes.fromhex(obj["priv_hex"])).hex()
+        _stub_seat_rows(monkeypatch, [
+            {"name": "seat-d", "sig_scheme": "dummy", "pubkey": pub_hex},
+        ])
+        send_mod.send(project, "recv", "hi", "seat-d")
+        send_mod.read(project, "recv", None)
+        out = capsys.readouterr().out
+        assert "VERIFIED seat-d (dummy)" in out
+        assert "hi" in out
+    finally:
+        send_mod.seatsig.SCHEMES.pop("dummy", None)
+
+
+# ── hypothesis:l4-wake-repair-is-quiet-honest-and-readable, clause 4 ─────
+# read drains a stored deferred dm (prints it as its own block, then clears
+# the record); peek shows it WITHOUT clearing. The deferred sidecar lives at
+# `.agi/sessions/inbox/<seat>.nudge.deferred` next to the inbox, and the
+# record's own delivered-count semantics for the PANE path are untouched.
+
+
+def test_read_drains_a_stored_deferred_dm(project: Path, capsys):
+    """A stored deferred dm is printed as its own block and the record is
+    cleared, so a director who never had an idle pane still sees it once."""
+    send_mod._store_deferred(project, "sanctuary-director", "sanctuary-helper",
+                             "rotation alert: handoff active")
+    deferred_path = send_mod._nudge_deferred_path(
+        project, "sanctuary-director")
+
+    send_mod.read(project, "sanctuary-director", None)
+    out = capsys.readouterr().out
+
+    # its own block, headed with the sender and a timestamp
+    assert "deferred dm from sanctuary-helper (" in out
+    assert "rotation alert: handoff active" in out
+    assert not deferred_path.exists(), \
+        "read clears the deferred record after printing it"
+
+
+def test_peek_shows_deferred_without_clearing(project: Path, capsys):
+    """peek prints the stored deferred dm but leaves the record in place."""
+    send_mod._store_deferred(project, "sanctuary-director", "sanctuary-helper",
+                             "rotation alert: handoff active")
+    deferred_path = send_mod._nudge_deferred_path(
+        project, "sanctuary-director")
+
+    send_mod.peek(project, "sanctuary-director")
+    out1 = capsys.readouterr().out
+    assert "deferred dm from sanctuary-helper (" in out1
+    assert "rotation alert: handoff active" in out1
+
+    # peek again — still there (not cleared)
+    send_mod.peek(project, "sanctuary-director")
+    out2 = capsys.readouterr().out
+    assert "rotation alert: handoff active" in out2
+    assert deferred_path.exists(), "peek must not clear the deferred record"
+
+
+def test_read_deferred_prints_before_inbox_blocks(project: Path, capsys):
+    """The deferred block comes FIRST, before any inbox blocks."""
+    send_mod._store_deferred(project, "director", "sanctuary-helper",
+                             "rotation alert: handoff active")
+    send_mod.send(project, "director", "the inbox body", "some-kid")
+
+    send_mod.read(project, "director", None)
+    out = capsys.readouterr().out
+    assert out.index("deferred dm from sanctuary-helper") < \
+        out.index("the inbox body"), \
+        "the deferred block is printed BEFORE the inbox blocks"
+
+    # and read still clears the deferred while marking the inbox read
+    assert not send_mod._nudge_deferred_path(project, "director").exists()
+    send_mod.read(project, "director", None)
+    assert "empty" in capsys.readouterr().out
+
+
+def test_read_deferred_only_no_empty_and_no_inbox_touch(project: Path, capsys):
+    """A deferred dm with an empty inbox prints the deferred (NOT 'empty')
+    and does not create an inbox file."""
+    send_mod._store_deferred(project, "lonely", "helper", "hello alone")
+    send_mod.read(project, "lonely", None)
+    out = capsys.readouterr().out
+    assert "deferred dm from helper (" in out
+    assert "empty" not in out
+    inbox = project / ".agi" / "sessions" / "inbox" / "lonely.md"
+    assert not inbox.exists(), \
+        "reading a deferred dm must not fabricate an inbox file"

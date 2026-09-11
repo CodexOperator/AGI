@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (sanctuary-director 163547Z session, 2026-09-11T16:42Z): L4.273 merged (branch loop/hypothesis-l4-the-drifted-node-t-a00-4218d47a@s2, 3 files, +173/-28; the duplicate loader _live_first_turn_cmds is gone, one `def _live_first_turn` remains, in test_rotate_templates.py, with the path= seam). test_rotate_startup + test_rotate_templates on the merged tree: 76 passed (the L4.272 --wait tests merged first, no conflict). Mutation probe on the seat bytes, not a /tmp copy: edited the SHARED reader in place to drop every first_turn entry whose cmd contains `-p`, ran `pytest test_rotate_startup.py -k drifted` -> 1 failed at test_rotate_startup.py:1031 `AssertionError: drift did not reach the copy`; `git checkout` the file -> 1 passed; tree clean after. The drift test judges through the shared loader, not a shadow. Parent residue stands (literal-vs-parsed tie at :1041; the path literal appears a third time in the drift test as a guarded constant) — push_further, not a defect.

@@ -431,6 +431,28 @@ ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "adopt": 0}
 
+#: One-line example per verb, for the help epilog. Module-level (not local to
+#: main) so a test can assert each example PARSES as its verb's arity via the
+#: shared `parse_script` -- the drift guard that completes the epilog check
+#: (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-on-the-
+#: resolved-seat). The `set` example is `set key value` (TWO arguments), never
+#: `set k=v`; the parser splits `k=v` as one token and the grammar the epilog
+#: teaches would be refused.
+VERB_EXAMPLES = {
+    "set": "set key value",
+    "unset": "unset frontmatter_key",
+    "link": "link self",
+    "thought": "thought why this version differs",
+    "note": "note a whole sentence, spaces absorbed",
+    "payload": "payload path/to/source.py",
+    "payload_text": "payload_text literal text body",
+    "patch": "patch -",
+    "body_patch": "body_patch -",
+    "read": "read body 4:9",
+    "replace": "replace body 4:9 path/to/file",
+    "adopt": "adopt",
+}
+
 
 def _coerce(value: str):
     """`"3"` -> 3, `"true"` -> True, `"[a, b]"` -> list. Strings otherwise.
@@ -764,9 +786,13 @@ def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
     actor_row = ms.get("actor")
     if not actor_row:
         return None
-    resolved = _resolve_role(root, actor, "")
-    is_ms = (resolved == actor_row or str(actor) == str(actor_row)
-             or str(actor).startswith(str(actor_row) + "-"))
+    # The master-sensei identity is the RESOLVED SEAT NAME only -- the same
+    # identity the self_row rule keys on (L4.110 prime ruling B). A free-text
+    # `--actor` whose string merely starts with the declared name is NOT the
+    # master-sensei: the caller-supplied string is never the identity, the
+    # seats registry is (hypothesis:l4-the-carve-out-refuses-a-non-dict-
+    # template-and-keys-on-the-resolved-seat).
+    is_ms = _resolve_seat(root, actor) == str(actor_row)
     if not is_ms:
         return None  # not the master-sensei seat; not this carve-out
     list_key = ms.get("list_key")
@@ -802,6 +828,16 @@ def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
             continue
         old_r = old_val.get(role) or {}
         new_r = new_val.get(role) or {}
+        # A non-dict template value is NEVER a valid master-sensei write: it
+        # would silently drop brief_file/steps (whose field check below is
+        # gated on BOTH being dicts) and can't be judged by the producing
+        # judge. Refuse by name, so `templates.director = 'garbage'` is not
+        # admitted and the director's brief_file + steps survive
+        # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-
+        # on-the-resolved-seat).
+        if role in new_val and not isinstance(new_val[role], dict):
+            return (f"template {role!r} must be a dict of fields, got "
+                    f"{type(new_val[role]).__name__}")
         if isinstance(old_r, dict) and isinstance(new_r, dict):
             keys = set(old_r.keys()) | set(new_r.keys())
             for k in keys:
@@ -896,15 +932,32 @@ def _enforce_master_sensei_facts_body(root, node_id, actor, new_body):
     ms = schema.frontmatter.get("master_sensei_row") if schema else None
     if not isinstance(ms, dict) or not ms.get("actor"):
         return
-    resolved = _resolve_role(root, actor, "")
-    is_ms = (resolved == ms.get("actor")
-             or str(actor).startswith(str(ms.get("actor")) + "-"))
+    list_key = ms.get("list_key")
+    if not list_key:
+        return
+    # The master-sensei identity is the RESOLVED SEAT NAME only (L4.110 self_row
+    # rule); a free-text `--actor` is never the identity (hypothesis:l4-the-
+    # carve-out-refuses-a-non-dict-template-and-keys-on-the-resolved-seat).
+    is_ms = _resolve_seat(root, actor) == str(ms.get("actor"))
     if not is_ms:
         return  # a non-master-sensei writer's body edit is not this gate
+    # The facts-body carve-out applies ONLY to the node whose FRONTMATTER
+    # carries the declaration's list_key (the `templates` node). A body-only
+    # master-sensei edit on ANY OTHER config node (a config:seats body probe,
+    # say) is not granted here -- it falls through to the written_by gate and
+    # is refused.
     try:
         old_body = _read_body_text(root, node_id)
     except EditError:
         return
+    node_fm = _read_node_fm(root, node_id) or {}
+    if not node_fm.get(list_key):
+        raise EditError(
+            f"{node_id}: a master-sensei body edit is limited to the `## facts` "
+            f"section of the node that carries the declaration's list_key "
+            f"`{list_key}`; this node does not (PRIME RULING 2026-09-11, "
+            f"hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-"
+            f"keys-on-the-resolved-seat)")
     old_preamble, old_secs = _sectionize(old_body)
     new_preamble, new_secs = _sectionize(new_body)
     if old_secs is None or new_secs is None:
@@ -986,9 +1039,11 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     # refused by an unrelated seats declaration.
     ms = schema.frontmatter.get("master_sensei_row")
     if isinstance(ms, dict) and ms.get("actor") and has_body is not None:
-        is_ms = (resolved == ms.get("actor")
-                 or str(actor) == str(ms.get("actor"))
-                 or str(actor).startswith(str(ms.get("actor")) + "-"))
+        # The master-sensei identity is the RESOLVED SEAT NAME only (L4.110
+        # self_row rule); a free-text `--actor` string is never the identity
+        # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-
+        # on-the-resolved-seat).
+        is_ms = _resolve_seat(root, actor) == str(ms.get("actor"))
         if is_ms:
             touches_templates = (set_fm is not None
                                  and ms.get("list_key") in set_fm)
@@ -1003,10 +1058,18 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                     f"the startup producing judge; {mrefusal} "
                     f"(PRIME RULING 2026-09-11)")
             if has_body and not (set_fm or unset_fm):
-                # body-only master-sensei edit: admission here is refined by
-                # submit's facts-region gate, which refuses any delta outside
-                # the `## facts` section.
-                return
+                # Body-only master-sensei edit: the facts-body carve-out
+                # applies ONLY to the node whose frontmatter carries the
+                # declaration's list_key (the `templates` node). A config:seats
+                # body probe, or any other config node, is NOT granted here and
+                # falls through to the written_by refusal below
+                # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-
+                # and-keys-on-the-resolved-seat).
+                if ms.get("list_key") and (_read_node_fm(root, where) or {}).get(
+                        ms.get("list_key")):
+                    # admission here is refined by submit's facts-region gate,
+                    # which refuses any delta outside the `## facts` section.
+                    return
 
     # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
     # say) is not in `written_by` and yet may update ONE thing — its own seat
@@ -1627,21 +1690,9 @@ def main(argv: list[str] | None = None) -> int:
     #: intent but CHECKED against VERBS/ARITY below so a divergence fails at
     #: help-build time instead of silently reaching a seat whose first_turn
     #: `write-verbs` fact reads this epilog for the grammar (config:rotations
-    #: F4, hypothesis:write-py-help-epilog-lists-verb-grammar).
-    VERB_EXAMPLES = {
-        "set": "set k=v",
-        "unset": "unset frontmatter_key",
-        "link": "link self",
-        "thought": "thought why this version differs",
-        "note": "note a whole sentence, spaces absorbed",
-        "payload": "payload path/to/source.py",
-        "payload_text": "payload_text literal text body",
-        "patch": "patch -",
-        "body_patch": "body_patch -",
-        "read": "read body 4:9",
-        "replace": "replace body 4:9 path/to/file",
-        "adopt": "adopt",
-    }
+    #: F4, hypothesis:write-py-help-epilog-lists-verb-grammar). The module-level
+    #: `VERB_EXAMPLES` each ALSO parse as their verb's arity (asserted in
+    #: test_write_master_sensei.py), so the grammar the epilog teaches is real.
     missing_v = sorted(set(VERBS) - set(VERB_EXAMPLES))
     missing_a = sorted(set(VERB_EXAMPLES) - set(ARITY))
     if missing_v or missing_a:
