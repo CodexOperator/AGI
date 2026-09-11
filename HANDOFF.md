@@ -6,11 +6,11 @@
 
 | | value |
 |---|---|
-| active nodes / deprecated | **2254 active / 195 deprecated (2449)** — verified 10/10 by the Prime at e80bc660f after SL2#4. Grew at every reading this session (2162 → 2254), never dropped. Floor for the next merge-up: **2254 / 195 / 2449** — re-measure with `verify` first. 🔴 SL2#5 (a34be8a53) is on the branch UNVERIFIED; its numbers are not in this row. |
+| active nodes / deprecated | **2266 active / 195 deprecated (2461)** after merge-up 41 (suite 3468/14, 11/11 FIRST READ). Grew at every reading this session (2162 → 2266), never dropped. Floor for the next merge-up: **2266 / 195 / 2461** — re-measure with `verify` first. |
 | goals | **166** — round-trip byte-identical after merge-up 18. 🔴 Check with `snapshot-goals.py --render --check`, never with this row (a row and a card disagreed for two sessions once; the card was right). |
 | `outcome_coverage` (primary) | **0.14** (0.147 at L4-II's open, 0.132 at XV's). Drifts DOWN as hypothesis/experiment nodes enter the denominator faster than mvps close — dilution, not regression. |
 | `evidence_fraction` | **0.621** after merge-up 18 (0.561 at XVI's open, 0.385 at L2.13) — rising every session this loop. `decisive_evidence_fraction` 1.0; `unevidenced_decisive_verdicts` 0. An experiment may cite ITSELF in `evidence_runs` (it is the run); a verdict may not — the gate enforces the asymmetry. |
-| tests | 🟢 **3407 passed / 14 skipped** (SL2#4's third run; runs 1-2 each red on a real cause, both fixed — a red first read is a GENUINE failure, never an ordering artifact). 🔴 A NEW FILE IN `bin/` STILL NEEDS THE SUITE (`test_bin_help_smoke`); ship new tools as SUBCOMMANDS. 🔴 A green suite is not a working command; a green test can *require* a defect; a green `verify` says NOTHING about a credential's validity. 🔴 ONE SUITE RUNNER AT A TIME — the cross-worktree lock is ADVISORY, it informs and does not enforce. |
+| tests | 🟢 **3468 passed / 14 skipped** (merge-up 41, first read green). 🔴 A red first read is a GENUINE failure, never an ordering artifact. 🔴 ONE SUITE RUNNER — the cross-worktree lock is ADVISORY, it informs and does not enforce. 🔴 **A SUITE WHOSE TREE CHANGED UNDER IT IS VOID, GREEN INCLUDED** — code/test mutation voids automatically; a prose-node mutation is decidable and must actually be decided (g17.1, 21:1xZ). |
 | broken links | 0 (18 retired payloads unresolved, not damage) |
 | crons | 🟢 **ON — verify with `crontab -l` and the live log `~/logs/agi-crons-agi-2f118e6f.log`, never with this file.** `grid_sync` `*/5` runs `grid.py commit --all --prefix 'cron: '`; `branch_push` pushes the CHECKED-OUT branch at :07 hourly; `.geometry/crons.md` declares `crons_live: true`. Consequences: **push by hand anyway** (a dead box strands up to 59 min) and **the auto-versioning hazard IS armed** — half-finished source from a killed agent is grid-versioned under the cron's name within 5 min, so kill cleanly and `git reset` unreviewed staging at once. |
 | branch | **`season/s2`**. `master` = season 1, **frozen**: merges + cherry-picks only, never rebase. Grid `commit --all` runs on `season/*` or master only — never `--allow-branch`. |
@@ -94,7 +94,13 @@ NEXT   ══ BELAM L4-XI CLOSED THE LOOP ON 5 MERGE-UPS + 4 REVIEWS. THE GRAPH 
            ORDER GIVEN 21:0xZ: the Sanctuary director runs the suite as soon as the lock frees; the POINT HOLDS merge-up 41 until it is green.
            If RED: back SL2#5 out (reset --keep + re-land), never fix forward with a queue behind it.
            41 then lands SECOND, so the cmd_ack seam is the POINT's: keep BOTH L4.288 (join-by-@id back-fill) and SL4.03 (ack commits its own row).
-       2 OWED BY YOU: mur-41 · mur-SL2.5 · mur-SL2.3. DONE by XI: mur-SL1.1, mur-SL2.1, mur-SL2.2, mur-40; mur-39 was RUNNING at rotation (`wf_2d1b5ef1-fef`, merge 58eec381d, 5 rounds incl. the hand-rolled ed25519 reviewed AS CRYPTO) — read its result, do not re-run it blind.
+       2 OWED BY YOU: mur-41 (merge 48413f177 + Nb 39584f32d) · mur-SL2.5 · mur-SL2.3. DONE by XI: mur-SL1.1, mur-SL2.1, mur-SL2.2, mur-40, mur-39 (all five by name through the router).
+       2.5 🔴 THE CRYPTO GATE — the single most consequential open ruling, and it is EVIDENCE-BASED, not caution (g17.1 21:2xZ, mur-39):
+           the ed25519 primitive is SOUND (RFC 8032 §7.1 vectors 1-3 byte-exact in the suite; clamping, domain, S<L, non-canonical points all correct; the signature binds ts+from+to+text).
+           BUT: (i) the canonical form is NOT INJECTIVE — `"\n".join(splitlines())` collapses CR/VT/FF/FS/GS/RS/U+2028/U+2029 into LF, so 'a\rb' and 'a\nb' sign identically; a genuine multi-line dm can read FORGED.
+                (ii) TWO registries (`import seatsig` vs `from src import seatsig`) → a scheme can register into a table nobody reads, which breaks the owner's own 20:3xZ modularity ask.
+           SO: labels stay INFORMATIONAL — no reader may REFUSE on a signature — until injective encoding + one registry + a verify-side RFC vector all land. The flip to enforcing is its own round WITH THE OWNER'S GO.
+           Rule earned: in a signing scheme the primitive is rarely the weak part — THE CANONICALIZATION IS. Vectors prove the curve; only injectivity proves that what was signed is what is on disk.
        3 🔴 STALE SEAT ROWS: repaired BY HAND 3x in 80 min (30 cells, 6 seat-generations, none self-healing). THE FIX IS L4.291, live on pi now.
            UNTIL IT LANDS, at EVERY wake: compare each row's `window` to live tmux; if stale, copy that seat's OWN worktree row
            (`.agi/worktrees/seat-<name>/.agi/nodes/.geometry/seats.md`) into MAIN byte-identical — that is also the no-merge-conflict condition.
