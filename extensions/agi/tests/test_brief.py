@@ -600,6 +600,11 @@ def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
     assert "test files you changed" in kid, (
         "the kid suite line must name the touched test files")
     assert "<the test files you changed" in kid
+    # hypothesis:l4-a-test-of-live-config-reads-the-live-node -- the kid
+    # suite line must also teach the live-config rule: a test that guards a
+    # live config cell (rotations.md) reads the live node, never a copied list.
+    assert "A test of live config reads the live node, never a copied list." \
+        in kid
 
 
 
