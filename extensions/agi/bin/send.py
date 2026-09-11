@@ -48,6 +48,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -365,8 +366,23 @@ def _norm(ts: str) -> str:
 #: (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message, claim 1).
 NUDGE_TOKEN_TEMPLATE = (
     "[agi-nudge] unread for {seat}:"
-    " python3 extensions/agi/bin/send.py read {seat}"
+    " send.py read {seat}"
 )
+
+#: The token is SHORT on purpose (< 100 chars for every live seat name):
+#: the prime pinned on a real Claude Code pane (nudge node 83fe8049c) that a
+#: long chunk typed with its Enter in ONE send-keys call is taken for a paste
+#: and stranded, and a token that wraps in the input box also defeats the
+#: "already unsubmitted" capture-pane check. A seat name so long that the
+#: full form would reach the cap gets the bare form instead (every brief
+#: already carries the read command).
+_NUDGE_TOKEN_MAX = 99
+NUDGE_TOKEN_BARE_TEMPLATE = "[agi-nudge] unread for {seat}"
+
+#: The pause between typing the literal token and the SEPARATE Enter call —
+#: probe (D): `send-keys -l <text>`, sleep 0.3, then `send-keys Enter` as
+#: its own call is queued and delivered; the two keys in one call are not.
+_NUDGE_ENTER_DELAY_S = 0.3
 
 #: At most ONE wake token per unread batch per seat. The per-seat nudge
 #: marker (ts of the last token) absorbs a rapid succession of dms into a
@@ -375,8 +391,21 @@ _NUDGE_COALESCE_WINDOW_S = 30.0
 
 
 def _build_nudge_token(seat: str) -> str:
-    """ONE fixed machine-prefixed wake token for one recipient seat."""
-    return NUDGE_TOKEN_TEMPLATE.format(seat=seat)
+    """ONE fixed machine-prefixed wake token for one recipient seat, always
+    shorter than `_NUDGE_TOKEN_MAX` (the bare form when the seat name is
+    long enough to threaten the cap)."""
+    token = NUDGE_TOKEN_TEMPLATE.format(seat=seat)
+    if len(token) > _NUDGE_TOKEN_MAX:
+        token = NUDGE_TOKEN_BARE_TEMPLATE.format(seat=seat)
+    return token
+
+
+def _nudge_token_head(token: str) -> str:
+    """The part of a token that survives the input box wrapping it: up to
+    and including the first `:` (`[agi-nudge] unread for <seat>:`), or the
+    whole token when it has none (the bare form)."""
+    i = token.find(":")
+    return token if i < 0 else token[:i + 1]
 
 
 def _seat_row_by_name(rows: list, name: str) -> dict | None:
@@ -457,7 +486,10 @@ def _nudge_coalesce_reason(pane: str | None, token: str,
         low = pane.lower()
         if "esc to interrupt" in low:
             return "pane busy (spinner)"
-        if token in pane:
+        # The input box WRAPS a token wider than the pane (measured on the
+        # sanctuary-director pane 2026-09-11 02:38Z: the 101-char token sat
+        # unsubmitted across two lines), so match the head, never the whole.
+        if _nudge_token_head(token) in pane:
             return "token already unsubmitted"
     return None
 
@@ -523,6 +555,20 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # (2) busy / already-queued coalescing. Measure read-only, never send.
     reason = _nudge_coalesce_reason(_capture_pane(tmux_session, target),
                                     token, _registry_status(pid))
+    if reason == "token already unsubmitted":
+        # Probe (C): a token STRANDED in an idle pane (typed by the old
+        # one-call shape, or by a `-l` call whose Enter never came) is
+        # submitted by a later bare Enter. Without this an idle pane holding
+        # a stranded token coalesces every later send forever (the marker is
+        # never stamped, the pane never changes) and the seat is never woken.
+        # The busy checks come first in _nudge_coalesce_reason, so this Enter
+        # never lands in a mid-turn pane.
+        if not _send_keys(target, "Enter"):
+            return False
+        print("nudge: submitted a stranded token (Enter only)",
+              file=sys.stderr)
+        _record_nudge(root, to)
+        return True
     if reason:
         # F1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): this
         # batch was NOT typed into the pane. NEVER stamp the marker here --
@@ -531,15 +577,38 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # is never woken. The marker records only a DELIVERED token.
         print(f"nudge: coalesced ({reason})", file=sys.stderr)
         return False
-    try:
-        subprocess.run(["tmux", "send-keys", "-t", target, token, "Enter"],
-                       capture_output=True, text=True, timeout=5)
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        # No token was typed (the send-keys call failed); do not mark it as
-        # delivered, so a later retry is not suppressed (F1, same rationale).
+    # (4) THE SHAPE, pinned by the prime on a real Claude Code pane (nudge
+    # node 83fe8049c, four probes): (A) short text + Enter in ONE send-keys
+    # call is delivered, (B) a long chunk + Enter in ONE call is taken for a
+    # PASTE -- the Enter becomes a newline and the text sits stranded (every
+    # alarm dm of 2026-09-10), (C) a later bare Enter submits it, (D) the
+    # text as a LITERAL (`-l`) in one call, a pause, then Enter as a
+    # SEPARATE call is delivered. So: never `text Enter` in one call.
+    if not _send_keys(target, token, literal=True):
+        # Nothing typed; do not mark delivered, so a retry is not suppressed
+        # (F1, same rationale).
+        return False
+    time.sleep(_NUDGE_ENTER_DELAY_S)
+    if not _send_keys(target, "Enter"):
+        # The token sits unsubmitted; the next send finds it by its head and
+        # takes the probe-(C) path above. Not delivered yet: no marker.
         return False
     _record_nudge(root, to)
     return True
+
+
+def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
+    """One `tmux send-keys` call; False on any failure. `literal=True` types
+    the keys as text (`-l`) — no key-name parsing, no Enter."""
+    argv = ["tmux", "send-keys"]
+    if literal:
+        argv.append("-l")
+    argv += ["-t", target, *keys]
+    try:
+        cp = subprocess.run(argv, capture_output=True, text=True, timeout=5)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return cp.returncode == 0
 
 
 # ── verbs ─────────────────────────────────────────────────────────────────
