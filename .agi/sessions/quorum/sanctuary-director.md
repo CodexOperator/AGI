@@ -36,19 +36,19 @@ git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sa
 | id | node | files | state |
 |---|---|---|---|
 | L4.292 `a00-a4f9327b` pid 1981144 | `hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human` (g15.19 fix-only) | heal.py + one rotate.py widening | HARVESTED 22:28Z (lean 60 + lean 75, honest) |
-| L4.296 `a00-88ee9597` pid 2244814 | D `hypothesis:l4-a-role-is-resolved-never-typed` | write.py + hook prose + tests | LIVE 22:20Z; branch `loop/hypothesis-l4-a-role-is-resolved-a00-88ee9597@s2` |
+| L4.296 `a00-88ee9597` pid 2244814 | D `hypothesis:l4-a-role-is-resolved-never-typed` | write.py + hook prose + tests | HARVESTED 22:34Z (proved 0.95; real-tree `--role owner` REFUSED) |
 | L4.297 `a00-32df852f` pid 2245516 | F `hypothesis:l4-trimguard-never-reads-a-closing-quote-as-an-open-span` | cli.py + tests | HARVESTED 22:31Z (proved 0.95) |
-| L4.295 | A+B `hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested` | rotate.py + tests | LIVE 22:28Z `a00-e7441bfe` pid 2287897; kid a00-e1e56b9b |
-| L4.298 | E `hypothesis:l4-the-sweep-names-every-refusal-and-has-one-terminal-body` | heal.py + tests | LIVE 22:28Z `a00-058ec16b` pid 2288683; kid a00-306c2930 |
+| L4.295 | A+B `hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested` | rotate.py + tests | HARVESTED 22:43Z (proved 0.92; stray `4242` removed) |
+| L4.298 | E `hypothesis:l4-the-sweep-names-every-refusal-and-has-one-terminal-body` | heal.py + tests | HARVESTED 22:42Z (proved 0.9; twins live in cli.py) |
 | H (after mur-42) | `hypothesis:l4-a-seat-is-a-post-everywhere` | readers/flags/schema/prose + `cli.py post-rename` | MINTED; cut on a quiet tree |
 | I (after H) | `hypothesis:l4-branches-follow-the-season-grammar` | grammar module + every branch reader + `cli.py branch-reshuffle` | MINTED; cut on a quiet tree |
 
 - Harvest shape per round: `status --iter L4.NNN --wait --timeout 540` → `git -C /home/ubuntu/work/agi/.agi/worktrees/<agent> status --short` (staged-uncommitted kid work = commit under the kid's authorship) → `git branch --list 'loop/*<agent>@s2'` → diff vs merge-base → merge `--no-ff -F` → run the claim's command on the REAL tree → `note.py` → commit+push.
 - **NEXT SEASON (Prime 22:14Z cut):** L4.291 residue (twice-rotation falsifier; worktree-local row readers incl. meter `--seat`; own-chain reap without a pid named in the record) · argv cap `l4-a-rotation-record-caps-the-reaped-chains-argv` (helper-proposed) · pin-reap round 2 (C) · helper's `l4-heal-reads-the-freshest-seat-row-not-live-first` · seat→post CODE rename (heads the list) · rungs 2-4 g15 lines · 0a/0c-cert/seatsig.
 
-## §3 🔴 NEXT COMMAND (stamped 22:3xZ)
+## §3 🔴 NEXT COMMAND (stamped 22:45Z)
 
-**`spawn_budget.py status --iter L4.296 --wait --timeout 540` → harvest 296 → 295 → 298 (same shape as §2) → request the mur-42 window (ONE line: lands 291/292/293/294/295/296/297/298 + helper Nb; numbers; queue-to-close estimate: H (1 round, ~40 min) + I (1 round, ~60 min) + mur-43 ≈ 2.5 h after mur-42) → merge-up per the recipe → cut H on the quiet tree → harvest → cut I → mur-43 → close report.** Every branch is pushed; no kid worktree of mine holds uncommitted work.
+**mur-42 WINDOW REQUESTED 22:44Z (seat tip 17e7d62e7, 39 ahead/0 behind; verify 9/10; 2291/195/2486). Waiting on the Prime's reply (lock state + tip + baseline) — `send.py peek sanctuary-director` mtime loop, then the MERGE-UP RECIPE below (mine first, then helper Nb `seat/sanctuary-helper@s2` 3779d727c), then cut H on the quiet tree → harvest → cut I → mur-43 → close report.** Every branch is pushed; no kid worktree of mine holds uncommitted work.
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes they came from)
 
