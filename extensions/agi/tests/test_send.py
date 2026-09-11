@@ -2175,6 +2175,114 @@ def test_wrap_zero_and_short_messages_byte_identical(project: Path):
     assert "meeting at noon" in out_default
 
 
+# ── wrap preserves leading whitespace and blank lines exactly ──────────────
+# (hypothesis:l4-wrap-preserves-leading-whitespace-and-trailing-blank-lines-exactly)
+
+
+def test_wrap_preserves_leading_whitespace_and_blank_lines():
+    """The motivating falsifier: a body carrying indented content (a diff, a
+    table, a code fence, a nested list) used to have every line's leading
+    whitespace stripped, so a dm printed flattened. Blank lines (interior
+    and trailing) must survive byte-for-byte too."""
+    bodies = [
+        "  a\n    b\n\n",          # indentation on every line + trailing blank
+        "a\n b\n \n",              # interior whitespace-only line survives
+        "a\n\n",                   # trailing blank line survives
+        "x  y  \nz\n",             # internal runs + trailing spaces survive
+        "  \tcode\n  \tfence\n",   # tabs in the indent survive
+    ]
+    for b in bodies:
+        assert send_mod._wrap_body(b, 160) == b, \
+            f"leading whitespace / blank lines corrupted: {b!r}"
+
+
+def test_wrap_unwrapped_line_is_byte_identical_next_to_long_lines():
+    """Wrapping touches ONLY lines longer than width. A short line holding
+    internal runs of spaces or trailing spaces must print byte-identical
+    even when a neighbouring line in the same body is long enough to fold."""
+    body = "  keep me  same   \n" + " ".join(["word"] * 40) + "\nshort line  "
+    out = send_mod._wrap_body(body, 60)
+    assert out.startswith("  keep me  same   \n"), \
+        "a short line must print byte-identical despite a long neighbour"
+    assert out.split("\n")[-1] == "short line  "
+    for ln in out.splitlines():
+        assert len(ln) <= 60, f"a folded line exceeded width: {ln!r}"
+
+
+def test_wrap_long_line_keeps_indent_on_every_continuation():
+    """A 200-char content line indented 4 spaces must print every physical
+    line prefixed by the SAME 4-space indent -- the fold never happens inside
+    the indent and every continuation re-emits it."""
+    body = "    " + " ".join(["w"] * 120)      # 240 cols of words under a 4-space indent
+    out = send_mod._wrap_body(body, 64)
+    lines = out.split("\n")
+    assert len(lines) > 1, "an over-width line must wrap"
+    assert lines[0].startswith("    "), "first physical line lost the indent"
+    for phys in lines:
+        assert phys == "    " + phys.strip(), \
+            "every continuation line must carry the full 4-space indent"
+        assert len(phys) <= 64, f"physical line exceeded width: {phys!r}"
+
+
+def test_wrap_folds_only_at_space_outside_indent_keeps_labels_whole():
+    """A folded long line breaks only at a space outside the indent, and
+    never splits inside a node id, sha, path, URL or label token -- an
+    over-wide token stays whole on its own line."""
+    node = "hypothesis:l4-long-node-id-that-exceeds-any-width-0123456789abcdef"
+    body = "  see " + node + " and " + ("y" * 30)
+    out = send_mod._wrap_body(body, 40)
+    assert node in out, "a long node id must never be split mid-token"
+    assert "y" * 30 in out
+    for phys in out.split("\n"):
+        assert phys.startswith("  ") and phys == "  " + phys.lstrip(" \t"), \
+            "every physical line keeps the leading indent"
+
+
+def test_wrap_block_preserves_trailing_blank_lines_and_indented_body():
+    """A raw block with a trailing blank body line (a body ending `\n\n`) and
+    an indented body prints byte-for-byte through `_wrap_block` -- the header
+    stays grep-able and the trailing blank line is not re-collapsed to one."""
+    block = (
+        "ts: 2026-09-11T10:00:00Z\nfrom: parent\nto: kid\n\n"
+        "  diff:\n  - a\n  + b\n\n"
+    )
+    assert send_mod._wrap_block(block, 160) == block, \
+        "an indented body with a trailing blank line must survive byte-identical"
+    assert send_mod._wrap_block(block, 0) == block
+    multi = "ts: x\nfrom: p\nto: k\n\na\n\n\n"
+    assert send_mod._wrap_block(multi, 160) == multi, \
+        "two trailing blank lines must survive byte-identical"
+
+
+def test_wrap_large_width_is_byte_identity_and_property_roundtrip():
+    """Property (hypothesis clause 5): for N large enough `_wrap_body(body,
+    N) == body` byte-for-byte; and a per-logical-line round trip -- strip the
+    indent from every physical line and join the content tokens with a single
+    space -- reconstructs the original logical line."""
+    import random
+    random.seed(11)
+    for _ in range(1500):
+        body = "\n".join(
+            " ".join(f"w{i}" for i in range(random.randint(0, 40)))
+            for _ in range(random.randint(0, 6)))
+        if random.random() < 0.4:
+            body += "\n" * random.randint(1, 3)
+        assert send_mod._wrap_body(body, 10**6) == body, \
+            "large N must be byte-for-byte identity"
+        n = random.randint(8, 60)
+        for logical in body.split("\n"):
+            indent = logical[:len(logical) - len(logical.lstrip(" \t"))]
+            got = send_mod._wrap_logical_line(logical, n)
+            want = " ".join(logical.split())
+            recon = " ".join(x.strip() for p in got.split("\n")
+                              for x in p[len(indent):].split())
+            assert recon == want, (logical, n, got)
+            for p in got.split("\n"):
+                if any(len(w) > n for w in p.split()):
+                    continue          # over-long token kept whole, by design
+                assert len(p) <= n, (logical, n, p)
+
+
 # ── non-existent inbox file ────────────────────────────────────────────────
 
 
