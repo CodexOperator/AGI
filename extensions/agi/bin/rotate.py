@@ -3928,6 +3928,73 @@ _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
 _STARTUP_FILTERS = {"head", "tail", "sed", "grep", "egrep", "cat", "echo",
                     "cut", "sort", "wc", "tr", "awk", "uniq"}
 
+#: Refused FILTER-STAGE argument classes (hypothesis:l4-a-filter-stage-is-
+#: argument-restricted). A post-`|` stdio filter used to be skipped by
+#: executable NAME alone, so its ARGUMENTS never reached the judge:
+#: `| sort -o M` wrote a file, `| head -1 /etc/hostname` read a path into the
+#: startup output, and `| awk BEGIN{system(...)}` executed a program body. Now
+#: a filter stage is judged too, on the SAME strict standard a producing
+#: command is: no argument token may name a path (contain `/`), no argument
+#: may be a file-writing/redirecting option (`-o`/`-w`/`-i`/`--output`/`-f`,
+#: which for sed/grep/sort/cut name an output file or in-place write), awk is
+#: refused outright (its program body can reach `system`/`getline`/`>`/`|`),
+#: and sed's `-i` (in-place write) / bare `e` (execute) program forms are
+#: refused. Any refused argument is a NAMED refusal (`filter <exe> <arg>`)
+#: before anything runs.
+#:
+#: The refusal is PER-TOOL, not blanket (hypothesis:l4-a-filter-stage-is-
+#: argument-restricted, counter-example fix): an option is refused only where
+#: it already NAMES a file/in-place write/execute for that executable. The
+#: earlier blanket list (`-o -w -i --output -f` on EVERY filter) over-refused
+#: benign stdio flags — `sort -f` (fold case), `cut -f1` (fields), `grep -i`
+#: (ignore case), `uniq -w` (compare width) are all benign and MUST run. Only
+#: sort (`-o`/`--output` output file), sed (`-i` in-place) and grep/egrep
+#: (`-f`/`--file` pattern file) carry a real file option; every other filter
+#: (head/tail/tr/wc/cat/echo/cut/uniq) is governed ONLY by the path rule.
+_FILTER_FILE_OPTIONS = {
+    "sort": ("-o", "--output"),
+    "sed": ("-i",),
+    "grep": ("-f", "--file"),
+    "egrep": ("-f", "--file"),
+}
+_SED_EXEC_FORM = "e"
+
+
+#: Env VARs refused UNCONDITIONALLY in a first_turn `VAR=value` prefix, even
+#: when a template declares them on `startup.env_allow` (hypothesis:l4-a-
+#: filter-stage-is-argument-restricted, FOLD). PATH and PYTHONPATH steer which
+#: binary the executor finds; LD_* subverts a running binary's loader. A
+#: template author adding `env_allow: [PATH]` out of convenience must still
+#: not be able to redirect binary lookup, so these are refused no matter what
+#: the allowlist says, not only by their absence from it.
+_FOLD_ENV = ("PATH", "PYTHONPATH")
+
+
+def _filter_arg_refusal(exe: str, args: list) -> str | None:
+    """Return a one-line NAMED refusal (`filter <exe> <arg>`) if a post-`|`
+    filter stage's ARGUMENTS name a path or a file option, or use a refused
+    awk/sed program form, else None. The filter judge used to skip a stage by
+    executable name alone (hypothesis:l4-first-turn-filters-truncate), which
+    let `| sort -o M`, `| head -1 /etc/hostname` and `| awk BEGIN{system(...)}`
+    reach the box. Judging the arguments closes the rest of hypothesis:l4-a-
+    filter-stage-is-argument-restricted."""
+    if exe == "awk":
+        # a program body can reach system/getline/`>`/`|`; refused outright
+        return "filter awk"
+    file_opts = _FILTER_FILE_OPTIONS.get(exe, ())
+    for a in args:
+        if "/" in a:
+            return f"filter {exe} {a}"
+        key = a.split("=", 1)[0]   # `-ofoo` is the `-o` option
+        for opt in file_opts:
+            # exact (`-f`, `--output=foo`) or attached (`-f3`, `-oM`) forms
+            if key == opt or (len(opt) == 2 and a.startswith(opt)):
+                return f"filter {exe} {opt}"
+        if exe == "sed" and key == _SED_EXEC_FORM:
+            return f"filter {exe} e"
+    return None
+
+
 #: Shell operators a first_turn command may NOT contain. `|` and `;` ARE
 #: modeled (the no-shell executor wires pipelines and sequential commands
 #: explicitly, approach A of hypothesis:l4-first-turn-allowlist-cannot-be-
@@ -4140,7 +4207,14 @@ def _producing_refusal(command: str) -> str | None:
         exe = os.path.basename(toks[0])
         args = toks[1:]
         if idx > 0 and exe in _STARTUP_FILTERS:
-            continue  # a post-`|` stdio filter, not a producing command
+            # a post-`|` stdio filter — judged on its ARGUMENTS too, not
+            # skipped by name alone (hypothesis:l4-a-filter-stage-is-
+            # argument-restricted): no path token, no file option, awk/sed
+            # program forms refused.
+            fret = _filter_arg_refusal(exe, args)
+            if fret:
+                return fret
+            continue
         if exe == "ps":
             continue
         if exe in ("python", "python3"):
@@ -4190,6 +4264,8 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
             for t in stage:
                 if "=" in t and not t.startswith("-"):
                     var = t.partition("=")[0]
+                    if var in _FOLD_ENV or var.startswith("LD_"):
+                        return f"env prefix {var} refused unconditionally"
                     if var not in allow:
                         return f"env prefix {var} not on startup.env_allow"
                 else:
