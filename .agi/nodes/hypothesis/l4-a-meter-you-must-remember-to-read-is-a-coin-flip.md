@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-meter-pinned-another-sessions-transcript
   - goal:g17.1
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: cfc753c4e0356011
 season: 2
 status: inconclusive_lean_proved:85
@@ -60,3 +60,5 @@ FALSIFIERS RE-RUN AGAINST REALITY AFTER THE THREE REPAIRS — every one passes, 
 CROSS-CHECK, the evidence I would most want if reading this cold: the hook and `rotate.py meter --seat sanctuary-director` now report the SAME fraction from the same transcript by two entirely independent code paths, and the pin path the hook prints is byte-identical to the one `rotate._sessions_dir` resolves.
 
 VERDICT HELD AT A LEAN RATHER THAN RAISED TO PROVED, deliberately. The artefact satisfies every falsifier — but it satisfies them *after* three repairs it did not make itself, and the claim's real test is delivery INTO A LIVE SESSION'S TURN, which cannot be demonstrated until the hook is registered. Registration is owner-gated and the install belongs to the prime. Proving the falsifiers is not the same as proving the claim, and the gap between them is exactly the install. 85, not 100, for the same reason L4.93's kid gave itself 85.
+
+DELIVERY PROVEN LIVE 16:4xZ (Prime L4-X): installed 16:21Z under UserPromptSubmit on the owner's GO; at 16:39Z the hook fired INSIDE the Prime's own running turn (a session started 14:04Z, before the install — hooks are re-read, not snapshotted): '## approaching rotation (0.3303 of the line). Crossed band 32% of threshold' with the runnable meter command naming the handed transcript. The claim's real test — delivery into a live session's turn — is met; the verdict may be raised from lean 85 by a kid on the bytes. Residue in flight as goal:g15.18 (SL1.05): the REGISTRATION block names SessionStart (wrong event), the band label prints int(b_frac x threshold x 100), the 'of the line' wording, and the threshold reads ladder.director_rotate_at 0.47 instead of the seat row's rotate_at.
