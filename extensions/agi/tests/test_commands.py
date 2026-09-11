@@ -775,15 +775,26 @@ def _check_sb_status_wrapper(exe: str, stub: Path, problems: list[str]) -> None:
         problems.append("sb-status wrapper: no hold.sh half found")
     elif "--status" not in hold_line:
         problems.append(f"sb-status wrapper: hold half missing --status: {hold_line}")
-    elif str(stub) not in hold_line:
-        problems.append(f"sb-status wrapper: hold half not on the stub: {hold_line}")
+    elif str(stub) in hold_line:
+        # hypothesis:l4-sb-status-reads-the-configured-stub — the wrapper must
+        # resolve `<stub>` at RUN time the way commands.py does (nearest
+        # enclosing .agi/config.json, `locations.streamer_stub`), falling back
+        # to the install-time stub only when no project resolves. A body that
+        # hardcodes the configured stub path is exactly the bug this hypothesis
+        # fixes (L4.16x baked `~/bin/sb-status` by stub depth; the old check
+        # asserted `str(stub) in hold_line`, which is now backwards).
+        problems.append(
+            f"sb-status wrapper: hold half hardcodes the stub path (must "
+            f"resolve at run time): {hold_line}")
     # panic half
     if panic_line is None:
         problems.append("sb-status wrapper: no panic.sh half found")
     elif "--status" not in panic_line:
         problems.append(f"sb-status wrapper: panic half missing --status: {panic_line}")
-    elif str(stub) not in panic_line:
-        problems.append(f"sb-status wrapper: panic half not on the stub: {panic_line}")
+    elif str(stub) in panic_line:
+        problems.append(
+            f"sb-status wrapper: panic half hardcodes the stub path (must "
+            f"resolve at run time): {panic_line}")
     # each stub half exists and is executable
     for label, rela in (("hold", "hold.sh"), ("panic", "panic.sh")):
         half = stub / "bin" / rela
@@ -791,6 +802,77 @@ def _check_sb_status_wrapper(exe: str, stub: Path, problems: list[str]) -> None:
             problems.append(f"sb-status: stub {label} half not a file: {half}")
         elif not os.access(half, os.X_OK):
             problems.append(f"sb-status: stub {label} half not executable: {half}")
+
+
+@stub_only
+def test_sb_status_wrapper_resolves_the_configured_stub(tmp_path, monkeypatch):
+    """hypothesis:l4-sb-status-reads-the-configured-stub.
+
+    Re-install the real `install-cli.sh` with HOME + SB_HOME pointed at tmp
+    dirs, then run the installed wrapper from inside a fixture project whose
+    `.agi/config.json` puts `locations.streamer_stub` at a DEPTH-3 path. The
+    wrapper must act on THAT stub at run time, not on the install-time one —
+    and its body must carry NO absolute stub path (it resolves at run time).
+    The fake halves report their stub over a marker env var; nothing real is
+    ever executed — panic stays REFUSED in code, and the sandboxed fake
+    hold/panic scripts are the only things the wrapper is allowed to touch.
+    """
+    import json
+    import subprocess
+
+    home = tmp_path / "home"
+    (home / "bin").mkdir(parents=True)
+
+    # install-time stub sits UNDER home (as on the real box), so the fallback
+    # is spelled $HOME-relative and the wrapper body carries no absolute path
+    inst_stub = home / "work" / "streamer-stub"
+    (inst_stub / "bin").mkdir(parents=True)
+    custom_stub = tmp_path / "p1" / "p2" / "p3"  # depth-3 configured stub
+    (custom_stub / "bin").mkdir(parents=True)
+    fake = ("#!/usr/bin/env bash\n"
+            "printf 'STUB:%s\\n' \"$STUB_MARKER\"\n")
+    for name in ("hold.sh", "panic.sh"):
+        for root in (inst_stub, custom_stub):
+            p = root / "bin" / name
+            p.write_text(fake)
+            p.chmod(0o755)
+
+    installer = locations.streamer_stub(REAL_ROOT) / "bin" / "install-cli.sh"
+    assert installer.is_file(), f"installer missing: {installer}"
+    env = dict(os.environ, HOME=str(home), SB_HOME=str(inst_stub))
+    r = subprocess.run(["bash", str(installer)], env=env, capture_output=True,
+                       text=True)
+    assert r.returncode == 0, f"install-cli.sh failed: {r.stderr}"
+
+    wrapper = home / "bin" / "sb-status"
+    assert wrapper.is_file(), f"wrapper not installed: {wrapper}"
+    body = wrapper.read_text()
+    # no absolute stub path in the wrapper body — it must resolve at run time
+    assert str(inst_stub) not in body, \
+        f"wrapper body hardcodes the install-time stub: {body}"
+    assert str(custom_stub) not in body, \
+        f"wrapper body hardcodes the configured stub: {body}"
+    # both halves invoked, each with --status (and the old check now reads the
+    # other direction, so run the body assertion explicitly)
+    assert "hold.sh" in body and "--status" in body
+    assert "panic.sh" in body
+
+    # fixture project configuring streamer_stub at a depth-3 path
+    proj = tmp_path / "proj"
+    (proj / ".agi").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text(json.dumps(
+        {"locations": {"streamer_stub": str(custom_stub)}}))
+
+    # run the installed wrapper from inside that project: it must report the
+    # CONFIGURED depth-3 stub, not the install-time one.
+    env2 = dict(env, STUB_MARKER=str(custom_stub))
+    out = subprocess.run(["bash", str(wrapper)], cwd=str(proj), env=env2,
+                         capture_output=True, text=True)
+    assert out.returncode == 0, f"wrapper failed: {out.stderr}"
+    assert str(custom_stub) in out.stdout, \
+        f"wrapper did not act on the configured stub; got: {out.stdout!r}"
+    assert str(inst_stub) not in out.stdout, \
+        f"wrapper acted on the install-time stub, not the configured: {out.stdout!r}"
 
 
 
