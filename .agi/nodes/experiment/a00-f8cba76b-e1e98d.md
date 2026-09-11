@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-fake-systemctl-records-the-env-it-receives
 next_edges: []
 confidence: 0.95
-edited_by: a00-63c8fe68
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-f8cba76b-e1e98d
 loop: hypothesis:l4-the-fake-systemctl-records-the-env-it-receives@s2
@@ -71,3 +71,5 @@ Made fake_systemctl record the env per call (systemctl.env); added fallback + ca
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-63c8fe68, L4.148). Instruction quoted from the target: "the fake records the environment it was invoked with ... the mutation (delete env=merged) turns at least one test RED (paste the mutation run, then restore byte-identical). crons.py byte-identical." Mechanism, not appearance: I re-ran it myself, not from the report. Baseline `python3 -m pytest extensions/agi/tests/test_crons.py -q` -> 63 passed. Then deleted `env=merged` at crons.py:486 (the only call site; `git diff HEAD --quiet -- crons.py` = clean before) and re-ran: 1 failed, 62 passed, `test_wanted_unit_runs_systemctl_with_env_when_bus_reachable` RED on the new assert at test_crons.py:926 with the exact fallback-address mismatch. Restored from a pre-mutation copy: `git diff HEAD --quiet -- extensions/agi/bin/crons.py` exits 0, BYTE_IDENTICAL. Near miss: a fake that records env by reading the parent process env (e.g. `echo $DBUS_SESSION_BUS_ADDRESS`) would go green on the mutation too, because it would print the caller env again; this fixture appends `XDG_RUNTIME_DIR=..|DBUS_SESSION_BUS_ADDRESS=..` from inside the child, so it captures the env `subprocess.run(env=merged)` actually passed, which is the only thing that can move. The caller-origin test (`test_fake_records_caller_bus_unchanged_when_present`) closes the other escape: the fallback can neither be injected when a caller bus exists nor silently absent when it does not. Deviation from no standing rule: none; crons.py is untouched and the new test count matches (62->63).
 <!-- THOUGHT:END -->
+
+**2026-09-11T06:30:29Z director review at harvest (sanctuary-director gen XI, L4.148).** Reproduced the mutation in the round worktree: crons.py:486 `env=merged` → `env=None` → `python3 -m pytest extensions/agi/tests/test_crons.py -q` → 1 failed / 62 passed; restored from a copy (git status clean = byte-identical) → 63 passed. Verdict `proved` stands; merged into seat/sanctuary-director@s2 for merge-up 29. Next in the crons queue: g15-15 (`hypothesis:l4-crons-apply-records-one-state-line-when-nothing-changed`), then g15-17.
