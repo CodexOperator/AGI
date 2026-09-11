@@ -2033,6 +2033,71 @@ def test_compose_announcement_carries_all_five_fields():
     assert "seq: 41" in body
 
 
+def test_compose_announcement_carries_successor_address_after_join():
+    """mechanism 1 (hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
+    and-the-successor-one): once the JOIN has resolved the successor's ref and
+    window @id, the alert carries the FULL post-join address `name [ref]
+    @window` — the zero-call identity a peer needs (no whois round-trip)."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=7, successor_ref="f52a4c", successor_window="9")
+    assert "belam-II -> belam-III [f52a4c] @9 |" in body
+    assert "pre-join" not in body
+
+
+def test_compose_announcement_pre_join_names_identity_unresolved():
+    """mechanism 1 — a pre-join alert (no ref acked / JOIN found nothing)
+    NAMES that it is pre-join instead of silently dropping the identity a
+    peer would need to reach the successor."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=8)
+    # the successor NAME still names the seat; the ref is the absent join
+    # fact and is called out as pre-join, never faked.
+    assert "belam-III (pre-join" in body
+    assert "pre-join: successor ref not yet resolved" in body
+    assert "belam-III [" not in body
+
+
+@pytest.mark.parametrize("window", ["", "41"])
+def test_compose_announcement_pre_join_when_ref_absent_even_with_window(window):
+    """mechanism 1 — the ref (ListAgents @id from the JOIN) is THE join fact;
+    without it a window @id alone still means pre-join and must say so."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=2, gen_after=3,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=9, successor_window=window)
+    assert "(pre-join: successor ref not yet resolved)" in body
+    if window:
+        assert f"belam-III @{window} (pre-join" in body
+
+
+def test_announce_rotation_dms_post_join_address(monkeypatch, tmp_path):
+    """mechanism 1 — the address flows THROUGH _announce_rotation into every
+    recipient dm, so the peers' messages carry `name [ref] @window` after a
+    fixture join (the dm IS the zero-call hop that carries it)."""
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "belam-II", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="belam-II",
+        successor="belam-III", gen_before=2, gen_after=3, trigger="rotate-self",
+        handoff_path=".agi/sessions/belam-III.handoff.md", in_flight="none",
+        live_names=["kid-a", "belam-II"], successor_ref="f52a4c",
+        successor_window="9")
+    assert delivered == ["kid-a"]
+    assert len(sent) == 1
+    _, text = sent[0]
+    assert "belam-II -> belam-III [f52a4c] @9 |" in text
+
+
 def test_derive_receivers_drops_gone_window_and_self(tmp_path):
     rows = [{"name": "kid-a", "role": "director"},
             {"name": "liason", "role": "parent"},
@@ -2809,3 +2874,224 @@ def test_ack_seat_writes_row_and_matches_numeral_reader(tmp_path, monkeypatch,
     rows = rotate._load_seats(root)
     belam = next(r for r in rows if r.get("name") == "belam")
     assert belam.get("session_ref") == "f52a4c"
+
+
+def _ack_root_with_sid(tmp_path, seat="belam", sid="f52a4caabbccddee"):
+    """A local graph root whose own seat row carries a session_id (the
+    successor's registry identity) but an empty session_ref — the state the
+    back-fill-from-row mechanism is meant to cure."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root,
+                       [{"name": seat, "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": "",
+                         "session_ref": "", "session_id": sid}])
+    return root
+
+
+def test_ack_bare_agreeing_ref_backfills(tmp_path, monkeypatch, capsys):
+    """Mechanism 2: a bare ref that happens to prefix the OWN row's
+    session_id resolves to this seat (IS-AUTHORIZED) and is back-filled rc 0
+    — one of the two accepted shapes (the other, the live one, is a
+    ListAgents ref no row carries yet: see the live-shape test below)."""
+    root = _ack_root_with_sid(tmp_path)
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text=""), root)
+    assert code == 0
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+
+
+def test_ack_row_shaped_ref_refused_by_name(tmp_path, monkeypatch, capsys):
+    """RED (mechanism 2): a row-shaped --ref (brackets, or the seat name) is
+    REFUSED naming the shape — no ack file, no back-fill, rc 2."""
+    root = _ack_root_with_sid(tmp_path)
+    monkeypatch.chdir(root)
+    for bad in ("[f52a4c]", "belam"):
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="belam", gen=3, ref=bad, answer="continue", text=""), root)
+        assert code == 2, bad
+        assert not rotate._ack_path(root, "belam").exists(), bad
+    err = capsys.readouterr().err
+    assert "refused" in err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+
+
+def test_ack_live_listagents_ref_is_not_a_session_id_prefix_and_is_accepted(
+        tmp_path, monkeypatch, capsys):
+    """RED (director fix-up at the SL1.06 harvest, measured on the live
+    rotation 20260911T172702Z): the row's session_id is the Claude session
+    uuid the JOIN registers (`27179681-4a0c-…`); the successor's ListAgents
+    ref (`caa927`) is a DIFFERENT identity and is NOT a prefix of it. SL1.06
+    kid 2 refused every ref that did not prefix-match the session_id — which
+    would have refused every live wake. A bare ref that resolves to NO row is
+    the normal first ack: rc 0, written verbatim into the row (what whois
+    needs), and the ack file carries it."""
+    root = _ack_root_with_sid(tmp_path,
+                              sid="27179681-4a0c-4651-8a04-50de141b2ce0")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="caa927", answer="continue", text=""), root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "caa927"
+    assert belam.get("session_id") == "27179681-4a0c-4651-8a04-50de141b2ce0"
+    ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
+    assert ack["session_ref"] == "caa927"
+
+
+def test_ack_ref_that_is_another_seats_identity_refused(tmp_path, monkeypatch,
+                                                         capsys):
+    """Mechanism 2, the impersonation half kept: a bare --ref that ALREADY
+    resolves (by session_ref, or by session_id prefix) to a DIFFERENT seat's
+    row is refused rc 2 — no ack file, no back-fill."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": "", "session_ref": "",
+         "session_id": "27179681-4a0c-4651-8a04-50de141b2ce0"},
+        {"name": "master-sensei", "role": "director", "model": "x",
+         "effort": "max", "settings": "", "session_ref": "e96899",
+         "session_id": "f52a4caa-0000-4000-8000-000000000000"}])
+    monkeypatch.chdir(root)
+    for stolen in ("e96899", "f52a4c"):      # by session_ref / by sid prefix
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="belam", gen=3, ref=stolen, answer="continue", text=""),
+            root)
+        assert code == 2, stolen
+        assert not rotate._ack_path(root, "belam").exists(), stolen
+    err = capsys.readouterr().err
+    assert "refused" in err and "another seat" in err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+
+
+def test_ack_no_ref_leaves_session_ref_empty(tmp_path, monkeypatch, capsys):
+    """Director fix-up at the SL1.06 harvest: an ack with NO --ref is still
+    accepted (rc 0, the ack lands) but back-fills NOTHING — the row already
+    carries its session_id from the JOIN, and the ListAgents ref cannot be
+    derived from it (F8: harness-only). Writing the uuid into session_ref
+    (kid 2/3's zero-call lean) only made the rotation alert print
+    `name [27179681-…]`, an address no peer can message; the alert now says
+    pre-join, which is the truth until the successor names its ref."""
+    root = _ack_root_with_sid(tmp_path,
+                              sid="27179681-4a0c-4651-8a04-50de141b2ce0")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref=None, answer="continue", text=""), root)
+    assert code == 0
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    assert belam.get("session_id") == "27179681-4a0c-4651-8a04-50de141b2ce0"
+    ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
+    assert ack["session_ref"] == ""
+
+
+def test_bootstrap_writes_before_spawn_in_rotate_self():
+    """Owed item (iv) — turn-one proof is a CODE-ORDER falsifier, not a code-
+    position guess. `cmd_rotate_self` must write the bootstrap record BEFORE
+    it spawns the successor window; otherwise the successor's first turn could
+    read a bootstrap that does not exist yet. This reads the LIVE function
+    source and asserts the pre-spawn `_write_bootstrap(` call site precedes
+    the `spawn_window(` call site, so a future reorder that moves the write
+    after the spawn FAILS this test.
+    """
+    import inspect as _inspect
+    import re as _re
+    src = _inspect.getsource(rotate.cmd_rotate_self)
+    write_idx = src.find("_write_bootstrap(")
+    spawn_idx = src.find("spawn_window(")
+    assert write_idx >= 0, "cmd_rotate_self no longer calls _write_bootstrap"
+    assert spawn_idx >= 0, "cmd_rotate_self no longer calls spawn_window"
+    assert write_idx < spawn_idx, (
+        "_write_bootstrap() must run BEFORE spawn_window() in cmd_rotate_self; "
+        "a turnaround-one bootstrap is only valid pre-spawn"
+    )
+
+
+# --- owed item (v): AGI_SEAT export on cmd_spawn / cmd_loop when --seat -----
+# hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
+# fires-at-turn-one (SL1.07). A concrete --seat on spawn/loop must ride
+# AGI_SEAT=<name> out in front of the claude argv so the SessionStart hook
+# copy can fire at turn one; when --seat is ABSENT the launch line must stay
+# byte-identical to a plain spawn/loop.
+
+def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp_path):
+    # Direct drive of the shared launch path, dry-run so nothing launches.
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    base = rotate.spawn_window(
+        name="adv", tier="prime_director", prompt_file=None,
+        settings=None, tmux_session="agi-rc", root=None,
+        dry_run=True, seat=None,
+    )[1]
+    seated = rotate.spawn_window(
+        name="adv", tier="prime_director", prompt_file=None,
+        settings=None, tmux_session="agi-rc", root=None,
+        dry_run=True, seat="sanctuary-director",
+    )[1]
+    assert "AGI_SEAT=" not in base
+    assert f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && " in seated
+    # the ONLY difference is the export: the rest of the launch line is identical
+    export = f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && "
+    assert seated.replace(export, "") == base
+
+
+def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
+    # Proves cmd_spawn and cmd_loop actually FORWARD args.seat into the shared
+    # launch path (the wiring owed item (v) added). With args.seat None the
+    # forwarded value is None, so _shell_cmd emits no AGI_SEAT (byte-identical).
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    called = {}
+
+    def _capture(**kw):
+        called.update(kw)
+        return 0, "claude --remote-control adv"
+
+    monkeypatch.setattr(rotate, "spawn_window", _capture)
+
+    # spawn with --seat
+    code = rotate.cmd_spawn(SimpleNamespace(
+        name="adv", tier="adv_alive", prompt_file=None, model=None,
+        effort=None, settings=None, tmux_session="agi-rc", window_path=None,
+        root=root, dry_run=True, successor_argv=None, seat="sanctuary-director",
+    ), root)
+    assert code == 0 and called.get("seat") == "sanctuary-director"
+    # spawn without --seat (byte-identical: seat forwarded as None)
+    called.clear()
+    code = rotate.cmd_spawn(SimpleNamespace(
+        name="adv", tier="adv_alive", prompt_file=None, model=None,
+        effort=None, settings=None, tmux_session="agi-rc", window_path=None,
+        root=root, dry_run=True, successor_argv=None, seat=None,
+    ), root)
+    assert code == 0 and called.get("seat") is None
+
+    # loop with --seat
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # rotate
+    called.clear()
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="adv_alive", name="adv",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1, seat="sanctuary-director",
+    ), root)
+    assert code == 0 and called.get("seat") == "sanctuary-director"
+    # loop without --seat
+    called.clear()
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="adv_alive", name="adv",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1, seat=None,
+    ), root)
+    assert code == 0 and called.get("seat") is None
