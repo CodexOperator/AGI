@@ -126,6 +126,31 @@ def assistant_tool(ts, name, inp):
                                                 "name": name, "input": inp}]}})
 
 
+def _mk_crons(root, reaper_log):
+    """A `config:crons` node whose service entry sets `AGI_REAPER_LOG:` to the
+    fixture reaper log — the `config:crons` arm of `_reaper_log_path`
+    (rotate.py:3808) is matched by the literal `AGI_REAPER_LOG: <path>` regex,
+    so the frontmatter shape only has to contain that line."""
+    d = root / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "crons.md").write_text(
+        f"---\nid: config:crons\ntype: config\nservices:\n"
+        f"  agi-reaper:\n    environment:\n"
+        f"      AGI_REAPER_LOG: {reaper_log}\n---\n", encoding="utf-8")
+
+
+def _hermetic_reaper(root, lines=()):
+    """A fixture reaper log PLUS a `config:crons` node pointing at it, so
+    `_reaper_log_path(root)` resolves to the FIXTURE and never falls through to
+    `$HOME/logs` (which on this box holds a real agi-reaper-*.log). Returns the
+    fixture reaper-log path."""
+    rlog = root / "reaper.log"
+    rlog.write_text("\n".join(lines) + ("\n" if lines else ""),
+                    encoding="utf-8")
+    _mk_crons(root, rlog)
+    return rlog
+
+
 def _mk_record(root, seat):
     """A rotation record for `seat` carrying handover/result (no launch field)."""
     rot = root / "sessions" / "rotations"
@@ -157,7 +182,8 @@ def _run_fake_git(monkeypatch, captured=None):
     monkeypatch.setattr(rotate.subprocess, "run", _run)
 
 
-def _fixture(tmp_path, seat="deadseat", transcript_override=None):
+def _fixture(tmp_path, seat="deadseat", transcript_override=None,
+              reaper_lines=()):
     root = tmp_path
     death_iso = "2026-09-11T15:19:56.528Z"
     # ms epoch that MUST round-trip to death_iso under the autopsy's own
@@ -169,6 +195,9 @@ def _fixture(tmp_path, seat="deadseat", transcript_override=None):
     tp = transcript_override or _mk_transcript(root, death_iso)
     reg = _mk_registry(root, DEAD_PID, tp, death_ms)
     _mk_record(root, seat)
+    # every `_fixture` gets a fixture reaper log + crons.md, so no autopsy test
+    # falls through to the real `$HOME/logs` agi-reaper-*.log (P2).
+    _hermetic_reaper(root, lines=reaper_lines)
     return root, reg, tp
 
 
@@ -207,6 +236,7 @@ def test_autopsy_live_pid_still_prints(tmp_path):
     prints instead of refusing — a live predecessor is a fact, not a refusal."""
     root = tmp_path
     _mk_seats(root, "live", os.getpid())
+    _hermetic_reaper(root)
     # no registry, no record, no transcript for the live pid
     lines = rotate._run_autopsy(seat="live", pid=os.getpid(),
                                 registry_dir=None, root=root)
@@ -221,6 +251,7 @@ def test_autopsy_no_record_launch_is_none_not_fail(tmp_path):
     autopsy still exits 0 — never a hard failure."""
     root = tmp_path
     _mk_seats(root, "fresh", DEAD_PID)
+    _hermetic_reaper(root)
     lines = rotate._run_autopsy(seat="fresh", pid=DEAD_PID,
                                 registry_dir=None, root=root)
     assert "launch: not recorded (record: none)" in "\n".join(lines)
@@ -400,3 +431,186 @@ def test_noop_join_bootstrap_prints_unresolved_not_pending(tmp_path):
         join_pending={"successor_address"}, join_poll_secs=None)
     doc2 = json.loads(Path(out2).read_text(encoding="utf-8"))
     assert doc2["telemetry"]["successor_address"] == "pending: resolved after join"
+
+# ---------- goal:g15.21 — spawn writes are gated on a DEAD seat ----------
+# (hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-
+# remains) + the CHEAP resolution of the season defaults through season_branch.
+
+
+def test_spawn_refuses_live_pid_and_leaves_pin_ack_untouched(
+        tmp_path, monkeypatch, capsys):
+    """A spawn onto a seat whose row pid is ALIVE refuses BY NAME before any
+    write or window: exits non-zero, names the pid, and rewrites neither the
+    meter pin nor the ack (sentinel content survives untouched). spawn_window
+    is never reached."""
+    root, reg, _tp = _fixture(tmp_path, seat="liveseat")
+    _mk_seats(root, "liveseat", os.getpid())  # a LIVE row pid (this test)
+    _run_fake_git(monkeypatch)
+    # pre-write sentinel pin + ack — the refusal must leave BOTH untouched
+    pin = root / "sessions" / "liveseat.meter"
+    pin.parent.mkdir(parents=True, exist_ok=True)
+    pin.write_text("SENTINEL-PIN", encoding="utf-8")
+    ack = root / "sessions" / "seats" / "liveseat.ack.json"
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text("SENTINEL-ACK", encoding="utf-8")
+
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **k: (_ for _ in ()).throw(
+            AssertionError("spawn_window must never run for a live seat")))
+
+    base = dict(name="liveseat", tier="parent", prompt_file=None, model=None,
+                effort=None, settings=None, successor_argv=None, seat="liveseat",
+                tmux_session="t", window_path=None, dry_run=False,
+                registry_dir=str(reg), no_autopsy=False, pid=os.getpid())
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "liveseat" in err and "alive" in err
+    assert f"pid {os.getpid()}" in err
+    # neither spawn write was touched
+    assert pin.read_text(encoding="utf-8") == "SENTINEL-PIN"
+    assert ack.read_text(encoding="utf-8") == "SENTINEL-ACK"
+
+
+def test_spawn_refuses_alive_window_for_seat(tmp_path, monkeypatch, capsys):
+    """A dead row pid but a LIVE tmux window for the seat (window_path seam)
+    is the SAME liveness read the autopsy uses — refused by name before any
+    write, naming the window @id."""
+    root, reg, _tp = _fixture(tmp_path, seat="winseat")  # row pid is DEAD_PID
+    _run_fake_git(monkeypatch)
+    # a window-path file listing `@7 winseat` = a live window for the seat
+    wp = tmp_path / "windows.txt"
+    wp.write_text("@7 winseat\n", encoding="utf-8")
+    pin = root / "sessions" / "winseat.meter"
+    pin.parent.mkdir(parents=True, exist_ok=True)
+    pin.write_text("SENTINEL-PIN", encoding="utf-8")
+
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **k: (_ for _ in ()).throw(
+            AssertionError("spawn_window must never run for an alive seat")))
+
+    base = dict(name="winseat", tier="parent", prompt_file=None, model=None,
+                effort=None, settings=None, successor_argv=None, seat="winseat",
+                tmux_session="t", window_path=str(wp), dry_run=False,
+                registry_dir=str(reg), no_autopsy=False, pid=DEAD_PID)
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "winseat" in err and "alive" in err and "window @7" in err
+    assert pin.read_text(encoding="utf-8") == "SENTINEL-PIN"
+
+
+def test_spawn_dead_seat_still_writes_pin_and_ack(tmp_path, monkeypatch, capsys):
+    """The gate's liveness read returns DEAD for this seat, so the meter pin
+    and the pending ack still land — the refusal never fires on a dead seat."""
+    root, reg, _tp = _fixture(tmp_path, seat="deadw1")
+    _run_fake_git(monkeypatch)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **k: (0, "x"))
+    monkeypatch.setattr(rotate, "_first_seating_announce", lambda *a, **k: [])
+    monkeypatch.setattr(rotate, "_current_sequence", lambda root: 3)
+
+    base = dict(name="deadw1", tier="parent", prompt_file=None, model=None,
+                effort=None, settings=None, successor_argv=None, seat="deadw1",
+                tmux_session="t", window_path=None, dry_run=False,
+                registry_dir=str(reg), no_autopsy=False, pid=DEAD_PID)
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    assert rc == 0
+    pin = root / "sessions" / "deadw1.meter"
+    assert pin.is_file() and pin.read_text(encoding="utf-8").startswith("11\t")
+    ack = root / "sessions" / "seats" / "deadw1.ack.json"
+    assert ack.is_file()
+    assert json.loads(ack.read_text(encoding="utf-8"))["answer"] == "pending"
+
+
+def test_seating_season_resolves_through_season_branch(tmp_path, monkeypatch):
+    """CHEAP — the `origin/season/s2` literal is gone from the defaults:
+    `_seating_worktree_lines` and `_run_autopsy` resolve the season through
+    `season_branch(root)` at call time (monkeypatched to a DIFFERENT season,
+    which lands in the behind-ref and the printed line)."""
+    root = tmp_path
+    _mk_seats(root, "seas", DEAD_PID)
+    _hermetic_reaper(root)
+    monkeypatch.setattr(rotate, "season_branch", lambda r: "season/s9")
+    _run_fake_git(monkeypatch)
+
+    lines = rotate._seating_worktree_lines(root)
+    assert "worktree: behind origin/season/s9" in lines[0]
+
+    lines2 = rotate._run_autopsy(seat="seas", pid=DEAD_PID,
+                                 registry_dir=None, root=root)
+    assert any("behind origin/season/s9" in ln for ln in lines2), lines2
+
+
+# ---------- P2 (SL5.07): hermetic reaper-log fixtures + probable-cause ------
+# hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-
+# from-files / l4-a-spawn-writes-only-onto-a-dead-seat... — the autopsy's
+# `_probable_cause` (rotate.py:3967) signature lines, each proved through the
+# fixture reaper log / fixture transcript, plus proof no autopsy test reads the
+# real `$HOME/logs` agi-reaper-*.log.
+
+
+def test_autopsy_probable_cause_external_term(tmp_path):
+    """The external TERM/HUP signature: a fixture reaper-log line naming the
+    pid and SIGTERM -> `probable cause: external TERM/HUP on idle seat`, with
+    the offending line as the evidence."""
+    root, reg, tp = _fixture(
+        tmp_path, reaper_lines=[
+            f"2026-09-11T15:19:50Z reaper: reaped pid {DEAD_PID} SIGTERM (idle seat)"])
+    lines = rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                registry_dir=str(reg), root=root)
+    txt = "\n".join(lines)
+    assert "probable cause: external TERM/HUP on idle seat" in txt
+    assert "SIGTERM" in txt and str(DEAD_PID) in txt
+
+
+def test_autopsy_probable_cause_pane_local_probe(tmp_path):
+    """The pane-local probe signature: a transcript whose predecessor's last
+    calls include a tmux list-windows -> `probable cause: pane-local probe`.
+    """
+    root = tmp_path
+    ts = "2026-09-11T15:19:40.000Z"  # before the death ts
+    tp = root / "probe.jsonl"
+    tp.write_text(json.dumps({
+        "type": "assistant", "timestamp": ts,
+        "message": {"content": [
+            {"type": "tool_use", "name": "tmux",
+             "input": "tmux list-windows -t deadseat"}]}})
+        + "\n", encoding="utf-8")
+    _root, reg, _ = _fixture(tmp_path, transcript_override=tp)
+    lines = rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                registry_dir=str(reg), root=tmp_path)
+    txt = "\n".join(lines)
+    assert "probable cause: pane-local probe" in txt
+    assert "list-windows" in txt
+
+
+def test_autopsy_no_probable_cause_when_none(tmp_path):
+    """With no reaper line naming the pid and no tmux probe in the
+    transcript, `_probable_cause` returns None and NO `probable cause:` line is
+    printed."""
+    root, reg, tp = _fixture(tmp_path)  # empty fixture reaper log, plain transcript
+    lines = rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                registry_dir=str(reg), root=root)
+    assert all("probable cause:" not in ln for ln in lines), lines
+
+
+def test_reaper_log_resolves_to_fixture_not_home(tmp_path, monkeypatch):
+    """Hermeticity, honest: point `$HOME` at an empty tmp dir and run the FULL
+    autopsy — the `reaper log:` line names the FIXTURE crons.md path, proving
+    the autopsy never consulted a real `$HOME/logs` agi-reaper-*.log (with the
+    empty HOME that fall-through would resolve to nothing / a different path).
+    Also: the `AGI_REAPER_LOG` env seam outranks the crons.md fixture."""
+    empty_home = tmp_path / "emptyhome"
+    empty_home.mkdir()
+    monkeypatch.setenv("HOME", str(empty_home))
+    root, reg, tp = _fixture(tmp_path)  # crons.md -> tmp_path/reaper.log
+    lines = rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                registry_dir=str(reg), root=root)
+    assert f"reaper log: {tmp_path / 'reaper.log'}" in "\n".join(lines)
+    # env outranks crons.md
+    envlog = tmp_path / "env-reaper.log"
+    envlog.write_text("", encoding="utf-8")
+    monkeypatch.setenv("AGI_REAPER_LOG", str(envlog))
+    assert rotate._reaper_log_path(root) == envlog
