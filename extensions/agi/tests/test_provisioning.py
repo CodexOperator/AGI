@@ -29,9 +29,23 @@ import envfile  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 
-live = pytest.mark.skipif(
-    not provisioning.available("/home/ubuntu/work/agi"),
-    reason="no OPENROUTER_PROVISIONING_KEY — issuance is optional by design",
+import envfile  # noqa: E402
+import provisioning  # noqa: E402
+import spawn_budget  # noqa: E402
+
+# Under hypothesis:l4-mint-refuses-under-pytest-unless-mocked a test can never
+# make a real provisioning HTTP call -- the `_call` seam is guarded project-
+# wide via the conftest autouse fixture, and mint/revoke refuse real seams under
+# pytest. These `@live` tests were the one deliberate real-API exception; under
+# this policy they are impossible-by-design (they would mint/revoke a REAL key),
+# so the `live` marker SKIPS them with a reason instead of running and failing
+# loudly. Their assertions (TTL-null refusal, expiry, workspace, revoke-cleanup)
+# are covered by the mock-based tests elsewhere in this file.
+live = pytest.mark.skip(
+    reason="live real-API provisioning calls from tests are refused by "
+           "hypothesis:l4-mint-refuses-under-pytest-unless-mocked: the `_call` "
+           "seam is guarded project-wide, so live mint/revoke tests skip and "
+           "API shape must be asserted with mocks instead",
 )
 
 
@@ -1380,3 +1394,110 @@ def test_absent_provisioning_network_error_stays_fail_open(monkeypatch):
     ok, msg = provisioning.check_runtime_key_usable({})
     assert ok is True and msg is None, (
         "an unreachable API is evidence of nothing; only a 401 verdict refuses")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-mint-refuses-under-pytest-unless-mocked — a test can NEVER
+# mint/revoke a real key. Three claims, one regression test each:
+#   (1) mint/revoke REFUSE, naming the test and the seam, when
+#       PYTEST_CURRENT_TEST is set and a real seam is still present;
+#   (2) the conftest autouse fixture makes ANY un-mocked provisioning._call
+#       fail loudly (RuntimeError) instead of minting;
+#   (3) a test whose root would walk UP to an envfile carrying a (fake)
+#       provisioning key is refused, never minted — the walk-up can no longer
+#       mint, even though the key read escapes root.
+# All three are asserted with FAKE keys only; the real management key is never
+# read, minted, revoked or patched.
+# --------------------------------------------------------------------------
+
+
+def _fake_root_with_envfile(tmp_path):
+    """A throwaway project root carrying `.env` with a FAKE provisioning key and
+    a `.agi/` with an empty config, so the real `_read_provisioning_key` reads
+    a present (but fake) key through the normal path -- while the guard sees
+    real seams and refuses."""
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text("{}")
+    (tmp_path / ".env").write_text(
+        f"{provisioning.PROVISIONING_KEY_VAR}=sk-fake-not-real")
+    return tmp_path
+
+
+def test_mint_refuses_under_pytest_with_real_seams(tmp_path, monkeypatch):
+    """claim (1) — with PYTES_CURRENT_TEST set and the REAL seams in place, a
+    `mint` that resolved a key REFUSES loudly, naming the test and the seam,
+    rather than minting. This is the guard that closes the measured L4.146
+    leak (a test minted the real `agi-iter1-kid-a00` key under --basetemp)."""
+    root = _fake_root_with_envfile(tmp_path)
+    monkeypatch.setenv("PYTEST_CURRENT_TEST",
+                       "test_provisioning.py::test_x (call)")
+    with pytest.raises(provisioning.ProvisioningError, match="refused under pytest"):
+        provisioning.mint(iter_n=1, agent_id="a00", root=root)
+
+
+def test_revoke_refuses_under_pytest_with_real_seams(tmp_path, monkeypatch):
+    """claim (1), the revoke half — a test that reached `revoke` with a real
+    key resolved and real seams is refused too, never deleting a real key."""
+    root = _fake_root_with_envfile(tmp_path)
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_provisioning.py::test_y (call)")
+    with pytest.raises(provisioning.ProvisioningError, match="refused under pytest"):
+        provisioning.revoke("deadbeef", root=root)
+
+
+def test_mint_proceeds_only_when_both_seams_are_mocked(monkeypatch):
+    """claim (1)'s escape hatch — when BOTH `_call` and `_read_provisioning_key`
+    are replaced (the honest way a test mints a fake key), the guard passes and
+    `mint` proceeds. Under pytest the real `PYTEST_CURRENT_TEST` is set, so this
+    is exactly the shape every minting test must take."""
+    def fake_call(method, url, key, payload=None, timeout=30):
+        if provisioning.CREDITS_BASE in url:
+            return 200, {"data": {"total_credits": 45, "total_usage": 10}}
+        return 201, {"key": "sk-fake", "data": {
+            "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
+
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", fake_call)
+    minted = provisioning.mint(iter_n=1, agent_id="a00")
+    assert minted is not None
+    assert minted.name == "agi-iter1-kid-a00"
+
+
+def test_unmocked_provisioning_call_fails_loudly_via_autouse():
+    """claim (2) — the conftest autouse fixture replaces provisioning._call
+    with a raising sentinel for the WHOLE suite, so even a direct `_call`
+    reached by a test that never mocked it fails loudly instead of minting.
+    This is the second, independent line behind the mint-level guard."""
+    with pytest.raises(RuntimeError, match="real provisioning HTTP call from a test"):
+        provisioning._call("POST", provisioning.API_BASE, "sk-whatever")
+
+
+def test_walkup_to_a_fake_envfile_above_is_refused_never_minted(
+        tmp_path, monkeypatch):
+    """claim (3) — a test whose `root` is a scratch dir INSIDE a project walks
+    up to that project's envfile (the measured L4.146 mechanism). Even when it
+    would read a present -- here FAKE -- provisioning key from above, `mint`
+    REFUSES under pytest rather than minting. The walk-up can still read the
+    key; it can no longer turn it into a real mint."""
+    proj = tmp_path / "proj"
+    (proj / ".agi").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text("{}")
+    (proj / ".env").write_text(
+        f"{provisioning.PROVISIONING_KEY_VAR}=sk-fake-not-real")
+    scratch = proj / "scratch"  # a scratch dir below the project boundary
+    scratch.mkdir()
+    monkeypatch.setenv("PYTEST_CURRENT_TEST",
+                       "test_provisioning.py::test_walkup (call)")
+    with pytest.raises(provisioning.ProvisioningError, match="refused under pytest"):
+        provisioning.mint(iter_n=1, agent_id="a00", root=scratch)
+
+
+def test_bounded_lookup_returns_none_for_a_bare_tmp_root(tmp_path):
+    """claim (3)'s control — a bare scratch root under /tmp (the normal pytest
+    tmp_path) resolves no key and returns None, so `mint` is a no-op. The
+    bounded lookup already returns None here; this pins the everyday case that
+    the above test's refusal sits on top of. (The test at :initial asserted
+    this; re-assert as a guard so it cannot regress.)"""
+    bare = tmp_path / "nested" / "deeper"
+    bare.mkdir(parents=True)
+    assert provisioning._read_provisioning_key(bare) is None
