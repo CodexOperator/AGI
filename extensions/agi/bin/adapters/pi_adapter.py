@@ -124,6 +124,10 @@ def build_command(
     # site, which is what happened to the first tier-0 parent of wave 3.
     role: str | None = None,
     ladder_tier: int | None = None,
+    # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi -- the
+    # project graph root the dispatcher resolved, threaded into the brief so
+    # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
+    project_root: str | Path | None = None,
 ) -> list[str]:
     """The argv that starts one pi agent."""
     # hypothesis:l3-pi-install-patch-not-durable -- the L3.38 edit-tool
@@ -179,7 +183,7 @@ def build_command(
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, session_dir=_sess,
         source_root=source_root, kid_ceiling=kid_ceiling,
-        addendum=addendum,
+        addendum=addendum, project_root=project_root,
     ):
         args += ["--append-system-prompt", seg]
     if skill_prompt is not None and Path(skill_prompt).exists():
