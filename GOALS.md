@@ -6253,6 +6253,8 @@ MERGE-UP 26 (bf455a460 -> f2e43118e) RULED 04:0xZ BY NAME (workflow merge-up-rev
 
 OWNER 05:0xZ confirmed the chain direction (verbatim in doc:l4-owner-decisions): 'pinning them from the wrong end, filo rather than fifo' — the Belam chain is FIFO, the oldest goes; the seventh 0a fix-only criteria (1)+(2) stand as written, now owner-backed.
 
+OWNER 05:1xZ (verbatim in doc:l4-owner-decisions): bugfix/optimization rulings do NOT live here — re-filed under goal:g15 as hypothesis nodes fixed in-loop, proposed by the point in each merge-up report. This node keeps the seat protocol only. The merge-up 26 residues above are re-filed on goal:g15 (05:1xZ).
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
@@ -8645,6 +8647,8 @@ prior session manifests).
 
 ## Agent Notes
 Long-term, always active, exempt from max_goals_active. Parent of every short-term (S) goal: ids never renumbered, goal_kind stays short-term, they stop being roots. Its bigger_outcome each season is the hazard ledger, goal:s34's home. Bugfixes, edge-case hardening, security fixes, optimization and hazard removal are done in-loop under this goal or under the S goal beneath it that fits. Design: .agi/context/season-ladder-and-morals-brief.md section 2.
+
+OWNER 2026-09-11 05:1xZ (verbatim in doc:l4-owner-decisions): bugfix and optimization findings from merge-up reviews live HERE as hypothesis nodes fixed in-loop, proposed by the point director in his merge-up report — not as residue prose under goal:g17.1. RE-FILED from g17.1 (merge-up 26, 8e27dbcbb): (a) SEVENTH 0a fix-only on rotate.py — own window + own chain kill gated OFF on a numeral-chain seat (:4083, :4045-4070); belam_cap reaps the OLDEST by PID, records pid/reaped (:3885) — the chain is FIFO (owner 05:0xZ); model_confirm after the ack or argv-only (:3832); row session_ref = the ListAgents ref never the uuid (:3818); fixture chain 3 pids; dry-run 'ps -o pid,ppid' text; (b) heal.py:317-336 (pid alive at reap, dead by the timeout check) has no test; (c) crons.py: disable --now on an absent unit logs a FAILED action every 5 min under crons_live:false. Each becomes a g15 hypothesis node minted by the point.
 
 ### G16 — Telemetry per node, propagated up the ladder
 
