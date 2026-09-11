@@ -7594,8 +7594,14 @@ def _latest_rotate_record(root: Path, seat: str):
             rec = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        if isinstance(rec, dict) and (rec.get("result") in ("started", "success")
-                                      or rec.get("rotation") in ("rotate-self",)):
+        # A crash-recovery `result: respawned` record is a rotation the service
+        # must pick up too (L4.292): the recovered seat's after_join (join ->
+        # pin -> pending ack) runs exactly as a rotated seat's does. One-line
+        # widening of the accepted results for that rotation only.
+        ok_result = rec.get("result") in ("started", "success")
+        crash_ok = (rec.get("rotation") == "crash-recovery"
+                    and rec.get("result") == "respawned")
+        if isinstance(rec, dict) and (ok_result or crash_ok):
             return rec, f
     return None
 
