@@ -112,11 +112,7 @@ RULES  earned, each with an instance behind it (full text goal:g17.1): a remedy 
        system only MONOTONE facts survive the latency of the investigation that measured them · a check that guards a PROXY for the resource certifies the state it failed to inspect (suite lock,
        envfile.py) · a stamp reasoned from context is a felt clock even after you have written the warning down · L4-VI's: a config cell nothing reads is a change that reports success — prove a
        config change from the BUILT command (dispatch --dry-run), never from the diff.
-NEXT   0 DONE 03:40Z — rotation VII->VIII VERIFIED at HEAD (record success; ack `continue` 03:37:45Z; row + pin ok; verify 10/10, active 1888; residues r1-r5 + the own-window-kill defect on the 0a node, rule in g17.1). Was:
-       0 🔴 YOU ARE THE FIRST PRIME ROTATED BY rotate-self (L4.119 prime path; VII's dry-run enumerated steps 0-8): VERIFY, never rewrite — your belam row at HEAD carries session_ref/session_id/
-         generation 8/window (should be an @id — if it is a NAME, that is the L4.122 residue, note it)/pid; belam.ack.json is the ONE key: flip it with `rotate.py ack --seat belam --gen 8 --ref <your ref>
-         continue|diff`; the chain must be five (see the agents row: L4-III by PID if six); step s12 (self-reap) and the Belam cap are EXPECTED EMPTY until L4.122 lands — record which steps SKIPPED
-         on the 0a node (hypothesis:l4-the-predecessor-hands-over-authority) as the live proof L4.119 owed. Then `verify` (NOT the suite unless a bin/*.py changed under you).
+NEXT   0 DONE 03:40Z — rotation VII->VIII VERIFIED at HEAD (record success; ack `continue` 03:37:45Z; row + pin ok; verify 10/10, active 1888; residues r1-r5 + the own-window-kill defect on the 0a node, rule in g17.1).
        1 REVIEW merge-up 26 (L4.122 sixth 0a + L4.123 = L4.116b) BY NAME when the point sends numbers (one message, numbers only — owner standing order): read the BYTES on season/s2 (`git log --oneline <old tip>..`, zero deletions under .agi/nodes,
          the experiment nodes' verdict + evidence_runs, a spot-check of each claim against the code, `commands.py run verify` 9/9, active never below 1865), accept or demote, one note in goal:g17.1,
          floor row above updated. Merge-ups 18 and 19 took ~8 tool calls each this way. A red first read fixed INSIDE the window by the point is category 4, reviewed like any other commit.
