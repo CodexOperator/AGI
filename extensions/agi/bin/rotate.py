@@ -1385,10 +1385,46 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # r3+ (L4.1xx / hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
+    # and-the-successor-one): the successor's identity is the reason the row
+    # wants a session_ref at all. A GIVEN --ref must be the BARE ref (a
+    # row-shaped ref — brackets, whitespace, or the seat name itself — is
+    # REFUSED BY NAME); and, when the seat's own row already carries a
+    # session_id, the ref must AGREE with it through the SAME resolution
+    # send.whois uses (imported, never re-implemented). With NO --ref the row's
+    # own session_id is back-filled instead, so identity is persisted even
+    # when the successor names no ref (the zero-call lean).
+    import send  # local: same dir, no import cycle (send.py pattern)
+    ref = (args.ref or "").strip()
+    issue = _ref_shape_issue(ref, seat)
+    if issue:
+        print(f"ERR: --ref {ref!r} refused: {issue}; pass the bare ListAgents "
+              "ref (e.g. its 6-hex session_id prefix).", file=sys.stderr)
+        return 2
+    self_rows = [r for r in send._locally_loaded_rows(root)
+                 if r.get("name") == seat]
+    self_sid = (self_rows[0].get("session_id") if self_rows else None) or ""
+    if ref and self_sid:
+        code, _text = send._resolve_rows(self_rows, ref, claim=seat)
+        if code != send.WHOIS_OK:
+            print(f"ERR: --ref {ref!r} refused: it does not agree with "
+                  f"{seat!r}'s session_id (send resolves it to no seat row, "
+                  f"code {code}); pass the bare ListAgents ref.",
+                  file=sys.stderr)
+            return 2
     ack = {
         "seat": seat,
         "gen_after": args.gen,
-        "session_ref": args.ref or "",
+        # Seam fix (SL1.06, kid 3): persist the EFFECTIVE identity in the ack
+        # too, not just the raw --ref. On the zero-call path (no --ref) the
+        # row is back-filled with the row's own session_id below, and
+        # cmd_loop (~1582) reads `ack.get("session_ref")` to compose the
+        # post-join announce address. Writing an EMPTY ref here made that
+        # announce fall back to the PRE-JOIN text "successor ref not yet
+        # resolved" even though the join HAD resolved it in the row — the
+        # hypothesis's falsifier #1 (an alert without the address after a
+        # successful join).
+        "session_ref": ref or self_sid,
         "answer": args.answer,
         "text": text or "",
         "ts": datetime.utcnow().isoformat() + "Z",
@@ -1397,14 +1433,16 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
     print(f"ack written: {path}")
-    # r3: `--ref` back-fills session_ref into the successor's OWN seats row
-    # through the self_row write (source: ack), so a later whois can
-    # authorize by it. A THROWAWAY seat has no row; the back-fill is recorded
+    # r3: back-fill session_ref into the successor's OWN seats row through the
+    # self_row write (source: ack), so a later whois can authorize by it. The
+    # ref source is the validated --ref when given, else the row's own
+    # session_id. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
-    if args.ref:
+    backfill_ref = ref if ref else self_sid
+    if backfill_ref:
         try:
             print(_backfill_session_ref(
-                root, seat=seat, role="parent", ref=args.ref))
+                root, seat=seat, role="parent", ref=backfill_ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -1546,7 +1584,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             trigger="--force" if getattr(args, "force", False) else "meter due",
             handoff_path=str(Path(ack_path).expanduser().resolve()),
             in_flight="successor acked `continue`; handoff stood",
-            live_names=succ.get("names", []))
+            live_names=succ.get("names", []),
+            # mechanism 1: the successor's ack carries its OWN ref back-filled
+            # from the JOIN (cmd_ack r3), so this post-ack announce composes
+            # the FULL post-join address `name [ref] @window` for every peer.
+            successor_ref=(ack.get("session_ref") or ""),
+            successor_window=_successor_window_id(
+                name, tmux_session, args.window_path) or "")
         return 0
 
     # Three realities, one record (ACKED / PRESENT-BUT-SILENT / ABSENT): the
@@ -2393,7 +2437,8 @@ def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
 
 def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
-                               gen_after: int | None = None) -> None:
+                               gen_after: int | None = None,
+                               template_source: str | None = None) -> None:
     """Write/refresh the IN-PROGRESS rotate-self record.
 
     `result` stays `started` until the rotation reaches an outcome (success or
@@ -2401,6 +2446,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     interrupted rotation leaves a record whose state says exactly where it
     stopped (hypothesis:l4-rotation-record-survives-interruption). Overwrites
     `path` in place; the process keeps writing to the SAME file.
+    `template_source` names which TREE the rotation template came from (the
+    worktree's own, or the integration tree served because the worktree's
+    geometry was stale) — mechanism 3, so a spawn is attributable.
     """
     rec: dict = {
         "rotation": "rotate-self",
@@ -2409,6 +2457,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
         "result": "started",
         "steps_reached": sorted(steps),
     }
+    if template_source is not None:
+        rec["template_source"] = template_source
     if gen_before is not None:
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
@@ -2564,21 +2614,49 @@ def _next_sequence(root: Path) -> int:
     return nxt
 
 
+def _successor_address(name: str, ref: str = "",
+                       window: str = "") -> str:
+    """The successor's callable address for a rotation alert, composed AFTER
+    the join has resolved it: `name [ref] @window`.
+
+    Pre-join (the successor has not yet acked a ref — the ListAgents `@id`
+    from the JOIN) the alert NAMES that it is pre-join rather than silently
+    dropping the ref a peer would need to reach it. The window `@id` is
+    appended only when a tmux `@<N>` is actually known (the internal-seam
+    path has none).
+    """
+    if ref:
+        addr = f"{name} [{ref}]"
+        if window:
+            addr += f" @{window}"
+        return addr
+    # PRE-JOIN: the ref is exactly the join fact that has not resolved yet.
+    if window:
+        return (f"{name} @{window} (pre-join: successor ref "
+                f"not yet resolved)")
+    return f"{name} (pre-join: successor ref not yet resolved)"
+
+
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
-                          trigger, handoff_path, in_flight, seq=0) -> str:
+                          trigger, handoff_path, in_flight, seq=0,
+                          successor_ref: str = "",
+                          successor_window: str = "") -> str:
     """The five-field announcement payload — one message, never more.
 
     Every field is spelled because each has already cost a peer a turn: the
-    outgoing seat, the successor name, generation before/after, the trigger
-    (meter due / --force / fable-limit), and the handoff path the successor
-    is reading, plus one line of what is in flight so a peer can tell whether
-    its own round is orphaned.
+    outgoing seat, the successor address (`name [ref] @window` once the join
+    has resolved the ref — hypothesis:l4-a-rotation-costs-the-live-seats-
+    zero-calls-and-the-successor-one, mechanism 1; a pre-join alert names
+    that it is pre-join), generation before/after, the trigger (meter due /
+    --force / fable-limit), and the handoff path the successor is reading,
+    plus one line of what is in flight so a peer can tell whether its own
+    round is orphaned.
     """
-    return (f"{ROTATION_ALERT_TAG} {seat} -> {successor} | "
+    addr = _successor_address(successor, successor_ref, successor_window)
+    return (f"{ROTATION_ALERT_TAG} {seat} -> {addr} | "
             f"generation {gen_before} -> {gen_after} | "
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
-
 
 def _derive_receivers(root: Path, *, seat: str,
                       live_names: list[str]) -> list[str]:
@@ -2604,7 +2682,9 @@ def _derive_receivers(root: Path, *, seat: str,
 
 def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        gen_before, gen_after, trigger: str, handoff_path: str,
-                       in_flight: str, live_names: list[str]) -> list[str]:
+                       in_flight: str, live_names: list[str],
+                       successor_ref: str = "",
+                       successor_window: str = "") -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -2619,7 +2699,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     text = _compose_announcement(
         seat=seat, successor=successor, gen_before=gen_before,
         gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
-        in_flight=in_flight, seq=seq)
+        in_flight=in_flight, seq=seq, successor_ref=successor_ref,
+        successor_window=successor_window)
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
         try:
@@ -3257,6 +3338,22 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry")
+
+
+def _ref_shape_issue(ref: str, seat: str) -> str | None:
+    """Return a reason if `ref` is NOT a BARE ListAgents ref: it carries
+    brackets (a row-shaped ref), whitespace, or IS the seat name itself. None
+    means it is a safe bare ref to carry/back-fill. An empty ref is None (no
+    --ref passed) — the caller then back-fills from the row's session_id."""
+    if not ref:
+        return None
+    if "[" in ref or "]" in ref:
+        return "carries brackets (that is a row-shaped ref, not a ref)"
+    if any(c.isspace() for c in ref):
+        return "carries whitespace (the ref is a single bare token)"
+    if ref.strip().lower() == str(seat).lower():
+        return "is the seat name, not a ref"
+    return None
 
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
@@ -5622,6 +5719,119 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- geometry freshness (rotate-self must not spawn on a stale config) -----
+# hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-
+# one, mechanism 3: config:rotations + config:seats (the rotation template
+# and the seat registry) live in `.agi/nodes/.geometry/` and are the PRIME's
+# shared source of truth. A rotating WORKTREE carries its own copy of that
+# subtree; if the worktree's branch is BEHIND the shared geometry branch, its
+# copy is stale and spawning a successor on it would bake the wrong template
+# / seat registry into the successor SILENTLY. So rotate-self resolves WHICH
+# tree's geometry it reads, once, up front: the integration tree
+# (`locations.git_common_root`) when the worktree's own is behind AND the
+# integration tree's is itself current; otherwise it refuses BY NAME with the
+# behind-count and the sync command. The rotation record names the tree the
+# template came from (`template_source`) so a spawn is always attributable.
+
+#: the shared geometry branch; a worktree whose `.agi/nodes/.geometry/` is
+#: behind this (by `git rev-list --count HEAD..<ref> -- <subtree>`) is treated
+#: as carrying a STALE rotation config.
+GEOMETRY_BASE_REF = "origin/season/s2"
+
+#: the subtree of the repo whose drift makes a worktree's rotation config
+#: stale. Kept a Path so git's `--` pathspec gets fresh bytes on every OS.
+GEOMETRY_SUBTREE = Path(".agi/nodes/.geometry/")
+
+#: what a refused operator runs to refresh the geometry config before re-spawn.
+# MERGE, never rebase: a standing rule of this tree (CLAUDE.md, every seat
+# card); the same clear line `_prepare_checks` prints for "behind" (director
+# fix-up at the SL1.06 harvest -- the kid printed `rebase`).
+GEOMETRY_SYNC_CMD = ("git fetch origin season/s2 && git merge --no-edit "
+                     "origin/season/s2")
+
+
+def _git_toplevel(root: Path) -> Path | None:
+    """The git work-tree top for `root` (walked up when `root` is a subdir),
+    or None when `root` is not inside a git repo. `root` here is the graph
+    dir (`.agi/`, as `find_project_root` returns), so the repo top is usually
+    its parent. Never raises."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if out.returncode != 0:
+        return None
+    try:
+        return Path(out.stdout.strip())
+    except ValueError:
+        return None
+
+
+def _geometry_behind_count(root: Path | None) -> int:
+    """How many commits the worktree's OWN `.agi/nodes/.geometry/` is behind
+    the shared geometry branch:
+
+        git rev-list --count HEAD..<GEOMETRY_BASE_REF> -- <GEOMETRY_SUBTREE>
+
+    0 (current) when the geometry is already at HEAD, when the remote-
+    tracking base ref does not exist (a fresh/offline clone), or when the
+    check cannot answer (no git at all). Never raises — a gitless test
+    fixture must pass through as current, not refuse."""
+    if root is None:
+        return 0
+    top = _git_toplevel(root)
+    if top is None:
+        return 0
+    try:
+        out = subprocess.run(
+            ["git", "rev-list", "--count",
+             f"HEAD..{GEOMETRY_BASE_REF}", "--", str(GEOMETRY_SUBTREE)],
+            cwd=str(top), capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return 0
+    if out.returncode != 0:
+        return 0
+    try:
+        return max(0, int(out.stdout.strip() or "0"))
+    except ValueError:
+        return 0
+
+
+def _geometry_resolution_root(root: Path) -> tuple[Path | None, str]:
+    """Which tree's `.agi/nodes/.geometry/` a rotate-self should read.
+
+    The worktree's OWN geometry is the default source. When it is behind the
+    shared geometry branch, spawning on it would hand the successor a stale
+    config:rotations / config:seats SILENTLY — mechanism 3's falsifier. Then
+    serve the config from the integration tree (`locations.git_common_root`,
+    the main checkout) when THAT tree's geometry is itself current and it
+    carries the rotations node; otherwise refuse BY NAME with the behind-count
+    and the sync command.
+
+    Returns (resolution_root | None, source_note). A None root means refuse:
+    `source_note` is the full error string the caller prints and returns 1 on.
+    """
+    behind = _geometry_behind_count(root)
+    if behind == 0:
+        return root, "worktree (geometry current)"
+    main = locations.git_common_root(root)
+    main_graph = (Path(main) / ".agi") if main else None
+    if main_graph is not None and str(main_graph) != str(root) \
+            and _geometry_behind_count(main_graph) == 0 \
+            and _rotations_node_path(main_graph).exists():
+        return main_graph, (
+            f"integration tree {main} (worktree geometry behind "
+            f"{GEOMETRY_BASE_REF} by {behind} commit(s))")
+    return None, (
+        "rotate-self refused: this worktree's .agi/nodes/.geometry/ is behind "
+        f"{GEOMETRY_BASE_REF} by {behind} commit(s); spawning on a stale "
+        "rotation config would hand the successor the wrong config:rotations "
+        "/ config:seats. Sync the tree and re-run: "
+        f"`{GEOMETRY_SYNC_CMD}`.")
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -5648,6 +5858,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else refuse BY NAME with
+    # the behind-count and the sync command. `cfg_root` feeds seat + template
+    # resolution; every other rotate-self path keeps the worktree `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
         return 1
     seat = args.name
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
@@ -5679,7 +5900,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # the ladder inside spawn_window). Without --throwaway the gate holds
     # exactly as before — an unregistered name errors `no seat`.
     if not getattr(args, "throwaway", False):
-        row = _find_seat(root, seat)
+        row = _find_seat(cfg_root, seat)
         if row is None:
             print(f"ERR: no seat {seat!r} in the seats registry "
                   f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
@@ -5696,13 +5917,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     role = (row.get("role") if row else None) \
         or getattr(args, "role", None) or "parent"
     tmpl, tmpl_name, tmpl_src = _resolve_template(
-        root, role, getattr(args, "template", None))
+        cfg_root, role, getattr(args, "template", None))
     if tmpl is None:
         print(f"ERR: {tmpl_src}", file=sys.stderr)
         return 1
     print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
           f"brief={tmpl.get('brief_file')!r} "
-          f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')}")
+          f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')} "
+          f"geometry={geom_src}")
     # L4.112 (C): the ordered step list rotate-self runs comes from the
     # template, not from a hardcoded list. The progress markers in
     # `steps_reached` are spelled from these names where the step exists.
@@ -5767,7 +5989,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         rec_path = _rotate_self_started_path(root, seat)
         _write_rotate_self_started(
             rec_path, seat=seat, steps=steps_reached,
-            gen_before=gen_before, gen_after=gen)
+            gen_before=gen_before, gen_after=gen,
+            template_source=geom_src)
 
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
@@ -5776,7 +5999,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                        session_ref=session_ref)
         _rs_mark(steps_reached, tmpl_steps, "handoff", "1")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
@@ -5791,7 +6015,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
-                                       gen_before=gen_before, gen_after=gen)
+                                       gen_before=gen_before, gen_after=gen,
+                                       template_source=geom_src)
         print(f"(2) own-window rename: SKIPPED for numeral-chain seat "
               f"{seat!r} (`.genN` applies only to plain-named seats; the "
               f"own-window reap is GATED OFF at step (8) on a numeral- "
@@ -5803,7 +6028,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
-                                       gen_before=gen_before, gen_after=gen)
+                                       gen_before=gen_before, gen_after=gen,
+                                       template_source=geom_src)
         print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
@@ -5903,7 +6129,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if not args.dry_run:
         _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
@@ -6204,7 +6431,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     if w == pfx or w.startswith(pfx + "-"))}
         _rs_mark(steps_reached, tmpl_steps, "handover", "4.5")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     elif joined is not None and not joined["found"]:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
@@ -6225,7 +6453,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if not args.dry_run:
         _rs_mark(steps_reached, tmpl_steps, "readback", "4")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -6355,7 +6584,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
-        live_names=succ.get("names", []))
+        live_names=succ.get("names", []),
+        # mechanism 1: the JOIN (s4, above) has already resolved the
+        # successor's ListAgents ref (succ_session_id) and window @id, so the
+        # announce composes the FULL post-join address `name [ref] @window`.
+        # When the seam was absent and the JOIN found no registry file there
+        # is no ref, and the alert NAMES that it is pre-join.
+        successor_ref=succ_session_id or "",
+        successor_window=succ_window_id or "")
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
     #     r4 / e / D / r5): after the record is written and (6.5) announced:
