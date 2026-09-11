@@ -47,7 +47,9 @@ LANDED merge-ups 1-21 = season/s2 aafb4be0a -> ... -> f7635cf5b -> 582ea4219 (18
        spawn path since L4.55 · THE RESPAWN BLEED (a finished parent restarted onto its own round) fixed at merge-up 4, proven L4.55 · FREE MODELS = NO (availability is not capability; only 2 of 21 usable;
        enumerate by pricing == 0, the :free suffix misses 14%) · BATCHING = no OpenRouter route (re-probe /files each rollover) · READ-BACK false negative = the reader read a DEBUG LOG; replaced by the
        explicit ack channel (L4.106), proven on BOTH seats (gen VIII `continue` 22:10Z, prime `diff` 22:17Z) · THE TWO-READ SUITE RULE retired (L4.101) · qwen/qwen3.8-27b spend is the owner's, authorized.
-STREAM (owner 23:1xZ, streamer-stub test, 15-min delay, owner's global kill switch): X :1 shows THREE read-only views (grouped tmux sessions view-<seat>, `tmux attach -r`, xfce4-terminal, tiled by
+STREAM 🔴 LIVE NOW (owner 23:5xZ): ~/work/streamer-stub @ ccabc20 as systemd user unit streamer-stub.service, 15-min delay. YOUR PANE IS ON AIR. Surgery surface = the stub's CLI: `sb-status` first, `brb`
+       (cut to card) before touching the desktop/views/stub, `back` after the branch verifies, `panic` = the OWNER's kill switch, never scripted. The fold (hypothesis:l4-the-stream-goes-live, HELD) is
+       mid-stream surgery on a branch, never a blind unit restart. X :1 shows THREE read-only views (grouped tmux sessions view-<seat>, `tmux attach -r`, xfce4-terminal, tiled by
        `rotate.py tile --apply` — wmctrl + xdotool now installed), tmux status OFF in the views (status-right leaks the HOSTNAME), both xfce panels AUTOHIDE (clock = timezone, panel = user name), VNC config
        + Thunar windows closed, wallpaper stock xfce (nothing Oracle). Follower `.agi/sessions/stream-follow.sh` (tmux session `stream-follow`, gitignored) re-points the views at the LIVE seats every
        20 s across rotations and renames the prime's view — a rotated seat needs NO hand step. Restore the panels: `xfconf-query -c xfce4-panel -p /panels/panel-N/autohide-behavior -s 0`.
