@@ -4070,6 +4070,72 @@ def test_keygen_all_live_keys_live_rows_only_and_skips_keyed(project, capsys):
     assert obj["priv_hex"] not in stdout
 
 
+def test_keygen_all_live_refuses_non_prime_director_by_name(project, capsys,
+                                                             monkeypatch):
+    """mur-39 order (c), PRIME GATE: --all-live is a PRIME-ONLY backstop. A
+    seat whose OWN row role is not prime_director is refused by name BEFORE any
+    key file is minted -- the refusal names the seat and the role, and zero
+    .key files land (today only the row write was refused and the keys leaked)."""
+    _write_seats_node(project, [
+        {"name": "sanctuary-director", "role": "director", "pid": 1234},
+        {"name": "s1", "role": "director", "pid": 111},
+    ])
+    out = send_mod.keygen(project, all_live=True, actor="sanctuary-director")
+    assert out is None, "--all-live must refuse a non-prime_director seat"
+    # zero keys minted anywhere: the gate runs before the first _mint_seat_key
+    assert not _seat_key_file(project, "sanctuary-director").exists()
+    assert not _seat_key_file(project, "s1").exists()
+    err = capsys.readouterr().err
+    assert "REFUSED sanctuary-director" in err, err
+    assert "director" in err and "prime_director" in err, \
+        "the refusal names the seat AND the role"
+
+
+def test_keygen_all_live_grants_a_row_prime_director(project, capsys,
+                                                      monkeypatch):
+    """mur-39 order (c): a caller whose OWN row holds role prime_director is
+    allowed to run --all-live (the gate refuses by name, never blocks the
+    prime)."""
+    _write_seats_node(project, [
+        {"name": "belam", "role": "prime_director"},   # not live -> not keyed
+        {"name": "s1", "role": "director", "pid": 111},
+    ])
+    out = send_mod.keygen(project, all_live=True, actor="belam")
+    assert out is not None and len(out) == 1
+    assert _seat_key_file(project, "s1").is_file()
+    stdout = capsys.readouterr().out
+    assert "keyed s1" in stdout
+
+
+def test_cr_body_with_crlf_and_lone_cr_verifies_and_keeps_bytes(
+        project, capsys, monkeypatch):
+    """mur-39 order (d): a signed body carrying a CRLF, a LONE CR and a
+    TRAILING CR must (i) read VERIFIED (never FORGED) and (ii) store the exact
+    bytes the sender passed -- the parser must not normalize CR, or the
+    canonical bytes the sig covers change and the message reads FORGED."""
+    send_mod.keygen(project, "seat-cr")
+    body = "line1\r\nline2\rline3\r"
+    pub_hex = _seat_pubkey_hex(project, "seat-cr")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-cr", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-cr")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    # (ii) the stored body bytes equal the sent bytes, CR included. Read with
+    # newline="" so the check measures what is ON DISK, not a universal-newline
+    # read that collapses CR before we can compare.
+    raw = inbox.open("r", newline="").read()
+    _, parsed = send_mod._parse_block(raw.split(send_mod.MSG_SEP)[1])
+    assert parsed == body, (
+        "parser must return the exact sent bytes (CRLF/lone CR/trailing CR); "
+        f"got {parsed!r}")
+    # (i) the read label is VERIFIED, never FORGED
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out
+
+
 # ── hypothesis:l4-every-live-row-is-keyed... clauses (2)+(3)+(4): envelope, ──
 # key_history RETIRED, and whois verifies with INFORMATIONAL labels.
 # (2) every signed message carries `env: v1` beside its `sig:` line and the
@@ -4265,3 +4331,122 @@ def test_whois_forged_label_does_not_gate_exit(project, monkeypatch):
     # the exit code is the authority axis answer (WHOIS_OK) -- NEVER keyed on
     # the FORGED label.
     assert forged_rc == send_mod.WHOIS_OK, forged_rc
+
+
+# ── comms.lockdown reserved flag (hypothesis:l4-lockdown-is-a-reserved-
+# ── boolean-that-warns-and-encrypts-nothing-until-it-is-built) ──────────
+
+
+def _project_with_comms(tmp_path: Path, comms: dict) -> Path:
+    """Like the `project` fixture but with a `comms` config block. Guaranteed
+    unique dir per call so one test may build several sibling projects."""
+    _project_with_comms.n += 1
+    root = tmp_path / f"project-{_project_with_comms.n}"
+    (root / ".agi").mkdir(parents=True)
+    cfg = {"metric_primary": "outcome_coverage"}
+    if comms is not None:
+        cfg["comms"] = comms
+    (root / ".agi" / "config.json").write_text(json.dumps(cfg))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    return root
+
+
+_project_with_comms.n = 0
+
+
+def _strip_ts(text: str) -> str:
+    """Drop the `ts:` line so two near-identical sends are comparable (the
+    claim allows the ts line to differ under lockdown; everything else must
+    be byte-identical)."""
+    return "\n".join(l for l in text.splitlines() if not l.startswith("ts: "))
+
+
+def test_comms_config_defaults_without_block(project: Path):
+    """Absent comms block -> all defaults, never raises."""
+    cfg = send_mod._comms_config(project)
+    assert cfg["lockdown"] is False
+    assert cfg["verify"] == "informational"
+
+
+def test_comms_config_reads_block(project: Path):
+    """A declared block is read; unknown keys are ignored, defaults kept."""
+    (project / ".agi" / "config.json").write_text(json.dumps({
+        "metric_primary": "outcome_coverage",
+        "comms": {"lockdown": True, "verify": "enforcing",
+                   "future_unknown": 1},
+    }))
+    cfg = send_mod._comms_config(project)
+    assert cfg["lockdown"] is True
+    assert cfg["verify"] == "enforcing"
+    assert "future_unknown" not in cfg
+
+
+def test_lockdown_requirements_named_seam():
+    """The requirement list is the reserved seam -- named, asserts nothing is
+    built yet."""
+    reqs = send_mod._lockdown_requirements({"custodian": True})
+    assert reqs == ["encrypted-at-rest", "custodian-signing-server: optional"]
+    # same list regardless of any unrelated config key
+    assert send_mod._lockdown_requirements({}) == reqs
+
+
+def test_lockdown_true_send_is_byte_identical_and_warns_once(
+        tmp_path, capsys):
+    """lockdown:true changes NO bytes on the wire vs lockdown:false (except
+    ts), prints exactly one warning per send, and never prints 'encrypted' as
+    a STATE."""
+    locked = _project_with_comms(tmp_path, {"lockdown": True})
+    plain = _project_with_comms(tmp_path, {"lockdown": False})
+
+    send_mod.send(locked, "director", "secret hello", "a00-xxxx")
+    send_mod.send(plain, "director", "secret hello", "a00-xxxx")
+
+    locked_inbox = (locked / ".agi" / "sessions" / "inbox" / "director.md").read_text()
+    plain_inbox = (plain / ".agi" / "sessions" / "inbox" / "director.md").read_text()
+    # identical except the ts line
+    assert _strip_ts(locked_inbox) == _strip_ts(plain_inbox)
+    # the flag encrypts nothing: the wire bytes carry no claim of a cipher
+    assert "encrypted" not in locked_inbox
+    assert "enc:v1" not in locked_inbox  # unsigned send stays unsigned
+    err = capsys.readouterr().err
+    # exactly one warning per send (only the locked project sent a warning)
+    assert err.count("comms.lockdown is set") == 1
+    assert "WARNING: comms.lockdown is set but lockdown is NOT BUILT" in err
+
+
+def test_lockdown_false_and_absent_print_no_warning(tmp_path, capsys):
+    """Warning appears never under false or absent block."""
+    plain = _project_with_comms(tmp_path, {"lockdown": False})
+    absent = _project_with_comms(tmp_path, None)
+    send_mod.send(plain, "director", "x", "a00-xxxx")
+    send_mod.send(absent, "director", "x", "a00-xxxx")
+    err = capsys.readouterr().err
+    assert "comms.lockdown" not in err
+
+
+def test_lockdown_help_mentions_reserved(capsys):
+    """Clause 4: send -h and keygen -h mention comms.lockdown and reserved,
+    so the reserved flag is discoverable without reading source."""
+    with pytest.raises(SystemExit):
+        send_mod.main(["--help"])
+    out = capsys.readouterr().out
+    assert "comms.lockdown" in out
+    assert "reserved" in out.lower()
+
+    with pytest.raises(SystemExit):
+        send_mod.main(["keygen", "--help"])
+    out = capsys.readouterr().out
+    assert "comms.lockdown" in out
+    assert "reserved" in out.lower()
+
+
+def test_lockdown_read_and_peek_warn_once(tmp_path, capsys):
+    """read and peek each print exactly one warning under lockdown:true."""
+    locked = _project_with_comms(tmp_path, {"lockdown": True})
+    send_mod.send(locked, "director", "secret hello", "a00-xxxx")
+    capsys.readouterr()  # drain the send's warning
+    send_mod.read(locked, "director", "a00-xxxx")
+    send_mod.peek(locked, "director", wrap=160)
+    err = capsys.readouterr().err
+    assert err.count("comms.lockdown is set") == 2  # one per read, one per peek
+
