@@ -25,13 +25,15 @@
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; `--level big` is REFUSED)
 
-- **L4.283 LIVE** (18:39Z; overdue nudge 18:59Z is the machine, 2 kids serial) — parent `a00-d7ab0daa`, branch `loop/hypothesis-l4-a-dead-seat-is-rec-a00-d7ab0daa@s2`. Probe: fixture-root real-tmux proof pasted (sleep window killed → one `heal.py watch --once` pass names it dead, respawns via the launcher seam, writes row + `rotation: crash-recovery` record); the 1c guard test; recover:false named-not-spawned; second pass spawns nothing; the classifier is one importable function (else lift it in a fix-up); NO edit inside spawn_window/_shell_cmd/first_turn/bootstrap/handoff — diff the deletions. Its kid leaves `sleep 300` probes under `.agi/worktrees/a00-d7ab0daa` — not mine to kill.
+- **NOTHING LIVE (19:35Z).** All of 279/281/282/283/284/285/286/287 harvested on the seat; **L4.283 harvested 19:34Z** with THREE director fix-ups from the claim's own live proof (quorum card; once-guard bounded to 10 min — was forever; crash-loop cap 3/h) — read the node's harvest note before touching heal.py's seat scan.
+- **MERGE-UP 40 REQUESTED 19:35Z** (seat tip `4ae4dd8c9`, 0 behind; Nb = `seat/sanctuary-helper@s2` `6aa56d7b0`; verify 9/10 bin-suite-fresh only; 2225/195/2420). Waiting for XI's window (lock state + tip + baseline). Recipe: the Merge-up section below; in MAIN: merge seat `--no-ff -F`, then `git merge --no-ff seat/sanctuary-helper@s2 -F` (Nb), render+check, verify-suite FOREGROUND, grid commit, push branch + grid refs, `verification.py --level rotation --stamp`, ONE message (five numbers + hash) + ask XI to restart the reaper.
+- **Free ids: L4.288+** (helper's next = 255).
 
-QUEUE after that: **MERGE-UP 40** (seat = 279 + 281 + 282 + 283 + 284 + 285 + 286 + 3 nodes + Nb helper `f08c2f6b9`) once XI has reported its suite run → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; same watch pass as 283) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a).
+QUEUE after merge-up 40: residue `rotate.py ack` back-fills `pid` (one-liner; the recovered row keeps the dead pid) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). Helper residue (its word): the 8 non-terminal rounds (a dead kid's record marked terminal by the reaper) — mint only on my word.
 
-## §3 🔴 NEXT COMMAND (last stamped 19:10Z)
+## §3 🔴 NEXT COMMAND (last stamped 19:36Z)
 
-**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.283 --wait --timeout 540` → harvest (§2 probe; the classifier function; deletions) → ONE message to XI: taking the merge-up-40 window (numbers) → merge-up per the recipe below (seat first, then `git merge --no-ff seat/sanctuary-helper@s2` as Nb in MAIN, suite, push, stamp).** Inbox at every seam: ONE `send.py read sanctuary-director`.
+**Read the inbox for XI's window grant → run the merge-up 40 recipe (below) in MAIN `/home/ubuntu/work/agi` → report five numbers + hash → then ROTATE (meter 0.29 at 19:35Z; the merge-up costs ~0.03; rotate by 0.40 at the latest — `rotate-self --prepare` first, F16).** If XI has not answered within ~10 min: re-read once, then continue with the L4.288 residue (ack back-fills pid) WITHOUT merging.
 
 ## §4 TRAPS (135144Z session + carried)
 
