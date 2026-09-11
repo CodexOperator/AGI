@@ -7,13 +7,13 @@ parents:
 budget_usd_week: 30
 caps:
   moral: 5
-  vision: 3
+  vision: 5
   director_kids: 3
 caps_apply_from_season: 2
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam-S1-L4-VI
+edited_by: owner
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -135,7 +135,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-10 ~22:2xZ (verbatim in doc:l4-owner-decisions): replace the glm parent model with deepseek/deepseek-v4.1-flash. L4-V applied it to agent_dispatch.model at 6da89f01e, but that key is read only on the legacy no-harnesses path (adapters/__init__.py); a parent's model resolves from THIS roles table first (dispatch.py ladder row lookup), then harnesses.pi.models.parent. Measured by the point gen VIII from the built command: dispatch.py --dry-run still printed the glm model after 6da89f01e. Two cells changed, the tier-1 and tier-0 pi PARENT rows; the tier-0 pi director row keeps glm because the order named the parent model and no pi director is dispatched in this formation; every other byte identical.
+OWNER 2026-09-11 00:4xZ (verbatim in doc:l4-owner-decisions): the streaming suite and the web app suite are whole shippable apps, each with its own vision, sharing the morals. caps.vision 3 -> 5 so the two town visions sit beside the three season-2 visions; moral and director_kids unchanged. Applied by the Prime as the owner ruling.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
