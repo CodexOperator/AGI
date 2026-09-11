@@ -129,12 +129,18 @@ class TestPiAdapterRestartWithRealProcess:
         assert new_pid, "restart must spawn"
         try:
             import time
-            for _ in range(50):
+            # `pwd > marker` CREATES the file before pwd writes into it, so an
+            # exists() poll can read '' in between (flaked 1/2 merge-up suites
+            # under 13 live agents, 2026-09-11 20:34Z): wait for CONTENT.
+            cwd = ""
+            for _ in range(100):
                 if pwd_marker.exists():
-                    break
+                    cwd = pwd_marker.read_text().strip()
+                    if cwd:
+                        break
                 time.sleep(0.05)
             assert pwd_marker.exists(), "mock pi never ran"
-            cwd = pwd_marker.read_text().strip()
+            assert cwd, "mock pi created the marker but wrote nothing in 5 s"
         finally:
             try:
                 os.kill(new_pid, signal.SIGKILL)
