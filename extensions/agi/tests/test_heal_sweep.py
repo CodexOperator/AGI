@@ -552,3 +552,37 @@ def test_sweep_bring_home_grace_keeps_not_homed(tmp_path):
     assert (removed, refused, kept) == (0, 0, 1)
     assert not (graph / "sessions" / "iter-505").exists(), "NOT homed"
     assert wt.exists(), "worktree kept"
+
+
+def test_sweep_refusal_reason_names_every_live_refusal():
+    """(harvest L4.298) `_sweep_refusal_reason` carries a needle for every
+    LIVE refusal text session-complete can print, and the tag is the named
+    reason the `[sweep] session dir not home (<reason>)` line shows. The
+    matrix below pairs each real print (measured by grep, file:line in the
+    experiment node) with the needle that must map it -- order first-wins."""
+    h = heal._sweep_refusal_reason
+    assert h("agent a00-x status=running is not terminal; round still running") \
+        == "non-terminal"
+    # a status-LESS manifest entry defaults to `running`, so session-complete
+    # prints exactly the line above -- the correct refusal is the
+    # is-not-terminal tag, NOT the no-manifest tag.
+    assert h("agent a00-x status=running is not terminal") == "non-terminal"
+    assert h("no manifest.json in any source for iteration L4.9; nothing to "
+             "judge, nothing moves") == "no manifest"
+    assert h("target already exists and is not empty; refusing to overwrite") \
+        == "target exists"
+    assert h("a live lease is active for iteration L4.9; round still running") \
+        == "live lease"
+    assert h("this source's own contribution did not verify; left intact at "
+             "its worktree") == "verify failed"
+
+
+def test_sweep_refusal_reason_dead_needle_removed():
+    """(harvest L4.298) The old `not every agent record is terminal` needle
+    matches NOTHING any live code prints (grep), so it is removed: the text
+    now falls through to the generic `home failed` bucket instead of a named
+    tag for a message that can no longer appear."""
+    h = heal._sweep_refusal_reason
+    assert h("not every agent record is terminal; round still running") \
+        == "home failed", \
+        "the dead needle must not get a named tag; only live refusals do"
