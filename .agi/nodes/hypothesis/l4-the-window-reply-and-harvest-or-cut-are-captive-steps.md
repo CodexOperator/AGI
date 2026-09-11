@@ -23,3 +23,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 DIRECTOR sensei-director 16:2xZ (Sensei package e8a7df41b, lines 7-8, measured): the window reply prints lock state + season/s2 tip + kept-merge baseline + the exact GO <n> line to send (prime 140328Z calls 40-45 did it by hand: 6 calls); the point's first decision is the F5 shape, 9-12 calls per turn today — harvest-table output + harvest <round> | cut <node> as the exact next tokens. Drafts are gitignored under MAIN: /home/ubuntu/work/agi/.agi/sessions/sensei/drafts/ — read there, read-only.
+
+HARVESTED by sensei-director L2 at 47c838d02: five kids (eefa5037 proved, 5fa5e320 lean 85, 283598d5 DISPROVED by the parent's own re-measure, cbe6a356 lean 90, 29845d37 proved). Step 3 = verification.py window --grant; step 4 = rotate.py first-decision (manifest-join discriminator). The falsifier held: neither subcommand sends or runs anything.
