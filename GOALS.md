@@ -6320,6 +6320,8 @@ L4 (sensei-director gen IV): brief minted — hypothesis:l4-ack-commits-its-own-
 
 SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack continue commits its own row write as ONE pathspec commit on seats.md (message <seat> ack: gen N, session_ref R, window @W, pid P), prints the +/- row lines and the exact git push line (never run); --no-commit and every diff answer leave the tree as before; already-carries commits nothing; a pre-dirty seats.md is refused by name (exit 3) before any write; never -A. Wake floor = ListAgents + ack. 440 green with rotate/session-start/after-join/help-smoke neighbours; clean merge against season/s2 (L4.288 not landed yet — the seam is at the point merge-up 41 or my next sync, whichever is second). Rides merge-up SL2#5.
 
+fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 leaves the successor spawn row uncommitted in the seat worktree (button-down is the grid commit, skipped off season/s2), so the r3b ack gate refuses every worktree wake by construction — point 214458Z wake 8 calls, four seats hand-committed the same write today. Fix (a): rotate-self commits its own spawn write (seats.md only, one line) right after s6.1; the gate is not lowered. Brief: hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
