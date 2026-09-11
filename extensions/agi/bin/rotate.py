@@ -5544,8 +5544,13 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     behind = _git_count_maybe(root, "rev-list", "--count",
                               "HEAD..origin/season/s2")
     ahead_n = behind or 0
+    # The clear command MERGES, never rebases: `never rebase` is a standing
+    # rule of this tree (CLAUDE.md, every seat card) and the seat protocol's
+    # behind check is `git merge origin/season/s2` into the worktree
+    # (director fix-up at the SL1.02 harvest; the kid printed `pull --rebase`).
     checks.append((ahead_n > 0, f"behind origin/season/s2 ({ahead_n})",
-                   "git pull --rebase origin season/s2"))
+                   "git fetch origin season/s2 && git merge --no-edit "
+                   "origin/season/s2"))
 
     # 4 card mtime older than the last commit
     card = _sessions_dir(root) / "quorum" / f"{seat}.md"
@@ -5643,7 +5648,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # it, rotate-self runs the SAME `_prepare_checks` and refuses BY NAME
     # with the same line. `--force` bypasses only what it bypassed today
     # (the meter-due gate); these blockers are not that gate.
-    _blocks = [c for c in _prepare_checks(root, seat) if c[0]]
+    # Fixture seam (director fix-up at the SL1.02 harvest): the checks read
+    # the REAL tree through git; a fixture run (window_path seam set — the
+    # same seam that makes (s11) verification record a SKIP instead of
+    # running against a fake root) has no tree to check and its subprocess
+    # fakes refuse anything but `ps`. A live rotate-self (window_path None)
+    # always runs the gate; kid 2's refusal test drives it that way.
+    _blocks = ([c for c in _prepare_checks(root, seat) if c[0]]
+               if args.window_path is None else [])
     if _blocks:
         for _b, _nm, _cl in _blocks:
             print(f"rotate-self blocked: {_nm} — {_cl}", file=sys.stderr)
