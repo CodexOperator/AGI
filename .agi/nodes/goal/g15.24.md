@@ -53,3 +53,5 @@ fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 
 SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spawn-row write (_commit_spawn_row, seats.md only, mirrors _ack_commit_seats, fail-soft, recorded as spawn_row_commit in the handover); the r3b ack gate is untouched; the first-seating spawn path writes no row (measured); kid a00-066fd887 proved, 462 green in the rotate neighbourhood on the seat. Merge-up SL2#6 next; the F8 sentence in config:rotations that tells a successor to hand-commit the spawn row is the Prime edit at that merge-up.
 
 mur-SL2.3-5 residue (Prime XII 22:44Z, P1 for SL4.03) plus the small P2 test items of g15.23 and g15.13 cut as SL5.08 under hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim.
+
+SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commit) prints ERR to stderr, unstages seats.md and exits 3, so the next ack finds seats.md clean; unioned with L4.291 id_root at harvest. P1 of mur-SL2.5 closed. Same round carried g15.23 and g15.13 P2 test items (noted there).
