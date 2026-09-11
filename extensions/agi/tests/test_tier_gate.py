@@ -163,11 +163,16 @@ def _plant_in_tree(tier, status="running"):
 
     hypothesis:l4-a-running-record-with-a-dead-pid-is-not-a-running-agent:
     the marker ALSO self-cleans via `atexit` (``shutil.rmtree(marker, True)``)
-    on top of the caller's `finally`. A normal interrupt (SIGINT/SIGTERM)
-    still runs Python's atexit stack even when a `finally` is abandoned, so a
-    killed run cannot leave a phantom under the REAL tree. A SIGKILL skips
-    both -- but the liveness gate in conftest._running_record_tiers then
-    ignores the leftover dead-pid record anyway.
+    on top of the caller's `finally`, so a normal exit or a `finally` that is
+    abandoned cannot leave a phantom under the REAL tree. Python's atexit
+    stack runs on normal exit and on SIGINT (which the interpreter converts
+    into a KeyboardInterrupt); it does NOT run on SIGTERM (whose default
+    disposition terminates without unwinding -- measured: SIGTERM exits with
+    rc=-15 and the atexit handler never fires) and cannot run on SIGKILL.
+    So a SIGTERM/SIGKILL kill may leave the marker behind. That leftover is
+    harmless -- the liveness gate in conftest._running_record_tiers ignores a
+    dead-pid record -- and hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named
+    (L4.238) is what names that phantom instead of this self-clean path.
     """
     tree_root = gate._default_record_root()
     assert tree_root, "tree-derived record root must resolve"
@@ -180,7 +185,7 @@ def _plant_in_tree(tier, status="running"):
 
 def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
                 plant_status="running", env_seam=None, extra_argv=(),
-                plant_marker=None, git_redirect=None):
+                plant_marker=None):
     """Run pytest against a throwaway dir that symlinks the real conftest.
 
     `env_extra`: what to set AGI_TIER to in the child env; None leaves it unset.
@@ -194,12 +199,19 @@ def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
     `plant_marker`: an externally-created throwaway dir (e.g. one a test
       planted itself) for this run to own and remove in finally, instead of
       creating a fresh one. Only meaningful with `plant_tier`/`plant_status`.
-    `git_redirect`: if not None, a path to a scratch repo; GIT_DIR,
-      GIT_COMMON_DIR and GIT_WORK_TREE are all set to it in the child env, to
-      prove the gate cannot be redirected to a repo of the run's choosing
-      (hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env).
-      The git-redirect vars are ALWAYS stripped from the inherited env first,
-      so a host's contaminated environment is not what the test measures.
+
+    There is deliberately NO git-redirect parameter here: this harness's
+    throwaway dir is not a real git repo, so git is never consulted and
+    GIT_COMMON_DIR would be inert (hypothesis:l4-the-tier-gate-scan-is-not-
+    redirectable-by-git-env proved the redirect only routs git's own root
+    resolution). The redirect falsifiers run through `_run_pytest_on_fake_main`
+    (which builds a real fake-MAIN repo), setting
+    `extra_env={'GIT_COMMON_DIR': ...}`. The host's GIT_* vars are ALWAYS
+    stripped from the inherited env first, in BOTH harnesses, so a
+    contaminated host is not what a test measures. The old `git_redirect`
+    parameter was dead: no caller used it, and even wired it would have set
+    GIT_DIR == GIT_COMMON_DIR, the exact shape the round proved CANCELS the
+    redirect.
     """
     import tempfile
 
@@ -219,13 +231,11 @@ def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
         env.pop("AGI_AGENT_SESSIONS_ROOT", None)
         if env_seam is not None:
             env["AGI_AGENT_SESSIONS_ROOT"] = str(env_seam)
-        # Never leak a host's git-redirect vars into the child; `git_redirect`
-        # re-adds them explicitly for the falsifier.
+        # Never leak a host's git-redirect vars into the child; a falsifier
+        # that WANTS one sets it via `_run_pytest_on_fake_main`'s extra_env,
+        # on a real fake-MAIN repo where git is actually consulted.
         for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
             env.pop(_g, None)
-        if git_redirect is not None:
-            for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
-                env[_g] = str(git_redirect)
         if plant_marker is not None:
             marker = plant_marker
         elif plant_tier:
@@ -615,7 +625,8 @@ def test_falsifier_git_env_cannot_redirect_the_scan_to_a_scratch_repo():
                 str(tests_dir), str(main),
                 extra_env={"GIT_COMMON_DIR": str(decoy / ".git")})
             assert code == 4, (
-                f"git-redirected worktree kid must be refused, got {code}: {err}")
+                f"the FIXED conftest must REFUSE the git-redirected worktree "
+                f"kid, got {code}: {err}")
             assert "AGI_TIER=kid" in err
             assert "specific test file or a -k filter" in err
         finally:
@@ -647,8 +658,8 @@ def test_falsifier_git_env_redirect_mutation_escapes_without_the_pop():
                 str(tests_dir), str(main),
                 extra_env={"GIT_COMMON_DIR": str(decoy / ".git")})
             assert code == 0, (
-                f"without the pop the redirect must ESCAPE the gate, got "
-                f"{code}: {err}")
+                f"the MUTATED conftest (pop removed) must let the redirect "
+                f"ESCAPE the gate, got {code}: {err}")
         finally:
             shutil.rmtree(main)
             shutil.rmtree(decoy)
