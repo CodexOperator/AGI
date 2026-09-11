@@ -2,9 +2,12 @@
 
 **hypothesis:l4-the-reconciler-one-root-three-faces.** Proven here:
   (a) a fixture built from the REAL frozen L4.85 artifact
-      (`.agi/worktrees/a00-e9572046/.agi/sessions/iter-L4.85/` — the kid
-      `a00-d0a67d4f` whose `agent.json` reads `status: running` with a
-      long-dead pid 2130989) reconciles to the derived terminal status;
+      (`extensions/agi/tests/fixtures/l4_85_frozen/` — a committed, read-only
+      copy of the kid `a00-d0a67d4f` whose `agent.json` reads `status:
+      running` with a long-dead pid 2130989) reconciles to the derived
+      terminal status; the fixture sits OUTSIDE the live reaper's scan roots
+      (hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan) so the
+      live service can never mutate it in place as it did the L4.85 source;
   (b) a record saying `running` for a DEAD pid is reconciled to the derived
       terminal status;
   (c) a record saying `done` for a LIVE pid is left ALONE — the inference
@@ -38,14 +41,17 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "extensions", "agi", "bin"))
 import reconciler  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402
 
-#: The REAL frozen artifact from iter-L4.85 (hypothesis (a)). DO NOT MODIFY
-#: this worktree; it is read-only evidence of shape (3). It lives in the MAIN
-#: checkout's `.agi/worktrees/`, so it is reached by walking up from any
-#: kid's worktree (which sits one level under `.agi/worktrees/`) to `<repo>`.
-_MAIN_REPO = os.path.abspath(os.path.join(REPO_ROOT, "..", "..", ".."))
+#: The REAL frozen L4.85 artifact, committed as a read-only fixture under
+#: extensions/agi/tests/fixtures/ (hypothesis (a) +
+#: hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan). Resolved
+#: from __file__ so it works from the MAIN checkout and from any kid worktree
+#: alike. It sits OUTSIDE the live reaper's scan roots (.agi/worktrees,
+#: .agi/sessions) so the live service can never mutate it in place.
+#: See fixtures/l4_85_frozen/README.md for provenance (status was restored
+#: to "running" and `stalled_at` removed, reconstructing the pre-reaper
+#: record; every other field is the real one).
 FROZEN_L485 = os.path.join(
-    _MAIN_REPO, ".agi", "worktrees", "a00-e9572046",
-    ".agi", "sessions", "iter-L4.85")
+    REPO_ROOT, "extensions", "agi", "tests", "fixtures", "l4_85_frozen")
 FROZEN_KID_AJ = os.path.join(FROZEN_L485, "a00-d0a67d4f", "agent.json")
 
 
@@ -187,20 +193,51 @@ class TestNoSideEffects:
 
 class TestAgainstFrozenArtifact:
     """(a) 🔴 the evidence that makes this a cause, not an anecdote: the REAL
-    L4.85 kid record, read from the frozen worktree, reconciles to the derived
-    terminal status. If the frozen worktree is gone (cleaned), skip — but any
-    box that still holds it must reconcile it.
+    L4.85 kid record, committed as a read-only fixture under
+    extensions/agi/tests/fixtures/, reconciles to the derived terminal status.
+    The fixture (not a live worktree) is read, so it is durable and the live
+    reaper can never mutate it.
 
     This is the only capture of shape (3) anyone has: a pi process that died
     on a 404 while its `agent.json` still read `status: running` and its pid
-    was already dead. Nothing here modifies the worktree.
+    was already dead. Nothing here modifies the fixture.
     """
 
+    def test_fixture_lies_outside_reaper_scan(self):
+        """The reaper (heal.py _discover_rounds) scans exactly two roots,
+        both under <repo>/.agi:
+            <root>/sessions/iter-*/manifest.json
+            <root>/worktrees/*/.agi/sessions/iter-*/manifest.json
+        The committed frozen fixture must sit OUTSIDE both, or the live
+        service would mutate it in place exactly as it mutated the L4.85
+        source. (hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan)
+        """
+        import glob as _glob
+        fx = os.path.abspath(FROZEN_L485)
+        agi = os.path.join(REPO_ROOT, ".agi")
+
+        # not under either of the reaper's two scan roots
+        for scan_root in (os.path.join(agi, "sessions"),
+                          os.path.join(agi, "worktrees")):
+            assert not fx.startswith(scan_root + os.sep), \
+                f"frozen fixture {fx} sits under reaper scan root {scan_root}"
+        # no `sessions/iter-*` component anywhere -> neither glob can match it
+        assert "sessions" not in fx.split(os.sep), \
+            f"frozen fixture {fx} contains a 'sessions' component"
+        # the two reaper globs must not resolve the fixture's manifest
+        manifest = os.path.join(fx, "manifest.json")
+        produced = []
+        produced += _glob.glob(os.path.join(agi, "sessions", "iter-*", "manifest.json"))
+        produced += _glob.glob(os.path.join(
+            agi, "worktrees", "*", ".agi", "sessions", "iter-*", "manifest.json"))
+        assert manifest not in produced, \
+            f"frozen fixture manifest {manifest} is matched by the reaper's globs"
+
     def test_frozen_l485_kid_reconciles_to_hung_dead(self):
-        if not os.path.isfile(FROZEN_KID_AJ):
-            pytest.skip("frozen L4.85 worktree not present; evidence is elsewhere")
         rec = json.loads(open(FROZEN_KID_AJ, encoding="utf-8").read())
         assert rec.get("status") == "running", "the frozen record must be the lie"
+        # the frozen record is exactly the pre-reaper state: no stalled_at
+        assert "stalled_at" not in rec, "frozen record must predate stalling"
         pid = int(rec.get("pid") or 0)
         assert pid > 0 and not _os_pid_alive(pid), \
             f"frozen pid {pid} should be dead (verified: it is)"
@@ -209,8 +246,6 @@ class TestAgainstFrozenArtifact:
         assert reconciler.reconcile_record(rec) == reconciler.DERIVED_TERMINAL
 
     def test_frozen_manifest_has_same_stuck_kid(self):
-        if not os.path.isfile(os.path.join(FROZEN_L485, "manifest.json")):
-            pytest.skip("frozen L4.85 worktree not present; evidence is elsewhere")
         manifest = json.loads(
             open(os.path.join(FROZEN_L485, "manifest.json"), encoding="utf-8").read())
         kids = [a for a in manifest.get("agents", []) if a.get("tier") == "kid"]
