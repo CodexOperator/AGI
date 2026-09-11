@@ -1,0 +1,31 @@
+export const meta = {
+  name: "agi-merge-up-review",
+  description: "Authored via workflow.py author (Prime L4-VII, owner 2026-09-11 01:5xZ: the merge-up review is a registered workflow run through the unified router, never an inline script)",
+  phases: [
+    { title: "Review" },
+    { title: "Verify" },
+  ],
+}
+
+const MODEL = (args && args.model) || "opus"
+const EFFORT = (args && args.effort) || "high"
+
+const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}\/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
+
+const ITEMS = (args && args["rounds"]) || []
+
+const REVIEW_TMPL = "You are reviewing merge-up {merge_up} into season/s2 of the agi repo at /home/ubuntu/work/agi (READ-ONLY: never edit, commit, run the whole pytest suite, or touch tmux/systemd/crontab). Compare {old_tip}..{new_tip} with `git diff {old_tip} {new_tip} -- <paths>` and `git show`. Node files live under .agi/nodes/<type>/<slug>.md (frontmatter + body). Rules: MECHANISM not wording (cite file:line for every judgement); a claim about a reader that was never read is wording; a green test can require a defect; a test that touches a REAL tmux pane, systemd unit, crontab or process is a defect (fixtures only); a round that fixes the gate it must pass through is hand-landed; a deletion under .agi/nodes is a demotion. You MAY run single test files with `cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests/<file> -q -p no:cacheprovider` (never the whole suite). Return ONLY the structured result.\n\nROUND {key} \u2014 hypothesis node {hypothesis}; experiment nodes: {experiments}; files in scope: {files}. Focus from the Prime: {focus}. Steps: (1) read the hypothesis testable_claim (and the round's DIRECTOR ADDENDUM in its Agent Notes, if any) and split it into conjuncts; (2) read each experiment node: verdict, evidence_runs (a decisive verdict needs >= 1; an experiment may cite itself, a verdict may not); (3) for every conjunct find the mechanism in the diff and cite file:line, status MET / NOT_MET / UNVERIFIED; (4) run the round's test files individually and report counts; (5) check that no test or code path reaches a real pane, unit, crontab or process; (6) state any step the PRIME must do at this merge-up (an install, a config flip, a node the Prime creates) with the exact commands and what proves it; (7) recommend accept / demote / accept_with_residue and list every defect with severity demote|residue|note. defects_summary must be a plain-text numbered list of the demote/residue defects (title \u2014 file:line \u2014 one-line detail), or the word NONE."
+const REVIEW_SCHEMA = {"type": "object", "properties": {"round": {"type": "string"}, "verdict_recommendation": {"type": "string", "enum": ["accept", "demote", "accept_with_residue"]}, "conjuncts": {"type": "array", "items": {"type": "object", "properties": {"claim": {"type": "string"}, "status": {"type": "string", "enum": ["MET", "NOT_MET", "UNVERIFIED"]}, "evidence": {"type": "string"}}, "required": ["claim", "status", "evidence"]}}, "defects": {"type": "array", "items": {"type": "object", "properties": {"title": {"type": "string"}, "file": {"type": "string"}, "line": {"type": "integer"}, "detail": {"type": "string"}, "severity": {"type": "string", "enum": ["demote", "residue", "note"]}}, "required": ["title", "file", "detail", "severity"]}}, "defects_summary": {"type": "string"}, "tests_run": {"type": "string"}, "node_checks": {"type": "string"}, "prime_step": {"type": "string"}}, "required": ["round", "verdict_recommendation", "conjuncts", "defects", "defects_summary", "tests_run", "node_checks", "prime_step"]}
+const VERIFY_TMPL = "You are reviewing merge-up {merge_up} into season/s2 of the agi repo at /home/ubuntu/work/agi (READ-ONLY: never edit, commit, run the whole pytest suite, or touch tmux/systemd/crontab). Compare {old_tip}..{new_tip} with `git diff {old_tip} {new_tip} -- <paths>` and `git show`. Node files live under .agi/nodes/<type>/<slug>.md (frontmatter + body). Rules: MECHANISM not wording (cite file:line for every judgement); a claim about a reader that was never read is wording; a green test can require a defect; a test that touches a REAL tmux pane, systemd unit, crontab or process is a defect (fixtures only); a round that fixes the gate it must pass through is hand-landed; a deletion under .agi/nodes is a demotion. You MAY run single test files with `cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests/<file> -q -p no:cacheprovider` (never the whole suite). Return ONLY the structured result.\n\nADVERSARIAL VERIFY for round {key} (hypothesis {hypothesis}; files {files}). A first reviewer recommended `{verdict_recommendation}` and reported these demote/residue defects:\n{defects_summary}\n\nTry to REFUTE each one from the actual bytes and tests. Default to refuted=true when a defect is wording, is already handled elsewhere in the diff, or does not reproduce; refuted=false ONLY with a file:line citation that the defect is real. Then give your own accept / demote / accept_with_residue: demote only for a confirmed defect of severity demote. If the list is NONE, look for what the first reviewer MISSED (an unread reader, a test requiring a defect, a real-resource touch) and report it under missed."
+const VERIFY_SCHEMA = {"type": "object", "properties": {"round": {"type": "string"}, "verdicts": {"type": "array", "items": {"type": "object", "properties": {"defect": {"type": "string"}, "refuted": {"type": "boolean"}, "reason": {"type": "string"}}, "required": ["defect", "refuted", "reason"]}}, "missed": {"type": "array", "items": {"type": "string"}}, "final_recommendation": {"type": "string", "enum": ["accept", "demote", "accept_with_residue"]}, "summary": {"type": "string"}}, "required": ["round", "verdicts", "missed", "final_recommendation", "summary"]}
+
+phase("Review")
+const results = await pipeline(
+  ITEMS,
+  it => agent(fill(REVIEW_TMPL, it), { label: `review:${it.key}`, phase: "Review", schema: REVIEW_SCHEMA, model: MODEL, effort: EFFORT }),
+  (finding, it) => {
+    if (!finding) return null
+    return agent(fill(VERIFY_TMPL, { ...it, ...finding }), { label: `verify:${it.key}`, phase: "Verify", schema: VERIFY_SCHEMA, model: MODEL, effort: EFFORT }).then(v => ({ key: it.key, finding, verify: v }))
+  },
+)
+return results.filter(Boolean)
