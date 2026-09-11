@@ -23,6 +23,7 @@ tell a bare directory run from a targeted one.
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -36,10 +37,111 @@ REFUSAL_REASON = (
     "run a specific test file or a -k filter instead."
 )
 
+#: TEST-ONLY seam (hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-
+#: inside-a-kid). Re-roots where the gate hunts for running agent records.
+#: Default None -> rescan the resolved project root's `.agi/sessions`. A test
+#: sets it to a throwaway fixture tree so it can exercise the record-derived
+#: branch deterministically without the HOST's own real agent.json (always an
+#: ancestor of any pytest it spawns) interfering. It is a deliberate, active
+#: env write, not the invited one-unset workaround the fix closes: a kid that
+#: goes out of its way to spoof a non-kid sessions root is outside the threat
+#: model (the documented bypass was merely obeying the brief's bare-dir line).
+AGENT_RECORDS_ROOT_ENV = "AGI_AGENT_SESSIONS_ROOT"
+
 
 def _named_paths(args):
     """Return the positional args that look like paths (drop flag tokens)."""
     return [a for a in (args or []) if a and not a.startswith("-")]
+
+
+def _running_record_tiers(root) -> dict:
+    """{pid: int: tier: str} for every agent.json under root/**/agent.json
+    that records a LIVE running agent (status == "running", numeric pid,
+    string tier). Malformed or non-running records are skipped.
+    """
+    result = {}
+    if not root or not os.path.isdir(str(root)):
+        return result
+    for agent_file in Path(root).rglob("agent.json"):
+        try:
+            with open(agent_file, encoding="utf-8") as f:
+                rec = json.load(f)
+        except (OSError, ValueError):
+            continue
+        status = rec.get("status")
+        pid = rec.get("pid")
+        tier = rec.get("tier")
+        if status != "running" or not isinstance(pid, int) or not isinstance(tier, str):
+            continue
+        result[pid] = tier
+    return result
+
+
+def _default_record_root():
+    """The sessions root to scan when AGENT_RECORDS_ROOT_ENV is unset. The
+    agent.json dispatch writes per run lives under the graph's sessions dir:
+    `<graph>/.agi/sessions/iter-*/<agent>/agent.json`. locations.
+    find_project_root resolves the `.agi` DIRECTORY itself (the one holding
+    config.json), so the sessions dir is `root / "sessions"` -- NOT
+    `root /.agi / sessions`, which doubles the dotdir and scans nothing.
+    """
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:
+        return None
+    return str(Path(root) / "sessions")
+
+
+def _record_root():
+    return os.environ.get(AGENT_RECORDS_ROOT_ENV) or _default_record_root()
+
+
+def _ppid_of(pid):
+    """Real parent pid of `pid` from /proc, or None. The live process uses
+    os.getppid(); every other pid reads field 4 of /proc/<pid>/stat. The comm
+    field may itself contain spaces and ) characters, so split on the LAST ).
+    """
+    if pid == os.getpid():
+        return os.getppid()
+    try:
+        with open(f"/proc/{pid}/stat", encoding="utf-8") as f:
+            data = f.read()
+        rest = data.rsplit(")", 1)[1].split()
+        return int(rest[1])  # state rest[0], ppid rest[1]
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def _resolve_tier_from_ancestors(pid_tier, ppid_lookup, pid):
+    """The tier of the first running record whose pid lies on the ancestor
+    chain of `pid`, nearest ancestor wins; None when no running record
+    matches any ancestor. `ppid_lookup(pid) -> parent pid | None` is injected
+    so the pure decision is unit-testable with a fake chain.
+    """
+    cur = pid
+    for _ in range(128):  # loop guard on a cyclic/pid-recycled chain
+        if cur in pid_tier:
+            return pid_tier[cur]
+        nxt = ppid_lookup(cur)
+        if nxt is None or nxt == cur:
+            return None
+        cur = nxt
+    return None
+
+
+def _effective_tier():
+    """The tier for THIS invocation. hypothesis:l4-the-kid-tier-gate-is-not-
+    clearable-from-inside-a-kid: prefer the tier of a running agent record
+    (agent.json) whose pid is an ANCESTOR of the pytest process, so the gate
+    derives the tier from the environment that actually spawned the run
+    rather than from AGI_TIER -- which a kid could simply `env -u`. Only when
+    NO running record matches any ancestor does it fall back to AGI_TIER,
+    exactly as before, so a plain interactive run at any tier keeps working.
+    """
+    record_tier = _resolve_tier_from_ancestors(
+        _running_record_tiers(_record_root()), _ppid_of, os.getpid())
+    if record_tier is not None:
+        return record_tier
+    return os.environ.get("AGI_TIER")
 
 
 def _is_bare_directory_run(config) -> bool:
@@ -63,8 +165,9 @@ def _is_bare_directory_run(config) -> bool:
 
 
 def pytest_cmdline_main(config):
-    if os.environ.get("AGI_TIER") != GATE_TIER:
-        # Invisible at every tier other than kid, and when the var is unset.
+    if _effective_tier() != GATE_TIER:
+        # Invisible at every tier other than kid (record-derived), and when
+        # the tier is unset AND no running agent record matches an ancestor.
         return
     if _is_bare_directory_run(config):
         raise pytest.UsageError(REFUSAL_REASON)
