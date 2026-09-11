@@ -252,6 +252,24 @@ def test_director_card_identity_nevertouch_traps_untouched_and_scoped_state(
     assert "old command" not in card
 
 
+def test_prime_card_s6_omitted_keeps_existing_banked(card_root, capsys,
+                                                    monkeypatch):
+    """Prime XI SL1#1 verdict line (2): omitting --field s6 must NOT erase an
+    existing §6 BANKED body. Closed by the declared-titles writer (SL2.01):
+    with no s6 the banked slot is carried verbatim."""
+    q = card_root / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    (q / "adv-alive.md").write_text(
+        "# card\n\n## §0 STATE\n- old\n\n## §3 🔴 NEXT COMMAND\nold next\n\n"
+        "## §6 BANKED\nkeep this banked line\n", encoding="utf-8")
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    card = _written_card(card_root)
+    assert "keep this banked line" in card
+    assert "bash next.sh" in card
+
+
 def test_director_card_banked_absent_appends_nothing(card_root, capsys,
                                                      monkeypatch):
     """The sensei-director card has no BANKED section; a supplied s6 is
@@ -285,21 +303,57 @@ def test_two_state_headers_refused_naming_both(card_root, capsys,
     assert "old command" in _written_card(card_root)  # nothing written
 
 
-def test_existing_card_missing_state_refused(card_root, capsys, monkeypatch):
-    """An existing card with no STATE header and no §0 fallback is refused by
-    name (exit 2) — the writer will not guess which section to drive. (A
-    MISSING card still composes fresh — covered by the two fresh-compose
-    tests above.)"""
+_SENSEI = """# SESSION HANDOFF — master-sensei fixture
+
+## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
+identity line
+
+## §1 THE OWNER'S ORDER — why you exist now
+order line
+
+## §5 🔴 NEXT COMMAND — the loop, every rotation of every seat
+```
+old next
+```
+
+## §6 BANKED / deviations this wake
+old banked
+"""
+
+
+def test_existing_card_missing_state_gains_one_ahead_of_next_command(
+        card_root, capsys, monkeypatch):
+    """Sensei 18:29Z: its card declares NO state section (§0 WHO YOU ARE …
+    §5 NEXT COMMAND … §6 BANKED) and the writer refused it. Now the card
+    GAINS a driven STATE section inserted ahead of the next-command section
+    (never guessed onto §0, which is identity there); 'next command' is a
+    where-it-stops title synonym; every other section is byte-identical; a
+    second run keys on the inserted header and inserts nothing more."""
     q = card_root / "sessions" / "quorum"
     q.mkdir(parents=True, exist_ok=True)
-    (q / "adv-alive.md").write_text(
-        "# SESSION HANDOFF — fixture\n\n## §3 🔴 NEXT COMMAND\nold next\n",
-        encoding="utf-8")
+    (q / "adv-alive.md").write_text(_SENSEI, encoding="utf-8")
     _stdin(monkeypatch, ["bash next.sh"])
     rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
-    assert rc == 2
-    assert "STATE" in capsys.readouterr().err
-    assert "old next" in _written_card(card_root)
+    err = capsys.readouterr().err
+    assert rc == 0, err
+    assert "inserting one ahead of" in err
+    card = _written_card(card_root)
+    heads = [ln for ln in card.splitlines() if ln.startswith("## ")]
+    state_pos = next(i for i, h in enumerate(heads) if "STATE" in h.upper())
+    next_pos = next(i for i, h in enumerate(heads) if "NEXT COMMAND" in h)
+    assert state_pos == next_pos - 1            # ahead of the next command
+    assert heads[0].startswith("## §0 WHO YOU ARE")   # identity untouched
+    assert "identity line" in card and "order line" in card
+    assert "old banked" in card                 # §6 carried verbatim
+    assert "bash next.sh" in card and "old next" not in card   # fence filled
+    # idempotent: the inserted header is now the declared STATE title
+    _stdin(monkeypatch, ["bash next2.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0
+    card2 = _written_card(card_root)
+    assert sum(1 for ln in card2.splitlines()
+               if ln.startswith("## ") and "STATE" in ln.upper()) == 1
+    assert "bash next2.sh" in card2
 
 
 def test_own_tree_card_written_main_copy_untouched(card_root, capsys,
