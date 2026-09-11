@@ -194,3 +194,160 @@ def test_unknown_field_is_refused(card_root, capsys):
     rc = rotate.cmd_handoff(_args(field=[["s1", "-"]]), card_root)
     assert rc == 2
     assert "not one of them" in capsys.readouterr().err
+
+# ── SL2.01 RED-FIRST: title-keyed, scoped, own-tree (hypothesis:l4-the-
+# driven-handoff-writer-keys-on-declared-titles-and-writes-the-seats-own-card)
+# ---------------------------------------------------------------------------
+# The writer must key on DECLARED TITLES (STATE / where it stops / BANKED),
+# never on the § numerals — the sensei-director card's §0 is WHO YOU ARE, §3
+# is WHAT YOU NEVER TOUCH, §6 is TRAPS, and the real state lives in §5 with
+# `### Open asks` and `### 🔴 Where it stops` beneath it. Numeral-keying
+# would overwrite the wrong sections wholesale. Every claim below was written
+# before the implementation.
+
+_DIRECTOR = (
+    "# SESSION HANDOFF — sensei-director (fixture)\n\n"
+    "## §0 WHO YOU ARE\nrole: director · model: sonnet-max\n\n"
+    "## §3 WHAT YOU NEVER TOUCH\n"
+    "| Path | Rule |\n|---|---|\n| nodes/ | never |\n\n"
+    "## §5 🔴 STATE\n"
+    "| Field | Value |\n|---|---|\n| gen | 4 |\n| rotation | ok |\n\n"
+    "### Open asks\nask-1\nask-2\n\n"
+    "### 🔴 Where it stops\n```cmd\nold command\n```\n\n"
+    "## §6 TRAPS\ntrap-1\n"
+)
+
+
+def _dir_card(root):
+    q = root / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    (q / "adv-alive.md").write_text(_DIRECTOR, encoding="utf-8")
+
+
+def test_director_card_identity_nevertouch_traps_untouched_and_scoped_state(
+        card_root, capsys, monkeypatch):
+    """The sensei-director layout: §0 (who you are), §3 (never touch) and §6
+    (traps) stay byte-identical because they are NOT keyed by their numerals;
+    the STATE section gets ONLY its first table rebuilt; the `### Open asks`
+    subsection and the `### 🔴 Where it stops` header are carried verbatim;
+    the stops FENCED BLOCK is the only thing filled."""
+    _dir_card(card_root)
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    card = _written_card(card_root)
+    # identity / never-touch / traps byte-identical (not clobbered by §0/§3/§6)
+    assert "## §0 WHO YOU ARE\nrole: director · model: sonnet-max" in card
+    assert "## §3 WHAT YOU NEVER TOUCH\n| Path | Rule |" in card
+    assert "| nodes/ | never |" in card
+    assert "## §6 TRAPS\ntrap-1" in card
+    # only the FIRST state table under §5 is rebuilt (scoped replacement)
+    assert "## §5 🔴 STATE" in card
+    assert "gen | 4" not in card            # old first table gone
+    assert "gen 4->5" in card or "window" in card  # measured state present
+    # subsection carried verbatim
+    assert "### Open asks\nask-1\nask-2" in card
+    # stops header kept, only its fenced block filled
+    assert "### 🔴 Where it stops\n```cmd\nbash next.sh\n```" in card
+    assert "old command" not in card
+
+
+def test_director_card_banked_absent_appends_nothing(card_root, capsys,
+                                                     monkeypatch):
+    """The sensei-director card has no BANKED section; a supplied s6 is
+    dropped (nothing appended), never drafted into §6 TRAPS."""
+    _dir_card(card_root)
+    _stdin(monkeypatch, ["bash next.sh", "banked option"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"], ["s6", "-"]]),
+                            card_root)
+    assert rc == 0, capsys.readouterr().err
+    card = _written_card(card_root)
+    assert "banked option" not in card
+    assert "## §6 TRAPS\ntrap-1" in card     # traps never became banked
+    assert "BANKED" not in card.upper() and "banked" not in card
+
+
+def test_two_state_headers_refused_naming_both(card_root, capsys,
+                                               monkeypatch):
+    """An AMBIGUOUS match (two STATE headers) refuses by name, exit 2,
+    listing the headers found — never guessing which to drive."""
+    _dir_card(card_root)
+    q = card_root / "sessions" / "quorum"
+    two = _DIRECTOR.replace("## §5 🔴 STATE", "## §5 🔴 STATE (b)")
+    two = two.replace("## §0 WHO YOU ARE\n", "## §0 STATE (a)\n", 1)
+    (q / "adv-alive.md").write_text(two, encoding="utf-8")
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "STATE" in err
+    assert "## §0 STATE (a)" in err and "## §5 🔴 STATE (b)" in err
+    assert "old command" in _written_card(card_root)  # nothing written
+
+
+def test_existing_card_missing_state_refused(card_root, capsys, monkeypatch):
+    """An existing card with no STATE header and no §0 fallback is refused by
+    name (exit 2) — the writer will not guess which section to drive. (A
+    MISSING card still composes fresh — covered by the two fresh-compose
+    tests above.)"""
+    q = card_root / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    (q / "adv-alive.md").write_text(
+        "# SESSION HANDOFF — fixture\n\n## §3 🔴 NEXT COMMAND\nold next\n",
+        encoding="utf-8")
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 2
+    assert "STATE" in capsys.readouterr().err
+    assert "old next" in _written_card(card_root)
+
+
+def test_own_tree_card_written_main_copy_untouched(card_root, capsys,
+                                                   monkeypatch):
+    """The writer resolves the SEAT'S OWN tree first (`<tree>/.agi/sessions/
+    quorum/<S>.md` — the worktree location, candidate B when root is the repo
+    tree) and MAIN's shared copy is left untouched: it is neither read nor
+    created when an own card exists."""
+    own = card_root / ".agi" / "sessions" / "quorum" / "adv-alive.md"
+    own.parent.mkdir(parents=True, exist_ok=True)
+    own.write_text(_DIRECTOR, encoding="utf-8")
+    main = card_root / "sessions" / "quorum"
+    assert not (main / "adv-alive.md").exists()  # no MAIN copy yet
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    got = own.read_text(encoding="utf-8")
+    assert "bash next.sh" in got          # own-tree card written
+    assert "old command" not in got
+    assert not (main / "adv-alive.md").exists()  # MAIN copy untouched
+
+
+def test_dry_run_writes_nothing_and_prints_composed(card_root, capsys,
+                                                    monkeypatch):
+    """`handoff --driven --dry-run` prints the composed card to stdout and
+    writes nothing, so the director judges it before the real write."""
+    _dir_card(card_root)
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(dry_run=True, field=[["s3", "-"]]),
+                            card_root)
+    assert rc == 0, capsys.readouterr().err
+    out = capsys.readouterr().out
+    assert "bash next.sh" in out            # composed card on stdout
+    assert "### Open asks\nask-1\nask-2" in out
+    assert "old command" not in out         # rebuilt, not the stale value
+    assert "old command" in _written_card(card_root)  # file NOT written
+
+
+def test_state_shape_taken_from_target_table_stays_table(
+        card_root, capsys, monkeypatch):
+    """The built state block takes the SHAPE of what it replaces — a 2-column
+    table where the card holds a table, a list where it holds a list. A table
+    card yields a table, never a bullet list."""
+    _dir_card(card_root)
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    card = _written_card(card_root)
+    # a table row under §5 STATE (new measured value), not a `- **` bullet
+    assert "| Rotation record |" in card or "|" in card
+    assert "- **Rotation record:**" not in card
