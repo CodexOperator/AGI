@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""write.py — named node operations, drivable by a human or by an agent.
+"""write.py - named node operations, drivable by a human or by an agent.
 
 **Renamed from `edit.py` on 2026-09-03, at the owner's call**, because "edit"
 named half of what this is: a verb here either revises an existing node or
 mints a new one, and both are *writes*. The old name would have made `create`
 read as an exception to the module it lives in. The link layer that used to
-hold this filename is now `links.py`, which is what it always was — `link_ref`
+hold this filename is now `links.py`, which is what it always was - `link_ref`
 resolution and the `broken_links` count, not the write path.
 
 `goal:g13.1`. A hand edit to a node is currently an **undeclared write**: it
 bypasses `node_writer`, the `scaffold_hash` stamp, the evidence gate and schema
 validation, and nothing records that a human changed the node or why. The
-owner's framing — *"a completely stray and untraceable commit from my end"*.
+owner's framing - *"a completely stray and untraceable commit from my end"*.
 
 This module is the **verb layer**, and it is deliberately built before the
 modal shell rather than inside it.
@@ -22,7 +22,7 @@ The goal's design has two callers and insists they are the same operations:
 
 - **For a human**, a modal shell binds keys to verbs, re-renders, and submits.
 - **For an LLM**, the whole session serialises into one `&&`-joined command.
-  That is not a lesser path — it is *the same operations with the interaction
+  That is not a lesser path - it is *the same operations with the interaction
   removed*.
 
 **A keystroke an agent cannot spell is a verb that exists only for humans**,
@@ -34,7 +34,7 @@ shaped by keybindings.
 ## It writes nothing itself
 
 Every verb ends in `node_writer.update_node`. **There is no file write in this
-module**, asserted by a test that parses it rather than greps it — the same
+module**, asserted by a test that parses it rather than greps it - the same
 invariant `viewport.py` holds on the read side, and the same lesson from this
 session that a `grep` for a concept cannot tell prose from code.
 
@@ -69,7 +69,7 @@ PROVENANCE_SESSION = "thought_session"
 
 #: Keys no verb may touch, whatever a caller asks. `id` and `mint_id` are
 #: identity (`goal:g2.5`: a mint id is assigned once and never changes), and
-#: `scaffold_hash` is how completion is detected — the exact field the kid
+#: `scaffold_hash` is how completion is detected - the exact field the kid
 #: brief forbids touching, and edit mode is not a loophole in that rule.
 PROTECTED = frozenset({"id", "mint_id", "type", "scaffold_hash"})
 
@@ -121,16 +121,16 @@ class Edit:
     # stdin, or a path); `body_patch_diff` holds the bytes once read.
     body_patch_from: str = ""
     body_patch_diff: str = ""
-    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is
+    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 - `read` is
     # the read half of the line-addressing: fetch a line RANGE of the node
     # body or of the payload, cheaply, instead of loading the whole file.
-    # Read-only — this verb never writes and is handled as a terminal verb in
+    # Read-only - this verb never writes and is handled as a terminal verb in
     # main (it short-circuits before submit), so it carries no provenance
     # stamp of its own. `read_target` is `payload` or `body`; `read_range` is
     # the 1-based inclusive `START:END` with either side optional.
     read_target: str = ""
     read_range: str = ""
-    # L4, owner 2026-09-09 — `replace` is the OFFSET-FREE partial write, and
+    # L4, owner 2026-09-09 - `replace` is the OFFSET-FREE partial write, and
     # the reason it exists: `read <t> N:M` then `<t>_patch` forced the caller
     # to hand-build a `@@` hunk in the applier's coordinates, and getting that
     # arithmetic wrong is a silent corruption (trap 0ah). `replace` takes the
@@ -167,7 +167,7 @@ class Edit:
 # --------------------------------------------------------------------------
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
-    """`set <key> <value>` — one frontmatter field."""
+    """`set <key> <value>` - one frontmatter field."""
     if key in PROTECTED:
         raise EditError(
             f"{key!r} is identity or completion state and no verb may set it. "
@@ -179,15 +179,15 @@ def verb_set(edit: Edit, key: str, value: str) -> Edit:
 
 
 def verb_unset(edit: Edit, key: str) -> Edit:
-    """`unset <key>` — drop a frontmatter field."""
+    """`unset <key>` - drop a frontmatter field."""
     if key in PROTECTED:
-        raise EditError(f"{key!r} may not be unset — see `set`.")
+        raise EditError(f"{key!r} may not be unset - see `set`.")
     edit.unset_fm.append(key)
     return edit
 
 
 def verb_link(edit: Edit, ref: str) -> Edit:
-    """`link <ref|self>` — declare what this node's body points at.
+    """`link <ref|self>` - declare what this node's body points at.
 
     `goal:g13`'s field, reached through the same accumulate-then-submit path
     as everything else rather than through `links.set_link`, so a linked edit
@@ -198,11 +198,11 @@ def verb_link(edit: Edit, ref: str) -> Edit:
 
 
 def verb_thought(edit: Edit, text: str) -> Edit:
-    """`thought <text>` — rewrite the authored region.
+    """`thought <text>` - rewrite the authored region.
 
     Rewritten from scratch, never appended to: the thought says why THIS
     version differs from the previous one (`goal:g2.11`). **Absent means
-    empty** — a caller that passes nothing leaves the existing thought alone
+    empty** - a caller that passes nothing leaves the existing thought alone
     rather than clearing it, because a fabricated or destroyed thought reads
     as evidence either way.
     """
@@ -211,7 +211,7 @@ def verb_thought(edit: Edit, text: str) -> Edit:
 
 
 def verb_note(edit: Edit, text: str) -> Edit:
-    """`note <text>` — append to the body under `## Agent Notes`.
+    """`note <text>` - append to the body under `## Agent Notes`.
 
     The one body operation. Dropping to `$EDITOR` for prose is legitimate and
     is the shell's job; hand-editing frontmatter is the thing being replaced.
@@ -221,18 +221,18 @@ def verb_note(edit: Edit, text: str) -> Edit:
 
 
 def verb_body_patch(edit: Edit, source: str) -> Edit:
-    """`body_patch <path|->` — apply a unified diff to the node's BODY, in place.
+    """`body_patch <path|->` - apply a unified diff to the node's BODY, in place.
 
     The missing half of the delete-duplicates leg of
     hypothesis:l3w4-hierarchy-one-source: `patch` covers the payload file
     behind a build node and REFUSES a graph node (no payload_ref), so a stale
-    pipe table in a node body could not be removed as a sanctioned write — the
+    pipe table in a node body could not be removed as a sanctioned write - the
     standing unsanctioned-write failure class that deferred the one-source
     deletion for three rounds. `body_patch` reuses the same fail-closed
     unified-diff vocabulary (`apply_unified_diff`) against the BODY text and
     lands through `update_node`, so the THOUGHT region is carried across,
     provenance is stamped, and write_guard sees a sanctioned write. Diff bytes
-    arrive by file path or `-` for stdin, never inline in the `&&` script — a
+    arrive by file path or `-` for stdin, never inline in the `&&` script - a
     diff contains almost any character, including the doubled ampersand that
     splits the script form.
     """
@@ -241,7 +241,7 @@ def verb_body_patch(edit: Edit, source: str) -> Edit:
 
 
 def verb_payload_text(edit: Edit, text: str) -> Edit:
-    """`payload_text <content>` — the payload's new bytes, inline.
+    """`payload_text <content>` - the payload's new bytes, inline.
 
     The same move `note` makes for a body: say the content, do not stage it.
     `payload <path>` still exists and is the right verb when the bytes already
@@ -260,7 +260,7 @@ def verb_payload_text(edit: Edit, text: str) -> Edit:
 
 
 def verb_adopt(edit: Edit, *extra: str) -> Edit:
-    """`adopt` — mint a first `mint_id` for a node written outside
+    """`adopt` - mint a first `mint_id` for a node written outside
     node_writer (a kid's own file tool), so grid.py can version it.
 
     hypothesis:l3-node-without-mint-id. Refuses when a `mint_id` already
@@ -276,7 +276,7 @@ def verb_adopt(edit: Edit, *extra: str) -> Edit:
 
 
 def verb_patch(edit: Edit, source: str) -> Edit:
-    """`patch <path|->` — apply a unified diff to the payload, in place.
+    """`patch <path|->` - apply a unified diff to the payload, in place.
 
     hypothesis:l3-write-partial-diffs-as-writes. The grid already stores and
     renders exactly this delta (`grid.py diff`), so the diff vocabulary is
@@ -286,7 +286,7 @@ def verb_patch(edit: Edit, source: str) -> Edit:
     rules require it of.
 
     The diff bytes arrive by file path or `-` for stdin (copying `payload -`),
-    never inline in the `&&` script — a diff contains almost any character,
+    never inline in the `&&` script - a diff contains almost any character,
     including the doubled ampersand that splits the script form. It is
     applied with `apply_unified_diff`, which fails CLOSED: a hunk that does
     not apply to the payload's current bytes refuses the whole write and
@@ -301,12 +301,12 @@ def verb_patch(edit: Edit, source: str) -> Edit:
 
 
 def verb_read(edit: Edit, target: str, rng: str) -> Edit:
-    """`read <payload|body> <START:END>` — fetch a line range, cheaply.
+    """`read <payload|body> <START:END>` - fetch a line range, cheaply.
 
     hypothesis:l3-write-partial-diffs-as-writes, build item 1. The read half
     of line-addressing: a node becomes something you read in pieces, not just
     whole. For a payload the range is streamed so only the requested lines are
-    ever materialised — a ranged read of a big module costs a few lines, not
+    ever materialised - a ranged read of a big module costs a few lines, not
     a whole-file reload. For a body the node's own canonical reader yields it
     and the range is sliced from that.
 
@@ -315,7 +315,7 @@ def verb_read(edit: Edit, target: str, rng: str) -> Edit:
 
     Read-only: this verb never writes and is handled as a terminal verb in
     `main` before `submit` is reached, so no `edited_by` / `thought_session`
-    stamp is implied — reading a node must not look like editing it.
+    stamp is implied - reading a node must not look like editing it.
     """
     if target not in ("payload", "body"):
         raise EditError(
@@ -327,7 +327,7 @@ def verb_read(edit: Edit, target: str, rng: str) -> Edit:
 
 
 def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
-    """`replace <payload|body> <START:END> <path|->` — overwrite a line range.
+    """`replace <payload|body> <START:END> <path|->` - overwrite a line range.
 
     The write half of line addressing, and the verb that removes the manual
     offset step. `read <target> N:M` then `replace <target> N:M` is the whole
@@ -335,8 +335,8 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     exact inverse of the `_slice_range` the read used, so nothing has to be
     counted, converted, or expressed as a `@@` hunk.
 
-    `body` and `payload` are the same operation here, not two — one reader
-    (`_target_text`), one transform (`_splice_range`) — and they differ only
+    `body` and `payload` are the same operation here, not two - one reader
+    (`_target_text`), one transform (`_splice_range`) - and they differ only
     in where the result lands, which is forced: a body lands through
     `update_node` (carrying the THOUGHT region and provenance), a payload
     through `replace_payload`. Both are sanctioned writes the guard sees.
@@ -386,16 +386,16 @@ def _parse_range(rng: str) -> tuple[int | None, int | None]:
 
 def verb_payload(edit: Edit, source: str) -> Edit:
 
-    """`payload <path>` — replace the bytes of the file this node points at.
+    """`payload <path>` - replace the bytes of the file this node points at.
 
-    The last node operation that had no name. A build node's payload — a
-    `.py`, a `.sh`, `SKILL.md`, `HANDOFF.md` — was edited with whatever editor
+    The last node operation that had no name. A build node's payload - a
+    `.py`, a `.sh`, `SKILL.md`, `HANDOFF.md` - was edited with whatever editor
     was to hand, and the node behind it learned nothing: no `edited_by`, no
     `thought_session`, no single submit tying the bytes to the reason for
     them. Compose the new content wherever you like, then hand the file over
     here and it lands with the rest of the edit (`goal:g13.1`).
 
-    The write itself is `node_writer.replace_payload` — this module still
+    The write itself is `node_writer.replace_payload` - this module still
     performs no file write, which is the invariant that keeps the verb layer a
     front end rather than a second way in.
     """
@@ -449,7 +449,7 @@ def _coerce(value: str):
         return None
     if text.startswith("[") and text.endswith("]"):
         import json
-        # hypothesis:l3-write-set-nested-json — a JSON array (e.g. the ladder
+        # hypothesis:l3-write-set-nested-json - a JSON array (e.g. the ladder
         # roles rows, a list of objects) must parse as one nested value. The
         # old comma-split turned `[{"tier": 3, ...}, {...}]` into broken string
         # rows whose inner objects never landed (L3.01). Try the real parse
@@ -492,7 +492,7 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     """`"set status active && link self"` -> a list of verb calls.
 
     The `&&`-serialised form the owner described: an agent's whole edit
-    session as one command. Separated on `&&` and never handed to a shell —
+    session as one command. Separated on `&&` and never handed to a shell -
     the string is data here, exactly as `commands.py` keeps argv a list.
     """
     out: list[tuple[str, list[str]]] = []
@@ -513,7 +513,7 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
 
 def _load_seats(root) -> list[dict]:
     """The `seats:` rows of `.agi/nodes/.geometry/seats.md` (config:seats),
-    or [] when absent/unparseable. Mirror of rotate.py's loader — each row
+    or [] when absent/unparseable. Mirror of rotate.py's loader - each row
     carries `name` and `role`, which is what role resolution keys on.
     """
     path = Path(root) / "nodes" / ".geometry" / "seats.md"
@@ -532,7 +532,7 @@ def _load_seats(root) -> list[dict]:
 
 def _pick_longest_role(candidates: list[tuple[int, str, str]]):
     """From `(name_len, name, role)` candidates pick the longest match's role,
-    fail-closed. A tie at the same longest length REFUSES — it never picks one
+    fail-closed. A tie at the same longest length REFUSES - it never picks one
     arbitrarily (hypothesis:l4-role-resolution-longest-prefix). Under the
     strict `==`/`startswith(name+'-')` boundary rule a real-input tie is
     structurally impossible, so this guard is defensive by design: if the
@@ -556,7 +556,7 @@ def _resolve_seats_role(root, actor: str):
     """Resolve the actor's role from the config:seats rows, longest-prefix-wins.
 
     A row matches only when the actor EQUALS the row name or begins with the
-    row name FOLLOWED BY `-` — a bare `startswith` would let the row `alive`
+    row name FOLLOWED BY `-` - a bare `startswith` would let the row `alive`
     claim `aliveness-bot`, and matching the other way round would let the
     actor `sanctuary` claim several rows at once. Returns the role string, or
     None when no row matches (caller falls through to the `owner` literal), or
@@ -612,7 +612,7 @@ def _resolve_seat(root, actor: str):
 
     The mirror of `_resolve_seats_role`, kept as the one place BOTH callers
     key on, so the self-row rule matches the SAME identity `_resolve_role`
-    used to admit the writer — never the free-text `--actor` string (L4.110
+    used to admit the writer - never the free-text `--actor` string (L4.110
     prime ruling B). Longest-prefix-with-boundary wins; a tie at the longest
     length refuses (fail-closed, same rule as `_pick_longest_role`).
     """
@@ -647,7 +647,7 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     every other row is refused WHOLE. Returns None when the write is a valid
     own-row, declared-fields-only write, else a human refusal message.
     GENERIC by construction: everything here is read from the schema's
-    `self_row` mapping — there is no `seats` literal in this function.
+    `self_row` mapping - there is no `seats` literal in this function.
     """
     sr = schema.frontmatter.get("self_row")
     if not isinstance(sr, dict):
@@ -662,7 +662,7 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
         return "self_row declaration is missing list_key/match_key"
 
     # 1) No top-level field other than the list_key may be written by a
-    #    seated role — those are prime/owner-only declarations.
+    #    seated role - those are prime/owner-only declarations.
     touched_top = set(set_fm or {}) | set(unset_fm or {})
     bad_top = touched_top - {list_key}
     if bad_top:
@@ -678,7 +678,7 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     new_rows = set_fm[list_key]
     if not isinstance(new_rows, list):
         return f"`{list_key}` must be a list of rows, got {type(new_rows).__name__}"
-    # The current rows, read from the pre-write node file in the same root — a
+    # The current rows, read from the pre-write node file in the same root - a
     # seated writer's whole-list set must reproduce them with its own row's
     # declared fields changed and NOTHING else.
     old_rows = _load_seats(root)
@@ -714,15 +714,228 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     return None
 
 
+def _read_node_fm(root, node_id):
+    """Read a node's CURRENT frontmatter as a dict, or None if unreadable.
+
+    Needed by the master-sensei templates carve-out to compare the bytes the
+    write would replace against the bytes on disk (the self_row pattern).
+    Read-only; this module performs no file write.
+    """
+    try:
+        from graph_core.persistence import frontmatter as fm_reader
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        path = node_writer.find_node_file(root, node_id)
+    except Exception:  # noqa: BLE001
+        return None
+    if path is None:
+        return None
+    try:
+        return dict(fm_reader.load_node_file(path).frontmatter)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
+                                     where: str):
+    """The master-sensei templates carve-out (PRIME RULING 2026-09-11,
+    hypothesis:write-guard-carve-out-for-master-sensei-templates).
+
+    The Sensei keeps improving the roles' rotation config directly instead of
+    dm-and-wait. It may write ONLY certain regions of config:rotations
+    `templates`: each role entry's `startup` and `telemetry`, and the `## facts`
+    body section, for EVERY role EXCEPT the declared deny-roles (prime_director
+    -- Prime/owner-only). `brief_file` and `steps` of any template stay
+    prime/owner-only. The rule is DATA - the allowed regions, the deny roles
+    and the writable fields all live in the schema's `master_sensei_row`
+    declaration, with no role literal in this function (the self_row pattern).
+
+    A second, load-bearing half is the PRODUCING JUDGE: every resolved
+    first_turn/after_join cmd in the written value must pass
+    `rotate._producing_refusal` - the guard runs the same judge the executor
+    would, so a Sensei cannot land an entry the executor would refuse, and the
+    refusal NAMES the entry. Returns None when the write is a valid
+    master-sensei template write, else a human refusal message.
+    """
+    ms = schema.frontmatter.get("master_sensei_row")
+    if not isinstance(ms, dict):
+        return None  # no declaration -> the written_by gate decides
+    actor_row = ms.get("actor")
+    if not actor_row:
+        return None
+    resolved = _resolve_role(root, actor, "")
+    is_ms = (resolved == actor_row or str(actor) == str(actor_row)
+             or str(actor).startswith(str(actor_row) + "-"))
+    if not is_ms:
+        return None  # not the master-sensei seat; not this carve-out
+    list_key = ms.get("list_key")
+    fields = [str(f) for f in (ms.get("fields") or [])]
+    role_field = ms.get("role_field") or "id"
+    deny = [str(r) for r in (ms.get("deny_roles") or [])]
+    if not list_key:
+        return "master_sensei_row declaration is missing list_key"
+
+    # The whole-list replacement is the write shape (set_fm[list_key] == the
+    # full `templates` mapping), exactly as self_row replaces the full list.
+    if list_key not in set_fm:
+        return None  # not touching templates; body gate / written_by decide
+    new_val = set_fm[list_key]
+    if not isinstance(new_val, dict):
+        return f"`{list_key}` must be a dict of role templates, got " \
+               f"{type(new_val).__name__}"
+    old_fm = _read_node_fm(root, where)
+    old_val = (old_fm or {}).get(list_key)
+    if old_val is None:
+        old_val = {}
+    if not isinstance(old_val, dict):
+        return f"current `{list_key}` is not a dict; refusing to judge the delta"
+
+    roles = set(old_val.keys()) | set(new_val.keys())
+    for role in roles:
+        if role in deny:
+            if old_val.get(role) != new_val.get(role):
+                return (f"the {role!r} template is prime/owner-only; a "
+                        "master-sensei write may NOT touch it (owner: "
+                        "'modifications to Belam or his advisors require "
+                        "owner approval')")
+            continue
+        old_r = old_val.get(role) or {}
+        new_r = new_val.get(role) or {}
+        if isinstance(old_r, dict) and isinstance(new_r, dict):
+            keys = set(old_r.keys()) | set(new_r.keys())
+            for k in keys:
+                if old_r.get(k) != new_r.get(k):
+                    if k not in fields:
+                        return (f"template field {k!r} is prime/owner-only; a "
+                                f"master-sensei write may change only "
+                                f"{', '.join(sorted(fields))} (the regions "
+                                f"declared writable)")
+
+    # PRODUCING JUDGE gate: every resolved first_turn/after_join cmd in the
+    # written templates (deny-role entries excluded) must pass
+    # rotate._producing_refusal; a refused entry refuses the whole write,
+    # naming the entry (test c).
+    try:
+        import rotate
+    except Exception:  # noqa: BLE001
+        return None
+    for role in roles:
+        if role in deny:
+            continue
+        new_r = new_val.get(role)
+        if not isinstance(new_r, dict):
+            continue
+        startup = new_r.get("startup")
+        if isinstance(startup, dict):
+            for sec in ("first_turn", "after_join"):
+                for entry in startup.get(sec) or []:
+                    if not isinstance(entry, dict):
+                        continue
+                    label = entry.get("label") or "(unlabeled)"
+                    cmd = entry.get("cmd") or ""
+                    refusal = rotate._producing_refusal(str(cmd))
+                    if refusal is not None:
+                        return (f"master-sensei write refused: startup entry "
+                                f"{label!r} would be refused by the startup "
+                                f"producing judge: {refusal}")
+    return None
+
+
+def _sectionize(body: str):
+    """Split a node body into {header: text} + a preamble, keyed on `## `.
+
+    A `## ` header starts a section; the preamble is everything before the
+    first one. Same-splitting both the old and new body lets the facts gate
+    require byte-identity OUTSIDE the `## facts` section without diffing.
+    """
+    if body is None:
+        return None, {}
+    lines = body.splitlines(keepends=True)
+    preamble: list[str] = []
+    sections: dict[str, list[str]] = {}
+    cur = None
+    for ln in lines:
+        if ln.startswith("## "):
+            cur = ln[3:].strip()
+            sections.setdefault(cur, [])
+        elif cur is None:
+            preamble.append(ln)
+        else:
+            sections[cur].append(ln)
+    # Normalise a single trailing newline so a serializer-perceived difference
+    # (the frontmatter reader strips it, the splice can keep it) does not look
+    # like a section delta.
+    return "".join(preamble).rstrip("\n"), {
+        k: "".join(v).rstrip("\n") for k, v in sections.items()}
+
+
+def _enforce_master_sensei_facts_body(root, node_id, actor, new_body):
+    """Refuse a master-sensei body edit whose delta leaves `## facts`.
+
+    The third writable region of the carve-out: the `## facts` body section
+    of the governed node. The rest of the body (templates/steps/preamble and
+    every other section) stays prime/owner-only, so the delta must be
+    byte-identical outside the `## facts` section. A no-op for any non
+    master-sensei writer (their admission is the written_by gate's business).
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return
+    if new_body is None:
+        return
+    node_type = str(node_id).split(":", 1)[0]
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return
+    ms = schema.frontmatter.get("master_sensei_row") if schema else None
+    if not isinstance(ms, dict) or not ms.get("actor"):
+        return
+    resolved = _resolve_role(root, actor, "")
+    is_ms = (resolved == ms.get("actor")
+             or str(actor).startswith(str(ms.get("actor")) + "-"))
+    if not is_ms:
+        return  # a non-master-sensei writer's body edit is not this gate
+    try:
+        old_body = _read_body_text(root, node_id)
+    except EditError:
+        return
+    old_preamble, old_secs = _sectionize(old_body)
+    new_preamble, new_secs = _sectionize(new_body)
+    if old_secs is None or new_secs is None:
+        return
+    if old_preamble != new_preamble:
+        raise EditError(
+            f"{node_id}: a master-sensei body edit may change ONLY the "
+            f"`## facts` section; the preamble changed (PRIME RULING "
+            f"2026-09-11, hypothesis:write-guard-carve-out-for-master-"
+            f"sensei-templates)")
+    for sec in set(old_secs) | set(new_secs):
+        if sec == "facts":
+            continue
+        if old_secs.get(sec) != new_secs.get(sec):
+            raise EditError(
+                f"{node_id}: a master-sensei body edit may change ONLY the "
+                f"`## facts` section; section {sec!r} changed "
+                f"(PRIME RULING 2026-09-11, hypothesis:write-guard-carve-"
+                f"out-for-master-sensei-templates)")
+
+
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         set_fm: dict | None = None,
                         unset_fm: list | None = None,
-                        allow_self_row: bool = False):
+                        allow_self_row: bool = False,
+                        has_body: bool = False):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
-    The owner-only rule lives as DATA — `written_by:` in the frontmatter of
-    `context/schemas/[<type>].md` — read through `schema_registry`, not as a
+    The owner-only rule lives as DATA - `written_by:` in the frontmatter of
+    `context/schemas/[<type>].md` - read through `schema_registry`, not as a
     hardcoded type literal here. So the rule is carried by the type that owns
     it, and a schema that declares no `written_by` (or whose schema is
     absent) gates nothing: the moral schema's `written_by: owner` is the one
@@ -736,7 +949,7 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     `written_by` refuses nothing it admits. An UNRESOLVED identity refuses
     only because the type declares `written_by`; a schema declaring nothing
     still gates nothing. The refusal names the node TYPE and its admitted
-    roles — never a hardcoded type literal (L4.40).
+    roles - never a hardcoded type literal (L4.40).
     """
     try:
         from schema_registry import load_schemas_from_dir
@@ -759,8 +972,44 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     if resolved in admitted:
         return
 
+    # PRIME RULING 2026-09-11 carve-out: the master-sensei seat may write
+    # config:rotations `templates` (startup/telemetry, facts body) directly
+    # instead of dm-and-wait. Authorized by the schema's `master_sensei_row`
+    # declaration, gated by the startup producing judge -- one generic rule,
+    # no role literal in the enforcement path (the self_row pattern). Must be
+    # tried only when the writer is NOT admitted. Two entry shapes: a
+    # templates frontmatter set (checked here against old bytes + the
+    # judge), and a body-only edit (set_fm/unset_fm empty -- checked by
+    # submit's facts-region gate, since the body bytes only exist after
+    # composition). This block comes BEFORE the self_row gate so a
+    # master-sensei templates write is adjudicated by this carve-out, not
+    # refused by an unrelated seats declaration.
+    ms = schema.frontmatter.get("master_sensei_row")
+    if isinstance(ms, dict) and ms.get("actor") and has_body is not None:
+        is_ms = (resolved == ms.get("actor")
+                 or str(actor) == str(ms.get("actor"))
+                 or str(actor).startswith(str(ms.get("actor")) + "-"))
+        if is_ms:
+            touches_templates = (set_fm is not None
+                                 and ms.get("list_key") in set_fm)
+            if touches_templates:
+                mrefusal = _master_sensei_templates_refusal(
+                    root, schema, actor, set_fm, unset_fm, where)
+                if mrefusal is None:
+                    return
+                raise EditError(
+                    f"{node_type} nodes ({where}): a master-sensei write is "
+                    f"limited to the declared template regions and must pass "
+                    f"the startup producing judge; {mrefusal} "
+                    f"(PRIME RULING 2026-09-11)")
+            if has_body and not (set_fm or unset_fm):
+                # body-only master-sensei edit: admission here is refined by
+                # submit's facts-region gate, which refuses any delta outside
+                # the `## facts` section.
+                return
+
     # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
-    # say) is not in `written_by` and yet may update ONE thing — its own seat
+    # say) is not in `written_by` and yet may update ONE thing - its own seat
     # row, restricted to the fields the type's `self_row` declaration names.
     # This is the only unadmitted-writer path; without the schema declaring
     # `self_row`, or for a `create`, the refusal below holds exactly as
@@ -778,7 +1027,7 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 f"its OWN row and only the declared fields; {refusal}. "
                 f"(L4.110 prime ruling B)")
 
-    raise EditError(
+    raise EditError(        
         f"{node_type} nodes ({where}) may be hand-edited only by "
         f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
         f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
@@ -789,7 +1038,7 @@ def _resolve_replace_text(edit: Edit) -> None:
     """The ONE resolver that turns `replace_from` into `replace_text`.
 
     Used by BOTH the CLI (`main`) and the library (`submit`), so an API
-    caller and a script form cannot disagree about what a `replace` means —
+    caller and a script form cannot disagree about what a `replace` means -
     the divergence this module shipped
     (hypothesis:l4-replace-api-drops-source). `main` calls it early for its
     `--dry-run` preview; `submit` calls it too, idempotently, so a direct API
@@ -799,12 +1048,12 @@ def _resolve_replace_text(edit: Edit) -> None:
     Fail-closed: an absent, unreadable or EMPTY source raises an EditError
     naming the source, and nothing is written anywhere. `replace <t> N:M -`
     keeps its stdin contract: arbitrary content cannot ride an `&&` chunk,
-    so it comes off stdin verbatim — exactly as it does today.
+    so it comes off stdin verbatim - exactly as it does today.
     """
     if not edit.replace_from:
         return
     if edit.replace_text:
-        # Already resolved — by main() for its --dry-run preview, or by an
+        # Already resolved - by main() for its --dry-run preview, or by an
         # API caller that set the text directly. Never re-read: a second
         # stdin read for `-` would consume nothing and hang the caller.
         return
@@ -817,11 +1066,11 @@ def _resolve_replace_text(edit: Edit) -> None:
         text = Path(edit.replace_from).read_text(encoding="utf-8")
     except OSError as exc:
         raise EditError(
-            f"replace source {edit.replace_from!r} unreadable: {exc} — "
+            f"replace source {edit.replace_from!r} unreadable: {exc} - "
             f"nothing written")
     if text == "":
         raise EditError(
-            f"replace source {edit.replace_from!r} is empty — refusing to "
+            f"replace source {edit.replace_from!r} is empty - refusing to "
             f"replace a range with an empty source (it would delete the "
             f"range). Nothing written. A deliberate deletion needs an "
             f"explicit signal, not an empty file.")
@@ -829,7 +1078,7 @@ def _resolve_replace_text(edit: Edit) -> None:
 
 
 def _resolve_api_root(root) -> Path:
-    """Resolve the graph root a caller handed the Python API — DESCEND-ONLY.
+    """Resolve the graph root a caller handed the Python API - DESCEND-ONLY.
 
     The CLI resolves `--root` through `locations.find_project_root` BEFORE
     touching `create`/`submit` (write.py:1208, :1253), so CLI callers are
@@ -837,7 +1086,7 @@ def _resolve_api_root(root) -> Path:
     and a raw `.` from the repo root used to mint into `<repo>/nodes/...`
     instead of `<repo>/.agi/nodes/...`, silently. Worse, a caller inside a
     bare dir with no project of its own would have had `find_project_root`
-    walk UP into a real ancestor graph and write a node into it — a
+    walk UP into a real ancestor graph and write a node into it - a
     data-loss-shaped hazard for any test that passed a no-`.agi/` tmp dir.
 
     Resolution here looks at ONLY `root` and the `.agi/` directly beneath it,
@@ -846,7 +1095,7 @@ def _resolve_api_root(root) -> Path:
     graph above it. The never-ascend property is asserted directly by
     test_write.py, not inferred from the passing tests around it. Refusing
     before any write is what closes the "wrong root looks like success"
-    symptom — the node is not minted and nothing is written anywhere.
+    symptom - the node is not minted and nothing is written anywhere.
     """
     d = Path(root).resolve()
     # The root itself is a graph root (a `.agi/` dir, or a legacy config dir).
@@ -857,7 +1106,7 @@ def _resolve_api_root(root) -> Path:
     if locations.config_path(child) is not None:
         return child
     raise EditError(
-        f"not an agi project graph root: {root!r} — the Python API resolves "
+        f"not an agi project graph root: {root!r} - the Python API resolves "
         f"root descend-only and refuses to walk UP the filesystem into a "
         f"different project (hypothesis:l4-write-api-root-resolution). "
         f"Nothing was written.")
@@ -867,17 +1116,17 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     """Write the accumulated edit. **The only thing in this module that writes.**
 
     Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
-    `UNCHANGED` or `REJECTED` and the reason — the same statuses every other
+    `UNCHANGED` or `REJECTED` and the reason - the same statuses every other
     writer path reports.
     """
     if edit.empty:
         raise EditError(f"nothing to submit for {edit.node_id}")
 
-    # hypothesis:l4-write-api-root-resolution — an API caller's `root` is
+    # hypothesis:l4-write-api-root-resolution - an API caller's `root` is
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
 
-    # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
+    # hypothesis:l4-replace-api-drops-source - the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`
     # never became `replace_text` and submit spliced `""`, silently deleting
     # the range while reporting success. Idempotent: main has already resolved
@@ -887,7 +1136,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
                         edit.node_id, role,
                         set_fm=edit.set_fm, unset_fm=edit.unset_fm,
-                        allow_self_row=True)
+                        allow_self_row=True,
+                        has_body=bool(edit.body_append or edit.thought
+                                      or edit.body_patch_diff
+                                      or edit.replace_target == "body"))
 
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
@@ -897,7 +1149,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     body = None
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
-    # hypothesis:l3-partial-write-adoption — the PATH form must read its diff
+    # hypothesis:l3-partial-write-adoption - the PATH form must read its diff
     # BEFORE the apply-check below, or body_patch_diff is still empty at apply
     # time and the diff is silently discarded (measured 2026-09-09: `body_patch
     # <path>` printed updated: and landed nothing). `patch` does it this way
@@ -907,7 +1159,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
         from pathlib import Path as _P
         edit.body_patch_diff = _P(edit.body_patch_from).read_text(encoding="utf-8")
     if edit.body_patch_diff:
-        # hypothesis:l3w4-hierarchy-one-source — `body_patch` resolves against
+        # hypothesis:l3w4-hierarchy-one-source - `body_patch` resolves against
         # the node's CURRENT body (not a build-node payload) and lands it
         # through `update_node` below, so the THOUGHT region is carried across
         # and write_guard sees a sanctioned write. Exclusive with note/thought:
@@ -944,7 +1196,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
         edit.payload_bytes = apply_unified_diff(
             _read_payload_bytes(root, payload_ref, location),
             edit.patch_diff)
-    # L4, owner 2026-09-09 — the offset-free partial write, for BOTH targets
+    # L4, owner 2026-09-09 - the offset-free partial write, for BOTH targets
     # through one reader and one transform. Everything that can refuse has
     # refused above; `_splice_range` refuses a range past EOF before anything
     # is written, so a bad range leaves the node and the payload untouched.
@@ -968,11 +1220,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     if "location" in set_fm:
         location = set_fm["location"]
 
+    # PRIME RULING 2026-09-11 facts-region gate: a master-sensei BODY edit on
+    # a `master_sensei_row`-governed node may change ONLY the `## facts`
+    # section. Written here (post-composition) because the body bytes only
+    # exist after the splice; `_enforce_written_by` admitted the writer on
+    # the body-only path and this gate is the load-bearing confinement.
+    _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
     if payload_ref and res.status != node_writer.REJECTED:
-        # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
+        # hypothesis:l3-write-payload-unchanged-unlogged - a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
         # replace_payload so the payload-write log entry carries it, matching
         # write_guard's (mint_id, sha256) key even when the bytes did not
@@ -992,7 +1251,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
 def _node_mint_id(root, node_id: str) -> str:
     """The mint_id of the node an edit targets, for the payload sanction log.
 
-    hypothesis:l3-write-payload-unchanged-unlogged — a payload re-log must
+    hypothesis:l3-write-payload-unchanged-unlogged - a payload re-log must
     carry the owning node's mint_id so write_guard's (mint_id, sha256) lookup
     matches the node's frontmatter. Read-only; this module performs no file
     write (test_edit_py_contains_no_file_write).
@@ -1015,7 +1274,7 @@ def _read_payload_bytes(root, ref: str, location: str | None) -> str:
     import locations as _loc
     dest = _loc.resolve_payload_path(Path(root), ref, location)
     if not dest.is_file():
-        raise EditError(f"payload {dest} does not exist — nothing to patch.")
+        raise EditError(f"payload {dest} does not exist - nothing to patch.")
     return dest.read_text(encoding="utf-8")
 
 
@@ -1040,8 +1299,8 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     **The exact inverse of `_slice_range`, in the same coordinates.** That is
     the whole point: `read <target> N:M` shows you bytes, and
     `replace <target> N:M` overwrites *those* bytes. No offset is computed by
-    the caller, so the class of error trap 0ah names — a hunk built from a
-    naive line count that does not match the applier's view — cannot occur.
+    the caller, so the class of error trap 0ah names - a hunk built from a
+    naive line count that does not match the applier's view - cannot occur.
 
     `10:20` replaces lines 10..20, `10:` from 10 to the end, `:20` the start
     to line 20. A single trailing newline on `new` is absorbed rather than
@@ -1055,7 +1314,7 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     if start > len(lines):
         raise EditError(
             f"replace range {rng} starts past the end of the target "
-            f"({len(lines)} lines) — nothing written.")
+            f"({len(lines)} lines) - nothing written.")
     new_lines = new.split("\n")
     if new_lines and new_lines[-1] == "":
         new_lines.pop()
@@ -1073,7 +1332,7 @@ def _read_payload_text(root, ref: str, location: str | None, rng: str) -> str:
     import locations as _loc
     dest = _loc.resolve_payload_path(Path(root), ref, location)
     if not dest.is_file():
-        raise EditError(f"payload {dest} does not exist — nothing to read.")
+        raise EditError(f"payload {dest} does not exist - nothing to read.")
     lo, hi = _parse_range(rng)
     start = 1 if lo is None else lo
     wanted: list[str] = []
@@ -1230,12 +1489,12 @@ def _default_actor() -> str:
 def _log_provenance(actor: str = "") -> dict:
     """The actor/role/seat for a write-log entry, via the `extra` hook.
 
-    hypothesis:l4-write-log-role-capture — every write-log entry should record
+    hypothesis:l4-write-log-role-capture - every write-log entry should record
     WHO wrote it. `actor` is the resolved caller identity (`actor` param or
     `_default_actor`). `role` and `seat` are READ from what the environment
     already sets (AGI_ROLE / AGI_SEAT, exported by dispatch); when a source is
     absent the key is ABSENT, never a placeholder. Only present keys land in
-    the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
+    the entry - so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
     records `actor`, and a non-write.py writer records none of these at all.
     """
     prov: dict = {"actor": actor or _default_actor()}
@@ -1276,7 +1535,7 @@ def _compose_body(root, edit: Edit) -> str:
 
     if edit.thought:
         block = (node_writer._THOUGHT_RE.pattern and
-                 "<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+                 "<!-- THOUGHT:BEGIN - authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->\n"
                  f"{edit.thought}\n<!-- THOUGHT:END -->")
         existing = node_writer.extract_thought(body)
@@ -1291,7 +1550,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            actor: str = "", session: str = "", role: str = "",
            bypass: bool = False):
-    """Mint a node — and, for a build node, the file it points at.
+    """Mint a node - and, for a build node, the file it points at.
 
     **This is `write.py`'s other half, and its absence was the hole that made
     the rename honest** (`goal:g13.1`, L1.07). The verb layer could revise any
@@ -1303,14 +1562,14 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     **It reuses `node_writer.write_node` rather than reimplementing it.** That
     routine runs the spawn gate *before* touching the filesystem, mints the
     `mint_id`, and canonicalises the type. A second creation path that skipped
-    any of those would be a bypass wearing the name of a front end — the same
+    any of those would be a bypass wearing the name of a front end - the same
     thing `submit` refuses to be on the update side.
 
     `payload` creates the source file if it is absent and records it as
     `link_ref`, so "a new node and, if needed, the code file behind it" is one
-    operation. An existing file is **never overwritten** — it is linked.
+    operation. An existing file is **never overwritten** - it is linked.
     """
-    # hypothesis:l4-write-api-root-resolution — same descend-only resolution
+    # hypothesis:l4-write-api-root-resolution - same descend-only resolution
     # as submit; a wrong root refuses before the node or its payload file is
     # created, instead of minting into `<root>/nodes/...` with the spawn gate
     # silently unverified.
@@ -1337,7 +1596,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             # A rejected spawn must leave nothing behind, on either side.
             # `write_node` already guarantees that for the node; the file is
             # this function's to clean up, and forgetting would leave an empty
-            # source file with no node behind it — precisely the gitignored
+            # source file with no node behind it - precisely the gitignored
             # staging window `goal:g11` removed.
             created_file.unlink(missing_ok=True)
         return res, None
@@ -1487,7 +1746,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
 
-    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is a
+    # hypothesis:l3-write-partial-diffs-as-writes, build item 1 - `read` is a
     # TERMINAL, read-only verb: render the requested range to stdout and
     # return BEFORE `submit` is reached. This is the branch whose absence let
     # a read fall through the write path and restamp edited_by while printing
@@ -1563,7 +1822,7 @@ def main(argv: list[str] | None = None) -> int:
         # cannot ride an `&&` script chunk (the doubled ampersand splits it).
         edit.patch_diff = sys.stdin.read()
 
-    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
+    # hypothesis:l4-replace-api-drops-source - ONE resolver, not a second
     # read. Delegate to the same function `submit` uses, so dry-run shows the
     # bytes and a missing/empty source refuses here exactly as it refuses in
     # the library. Refusals print ERR and write nothing.
@@ -1628,7 +1887,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
     print(f"{res.status}: {edit.node_id}"
-          + (f" — {res.reason}" if res.reason else ""))
+          + (f" - {res.reason}" if res.reason else ""))
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
