@@ -1,0 +1,47 @@
+---
+id: goal:g15.14
+mint_id: 05df8a9e13594989881d1f1ed121cc70
+type: goal
+parents:
+  - goal:g15
+  - build:bin-rotate
+next_edges: []
+confidence: 0.6
+edited_by: sensei-director
+goal_id: G15.14
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: 73137edbf9e5e688
+season: 2
+seeds:
+  - hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn
+  - hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps
+status: active
+tags:
+  - goal
+  - subgoal
+  - l4
+  - sanctuary-director
+thought_session: sensei-director-genI-L1
+title: "G15.14: rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut"
+town: core
+---
+<!-- BODY:BEGIN -->
+**`rotate.py` PROMPTS the LLM through the parts that need its judgement and PERFORMS the rest: a driven handoff writer, a captive `rotate-self --prepare` checklist, a captive merge-up window reply, the point's captive harvest-or-cut.** Owner, 2026-09-11 15:5xZ, verbatim in `doc:l4-owner-decisions`: "propose any additional captive or driven steps the rotate.py script needs so that LLM's are properly prompted through parts needing their input, not just write and read things raw". Design rule (Sensei §2): wherever an LLM's judgement is genuinely needed, the script prints the exact bounded question with every measurable value pre-filled; wherever it is not, the script performs the step. Never remove a decision from the LLM — only the raw reads and writes around it. Today the only captive step is the ack (`continue|diff`).
+
+## Why this exists
+
+- `goal:g15` is the parent because every candidate is an optimization of the rotate-out / wake cost measured in tool calls, fixed in-loop under the perpetual goal; the Sensei's three held drafts (sanctuary-director 135144Z, sanctuary-helper 152548Z, belam 140328Z) are the pre-fix measurement each step is scored against.
+- `build:bin-rotate` is the parent because `rotate-self` is the mechanism that already performs the mechanical half — `_write_handoff` writes only a 5-line header to `<sessions>/seats/<S>.handoff.md` while the LLM's card lives in `<sessions>/quorum/<S>.md` and is written raw; `rotate-self` refuses a blocked spawn only after the LLM has spent the calls discovering each blocker; the ack is the one captive reply the file has. The four steps extend that file's own template machinery (`config:rotations` `templates.<role>`), not a new tool.
+
+## The four steps (each a hypothesis brief; parallel where file scopes are disjoint)
+
+1. **Driven handoff writer** — `rotate.py handoff --driven --seat S`: §0 pre-filled from `verification.py` (counts, last suite numbers), the latest rotation record (gen, window @id, pid, model_confirm), the account (`provisioning.py status`), branch + behind-count + unpushed; the LLM is asked ONLY for §3 where-it-stops and §6 banked as bounded fields (a printed prompt; the answer read from a file/argv); the trim guard runs inside; the target is the seat's quorum card, the header file stays.
+2. **`rotate-self --prepare`** — the captive rotate-out checklist printed BEFORE any spawn: unpushed commits, dirty tree, behind `season/s2`, card older than the last commit, missing/stale meter pin, stale `.ack.json` — each with the one command that clears it; exit 0 only when nothing blocks; `rotate-self` runs the same checks and refuses by name.
+3. **Captive merge-up window reply** — one command in the tool that owns the lock and the baseline (`verification.py` or `rotate.py`; no new `bin/` file) prints lock state + tip + baseline in the shape the Prime replies with, replacing the three by-hand reads.
+4. **The point's captive harvest-or-cut** — the successor's first decision beyond the ack: per open round the harvest table pre-filled (L4.236) and a bounded prompt `harvest <round> | cut <next>` per row.
+
+## Testable claim
+
+Each step names, BEFORE its code, the calls it removes in the three held rotations (the pre-fix count is the evidence line); lands as a subcommand or flag of an existing tool with a red-first test; leaves every decision named above with the LLM; `test_rotate_startup.py` + `test_rotate_templates.py` + `test_rotate.py` neighbours stay green. **Falsifier:** a step that decides for the LLM (writes §3/§6, chooses harvest-or-cut, acks) — that step is refused, not landed. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (handoff / prepare regions), `extensions/agi/bin/verification.py` (window reply only), `extensions/agi/bin/season.py` (harvest-or-cut only) + tests. EXCLUDED: `config:rotations`, `config:seats`, the hooks, `send.py`. **CEILING:** 2 parents (steps 1+2; steps 3+4), up to 2 kids each. Shares the `rotate.py` lane with the point's queue — parents cut from this seat's branch, conflicts resolved at merge-up.
