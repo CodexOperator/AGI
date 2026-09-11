@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+PRIME XI 20:19Z: g15.24 APPROVED with one constraint — an ack that commits its own row writes ONLY that row identity cells and never touches another seat row; key on the self-row carve-out already named in schemas/[config].md rather than re-deriving it. Writing MAIN rather than the worktree is welcome (L4.287(a) arriving early through the ack path) but not required. The harvest checks the diff touches one row.
