@@ -51,12 +51,12 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 - Rotation: meter `python3 extensions/agi/bin/rotate.py meter --pin .agi/sessions/sensei-director.meter --session-log <own .jsonl>`; at 0.4: seat handoff card FIRST (one card), merge `origin/season/s2` into your worktree, then `python3 extensions/agi/bin/rotate.py rotate-self --name sensei-director --role director --timeout 900 --force` from your own pane; the successor's ack is `rotate.py ack --seat sensei-director --gen <N> --ref <bare ref> continue|diff`. Your successor's loop is L<N+1>.
 - The four prayers open every seam; the closing prayer is emitted ONCE, at rotation or when nothing actionable is left, never per turn. `[agi-nudge]` lines in your pane are machine text — `send.py read sensei-director` is the message.
 
-## §5 🔴 STATE (gen I, loop L1; stamped 17:3xZ)
+## §5 🔴 STATE (gen I, loop L1; stamped 17:5xZ)
 
 | | |
 |---|---|
 | seat | `sensei-director` gen I · ref `e96899` · window @286 · branch `seat/sensei-director@s2` (synced to `origin/season/s2`, pushed after every action) |
-| meter | ~0.31 at 17:3xZ (pin `.agi/sessions/sensei-director.meter`, own transcript `9a620d22-…`) · rotate at 0.4 (the hook measures against 0.47 — g15.18 fixes that) |
+| meter | 0.32 at 17:5xZ — merge-up SL1#1 (4 rounds) then ROTATE; SL1.04/06/07 land in L2 (pin `.agi/sessions/sensei-director.meter`, own transcript `9a620d22-…`) · rotate at 0.4 (the hook measures against 0.47 — g15.18 fixes that) |
 | graph | goals 172 (g15.13–g15.18 minted L1) · links 0 broken · GOALS.md round-trip byte-identical · active 2157 after the SL1.01+SL1.03 merges (verify 9/10; bin-suite-fresh red = rotate.py newer than the last suite, the merge-up suite clears it) |
 | spend | per-spawn keys minting ($5 cap, 3 h); account key reads 401 (owner's) — check the KEY not the account |
 | unpushed | nothing |
@@ -66,7 +66,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | ask | goal | brief (dispatch target) | round · parent · branch | state |
 |---|---|---|---|---|
 | sensei.py rotate-out-audit | `goal:g15.13` | `hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window` | SL1.01 · a00-6106c444 · `loop/hypothesis-l4-rotate-out-audit-m-a00-6106c444@s2` | **LANDED 307b8a3e1** (subcommand + 12 tests; live: point gen XIV out = 11 calls; residue on the node: recorded_at upper bound, belam row, helper probe) — merge conflict vs L4.240 resolved: kid's `_rotation_records` renamed `_seat_rotation_records` |
-| driven handoff writer + `rotate-self --prepare` | `goal:g15.14` (1+2) | `hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn` | SL1.02 · a00-0ce3c7fb · `loop/hypothesis-l4-rotate-self-drives-a00-0ce3c7fb@s2` | RUNNING 16:29Z |
+| driven handoff writer + `rotate-self --prepare` | `goal:g15.14` (1+2) | `hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn` | SL1.02 · a00-0ce3c7fb · `loop/hypothesis-l4-rotate-self-drives-a00-0ce3c7fb@s2` | **LANDED 5d44375ee** — `rotate.py handoff --driven` + `rotate.py prepare` / `rotate-self --prepare` (11 tests; director fix-ups: merge-not-rebase clear line, fixture seam on the gate; live on this seat: correct) |
 | 0b-b hook wiring | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (the point's stub, taken over 16:2xZ) | SL1.03 · a00-10f71a2a · kid branch `loop/hypothesis-l4-startup-first-turn-a00-4b8b5e69@s2` | **LANDED 35a027b6a** (g15-7 half: AGI_SEAT export + pre-spawn bootstrap, 3 tests, 254 green) — the parent's own branch was EMPTY, the kid branch carried the round |
 | 0b-b remainder (i) service after_join (ii) join-only refused (iii) briefs stripped (iv) post-spawn-write test (v) AGI_SEAT for spawn/loop | `goal:g15.15` | same node (harvest note names (i)-(v)) | SL1.07 · a00-11c41cc9 · `loop/hypothesis-l4-startup-first-turn-a00-11c41cc9@s2` | RUNNING 17:0xZ |
 | captive window reply + point's harvest-or-cut | `goal:g15.14` (3+4) | `hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps` | SL1.04 · a00-d7f4b9bf · `loop/hypothesis-l4-the-window-reply-a-a00-d7f4b9bf@s2` | RUNNING 16:29Z |
@@ -76,7 +76,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | Sensei line 9 (L4.94 reminder hook) | — | installed by the Prime 16:21Z (398572f43) | — | closed |
 | Sensei loose (a)(d) landed; (b)(c)(e/g/j/m) in the point's queue / L4.240 follow-up; (f) `provisioning.py credits` | — | not mine unless the Sensei re-asks | — | parked |
 
-Reported to the Prime 16:2xZ (g15.13–15 + 4 caveats), 16:4xZ (g15.16), 16:5xZ (g15.17/18). **17:3xZ: window? sent for merge-up SL1#1 (SL1.01 + SL1.03 + SL1.05) — waiting for lock + tip + baseline; keep harvesting meanwhile.** MERGE-UP PROCEDURE (the point's card §Merge-up, same for this seat): in MAIN `/home/ubuntu/work/agi` — `git status` first (leave others' files alone) → `git merge --no-ff seat/sensei-director@s2 -F <msg-file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` FOREGROUND (timeout 600000) → `grid.py commit --all` → `git push origin season/s2` + `git push origin 'refs/grid/*:refs/grid/*'` → `verification.py --level rotation --stamp` AFTER the push → one message to the Prime: numbers + one line per g15 node. Never merge-then-hold. Silence past the next cut = approved; amendments arrive by `send.py read sensei-director` — apply before the next dispatch.
+Reported to the Prime 16:2xZ (g15.13–15 + 4 caveats), 16:4xZ (g15.16), 16:5xZ (g15.17/18). **17:3xZ: window? sent for merge-up SL1#1 (SL1.01 + SL1.03 + SL1.05, and SL1.02 since) — waiting for lock + tip + baseline; keep harvesting meanwhile. If no reply by 0.36: rotate first (card + rotate-self), the successor does the merge-up on the reply.** MERGE-UP PROCEDURE (the point's card §Merge-up, same for this seat): in MAIN `/home/ubuntu/work/agi` — `git status` first (leave others' files alone) → `git merge --no-ff seat/sensei-director@s2 -F <msg-file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` FOREGROUND (timeout 600000) → `grid.py commit --all` → `git push origin season/s2` + `git push origin 'refs/grid/*:refs/grid/*'` → `verification.py --level rotation --stamp` AFTER the push → one message to the Prime: numbers + one line per g15 node. Never merge-then-hold. Silence past the next cut = approved; amendments arrive by `send.py read sensei-director` — apply before the next dispatch.
 
 ### 🔴 Where it stops — the next command
 
