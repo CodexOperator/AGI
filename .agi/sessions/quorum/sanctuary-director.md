@@ -14,26 +14,26 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 ## §1 WHAT GEN XIV LANDED (one line each)
 
 - 12:25Z ack + meter + address line; seats row committed (672832084); seat synced to MAIN 561e20a38 (5902ce3ed).
-- **L4.192 harvested 12:30Z (532bc9844 + note b156839ce):** proved 0.8 kept; cell-wrap@78/80 only by the empty join; `-J` measured NEUTRAL on all four live claude-code panes (TUI draws its own rows) — both-join fallback is the load-bearing half. Queue for send.py open.
+- **SIX ROUNDS HARVESTED 12:30-12:41Z, each merged + director note + pushed:** L4.192 (532bc9844; -J neutral on live TUI panes, both-join fallback load-bearing), L4.195 (d2d0f11f7; five shapes refused by name that the pre-round judge accepted; parent caught the `;`-unit bypass), L4.194 (2fef693bb; live L4.193 parent @seat + kid @wt where pre-round printed no agent.json), L4.196 (e9a85ba19; assemble(parent) held by default, live renders the helper; config untouched), L4.197 (8d08680d7; deployed sb-status resolves a depth-3 fixture stub; PROVENANCE PARTIAL: the stub template edit was swept into the relay session's c4a928a, not the round's authorship), L4.193 (9fd6ea319; 151 roots, merged pid map, 0.2 s/session).
+- 12:39Z cut L4.198 send.py `l4-deferred-ownership-uses-the-rendered-count` (a00-034ddc6e), L4.199 rotate.py g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` (a00-6f0f51ac), L4.220 brief.py `l4-the-must-implement-rule-is-g15-lineage-gated` (a00-d8d9d436) — all pi.
+- Seat verify 12:41Z: 9/10, bin-suite-fresh red on the merits; active 2071 / dep 195 / total 2266 (+10 experiments over the floor).
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; my ids L4.198-199 then L4.220+; helper L4.200-219)
 
 🔴 **OWNER 11:5xZ, verbatim: "ONLY PI PARENTS FROM HERE ON" · "keep using pi rounds till done".** Every parent `--harness pi`; the claude fallback is RETIRED as a parent option.
 
-HARVESTED THIS GEN: L4.192 (in the seat, 532bc9844).
+HARVESTED THIS GEN (in the seat = MERGE-UP 35 payload): L4.192, 193, 194, 195, 196, 197.
 
-LIVE (all pi; parents exited = harvest next):
-- **L4.193** g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach` — a00-06c44930 — conftest.py. Kid a00-71de766d reported proved 12:22Z; a SECOND kid a00-f1436b59 spawned ~12:26Z (parent still live).
-- **L4.194** g15-36b fix-only `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` — a00-09e1448d — spawn_budget.py. Probe: `status --iter <live round>` prints a status for a seat-dispatched PARENT (`@seat`) and a KID (`@wt:<parent>`).
-- **L4.195** `l4-a-producing-git-stage-is-argument-restricted` — a00-b0b3b931 — rotate.py git branch. Kid a00-02e4c5e8 proved 12:20Z; kid a00-5aeff71c proved 12:25Z. Probe: `_producing_refusal("git log -p -- .env")`, `git -c core.pager=id log`, `git log --output=x` refused; every git line in the live rotations.md passes.
-- **L4.196** `l4-the-merge-protocol-block-is-gated-on-the-held-state` — a00-13c8d0ae — brief.py (config CELL is the prime's). Kid a00-b7ee1fc1 proved 12:22Z.
-- **L4.197** `l4-sb-status-reads-the-configured-stub` — a00-cdbed097 — stub repo install-cli.sh + test_commands.py. Kid a00-c6a65634 live.
+LIVE (all pi, cut 12:39Z):
+- **L4.198** `l4-deferred-ownership-uses-the-rendered-count` — a00-034ddc6e — send.py. Harvest probe: `_store_deferred` keeps the rendered line/count; a stranded `(+1 more)` line with pending count now 3 is own -> Enter only; the double-delivery falsifier red on the seat bytes.
+- **L4.199** g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` — a00-6f0f51ac — rotate.py refusal region. Harvest probe: an env value `x; cat /etc/hostname` never appears in `refused`; the refusal names `$VAR`/the record stage; existing refusal tests green.
+- **L4.220** `l4-the-must-implement-rule-is-g15-lineage-gated` — a00-d8d9d436 — brief.py. Harvest probe: `assemble(tier='parent', target=<g15 node>)` renders the must-implement rule; a non-g15 target (e.g. a g9 hypothesis) does not; lineage walk bounded.
 
-QUEUE (cut as lanes free): rotate.py after L4.195 → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. brief.py after L4.196 → `l4-the-must-implement-rule-is-g15-lineage-gated`. send.py (free now) → `l4-deferred-ownership-uses-the-rendered-count`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
+QUEUE (cut as lanes free): rotate.py after L4.199 → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. brief.py/send.py: empty after L4.220/L4.198 unless the prime's merge-up 34/35 verdicts mint more. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 12:31Z)
+## §3 🔴 NEXT COMMAND (last stamped 12:42Z)
 
-Harvest L4.193-197 as each parent exits (`spawn_budget.py status`; each = `git branch --list 'loop/*<agent-id>@s2'`, `git status` in `.agi/worktrees/<agent-id>`, kids' experiments + parent THOUGHT, tests with neighbours from the round worktree, the §2 probe against the real tree pasted into a director note on the HYPOTHESIS node via `write.Edit`+`verb_note`+`submit` (Python API, note text from a `<<'EOF'` file), `git merge --no-ff -F <file>`, note commit, push) → cut the next in each lane's queue on pi → **merge-up 35** at 3-6 rounds (request the window from prime IX; procedure below).
+**MERGE-UP 35 REQUESTED 12:42Z** (seat tip bc80b3b01, six rounds, seat verify 9/10 with bin-suite-fresh red on the merits). Waiting for prime IX's lock state + tip + baseline, then the merge-up procedure below in MAIN. After: watch L4.198/199/220 (`spawn_budget.py status`), harvest with the §2 probes, cut the rotate.py queue, repeat.
 
 ## §4 TRAPS (gen XIII + carried)
 
