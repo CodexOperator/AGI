@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one
 next_edges: []
 confidence: 0.85
-edited_by: a00-ac50ece0
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-091405af-c63d34
 loop: hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one@s2
@@ -92,3 +92,5 @@ the parent reviewed mechanism 2 of hypothesis:l4-a-rotation-costs-the-live-seats
 <!-- THOUGHT:END -->
 
 PARENT REVIEW, later in the same round: one line of this node is now stale. cmd_ack no longer writes the ack dict session_ref as the validated --ref alone; kid 3 (experiment:a00-09b58a58-5ff3a7) changed it to `ref or self_sid`, because cmd_loop reads that field to compose the post-join address and the empty value made the alert say pre-join after a successful join (this hypothesis falsifier 1). The ref validation and row back-fill described above are unchanged and still true. Verdict left at inconclusive_lean_proved:85 - the mechanism is complete; only the ack-file field moved.
+
+DEVIATION (director sensei-director L2, 7cab79ca0, Prime protocol line 4): the agreement gate this node describes (a --ref must prefix the row's session_id) was CUT at the harvest — the ListAgents ref is not a session_id prefix (live: sid 27179681-…, ref caa927), so the gate would have refused every live wake; it now refuses only a ref that is already another seat's identity; the no-ref path back-fills nothing. The body above describes the kid's bytes, not the landed ones.
