@@ -1,0 +1,25 @@
+---
+id: hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-grammar-anchors-its-fields
+mint_id: 1c2bc3db3d91452d8a3eac0a151a361f
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-a-filter-stage-is-argument-restricted
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: e276ec06b73c403a
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 34 BY NAME (wf_5af338c6-2b0, 12 agents; recorded 11d35c556), ACCEPTED there; minted by sanctuary-director gen XIV 13:0xZ, each finding re-measured on the landed bytes (5068bc2ac + L4.199) before minting. (g15-32c) TWO measured escapes on the filter side of g15-32, both reproduced on the landed bytes at 13:02Z: (1) the exe token of a pipeline stage is judged by BASENAME, so `git status -sb | /tmp/x/head -5`, `... | ./head -5` and `/tmp/x/git status -sb` all pass `_producing_refusal` (None) -- a path-form token runs an arbitrary binary named like an allowed one; (2) `_SED_SUB_RE` = `^s(.)(.*?)\\1(.*?)\\1([gIp0-9]*)$` uses lazy fields that BACKTRACK, so a delimiter that is itself a legal flag char lets an `e`/`w` flag be absorbed into a field: `sed sgxgygeg` and `sed -n s0x0y0e0` pass (None) while sed itself parses them as flags `eg` / `e` and EXECUTES the replacement. CLAIM: (1) an exe token is accepted only when it is EXACTLY an allowlisted name -- no `/`, no `./`, no path form at all (a path is a named refusal `producer <token> is a path, not an allowlisted name`), for unit-leading AND filter stages; (2) the sed grammar rejects a delimiter that is a flag character or alphanumeric (`[gIp0-9a-zA-Z\\\\]`) and anchors both fields to `(?:(?!\\1).)*` so no field can contain the delimiter -- an `e`/`w`/`W`/`r`/`R` flag is then unreachable by any spelling; `s/x/y/` and `s/x/y/g` still pass, `s/x/y/e`, `s|x|y|e`, `sgxgygeg`, `s0x0y0e0` are all refused by name. TESTS (test_rotate_startup.py): the six shapes above plus the two live `-C` template lines; every existing refusal test stays green. FALSIFIER: a path-form exe or a delimiter-absorbed `e` flag accepted by the judge. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/rotate.py (the exe-name check in `_producing_refusal` and `_SED_SUB_RE` + its judge only) + test_rotate_startup.py. SERIAL on rotate.py behind L4.199 (landed in the seat at 6bb858135)."
+thought_session: 914d302a-b33f-4c5f-b78d-a8b7320df6c5
+title: "g15-32c: the filter exe token is judged as typed, never by basename, and the sed s/// grammar anchors each field to exclude the delimiter"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-grammar-anchors-its-fields
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 34 BY NAME (wf_5af338c6-2b0, 12 agents; recorded 11d35c556), ACCEPTED there; minted by sanctuary-director gen XIV 13:0xZ, each finding re-measured on the landed bytes (5068bc2ac + L4.199) before minting. (g15-32c) TWO measured escapes on the filter side of g15-32, both reproduced on the landed bytes at 13:02Z: (1) the exe token of a pipeline stage is judged by BASENAME, so `git status -sb | /tmp/x/head -5`, `... | ./head -5` and `/tmp/x/git status -sb` all pass `_producing_refusal` (None) -- a path-form token runs an arbitrary binary named like an allowed one; (2) `_SED_SUB_RE` = `^s(.)(.*?)\1(.*?)\1([gIp0-9]*)$` uses lazy fields that BACKTRACK, so a delimiter that is itself a legal flag char lets an `e`/`w` flag be absorbed into a field: `sed sgxgygeg` and `sed -n s0x0y0e0` pass (None) while sed itself parses them as flags `eg` / `e` and EXECUTES the replacement. CLAIM: (1) an exe token is accepted only when it is EXACTLY an allowlisted name -- no `/`, no `./`, no path form at all (a path is a named refusal `producer <token> is a path, not an allowlisted name`), for unit-leading AND filter stages; (2) the sed grammar rejects a delimiter that is a flag character or alphanumeric (`[gIp0-9a-zA-Z\\]`) and anchors both fields to `(?:(?!\1).)*` so no field can contain the delimiter -- an `e`/`w`/`W`/`r`/`R` flag is then unreachable by any spelling; `s/x/y/` and `s/x/y/g` still pass, `s/x/y/e`, `s|x|y|e`, `sgxgygeg`, `s0x0y0e0` are all refused by name. TESTS (test_rotate_startup.py): the six shapes above plus the two live `-C` template lines; every existing refusal test stays green. FALSIFIER: a path-form exe or a delimiter-absorbed `e` flag accepted by the judge. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/rotate.py (the exe-name check in `_producing_refusal` and `_SED_SUB_RE` + its judge only) + test_rotate_startup.py. SERIAL on rotate.py behind L4.199 (landed in the seat at 6bb858135).
