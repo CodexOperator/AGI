@@ -23,21 +23,20 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 🔴 **OWNER 11:5xZ, verbatim: "ONLY PI PARENTS FROM HERE ON" · "keep using pi rounds till done".** Every parent `--harness pi`; the claude fallback is RETIRED as a parent option.
 
-HARVESTED THIS GEN: L4.192-197 = MERGE-UP 35 (a28dec11e). In the seat since: L4.199 (6bb858135) → merge-up 36 payload.
+HARVESTED THIS GEN: L4.192-197 = MERGE-UP 35 (a28dec11e). In the seat since (= merge-up 36 payload): L4.199 (6bb858135), L4.220 (1faef4845), L4.198 (ff00ee1e9) + five minted g15 nodes (c8a1030d5).
 
 LIVE (all pi):
-- **L4.198** `l4-deferred-ownership-uses-the-rendered-count` — a00-034ddc6e (cut 12:39Z; 2 kids so far) — send.py. Probe: `_store_deferred` keeps the rendered line/count; a stranded `(+1 more)` line with pending count now 3 is own -> Enter only; the double-delivery falsifier red on the seat bytes.
-- **L4.220** `l4-the-must-implement-rule-is-g15-lineage-gated` — a00-d8d9d436 (cut 12:39Z) — brief.py. Probe: `assemble(tier='parent', target=<g15 node>)` renders the must-implement rule; a non-g15 target does not; lineage walk bounded.
 - **L4.221** g15-32c `l4-a-filter-exe-is-judged-by-path-and-a-sed-grammar-anchors-its-fields` — a00-f38950a7 (13:05Z) — rotate.py. Probe: `git status -sb | /tmp/x/head -5`, `| ./head`, `sed sgxgygeg`, `sed -n s0x0y0e0` all REFUSED by name (all four pass the seat bytes); `s/x/y/`, `s/x/y/g`, both live `-C` lines pass.
 - **L4.222** `l4-a-pid-fd-scan-tolerates-the-process-exiting-mid-read` — a00-1e8010c9 (13:05Z) — spawn_budget.py `_pid_sockets`. Probe: the `for fd in fds` loop is inside the guard; a fake /proc fd dir removed mid-iteration returns 0.
 - **L4.223** `l4-a-running-record-with-a-dead-pid-is-not-a-running-agent` — a00-c40f71bb (13:05Z) — conftest.py `_running_record_tiers`. Probe: a running record at a dead pid derives no tier; at os.getpid() still does.
 - **L4.224** `l4-find-root-sh-stops-at-the-git-boundary-all-the-way` — a00-7290e18a (13:05Z) — lib/find-root.sh. Probe: nested-repo fixture with an .agi above the boundary resolves nothing via the trailing `/` probe.
+- **L4.225** master-sensei's `sensei-wake-audit-subcommand` — a00-5580112e (13:12Z; first cut refused stale-base at behind 1, empty dir a00-610637ba left) — sensei.py new subcommand. Probe: `sensei.py wake-audit --seat sanctuary-director --gen 14` classifies my own wake's calls (a/b/c/d) against the live rotations templates; counts match a hand read of the first ~10 calls.
 
-QUEUE (cut as lanes free): brief.py after L4.220 → `l4-the-parent-brief-names-the-overdue-record-as-readers-print-it` (also touches spawn_budget.py — wait for L4.222 too). rotate.py after L4.221 → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. master-sensei's node ids as they arrive. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
+QUEUE (cut as lanes free): spawn_budget.py+brief.py after L4.222 → `l4-the-parent-brief-names-the-overdue-record-as-readers-print-it`. rotate.py after L4.221 → master-sensei's `rotate-status-record-latest-gains-wait` → `harvest-table-subcommand` (rotate.py or new harvest.py) → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. 🔴 master-sensei's `write-guard-carve-out-for-master-sensei-templates` is NOT cut: it changes who may write config:rotations (authority class = config:seats; 'owner or prime only' per the node body) — a decision only the prime can make; BANKED §6 #7, raised with the merge-up 36 request. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 13:06Z)
+## §3 🔴 NEXT COMMAND (last stamped 13:13Z)
 
-Six rounds live (L4.198, 220, 221-224). Harvest each as its parent exits (`spawn_budget.py status`; procedure + probes in §2), cut the queue as lanes free, **merge-up 36** at 3-6 rounds (request the window from prime IX; hold for its GO; procedure below). Seat = MAIN + L4.199 + five minted nodes.
+Five rounds live (L4.221-225). Harvest each as its parent exits (`spawn_budget.py status`; procedure + probes in §2), cut the queue as lanes free, **merge-up 36** when 3+ more land (seat already holds L4.198/199/220 + five minted nodes; request the window from prime IX, ask the write-guard carve-out ruling in the SAME message; hold for GO).
 
 ## §4 TRAPS (gen XIII + carried)
 
@@ -63,6 +62,7 @@ Six rounds live (L4.198, 220, 221-224). Harvest each as its parent exits (`spawn
 3. `links.py schema` 124 pre-L4 `testable_claim` violators — never `--fix` blind.
 4. `crons.py cmd_remove` deliberately unfenced (L4.102 residue).
 5. L4.126's parent died silently under the INLINE reaper — first live case for the service: `.agi/worktrees/a00-05d4d886/.agi/sessions/iter-L4.126/manifest.json`.
+7. 🔴 **master-sensei's `hypothesis:write-guard-carve-out-for-master-sensei-templates`** — lets actor master-sensei write config:rotations `templates`/`## facts` directly. config:rotations is authority (same class as config:seats, 'owner or prime only'). Recommendation: the PRIME rules; if approved, cut it on pi with the carve-out limited to those two regions + a test that every other config write by master-sensei is still refused. Not cut until then.
 6. **g15 candidates still to PROPOSE:** (iii) the 0b-b captive after_join as a g15 node on 0b; (iv) from L4.197: `l4-a-foreign-tree-edit-is-committed-in-the-same-breath` (a round whose FILE SCOPE is a tree another live session commits in must edit + commit in one step, or its authorship is lost — the stub template edit rode the relay session's c4a928a).
 
 ## 🔴 THE ROTATE CHAIN — SPECS AS AMENDED (read the nodes; this is the map)
