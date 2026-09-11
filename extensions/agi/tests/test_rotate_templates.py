@@ -324,3 +324,105 @@ def test_status_record_reads_latest_surfaces_capsys(tmp_path, monkeypatch, capsy
     assert "result" in out and "success" in out
     assert "sequence=" in out
     assert "row:" in out and "sanctuary-director" in out
+
+
+def test_wait_returns_zero_when_record_already_terminal(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:rotate-status-record-latest-gains-wait FALSIFIER (a): a
+    `--wait` call must return 0 immediately (never sleep) when the record is
+    already terminal — s12_self_reap present — on its first read."""
+    import datetime
+    root = tmp_path / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+    (rot / f"sanctuary-director.{stamp}.json").write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "sanctuary-director",
+        "result": "success", "s12_self_reap": {"pane_pid": 123}}))
+
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+
+    def boom(*a, **k):
+        raise AssertionError("--wait slept past an already-terminal record")
+    monkeypatch.setattr(rotate.time, "sleep", boom)
+
+    rc = rotate.main(["status", "--seat", "sanctuary-director",
+                      "--record", "latest", "--wait", "30"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "s12_self_reap" in out and "123" in out
+    assert "sequence=" in out
+
+
+def test_wait_times_out_when_record_never_terminal(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:rotate-status-record-latest-gains-wait FALSIFIER (b): a
+    `--wait N` whose record never becomes terminal must time out, print the
+    last-seen record plus ERR, and exit 2 — never return 0."""
+    import datetime
+    root = tmp_path / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+    (rot / f"sanctuary-director.{stamp}.json").write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "sanctuary-director",
+        "result": "success"}))
+
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+    monkeypatch.setattr(rotate.time, "sleep", lambda *a, **k: None)
+
+    rc = rotate.main(["status", "--seat", "sanctuary-director",
+                      "--record", "latest", "--wait", "3"])
+    cap = capsys.readouterr()
+    assert rc == 2
+    assert "ERR: still not terminal after 3s" in cap.err
+    assert "latest rotation record" in cap.out
+    assert "success" in cap.out
+
+
+def test_wait_returns_zero_when_record_becomes_terminal_mid_wait(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:rotate-status-record-latest-gains-wait happy path: a
+    `--wait N` call must hold until s12_self_reap lands mid-wait, then return
+    0 with the now-terminal record printed."""
+    import datetime
+    import threading
+    root = tmp_path / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+    rec = rot / f"sanctuary-director.{stamp}.json"
+    rec.write_text(json.dumps({"rotation": "rotate-self",
+                               "seat": "sanctuary-director",
+                               "result": "success"}))
+
+    real_sleep = rotate.time.sleep
+
+    def become_terminal():
+        real_sleep(0.2)
+        doc = json.loads(rec.read_text())
+        doc["s12_self_reap"] = {"pane_pid": 999}
+        rec.write_text(json.dumps(doc))
+    threading.Thread(target=become_terminal, daemon=True).start()
+
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+    monkeypatch.setattr(rotate.time, "sleep",
+                        lambda *a, **k: real_sleep(0.05))
+
+    rc = rotate.main(["status", "--seat", "sanctuary-director",
+                      "--record", "latest", "--wait", "10"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "s12_self_reap" in out and "999" in out
