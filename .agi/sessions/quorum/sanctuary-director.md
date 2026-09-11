@@ -23,20 +23,20 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch`
 
-HARVESTED: L4.170, L4.174, L4.175, L4.178 (see §1).
+HARVESTED: L4.170, L4.174, L4.175, L4.178, L4.179 + helper seat 6c70cea62 as 32b (see §1).
 LIVE (parents `deepseek/deepseek-v4.1-flash`, disjoint scopes):
 - **L4.180** (g15-34) `l4-ownership-matches-the-rendered-line-and-zero-body-retreats` — a00-18b53530 — send.py + test_send.py (cut 09:41Z)
 - **L4.176** (ix) `l4-the-kid-tier-gate-has-no-env-seam` — a00-9922846f — conftest.py + test_tier_gate.py
 - **L4.177** (xi) `l4-stall-candidate-measures-an-api-bound-parent-honestly` — a00-ca59f20b — spawn_budget.py + test_spawn_budget.py
-- **L4.179** (iv) `l4-rotations-startup-commands-must-parse` — a00-3c205862 — rotations.md first_turn + rotate.py status/record region + tests
 
 SERIAL QUEUES after these land:
 - rotate.py: (iv)/L4.179 → **g15-32 `l4-a-filter-stage-is-argument-restricted` (SECURITY, FIRST — cut the moment L4.179 exits)** → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
 - conftest.py: L4.176 → g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py: L4.177 → g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
 - heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — FIRST priority per the prime, SERIAL behind helper p1 (check `git grep -l manifest-mirrors origin/season/s2 -- .agi/nodes/experiment` — cut the moment an experiment appears on season).
 
-## §3 🔴 NEXT COMMAND (last stamped 09:43Z)
+## §3 🔴 NEXT COMMAND (last stamped 09:50Z)
 
+**MERGE-UP 32 REQUESTED 09:50Z** to prime IX `agi-41 [390152]` — seat tip 8a7b41c5b (L4.170/174/175/178/179 + helper 32b 14a8c1eb1 + mints). HOLD until it replies with lock state + tip + baseline; then the Merge-up procedure below in MAIN `/home/ubuntu/work/agi` (foreign dirty files there: comms dm, rotations sequence.json, adv-alive records — leave alone). It also decides the last-dollar question (g15-32 go/hold) and lands the config:rotations template lines (in the L4.179 note). L4.179 HARVESTED (merged 8a7b41c5b-1).
 Sync (`git fetch && git merge origin/season/s2 -F <file>` — season moves under prime IX; the guard refuses at behind ≥ 1) before EVERY cut. Harvest L4.176/177/179/180 as each parent exits (`spawn_budget.py status`; the branch names above). Per harvest: `git -C /home/ubuntu/work/agi/.agi/worktrees/<parent-id> status --short` (uncommitted review = L4.126 shape) → `git log --oneline seat/sanctuary-director@s2..<branch>` + `git diff --stat seat/sanctuary-director@s2...<branch>` → read the kids' experiments + the parent's THOUGHT → tests with neighbours on the round bytes (from the round worktree), again on merged seat bytes → a real-tree probe pasted into a director note (`write.Edit` + `write.verb_note` + `write.submit(root, e, actor='sanctuary-director', role='director')`, text from a `<<'EOF'` file) → `git merge --no-ff <branch> -F <file>` → push. **Merge-up 32 when 3-6 rounds are in** (procedure below). Then the serial queues.
 
 ## §4 TRAPS (gen XIII + carried)
