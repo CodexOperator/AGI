@@ -118,8 +118,8 @@ def _seat_rows(root: Path) -> list:
     return rows
 
 
-def _main_root(root: Path) -> Path:
-    """The integration tree (MAIN checkout) graph root, or `root` unchanged.
+def _main_root(root: Path):
+    """Return `(integration-tree graph root, reason)` for the seat's own `root`.
 
     A seat's OWN worktree `root` carries a possibly-STALE `config:seats`: its
     row is merged from `origin/season/s2` only at the seat's next merge, while
@@ -128,26 +128,37 @@ def _main_root(root: Path) -> Path:
     The main checkout is one call away — `locations.git_common_root`, which is
     already importable (the hook inserts `<hooks>/../bin` on sys.path).
 
-    `git_common_root` returns the REPO root, not the graph root, so the graph
-    root is re-derived there with `find_project_root` — the same two-step
-    `shared_project_root` uses, and it returns the INPUT graph root (identity)
-    when the two coincide, which is exactly the "running in the main checkout"
-    signal the caller needs.
+    The second element is WHY we believe the returned root is (or is not) main:
+      `main`            — running IN the main checkout: `git_common_root(root)`
+                          is root itself (identity). Caller labels `(main checkout)`.
+      `resolved`        — a DIFFERENT repo root mapped to its graph root via
+                          `find_project_root`; the caller reads it as
+                          `(main checkout)`, and works its own `root` row only
+                          as a fallback (labelled honestly `(worktree)`).
+      `unresolved:no-graph-root` — `git_common_root(root)` gave a non-identity
+                          dir, but `find_project_root(main)` found no graph
+                          there. `root` is returned unchanged and the caller
+                          must NOT label it main.
+      `unresolved:<ExceptionName>` — git failed outright (git unavailable,
+                          network, anything). `root` is returned unchanged and
+                          the caller keeps a full worktree read (P7).
 
-    Never a hard dependency: when the dir is not inside a git worktree or git
-    fails, this returns `root` unchanged and we keep reading the worktree row
-    (P7 — the hook runs on every session and must never break one).
+    P7: never a hard dependency. On ANY failure this returns `(root,
+    unresolved:<ExcName>)` and the caller still completes a worktree read:
+    the hook never raises and always still emits a threshold.
     """
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
         import locations  # noqa: PLC0415 — lazy, like _canonical_pin
         main = Path(locations.git_common_root(root))
         if main == root:
-            return root
+            return root, "main"
         main_graph = locations.find_project_root(main)
-        return Path(main_graph).resolve() if main_graph else root
-    except Exception:
-        return root
+        if main_graph:
+            return Path(main_graph).resolve(), "resolved"
+        return root, "unresolved:no-graph-root"
+    except Exception as exc:
+        return root, f"unresolved:{type(exc).__name__}"
 
 
 def _seat_line(root: Path, cwd: str, ladder_default: float):
@@ -164,10 +175,14 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     (locations.git_common_root) may carry a newer `rotate_at` than this
     worktree's stale row. The worktree row wins only when the main checkout
     has no row for the seat. The emitted source string NAMES which tree won:
-    `config:seats <seat>.rotate_at (main checkout)` vs `(worktree)`. A
-    rotate_at that is missing, unparseable or NON-POSITIVE falls through to
-    the ladder default — the guard is intact (0 must never become a 0.0
-    threshold, or `fraction/threshold` in `_emit` divides by zero).
+    `config:seats <seat>.rotate_at (main checkout)` vs `(worktree)` — and the
+    `(main checkout)` label is earned ONLY by a genuinely resolved main (reason
+    `main` or `resolved`). A worktree row read because main could NOT be
+    resolved is labelled `(worktree; main unresolved: <why>)`, never main —
+    the exact lie the round exists to remove. A rotate_at that is missing,
+    unparseable or NON-POSITIVE falls through to the ladder default — the
+    guard is intact (0 must never become a 0.0 threshold, or
+    `fraction/threshold` in `_emit` divides by zero).
     """
     seat = os.environ.get("AGI_SEAT")
     if seat is None:
@@ -201,12 +216,21 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     # fall back to the worktree row ONLY when the main checkout has no row for
     # the seat (a main row that is present but non-positive/unparseable goes
     # to the LADDER, never to the worktree — see the guard below).
-    main_root = _main_root(root)
-    if main_root == root:
+    main_root, main_reason = _main_root(root)
+    if main_reason == "main":
         # In the main checkout: one tree, and it IS the main checkout.
         candidates = [(root, "main checkout")]
-    else:
+    elif main_reason == "resolved":
+        # A DIFFERENT repo root resolved to a real graph root. Read the MAIN
+        # row first; fall back to the seat's OWN worktree row only when the
+        # main graph has no row — and that fallback is labelled honestly
+        # `(worktree)` (main was resolved, it simply had no row for the seat).
         candidates = [(main_root, "main checkout"), (root, "worktree")]
+    else:
+        # main could NOT be resolved (git unavailable / no graph root there):
+        # there is no main tree to read — only the worktree row, labelled WITH
+        # WHY it is not main. Never label this worktree row `(main checkout)`.
+        candidates = [(root, f"worktree; main unresolved: {main_reason}")]
     for cand_root, tree_label in candidates:
         for row in _seat_rows(cand_root):
             if row.get("name") != seat:
