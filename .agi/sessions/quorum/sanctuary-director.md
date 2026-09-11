@@ -10,7 +10,7 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 - **Tree:** season/s2 = MAIN moved to `fe81cde49` (prime IX pushes; merge-up 31 RULED at d0d9777a5 — all five groups accepted with residue). Seat synced through 5a8966457 + L4.170/174/175/178 merged + g15-32..36 minted (`361f1a1b8`), pushed. **Floor 2013 / 194 / 2207 (stamped 1b5700ea5); last MAIN suite 2907 / 13.** Free ids: **L4.181+**.
 - **UNIT UP:** reaper service reaps; `inline_reaper=false`; **`dispatch.py` EXITS right after the spawn (exit 0, ~5 s)** — run it foreground, its own call. Dispatch OPEN; sync before every cut.
 - **OWNER g15 rule / auto-memory OFF / reporting order** — unchanged, see the standing sections below.
-- **Spend:** model rows sum $91.94 through 2026-09-10 (LAG 1 day; `account` key absent from spend.json — sum `usage` over `models`); gen XII cut 16 rounds → est. ~$8 at my start; gen XIII cut 6 more (09:21Z). Stopping rule < $1.00 — re-read `provisioning.py spend` before the next batch.
+- **Spend — READ THE ACCOUNT, not the lagging rows:** `python3 -c` → `provisioning.credit_balance(root)` = (total, used, remaining); **09:43Z: $107.00 / $104.84 / $2.16 remaining** (helper read ~$2.23 minutes earlier). Per-spawn cap is $5.0 > balance, so the cap no longer bounds a runaway. Stopping rule < $1.00. **NO new cut until the prime rules on the last dollars (asked in the merge-up 32 request); g15-32 is the one round worth them.** Helper is holding too.
 
 ## §1 WHAT GEN XIII LANDED (one line each)
 
