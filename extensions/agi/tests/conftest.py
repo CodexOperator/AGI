@@ -62,7 +62,63 @@ def _is_bare_directory_run(config) -> bool:
     return all(p.endswith(os.sep) or os.path.isdir(p) or not p.endswith(".py") for p in paths)
 
 
+# --- synthetic-root in-repo basetemp guard --------------------------------
+# hypothesis:l4-basetemp-advice-excludes-synthetic-root-fixtures. The Prime's
+# cross-worktree race advice runs a round's tests with `--basetemp` under its
+# own .agi/sessions/ (e.g. .agi/sessions/pytest-basetemp). That is safe for
+# tests whose tmp-path fixtures do NOT build a synthetic `.agi/` ROOT. A
+# synthetic-root test builds groot = tmp_path / ".agi" and resolves it through
+# `locations.*`; under an in-repo --basetemp, tmp_path lands INSIDE the real
+# repo, so locations.find_project_root/shared_sessions_dir/git_common_root
+# resolve the REAL graph instead of the synthetic root and the test silently
+# runs against the wrong tree (measured 4 of 8 test_verification_seat_model.py
+# failing; all 8 pass on the default out-of-repo basetemp).
+#
+# Near-miss this guard must NOT be: "refuse every in-repo basetemp". That
+# would re-break the Prime's race fix, which is the whole reason the advice
+# exists. So refusal is scoped by a MODULE-NAME ALLOWLIST (the sanctioned
+# detection): only the modules that build a synthetic root are refused under
+# an in-repo basetemp; every other module keeps the advised behaviour.
+SYNTHETIC_ROOT_MODULES = {
+    "test_verification_seat_model.py",
+}
+IN_REPO_BASETEMP_REASON = (
+    "--basetemp points INSIDE the project repo (e.g. .agi/sessions/...), but "
+    "this invocation's named module builds a synthetic .agi/ root; under an "
+    "in-repo basetemp tmp_path lands inside the real repo and locations "
+    "resolves the real graph, not the synthetic root (see "
+    "hypothesis:l4-basetemp-advice-excludes-synthetic-root-fixtures). "
+    "Use pytest's default (out-of-repo) basetemp for synthetic-root tests."
+)
+
+
+def _in_repo_basetemp(config) -> bool:
+    """True when --basetemp resolves to a path inside the project root."""
+    bt = getattr(config.option, "basetemp", None)
+    if not bt:
+        return False
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:
+        return False
+    try:
+        bt_real = Path(bt).resolve()
+    except OSError:
+        return False
+    return bt_real == root or root in bt_real.parents
+
+
+def _refuse_in_repo_basetemp_on_synthetic_root(config) -> None:
+    """Refuse an in-repo --basetemp ONLY for a named synthetic-root module."""
+    if not _in_repo_basetemp(config):
+        return
+    paths = _named_paths(getattr(config, "args", None))
+    named = {Path(p).name for p in paths if p.endswith(".py")}
+    if named & SYNTHETIC_ROOT_MODULES:
+        raise pytest.UsageError(IN_REPO_BASETEMP_REASON)
+
+
 def pytest_cmdline_main(config):
+    _refuse_in_repo_basetemp_on_synthetic_root(config)
     if os.environ.get("AGI_TIER") != GATE_TIER:
         # Invisible at every tier other than kid, and when the var is unset.
         return
