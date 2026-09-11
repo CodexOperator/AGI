@@ -1288,6 +1288,51 @@ def test_write_path_vision_cap_inert_under_global_scope(vision_cap_graph):
     assert not any("town vision cap" in a for a in res.applied)
 
 
+def test_write_path_vision_cap_own_cell_overrides_parent_town(vision_cap_graph):
+    """A vision carrying its OWN `town:` cell is counted against THAT town,
+    not its parents' town. Here the new vision says `web-app-suite` while its
+    parent is in core (2/2, at cap): it must be APPROVED because
+    web-app-suite has room (1/2). This is the falsifier of
+    hypothesis:l4-write-path-vision-cap-reads-the-visions-own-town."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={"town": "web-app-suite"},
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+    assert any("town vision cap" in a for a in res.applied), res.applied
+
+
+def test_write_path_vision_cap_no_own_cell_falls_back_to_parents(vision_cap_graph):
+    """No own `town:` cell -> fall back to the nearest vision town of the
+    PARENTS. Parent is moral:m-core (town core, 2/2 at cap), so the vision is
+    REJECTED, and the reason names core and the 'parents' source."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={}, node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "core" in res.reason
+    assert "(from parents)" in res.reason
+
+
+def test_write_path_vision_cap_explicit_core_own_cell_counted_in_core(vision_cap_graph):
+    """An explicit own `town: core` still counts against core (2/2, at cap),
+    so the vision is REJECTED -- the own-cell read must not invent a way
+    around a full town by spelling 'core' out."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-core"], rules=rules, type_index=index,
+        fm={"town": "core"},
+        node_id="vision:probe", current_season=cs,
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "core" in res.reason
+    assert "(from own cell)" in res.reason
+
+
 # ---------------------------------------------------------------------------
 # Residue 4 — the opaque town_branches reader (hypothesis:l4-towns-each-app-
 # is-a-vision-with-its-own-council; owner ruling 01:4xZ). The map value is
