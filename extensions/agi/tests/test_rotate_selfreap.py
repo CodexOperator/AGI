@@ -416,6 +416,11 @@ def test_rotate_self_s12_skip_names_missing_connection(_fix, tmp_path,
     win = tmp_path / "windows.txt"
     win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
     monkeypatch.setenv("TMUX_PANE", "%5")
+    # (L4.281 (a)) lift the under-pytest refusal so this fixture tests the
+    # DERIVE path itself — a faked ps table (pane 42) means no live pane is
+    # reachable, so the guard is the only thing standing between here and the
+    # missing-connection SKIPPED it asserts.
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     # pane pid 42 exists, but rotate.py's own pid is NOT under it -> no chain.
     _ps_table(monkeypatch, [(42, 1), (55, 42)])
     monkeypatch.setattr(rotate, "_pane_pid", lambda tmux_pane: 42)

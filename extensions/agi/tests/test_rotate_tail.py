@@ -49,6 +49,12 @@ def _fix(tmp_path, monkeypatch):
         "    steps: [handoff, spawn, handover, readback, record, kill]\n"
         "    telemetry: [seed, model, ack]\n---\n\nbody\n",
         encoding="utf-8")
+    # (c) L4.281 — throwaway derive seam BY DEFAULT: `_derive_own_chain` is a
+    # DEAD-END ([]) unless a test deliberately overrides it for its own chain.
+    # A probe that would climb from $TMUX_PANE up into its own host shell gets
+    # nothing to TERM, so no fixture can reach a live pane (the original
+    # defect reaped the host prime, belam.log 58240-58290).
+    monkeypatch.setattr(rotate, "_derive_own_chain", lambda pane_pid: [])
     return root
 
 
@@ -306,6 +312,151 @@ def test_reap_chain_deepest_first(_fix, tmp_path):
                     os.kill(pid, signal.SIGKILL)
                 except OSError:
                     pass
+
+
+# ── L4.281: rotate-self under pytest never reaps the host prime ────────────
+
+
+def test_rotate_self_refuses_derived_reap_when_pytest_without_seam(
+        _fix, tmp_path, monkeypatch):
+    """(a) — under PYTEST_CURRENT_TEST with NO --own-chain seam the own-chain
+    reap is REFUSED by name and a derived chain is NEVER TERM'd: a probe
+    running inside the pytest runtime must not reach a live pane (the
+    original defect reaped the host prime, belam.log 58240-58290)."""
+    probe = subprocess.Popen(["sleep", "1000"])
+    try:
+        _write_seats_sheet(tmp_path,
+                           [{"name": "adv-alive", "role": "parent",
+                             "model": "x", "effort": "max", "settings": "",
+                             "pid": probe.pid}])
+        ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+        monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+        monkeypatch.setattr(rotate, "_read_ack",
+                            lambda *a, **k: {"seat": "adv-alive",
+                                             "gen_after": 1,
+                                             "answer": "continue"})
+        # even a PERFECT derive (the probe IS the would-be host) must not TERM
+        # under pytest without a seam.
+        monkeypatch.setattr(rotate, "_derive_own_chain",
+                            lambda pane_pid: [probe.pid])
+        args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                        session_ref="abc")
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+        assert rc == 0
+        rec = _latest_record(tmp_path, "adv-alive")
+        s12 = rec["s12_self_reap"]
+        src = s12["reap_source"]
+        assert "REFUSED" in src
+        assert "PYTEST_CURRENT_TEST" in src
+        assert "no --own-chain seam" in src
+        assert rotate._pid_alive(probe.pid)   # the probe was never TERM'd
+    finally:
+        if rotate._pid_alive(probe.pid):
+            os.kill(probe.pid, signal.SIGKILL)
+
+
+def test_rotate_self_derived_reap_skips_row_without_pid(
+        _fix, tmp_path, monkeypatch):
+    """(b) — a DERIVED chain is SKIPPED when the seat ROW carries no pid: a
+    row that cannot name its own process never authorizes a reap. NAMED in
+    the record and on stdout."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent", "model": "x",
+                         "effort": "max", "settings": ""}])  # no pid
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)  # prod path
+    monkeypatch.setenv("TMUX_PANE", "%test")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: 9999)
+    chain = [1234, 5678]
+    monkeypatch.setattr(rotate, "_derive_own_chain", lambda pane_pid: chain)
+    args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                    session_ref="abc")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    s12 = rec["s12_self_reap"]
+    src = s12["reap_source"]
+    assert "SKIPPED" in src and "no pid" in src
+    assert s12.get("skipped")
+
+
+def test_rotate_self_derived_reap_skips_row_pid_mismatch(
+        _fix, tmp_path, monkeypatch):
+    """(b) — a DERIVED chain is SKIPPED when the seat ROW's pid is not in it:
+    a row that does not own the chain cannot reap it. NAMED in the record."""
+    probe = subprocess.Popen(["sleep", "1000"])
+    try:
+        row_pid = probe.pid + 12345          # a pid NOT in the derived chain
+        _write_seats_sheet(tmp_path,
+                           [{"name": "adv-alive", "role": "parent",
+                             "model": "x", "effort": "max", "settings": "",
+                             "pid": row_pid}])
+        ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+        monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+        monkeypatch.setattr(rotate, "_read_ack",
+                            lambda *a, **k: {"seat": "adv-alive",
+                                             "gen_after": 1,
+                                             "answer": "continue"})
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        monkeypatch.setenv("TMUX_PANE", "%test")
+        monkeypatch.setattr(rotate, "_pane_pid", lambda pane: 9999)
+        monkeypatch.setattr(rotate, "_derive_own_chain",
+                            lambda pane_pid: [probe.pid])  # row pid NOT here
+        args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                        session_ref="abc")
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+        assert rc == 0
+        rec = _latest_record(tmp_path, "adv-alive")
+        s12 = rec["s12_self_reap"]
+        src = s12["reap_source"]
+        assert "SKIPPED" in src
+        assert str(row_pid) in src
+        assert "not in the derived chain" in src
+        assert rotate._pid_alive(probe.pid)   # the chain was never TERM'd
+    finally:
+        if rotate._pid_alive(probe.pid):
+            os.kill(probe.pid, signal.SIGKILL)
+
+
+def test_rotate_self_derived_reap_runs_when_row_pid_in_chain(
+        _fix, tmp_path, monkeypatch):
+    """(d) — the production path is UNCHANGED when the seat ROW's pid IS in
+    the derived chain and pytest is absent: the chain is TERM'd deepest-first.
+    The L4.281 guard does not pinch the real rotation."""
+    probe = subprocess.Popen(["sleep", "1000"])
+    try:
+        _write_seats_sheet(tmp_path,
+                           [{"name": "adv-alive", "role": "parent",
+                             "model": "x", "effort": "max", "settings": "",
+                             "pid": probe.pid}])
+        ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+        monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+        monkeypatch.setattr(rotate, "_read_ack",
+                            lambda *a, **k: {"seat": "adv-alive",
+                                             "gen_after": 1,
+                                             "answer": "continue"})
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        monkeypatch.setenv("TMUX_PANE", "%test")
+        monkeypatch.setattr(rotate, "_pane_pid", lambda pane: 9999)
+        monkeypatch.setattr(rotate, "_derive_own_chain",
+                            lambda pane_pid: [probe.pid])
+        args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                        session_ref="abc")
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+        assert rc == 0
+        rec = _latest_record(tmp_path, "adv-alive")
+        s12 = rec["s12_self_reap"]
+        src = s12["reap_source"]
+        assert "derived from" in src
+        assert str(probe.pid) in src
+        assert not rotate._pid_alive(probe.pid)   # chain WAS reaped (prod path)
+    finally:
+        if rotate._pid_alive(probe.pid):
+            os.kill(probe.pid, signal.SIGKILL)
 
 
 def test_reap_chain_refuses_own_pid(_fix, tmp_path):
