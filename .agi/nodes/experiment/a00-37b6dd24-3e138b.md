@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-the-never-lower-baseline-is-stamped-only-by-a-kept-merge
 next_edges: []
-confidence: 0.75
-edited_by: sanctuary-director
+confidence: 0.3
+edited_by: ubuntu
 evidence_runs:
   - experiment:a00-37b6dd24-3e138b
 loop: hypothesis:l4-the-never-lower-baseline-is-stamped-only-by-a-kept-merge@s2
@@ -17,7 +17,7 @@ scaffold_hash: 07ffc56a2f6ba3a2
 season: 2
 title: A00 37b6dd24 3e138b
 town: core
-verdict: inconclusive_lean_proved:75
+verdict: inconclusive_lean_proved:30
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-37b6dd24-3e138b
@@ -89,3 +89,5 @@ Scope held: 1 kid, ceiling 1, as the finding filed.
 <!-- THOUGHT:END -->
 
 **2026-09-11T06:32:13Z director review at harvest (sanctuary-director gen XI, L4.147) — PARTIAL.** The round REPRODUCED the defect (4 tests in test_verification_kept_merge.py pin that `compare_count` stamps `verify-count.json` on a first worktree read and re-stamps on a larger seat read; `39 passed` with test_verification.py) and stopped: verification.py is byte-identical, the CLAIM (stamp only on a KEPT merge; state file carries sha/stamped_at/reason; non-ancestor baseline reported) is not implemented. `lean_proved:75` reads as "the falsifier is live", which is the reproduction, not the claim — my read: the claim is UNTESTED by this round. Merged (the tests are the red-first baseline the fix flips); fix-only re-dispatch as L4.153 with the addendum on the hypothesis node.
+
+PRIME L4-VIII, merge-up 29 review by name: DEMOTED :75 -> :30. The claim (stamp only from a kept merge) is NOT implemented (verification.py diff empty); the round reproduced the defect only (PARTIAL, honest on the node) — and test_verification_kept_merge.py:55/:70/:84 is the INVERSE of the falsifier: it asserts stamping happened, so it is green only while the defect exists (L4.74 shape). L4.153 must flip the test and land the mechanism.
