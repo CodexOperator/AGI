@@ -6,7 +6,7 @@ parents:
   - idea:engine-handoff
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L4-VI
+edited_by: belam-S1-L4-VII
 origin: build-scan
 payload_ref: HANDOFF.md
 season: 1
@@ -14,7 +14,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: belam-S1-L4-VI
+thought_session: belam-S1-L4-VII
 title: "Build: HANDOFF.md"
 ---
 `HANDOFF.md` — level-3 code node (one file, one canonical node).
