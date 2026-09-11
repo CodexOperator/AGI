@@ -1721,6 +1721,15 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
             print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+        # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
+        # call left above the wake floor was a fetch + behind check, because
+        # F9's "the refusal IS the behind check" was not trusted. The record
+        # read prints it instead, from the tree as it stands (no fetch: what
+        # the seat's own git knows now), n/a when git cannot answer.
+        behind = _git_count_maybe(root, "rev-list", "--count",
+                                  "HEAD..origin/season/s2")
+        print(f"behind origin/season/s2: "
+              f"{'n/a' if behind is None else behind}")
         return 0
 
     if getattr(args, "seats", False):
@@ -2651,6 +2660,9 @@ def _successor_address(name: str, ref: str = "",
     appended only when a tmux `@<N>` is actually known (the internal-seam
     path has none).
     """
+    # a tmux window id already carries its `@` (`@291`); never double it
+    # (Sensei 182119Z audit: the live alert read `@@291`).
+    window = str(window or "").lstrip("@")
     if ref:
         addr = f"{name} [{ref}]"
         if window:
