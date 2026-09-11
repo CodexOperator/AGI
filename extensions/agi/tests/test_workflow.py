@@ -1162,6 +1162,86 @@ def test_status_resolves_by_run_key(tmp_path_factory):
         restore()
 
 
+def test_note_records_harness_id_and_status_shows_it(tmp_path_factory):
+    """`workflow.py note <run_key> --harness-id wf_<id>` records the claude-
+    code harness's minted id beside the tracked row, and `status <run_key>`
+    prints it (hypothesis:l4-a-workflow-run-is-named-not-numbered)."""
+    import workflow as _wf
+    from workflow import RunView, _track_run, note_workflow, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        note = io.StringIO()
+        rc = note_workflow(tmp, "mur-39", "wf_ba530baa-dab", out=note)
+        assert rc == 0, note.getvalue()
+        buf = io.StringIO()
+        assert status_workflow(tmp, "mur-39", out=buf) == 0
+        assert "harness_id=wf_ba530baa-dab" in buf.getvalue(), buf.getvalue()
+        # before any note, status shows a dash
+        v2 = RunView("review", [{"label": "a"}], "claude-code",
+                     out=io.StringIO())
+        _track_run(tmp, "review", "claude-code", v2, "review")
+        pre = io.StringIO()
+        status_workflow(tmp, "review", out=pre)
+        assert "harness_id=-" in pre.getvalue(), pre.getvalue()
+    finally:
+        restore()
+
+
+def test_note_unknown_run_key_refused(tmp_path_factory):
+    import workflow as _wf
+    from workflow import note_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        note = io.StringIO()
+        rc = note_workflow(tmp, "never-minted", "wf_x", out=note)
+        assert rc == 2, note.getvalue()
+        assert "never-minted" in note.getvalue()
+    finally:
+        restore()
+
+
+def test_note_second_different_id_appends_not_overwrites(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, note_workflow, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        for hid in ("wf_ba530baa-dab", "wf_c7475c13-812"):
+            assert note_workflow(tmp, "mur-39", hid) == 0
+        # re-noting the SAME id is a no-op; the two distinct ids both survive
+        assert note_workflow(tmp, "mur-39", "wf_ba530baa-dab") == 0
+        buf = io.StringIO()
+        assert status_workflow(tmp, "mur-39", out=buf) == 0
+        assert "harness_id=wf_ba530baa-dab,wf_c7475c13-812" in buf.getvalue(), \
+            buf.getvalue()
+    finally:
+        restore()
+
+
+def test_status_resolves_by_harness_id(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        buf = io.StringIO()
+        assert status_workflow(tmp, "wf_ba530baa-dab", out=buf) == 1
+        from workflow import note_workflow
+        note_workflow(tmp, "mur-39", "wf_ba530baa-dab")
+        hit = io.StringIO()
+        assert status_workflow(tmp, "wf_ba530baa-dab", out=hit) == 0
+        assert "mur-39" in hit.getvalue(), hit.getvalue()
+    finally:
+        restore()
+
+
 def test_author_round_trip_keeps_type_and_appends_note(tmp_path, monkeypatch):
     """Re-authoring an EXISTING manifest must carry `type` through (a dropped
     type is one more validate violation) and APPEND the --note to the existing
