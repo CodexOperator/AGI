@@ -1855,19 +1855,7 @@ def cmd_trimguard(args: argparse.Namespace) -> int:
     HAND = (repo / "HANDOFF.md").read_text().splitlines(True)
     start = next(i for i, l in enumerate(HAND) if l.startswith("## §6 Owner decisions"))
     sec = "".join(HAND[start:])
-    MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
-    # only spans inside a REAL double-quote pair (open + close), straight or curly
-    spans = set()
-    for m in re.finditer(r'["“]([^"“”\n]{25,})["”]', sec):
-        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
-        if len(s) >= 25:
-            spans.add(s)
-    # plus OPEN-ENDED quotes (line truncated by the earlier collapse): take the clean prefix
-    for m in re.finditer(r'["“]([^"“”\n]{25,})$', sec, re.M):
-        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
-        s = " ".join(s.split(" ")[:-1])  # drop the truncated last word
-        if len(s) >= 25:
-            spans.add(s)
+    spans = _collect_owner_spans(sec)
     print(
         f"§6 lines {start + 1}-{len(HAND)}  bytes={len(sec)}  real quoted spans: {len(spans)}"
     )
@@ -1885,6 +1873,48 @@ def cmd_trimguard(args: argparse.Namespace) -> int:
         return 1
     print(f"\nOK: all {len(spans)} owner quotes resolve in .agi/nodes/ — safe to collapse.")
     return 0
+
+
+def _collect_owner_spans(sec: str) -> set:
+    """Extract every owner-quote span from a §6 body under QUOTE PARITY
+    (hypothesis:l4-trimguard-never-reads-a-closing-quote-as-an-open-span).
+
+    A quote opens a span; the next quote closes it; an unterminated span
+    counts only if it runs to end of ITS OWN line. An open-ended span is
+    reported only when it STARTS at a real opening quote -- never at a quote
+    the walk already consumed as the CLOSING quote of a closed span. The
+    pre-fix code ran two independent regexes, and the open-ended one
+    `["“]([^"“”\n]{25,})$` (re.M) matched the CLOSING quote of a closed
+    span whenever that quote was the last on its line with 25+ non-quote
+    chars after it, minting a phantom open span that wrongly ABORTed the
+    trim on a fully-quoted line (HEADOFF §6 item 106).
+    """
+    MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
+    spans = set()
+    for line in sec.splitlines():
+        line = MARK.sub("", line)
+        i, n = 0, len(line)
+        while i < n:
+            if line[i] in '"“”':
+                # a quote: find the far edge of the span it bounds
+                j = i + 1
+                while j < n and line[j] not in '"“”':
+                    j += 1
+                if j < n:
+                    s = line[i + 1:j].strip().strip("*").strip()
+                    if len(s) >= 25:
+                        spans.add(s)
+                    i = j + 1
+                else:
+                    # open-ended: quote runs to end of this line (truncated collapse)
+                    s = line[i + 1:].strip().strip("*").strip()
+                    s = " ".join(s.split(" ")[:-1])  # drop the truncated last word
+                    if len(s) >= 25:
+                        spans.add(s)
+                    i = n
+            else:
+                i += 1
+    return spans
 
 
 def main() -> int:
