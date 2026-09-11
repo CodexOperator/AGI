@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (sanctuary-director 163547Z session, 2026-09-11T16:38Z): L4.248 merged (branch loop/hypothesis-l4-the-carve-out-refu-a00-6c0bf498@s2, 3 files, +229/-30, all deletions in scope). Neighbours test_write*.py 134 passed. Real-tree probe on the seat bytes via the Python API: P1 master-sensei-7a sets templates.director='garbage' -> REFUSED naming the role and shape; P2 master-sensei-7a body-only ## facts on config:seats -> REFUSED (self-row rule, not the facts gate); P3 sanctuary-director writes a valid templates dict -> REFUSED (seats row only); P4 master-sensei-x (resolves to master-sensei by prefix on the live tree) with the garbage value -> REFUSED by name; P5 write.py -h prints `set 2 arg(s) set key value` and `config:rotations 'set probe_k probe_v' --dry-run` parses. git status clean after every probe. The impostor-seat probe (string starts with master-sensei-, resolves elsewhere) has no live fixture; it is proved in test_write_master_sensei.py only. Kid deviation accepted: identity is _resolve_seat (seat NAME), not _resolve_role (the claim's literal wording would never match).

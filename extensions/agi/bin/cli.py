@@ -1184,7 +1184,16 @@ def cmd_status(args: argparse.Namespace) -> int:
     for a in m["agents"]:
         ap = _legacy_fallback(sroot, _agent_path(sroot, args.iter_n, a["id"]))
         rec = json.loads(ap.read_text()) if ap.exists() else a
-        print(f"  {rec['id']}: status={rec.get('status')} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
+        # A live agent past its deadline keeps `status: running` and gains
+        # `overdue_since` (heal.py) -- print `running(overdue)` on this reader
+        # too, the word the parent brief names (hypothesis:l4-the-parent-
+        # brief-names-the-overdue-record-as-readers-print-it). The mark must
+        # never claim `(overdue)` for a DEAD row: it is shown only when the
+        # terminal word did not win (status is running or absent).
+        status = rec.get("status")
+        overdue = rec.get("overdue_since")
+        mark = "(overdue)" if overdue and (not status or status == "running") else ""
+        print(f"  {rec['id']}: status={status}{mark} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
     return 0
 
 

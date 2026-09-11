@@ -589,3 +589,59 @@ def test_done_leaves_a_non_matching_manifest_entry_alone(tmp_path, monkeypatch):
     manifest = _json.loads(mpath.read_text())
     assert manifest["agents"][0]["id"] == "a00-OTHER"
     assert manifest["agents"][0]["status"] == "running"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark
+# --------------------------------------------------------------------------
+
+def _cmd_status_project(tmp_path, agent_status="running", agent_overdue=False):
+    """A minimal project whose iteration round has ONE agent record. Returns
+    (graph_root, args) so cmd_status can be driven over it."""
+    import json as _json
+    graph = tmp_path / ".agi"
+    (graph / "sessions" / "iter-001" / "a00-x").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    agent = {"id": "a00-x", "status": agent_status, "verdict": "-", "pid": 42}
+    if agent_overdue:
+        agent["overdue_since"] = 1750000000
+        agent["overdue_reason"] = "past manifest timeout_seconds"
+    (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
+        _json.dumps(agent))
+    (graph / "sessions" / "iter-001" / "manifest.json").write_text(_json.dumps(
+        {"agents": [{"id": "a00-x", "status": agent_status}]}))
+    import argparse
+    args = argparse.Namespace(iter_n=1)
+    return graph, args
+
+
+def test_cmd_status_prints_running_overdue_for_a_live_record_past_deadline(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark —
+    `cli.py status <iter>` is the reader the parent brief names as its poll;
+    it must print the SAME `running(overdue)` mark spawn_budget prints, off the
+    record's `overdue_since`, or the brief names a word no poll ever shows.
+    Red before the fix: cmd_status printed bare `status=running`."""
+    cli = _load_cli()
+    graph, args = _cmd_status_project(tmp_path, agent_status="running",
+                                      agent_overdue=True)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    assert cli.cmd_status(args) == 0
+    out = capsys.readouterr().out
+    assert "status=running(overdue)" in out, out
+
+
+def test_cmd_status_no_overdue_mark_without_overdue_since(tmp_path, monkeypatch,
+                                                          capsys):
+    """A `running` record that is NOT past deadline shows plain `running`,
+    never `(overdue)`."""
+    cli = _load_cli()
+    graph, args = _cmd_status_project(tmp_path, agent_status="running",
+                                      agent_overdue=False)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    assert cli.cmd_status(args) == 0
+    out = capsys.readouterr().out
+    assert "status=running" in out
+    assert "(overdue)" not in out
