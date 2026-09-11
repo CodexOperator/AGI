@@ -2807,6 +2807,143 @@ def _short_ps(pid: int) -> str:
     return out
 
 
+def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
+    """Append the s12 self-reap evidence into the already-written rotation
+    record (L4.118/R2: every step writes its own evidence). The record is
+    written durably BEFORE the window kill so it survives it; this adds the
+    LAST-ACT reap observation into that same file. Best-effort — never raises
+    (the reap itself, not the bookkeeping, is load-bearing).
+    """
+    if not record_path:
+        return
+    p = Path(record_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    doc["s12_self_reap"] = reap
+    try:
+        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _pane_pid(tmux_pane: str) -> int | None:
+    """The pane's own controlling process id, from `tmux display-message`.
+
+    `$TMUX_PANE` is a `%<N>` token (the pane id) inside a tmux pane; the
+    pane's controlling process id comes from
+    `tmux display-message -p -t '<pane>' '#{pane_pid}'`. Returns None on any
+    failure (empty token, no tmux session under test where the conftest guard
+    answers rc-1, or a non-numeric read) — the caller records SKIPPED naming
+    TMUX_PANE. L4.118/R2 uses this to derive the predecessor's OWN chain.
+    """
+    if not tmux_pane:
+        return None
+    try:
+        out = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", tmux_pane,
+             "#{pane_pid}"],
+            capture_output=True, text=True, timeout=5).stdout.strip()
+        return int(out) if out.isdigit() else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _derive_own_chain(pane_pid: int,
+                      own_pid: int | None = None) -> list[int]:
+    """The predecessor's OWN process chain, derived live, EXCLUDING the
+    rotate-self pid and its direct shell parent from the TERM list.
+
+    From `pane_pid` (the pane's controlling pid), climb the `ps -o pid=,ppid=`
+    parent table from the OWN pid (rotate.py) up to the pane pid, then drop
+    the own pid and its direct parent — the chain to TERM is everything
+    between the pane and the shell that runs rotate.py, i.e. the measured
+    [pane bash, claude wrapper, claude] (L4.114: pane 1943505 -> wrapper
+    1943515 -> claude 1943519). The own pid may only appear BELOW the pane
+    pid (rotate.py runs inside that pane); if the climb cannot connect to it,
+    return [] and the caller records SKIPPED rather than guessing.
+    """
+    own = own_pid if own_pid is not None else os.getpid()
+    parent_of: dict[int, int] = {}
+    try:
+        out = subprocess.run(["ps", "-o", "pid=,ppid="],
+                             capture_output=True, text=True,
+                             timeout=10).stdout
+    except Exception:  # noqa: BLE001
+        return []
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            try:
+                pid, ppid = int(parts[0]), int(parts[1])
+            except ValueError:
+                continue
+            parent_of[pid] = ppid
+    chain = [own]
+    cur = parent_of.get(own)
+    while cur is not None and cur != pane_pid:
+        chain.append(cur)
+        cur = parent_of.get(cur)
+    if cur is None:
+        return []  # own pid is not under this pane pid — refuse to guess
+    chain.append(pane_pid)
+    chain.reverse()  # shallow->deep: [pane, ..., own]
+    parent = chain[-2] if len(chain) >= 2 else None
+    excl = {own, parent}
+    return [p for p in chain if p not in excl]
+
+
+def _shield_final_signals() -> list:
+    """Ignore the signals a dying process tree fires at a self-reap's tail.
+
+    TERM-ing the pane bash / wrapper / claude chain sends SIGHUP / SIGTERM /
+    SIGPIPE to whatever is still in that session (rotate.py's own shell among
+    them). rotate.py must survive long enough to print the verification and
+    reach the final window kill, which is the true last act after the record
+    is written and pushed (L4.118/R2).
+
+    Returns the previous handler list so the caller RESTORES them afterward
+    (the pytest process shares this runtime — a persistent SIG_IGN would leak
+    into every later reap test).
+    """
+    old: list = []
+    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE):
+        try:
+            old.append((sig, signal.getsignal(sig)))
+            signal.signal(sig, signal.SIG_IGN)
+        except (ValueError, OSError, AttributeError):
+            pass
+    return old
+
+
+def _restore_shield_signals(old: list) -> None:
+    """Restore the handlers `_shield_final_signals` replaced (test hygiene:
+    the pytest runtime is shared; a persistent ignore would break reap tests)."""
+    for sig, handler in old:
+        try:
+            signal.signal(sig, handler)
+        except (ValueError, OSError):
+            pass
+
+
+def _button_down_legal_hint(root: Path) -> str:
+    """Read-only one-liner for the dry-run: which branch a grid commit would
+    run on. NEVER commits/pushes (dry-run touches nothing); only reads the
+    checked-out branch via `git rev-parse`, and reports no-repo otherwise."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=5)
+        if out.returncode == 0 and (out.stdout or "").strip():
+            return f"legal on {out.stdout.strip()!r}"
+    except Exception:  # noqa: BLE001
+        pass
+    return "no repo / unknown branch (grid commit would be SKIPPED)"
+
+
 def _reap_pid(pid: int) -> dict:
     """Reap the predecessor's own process by PID, verified gone with ps.
 
@@ -2854,7 +2991,8 @@ def _reap_pid(pid: int) -> dict:
             "gone_after": gone, "ps_before": ps_before, "ps_after": ps_after}
 
 
-def _reap_chain(pids: list[int]) -> dict:
+def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
+                kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
 
     `pids` is the chain ordered SHALLOW->DEEP ([pane bash, claude wrapper,
@@ -2863,11 +3001,14 @@ def _reap_chain(pids: list[int]) -> dict:
     never orphans a live claude. Each pid's observation records was_alive,
     termd, gone_after and the `ps -p` reads around it.
 
-    Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`): a real
-    predecessor cannot TERM the very process running rotate-self from inside
-    without dying mid-verification — the LIVE chain is reaped externally by
-    PID (the Belam cap / the prime) and this helper is proved on a stand-in
-    `sleep` tree (named residue).
+    Each pid gets up to `wait_secs` to die after TERM; a survivor is SIGKILL'd
+    when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
+    survives").
+
+    Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`):
+    rotate.py never TERMs itself. The OWN chain it MAY TERM is derived live by
+    `_derive_own_chain` (which already excludes the own pid and its direct
+    shell parent); this guard is the second, independent fence.
     """
     chain: list[dict] = []
     for pid in reversed(pids):
@@ -2876,8 +3017,9 @@ def _reap_chain(pids: list[int]) -> dict:
             chain.append({
                 "pid": pid, "was_alive": None, "termd": False,
                 "gone_after": False,
-                "note": "refused: never the real own pid; a live predecessor "
-                         "chain is reaped externally by PID (Belam cap/prime)"})
+                "note": "refused: never the real own pid; rotate-self's "
+                         "own chain is derived by _derive_own_chain, which "
+                         "excludes this pid"})
             continue
         was = _pid_alive(pid)
         ps_before = _short_ps(pid)
@@ -2887,19 +3029,25 @@ def _reap_chain(pids: list[int]) -> dict:
                 os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-            try:
-                for _ in range(50):
-                    try:
-                        wpid, _ = os.waitpid(pid, os.WNOHANG)
-                    except ChildProcessError:
-                        break  # not our child to reap
-                    if wpid == pid:
-                        termd = True
-                        break
-                    time.sleep(0.02)
-            except Exception:  # noqa: BLE001
-                pass
+            deadline = time.time() + wait_secs
+            while time.time() < deadline and _pid_alive(pid):
+                try:
+                    wpid, _ = os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    pass  # not our child to reap; keep polling the table
+                except Exception:  # noqa: BLE001
+                    break
+                if wpid == pid:
+                    termd = True
+                    break
+                time.sleep(0.05)
             if not termd:
+                termd = not _pid_alive(pid)
+            if not termd and kill_survivors:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
                 termd = not _pid_alive(pid)
         gone = termd or not _pid_alive(pid)
         chain.append({"pid": pid, "was_alive": was, "termd": termd,
@@ -3393,8 +3541,53 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
 
     if args.dry_run:
-        print("(4) read back successor reply")
-        print(f"(5) kill own renamed window {new_name!r}")
+        # L4.118 (R1) — the dry-run ENUMERATES every step live would execute,
+        # derived the same way the live call derives it, touching NOTHING (no
+        # write, no spawn, no kill; only read-only git/tmux reads for the
+        # informational lines). The @id values themselves are only knowable
+        # live, so the mechanism that captures them is what is spelled.
+        print("(4) read back successor reply — pending ack channel ->")
+        print(f"    pending ack path: {_ack_path(root, seat)}")
+        print("    (the successor's own `rotate.py ack --seat "
+              f"{seat} --gen {gen}` flips it continue/diff; a diff leaves "
+              "the renamed window for inspection)")
+        print("(5) successor-window guarantee: tmux list-windows must show "
+              f"the plain name {seat!r}")
+        print("    join: follow the successor's window @id into the "
+              f"registry dir "
+              f"{getattr(args, 'registry_dir', None) or REGISTRY_DEFAULT_DIR}; "
+              "match the FILE whose tmux @id is that @id (never a session "
+              "prefix, never the newest .jsonl — identity is SUPPLIED)")
+        print("    successor row fields:"
+              " [session_ref, session_id, generation, window, pid] "
+              "source: registry")
+        print("    model confirm: expected="
+              f"{((row.get('model') if row else None) or args.model)!r} "
+              "requested=`ps -o args=` after the first `--model`; "
+              "live='model' in the successor transcript")
+        print("    meter pin: the successor transcript from the JOIN")
+        print("    handoff identity: successor session_id written to the "
+              "handoff header")
+        print("(6) release own authority ", end="")
+        print(f"(generation {gen_before} -> {gen}); ack record written pending")
+        print(f"    bootstrap record: "
+              f"{_sessions_dir(root) / 'seats' / f'{seat}.bootstrap.json'}  "
+              f"telemetry={tmpl.get('telemetry')}")
+        print(f"    verification: verification.py --level {VERIFICATION_LEVEL}")
+        print("(7) button-down: commit the record+row + `grid.py commit "
+              "--all` where legal")
+        print(f"    grid legality on THIS branch: "
+              f"{_button_down_legal_hint(root)}")
+        print("    livestream re-point: view-<seat> select-window BY the "
+              "successor @id")
+        print(f"(8) s12 self-reap: pane $TMUX_PANE -> pane_pid -> "
+              f"`ps -o pid,ppid` descendants, TERM'd DEEPEST-FIRST "
+              "(rotate.py's own pid and its direct shell parent EXCLUDED), "
+              "KILL survivors, then the own window by @id")
+        print("    own @id it would capture: tmux display-message -p "
+              "'#{window_id}' (knowable only live)")
+        print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
+              f"under the plain name {seat!r}")
         print("(dry-run) ends on the PLAIN seat name; "
               f"generation: {gen} (never a Roman numeral)")
         return 0
@@ -3673,33 +3866,47 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []))
 
-    # (7) s12 LAST ACT — after the record is written and (6.5) announced:
-    #     reap the predecessor's process chain DEEPEST-FIRST (a stand-in seam
-    #     under test; a real predecessor cannot TERM the very process running
-    #     rotate-self from inside — the live chain is reaped externally by PID,
-    #     the Belam cap / the prime, named residue), then kill the predecessor
-    #     window BY its own @id captured in s2 (never a dotted name). Verify
-    #     with ps / tmux list-windows and PRINT what they say. Everything
-    #     after this line is unreachable on a real self-reap; it stays last.
+    # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2): after the record is
+    #     written and (6.5) announced, TERM the predecessor's OWN process
+    #     chain DEEPEST-FIRST, derived live (pane $TMUX_PANE -> pane_pid ->
+    #     `ps -o pid,ppid` descendants, excluding rotate.py's own pid and its
+    #     direct shell parent), then kill the predecessor window BY its own
+    #     @id captured in s2 (never a dotted name). The `--own-chain` seam
+    #     stays for tests (a stand-in sleep tree); with NEITHER $TMUX_PANE nor
+    #     a seam the reap records SKIPPED naming TMUX_PANE. Verify with ps /
+    #     tmux list-windows and PRINT what they say. Everything after the
+    #     window kill is unreachable, so it stays the true last act.
+    _shield_old = _shield_final_signals()
     own_window_id = handover.get("own_window", {}).get("id")
-    own_chain = getattr(args, "own_chain", None)
-    s12_reap = _reap_chain([int(p) for p in own_chain]) \
-        if own_chain else {"order": "deepest-first",
-                            "skipped": "no own process chain supplied "
-                                        "(stand-in seam absent); the live "
-                                        "predecessor chain is reaped "
-                                        "externally by PID (Belam cap / "
-                                        "prime) — named residue"}
-    ps_after = _short_ps(int(own_chain[0])) if own_chain else ""
-    print(f"(7) successor confirmed `continue`; predecessor chain "
-          f"reap: {s12_reap.get('chain', s12_reap.get('skipped'))}; "
-          f"killing own window {new_name!r} by @id {own_window_id!r}")
-    print(f"    ps after: {ps_after or '(no process at old pane pid)'}")
+    own_chain_seam = getattr(args, "own_chain", None)
+    if own_chain_seam:
+        own_chain = [int(p) for p in own_chain_seam]
+        reap_source = f"test seam (--own-chain): pid {own_chain[0]}"
+    else:
+        pane_pid = _pane_pid(os.environ.get("TMUX_PANE", ""))
+        if pane_pid:
+            own_chain = _derive_own_chain(pane_pid)
+            reap_source = (f"derived from $TMUX_PANE pane {pane_pid}: "
+                           f"{own_chain or '(no chain under the pane pid)'}")
+        else:
+            own_chain = []
+            reap_source = ("SKIPPED: TMUX_PANE absent (no seam); the live "
+                           "predecessor chain is reaped externally by PID "
+                           "(Belam cap / prime)")
+    s12_reap = _reap_chain(own_chain) if own_chain else {
+        "order": "deepest-first", "skipped": reap_source}
+    _record_s12_self_reap(record_path, s12_reap)
+    ps_after = [_short_ps(p) for p in own_chain]
+    print(f"(7) successor confirmed `continue`; own chain "
+          f"reap [{reap_source}]: "
+          f"{s12_reap.get('chain', s12_reap.get('skipped'))}")
+    print(f"    ps after: {ps_after or '(no chain derived/reaped)'}")
     _kill_window(new_name, tmux_session, args.window_path,
                  window_id=own_window_id)
     print(f"    predecessor window list: "
           f"{_observed_windows(tmux_session, args.window_path)['names']!r}")
     print(f"rotation recorded: {record_path}")
+    _restore_shield_signals(_shield_old)
     return 0
 
 
