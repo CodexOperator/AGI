@@ -681,8 +681,10 @@ def _capture_pane(tmux_session: str, target: str) -> str | None:
     `-J` (tmux 3.1+): JOIN soft-wrapped lines, so a line the box wrapped
     across display rows comes back as ONE row and the ownership region
     carries no soft-wrap at all (hypothesis:l4-rendered-line-ownership-
-    tolerates-the-wrap). `_region_join_wrap` stays the fallback for a
-    region captured WITHOUT `-J`.
+    tolerates-the-wrap). The live capture passes `-J` unconditionally;
+    `_region_join_wrap` is still applied to EVERY capture by the ownership
+    match and simply collapses any wrap it finds (a no-wrap line yields one
+    row and is unaffected).
     """
     try:
         cp = subprocess.run(["tmux", "capture-pane", "-p", "-J", "-t", target],
@@ -745,9 +747,11 @@ def _region_join_wrap(region: str) -> list[str]:
     joins and return both reconstructions (deduplicated); a membership test
     accepts the line if it sits in EITHER, so both a word wrap and a real
     tmux cell wrap are recognised. A line that did not wrap yields the same
-    row for both (the prompt glyph aside). This is the fallback for a region
-    captured WITHOUT `-J`; the live capture passes `-J` and carries no
-    soft-wrap at all. A multi-logical-line region is joined too; acceptable,
+    row for both (the prompt glyph aside). The LIVE capture passes `-J` and
+    therefore ships no soft-wrap at all, but this helper is applied to EVERY
+    capture the ownership match takes -- not as the fallback for a no-`-J`
+    case -- and collapses any wrap it finds; a no-wrap line is a no-op here.
+    A multi-logical-line region is joined too; acceptable,
     because ownership only asks whether our rendered line's characters, in
     order, sit in the box, and the rendered line carries the `[nudge:
     <sender>]:` head that discriminates one sender's line from another's
@@ -974,27 +978,56 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
             # it forever. Compare region against the line this body RENDERS
             # (the same _nudge_line flatten + truncation), so a truncated /
             # flattened own line is recognised as ours and submitted with
-            # Enter only. For a DIRECT dm that line IS `text`; for a DEFERRED
-            # delivery `text` also carries the `(+unread inbox...)` tail of
-            # THIS retry, but a stranded line left by the body's earlier
-            # (deferred-under-busy) attempt has NO inbox tail -- match the
-            # no-tail render so that own line is still recognised (residue B
-            # control).
-            own_line = (text if body is not None
-                        else _nudge_line(to, d_sender, d_body,
-                                         (deferred or {}).get("more", more)))
+            # Enter only. For a DIRECT dm that line IS `text`.
+            if body is not None:
+                own_candidates = [text]
+            else:
+                # A DEFERRED delivery: `text` is the TAILED render of THE
+                # CURRENT retry (count tail + `(+unread inbox...)` tail), but a
+                # stranded line left by an EARLIER deferred delivery was typed
+                # at ITS OWN render -- and for a body long enough to truncate
+                # the tailed render is SHORTER than the untailed one (the tail
+                # is counted INSIDE `_NUDGE_LINE_MAX`), so `text` / a single
+                # untailed `own_line` read that own TAILED truncated strand as
+                # foreign and the body was typed AGAIN on the next wake
+                # (hypothesis:l4-a-truncated-deferred-body-delivers-once). Try
+                # BOTH renderings the body can have -- the no-tail render and
+                # the inbox-tail render -- at the RECORDED count. A record WITH
+                # a recorded count is judged at exactly that count; a record
+                # WITHOUT one (stored by `_store_deferred` and never rendered,
+                # or written before L4.222) is matched against every render the
+                # strand could have carried -- each count 0..pending, tailed
+                # and untailed -- so a count that drifted since the strand was
+                # typed still recognises its own line (the SECOND HALF). Never
+                # widened to the head alone, so a same-sender DIFFERENT body's
+                # strand still reads FOREIGN (hypothesis:l4-send-py-same-sender-
+                # stranded-line-and-the-swallowed-wake, clause (a)).
+                rec = (deferred or {}).get("more")
+                counts = (rec,) if rec is not None \
+                    else tuple(range(0, more + 1))
+                _inbox_tail = _NUDGE_INBOX_TAIL.format(seat=to)
+                own_candidates = []
+                for k in counts:
+                    own_candidates.append(
+                        _nudge_line(to, d_sender, d_body, k))
+                    own_candidates.append(
+                        _nudge_line(to, d_sender, d_body, k,
+                                    trailing=_inbox_tail))
             # hypothesis:l4-rendered-line-ownership-tolerates-the-wrap: the
             # box WRAPS a line wider than the pane across display rows, so
             # `own_line in region` reads our OWN wrapped stranded line as
             # foreign and re-defers it forever (the wrap-inserted `\n` breaks
             # the substring). The live capture passes `-J` so a real region
-            # carries no soft-wrap; for a region captured WITHOUT `-J` the
-            # wrap is collapsed first (join the rows, drop the wrap-inserted
-            # whitespace, trying BOTH a word-boundary join and a mid-word
-            # cell join) -- then test membership, so a wrapped own line is
-            # still recognised.
+            # carries no soft-wrap; a captured region that has any wrap left
+            # (executed WITHOUT `-J`) is collapsed first (join the rows, drop
+            # the wrap-inserted whitespace, trying BOTH a word-boundary join
+            # and a mid-word cell join) -- then test membership against every
+            # candidate render, so a wrapped own line at any of its render
+            # counts is still recognised.
             our_line_was_stranded = any(
-                own_line in r for r in _region_join_wrap(region))
+                own in r
+                for r in _region_join_wrap(region)
+                for own in own_candidates)
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
