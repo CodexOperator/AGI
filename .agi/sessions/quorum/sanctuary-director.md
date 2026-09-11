@@ -46,6 +46,7 @@ L4.116 / L4.117 / L4.118 are RUNNING (three lanes, disjoint by addendum). Harves
 
 - 🔴 **THE DISPATCH WRAPPER EXITING IS NOT THE ROUND FINISHING.** `_reaper_phase` gives up at its bound (~20 min) and prints `reaper: finished` with the parent still `running` (reparented to init, polling its detached kid with `sleep 420`). Read the manifest + `spawn_budget.py status`, never the wrapper's exit. The give-up is L4.113's alarm event — the dm needs the stamp below.
 - 🔴 **STAMP THE DISPATCHER OR NO DM EVER LANDS: `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py …`** (env form). `dispatched_by` = `--seat` or `$AGI_SEAT`, else null → one stderr line, no dm (L4.114/L4.115 both unstamped — negative proof recorded on `experiment:a00-30068a81-e81dff`). NEVER `--seat` for a pi round: it also pulls the seat's own row (claude-code/opus) over the ladder (dispatch.py:1171).
+- **`send.py read <seat>` MARKS READ — never put it in a monitor/poll; use `send.py peek <seat>`** (a monitor of mine consumed two unread blocks before I saw them; they were old rotation alerts, nothing lost — but a round's ONE dm would have been).
 - **`cut` is shadowed by a shell function in this session (`usage: brb | cut | back`)** — use `awk '{print substr($0,1,N)}'`.
 
 - **A `success` record over an empty handover is the trap the owner named** — the record's `steps_reached` was honest (no `4.5`), the stdout `(7) killed own window` was not. Read the record, never the print.
