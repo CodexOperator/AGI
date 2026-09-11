@@ -296,10 +296,12 @@ let THREE = null;
 let camera = null;
 
 function fill(hex) {
+  // THREE.Color(r, g, b) takes 0-1 FLOATS; the hex int form new THREE.Color(n)
+  // is the one correct call for a `#rgb` string (Prime, merge-up 38).
   hex = String(hex || "").replace("#", "");
   if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
   const n = parseInt(hex.slice(0, 6), 16);
-  return new THREE.Color((n >> 16) & 255, (n >> 8) & 255, n & 255);
+  return new THREE.Color(n);
 }
 
 function pointsCloud(positions, colors, size) {
@@ -330,20 +332,22 @@ function render3D() {
   const layerz = state.layer1z;
   const gold = state.palette.gold;
 
-  // Node cloud: every node rendered twice — its layer0 copy at z=0 and its
-  // layer1 copy at z=layerz. Root's layer1 copy brightened.
-  const positions = []; const colors = [];
+  // ONE mesh per node, at its OWN layer's z — layer-1 nodes only on the
+  // sanctuary plane (z=layerz) and layer-0 only on the outer plane (z=0),
+  // never a copy on both planes (Prime, merge-up 38). `pos[2]` already
+  // carries the layer's z, so placing each node at its own pos is exact.
+  const scene = new THREE.Scene();
+  scene.background = fill(state.palette.ground);
+  scene.nodeMeshes = [];
+  const gc = fill(gold);
   for (const n of nodes) {
-    const gc = fill(gold);
-    const root = n.id === state.data.root;
-    positions.push(n.pos[0], n.pos[1], 0);
-    colors.push(gc.r, gc.g, gc.b);
-    positions.push(n.pos[0], n.pos[1], layerz);
-    const b = Math.min(255, gc.b * (root ? 1.25 : 1.0));
-    colors.push(Math.min(255, gc.r * (root ? 1.15 : 1.0)),
-                Math.min(255, gc.g * (root ? 1.15 : 1.0)), b);
+    // geometry holds an origin point; the OBJECT carries the node's layer z
+    // (a Points' .position, not its geometry, is what carries the location).
+    const mesh = pointsCloud([0, 0, 0], [gc.r, gc.g, gc.b], 4);
+    mesh.position.set(n.pos[0], n.pos[1], n.pos[2]);
+    scene.nodeMeshes.push(mesh);
+    scene.add(mesh);
   }
-  const nodeCloud = pointsCloud(positions, colors, 4);
 
   // Edges: sample each as a short run of dim-gold beads between endpoints.
   const epos = []; const ecol = [];
@@ -362,25 +366,33 @@ function render3D() {
     }
   }
   const edgeCloud = pointsCloud(epos, ecol, 2);
-
-  const scene = new THREE.Scene();
-  scene.background = fill(state.palette.ground);
-  scene.add(nodeCloud);
   scene.add(edgeCloud);
 
   const rootNode = state.nodes[state.data.root];
   if (rootNode) {
+    // MeshBasicMaterial: the r160 spelling of a plain solid-color surface
+    // (Float32ColorMaterial does not exist in three r160).
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 16),
-      new THREE.Float32ColorMaterial({ baseColor: fill(state.palette.gold) }));
-    sphere.position.set(rootNode.pos[0], rootNode.pos[1], layerz);
+      new THREE.MeshBasicMaterial({ color: fill(state.palette.gold) }));
+    sphere.position.set(rootNode.pos[0], rootNode.pos[1], rootNode.pos[2]);
     scene.add(sphere);
   }
 
   const W = stage.clientWidth || window.innerWidth || 800;
   const H = stage.clientHeight || window.innerHeight || 600;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  // ONE injectable seam for the renderer (Prime's falsifier): the harness
+  // grants a stub (via globalThis.__makeRenderer, since a cross-module
+  // dynamic import cannot reach `state`); a browser takes the default
+  // WebGLRenderer (or an explicit state.makeRenderer if one is ever set).
+  // The stub records render/setSize/setPixelRatio and captures the animation
+  // loop.
+  const buildRenderer = globalThis.__makeRenderer || state.makeRenderer ||
+    (() => new THREE.WebGLRenderer({ antialias: true }));
+  const renderer = buildRenderer();
   renderer.setSize(W, H);
+  if (renderer.setPixelRatio) renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.domElement = renderer.domElement || {};
   stage.appendChild(renderer.domElement);
 
   const cam = {
@@ -425,11 +437,11 @@ function render3D() {
     for (const s of seats) {
       const src = state.seatsById["seat:" + s.seat];
       if (!src) continue;
-      const mat = new THREE.Float32ColorMaterial({
-        baseColor: fill(s.active ? "#f5d962" : gold) });
+      const mat = new THREE.MeshBasicMaterial({
+        color: fill(s.active ? "#f5d962" : gold) });
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(2.6, 16, 12), mat);
       mesh.position.set(src.pos[0], src.pos[1], src.pos[2]);
-      mesh.scale.setXYZ(1, 1, 1);
+      mesh.scale.set(1, 1, 1);
       mesh.updateMatrix();
       scene.add(mesh);
       seatMeshes.push({ mesh, active: !!s.active });
@@ -442,12 +454,13 @@ function render3D() {
       const [tx, ty, tz] = g.target.pos;
       const breath = 0.5 + 0.18 * Math.sin(state.t * 2.1 + g.phase);
       const snapped = !!g.snap;
-      const mat = new THREE.Float32ColorMaterial({
-        baseColor: fill(snapped ? "#f5d962" : gold),
+      const mat = new THREE.MeshBasicMaterial({
+        color: fill(snapped ? "#f5d962" : gold),
+        transparent: true,
         opacity: snapped ? 1 : 0.45 });
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(2.4, 16, 12), mat);
       mesh.position.set(tx + g.off[0], ty + g.off[1], tz + ghostBob(g, state.t));
-      mesh.scale.setXYZ(snapped ? 1 : 1, 1, 1);
+      mesh.scale.set(snapped ? 1 : 1, 1, 1);
       mesh.updateMatrix();
       scene.add(mesh);
       ghostMeshes.push({ mesh, g, snapped });
@@ -561,13 +574,13 @@ function render3D() {
     for (const { mesh, active } of seatMeshes) {
       const s = active ? 1 + 0.2 * Math.sin(state.t * 3 + mesh.position.x)
                        : 1;
-      mesh.scale.setXYZ(s, s, s);
+      mesh.scale.set(s, s, s);
       mesh.updateMatrix();
     }
     for (const gm of ghostMeshes) {
-      if (gm.snapped) { gm.mesh.scale.setXYZ(1, 1, 1); gm.mesh.updateMatrix(); continue; }
+      if (gm.snapped) { gm.mesh.scale.set(1, 1, 1); gm.mesh.updateMatrix(); continue; }
       const s = 1 + 0.22 * Math.sin(state.t * 2.1 + gm.g.phase);
-      gm.mesh.scale.setXYZ(s, s, s);
+      gm.mesh.scale.set(s, s, s);
       // bob toward target
       const [tx, ty, tz] = gm.g.target.pos;
       gm.mesh.position.set(tx + gm.g.off[0], ty + gm.g.off[1],
@@ -617,4 +630,7 @@ async function boot() {
   startPoll();
 }
 
-boot();
+// Page-falsifier seam: expose the boot lifecycle for the node harness that
+// runs this file against the pinned CDN bytes with a DOM stub. Harmless in a
+// browser, where nothing reads it.
+globalThis.__agiBoot = boot();
