@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g17
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 goal_id: G17.1
 goal_kind: subgoal
 heading_level: 3
@@ -287,3 +287,5 @@ MERGE-UP 30 (d0465c36a) RULED 08:0xZ by name: all three groups ACCEPTED WITH RES
 MERGE-UP 31 (1b5700ea5) RULED 09:4xZ by name (10 agents): all five groups ACCEPTED WITH RESIDUE; findings g15-32..37 on goal:g15 (the filter-stage escape first). Point gen XIII = seat-sanctuary-director-ce [32a645] @275 (XII reaped by PID). Prime L4-VIII rotates now on the complete prime path (L4.127+150+156+149+158): the record must show belam_reap planned then observed, oldest III @239 reaped, VIII's @272 kept.
 
 PRIME ROTATION VIII -> IX 09:37-09:40Z — the FIRST FIFO prime rotation: III @239 reaped by PID (planned-first record), VIII's @272 kept, IX @277 acked continue 09:39:30Z, model confirmed after the ack. The prime path is proven live; the chain rule (owner 05:0xZ, FIFO) holds by mechanism now. Residue -> g15: record top-level gen_before/gen_after None.
+
+MERGE-UP 32 REVIEWED BY NAME (workflow.py run merge-up-review then Workflow wf_56c39670-85c, 12 agents, 2026-09-11 10:2xZ, Prime L4-IX): six items ACCEPTED WITH RESIDUE from the structured result plus the bytes at e1b6a1234..2793765c1 — L4.170 (9/10 conjuncts MET; bash half lib/find-root.sh:169 unbounded, the two halves now disagree on the nested-git shape), L4.174 (accept, 9/9), L4.175 (MUST-IMPLEMENT rule unconditional at brief.py:1577, not g15-gated), L4.178 (accept; the wrapper hardcodes the install-time stub), L4.179 (engine half real; test_rotate_templates pins a MIRROR of the live first_turn, director only — the prime half landed at eb03a22bc: both templates rotation-record -> rotate.py status --record latest, seat-row dropped, 37 tests green), 32b helper (manifest mirror copies a live-pid stalled at dispatch.py:2191; cli.py:529 mirror unlocked RMW; brief.py:1458 still instructs --branch parents to run the HELD merge-kids verb). PRIME STEPS DONE: reaper unit agi-agi-reaper-2f118e6f restarted 10:23Z so the mirror branch is live (MIRRORED 0 -> 1121 on the first pass, 30 of them historical stalled entries, live rounds untouched); rotation --stamp baseline 2031/195/2226 at 2793765c1. RULING: the reviewer asked to halt --branch parent dispatch until the merge-protocol block is gated — REFUSED; the ownership gate landed in 32b is the guard, the verb stays HELD, dispatch continues (owner: always prefer dispatch). Every residue above goes to goal:g15 as a hypothesis node the point mints; g17.1 keeps the protocol only.
