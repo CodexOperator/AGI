@@ -57,6 +57,29 @@ def test_resolve_every_placeholder_and_unknown_is_refused():
     assert "bogus" in str(ei.value)
 
 
+def test_tmux_hash_brace_format_is_literal_but_bare_brace_is_not():
+    # hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-
+    # hook-fires-at-turn-one (SL1.07). tmux's OWN format syntax `#{window_id}`
+    # / `#{window_name}` is LITERAL tmux output the join step must pass
+    # through; the resolver must NOT treat the `{window_id}` inside it as a
+    # startup placeholder and refuse. A BARE `{window_id}` NOT preceded by `#`
+    # must still refuse, so a genuinely missing placeholder cannot slip
+    # through hidden inside tmux syntax.
+    cmd = (
+        "tmux list-windows -t {tmux_session} "
+        "-F '#{window_id} #{window_name}' | grep {succ_name}"
+    )
+    resolved = rotate._resolve_startup_placeholders(cmd, VALUES)
+    assert "#{window_id} #{window_name}" in resolved  # literal, byte-for-byte
+    assert "agi-rc" in resolved
+    assert "{tmux_session}" not in resolved
+    assert "{succ_name}" not in resolved
+    # A bare `{window_id}` (no `#`) is NOT tmux syntax and must refuse.
+    with pytest.raises(ValueError) as ei:
+        rotate._resolve_startup_placeholders("echo {window_id}", VALUES)
+    assert "window_id" in str(ei.value)
+
+
 def test_producing_refusal_allows_shipped_commands():
     # The live director template's first_turn list — every producing verb
     # must pass the allowlist (engine python + read-only git + ps + curl +

@@ -1262,6 +1262,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -1506,6 +1507,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -5218,6 +5220,15 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     an empty placeholder may be legitimate, and they must not be forced to
     fall over on it."""
     def _sub(m):
+        # A `{name}` that is part of tmux's OWN format syntax is LITERAL and
+        # must pass through byte-for-byte: it is immediately preceded by `#`
+        # (`#{window_id}`, `#{window_name}`, `#{...}`, or the newer
+        # `#{...}` forms). Treating it as a startup placeholder both refused
+        # the whole join command and would corrupt the literal tmux needs
+        # (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...).
+        # A bare `{name}` NOT preceded by `#` still refuses below.
+        if m.start() > 0 and command[m.start() - 1] == "#":
+            return m.group(0)
         key = m.group(1)
         if key not in STARTUP_PLACEHOLDERS:
             raise ValueError(f"unknown startup placeholder {{{key}}}")
@@ -5450,6 +5461,288 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
 
 STARTUP_DONE_LINE = ("## STARTUP DONE — every startup step has a "
                      "recorded success")
+
+
+# ---- STARTUP after_join — THE SERVICE performs the captive first turn ----
+# hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
+# fires-at-turn-one (0b-b owed item (i)). The template `startup` block carries
+# an `after_join` list (commands that need the successor's identity — the join,
+# the pin, the ack `continue` as the default, model_confirm, the reap proof) and
+# `after_join_delay_s` (default 20). THE SERVICE (the heal.py watch loop when
+# `agent_dispatch.inline_reaper` is false, else the rotate-self post-spawn
+# tail when no service runs) waits the delay, then runs the whole list as ONE
+# flow, writes every command's output into the rotation record, and sends ONE
+# dm (the successor's SECOND input) through send.py's fixed nudge. The cap-
+# tive dm prints the exact copy-paste line for the one remaining decision
+# (a `diff` against the handoff); the successor runs NOTHING itself.
+
+DEFAULT_AFTER_JOIN_DELAY_S = 20
+DEFAULT_AFTER_JOIN_TIMEOUT_S = 60
+
+
+def _inline_reaper_enabled(root: Path) -> bool:
+    """True when `agent_dispatch.inline_reaper` is truthy — the reaper runs
+    INSIDE dispatch, so NO separate persistent service exists and rotate-self
+    is the performer of the captive after_join. False means the heal.py watch
+    loop IS the service and owns after_join. Absent config defaults to True
+    (current behaviour unchanged; a declared service is a one-edit opt-in), and
+    a missing `agent_dispatch` block reads defensively."""
+    try:
+        cfg_path = locations.config_path(root) if root is not None else None
+        if cfg_path is None:
+            return True
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:                                   # noqa: BLE001
+        return True
+    ad = (cfg or {}).get("agent_dispatch") or {}
+    return bool(ad.get("inline_reaper", True))
+
+
+def _run_after_join_command(entry, values: dict, timeout_s: int,
+                            byte_cap: int) -> dict:
+    """Resolve + run ONE after_join command through the no-shell executor,
+    returning a first_turn-shaped result dict (label, cmd, rc/output) or a
+    named refusal. The after_join list is PRIME-CLEANED trusted config (judged
+    at the merge-up so the WHOLE templates value passes the L4.234 gate), so it
+    is NOT re-run through the producing allowlist — only placeholder-resolved,
+    tokenized, and executed no-shell (a placeholder value can never inject a
+    stage outside `_command_units`' grammar, and `_operator_refusal` is checked
+    so no unmodeled `&&`/`||` survives).`"""
+    if not isinstance(entry, dict):
+        entry = {"label": str(entry), "cmd": str(entry)}
+    label = entry.get("label", "")
+    cmd = entry.get("cmd", "")
+    try:
+        record_cmd = _resolve_startup_placeholders(cmd, values,
+                                                   refuse_empty=False)
+    except ValueError as exc:
+        return {"label": label, "cmd": cmd, "refused": str(exc)}
+    try:
+        exec_cmd = _resolve_shell_vars_per_token(record_cmd)
+    except (_StartupParseError, ValueError) as exc:
+        return {"label": label, "cmd": record_cmd, "refused": str(exc)}
+    try:
+        units = _command_units(exec_cmd)
+    except _StartupParseError as exc:
+        return {"label": label, "cmd": record_cmd, "refused": str(exc)}
+    op = _operator_refusal(exec_cmd)
+    if op:
+        return {"label": label, "cmd": record_cmd, "refused": op}
+    if not units:
+        return {"label": label, "cmd": record_cmd,
+                "refused": "no executable in after_join command"}
+    try:
+        rc, out = _run_units_no_shell(units, timeout_s)
+    except subprocess.TimeoutExpired:
+        return {"label": label, "cmd": record_cmd,
+                "timed_out_after_s": timeout_s}
+    truncated = False
+    if len(out) > byte_cap:
+        out = out[:byte_cap]
+        truncated = True
+    return {"label": label, "cmd": record_cmd, "rc": rc, "output": out,
+            "truncated": truncated, "byte_cap": byte_cap}
+
+
+def _compose_after_join_dm(seat: str, gen: int, succ_ref: str,
+                           results: list) -> str:
+    """The successor's SECOND input — one captioned block naming the service
+    as the performer, every after_join command's label+output, and the ONE
+    CAPTIVE copy-paste line for the single remaining decision (`diff` against
+    the handoff). Pure formatting; runs and sends nothing."""
+    lines = [
+        "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for "
+        "you; you ran nothing)",
+        "This is your SECOND input, delivered `after_join_delay_s` after spawn.",
+    ]
+    for r in results:
+        lines.append("")
+        if r.get("refused"):
+            status = "REFUSED"
+        elif r.get("timed_out_after_s"):
+            status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
+        else:
+            status = f"exit {r.get('rc')}"
+        lines.append(f"[{r.get('label', '')}] {status}")
+        lines.append(f"$ {r.get('cmd', '')}")
+        if r.get("refused"):
+            lines.append(f"    refused — {r['refused']}")
+        elif r.get("timed_out_after_s"):
+            lines.append(f"    timed out after {r['timed_out_after_s']}s")
+        else:
+            if r.get("truncated"):
+                lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
+            out = (r.get("output") or "").strip()
+            if out:
+                lines.extend(f"    {ln}" for ln in out.splitlines())
+    lines.append("")
+    lines.append("Where a decision remains (only a `diff` against the "
+                 "handoff), emit EXACTLY this copy-paste line:")
+    lines.append("python3 extensions/agi/bin/rotate.py "
+                 f"ack --seat {seat} --gen {gen} "
+                 f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
+    return "\n".join(lines)
+
+
+def run_after_join(root, *, seat: str, gen: int, startup: dict,
+                   values: dict, record_path: str | None = None,
+                   dry_run: bool = False, sleep_impl=None,
+                   delay_override: float | None = None,
+                   send_dm=None, timeout_s: int | None = None,
+                   byte_cap: int | None = None) -> dict:
+    """THE captive after_join first turn, performed by the SERVICE — never by
+    the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
+    service-and-the-hook-fires-at-turn-one, owed (i)).
+
+    Waits `startup.after_join_delay_s` (default 20; `delay_override` wins for
+    tests so nothing waits), then runs the template `startup.after_join` list
+    as ONE ordered flow, writes every command's output into the rotation
+    record at `record_path` (appending an `after_join` key), and sends ONE dm
+    (the successor's SECOND input) through send.py's fixed nudge. `dry_run`
+    resolves and plans everything but waits, runs, writes and sends NOTHING.
+
+    `sleep_impl` (default time.sleep) and `send_dm(to, text)` (default
+    send.send(root, seat, text, None)) are injectable so the fixture proves
+    the delay and the dm without a real 20 s wait or a real tmux nudge.
+    Returns {delay_s, results, dm, appended, record_path}. Never raises on
+    record/send failure — each surfaces as a result / return field."""
+    startup = startup or {}
+    entries = startup.get("after_join") or []
+    delay_s = (delay_override if delay_override is not None
+               else int(startup.get("after_join_delay_s")
+                        or DEFAULT_AFTER_JOIN_DELAY_S))
+    timeout = timeout_s or (startup.get("first_turn_timeout_s")
+                            or DEFAULT_AFTER_JOIN_TIMEOUT_S)
+    cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
+    if not dry_run and delay_s > 0:
+        if sleep_impl is None:
+            time.sleep(delay_s)
+        else:
+            sleep_impl(delay_s)
+    results: list = []
+    if dry_run:
+        for e in entries:
+            entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+            try:
+                cmd = _resolve_startup_placeholders(
+                    entry.get("cmd", ""), values, refuse_empty=False)
+                results.append({"label": entry.get("label", ""),
+                                "cmd": cmd, "dry": True})
+            except ValueError as exc:
+                results.append({"label": entry.get("label", ""),
+                                "cmd": entry.get("cmd", ""),
+                                "refused": str(exc)})
+    else:
+        for e in entries:
+            results.append(_run_after_join_command(e, values, timeout, cap))
+    dm = _compose_after_join_dm(
+        seat, gen, values.get("succ_ref", ""), results)
+    appended = False
+    if not dry_run and record_path is not None:
+        rp = Path(record_path)
+        if rp.exists():
+            try:
+                rec = json.loads(rp.read_text())
+                if not isinstance(rec, dict):
+                    raise ValueError("record not an object")
+                rec["after_join"] = {
+                    "performed_by": "service",
+                    "delay_s": delay_s,
+                    "results": results,
+                    "dm": dm,
+                }
+                rp.write_text(json.dumps(rec, indent=2) + "\n",
+                              encoding="utf-8")
+                appended = True
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                appended = False
+    if not dry_run and send_dm is None:
+        def send_dm(to: str, text: str) -> None:
+            import send as _send
+            _send.send(root, to, text, None)
+    sent = False
+    if not dry_run and send_dm is not None:
+        send_dm(seat, dm)
+        sent = True
+    return {"delay_s": delay_s, "results": results, "dm": dm,
+            "appended": appended, "sent": sent,
+            "record_path": str(record_path) if record_path else None}
+
+
+def _latest_rotate_record(root: Path, seat: str):
+    """The seat's newest recorded rotation document ({..}.json) whose result
+    marks a rotation that happened (started/success), or None. Best-effort
+    discovery for the SERVICE: a rotation's after_join runs against the records
+    rotate-self wrote."""
+    try:
+        pat = _rotations_dir(root) / f"{seat}.*.json"
+        files = sorted(pat.parent.glob(pat.name))
+    except OSError:
+        return None
+    for f in reversed(files):
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(rec, dict) and (rec.get("result") in ("started", "success")
+                                      or rec.get("rotation") in ("rotate-self",)):
+            return rec, f
+    return None
+
+
+def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
+                            sleep_impl=None, send_dm=None) -> dict | None:
+    """The heal.py watch loop's per-seat action: discover the seat's latest
+    rotation record that has NOT yet had its captive after_join run and whose
+    `after_join_delay_s` has elapsed, and run it. Returns None when nothing is
+    due (best-effort, read-only discovery). `now` injectable for the fixture.
+    Reads the startup template through `_resolve_template` for the seat's role
+    so the SAME `after_join` list + delay the rotate-self caller would run is
+    the one the service runs."""
+    pair = _latest_rotate_record(root, seat)
+    if pair is None:
+        return None
+    rec, path = pair
+    if rec.get("after_join"):
+        return None  # already performed
+    delay_s = int((rec.get("after_join") or {}).get("delay_s")
+                  or DEFAULT_AFTER_JOIN_DELAY_S)
+    rec_ts = rec.get("recorded_at", "")
+    if rec_ts:
+        try:
+            ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%S.%fZ")
+        except ValueError:
+            try:
+                ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                ts = None
+        if ts is not None:
+            now = now if now is not None else time.time()
+            if (ts.timestamp() + delay_s) > now:
+                return None  # not yet due
+    row = _find_seat(root, seat)
+    role = (row or {}).get("role") or "parent"
+    tmpl, _name, _src = _resolve_template(root, role)
+    startup = (tmpl.get("startup") if tmpl else None) or {}
+    gen = rec.get("gen_after")
+    values = _first_turn_values(
+        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        succ_name=seat)
+    # succ_ref best-effort from the record's handover, so the ack writes a real
+    # ref when the join supplied one.
+    hov = rec.get("handover") or {}
+    join = hov.get("join") or {}
+    sref = join.get("session_id") or ""
+    if not sref:
+        sr = hov.get("successor_row")
+        if isinstance(sr, dict):
+            sref = sr.get("session_id") or ""
+    if sref:
+        values["succ_ref"] = str(sref)
+    return run_after_join(
+        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        startup=startup, values=values, record_path=str(path),
+        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0)
 
 
 def _startup_step_list(startup) -> list:
@@ -6602,6 +6895,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     print(f"        pane pid {pane_pid} -> ps -e chain "
                           f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
                           f"window killed by @id")
+        # (0b-b owed (i)) after_join dry-run: the template's `after_join` list
+        # is ENUMERATED (resolved, NOTHING run, no delay, no record write, no
+        # dm) so a caller sees exactly what the service/rotate-self will run
+        # after spawn. The captive copy-paste line is printed as the decision
+        # the successor would receive.
+        if startup:
+            plan = run_after_join(root, seat=seat, gen=gen,
+                                  startup=startup, values=startup_values,
+                                  dry_run=True,
+                                  record_path=str(rec_path) if rec_path else None)
+            print(f"(9) after_join dry-run: {len(plan['results'])} command(s) "
+                  f"resolved after a {plan['delay_s']}s delay; NOTHING run, no "
+                  f"dm sent")
+            for r in plan["results"]:
+                state = "REFUSED: " + r["refused"] if r.get("refused") \
+                    else "dry-run"
+                print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
+            print("    captive dm decision line (the successor's SECOND input):")
+            print(f"    python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+                  f"--gen {gen} --ref <your ListAgents ref> diff --text -")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
@@ -6903,6 +7216,44 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
         handover=handover, steps_reached=steps_reached), path=rec_path)
+
+    # (6.4) THE SERVICE performs the captive after_join first turn (0b-b owed
+    #     (i)). rotate-self is the FALLBACK performer when NO persistent
+    #     service runs (`agent_dispatch.inline_reaper` truthy = the reaper runs
+    #     inline in dispatch, so no heal.py watch owns after_join). When the
+    #     watch loop IS the service (inline_reaper false — the live box),
+    #     rotate-self leaves after_join to it and says so. A fixture forces
+    #     the fallback via `--after-join` (getattr) without touching config.
+    aj = None
+    _force_aj = bool(getattr(args, "after_join", False))
+    if not _inline_reaper_enabled(root) and not _force_aj:
+        print("(6.4) after_join deferred to the persistent service "
+              "(agent_dispatch.inline_reaper=false)")
+    else:
+        # joined facts re-resolved for the after_join values (the successor
+        # identity is known only now).
+        # Director fix-ups at the SL1.07 harvest (sensei-director L2):
+        # `{succ_ref}` is the ListAgents ref the successor NAMED in its ack
+        # (read at (4)) when it did — the JOIN's succ_session_id is the
+        # session uuid, not an address a peer can message; and a FIXTURE run
+        # (window_path seam) has no live successor to wait on, so its delay
+        # is 0 — the default 20 s sleep ran for real in five selfreap
+        # fixtures (115 s of suite time) before this line.
+        aj_values = _first_turn_values(
+            root, seat=seat, gen=gen, succ_name=spawn_name,
+            succ_ref=((ack or {}).get("session_ref") or succ_session_id
+                      or ""),
+            succ_transcript=succ_transcript or "",
+            tmux_session=tmux_session)
+        aj = run_after_join(
+            root, seat=seat, gen=gen, startup=startup or {},
+            values=aj_values, record_path=str(record_path),
+            delay_override=(0 if getattr(args, "window_path", None)
+                            is not None else None))
+        print(f"(6.4) after_join performed by rotate-self (fallback): "
+              f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
+              f"delay; record appended: {aj['appended']}, dm sent: "
+              f"{aj['sent']}")
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
@@ -7427,6 +7778,11 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
+    p_spawn.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to a plain spawn (owed item v)")
     p_spawn.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help="tmux session to create the window in "
                              f"(default: {DEFAULT_TMUX_SESSION})")
@@ -7456,6 +7812,11 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
+    p_loop.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to today (owed item v)")
     p_loop.add_argument("--model", default=None, help="model override")
     p_loop.add_argument("--effort", default=None, help="effort override")
     p_loop.add_argument("--settings", default=None,
