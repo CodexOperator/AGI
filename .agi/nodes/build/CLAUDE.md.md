@@ -4,7 +4,7 @@ mint_id: c7b854df037045dd90c30fca57b08e54
 type: build
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L4-IV
+edited_by: ubuntu
 origin: build-scan
 payload_ref: CLAUDE.md
 season: 1
