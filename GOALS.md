@@ -6149,6 +6149,8 @@ PRIME XI 20:10Z (mur-SL2.2): SL2.02 ACCEPT WITH RESIDUE, 12 MET / 3 NOT_MET, one
 
 DEVIATION (director, Prime-accepted 20:19Z): L2 addendum item (iii) briefs-stripped is dropped, not banked — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, so a round has no business rewriting them; (ii) join-only refusal is built in SL4.04.
 
+SL4.04 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.8 — (a) root-less spawn --seat seats the window with a named skip, exit 0; (b) first-seating role from the seat row, --tier fallback; (c) ack --gen 1 announces only with no rotation record AND no pending ack; (d)(ii) join-only rotate-self refused by name; (e) a re-spawn pins at the row generation (row 11 -> pin 11) — the autopsy test that asserted the buggy pin now asserts the live rule. 460 green with rotate/session-start/after-join/heal-seats/help-smoke neighbours; clean merge over SL4.03 in the same cmd_ack. All three Prime NOT_MET items closed; (iii) dropped by deviation. Rides merge-up SL2#5.
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
