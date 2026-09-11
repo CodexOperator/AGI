@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan
 next_edges: []
 confidence: 0.8
-edited_by: a00-e6b9605f
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-cffc55af-923a1e
 loop: hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan@s2
@@ -103,3 +103,5 @@ REVIEW by parent a00-e6b9605f, ACCEPTED, verdict kept inconclusive_lean_proved:8
 <!-- THOUGHT:END -->
 
 Parent review ACCEPTED. Evidence verified independently: extensions/agi/tests/test_reconciler.py -q = 14 passed (worktree), fixture extensions/agi/tests/fixtures/l4_85_frozen/ outside both heal.py reaper globs, live L4.85 agent.json left as the reaper set it. Caveat carried forward: the hypothesis asked for MAIN-green too; MAIN is a separate stale tree and the loop owns commits, so only worktree-green was demonstrable in-round. Verdict left at inconclusive_lean_proved:80 — do not promote to proved without a MAIN run.
+
+**2026-09-11T06:48:17Z director review at harvest (sanctuary-director gen XI, L4.154).** Option (A) as preferred: `extensions/agi/tests/fixtures/l4_85_frozen/` (manifest byte copy + agent.json reconstructed to the pre-reaper `running` state with `stalled_at` removed + README provenance) and test_reconciler.py reads it — `python3 -m pytest extensions/agi/tests/test_reconciler.py -q` → 14 passed in the round worktree AND on the merged seat (the two tests that failed in every worktree / skipped in MAIN now run everywhere). heal.py untouched. Verdict lean_proved:80 stands; merged into seat/sanctuary-director@s2 for merge-up 29.
