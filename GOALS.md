@@ -6320,6 +6320,35 @@ L4 (sensei-director gen IV): brief minted — hypothesis:l4-ack-commits-its-own-
 
 SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack continue commits its own row write as ONE pathspec commit on seats.md (message <seat> ack: gen N, session_ref R, window @W, pid P), prints the +/- row lines and the exact git push line (never run); --no-commit and every diff answer leave the tree as before; already-carries commits nothing; a pre-dirty seats.md is refused by name (exit 3) before any write; never -A. Wake floor = ListAgents + ack. 440 green with rotate/session-start/after-join/help-smoke neighbours; clean merge against season/s2 (L4.288 not landed yet — the seam is at the point merge-up 41 or my next sync, whichever is second). Rides merge-up SL2#5.
 
+### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.25
+
+**OWNER DECISION (in the Sensei's pane, 2026-09-11 20:3xZ; relayed by the Sensei 21:16Z; verbatim):** "the plan to go 3 > 0 calls on wake and to go 2 > 1 calls on rotate looks good overall" … "Yes this shape looks good let's go with it. Let's also make it modular so you'd be able to plug in a different key type/algo and use it in encrypted mode, useful later for the managed web app town."
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a sanctuary update to the seat protocol's identity mechanism, routed by the Sensei as g15 lines in a fixed order, measured against today's floor: wake = 3 calls (ListAgents, ack, commit — `goal:g15.24` just made the commit the tool's), rotate-out = 2 (card, rotate-self); and the stale-row failure the Prime repaired by hand three times in 80 minutes (config:seats @id/ref cells, L4.287/L4.291) exists only because identity travels as a ListAgents ref and a window id that the graph copies — a signature travels with the act.
+- `build:bin-send` is the parent because `send.py` already carries the half that exists: `keygen` (send.py:211, mints `sessions/seats/<seat>.key` 0600 and prints the two row cells `pubkey`/`sig_scheme`), `_sign_line` (177) and the ONE label line VERIFIED / UNSIGNED / FORGED (1745-1780) verified against the from-seat's row — built by `hypothesis:l4-a-seat-signs-with-a-swappable-scheme` on the `seatsig` registry (`extensions/agi/src/seatsig/`: `Scheme`, `SCHEMES`, `register`, `get`, `fingerprint`, pure-python ed25519). Measured 21:1xZ: **zero** `.key` files under `sessions/seats/`, **zero** rows with `pubkey` — every message on the box reads UNSIGNED.
+- `build:bin-rotate` is the parent because `rotate-self` / `ack` / `spawn` are where the successor's identity is minted and back-filled today (session_ref + window + pid into the row: rotate.py `cmd_ack` 1650-, `_backfill_session_ref`, `_write_ack`), which items 2-4 replace with a minted keypair, a signed record and a signed row commit.
+
+## Testable claim (four ordered build lines; each is one round, each proved on the fake tmux; FILE SCOPE send.py / rotate.py / src/seatsig + tests + the `[config].md` row fields)
+
+1. **keygen for every live row + signed sends** — rows gain `pubkey` / `sig_scheme` (seatsig stays the plug point) plus `enc_scheme` and an envelope version NOW so a KEM/encrypt scheme drops in later; messages stop reading UNSIGNED; `whois` verifies a signature against the row and answers `RETIRED:<fp>` (not FORGED) for a key found in the row's `key_history`.
+2. **rotate-self is KEY-GATED** — refused without `seats/<seat>.key`; it mints the successor keypair, hands the private key at the successor's key path (0600), writes the row (`pubkey` = successor; `key_history` += retired {pub, from, to, rotated_by sig}), signs the record and the row commit. `session_ref` / ListAgents refs leave the graph; the short label is `<seat>#<8-hex pubkey fp>`. The successor's first signed act proves possession — no announce.
+3. **`rotate-self --stops '<text>' | --diff '<gap>'`** — the predecessor answers the ack on the successor's behalf (default continue); the successor may override with a signed ack diff inside the window. Wake 0, rotate-out 1 (card stops line + row + record in one signed commit, then rotate).
+4. **the meter hook runs rotate-self at threshold** (rotate-out 0), the stops line taken from the last signed commit/dm, gated by prepare's card-age check.
+
+**Falsifiers:** after (1) a dm from a live seat reads UNSIGNED, or a retired key reads FORGED; after (2) a rotate-self runs without a key, or the row still carries session_ref; after (3) a successor's wake needs any call before real work; after (4) a seat crosses its line without rotating. **Modularity (owner):** every scheme — signing now, encryption later — is one `seatsig` registry entry; no caller names ed25519.
+
+## Status
+
+pending — minted 21:2xZ by sensei-director L4; line (1) cut as SL4.06 (`hypothesis:l4-every-live-row-is-keyed-every-send-is-signed-and-a-retired-key-reads-retired-not-forged`); (2)-(4) serial behind it, one brief each.
+
+## Agent Notes
+PRIME XI 21:17Z: APPROVED, cut (1) first; owner text banked in doc:l4-owner-decisions (13de8c37e). RULING A — GATE, in the Prime words: SIGN NOW, VERIFY LATER. Keygen, the pubkey/sig_scheme/enc_scheme cells, the envelope version and the registry plug point land immediately (additive, lock nobody out) — but EVERY verification result stays INFORMATIONAL (VERIFIED / UNSIGNED / FORGED / RETIRED as a label, NO reader refusing on it) until mur-39 returns: the signing code is a hand-rolled pure-python ed25519 (L4.275) whose crypto review is running (RFC 8032 test vectors demanded); while a signature only labels, a curve-arithmetic bug is a wrong label — the moment whois REFUSES on a signature, the same bug is an AUTHORITY FAILURE that locks seats out of their own graph, hardest under stress. The flip from informational to enforcing is its OWN one-line round, cut only after mur-39 findings are closed AND with the owner go — never as an obvious cleanup. RULING B: build the seam, not the encryption — enc_scheme cell, versioned envelope, registry plug point in scope; actual encryption is not (dead code that looks like a feature). Also: a rotated-out key is RETIRED in key_history, never deleted (same reason nodes are deprecated, not removed); line (4) meter-hook rotation must not fire while a merge-up is mid-flight.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->

@@ -1,0 +1,22 @@
+---
+id: hypothesis:l4-every-live-row-is-keyed-every-send-is-signed-and-a-retired-key-reads-retired-not-forged
+mint_id: 1b07a4886ebe41f0a7a4b10049076b29
+type: hypothesis
+parents:
+  - goal:g15.25
+  - hypothesis:l4-a-seat-signs-with-a-swappable-scheme
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: f0bce9c050159200
+season: 2
+testable_claim: "goal:g15.25 line (1) build order (owner 20:3xZ via the Sensei 21:16Z; Prime XI 21:17Z rulings A + B bind this round). MEASURED 21:1xZ: extensions/agi/src/seatsig/ is the registry (`Scheme` class with keygen/sign/verify, `SCHEMES`, `register`, `get`, `fingerprint`; pure-python ed25519 registered, L4.275, crypto review mur-39 RUNNING); send.py `keygen` (211-241) mints sessions/seats/<seat>.key (0600) and PRINTS the two row cells pubkey/sig_scheme without writing the row; `_sign_line` (177-208) signs a send when the from-seat key exists, else unsigned; the ONE label line (1745-1780) is VERIFIED / UNSIGNED / FORGED verified against the from-seat row's pubkey+sig_scheme. Zero `.key` files exist, zero rows carry pubkey: every message on the box reads UNSIGNED. CLAIM: (1) `send.py keygen <seat>` WRITES the row cells it prints (pubkey, sig_scheme, and `enc_scheme: none`) through write.submit under the self-row carve-out in schemas/[config].md, and `keygen --all-live` (run by the prime seat, the registry-wide writer the schema admits — the kid measures which actor may write other rows and uses exactly that) keys every LIVE row (a row with a live pid / session_id) that has no pubkey, skipping keyed rows, printing one line per row; a private key file that already exists is NEVER overwritten (refuse by name). (2) the envelope: every signed message carries `env: v1` beside its `sig: <scheme>:<fp>:<hex>` line and the scheme name comes from the row, never a literal; `seatsig.Scheme` gains an optional encryption hook slot (enc_scheme name + `encrypt`/`decrypt` = None today) and `SCHEMES` is the ONE plug point — no caller names ed25519 (grep-asserted); NO encryption is implemented (Prime ruling B: the seam, not the cipher). (3) rows gain `key_history: []` (list of {pub, fp, from, to, rotated_by_sig}); the label line answers `RETIRED:<fp>` (not FORGED) when a sig's fingerprint matches an entry in the from-seat's key_history and verifies under that retired pub; (4) `whois` verifies a signature against the row when a signed line is given and reports the label; EVERY label — VERIFIED / UNSIGNED / FORGED / RETIRED — stays INFORMATIONAL: no reader, whois included, refuses, exits non-zero or changes a decision on it (Prime ruling A, verbatim on goal:g15.25; the enforcing flip is a later owner-gated round — grep-assert no `return` / exit keyed on the label); (5) the schema `[config].md` declares the new cells (enc_scheme, key_history) — a row write with them passes the write guard. FALSIFIERS: after `keygen --all-live` on a fake seats.md with three live rows and one dead, any live row lacks pubkey or the dead row gained one; a signed dm from a keyed seat reads UNSIGNED; a sig under a key_history pub reads FORGED; any caller outside src/seatsig names \"ed25519\"; a reader exits non-zero on FORGED; a second keygen overwrites an existing .key. PROOF on the fake tmux: two fake seats keyed, a dm sent and read back VERIFIED with `env: v1`, a rotated key moved into key_history reads RETIRED:<fp>. TESTS: test_send.py + test_seatsig.py + test_sensei.py + test_heal.py + test_bin_help_smoke.py + the config schema guard tests, run with neighbours. RULES: merge, never rebase, in every clear line; never touch the live sessions/seats/*.key of a real seat (tests use tmp roots); keep `_sign_line` and the label function names; a new file only under src/seatsig or tests. FILE SCOPE: send.py, src/seatsig/, schemas/[config].md, tests. EXCLUDED: rotate.py (lines 2-4 are later rounds), hooks, heal.py. CEILING: 1 parent, up to 3 kids (kid 1 = (1)+(5), kid 2 = (2)+(3)+(4)), small."
+thought_session: sensei-director-genIV-L4
+title: every live row is keyed and every send is signed (env v1, enc_scheme seam, key_history) and a retired key reads RETIRED:<fp>, not FORGED — labels stay informational until mur-39 closes
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-every-live-row-is-keyed-every-send-is-signed-and-a-retired-key-reads-retired-not-forged
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
