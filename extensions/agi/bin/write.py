@@ -597,6 +597,33 @@ def _resolve_seats_role(root, actor: str):
     return _pick_longest_role(candidates)
 
 
+# The role ladder, highest power first (hypothesis:l4-a-role-is-resolved-
+# never-typed): a caller may name, explicitly or via AGI_ROLE, ONLY the role
+# its resolved seat holds or a LOWER one — never a higher one. Lower number =_
+# higher power, so a requested role is an elevation (refused) exactly when its
+# rank is strictly less than the seat role's rank.
+_LADDER = {"owner": 0, "prime_director": 1, "director": 2,
+           "parent": 3, "kid": 4}
+
+
+def _ceiling_refusal(requested: str, seat_role: str | None, actor: str,
+                     source: str) -> str | None:
+    """The refusal text when `requested` names a role HIGHER on the ladder
+    than the actor's resolved seat role; None when it is not an elevation.
+    `source` is `--role` or `AGI_ROLE`, used verbatim in the message
+    (hypothesis:l4-a-role-is-resolved-never-typed). An actor with no seat row
+    or a seat role outside the ladder refuses nothing (fallbacks unchanged);
+    a requested role not on the ladder is likewise not ours to refuse."""
+    if seat_role not in _LADDER or requested not in _LADDER:
+        return None
+    if _LADDER[requested] < _LADDER[seat_role]:
+        return (f"{source} {requested} refused: actor {actor} resolves to "
+                f"{seat_role} (a role may name only the one the actor's seat "
+                f"holds or a lower one; "
+                f"hypothesis:l4-a-role-is-resolved-never-typed)")
+    return None
+
+
 def _resolve_role(root, actor: str, role_param: str = "") -> str:
     """The effective role for a write, resolved fail-closed in order.
 
@@ -605,13 +632,25 @@ def _resolve_role(root, actor: str, role_param: str = "") -> str:
     wins, boundary required, tie refuses); (4) else the literal actor `owner`
     -> role `owner`; (5) else UNRESOLVED (`""`), which the caller refuses
     ONLY when the type declares `written_by`.
+
+    A role named by `--role` or `AGI_ROLE` may name only the role the actor's
+    seat resolves to or a LOWER one on the ladder (owner > prime_director >
+    director > parent > kid); a higher one is refused by name and nothing is
+    written (hypothesis:l4-a-role-is-resolved-never-typed). An actor that
+    resolves to no seat keeps the fallbacks unchanged.
     """
+    seat_role = _resolve_seats_role(root, actor)
     if role_param:
+        refusal = _ceiling_refusal(role_param, seat_role, actor, "--role")
+        if refusal:
+            raise EditError(refusal)
         return role_param
     env = (os.environ.get("AGI_ROLE") or "").strip()
     if env:
+        refusal = _ceiling_refusal(env, seat_role, actor, "AGI_ROLE")
+        if refusal:
+            raise EditError(refusal)
         return env
-    seat_role = _resolve_seats_role(root, actor)
     if seat_role is not None:
         return seat_role
     if actor == "owner":
