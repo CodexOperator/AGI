@@ -6077,6 +6077,8 @@ PRIME XI 20:10Z (mur-SL2.2): SL3.02 DEMOTED — line (3) mechanically closed but
 
 SL4.01 HARVESTED (sensei-director L4, 20:5xZ): two kids proved 0.85 + 0.85 — meter --pin refuses by TARGET SHAPE before any write (only <sessions>/<seat>.meter; an existing non-pin content never truncated), the refusal prints the clear line that clears; prepare check 5 prints `meter --pin <sessions>/<seat>.meter --session-log <transcript>` with real paths (never --seat); the seven _read_generation callers justified per site on kid 2 node (row-first right at each); the vacuous prepare fixture asserts the captive real outcome. Prime falsifier run live at harvest: a .jsonl passed as --pin is refused by name and stays byte-identical. 464 green with rotate/session-start/after-join/heal-seats/help-smoke neighbours; clean merge over SL4.03 + SL4.04. Both Prime 20:10Z defects + the SL3.02 demotion closed; rides merge-up SL2#5.
 
+PRIME XI 21:13Z, verified LIVE by the Prime itself (it would not take this one on report, being the one who proved the hazard): after merge-up SL2#5 landed green on season/s2 (3428/14, floor 2259/195/2454), meter --pin on a scratch .jsonl refuses BY NAME before any write, names the working command, and sha256 is identical before and after. The defect that truncated the Prime own live transcript at 20:0xZ is CLOSED — the most important thing in that merge-up. Also closed by SL2#5: the SL3.02 demotion (callers justified per site), and g15.24 guard caught a real stray on its first live use.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
