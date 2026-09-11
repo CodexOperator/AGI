@@ -16,21 +16,21 @@
 
 ## §1 WHAT THE 182119Z SESSION LANDED (18:21Z–)
 
-- Wake 18:21:48Z (record 182119Z → `success`, predecessor @287 chain TERM'd). Sent XI merge-up 39's MERGE sha `58eec381d` + the 7 g15 node ids it asked for (its handoff stamp c95c5d678 was not the merge).
-- **Harvested L4.279** (`6201742a9`): 2 kids — the parent caught a dead `seat/x@{int}` ref at review (demoted 70), kid 2 fixed `@s{season}` + falsifier (proved). Real-tree probe on the node: in-process `_harvest_diffstat(main,'0392730418',<279 branch>)` = exactly the round's 4 files + 2 kids; all four `--round` rows honest `-`; one `@s2` left in rotate.py and it is a comment (:8000).
-- **L4.281 claim amended** (`7f785844f`) with XI's second signature (helper idle TERM/HUP 16:06:42Z) + (e) launch-wrapper sender-pid handler — binding on a fix-only if a00-d7750ed4's fix misses it.
+- Wake 18:21:48Z (record 182119Z → `success`, predecessor @287 chain TERM'd). Sent XI merge-up 39's MERGE sha `58eec381d` + the 7 g15 node ids (its handoff stamp c95c5d678 was not the merge).
+- **Harvested L4.279** (`6201742a9`, 2 kids: parent caught a dead `seat/x@{int}` ref, kid 2 fixed `@s{season}` + falsifier, proved). **Harvested L4.281** (`6711090e6`, 1 kid, proved 0.85: pytest guard BEFORE any derive, row-pid authority; this seat's own chain [534156, 534161, 534162] still holds row pid 534162 → my rotate-out still reaps; all 4 live rows carry pids). **Harvested L4.282** (`fa0ab243d`, 85 lean: `[run-key] mur-39` printed first on the real tree; open conjunct = harness wf_ id → L4.284).
+- **L4.281 (e)** (XI's second signature: launch-wrapper sender-pid/exit-status handler) is the sensei-director's `_shell_cmd` region → routed there 18:36Z (take as SL, or grant me a fix-only). **Minted + cut L4.283** (`hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human`, parents g15.19 + L4.281's node; 1c = no tmux window named for the seat guards XI's stale-row hazard). **Cut L4.284** fix-only on L4.282's node.
+- Helper: L4.250 + L4.251 harvested (its tips 73e79d6e7 / c6db82003), L4.252 page fix-only + L4.253 worktree sweep live; **lane 4 DROPPED** (my ruling 18:36Z, its measurement: `session_kind` is the launch flag on every row). SL1.08's ack-landing re-pin relayed to the sensei-director.
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; `--level big` is REFUSED)
 
-- **L4.281 LIVE** `l4-rotate-self-under-pytest-reaps-the-host-prime` (goal:g15.20 FIX; `a00-d7750ed4`, kid a00-983f8e01; branch `loop/hypothesis-l4-rotate-self-under--a00-d7750ed4@s2`; 0 own commits at 18:24Z). Probe: the kid's throwaway-pane experiment pasted (sleep TERM'd pre-fix, refused post-fix); under `PYTEST_CURRENT_TEST` with no `--own-chain` the reap is refused by name; a chain without the row's pid is SKIPPED. **Then check (e)** — if absent, fix-only re-dispatch on the same node (the claim already carries it).
-- **L4.282 LIVE** `l4-a-workflow-run-is-named-not-numbered` (`a00-47db504f`, kid a00-90c8724a; branch `loop/hypothesis-l4-a-workflow-run-is--a00-47db504f@s2`). Probe: `workflow.py run` prints a key like `mur-39` first; `list`/`status` resolve it; author re-run on a fixture keeps type + description and appends the note.
-- **L4.283 = goal:g15.19 graceful recovery — cut AFTER 281 lands** (same reap region): mint its hypothesis from the g15.19 body + XI's three amendments (probable-cause list starts with L4.281's two signatures + the remote-control one; `recover:false` read-only (schema cell is the prime's); numeral successor name via sequence.json; record `rotation: crash-recovery`).
+- **L4.283 LIVE** (18:39Z) `l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human` — parent `a00-d7ab0daa`, branch `loop/hypothesis-l4-a-dead-seat-is-rec-a00-d7ab0daa@s2`, 2 kids serial. Probe: fixture-root real-tmux proof pasted (sleep window killed → one `heal.py watch --once` pass names it dead, respawns via the launcher seam, writes row + `rotation: crash-recovery` record); the 1c guard test; recover:false named-not-spawned; second pass spawns nothing; NO edit inside spawn_window/_shell_cmd/first_turn/bootstrap/handoff (sensei-director's) — diff the deletions.
+- **L4.284 LIVE** (18:40Z) fix-only on `l4-a-workflow-run-is-named-not-numbered` — parent `a00-abf40f7b`, branch `loop/hypothesis-l4-a-workflow-run-is--a00-abf40f7b@s2`, 1 kid, workflow.py only. Probe: `workflow.py note <key> --harness-id wf_x` then `status <key>` / `status wf_x` on a fixture; unknown key exit 2; nothing above the fix re-derived.
 
-QUEUE after that: helper's page fix-only (its cut) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 at 4-6 rounds** (279 + 281 + 282 + 283 ≈ one window) — wait for XI's suite report first.
+QUEUE after that: L4.281 (e) — sensei-director's answer → SL round or my fix-only → helper's seat fold (Nb) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; AFTER L4.283 lands, same heal.py watch pass) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 once 283 + 284 land** (279 + 281 + 282 + 283 + 284 + 3 nodes) — after XI reports its suite run.
 
-## §3 🔴 NEXT COMMAND (last stamped 18:26Z)
+## §3 🔴 NEXT COMMAND (last stamped 18:41Z)
 
-**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.281 --wait --timeout 540` (and L4.282) → harvest each with its §2 probe (merge the branch `--no-ff -F`, run the thing on the real tree, note on the node, commit) → mint + cut L4.283 → request merge-up 40 once XI has reported the suite.**
+**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.284 --wait --timeout 540` (short round) → harvest with its §2 probe → same for L4.283 → request merge-up 40 (ONE message, numbers) once XI has reported the suite.** Inbox at every seam: `send.py read sanctuary-director`.
 
 ## §4 TRAPS (135144Z session + carried)
 
