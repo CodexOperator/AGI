@@ -826,6 +826,47 @@ def _window_listed(tmux_session: str, name: str) -> bool:
     return name in _list_windows(tmux_session)
 
 
+def _nudge_target(root: Path, to: str, tmux_session: str | None,
+                 ) -> tuple[str, object, str] | None:
+    """Resolve the send-keys target a seat's wake lands in, exactly as
+    `_nudge_window` uses it, so a silent re-check (`wake`) and the delivery
+    path share ONE address resolution (hypothesis:l4-a-stranded-nudge-is-
+    resubmitted-by-typing-not-enter). Returns `(target, pid, tmux_session)`
+    or None when the seat has no addressable window: a NAME-addressed row is
+    refused (a predecessor/namesake could occupy it) and a windowless
+    (ephemeral) recipient may not be nudged by name unless actually listed.
+    """
+    rows = _locally_loaded_rows(root)
+    row = _seat_row_by_name(rows, to)
+    window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
+    pid = (row or {}).get("pid")
+    if tmux_session is None:
+        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
+        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
+    # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
+    # target: never send-keys into a name-addressed window the row was
+    # supposed to carry as an @id (a predecessor or a namesake could occupy
+    # it). Refuse, print the reason on stderr, and FALL BACK to the by-name
+    # listing below.
+    if window_ref and not str(window_ref).startswith("@"):
+        print(f"nudge: row for {to} carries window {window_ref!r} -- a NAME,"
+              f" not an @id; refusing it as a target, falling back to the"
+              f" window NAME", file=sys.stderr)
+        window_ref = None
+    # (3) an @id target never needs the name listed; a name fallback (row has
+    # no window at all, or the NAME above was refused) must still be a real
+    # listed window — a windowless (ephemeral/fire-and-forget) recipient is
+    # untouched, as before.
+    if window_ref:
+        target = f"{tmux_session}:{window_ref}"
+    else:
+        if not _window_listed(tmux_session, to):
+            return None
+        target = f"{tmux_session}:{to}"
+    return (target, pid, tmux_session)
+
+
 def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                  sender: str | None = None,
                  body: str | None = None) -> bool:
@@ -844,13 +885,10 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     raises. read-only (capture-pane) only — never send-keys into a pane a
     test has not faked.
     """
-    rows = _locally_loaded_rows(root)
-    row = _seat_row_by_name(rows, to)
-    window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
-    pid = (row or {}).get("pid")
-    if tmux_session is None:
-        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
-        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    resolved = _nudge_target(root, to, tmux_session)
+    if resolved is None:
+        return False
+    target, pid, tmux_session = resolved
     # A DM's pending-coalesced count (read now so the delivered/coalesced
     # decision knows whether to carry a `(+N more, read <seat>)` tail). An
     # inbox send never reads it. A DM types the INLINE pane line
@@ -900,27 +938,6 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         print("nudge: deferred (no room to render the body inline)",
               file=sys.stderr)
         return False
-    # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
-    # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
-    # target: never send-keys into a name-addressed window the row was
-    # supposed to carry as an @id (a predecessor or a namesake could occupy
-    # it). Refuse, print the reason on stderr, and FALL BACK to the by-name
-    # listing below.
-    if window_ref and not str(window_ref).startswith("@"):
-        print(f"nudge: row for {to} carries window {window_ref!r} -- a NAME,"
-              f" not an @id; refusing it as a target, falling back to the"
-              f" window NAME", file=sys.stderr)
-        window_ref = None
-    # (3) an @id target never needs the name listed; a name fallback (row has
-    # no window at all, or the NAME above was refused) must still be a real
-    # listed window — a windowless (ephemeral/fire-and-forget) recipient is
-    # untouched, as before.
-    if window_ref:
-        target = f"{tmux_session}:{window_ref}"
-    else:
-        if not _window_listed(tmux_session, to):
-            return False
-        target = f"{tmux_session}:{to}"
     # (2) cap: one token per unread batch; a batch of dms yields one token.
     last_age = _last_nudge_age(root, to)
     if last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S:
@@ -948,6 +965,18 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # WHATEVER nudge line sits in the box and we NEVER type a second line
         # after it (a concatenated box submitted as one user turn is the
         # owner's 2026-09-11 defect).
+        #: hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+        #: the stranded-line retry TYPES a printable space then Enter in a
+        #: SEPARATE call -- never a bare Enter-only resubmit. The owner's
+        #: 2026-09-11 defect was typing a SECOND nudge line onto a stranded
+        #: one and submitting a concatenated box as one user turn; a single
+        #: space appends ONE printable char to the EXISTING stranded line
+        #: (never a second line), then Enter submits it. Two calls (probes
+        #: A-D: never `text Enter` in one chunk). The master-sensei pane the
+        #: target measured does NOT submit on a bare Enter (three failed
+        #: 13:59Z/14:00Z/14:04Z) but does on type+Enter; the prime's probe-(C)
+        #: pane was a DIFFERENT pane shape -- the typed resubmit satisfies
+        #: both.
         #
         # Residue B (L4.140, F1: a marker records only a DELIVERY): a deferred
         # body / pending is cleared ONLY when a line CARRYING it was actually
@@ -977,8 +1006,9 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
             # region` misread our OWN stranded line as foreign and re-deferred
             # it forever. Compare region against the line this body RENDERS
             # (the same _nudge_line flatten + truncation), so a truncated /
-            # flattened own line is recognised as ours and submitted with
-            # Enter only. For a DIRECT dm that line IS `text`.
+            # flattened own line is recognised as ours and submitted (by the
+            # typed resubmit -- one space + a separate Enter, never Enter-only).
+            # For a DIRECT dm that line IS `text`.
             if body is not None:
                 own_candidates = [text]
             else:
@@ -1030,9 +1060,17 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                 for own in own_candidates)
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
+        #: the typed resubmit (a space typed into the existing stranded line,
+        #: then a SEPARATE Enter) -- the same ownership judgement, a different
+        #: retry shape (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-
+        #: typing-not-enter). Never `text Enter` in one chunk (paste
+        #: heuristic, probes A-D); the space's own `-l` call plus the Enter
+        #: call are two tmux invocations.
+        if not _send_keys(target, " ", literal=True):
+            return False
         if not _send_keys(target, "Enter"):
             return False
-        print("nudge: submitted a stranded token (Enter only)",
+        print("nudge: submitted a stranded token (typed)",
               file=sys.stderr)
         if our_line_was_stranded:
             # the stranded line WAS ours -> a real delivery; record + clear
@@ -1094,6 +1132,62 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         _clear_pending(root, to)
     _clear_deferred(root, to)
     return True
+
+
+def _seat_has_pending(root: Path, to: str) -> bool:
+    """Anything the wake token should announce or a stranded line should
+    deliver for the seat: unread inbox blocks, a stored deferred dm, or a
+    coalesced pending count. Used to stop `wake` spraying a bare wake token
+    at an IDLE seat that has nothing -- heal polls every seat every pass, so
+    an ungated retype would issue a token every poll once the coalesce window
+    lapses (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-
+    enter)."""
+    try:
+        blocks, _ = _scan_messages(_inbox_path(root, to))
+        if blocks:
+            return True
+    except Exception:                                    # noqa: BLE001
+        pass
+    try:
+        if _pending_more(root, to) > 0:
+            return True
+    except Exception:                                    # noqa: BLE001
+        pass
+    return _read_deferred(root, to) is not None
+
+
+def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
+    """Re-check ONE seat and resubmit / deliver a wake when there is
+    something to deliver (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-
+    typing-not-enter). Called by rotate.py's `_announce_rotation` right after
+    the alert and by heal.py's watch pass for every live seat row each poll.
+
+    READ-ONLY until it has something to do:
+      - pane IDLE with a stranded nudge-shaped line -> the shared
+        `_nudge_window` path resubmits it by TYPING (space + Enter, never
+        Enter-only) and judges ownership on the rendered line as one delivery
+        (a rotation-alert dm that stranded under a BUSY pane now reaches the
+        Sensei, delivered ONCE);
+      - pane IDLE, no strand, but the seat has unread/pending/deferred ->
+        the ordinary waking path types the wake token (as today);
+      - pane BUSY (or coalesce-windowed) with something pending ->
+        `_nudge_window` coalesces to ONE stderr line and does nothing (the
+        deferred record is already written);
+      - nothing pending at all -> a silent no-op.
+    Address by @id when the row carries one; name fallback only as today.
+    """
+    resolved = _nudge_target(root, to, tmux_session)
+    if resolved is None:
+        return False
+    target, pid, tms = resolved
+    pane = _capture_pane(tms, target)
+    reason = _nudge_coalesce_reason(pane, _build_nudge_token(to),
+                                    _registry_status(pid))
+    if reason != "token already unsubmitted" and not _seat_has_pending(root, to):
+        # nothing stranded and nothing pending: never type a bare wake token
+        # into a seat with nothing to announce (the heal polls every seat).
+        return False
+    return _nudge_window(root, to, tmux_session=tms)
 
 
 def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
@@ -1918,6 +2012,14 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",
                          help="skip the `git fetch` before reading")
 
+    p_wake = sub.add_parser(
+        "wake", parents=[common],
+        help="re-check one seat: resubmit a stranded nudge by typing + Enter"
+             " (never Enter-only), or wake an idle pane whose seat has "
+             "unread; busy/no-op (hypothesis:l4-a-stranded-nudge-is-"
+             "resubmitted-by-typing-not-enter)")
+    p_wake.add_argument("target", help="seat name")
+
     p_esc = sub.add_parser("escalate", parents=[common],
                   help="post a concern, or escalate to owner via liaison")
     p_esc.add_argument("--to", default=None, help="'owner' or omit")
@@ -2065,6 +2167,10 @@ def main(argv: list[str] | None = None) -> int:
                          not args.no_fetch)
         print(text)
         return rc
+
+    if args.verb == "wake":
+        wake(root, args.target)
+        return 0
 
     if args.verb == "escalate":
         text = " ".join(args.text) if args.text else ""
