@@ -154,11 +154,20 @@ def _record_roots():
     #    through git_common_root so a scan from any worktree reaches the room
     #    every seat writes (the boundary's recurring face -- shared state
     #    resolved per-worktree instead of through git_common_root).
+    #    hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env:
+    #    when git reports NOTHING (no enclosing repo, or `git rev-parse`
+    #    fails under a gutted GIT_DIR / GIT_COMMON_DIR -- which the caller
+    #    has already popped, but defensively fall back all the same), the
+    #    main graph resolves from the conftest's OWN file path -- the one
+    #    root a kid cannot redirect. Never let a failed git lookup silently
+    #    narrow the scan to fewer roots.
     root = locations.find_project_root(Path(__file__).resolve())
     if root is not None:
         try:
             main_graph = locations.shared_project_root(root)
         except Exception:
+            main_graph = None
+        if main_graph is None:
             main_graph = root
         if main_graph:
             wt_root = Path(main_graph) / "worktrees"
@@ -267,9 +276,21 @@ def _is_bare_directory_run(config) -> bool:
 def pytest_cmdline_main(config):
     # No test-only seam remains: no option to read, no global to feed, no
     # PYTEST_CURRENT_TEST to be spoofed (hypothesis:l4-the-record-root-has-
-    # no-test-seam-either). Forget any stale dead env var a host may still
+    # no-test-seam-either). Forget any stale dead env vars a host may still
     # carry, then derive the tier. Nothing below can be re-armed.
     os.environ.pop("AGI_AGENT_SESSIONS_ROOT", None)
+    # Strip the git-redirection vars BEFORE any root is resolved
+    # (hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env).
+    # `_record_roots()` reaches `<main>/.agi/worktrees/*` through
+    # `locations.shared_project_root` -> `git_common_root` -> `git -C <d>
+    # rev-parse --git-common-dir`, which honours GIT_DIR / GIT_COMMON_DIR /
+    # GIT_WORK_TREE in the environment. A kid that exports any of these
+    # before `pytest` points the scan at a repo of its choosing, finds no
+    # record for its own pid chain, and runs the bare-directory suite it is
+    # refused. Popping them here closes the env seam one layer down, exactly
+    # as AGI_AGENT_SESSIONS_ROOT was already popped just above.
+    for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+        os.environ.pop(_g, None)
     if _effective_tier() != GATE_TIER:
         # Invisible at every tier other than kid (record-derived), and when
         # the tier is unset AND no running agent record matches an ancestor.

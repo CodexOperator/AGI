@@ -180,7 +180,7 @@ def _plant_in_tree(tier, status="running"):
 
 def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
                 plant_status="running", env_seam=None, extra_argv=(),
-                plant_marker=None):
+                plant_marker=None, git_redirect=None):
     """Run pytest against a throwaway dir that symlinks the real conftest.
 
     `env_extra`: what to set AGI_TIER to in the child env; None leaves it unset.
@@ -194,6 +194,12 @@ def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
     `plant_marker`: an externally-created throwaway dir (e.g. one a test
       planted itself) for this run to own and remove in finally, instead of
       creating a fresh one. Only meaningful with `plant_tier`/`plant_status`.
+    `git_redirect`: if not None, a path to a scratch repo; GIT_DIR,
+      GIT_COMMON_DIR and GIT_WORK_TREE are all set to it in the child env, to
+      prove the gate cannot be redirected to a repo of the run's choosing
+      (hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env).
+      The git-redirect vars are ALWAYS stripped from the inherited env first,
+      so a host's contaminated environment is not what the test measures.
     """
     import tempfile
 
@@ -213,6 +219,13 @@ def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
         env.pop("AGI_AGENT_SESSIONS_ROOT", None)
         if env_seam is not None:
             env["AGI_AGENT_SESSIONS_ROOT"] = str(env_seam)
+        # Never leak a host's git-redirect vars into the child; `git_redirect`
+        # re-adds them explicitly for the falsifier.
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            env.pop(_g, None)
+        if git_redirect is not None:
+            for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+                env[_g] = str(git_redirect)
         if plant_marker is not None:
             marker = plant_marker
         elif plant_tier:
@@ -510,6 +523,265 @@ def test_falsifier_env_seam_dead_kid_still_refuses():
         shutil.rmtree(empty)
 
 
+def _conftest_without_git_pop():
+    """The production conftest bytes with the three-line GIT_* pop REMOVED --
+    the PRE-FIX bytes the mutation harness runs against.
+
+    Non-vacuity proof for hypothesis:l4-the-tier-gate-scan-is-not-
+    redirectable-by-git-env: a falsifier only measures the fix if it is RED
+    without it. Running this mutated copy proves the exact same invocation
+    the fixed test expects to refuse ESCAPES (bare directory runs, exit 0)
+    when the pop is gone.
+    """
+    import re
+    text = Path(CONFTEST).read_text(encoding="utf-8")
+    pat = re.compile(
+        r'    for _g in \("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"\):\n'
+        r'        os\.environ\.pop\(_g, None\)\n'
+    )
+    stripped, n = pat.subn("", text)
+    assert n == 1, f"expected exactly one GIT_* pop block, stripped {n}"
+    return stripped
+
+
+def test_falsifier_git_env_cannot_redirect_the_scan_to_a_scratch_repo():
+    """FALSIFIER for hypothesis:l4-the-tier-gate-scan-is-not-redirectable-
+    by-git-env -- NON-VACUOUS, built on the fake-MAIN + DECOY harness.
+
+    `_record_roots()` reaches `<main>/.agi/worktrees/*` through
+    `locations.shared_project_root` -> `git_common_root` -> `git rev-parse
+    --git-common-dir`, which honours GIT_COMMON_DIR in the environment. Root
+    #1 (the fake MAIN's own sessions dir) holds NO record; the ONLY record
+    lives in the fake main's registered worktree sessions, reachable ONLY
+    through the git-resolved root #2 scan. GIT_COMMON_DIR is set ALONE (GIT_DIR
+    is deliberately NOT set -- the parent measured that GIT_DIR set equal to
+    it cancels the redirect) to a DECOY git repo graph that carries
+    `config.json`+`nodes` but no record.
+
+    On the pre-fix bytes (no pop) the scan follows GIT_COMMON_DIR to the
+    decoy, finds no record, derives no tier and RUNS the bare suite. The fix
+    (popping the three GIT_* vars before any root resolves) restores true git
+    resolution, root #2 finds the worktree kid record, and the bare directory
+    run is REFUSED (exit 4) -- so the run under the fix proves the redirect
+    cannot reach a repo of a kid's choosing even when attempted.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        decoy = _build_decoy_graph(td)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            code, err = _run_pytest_on_fake_main(
+                str(tests_dir), str(main),
+                extra_env={"GIT_COMMON_DIR": str(decoy / ".git")})
+            assert code == 4, (
+                f"git-redirected worktree kid must be refused, got {code}: {err}")
+            assert "AGI_TIER=kid" in err
+            assert "specific test file or a -k filter" in err
+        finally:
+            shutil.rmtree(main)
+            shutil.rmtree(decoy)
+
+
+def test_falsifier_git_env_redirect_mutation_escapes_without_the_pop():
+    """NON-VACUITY PROOF for hypothesis:l4-the-tier-gate-scan-is-not-
+    redirectable-by-git-env. The EXACT SAME bare-directory invocation as the
+    main falsifier, but run against a copy of the conftest with the three
+    GIT_* pop lines REMOVED -- the pre-fix bytes, via `_conftest_without_git_pop`.
+
+    Because the scan stays redirectable, root #2 follows GIT_COMMON_DIR to
+    the DECOY, finds no record, derives no tier and the bare-directory suite
+    RUNS (exit 0). This is the RED-on-pre-fix evidence: the fixed test above
+    does not pass "anyway" -- it passes ONLY because the pop restores true git
+    resolution, so it genuinely measures the fix.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        decoy = _build_decoy_graph(td)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            (tests_dir / "conftest.py").write_text(_conftest_without_git_pop())
+            code, err = _run_pytest_on_fake_main(
+                str(tests_dir), str(main),
+                extra_env={"GIT_COMMON_DIR": str(decoy / ".git")})
+            assert code == 0, (
+                f"without the pop the redirect must ESCAPE the gate, got "
+                f"{code}: {err}")
+        finally:
+            shutil.rmtree(main)
+            shutil.rmtree(decoy)
+
+
+def test_falsifier_git_env_redirect_no_redirect_still_refuses():
+    """NEGATIVE CONTROL. Same fake MAIN (record only in the worktree) and
+    DECOY, but GIT_COMMON_DIR UNSET -- no redirect attempted. The scan
+    resolves the fake main's own git repo, root #2 finds the worktree kid
+    record and the bare directory is refused. The fix must not depend on a
+    redirect being present; the false-positive direction (a kid that never
+    attacks the env still being blocked) is exactly what the gate owes.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        _build_decoy_graph(td)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            code, err = _run_pytest_on_fake_main(str(tests_dir), str(main))
+            assert code == 4, f"no-redirect worktree kid must be refused, got {code}: {err}"
+            assert "AGI_TIER=kid" in err
+        finally:
+            shutil.rmtree(main)
+
+
+def test_falsifier_git_env_redirect_to_configless_repo_still_refuses():
+    """NEGATIVE CONTROL. GIT_COMMON_DIR points at a DECOY git repo with NO
+    `.agi` (a plain empty scratch repo, not a graph). Pre-fix the scan would
+    redirect to it, `find_project_root` would resolve NONE, and the fallback
+    (`main_graph = root`) keeps scanning the fake main's own worktree -- so the
+    kid record is still found and the bare directory is refused. Even a
+    redirect to a non-project must never silently narrow the scan to fewer
+    roots.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        plain = Path(td) / "plain"
+        subprocess.run(["git", "init", "-q", str(plain)], check=True)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            code, err = _run_pytest_on_fake_main(
+                str(tests_dir), str(main),
+                extra_env={"GIT_COMMON_DIR": str(plain / ".git")})
+            assert code == 4, f"configless-repo redirect must be refused, got {code}: {err}"
+            assert "AGI_TIER=kid" in err
+        finally:
+            shutil.rmtree(main)
+            shutil.rmtree(plain)
+
+
+def test_falsifier_git_env_redirect_no_record_anywhere_passes():
+    """NEGATIVE CONTROL. Fake MAIN with NO record anywhere PLUS the DECOY and
+    GIT_COMMON_DIR redirect set: no running agent record matches the ancestor
+    chain in ANY scanned root, so the bare directory run passes unchanged.
+    The git-var strip must never by itself turn a genuinely record-free run
+    into a refusal.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=False)
+        decoy = _build_decoy_graph(td)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            code, err = _run_pytest_on_fake_main(
+                str(tests_dir), str(main),
+                extra_env={"GIT_COMMON_DIR": str(decoy / ".git")})
+            assert code == 0, f"no-record bare dir must pass, got {code}: {err}"
+        finally:
+            shutil.rmtree(main)
+            shutil.rmtree(decoy)
+
+
+def test_decision_git_common_dir_alone_redirects_shared_root(tmp_path):
+    """Locks the mechanism the subprocess falsifiers depend on, in isolation:
+    `shared_project_root(fake main graph)` routes through `git_common_root`,
+    which honours GIT_COMMON_DIR in the environment. Set ALONE (GIT_DIR
+    unset), the decoy's `.git` makes git report differing --git-dir and
+    --git-common-dir, so `git_common_root` resolves to the DECOY and `shared_-
+    project_root` loses the fake main's worktrees. Once the three GIT_* vars
+    are popped (the fix), git reports equal dirs, `git_common_root` returns
+    the walk-up repo root, and the fake main's worktree graph is resolved
+    again. (hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env)
+    """
+    import shutil
+    main = _build_fake_main(tmp_path, with_kid_record=True)
+    decoy = _build_decoy_graph(tmp_path)
+    try:
+        graph = gate.locations.find_project_root(
+            main / "extensions" / "agi" / "tests")
+        assert graph is not None
+        # root #1 is the fake main's own sessions (empty); verify that the
+        # ONLY record lives in the worktree graph, via the real resolvers.
+        kid_graph = gate.locations.find_project_root(
+            main / ".agi" / "worktrees" / "kidA")
+        assert kid_graph is not None
+
+        # GIT_COMMON_DIR ALONE redirects shared_project_root to the decoy.
+        os.environ["GIT_COMMON_DIR"] = str(decoy / ".git")
+        redirected = gate.locations.shared_project_root(graph)
+        assert redirected == (decoy / ".agi").resolve(), redirected
+
+        # GIT_DIR set equal to the SAME path cancels the redirect: git reports
+        # git-dir == common-dir and git_common_root returns the walk-up root.
+        os.environ["GIT_DIR"] = str(decoy / ".git")
+        cancelled = gate.locations.shared_project_root(graph)
+        assert cancelled == (main / ".agi").resolve(), cancelled
+
+        # The fix pops all three -> true resolution to the fake main's graph.
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            os.environ.pop(_g, None)
+        restored = gate.locations.shared_project_root(graph)
+        assert restored == (main / ".agi").resolve(), restored
+    finally:
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            os.environ.pop(_g, None)
+        shutil.rmtree(main)
+        shutil.rmtree(decoy)
+
+
+def test_falsifier_git_env_redirect_named_file_still_passes():
+    """NEGATIVE CONTROL for the git-env falsifier: with the same
+    fake-MAIN + DECOY + GIT_COMMON_DIR-alone redirect, but a NAMED file (a
+    targeted run), the record-derived kid may still run it -- only the bare
+    directory is refused. Confirms the git-var strip does not over-block
+    legitimate targeted runs.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        decoy = _build_decoy_graph(td)
+        try:
+            tests_dir = main / "extensions" / "agi" / "tests"
+            env = dict(os.environ)
+            env.pop("AGI_TIER", None)
+            env.pop("AGI_AGENT_SESSIONS_ROOT", None)
+            for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+                env.pop(_g, None)
+            env["GIT_COMMON_DIR"] = str(decoy / ".git")
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest",
+                 str(tests_dir / "test_ok.py"), "-q"],
+                cwd=str(main), capture_output=True, text=True, env=env,
+                timeout=300)
+            assert proc.returncode == 0, (
+                f"named-file run should pass, got {proc.returncode}: "
+                f"{proc.stderr}")
+        finally:
+            shutil.rmtree(main)
+            shutil.rmtree(decoy)
+
+
+def test_decision_git_redirect_vars_are_popped_before_root_resolution(monkeypatch):
+    """In-process unit: `pytest_cmdline_main` must strip GIT_DIR, GIT_COMMON_DIR
+    and GIT_WORK_TREE from os.environ BEFORE `_effective_tier()` runs, so the
+    root resolution a kid would redirect never sees them. Call the hook with a
+    non-refusing config and assert the three vars are gone afterwards.
+    """
+    cfg = _Cfg([], keyword="x")  # -k filter -> never refuses, but the pop runs.
+    monkeypatch.setenv("GIT_DIR", "/fake/gitdir")
+    monkeypatch.setenv("GIT_COMMON_DIR", "/fake/common")
+    monkeypatch.setenv("GIT_WORK_TREE", "/fake/wt")
+    gate.pytest_cmdline_main(cfg)
+    for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+        assert os.environ.get(_g) is None, f"{_g} must be popped before resolution"
+
+
 def test_falsifier_kid_record_wins_over_env_tier_and_seam_root():
     """Even AGI_TIER=parent (the old env fallback) cannot clear a kid whose
     record is on the ancestor chain, and the dead env seam pointing at an
@@ -630,16 +902,52 @@ def _build_fake_main(tmp_parent, with_kid_record=True):
     bin_link = main / "extensions" / "agi" / "bin"
     bin_link.parent.mkdir(parents=True, exist_ok=True)
     os.symlink(BIN_DIR, bin_link)
+
+    # Make the fake main a REAL git repo. `_record_roots()` reaches the
+    # worktrees through `git_common_root`, which consults `git rev-parse` only
+    # once a `.git` is found walking up from the graph -- and GIT_COMMON_DIR
+    # can only redirect the scan when git is actually consulted
+    # (hypothesis:l4-the-tier-gate-scan-is-not-redirectable-by-git-env). A
+    # fake main with no `.git` is inert against the redirect, so the redirect
+    # falsifier could never fire. git-init makes the walk stop at `main` and
+    # the scan genuinely routable.
+    subprocess.run(["git", "init", "-q", str(main)], check=True)
     return main
+
+
+def _build_decoy_graph(parent):
+    """A throwaway "DECOY" graph a redirect can point the scan at: a REAL git
+    repo whose `.agi` carries config.json + nodes (so `find_project_root`
+    resolves it to a valid graph) but NO agent record anywhere.
+
+    The whole point of the decoy (hypothesis:l4-the-tier-gate-scan-is-not-
+    redirectable-by-git-env): if a kid can redirect `_record_roots()`'s
+    git-resolved root #2 at a repo of its choosing, it feeds it a graph that
+    looks like a project but whose sessions dir is EMPTY -- so the scan finds
+    no running agent on the kid's own pid chain and the bare-directory suite
+    runs. The decoy has to lie to `git_common_root` (carry a `.git`) AND to
+    `find_project_root` (carry `.agi/config.json`) to be a convincing target.
+    """
+    decoy = Path(parent) / "decoy"
+    graph = decoy / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes").mkdir()
+    subprocess.run(["git", "init", "-q", str(decoy)], check=True)
+    return decoy
 
 
 def _run_pytest_on_fake_main(main_tests_dir, cwd, extra_env=None):
     """Run pytest as a bare-directory run against a fake MAIN tests dir with
-    AGI_TIER unset; return (returncode, stderr).
+    AGI_TIER unset; return (returncode, stderr). Host GIT_* vars are always
+    stripped first so a contaminated host does not redirect the scan on its
+    own; `extra_env` re-adds them explicitly for the redirect falsifiers.
     """
     env = dict(os.environ)
     env.pop("AGI_TIER", None)
     env.pop("AGI_AGENT_SESSIONS_ROOT", None)
+    for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+        env.pop(_g, None)
     if extra_env:
         env.update(extra_env)
     proc = subprocess.run(
