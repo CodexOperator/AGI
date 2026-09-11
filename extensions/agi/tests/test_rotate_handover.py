@@ -477,6 +477,148 @@ def test_join_missing_registry_file_records_skipped(_fix, tmp_path,
     assert "registry file for @9" in rec["refusal_reason"]
 
 
+# ── L4.288 (the stale-pid hazard) — ack back-fills pid/session_id from the ──
+#    JOIN by the row's OWN window @id, and pins the meter when absent ────────
+
+
+def _recovered_root(tmp_path, *, seat="adv-s", window="@77", pid=999999,
+                    session_id="", session_ref=""):
+    """Fixture graph root with a recovered-shaped seats row (the DEAD pid +
+    blanked session_id `heal.py _recover_seat` leaves) plus the schema that
+    admits the self_row write (mirrors test_ack_backfills_session_ref_and_whois).
+    NEVER the live seats row."""
+    schemas = tmp_path / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    (schemas / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\n"
+        "self_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "---\nbody\n", encoding="utf-8")
+    _write_seats_sheet(tmp_path, [{
+        "name": seat, "role": "parent", "model": "x",
+        "session_ref": session_ref, "session_id": session_id,
+        "window": window, "pid": pid,
+    }])
+    return tmp_path
+
+
+def _reg_file(reg, pid, sid, cwd, window):
+    """A per-session registry file whose CONTENT carries the window @id token
+    (the JOIN matches by content, never by filename/session prefix)."""
+    reg.mkdir(parents=True, exist_ok=True)
+    (reg / f"{pid}.json").write_text(json.dumps({
+        "session_id": sid, "cwd": cwd, "tmux": f"view:{window}.%0",
+    }), encoding="utf-8")
+
+
+def _ack_args(seat="adv-s", gen=5, ref="r1", reg=None):
+    return SimpleNamespace(seat=seat, gen=gen, ref=ref, answer="continue",
+                           text="", registry_dir=(str(reg) if reg else None))
+
+
+def test_ack_recovered_row_backfills_pid_sid_and_pins_meter(_fix, tmp_path,
+                                                            monkeypatch):
+    """(a) A recovered-shaped row (DEAD pid 999999, blanked session_id,
+    empty ref, window @77) + a registry file whose content carries @77 with
+    sessionId abc and a cwd: after `ack --seat adv-s --gen 5 --ref r1
+    continue --registry-dir D` the row carries pid 4242, session_id abc,
+    session_ref r1, and the seat's meter is pinned at `5<TAB><derived
+    transcript>`. Source is the JOIN by the row's OWN window @id — never
+    ppid-walking, never the newest registry file."""
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "cc" / "projects")
+    root = _recovered_root(tmp_path)
+    reg = tmp_path / "registry"
+    _reg_file(reg, 4242, "abc-def-123", "/home/usr/foo/.bar", "@77")
+    rc = rotate.cmd_ack(_ack_args(reg=reg), root)
+    assert rc == 0
+    own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
+    assert own["pid"] == 4242
+    assert own["session_id"] == "abc-def-123"
+    assert own["session_ref"] == "r1"
+    assert own["window"] == "@77"
+    # the meter pin = `gen<TAB><derived transcript>` (the ack's gen as the
+    # generation, the transcript derived from cwd+sessionId — the ONE helper).
+    pin = rotate._sessions_dir(root) / "adv-s.meter"
+    assert pin.exists()
+    body = pin.read_text(encoding="utf-8")
+    assert body.startswith("5\t")
+    assert body.rstrip("\n").endswith("abc-def-123.jsonl")
+
+
+def test_ack_rotate_self_shaped_row_stays_byte_identical(_fix, tmp_path,
+                                                          monkeypatch, capsys):
+    """(b) A rotate-self-shaped row (pid 4242, session_id abc already seated,
+    window @77, pin present) + the same registry: after the ack the row is
+    byte-identical EXCEPT session_ref, and the EXISTING pin is never
+    overwritten (the pin is the lease, prime XI ruling b)."""
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "cc" / "projects")
+    root = _recovered_root(tmp_path, pid=4242, session_id="abc-def-123",
+                           window="@77")
+    # pre-place the seat's pin (what `_pin_successor_meter` would have written)
+    sess = root / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / "adv-s.meter").write_text("5\t/pre/placed.jsonl\n", encoding="utf-8")
+    reg = tmp_path / "registry"
+    _reg_file(reg, 4242, "abc-def-123", "/home/usr/foo/.bar", "@77")
+    before = (sess / "adv-s.meter").read_text(encoding="utf-8")
+    rc = rotate.cmd_ack(_ack_args(reg=reg), root)
+    assert rc == 0
+    own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
+    # joined pid/sid EQUAL the row's -> nothing written except session_ref
+    assert own["pid"] == 4242
+    assert own["session_id"] == "abc-def-123"
+    assert own["session_ref"] == "r1"
+    # the pin was NOT overwritten
+    assert (sess / "adv-s.meter").read_text(encoding="utf-8") == before
+    out = capsys.readouterr().out
+    assert "back-filled session_ref=r1 into own row" in out
+    assert "pid=" not in out
+    assert "session_id=" not in out
+
+
+def test_ack_empty_registry_leaves_pid_sid_untouched_and_exits_0(
+        _fix, tmp_path, capsys):
+    """(c) An EMPTY registry dir: pid/session_id untouched, no pin, exit 0,
+    the ack file still written, the miss NAMED on stdout — never an error
+    exit, never a >5 s join wait."""
+    root = _recovered_root(tmp_path, pid=999999, session_id="")
+    reg = tmp_path / "empty-reg"
+    reg.mkdir()
+    rc = rotate.cmd_ack(_ack_args(reg=reg), root)
+    assert rc == 0
+    own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
+    assert own["pid"] == 999999          # untouched
+    assert own["session_id"] == ""       # untouched
+    assert own["session_ref"] == "r1"    # the ref back-fill still lands
+    assert rotate._ack_path(root, "adv-s").exists()
+    assert not (rotate._sessions_dir(root) / "adv-s.meter").exists()
+    out = capsys.readouterr().out
+    assert "join:" in out
+    # director fix-up at the L4.288 harvest: F8 — the ack PRINTS the
+    # back-fill it wrote even when the identity join misses.
+    assert "back-filled session_ref=r1 into own row (source: ack)" in out
+
+
+def test_ack_row_without_window_leaves_pid_sid_untouched(_fix, tmp_path,
+                                                         capsys):
+    """(d) A row WITHOUT a `window` cell: no join token (immediate miss, no
+    poll), pid/session_id/pin untouched, exit 0, the ack still lands."""
+    root = _recovered_root(tmp_path, window="", pid=999999, session_id="")
+    reg = tmp_path / "registry"
+    _reg_file(reg, 4242, "abc-def-123", "/home/usr/foo/.bar", "@77")
+    rc = rotate.cmd_ack(_ack_args(reg=reg), root)
+    assert rc == 0
+    own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
+    assert own["pid"] == 999999
+    assert own["session_id"] == ""
+    assert own["session_ref"] == "r1"
+    out = capsys.readouterr().out
+    assert "join:" in out
+    # director fix-up at the L4.288 harvest: F8 — the ack PRINTS the
+    # back-fill it wrote even when the identity join misses.
+    assert "back-filled session_ref=r1 into own row (source: ack)" in out
+
+
 # ── L4.114 (c) — ack --ref back-fill (r3) + whois by ref AND uuid prefix ───
 
 

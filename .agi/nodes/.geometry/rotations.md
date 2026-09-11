@@ -5,7 +5,25 @@ type: config
 parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
-edited_by: master-sensei
+edited_by: a00-7706072a
+fact_bounds:
+  model: permanent
+  effort: permanent
+  window: permanent
+  worktree: permanent
+  successor_address: permanent
+  successor_live_model: permanent
+  seed: permanent
+  commit: head
+  seat_row: head
+  verification: head
+  mail: head
+  account: head
+  floor: head
+  registry: head
+  crons: head
+  ack: head
+  model_refusal_fallback: head
 locations: {}
 scaffold_hash: c15eeda9b6db679a
 season: 2
@@ -133,6 +151,8 @@ rather than in the same window. The resolution must run BEFORE any side effect
 ## facts
 
 > Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b) — the bootstrap facts a successor is handed instead of reading the handoff. 0b-b's emitter is not live yet; until it lands, the director template's `facts` first_turn entry prints this section by body range. MEASURED facts only, each with the wake that paid for it (owner 2026-09-11 12:4xZ, verbatim: "sanctuary director just rotated, did 60 tool calls straight first thing. Need to figure out what and why and add to his rotation config"; measured from gen XIV's transcript: 66 calls in 12 min, 11 wake + 55 harvest, of which 16 re-derived F1-F4).
+
+> Staleness bound (L4.290): a fact the `fact_bounds:` map does not name defaults to `head` — treated as head-bound and marked stale when its measured commit differs from HEAD; a `permanent` fact is never marked. Written by `write.py`, never by hand.
 
 - F1 (gen XIV calls 2, 4-7 — 6 calls): after the ack (the PENDING `continue` the service wrote for you — F8 — or your own overwrite) the predecessor's wrapper reaps its own chain and writes the record `success` within ~60 s. ONE call proves it — `python3 extensions/agi/bin/rotate.py status --seat <seat> --record latest` (its `s12_self_reap` section) — never `ps`/`tmux` by hand. The record in your STARTUP OUTPUT reads `started` by construction: it ran before your ack.
 - F2 (gen XIV calls 26-30 — 5 calls): a worktree seat's `config:seats` row (session_ref/pid/window/generation) is written in ITS OWN worktree at spawn and back-filled at its ack; it reaches `season/s2` at that seat's next merge-up. `send.py whois <ref>` against origin reads NO-MATCH until then — expected, not a defect; verify by the record + the seat worktree's row + the pane.

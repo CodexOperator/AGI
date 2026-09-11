@@ -111,7 +111,33 @@ def main() -> int:
         return _main_watch()
     if len(sys.argv) > 1 and sys.argv[1] == "sweep":
         return _main_sweep()
+    if len(sys.argv) > 1 and sys.argv[1] == "pin-reap":
+        return _main_pin_reap()
     return _main_heal()
+
+
+def _main_pin_reap() -> int:
+    """(2b) `heal.py pin-reap [--dry-run] [--registry-dir D]` — ONE pass,
+    LIST ONLY regardless of the flag: arming happens ONLY through
+    `.agi/config.json` `reaper.pin_reap == "armed"`, never a CLI flag. The
+    `--dry-run` flag is accepted for symmetry and the pass is still list-only.
+    Exit 0. The live pass reads the real registry dir (`~/.claude/sessions`)
+    unless `--registry-dir` is given."""
+    ap = argparse.ArgumentParser(prog="heal.py pin-reap")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root to scan")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="accepted for symmetry; a pin-reap is ALWAYS list-only")
+    ap.add_argument("--registry-dir", type=str, default=None,
+                    help="override the cc session registry dir (test seam)")
+    ap.add_argument("--window-path", type=str, default=None,
+                    help="window-list seam (AGI_WINDOW_PATH); default real tmux")
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    _pin_reap_pass(root, registry_dir=args.registry_dir,
+                   window_path=args.window_path, mode="dry-run")
+    return 0
 
 
 def _main_heal() -> int:
@@ -777,6 +803,11 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # as a `crash-recovery` rotation record (the once-guard). kid 2 owns
         # the respawn half.
         _watch_seats(root)
+        # hypothesis:l4-the-pin-is-the-lease (kid 2): ONCE per pass, right
+        # after the dead-seat scan, run the pin/lease reap pass. MODE is read
+        # from `.agi/config.json` `reaper.pin_reap` (absent/dry-run = LIST
+        # ONLY; armed = reap rotate helpers + one dm); exactly ONE call site.
+        _pin_reap_pass(root)
         # hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest:
         # once per pass, sweep finished rounds' worktrees. Run unconditionally
         # (never gated on inline_reaper) so a harness that harvests with raw
@@ -1062,6 +1093,331 @@ def _rotation_in_flight(root: Path, seat: str, _rotate,
         if ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S:
             return True
     return False
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-the-pin-is-the-lease, KID 1 — the TABLES + the JUDGEMENT.
+# Pure functions (no reap, no write, no dm, no live process); KID 2 consumes
+# them in `_pin_reap_pass`. rotate.py is IMPORTED never edited; the reap chain
+# (`_pane_pid`, `_descendant_chain`, `_reap_chain`, `_pid_alive`) is KID 2's
+# arm. Nothing here reads `~/.claude/sessions`, kills a process, or touches
+# `.agi/config.json`.
+# ---------------------------------------------------------------------------
+
+
+def _pin_table(root: Path, rows: list) -> tuple[dict, list]:
+    """(1a) THE PIN TABLE. Returns `({session_id: (seat, pin_path, generation)},
+    skipped)`. Reads every row's own seat-stable pin `<sessions>/<seat>.meter`
+    (the file `pin_ref` in the row names, via the ONE `_sessions_dir`
+    resolver the pins already share) and, for a row carrying
+    `predecessor_pins: N` (READ the cell, absent = 0), the chain pins
+    `<seat>.pred-1..N.meter` beside it. A pin names a transcript
+    (`<gen><TAB><transcript>` or bare `<transcript>`, parsed by rotate's own
+    `_parse_pin_record` — never copied); the session it leases is the
+    transcript's STEM, the L4.114 identity `~/.claude/projects/<slug>/<sid>`
+    `.jsonl`. A pin whose transcript FILE is missing is SKIPPED with a reason
+    (clause 3) and is never a lease — its session therefore reads as
+    unpinned. FIXTURES ONLY: reads only the fixture sessions dir; never
+    `~/.claude/sessions`, never a real process."""
+    import rotate as _rotate  # noqa: PLC0415
+    sdir = _rotate._sessions_dir(root)
+    pins: dict = {}
+    skipped: list[dict] = []
+    for row in rows or []:
+        seat = (row.get("name") or "").strip()
+        if not seat:
+            continue
+        pred_n = int(row.get("predecessor_pins", 0) or 0)
+        own_pin = f"{seat}{_rotate.METER_PIN_EXT}"
+        pred_pins = [f"{seat}.pred-{i}{_rotate.METER_PIN_EXT}"
+                     for i in range(1, pred_n + 1)]
+        for pin_name in [own_pin] + pred_pins:
+            pf = sdir / pin_name
+            if not pf.is_file():
+                if pin_name != own_pin:
+                    skipped.append({"seat": seat, "pin_path": str(pf),
+                                    "reason": "predecessor pin file absent"})
+                continue
+            gen, target = _rotate._parse_pin_record(pf)
+            if not target:
+                skipped.append({"seat": seat, "pin_path": str(pf),
+                                "reason": "pin empty/unparsable"})
+                continue
+            tp = Path(target).expanduser()
+            if not tp.exists():
+                skipped.append({"seat": seat, "pin_path": str(pf),
+                                "reason": f"transcript missing: {tp}"})
+                continue
+            sid = tp.stem
+            if sid:
+                pins[sid] = (seat, str(pf), gen)
+    return pins, skipped
+
+
+def _seat_sessions(registry_dir: str | None = None,
+                   windows: list[tuple[str, str]] | None = None) -> list[dict]:
+    """(1b) THE SEAT SESSION TABLE — one entry per Claude Code session on the
+    box whose registry file's `tmux` cell carries an `@id` that resolves,
+    through the SAME window list `_all_windows` already builds, to a live
+    window. Returns `[{pid, session_id, window_id, window_name}]`.
+
+    (clause 4) every OTHER registry file — the owner's remote-control sessions
+    (`tmux: None`), the streamer stub, anything unnamed — is NOT a seat
+    session: never listed, never touched. @id-resolution through the window
+    list is the whole gate at THIS layer (the one the fixed signature
+    `(registry_dir, windows)` can decide); the seat/belam NAME gate lives in
+    `_judge_leases`, which is the layer that holds the rows. NEVER reads a
+    real process; reads only `<registry_dir>/<pid>.json`."""
+    import rotate as _rotate  # noqa: PLC0415
+    reg = Path(registry_dir or _rotate.REGISTRY_DEFAULT_DIR).expanduser()
+    if not reg.is_dir():
+        return []
+    win_by_id = {wid: name for (wid, name) in (windows or [])}
+    _RE_ID = re.compile(r"@(\d+)")
+    out: list[dict] = []
+    for fp in sorted(reg.glob("*.json")):
+        try:
+            data = json.loads(fp.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        tmux = data.get("tmux")
+        if not isinstance(tmux, str):
+            continue  # owner remote-control (`tmux: None`) / stub: no @id
+        m = _RE_ID.search(tmux)
+        if not m:
+            continue
+        wid = f"@{m.group(1)}"
+        wname = win_by_id.get(wid)
+        if wname is None:
+            continue  # @id resolves to no live window -> not a seat session
+        sess = data.get("session_id") or data.get("sessionId") or ""
+        if not sess:
+            continue
+        try:
+            pid = int(fp.stem)
+        except ValueError:
+            pid = None
+        out.append({"pid": pid, "session_id": sess,
+                    "window_id": wid, "window_name": wname})
+    return out
+
+
+def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
+                  now: float | None = None) -> list[dict]:
+    """(1c) THE JUDGEMENT — per seat session exactly ONE of:
+      KEEP          its sessionId is pinned (a live lease),
+      PROTECTED     row `protected: true` (READ the cell, absent = not),
+      IN-FLIGHT     `_rotation_in_flight` (L4.283's guard, CALLED not copied),
+      BELAM-UNPINNED a belam-prefixed session no pin names while the belam row
+                    carries no `predecessor_pins` cell or its pred chain is
+                    incomplete: LISTED with reason `no predecessor-pin table
+                    yet`, NEVER reaped — the owner's standing rule that the
+                    idle predecessor windows are never closed holds BY
+                    CONSTRUCTION until the pin SHIFT (a rotate.py round)
+                    exists,
+      REAP          a plain-seat session no pin names.
+    Verdict order is KEEP > PROTECTED > IN-FLIGHT > BELAM-UNPINNED > REAP.
+    Only sessions whose window name matches a seat row or carries the belam
+    row's name as a prefix are judged at all (clause 4); the rest fall out of
+    the table. Returns `[{pid, session_id, window_id, window_name, seat,
+    verdict, reason}]`."""
+    import rotate as _rotate  # noqa: PLC0415
+    now = now if now is not None else time.time()
+    by_name: dict[str, dict] = {}
+    belam_row = None
+    belam_name = ""
+    for r in rows or []:
+        nm = (r.get("name") or "").strip()
+        if not nm:
+            continue
+        by_name[nm] = r
+        if nm == "belam":
+            belam_row = r
+            belam_name = nm
+    pred_n = int((belam_row or {}).get("predecessor_pins", 0) or 0)
+    pred_complete = False
+    if belam_row and pred_n > 0:
+        sdir = _rotate._sessions_dir(root)
+        pred_complete = all(
+            (sdir / f"{belam_name}.pred-{i}{_rotate.METER_PIN_EXT}").is_file()
+            for i in range(1, pred_n + 1))
+    res: list[dict] = []
+    for s in sessions or []:
+        wname = (s.get("window_name") or "").strip()
+        row = by_name.get(wname)
+        belam_pref = False
+        if row is None and belam_name and \
+                (wname == belam_name or wname.startswith(belam_name + "-")):
+            row = belam_row
+            belam_pref = True
+        if row is None:
+            continue  # not a seat/belam window: never listed, never touched
+        seat = (row.get("name") or "").strip()
+        sid = s.get("session_id") or ""
+        reason = ""
+        if sid and sid in pins:
+            verdict = "KEEP"
+        elif bool(row.get("protected")):
+            verdict = "PROTECTED"
+        elif _rotation_in_flight(root, seat, _rotate, now):
+            verdict = "IN-FLIGHT"
+        elif belam_pref and not pred_complete:
+            verdict = "BELAM-UNPINNED"
+            reason = "no predecessor-pin table yet"
+        else:
+            verdict = "REAP"
+        res.append({"pid": s.get("pid"), "session_id": sid,
+                    "window_id": s.get("window_id"),
+                    "window_name": wname, "seat": seat,
+                    "verdict": verdict, "reason": reason})
+    return res
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-the-pin-is-the-lease, KID 2 — the PASS + the ARM.
+# `_pin_reap_pass` is called once per `_watch` pass right after `_watch_seats`;
+# `pin-reap` is a LIST-ONLY subcommand of heal.py. The MODE is read from
+# `.agi/config.json` `reaper.pin_reap` (absent or `"dry-run"` = LIST ONLY;
+# `"armed"` = reap via rotate.py's OWN imported helpers: `_pane_pid` ->
+# `_descendant_chain` -> `_reap_chain`), then ONE dm via send.py to the REAP
+# row's `rotated_by` holder + a watch-log line. rotate.py is IMPORTED never
+# edited. FIXTURES ONLY: never edits `.agi/config.json`, never reads
+# `~/.claude/sessions` under test (registry_dir pain), never kills a real
+# process (`reaper`/`pid_alive` are the test seams).
+# ---------------------------------------------------------------------------
+
+
+def _pin_reap_mode(root: Path) -> str:
+    """`"armed"` iff `.agi/config.json` `reaper.pin_reap == "armed"`; else
+    `"dry-run"`. Never edits the config, never raises (a missing/malformed
+    config -> dry-run, FAIL CLOSED: an unreadable mode must never arm)."""
+    try:
+        cfg_path = locations.config_path(root)
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            if (cfg.get("reaper") or {}).get("pin_reap") == "armed":
+                return "armed"
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return "dry-run"
+
+
+def _pin_reap_arm(root: Path, j: dict, _rotate) -> dict:
+    """The REAL reap arm (used when MODE is armed and no `reaper` seam is
+    injected): rotate.py's OWN chain `_pane_pid(@window)` ->
+    `_descendant_chain` -> `_reap_chain`. A window-id that yields no pane pid
+    or an empty chain SKIPPED with the reason (never guesses). Never raises
+    live; `_reap_chain` refuses the caller's own pid and any pid <= 0."""
+    wid = j.get("window_id") or ""
+    pane_pid = _rotate._pane_pid(wid) if wid else None
+    if not pane_pid:
+        return {"window_id": wid, "pane_pid": None, "pids": [],
+                "observed": {"chain": []},
+                "skipped": "no pane pid for window "
+                            f"{wid!r}; nothing to reap"}
+    pids = _rotate._descendant_chain(pane_pid)
+    if not pids:
+        return {"window_id": wid, "pane_pid": pane_pid, "pids": [],
+                "observed": {"chain": []},
+                "skipped": f"no chain under pane pid {pane_pid}"}
+    observed = _rotate._reap_chain(pids)
+    return {"window_id": wid, "pane_pid": pane_pid, "pids": pids,
+            "observed": observed}
+
+
+def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
+                   window_path: str | None = None, pid_alive=None,
+                   reaper=None, now: float | None = None,
+                   mode: str | None = None,
+                   ) -> list[dict]:
+    """(2a) ONE pin-reap pass: read the pins, list the @id-resolved seat
+    sessions, judge every one, log ONE summary line plus one line per
+    non-KEEP session, and — only when MODE is `armed` and the verdict is
+    REAP — reap (rotate helpers or the injected `reaper` seam) and dm the
+    row's `rotated_by` holder once. Never reaps PROTECTED / IN-FLIGHT /
+    BELAM-UNPINNED (kid 1's verdicts, BY CONSTRUCTION: only `REAP` arms).
+    Idempotent: a session already reaped is no longer in the registry, so a
+    later pass simply does not list it; an already-dead pid reap records
+    not-alive and changes nothing. Returns the list of ARM actions taken
+    (empty under dry-run / no REAP). Never raises into the watch loop."""
+    import rotate as _rotate  # noqa: PLC0415
+    try:
+        rows = _rotate._load_seats(root) or []
+    except Exception:  # noqa: BLE001
+        rows = []
+    windows = _all_windows(window_path)
+    pins, _skipped = _pin_table(root, rows)
+    sessions = _seat_sessions(registry_dir, windows)
+    judged = _judge_leases(pins, sessions, rows, root,
+                           now=now if now is not None else time.time())
+    counts: dict[str, int] = {}
+    for j in judged:
+        counts[j["verdict"]] = counts.get(j["verdict"], 0) + 1
+    _watch_log("watch: pin-reap pass: "
+               + ", ".join(f"{v}={counts.get(v, 0)}"
+                           for v in ("KEEP", "PROTECTED", "IN-FLIGHT",
+                                     "BELAM-UNPINNED", "REAP")
+                           if counts.get(v)))
+    if mode is None:
+        mode = _pin_reap_mode(root)
+    armed = (mode == "armed")
+    pid_is_alive = pid_alive or _pid_alive
+    acted: list[dict] = []
+    for j in judged:
+        if j["verdict"] == "KEEP":
+            continue
+        _watch_log(f"watch: pin-reap {j['verdict']}: "
+                   f"seat={j['seat']} sid={j['session_id']} "
+                   f"pid={j['pid']} window={j['window_id']} "
+                   f"({j['reason']})")
+        if j["verdict"] != "REAP" or not armed:
+            continue
+        rec = {"seat": j["seat"], "session_id": j["session_id"],
+               "pid": j["pid"], "window_id": j["window_id"]}
+        # idempotence: skip arming a pid the liveness seam reports dead
+        # (its registry file is stale but the process is already gone).
+        already_gone = False
+        if j.get("pid"):
+            try:
+                alive = pid_is_alive(int(j["pid"]))
+            except Exception:  # noqa: BLE001
+                alive = True
+            if not alive:
+                already_gone = True
+                rec["reaped"] = False
+                rec["note"] = "pid already gone; nothing to reap (idempotent)"
+        if already_gone:
+            _watch_log(f"watch: pin-reap REAP (skip gone): seat={j['seat']} "
+                       f"pid={j['pid']}")
+        else:
+            if reaper is not None:
+                try:
+                    rec["reap"] = reaper(root, j, _rotate)
+                except Exception as exc:  # noqa: BLE001
+                    rec["reap"] = {"skipped": f"reaper raised: {exc}"}
+            else:
+                rec["reap"] = _pin_reap_arm(root, j, _rotate)
+        row = next((r for r in rows
+                    if (r.get("name") or "").strip() == j["seat"]), {})
+        holder = str(row.get("rotated_by") or "").strip()
+        # ONE dm to the REAP row's rotated_by holder (best-effort, never fatal)
+        if holder:
+            try:
+                import send as _send  # noqa: PLC0415
+                ts = datetime.datetime.utcnow().isoformat() + "Z"
+                _send.send(root, holder,
+                           f"[pin-reap] {j['seat']} window {j['window_id']} "
+                           f"(sid={j['session_id']}, pid={j['pid']}) reaped "
+                           f"at {ts} by heal pin-reap pass", "heal")
+            except Exception as exc:  # noqa: BLE001
+                print(f"warn: pin-reap dm to {holder!r} failed: {exc}",
+                      file=sys.stderr)
+        _watch_log(f"watch: pin-reap REAP: seat={j['seat']} "
+                   f"window={j['window_id']} pid={j['pid']} -> armed")
+        acted.append(rec)
+    return acted
 
 
 def _live_seat_row(gdir: Path, seat: str, _rotate) -> dict | None:
