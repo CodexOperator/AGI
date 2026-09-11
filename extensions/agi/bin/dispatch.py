@@ -235,7 +235,7 @@ def _is_engine_path(p: str) -> bool:
     return p.startswith(_ENGINE_PATH_LEADS)
 
 
-def _stale_base_spawn(root: Path, season: int) -> dict:
+def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -> dict:
     """How far the spawner's HEAD is behind the integration branch.
 
     Returns one of:
@@ -250,10 +250,13 @@ def _stale_base_spawn(root: Path, season: int) -> dict:
     on origin, not whatever the local ref last happened to see.
     """
     integration = f"origin/season/s{season}"
+    fetch_ref = f"season/s{season}"
+    if town_branch:
+        integration = f"origin/{town_branch}"
+        fetch_ref = town_branch
     try:
         fr = subprocess.run(
-            ["git", "-C", str(root), "fetch", "origin",
-             f"season/s{season}"],
+            ["git", "-C", str(root), "fetch", "origin", fetch_ref],
             capture_output=True, text=True, timeout=60)
         if fr.returncode != 0:
             # A failed fetch means the remote tip is unknowable -> we cannot
@@ -303,7 +306,8 @@ def _stale_base_spawn(root: Path, season: int) -> dict:
     return {"status": "behind", "behind": behind, "files": files}
 
 
-def _stale_base_record(stale: dict, season: int) -> dict:
+def _stale_base_record(stale: dict, season: int,
+                       town_branch: str | None = None) -> dict:
     """The structured next-actions record emitted on a stale base (HALF A).
 
     Machine-readable so HALF B (hypothesis:l4-startup-is-one-script-or-a-
@@ -316,13 +320,44 @@ def _stale_base_record(stale: dict, season: int) -> dict:
         "issue": "stale-base",
         "behind": stale.get("behind", 0),
         "files": stale.get("files", []),
-        "integration": f"season/s{season}",
+        "integration": town_branch or f"season/s{season}",
         "actions": [
-            {"id": "sync", "cmd": f"git merge origin/season/s{season}"},
+            {"id": "sync", "cmd": f"git merge origin/{town_branch or f'season/s{season}'}"},
             {"id": "override", "cmd": "dispatch ... --allow-stale-base <reason>"},
             {"id": "abort"},
         ],
     }
+
+
+def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
+    """The integration branch of the town the spawner's CURRENT branch maps to.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council + owner
+    ruling 01:4xZ: a round on a town's own branch measures its freshness
+    against that town branch, not season/sN. Resolves the spawner's checked-
+    out branch (`git rev-parse --abbrev-ref HEAD` in `git_root`, captured +
+    fail-open), reverse-looks it up in `town_branches` (read from `nodes_dir`,
+    the SAME graph the season was read from) by EXACT equality, and returns
+    the opaque integration branch for the town it maps to. None when it maps
+    to no town (a seat branch, a plain season/sN, detached HEAD) or when the
+    branch is unreadable -- the caller then keeps today's season/sN base.
+    """
+    branch = ""
+    try:
+        br = subprocess.run(
+            ["git", "-C", str(git_root), "rev-parse", "--abbrev-ref",
+             "HEAD"],
+            capture_output=True, text=True, timeout=30)
+        if br.returncode == 0:
+            branch = br.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        branch = ""
+    if not branch or branch == "HEAD":
+        return None  # detached HEAD or unreadable branch; nothing to map
+    town = spawn_gate.town_of_branch(nodes_dir, branch)
+    if not town:
+        return None
+    return spawn_gate.town_integration_branch(nodes_dir, town)
 
 
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
@@ -1556,9 +1591,14 @@ def main() -> int:
             # makes it a conscious override. fail-open: an unreachable origin
             # is a note, never a block (an unreachable remote is not a
             # workflow issue).
-            stale = _stale_base_spawn(Path.cwd(), current_season)
+            stale = _stale_base_spawn(Path.cwd(), current_season,
+                                      _current_town_branch(Path.cwd(),
+                                                            root / "nodes"))
             if stale["status"] == "behind" and not args.allow_stale_base:
-                print(json.dumps(_stale_base_record(stale, current_season)),
+                print(json.dumps(_stale_base_record(stale, current_season,
+                                                    _current_town_branch(
+                                                        Path.cwd(),
+                                                        root / "nodes"))),
                       file=sys.stderr)
                 spawn_budget.release(lease)
                 return 3  # must-pick: no resolving choice, no spawn
