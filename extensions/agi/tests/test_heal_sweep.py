@@ -479,6 +479,50 @@ def test_sweep_bring_home_branch_round_calls_once(repo_root, monkeypatch):
     assert not w1.exists() and not w2.exists(), "both worktrees removed"
 
 
+def test_sweep_bring_home_branch_round_dry_run_counts_both(repo_root,
+                                                            monkeypatch):
+    """(harvest L4.255) The DRY-RUN twin of (d): with nothing written to disk
+    the memoized would-home ("") must carry to the second tree of the round --
+    both trees log `removed (dry-run)`, session-complete is called once, and
+    no tree is refused with an empty `session dir not home ()` reason."""
+    repo = repo_root
+    graph = _graph(repo)
+    w1 = _cut(repo, "a00-2222bb", "loop/2-B@2", "season/s2")
+    _land(repo, w1, "loop/2-B@2")
+    w2 = _cut(repo, "a00-3333cc", "loop/3-C@2", "season/s2")
+    _land(repo, w2, "loop/3-C@2")
+    _stamp_complete_round(w1, "iter-504", "a00-2222bb")
+    it2 = w2 / ".agi" / "sessions" / "iter-504"
+    (it2 / "a00-3333cc").mkdir(parents=True, exist_ok=True)
+    (it2 / "a00-3333cc" / "agent.json").write_text(json.dumps(
+        {"id": "a00-3333cc", "status": "done"}))
+    (it2 / "agent.json").write_text(json.dumps(
+        {"id": "a00-3333cc", "status": "done",
+         "base_branch": "season/s2"}))
+    (it2 / "manifest.json").write_text(json.dumps({
+        "iter": "iter-504",
+        "agents": [{"id": "a00-3333cc", "status": "done"}]}))
+
+    import cli as _cli
+    real = _cli._session_complete
+    calls = []
+
+    def counting(*a, **k):
+        calls.append(k.get("dry_run", False))
+        return real(*a, **k)
+    monkeypatch.setattr(_cli, "_session_complete", counting)
+
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    removed, refused, kept = heal._sweep_finished_worktrees(graph, dry_run=True)
+    text = log.read_text()
+    assert (removed, refused, kept) == (2, 0, 0), text
+    assert calls == [True], "ONE dry-run session-complete call for the iter"
+    assert "session dir not home" not in text
+    assert not (graph / "sessions" / "iter-504").exists(), "dry-run wrote nothing"
+    assert w1.exists() and w2.exists(), "dry-run removed nothing"
+
+
 def test_sweep_bring_home_grace_keeps_not_homed(tmp_path):
     """(e) A complete-but-not-home round YOUNGER than the (large) grace is kept
     as `grace` and NOT homed: a director's hand harvest inside the window is
