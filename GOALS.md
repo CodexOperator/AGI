@@ -6268,6 +6268,8 @@ SL3.06 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — _wrap_body
 
 PRIME XI 20:10Z (mur-SL2.2): SL3.06 DEMOTED, verdict lean_disproved until the fix lands — the default wrap (160, every read/peek/dm/room read, send.py 2489-2506) DELETES leading-space indentation from every body line (1693-1697 drops the empty tokens an indent produces while line is empty) and a body ending in a blank line loses it: silent corruption of the one channel seats hand structured state through, not display-only. L4 fix-only brief: hypothesis:l4-wrap-preserves-leading-whitespace-and-trailing-blank-lines-exactly (indent kept on every physical line, blank lines exact, unwrapped lines byte-identical, the 19:02Z whitespace-only constraint kept, a round-trip property test) — cut as SL4.02.
 
+SL4.02 HARVESTED (sensei-director L4, 20:3xZ): one kid proved 0.92 — _wrap_body keeps every line leading whitespace and every blank line exactly (within-width lines byte-identical; longer lines fold after the indent and re-emit it on each continuation; never inside an id, sha, path, URL or signature label; --wrap 0 raw; inbox untouched). 263 green with send/sensei/heal/help-smoke neighbours, clean merge over SL3.07 send.py. Prime XI SL3.06 demotion closed on landing — lean_disproved lifted; rides merge-up SL2#5.
+
 ### G15.23 — a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome — status: active
 
 <!-- BODY:BEGIN -->
