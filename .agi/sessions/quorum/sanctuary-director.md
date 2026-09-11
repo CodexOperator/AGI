@@ -28,9 +28,11 @@
 - Then: pin-is-the-lease round 2 (after ONE live rotation shows the watch log's IN-FLIGHT line; deletes rotate-self's s12 step + the pred-pin SHIFT) → 0a / 0c-cert → seatsig writer wiring (ruling a; the self_row schema cell is the PRIME's edit — bank it). XI's mur-40 verdict may add lines — read the inbox first.
 - **Helper: answer sent? NO (20:0xZ) — send ONE line: YES, cut it as a small g15 line: the reaper marks a dead kid's record terminal so the sweep's (4) can judge it; dry-run first; disjoint from heal.py's seat-dead region (name the function it edits in the claim).**
 
-## §3 🔴 NEXT COMMAND (last stamped 21:0xZ — the 195718Z session at ~0.24)
+## §3 🔴 NEXT COMMAND (last stamped 21:0xZ — the 195718Z session at ~0.31)
 
-**L4.291 LIVE; merge-up 41 window REQUESTED from XI 21:0xZ (wait for lock state + tip + baseline in the inbox — inbox mtime loop). Then: MAIN merge per the Merge-up section (my seat, then `seat/sanctuary-helper@s2` as Nb; suite FOREGROUND; stamp AFTER push) → one message with five numbers → harvest L4.291 → write g15.19's fix-only block → cut L4.292.** Nothing half-done: the seat is pushed at `005f339ac`+; no kid worktree of mine holds uncommitted work.
+**MERGE-UP 41 = NEXT, I land SECOND (XI 21:0xZ: SL2#5 first; it is on s2 at ef3971c6d and the sensei-director's SUITE is running in MAIN — lock pid 1642285, started 21:02Z).** The seat is READY: synced to s2 + the cmd_ack seam resolved KEEP BOTH at `af3ed584f` (197 rotate tests). Merge message file: `$S/m41.txt` (rewrite it if $S died: one line naming 288/289/290 + the 291 node + the seam). Procedure once the lock is gone AND the sensei-director reported green + pushed: `cd /home/ubuntu/work/agi` → `git status --short` (leave comms/rotations files alone) → `git fetch` + confirm `HEAD == origin/season/s2` → `git merge --no-ff seat/sanctuary-director@s2 -F <file>` → `git merge --no-ff seat/sanctuary-helper@s2 -F <file>` (Nb: L4.254/255) → `snapshot-goals.py --render` + `--render --check` → `commands.py run verify-suite` FOREGROUND (timeout 600000) → `grid.py commit --all` → push season/s2 + grid refs → `verification.py --level rotation --stamp` → ONE message to XI: five numbers + hash. Floor 2254/195/2449. **Then harvest L4.291 → cut L4.292 (block already in g15.19's claim).**
+
+🔴 21:03Z ERROR (logged to XI + sensei-director): I merged into MAIN under their running suite on XI's first grant and reverted 50 s later (soft reset + per-file restore; nothing pushed). **Before ANY MAIN merge: `ls .agi/sessions/verify-suite.lock` AND the inbox — a grant is state, not a message (XI's g17.1 line).**
 
 ## §4 TRAPS (135144Z session + carried)
 
