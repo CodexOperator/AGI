@@ -589,6 +589,41 @@ def test_agent_status_finds_main_tree_record(root: Path):
     assert src == "main", src
 
 
+def test_agent_status_own_candidate_from_its_own_seat_labels_seat_not_wt_agi(
+        root: Path, monkeypatch):
+    """hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name —
+    the FALSIFIER. Invoking `_agent_status` FROM a non-main worktree makes the
+    record's OWN candidate the seat's own graph dir. The own candidate used to
+    be labeled `wt_label(own)` where `own` is the GRAPH dir
+    (`<worktree>/.agi`), whose `.name` is always `.agi` — so every record
+    answered from its own root printed `@wt:.agi` (the label depended on where
+    you stood: the same record printed `@seat:sanctuary-director` when reached
+    through another tree's glob). The label must now derive from the WORKTREE
+    directory (the graph dir's parent when the graph dir is `.agi`, else the
+    graph dir itself), identically for the own and the glob candidates, so
+    `@seat:sanctuary-director` prints from any tree.
+
+    `git_common_root` is stubbed to the tmp main because a tmp tree has no real
+    common git dir (in production it resolves the main checkout); the seat
+    graph is a distinct path from it, which is what makes `own` non-main."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    seat_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    seat_graph.mkdir(parents=True, exist_ok=True)
+    (seat_graph / "config.json").write_text("{}")
+    ajson = seat_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    monkeypatch.setattr(spawn_budget.locations, "git_common_root",
+                        lambda g: root)
+    status, src = spawn_budget._agent_status(
+        root / ".agi" / "worktrees" / "seat-sanctuary-director",
+        "a00-06c44930", "L4.193")
+    assert status == "running", status
+    assert src == "seat:sanctuary-director", src
+    assert "wt:.agi" not in src, src
+
+
 def test_agent_status_no_record_anywhere_is_no_agent_json(root: Path):
     """`(no agent.json)` is returned only when NOTHING holds the record —
     MAIN empty, no worktree, no seat — and then src is None."""
