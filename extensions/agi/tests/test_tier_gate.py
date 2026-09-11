@@ -12,9 +12,11 @@ These tests exercise BOTH branches directly:
 """
 import copy
 import importlib.util
+import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
 
@@ -62,8 +64,17 @@ def test_decision_k_filter_passes_even_on_directory():
     ) is False
 
 
-def _run_pytest(path_args, env_extra, named_file=False):
-    """Run pytest against a throwaway dir that symlinks the real conftest."""
+def _run_pytest(path_args, env_extra, named_file=False, agent_root=None):
+    """Run pytest against a throwaway dir that symlinks the real conftest.
+
+    `agent_root`: the sessions root handed to the gate via
+    AGI_AGENT_SESSIONS_ROOT. Default None -> an EMPTY (never created) dir, so
+    no running agent record is an ancestor and the gate exercises its env
+    fallback deterministically -- without the HOST's own real agent.json
+    (always an ancestor of any pytest it spawns) injecting an unbreakable
+    tier. Pass a fixture tree full of agent.json records to drive the
+    record-derived branch instead.
+    """
     import tempfile
 
     d = tempfile.mkdtemp()
@@ -77,6 +88,11 @@ def _run_pytest(path_args, env_extra, named_file=False):
             env.pop("AGI_TIER", None)
         else:
             env["AGI_TIER"] = env_extra
+        if agent_root is None:
+            # Empty sessions root -> no record matches -> env fallback.
+            env[gate.AGENT_RECORDS_ROOT_ENV] = os.path.join(d, "sessions")
+        else:
+            env[gate.AGENT_RECORDS_ROOT_ENV] = str(agent_root)
         proc = subprocess.run(
             [sys.executable, "-m", "pytest", target, "-q"],
             capture_output=True, text=True, env=env,
@@ -107,6 +123,107 @@ def test_hook_unset_bare_dir_invisible():
 def test_hook_parent_bare_dir_invisible():
     code, _ = _run_pytest([], "parent")
     assert code == 0
+
+
+def _write_agent_record(sessions_root, agent_dir, pid, tier, status="running"):
+    """Write a fixture agent.json; return the dir that rglob would find."""
+    d = Path(sessions_root) / f"iter-test/{agent_dir}"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "agent.json").write_text(json.dumps({
+        "id": agent_dir, "status": status, "tier": tier, "pid": pid}))
+    return d
+
+
+# --- fix: tier derives from the running agent record ancestor chain ---------
+# hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-inside-a-kid. The
+# gate must derive the tier from the agent.json whose pid is an ANCESTOR of
+# the pytest process (status: running), falling back to AGI_TIER only when no
+# record matches -- so `env -u AGI_TIER` no longer clears a kid's gate.
+
+def test_decision_ancestor_resolution_core():
+    """Pure decision: nearest running ancestor wins; none -> fallback."""
+    # fake ancestor chain: the process 222 -> 111 -> 55 -> 1 (dead end)
+    lookup = {222: 111, 111: 55, 55: 1, 1: None}
+    # the process itself has NO record; a kid at 111 (mid-chain) is found
+    assert gate._resolve_tier_from_ancestors(
+        {111: "kid", 55: "director"}, lookup.get, 222) == "kid"
+    # nearest ancestor wins: a record at 222 (self) beats 55
+    assert gate._resolve_tier_from_ancestors(
+        {222: "parent", 55: "kid"}, lookup.get, 222) == "parent"
+    # a parent at 222 beats a kid at 55 (nearer wins, not higher-tier)
+    assert gate._resolve_tier_from_ancestors(
+        {222: "parent", 55: "kid"}, lookup.get, 222) == "parent"
+    # no record anywhere on the chain -> None (env fallback still decides)
+    assert gate._resolve_tier_from_ancestors(
+        {888: "kid"}, lookup.get, 222) is None
+    # empty map -> None
+    assert gate._resolve_tier_from_ancestors({}, lookup.get, 222) is None
+
+
+def test_hook_kid_ancestor_refuses_bare_dir_with_env_unset():
+    """THE fix proof. A running agent.json with tier=kid whose pid is an
+    ancestor of the nested pytest, AGI_TIER UNSET, must still refuse a bare
+    directory run -- unsetting the env var can no longer clear the gate.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        # The HOST test process (os.getpid) is the direct parent of the nested
+        # pytest, so its pid lies on the nested process's ancestor chain.
+        _write_agent_record(root, "kid1", os.getpid(), "kid", status="running")
+        code, err = _run_pytest([], None, agent_root=root)
+        assert code == 4, f"expected refusal, got {code}: {err}"
+        assert "AGI_TIER=kid" in err
+        assert "specific test file or a -k filter" in err
+    finally:
+        import shutil
+        shutil.rmtree(root)
+
+
+def test_hook_kid_ancestor_named_file_passes_with_env_unset():
+    """The record-derived kid must still be able to run a NAMED file (its
+    own targeted tests), only the bare directory is refused.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        _write_agent_record(root, "kid1", os.getpid(), "kid", status="running")
+        code, err = _run_pytest([], None, named_file=True, agent_root=root)
+        assert code == 0, f"named-file run should pass, got {code}: {err}"
+    finally:
+        import shutil
+        shutil.rmtree(root)
+
+
+def test_hook_parent_ancestor_bare_dir_allowed_with_env_unset():
+    """A running record with tier=parent (the director/prime) allows a bare
+    directory run even with AGI_TIER unset -- the gate reads the real tier.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        _write_agent_record(root, "dir1", os.getpid(), "parent", status="running")
+        code, err = _run_pytest([], None, agent_root=root)
+        assert code == 0, f"parent bare-dir should pass, got {code}: {err}"
+    finally:
+        import shutil
+        shutil.rmtree(root)
+
+
+def test_hook_stale_nonrunning_ancestor_record_is_ignored():
+    """Only status == "running" records count; a done record must NOT cradle
+    the gate, so a stale agent.json from a finished sibling can't lock a live
+    parent out of the bare-directory run.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        _write_agent_record(root, "oldkid", os.getpid(), "kid", status="done")
+        code, err = _run_pytest([], None, agent_root=root)
+        assert code == 0, f"non-running record must be ignored, got {code}: {err}"
+    finally:
+        import shutil
+        shutil.rmtree(root)
 
 
 def test_module_collects_with_cwd_outside_the_repo_root(tmp_path):

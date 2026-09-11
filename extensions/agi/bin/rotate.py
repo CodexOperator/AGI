@@ -2599,30 +2599,44 @@ def _kill_window(name: str, tmux_session: str,
     when we have it; fall back to the name only when we do not.
 
     With `window_path` (tests) the name / @id line is dropped from the file
-    instead of a real tmux kill-window."""
+    instead of a real tmux kill-window. Returns a status string: "killed"
+    when the kill landed (or, on the test seam, an owned line was dropped),
+    "already_gone" when the window is already absent (no owned line to drop,
+    or tmux reports `can't find window`), or "error" when tmux threw. Never
+    raises (L4.158: a kill failure is recorded, not raised)."""
     if window_path is not None:
         p = Path(window_path)
         if p.exists():
             lines = []
+            found = False
             for ln in p.read_text(encoding="utf-8").splitlines():
                 ln = ln.strip()
                 if not ln:
                     continue
                 if window_id and ln.startswith(window_id):
+                    found = True
                     continue  # drop the line owned by the reap-by-@id
                 if ln == name:
+                    found = True
                     continue
                 lines.append(ln)
             p.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        return
+            return "killed" if found else "already_gone"
+        return "already_gone"
     target = f"{tmux_session}:{window_id}" if window_id else f"{tmux_session}:{name}"
     try:
-        subprocess.run(
+        r = subprocess.run(
             ["tmux", "kill-window", "-t", target],
             capture_output=True, text=True, timeout=5,
         )
-    except Exception:
-        pass
+    except Exception:  # noqa: BLE001
+        return "error"
+    err = (r.stderr or "").lower()
+    if r.returncode != 0 and ("can't find window" in err
+                              or "no such window" in err
+                              or "can't find session" in err):
+        return "already_gone"
+    return "killed"
 
 
 def _seat_fraction(root: Path, row: dict) -> float | None:
@@ -3209,6 +3223,23 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     the chain from the oldest window's pane pid. Never raises; a chain it
     cannot derive records SKIPPED naming the missing input."""
     oldest_id = _successor_window_id(oldest, tmux_session, window_path)
+
+    def _kill_oldest_by_id() -> dict:
+        """L4.158 — on a SKIPPED path, still kill the oldest window BY @id
+        so the FIFO cap never leaves six windows. When no @id was resolved
+        record `window_killed: false` and do NOT call tmux. A window that is
+        already gone records it (never an error); a kill failure never
+        raises."""
+        if not oldest_id:
+            return {"window_killed": False, "already_gone": False}
+        try:
+            status = _kill_window(oldest, tmux_session, window_path,
+                                  window_id=oldest_id)
+        except Exception:  # noqa: BLE001
+            status = "error"
+        return {"window_killed": status == "killed",
+                "already_gone": status == "already_gone"}
+
     _write_belam_planned = (lambda e: (
         s12_reap.__setitem__("belam_reap", e)
         if s12_reap is not None else None,
@@ -3217,20 +3248,33 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     if not pids:
         pane_pid = _pane_pid(oldest_id) if oldest_id else None
         if not pane_pid:
+            kill = _kill_oldest_by_id()
             e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
                  "reaped": False, "ps_after": [],
-                 "skipped": ("SKIPPED: no pane pid for the oldest window "
-                              f"{oldest!r} (@id {oldest_id}); the Belam "
-                              "FIFO cap could not derive its chain")}
+                 "window_killed": kill["window_killed"],
+                 "skipped": (("already gone: the oldest window "
+                               f"{oldest!r} (@id {oldest_id}); no pane pid; "
+                               "window already gone")
+                              if kill["already_gone"]
+                              else ("SKIPPED: no pane pid for the oldest "
+                                    f"window {oldest!r} (@id {oldest_id}); "
+                                    "the Belam FIFO cap could not derive "
+                                    "its chain"))}
             _write_belam_planned(e)
             return e
         pids = _descendant_chain(pane_pid)
         if not pids:
+            kill = _kill_oldest_by_id()
             e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
                  "reaped": False, "ps_after": [], "pane_pid": pane_pid,
-                 "skipped": ("SKIPPED: no chain under pane pid "
-                              f"{pane_pid} for the oldest window "
-                              f"{oldest!r}; nothing to reap")}
+                 "window_killed": kill["window_killed"],
+                 "skipped": (("already gone: the oldest window "
+                               f"{oldest!r} (@id {oldest_id}); no chain "
+                               "under the pane pid; window already gone")
+                              if kill["already_gone"]
+                              else ("SKIPPED: no chain under pane pid "
+                                    f"{pane_pid} for the oldest window "
+                                    f"{oldest!r}; nothing to reap"))}
             _write_belam_planned(e)
             return e
     # (e) the PLANNED belam-cap entry — written BEFORE the first TERM, so an
@@ -3980,22 +4024,36 @@ def _run_units_no_shell(units: list, timeout_s: int):
     A). Each stage is subprocess.run(stage_argv, shell=False), the prior stage's
     stdout wired as the next stage's stdin; a stage's own `VAR=value` prefix is
     passed as env. Returns (last_rc, merged_output). Nothing outside the parsed
-    argv can execute: no shell, no redirects, no `&&`/`||`/`$(...)`/backticks."""
+    argv can execute: no shell, no redirects, no `&&`/`||`/`$(...)`/backticks.
+
+    Filter semantics (hypothesis:l4-first-turn-filters-truncate): per `|`
+    pipeline only the LAST stage's stdout is appended to the merged output, so
+    a `| head -N` / `| sed -n ...` stdio filter actually truncates — a producer
+    stage's stdout is piped into the next stage (its only destination) and not
+    echoed past the filter. Every stage's stderr is still merged in order
+    (a failing middle stage stays visible). `;` units still concatenate. The
+    byte cap and truncation flag live in the caller and are untouched."""
     last_rc, chunks = 0, []
     for stages in units:
         prev_in = None
-        for argv, prefix in stages:
+        n = len(stages)
+        for idx, (argv, prefix) in enumerate(stages):
             if not argv:
                 continue
             proc = subprocess.run(argv, shell=False, capture_output=True,
                                   input=prev_in, text=True, timeout=timeout_s,
                                   env={**os.environ, **prefix})
             last_rc = proc.returncode
-            merged = proc.stdout or ""
-            if proc.stderr:
-                merged = (merged + "\n" + proc.stderr).strip()
             prev_in = proc.stdout
-            chunks.append(merged)
+            is_last = (idx == n - 1)
+            # Only the LAST stage of a pipeline contributes its stdout; every
+            # stage's stderr is kept, in stage order.
+            merged = proc.stdout if (is_last and proc.stdout) else ""
+            if proc.stderr:
+                merged = ((merged + "\n" + proc.stderr).strip()
+                          if merged else proc.stderr.strip())
+            if merged:
+                chunks.append(merged)
     return last_rc, "\n".join(c for c in chunks if c)
 
 
@@ -4073,6 +4131,35 @@ def _producing_refusal(command: str) -> str | None:
     return None
 
 
+def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
+    """Return a one-line refusal (naming the VAR and the allowlist) if ANY
+    leading `VAR=value` env prefix in `command` names a VAR not on the startup
+    env allowlist, else None. A leading `VAR=value` is APPLIED to that stage's
+    child env by the no-shell executor (_command_units/_run_units_no_shell) but
+    was DROPPED by the allowlist judge (_segment_parts skips it), so
+    `PATH=<dir> <allowlisted argv0>` could silently reach an off-allowlist
+    program (hypothesis:l4-first-turn-env-prefix-is-judged). A prefix whose VAR
+    is not explicitly on `startup.env_allow` (default EMPTY) is REFUSED here,
+    before the executor ever sees the command. An unparseable command yields
+    None — the producing judge (_producing_refusal) names that separately.
+    Only the leading `VAR=value` run per stage is checked, matching exactly how
+    the executor collects prefixes."""
+    try:
+        units = _startup_units(command)
+    except _StartupParseError:
+        return None
+    for stage_list in units:
+        for stage in stage_list:
+            for t in stage:
+                if "=" in t and not t.startswith("-"):
+                    var = t.partition("=")[0]
+                    if var not in allow:
+                        return f"env prefix {var} not on startup.env_allow"
+                else:
+                    break
+    return None
+
+
 def _resolve_startup_placeholders(command: str, values: dict) -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
     key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
@@ -4091,10 +4178,13 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
     spawn, returning one result dict per entry.
 
     Order of gates per entry, all fail-closed and named in the result:
-      1. allowlist — an off-allowlist executable/verb is REFUSED (label named)
+      1. env allowlist — a leading `VAR=value` prefix whose VAR is not on
+         `startup.env_allow` (default EMPTY) is REFUSED (var named) and never
+         applied (hypothesis:l4-first-turn-env-prefix-is-judged);
+      2. allowlist — an off-allowlist executable/verb is REFUSED (label named)
          and never run;
-      2. placeholders — an unknown `{key}` is REFUSED (key named);
-      3. run — one command at a time, per-command timeout
+      3. placeholders — an unknown `{key}` is REFUSED (key named);
+      4. run — one command at a time, per-command timeout
          (`first_turn_timeout_s`, default 60); output truncated to the byte
          cap (`byte_cap`, default 4000) and marked.
     `dry_run` resolves and records every entry but runs NOTHING. Never
@@ -4104,11 +4194,17 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
     entries = startup.get("first_turn") or []
     timeout_s = startup.get("first_turn_timeout_s") or DEFAULT_FIRST_TURN_TIMEOUT_S
     byte_cap = startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP
+    env_allow = frozenset(startup.get("env_allow") or [])
     results = []
     for e in entries:
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        env_refusal = _env_prefix_refusal(cmd, env_allow)
+        if env_refusal:
+            results.append({"label": label, "cmd": cmd,
+                            "refused": env_refusal})
+            continue
         refusal = _producing_refusal(cmd)
         if refusal:
             results.append({"label": label, "cmd": cmd,
@@ -4130,10 +4226,27 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             results.append({"label": label, "cmd": record_cmd,
                             "refused": str(exc)})
             continue
-        # Belt over the no-shell executor: re-check the EXEC command for an
-        # unmodeled operator (a placeholder or env value could have introduced
-        # one). `$OPENROUTER_PROVISIONING_KEY` etc. are expanded for execution
-        # only; the record keeps the literal `$VAR`.
+        # Belt over the no-shell executor: re-judge the EXEC command IN FULL.
+        # A placeholder or env value can inject a whole new stage wrapped in
+        # `;` or `|` (both MODELED separators), which the template judge never
+        # saw and _operator_refusal cannot see either. So re-run the env
+        # allowlist and the producing allowlist on exec_cmd (not just the
+        # operator check) BEFORE _command_units splits it, so an injected
+        # `touch`-style stage is refused, not run, and its `$VAR` stays literal
+        # in the record (hypothesis:l4-the-judge-runs-on-the-substituted-command).
+        exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
+        if exec_env_refusal:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": exec_env_refusal})
+            continue
+        exec_refusal = _producing_refusal(exec_cmd)
+        if exec_refusal:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": f"not on startup.allow: {exec_refusal}"})
+            continue
+        # Unmodeled-operator check stays: an operator `_producing_refusal`
+        # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
+        # expanded for execution only; the record keeps the literal `$VAR`.
         op = _operator_refusal(exec_cmd)
         if op:
             results.append({"label": label, "cmd": record_cmd,

@@ -401,15 +401,26 @@ def _build_nudge_token(seat: str) -> str:
 
 
 #: Measured safe line length for a nudge typed with `-l` then Enter
-#: (hypothesis:l4-the-nudge-carries-the-dm-body-inline). The prime pinned a
-#: 101-char token stranded when chunk+Enter went in ONE send-keys call
-#: (nudge node 83fe8049c) and a token that wraps in the input box defeats
-#: the "already unsubmitted" head check; the fixture models the paste
-#: threshold at 100 chars (_FixturePane.PASTE_CHARS). 95 keeps the whole
-#: delivered line safely under that cap -- under it even a hypothetical
-#: one-call `text Enter` chunk would not strand -- with room for the
-#: `… (read <seat>)` / `(+N more, read <seat>)` tails. The head
-#: (`[nudge: <from>:`) stays short, so a wrapped line still matches.
+#: (hypothesis:l4-the-nudge-carries-the-dm-body-inline). Derived from the
+#: GEOMETRY of a REAL pane (`tmux capture-pane -p`), the committed fixture
+#: extensions/agi/tests/fixtures/claude_pane_idle.txt (and _busy.txt): the
+#: `─` separator row is 104 columns (sha256 3f28fc37.../c2928e9a... in the
+#: fixture header). Claude's input box renders the typed line with a `❯ `
+#: prefix (U+276F + space = 2 columns), so the line spans at most
+#: 104 − 2 = 102 columns on ONE box row before it wraps. A token that wraps
+#: in the input box defeats the "already unsubmitted" head check; the paste
+#: heuristic (prime probe B, nudge node 83fe8049c) strands a one-call
+#: `text Enter` chunk at ~100 chars (_FixturePane.PASTE_CHARS = 100). So:
+#:   pane/separator width        104  (real capture)
+#:   − input-box `❯ ` prefix      2
+#:   = one-row line budget       102
+#:   − margin under PASTE_CHARS  −7   (100 paste → 7 under)
+#:   = _NUDGE_LINE_MAX            95
+#: 95 < 102 (fits one visible box row) and 95 < 100 (under the paste
+#: threshold, so even a hypothetical one-call `text Enter` chunk would not
+#: strand), with room for the tails `… (read <seat>)` / `(+N more, read
+#: <seat>)` / `(+unread inbox, read <seat>)`. The head (`[nudge: <from>:`)
+#: stays short, so a wrapped line still matches.
 _NUDGE_LINE_MAX = 95
 #: Truncation tail appended when the flattened body would exceed the line
 #: cap: `… (read <seat>)` (the newline-flatten ` / ` separator is truncated
@@ -419,26 +430,54 @@ _NUDGE_TRUNC_TAIL = "… (read {seat})"
 #: were coalesced (within the per-seat window) and never typed:
 #: `(+N more, read <seat>)`.
 _NUDGE_MORE_TAIL = " (+{n} more, read {seat})"
+#: Tail appended to a deferred-dm delivery when it rides an inbox `send()`
+#: retry: names the unread inbox message whose OWN wake token would otherwise
+#: be swallowed (clause b, hypothesis:l4-send-py-same-sender-stranded-line-
+#: and-the-swallowed-wake). Counted INSIDE the `_NUDGE_LINE_MAX` budget when
+#: passed as `trailing` to `_nudge_line` (clause c), so the delivered line
+#: never exceeds the cap.
+_NUDGE_INBOX_TAIL = " (+unread inbox, read {seat})"
 
 
-def _nudge_line(seat: str, sender: str, body: str, more: int = 0) -> str:
+def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
+                trailing: str = "") -> str:
     """The inline pane line for a dm nudge (hypothesis:l4-the-nudge-carries-\
     the-dm-body-inline): `[nudge: <from>]: <body>`. The body is FLATTENED
     to one line (newlines -> ` / `) and, if the delivered line would exceed
     `_NUDGE_LINE_MAX`, TRUNCATED with a `… (read <seat>)` tail. `more>0`
     appends `(+N more, read <seat>)` for the dms coalesced before this one.
-    The body STILL lands in the dm file (the record); this line is delivery."""
+    `trailing` (e.g. the `(+unread inbox, read <seat>)` deferred-delivery
+    tail) is appended and counted INSIDE the `_NUDGE_LINE_MAX` budget, so no
+    delivery path emits a line longer than the cap. The body STILL lands in
+    the dm file (the record); this line is delivery."""
     flat = " / ".join(p.strip() for p in body.splitlines() if p.strip())
     if not flat:
         flat = body
     more_tail = _NUDGE_MORE_TAIL.format(n=more, seat=seat) if more else ""
-    trunc_tail = _NUDGE_TRUNC_TAIL.format(seat=seat) + more_tail
+    trunc = _NUDGE_TRUNC_TAIL.format(seat=seat)          # `… (read <seat>)`
+    trunc_more = trunc + more_tail                       # + `(+N more, ...)`
     prefix = f"[nudge: {sender}]: "
-    full = prefix + flat + more_tail
+    full = prefix + flat + more_tail + trailing
     if len(full) <= _NUDGE_LINE_MAX:
         return full
-    keep = _NUDGE_LINE_MAX - len(prefix) - len(trunc_tail)
-    return prefix + flat[:keep].rstrip() + trunc_tail
+    # The full line is over the cap: the BODY slice must be floored at 0 --
+    # `flat[:keep]` with a negative keep is a LONG slice, not an empty one
+    # (residue of clause c: a 494-char line against a 95-char cap). When even
+    # `prefix + tails` alone busts the cap (long seat/sender names), retreat
+    # from richest to leanest tail -- trailing first, then the trunc tail's
+    # `(+N more)`, then the read-seat tail itself -- and only give the freed
+    # budget to the body, never the reverse. The first tail that fits wins.
+    for tail in (trunc_more + trailing,   # read + `(+N more)` + inbox note
+                 trunc_more,              # drop the inbox note (trailing first)
+                 trunc,                   # then shorten the trunc tail: drop +N more
+                 ""):                     # drop every tail
+        keep = _NUDGE_LINE_MAX - len(prefix) - len(tail)
+        if keep >= 0:
+            return prefix + flat[:keep].rstrip() + tail
+    # Unreachable in the declared seat/sender range (`prefix` alone fits),
+    # but floor at 0 so a pathological sender never yields a long slice.
+    keep = max(0, _NUDGE_LINE_MAX - len(prefix))
+    return prefix + flat[:keep].rstrip()
 
 
 def _nudge_token_head(token: str) -> str:
@@ -742,10 +781,17 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         more = _pending_more(root, to)
         text = _nudge_line(to, sender or "unknown", body, more)
     elif delivering_deferred:
+        # CLAUSE (b): this is an inbox `send()` (body=None) retrying while a
+        # deferred dm body is stored. The typed line is the DEFERRED body's
+        # inline line, so the inbox message's OWN wake would otherwise be
+        # swallowed -- the recipient is never told a new unread inbox message
+        # waits. Carry a tail naming the unread inbox on the same delivered
+        # line (hypothesis:l4-send-py-same-sender-stranded-line-and-the-swallowed-wake).
         more = _pending_more(root, to)
         d_sender = deferred.get("sender") or "unknown"
         d_body = deferred.get("body") or ""
-        text = _nudge_line(to, d_sender, d_body, more)
+        text = _nudge_line(to, d_sender, d_body, more,
+                           trailing=_NUDGE_INBOX_TAIL.format(seat=to))
     else:
         text = _build_nudge_token(to)
     # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
@@ -806,7 +852,21 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # ran `_clear_deferred` unconditionally, dropping a deferred body that
         # had never touched the pane.
         region = _input_region(pane_capture)
-        our_line_was_stranded = _nudge_token_head(text) in region
+        # CLAUSE (a): for an inline DM the head (`[nudge: <from>]:`) identifies
+        # only the SENDER, and every dm from that sender shares it -- a stranded
+        # line left by an EARLIER same-sender dm (different body) used to read
+        # as "ours", so the new body was Entered-and-cleared and never typed
+        # nor deferred (lost until the next wake). The head alone is not proof
+        # our SPECIFIC body reached the pane: for an inline body (a dm, or a
+        # deferred dm delivery) it must be SHOWN in the pane too before the
+        # stranded line counts as ours. A bare inbox wake token has no body and
+        # keeps the head-only match.
+        body_for_match = body if body is not None else (d_body if delivering_deferred else None)
+        if body_for_match is not None:
+            our_line_was_stranded = (_nudge_token_head(text) in region
+                                     and body_for_match in region)
+        else:
+            our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
             return False
         print("nudge: submitted a stranded token (Enter only)",
