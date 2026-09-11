@@ -238,6 +238,50 @@ def test_i_legit_pipeline_and_sequential_still_run_no_shell(tmp_path):
     assert "1" in seq[0]["output"] and "2" in seq[0]["output"]
 
 
+def test_i2_pipeline_filter_actually_truncates_stage_stdout(tmp_path):
+    # hypothesis:l4-first-turn-filters-truncate — per `|` pipeline only the
+    # LAST stage's stdout is appended, so a `| head -N` stdio filter really
+    # truncates. A 100-line producer piped to `head -3` must yield exactly the
+    # 3 filtered lines, NOT the producer's full 100 lines concatenated ahead of
+    # the filter (the old behavior appended every stage's stdout).
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    (bin_dir / "producer.py").write_text(
+        "\n".join(f"print({i})" for i in range(100)), encoding="utf-8")
+    p = str(bin_dir / "producer.py")
+
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "filt",
+                          "cmd": f"python3 {p} | head -3"}]}, VALUES)
+    assert res[0]["rc"] == 0, res
+    lines = res[0]["output"].splitlines()
+    assert lines == ["0", "1", "2"], res
+    assert len(lines) == 3, res  # the filter truncated; no 100 producer lines
+
+def test_i3_pipeline_failing_middle_stage_stderr_still_present(tmp_path):
+    # Every stage's stderr is still merged in order — a failing middle stage
+    # must stay visible even though its stdout is consumed by the next stage
+    # and never echoed past the filter.
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    (bin_dir / "boom.py").write_text(
+        "import sys\nprint('boom-err', file=sys.stderr)\nsys.exit(3)\n",
+        encoding="utf-8")
+    (bin_dir / "ident.py").write_text(
+        "import sys\nprint('IDENT')\n", encoding="utf-8")
+    boom = str(bin_dir / "boom.py")
+    ident = str(bin_dir / "ident.py")
+
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "mid",
+                          "cmd": f"python3 {boom} | python3 {ident}"}]}, VALUES)
+    # last stage exit code (ident normally 0) — but boom's stderr must be present
+    assert res[0]["rc"] == 0, res
+    assert "boom-err" in res[0]["output"], res
+    assert "IDENT" in res[0]["output"], res
+    assert res[0]["output"].index("boom-err") < res[0]["output"].index("IDENT"), res
+
+
 def test_k_env_assignment_prefix_applied_and_stage_scoped(tmp_path):
     # fix (a): a leading `VAR=value` prefix is APPLIED to its stage's env (not
     # parsed-and-dropped), and it belongs to ONE stage — a `;`-sibling stage
