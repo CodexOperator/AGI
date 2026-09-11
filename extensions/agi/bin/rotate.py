@@ -1544,30 +1544,31 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
-def _record_is_terminal(path) -> bool:
-    """True when the rotation record has a present s12_self_reap section —
-    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
-    that does not parse is not terminal."""
+def _record_is_terminal_text(text: str) -> bool:
+    """True when the rotation record bytes have a present s12_self_reap
+    section — the terminal sentinel `--wait` polls for (L4.233).
+    Best-effort: text that does not parse is not terminal."""
     try:
-        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+        doc = json.loads(text)
     except Exception:  # noqa: BLE001
         return False
     return isinstance(doc.get("s12_self_reap"), dict)
 
 
-def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
     """Poll `path` at a <=2s interval until its s12_self_reap section is
-    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
-    When the record is already terminal on the first read it returns True
-    immediately — never sleeps past an already-terminal record."""
-    deadline = time.monotonic() + max(0, wait)
+    present, or `deadline` (a monotonic instant) passes. Returns
+    (terminal, last_seen_text). One read per tick: the text this function
+    reads is the text it parses. When the record is already terminal on the
+    first read it returns True immediately — never sleeps past an
+    already-terminal record."""
     last = ""
     while True:
         try:
             last = Path(path).read_text(encoding="utf-8")
         except OSError:
             last = ""
-        if _record_is_terminal(path):
+        if _record_is_terminal_text(last):
             return True, last
         if time.monotonic() >= deadline:
             return False, last
@@ -1598,23 +1599,36 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         rot_dir = _rotations_dir(root)
         files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
-        if not files:
-            print(f"(no rotation record for {seat})")
-        else:
-            latest = files[-1]
-            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
-            # `--wait N` re-reads the latest record until its s12_self_reap
-            # section is terminal, or N seconds elapse. A caller that needs
-            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
-            wait = int(getattr(args, "wait", 0) or 0)
-            if wait > 0:
-                terminal, last_txt = _poll_record_terminal(latest, wait)
-                if not terminal:
-                    print(f"# latest rotation record: {latest.name}")
-                    print(last_txt, end="")
-                    print(f"ERR: still not terminal after {wait}s",
-                          file=sys.stderr)
-                    return 2
+        latest = files[-1] if files else None
+        wait = int(getattr(args, "wait", 0) or 0)
+        if wait > 0:
+            # hypothesis:l4-status-wait-waits-for-the-record-to-appear —
+            # the wait deadline covers BOTH phases: the record appearing
+            # (a successor's first seconds may run before the predecessor
+            # writes it) and that record reaching its terminal section.
+            deadline = time.monotonic() + max(0, wait)
+            if latest is None:
+                # wait for a record to APPEAR within the same deadline
+                while True:
+                    files = (sorted(rot_dir.glob(f"{seat}.*.json"))
+                             if rot_dir.exists() else [])
+                    if files:
+                        latest = files[-1]
+                        break
+                    if time.monotonic() >= deadline:
+                        print(f"ERR: no rotation record for {seat} "
+                              f"after {wait}s", file=sys.stderr)
+                        return 2
+                    time.sleep(min(2.0, max(0.05,
+                                            deadline - time.monotonic())))
+            terminal, last_txt = _poll_record_terminal(latest, deadline)
+            if not terminal:
+                print(f"# latest rotation record: {latest.name}")
+                print(last_txt, end="")
+                print(f"ERR: still not terminal after {wait}s",
+                      file=sys.stderr)
+                return 2
+        if latest is not None:
             try:
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
@@ -1622,6 +1636,8 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                 print(f"ERR: could not read latest record: {exc}",
                       file=sys.stderr)
                 return 1
+        else:
+            print(f"(no rotation record for {seat})")
         print(f"sequence={_current_sequence(root)}")
         row = _find_seat(root, seat)
         if row is None:
