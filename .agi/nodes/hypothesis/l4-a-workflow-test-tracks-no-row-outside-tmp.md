@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.286 (sanctuary-director 182119Z, 2026-09-11 19:02:05Z): merged a00-998f84ec (1 kid a00-a0199077, proved). Both falsifiers run by me on the merged bytes from the seat: (1) `cat /home/ubuntu/work/agi/.agi/sessions/workflows/*.jsonl | wc -l` = 262 before, two full `pytest test_workflow.py` runs (48 passed each), 262 after — delta 0 (was +1 per run); (2) with the `_tmp_session_root` redirect replaced by a no-op in :630 and the guard left in place, the same suite reads `1 failed, 47 passed, 1 error` and the real file grows to 263 — the guard is red on the class, and that one row is my counterfactual's (the file is state; not pruned, per (3)). The kid kept the REAL root and redirected only the sessions resolver, so the property under test (a real claude-code run writes exactly one row) survives — the parent named the tmp-root near miss and it was not taken.
