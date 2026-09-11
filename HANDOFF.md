@@ -59,7 +59,11 @@ STREAM 🔴 LIVE NOW (owner 00:4xZ: "stream is launched. 15s delay" — the stub
        + Thunar windows closed, wallpaper stock xfce (nothing Oracle). Follower `.agi/sessions/stream-follow.sh` (tmux session `stream-follow`, gitignored) re-points the views at the LIVE seats every
        20 s across rotations and renames the prime's view — a rotated seat needs NO hand step. Restore the panels: `xfconf-query -c xfce4-panel -p /panels/panel-N/autohide-behavior -s 0`.
        On-screen residue accepted by the owner: pane contents (paths, public repo URL, key LIMIT lines, local-time stamps), transient notifyd popups.
-LIVE   (point's lanes, dispatching on deepseek since 55783ac8a; ~6-8 pi parents concurrent — owner) point gen IX's first merge-up is 22 · 🔴 THE NEW rotate-self's HANDOVER DID NOT RUN on its first live
+LIVE   🔴 OWNER 01:2xZ (verbatim doc:l4-owner-decisions; 98653f8ad/5cd82955a): THE WORK IS THE PERFORMANCE — vision:shown-not-told rewritten (interactive, fun, pragmatic, revenue asap: credits keep the
+       loops running) · NEW ROUND hypothesis:l4-the-stream-master-is-the-only-door (g18.1; paid-only intake, hard cap, 50-word typed relay, quarantine as DATA, red-team corpus; FIXTURES ONLY, the stream
+       is LIVE) handed to the point 01:34Z with the lane order: third fix-only 0a (+ the two-key ack defect) and 0b at the TOP · PRIME BOOTSTRAP = 42+ tool calls at L4-VII (owner measured) — the
+       point states the number moving in every merge-up numbers line; the prime seat is the LAST to get rotate-self (it derives 'belam'/gen 1 on our seat).
+       (point's lanes, dispatching on deepseek since 55783ac8a; ~6-8 pi parents concurrent — owner) point gen IX's first merge-up is 22 · 🔴 THE NEW rotate-self's HANDOVER DID NOT RUN on its first live
        rotation (record: result success, steps handoff+spawn, handover {}) — a record that says success over steps that did not run; the third fix-only 0a dispatch (five fixes on
        experiment:a00-ba8cd88e-c5d115) is the point's next; until it lands the Prime still writes seat rows from the join and reaps by PID · helper gen IV = the seat-model verify-half of (a) ·
        🔴 OWNER 23:52Z (doc:l4-owner-decisions; on the 0a node): EVERYTHING ALGORITHMIC IN A ROTATION IS rotate-self's TO EXECUTE — rename .genN, join, model check, row/pin/ack, reap by @id+PID, re-point
@@ -130,7 +134,7 @@ FIRST  (until 0b's bootstrap lands) ls -t .agi/comms/season-2/dm/ and read anyth
        --session-log <own .jsonl> · verify your seats row at HEAD · run verify-suite ONCE in the foreground (the suite window is yours; it refuses against a live holder) · read this file in RANGES.
 MODE   ENHANCED SURVIVAL (owner 2026-09-09): Prime + point + helper; every other seat idle; pi/OpenRouter does the work; the Prime reviews and never spends the Claude budget on chores a seat can do.
 RULES  standing, EVERY role: trim + diagram-max handoff/context files as parts finish · owner verbatim lives in NODES only (vision/goal/hypothesis/doc), never here · ROTATE AT 0.47 · partial edits:
-       write.py read N:M then replace N:M · directors message the Prime ONLY when necessary (merge-up numbers · a Prime-only decision · a rotation line · a red merge / rule-changing finding; owner
+       write.py read N:M then replace N:M · after a goal-node `note`, `snapshot-goals.py --render` + commit GOALS.md in the SAME commit (else the check fails; 614a2068a) · directors message the Prime ONLY when necessary (merge-up numbers · a Prime-only decision · a rotation line · a red merge / rule-changing finding; owner
        2026-09-10 05:0xZ verbatim in doc:l4-owner-decisions) · config:seats is YOURS to write while the Keep is down (write.py "set seats <json>", the whole list, byte-verify) · never git add -A ·
        never read $? through a pipe · never sweep off a ps grep (a pgrep for 'pytest' matches every claude command line carrying the word — 190KB, L4-VI) · never run the suite twice at once ·
        never background a long verification · never trust an `updated:` line · never adopt a seat's work instead of verifying it · never let test_send.py run unguarded while seats are live
