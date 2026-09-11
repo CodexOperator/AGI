@@ -168,15 +168,21 @@ def test_links_pass_uses_the_count_not_the_exit_code():
     assert verification._passed("goals-check", 0, {"byte-identical": 1}) is True
 
 
-def test_count_first_run_records_and_passes(tmp_path):
+def test_count_first_run_records_and_passes(tmp_path, monkeypatch):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
+    # A bare tmp root is not a git tree; force a KEPT context so we exercise
+    # the stamping path (kept -> writes) without real git.
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
     current = {"active": 1707, "deprecated": 194, "total": 1901}
     r = verification.compare_count(groot, current)
     assert r.status == "PASS"
     assert "baseline recorded" in r.note
     state = json.loads((groot / "sessions" / "verify-count.json").read_text())
-    assert state == current
+    assert state["active"] == current["active"]
+    assert state["sha"] == "abc123"
+    assert state["stamped_at"] > 0
 
 
 def test_count_drop_is_a_failure_that_names_the_drop(tmp_path):
@@ -190,16 +196,19 @@ def test_count_drop_is_a_failure_that_names_the_drop(tmp_path):
     assert "active=1707 below baseline=9999" in r.note
 
 
-def test_count_steady_updates_baseline_and_passes(tmp_path):
+def test_count_steady_updates_baseline_and_passes(tmp_path, monkeypatch):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
     (groot / "sessions" / "verify-count.json").write_text(
         json.dumps({"active": 1707, "deprecated": 194, "total": 1901}))
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "bee", "kept"))
     newer = {"active": 1707, "deprecated": 195, "total": 1902}
     r = verification.compare_count(groot, newer)
     assert r.status == "PASS"
     state = json.loads((groot / "sessions" / "verify-count.json").read_text())
-    assert state == newer
+    assert state["active"] == newer["active"]
+    assert state["sha"] == "bee"
 
 
 def test_suite_opt_in_appends_tests_only_when_requested(monkeypatch, tmp_path):
