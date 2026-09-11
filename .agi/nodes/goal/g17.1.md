@@ -275,3 +275,5 @@ MERGE-UP 26 (bf455a460 -> f2e43118e) RULED 04:0xZ BY NAME (workflow merge-up-rev
 OWNER 05:0xZ confirmed the chain direction (verbatim in doc:l4-owner-decisions): 'pinning them from the wrong end, filo rather than fifo' — the Belam chain is FIFO, the oldest goes; the seventh 0a fix-only criteria (1)+(2) stand as written, now owner-backed.
 
 OWNER 05:1xZ (verbatim in doc:l4-owner-decisions): bugfix/optimization rulings do NOT live here — re-filed under goal:g15 as hypothesis nodes fixed in-loop, proposed by the point in each merge-up report. This node keeps the seat protocol only. The merge-up 26 residues above are re-filed on goal:g15 (05:1xZ).
+
+MERGE-UP 27 (d1ff9b169) RULED 05:2xZ by name: L4.124 / L4.126 / L4.125 all ACCEPTED WITH RESIDUE; three L4.124 kids demoted on live-graph probes; nine findings filed as g15 nodes on goal:g15 (owner 05:1xZ rule). Hook install deferred to 0b-b's merge-up. HELD stream group stays HELD (argv[0] is a directory).
