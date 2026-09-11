@@ -3918,8 +3918,6 @@ DEFAULT_STARTUP_BYTE_CAP = 4000
 #: against _STARTUP_FILTERS below.
 DEFAULT_STARTUP_ALLOW = {"python", "python3", "git", "tmux", "ps", "curl"}
 
-_GIT_READONLY_SUBCMDS = {"status", "log", "rev-parse", "branch", "fetch", "diff"}
-
 #: Per-subcommand ALLOWLIST over the git producing judge's arguments
 #: (hypothesis:l4-a-producing-git-stage-is-argument-restricted). A git first
 #: stage used to be accepted on the READONLY SUBCMD name alone, so its
@@ -3937,13 +3935,22 @@ _GIT_READONLY_SUBCMDS = {"status", "log", "rev-parse", "branch", "fetch", "diff"
 #: program), `-- <pathspec>` (reads a named path), or any token containing
 #: `$`/backtick/`~` — is ever on a set, so each falls through to the NAMED
 #: refusal `producer git <token> not on the allowlist`.
+#:
+#: Each row is a 4-tuple (allowed short-FLAG letters, allowed `--long` forms,
+#: allow-bare-`-N`, REQUIRED `--long` forms). `fetch` is NOT on the allowlist
+#: at all (hypothesis:l4-the-git-allowlist-has-no-network-write): a bare `git
+#: fetch` is a NETWORK WRITE (it advances remote-tracking refs) and no
+#: rotation template uses it, so it falls through to `producer git fetch not
+#: on the allowlist`. `diff` REQUIRES `--stat`: a bare `git diff` would print
+#: the working-tree PATCH into the record and the successor's STARTUP OUTPUT,
+#: so a `diff` whose args never name `--stat` is refused even though the flag
+#: itself is allowed.
 _GIT_ALLOW = {
-    "status":    (frozenset("sb"), frozenset(), False),
-    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True),
-    "diff":      (frozenset(), frozenset(("--stat",)), False),
-    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False),
-    "branch":    (frozenset(), frozenset(("--show-current",)), False),
-    "fetch":     (frozenset(), frozenset(), False),
+    "status":    (frozenset("sb"), frozenset(), False, frozenset()),
+    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True, frozenset()),
+    "diff":      (frozenset(), frozenset(("--stat",)), False, frozenset(("--stat",))),
+    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False, frozenset()),
+    "branch":    (frozenset(), frozenset(("--show-current",)), False, frozenset()),
 }
 _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
                           "display-message"}
@@ -4386,9 +4393,10 @@ def _git_arg_refusal(args: list) -> str | None:
     allow = _GIT_ALLOW.get(sub)
     if allow is None:
         return ("producer git " + " ".join(args)).strip()
-    flags, longs, numeric = allow
+    flags, longs, numeric, requires = allow
     i += 1
     pos = 0
+    seen = set()
     while i < len(args):
         tok = args[i]
         for bad in ("$", "`", "~"):
@@ -4407,6 +4415,7 @@ def _git_arg_refusal(args: list) -> str | None:
             base = tok.split("=", 1)[0]
             if base not in longs:
                 return f"producer git {base} not on the allowlist"
+            seen.add(base)
             i += 1
             continue
         if numeric and _NUM_OPT_RE.match(tok):
@@ -4417,6 +4426,11 @@ def _git_arg_refusal(args: list) -> str | None:
             if ch not in flags:
                 return f"producer git {tok} not on the allowlist"
         i += 1
+    for req in requires:
+        if req not in seen:
+            # a REQUIRED --long form never appeared (diff without --stat would
+            # print the working-tree patch) — refuse the subcommand by name
+            return f"producer git {sub} {req} required"
     return None
 
 
