@@ -112,6 +112,35 @@ def test_prepare_lists_dirty_unpushed_stale_pin_exits_3(
     assert "seat_pin-stale" in err.out
 
 
+def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
+                                                monkeypatch):
+    """Sensei 18:26Z (measured on a MAIN-checkout seat): the dirty-tree
+    captive blocked on `.agi/comms/season-2/dm/*.md` (send.py writes them as
+    dms flow) and `.agi/sessions/rotations/sequence.json` -- cron-owned churn
+    grid_sync commits, never the seat's dirt. Those paths alone -> [ok];
+    a real change beside them still blocks."""
+    churn = [" M .agi/comms/season-2/dm/master-sensei--belam.md",
+             "?? .agi/comms/season-2/dm/a00-1234--sensei-director.md",
+             " M .agi/sessions/rotations/sequence.json"]
+    ok = {("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"): churn, **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] dirty tree" in out
+    # a genuine edit beside the churn still blocks
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"):
+                                  churn + [" M extensions/agi/bin/rotate.py"],
+                                  **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] dirty tree" in out
+
+
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
     """No blocker named: every check reports ok and the checklist exits 0 —
     safe to rotate."""

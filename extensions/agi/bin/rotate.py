@@ -6276,6 +6276,26 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+#: porcelain paths the checklist never counts as the seat's dirt: written by
+#: the comms layer and the rotation sequence as a side effect of every dm and
+#: every rotation, committed by grid_sync (not by any seat).
+PREPARE_CHURN_PREFIXES = (".agi/comms/",)
+PREPARE_CHURN_SUFFIXES = ("sessions/rotations/sequence.json",)
+
+
+def _prepare_churn_path(porcelain_line: str) -> bool:
+    """True when a `git status --porcelain` line names cron-owned churn
+    (`.agi/comms/**`, `.agi/sessions/rotations/sequence.json`) rather than
+    a file the seat changed. Renames (`R old -> new`) are judged on the new
+    path."""
+    path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1]
+    path = path.strip().strip('"')
+    return (path.startswith(PREPARE_CHURN_PREFIXES)
+            or path.endswith(PREPARE_CHURN_SUFFIXES))
+
+
 def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
@@ -6295,7 +6315,14 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # The clear command names YOUR OWN paths -- `git add -A` is forbidden in
     # this tree (parallel agents share it; it has swept a second agent's
     # half-written node and a human's uncommitted edits into one commit).
-    checks.append((bool(porcelain), "dirty tree",
+    # Cron-owned churn is not the seat's dirt (Sensei 18:26Z, measured on a
+    # MAIN-checkout seat: the checklist blocked on `.agi/comms/season-2/dm/
+    # *.md`, which send.py writes as dms flow -- the seat's own included --
+    # and `.agi/sessions/rotations/sequence.json`; grid_sync commits both,
+    # a worktree seat never sees them). Those paths are excluded by name.
+    dirty = [ln for ln in (porcelain or [])
+             if ln.strip() and not _prepare_churn_path(ln)]
+    checks.append((bool(dirty), "dirty tree",
                    "git commit -m '<msg>' -- <the files you changed>"))
 
     # 3 behind origin/season/s2 (N commits)
