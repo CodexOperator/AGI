@@ -532,7 +532,60 @@ def _sweep_refusal_reason(text: str) -> str:
     return "home failed"
 
 
-def _sweep_bring_home(root: Path, main_sessions: Path, iter_name: str,
+def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
+    """Is THIS worktree's copy of the round's session dir genuinely HOME —
+    its own contribution byte-equal under the main target?
+
+    The fix for the empty/foreign-placeholder DATA-LOSS defect in condition
+    (4): `home` must never be proven by a bare `is_dir()` on the main target.
+    An EMPTY pre-created placeholder (dispatch pre-creates one), or a FOREIGN
+    dir a `--branch` round's OTHER tree already filled, both would satisfy a
+    bare `is_dir()`, so the bring-home was never attempted and `git worktree
+    remove` reaped the tree WITH ITS OWN UNMIGRATED RECORDS — exactly the
+    outcome cli._session_complete exists to prevent.
+
+    Proof is PER-SOURCE, the same shape cli._source_landed uses to free a
+    source, without needing the full merge plan: every migratable file under
+    `wt_iter` (cli._migratable: everything but `.manifest.lock`; cli imported
+    LAZILY, never at module import — heal must not load it at import time)
+    must exist under `target` with EQUAL BYTES — at `target/rel` (the winner
+    path) or at the two-tree loser path
+    `target/.conflicts/<rel>.from-<cli._src_slug(wt_iter)>`. An absent or
+    EMPTY target, or any missing/unequal file, is NOT home (fail CLOSED: the
+    bring-home runs). A `wt_iter` that no longer EXISTS is home by
+    session-complete's own contract — it removes a source only after its own
+    contribution byte-verifies.
+    """
+    if not wt_iter.exists():
+        return True  # session-complete removed it only after verification
+    if not target.is_dir():
+        return False
+    try:
+        import cli as _cli  # noqa: E402 — never at module import (see below)
+        slug = _cli._src_slug(wt_iter)
+        files = [p for p in wt_iter.rglob("*")
+                 if p.is_file() and _cli._migratable(p.relative_to(wt_iter))]
+    except Exception:  # noqa: BLE001 — a broken cli is not proof of home
+        return False
+    if not files:
+        return False  # an existing source with no migratable file proves
+        # nothing landed; fail CLOSED so the bring-home is attempted
+    try:
+        for sp in files:
+            rel = sp.relative_to(wt_iter)
+            loc = target / rel
+            if loc.is_file() and loc.read_bytes() == sp.read_bytes():
+                continue
+            loser = target / ".conflicts" / f"{rel}.from-{slug}"
+            if loser.is_file() and loser.read_bytes() == sp.read_bytes():
+                continue
+            return False
+    except OSError:
+        return False
+    return True
+
+
+def _sweep_bring_home(root: Path, main_sessions: Path, wt_iter: Path,
                       dry_run: bool, homed: dict) -> str | None:
     """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
 sweep-judges-it.
@@ -550,14 +603,22 @@ sweep-judges-it.
     dry run); else a short refusal reason for the `session dir not home` log.
     Never writes anything itself -- the migrate is session-complete's, this
     only decides by its captured stdout (dry-run) or the on-disk target.
+    HOME is proven PER-SOURCE and byte-exact (_sweep_iter_home), never a bare
+    `is_dir()` on the target -- an EMPTY placeholder or a FOREIGN dir is not
+    home, so the bring-home runs instead of reaping the tree with its own
+    unmigrated records (hyp:l4-a-finished-rounds-worktree-is-removed-after-
+    harvest, L4.257).
     """
+    iter_name = wt_iter.name
     if iter_name in homed:
         # already attempted this pass; the memoized outcome holds, but the
-        # on-disk target is always re-read because a sibling may have landed it.
-        # A memoized "" means the iter came home (or WOULD, in a dry run where
-        # nothing is on disk) -- the second tree of a two-tree round is then
-        # home too, never refused with an empty reason (harvest fix, L4.255).
-        if homed[iter_name] == "" or (main_sessions / iter_name).is_dir():
+        # on-disk target is always re-read because a sibling may have landed
+        # it. A memoized "" means the iter came home (or WOULD, in a dry run
+        # where nothing is on disk) -- the second tree of a two-tree round is
+        # then home too, never refused with an empty reason (harvest fix,
+        # L4.255). A re-read is a REAL proof, never a bare is_dir (L4.257).
+        if homed[iter_name] == "" or _sweep_iter_home(
+                wt_iter, main_sessions / iter_name):
             return None
         return homed[iter_name]
     try:
@@ -584,14 +645,16 @@ sweep-judges-it.
             return None
         homed[iter_name] = _sweep_refusal_reason(text)
         return homed[iter_name]
-    # LIVE: only the on-disk target is the proof, never a return code.
-    if (main_sessions / iter_name).is_dir():
+    # LIVE: only the on-disk target is the proof, never a return code. HOME is
+    # per-source and byte-exact (_sweep_iter_home), never a bare is_dir -- an
+    # EMPTY placeholder or a foreign dir must still drive a home attempt
+    # instead of reaping the tree with its own unmigrated records (L4.257).
+    if not wt_iter.exists() or _sweep_iter_home(
+            wt_iter, main_sessions / iter_name):
         homed[iter_name] = ""
         return None
     homed[iter_name] = _sweep_refusal_reason(text)
     return homed[iter_name]
-
-
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -712,26 +775,32 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                        f"({age_min:.0f}m < {grace_min}m)")
             continue
         # (4) the round's session dir must have come home (or there is none).
+        # HOME is PER-SOURCE and byte-exact (_sweep_iter_home), never a bare
+        # is_dir on the main target -- an EMPTY placeholder or a FOREIGN dir
+        # is NOT home, so the bring-home runs instead of the tree being reaped
+        # with its own unmigrated records (hyp:l4-a-finished-rounds-worktree-
+        # is-removed-after-harvest, L4.257).
         wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
         if wt_iters:
-            not_home = [d.name for d in wt_iters
-                        if not (main_sessions / d.name).is_dir()]
+            not_home = [d for d in wt_iters
+                        if not _sweep_iter_home(d, main_sessions / d.name)]
             if not_home:
                 rejected: list[str] = []
                 homed_now: set[str] = set()
                 for dn in not_home:
                     reason = _sweep_bring_home(root, main_sessions, dn,
                                                dry_run, homed)
+                    iter_nm = dn.name
                     if reason is None:
-                        homed_now.add(dn)
-                        _watch_log(f"[sweep] homed {agent_id} iter={dn}")
+                        homed_now.add(iter_nm)
+                        _watch_log(f"[sweep] homed {agent_id} iter={iter_nm}")
                     else:
-                        rejected.append(f"{dn}:{reason}")
+                        rejected.append(f"{iter_nm}:{reason}")
                 # condition (4) is re-read from DISK for a LIVE pass; a
                 # dry-run wrote nothing, so a would-home (helper returned
                 # None) counts as home for the removal decision here.
                 remaining = [d.name for d in wt_iters
-                             if not (main_sessions / d.name).is_dir()
+                             if not _sweep_iter_home(d, main_sessions / d.name)
                              and d.name not in homed_now]
                 if remaining:
                     refused += 1
