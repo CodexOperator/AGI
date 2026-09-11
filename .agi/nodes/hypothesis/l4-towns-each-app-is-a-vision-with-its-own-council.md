@@ -18,3 +18,6 @@ title: "Towns: each shippable app is a vision with its own Council, the Keep sha
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER AMENDMENT 2026-09-11 01:0xZ (verbatim in doc:l4-owner-decisions): 'also each town has their own 3 visions per town.' Config applied by the Prime: ladder caps.vision 3 with caps_vision_scope town, towns [core, streaming-suite, web-app-suite]. This round's code half: season.py status and the spawn gate count visions PER TOWN (a vision's town cell, default core) against caps.vision; hierarchy/GOALS render each town with its three visions; the town's Council judges its own three (tier-2 overview per vision). The core town's three are the season-2 visions; the two charter visions stand as vision 1 of 3 for their towns; the other two per town are the OWNER's to name - banked, never invented.
