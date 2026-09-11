@@ -1767,18 +1767,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                                                "session_id") or ""))
                         else None)
             # ONE outcome line per cell group: the single `write.submit`
-            # carries whichever of session_ref/pid/session_id differs.
-            _backfill_session_ref(
+            # carries whichever of session_ref/pid/session_id differs, and
+            # the helper's own outcome line ALWAYS prints (F8: the ack PRINTS
+            # the back-fill it wrote — a join miss must not silence the
+            # session_ref line; director fix-up at the L4.288 harvest, the
+            # kid printed it only on a join hit). A hit appends the @id it
+            # joined by.
+            line = _backfill_session_ref(
                 root, seat=seat, role="parent", ref=ref, pid=back_pid,
                 session_id=back_sid)
+            if join.get("found") and line.endswith("(source: ack)"):
+                line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
+            print(line)
             if join.get("found"):
-                joined_cells = [f"session_ref={ref}"]
-                if back_pid is not None:
-                    joined_cells.append(f"pid={back_pid}")
-                if back_sid is not None:
-                    joined_cells.append(f"session_id={back_sid}")
-                print(f"back-filled {', '.join(joined_cells)} into own row "
-                      f"(source: ack, joined by @{window_id.lstrip('@')})")
                 # The meter pin is the lease (prime XI 19:38Z): pin the
                 # successor's OWN transcript from the JOIN, but ONLY when no
                 # pin exists — never overwrite an EXISTING pin.
