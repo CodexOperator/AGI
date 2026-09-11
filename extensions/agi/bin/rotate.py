@@ -198,6 +198,22 @@ def load_ladder_field(root: Path, field: str, default):
         return default
 
 
+def season_branch(root: Path | None) -> str:
+    """THE ONE resolver for the season branch name:
+    `season/s{current_season}` from the ladder, `season/s2` only as the
+    fallback when the ladder is unreadable (load_ladder_field already	warns).
+    Every literal `season/s2` site in rotate.py routes through this so a
+    season change is ONL Y the ladder's `current_season` (hypothesis l4-the-
+    prepare-captives-measure-generation-upstream-and-season-and-the-gate-
+    is-not-a-test-seam, piece 4: printed lines change text only by the
+    season number)."""
+    s = load_ladder_field(root, "current_season", None) if root is not None \
+        else None
+    if s is None:
+        return "season/s2"
+    return f"season/s{s}"
+
+
 def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
     """The newest `.jsonl` file under `~/.claude/projects/<slug>/`.
 
@@ -1726,9 +1742,10 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         # F9's "the refusal IS the behind check" was not trusted. The record
         # read prints it instead, from the tree as it stands (no fetch: what
         # the seat's own git knows now), n/a when git cannot answer.
+        _sb = season_branch(root)
         behind = _git_count_maybe(root, "rev-list", "--count",
-                                  "HEAD..origin/season/s2")
-        print(f"behind origin/season/s2: "
+                                  f"HEAD..origin/{_sb}")
+        print(f"behind origin/{_sb}: "
               f"{'n/a' if behind is None else behind}")
         return 0
 
@@ -2344,23 +2361,59 @@ def _seat_hands(root: Path) -> Path:
     return _sessions_dir(root) / "seats"
 
 
-def _read_generation(root: Path, name: str) -> int:
-    """The `generation:` read from a seat's existing handoff, or 0 when the
-    handoff is absent or unparsable (the rotation that writes gen N always
-    follows prior gen N-1)."""
+def _seat_row_generation(root: Path | None, name: str) -> int | None:
+    """The seat's OWN `generation` field from its config:seats row, or None
+    when the seat has no live row or its row carries no generation. THE
+    AUTHORITY: the row is what rotate-self writes at spawn and the ack
+    back-fills (hypothesis:l4-the-prepare-captives-measure-generation-
+    upstream-and-season-and-the-gate-is-not-a-test-seam)."""
+    row = _find_seat(root, name) if root is not None else None
+    if not row:
+        return None
+    g = row.get("generation")
+    if isinstance(g, int):
+        return g
+    if g is None:
+        return None
+    try:
+        return int(str(g))
+    except (TypeError, ValueError):
+        return None
+
+
+def _generation_measured(root: Path, name: str) -> tuple[int, bool, str]:
+    """The seat's CURRENT generation (row FIRST, handoff header as fallback)
+    and whether it is measured at all.
+
+    Returns (gen, measured, source). source is a short label for the check
+    line. measured=False when NEITHER the config:seats row nor the handoff
+    header carries a generation — an unmeasurable seat the prepare captive
+    prints as `ok (generation unmeasured: no row, no handoff)`, never
+    silently passes with cur_gen=0."""
+    g = _seat_row_generation(root, name)
+    if g is not None:
+        return g, True, "config:seats row"
     hp = _seat_hands(root) / f"{name}.handoff.md"
     if not hp.exists():
-        return 0
+        return 0, False, ""
     try:
         txt = hp.read_text(encoding="utf-8", errors="replace")
         for line in txt.splitlines():
             ls = line.strip()
             if ls.startswith("generation:"):
                 v = ls.split(":", 1)[1].strip()
-                return max(0, int(v))
+                return max(0, int(v)), True, "handoff header"
     except (OSError, ValueError):
         pass
-    return 0
+    return 0, False, ""
+
+
+def _read_generation(root: Path, name: str) -> int:
+    """The seat's generation, or 0 when unmeasurable (no config:seats row
+    generation, no handoff header). Row-first; the handoff is only the
+    fallback."""
+    gen, measured, _ = _generation_measured(root, name)
+    return gen if measured else 0
 
 
 def _write_handoff(root: Path, name: str, generation: int,
@@ -2984,7 +3037,13 @@ def _git_maybe(cwd: Path, *args: str) -> list[str] | None:
     try:
         out = subprocess.run(["git", "-C", str(cwd), *args],
                              capture_output=True, text=True)
-    except (OSError, subprocess.SubprocessError):
+    except Exception:  # noqa: BLE001
+        # ANY refusal degrades to None — a real OSError/SubprocessError, or a
+        # test fixture that fakes subprocess.run to raise on git (the
+        # rotate-self candidate runs the checklist unconditionally now, so a
+        # seam that refuses git must pass through as unmeasurable, never
+        # propagate: hypothesis:l4-the-prepare-captives-measure-generation-
+        # upstream-and-season-and-the-gate-is-not-a-test-seam, piece 2).
         return None
     if out.returncode != 0:
         return None
@@ -3066,10 +3125,12 @@ def _harvest_handoff_facts(root: Path, seat: str) -> dict:
         facts.update({"gen_before": None, "gen_after": None, "window": None,
                       "pid": None, "model_confirm": None})
 
-    # branch + behind-count vs origin/season/s2 + unpushed commits.
+    # branch + behind-count vs the season branch + unpushed commits.
     branch_lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD")
     facts["branch"] = branch_lines[0] if branch_lines else None
-    behind = _git_maybe(root, "rev-list", "--count", "HEAD..origin/season/s2")
+    _sb = season_branch(root)
+    facts["season"] = _sb
+    behind = _git_maybe(root, "rev-list", "--count", f"HEAD..origin/{_sb}")
     facts["behind"] = behind[0] if behind else None
     ahead = _git_maybe(root, "rev-list", "--count", "@{u}..HEAD")
     facts["unpushed"] = ahead[0] if ahead else None
@@ -3129,7 +3190,8 @@ def _compose_card_s0(seat: str, facts: dict) -> str:
                f"{facts.get('counts_deprecated') or 'n/a'}."
                + (f" Suite {facts['suite']}." if facts.get("suite") else ""))
     out.append(f"- **Tree:** branch {facts.get('branch') or 'n/a'}, "
-               f"behind season/s2 {facts.get('behind') or 'n/a'}, "
+               f"behind {facts.get('season') or 'season/s?'} "
+               f"{facts.get('behind') or 'n/a'}, "
                f"unpushed {facts.get('unpushed') or 'n/a'}.")
     fr = facts.get("fraction")
     out.append(f"- **Meter:** {fr if fr is not None else 'n/a'} · "
@@ -3315,7 +3377,8 @@ def _state_rows(seat: str, facts: dict) -> list[tuple[str, str]]:
         nc += f" Suite {facts['suite']}."
     rows.append(("Node counts", nc))
     rows.append(("Tree",
-                 f"branch {facts.get('branch') or 'n/a'}, behind season/s2 "
+                 f"branch {facts.get('branch') or 'n/a'}, behind "
+                 f"{facts.get('season') or 'season/s?'} "
                  f"{facts.get('behind') or 'n/a'}, unpushed "
                  f"{facts.get('unpushed') or 'n/a'}."))
     rows.append(("Meter",
@@ -4382,7 +4445,7 @@ def _button_down(*, root: Path, branch_allow: bool = True,
 
     `git rev-parse --abbrev-ref HEAD` establishes whether `root` is a real
     repo; `legal_branch` (when supplied) is the ONE branch a grid commit is
-    legal on — the season branch (`season/s2` under this round's season). A
+    legal on — the season branch (`season_branch()` under this round's season). A
     grid commit is legal ONLY when a real branch is checked out AND the gate
     is on AND (when a legal branch is declared) the branch IS it; any other
     state RECORDS `SKIPPED: grid commit illegal on <branch>` naming the real
@@ -6284,7 +6347,7 @@ def cmd_next(args: argparse.Namespace, root: Path) -> int:
 #     STEP 2, hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-\n#     spawn) ---------------------------------------------------------------
 #
 # `rotate.py prepare --seat S` prints the captive rotate-out checklist
-# BEFORE any spawn — unpushed commits, dirty tree, behind origin/season/s2,
+# BEFORE any spawn — unpushed commits, dirty tree, behind the season branch,
 # card mtime older than the last commit, a stale meter pin (seat_pin-stale),
 # a stale <S>.ack.json — ONE line each with the ONE command that clears it.
 # exit 0 only when nothing blocks, exit 3 otherwise. rotate-self runs the
@@ -6347,9 +6410,37 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     only when the evidence for the blocker is actually present."""
     checks: list[tuple[bool, str, str]] = []
 
-    # 1 unpushed commits on the checked-out branch
-    unpushed = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
-    checks.append(((unpushed or 0) > 0, "unpushed commits", "git push"))
+    # 1 unpushed commits on the checked-out branch. When `@{u}` does not
+    # resolve (a fresh seat branch with no upstream yet — exactly the
+    # unpushed case), count `origin/<branch>..HEAD` if that ref exists, else
+    # BLOCK `no upstream for <branch>` with the push command (a branch with
+    # no upstream makes a bare `@{u}..HEAD` count None, which used to fall
+    # through as (None or 0) > 0 = False and leave the unpushed captive
+    # INERT). A detached HEAD and an unmeasurable branch both print ok.
+    branch_lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD")
+    branch = (branch_lines[0].strip() if branch_lines else "")
+    if not branch:
+        unpushed, pname, pclear = (False, "unpushed commits (unmeasured)",
+                                   "git push")
+    elif branch == "HEAD":
+        unpushed, pname, pclear = (False, "unpushed commits "
+                                   "(detached: unmeasured)", "git push")
+    else:
+        n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
+        if n is not None:
+            unpushed, pname, pclear = (n > 0, "unpushed commits", "git push")
+        else:
+            alt = _git_count_maybe(root, "rev-list", "--count",
+                                   f"origin/{branch}..HEAD")
+            if alt is not None:
+                unpushed, pname, pclear = \
+                    (alt > 0, f"unpushed commits vs origin/{branch}",
+                     "git push")
+            else:
+                unpushed, pname, pclear = \
+                    (True, f"no upstream for {branch}",
+                     f"git push -u origin {branch}")
+    checks.append((unpushed, pname, pclear))
 
     # 2 dirty tree
     porcelain = _git_maybe(root, "status", "--porcelain")
@@ -6366,17 +6457,19 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     checks.append((bool(dirty), "dirty tree",
                    "git commit -m '<msg>' -- <the files you changed>"))
 
-    # 3 behind origin/season/s2 (N commits)
+    # 3 behind origin/season/sX (N commits) -- branch from the ladder via
+    # season_branch, never a hardcoded season.
+    _sb = season_branch(root)
     behind = _git_count_maybe(root, "rev-list", "--count",
-                              "HEAD..origin/season/s2")
+                              f"HEAD..origin/{_sb}")
     ahead_n = behind or 0
     # The clear command MERGES, never rebases: `never rebase` is a standing
     # rule of this tree (CLAUDE.md, every seat card) and the seat protocol's
-    # behind check is `git merge origin/season/s2` into the worktree
+    # behind check is `git merge origin/season/sX` into the worktree
     # (director fix-up at the SL1.02 harvest; the kid printed `pull --rebase`).
-    checks.append((ahead_n > 0, f"behind origin/season/s2 ({ahead_n})",
-                   "git fetch origin season/s2 && git merge --no-edit "
-                   "origin/season/s2"))
+    checks.append((ahead_n > 0, f"behind origin/{_sb} ({ahead_n})",
+                   f"git fetch origin {_sb} && git merge --no-edit "
+                   f"origin/{_sb}"))
 
     # 4 card mtime older than the last commit
     # The card lives in the SEAT'S OWN tree (`<worktree>/.agi/sessions/quorum/
@@ -6389,7 +6482,7 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # declared-titles-and-writes-the-seats-own-card).
     card = _own_card_path(root, seat)
     # "Older than the last commit" means the last commit that is WORK: a
-    # merge from origin/season/s2 (a sync) is not, a commit of cron-owned
+    # merge from the season branch (a sync) is not, a commit of cron-owned
     # churn (comms dms, rotation records) is not, and the commit that
     # committed the card itself is not (Sensei 18:29Z: two porcelain syncs
     # aged the card and blocked the rotation). Measured at the repo top so
@@ -6409,23 +6502,31 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     checks.append((card_stale, "card older than last commit",
                    f"rotate.py handoff --driven --seat {seat}"))
 
-    # 5 meter pin missing or stale (seat_pin-stale)
+    # 5 meter pin missing or stale (seat_pin-stale). The check needs the
+    # seat's CURRENT generation — which now comes from the config:seats ROW
+    # first (the authority), the handoff header only as fallback. When
+    # NEITHER is measurable the line prints ok + a plain `generation
+    # unmeasured` note, never silently passing with cur_gen=0 (the old code
+    # gated on `cur_gen` TRUTHINESS, so a seat whose handoff copy carried no
+    # generation got cur_gen=0 and both captives went INERT).
     pin = find_pin_log(root, seat)
-    cur_gen = _read_generation(root, seat)
+    cur_gen, gen_measured, gen_src = _generation_measured(root, seat)
+    gen_note = (f"cur={cur_gen} ({gen_src})" if gen_measured else
+                "generation unmeasured: no config:seats row, no handoff")
     stale_pin = False
     if pin is not None:
         written_gen, _ = _parse_pin_record(pin)
-        if written_gen is not None and cur_gen and written_gen != cur_gen:
+        if written_gen is not None and gen_measured and written_gen != cur_gen:
             stale_pin = True
     checks.append((stale_pin,
-                   f"meter pin stale (seat_pin-stale) cur={cur_gen}",
+                   f"meter pin stale (seat_pin-stale) {gen_note}",
                    f"rotate.py meter --seat {seat} --pin <transcript>"))
 
     # 6 stale <seat>.ack.json — an ack from a generation other than the seat's
     # own is a leftover that would misreport the rotation (the ack channel is
     # generation-checked: hypothesis:l4-rotate-readback-false-negative-and-
     # the-orphan-by-design). Absence is fine — this is the pre-first-rotation
-    # state.
+    # state. Same row-first generation, same unmeasured note as check 5.
     ack = _ack_path(root, seat)
     stale_ack = False
     if ack.exists():
@@ -6434,9 +6535,10 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
         except (OSError, ValueError):
             data = {}
         ga = data.get("gen_after")
-        if ga is not None and cur_gen and ga != cur_gen:
+        if ga is not None and gen_measured and ga != cur_gen:
             stale_ack = True
-    checks.append((stale_ack, f"stale ack ({seat}.ack.json)", f"rm {ack}"))
+    checks.append((stale_ack, f"stale ack ({seat}.ack.json) {gen_note}",
+                   f"rm {ack}"))
 
     return checks
 
@@ -6477,21 +6579,25 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
 # behind-count and the sync command. The rotation record names the tree the
 # template came from (`template_source`) so a spawn is always attributable.
 
-#: the shared geometry branch; a worktree whose `.agi/nodes/.geometry/` is
-#: behind this (by `git rev-list --count HEAD..<ref> -- <subtree>`) is treated
-#: as carrying a STALE rotation config.
-GEOMETRY_BASE_REF = "origin/season/s2"
-
 #: the subtree of the repo whose drift makes a worktree's rotation config
 #: stale. Kept a Path so git's `--` pathspec gets fresh bytes on every OS.
 GEOMETRY_SUBTREE = Path(".agi/nodes/.geometry/")
 
-#: what a refused operator runs to refresh the geometry config before re-spawn.
-# MERGE, never rebase: a standing rule of this tree (CLAUDE.md, every seat
-# card); the same clear line `_prepare_checks` prints for "behind" (director
-# fix-up at the SL1.06 harvest -- the kid printed `rebase`).
-GEOMETRY_SYNC_CMD = ("git fetch origin season/s2 && git merge --no-edit "
-                     "origin/season/s2")
+
+def _geometry_base_ref(root: Path | None) -> str:
+    """The shared geometry branch (`origin/<season branch>`) — DERIVED from
+    the ladder at call time via season_branch, never a hardcoded season."""
+    return f"origin/{season_branch(root)}"
+
+
+def _geometry_sync_cmd(root: Path | None) -> str:
+    """What a refused operator runs to refresh the geometry config before
+    re-spawn. MERGE, never rebase: a standing rule of this tree (CLAUDE.md,
+    every seat card); the same clear line `_prepare_checks` prints for
+    "behind" (director fix-up at the SL1.06 harvest -- the kid printed
+    `rebase`). Season from the ladder, never a hardcoded season."""
+    b = season_branch(root)
+    return (f"git fetch origin {b} && git merge --no-edit origin/{b}")
 
 
 def _git_toplevel(root: Path) -> Path | None:
@@ -6517,7 +6623,7 @@ def _geometry_behind_count(root: Path | None) -> int:
     """How many commits the worktree's OWN `.agi/nodes/.geometry/` is behind
     the shared geometry branch:
 
-        git rev-list --count HEAD..<GEOMETRY_BASE_REF> -- <GEOMETRY_SUBTREE>
+        git rev-list --count HEAD..<ref> -- <GEOMETRY_SUBTREE>
 
     0 (current) when the geometry is already at HEAD, when the remote-
     tracking base ref does not exist (a fresh/offline clone), or when the
@@ -6528,10 +6634,11 @@ def _geometry_behind_count(root: Path | None) -> int:
     top = _git_toplevel(root)
     if top is None:
         return 0
+    base = _geometry_base_ref(root)
     try:
         out = subprocess.run(
             ["git", "rev-list", "--count",
-             f"HEAD..{GEOMETRY_BASE_REF}", "--", str(GEOMETRY_SUBTREE)],
+             f"HEAD..{base}", "--", str(GEOMETRY_SUBTREE)],
             cwd=str(top), capture_output=True, text=True, timeout=10)
     except Exception:  # noqa: BLE001
         return 0
@@ -6565,15 +6672,17 @@ def _geometry_resolution_root(root: Path) -> tuple[Path | None, str]:
     if main_graph is not None and str(main_graph) != str(root) \
             and _geometry_behind_count(main_graph) == 0 \
             and _rotations_node_path(main_graph).exists():
+        _gb = _geometry_base_ref(root)
         return main_graph, (
             f"integration tree {main} (worktree geometry behind "
-            f"{GEOMETRY_BASE_REF} by {behind} commit(s))")
+            f"{_gb} by {behind} commit(s))")
+    _gb = _geometry_base_ref(root)
     return None, (
         "rotate-self refused: this worktree's .agi/nodes/.geometry/ is behind "
-        f"{GEOMETRY_BASE_REF} by {behind} commit(s); spawning on a stale "
+        f"{_gb} by {behind} commit(s); spawning on a stale "
         "rotation config would hand the successor the wrong config:rotations "
         "/ config:seats. Sync the tree and re-run: "
-        f"`{GEOMETRY_SYNC_CMD}`.")
+        f"`{_geometry_sync_cmd(root)}`.")
 
 
 # --- first-decision: the point's captive harvest-or-cut --------------------
@@ -6945,14 +7054,15 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # it, rotate-self runs the SAME `_prepare_checks` and refuses BY NAME
     # with the same line. `--force` bypasses only what it bypassed today
     # (the meter-due gate); these blockers are not that gate.
-    # Fixture seam (director fix-up at the SL1.02 harvest): the checks read
-    # the REAL tree through git; a fixture run (window_path seam set — the
-    # same seam that makes (s11) verification record a SKIP instead of
-    # running against a fake root) has no tree to check and its subprocess
-    # fakes refuse anything but `ps`. A live rotate-self (window_path None)
-    # always runs the gate; kid 2's refusal test drives it that way.
-    _blocks = ([c for c in _prepare_checks(root, seat) if c[0]]
-               if args.window_path is None else [])
+    # The gate is UNCONDITIONAL — the `--window-path` fixture seam is NOT a
+    # gate key (hypothesis l4-the-prepare-captives-measure-generation-
+    # upstream-and-season-and-the-gate-is-not-a-test-seam, piece 2: a live
+    # invocation passing --window-path used to skip the whole checklist
+    # silently). Each check already answers ok when its basis is unmeasurable
+    # (no git -> _git_maybe None; no pin; no ack), so a fixture root passes
+    # by the same rule a real one does; a subprocess faked to refuse git
+    # degrades to None, never propagates.
+    _blocks = [c for c in _prepare_checks(root, seat) if c[0]]
     if _blocks:
         for _b, _nm, _cl in _blocks:
             print(f"rotate-self blocked: {_nm} — {_cl}", file=sys.stderr)
