@@ -57,7 +57,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -1042,6 +1042,16 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
 
     `claude_cmd` is quoted element by element, so the constitution head riding
     in argv survives whatever is prepended.
+
+    **A SEAT successor (amendment e) gets the `launch-wrapper` subcommand
+    wrapped around the claude argv** (hypothesis:l4-rotate-self-under-pytest-
+    reaps-the-host-prime, amendment (e)): the wrapper is the direct parent of
+    claude, masks TERM/HUP/INT onto itself, and logs every process-sent
+    signal with its sender pid so the seat's lifecycle log distinguishes, by
+    construction, a SELF-TEARDOWN (child exit with no wrapper signal) from a
+    TERM'd-FROM-OUTSIDE (signal 15 with a sender line) from the WINDOW-KILLED
+    (HUP). The seatless line stays byte-identical to today — the wrapper is
+    inserted only when `seat` is not None.
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
     # AGI_SEAT rides FIRST in the export chain, so it is set before the
@@ -1049,11 +1059,153 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
-        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + cmd
+        wrap = " ".join(shlex.quote(c) for c in (
+            _launch_wrapper_argv(seat, claude_cmd)))
+        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
+
+
+def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
+    """The argv that runs `rotate.py launch-wrapper --seat <seat>` wrapping
+    `child_cmd`.
+
+    Built from `sys.executable` + this file's own path so the launch line is
+    self-locating from any tmux window cwd (the wrapper resolves the project
+    root at run time for its default log path; an explicit `--log` overrides).
+    The claude argv rides after `--`; `argparse` REMAINDER keeps a leading
+    `--`, which `cmd_launch_wrapper` strips.
+    """
+    return [sys.executable, str(Path(__file__).resolve()),
+            "launch-wrapper", "--seat", seat, "--", *child_cmd]
+
+
+# Signals the launch wrapper reserves onto itself so it can log and forward
+# them, plus SIGCHLD so a child's death is delivered to sigwaitinfo rather
+# than the default handler. SI_USER/SI_TKILL are the Linux siginfo si_code
+# values for a signal a PROCESS sent (delivered via kill/os.kill), vs a tty /
+# kernel signal whose si_pid is 0 (SI_KERNEL=128) — not exposed as Python
+# constants, so pinned as literals.
+_LAUNCH_RESERVED_SIGS = {signal.SIGTERM, signal.SIGHUP, signal.SIGINT}
+_LAUNCH_WAIT_SIGS = _LAUNCH_RESERVED_SIGS | {signal.SIGCHLD}
+_LINUX_SI_USER = 0      # kill(pid, sig) sent by a process
+_LINUX_SI_TKILL = -6    # tgkill / kill(samepid) sent by a process
+
+
+def _proc_comm(pid: int) -> str:
+    """`/proc/<pid>/comm` when the process is alive, else empty."""
+    try:
+        with open(f"/proc/{pid}/comm", encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return ""
+
+
+def _launch_wrapper_now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _launch_wrapper_log(root, seat: str) -> str:
+    """Default lifecycle log: `<sessions>/seats/<seat>.wrapper.log` — the
+    same seats dir every seat subcommand already addresses from any cwd."""
+    r = root
+    if r is None:
+        r = find_project_root()
+        if r is None:
+            raise RuntimeError("launch-wrapper: no project root resolvable; "
+                               "pass --log")
+    return str(_seat_hands(r) / f"{seat}.wrapper.log")
+
+
+def cmd_launch_wrapper(args, root) -> int:
+    """Signal-masking parent so a seat's lifecycle log distinguishes the
+    three death classes (amendment e, hypothesis:l4-rotate-self-under-pytest-
+    reaps-the-host-prime).
+
+    Blocks TERM/HUP/INT (plus CHLD) onto ITSELF, starts the wrapped child
+    with those signals unblocked and the tty inherited (claude stays
+    interactive), then loops `signal.sigwaitinfo`:
+      * a TERM/HUP/INT whose si_code is SI_USER/SI_TKILL (a process sent it)
+        is logged with sender pid (/proc comm if alive) + uid and FORWARDED to
+        the child;
+      * a kernel/tty signal (si_pid 0) already reached the child's group —
+        logged, not forwarded;
+      * on SIGCHLD it reaps the child and logs its exit, then exits with the
+        child's status (128+signal when signalled).
+
+    So a seat .log distinguishes the three deaths by construction: exit 0/1
+    with no wrapper signal = SELF-TEARDOWN; signal 15 with a sender line =
+    TERM'd BY <pid>; signal 15 with no wrapper signal = a TERM aimed straight
+    at the child (sender unknown to the wrapper); signal 1 = HUP (window
+    killed). The row's `pid` is unaffected — the successor's claude pid is
+    still in the derived chain, one more ancestor deep.
+    """
+    child_cmd = list(args.child)
+    # argparse REMAINDER keeps the leading `--` separator; strip it.
+    if child_cmd and child_cmd[0] == "--":
+        child_cmd = child_cmd[1:]
+    if not child_cmd:
+        print("ERR: launch-wrapper needs a child argv after --",
+              file=sys.stderr)
+        return 2
+    log_path = args.log or _launch_wrapper_log(root, args.seat)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+    tag = f"[launch-wrapper] {args.seat}"
+    with open(log_path, "a", encoding="utf-8") as log_fh:
+        def _log(line: str) -> None:
+            log_fh.write(f"{tag} {line}\n")
+            log_fh.flush()
+
+        signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
+        child = subprocess.Popen(
+            child_cmd,
+            preexec_fn=lambda: signal.pthread_sigmask(
+                signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS),
+        )
+        received: list[int] = []
+        while True:
+            info = signal.sigwaitinfo(_LAUNCH_WAIT_SIGS)
+            if info.si_signo == signal.SIGCHLD:
+                break
+            received.append(info.si_signo)
+            if (info.si_code in (_LINUX_SI_USER, _LINUX_SI_TKILL)
+                    and info.si_pid != 0):
+                comm = _proc_comm(info.si_pid)
+                pid_txt = (f"{info.si_pid} ({comm})" if comm
+                           else str(info.si_pid))
+                _log(f"SIG{info.si_signo} from pid {pid_txt} "
+                     f"uid {info.si_uid} at {_launch_wrapper_now()}")
+                try:
+                    os.kill(child.pid, info.si_signo)
+                except ProcessLookupError:
+                    pass
+            elif info.si_pid == 0:
+                _log(f"SIG{info.si_signo} from kernel/tty (si_pid 0) "
+                     f"uid {info.si_uid} — already reached the child's group, "
+                     f"NOT forwarded at {_launch_wrapper_now()}")
+            else:
+                _log(f"SIG{info.si_signo} si_code {info.si_code} uid "
+                     f"{info.si_uid} — NOT forwarded at "
+                     f"{_launch_wrapper_now()}")
+
+        # SIGCHLD: reap the child and report.
+        try:
+            _, status = os.waitpid(child.pid, 0)
+        except ChildProcessError:
+            status = 0
+        rec = ", ".join(str(s) for s in received) if received else "none"
+        if os.WIFSIGNALED(status):
+            sig = os.WTERMSIG(status)
+            _log(f"child {child.pid} exited signal {sig} at "
+                 f"{_launch_wrapper_now()}; wrapper received {rec}")
+            return 128 + sig
+        code = os.WEXITSTATUS(status) if os.WIFEXITED(status) else 0
+        _log(f"child {child.pid} exited status {code} at "
+             f"{_launch_wrapper_now()}; wrapper received {rec}")
+        return code
+
 
 
 # tmux refuses a command longer than its own buffer with `command too long`.
@@ -8689,11 +8841,36 @@ def main(argv: list[str] | None = None) -> int:
                           "via git_common_root)")
     p_c.set_defaults(func=cmd_complete)
 
+    # launch-wrapper: signal-masking parent so a seat's lifecycle log
+    # distinguishes self-teardown from TERM'd-from-outside from window-killed
+    # (hypothesis:l4-rotate-self-under-pytest-reaps-the-host-prime, amendment e)
+    p_lw = sub.add_parser(
+        "launch-wrapper", help="signal-masking parent that wraps a seat's "
+                               "claude argv and logs every process-sent "
+                               "TERM/HUP/INT with its sender pid")
+    p_lw.add_argument("--seat", required=True,
+                      help="seat name (log attribution + default log path)")
+    p_lw.add_argument("--log", default=None,
+                      help="append wrapper lifecycle lines here (default: "
+                           "<sessions>/seats/<seat>.wrapper.log)")
+    p_lw.add_argument("--root", default=None,
+                      help="project root for the default log path (test seam; "
+                           "else find_project_root at run time)")
+    p_lw.add_argument("child", nargs=argparse.REMAINDER,
+                      help="the wrapped argv after -- (e.g. `-- claude "
+                           "--remote-control <name> <prompt>`)")
+    p_lw.set_defaults(func=cmd_launch_wrapper)
+
     args = ap.parse_args(argv)
 
     # complete works purely from its explicit paths + git; no project root.
     if args.cmd == "complete":
         return args.func(args, None)
+
+    # launch-wrapper resolves its own log path at run time (root=None triggers
+    # find_project_root inside); no project root required up front.
+    if args.cmd == "launch-wrapper":
+        return args.func(args, getattr(args, "root", None))
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
