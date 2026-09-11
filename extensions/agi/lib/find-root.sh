@@ -175,6 +175,16 @@ find_project_root() {
       echo "$d"
       return 0
     fi
+    # Bound to `start`'s OWN repository, exactly as the Python half does
+    # (locations.find_project_root). A `$d/.git` (file or dir) is the boundary
+    # of the repository `start` is inside; an `.agi`/config found at that same
+    # level (checked above) is start's own and already returned. Anything ABOVE
+    # that boundary lives in a DIFFERENT (ancestral) repository and must never
+    # be climbed into — a path under an unrelated nested fixture git repo must
+    # resolve nothing, not the outer project's root.
+    if [[ -e "$d/.git" ]]; then
+      break
+    fi
     d="$(dirname "$d")"
   done
 

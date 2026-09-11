@@ -367,7 +367,7 @@ def _bash_find_root(start: Path) -> str | None:
 
 
 @pytest.mark.parametrize("shape", ["legacy", "graph_dir", "nested", "half_migrated",
-                                   "descend", "ambiguous", "none"])
+                                   "nested_git", "descend", "ambiguous", "none"])
 def test_bash_and_python_agree(tmp_path, shape):
     """lib/find-root.sh and bin/locations.py implement ONE rule, twice.
 
@@ -392,6 +392,19 @@ def test_bash_and_python_agree(tmp_path, shape):
         make_legacy(repo)
         expected = make_graph_dir(repo)
         start = repo
+    elif shape == "nested_git":
+        # hypothesis:l4-find-root-sh-is-bounded-like-its-python-half. An outer
+        # project with .agi, a nested unrelated `git init` WITHOUT .agi, and a
+        # deep child under it. Both halves must stop at the nested .git and
+        # resolve NOTHING — never climb past it into the outer project.
+        outer = tmp_path / "outer-repo"
+        make_graph_dir(outer)
+        nested = outer / "nested"
+        nested.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(nested)], check=True)
+        start = nested / "deep" / "child"
+        start.mkdir(parents=True)
+        expected = None
     elif shape == "descend":
         start = tmp_path / "fantasia"
         start.mkdir()
