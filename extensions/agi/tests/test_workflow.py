@@ -1065,3 +1065,130 @@ def test_generated_script_parses_as_a_workflow_body():
          "repeat": {"of": "rounds", "label_template": "verify:{key}"}}]}
     err = _workflow_body_parses(_gen_script(chained))
     assert err is None, err
+
+
+# ---------- descriptive per-run keys (hypothesis:l4-a-workflow-run-is- ---
+# named-not-numbered) -----------------------------------------------------
+# A workflow run is cited by a KEY derived from its type + run args, printed
+# first, recorded beside the workflow in the tracked row, and resolved by
+# `workflow.py status` — never by the opaque harness-minted id.
+
+
+def test_mint_run_key_three_shapes(tmp_path):
+    from workflow import _mint_run_key
+    # merge-up review of merge-up 39
+    assert _mint_run_key(tmp_path, "merge-up-review",
+                         {"rounds": [39]}) == "mur-39"
+    # SL1#2 -> slugified to sl1-2
+    assert _mint_run_key(tmp_path, "merge-up-review",
+                         {"rounds": ["SL1#2"]}) == "mur-sl1-2"
+    # author/validate keep their whole name with no run args
+    assert _mint_run_key(tmp_path, "author", {}) == "author"
+    assert _mint_run_key(tmp_path, "validate", {}) == "validate"
+    # a single-word key keeps its name and joins the slugged scalar arg
+    assert _mint_run_key(tmp_path, "review",
+                         {"window": "SL1#2"}) == "review-sl1-2"
+
+
+def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
+    import workflow as _wf
+    from workflow import _mint_run_key
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        assert _mint_run_key(tmp, "merge-up-review",
+                             {"rounds": [39]}) == "mur-39"
+        # a tracked row already claimed mur-39 -> deterministic -2, -3
+        wf_dir = tmp / "sessions" / "workflows"
+        wf_dir.mkdir(parents=True, exist_ok=True)
+        path = wf_dir / "merge-up-review.jsonl"
+        for rk in ("mur-39", "mur-39-2"):
+            with open(path, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"run_key": rk,
+                                     "workflow": "merge-up-review"}) + "\n")
+        assert _mint_run_key(tmp, "merge-up-review",
+                             {"rounds": [39]}) == "mur-39-3"
+    finally:
+        restore()
+
+
+def test_run_prints_run_key_first_and_tracks_it(tmp_path_factory):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    good = ('{"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+            '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+            '"verdict": "v", "overclaims": [], "open_gaps": []}')
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"window": "SL1#2"}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        text = buf.getvalue()
+        # the run key is printed FIRST, before any stage tree line
+        assert text.splitlines()[0] == "[run-key] review-sl1-2", text
+        # and recorded BESIDE the workflow in the tracked row
+        rows = [json.loads(l) for l in (tmp / "sessions" / "workflows"
+                / "review.jsonl").read_text(encoding="utf-8")
+                .splitlines()]
+        assert rows[0]["run_key"] == "review-sl1-2"
+        assert rows[0]["workflow"] == "review"
+    finally:
+        restore()
+
+
+def test_status_resolves_by_run_key(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "pi",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "pi", v, "mur-39")
+        buf = io.StringIO()
+        rc = status_workflow(tmp, "mur-39", out=buf)
+        assert rc == 0, buf.getvalue()
+        assert "mur-39" in buf.getvalue()
+        assert "merge-up-review" in buf.getvalue()
+        # a key naming no run resolves to a miss (exit 1)
+        miss = io.StringIO()
+        assert status_workflow(tmp, "nope", out=miss) == 1
+    finally:
+        restore()
+
+
+def test_author_round_trip_keeps_type_and_appends_note(tmp_path, monkeypatch):
+    """Re-authoring an EXISTING manifest must carry `type` through (a dropped
+    type is one more validate violation) and APPEND the --note to the existing
+    description instead of replacing it (measured: author dropped type and
+    replaced description; restored by hand at 07bae9ea8)."""
+    from workflow import author_workflow
+    wf = tmp_path / "wf"
+    wf.mkdir()
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    orig = {
+        "name": "merge-up-review",
+        "script": "agi-merge-up-review.js",
+        "type": "merge-up-review",
+        "description": "base description of the workflow",
+        "stages": _AUTHOR_STAGES(),
+    }
+    (wf / "merge-up-review.json").write_text(
+        json.dumps(orig, indent=2) + "\n", encoding="utf-8")
+    rc = author_workflow(tmp_path, "merge-up-review",
+                         json.dumps(_AUTHOR_STAGES()),
+                         out=io.StringIO(), source_note="X")
+    assert rc == 0
+    carried = json.loads((wf / "merge-up-review.json")
+                         .read_text(encoding="utf-8"))
+    assert carried["type"] == "merge-up-review", \
+        "the type cell must survive re-authoring"
+    assert carried["description"].startswith("base description"), carried
+    assert "(X)" in carried["description"], \
+        "the --note must be APPENDED to the existing description"
