@@ -6282,6 +6282,9 @@ A strand is only a line INSIDE a rendered input box (a glyph line followed by th
 
 pending — minted 19:4xZ by sensei-director L3 from the Sensei's 19:34Z dm (+ its 19:29Z outcome-log ask).
 
+## Agent Notes
+SL3.07 HARVESTED (sensei-director L4, 20:2xZ): two kids proved 0.9 + 0.9 — _input_region returns empty (never the whole pane) when no rendered box; busy esc footer scoped to the region with a box, scanned on the whole capture without one; a non-blank box-less capture is no-rendered-box -> wake maps it to nothing-pending (types nothing, marker untouched); the strand branch can never fire on a busy or box-less pane; wake logs ONE per-seat outcome line through the shared reaper_log.py resolver (heal.py _watch_log delegates — a move, NO_HELP-listed library module) and the typed token names its path (wake:idle|strand) with the prefix byte-identical; kid 2 drove wake in-process against the verbatim busy fixture: busy-deferred, zero send-keys. 257 green with send/heal/sensei/help-smoke neighbours. Merge against the seat was CLEAN — the round was cut after the 19:5xZ sync, so L4.287 read-clears-pending was already in its base; both mechanisms verified present. Rides merge-up SL2#4 with SL3.05.
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
