@@ -967,7 +967,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
                 addendum=_read_prompt_file(args.prompt_file),
-                session_dir=sess_dir)
+                session_dir=sess_dir,
+                project_root=root)
         brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
 
@@ -1754,6 +1755,13 @@ def main() -> int:
                 # advisors/directors add the ultracode/loop tools).
                 role=args.role,
                 ladder_tier=tier_eff,
+                # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi
+                # -- hand the adapter the project graph root the dispatcher
+                # resolved, so the assembled brief's g15 build-order rule is
+                # decided against the PROJECT's `.agi`, not against brief.py's
+                # own (the engine's) location. On this repo they coincide; in a
+                # cloned engine (CLAUDE.md layout) they do not.
+                project_root=root,
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)

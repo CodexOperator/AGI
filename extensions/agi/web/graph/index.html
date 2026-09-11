@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agi — the graph as a golden 3D web</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  #stage { position: absolute; inset: 0; }
+  canvas#degraded, #webgl { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #status {
+    position: absolute; left: 12px; bottom: 12px;
+    font: 13px ui-monospace, monospace; color: #a48c5a;
+    text-shadow: 0 1px 2px #000; pointer-events: none;
+  }
+  #tip {
+    position: absolute; left: 12px; top: 12px;
+    font: 12px ui-monospace, monospace; color: #666;
+    text-shadow: 0 1px 2px #000; pointer-events: none; white-space: pre;
+  }
+  #tooltip {
+    position: absolute; display: none; z-index: 9;
+    background: rgba(15,18,22,0.92); color: #ffd27a; border: 1px solid #a48c5a;
+    padding: 4px 8px; font: 12px ui-monospace, monospace; pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6); max-width: 420px;
+  }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="tip">drag       orbit
+wheel/2-f  zoom
+right-drag pan
+R          reset view
+hover      label</div>
+  <div id="status">loading…</div>
+  <div id="tooltip"></div>
+  <noscript>
+    <p style="color:#a48c5a;font:15px monospace;padding:20px">
+    This page needs JavaScript to render the golden web.
+    Open <a href="/graph.json">/graph.json</a> to see the raw data.</p>
+  </noscript>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
