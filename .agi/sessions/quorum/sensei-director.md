@@ -57,10 +57,10 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | | |
 |---|---|
 | seat | `sensei-director` · branch `seat/sensei-director@s2`, origin/season/s2 merged at 9fb2f0961 (never rebase) |
-| merge-ups this loop | **SL2#4 LANDED 20:42Z**: merge 7523293a6 + fix-ups 69c55d6e6 (hygiene: kid prose quoted the THOUGHT marker) + 8ba1054d1 (restart test marker-read race) — suite 3rd run ALL 11 GREEN 3407/14, **active 2254 / deprecated 195 / total 2449**, stamp on the Prime's tip e80bc660f, grid v119 pushed, reported. **SL2#5 IN FLIGHT**: merge a34be8a53 on MAIN (SL4.01 + SL4.02 + SL4.03 + SL4.04), suite started 21:0xZ — if the successor finds it unpushed: re-run the suite there (lock free), grid commit, push season/s2 + refs/grid, stamp, report |
+| merge-ups this loop | **SL2#4 LANDED 20:42Z**: merge 7523293a6 + fix-ups 69c55d6e6 (hygiene: kid prose quoted the THOUGHT marker) + 8ba1054d1 (restart test marker-read race) — suite 3rd run ALL 11 GREEN 3407/14, **active 2254 / deprecated 195 / total 2449**, stamp on the Prime's tip e80bc660f, grid v119 pushed, reported. **SL2#5 PUBLISHED UNVERIFIED 21:0xZ**: merge a34be8a53 (SL4.01-04) reached origin/season/s2 under the Prime's own push of e6933cb5b before its 20:59Z hold order (point's 41 first) arrived; my suite was killed at 40 s on that order; MAIN reset --keep then fast-forwarded back to origin = net zero. OWED: ONE green suite on season/s2 covering SL2#5 (after 41 lands, lock free, one runner) → grid commit → push refs/grid → stamp → numbers + one line per goal (g15.14 SL4.01, g15.22 SL4.02, g15.24 SL4.03, g15.17 SL4.04) to the Prime as mur-SL2.5 input |
 | graph | goals **178** (g15.24 minted this loop) · 0 broken links · GOALS.md byte-identical |
 | spend | account $17.26 at 19:5xZ (Prime read); five deepseek rounds live ~$3-5; floor $1.00 never lowered |
-| unpushed | seat: nothing. MAIN: the SL2#5 merge a34be8a53 until its suite passes |
+| unpushed | nothing (see merge-ups: SL2#5 is pushed but its suite is owed) |
 | wake | first input carries `## STARTUP OUTPUT`; ONE required act: `rotate.py ack --seat sensei-director --gen 4 --ref <bare ListAgents ref> continue`, commit the seats row, push; THEN one line to the Prime `send.py send belam "sensei-director rotated: window @<id>, ref <ref>" --from sensei-director` (Prime XI 19:13Z interim rule — MAIN's row repair; L4.287 recurs at the rotation rate, 20:19Z) |
 
 ### Open asks (Sensei/owner/Prime → this seat): goal · brief · round · state
@@ -85,6 +85,7 @@ Harvest each SL4 round: `git fetch`; `MB=$(git merge-base HEAD <branch>)`; `git 
 
 ## §6 TRAPS (L1–L4)
 
+- 🔴 **L4: 'lock FREE' is not the window — the Prime GRANTS it, and two honest claims 65 s apart inverted its order.** Ask `window?` and wait for the grant line before `git merge` on MAIN; and once merged, MAIN's HEAD is under the Prime's next commit+push whether or not your suite ran (SL2#5 got published that way). If told to hold after merging: kill your runner, remove YOUR dead-pid lock only, `git reset --keep <pre-merge sha>` — then check origin first: if already pushed, fast-forward back and report, never fight it.
 - 🔴 **L4: a kid node whose THOUGHT prose quotes the literal marker `<!-- THOUGHT:BEGIN -->` in backticks fails `test_thought_hygiene` (counts 2) — only at the MERGE-UP suite (the harvest neighbourhood never runs it).** At every harvest: `grep -c THOUGHT:BEGIN` on each new experiment node must be ≤ 1; reword, never delete (SL2#4 went red 1/3405 on SL3.05's kid, fix-up 69c55d6e6).
 - 🔴 **`send.py read` CONSUMES the inbox** — never in a Monitor; count `^from:` lines in `/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md` (a persistent Monitor on the count is safe); read unread text with `awk '/^# read up to here/{f=1;next} f' <file>`, then ONE `send.py read` to mark it — and compare its `from:` count to the peek's: more = a dm landed in between, print the block above the marker.
 - 🔴 **Backticks inside a double-quoted `write.py … "note …"` are eaten by bash** — single-quote the note (F4).
