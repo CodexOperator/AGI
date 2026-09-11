@@ -449,10 +449,18 @@ def test_cli_resume_with_nothing_to_resume_says_so(root, capsys):
 # hypothesis:l4-a-parent-with-a-live-kid-is-not-stalled — `status --iter`
 # --------------------------------------------------------------------------
 
-def _sleeping():
-    """A live, idle process (sleeping, 0 CPU ticks, 0 sockets)."""
-    return subprocess.Popen([sys.executable, "-c",
-                             "import time, signal; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(120)"])
+@pytest.fixture()
+def fake_procs(monkeypatch):
+    """Drive `status --iter`'s process readers through the module's own seams
+    (`_pid_alive`, `_pid_ticks`, `_pid_sockets`), `_ps_table`-style, so a
+    live-kid test spawns NO subprocess and the suite no longer depends on a
+    free /proc (hypothesis:l4-spawn-budget-wait-is-declared-and-its-tests-
+    spawn-nothing CLAIM 2). Every pid is alive and idle: 0 ticks, 0 sockets.
+    The SIGTERM-ignoring sleeper fixture is gone from this section."""
+    monkeypatch.setattr(spawn_budget, "_pid_alive", lambda pid: True)
+    monkeypatch.setattr(spawn_budget, "_pid_ticks", lambda pid: 0)
+    monkeypatch.setattr(spawn_budget, "_pid_sockets", lambda pid: 0)
+    yield spawn_budget
 
 
 @pytest.fixture()
@@ -472,76 +480,65 @@ def _mk_project(root: Path) -> None:
     (root / ".agi" / "config.json").write_text('{}')
 
 
-def test_status_iter_parent_with_live_kid_is_never_a_stall_candidate(root, capsys, fast_tick_sample):
-    """The falsifier, run for real: parent + live kid must NOT be a candidate."""
+def test_status_iter_parent_with_live_kid_is_never_a_stall_candidate(root, capsys, fast_tick_sample, fake_procs):
+    """The falsifier: parent + live kid must NOT be a candidate. Parent and
+    kid are FAKE pids — the process readers are monkeypatched, nothing is
+    spawned."""
     _mk_project(root)
-    parent = _sleeping()
-    kid = _sleeping()
+    parent_pid, kid_pid = 424242, 424243
     p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n=140)
-    spawn_budget.commit(p_lease, parent.pid)
+    spawn_budget.commit(p_lease, parent_pid)
     k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid", iter_n=140)
-    spawn_budget.commit(k_lease, kid.pid)
-    try:
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
-        out = capsys.readouterr().out
-        assert rc == 0
-        assert "STALL-CANDIDATE" not in out, out
-        assert "1 live kid(s)" in out, out
-        assert "round L140:" in out, out
-    finally:
-        for p in (parent, kid):
-            p.kill(); p.wait()
+    spawn_budget.commit(k_lease, kid_pid)
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "STALL-CANDIDATE" not in out, out
+    assert "1 live kid(s)" in out, out
+    assert "round L140:" in out, out
 
 
-def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys, fast_tick_sample):
+def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys, fast_tick_sample, fake_procs):
     """Parent alive but idle (0 ticks, 0 sockets, no done) and no kid → candidate."""
     _mk_project(root)
-    parent = _sleeping()
+    parent_pid = 424244
     p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n=141)
-    spawn_budget.commit(p_lease, parent.pid)
-    try:
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.141"])
-        out = capsys.readouterr().out
-        assert rc == 0
-        assert "STALL-CANDIDATE:" in out, out
-        assert "0 live kids" in out, out
-        assert "0 ticks" in out, out
-        assert "0 sockets" in out, out
-    finally:
-        parent.kill(); parent.wait()
+    spawn_budget.commit(p_lease, parent_pid)
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.141"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "STALL-CANDIDATE:" in out, out
+    assert "0 live kids" in out, out
+    assert "0 ticks" in out, out
+    assert "0 sockets" in out, out
 
 
-def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys, fast_tick_sample):
+def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys, fast_tick_sample, fake_procs):
     """A REAL lease stores `iter` as the string 'L4.NNN' (locations.
     iteration_id), never an int. The old int-only comparison (`rec.get("iter")
     == nnn`) never matched a live round and `iter-L{int}` never found the
     agent.json. The parent+kid round with a STRING iter must be FOUND."""
     _mk_project(root)
-    parent = _sleeping()
-    kid = _sleeping()
+    parent_pid, kid_pid = 424245, 424246
     p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.167")
-    spawn_budget.commit(p_lease, parent.pid)
+    spawn_budget.commit(p_lease, parent_pid)
     k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid", iter_n="L4.167")
-    spawn_budget.commit(k_lease, kid.pid)
+    spawn_budget.commit(k_lease, kid_pid)
     # real agent.json lives in the sessions dir named from the genuine id
     for leaf in ("parent-0", "kid-0"):
         ajson = root / ".agi" / "sessions" / "iter-L4.167" / leaf / "agent.json"
         ajson.parent.mkdir(parents=True)
         ajson.write_text('{"status": "running"}')
-    try:
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.167"])
-        out = capsys.readouterr().out
-        assert rc == 0, out
-        assert "STALL-CANDIDATE" not in out, out
-        assert "1 live kid(s)" in out, out
-        assert out.count("agent=running") == 2, out
-        assert "(no agent.json)" not in out, out
-    finally:
-        for p in (parent, kid):
-            p.kill(); p.wait()
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.167"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "STALL-CANDIDATE" not in out, out
+    assert "1 live kid(s)" in out, out
+    assert out.count("agent=running") == 2, out
+    assert "(no agent.json)" not in out, out
 
 
-def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, capsys, fast_tick_sample):
+def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, capsys, fast_tick_sample, fake_procs):
     """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
     print-it — heal.py keeps a live past-deadline agent's status `running`
     and adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue.
@@ -551,33 +548,27 @@ def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, c
     `status: running` + `overdue_since` must therefore print `running(overdue)`, and
     a plain running record must stay `agent=running` with no suffix."""
     _mk_project(root)
-    parent = _sleeping()
-    overdue = _sleeping()
-    plain = _sleeping()
+    parent_pid, overdue_pid, plain_pid = 424247, 424248, 424249
     p_lease = spawn_budget.acquire(root, 3, "parent-0", tier="parent", iter_n="L4.168")
-    spawn_budget.commit(p_lease, parent.pid)
+    spawn_budget.commit(p_lease, parent_pid)
     o_lease = spawn_budget.acquire(root, 3, "kid-overdue", tier="kid", iter_n="L4.168")
-    spawn_budget.commit(o_lease, overdue.pid)
+    spawn_budget.commit(o_lease, overdue_pid)
     k_lease = spawn_budget.acquire(root, 3, "kid-plain", tier="kid", iter_n="L4.168")
-    spawn_budget.commit(k_lease, plain.pid)
+    spawn_budget.commit(k_lease, plain_pid)
     for leaf, body in (("parent-0", '{"status": "running"}'),
                        ("kid-overdue", '{"status": "running", "overdue_since": 1700000000, "overdue_reason": "past manifest timeout_seconds=3600"}'),
                        ("kid-plain", '{"status": "running"}')):
         ajson = root / ".agi" / "sessions" / "iter-L4.168" / leaf / "agent.json"
         ajson.parent.mkdir(parents=True)
         ajson.write_text(body)
-    try:
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.168"])
-        out = capsys.readouterr().out
-        assert rc == 0, out
-        assert "agent=running(overdue)" in out, out
-        assert out.count("agent=running") == 3, out
-    finally:
-        for p in (parent, overdue, plain):
-            p.kill(); p.wait()
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.168"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "agent=running(overdue)" in out, out
+    assert out.count("agent=running") == 3, out
 
 
-def test_status_iter_unparseable_iter_lease_prints_row_not_traceback(root, capsys, fast_tick_sample):
+def test_status_iter_unparseable_iter_lease_prints_row_not_traceback(root, capsys, fast_tick_sample, fake_procs):
     """hypothesis:l4-agent-status-returns-three-on-every-path — a live lease
     whose `iter` field `_iter_num` matches but `locations.iteration_dirname`
     rejects drives `status --iter` INTO `_agent_status`'s `except ValueError`
@@ -590,21 +581,18 @@ def test_status_iter_unparseable_iter_lease_prints_row_not_traceback(root, capsy
     (so the round matches `--iter L4.140`) but `iteration_id("9.140")` raises
     ValueError because a loop label must start with a letter."""
     _mk_project(root)
-    parent = _sleeping()
+    parent_pid = 424250
     p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.170")
-    spawn_budget.commit(p_lease, parent.pid)
+    spawn_budget.commit(p_lease, parent_pid)
     rec = json.loads(p_lease.path.read_text())
     rec["iter"] = "9.140"
     p_lease.path.write_text(json.dumps(rec))
-    try:
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
-        out = capsys.readouterr().out
-        assert rc == 0, out
-        assert "parent-0 tier=" in out, out
-        assert "(no agent.json)" in out, out
-        assert "Traceback" not in out, out
-    finally:
-        parent.kill(); parent.wait()
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "parent-0 tier=" in out, out
+    assert "(no agent.json)" in out, out
+    assert "Traceback" not in out, out
 
 
 def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
@@ -704,7 +692,7 @@ def test_agent_status_no_record_anywhere_is_no_agent_json(root: Path):
     assert src is None, src
 
 
-def test_status_iter_worktree_round_is_no_longer_a_false_negative(root, capsys, fast_tick_sample):
+def test_status_iter_worktree_round_is_no_longer_a_false_negative(root, capsys, fast_tick_sample, fake_procs):
     """FALSIFIER of hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-
     sessions-dir with the MEASURED layout. A parent dispatched from a seat
     keeps its agent.json in the seat worktree; its kid keeps its own in the
@@ -727,26 +715,21 @@ def test_status_iter_worktree_round_is_no_longer_a_false_negative(root, capsys, 
     (parent_graph / "sessions" / "iter-L4.193" / "kid-0").mkdir(parents=True)
     (parent_graph / "sessions" / "iter-L4.193" / "kid-0" / "agent.json").write_text(
         '{"status": "running"}')
-    parent = _sleeping()
-    kid = _sleeping()
-    try:
-        p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
-                                       iter_n="L4.193")
-        spawn_budget.commit(p_lease, parent.pid)
-        k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid",
-                                       iter_n="L4.193")
-        spawn_budget.commit(k_lease, kid.pid)
-        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.193"])
-        out = capsys.readouterr().out
-        assert rc == 0, out
-        assert "STALL-CANDIDATE" not in out, out
-        assert "1 live kid(s)" in out, out
-        assert "agent=running@seat:sanctuary-director" in out, out
-        assert "agent=running@wt:parent-0" in out, out
-        assert "(no agent.json)" not in out, out
-    finally:
-        for p in (parent, kid):
-            p.kill(); p.wait()
+    parent_pid, kid_pid = 424251, 424252
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                   iter_n="L4.193")
+    spawn_budget.commit(p_lease, parent_pid)
+    k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid",
+                                   iter_n="L4.193")
+    spawn_budget.commit(k_lease, kid_pid)
+    rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.193"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "STALL-CANDIDATE" not in out, out
+    assert "1 live kid(s)" in out, out
+    assert "agent=running@seat:sanctuary-director" in out, out
+    assert "agent=running@wt:parent-0" in out, out
+    assert "(no agent.json)" not in out, out
 
 
 def test_status_iter_unknown_iteration_names_it_and_exits_1(root, capsys):
@@ -761,6 +744,19 @@ def test_status_iter_unknown_iteration_names_it_and_exits_1(root, capsys):
     out2 = capsys.readouterr().err
     assert rc2 == 1
     assert "unknown iteration" in out2, out2
+
+
+def _sleeping():
+    """A live, idle process (sleeping, 0 CPU ticks, 0 sockets).
+
+    Used by the stall-candidate and `--wait` sections below. Kept OUT of the
+    live-kid `status --iter` section so that section spawns no subprocess
+    (hypothesis:l4-spawn-budget-wait-is-declared-and-its-tests-spawn-nothing
+    CLAIM 2): those tests drive the pid/CPU/socket readers through the
+    `fake_procs` seams instead. Dies on SIGTERM (no SIG_IGN) so an aborted
+    suite does not strand sleepers on the box."""
+    return subprocess.Popen([sys.executable, "-c",
+                             "import time; time.sleep(120)"])
 
 
 # --------------------------------------------------------------------------
@@ -1119,10 +1115,16 @@ def test_wait_unknown_round_exit_3(root, capsys):
 
 
 def test_wait_without_iter_is_an_argparse_error(root, capsys):
-    """(e) `--wait` without `--iter` is an argparse error, exit 2."""
+    """(e) `--wait` without `--iter` is an argparse error, exit 2 with the
+    usage line and the pairing message on stderr (hypothesis:l4-spawn-budget-
+    wait-is-declared-and-its-tests-spawn-nothing). The refusal comes from
+    `parser.error(...)` (SystemExit(2), usage printed) — not a bare
+    print+return."""
     _mk_project(root)
-    rc = spawn_budget.main(["--root", str(root), "status", "--wait"])
+    with pytest.raises(SystemExit) as exc:
+        spawn_budget.main(["--root", str(root), "status", "--wait"])
     err = capsys.readouterr().err
-    assert rc == 2, err
+    assert exc.value.code == 2, err
+    assert "usage:" in err, err
     assert "--wait requires --iter" in err, err
 
