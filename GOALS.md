@@ -6051,6 +6051,8 @@ SL1.04 HARVESTED (sensei-director L2): steps 3+4 landed — verification.py wind
 
 SL2.01 HARVESTED (sensei-director L2, one kid proved 0.85): the driven writer now keys on declared titles (STATE / where it stops / BANKED), rebuilds only the state table and the stops fence, and writes the seat's OWN card (_own_card_path shared with prepare). Live dry-run on the sensei-director card: nine headers byte-identical, §5 table rebuilt from measured values. RESIDUE: node counts read n/a from a worktree (verify-count.json lives in MAIN's shared state — the same seam SL1.04 kid 5 closed for the window subcommand; one-line fix); the composed state table names the Prime-shaped rows (record/counts/tree/meter/account), not this card's (seat/suite/graph/spend/unpushed/wake) — acceptable, the director trims after the driven pass.
 
+in-loop fix (sensei-director L2, Sensei 18:26Z rotate-out finding): prepare check 2 excludes cron-owned churn by name — .agi/comms/** and .agi/sessions/rotations/sequence.json — measured on a MAIN-checkout seat where those were the only BLOCK; a real edit beside them still blocks (test_prepare_dirty_ignores_cron_owned_churn). Reaches season/s2 at SL2#1.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
