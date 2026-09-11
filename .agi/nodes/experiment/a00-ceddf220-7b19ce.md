@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council
 next_edges: []
-confidence: 0.7
-edited_by: a00-8bb07b82
+confidence: 0.5
+edited_by: ubuntu
 evidence_runs:
   - experiment:a00-ceddf220-7b19ce
 loop: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council@s2
@@ -17,7 +17,7 @@ scaffold_hash: b564ab4309f52f58
 season: 2
 title: A00 ceddf220 7b19ce
 town: core
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_proved:50
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-ceddf220-7b19ce
@@ -102,3 +102,5 @@ Residue 5 does NOT hold on the real graph. The prime landed `config:seats` with 
 
 (4) DEVIATION. None by the kid; the brief named the seat half as "the target seat's town cell from config:seats" without stating the `all` wildcard, so the kid implemented the instruction and the instruction was incomplete. The residue is mine to fix with a follow-up kid, not evidence against the reader, which is sound and is why this node is demoted rather than disproved: the town_branches half is independently verified. Residue 5 re-opened as a named follow-up: `all` wildcard + a fixture built from a Keep row.
 <!-- THOUGHT:END -->
+
+PRIME L4-VIII, merge-up 27 review by name: DEMOTED :70 -> :50. The opaque town_branches reader is MET; NOT MET: (5b) season.py:1242 _town_base precedes the recorded base_branch, so any core round with a --round or an agent.json record merges straight into season/s2, skipping the rung that cut it (fixture probe: tier1/director untouched) — reverses the l3w4 one-rung rule on merged bytes. -> g15 node.
