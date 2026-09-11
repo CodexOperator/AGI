@@ -723,6 +723,102 @@ def test_filter_grep_pattern_option_kills_the_free_positional(tmp_path):
         assert rotate._producing_refusal(cmd) is None, cmd
 
 
+def test_git_unit_leading_refused_by_argument(tmp_path):
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted: a unit-
+    # LEADING git stage must be refused by NAMED TOKEN, not accepted on its
+    # read-only subcommand alone. These used to return None (accepted) and
+    # leak file contents / write a file / run a program: `git log -p -- .env`
+    # prints a tracked file into the rotation record, `git diff HEAD -- .env`
+    # same, `git --all -p` same, `git -c core.pager=less log` runs a pager
+    # program, `git log --output=FILE` writes a file.
+    bad = [
+        "git log -p -- .env",
+        "git diff HEAD -- .env",
+        "git log --all -p -- .env",
+        "git -c core.pager=less log",
+        "git log --output=/tmp/x",
+    ]
+    for cmd in bad:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+
+
+def test_git_off_allowlist_token_names_itself():
+    # the refusal must NAME the offending token, not just refuse the stage
+    assert rotate._producing_refusal("git log -p -- .env") \
+        == "producer git -p not on the allowlist"
+    assert rotate._producing_refusal("git log --output=/tmp/x") \
+        == "producer git --output not on the allowlist"
+    assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
+
+
+def test_git_live_template_commands_still_pass():
+    # every git command in the live rotations template
+    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist
+    shipped = [
+        "git -C {worktree} status -sb",
+        "git -C {repo} status -sb",
+    ]
+    for cmd in shipped:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_git_benign_set_still_passes():
+    for cmd in [
+        "git status -sb",
+        "git log --oneline -5",
+        "git rev-parse --abbrev-ref HEAD",
+        "git branch --show-current",
+        "git diff --stat",
+    ]:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_git_benign_prefix_unit_cannot_bypass_later_unit():
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted FIX: a one-
+    # token BENIGN prefix unit used to `return` out of the WHOLE judge on the
+    # first `;`-unit, so every LATER unit was never judged by the git branch:
+    # `git status -sb; git log -p -- .env` -> None (WRONG). A benign git unit
+    # must `continue` to the next unit/stage like every other producer branch.
+    bad = [
+        "git status -sb; git log -p -- .env",
+        "git status -sb; git log --all -p -- .env",
+        "git status -sb; git diff HEAD -- .env",
+        "git status; git -c core.pager=less log",
+    ]
+    for cmd in bad:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+    assert rotate._producing_refusal("git status -sb; git log -p -- .env") \
+        == "producer git -p not on the allowlist"
+
+
+def test_git_benign_prefix_unit_then_all_benign_passes():
+    # same mechanics in the positive direction: every `;`-unit is judged, and
+    # when ALL are benign the whole line still passes.
+    assert rotate._producing_refusal("git status -sb; git log --oneline -5") is None
+    assert rotate._producing_refusal("git status -sb; git branch --show-current") is None
+
+
+def test_git_negC_value_subject_to_bad_token_scan():
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted FIX: the
+    # `-C <path>` VALUE was consumed by the skip loop with NO `$`/backtick/`~`
+    # check, so `git -C $HOME status -sb` leaked the shell-expanded value into
+    # the record while returning None. The value is now scanned like every
+    # other token.
+    assert rotate._producing_refusal("git -C $HOME status -sb") \
+        == "producer git $HOME not on the allowlist"
+    # backtick inside the -C value is REFUSED too, but one stage earlier by
+    # _operator_refusal (unmodeled shell operator) — a refusal either way
+    assert rotate._producing_refusal("git -C `pwd` status -sb") is not None
+    assert rotate._producing_refusal("git -C ~ status -sb") \
+        == "producer git ~ not on the allowlist"
+    # a literal (non-shell) path stays benign
+    assert rotate._producing_refusal("git -C /a/b status -sb") is None
+
+
 def test_filter_pipe_fed_nonfilter_refused(tmp_path):
     # A `;`-unit's FIRST stage is judged as a PRODUCER; a PIPE-FED stage that
     # is NOT a modeled filter is refused by name — a first_turn pipeline has
