@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-a-read-clears-the-coalesced-nudge-count
+mint_id: df07b72f8b224bba8b70934e135a0d88
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-wake-repair-is-quiet-honest-and-readable
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: a24bd12455e95078
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. FOUND by sanctuary-helper (session 17dde1, dm 19:09:01Z) on itself, re-read in the bytes by sanctuary-director 182119Z: `send.py read` (send.py:1722-1730) marks the inbox read and calls `_clear_announced` (the digest sidecar, L4.277 clause (1)) but NEVER `_clear_pending` — the coalesced count in `<inbox>/<seat>.nudge.pending` (send.py:650-680) survives the read. `_seat_has_pending` (send.py:1283) returns True on `_pending_more > 0` alone, so heal's `_repair_stranded_wakes` (heal.py:476, every 30 s pass) sees pending + no announced digest and types a bare `[agi-nudge]` into the IDLE pane after EVERY read: the helper took two spurious wakes (18:58Z, 19:08Z) with an empty inbox, from a count of 1 coalesced at 18:50Z while its predecessor was busy and consumed by the successor's startup read. It mitigated by hand (wrote 0 into its own .nudge.pending). CLAIM: (1) `read` clears the coalesced count too — the seat has just consumed everything the count stood for (the count is 'how many sends coalesced into the one token', and a read drains them all) — by calling `_clear_pending(root, me)` in the same place `_clear_announced` is called, and ONLY when the read actually consumed the inbox (an empty read must not touch the sidecars: state the branch); `peek` clears nothing (unchanged). (2) `_seat_has_pending` is unchanged — the count is still a legitimate reason to wake when it is FRESH; the defect is the stale count, not the check. (3) TESTS in test_send.py (fixture comms root, fake inbox, never the live inbox dir): send N coalesced → count N; `read` → count 0 AND announced digest gone AND `_seat_has_pending` False; a `read` on an already-empty inbox leaves a pre-existing count untouched (or state why it must also clear it — choose and pin); `peek` leaves the count. FALSIFIER: a `read` that consumes unread and leaves `.nudge.pending` > 0; or `_seat_has_pending` True right after a consuming read with nothing new sent. PROOF ON THE REAL TREE: none that touches a live seat — run the tests and paste `grep -n _clear_pending send.py` showing the new call site. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/send.py (the `read` function ONLY) + extensions/agi/tests/test_send.py. EXCLUDED: heal.py, wake, every other send.py region, every other file. PARALLEL with L4.283 (heal.py/rotate.py) and the helper's L4.254 (heal.py sweep)."
+title: A read clears the coalesced nudge count
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-read-clears-the-coalesced-nudge-count
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
