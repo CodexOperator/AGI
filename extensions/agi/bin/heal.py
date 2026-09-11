@@ -603,18 +603,27 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
 
 def _window_present(row: dict,
                     windows: list[tuple[str, str]]) -> tuple[bool, bool]:
-    """(1b) the row's `window` @id is present in tmux, and (1c) some window is
-    NAMED for the seat. A live successor whose row has not merged up yet is a
-    window named for the seat — never a corpse — so (1c) checks the seat's
-    window lineage (`<seat>` or `<seat>-<ROM>`), not just the exact cell."""
+    """(1b) the row's `window` @id is present in tmux. Returns
+    `(id_present, False)` — the second cell is the DELETED (1c) name-lineage
+    check, kept in the tuple shape so callers/tests read unchanged.
+
+    (1c) matched any window named `<seat>` or `<seat>-…`. PRIME XI RULING
+    2026-09-11 19:38Z (mur-40 window): a tmux window NAME IS NOT AN ADDRESS.
+    For a numeral-chain seat the predecessor chain (belam-S1-L4-V … -XI) is
+    an OWNER STANDING RULE — rotated primes idle in their windows, capped at
+    five, never killed — so a name-lineage test is satisfied by every
+    predecessor forever and crash-recovery for the prime was structurally
+    dead, not merely masked (measured by the L4.283 harvest: belam with @289
+    removed still read named=True). Its only justification was the worktree
+    row lag (a live successor whose row has not merged up yet), and the row
+    handed here is already read LIVE-FIRST from the seat's own worktree
+    (`_live_seat_row`), so (1b) on that row is the whole check. Interim per
+    the ruling until identity cells get one writer that writes MAIN; the
+    falsifier is a corpse detected WITH the predecessor windows still open."""
     win_id = (row.get("window") or "").strip()
-    name = (row.get("name") or "").strip()
     id_present = bool(win_id) and any(
         w == win_id for (w, _n) in windows)
-    named = bool(name) and any(
-        n == name or (name and n.startswith(name + "-"))
-        for (_w, n) in windows)
-    return id_present, named
+    return id_present, False
 
 
 def _parse_record_ts(s: str) -> float | None:
@@ -1014,9 +1023,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # (1a) the row pid is gone from the process table.
     if pid_alive(pid):
         return {}
-    # (1b)+(1c) window @id gone AND no window named for the seat anywhere.
-    id_present, named = _window_present(row, windows)
-    if id_present or named:
+    # (1b) the LIVE-FIRST row's window @id is gone from tmux. (1c), the
+    # window-name lineage, is DELETED (prime XI ruling 19:38Z: a name is not
+    # an address; see _window_present).
+    id_present, _named = _window_present(row, windows)
+    if id_present:
         return {}
     # (1d) a rotation in flight is not a crash.
     if _rotation_in_flight(root, seat, _rotate, now):
