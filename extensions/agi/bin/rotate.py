@@ -4255,20 +4255,46 @@ def _operator_refusal(command: str) -> str | None:
 _SHELL_VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
 
 
+def _resolve_shell_var(m: "re.Match") -> str:
+    """Return the env value for one `$VAR`/`${VAR}` match, or REFUSE (raise
+    ValueError, naming the var) if it is unset. Shared by the whole-string
+    (_resolve_shell_vars) and per-token (_resolve_shell_vars_per_token)
+    resolvers. Both are NO-SHELL: the value is substituted AS A LITERAL and
+    never handed to a shell. Only this bare env form is modeled; `$(` command
+    substitution is refused by _operator_refusal before either is reached."""
+    name = m.group(1) or m.group(2)
+    val = os.environ.get(name)
+    if val is None:
+        raise ValueError(f"first_turn env var ${name} is not set")
+    return val
+
+
 def _resolve_shell_vars(command: str) -> str:
-    """Expand `$VAR` and `${VAR}` from os.environ WITHOUT a shell, substituting
-    the value as a literal token. REFUSE (raise ValueError, the var named) on a
-    referenced var that is not set in the environment, so an unexpanded `$VAR`
-    is never silently handed to a program as a literal string. Only this bare
-    env form is modeled; `$(` command substitution is refused by
-    _operator_refusal before this is reached."""
-    def _sub(m):
-        name = m.group(1) or m.group(2)
-        val = os.environ.get(name)
-        if val is None:
-            raise ValueError(f"first_turn env var ${name} is not set")
-        return val
-    return _SHELL_VAR_RE.sub(_sub, command)
+    """Whole-STRING env expansion, kept for the (now unused by first_turn)
+    callers that expand a full command before tokenizing. The first_turn
+    executor does NOT use this form — it uses _resolve_shell_vars_per_token,
+    so an env VALUE can never re-introduce shell syntax
+    (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument)."""
+    return _SHELL_VAR_RE.sub(_resolve_shell_var, command)
+
+
+def _resolve_shell_vars_per_token(command: str) -> str:
+    """Expand `$VAR`/`${VAR}` AFTER quote-aware tokenization, PER TOKEN, then
+    rejoin with shlex.join — the ONE env resolver the first_turn executor uses
+    (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument).
+    `_tokenize_startup` splits the command into argv elements FIRST; each
+    element then has its `$VAR`/`${VAR}` references replaced by the value as
+    ONE literal token (never word-split), and the elements are rejoined so the
+    allowlist re-judge and the no-shell executor re-parse them identically (a
+    `shlex.join` round-trip is exact for this grammar, punctuation_chars
+    included). A value carrying a double quote, a space, or a `|`/`;` therefore
+    stays INSIDE that single argv element — it cannot add an argv element and
+    cannot inject a stage; what the re-judge sees is exactly what will execute.
+    Raises _StartupParseError (unparseable command, named) or ValueError (an
+    unset `$VAR`, named); never returns an unexpanded `$VAR`."""
+    expanded = [_SHELL_VAR_RE.sub(_resolve_shell_var, t)
+                for t in _tokenize_startup(command)]
+    return shlex.join(expanded)
 
 
 class _StartupParseError(ValueError):
@@ -4592,22 +4618,43 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
 _REFUSAL_REDACT = "<expanded value redacted>"
 
 
+_REFUSAL_MIN_DROP_CHARS = 4
+
+# The fixed prose words rotate.py's own refusal messages emit (whitespace-
+# split form). A message word that is one of these is never mistaken for an
+# env-injected fragment even when — by coincidence — it is a substring of some
+# env VALUE (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument).
+_REFUSAL_TEMPLATE_WORDS = frozenset([
+    "allowlist", "allowlisted", "startup.allow:", "startup.env_allow",
+    "unmodeled", "shell", "operator", "first_turn", "command",
+    "unparseable", "unconditionally", "injected", "producer", "filter",
+    "prefix", "refused", "placeholder", "executable", "spawn",
+])
+
+
 def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
     """Rebuild a RE-JUDGE refusal message so no fragment of an env VALUE
     survives into it. The re-judge (`_producing_refusal` / `_env_prefix_refusal`
     on the env-EXPANDED `exec_cmd`) must run on the expanded form to SEE an
     injected stage, but the record keeps every `$VAR` literal (fix b), so a
-    word of `message` that (a) is a substring of some expanded env value and
-    (b) is absent verbatim from the literal `record_cmd` is an ENV-INJECTED
-    fragment — a secret-shaped word the value carried. It is dropped and the
-    record's literal `$VAR` names are appended, so the refusal names its
-    source without ever echoing the value. A word present in `record_cmd`
-    (template text, boilerplate, a genuinely-spelled stage) is kept; a message
-    naming no env value at all is returned unchanged (placeholder-injected
-    content already lives in `record_cmd` by design — only ENV vars stay
-    literal). This is the FALSIFIER guard of hypothesis:l4-the-refusal-names-
-    the-record-stage-not-the-expanded-tokens: a refusal never contains a
-    substring of an env value that is not in record_cmd."""
+    word of `message` that is a substring of some expanded env value AND is
+    absent verbatim from the literal `record_cmd` is an ENV-INJECTED fragment —
+    a secret-shaped word the value carried. It is dropped and the record's
+    literal `$VAR` names are appended, so the refusal names its source without
+    ever echoing the value. A word present in `record_cmd` (template text,
+    boilerplate, a genuinely-spelled stage) is kept; a message naming no env
+    value at all is returned unchanged (placeholder-injected content already
+    lives in `record_cmd` by design — only ENV vars stay literal).
+
+    Two guards keep an INNOCENT refusal intact (hypothesis:l4-an-env-value-
+    cannot-break-a-quoted-argument): a word is only ever dropped when it is at
+    least _REFUSAL_MIN_DROP_CHARS long (short common words like `a`/`on`/`me`/`the`
+    are substrings of almost any path VALUE and are NOT injection) and when it
+    is not a word of rotate.py's own refusal prose (_REFUSAL_TEMPLATE_WORDS).
+    This is the FALSIFIER guard of hypothesis:l4-the-refusal-names- the-record-
+    stage-not-the-expanded-tokens: a refusal never contains a substring of an
+    env value that is not in record_cmd, and an honest refusal never collapses
+    to the bare redaction trailer."""
     sources = []
     for m in _SHELL_VAR_RE.finditer(record_cmd):
         name = m.group(1) or m.group(2)
@@ -4619,7 +4666,10 @@ def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
         return message
     kept, redacted_any = [], False
     for tok in message.split():
-        if any(tok in val for _, val in sources) and tok not in record_cmd:
+        if (len(tok) >= _REFUSAL_MIN_DROP_CHARS
+                and tok not in _REFUSAL_TEMPLATE_WORDS
+                and any(tok in val for _, val in sources)
+                and tok not in record_cmd):
             redacted_any = True      # an injected value fragment: drop it
             continue
         kept.append(tok)
@@ -4701,22 +4751,32 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         # Two forms (fix b): `record_cmd` keeps `$VAR` LITERAL — what the result
         # dict's `cmd` and dry-run report, byte-identical to the pre-expansion
         # text so a secret never lands in the record. `exec_cmd` env-expands it
-        # and is used ONLY to build the no-shell argv; execution needs the
-        # value, the record must not hold it.
+        # PER TOKEN (never on the whole string) and is used ONLY to build the
+        # no-shell argv; execution needs the value, the record must not hold it.
+        # A value carrying a double quote, a space, or a `|`/`;` stays inside
+        # ONE argv element and is never re-parsed (hypothesis:l4-an-env-value-
+        # cannot-break-a-quoted-argument).
         try:
-            exec_cmd = _resolve_shell_vars(record_cmd)
+            exec_cmd = _resolve_shell_vars_per_token(record_cmd)
+        except _StartupParseError as exc:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": "unparseable command: %s" % exc})
+            continue
         except ValueError as exc:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": str(exc)})
             continue
         # Belt over the no-shell executor: re-judge the EXEC command IN FULL.
-        # A placeholder or env value can inject a whole new stage wrapped in
-        # `;` or `|` (both MODELED separators), which the template judge never
-        # saw and _operator_refusal cannot see either. So re-run the env
-        # allowlist and the producing allowlist on exec_cmd (not just the
-        # operator check) BEFORE _command_units splits it, so an injected
-        # `touch`-style stage is refused, not run, and its `$VAR` stays literal
-        # in the record (hypothesis:l4-the-judge-runs-on-the-substituted-command).
+        # A PLACEHOLDER value can inject a whole new stage wrapped in `;` or `|`
+        # (both MODELED separators); placeholders substitute into the string
+        # BEFORE tokenization, so the injected stage is here and the template
+        # judge never saw it. An ENV value cannot inject one (per-token
+        # expansion keeps it inside one element), but the re-judge still runs on
+        # exec_cmd so what is judged is what is executed. Re-run the env
+        # allowlist and the producing allowlist BEFORE _command_units splits it,
+        # so an injected `touch`-style stage is refused, not run, and its
+        # `$VAR` stays literal in the record (hypothesis:l4-the-judge-runs-on-
+        # the-substituted-command).
         exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
         if exec_env_refusal:
             results.append({"label": label, "cmd": record_cmd,
