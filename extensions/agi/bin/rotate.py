@@ -3375,29 +3375,131 @@ def _run_verification(root: Path, argv: list[str] | None = None) -> dict:
     return data
 
 
+def _git_head(root: Path, *, argv: list[str] | None = None) -> str | None:
+    """Read-only: the short HEAD commit of `root`, or None when it is not a
+    git repo. `git rev-parse --short HEAD` is a pure read — the ONE git
+    command the bootstrap record is allowed, because it only stamps a fact's
+    age and never mutates (it is `SKIPPED` when there is no repo, never
+    guessed). `argv` is the test seam (a fixture root has no repo)."""
+    try:
+        out = subprocess.run(
+            argv or ["git", "-C", str(root), "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5)
+        if out.returncode == 0 and (out.stdout or "").strip():
+            return out.stdout.strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
+                           seat_row: dict | None, commit: str | None):
+    """Resolve ONE bootstrap fact to a real value the handover can see, else
+    None with a NAMED skip reason. NEVER the old blanket `0b owns deriving`:
+    every skip names the connection that is missing (the seat row field, the
+    join, the sibling round that owns it), so a cold reader knows who to ask.
+    `root` is the repo, `seat` the successor's name, `seat_row` its
+    config:seats row (or {} when no row exists), `commit` the HEAD stamp (or
+    None when there is no repo). Returns (value, reason)."""
+    row = seat_row or {}
+    if key == "commit":
+        return commit, ("no git repo to stamp at" if commit is None else None)
+    if key == "seat_row":
+        if row:
+            return (f"HEAD@{commit}: {json.dumps(row, sort_keys=True)}" if commit
+                    else json.dumps(row, sort_keys=True)), None
+        return None, f"no seat row for {seat} in config:seats"
+    if key == "seed":
+        return ((str(row["seed"]) if row.get("seed") is not None else None),
+                ("seat row carries no seed" if row.get("seed") is None else None))
+    if key == "model":
+        return ((str(row["model"]) if row.get("model") else None),
+                ("seat row carries no model at HEAD"
+                 if not row.get("model") else None))
+    if key in ("effort", "window", "worktree"):
+        return ((str(row[key]) if row.get(key) else None),
+                (f"seat row carries no {key}" if not row.get(key) else None))
+    if key in ("ack", "prev_gen"):
+        return ((str(row[key]) if row.get(key) is not None else None),
+                (f"seat row carries no {key} at HEAD"
+                 if row.get(key) is None else None))
+    # -- join-only: only the @id join (after_join round) can supply these ----
+    if key == "successor_live_model":
+        return None, "successor live model is known only after the @id join (after_join)"
+    if key == "successor_address":
+        return None, "successor address is the @id join result (after_join)"
+    if key == "model_refusal_fallback":
+        return None, "last model_refusal_fallback is read from the successor transcript after join"
+    # -- sibling rounds own these derivations; named, never a blank ----------
+    if key == "mail":
+        return None, "mail is `send.py read` unread dms, a sibling round's derivation"
+    if key == "account":
+        return None, "account is the credits endpoint, a sibling round's derivation"
+    if key == "floor":
+        return None, "floor numbers, a sibling round's derivation"
+    if key == "registry":
+        return None, "workflow registry state, a sibling round's derivation"
+    if key == "crons":
+        return None, "crons state, a sibling round's derivation"
+    return None, f"no handover derivation for {key}"
+
+
+BOOTSTRAP_FIXED_FACTS = [
+    "commit", "seat_row", "successor_live_model", "successor_address",
+    "model_refusal_fallback", "mail", "account", "floor", "registry",
+    "crons",
+]
+
+
 def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
-                     telemetry, verification: dict | None) -> str:
+                     telemetry, verification: dict | None,
+                     commit: str | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
-    set plus the verification result, in a minimal documented shape
-    (`shape: v1`) that the 0b/startup round will read. Any telemetry value
-    rotate-self cannot derive is recorded `SKIPPED: 0b owns deriving <name>`
-    (the sibling round's writer owns it). Returns the written path (string).
-    """
-    tele: dict = {}
+    set PLUS the owner's fixed fact set (BOOTSTRAP_FIXED_FACTS — "they should
+    receive all this telemetry by default"), each resolved to a REAL value
+    where the handover can see it (the commit stamp, the config:seats row at
+    HEAD, the verification result; `git rev-parse --short HEAD` is the one
+    read-only git command allowed) and to a NAMED `SKIPPED: <reason>` where it
+    cannot yet (a join-only or sibling-round fact — never the old blanket
+    `0b owns deriving`). Every derived fact is stamped in `measured_at` with
+    the commit it was measured at, so `_bootstrap_stale` can refuse any record
+    that is not at HEAD. Returns the written path (string)."""
+    if commit is None:
+        commit = _git_head(root)
+    seat_row = _find_seat(root, seat)
+
+    keys = []
     if isinstance(telemetry, list):
-        for key in telemetry:
-            tele[key] = f"SKIPPED: 0b owns deriving {key}"
+        keys = list(telemetry)
     elif isinstance(telemetry, dict):
-        for key, val in telemetry.items():
-            tele[key] = (str(val) if val is not None
-                         else f"SKIPPED: 0b owns deriving {key}")
+        keys = list(telemetry)
+    for k in BOOTSTRAP_FIXED_FACTS:
+        if k not in keys:
+            keys.append(k)
+
+    tele: dict = {}
+    measured_at: dict = {}
+    for key in keys:
+        value, reason = _derive_bootstrap_fact(
+            key, root=root, seat=seat, seat_row=seat_row, commit=commit)
+        if value is None:
+            tele[key] = f"SKIPPED: {reason}"
+        else:
+            tele[key] = value
+            if commit:
+                measured_at[key] = commit
+    if verification and commit:
+        measured_at["verification"] = commit
+
     doc = {
         "shape": BOOTSTRAP_SHAPE,
         "seat": seat,
         "generation": generation,
         "written_by": "rotate-self",
+        "commit": commit,
+        "measured_at": measured_at,
         "telemetry": tele,
         "verification": verification or {"skipped": "no verification run"},
     }
@@ -3405,6 +3507,113 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     return str(p)
+
+
+def _bootstrap_stale(doc: dict, current_commit: str | None,
+                     bounds: dict | None = None) -> bool:
+    """True when the bootstrap record carries a fact measured at a commit
+    older than HEAD — i.e. it must be REFUSED, never injected stale state.
+    `bounds` maps fact -> 'head' | 'permanent' (declared in config:rotations
+    `## facts`; default 'head' = must be the live commit) and is parsed by the
+    caller — the SessionStart hook (the sibling round) calls this before
+    injecting. A SKIPPED fact (absent from `measured_at`) asserted nothing and
+    is never stale; a fully-skipped doc (no `measured_at`) is never stale
+    (nothing to refuse) — the hook injects what is fresh and leaves the named
+    skip to the driven prompt. The function the hook can call."""
+    measured = (doc or {}).get("measured_at") or {}
+    if not measured:
+        return False
+    bounds = bounds or {}
+    for fact, commit in measured.items():
+        if bounds.get(fact, "head") == "permanent":
+            continue
+        if commit != current_commit:
+            return True
+    return False
+
+
+def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
+                     bounds: dict | None = None) -> list:
+    """The successor's bootstrap record as ONE injected block, or REFUSES.
+
+    The reader half of the bootstrap injection (hypothesis:l4-startup-is-one-
+    script-or-a-driven-prompt, 0b kid 3). `<sessions>/seats/<seat>.bootstrap
+    .json` is the record rotate-self's button-down wrote; this returns the
+    tiny diagram-shaped block the SessionStart hook should inject for a seat
+    successor that wakes KNOWING its state -- or REFUSES (returns [None,
+    reason]) when the record is absent ('no_record'), not a JSON object
+    ('malformed'), or `_bootstrap_stale(.., HEAD, bounds)` says a measured
+    fact is not at HEAD ('stale'). NEVER raises into the hook. `commit` is
+    the test seam for HEAD (defaults to `_git_head`); `bounds` is the
+    fact->'head'|'permanent' staleness map of config:rotations `## facts`
+    (default {} = everything must be the live commit). Returns [block, None]
+    when fresh."""
+    if commit is None:
+        commit = _git_head(root)
+    p = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return [None, "no_record"]
+    except ValueError:
+        return [None, "malformed"]
+    if not isinstance(doc, dict):
+        return [None, "malformed"]
+    if _bootstrap_stale(doc, commit, bounds):
+        return [None, "stale"]
+    gen = doc.get("generation")
+    gen_s = f"gen {gen}" if isinstance(gen, int) else "gen ?"
+    head = f"HEAD@{commit}" if commit else "HEAD@?"
+    lines = [
+        f"## ⚓ bootstrap: {seat} successor handover",
+        f"(shape {doc.get('shape', '?')} · {gen_s} · {head})",
+        "",
+    ]
+    tele = doc.get("telemetry")
+    if isinstance(tele, dict) and tele:
+        for key in sorted(tele):
+            val = str(tele[key])
+            if len(val) > 400:
+                val = val[:397] + "…"
+            lines.append(f"- {key}: {val}")
+    else:
+        lines.append("- (no telemetry recorded)")
+    return ["\n".join(lines) + "\n", None]
+
+
+def cmd_bootstrap_block(args: argparse.Namespace,
+                       root: Path | None = None) -> int:
+    """The CLI the SessionStart hook calls: emit the bootstrap block for a
+    seat, or REFUSE silently-non-zero. `--seat` names the seat, `--root` the
+    project root (default: resolve from cwd). `--json` wraps the outcome,
+    `--quiet` prints nothing on success (a test/CI convenience). `--commit`
+    is the test seam. Exit 0 on emit, 1 on refuse — never raises."""
+    import json as _json  # noqa: PLC0415  (local, keeps name clear of rotate's json)
+    root = root if root is not None else (args.root or find_project_root())
+    bounds = None
+    if getattr(args, "bounds", None):
+        try:
+            bounds = json.loads(args.bounds)
+        except ValueError:
+            bounds = None
+    if root is None:
+        block, reason = None, "outside_project"
+    else:
+        block, reason = _bootstrap_block(
+            Path(root), args.seat, commit=args.commit, bounds=bounds)
+    if args.json:
+        if block is not None:
+            print(_json.dumps({"emitted": True, "seat": args.seat,
+                               "block": block}))
+        else:
+            print(_json.dumps({"emitted": False, "seat": args.seat,
+                               "reason": reason}))
+        return 0 if block is not None else 1
+    if block is not None:
+        if not args.quiet:
+            sys.stdout.write(block)
+        return 0
+    return 1
 
 
 def _repoint_livestream_views(*, tmux_session: str, seat: str,
@@ -3474,6 +3683,419 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
             "selected_rc": sel.returncode, "command":
             ["tmux", "select-window", "-t", f"{view_sess}:{succ_id}"],
             "active_windows": active_windows}
+
+
+# ---- STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
+#      driven-prompt, 0b round) -----------------------------------------
+#
+# A rotation template's `startup` block can carry a `first_turn` list —
+# commands rotate-self runs BEFORE spawn so a new rotation lands already
+# holding its telemetry (rotation record, seat row, authority, git state,
+# inbox, live spawns, write.py verbs — the measured gen-X first calls the
+# owner wants folded into the rotation, see .geometry/rotations.md). Each
+# command is allowlisted (refused by executable/verb, its LABEL named, never
+# run), placeholder-resolved (an unknown placeholder is refused, never
+# silently left in), timed per-command, byte-capped, and its outputs are
+# composed into a `## STARTUP OUTPUT` block appended to the successor's first
+# input turn after the head and the brief (the successor runs nothing).
+
+#: The one canonical placeholder set a first_turn command may name. Any
+#: `{key}` NOT in this set, or not present in the caller's values map, is
+#: refused rather than silently substituted — an empty-but-known value still
+#: resolves (the successor row fields arrive from the join/row); an unknown
+#: key is a template bug and must be named.
+STARTUP_PLACEHOLDERS = {
+    "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
+    "prime_ref", "worktree", "repo", "tmux_session", "pred_pids",
+}
+
+#: Per-command timeout and output cap defaults when the template's startup
+#: block does not declare them.
+DEFAULT_FIRST_TURN_TIMEOUT_S = 60
+DEFAULT_STARTUP_BYTE_CAP = 4000
+
+#: The default startup allowlist (executable basenames). A producing command
+#: whose executable is NOT here is refused and its label named. `python` is
+#: additionally constrained to engine scripts (a path that ends `.py` under
+#: `extensions/` or `/bin/`); `git`/`tmux` to their read-only subcommands;
+#: `curl` to the credits endpoint. Pipeline filters after a `|` are judged
+#: against _STARTUP_FILTERS below.
+DEFAULT_STARTUP_ALLOW = {"python", "python3", "git", "tmux", "ps", "curl"}
+
+_GIT_READONLY_SUBCMDS = {"status", "log", "diff"}
+_TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
+                          "display-message"}
+
+#: Harmless post-`|` stdio filters allowed in any first_turn pipeline. Only a
+#: PRODUCING (first) segment is judged strictly; these read stdio and can't
+#: reach the box on their own.
+_STARTUP_FILTERS = {"head", "tail", "sed", "grep", "egrep", "cat", "echo",
+                    "cut", "sort", "wc", "tr", "awk", "uniq"}
+
+
+def _segment_parts(command: str) -> list:
+    """Split a first_turn command into pipeline parts (one `|`-part per
+    list of shlex tokens), with a leading env assignment skipped per part."""
+    parts = []
+    for seg in re.split(r"\||;", command):
+        toks = shlex.split(seg) if seg.strip() else []
+        i = 0
+        while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
+            i += 1
+        parts.append(toks[i:])
+    return parts
+
+
+def _producing_refusal(command: str) -> str | None:
+    """Return a one-line refusal (naming the executable/verb) if ANY producing
+    pipeline part of `command` is not on the startup allowlist, else None.
+
+    Pipeline filters (head/grep/sed/...) after a `|` are allowed; every
+    PRODUCING segment (`;`- or `|`-first) must pass the strict allowlist.
+    """
+    for idx, toks in enumerate(_segment_parts(command)):
+        if not toks:
+            continue
+        exe = os.path.basename(toks[0])
+        args = toks[1:]
+        if idx > 0 and exe in _STARTUP_FILTERS:
+            continue  # a post-`|` stdio filter, not a producing command
+        if exe == "ps":
+            continue
+        if exe in ("python", "python3"):
+            script = args[0] if args else ""
+            if not (script.endswith(".py")
+                    and ("extensions/" in script or "/bin/" in script)):
+                return f"{exe} {script}".strip()
+            continue
+        if exe == "git":
+            sub = next((a for a in args if a in _GIT_READONLY_SUBCMDS), None)
+            if sub is None:
+                return ("git " + " ".join(args)).strip()
+            continue
+        if exe == "tmux":
+            sub = args[0] if args else ""
+            if sub not in _TMUX_READONLY_SUBCMDS:
+                return ("tmux " + " ".join(args)).strip()
+            continue
+        if exe == "curl":
+            joined = " ".join(toks)
+            if "openrouter.ai" in joined and "credits" in joined:
+                continue
+            return ("curl " + " ".join(args)).strip()
+        return (exe + " " + " ".join(args)).strip()
+    return None
+
+
+def _resolve_startup_placeholders(command: str, values: dict) -> str:
+    """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
+    key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
+    unknown/unresolved placeholder is never silently left in the command."""
+    def _sub(m):
+        key = m.group(1)
+        if key not in STARTUP_PLACEHOLDERS:
+            raise ValueError(f"unknown startup placeholder {{{key}}}")
+        return str(values.get(key, ""))
+    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
+
+
+def _run_first_turn_commands(startup: dict, values: dict, *,
+                             dry_run: bool = False) -> list:
+    """Run the template's `startup.first_turn` list, one at a time, BEFORE
+    spawn, returning one result dict per entry.
+
+    Order of gates per entry, all fail-closed and named in the result:
+      1. allowlist — an off-allowlist executable/verb is REFUSED (label named)
+         and never run;
+      2. placeholders — an unknown `{key}` is REFUSED (key named);
+      3. run — one command at a time, per-command timeout
+         (`first_turn_timeout_s`, default 60); output truncated to the byte
+         cap (`byte_cap`, default 4000) and marked.
+    `dry_run` resolves and records every entry but runs NOTHING. Never
+    raises; every failure surfaces as a result dict.
+    """
+    startup = startup or {}
+    entries = startup.get("first_turn") or []
+    timeout_s = startup.get("first_turn_timeout_s") or DEFAULT_FIRST_TURN_TIMEOUT_S
+    byte_cap = startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP
+    results = []
+    for e in entries:
+        entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+        label = entry.get("label", "")
+        cmd = entry.get("cmd", "")
+        refusal = _producing_refusal(cmd)
+        if refusal:
+            results.append({"label": label, "cmd": cmd,
+                            "refused": f"not on startup.allow: {refusal}"})
+            continue
+        try:
+            resolved = _resolve_startup_placeholders(cmd, values)
+        except ValueError as exc:
+            results.append({"label": label, "cmd": cmd, "refused": str(exc)})
+            continue
+        if dry_run:
+            results.append({"label": label, "cmd": resolved, "dry": True})
+            continue
+        try:
+            proc = subprocess.run(resolved, shell=True, capture_output=True,
+                                  text=True, timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            results.append({"label": label, "cmd": resolved,
+                            "timed_out_after_s": timeout_s})
+            continue
+        out = proc.stdout or ""
+        if proc.stderr:
+            out = (out + "\n" + proc.stderr).strip()
+        truncated = False
+        if len(out) > byte_cap:
+            out = out[:byte_cap]
+            truncated = True
+        results.append({"label": label, "cmd": resolved, "rc": proc.returncode,
+                        "output": out, "truncated": truncated,
+                        "byte_cap": byte_cap})
+    return results
+
+
+def _compose_startup_output(results: list) -> str:
+    """Compose the successor's `## STARTUP OUTPUT` block from the per-command
+    results. The heading is contract (a test pins it); every entry lists its
+    label, status and output. Runs NOTHING — pure formatting over the results
+    the runner already produced."""
+    lines = [
+        "## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)",
+    ]
+    for r in results:
+        lines.append("")
+        if r.get("refused"):
+            status = "REFUSED"
+        elif r.get("dry"):
+            status = "DRY-RUN"
+        elif r.get("timed_out_after_s"):
+            status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
+        else:
+            status = f"exit {r.get('rc')}"
+        lines.append(f"[{r.get('label', '')}] {status}")
+        lines.append(f"$ {r.get('cmd', '')}")
+        if r.get("refused"):
+            lines.append(f"    refused — {r['refused']}")
+        elif r.get("dry"):
+            lines.append("    (dry-run — not executed)")
+        elif r.get("timed_out_after_s"):
+            lines.append(f"    timed out after {r['timed_out_after_s']}s")
+        else:
+            if r.get("truncated"):
+                lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
+            out = (r.get("output") or "").strip()
+            if out:
+                lines.extend(f"    {ln}" for ln in out.splitlines())
+    return "\n".join(lines)
+
+
+def _first_turn_values(root: Path, *, seat: str, gen: int,
+                       succ_name: str, succ_ref: str = "",
+                       succ_transcript: str = "",
+                       tmux_session: str = DEFAULT_TMUX_SESSION,
+                       worktree: str | None = None, repo: str | None = None,
+                       pred_pids: str = "") -> dict:
+    """Build the placeholder values map for a rotation's first_turn commands.
+
+    `seat`/`gen`/`succ_name`/`tmux_session` are known at spawn time; the rest
+    are best-effort from the join, the successor row, the seats registry and
+    the filesystem. Every key in STARTUP_PLACEHOLDERS is present (possibly
+    empty) so any referenced placeholder resolves to SOMETHING — an unknown
+    key is what is refused, never a known-but-empty one.
+    """
+    if worktree is None:
+        worktree = os.getcwd()
+    if repo is None:
+        try:
+            repo = str(locations.repo_root(root))
+        except Exception:  # noqa: BLE001
+            repo = str(worktree)
+    prime_ref = ""
+    for row in _load_seats(root):
+        if row.get("role") == "prime_director" and row.get("session_ref"):
+            prime_ref = str(row["session_ref"])
+            break
+    return {
+        "seat": seat,
+        "succ_ref": succ_ref or "",
+        "succ_name": succ_name,
+        "succ_transcript": succ_transcript or "",
+        "pin_ref": str(_sessions_dir(root) / f"{seat}.meter"),
+        "gen": str(gen),
+        "prime_ref": prime_ref,
+        "worktree": str(worktree),
+        "repo": str(repo),
+        "tmux_session": tmux_session,
+        "pred_pids": pred_pids or "",
+    }
+
+
+# ---- STARTUP DRIVEN next (hypothesis:l4-startup-is-one-script-or-a-
+#      driven-prompt, OPERATOR path) --------------------------------------
+#
+# The AUTOMATED half (kid 1, above) RUNS the template `startup` steps for
+# the successor. The DRIVEN half is the OPERATOR walk — for whatever cannot
+# be scripted, and for a human turning a seat's startup by hand:
+#
+#   rotate.py next --seat <seat> [--record-ok|--record-fail] [--json]
+#
+# PRINTS EXACTLY the next `startup` step's literal command (placeholders
+# resolved) and NOTHING ELSE on the default path, one step per call,
+# advancing only on a recorded success (`--record-ok`). A step is DONE only
+# when its recorded success exists; a recorded failure is NOT done and is
+# re-printed. Progress persists at `<sessions>/seats/<seat>.startup.json`
+# (step list + per-step status). `next` NEVER runs a command — the operator
+# does; that is the whole point of the driven path. The step list is the
+# SAME template `startup` block (first_turn then after_join) read through
+# the SAME loader, and placeholders resolve with the SAME
+# `_resolve_startup_placeholders`, so a driven and an automated walk agree
+# on what the startup is.
+
+STARTUP_DONE_LINE = ("## STARTUP DONE — every startup step has a "
+                     "recorded success")
+
+
+def _startup_step_list(startup) -> list:
+    """The template `startup` block as an ordered (phase,label,cmd) list:
+    `first_turn` entries then `after_join` entries — the order rotate-self
+    runs them. A bare-string entry is its own label and command."""
+    if not isinstance(startup, dict):
+        return []
+    steps = []
+    for phase in ("first_turn", "after_join"):
+        for e in startup.get(phase) or []:
+            entry = (e if isinstance(e, dict)
+                     else {"label": str(e), "cmd": str(e)})
+            steps.append((phase, entry.get("label", ""), entry.get("cmd", "")))
+    return steps
+
+
+def _startup_state_path(root: Path, seat: str) -> Path:
+    """`<sessions>/seats/<seat>.startup.json` — the driven walk's progress."""
+    return _sessions_dir(root) / "seats" / f"{seat}.startup.json"
+
+
+def _startup_signature(template_name: str, steps: list) -> str:
+    """A stable fingerprint of (template, step labels). A template change
+    rebuilds a stale progress file rather than mis-advancing on old indices."""
+    return (template_name + "|"
+            + "|".join(f"{p}:{label}" for p, label, _ in steps))
+
+
+def _load_startup_state(path: Path, seat: str, sig: str,
+                        step_meta: list) -> dict:
+    """Read the driven-walk progress file; return a fresh all-pending state
+    when absent, stale (signature changed), or malformed. State shape:
+        {seat, sig, steps: [{phase,label,status} ...]}  status: ok|fail|pending
+    A step is DONE only when status == "ok"."""
+    def _blank():
+        return {"seat": seat, "sig": sig,
+                "steps": [{"phase": p, "label": l, "status": "pending"}
+                           for p, l in step_meta]}
+    if path.exists():
+        try:
+            st = json.loads(path.read_text(encoding="utf-8"))
+            ok = (isinstance(st, dict) and st.get("sig") == sig
+                  and isinstance(st.get("steps"), list)
+                  and len(st["steps"]) == len(step_meta))
+            if ok:
+                for s in st["steps"]:
+                    if not isinstance(s, dict) or s.get("status") not in (
+                            "ok", "fail", "pending"):
+                        ok = False
+                        break
+        except (OSError, ValueError):
+            st, ok = None, False
+        if ok:
+            st["seat"] = seat
+            return st
+    return _blank()
+
+
+def _startup_current(state: dict) -> int | None:
+    """Index of the first step without a recorded success, or None when the
+    list is exhausted (every step OK)."""
+    for i, s in enumerate(state.get("steps") or []):
+        if s.get("status") != "ok":
+            return i
+    return None
+
+
+def cmd_next(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py next --seat S [--record-ok|--record-fail] [--json]` — the
+    OPERATOR half of the DRIVEN startup path (hypothesis:l4-startup-is-one-
+    script-or-a-driven-prompt). PRINTS the next `startup` step's literal
+    command (placeholders resolved) and nothing else on the default path,
+    advancing only on a recorded success. NEVER runs a command."""
+    if root is None:
+        print("ERR: next needs an agi project root.", file=sys.stderr)
+        return 1
+    if getattr(args, "root", None):
+        root = Path(args.root).resolve()
+    seat = args.seat
+    role = args.role
+    if role is None:
+        row = _find_seat(root, seat)
+        role = (row or {}).get("role") or "parent"
+    tmpl, name, _source = _resolve_template(root, role, args.template,
+                                            where="next")
+    if tmpl is None:
+        print(f"ERR: {name}", file=sys.stderr)
+        return 1
+    startup = tmpl.get("startup") or {}
+    step_list = _startup_step_list(startup)
+    step_meta = [(p, l) for p, l, _ in step_list]
+    if not step_meta:
+        print(f"ERR: template {name!r} has no startup step list for seat "
+              f"{seat!r} — nothing to walk", file=sys.stderr)
+        return 1
+    gen = (args.gen if args.gen is not None
+           else _read_generation(root, seat) + 1)
+    values = _first_turn_values(
+        root, seat=seat, gen=gen, succ_name=args.succ_name or seat,
+        tmux_session=args.tmux_session or DEFAULT_TMUX_SESSION)
+    resolved = {}
+    for p, l, c in step_list:
+        try:
+            resolved[(p, l)] = _resolve_startup_placeholders(c, values)
+        except ValueError as exc:
+            resolved[(p, l)] = f"ERR {exc}"
+    path = _startup_state_path(root, seat)
+    sig = _startup_signature(name, step_list)
+    state = _load_startup_state(path, seat, sig, step_meta)
+    idx = _startup_current(state)
+    if args.record and idx is not None:
+        state["steps"][idx]["status"] = args.record  # "ok" | "fail"
+        idx = _startup_current(state)
+    # persist one step's progress per call
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    except OSError as exc:
+        print(f"ERR next: cannot persist progress {path}: {exc}",
+              file=sys.stderr)
+        return 1
+    if idx is None:  # exhausted
+        total = len(step_meta)
+        if args.json:
+            print(json.dumps({"seat": seat, "complete": True,
+                              "steps_total": total, "steps_done": total}))
+        else:
+            print(STARTUP_DONE_LINE)
+        return 0
+    s = state["steps"][idx]
+    if args.json:
+        print(json.dumps({"seat": seat, "index": idx, "phase": s["phase"],
+                          "label": s["label"],
+                          "cmd": resolved[(s["phase"], s["label"])],
+                          "steps_total": len(step_meta), "steps_done": idx,
+                          "complete": False},
+                         ensure_ascii=False))
+    else:
+        print(resolved[(s["phase"], s["label"])])
+    return 0
 
 
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
@@ -3629,6 +4251,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                        gen_before=gen_before, gen_after=gen)
         print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
+    # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
+    #     driven-prompt, 0b round) — resolve and (unless dry-run) RUN each
+    #     template `startup.first_turn` command BEFORE spawn, one at a time,
+    #     allowlisted / placeholder-resolved / timed / byte-capped, then
+    #     compose the successor's `## STARTUP OUTPUT` block so it lands at
+    #     wake holding its telemetry (rotation record, seat row, authority,
+    #     git state, inbox, live spawns) — the successor runs nothing.
+    startup = tmpl.get("startup") if tmpl else None
+    startup_values = _first_turn_values(
+        root, seat=seat, gen=gen, succ_name=spawn_name,
+        succ_ref=session_ref,
+        succ_transcript=getattr(args, "successor_transcript", None) or "",
+        tmux_session=tmux_session)
+    first_turn_results = _run_first_turn_commands(
+        startup or {}, startup_values, dry_run=args.dry_run)
+    startup_block = _compose_startup_output(first_turn_results)
+    if first_turn_results:
+        mode = "DRY-RUN -- nothing executed" if args.dry_run \
+            else "output composed for the successors first turn"
+        print(f"(2.5) startup first_turn: {len(first_turn_results)} "
+              f"command(s) resolved; {mode}")
+
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
     # L4.112 (C): the template is consumed on the existing call path -- when
     # --prompt-file is NOT given, the successor prompt is the template's
@@ -3651,6 +4295,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         "The predecessor's read-back reads THAT ack and refuses an ack whose "
         "gen_after is not this generation."
     )
+    extra = ack_gate + ("\n\n" + startup_block if startup_block else "")
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -3660,7 +4305,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   else _normalize_settings(row.get("settings") if row
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg, extra=ack_gate,
+        dry_run=args.dry_run, debug_file=dbg, extra=extra,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -3679,6 +4324,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # write, no spawn, no kill; only read-only git/tmux reads for the
         # informational lines). The @id values themselves are only knowable
         # live, so the mechanism that captures them is what is spelled.
+        if first_turn_results:
+            print("(2.5) startup first_turn (resolved, NOTHING run):")
+            for r in first_turn_results:
+                if r.get("refused"):
+                    state = "REFUSED: " + r["refused"]
+                elif r.get("dry"):
+                    state = "dry-run"
+                else:
+                    state = f"exit {r.get('rc')}"
+                print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
         print("(4) read back successor reply — pending ack channel ->")
         print(f"    pending ack path: {_ack_path(root, seat)}")
         print("    (the successor's own `rotate.py ack --seat "
@@ -4234,6 +4889,42 @@ def main(argv: list[str] | None = None) -> int:
                           help="override the comms root (tests)")
     p_alarms.set_defaults(func=cmd_alarms)
 
+    # next --seat S: the DRIVEN (operator) half of the startup path. Prints
+    # exactly one literal command per call; advances only on --record-ok.
+    p_next = sub.add_parser(
+        "next", help="print the next startup step (one literal command) for a "
+                     "seat, advancing only on a recorded success — the "
+                     "DRIVEN operator half (hypothesis:l4-startup-is-one-\n"
+                     "script-or-a-driven-prompt)")
+    p_next.add_argument("--seat", required=True, help="seat name")
+    p_next.add_argument("--role", default=None,
+                        help="role tier to resolve the template (default: the "
+                             "seat's registry row role)")
+    p_next.add_argument("--template", default=None,
+                        help="explicit rotation template name "
+                             "(.geometry/rotations.md)")
+    p_next.add_argument("--record-ok", dest="record", action="store_const",
+                        const="ok", default=None,
+                        help="record the current step as succeeded, then print "
+                             "the next one")
+    p_next.add_argument("--record-fail", dest="record", action="store_const",
+                        const="fail", default=None,
+                        help="record the current step as failed (it is re-printed "
+                             "by the next call)")
+    p_next.add_argument("--json", action="store_true",
+                        help="emit a small JSON object instead of the bare command")
+    p_next.add_argument("--gen", type=int, default=None,
+                        help="generation for placeholder resolution (default: "
+                             "handoff gen + 1)")
+    p_next.add_argument("--succ-name", default=None,
+                        help="successor name for placeholder resolution "
+                             "(default: the seat name)")
+    p_next.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
+                        help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
+    p_next.add_argument("--root", default=None,
+                        help="project root override (default: resolve from cwd)")
+    p_next.set_defaults(func=cmd_next)
+
     # rotate-self --name S: the non-prime self-rotation primitive
     p_rs = sub.add_parser(
         "rotate-self", help="rotate a non-prime seat onto a same-named "
@@ -4304,6 +4995,25 @@ def main(argv: list[str] | None = None) -> int:
                            "if their round is orphaned")
     p_rs.set_defaults(func=cmd_rotate_self)
 
+    # bootstrap-block: the SessionStart hook's reader — emit the successor's
+    # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
+    p_bb = sub.add_parser(
+        "bootstrap-block", help="emit the bootstrap block for a seat "
+                                 "successor, or REFUSE when absent/stale")
+    p_bb.add_argument("--seat", required=True, help="seat name")
+    p_bb.add_argument("--root", default=None,
+                      help="project root (default: resolve from cwd)")
+    p_bb.add_argument("--commit", default=None,
+                      help="HEAD stamp (test seam; else git rev-parse)")
+    p_bb.add_argument("--bounds", default=None,
+                      help="JSON fact->'head'|'permanent' staleness map "
+                           "(config:rotations ## facts; test seam)")
+    p_bb.add_argument("--json", action="store_true",
+                      help="emit a JSON envelope and exit 0/1")
+    p_bb.add_argument("--quiet", action="store_true",
+                      help="print nothing on success (exit code only)")
+    p_bb.set_defaults(func=cmd_bootstrap_block)
+
     # seats-launch
     p_sl = sub.add_parser(
         "seats-launch", help="launch one remote-control session per "
@@ -4371,7 +5081,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
-                    "seats-launch", "seq"):
+                    "next", "seats-launch", "seq"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
