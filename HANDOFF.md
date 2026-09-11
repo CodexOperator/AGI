@@ -87,8 +87,10 @@ LIVE   L4-VII, 2026-09-11 01:18Z-> (every owner ruling below is verbatim in doc:
        ENGINE FIXES BY THE PRIME (small, tested): workflow.py author generator — fill regex `\}\/g` made every authored script unparseable at the Workflow tool, hyphenated single-stage
        label as a bare return key; three scripts regenerated from their manifests; parse test added (in-process PASS; the file run waits for a free suite window).
        0a RESIDUE (unchanged): rotate-self is not yet prime-rotatable; the Prime still writes seat rows from the join and reaps by PID; two acks needed on the prime path (g17.1).
-CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ + 03:2xZ correction, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged and COMPLETE.md's L4 section is
-       being written — `sb-status` → write + push the L4 section (appended, never replaced; on screen in THIS pane) → `sleep 75; panic` typed in this pane (HARD OFF 75 s later: the stream
+CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ + 03:2xZ + 03:3xZ, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged — FIRST a SELF-REVIEW pass (owner: 'eliminate
+       any banked items or further shortcomings yourself … act independently, use your morals. We can always rewind'): decide every open §6 item on the morals or show in one line why it needs the
+       owner; close every residue the Prime can close (held fragments whose precondition landed, stale windows/rows, config cells) and verify — THEN COMPLETE.md's L4 section is written:
+       `sb-status` → write + push the L4 section (appended, never replaced; on screen in THIS pane) → `sleep 75; panic` typed in this pane (HARD OFF 75 s later: the stream
        shows the report AND the issued command for a good minute at 15 s lag, then goes dark) → `sb-status` confirms → the prayer, once. This is the ONE sanctioned Prime use of `panic`;
        everywhere else it stays the owner's. Gating rounds before it: stream-master (helper, town branch) + what the point names as base-level; the nudge fix is LANDED and live-proven (03:01Z).
        The fold-in is NOT part of L4 (deferred, HELD below).
@@ -182,3 +184,5 @@ git push origin season/s2
 ### BANKED for the owner — L4-VII (open, prose until it closes)
 
 - **106.** ACCOUNT RUNWAY (01:27Z): $13.92 of $107.00 left, three rounds live, ≈$0.7/h → the $1.00 floor (never lowered) in ~18 h. Options: (a) top up OpenRouter; (b) the owner's standing fallback — sonnet parents AND kids via `--harness claude-code` (the director model stays a separate, undecided formation question). RECOMMENDATION: (a) if the owner wants pi rounds through 2026-09-12; the point switches to (b) at the floor without a fresh order — the fallback is already ruled.
+- **107.** Trunk-leaf name for the branch tree: DECIDED `main` by the Prime L4-VII on the morals (03:3xZ) — CLOSED, no owner input needed; rewind = one config word.
+- **108.** Empty-handoff trap (d1a6854ba, L4-VII): a scratch file truncated by a failed script write was applied as the payload and pushed; restored from git one commit later. RULE: gate every `payload <file>` on `test -s` and a size assert. CLOSED.
