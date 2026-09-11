@@ -213,13 +213,20 @@ def test_parent_brief_names_the_carry_forward_lever():
 
 
 def test_parent_brief_names_overdue_as_still_working():
-    """hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal — the
-    parent's kid-status paragraph must name `overdue` as a still-working
-    state so a live pid past its deadline is never cut a replacement kid."""
+    """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
+    print-it — heal.py keeps a live past-deadline kid's status `running` and
+    adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue. So
+    the brief must tell the parent to READ THE SHAPE THE RECORD HAS
+    (contain `overdue_since`), must NOT use the unprintable phrase `status
+    reads overdue`, and must still say a replacement is never cut. This is
+    the old l4-a-timeout-mark-on-a-live-agent-is-not-terminal paragraph,
+    corrected to name the fields a reader actually prints."""
     parent = _text("parent", dispatch_py="/x/dispatch.py",
                    target="hypothesis:y", max_live=25, kid_ceiling=3)
-    assert "`overdue` is STILL WORKING" in parent
+    assert "overdue_since" in parent
     assert "never cut a replacement" in parent
+    assert "status reads overdue" not in parent
+    assert "is STILL WORKING" in parent
 
 
 def test_parent_brief_forbids_committing_and_bypassing():

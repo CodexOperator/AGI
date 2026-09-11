@@ -541,6 +541,42 @@ def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys
             p.kill(); p.wait()
 
 
+def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, capsys, fast_tick_sample):
+    """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
+    print-it — heal.py keeps a live past-deadline agent's status `running`
+    and adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue.
+    So the parent brief must not tell a parent to read a `status reads
+    overdue` word that nothing emits, and THIS reader must print
+    `agent=running(overdue)` — the word the brief now names. A record with
+    `status: running` + `overdue_since` must therefore print `running(overdue)`, and
+    a plain running record must stay `agent=running` with no suffix."""
+    _mk_project(root)
+    parent = _sleeping()
+    overdue = _sleeping()
+    plain = _sleeping()
+    p_lease = spawn_budget.acquire(root, 3, "parent-0", tier="parent", iter_n="L4.168")
+    spawn_budget.commit(p_lease, parent.pid)
+    o_lease = spawn_budget.acquire(root, 3, "kid-overdue", tier="kid", iter_n="L4.168")
+    spawn_budget.commit(o_lease, overdue.pid)
+    k_lease = spawn_budget.acquire(root, 3, "kid-plain", tier="kid", iter_n="L4.168")
+    spawn_budget.commit(k_lease, plain.pid)
+    for leaf, body in (("parent-0", '{"status": "running"}'),
+                       ("kid-overdue", '{"status": "running", "overdue_since": 1700000000, "overdue_reason": "past manifest timeout_seconds=3600"}'),
+                       ("kid-plain", '{"status": "running"}')):
+        ajson = root / ".agi" / "sessions" / "iter-L4.168" / leaf / "agent.json"
+        ajson.parent.mkdir(parents=True)
+        ajson.write_text(body)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.168"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "agent=running(overdue)" in out, out
+        assert out.count("agent=running") == 3, out
+    finally:
+        for p in (parent, overdue, plain):
+            p.kill(); p.wait()
+
+
 def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
     """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir,
     MEASURED layout: a PARENT agent.json is written by the DISPATCHER into
@@ -555,7 +591,7 @@ def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
     ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
     ajson.parent.mkdir(parents=True)
     ajson.write_text('{"status": "running"}')
-    status, src = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
+    status, src, overdue = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
     assert status == "running", status
     assert src == "seat:sanctuary-director", src
 
@@ -572,7 +608,7 @@ def test_agent_status_finds_kid_record_under_parents_worktree(root: Path):
     ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-71de766d" / "agent.json"
     ajson.parent.mkdir(parents=True)
     ajson.write_text('{"status": "running"}')
-    status, src = spawn_budget._agent_status(root, "a00-71de766d", "L4.193")
+    status, src, overdue = spawn_budget._agent_status(root, "a00-71de766d", "L4.193")
     assert status == "running", status
     assert src == "wt:a00-06c44930", src
 
@@ -584,7 +620,7 @@ def test_agent_status_finds_main_tree_record(root: Path):
     ajson = main_graph / "sessions" / "iter-L4.193" / "a0" / "agent.json"
     ajson.parent.mkdir(parents=True)
     ajson.write_text('{"status": "done"}')
-    status, src = spawn_budget._agent_status(root, "a0", "L4.193")
+    status, src, overdue = spawn_budget._agent_status(root, "a0", "L4.193")
     assert status == "done", status
     assert src == "main", src
 
@@ -616,7 +652,7 @@ def test_agent_status_own_candidate_from_its_own_seat_labels_seat_not_wt_agi(
     ajson.write_text('{"status": "running"}')
     monkeypatch.setattr(spawn_budget.locations, "git_common_root",
                         lambda g: root)
-    status, src = spawn_budget._agent_status(
+    status, src, overdue = spawn_budget._agent_status(
         root / ".agi" / "worktrees" / "seat-sanctuary-director",
         "a00-06c44930", "L4.193")
     assert status == "running", status
@@ -633,7 +669,7 @@ def test_agent_status_no_record_anywhere_is_no_agent_json(root: Path):
         wt_graph = root / ".agi" / "worktrees" / wt_name / ".agi"
         wt_graph.mkdir(parents=True, exist_ok=True)
         (wt_graph / "config.json").write_text("{}")
-    status, src = spawn_budget._agent_status(root, "a0", "L4.193")
+    status, src, overdue = spawn_budget._agent_status(root, "a0", "L4.193")
     assert status == "(no agent.json)", status
     assert src is None, src
 
