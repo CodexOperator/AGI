@@ -688,27 +688,16 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
     `harnesses.<h>.models[role]`, `effort` from `harnesses.<h>.effort[role]`.
     `from_ladder` distinguishes the source so callers can report it.
     """
-    row = None
-    for r in (roles or []):
-        try:
-            if int(r.get("tier")) == int(tier) and r.get("role") == role:
-                row = r
-                break
-        except (TypeError, ValueError):
-            continue
+    # hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is
+    # the ONE source of a role's model/effort/settings. The row lookup and the
+    # blank-cell -> None mapping live in adapters/ (the shared resolver
+    # dispatch.py, workflow.py and heal.py import), so one write.py on the
+    # ladder IS the model write.
+    row = adapters.ladder_role_row(roles, tier, role)
     if row is not None:
-        return {
-            "harness": row.get("harness") or None,
-            "model": (row.get("model") or "").strip() or None,
-            "effort": (row.get("effort") or "").strip() or None,
-            # hypothesis:l3w4-director-kids-on-glm — the `thinking` cell is
-            # pi's analogue of `effort`: a model name alone does not say how
-            # hard to think (pi_adapter threads it as `--thinking`). Row owns
-            # it; blank omits the flag.
-            "thinking": (row.get("thinking") or "").strip() or None,
-            "settings": row.get("settings") or None,
-            "from_ladder": True,
-        }
+        _spec = adapters.spec_from_ladder_row(row)
+        _spec["from_ladder"] = True
+        return _spec
     _name, harness = adapters.resolve(cfg)
     models = harness.get("models") or {}
     model = models.get(role) if isinstance(models, dict) else None
@@ -1262,6 +1251,23 @@ def main() -> int:
                   f"effort={_spec['effort'] or '-'}/"
                   f"thinking={_spec['thinking'] or '-'}/"
                   f"settings={_spec['settings'] or '-'}")
+            # hypothesis:l4-a-model-change-is-one-write — when a ladder row
+            # wins the model, a config that still carries the legacy inputs is
+            # a NON-INPUT: ONE stderr warning naming the winning row, never a
+            # silent read. The stale cells are read nowhere after this line.
+            _legacy_model_srcs = []
+            _h = (cfg.get("harnesses") or {}).get(harness_name) or {}
+            if _h.get("models"):
+                _legacy_model_srcs.append(f"harnesses.{harness_name}.models")
+            if (cfg.get("agent_dispatch") or {}).get("model"):
+                _legacy_model_srcs.append("agent_dispatch.model")
+            if _legacy_model_srcs:
+                print(f"warn: {' and '.join(_legacy_model_srcs)} is/are "
+                      f"NON-INPUTS (hypothesis:l4-a-model-change-is-one-write); "
+                      f"ladder row (tier={tier_eff}, role={args.role}, "
+                      f"harness={_spec.get('harness')}) wins -> "
+                      f"model={_spec.get('model') or '-'}",
+                      file=sys.stderr)
         # hypothesis:l3-workflow-model-crosses-harness-namespace — the guard
         # workflow.py has carried since the incident, now on the spawn path
         # too. Every source of a model (ladder row, seat row, config fallback)
@@ -1282,7 +1288,26 @@ def main() -> int:
         # override is not an exemption: its model is in this same dict by
         # this line and gets the same check. No AGI_MODEL resolves for a tier
         # with no model, so there is nothing to refuse there.
-        _assert_allowed_model(harness_name, dispatch_harness, _eff_model)
+        # hypothesis:l4-a-model-change-is-one-write -- the allowlist gate is
+        # the SAME fail-closed gate as before, but the ALLOWED set is now
+        # DERIVED: {every ladder row's model for this harness} U
+        # harnesses.<h>.allowed_extra (legacy `allowed_models` still unions in
+        # for one cut-over round and is warned once). A NEW model written into
+        # a ladder row is allowed WITHOUT an `allowed_models` edit -- the
+        # four-cells-in-three-files defect the hypothesis measures. A model no
+        # row, no extra and no legacy entry names is still refused.
+        _derived_allowed = adapters.derived_allowed_models(
+            ladder_roles, harness_name, dispatch_harness)
+        if dispatch_harness.get("allowed_models"):
+            print(f"warn: config harnesses.{harness_name}.allowed_models is "
+                  f"legacy; allowed models are now DERIVED from ladder rows + "
+                  f"harnesses.{harness_name}.allowed_extra "
+                  f"(hypothesis:l4-a-model-change-is-one-write)",
+                  file=sys.stderr)
+        _assert_allowed_model(harness_name,
+                              {**dispatch_harness,
+                               "allowed_models": sorted(_derived_allowed)},
+                              _eff_model)
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
