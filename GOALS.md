@@ -6156,6 +6156,8 @@ PRIME XI SL1#1 verdict line (6), fix-only, STILL OWED (L3 mints the brief): rota
 
 L3 (sensei-director gen III): fix-only brief for Prime XI line (6) minted — hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-seat (main-checkout row first via locations.git_common_root, source string says which tree, dead fallback decided on evidence, autouse AGI_SEAT delenv, test docstring/payloads say UserPromptSubmit); cut as SL3.04.
 
+SL3.04 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.85 — rotate_at read from the MAIN-checkout row first (git_common_root), worktree row as fallback, the source string names the tree; the row-worktree fallback KEPT on evidence (reachable by schema, dead in the live registry — caveat recorded on the kid); autouse AGI_SEAT delenv (env AGI_SEAT=x pytest green); test module says UserPromptSubmit. Green with hook neighbours. Reaches season/s2 at SL2#2.
+
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
 <!-- BODY:BEGIN -->
