@@ -989,3 +989,110 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     # non-falsifier shape), this dir would still exist.
     assert not fd.exists(), "the bomb never fired: the walk did not touch the fixture"
 
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-spawn-budget-status-waits-for-the-parent — `status --iter
+# --wait [--timeout S]` blocks until the round's PARENT lease is gone
+# --------------------------------------------------------------------------
+
+def test_wait_already_finished_round_exits_0_without_sleep(monkeypatch, root, capsys):
+    """(a) FALSIFIER of the claim's no-sleep clause. A round whose parent
+    lease is already gone but whose session dir exists is already-finished:
+    `--wait` must return 0 on the FIRST read and MUST NOT sleep. The
+    session dir is what separates already-finished (exit 0) from unknown
+    (exit 3).
+
+    `time.sleep` is monkeypatched to raise, so any wait that sleeps on an
+    already-finished round fails red instead of just running slow."""
+    _mk_project(root)
+    sdir = root / ".agi" / "sessions" / "iter-L4.244"
+    sdir.mkdir(parents=True)
+    monkeypatch.setattr(
+        spawn_budget.time, "sleep",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("--wait slept on an already-finished round")))
+    rc = spawn_budget.main(["--root", str(root), "status",
+                            "--iter", "L4.244", "--wait"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "already finished" in out, out
+
+
+def test_wait_parent_removed_returns_0_after_removal(root, capsys):
+    """(b) A parent lease removed by a background thread 0.3 s in:
+    `--wait --timeout 10` returns 0 after the removal with the final view
+    printed. The wait is on the lease view, so the removal (whatever the kid
+    does) is what unblocks it."""
+    import threading
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                   iter_n="L4.245")
+    assert p_lease is not None
+    spawn_budget.commit(p_lease, parent.pid)
+
+    def _drop():
+        time.sleep(0.3)
+        p_lease.path.unlink(missing_ok=True)
+    t = threading.Thread(target=_drop)
+    t.start()
+    try:
+        t0 = time.monotonic()
+        rc = spawn_budget.main(["--root", str(root), "status",
+                                "--iter", "L4.245", "--wait", "--timeout", "10"])
+        elapsed = time.monotonic() - t0
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert elapsed < 9, f"waited {elapsed:.2f}s; expected well under timeout 10"
+        assert "parent done" in out, out
+    finally:
+        t.join(timeout=2)
+        parent.kill(); parent.wait()
+
+
+def test_wait_parent_never_goes_times_out_exit_2(root, capsys):
+    """(c) A parent lease that never goes with `--timeout 1` exits 2, prints
+    the last-seen view (the live parent row) to stdout AND `ERR: ... parent
+    still live after Ns` to stderr, naming the round. The last-seen view is
+    the clause the parent review found overclaimed (hypothesis
+    `l4-spawn-budget-status-waits-for-the-parent`): the code went straight to
+    the ERR print with no `_print_remaining_rows`."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                   iter_n="L4.246")
+    assert p_lease is not None
+    spawn_budget.commit(p_lease, parent.pid)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status",
+                                "--iter", "L4.246", "--wait", "--timeout", "1"])
+        cap = capsys.readouterr()
+        out, err = cap.out, cap.err
+        assert rc == 2, out
+        # last-seen view: the still-live parent row is printed (stdout)
+        assert "parent-0" in out, out
+        assert "parent still live" in err, err
+        assert "L4.246" in err, err
+    finally:
+        parent.kill(); parent.wait()
+
+
+def test_wait_unknown_round_exit_3(root, capsys):
+    """(d) An id with neither a lease nor a session dir -> exit 3 with
+    `ERR: unknown round`."""
+    _mk_project(root)
+    rc = spawn_budget.main(["--root", str(root), "status",
+                            "--iter", "L4.99997", "--wait"])
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "unknown round" in err, err
+
+
+def test_wait_without_iter_is_an_argparse_error(root, capsys):
+    """(e) `--wait` without `--iter` is an argparse error, exit 2."""
+    _mk_project(root)
+    rc = spawn_budget.main(["--root", str(root), "status", "--wait"])
+    err = capsys.readouterr().err
+    assert rc == 2, err
+    assert "--wait requires --iter" in err, err
+
