@@ -581,15 +581,24 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
                     actions.append(_apply_systemctl(
                         ["disable", "--now", service_arg],
                         dry_run=dry_run, env=bus_env))
-                if not dry_run:
-                    target.unlink()
-                    actions.append(f"remove unit {target.name}")
-                else:
-                    actions.append(f"remove unit {target.name} (dry-run)")
-                if bus_env is not None:
+                    if not dry_run:
+                        target.unlink()
+                        actions.append(f"remove unit {target.name}")
+                    else:
+                        actions.append(f"remove unit {target.name} (dry-run)")
                     actions.append(_apply_systemctl(["daemon-reload"],
-                                                    dry_run=dry_run, env=bus_env))
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
                 else:
+                    # No bus: cannot disable --now, so the unit may STILL be
+                    # running. Do NOT remove the file — dropping it while the
+                    # unit runs leaves a running unit systemd no longer knows
+                    # (an orphan it can then never manage). Record one named
+                    # skip governing the whole kill; a later apply with a bus
+                    # comes back, disables, removes, reloads.
+                    actions.append(
+                        f"unit {target.name} present, no user bus: "
+                        "disable --now SKIPPED (unit may still be running)")
                     actions.append(
                         f"unit {target.name} no user bus, skip daemon-reload")
             else:
