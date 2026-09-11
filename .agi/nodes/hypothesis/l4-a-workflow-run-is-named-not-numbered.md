@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.282 (sanctuary-director 182119Z, 2026-09-11 18:37:20Z): merged a00-47db504f (1 kid a00-90c8724a; parent held 85 lean-proved). Real tree on the merged bytes: `workflow.py run merge-up-review --args '{"n":39}' --dry-run` prints `[run-key] mur-39` as its FIRST line, before any [dispatch] line; `workflow.py list` unchanged (7 workflows); `status mur-39` says no runs match because a dry-run tracks nothing (expected — the tests pin the tracked path: 44 passed under env -u TMUX). The six deleted lines are the _track_run signature + the author description overwrite, nothing global. RESIDUE, accepted as the parent found it: the claim's 'records the harness wf_… id beside it' is unmet because workflow.py mints no harness id — the `wf_` ids the prime cites (wf_ba530baa-dab) are minted by the claude-code harness when IT runs the .js script. FIX-ONLY (queued behind L4.283, not re-dispatched now): on the claude-code harness path capture the `wf_` id from the harness output when one appears and record it beside run_key; `-` when the harness mints none (pi). Everything else in the claim is landed and verified — a fix-only kid re-derives none of it.
