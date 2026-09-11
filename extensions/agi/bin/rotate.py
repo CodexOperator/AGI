@@ -57,7 +57,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -1058,6 +1058,16 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
 
     `claude_cmd` is quoted element by element, so the constitution head riding
     in argv survives whatever is prepended.
+
+    **A SEAT successor (amendment e) gets the `launch-wrapper` subcommand
+    wrapped around the claude argv** (hypothesis:l4-rotate-self-under-pytest-
+    reaps-the-host-prime, amendment (e)): the wrapper is the direct parent of
+    claude, masks TERM/HUP/INT onto itself, and logs every process-sent
+    signal with its sender pid so the seat's lifecycle log distinguishes, by
+    construction, a SELF-TEARDOWN (child exit with no wrapper signal) from a
+    TERM'd-FROM-OUTSIDE (signal 15 with a sender line) from the WINDOW-KILLED
+    (HUP). The seatless line stays byte-identical to today — the wrapper is
+    inserted only when `seat` is not None.
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
     # AGI_SEAT rides FIRST in the export chain, so it is set before the
@@ -1065,11 +1075,173 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
-        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + cmd
+        wrap = " ".join(shlex.quote(c) for c in (
+            _launch_wrapper_argv(seat, claude_cmd)))
+        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
+
+
+def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
+    """The argv that runs `rotate.py launch-wrapper --seat <seat>` wrapping
+    `child_cmd`.
+
+    Built from `sys.executable` + this file's own path so the launch line is
+    self-locating from any tmux window cwd (the wrapper resolves the project
+    root at run time for its default log path; an explicit `--log` overrides).
+    The claude argv rides after `--`; `argparse` REMAINDER keeps a leading
+    `--`, which `cmd_launch_wrapper` strips.
+    """
+    return [sys.executable, str(Path(__file__).resolve()),
+            "launch-wrapper", "--seat", seat, "--", *child_cmd]
+
+
+# Signals the launch wrapper reserves onto itself so it can log and forward
+# them, plus SIGCHLD so a child's death is delivered to sigwaitinfo rather
+# than the default handler. SI_USER/SI_TKILL are the Linux siginfo si_code
+# values for a signal a PROCESS sent (delivered via kill/os.kill), vs a tty /
+# kernel signal whose si_pid is 0 (SI_KERNEL=128) — not exposed as Python
+# constants, so pinned as literals.
+_LAUNCH_RESERVED_SIGS = {signal.SIGTERM, signal.SIGHUP, signal.SIGINT}
+_LAUNCH_WAIT_SIGS = _LAUNCH_RESERVED_SIGS | {signal.SIGCHLD}
+_LINUX_SI_USER = 0      # kill(pid, sig) sent by a process
+_LINUX_SI_TKILL = -6    # tgkill / kill(samepid) sent by a process
+
+
+def _proc_comm(pid: int) -> str:
+    """`/proc/<pid>/comm` when the process is alive, else empty."""
+    try:
+        with open(f"/proc/{pid}/comm", encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return ""
+
+
+def _launch_wrapper_now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _launch_wrapper_log(root, seat: str) -> str:
+    """Default lifecycle log: `<sessions>/seats/<seat>.wrapper.log` — the
+    same seats dir every seat subcommand already addresses from any cwd."""
+    r = root
+    if r is None:
+        r = find_project_root()
+        if r is None:
+            raise RuntimeError("launch-wrapper: no project root resolvable; "
+                               "pass --log")
+    return str(_seat_hands(r) / f"{seat}.wrapper.log")
+
+
+def cmd_launch_wrapper(args, root) -> int:
+    """Signal-masking parent so a seat's lifecycle log distinguishes the
+    three death classes (amendment e, hypothesis:l4-rotate-self-under-pytest-
+    reaps-the-host-prime).
+
+    Blocks TERM/HUP/INT (plus CHLD) onto ITSELF, starts the wrapped child
+    with those signals unblocked and the tty inherited (claude stays
+    interactive), then loops `signal.sigwaitinfo`:
+      * a TERM/HUP/INT whose si_code is SI_USER/SI_TKILL (a process sent it)
+        is logged with sender pid (/proc comm if alive) + uid and FORWARDED to
+        the child;
+      * a kernel/tty signal (si_pid 0) already reached the child's group —
+        logged, not forwarded;
+      * on SIGCHLD it reaps the child and logs its exit, then exits with the
+        child's status (128+signal when signalled).
+
+    So a seat .log distinguishes the three deaths by construction: exit 0/1
+    with no wrapper signal = SELF-TEARDOWN; signal 15 with a sender line =
+    TERM'd BY <pid>; signal 15 with no wrapper signal = a TERM aimed straight
+    at the child (sender unknown to the wrapper); signal 1 = HUP (window
+    killed). The row's `pid` is unaffected — the successor's claude pid is
+    still in the derived chain, one more ancestor deep.
+    """
+    child_cmd = list(args.child)
+    # argparse REMAINDER keeps the leading `--` separator; strip it.
+    if child_cmd and child_cmd[0] == "--":
+        child_cmd = child_cmd[1:]
+    if not child_cmd:
+        print("ERR: launch-wrapper needs a child argv after --",
+              file=sys.stderr)
+        return 2
+    log_path = args.log or _launch_wrapper_log(root, args.seat)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+    tag = f"[launch-wrapper] {args.seat}"
+    with open(log_path, "a", encoding="utf-8") as log_fh:
+        def _log(line: str) -> None:
+            log_fh.write(f"{tag} {line}\n")
+            log_fh.flush()
+
+        signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
+        child = subprocess.Popen(
+            child_cmd,
+            preexec_fn=lambda: signal.pthread_sigmask(
+                signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS),
+        )
+        received: list[int] = []
+        while True:
+            info = signal.sigwaitinfo(_LAUNCH_WAIT_SIGS)
+            if info.si_signo == signal.SIGCHLD:
+                break
+            received.append(info.si_signo)
+            if (info.si_code in (_LINUX_SI_USER, _LINUX_SI_TKILL)
+                    and info.si_pid != 0):
+                comm = _proc_comm(info.si_pid)
+                pid_txt = (f"{info.si_pid} ({comm})" if comm
+                           else str(info.si_pid))
+                _log(f"SIG{info.si_signo} from pid {pid_txt} "
+                     f"uid {info.si_uid} at {_launch_wrapper_now()}")
+                try:
+                    os.kill(child.pid, info.si_signo)
+                except ProcessLookupError:
+                    pass
+            elif info.si_pid == 0 and info.si_signo == signal.SIGINT:
+                # A tty SIGINT (Ctrl-C, `isig`) is delivered by the kernel to
+                # the whole FOREGROUND PROCESS GROUP, so the child already has
+                # it; forwarding would deliver it twice.
+                _log(f"SIG{info.si_signo} from kernel/tty (si_pid 0) "
+                     f"uid {info.si_uid} — already reached the child's group, "
+                     f"NOT forwarded at {_launch_wrapper_now()}")
+            elif info.si_pid == 0:
+                # A tty HANGUP is different: the kernel signals only the
+                # SESSION LEADER (`tty_signal_session_leader`), and signals
+                # the foreground group only when that leader EXITS. Under
+                # tmux the wrapper IS the pane's session leader, so a
+                # `kill-window` reached nobody but us — measured by the L4.285
+                # harvest (sanctuary-director 182119Z 19:05Z): the pre-fix
+                # wrapper logged SIG1 "NOT forwarded" and both it and its
+                # `sleep` child survived the window kill as orphans. Forward.
+                _log(f"SIG{info.si_signo} from kernel/tty (si_pid 0) "
+                     f"uid {info.si_uid} — a hangup reaches only the session "
+                     f"leader; FORWARDED to child {child.pid} at "
+                     f"{_launch_wrapper_now()}")
+                try:
+                    os.kill(child.pid, info.si_signo)
+                except ProcessLookupError:
+                    pass
+            else:
+                _log(f"SIG{info.si_signo} si_code {info.si_code} uid "
+                     f"{info.si_uid} — NOT forwarded at "
+                     f"{_launch_wrapper_now()}")
+
+        # SIGCHLD: reap the child and report.
+        try:
+            _, status = os.waitpid(child.pid, 0)
+        except ChildProcessError:
+            status = 0
+        rec = ", ".join(str(s) for s in received) if received else "none"
+        if os.WIFSIGNALED(status):
+            sig = os.WTERMSIG(status)
+            _log(f"child {child.pid} exited signal {sig} at "
+                 f"{_launch_wrapper_now()}; wrapper received {rec}")
+            return 128 + sig
+        code = os.WEXITSTATUS(status) if os.WIFEXITED(status) else 0
+        _log(f"child {child.pid} exited status {code} at "
+             f"{_launch_wrapper_now()}; wrapper received {rec}")
+        return code
+
 
 
 # tmux refuses a command longer than its own buffer with `command too long`.
@@ -8734,13 +8906,37 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     pid first, then $TMUX_PANE only when no @id is known. Every
         #     outcome names the source that fed the skip (L4.122 criterion 3:
         #     a skip NAMES the missing input).
+        #
+        # L4.281 (hypothesis:l4-rotate-self-under-pytest-reaps-the-host-prime):
+        #   (a) under PYTEST_CURRENT_TEST with NO --own-chain seam the derive
+        #       is REFUSED by name — a probe running inside the pytest runtime
+        #       would otherwise climb from $TMUX_PANE up into ITS OWN host
+        #       shell and TERM the prime above it (measured: a review
+        #       subagent's scratchpad probe reaped the host claude, belam.log
+        #       58240-58290, L4.155 provisioning-under-pytest mirror).
+        #   (b) a DERIVED chain is TERM'd only when it holds the seat ROW's
+        #       own pid (authority against the graph); a row with no pid or a
+        #       mismatching pid is SKIPPED, named in the record and on stdout.
+        #       The test SEAM path (--own-chain) is unchanged — an injectable
+        #       stand-in is safe by construction.
         own_chain_seam = getattr(args, "own_chain", None)
+        pytest_running = bool(os.environ.get("PYTEST_CURRENT_TEST"))
         src_name = None
         pane_pid = None
         if own_chain_seam:
             own_chain = [int(p) for p in own_chain_seam]
             reap_source = f"test seam (--own-chain): pid {own_chain[0]}"
+        elif pytest_running:
+            # (a) refuse the derive outright inside the pytest runtime.
+            own_chain = []
+            reap_source = (
+                "REFUSED: PYTEST_CURRENT_TEST set with no --own-chain seam — "
+                "the $TMUX_PANE / window-@id derive would reach a LIVE pane "
+                "from inside the test runtime (L4.155 mirror; a probe reaped "
+                "the host prime) — the live predecessor chain is reaped "
+                "externally by PID (Belam cap / prime)")
         else:
+            # production derive path (pytest absent):
             if own_window_id:
                 pane_pid = _pane_pid(own_window_id)
                 src_name = f"own window @id {own_window_id}"
@@ -8749,15 +8945,33 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 src_name = f"$TMUX_PANE {os.environ.get('TMUX_PANE')}"
             if pane_pid:
                 own_chain = _derive_own_chain(pane_pid)
-                if own_chain:
-                    reap_source = (f"derived from {src_name} pane "
-                                   f"{pane_pid}: chain {own_chain} "
-                                   "(deepest-first)")
-                else:
+                if not own_chain:
                     own_chain = []
                     reap_source = (f"SKIPPED: own pid {os.getpid()} not under "
                                    f"pane pid {pane_pid} from {src_name}; no "
                                    "chain to TERM")
+                else:
+                    # (b) authority against the graph: TERM only when the
+                    # derived chain holds the seat ROW's own pid.
+                    derived = own_chain
+                    row_pid = (row or {}).get("pid")
+                    if row_pid is None:
+                        own_chain = []
+                        reap_source = (
+                            f"SKIPPED: seat row {seat!r} carries no pid; "
+                            f"derived chain {derived} NOT TERM'd (a row "
+                            "without its own pid cannot authorize a reap)")
+                    elif row_pid not in derived:
+                        own_chain = []
+                        reap_source = (
+                            f"SKIPPED: seat row pid {row_pid} not in the "
+                            f"derived chain {derived}; NOT TERM'd (a row "
+                            "that does not own the chain cannot reap it)")
+                    else:
+                        reap_source = (f"derived from {src_name} pane "
+                                       f"{pane_pid}: chain {derived} "
+                                       "(deepest-first; authority row pid "
+                                       f"{row_pid})")
             else:
                 own_chain = []
                 keep = (f" (source: {src_name} gave no pane pid; "
@@ -8939,42 +9153,51 @@ def _harvest_diffstat(main: Path, base_branch: str,
                       round_branch: str) -> tuple[str, list[str], bool]:
     """(diffstat text, kid experiment node relpaths, resolved) for the round.
 
-    Both are diffed from `merge-base(base_branch, round_branch)` to the
-    round branch tip, so a moved base tip never shifts the base and the
-    stat shows exactly what the round added — the round's own nodes, never
-    content merged into the base after the cut.
+    The stat and kid list come from the round's OWN changeset: the commits on
+    the round branch NOT reachable from `base_branch` (the ref the round was
+    cut from — the season-resolved seat ref, else the manifest's
+    base_branch). `git rev-list <round> ^<base>` names them newest-first; the
+    diff runs from the OLDEST own commit's parent to the round tip
+    (`<first_own>^..<round>`), so a multi-commit round (kid commit + parent
+    `done:` commit, or a director fix-up on the branch) reports BOTH commits'
+    files, and a round with NO own commits (a zero-commit round cut at the
+    seat tip, or a round already merged into the base so every commit is
+    reachable from it) reports `-` with an empty kid list — it never
+    attributes the base's (seat's) commit to the round
+    (hypothesis:l4-harvest-table-attributes-only-the-rounds-own-commits). A
+    moved base tip never shifts the base; the rev-list exclusion re-derives
+    the own commits against the base's current state.
 
-    `resolved` True means git actually answered: `round_branch` resolved and
-    a merge-base with `base_branch` exists. A resolvable but LEGITIMATELY
-    EMPTY diff (tip == base, or no experimental nodes added) still reports
-    `resolved=True` with an empty kid list — that is git's honest "no
-    changes" answer, not a failure. `resolved` False means git could not
-    answer at all (unknown branch or no merge-base), which is the only
-    situation the on-disk fallback may fire.
+    `resolved` True means git actually answered: both refs resolved and a
+    rev-list ran. A resolvable-but-EMPTY own changeset (no own commits) still
+    reports `resolved=True` with a `-` diff and empty kids — that is git's
+    honest "the round added nothing of its own" answer, not a failure.
+    `resolved` False means git could not answer at all (unknown branch or
+    unresolvable base), which is the only situation the on-disk fallback may
+    fire.
     """
-    mb = _git_out(main, "merge-base", base_branch, round_branch).strip()
-    if not mb:
+    if not base_branch or base_branch.strip() == "-":
         return "-", [], False
-    tip = _git_out(main, "rev-parse", "--verify", "--quiet",
-                   round_branch).strip()
-    if mb and tip and mb == tip:
-        # Fully-merged round: merge-base(base, round) == the round branch
-        # tip, so `mb..round_branch` is empty. Recover the round's OWN
-        # changeset from the branch itself — the round is what the branch
-        # added after the seat history it was cut from, and a dispatched
-        # round branch is a single commit, so `<round_branch>^..<round_branch>`
-        # is exactly that (hypothesis:harvest-table-subcommand, measured
-        # equal to the merge-changeset on L4.231/L4.228). Only if the branch
-        # has no parent to diff against do we fall back to the empty range.
-        left = f"{round_branch}^"
-        a, b = (left, round_branch) if _git_out(
-            main, "rev-parse", "--verify", "--quiet", left).strip() \
-            else (mb, round_branch)
-    else:
-        a, b = mb, round_branch
-    stat = _git_out(main, "diff", "--stat", f"{a}..{b}").strip()
+    if not _git_out(main, "rev-parse", "--verify", "--quiet",
+                    base_branch).strip():
+        return "-", [], False
+    if not _git_out(main, "rev-parse", "--verify", "--quiet",
+                    round_branch).strip():
+        return "-", [], False
+    # The round's own commits, newest-first: everything on the round branch
+    # not reachable from the base it was cut from. Empty means the round owns
+    # nothing (zero-commit, or already merged into the base) — report `-`
+    # rather than the base's / seat's commit.
+    own = _git_out(main, "rev-list", round_branch,
+                   f"^{base_branch}").splitlines()
+    if not own:
+        return "-", [], True
+    first_own = own[-1]  # oldest own commit == the round's first step
+    a = f"{first_own}^"
+    stat = _git_out(main, "diff", "--stat", f"{a}..{round_branch}").strip()
     stat_s = stat.replace("\n", " | ") or "-"
-    names = _git_out(main, "diff", "--name-only", f"{a}..{b}").splitlines()
+    names = _git_out(main, "diff", "--name-only",
+                     f"{a}..{round_branch}").splitlines()
     kids = [n for n in names
             if n.startswith(".agi/nodes/experiment/")
             and n.endswith(".md")]
@@ -9016,9 +9239,28 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
     branches = _harvest_loop_branches(main)
     parent = _git_out(main, "branch", "--show-current").strip()
 
+    # The season for the `@s<N>` segment of the seat ref comes from the same
+    # resolver dispatch.py uses — spawn_gate.read_ladder_season on the graph's
+    # ladder (hypothesis:l4-harvest-table-attributes-only-the-rounds-own-
+    # commits part (2): the `@s2` literal was hardcoded and drifted). Fail
+    # open to the largest season stamped on the discovered loop branches (the
+    # durable git fact) so a repo without a ladder still resolves; only if
+    # neither yields a season is the seat ref skipped and the manifest's
+    # base_branch taken instead.
+    season: int | None = None
+    try:
+        import spawn_gate  # noqa: E402 -- local: same dir (lazy, dispatch uses it)
+        season = spawn_gate.read_ladder_season(main / ".agi" / "nodes")
+    except ImportError:
+        season = None
+    if season is None:
+        seasons = {s for _, s in branches.values()}
+        season = max(seasons) if seasons else None
+
     # The seat branch the claim names as the diff base, when --seat is given
     # and that ref exists (hypothesis:harvest-table-subcommand item (d)).
-    seat_base = f"seat/{want_seat}@s2" if want_seat else ""
+    seat_base = (f"seat/{want_seat}@s{season}" if (want_seat and season)
+                 else "")
     if seat_base and not _git_out(main, "rev-parse", "--verify", "--quiet",
                                   seat_base).strip():
         seat_base = ""
@@ -9580,11 +9822,36 @@ def main(argv: list[str] | None = None) -> int:
                           "via git_common_root)")
     p_c.set_defaults(func=cmd_complete)
 
+    # launch-wrapper: signal-masking parent so a seat's lifecycle log
+    # distinguishes self-teardown from TERM'd-from-outside from window-killed
+    # (hypothesis:l4-rotate-self-under-pytest-reaps-the-host-prime, amendment e)
+    p_lw = sub.add_parser(
+        "launch-wrapper", help="signal-masking parent that wraps a seat's "
+                               "claude argv and logs every process-sent "
+                               "TERM/HUP/INT with its sender pid")
+    p_lw.add_argument("--seat", required=True,
+                      help="seat name (log attribution + default log path)")
+    p_lw.add_argument("--log", default=None,
+                      help="append wrapper lifecycle lines here (default: "
+                           "<sessions>/seats/<seat>.wrapper.log)")
+    p_lw.add_argument("--root", default=None,
+                      help="project root for the default log path (test seam; "
+                           "else find_project_root at run time)")
+    p_lw.add_argument("child", nargs=argparse.REMAINDER,
+                      help="the wrapped argv after -- (e.g. `-- claude "
+                           "--remote-control <name> <prompt>`)")
+    p_lw.set_defaults(func=cmd_launch_wrapper)
+
     args = ap.parse_args(argv)
 
     # complete works purely from its explicit paths + git; no project root.
     if args.cmd == "complete":
         return args.func(args, None)
+
+    # launch-wrapper resolves its own log path at run time (root=None triggers
+    # find_project_root inside); no project root required up front.
+    if args.cmd == "launch-wrapper":
+        return args.func(args, getattr(args, "root", None))
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",

@@ -139,7 +139,7 @@ def test_rotate_out_audit_resolves_through_previous_record_and_classifies(tmp_pa
     assert len(calls) == 5
     cats = [c["cat"] for c in calls]
     assert cats == ["a", "b", "c", "d", "d"]
-    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2}
+    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
     assert calls[0]["label"] == "rotation-record"  # (a) names the record field
     assert calls[2]["cat"] == "c" and calls[2]["label"] is None
 
@@ -168,7 +168,7 @@ def test_rotate_out_audit_window_starts_after_last_real_input(tmp_path):
     assert window["start_ts"] == "2026-09-11T14:55:00Z"
     # only the last two calls (the two genuine decisions) are in the window
     assert [c["cat"] for c in calls] == ["d", "d"]
-    assert counts == {"a": 0, "b": 0, "c": 0, "d": 2}
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 2, "s": 0}
 
 
 def test_rotate_out_audit_plain_string_content_is_a_real_input(tmp_path):
@@ -195,7 +195,7 @@ def test_rotate_out_audit_plain_string_content_is_a_real_input(tmp_path):
     assert window["start_line"] > 0
     # only the two calls AFTER the string turn are in the window
     assert [c["cat"] for c in calls] == ["d", "d"]
-    assert counts == {"a": 0, "b": 0, "c": 0, "d": 2}
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 2, "s": 0}
 
 
 def test_rotate_out_audit_whitespace_string_content_is_not_a_real_input(tmp_path):
@@ -308,7 +308,7 @@ def test_rotate_out_audit_window_bounded_by_recorded_at_excludes_post_record_far
     # the post-record call (cmd `true`) is OUT of the window
     assert all(c["cat"] != "b" or c["cmd"] != "true" for c in calls)
     assert all(c["cmd"] != "true" for c in calls)
-    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2}
+    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
 
 
 # ── SL3.03 one-tool-wrapper parity (hypothesis:l4-the-wake-window-ends-at-
@@ -353,7 +353,7 @@ def test_rotate_out_read_of_record_is_b_and_edit_of_card_is_d(tmp_path):
     assert [c["cat"] for c in calls] == ["b", "d"]
     assert calls[0]["tool"] == "Read" and calls[0]["label"] is None
     assert calls[1]["tool"] == "Edit"
-    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1}
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
 
 
 def test_rotate_out_and_wake_classify_the_same_tool_use_identically(tmp_path):
@@ -421,7 +421,7 @@ def test_rotate_out_registry_fallback_resolves_derived_transcript(tmp_path, monk
     assert str(window["log_path"]) == str(derived)
     assert window["source"] == f"{pid}.json / s12_self_reap.chain"
     assert len(calls) == 1
-    assert counts == {"a": 0, "b": 0, "c": 0, "d": 1}
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
 
 
 def test_rotate_out_registry_named_refusal_when_derived_absent(tmp_path, monkeypatch, capsys):
