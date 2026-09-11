@@ -1114,6 +1114,67 @@ class TestMergeUp:
         wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
         assert str(worktree) not in wt
 
+    def test_merge_up_town_gate_refuses_cross_town_and_allows_same_town(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council --
+        a round merges up through the seat of the town that ORIGINATED it;
+        the merge refuses when the round node's `town:` differs from the
+        target seat's config:seats `town`, and proceeds when they agree.
+        Both towns are read (round via its `town:` cell, seat via its row),
+        never a branch on a town NAME (goal:g8.2). Fails open when either
+        half is absent, so a town-less graph merges exactly as before."""
+        _init_project(tmp_path)
+        # --- two town seats in config:seats (the council shape) ---
+        seats_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        seats_dir.mkdir(parents=True, exist_ok=True)
+        (seats_dir / "seats.md").write_text(
+            "---\nid: config:seats\ntype: config\nseats:\n"
+            "  - {\"name\": \"council-streaming\", \"town\": "
+            "\"streaming-suite\"}\n"
+            "  - {\"name\": \"council-web\", \"town\": "
+            "\"web-app-suite\"}\n---\nbody\n", encoding="utf-8")
+        # --- a round node stamped at mint with its town ---
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: "
+            "streaming-suite\n---\nbody\n", encoding="utf-8")
+
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/slug-abc12345@s2",
+             str(worktree), "season/s1")
+        _commit(worktree, "kid commit", content="kid\n")
+
+        # Cross-town: round in streaming-suite, seat in web-app-suite -> refuse.
+        cross = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--seat", "council-web"],
+            capture_output=True, text=True,
+        )
+        assert cross.returncode == 1, cross.stdout
+        assert "REFUSED" in cross.stderr
+        assert "streaming-suite" in cross.stderr
+        assert "web-app-suite" in cross.stderr
+        # Nothing was merged (the gate fires before any git write).
+        assert _git(tmp_path, "rev-list", "--count", "season/s1"
+                    ).stdout.strip() == "1"
+
+        # Same-town: round and seat both streaming-suite -> merge proceeds.
+        same = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/slug-abc12345@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--seat", "council-streaming",
+             "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert same.returncode == 0, same.stderr
+        assert "complete; suite green" in same.stdout
+        assert "kid commit" in _git(tmp_path, "log", "season/s1",
+                                    "--format=%s").stdout
+        wt = _git(tmp_path, "worktree", "list", "--porcelain").stdout
+        assert str(worktree) not in wt
+
     def test_merge_up_never_rebases(self, season_py, temp_graph, tmp_path):
         """Merging upward never rewrites the branch's commit hashes."""
         _init_project(tmp_path)
@@ -1228,3 +1289,107 @@ class TestMergeUp:
         # And the first merge still has the SAME parent tip (no rebase of it).
         assert _git(tmp_path, "rev-parse", "loop/parent-aaaa@s2").stdout.strip() \
             == parent_tip
+
+
+class TestTownsPerTownVisionCap:
+    """season.py status / spawn_gate per-town vision counting.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — when the
+    ladder declares caps_vision_scope: town, visions are counted PER TOWN (a
+    vision's `town:` cell, default core) against caps.vision, never as one
+    global pool, and no code path names a town literally (goal:g8.2).
+    """
+
+    @pytest.fixture
+    def town_graph(self, tmp_path, engine_on_path):
+        """A temp graph with a town-scoped ladder and visions in three towns.
+
+        core has 2 visions (room for 1 more), streaming-suite has 3 (= cap,
+        at capacity), web-app-suite has 1. Towns come from the ladder's
+        `towns:` list; a vision's town from its `town:` cell, default core.
+        """
+        ladder_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        ladder_dir.mkdir(parents=True)
+        ladder = """---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps_apply_from_season: 2
+caps_vision_scope: town
+caps:
+  moral: 5
+  vision: 3
+towns:
+  - core
+  - streaming-suite
+  - web-app-suite
+tiers:
+  - tier: 2
+    plan_types: [vision]
+    report_type: overview
+    judged_against: its vision
+    lens: the morals above
+    cadence: season rollover (quarterly)
+---
+# ladder:ladder
+Test town-scoped ladder node.
+"""
+        (ladder_dir / "ladder.md").write_text(ladder)
+        cfg_dir = tmp_path / ".agi"
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+        (cfg_dir / "config.json").write_text('{"project": "test"}')
+        visions_dir = tmp_path / ".agi" / "nodes" / "vision"
+        visions_dir.mkdir(parents=True)
+        slugs = {"core": ["vc1", "vc2"],
+                 "streaming-suite": ["vs1", "vs2", "vs3"],
+                 "web-app-suite": ["vw1"]}
+        for town, items in slugs.items():
+            for slug in items:
+                if town == "core":
+                    body = (f"---\nid: vision:{slug}\ntype: vision\n---\n"
+                            f"# vision {slug}\nbody\n")
+                else:
+                    body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                            f"town: {town}\n---\n# vision {slug}\nbody\n")
+                (visions_dir / f"{slug}.md").write_text(body)
+        return tmp_path
+
+    def test_status_shows_visions_by_town(self, season_py, town_graph):
+        """status prints a per-town block when scope is town."""
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(town_graph),
+             "status"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "Visions by town (scope: town, cap 3/town)" in result.stdout
+        assert "streaming-suite: 3  (room for 0 more)" in result.stdout
+        assert "core: 2  (room for 1 more)" in result.stdout
+
+    def test_helpers_count_per_town_not_globally(self, town_graph):
+        """count_visions_per_town / vision_remaining_for_town are per-town."""
+        import locations
+        root = locations.find_project_root(town_graph)
+        import spawn_gate
+        counts = spawn_gate.count_visions_per_town(root / "nodes")
+        assert counts == {"core": 2, "streaming-suite": 3, "web-app-suite": 1}
+        # A town at cap has room for 0; a town under cap still has room.
+        assert spawn_gate.vision_remaining_for_town(
+            root / "nodes", "streaming-suite", counts=counts) == 0
+        assert spawn_gate.vision_remaining_for_town(
+            root / "nodes", "core", counts=counts) == 1
+
+    def test_mint_gate_refuses_fourth_and_accepts_third(self, season_py,
+                                                        town_graph):
+        """The town cap gate refuses a 4th in a full town, allows a 3rd in core."""
+        import locations
+        root = locations.find_project_root(town_graph)
+        import spawn_gate
+        nodes_dir = root / "nodes"
+        per_town = spawn_gate.count_visions_per_town(nodes_dir)
+        # 4th in streaming-suite: budget exhausted (town at its cap of 3).
+        assert spawn_gate.vision_remaining_for_town(
+            nodes_dir, "streaming-suite", counts=per_town) == 0
+        # 3rd in core (no town cell -> default core): budget still open.
+        assert spawn_gate.vision_remaining_for_town(
+            nodes_dir, "core", counts=per_town) == 1

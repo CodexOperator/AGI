@@ -6241,6 +6241,10 @@ L4-VII wake, 2026-09-11 01:2xZ (date -u): THE ACK CHANNEL HAS TWO KEYS ON THE PR
 
 RULING (owner 2026-09-11 01:5xZ, verbatim in doc:l4-owner-decisions), recorded by the Prime L4-VII: the merge-up review runs through the unified workflow router — a registered pair (merge-up-review.json + agi-merge-up-review.js, type + workflow rows in config:workflows) run by NAME (workflow.py run merge-up-review --args ...; on the claude-code harness the Workflow tool runs the registered scriptPath), never an inline script. Every prime before L4-VII skipped the registration step; the successor brief now carries the exact command. Merge-up 23 was reviewed by an inline script BEFORE the ruling landed (the pair was authored from it); merge-up 24 is the first by name.
 
+MERGE-UP 23 (eb5648ffe, landed in the Prime's own checkout at 01:43Z while the Prime's tree was clean — a granted window means a clean, uncommitting Prime tree; measured, it held) REVIEWED by the Prime L4-VII 02:3xZ from the report AND the bytes, review shape = two claim-vs-bytes reviewers + six adversarial refuters (10 agents, 36 min): node count 1874/194/2068 (floor was 1869, never dropped), suite 2664/3 (point, 10/10 first read) re-measured by verify 9/9 at HEAD, zero deletions under .agi/nodes, links 0, goals byte-identical. RULINGS: L4.116 persistent reaper ACCEPTED WITH RESIDUE — the Prime's unit install is GATED on the death-path/kill-switch/write.py residues (fix-only L4.116b), inline_reaper stays true; L4.118 fourth 0a fix-only DEMOTED (experiment:a00-c2c70359-7a906e :78 -> lean_disproved:70) on two verified defects (`ps` without -e returns an empty chain on the real shape; `_reap_chain` UnboundLocalError on a surviving ancestor) — acceptance criteria of the next 0a fix. RULE EARNED: a kid's ps/tmux fixture must contain processes on OTHER ttys and pids that are NOT its children — every fixture tonight modelled only the shape the code already handled. This was the last inline review; from merge-up 24 the registered `merge-up-review` workflow runs by name (owner ruling 01:5xZ).
+
+MERGE-UP 24 (650550931 + f9751b8a9, landed in the Prime's checkout ~02:16Z under a clean tree) REVIEWED 02:5xZ BY NAME for the first time — `workflow.py run merge-up-review` + the registered agi-merge-up-review.js (4 agents, 14 min; the owner's 01:5xZ ruling honoured): node count 1880/194/2074 (floor was 1874), suite 2676/3 second read (first read red on test_geometry_node_resolves_all_live_workflows — mechanism SUSPECTED: two pytest runs in different worktrees shared /tmp/pytest-of-ubuntu/pytest-N by a basetemp-numbering race, so one test read the other run's fixture node; fix shape for a fix-only: every runner passes --basetemp under its own worktree's .agi/sessions/ — the per-worktree suite lock cannot see /tmp), links 0, goals byte-identical, verify 9/9 at HEAD by the Prime. RULINGS: L4.119 fifth 0a (prime path) ACCEPTED WITH RESIDUE — 14 conjuncts MET, the live prime rotation VII->VIII is the one UNVERIFIED and is the next proof; three record-only residues verified real (Belam cap counts a phantom `belam` successor, rotate.py:3816; gen_before read from the handoff counter announces 0->8 while the numeral/row say 7, :3498; `_resolve_seat_for_name` is first-match not longest-prefix, :1291) + refusal record formats new_name (:3900) — all onto the SIXTH 0a fix beside ps -e and the wpid binding. Helper round 113 seat-model reader ACCEPTED WITH RESIDUE — 10 MET, 2 NOT MET: the stale-pin generation guard was dropped (verification.py:437 discards the generation rotate.resolve_transcript checks) and the model_refusal_fallback event is surfaced only on DRIFT, not on PASS; `_seat_transcript` re-implements rotate._read_pin_target instead of importing it — the helper's next kid. POINT ROTATION gen IX -> X at 02:37:57Z on rotate-self with the L4.114/118/119 bytes: record success 9->10, the successor acked `continue` through the ONE seat-keyed ack file (sanctuary-director.ack.json, ref fa748c, 02:38:46Z), the row written by the handover in the SEAT WORKTREE (session_ref fa748c, generation 10, pid) and verified by the Prime against the ListAgents/tmux join (seat-sanctuary-director-04 [fa748c] @268; gen IX @254 reaped by @id) — the first director rotation with zero Prime hand steps. ONE DEFECT: the row's `window` cell was written as the NAME `sanctuary-director`, not the @id — a name is not an address (L4.114 ruling); onto the sixth 0a fix.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
@@ -6372,11 +6376,6 @@ RULING (owner 2026-09-11 01:5xZ, verbatim in doc:l4-owner-decisions), recorded b
 **The line:** `dispatch.py:1075` resolves `sess_root = locations.shared_project_root(root) or root`, and `shared_project_root` routes to the main checkout by design.
 
 🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
-
-### G18.1 — The livestream goes live as L4's final round — verified working, accounts created by the agents — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g18.1
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
@@ -8654,7 +8653,24 @@ Per node at done and per session: model, harness, profile, tokens_in, tokens_out
 ## Agent Notes
 Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
 
-### G18 — Sanctuary as a managed subscription web app — the project pays for itself
+## App: streaming-suite
+
+The goals of this app/town share one vision, one council and one per-town
+vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
+Town is derived from a vision's `town:` cell; core is every other goal.
+
+#### G18.1 — The livestream goes live as L4's final round — verified working, accounts created by the agents — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g18.1
+
+## App: web-app-suite
+
+The goals of this app/town share one vision, one council and one per-town
+vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
+Town is derived from a vision's `town:` cell; core is every other goal.
+
+### G18 — Sanctuary as a managed subscription web app — the project pays for itself — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g18
