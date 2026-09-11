@@ -7703,13 +7703,37 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     pid first, then $TMUX_PANE only when no @id is known. Every
         #     outcome names the source that fed the skip (L4.122 criterion 3:
         #     a skip NAMES the missing input).
+        #
+        # L4.281 (hypothesis:l4-rotate-self-under-pytest-reaps-the-host-prime):
+        #   (a) under PYTEST_CURRENT_TEST with NO --own-chain seam the derive
+        #       is REFUSED by name — a probe running inside the pytest runtime
+        #       would otherwise climb from $TMUX_PANE up into ITS OWN host
+        #       shell and TERM the prime above it (measured: a review
+        #       subagent's scratchpad probe reaped the host claude, belam.log
+        #       58240-58290, L4.155 provisioning-under-pytest mirror).
+        #   (b) a DERIVED chain is TERM'd only when it holds the seat ROW's
+        #       own pid (authority against the graph); a row with no pid or a
+        #       mismatching pid is SKIPPED, named in the record and on stdout.
+        #       The test SEAM path (--own-chain) is unchanged — an injectable
+        #       stand-in is safe by construction.
         own_chain_seam = getattr(args, "own_chain", None)
+        pytest_running = bool(os.environ.get("PYTEST_CURRENT_TEST"))
         src_name = None
         pane_pid = None
         if own_chain_seam:
             own_chain = [int(p) for p in own_chain_seam]
             reap_source = f"test seam (--own-chain): pid {own_chain[0]}"
+        elif pytest_running:
+            # (a) refuse the derive outright inside the pytest runtime.
+            own_chain = []
+            reap_source = (
+                "REFUSED: PYTEST_CURRENT_TEST set with no --own-chain seam — "
+                "the $TMUX_PANE / window-@id derive would reach a LIVE pane "
+                "from inside the test runtime (L4.155 mirror; a probe reaped "
+                "the host prime) — the live predecessor chain is reaped "
+                "externally by PID (Belam cap / prime)")
         else:
+            # production derive path (pytest absent):
             if own_window_id:
                 pane_pid = _pane_pid(own_window_id)
                 src_name = f"own window @id {own_window_id}"
@@ -7718,15 +7742,33 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 src_name = f"$TMUX_PANE {os.environ.get('TMUX_PANE')}"
             if pane_pid:
                 own_chain = _derive_own_chain(pane_pid)
-                if own_chain:
-                    reap_source = (f"derived from {src_name} pane "
-                                   f"{pane_pid}: chain {own_chain} "
-                                   "(deepest-first)")
-                else:
+                if not own_chain:
                     own_chain = []
                     reap_source = (f"SKIPPED: own pid {os.getpid()} not under "
                                    f"pane pid {pane_pid} from {src_name}; no "
                                    "chain to TERM")
+                else:
+                    # (b) authority against the graph: TERM only when the
+                    # derived chain holds the seat ROW's own pid.
+                    derived = own_chain
+                    row_pid = (row or {}).get("pid")
+                    if row_pid is None:
+                        own_chain = []
+                        reap_source = (
+                            f"SKIPPED: seat row {seat!r} carries no pid; "
+                            f"derived chain {derived} NOT TERM'd (a row "
+                            "without its own pid cannot authorize a reap)")
+                    elif row_pid not in derived:
+                        own_chain = []
+                        reap_source = (
+                            f"SKIPPED: seat row pid {row_pid} not in the "
+                            f"derived chain {derived}; NOT TERM'd (a row "
+                            "that does not own the chain cannot reap it)")
+                    else:
+                        reap_source = (f"derived from {src_name} pane "
+                                       f"{pane_pid}: chain {derived} "
+                                       "(deepest-first; authority row pid "
+                                       f"{row_pid})")
             else:
                 own_chain = []
                 keep = (f" (source: {src_name} gave no pane pid; "
