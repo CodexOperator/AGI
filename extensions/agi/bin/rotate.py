@@ -5558,9 +5558,10 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # shared MAIN checkout, whose copy only moves at merge-up — measured at
     # gen I's rotation: the live check read MAIN's stale copy and blocked a
     # clean rotate-self (director fix-up at the SL1.02 harvest).
-    own_card = Path(root) / ".agi" / "sessions" / "quorum" / f"{seat}.md"
-    card = own_card if own_card.exists() else (
-        _sessions_dir(root) / "quorum" / f"{seat}.md")
+    _own = [Path(root) / "sessions" / "quorum" / f"{seat}.md",          # root = graph root (<tree>/.agi)
+            Path(root) / ".agi" / "sessions" / "quorum" / f"{seat}.md"]  # root = the tree
+    card = next((c for c in _own if c.exists()),
+                _sessions_dir(root) / "quorum" / f"{seat}.md")
     last_ts = _git_count_maybe(root, "log", "-1", "--format=%ct")
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
