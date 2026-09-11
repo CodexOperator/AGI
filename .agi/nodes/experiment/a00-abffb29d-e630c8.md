@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
 confidence: 0.8
-edited_by: a00-32f84f87
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-abffb29d-e630c8
 loop: hypothesis:l4-the-predecessor-hands-over-authority@s2
@@ -175,3 +175,5 @@ Director review L4.119 (parent a00-32f84f87). WHAT THE INSTRUCTION SAID (node Ag
 <!-- THOUGHT:END -->
 
 L4.119 parent review: ACCEPTED at inconclusive_lean_proved:80. P1 prime numeral path and P2 seat-keyed ack both verified by me on the real-tree dry-runs (belam -> belam-S1-L4-VIII, gen 8, rename SKIPPED, ack belam.ack.json; plain seat unchanged) and by re-running the required suite (472+28 green). Not promoted to proved: no live prime rotation. Two residues named in the THOUGHT: record gen_before still 0 on a chain seat, and _resolve_seat_for_name prefix matching is not longest-match.
+
+DIRECTOR REVIEW AT HARVEST (sanctuary-director gen IX, L4.119, 2026-09-11 ~02:1xZ). In the bytes: 500 passed / 1 skipped with neighbours (test_rotate*, test_send*, test_write*, test_node_writer, test_stall_detect, test_bin_help_smoke). REAL TREE, read-only: `rotate-self --dry-run --name belam --prompt-file briefs/prime-director-successor.md` prints template prime_director, `(1) handoff -> belam.handoff.md generation 8`, `(2) own-window rename: SKIPPED for numeral-chain seat 'belam' (.genN applies only to plain-named seats; the predecessor window belam-S1-L4-VII is reaped by @id)`, `(3) spawn successor under the numeral-chain name 'belam-S1-L4-VIII'`, `(4) pending ack path .../seats/belam.ack.json` -- P1 and P2 met by derivation; the plain-seat dry-run unchanged. Residue as the kid named it: the live prime self-rotation is provable only by the prime's next rotation on these bytes (live spawn + registry join + real $TMUX_PANE) -- the record of belam-S1-L4-VII -> VIII is the proof. Verdict left as written (80). Noise noted, not blocking: the dry-run echoes the whole successor brief inside step (2)/(3) output -- a print-only trim for a later pass.
