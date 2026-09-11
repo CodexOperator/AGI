@@ -6072,6 +6072,38 @@ Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127
 
 **Falsifiers:** an alert without the address after a successful join; an ack that writes a row-shaped ref; a rotate-self that spawns on a stale `.geometry/` silently. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (alert composition, `cmd_ack`, the geometry read in `cmd_rotate_self`) + tests. EXCLUDED: `send.py`, `config:*`, hooks. **CEILING:** 1 parent, up to 3 kids PARALLEL (one per mechanism). **SERIAL** on `rotate.py` behind `goal:g15.15`'s round (SL1.03 owns the first_turn/bootstrap/spawn region the geometry read sits beside) — cut after it is harvested.
 
+### G15.17 — a first seating sends the Sensei the same alert a rotation does (spawn, seats-launch, hand launch via ack --gen 1) — status: active
+
+<!-- BODY:BEGIN -->
+**A FIRST SEATING sends the Sensei the same alert a rotation does.** Owner, 2026-09-11 16:2xZ, verbatim (relayed by the Prime's 16:22Z dm): "sensei should still get an auto-nudge for any new seat starting up same way he gets an alert for any rotation happening" — the dm carries seat, window @id, ref, pid, session id, transcript path. Today only `rotate-self` sends it.
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a gap in the seat protocol's mechanism fixed in-loop: this very seat was hand-launched by the Prime at 16:10Z and the Sensei learned of it from the Prime's prose, not from the engine — the same silence for every `spawn` / `seats-launch` / hand launch.
+- `build:bin-rotate` is the parent because `_announce_rotation` (rotate.py, called from `cmd_loop` :1522 and `cmd_rotate_self` :5669 only) is the mechanism: the composer and the derived-recipient set already exist; the first-seating paths (`cmd_spawn`, `cmd_seats_launch`, and `ack --gen 1` for a hand launch) never call it.
+
+## Testable claim (a build order)
+
+(1) One composer, one shape: a first seating emits the `[rotation-alert]` dm with `trigger: first-seating` (generation `0 -> 1`), carrying seat, window @id, ref (when the join has it — else named absent), pid, session id, transcript path, to the same derived recipients (`_derive_receivers`: live seats, the Sensei among them); delivery failure never fails the seating. (2) Senders: `rotate.py spawn` and `seats-launch` after the window is up and the registry join (`_successor_window_id` + the `~/.claude/sessions/<pid>.json` join rotate-self already performs); a HAND launch is covered by `rotate.py ack --seat S --gen 1` (no predecessor) sending the same dm when no seating record exists for that seat + generation — recorded as `<sessions>/rotations/<seat>.<TS>.seating.json` (one record per seating, the same dir as rotation records, so the Sensei's `status --record latest` sees it). (3) Red-first tests on fixtures (window_path seam): spawn emits the seating text with the fields; ack gen 1 emits when no seating record and does NOT double-send when one exists; the text is the composer's shape. Neighbours `test_rotate.py`, `test_rotate_startup.py`, `test_send.py` (fake tmux) green.
+
+**Falsifiers:** a spawn or seats-launch after which the Sensei's dm file has no seating line; a second dm for the same seat + gen. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (`cmd_spawn` / `cmd_seats_launch` tails, `cmd_ack`, the announcer) + tests. EXCLUDED: `send.py` (import only), `config:*`, hooks. **CEILING:** 1 parent, up to 2 kids. **SERIAL** behind `goal:g15.16`'s round — both edit the announcer; cut after it is harvested.
+
+### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
+
+<!-- BODY:BEGIN -->
+**`rotation_alert.py` says what it measures: the registration block names the event the Prime installed (UserPromptSubmit), the band line prints the band as a fraction of the threshold, the fraction line says window where it means window, and the line a seat is measured against is the seat's own `rotate_at`.** Prime, 16:22Z dm (owner-ordered): L4.94's rotation-reminder hook was INSTALLED 16:21Z under UserPromptSubmit; residue to fix in `extensions/agi/hooks/rotation_alert.py`.
+
+## Why this exists
+
+- `goal:g15` is the parent because these are bugfixes on a hook now LIVE for every session on the box, fixed in-loop; measured on this seat's own firing at 16:3xZ: `Approaching rotation (0.2098 of the line). Crossed band 18% of threshold.` — 0.2098 is of the WINDOW (0.446 of the line), and 18 = `int(0.40 × 0.47 × 100)`: the band printed as a fraction of the window under a label that says threshold (the Prime's "band 25% at 0.63 of threshold" is the same formula at the 0.55 band).
+- `build:hooks-cc-session-start.sh` is the parent because the hook family under `extensions/agi/hooks/` is the mechanism; `rotation_alert.py` has no build node of its own yet (`level3.py` mints it at the next scan), and its registration block (`:11`, `:41-44`) prescribes `SessionStart` — the event that fires once at ~0 and can never escalate.
+
+## Testable claim (a build order)
+
+(1) The registration block prescribes `UserPromptSubmit` in the exact shape the Prime installed in `~/.claude/settings.json` (read the live file, copy the shape — never edit it). (2) `pct` (`:373`) prints `int(b_frac × 100)` — the band as a fraction of the threshold, as the text says; the fraction line prints both numbers by name: `X of the window = Y of the line`. (3) Verify the "first firing reports the LOWEST crossed band" report on the bytes: the loop (`:325-329`) picks the highest crossed band — if the report was the pct formula, say so in the verdict; if a path exists where a stale state file (`session_id` reuse) suppresses the higher band, fix it. (4) The line: read the seat's own `rotate_at` from its `config:seats` row when the seat is identifiable (AGI_SEAT once `goal:g15.15` lands; today the cwd = the row's `worktree`), fall back to `ladder.director_rotate_at`; this seat's row says 0.4 and the hook measured it against 0.47. (5) Tests in `test_rotation_alert.py`: registration text; pct at 0.63 × threshold prints 55; wording; seat-row threshold on a fixture worktree; the existing suite green.
+
+**Falsifiers:** a firing whose printed band is not `b_frac × 100`; a registration block naming SessionStart; a seat with `rotate_at` 0.4 measured against 0.47. **FILE SCOPE:** `extensions/agi/hooks/rotation_alert.py`, `extensions/agi/tests/test_rotation_alert.py`. EXCLUDED: `~/.claude/settings.json` (the Prime's live install), `rotate.py`, `config:*`. **CEILING:** 1 parent, up to 2 kids. Disjoint from every other L1 round — cut now.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
