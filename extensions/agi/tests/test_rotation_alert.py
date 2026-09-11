@@ -1,4 +1,4 @@
-"""Tests for the rotation-alert SessionStart hook.
+"""Tests for the rotation-alert UserPromptSubmit hook.
 
 hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip
 
@@ -17,6 +17,7 @@ Proof criteria (a)–(e) of the brief:
 import importlib.util
 import io
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -27,6 +28,20 @@ HOOK = Path(__file__).resolve().parents[1] / "hooks" / "rotation_alert.py"
 spec = importlib.util.spec_from_file_location("rotation_alert", HOOK)
 hook = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook)
+
+
+@pytest.fixture(autouse=True)
+def _no_inherited_seat(monkeypatch):
+    """Tests never inherit the RUNNER's AGI_SEAT.
+
+    A seat exports AGI_SEAT in its own pane, so a test run from inside a seat
+    worktree measures WHATEVER seat the runner exports unless it is cleared. A
+    seat identification exercised by any test would then silently depend on the
+    pane it happens to run in. ONE autouse fixture clears it for every test in
+    the module (the three former per-test `monkeypatch.delenv` lines fold in
+    here); a test that NEEDS a particular seat sets AGI_SEAT explicitly.
+    """
+    monkeypatch.delenv("AGI_SEAT", raising=False)
 
 
 @pytest.fixture
@@ -59,7 +74,7 @@ def run_hook():
 
 def _payload(root, transcript, session_id="sess-1", cwd=None):
     return {
-        "hook_event_name": "SessionStart",
+        "hook_event_name": "UserPromptSubmit",
         "session_id": session_id,
         "transcript_path": str(transcript),
         "cwd": str(cwd or root),
@@ -96,7 +111,7 @@ def test_b_missing_transcript_fails_closed(run_hook, tmp_path, monkeypatch, caps
     test_root.mkdir(parents=True)
     (test_root / "config.json").write_text("{}")
     state_dir = tmp_path / "state-b"
-    payload = {"hook_event_name": "SessionStart", "session_id": "s",
+    payload = {"hook_event_name": "UserPromptSubmit", "session_id": "s",
                "cwd": str(test_root)}  # NO transcript_path
     code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
     assert code == 3
@@ -318,8 +333,8 @@ def test_a_registration_names_userpromptsubmit():
 
 # --- (b) the printed band pct is the band's OWN fraction of threshold -------
 def _fraction_test(graph, transcript, session, state_dir, run_hook, monkeypatch, capsys):
+    # AGI_SEAT is cleared by the module's autouse fixture (_no_inherited_seat).
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     return run_hook(_payload(graph, transcript, session), state_dir, monkeypatch, capsys)
 
 
@@ -383,7 +398,8 @@ def test_d_seat_measured_at_own_rotate_at(tmp_path, run_hook, monkeypatch, capsy
     _write_transcript(tp, 45_000)          # fraction 0.45: >= 0.4, < 0.47
     state_dir = tmp_path / "state-d"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    # AGI_SEAT is cleared by the module's autouse fixture; the seat is
+    # identified from the cwd sitting under the `seat-<name>` worktree.
     code, out, err = run_hook(_payload(graph, tp, "sess-d", cwd=str(seat_cwd)),
                               state_dir, monkeypatch, capsys)
     assert code == 0, err
@@ -430,7 +446,6 @@ def test_e_nonpositive_seat_rotate_at_falls_back_to_ladder(tmp_path, run_hook, m
                                              # "approaching" against the LADDER line
     state_dir = tmp_path / "state-e"
     state_dir.mkdir(exist_ok=True)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
 
     # (i)+(ii) must NOT raise / crash, and (iii) must not collapse to a
     # 0.0 threshold that forces `over_line` true and divides by zero.
@@ -443,3 +458,148 @@ def test_e_nonpositive_seat_rotate_at_falls_back_to_ladder(tmp_path, run_hook, m
     # the row's 0 was rejected -> the message names the LADDER as the source.
     assert "ladder.director_rotate_at" in out, out
     assert "config:seats" not in out, out
+
+# --------------------------------------------------------------------------
+# Round SL3.04 — the seat's rotate_at is read MAIN-CHECKOUT-first and the
+# tests never inherit the runner's AGI_SEAT (hypothesis:l4-the-rotation-
+# alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-
+# seat). Build order, not measurement: the fixtures fail against the pre-fix
+# bytes and pass on the built ones. Each test also asserts on the emitted
+# SOURCE STRING that names which tree won.
+# --------------------------------------------------------------------------
+
+def _linked_worktree(tmp_path, main_seats, wt_seats, wt_name):
+    """A (main checkout, linked worktree) graph-root PAIR with per-tree
+    `config:seats` rows and a ladder on the worktree. Returns (wt_graph,
+    main_graph). `git_common_root` is stubbed in the CALLER to bounce the
+    worktree root onto `main_graph` (a tmp tree has no real git worktree, so
+    the resolver cannot discover the integration tree itself)."""
+    outer = tmp_path / "outer"
+    main_graph = outer / "repo" / ".agi"
+    (main_graph / "nodes" / ".geometry").mkdir(parents=True)
+    (main_graph / "config.json").write_text("{}")
+    if main_seats is not None:
+        (main_graph / "nodes" / ".geometry" / "seats.md").write_text(main_seats)
+    wt_graph = main_graph / "worktrees" / wt_name / ".agi"
+    (wt_graph / "nodes" / ".geometry").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    (wt_graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (wt_graph / "nodes" / ".geometry" / "seats.md").write_text(wt_seats)
+    return wt_graph, main_graph
+
+
+def _stub_git_common_root(monkeypatch, main_graph):
+    """Wire `locations.git_common_root` to bounce any WORKTREE path onto the
+    main checkout, and leave a main-checkout path alone."""
+    import sys as _s
+    _s.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+    import locations
+    monkeypatch.setattr(locations, "git_common_root",
+                        lambda root: main_graph if "worktrees" in str(root) else root)
+
+
+# --- (f) MAIN-CHECKOUT ROW WINS over the worktree's stale row ---------------
+def test_f_main_checkout_row_wins(tmp_path, run_hook, monkeypatch, capsys):
+    """A fixture main checkout whose seats row says rotate_at 0.4 and a linked
+    worktree whose stale row says 0.47 -> threshold 0.4 and the source string
+    says `(main checkout)`. The Prime edits the line on MAIN; a seat must not
+    keep rotating at a stale merged value for a whole generation."""
+    main_seats = ("---\nseats:\n"
+                  "  - {\"name\": \"test-seat\", \"role\": \"director\", "
+                  "\"worktree\": \".agi/worktrees/seat-test-seat\", "
+                  "\"rotate_at\": 0.4}\n---\n")
+    wt_seats = ("---\nseats:\n"
+                "  - {\"name\": \"test-seat\", \"role\": \"director\", "
+                "\"worktree\": \".agi/worktrees/seat-test-seat\", "
+                "\"rotate_at\": 0.47}\n---\n")
+    wt_graph, main_graph = _linked_worktree(tmp_path, main_seats, wt_seats,
+                                            "seat-test-seat")
+    _stub_git_common_root(monkeypatch, main_graph)
+
+    tp = tmp_path / "f.jsonl"
+    _write_transcript(tp, 45_000)     # fraction 0.45: >= main 0.4, < worktree 0.47
+    state_dir = tmp_path / "state-f"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.setenv("AGI_SEAT", "test-seat")   # explicit — may NOT rely on env
+    code, out, err = run_hook(_payload(wt_graph, tp, "sess-f",
+                                       cwd=str(wt_graph.parent)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    # 0.45 >= 0.4 => ROTATION OWED: measured at the MAIN row's 0.4, not the
+    # worktree's 0.47 (0.45 < 0.47 would only be "approaching").
+    assert "ROTATION OWED" in out, out
+    # the source string NAMES the main checkout as the winner.
+    assert "config:seats test-seat.rotate_at (main checkout)" in out, out
+    assert "ladder.director_rotate_at" not in out, out
+
+
+# --- (g) a seat present ONLY in the worktree row ----------------------------
+def test_g_seat_only_in_worktree_row(tmp_path, run_hook, monkeypatch, capsys):
+    """When the MAIN checkout has no row for the seat, the worktree row wins —
+    and the source string says `(worktree)`."""
+    wt_seats = ("---\nseats:\n"
+                "  - {\"name\": \"only-wt\", \"role\": \"director\", "
+                "\"worktree\": \".agi/worktrees/seat-only-wt\", "
+                "\"rotate_at\": 0.47}\n---\n")
+    wt_graph, main_graph = _linked_worktree(tmp_path, None, wt_seats, "seat-only-wt")
+    _stub_git_common_root(monkeypatch, main_graph)   # main has NO seats.md
+
+    tp = tmp_path / "g.jsonl"
+    _write_transcript(tp, 45_000)     # 0.45 < 0.47 -> approaching, not over
+    state_dir = tmp_path / "state-g"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.setenv("AGI_SEAT", "only-wt")
+    code, out, err = run_hook(_payload(wt_graph, tp, "sess-g",
+                                       cwd=str(wt_graph.parent)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" not in out   # 0.45 < 0.47
+    assert "config:seats only-wt.rotate_at (worktree)" in out, out
+    assert "main checkout" not in out, out
+    assert "ladder.director_rotate_at" not in out, out
+
+
+# --- (h) the cwd-`worktree` fallback is KEPT (reached by a non-convention row)-
+def test_h_dead_fallback_reached_by_nonconvention_worktree(tmp_path, run_hook, monkeypatch, capsys):
+    """DECISION (ii): the row-`worktree` path-match fallback is KEPT, on
+    evidence. The seats schema allows a row whose `worktree` does NOT follow
+    the `seat-<name>` convention (`.agi/context/schemas/[config].md` types
+    `worktree` as an unconstrained string relative to graph_root). From inside
+    such a worktree `_seat_from_cwd` returns None, so the fallback is the ONLY
+    thing that identifies the seat — this fixture reaches it (seat `weird`). A
+    fallback capable of this is not dead code; it is a safety net the real
+    registry merely never exercises (every perpetual seat uses `seat-<name>`)."""
+    outer = tmp_path / "outer"
+    graph = outer / "repo" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n  - {\"name\": \"weird\", \"role\": \"director\", "
+        "\"worktree\": \"custom-ish\", \"rotate_at\": 0.5}\n---\n")
+    cwd = graph / "custom-ish"      # worktree that does NOT follow seat-<name>
+    cwd.mkdir(parents=True, exist_ok=True)
+
+    tp = tmp_path / "h.jsonl"
+    _write_transcript(tp, 45_000)   # 0.45 < weird's 0.5 -> approaching, not over
+    state_dir = tmp_path / "state-h"
+    state_dir.mkdir(exist_ok=True)
+    # AGI_SEAT deliberately NOT set: the autouse fixture cleared any inherited
+    # value and the cwd fallback must identify the seat on its own.
+    code, out, err = run_hook(_payload(graph, tp, "sess-h", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    # the fallback identified `weird` and its 0.5 line won (0.45 -> approaching).
+    assert "config:seats weird.rotate_at" in out, out
+    assert "ROTATION OWED" not in out, out
+
+
+# --- (i) the autouse fixture clears an inherited AGI_SEAT -------------------
+def test_module_agiseat_is_cleared_at_entry():
+    """The module's autouse fixture must clear the RUNNER's AGI_SEAT at every
+    test entry, even when a seat exports it (`env AGI_SEAT=x python3 -m pytest
+    ... -q` is green). This assertion is trivially true in a clean shell; its
+    PROOF is the whole module going green under `env AGI_SEAT=x`."""
+    assert "AGI_SEAT" not in os.environ
