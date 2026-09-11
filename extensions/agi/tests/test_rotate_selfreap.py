@@ -55,11 +55,18 @@ def _fix(tmp_path, monkeypatch):
 
 
 def _ps_table(monkeypatch, table):
-    """Fake the `ps -o pid=,ppid=` read `_derive_own_chain` parses."""
+    """Fake the `ps -e -o pid=,ppid=` read `_derive_own_chain` parses.
+
+    L4.122 criterion 1 (merge-up 23): the derivation enumerates ALL
+    processes (`ps -e`), never the default same-tty selection. A process
+    whose controlling tty differs from the caller's (the live pane chain on
+    pts/18 while rotate.py runs on tty ?) MUST be visible to the climb. The
+    fake table is the whole system; unrelated OTHER-tty / non-child pids are
+    just rows that must not break the climb."""
     lines = "\n".join(f"{pid} {ppid}" for pid, ppid in table) + "\n"
 
     def fake_run(argv, *a, **k):
-        if argv[:2] == ["ps", "-o"]:
+        if argv[:2] == ["ps", "-e"] and any("pid=,ppid=" in t for t in argv):
             return SimpleNamespace(stdout=lines)
         raise AssertionError(f"unexpected subprocess in this test: {argv!r}")
 
@@ -256,3 +263,192 @@ def _latest_record(root, seat):
     recs = sorted(rot.glob(f"{seat}.*.json"))
     assert recs, f"no rotation record under {rot}"
     return json.loads(recs[-1].read_text(encoding="utf-8"))
+
+# ── L4.122 criterion 1 (merge-up 23): `ps -e` enumerates ALL processes ─────
+
+
+def test_derive_own_chain_ps_e_sees_other_tty_pid(_fix, monkeypatch):
+    """L4.122 criterion 1: the pane chain sits on a DIFFERENT controlling tty
+    than the caller — `ps -e` must still see it. The fake table is the whole
+    system; unrelated rows (pts/9 busy process, non-child roots) are just
+    present, exactly the gen X live shape (pane on pts/18 while the rotate.py
+    that climbs runs on tty ?). The old same-tty `ps -o pid=,ppid=` default
+    returned [] for this shape on the real gen IX->X rotation."""
+    _ps_table(monkeypatch, [
+        (1, 0),
+        (2000, 1),     # an unrelated busy process on pts/9 (OTHER-tty)
+        (500, 1),      # pane bash (pts/18, OTHER-tty than the test caller)
+        (600, 500),    # claude wrapper bash
+        (700, 600),    # claude
+        (900, 700),    # rotate.py's own pid
+    ])
+    chain = rotate._derive_own_chain(500, own_pid=900)
+    # 900's direct parent is 700 (claude) — it is EXCLUDED like the own pid;
+    # what remains is [pane bash, wrapper], the OTHER-tty chain `ps -e` saw.
+    assert chain == [500, 600]
+
+
+# ── L4.122 criterion 2: _reap_chain binds wpid + SIGKILLs a TERM-survivor ──
+
+
+def _spawn_nonchild_sigterm_immune():
+    """A grandchild that IGNORES SIGTERM and is NOT our child.
+
+    Double-fork reparents it to PID 1, so `os.waitpid(pid, os.WNOHANG)` in
+    `_reap_chain` raises ChildProcessError — the exact ancestor-pid shape of
+    L4.122 criterion 2 (pane bash / wrapper / claude surviving SIGTERM). The
+    intermediate is reaped here; the grandchild is returned."""
+    import time as _t
+    r, w = os.pipe()
+    pid = os.fork()
+    if pid == 0:                 # intermediate
+        os.close(r)
+        gpid = os.fork()
+        if gpid == 0:            # the grandchild that refuses TERM
+            os.close(w)
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
+            _t.sleep(9999)
+            os._exit(0)
+        os.write(w, str(gpid).encode())
+        os.close(w)
+        os._exit(0)
+    os.close(w)
+    gpid = int(os.read(r, 32).decode())
+    os.close(r)
+    os.waitpid(pid, 0)           # reap the intermediate
+    return gpid
+
+
+def test_reap_chain_nonchild_sigterm_immune_sigkilled(_fix):
+    """L4.122 criterion 2 (merge-up 23): a chain member that is NOT our child
+    (an ancestor) and IGNORES SIGTERM is SIGKILLed after the wait window —
+    and `_reap_chain` does NOT raise. Before the fix `wpid` was unbound on the
+    first ChildProcessError and the loop raised UnboundLocalError at
+    rotate.py:3040, killing the whole self-reap before the SIGKILL."""
+    gpid = _spawn_nonchild_sigterm_immune()
+    try:
+        assert rotate._pid_alive(gpid) is True
+        out = rotate._reap_chain([gpid], wait_secs=0.5, kill_survivors=True)
+        # survive the wait with TERM ignored -> SIGKILLed; PID 1 reaps it.
+        assert out["chain"][0]["gone_after"] is True
+        assert rotate._pid_alive(gpid) is False
+    finally:
+        # a straggler zombie (init slow to reap) is impossible to waitpid
+        # (not our child) but harmless; SIGKILL again only if somehow alive.
+        if rotate._pid_alive(gpid):
+            try:
+                os.kill(gpid, signal.SIGKILL)
+            except OSError:
+                pass
+
+
+def test_rotate_self_own_chain_survivor_still_succeeds(_fix, tmp_path,
+                                                       monkeypatch):
+    """Full cmd_rotate_self with an own-chain member that IGNORES SIGTERM
+    (the criterion-2 ancestor shape): the SIGKILL-after-wait happens, the s12
+    record is written, the window kill runs, and the signal shield is
+    RESTORED — the self-reap never raises UnboundLocalError (pre-fix) and the
+    rotation still reaches success."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    monkeypatch.setenv("TMUX_PANE", "")
+    gpid = _spawn_nonchild_sigterm_immune()
+
+    def fake_spawn(**kw):        # successor appears under the plain name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "adv-alive",
+                                         "gen_after": 1,
+                                         "answer": "continue"})
+    old_handlers = {s: signal.getsignal(s)
+                    for s in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE)}
+    args = SimpleNamespace(
+        name="adv-alive", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=False,
+        throwaway=False, successor_argv=None, role="parent",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=[gpid], registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    try:
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    finally:
+        for s, h in old_handlers.items():
+            try:
+                signal.signal(s, h)
+            except (ValueError, OSError):
+                pass
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    reap = rec["s12_self_reap"]
+    assert reap["order"] == "deepest-first"
+    # the TERM-immune grandchild survived the wait and was SIGKILLed.
+    assert reap["chain"][0]["gone_after"] is True
+    assert rotate._pid_alive(gpid) is False
+    # the shield was restored (pytest runtime is shared).
+    for s in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE):
+        assert signal.getsignal(s) is old_handlers[s]
+
+
+def test_rotate_self_s12_skip_names_missing_connection(_fix, tmp_path,
+                                                       monkeypatch):
+    """L4.122 criterion 3 (merge-up 23): when the pane pid IS present but the
+    own pid cannot be climbed to it, the s12 skipped reason NAMES the missing
+    input (own pid + pane pid) — not a bare 'no chain' — and the rotation
+    still succeeds without TERMing anything."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    monkeypatch.setenv("TMUX_PANE", "%5")
+    # pane pid 42 exists, but rotate.py's own pid is NOT under it -> no chain.
+    _ps_table(monkeypatch, [(42, 1), (55, 42)])
+    monkeypatch.setattr(rotate, "_pane_pid", lambda tmux_pane: 42)
+
+    def fake_spawn(**kw):            # successor under the plain name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "adv-alive",
+                                         "gen_after": 1,
+                                         "answer": "continue"})
+    old_handlers = {s: signal.getsignal(s)
+                    for s in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE)}
+    args = SimpleNamespace(
+        name="adv-alive", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=False,
+        throwaway=False, successor_argv=None, role="parent",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    try:
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    finally:
+        for s, h in old_handlers.items():
+            try:
+                signal.signal(s, h)
+            except (ValueError, OSError):
+                pass
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    skipped = rec["s12_self_reap"].get("skipped", "")
+    assert "SKIPPED" in skipped
+    assert "own pid" in skipped and "pane pid 42" in skipped
