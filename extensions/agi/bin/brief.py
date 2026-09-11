@@ -1181,6 +1181,73 @@ _BUILD_IMPERATIVE = (
 )
 
 
+#: Bounded depth of the `parents:` lineage walk for the g15 gate below.
+#: A walk that reaches this many hops without finding `goal:g15` stops and
+#: reports False (not-g15); the depth bounds runaway chains and cycles in
+#: one place rather than trusting every node's `parents:` to be a DAG.
+_G15_LINEAGE_MAX_HOPS = 20
+
+
+def _parents_of(graph_root: Path, node_id: str) -> list[str]:
+    """The `parents:` list of a node id, read from the graph on disk.
+
+    A node id is `type:slug`; its file is `<graph_root>/nodes/<type>/<slug>.md`
+    (or under `nodes/deprecated/<type>/`, live-first). Returns [] when the
+    node cannot be read or carries no parents. No introspection of arbitrary
+    paths -- both the type directory and the file name are derived from the
+    id, never from anything the id can smuggle.
+    """
+    if ":" not in node_id:
+        return []
+    ntype, slug = node_id.split(":", 1)
+    if slug.endswith(".md"):
+        slug = slug[:-3]
+    for base in (graph_root / "nodes", graph_root / "nodes" / "deprecated"):
+        path = base / ntype / f"{slug}.md"
+        if not path.is_file():
+            continue
+        try:
+            fm = _load_frontmatter(path.read_text(encoding="utf-8"))
+        except OSError:
+            return []
+        parents = fm.get("parents")
+        if isinstance(parents, str):
+            return [parents]
+        if isinstance(parents, list):
+            return [str(p) for p in parents]
+        return []
+    return []
+
+
+def _is_g15_lineage(graph_root: Path, target: str | None) -> bool:
+    """Does the target's `parents:` lineage reach `goal:g15`?
+
+    hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated. Walk
+    `parents:` up through the graph from the target, bounded, and return True
+    only if the target or some ancestor is `goal:g15`. Returns False when the
+    target is absent/unresolvable or the walk exhausts without finding g15 --
+    so the guarded block renders ONLY for a target we positively know is a g15
+    descendant, and is absent for every other target (exactly the falsifier).
+    """
+    if not target:
+        return False
+    seen: set[str] = set()
+    frontier = [target]
+    for _ in range(_G15_LINEAGE_MAX_HOPS):
+        if not frontier:
+            break
+        nxt: list[str] = []
+        for nid in frontier:
+            if nid in seen:
+                continue
+            if nid == "goal:g15":
+                return True
+            seen.add(nid)
+            nxt.extend(_parents_of(graph_root, nid))
+        frontier = nxt
+    return False
+
+
 def _is_build_target(parent_id: str) -> bool:
     """Is this kid aimed at a BUILD node (a target whose body carries the
     BUILD-CONTRACT marker)?
@@ -1581,6 +1648,25 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             "5. DO NOT commit, push, or sync. Automation owns all remote "
             "traffic"
         )
+    # hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
+    # "THIS KID MUST IMPLEMENT THE FIX" review rule is a g15-specific demand.
+    # It rendered unconditionally (L4.175) for EVERY parent target, so a
+    # parent on a NON-g15 hypothesis was told a measurement-only kid node is
+    # not a finished round -- forbidding a legitimate `disproved` there. A
+    # non-g15 hypothesis may be DISPROVED by measurement, and forbidding that
+    # forbids the scientific outcome. Render the rule only when the target's
+    # `parents:` lineage (walked up, bounded) reaches `goal:g15`; for any
+    # other target the block is absent.
+    g15_rule = (
+        "   THIS KID MUST IMPLEMENT THE FIX. A g15 claim is behaviour to "
+        "build,\n"
+        "   not a hypothesis to measure: if the kid only reproduced the "
+        "defect\n"
+        "   and reported `disproved`, re-cut the node with an explicit "
+        "demand\n"
+        "   to implement, and do not record it as a finished round\n"
+        "   (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement).\n"
+    ) if _is_g15_lineage(_resolve_graph_root(None), target) else ""
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
@@ -1661,11 +1747,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   - reject orphans; demote overclaims to `inconclusive_lean_*`.\n"
         f"   The gate also runs in code and will demote without you. Agreeing\n"
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
-        "   THIS KID MUST IMPLEMENT THE FIX. A g15 claim is behaviour to build,\n"
-        "   not a hypothesis to measure: if the kid only reproduced the defect\n"
-        "   and reported `disproved`, re-cut the node with an explicit demand\n"
-        "   to implement, and do not record it as a finished round\n"
-        "   (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement).\n"
+        f"{g15_rule}"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
         f"{merge_protocol}\n"
