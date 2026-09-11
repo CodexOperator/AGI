@@ -430,6 +430,23 @@ def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     assert "write.py" in kid and "set FIELD VALUE" in kid
 
 
+def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
+    """hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-inside-a-kid --
+    the ONE suite line in the kid brief used to hand a kid the bare
+    `extensions/agi/tests/` directory, the very run the kid-tier gate now
+    REFUSES (and which a kid could no longer clear by `env -u AGI_TIER` once
+    the gate derives the tier from the running agent record). The brief must
+    name the touched test files instead, so a kid's targeted run is the
+    documented path, not a bare-directory run waiting to be unset around."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "extensions/agi/tests/ -q" not in kid, (
+        "the kid suite line must not name the bare directory")
+    assert "test files you changed" in kid, (
+        "the kid suite line must name the touched test files")
+    assert "<the test files you changed" in kid
+
+
+
 def test_kid_brief_for_a_build_target_carries_the_imperative_segment():
     """hypothesis:l3-brief-build-imperative-missing -- a kid brief aimed at a
     BUILD target must carry an explicit imperative that names the artefact as
