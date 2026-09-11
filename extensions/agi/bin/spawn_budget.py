@@ -567,7 +567,9 @@ def _iter_num(iter_str: str) -> int | None:
 
 def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None]:
     """The agent.json `status` for this agent, if a record exists, plus which
-    sessions root answered (`"worktree"`, `"main"`, or None for none).
+    sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
+    None for none). The `worktree` hint is accepted for call-signature
+    compatibility but is no longer authoritative: the search is a plain glob.
 
     `iter_val` is the lease's own `iter` field, which is the round's genuine
     id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
@@ -576,58 +578,78 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
     exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
     `iter-140`.
 
-    A `--branch` round writes its agent record into ITS OWN git worktree's
-    sessions dir (`.agi/worktrees/<agent>/.agi/sessions`); a main-tree round
-    writes into the MAIN checkout's sessions dir. `budget_dir` resolves to the
-    MAIN budget dir from any worktree, so `budget_dir(root).parent` is always
-    the MAIN sessions dir and is the right home for a main-tree round — but
-    for a worktree round it was a structural false negative: every worktree
-    row printed `(no agent.json)` even while the record was live on disk
-    (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir). So
-    the lookup resolves, in order:
-      1. the round's OWN worktree sessions dir — from the lease's recorded
-         `worktree` path, else the conventional `<main>/.agi/worktrees/
-         <agent_id>` — and
-      2. the MAIN sessions dir.
-    `(no agent.json)` is returned only when neither holds a record.
+    The record layout is NOT "the round's own worktree" (hypothesis:l4-spawn-
+    budget-iter-reads-the-rounds-own-sessions-dir, measured 2026-09-11): a
+    PARENT's agent.json is written by the DISPATCHER into the DISPATCHING
+    tree's sessions dir — a seat worktree
+    (`<main>/.agi/worktrees/seat-<name>/.agi/sessions`) or MAIN itself; a KID's
+    agent.json is written by its PARENT into the PARENT's worktree
+    (`<main>/.agi/worktrees/<parent-id>/.agi/sessions`). So the old probe of
+    the agent's OWN `worktrees/<agent_id>` dir could never find a record — it
+    holds the agent's KIDS, never itself — and every worktree-spawned row
+    printed `(no agent.json)` while the record was live on disk.
+
+    The lookup therefore searches `<iter dir>/<agent_id>/agent.json` under
+    EVERY sessions root the tree can name, in order:
+      1. the invoking root's own graph sessions dir,
+      2. MAIN's graph sessions dir (`budget_dir(root).parent`, as before),
+      3. every `<main>/.agi/worktrees/*/.agi/sessions` — ONE glob over the
+         worktree dir (~150 siblings is cheap), sorted so the answer is
+         deterministic.
+    The label names the answering root: `"main"` for MAIN, `"seat:<name>"`
+    for a worktree named `seat-<name>`, `"wt:<parent-id>"` for any other work
+    worktree. `(no agent.json)` is returned only when NO root holds a record.
     """
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
         return "(no agent.json)", None
-    # The round's own worktree roots, primary then conventional fallback.
-    worktrees: list[Path] = []
-    if worktree:
-        worktrees.append(Path(worktree))
-    else:
-        main = locations.git_common_root(locations.find_project_root(root) or root)
-        if main:
-            # `git_common_root` returns the repo root; the worktrees live under
-            # the graph dir (`<repo>/.agi/worktrees/<agent_id>`).
-            main_graph = locations.find_project_root(main) or main
-            worktrees.append(main_graph / "worktrees" / agent_id)
-    for wt in worktrees:
-        graph = locations.find_project_root(wt) or wt
-        # Never bleed upward: when this worktree root has no graph of its own,
-        # `find_project_root` resolves an ANCESTOR's graph (the MAIN one) and a
-        # main-tree record would get mislabeled `worktree`. Only accept a graph
-        # at or below the candidate worktree root.
-        if not (graph == wt or wt in graph.parents):
-            continue
-        p = graph / locations.SESSIONS_DIR_NAME / dirname / agent_id / "agent.json"
+
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+
+    def wt_label(wt_root: Path) -> str:
+        """`seat-sanctuary-director` -> `seat:sanctuary-director`; any other
+        worktree root (`a00-06c44930`) -> `wt:<parent-id>`."""
+        name = wt_root.name
+        if name.startswith("seat-"):
+            return f"seat:{name[5:]}"
+        return f"wt:{name}"
+
+    # (graph dir, label) candidates in precedence order, deduplicated by path.
+    cands: list[tuple[Path, str]] = []
+    seen: set[Path] = set()
+
+    own = graph
+    if own not in seen:
+        cands.append((own, "main" if own == main_graph else wt_label(own)))
+        seen.add(own)
+    if main_graph and main_graph not in seen:
+        cands.append((main_graph, "main"))
+        seen.add(main_graph)
+    if main_graph:
+        for wt in sorted(main_graph.glob("worktrees/*")):
+            wt_graph = locations.find_project_root(wt) or wt
+            # Never bleed upward: when a worktree root has no graph of its own,
+            # `find_project_root` resolves an ANCESTOR's graph (the MAIN one)
+            # and a main-tree record would get mislabeled as a worktree record.
+            # Only accept a graph at or below the candidate worktree root.
+            if not (wt_graph == wt or wt in wt_graph.parents):
+                continue
+            if wt_graph in seen:
+                continue
+            cands.append((wt_graph, wt_label(wt)))
+            seen.add(wt_graph)
+
+    for cand, src in cands:
+        p = cand / locations.SESSIONS_DIR_NAME / dirname / agent_id / "agent.json"
         try:
             rec = json.loads(p.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        return rec.get("status") or "(no status)", "worktree"
-    # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
-    # MAIN sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
-    p = (budget_dir(root).parent / dirname / agent_id / "agent.json")
-    try:
-        rec = json.loads(p.read_text())
-    except (OSError, json.JSONDecodeError):
-        return "(no agent.json)", None
-    return rec.get("status") or "(no status)", "main"
+        return rec.get("status") or "(no status)", src
+    return "(no agent.json)", None
 
 
 def _round_status(root: Path, iter_str: str) -> int:
@@ -672,10 +694,11 @@ def _round_status(root: Path, iter_str: str) -> int:
             kids += 1
         if status in TERMINAL:
             done = True
-        # `@wt` names the root that answered — the round's OWN worktree
-        # sessions dir rather than MAIN's (hypothesis:l4-spawn-budget-iter-
-        # reads-the-rounds-own-sessions-dir).
-        suffix = "@wt" if src == "worktree" else ""
+        # `@...` names the sessions root that answered: `@main`, `@seat:<name>`
+        # for a seat worktree, `@wt:<parent-id>` for any other worktree
+        # (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir).
+        # Nothing when src is None — `(no agent.json)` already names that case.
+        suffix = f"@{src}" if src else ""
         print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
               f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
               f"agent={status}{suffix}")
