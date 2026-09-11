@@ -1842,3 +1842,23 @@ def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
     proj = _g15_probe_graph(tmp_path / "proj" / ".agi", g15_lineage=False)
     text = _text("parent", target="hypothesis:x", project_root=proj)
     assert _G15_RULE not in text
+
+
+def test_parent_brief_names_the_poll_reader_and_the_real_dm_body():
+    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark —
+    the parent brief must (a) name `cli.py status <iter>` as the poll reader,
+    (b) give the overdue mark's real body shape `iter=... agent=...
+    reason=overdue`, and (c) never print the `[agi-nudge] reason=overdue`
+    composite — `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
+    not part of the dm body heal.py sends (`heal.py::_alarm_dispatcher` sends
+    `iter=... agent=... reason=...`). Red before the fix: the brief named the
+    composite that no reader produces or receives."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y", max_live=25, kid_ceiling=3)
+    # the reader the brief points at is cli.py status
+    assert "cli.py status" in parent
+    # the overdue dm the brief describes is the body's real shape
+    assert "reason=overdue" in parent
+    assert "iter=... agent=... reason=overdue" in parent
+    # the wake prefix is named only as a prefix, never glued onto the body
+    assert "[agi-nudge] reason=overdue" not in parent
