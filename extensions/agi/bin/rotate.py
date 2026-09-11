@@ -4676,6 +4676,67 @@ def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
     return path
 
 
+def _shared_graph_root(root: Path) -> Path:
+    """The MAIN checkout's GRAPH root, identity for a non-worktree caller.
+
+    The seats node carrying the identity cells (`generation`/`window`/`pid`/
+    `session_ref`/`session_id`) lives in MAIN's graph, so a worktree rotation
+    writes MAIN's `.agi/nodes/.geometry/seats.md` and never the worktree copy
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main).
+    This is the same resolution `_sessions_dir` performs — climb through
+    `locations.git_common_root`, re-derive the graph there — returning the
+    graph ROOT (where `_load_seats`/`write.submit` expect it) rather than the
+    sessions join. From MAIN itself the result equals `root`."""
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    if main is not None:
+        mg = locations.find_project_root(main) or graph
+        graph = mg
+    # `graph` is usually the `.agi/` dir itself; the legacy G11 shape has.
+    # `nodes/` beneath `<root>/.agi/`.
+    if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
+        return graph / locations.GRAPH_DIR_NAME
+    return graph
+
+
+def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
+                          cells: dict) -> str:
+    """The ONE writer of a seat's identity cells in config:seats.
+
+    `generation`/`window`/`pid`/`session_ref`/`session_id` — every cell that
+    a rotation moves — are written through here, into the MAIN checkout's
+    `nodes/.geometry/seats.md` (resolved via `_shared_graph_root`), never the
+    caller's worktree copy (hypothesis:l4-a-seats-identity-cell-has-one-
+    writer-and-it-writes-main). A worktree seat's rotation reaches MAIN where
+    every sender reads, and the worktree copy is never written on these
+    cells — nothing to diverge, nothing to conflict at merge-up. From MAIN
+    itself the path is unchanged. Admission is the `self_row` declaration as
+    today (the `seat` is the actor's own row). Returns a truthy one-line
+    outcome when the write landed, or '' when the seat has no registry row
+    (the caller prints its own skip message)."""
+    import write  # local: same dir (send.py pattern, no import cycle)
+    main_root = _shared_graph_root(root)
+    rows = write._load_seats(main_root)
+    new_rows: list[dict] = []
+    found = False
+    for r in rows:
+        if r.get("name") == seat:
+            nr = dict(r)
+            for cell, val in cells.items():
+                if val is not None:
+                    nr[cell] = val
+            new_rows.append(nr)
+            found = True
+        else:
+            new_rows.append(r)
+    if not found:
+        return ""
+    edit = write.Edit(node_id="config:seats")
+    edit.set_fm["seats"] = new_rows
+    write.submit(main_root, edit, actor=actor, role=role)
+    return f"wrote identity cells for seat {seat!r} into MAIN seats.md"
+
+
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
@@ -4688,36 +4749,27 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     `source` field; the L4.110/r3 self_row declaration admits exactly
     [session_ref, session_id, generation, window, pid]).
 
-    The successor reuses the PLAIN seat name, so its row IS the seat's own
-    row — the exact write the self_row declaration admits for a seated actor
-    (only its own row, only the declared fields; every other row and every
-    prime-only field byte-identical). Admission lives in write.py's
-    `_enforce_written_by` reading the schema's `self_row` data; nothing here
-    names `seats` in a branch. Returns a one-line outcome string."""
-    import write  # local: same dir (send.py pattern, no import cycle)
-    rows = write._load_seats(root)
-    new_rows: list[dict] = []
-    found = False
-    for r in rows:
-        if r.get("name") == seat:
-            nr = dict(r)
-            nr["session_ref"] = session_ref
-            if session_id is not None:
-                nr["session_id"] = session_id
-            nr["generation"] = generation
-            nr["window"] = window
-            if pid is not None:
-                nr["pid"] = pid
-            new_rows.append(nr)
-            found = True
-        else:
-            new_rows.append(r)
-    if not found:
+    The row edit itself moves into `_write_identity_cells`, which resolves the
+    seats node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
+    identity-cell-has-one-writer-and-it-writes-main); `_backfill_session_ref`
+    routes through the SAME writer, so a seat's identity cells have one
+    writer and it writes MAIN. The successor reuses the PLAIN seat name, so
+    its row IS the seat's own row — the exact write the self_row declaration
+    admits for a seated actor (only its own row, only the declared fields;
+    every other row and every prime-only field byte-identical). Admission
+    lives in write.py's `_enforce_written_by` reading the schema's `self_row`
+    data; nothing here names `seats` in a branch. Returns a one-line outcome
+    string."""
+    cells: dict = {"session_ref": session_ref, "generation": generation,
+                   "window": window}
+    if session_id is not None:
+        cells["session_id"] = session_id
+    if pid is not None:
+        cells["pid"] = pid
+    if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
+                                 cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
-    write.submit(root, edit, actor=actor, role=role)
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry")
@@ -4752,30 +4804,21 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     session_ref + pid + session_id together — never a second submit, and
     never a write from any source but the JOIN (pass only joined values that
     DIFFER from the row's, so a rotate-self-seated successor's row ends
-    byte-identical to today's except session_ref). Returns a one-line
-    outcome; the write is admitted by the self_row declaration."""
-    import write  # local: same dir
-    rows = write._load_seats(root)
-    new_rows = []
-    found = False
-    for r in rows:
-        if r.get("name") == seat:
-            nr = dict(r)
-            nr["session_ref"] = ref
-            if session_id is not None:
-                nr["session_id"] = session_id
-            if pid is not None:
-                nr["pid"] = pid
-            new_rows.append(nr)
-            found = True
-        else:
-            new_rows.append(r)
-    if not found:
+    byte-identical to today's except session_ref). The row edit itself moves
+    into `_write_identity_cells` — the ONE writer, resolving MAIN's seats
+    node (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-
+    main) — so the ack's back-fill lands in the same MAIN row the rotation
+    wrote. Returns a one-line outcome; the write is admitted by the self_row
+    declaration."""
+    cells: dict = {"session_ref": ref}
+    if session_id is not None:
+        cells["session_id"] = session_id
+    if pid is not None:
+        cells["pid"] = pid
+    if not _write_identity_cells(root, seat=seat, actor=seat, role=role,
+                                 cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat has no row to back-fill)")
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
-    write.submit(root, edit, actor=seat, role=role)
     parts = [f"session_ref={ref}"]
     if session_id is not None:
         parts.append(f"session_id={session_id}")
