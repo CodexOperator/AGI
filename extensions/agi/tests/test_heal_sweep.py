@@ -251,11 +251,19 @@ def test_sweep_help_exits_zero(repo_root):
 
 
 def test_watch_once_calls_sweep_exactly_once(repo_root, four_worktrees,
-                                             monkeypatch):
+                                             monkeypatch, tmp_path):
     """A `heal.py watch --once` pass runs the sweep exactly once: the
     released (merged+clean+homed) worktree is gone after the single pass, the
-    refused ones still stand."""
+    refused ones still stand. Defence-in-depth: the seat scan reads a real
+    window file (AGI_WINDOW_PATH) and never a tmux subprocess, so this test
+    cannot reach the live session even if the conftest guard is lost."""
     log = _graph(repo_root) / "reaper.log"
+    # Name an empty window file so `_all_windows` reads it, never `tmux
+    # list-windows -a` / `tmux new-window` (see heal.WINDOW_PATH_ENV seam).
+    _wins = tmp_path / "windows"
+    _wins.write_text("@1 nobody\n")
+    monkeypatch.setenv("AGI_WINDOW_PATH", str(_wins))
+    assert heal._all_windows() == [("@1", "nobody")]
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     monkeypatch.setattr(sys, "argv",
                         ["heal.py", "watch", "--root", str(_graph(repo_root)),
