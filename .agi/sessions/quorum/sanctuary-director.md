@@ -35,7 +35,7 @@ SERIAL QUEUES:
 
 ## §3 🔴 NEXT COMMAND
 
-Cut g15-5 (`L4.152`, test_send.py). Per harvest: `git -C /home/ubuntu/work/agi/.agi/worktrees/<parent-id> status --short` → `git branch -a | grep <parent-id>` (COPY the printed name) → read the kid's experiment there → tests with neighbours; when a kid says "pre-existing", run the test on the SEAT bytes → real-tree probe → merge → note from a `<<'EOF'` file → push → cut the next in that file's queue. **Stalled parent** = 0 CPU ticks over 8 s + no socket (`ss -tnp | grep pid=`) + no kid + no `done:` → TERM, commit the staged bytes under the kid's authorship, review yourself.
+Cut g15-5 (`L4.152`, test_send.py). Per harvest: `git -C /home/ubuntu/work/agi/.agi/worktrees/<parent-id> status --short` → `git branch -a | grep <parent-id>` (COPY the printed name) → read the kid's experiment there → tests with neighbours; when a kid says "pre-existing", run the test on the SEAT bytes → real-tree probe → merge → note from a `<<'EOF'` file → push → cut the next in that file's queue. **Stalled parent** = 0 CPU ticks over 8 s + no socket (`ss -tnp | grep pid=`) + **NO LIVE KID — list ALL rows for the iteration: `spawn_budget.py status | grep iter=L4.NNN` (parents AND kids; I killed two parents at 06:26Z that were waiting on a third kid because I grepped `parent` only)** + no `done:` → TERM, commit the staged bytes under the kid's authorship, review yourself.
 
 ## §4 TRAPS (gen XI + carried)
 
