@@ -6647,42 +6647,51 @@ def _harvest_diffstat(main: Path, base_branch: str,
                       round_branch: str) -> tuple[str, list[str], bool]:
     """(diffstat text, kid experiment node relpaths, resolved) for the round.
 
-    Both are diffed from `merge-base(base_branch, round_branch)` to the
-    round branch tip, so a moved base tip never shifts the base and the
-    stat shows exactly what the round added — the round's own nodes, never
-    content merged into the base after the cut.
+    The stat and kid list come from the round's OWN changeset: the commits on
+    the round branch NOT reachable from `base_branch` (the ref the round was
+    cut from — the season-resolved seat ref, else the manifest's
+    base_branch). `git rev-list <round> ^<base>` names them newest-first; the
+    diff runs from the OLDEST own commit's parent to the round tip
+    (`<first_own>^..<round>`), so a multi-commit round (kid commit + parent
+    `done:` commit, or a director fix-up on the branch) reports BOTH commits'
+    files, and a round with NO own commits (a zero-commit round cut at the
+    seat tip, or a round already merged into the base so every commit is
+    reachable from it) reports `-` with an empty kid list — it never
+    attributes the base's (seat's) commit to the round
+    (hypothesis:l4-harvest-table-attributes-only-the-rounds-own-commits). A
+    moved base tip never shifts the base; the rev-list exclusion re-derives
+    the own commits against the base's current state.
 
-    `resolved` True means git actually answered: `round_branch` resolved and
-    a merge-base with `base_branch` exists. A resolvable but LEGITIMATELY
-    EMPTY diff (tip == base, or no experimental nodes added) still reports
-    `resolved=True` with an empty kid list — that is git's honest "no
-    changes" answer, not a failure. `resolved` False means git could not
-    answer at all (unknown branch or no merge-base), which is the only
-    situation the on-disk fallback may fire.
+    `resolved` True means git actually answered: both refs resolved and a
+    rev-list ran. A resolvable-but-EMPTY own changeset (no own commits) still
+    reports `resolved=True` with a `-` diff and empty kids — that is git's
+    honest "the round added nothing of its own" answer, not a failure.
+    `resolved` False means git could not answer at all (unknown branch or
+    unresolvable base), which is the only situation the on-disk fallback may
+    fire.
     """
-    mb = _git_out(main, "merge-base", base_branch, round_branch).strip()
-    if not mb:
+    if not base_branch or base_branch.strip() == "-":
         return "-", [], False
-    tip = _git_out(main, "rev-parse", "--verify", "--quiet",
-                   round_branch).strip()
-    if mb and tip and mb == tip:
-        # Fully-merged round: merge-base(base, round) == the round branch
-        # tip, so `mb..round_branch` is empty. Recover the round's OWN
-        # changeset from the branch itself — the round is what the branch
-        # added after the seat history it was cut from, and a dispatched
-        # round branch is a single commit, so `<round_branch>^..<round_branch>`
-        # is exactly that (hypothesis:harvest-table-subcommand, measured
-        # equal to the merge-changeset on L4.231/L4.228). Only if the branch
-        # has no parent to diff against do we fall back to the empty range.
-        left = f"{round_branch}^"
-        a, b = (left, round_branch) if _git_out(
-            main, "rev-parse", "--verify", "--quiet", left).strip() \
-            else (mb, round_branch)
-    else:
-        a, b = mb, round_branch
-    stat = _git_out(main, "diff", "--stat", f"{a}..{b}").strip()
+    if not _git_out(main, "rev-parse", "--verify", "--quiet",
+                    base_branch).strip():
+        return "-", [], False
+    if not _git_out(main, "rev-parse", "--verify", "--quiet",
+                    round_branch).strip():
+        return "-", [], False
+    # The round's own commits, newest-first: everything on the round branch
+    # not reachable from the base it was cut from. Empty means the round owns
+    # nothing (zero-commit, or already merged into the base) — report `-`
+    # rather than the base's / seat's commit.
+    own = _git_out(main, "rev-list", round_branch,
+                   f"^{base_branch}").splitlines()
+    if not own:
+        return "-", [], True
+    first_own = own[-1]  # oldest own commit == the round's first step
+    a = f"{first_own}^"
+    stat = _git_out(main, "diff", "--stat", f"{a}..{round_branch}").strip()
     stat_s = stat.replace("\n", " | ") or "-"
-    names = _git_out(main, "diff", "--name-only", f"{a}..{b}").splitlines()
+    names = _git_out(main, "diff", "--name-only",
+                     f"{a}..{round_branch}").splitlines()
     kids = [n for n in names
             if n.startswith(".agi/nodes/experiment/")
             and n.endswith(".md")]
@@ -6724,9 +6733,28 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
     branches = _harvest_loop_branches(main)
     parent = _git_out(main, "branch", "--show-current").strip()
 
+    # The season for the `@s<N>` segment of the seat ref comes from the same
+    # resolver dispatch.py uses — spawn_gate.read_ladder_season on the graph's
+    # ladder (hypothesis:l4-harvest-table-attributes-only-the-rounds-own-
+    # commits part (2): the `@s2` literal was hardcoded and drifted). Fail
+    # open to the largest season stamped on the discovered loop branches (the
+    # durable git fact) so a repo without a ladder still resolves; only if
+    # neither yields a season is the seat ref skipped and the manifest's
+    # base_branch taken instead.
+    season: int | None = None
+    try:
+        import spawn_gate  # noqa: E402 -- local: same dir (lazy, dispatch uses it)
+        season = spawn_gate.read_ladder_season(main / ".agi" / "nodes")
+    except ImportError:
+        season = None
+    if season is None:
+        seasons = {s for _, s in branches.values()}
+        season = max(seasons) if seasons else None
+
     # The seat branch the claim names as the diff base, when --seat is given
     # and that ref exists (hypothesis:harvest-table-subcommand item (d)).
-    seat_base = f"seat/{want_seat}@s2" if want_seat else ""
+    seat_base = (f"seat/{want_seat}@s{season}" if (want_seat and season)
+                 else "")
     if seat_base and not _git_out(main, "rev-parse", "--verify", "--quiet",
                                   seat_base).strip():
         seat_base = ""
