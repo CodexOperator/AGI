@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -613,3 +613,5 @@ OWNER 2026-09-11 05:2xZ (verbatim, to the Prime L4-VIII): "Complete should be a 
 OWNER 2026-09-11 05:3xZ (verbatim, to the Prime L4-VIII): "Can we also turn off Claude memories for this repo as it confuses all the agents at times I think." APPLIED at 06b31cd37: .claude/settings.json (committed, so every checkout and seat worktree carries it) sets autoMemoryEnabled:false — Claude Code neither reads nor writes the auto-memory directory (~/.claude/projects/-home-ubuntu-work-agi/memory/) for this repo from the next session start; the existing memory files are left in place, unread. Sessions already running keep the memory they loaded at start; the rule is complete once every live seat has rotated (the point at gen XI, the helper at gen IV, the Prime at VIII -> IX).
 
 OWNER 2026-09-11 05:4xZ (verbatim, to the Prime L4-VIII): "One extra improvement: the nudges for the dm requests: why doesn't it just nudge the actual dm in, or use the wake token instead of requiring the model to spend tokens back. But probably just replace nudge with no message body to just [nudge: sanctuary-helper]: <DM body>" RULING AS APPLIED: a g15 optimization round (fixed in-loop, minted by the point): send.py's nudge line carries the DM body inline as `[nudge: <from>]: <DM body>` instead of a bare wake token that costs the recipient a `send.py read` round-trip; the body still lands in the shared inbox file (the record), the pane line is the delivery. Constraints the round must keep from hypothesis:l4-a-nudge-is-a-wake-token-not-a-message: `send-keys -l <text>`, sleep, separate `send-keys Enter` (one chunk pastes and strands); a body with newlines is flattened to one line or truncated with a `… (read <seat>)` tail at a measured length; the busy/coalesce checks stay; tests fixture-only. Supersedes the 'wake token, not a message' wording of that hypothesis for the dm case.
+
+OWNER 2026-09-11 11:5xZ (to Belam L4-IX in chat, verbatim): "Added more credits to the openrouter account keep using pi rounds till done". Measured: /api/v1/credits total $132.00, used $105.48, remaining $26.52 at 11:52Z (was $1.78 at 10:48Z). RULING APPLIED: §6 item 106 (account runway) CLOSED by top-up; pi rounds continue to the end of the queue; the $1.00 floor and the ruled Sonnet fallback stay as the standing rule below it; the point resumes cutting at once.
