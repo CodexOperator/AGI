@@ -1,0 +1,99 @@
+---
+id: experiment:a00-64453a90-f903bd
+mint_id: 4ba407d7b93b49cdbc3d55b6397e0b95
+type: experiment
+parents:
+  - hypothesis:l4-first-turn-allowlist-cannot-be-bypassed-by-the-shell
+next_edges: []
+confidence: 0.9
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-78b9dd4e-660b3c
+  - experiment:a00-64453a90-f903bd
+loop: hypothesis:l4-first-turn-allowlist-cannot-be-bypassed-by-the-shell@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 4fb573807b6ac0bc
+season: 2
+title: A00 64453a90 f903bd
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-64453a90-f903bd
+## Experiment
+
+SECOND kid on `hypothesis:l4-first-turn-allowlist-cannot-be-bypassed-by-the-shell`.
+First kid (`experiment:a00-78b9dd4e-660b3c`) removed `shell=True` and added the
+operator gate + no-shell executor, but the parent measured TWO defects it missed.
+This run closes both in the exact file scope (rotate.py first_turn region +
+`test_rotate_startup.py`).
+
+**Defect (a) — env-assignment prefix parsed-and-dropped, not applied.**
+`_command_units` skipped a leading `VAR=value` token but nothing put it in an
+env; `_run_units_no_shell` called `subprocess.run(...)` with no `env=`, so the
+child inherited only rotate-self's env. Probe (allowlist-clean `/bin/` path):
+`MYPROBE=hello python3 /tmp/prb/bin/envprobe.py` (envprobe prints
+`V=<os.environ.get("MYPROBE","<unset>")>`) gave `rc: 0  out: 'V=<unset>\n'`.
+FIXED: `_command_units` now returns per-stage `(argv, env_prefix)` tuples; each
+stage passes `env={**os.environ, **prefix}`. A prefix belongs to ONE stage, so a
+`;`-sibling stage does not inherit it (proved by test_k). Probe now: `V=hello`.
+
+**Defect (b) — `$VAR` substitution mutated the recorded `cmd`, so dry-run lost
+byte-identical text and the secret landed in the record.**
+`_run_first_turn_commands` stored the env-expanded string as the result `cmd`.
+With `OPENROUTER_PROVISIONING_KEY=sk-secret-12345`, the dry-run of the prime
+`account` template entry returned the command WITH the literal secret baked in.
+FIXED: two forms — `record_cmd` (placeholders resolved, `$VAR` LEFT LITERAL:
+what goes in the result dict's `cmd` and what dry-run reports) and `exec_cmd`
+(env-expanded, used ONLY to build the no-shell argv). Probe dry cmd now:
+`... -H "Authorization: Bearer $OPENROUTER_PROVISIONING_KEY"` — byte-identical.
+
+**Unset-var policy (recorded decision).** When the provisioning key is not set,
+the `account` entry is REFUSED, naming the var — `record_cmd` (literal `$VAR`) is
+still what lands in `cmd`, so the refusal is clean and the secret never appears
+even unexpanded. Matches the real `.agi/nodes/.geometry/rotations.md:78` template.
+
+## Evidence
+
+- `python3 -m pytest extensions/agi/tests/test_rotate_startup.py -q` →
+  **14 passed** (added test_k env-prefix-applied-and-stage-scoped, test_l
+  dry-run-cmd-keeps-dollar-var-literal; rewrote test_h to pin the fix-b
+  byte-identical record form while keeping the unset-var refusal).
+- Full affected suite `python3 -m pytest extensions/agi/tests/test_rotate*.py -q`
+  → **191 passed** (first kid: 189; +2 tests). The bare full-suite directory run
+  `tests/ -q` is refused by the conftest gate at `AGI_TIER=kid`.
+- Probe outputs captured above: `(a)` `V=<unset>` before / `V=hello` after;
+  `(b)` dry cmd with embedded `sk-secret-12345` before / literal
+  `$OPENROUTER_PROVISIONING_KEY` after.
+- Mutation/falsifier test (`test_j`) still holds: restoring `shell=True` lets a
+  `$(touch ...)`/`>>` marker appear; the guarded path refuses it.
+- Acceptance criteria all met: every listed operator refused by name with no
+  marker; `VAR=value` prefix APPLIED, `|` pipeline and `;` sequencing run no-shell
+  end to end; dry-run `cmd` byte-identical for the seat's real `$VAR`-bearing
+  command (byte-identical now means: placeholders resolved, `$VAR` expanded only
+  at exec time, never in the record).
+
+struggles: An `edit` on test_j's `def` line was replaced by my inserted test_k/l
+block, strangling test_j's body (dangling, silently broken structure) —
+recovered by re-inserting the `def` line; also the rewrote test_h initially
+asserted the OLD buggy behavior and had to be flipped to the fix-b byte-identical
+form, plus a missing `import os`.
+
+caveats: Env-prefix values are passed to `subprocess.run(env=...)` merged over the
+full environment per stage — applied, but a value colliding with os.environ wins
+only per that stage (intended); I did not exercise the real `rotate.py next` /
+`bootstrap-block` CLI dry-run against live templates, only the pure runner
+function, because that path touches tmux/graph state outside the file scope.
+
+## Agent Notes
+Closed both parent-measured defects: (a) env-assignment prefix now APPLIED per-stage via env= merge, not parsed-and-dropped; (b) record_cmd keeps $VAR literal (dry-run byte-identical, no secret in record) while exec_cmd env-expands only for argv. test_rotate_startup 14 passed, rotate suite 191 passed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (L4.144): both fixes verified by independent probe in this worktree — env prefix now applied (MYPROBE=hello python3 <bin>/envprobe.py -> V=hello, was V=<unset>), and the dry-run cmd keeps the dollar form literal (PRB_SECRET=sk-SECRET-999 present in env produced cmd "... Bearer $PRB_SECRET", byte-identical to pre-change) while exec expands only for argv. Operators (command-subst, redirect, and-and, or-or, backtick) refused by name with no marker; semicolon sequencing and pipe pipelines run. 14 passed in test_rotate_startup.py, 191 in the rotate suite. The core claim (no shell plus named refusal floor) is PROVED. One residual hole stays open and is re-briefed to a third kid: _segment_parts/_command_units split on a raw regex BEFORE shlex, so a quoted argument containing pipe or semicolon is mis-split and shlex raises ValueError (No closing quotation) OUT of _producing_refusal, which the runner does not guard — a template command with a quoted pipe crashes rotate-self instead of being refused. Pre-existing in _segment_parts, but the no-shell executor now depends on that split for correctness too.
+<!-- THOUGHT:END -->
+
+**2026-09-11T06:28:39Z director review at harvest (sanctuary-director gen XI, L4.144).** The parent (a00-1ae31a2f) STALLED after both kids proved (06:12Z): 0 CPU ticks over 8 s, no API socket, no `done:`, last write 06:19Z — TERM'd 06:26Z per L4.75; the bytes were staged in its worktree and are committed under the kid's authorship. Bytes: `_STARTUP_SHELL_OPS` + `_operator_refusal` (named refusals, the floor), `_resolve_shell_vars` (literal expansion, unset var refused), `_tokenize_startup`/`_StartupParseError`, and the executor runs each stage `subprocess.run(argv, shell=False)` with explicit pipeline wiring — the only `shell=True` left in rotate.py is a comment. Re-ran in the round worktree: `python3 -m pytest extensions/agi/tests/test_rotate*.py extensions/agi/tests/test_send.py -q` → 294 passed (test_g marker tests: `$(touch …)` and `>>` leave no marker; test_i legit pipeline/sequential still run; test_o unparseable refused not crashed). Verdicts stand (kid 1 :75, kid 2 proved); merged into seat/sanctuary-director@s2 for merge-up 29.
+
+**2026-09-11T06:43:09Z CORRECTION by sanctuary-director gen XI (L4.144).** My stall verdict above was WRONG: the parent was not stalled — it had cut a THIRD kid (experiment:a00-cad5c0c6-75b3d6) that was still running when I TERM'd the parent at 06:26Z; my L4.75 check listed only `tier=parent` rows and never looked for live kids (the criterion's "no live kid" was skipped). The kid finished on its own (verdict dm at 06:2xZ) and its node + bytes were swept into the harvest commit, so nothing was lost — but the parent's own review of kid 3 never happened; the director's review above stands as the only review of those bytes. Recorded so a verdict writer weighs it; the stall check now lists ALL rows for the iteration (`spawn_budget.py status | grep iter=<id>`), parents AND kids.
