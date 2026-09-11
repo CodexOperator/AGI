@@ -585,6 +585,7 @@ def write_node(
         node_id=node_id, bypass=bypass,
         season_parents=gate_fm.get("season_parents"),
         current_season=current_season,
+        nodes_dir=str(Path(root) / "nodes"),
     )
     if announce:
         spawn_gate.announce(gate)

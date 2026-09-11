@@ -35,24 +35,28 @@ declarations for the operator table and `commands.py run`.
       - sb-status
     about: the streamer stub's live status (the stream is LIVE; read-only status reporting)
     workflow: read
+    owner_only: false
   brb:
     argv:
       - <stub>
       - brb
     about: pause the streamer — operator sets the stub to be-right-back
     workflow: see
+    owner_only: false
   back:
     argv:
       - <stub>
       - back
     about: resume the streamer after brb — operator brings the stub back to live
     workflow: see
+    owner_only: false
   panic:
     argv:
       - <stub>
       - panic
     about: OWNER-ONLY — full emergency stop of the streamer
     workflow: see
+    owner_only: true
 ```
 
 ## `panic` is owner-only and is REFUSED for every other actor
@@ -63,9 +67,11 @@ layer even before the runner enforces it:
 
 > **REFUSAL: any actor who is not the owner requesting `panic` is refused.**
 > The stream is LIVE; `panic` halts it and is never executed by a kid, a
-> test, or a non-owner operator. The commands.py runner (code residue, next
-> section) must gate `panic` on the caller being the owner and otherwise
-> refuse loudly. These fragments never run it — not even a dry run.
+> test, or a non-owner operator. `commands.py run` gates `panic` on the
+> caller being the owner because the entry declares `owner_only: true` — any
+> other actor gets a machine-readable `REFUSED: ... owner_only` message and a
+> non-zero exit, with nothing executed (the refusal happens before any
+> subprocess call). These fragments never run it either — not even a dry run.
 
 `sb-status` reads stream health; `brb` and `back` are the operator's
 pause/resume pair. They are the two "hands" the stub exposes that are not
@@ -78,11 +84,8 @@ Land `config:seats` with the council rows and `town` cells from
 `command:commands`. The exact `write.py` create/set lines are in
 `experiment:a00-7f9e3d95-7b55f6`.
 
-**Code residue after this round, plainly named:** the commands.py runner
-change that (a) resolves `<stub>` from `locations.streamer_stub` and (b)
-gates `panic` on owner — it is NOT landed this round because the helper's
-round L4.113 is live on commands.py. Until that lands, `commands.py run
-sb-status` / `brb` / `back` / `panic` will not resolve these entries. The
-skill's auto-generated table reads this node, so the four appear there as
-soon as the Prime lands the fragment even before the runner resolves them.
+**Code residue landed after this round, plainly named:** the commands.py
+runner change that (a) resolves `<stub>` from `locations.streamer_stub` and
+(b) gates `panic` on owner (`owner_only: true` field, refused before any
+subprocess call for a non-owner actor) — landed in this round.
 <!-- BODY:END -->
