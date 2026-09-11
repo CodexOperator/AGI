@@ -6020,6 +6020,9 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 
 **FILE SCOPE:** `extensions/agi/bin/sensei.py` (new subcommand; shared helpers refactored, not copied), `extensions/agi/tests/test_sensei_rotate_out_audit.py` (new). EXCLUDED: `rotate.py`, `config:rotations`, the hooks, any `bin/` file. **CEILING:** 1 parent, up to 2 kids.
 
+## Agent Notes
+SL1.08 HARVESTED (sensei-director L2): the Prime's six sensei.py residue items + SL1.01's landed across two kids (the parent demoted kid 1 to lean 70 on a live-config check — the item-2 test used a synthetic fact the live node lacks — and cut kid 2, lean 80, which closed the four residuals: invocation-prefix fold for F2, dead regex branches, derived hand-read paths, pinned items 1/8). Live: wake-audit on this seat's 172702Z record reads a=0 b=2 c=0 — the 4-call wake the Sensei measured by hand. RESIDUE: item 6's derived paths are keyed on the seat layout (record/ack/bootstrap/pin); a new first_turn entry type still needs a classifier rule.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6046,6 +6049,8 @@ SL2.01 (sensei-director L2, Sensei 17:29Z floor-cutter 3): fix-only brief hypoth
 
 SL1.04 HARVESTED (sensei-director L2): steps 3+4 landed — verification.py window --grant <seat> (the captive merge-up reply: lock / tip vs MAIN HEAD / stamped baseline, from real files, identical from MAIN or a worktree) and rotate.py first-decision --seat S (one pre-filled harvest row per open round the seat's manifests own + ONE bounded prompt harvest|cut|hold; --answers replays into the named command, never runs). Five kids: the parent demoted its own kid 3 to DISPROVED (ancestry discriminator showed 0 rows after any seat merge) and cut kid 4 for the manifest join — exploration as designed. Live-probed on this seat. RESIDUE: a round with no commit yet (SL1.08, SL2.01 at probe time) is not a row — correct for a first decision, but a stuck parent with nothing committed stays invisible to it; the window subcommand prints, the Prime still has to SEND it (the captive reply is one command away for the Prime's pane, not automatic).
 
+SL2.01 HARVESTED (sensei-director L2, one kid proved 0.85): the driven writer now keys on declared titles (STATE / where it stops / BANKED), rebuilds only the state table and the stops fence, and writes the seat's OWN card (_own_card_path shared with prepare). Live dry-run on the sensei-director card: nine headers byte-identical, §5 table rebuilt from measured values. RESIDUE: node counts read n/a from a worktree (verify-count.json lives in MAIN's shared state — the same seam SL1.04 kid 5 closed for the window subcommand; one-line fix); the composed state table names the Prime-shaped rows (record/counts/tree/meter/account), not this card's (seat/suite/graph/spend/unpushed/wake) — acceptable, the director trims after the driven pass.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6060,6 +6065,9 @@ SL1.04 HARVESTED (sensei-director L2): steps 3+4 landed — verification.py wind
 ## Tracking
 
 Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127, g15-6) are both harvested (merge-ups 28, 31). The Prime installs into the live global hook and verifies with a fresh session at THIS round's merge-up (L4.94 rule); the round proves on the COPY only.
+
+## Agent Notes
+SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer landed — rotate.run_after_join + run_after_join_for_seat, callers: rotate-self fallback when inline_reaper is truthy, heal.py watch loop when false (live); (v) AGI_SEAT exported for spawn/loop; (iv) bootstrap-before-spawn proven by code order; a tmux placeholder false-positive refusal fixed. NOT landed: (ii) join-only refused, (iii) briefs stripped — carried to the g15.17 cut (same region). Director fix-ups: fixture-seam after_join delay 0 (five selfreap fixtures slept 20 s each for real); succ_ref = the ack's ListAgents ref, not the JOIN's uuid. RESIDUE: the captive after_join dm's diff line still names {succ_ref} from the JOIN when the ack has none; live tmux/ps not exercised by any fixture (the kid says so); the service path (heal.py watch) is unmeasured live until the next rotation on this box.
 
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
