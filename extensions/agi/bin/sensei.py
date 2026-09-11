@@ -32,10 +32,11 @@ import sys
 from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
-    from . import locations, node_writer, send as _send
+    from . import locations, node_writer, rotate, send as _send
 except ImportError:  # runs as a plain script from a checkout
     import locations  # type: ignore
     import node_writer  # type: ignore
+    import rotate  # type: ignore
     import send as _send  # type: ignore
 
 SENSEI = "master-sensei"
@@ -359,14 +360,216 @@ def _first_turn_label(cmd: str, seat: str, entries: list[dict]) -> str | None:
     return None
 
 
+# ── `## facts` re-derive detection (g15, hypothesis:l4-wake-audit-reads-
+# ── facts-and-defaults-to-the-latest-record) ────────────────────────────
+# The audit's category (a) used to match ONLY the first_turn template cmds, so a
+# wake that re-derived a fact by ITS OWN command shape was counted as (d) real
+# work. The `## facts` bullets in config:rotations cite the exact command shape
+# that establishes each fact (F1 = `rotate.py status --seat <seat> --record
+# latest`, F2 = whois / grep of seats.md, ...), so the classifier now parses
+# those bullets and matches a call against the cited shapes the same way it
+# matches first_turn templates.
+
+_FACT_LABEL_RE = re.compile(r"^-\s*(F\d+)\b", re.IGNORECASE)
+
+
+def _parse_facts(facts_text: str) -> list[tuple[str, list[str]]]:
+    """Parse the `## facts` body into `(F-label, [command-shape...])` pairs.
+
+    A bullet is `- F1 (...) : prose with cmd-shape citations enclosed in
+    backticks.` The label is
+    the `F<N>` right after the dash; the shapes are the backtick spans. A span
+    counts as matchable only when it looks like a command: it carries whitespace
+    (multi-token) or is a bare known tool token. A bare path like
+    `config:rotations` cannot prefix-match a command and is ignored; a bare
+    `ps`/`tmux`/`whois` must match (the whole point of F1/F2's by-hand reads)."""
+    out: list[tuple[str, list[str]]] = []
+    cur_label: str | None = None
+    cur_shapes: list[str] = []
+    for ln in facts_text.splitlines():
+        s = ln.strip()
+        if not s:
+            continue
+        m = _FACT_LABEL_RE.match(s)
+        if m:
+            if cur_label:
+                out.append((cur_label, cur_shapes))
+            cur_label = m.group(1).upper()
+            cur_shapes = []
+        for span in re.findall(r"`([^`]+)`", s):
+            shape = _norm_cmd(span)
+            if not shape:
+                continue
+            if " " in shape:
+                cur_shapes.append(shape)
+            elif shape in ("ps", "tmux", "whois", "git", "ls", "cat",
+                           "grep", "sed", "rg", "find", "tail", "head"):
+                cur_shapes.append(shape)
+    if cur_label:
+        out.append((cur_label, cur_shapes))
+    return out
+
+
+def _shape_prefix_matches(shape: str, nc: str) -> bool:
+    """Prefix-match a fact command shape against a normalized call command.
+
+    Folds `{...}` and `<...>` placeholders to one `\\S+` token (the same loose
+    rule `_first_turn_label` uses); a bare single-token shape (`ps`, `tmux`) is
+    word-bounded so it matches `ps -o pid` but never `psql`/`ps -C`'s cousins."""
+    parts = re.split(r"\{[^}]+\}|<[^>]+>", shape)
+    toks = [re.escape(p) for p in parts]
+    pattern = r"\S+".join(toks) if len(parts) > 1 else re.escape(shape)
+    if " " not in shape:
+        pattern = r"\b" + pattern + r"(?=\s|$)"
+    return bool(re.match(r"^" + pattern, nc))
+
+
+def _fact_label(cmd: str, facts: list[tuple[str, list[str]]]) -> str | None:
+    """The `F<N>` label of the fact whose cited command shape the call re-derives."""
+    nc = _norm_cmd(cmd)
+    if not nc:
+        return None
+    for label, shapes in facts:
+        for sh in shapes:
+            if _shape_prefix_matches(sh, nc):
+                return label
+    return None
+
+
+# ── rotation-record transcript resolution (g15: --gen optional, defaults to
+# ── the seat's LATEST rotation record; env / newest-.jsonl unreachable without
+# ── an explicit --transcript) ────────────────────────────────────────────
+
+def _rotation_records(root: Path, seat: str) -> list[Path]:
+    """`sessions/rotations/<seat>.*.json` for a seat, newest-last."""
+    d = locations.shared_sessions_dir(root) / rotate.ROTATIONS_DIR_NAME
+    if not d.is_dir():
+        return []
+    return sorted(d.glob(f"{seat}.*.json"))
+
+
+def _record_transcript(rec: dict) -> Path | None:
+    """The transcript a rotation record names on its own, or None.
+
+    Checked in order: the record's `session_log` (direct path), the
+    `handover.session_log`, the `handover.join.transcript` (the name every
+    LIVE rotation record carries), then
+    `observations.c_readback_log_path` WHEN it is a CC `.jsonl` (a legacy
+    debug `.log` is not tool_use-parseable, so naming it would make the audit
+    silently read nothing)."""
+    for key in ("session_log",):
+        v = rec.get(key)
+        if v:
+            return Path(str(v)).expanduser()
+    ho = rec.get("handover")
+    if isinstance(ho, dict):
+        v = ho.get("session_log")
+        if v:
+            return Path(str(v)).expanduser()
+        j = ho.get("join") or {}
+        if isinstance(j, dict):
+            v = j.get("transcript")
+            if v:
+                return Path(str(v)).expanduser()
+    obs = rec.get("observations")
+    if isinstance(obs, dict):
+        v = obs.get("c_readback_log_path")
+        if v and str(v).lower().endswith(".jsonl"):
+            return Path(str(v)).expanduser()
+    return None
+
+
+def _record_matches_gen(rec: dict, gen: int) -> bool:
+    """Whether a rotation record belongs to generation `gen`.
+
+    A rotate-self record's `observations.b_generation.after` is the generation
+    THIS rotation produced (the successor's); `before` is the predecessor's and
+    is not the record's own generation, so only `after` / a top-level
+    `gen_after` match."""
+    if rec.get("gen_after") == gen:
+        return True
+    obs = rec.get("observations")
+    if isinstance(obs, dict):
+        b = obs.get("b_generation")
+        if isinstance(b, dict) and b.get("after") == gen:
+            return True
+    return False
+
+
+def _latest_record(root: Path, seat: str,
+                   gen: int | None = None) -> tuple[Path, dict] | None:
+    """The seat's latest rotation record (or the latest matching `gen`).
+
+    Files are named `<seat>.<UTC timestamp>.json` so sorted name order is time
+    order, the same rule `rotate.py status --record latest` uses. Parses JSON;
+    a record that does not parse is skipped, not fatal."""
+    files = _rotation_records(root, seat)
+    matches = [f for f in files]
+    if gen is not None:
+        matches = []
+        for p in reversed(files):
+            try:
+                doc = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:  # noqa: BLE001
+                continue
+            if _record_matches_gen(doc, gen):
+                matches.append((p, doc))
+        if not matches:
+            return None
+        return matches[0]
+    for p in reversed(files):
+        try:
+            return p, json.loads(p.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
+                             transcript_path: Path | None) -> tuple[Path | None, str]:
+    """The transcript the wake audit reads, in the g15 order:
+
+      1. an explicit `--transcript PATH` (must exist)
+      2. the seat's rotation record — `--gen N` selects the record for gen N,
+         no `--gen` means the LATEST record — via the record's OWN
+         `session_log`/session id. The env / newest-.jsonl fallbacks of
+         `rotate.resolve_transcript` are UNREACHABLE here by construction.
+
+    Returns `(path, source)`. `(None, source)` means the record/transcript was
+    absent; `source` names it so the caller can refuse with the name (never a
+    silent fall-through)."""
+    if transcript_path is not None:
+        lp = Path(transcript_path).expanduser().resolve()
+        return (lp, "explicit") if lp.exists() else (None, "explicit-missing")
+    rec = _latest_record(root, seat, gen=gen)
+    if rec is None:
+        if gen is not None:
+            return None, f"no rotation record for {seat!r} gen {gen}"
+        return None, f"no rotation record for seat {seat!r}"
+    rec_path, doc = rec
+    src = f"record:{rec_path.name}"
+    lp = _record_transcript(doc)
+    if lp is None:
+        return None, f"{src} names no transcript"
+    return lp, src
+
+
 def _is_protocol_learning(cmd: str, tool: str) -> bool:
     """Category c: `-h`/`--help`, or grep/rg/sed over a SOURCE file or a
     transcript/log — learning a tool's surface instead of doing work. Config
     nodes (.md) are NOT source/logs: grepping the seat registry by hand is a
-    by-hand read (b), not protocol learning."""
+    by-hand read (b), not protocol learning.
+
+    A `sed -i` / `sed --in-place` is an EDIT of a source file, not a read-only
+    learn — it belongs to (d) real work, never (c) (g15: sensei.py sed -i
+    counted as learning)."""
     low = _norm_cmd(cmd).lower()
     if re.search(r"(\s-h(\s|$)|--help)", low):
         return True
+    # in-place source edits are work, not learning (the whole point of (4) in
+    # hypothesis:l4-wake-audit-reads-facts-and-defaults-to-the-latest-record)
+    if re.search(r"\bsed\b.*(--in[-_ ]?place|-i)\b", low):
+        return False
     return bool(re.search(
         r"(grep|rg|sed)\b.*\.(py|sh|log|js)(\b|[^ ])", low)) or bool(
         re.search(r"(grep|rg|sed)\b.*(rotate\.py|write\.py|send\.py|sensei\.py)", low))
@@ -393,21 +596,26 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
 
 
 def classify_call(cmd: str, tool: str, seat: str,
-                  entries: list[dict] | None = None) -> tuple[str, str | None]:
+                  entries: list[dict] | None = None,
+                  facts: list[tuple[str, list[str]]] | None = None) -> tuple[str, str | None]:
     """One assistant tool_use call across the four wake categories.
 
-    Returns `(category, first_turn_label)`. Category precedence: protocol
-    learning (c) beats a first_turn re-derive (a) — learning the tool is not
-    re-deriving a fact — and a first_turn match (a) beats a hand-read (b).
-    c only when `-h`/`--help` or a source/log grep; a only when the call's
-    command re-runs a configured first_turn cmd (whose output was already
-    delivered); b when it is a hand-read a startup entry could pre-run; d
-    otherwise (real work)."""
+    Returns `(category, label)`. Category precedence: protocol learning (c)
+    beats a first_turn re-derive (a) — learning the tool is not re-deriving a
+    fact — and a first_turn/fact re-derive (a) beats a hand-read (b).
+    c only when `-h`/`--help` or a source/log grep; a when the call's command
+    re-runs a configured first_turn cmd (label = the entry) or re-derives a
+    `## facts` bullet's own cited command shape (label = `F<N>`); b when it is
+    a hand-read a startup entry could pre-run; d otherwise (real work)."""
     label = _first_turn_label(cmd, seat, entries or [])
     if _is_protocol_learning(cmd, tool):
         return "c", label
     if label is not None:
         return "a", label
+    if facts:
+        f_label = _fact_label(cmd, facts)
+        if f_label is not None:
+            return "a", f_label
     if _is_byhand_read(cmd, tool):
         return "b", None
     return "d", None
@@ -423,6 +631,44 @@ def _summarize_tool_input(inp) -> str:
         s = str(inp)
     s = " ".join(s.split())
     return s[:110] + ("…" if len(s) > 110 else "")
+
+
+def _synthesize_read_cmd(tool: str, inp) -> str:
+    """A Bash-like cmd string for a NON-Bash tool's own input, so the shared
+    classifier's byhand-read (b) / work (d) rules can judge the read by its
+    paths (g15 req 3). Read carries a `path`; Grep a `pattern` + `path` list;
+    Glob `pattern`/`path` lists. A tool that is neither Bash nor Read/Grep/
+    Glob (Edit/Write) is real work (d) and is handled by the caller, never
+    here."""
+    if not isinstance(inp, dict):
+        return ""
+    parts: list[str] = []
+    if tool == "Grep":
+        p = inp.get("pattern")
+        if p:
+            parts.append(str(p))
+    for key in ("pattern", "path", "paths"):
+        v = inp.get(key)
+        if isinstance(v, list):
+            parts.extend(str(x) for x in v)
+        elif isinstance(v, str) and v:
+            parts.append(v)
+    return " ".join(parts)
+
+
+def _path_is_hand_read(s: str) -> bool:
+    """Whether a NON-Bash tool's path names a file a first_turn entry or after-
+    join step already pre-runs — a by-hand read (b), never real work. Mirrors
+    the file-path signals `_is_byhand_read` keys on for Bash commands."""
+    low = _norm_cmd(s).lower()
+    return bool(
+        "seats.md" in low
+        or "sessions/rotations" in low
+        or "claude/projects" in low
+        or "bootstrap" in low
+        or low.endswith(".ack.json")
+        or "/.meter" in low or low.endswith(".meter")
+    )
 
 
 def _iter_tool_uses(path: Path):
@@ -447,28 +693,32 @@ def _iter_tool_uses(path: Path):
                     yield b.get("name", "?"), b.get("input") or {}
 
 
-def wake_audit(root: Path, seat: str, gen: int,
+#: Non-Bash tools whose OWN input names the file(s) a wake reads by hand.
+_READLIKE_TOOLS = ("Read", "Grep", "Glob")
+#: Tools whose input is an EDIT/WRITE of a file — always real work (d),
+#: regardless of whether the path is one a first_turn entry pre-runs.
+_WRITELIKE_TOOLS = ("Edit", "Write", "WriteFile", "MultiEdit",
+                    "NotebookEdit")
+
+
+def wake_audit(root: Path, seat: str, gen: int | None,
                transcript_path: Path | None) -> tuple[int, list[dict], dict]:
     """Run the classification over the seat's wake transcript.
 
-    Returns `(exit_code, per_call_rows, counts)` so the CLI body and the
-    tests share one implementation. Resolves the transcript with rotate's
-    own `resolve_transcript` (explicit --transcript wins; else the seat's
-    `.meter` pin / CC slug rules). Reads the LIVE config:rotations template
-    for the seat's role. The window runs from the first assistant tool_use to
-    the first call classifiable as real work (category d, excluded)."""
-    try:
-        from . import rotate
-    except ImportError:  # run as a plain script / under tests
-        import rotate  # type: ignore
-
+    Returns `(exit_code, per_call_rows, counts)` so the CLI body and the tests
+    share one implementation. Reads the LIVE config:rotations template AND the
+    `## facts` bullets for the seat's role. The transcript is resolved in the
+    g15 order (explicit --transcript, else the seat's LATEST rotation record's
+    own session_log — never the env / newest-.jsonl fallbacks). The window
+    runs from the first assistant tool_use to the first call classifiable as
+    real work (category d, excluded)."""
     rows = load_seats(root)
     row = seat_row(rows, seat)
     if row is None:
         print(f"ERR: no seat row for {seat!r} in config:seats", file=sys.stderr)
         return 2, [], {}
     role = (row.get("role") or "").strip()
-    fm, facts = _read_rotations(root)
+    fm, facts_text = _read_rotations(root)
     if not fm:
         print("ERR: config:rotations not found; cannot classify a wake",
               file=sys.stderr)
@@ -479,23 +729,38 @@ def wake_audit(root: Path, seat: str, gen: int,
               f"(role {role!r} has no template; refusing to fall back to "
               f"another role's)", file=sys.stderr)
         return 2, [], {}
+    facts = _parse_facts(facts_text)
 
-    log_path, source = rotate.resolve_transcript(
-        root=root, session_log=str(transcript_path) if transcript_path else None,
-        seat=seat)
+    log_path, source = _resolve_wake_transcript(root, seat, gen, transcript_path)
     if log_path is None:
-        print(f"ERR: no transcript resolved for seat {seat!r} "
-              f"({source}); pass --transcript PATH", file=sys.stderr)
+        print(f"ERR: cannot audit a wake for seat {seat!r}: {source}; "
+              f"pass --transcript PATH or let the seat's rotation record "
+              f"name its session_log", file=sys.stderr)
+        return 2, [], {}
+    if not log_path.exists():
+        print(f"ERR: transcript {log_path} does not exist ({source})",
+              file=sys.stderr)
         return 2, [], {}
 
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0}
     window_end = None
     for tool, inp in _iter_tool_uses(log_path):
-        cmd = inp.get("command", "") if isinstance(inp, dict) else ""
-        cat, label = classify_call(cmd, tool, seat, entries)
+        if tool in _WRITELIKE_TOOLS:
+            cat, label, cmd = "d", None, ""
+        elif tool in _READLIKE_TOOLS:
+            # non-Bash Read/Grep/Glob are judged by their OWN paths: a covered
+            # path is a by-hand read (b), anything else is real work (d). Such
+            # calls carry no command, so they never match a first_turn/fact
+            # re-derive (a) nor protocol learning (c).
+            cmd = _synthesize_read_cmd(tool, inp)
+            cat, label = ("b", None) if _path_is_hand_read(cmd) else ("d", None)
+        else:
+            cmd = inp.get("command", "") if isinstance(inp, dict) else ""
+            cat, label = classify_call(cmd, tool, seat, entries, facts)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
-                      "summary": _summarize_tool_input(inp), "label": label})
+                      "summary": _summarize_tool_input(inp), "label": label,
+                      "source": source})
         counts[cat] += 1
         if cat == "d":
             window_end = len(calls)
@@ -508,12 +773,14 @@ def cmd_wake_audit(root: Path, args) -> int:
                                      Path(args.transcript) if args.transcript else None)
     if code != 0:
         return code
-    print(f"sensei.py wake-audit --seat {args.seat} --gen {args.gen} "
+    gen_label = args.gen if args.gen is not None else "latest"
+    print(f"sensei.py wake-audit --seat {args.seat} --gen {gen_label} "
           f"(role {seat_row(load_seats(root), args.seat)['role']})")
     print(f"window: first assistant tool_use -> first real work "
           f"({len(calls)} calls scanned, cut at the first category d)")
     print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} d={counts['d']}")
     print(f"  (d counts the cut call itself; only a/b/c span the wake window)")
+    print(f"transcript: {calls[0]['source'] if calls else '?'}")
     for i, c in enumerate(calls, 1):
         lbl = f" <{c['label']}>" if c["label"] else ""
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
@@ -657,9 +924,13 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("wake-audit",
                         help="classify a rotation wake's tool calls")
     p.add_argument("--seat", required=True)
-    p.add_argument("--gen", type=int, required=True)
+    p.add_argument("--gen", type=int, default=None,
+                   help="rotation-record generation to audit (default: the "
+                        "seat's LATEST rotation record; the transcript comes "
+                        "from that record's own session_log)")
     p.add_argument("--transcript", default=None,
-                   help="explicit transcript path (else rotate's resolution)")
+                   help="explicit transcript path (overrides the seat's "
+                        "rotation record; env/newest-.jsonl are never used)")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
