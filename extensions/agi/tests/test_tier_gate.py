@@ -209,7 +209,14 @@ def _run_pytest(path_args, env_extra, named_file=False, plant_tier="",
 
 
 def test_hook_bare_directory_kid_refused():
-    code, err = _run_pytest([], "kid")
+    # Plant a kid record at THIS process's own pid so the nested pytest's
+    # NEAREST running ancestor is a kid even when an ambient parent/director
+    # record (this suite sometimes runs under one) is a farther ancestor.
+    # Merged-map nearest-wins makes the planted kid decisive under any
+    # runtime; without the plant, a live parent on the chain would supply the
+    # tier and the bare-directory refusal would be skipped (the Defect 1 that
+    # made this RED under a live parent runner).
+    code, err = _run_pytest([], "kid", plant_tier="kid")
     assert code == 4  # pytest.UsageError
     assert "AGI_TIER=kid" in err
     assert "specific test file or a -k filter" in err
@@ -263,6 +270,42 @@ def test_decision_ancestor_resolution_core():
         {888: "kid"}, lookup.get, 222) is None
     # empty map -> None
     assert gate._resolve_tier_from_ancestors({}, lookup.get, 222) is None
+
+
+def test_decision_effective_tier_is_root_order_independent(monkeypatch):
+    """The pid->tier map is GLOBAL: every root's running records are merged
+    into ONE dict before the ancestor chain resolves, so the outcome is
+    independent of root scan order. A pytest process has multiple records on
+    its chain (its own kid record AND the parent that spawned it). The old
+    per-root code returned the FIRST root with ANY ancestor hit, so a kid
+    whose own record sat in a later-scanned root while a parent record sat in
+    an earlier-scanned root CLEARED the gate (root order flipped the verdict).
+    Merged + nearest-wins fixes it: the process's own pid is the nearest
+    ancestor, so its own record always wins. (hypothesis:l4-the-kid-tier-
+    gate-scans-every-root-it-can-reach)
+    """
+    own = os.getpid()
+    parent_pid = own + 1000_000  # a distinct pid higher on the ancestor chain
+    fake_ppid = {own: parent_pid, parent_pid: None}
+
+    def fake_records(root):
+        # The root scanned first (R1) holds ONLY the distant PARENT record;
+        # the later root (R2) holds the process's OWN kid record. On the old
+        # per-root code, order ['R1','R2'] resolved the parent (gate cleared)
+        # and ['R2','R1'] resolved the kid (refused) -- the same bytes, a
+        # different verdict, decided by scan order alone.
+        return {parent_pid: "parent"} if root == "R1" else {own: "kid"}
+
+    monkeypatch.setattr(gate, "_running_record_tiers", fake_records)
+    monkeypatch.setattr(gate, "_ppid_of", lambda p: fake_ppid.get(p))
+    # safe against a host AGI_TIER leaking into the assertion
+    monkeypatch.setenv("AGI_TIER", "parent")
+
+    monkeypatch.setattr(gate, "_record_roots", lambda: ["R1", "R2"])
+    assert gate._effective_tier() == "kid"  # own record beats distant parent
+
+    monkeypatch.setattr(gate, "_record_roots", lambda: ["R2", "R1"])
+    assert gate._effective_tier() == "kid"  # and with the roots swapped too
 
 
 def test_hook_kid_ancestor_refuses_bare_dir_with_env_unset():
@@ -477,3 +520,188 @@ def test_falsifier_flag_cannot_clear_gate_on_new_bytes():
     finally:
         import shutil
         shutil.rmtree(empty)
+
+
+# --- fix: the gate scans EVERY reachable sessions root ---------------------
+# hypothesis:l4-the-kid-tier-gate-scans-every-root-it-can-reach. Before the
+# fix the gate derived its record root from ONLY the conftest's own tree
+# (`find_project_root(Path(__file__))`), so a kid that pointed pytest at
+# MAIN's absolute tests dir scanned MAIN's sessions, found no agent.json for
+# its own pid chain, derived no tier and ran the bare directory suite it is
+# refused from its own worktree. The fix scans the shared sessions dir and the
+# sessions dir of every worktree registered under the main graph's
+# `.agi/worktrees/*` in addition to the invoking tree's own sessions dir.
+
+
+BIN_DIR = os.path.dirname(os.path.dirname(CONFTEST)) + os.sep + "bin"
+
+
+def _build_fake_main(tmp_parent, with_kid_record=True):
+    """Build a throwaway "MAIN" checkout whose tests/conftest.py is THIS
+    (fixed) conftest, optionally with a registered worktree `kidA` carrying a
+    running kid agent record whose pid is THIS process -- an ANCESTOR of the
+    nested pytest this test then spawns.
+
+    Returns the fake main's root Path. The fake layout mirrors production:
+      <main>/.agi/{config.json,nodes,sessions}
+      <main>/.agi/worktrees/<name>/.agi/{config.json,nodes,sessions/...}
+      <main>/extensions/agi/tests/{conftest.py,test_ok.py}
+      <main>/extensions/agi/bin -> REAL bin (so the copied conftest's
+        `import locations` / `import verification` resolve).
+    """
+    import shutil
+    main = Path(tmp_parent) / "main"
+    graph = main / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes").mkdir()
+    (graph / "sessions").mkdir()
+
+    if with_kid_record:
+        kid_graph = graph / "worktrees" / "kidA" / ".agi"
+        kid_graph.mkdir(parents=True, exist_ok=True)
+        (kid_graph / "config.json").write_text("{}")
+        (kid_graph / "nodes").mkdir()
+        rec_dir = kid_graph / "sessions" / "iter-test" / "rec"
+        rec_dir.mkdir(parents=True)
+        (rec_dir / "agent.json").write_text(json.dumps({
+            "status": "running", "tier": "kid", "pid": os.getpid()}))
+
+    tests = main / "extensions" / "agi" / "tests"
+    tests.mkdir(parents=True)
+    shutil.copy(CONFTEST, tests / "conftest.py")
+    (tests / "test_ok.py").write_text(TEST_SRC)
+    bin_link = main / "extensions" / "agi" / "bin"
+    bin_link.parent.mkdir(parents=True, exist_ok=True)
+    os.symlink(BIN_DIR, bin_link)
+    return main
+
+
+def _run_pytest_on_fake_main(main_tests_dir, cwd, extra_env=None):
+    """Run pytest as a bare-directory run against a fake MAIN tests dir with
+    AGI_TIER unset; return (returncode, stderr).
+    """
+    env = dict(os.environ)
+    env.pop("AGI_TIER", None)
+    env.pop("AGI_AGENT_SESSIONS_ROOT", None)
+    if extra_env:
+        env.update(extra_env)
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", main_tests_dir, "-q"],
+        cwd=cwd, capture_output=True, text=True, env=env, timeout=300)
+    return proc.returncode, proc.stderr
+
+
+def test_falsifier_kid_record_in_foreign_worktree_refuses_main_scripts_dir():
+    """FALSIFIER for the multi-root fix. A kid CONFIRMS it runs from its own
+    worktree (real tree, so AGI_TIER is rightly unset) and points pytest at a
+    DIFFERENT tree's (a fake MAIN's) absolute tests dir -- the pre-fix escape.
+    Because the fake MAIN carries a registered worktree whose sessions holds a
+    running kid record whose pid is an ANCESTOR of the nested pytest, the gate
+    must scan that worktree's sessions AND refuse the bare directory run.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        tests_dir = main / "extensions" / "agi" / "tests"
+        code, err = _run_pytest_on_fake_main(str(tests_dir), str(main))
+        try:
+            assert code == 4, (
+                f"foreign-worktree kid must be refused, got {code}: {err}")
+            assert "AGI_TIER=kid" in err
+            assert "specific test file or a -k filter" in err
+        finally:
+            shutil.rmtree(main)
+
+
+def test_falsifier_foreign_worktree_kid_named_file_passes():
+    """Same fake-MAIN setup, but a NAMED file instead of a bare directory: the
+    record-derived kid may still run a targeted file even when the tests dir
+    it names is another tree's absolute dir -- only the bare directory suite
+    is refused.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=True)
+        tests_dir = main / "extensions" / "agi" / "tests"
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        env.pop("AGI_AGENT_SESSIONS_ROOT", None)
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest",
+             str(tests_dir / "test_ok.py"), "-q"],
+            cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
+        try:
+            assert proc.returncode == 0, (
+                f"named-file run should pass, got {proc.returncode}: "
+                f"{proc.stderr}")
+        finally:
+            shutil.rmtree(main)
+
+
+def test_foreign_tree_with_no_record_anywhere_passes_unchanged():
+    """NEGATIVE CONTROL for the multi-root fix. A fake MAIN with NO registered
+    worktree record and AGI_TIER unset: no running record matches the ancestor
+    chain anywhere, so the bare directory run passes unchanged -- the scan
+    reaching extra roots must never refuse a run with genuinely no kid.
+    """
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as td:
+        main = _build_fake_main(td, with_kid_record=False)
+        tests_dir = main / "extensions" / "agi" / "tests"
+        code, err = _run_pytest_on_fake_main(str(tests_dir), str(main))
+        try:
+            assert code == 0, (
+                f"no-record bare dir must pass, got {code}: {err}")
+        finally:
+            shutil.rmtree(main)
+
+
+def test_decision_record_roots_include_own_shared_and_every_worktree(
+        tmp_path, monkeypatch):
+    """In-process unit of `_record_roots()`: given a fake main graph with one
+    registered worktree, the returned roots are exactly (deduplicated) the
+    invoking tree's sessions, the worktree's sessions and the shared sessions
+    -- and the invoking-tree root is present first.
+    """
+    fake = tmp_path / "main"
+    (fake / ".agi").mkdir(parents=True)
+    (fake / ".agi" / "config.json").write_text("{}")
+    (fake / ".agi" / "nodes").mkdir(parents=True)
+    (fake / ".agi" / "sessions").mkdir()
+    wt = fake / ".agi" / "worktrees" / "kidA"
+    (wt / ".agi").mkdir(parents=True)
+    (wt / ".agi" / "config.json").write_text("{}")
+    (wt / ".agi" / "nodes").mkdir(parents=True)
+    (wt / ".agi" / "sessions").mkdir()
+
+    # point every tree-derived resolver the gate consults at the fake tree.
+    monkeypatch.setattr(
+        gate,
+        "_default_record_root",
+        lambda: str((fake / ".agi" / "sessions").resolve()))
+
+    def _fake_root(start=None):
+        # A worktree path (`.../.agi/worktrees/<name>`) resolves to its OWN
+        # graph dir; any other path resolves to the fake main graph.
+        sp = Path(start) if start is not None else Path()
+        if "worktrees" in sp.parts and sp.name:
+            return sp / ".agi"
+        return fake / ".agi"
+
+    monkeypatch.setattr(gate.locations, "find_project_root", _fake_root)
+    monkeypatch.setattr(gate.locations, "shared_project_root",
+                        lambda _start=None: fake / ".agi")
+
+    roots = gate._record_roots()
+    want = {
+        str((fake / ".agi" / "sessions").resolve()),
+        str((wt / ".agi" / "sessions").resolve()),
+    }
+    assert set(roots) == want
+    # dedup: the invoking-tree sessions root appears exactly once.
+    assert len(roots) == len(set(roots))
+    assert roots[0] == str((fake / ".agi" / "sessions").resolve())
