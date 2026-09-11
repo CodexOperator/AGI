@@ -2890,6 +2890,55 @@ def _pane_pid(tmux_pane: str) -> int | None:
         return None
 
 
+def _read_ps_parent_table() -> dict[int, int]:
+    """The whole-system parent table `{pid: ppid}` from `ps -e -o pid=,ppid=`.
+
+    **L4.122 criterion 1 (merge-up 23): `ps -e` enumerates ALL processes**,
+    never the default same-tty selection. When rotate.py runs under the Bash
+    tool it has NO controlling terminal, so the bare default `ps -o pid=,ppid=`
+    selects only other no-tty processes and the pane's live chain (on pts/18)
+    is invisible. `ps -e` sees every pid regardless of tty, so both the own
+    chain climb and the Belam FIFO reap's descendant walk see the whole tree.
+    Never raises on a failed read (returns {})."""
+    parent_of: dict[int, int] = {}
+    try:
+        out = subprocess.run(["ps", "-e", "-o", "pid=,ppid="],
+                             capture_output=True, text=True,
+                             timeout=10).stdout
+    except Exception:  # noqa: BLE001
+        return {}
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            try:
+                pid, ppid = int(parts[0]), int(parts[1])
+            except ValueError:
+                continue
+            parent_of[pid] = ppid
+    return parent_of
+
+
+def _descendant_chain(pane_pid: int) -> list[int]:
+    """ALL pids below `pane_pid` in the whole-system `ps -e` parent table.
+
+    BFS from `pane_pid`, shallow->deep; used by the Belam FIFO reap (r5) to
+    derive the OLDEST predecessor's claude chain (its pane bash -> wrapper ->
+    claude) from the window's pane pid. Returns [] on an empty/unreachable
+    table — the caller records SKIPPED naming the missing chain."""
+    parent_of = _read_ps_parent_table()
+    children: dict[int, list[int]] = {}
+    for pid, ppid in parent_of.items():
+        children.setdefault(ppid, []).append(pid)
+    chain: list[int] = []
+    stack = [pane_pid]
+    while stack:
+        cur = stack.pop(0)
+        for child in children.get(cur, []):
+            chain.append(child)
+            stack.append(child)  # BFS -> shallow..deep
+    return chain
+
+
 def _derive_own_chain(pane_pid: int,
                       own_pid: int | None = None) -> list[int]:
     """The predecessor's OWN process chain, derived live, EXCLUDING the
@@ -2915,21 +2964,7 @@ def _derive_own_chain(pane_pid: int,
     records SKIPPED naming the missing connection rather than guessing.
     """
     own = own_pid if own_pid is not None else os.getpid()
-    parent_of: dict[int, int] = {}
-    try:
-        out = subprocess.run(["ps", "-e", "-o", "pid=,ppid="],
-                             capture_output=True, text=True,
-                             timeout=10).stdout
-    except Exception:  # noqa: BLE001
-        return []
-    for line in out.splitlines():
-        parts = line.split()
-        if len(parts) >= 2:
-            try:
-                pid, ppid = int(parts[0]), int(parts[1])
-            except ValueError:
-                continue
-            parent_of[pid] = ppid
+    parent_of = _read_ps_parent_table()
     chain = [own]
     cur = parent_of.get(own)
     while cur is not None and cur != pane_pid:
@@ -3141,6 +3176,55 @@ def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
     by_line = sorted(live_belam,
                      key=lambda w: _split_roman_suffix(w)[1])
     return by_line[0]
+
+
+def _reap_belam_oldest(*, tmux_session: str, oldest: str,
+                       window_path: str | None = None,
+                       pids: list[int] | None = None) -> dict:
+    """r5 — reap the OLDEST Belam predecessor by PID when the chain would
+    exceed FIVE (FIFO per the owner: 'rotation reaps from the wrong end, filo
+    not fifo').
+
+    The predecessor's window pane pid (`tmux display-message -p -t @id
+    '#{pane_pid}'`, resolved from the oldest window's tmux @id) PLUS the
+    claude child, derived with the same `ps -e` climb (`_descendant_chain`),
+    are TERM'd DEEPEST-FIRST (`_reap_chain`), waited, KILL-ed survivors, then
+    ITS window is killed BY @id (`_kill_window`). The record carries
+    {oldest, window_id, pids, reaped, ps_after}.
+
+    ALL of it lives behind THIS ONE function so hypothesis:l4-the-pin-is-the-
+    lease can swap in the belam.pred-1..5 pin rule later (do not build the
+    lease here). `pids` is the test seam (stand-in pids); production derives
+    the chain from the oldest window's pane pid. Never raises; a chain it
+    cannot derive records SKIPPED naming the missing input."""
+    oldest_id = _successor_window_id(oldest, tmux_session, window_path)
+    if not pids:
+        pane_pid = _pane_pid(oldest_id) if oldest_id else None
+        if not pane_pid:
+            return {"oldest": oldest, "window_id": oldest_id, "pids": [],
+                    "reaped": False, "ps_after": [],
+                    "skipped": ("SKIPPED: no pane pid for the oldest window "
+                                 f"{oldest!r} (@id {oldest_id}); the Belam "
+                                 "FIFO cap could not derive its chain")}
+        pids = _descendant_chain(pane_pid)
+        if not pids:
+            return {"oldest": oldest, "window_id": oldest_id, "pids": [],
+                    "reaped": False, "ps_after": [], "pane_pid": pane_pid,
+                    "skipped": ("SKIPPED: no chain under pane pid "
+                                 f"{pane_pid} for the oldest window "
+                                 f"{oldest!r}; nothing to reap")}
+    observed = _reap_chain(pids)
+    reaped = bool(observed["chain"]) and all(
+        (not p["was_alive"]) or p["gone_after"]
+        for p in observed["chain"])
+    # kill the OLDEST's window BY @id (never a dotted/plain name — L4.114/m2:
+    # `belam-S1-L4-I.genN` parses the dot as window.pane and a bare name can
+    # resolve to the SUCCESSOR).
+    _kill_window(oldest, tmux_session, window_path, window_id=oldest_id)
+    return {"oldest": oldest, "window_id": oldest_id, "pids": pids,
+            "reaped": reaped, "order": observed["order"],
+            "ps_after": [_short_ps(p) for p in pids],
+            "chain": observed["chain"]}
 
 
 # ---- L4.114 THE JOIN: successor identity from the per-session registry ----
@@ -4369,10 +4453,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"{_button_down_legal_hint(root)}")
         print("    livestream re-point: view-<seat> select-window BY the "
               "successor @id")
-        print(f"(8) s12 self-reap: pane $TMUX_PANE -> pane_pid -> "
-              f"`ps -o pid,ppid` descendants, TERM'd DEEPEST-FIRST "
+        print(f"(8) s12 self-reap: own window @id -> pane_pid -> "
+              f"`ps -e` descendants, TERM'd DEEPEST-FIRST "
               "(rotate.py's own pid and its direct shell parent EXCLUDED), "
-              "KILL survivors, then the own window by @id")
+              "KILL survivors, then the own window by @id; a numeral-chain "
+              "seat GATES this off (owner chain rule) and the Belam FIFO "
+              "cap reaps the OLDEST instead")
         print("    own @id it would capture: tmux display-message -p "
               "'#{window_id}' (knowable only live)")
         print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
@@ -4470,7 +4556,6 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         try:
             handover["successor_row"] = _successor_row_write(
                 root, actor=seat, seat=seat, role=role,
-                session_ref=succ_session_id, generation=gen,
                 # merge-up 24 residue (W): the row's `window` cell is the
                 # WINDOW @id (the successor's tmux @id, so send.py
                 # `_nudge_window` can address it without the name-resolution
@@ -4478,18 +4563,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 # back to the name only when no @id was captured (the
                 # internal session_ref seam has no @id).
                 window=succ_window_id or spawn_name,
-                pid=succ_pid, session_id=succ_session_id)
+                # r3 (seventh dispatch): the row's `session_ref` is the
+                # ListAgents ref, NEVER the uuid (rotate.py:3818). The uuid
+                # lives in `session_id`; the ListAgents ref is not derivable,
+                # so until the successor's `ack --ref` back-fills it, the
+                # cell stays EMPTY — never the uuid.
+                session_ref="",
+                pid=succ_pid, session_id=succ_session_id,
+                generation=gen)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
-        # (s5) confirm the successor's live model/effort against the seat row:
-        #     REQUESTED from `ps -o args=` after the first `--model`; LIVE
-        #     from the first `"model":"..."` in its transcript.
-        handover["model_confirm"] = _confirm_successor_model(
-            seat=seat,
-            expected_model=((row.get("model") if row else None) or args.model),
-            expected_effort=((row.get("effort") if row else None)
-                             or args.effort),
-            pid=succ_pid, transcript=succ_transcript)
+        # (s5, deferred to the post-ack success path — r1): model_confirm
+        # runs AFTER the ack confirms a successor ASSISTANT TURN exists, or
+        # reads argv only — NEVER a read of the successor transcript before
+        # its first turn. Computed just before the record write (the X->XI
+        # record: `skipped: no assistant turn in the successor transcript`).
         # (s6.2) pin the successor's meter at ITS OWN transcript — never the
         #     newest .jsonl.
         if succ_transcript:
@@ -4661,6 +4749,18 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         root, seat=seat, generation=gen,
         telemetry=tmpl.get("telemetry"), verification=verification)
 
+    # (s5) model_confirm — computed AFTER the successor's ack confirmed an
+    #     ASSISTANT TURN exists (r1): REQUESTED from `ps -o args=` after the
+    #     first `--model`; LIVE from the first `"model":"..."` in the
+    #     successor transcript. Never a read of the transcript before a
+    #     first turn (the X->XI record said `skipped: no assistant turn`).
+    handover["model_confirm"] = _confirm_successor_model(
+        seat=seat,
+        expected_model=((row.get("model") if row else None) or args.model),
+        expected_effort=((row.get("effort") if row else None)
+                         or args.effort),
+        pid=succ_pid, transcript=succ_transcript)
+
     # (6) the record is the deliverable — write it, durably, BEFORE the own
     #     window is killed, so it survives regardless of what the kill does.
     record_path = _write_rotation_record(root, _rotate_self_record(
@@ -4683,54 +4783,127 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []))
 
-    # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2): after the record is
-    #     written and (6.5) announced, TERM the predecessor's OWN process
-    #     chain DEEPEST-FIRST, derived live (pane $TMUX_PANE -> pane_pid ->
-    #     `ps -o pid,ppid` descendants, excluding rotate.py's own pid and its
-    #     direct shell parent), then kill the predecessor window BY its own
-    #     @id captured in s2 (never a dotted name). The `--own-chain` seam
-    #     stays for tests (a stand-in sleep tree); with NEITHER $TMUX_PANE nor
-    #     a seam the reap records SKIPPED naming TMUX_PANE. Verify with ps /
-    #     tmux list-windows and PRINT what they say. Everything after the
-    #     window kill is unreachable, so it stays the true last act.
+    # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
+    #     r4 / e / D / r5): after the record is written and (6.5) announced:
+    #   r4  the OWN chain is derived from the seat OWN window @id
+    #       (own_window_id, captured at s2 / the row's window cell) ->
+    #       `tmux display-message -p -t @id '#{pane_pid}'` -> `ps -e` climb;
+    #       $TMUX_PANE only when no @id is known; the reap text names the
+    #       source that fed it;
+    #   e   the s12_self_reap evidence is written PLANNED (durable, same
+    #       file) BEFORE the first TERM — a SUCCESSFUL own-chain reap TERMs
+    #       rotate.py's own process, so a post-hoc write was unreachable and
+    #       success and evidence were mutually exclusive (live X->XI leaked
+    #       no s12 key at all). A best-effort update overwrites it with the
+    #       observations after;
+    #   D   on a numeral-chain seat the OWN window and OWN chain are NEVER
+    #       killed (the owner chain rule keeps the five newest predecessors
+    #       idle in their windows); the own-window kill + own-chain reap stay
+    #       for plain-named seats only;
+    #   r5  when the Belam chain would exceed FIVE the cap reaps the OLDEST
+    #       by PID and kills ITS window by @id (`_reap_belam_oldest`) — the
+    #       one reap that DOES run on a chain seat.
     _shield_old = _shield_final_signals()
     own_window_id = handover.get("own_window", {}).get("id")
-    own_chain_seam = getattr(args, "own_chain", None)
-    if own_chain_seam:
-        own_chain = [int(p) for p in own_chain_seam]
-        reap_source = f"test seam (--own-chain): pid {own_chain[0]}"
+    oldest_to_reap = handover.get("belam_cap", {}).get("oldest_to_reap")
+
+    # the PLANNED s12 evidence — written BEFORE the first TERM (e).
+    s12_reap: dict = {"order": "deepest-first", "planned": True}
+
+    # (r5) Belam FIFO cap: the one reap on a chain seat, the cap reap for any
+    #     --belam-prefix seat. Its evidence lands in s12_self_reap.belam_reap.
+    belam_reap = None
+    if oldest_to_reap:
+        belam_reap = _reap_belam_oldest(
+            tmux_session=tmux_session, oldest=oldest_to_reap,
+            window_path=args.window_path,
+            pids=getattr(args, "belam_pids", None))
+        s12_reap["belam_reap"] = {
+            "oldest": oldest_to_reap,
+            "window_id": belam_reap.get("window_id"),
+            "pids": belam_reap.get("pids"),
+            "chain": belam_reap.get("chain"),
+            "reaped": belam_reap.get("reaped"),
+            "ps_after": belam_reap.get("ps_after")}
+        _record_s12_self_reap(record_path, s12_reap)
+
+    if is_chain_seat:
+        # (D) the own window + own chain kill are GATED OFF on a numeral-
+        #     chain seat (the owner chain rule keeps the five newest
+        #     predecessors idle in their windows). The ONLY reap is the Belam
+        #     FIFO cap above.
+        s12_reap.update({
+            "gated": "own window + own chain kill GATED OFF on a "
+                     "numeral-chain seat (owner chain rule keeps the five "
+                     "newest predecessors idle in their windows)",
+            "own_window_id": own_window_id,
+            "own_chain_reap": "GATED OFF",
+        })
+        _record_s12_self_reap(record_path, s12_reap)
+        outcome = (f"reaped the OLDEST "
+                   f"{oldest_to_reap!r}" if belam_reap
+                   else "no Belam cap reap")
+        print(f"(7) numeral-chain seat {seat!r}: own window "
+              f"{own_window_id!r} + own chain NOT killed (owner chain "
+              f"rule); {outcome}")
     else:
-        pane_pid = _pane_pid(os.environ.get("TMUX_PANE", ""))
-        if pane_pid:
-            own_chain = _derive_own_chain(pane_pid)
-            # L4.122 criterion 3 (merge-up 23): a skip NAMES the missing
-            # input. When the derivation returns [] the pane pid WAS
-            # present but rotate.py's own pid did not connect to it — name
-            # that exact pair, not a bare 'no chain'.
-            if own_chain:
-                reap_source = (f"derived from $TMUX_PANE pane {pane_pid}: "
-                               f"chain {own_chain} (deepest-first)")
+        # r4: derive the OWN chain source — the seat OWN window @id -> pane
+        #     pid first, then $TMUX_PANE only when no @id is known. Every
+        #     outcome names the source that fed the skip (L4.122 criterion 3:
+        #     a skip NAMES the missing input).
+        own_chain_seam = getattr(args, "own_chain", None)
+        src_name = None
+        pane_pid = None
+        if own_chain_seam:
+            own_chain = [int(p) for p in own_chain_seam]
+            reap_source = f"test seam (--own-chain): pid {own_chain[0]}"
+        else:
+            if own_window_id:
+                pane_pid = _pane_pid(own_window_id)
+                src_name = f"own window @id {own_window_id}"
+            if pane_pid is None and os.environ.get("TMUX_PANE"):
+                pane_pid = _pane_pid(os.environ.get("TMUX_PANE"))
+                src_name = f"$TMUX_PANE {os.environ.get('TMUX_PANE')}"
+            if pane_pid:
+                own_chain = _derive_own_chain(pane_pid)
+                if own_chain:
+                    reap_source = (f"derived from {src_name} pane "
+                                   f"{pane_pid}: chain {own_chain} "
+                                   "(deepest-first)")
+                else:
+                    own_chain = []
+                    reap_source = (f"SKIPPED: own pid {os.getpid()} not under "
+                                   f"pane pid {pane_pid} from {src_name}; no "
+                                   "chain to TERM")
             else:
                 own_chain = []
-                reap_source = (f"SKIPPED: own pid {os.getpid()} not under "
-                               f"pane pid {pane_pid}; no chain to TERM")
+                keep = (f" (source: {src_name} gave no pane pid; "
+                        "TMUX_PANE absent, no seam)")
+                reap_source = ("SKIPPED: no pane pid" + keep
+                               + "; the live predecessor chain is reaped "
+                                 "externally by PID (Belam cap / prime)")
+        # e: write the PLANNED entry (derived chain + source) BEFORE the
+        #     first TERM; update best-effort with the observations after.
+        s12_reap["chain"] = own_chain
+        s12_reap["reap_source"] = reap_source
+        _record_s12_self_reap(record_path, s12_reap)
+        ps_after: list = []
+        if own_chain:
+            observed = _reap_chain(own_chain)
+            s12_reap.update(observed)     # best-effort observations after
+            _record_s12_self_reap(record_path, s12_reap)
+            ps_after = [_short_ps(p) for p in own_chain]
         else:
-            own_chain = []
-            reap_source = ("SKIPPED: TMUX_PANE absent (no seam); the live "
-                           "predecessor chain is reaped externally by PID "
-                           "(Belam cap / prime)")
-    s12_reap = _reap_chain(own_chain) if own_chain else {
-        "order": "deepest-first", "skipped": reap_source}
-    _record_s12_self_reap(record_path, s12_reap)
-    ps_after = [_short_ps(p) for p in own_chain]
-    print(f"(7) successor confirmed `continue`; own chain "
-          f"reap [{reap_source}]: "
-          f"{s12_reap.get('chain', s12_reap.get('skipped'))}")
-    print(f"    ps after: {ps_after or '(no chain derived/reaped)'}")
-    _kill_window(pred_name, tmux_session, args.window_path,
-                 window_id=own_window_id)
-    print(f"    predecessor window list: "
-          f"{_observed_windows(tmux_session, args.window_path)['names']!r}")
+            s12_reap["skipped"] = reap_source
+            _record_s12_self_reap(record_path, s12_reap)
+        print(f"(7) successor confirmed `continue`; own chain "
+              f"reap [{reap_source}]: "
+              f"{s12_reap.get('chain', s12_reap.get('skipped'))}")
+        print(f"    ps after: {ps_after or '(no chain derived/reaped)'}")
+        _kill_window(pred_name, tmux_session, args.window_path,
+                     window_id=own_window_id)
+        print(f"    predecessor window list: "
+              f"{_observed_windows(tmux_session, args.window_path)['names']!r}")
     print(f"rotation recorded: {record_path}")
     _restore_shield_signals(_shield_old)
     return 0
