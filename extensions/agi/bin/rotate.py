@@ -4212,10 +4212,27 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             results.append({"label": label, "cmd": record_cmd,
                             "refused": str(exc)})
             continue
-        # Belt over the no-shell executor: re-check the EXEC command for an
-        # unmodeled operator (a placeholder or env value could have introduced
-        # one). `$OPENROUTER_PROVISIONING_KEY` etc. are expanded for execution
-        # only; the record keeps the literal `$VAR`.
+        # Belt over the no-shell executor: re-judge the EXEC command IN FULL.
+        # A placeholder or env value can inject a whole new stage wrapped in
+        # `;` or `|` (both MODELED separators), which the template judge never
+        # saw and _operator_refusal cannot see either. So re-run the env
+        # allowlist and the producing allowlist on exec_cmd (not just the
+        # operator check) BEFORE _command_units splits it, so an injected
+        # `touch`-style stage is refused, not run, and its `$VAR` stays literal
+        # in the record (hypothesis:l4-the-judge-runs-on-the-substituted-command).
+        exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
+        if exec_env_refusal:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": exec_env_refusal})
+            continue
+        exec_refusal = _producing_refusal(exec_cmd)
+        if exec_refusal:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": f"not on startup.allow: {exec_refusal}"})
+            continue
+        # Unmodeled-operator check stays: an operator `_producing_refusal`
+        # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
+        # expanded for execution only; the record keeps the literal `$VAR`.
         op = _operator_refusal(exec_cmd)
         if op:
             results.append({"label": label, "cmd": record_cmd,
