@@ -1803,9 +1803,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # write, so the ack's own commit never bundles someone else's row change.
     do_commit = args.answer == "continue" \
         and not getattr(args, "no_commit", False)
+    # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
+    # identity cells now have ONE writer and it writes MAIN's seats.md
+    # (`_write_identity_cells` -> `_shared_graph_root`), so every read the
+    # ack makes of its own row -- the @id the JOIN keys on, the `already`
+    # comparison, the dirty check and the commit -- must look at THAT file,
+    # not the worktree copy the writer no longer touches (the kid left
+    # `_find_seat` worktree-local; from MAIN itself `id_root == root`).
+    id_root = _shared_graph_root(Path(root))
     if do_commit and ref:
-        top = _git_toplevel(root)
-        dirty = _ack_seats_dirty(root, top) if top else None
+        top = _git_toplevel(id_root)
+        dirty = _ack_seats_dirty(id_root, top) if top else None
         if dirty:
             print(f"ERR: refuse to ack --commit: {dirty!r} is dirty "
                   "(staged or unstaged) before this ack; resolve it first so "
@@ -1856,7 +1864,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (`heal.py _recover_seat`) carries the DEAD pid and a blanked
             # session_id; this is where the successor's real identity lands so
             # a later pass that trusts the row's pid reads the LIVE seat.
-            row = _find_seat(root, seat)
+            row = _find_seat(id_root, seat)
             window_id = (row.get("window") or "") if row else ""
             join = _join_successor(
                 root=root, seat=seat, window_id=window_id or None,
@@ -1925,7 +1933,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (write + print, no commit). Nothing written -> nothing to
             # commit.
             if do_commit and not already:
-                print(_ack_commit_seats(root, seat, args, ref))
+                print(_ack_commit_seats(id_root, seat, args, ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -4842,6 +4850,67 @@ def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
     return path
 
 
+def _shared_graph_root(root: Path) -> Path:
+    """The MAIN checkout's GRAPH root, identity for a non-worktree caller.
+
+    The seats node carrying the identity cells (`generation`/`window`/`pid`/
+    `session_ref`/`session_id`) lives in MAIN's graph, so a worktree rotation
+    writes MAIN's `.agi/nodes/.geometry/seats.md` and never the worktree copy
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main).
+    This is the same resolution `_sessions_dir` performs — climb through
+    `locations.git_common_root`, re-derive the graph there — returning the
+    graph ROOT (where `_load_seats`/`write.submit` expect it) rather than the
+    sessions join. From MAIN itself the result equals `root`."""
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    if main is not None:
+        mg = locations.find_project_root(main) or graph
+        graph = mg
+    # `graph` is usually the `.agi/` dir itself; the legacy G11 shape has.
+    # `nodes/` beneath `<root>/.agi/`.
+    if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
+        return graph / locations.GRAPH_DIR_NAME
+    return graph
+
+
+def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
+                          cells: dict) -> str:
+    """The ONE writer of a seat's identity cells in config:seats.
+
+    `generation`/`window`/`pid`/`session_ref`/`session_id` — every cell that
+    a rotation moves — are written through here, into the MAIN checkout's
+    `nodes/.geometry/seats.md` (resolved via `_shared_graph_root`), never the
+    caller's worktree copy (hypothesis:l4-a-seats-identity-cell-has-one-
+    writer-and-it-writes-main). A worktree seat's rotation reaches MAIN where
+    every sender reads, and the worktree copy is never written on these
+    cells — nothing to diverge, nothing to conflict at merge-up. From MAIN
+    itself the path is unchanged. Admission is the `self_row` declaration as
+    today (the `seat` is the actor's own row). Returns a truthy one-line
+    outcome when the write landed, or '' when the seat has no registry row
+    (the caller prints its own skip message)."""
+    import write  # local: same dir (send.py pattern, no import cycle)
+    main_root = _shared_graph_root(root)
+    rows = write._load_seats(main_root)
+    new_rows: list[dict] = []
+    found = False
+    for r in rows:
+        if r.get("name") == seat:
+            nr = dict(r)
+            for cell, val in cells.items():
+                if val is not None:
+                    nr[cell] = val
+            new_rows.append(nr)
+            found = True
+        else:
+            new_rows.append(r)
+    if not found:
+        return ""
+    edit = write.Edit(node_id="config:seats")
+    edit.set_fm["seats"] = new_rows
+    write.submit(main_root, edit, actor=actor, role=role)
+    return f"wrote identity cells for seat {seat!r} into MAIN seats.md"
+
+
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
@@ -4854,36 +4923,27 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     `source` field; the L4.110/r3 self_row declaration admits exactly
     [session_ref, session_id, generation, window, pid]).
 
-    The successor reuses the PLAIN seat name, so its row IS the seat's own
-    row — the exact write the self_row declaration admits for a seated actor
-    (only its own row, only the declared fields; every other row and every
-    prime-only field byte-identical). Admission lives in write.py's
-    `_enforce_written_by` reading the schema's `self_row` data; nothing here
-    names `seats` in a branch. Returns a one-line outcome string."""
-    import write  # local: same dir (send.py pattern, no import cycle)
-    rows = write._load_seats(root)
-    new_rows: list[dict] = []
-    found = False
-    for r in rows:
-        if r.get("name") == seat:
-            nr = dict(r)
-            nr["session_ref"] = session_ref
-            if session_id is not None:
-                nr["session_id"] = session_id
-            nr["generation"] = generation
-            nr["window"] = window
-            if pid is not None:
-                nr["pid"] = pid
-            new_rows.append(nr)
-            found = True
-        else:
-            new_rows.append(r)
-    if not found:
+    The row edit itself moves into `_write_identity_cells`, which resolves the
+    seats node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
+    identity-cell-has-one-writer-and-it-writes-main); `_backfill_session_ref`
+    routes through the SAME writer, so a seat's identity cells have one
+    writer and it writes MAIN. The successor reuses the PLAIN seat name, so
+    its row IS the seat's own row — the exact write the self_row declaration
+    admits for a seated actor (only its own row, only the declared fields;
+    every other row and every prime-only field byte-identical). Admission
+    lives in write.py's `_enforce_written_by` reading the schema's `self_row`
+    data; nothing here names `seats` in a branch. Returns a one-line outcome
+    string."""
+    cells: dict = {"session_ref": session_ref, "generation": generation,
+                   "window": window}
+    if session_id is not None:
+        cells["session_id"] = session_id
+    if pid is not None:
+        cells["pid"] = pid
+    if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
+                                 cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
-    write.submit(root, edit, actor=actor, role=role)
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry")
@@ -4918,30 +4978,21 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     session_ref + pid + session_id together — never a second submit, and
     never a write from any source but the JOIN (pass only joined values that
     DIFFER from the row's, so a rotate-self-seated successor's row ends
-    byte-identical to today's except session_ref). Returns a one-line
-    outcome; the write is admitted by the self_row declaration."""
-    import write  # local: same dir
-    rows = write._load_seats(root)
-    new_rows = []
-    found = False
-    for r in rows:
-        if r.get("name") == seat:
-            nr = dict(r)
-            nr["session_ref"] = ref
-            if session_id is not None:
-                nr["session_id"] = session_id
-            if pid is not None:
-                nr["pid"] = pid
-            new_rows.append(nr)
-            found = True
-        else:
-            new_rows.append(r)
-    if not found:
+    byte-identical to today's except session_ref). The row edit itself moves
+    into `_write_identity_cells` — the ONE writer, resolving MAIN's seats
+    node (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-
+    main) — so the ack's back-fill lands in the same MAIN row the rotation
+    wrote. Returns a one-line outcome; the write is admitted by the self_row
+    declaration."""
+    cells: dict = {"session_ref": ref}
+    if session_id is not None:
+        cells["session_id"] = session_id
+    if pid is not None:
+        cells["pid"] = pid
+    if not _write_identity_cells(root, seat=seat, actor=seat, role=role,
+                                 cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat has no row to back-fill)")
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
-    write.submit(root, edit, actor=seat, role=role)
     parts = [f"session_ref={ref}"]
     if session_id is not None:
         parts.append(f"session_id={session_id}")
@@ -5643,6 +5694,35 @@ def transcript_from_registry(registry_json: Path) -> Path | None:
     return Path(transc) if transc else None
 
 
+def _json_scalars(data):
+    """Yield every scalar (string/number/bool) under a parsed registry dict."""
+    if isinstance(data, dict):
+        for v in data.values():
+            yield from _json_scalars(v)
+    elif isinstance(data, (list, tuple)):
+        for v in data:
+            yield from _json_scalars(v)
+    else:
+        yield data
+
+
+def _registry_matches_window_id(data: dict, window_id: str) -> bool:
+    """True when the parsed registry JSON carries `window_id` as a DELIMITED
+    @<digits> token (l4-a-join-matches-the-delimited-window-token-and-keep-
+    both-is-tested). NEVER a bare substring: `@30` matches the value
+    `view:@30.%0` but NOT `view:@302.%0` (a wrong join would write a foreign
+    session's identity into the seat's row behind the L4.288 back-fill). tmux
+    stores the window as `@<id>.%<pane>`, so @<digits> must be followed by a
+    NON-id character (`.`, quote, comma, brace, whitespace, or the end of the
+    value) — id characters are digits/letters/underscore. When the window id
+    is not a plain number it falls back to a whole-cell equality match."""
+    digits = window_id.lstrip("@")
+    if not digits.isdigit():
+        return any(str(v) == window_id for v in _json_scalars(data))
+    pat = re.compile(r"@%s(?![0-9A-Za-z_])" % re.escape(digits))
+    return any(pat.search(str(v)) for v in _json_scalars(data))
+
+
 def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     registry_dir: str | None = None,
                     poll_secs: int | None = None) -> dict:
@@ -5668,14 +5748,18 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     raw = fp.read_text(encoding="utf-8", errors="replace")
                 except OSError:
                     continue
-                if token not in raw:
-                    continue
                 try:
                     data = json.loads(raw)
                 except ValueError:
                     data = {}
                 if not isinstance(data, dict):
                     data = {}
+                # CLAUSE A (l4-a-join-matches-the-delimited-window-token-and-
+                # keep-both-is-tested): match the window @id as a DELIMITED
+                # token over the PARSED JSON, never a bare substring over the
+                # raw text — @30 must NOT join the registry file of @302/@308.
+                if not _registry_matches_window_id(data, token):
+                    continue
                 try:
                     pid = int(fp.stem)
                 except ValueError:
@@ -5921,8 +6005,10 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     read-only git command allowed) and to a NAMED `SKIPPED: <reason>` where it
     cannot yet (a join-only or sibling-round fact — never the old blanket
     `0b owns deriving`). Every derived fact is stamped in `measured_at` with
-    the commit it was measured at, so `_bootstrap_stale` can refuse any record
-    that is not at HEAD. Returns the written path (string).
+    the commit it was measured at, so `_bootstrap_stale` can mark any
+    record not at HEAD stale per its `fact_bounds` entry (the facts are still
+    emitted, each with a `[stale: ...]` mark, never withheld). Returns the
+    written path (string).
 
     `join_pending` (a set of fact keys) and `overrides` (a key->value dict)
     support the PRE-SPAWN write (hypothesis:l4-startup-first-turn-is-
@@ -7543,8 +7629,14 @@ def _latest_rotate_record(root: Path, seat: str):
             rec = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        if isinstance(rec, dict) and (rec.get("result") in ("started", "success")
-                                      or rec.get("rotation") in ("rotate-self",)):
+        # A crash-recovery `result: respawned` record is a rotation the service
+        # must pick up too (L4.292): the recovered seat's after_join (join ->
+        # pin -> pending ack) runs exactly as a rotated seat's does. One-line
+        # widening of the accepted results for that rotation only.
+        ok_result = rec.get("result") in ("started", "success")
+        crash_ok = (rec.get("rotation") == "crash-recovery"
+                    and rec.get("result") == "respawned")
+        if isinstance(rec, dict) and (ok_result or crash_ok):
             return rec, f
     return None
 
@@ -10431,7 +10523,8 @@ def main(argv: list[str] | None = None) -> int:
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
     p_bb = sub.add_parser(
         "bootstrap-block", help="emit the bootstrap block for a seat "
-                                 "successor, or REFUSE when absent/stale")
+                                 "successor, or REFUSE when absent/malformed "
+                                 "(a stale fact is MARKED stale, still emitted)")
     p_bb.add_argument("--seat", required=True, help="seat name")
     p_bb.add_argument("--root", default=None,
                       help="project root (default: resolve from cwd)")

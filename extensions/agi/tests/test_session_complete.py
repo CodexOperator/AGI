@@ -640,3 +640,38 @@ def test_live_lease_refused_before_partial_carry(graph, tmp_path):
     assert rc != 0
     assert not (graph / "sessions" / "iter-L4.99").exists(), \
         "a live lease must refuse before any partial is carried"
+
+
+def test_status_less_manifest_entry_is_non_terminal_and_refuses(graph, tmp_path,
+                                                                capsys):
+    """(harvest L4.298) A manifest entry with NO `status` key defaults to
+    `running` (non-terminal), so the round refuses through the SAME
+    `agent <id> status=running is not terminal` path -- never the
+    no-manifest tag: the manifest exists and IS an authority; its entry is
+    simply not terminal. The sweep log then names this refusal `non-terminal`.
+    """
+    cli = _load_cli()
+    wt = graph / "worktrees" / "seat-statusless"
+    sg = wt / ".agi"
+    sg.mkdir(parents=True)
+    (sg / "config.json").write_text("{}")
+    iter_dir = sg / "sessions" / "iter-L4.99"
+    iter_dir.mkdir(parents=True)
+    d = iter_dir / "a00-nostat"
+    d.mkdir()
+    (d / "agent.json").write_text(
+        json.dumps({"id": "a00-nostat", "status": "running", "victory": False}))
+    (iter_dir / "manifest.json").write_text(json.dumps({
+        "iter": "L4.99",
+        "agents": [{"id": "a00-nostat"}],  # NO status key -> defaults running
+    }))
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc != 0, "a status-less (non-terminal) entry must refuse"
+    out = capsys.readouterr().out
+    assert "a00-nostat" in out and "running is not terminal" in out, \
+        "the refusal names the agent and its defaulted status"
+    assert "no manifest" not in out, \
+        "a manifest IS present, so this is not the no-manifest refusal"
+    assert not (graph / "sessions" / "iter-L4.99").exists(), \
+        "nothing moves from a round with a non-terminal entry"
