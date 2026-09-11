@@ -544,6 +544,48 @@ def test_every_delivered_line_within_nudge_line_max(project: Path,
     assert len(batch) <= cap, (len(batch), batch)
 
 
+def test_nudge_line_never_exceeds_max_for_any_name_lengths():
+    """PROPERTY FALSIFIER (residue of clause c, hypothesis:l4-send-py-same-
+    sender-stranded-line-and-the-swallowed-wake): for EVERY seat and sender
+    name length 1..40, `_nudge_line` never emits a line longer than
+    `_NUDGE_LINE_MAX` -- even when the inbox tail rides the delivery and
+    `more>0` -- and never grows the body slice past the budget (old bytes:
+    `flat[:keep]` with a negative `keep` returned a LONG slice, emitting a
+    494-char line against the 95-char cap for a long same-name pair).
+    Flattened body `word `*80 is far over the cap, so the body is always
+    needing truncation."""
+    cap = send_mod._NUDGE_LINE_MAX
+    big = "word " * 80
+    for sender_len in range(1, 41):
+        for seat_len in range(1, 41):
+            sender = "A" * sender_len
+            seat = "S" * seat_len
+            for trailing, more in (
+                    ("", 0),
+                    (send_mod._NUDGE_INBOX_TAIL.format(seat=seat), 0),
+                    (send_mod._NUDGE_INBOX_TAIL.format(seat=seat), 3),
+                    ("", 3)):
+                line = send_mod._nudge_line(seat, sender, big, more=more,
+                                            trailing=trailing)
+                assert len(line) <= cap, \
+                    (sender_len, seat_len, more, len(line), line[:40])
+
+
+def test_nudge_line_floors_keep_on_the_measured_counterexample():
+    """PINNED FALSIFIER (residue of clause c): the exact measured
+    counterexample -- the long same-name pair plus the inbox tail, which on
+    the OLD bytes emitted a 494-char line (5.2x the 95-char cap) -- now
+    stays at or under `_NUDGE_LINE_MAX` for every seat/sender length 1..40
+    with `trailing=_NUDGE_INBOX_TAIL`."""
+    cap = send_mod._NUDGE_LINE_MAX
+    for n in range(1, 41):
+        name = "x" * n
+        trailing = send_mod._NUDGE_INBOX_TAIL.format(seat=name)
+        line = send_mod._nudge_line(name, name, "word " * 80,
+                                    trailing=trailing)
+        assert len(line) <= cap, (n, len(line), line)
+
+
 def test_nudge_line_max_derived_from_fixture_geometry():
     """CLAUSE (c): `_NUDGE_LINE_MAX` is (re)derivable from the REAL capture's
     geometry -- the `─` separator row is 104 columns and the input box

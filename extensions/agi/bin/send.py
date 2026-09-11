@@ -454,13 +454,30 @@ def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
     if not flat:
         flat = body
     more_tail = _NUDGE_MORE_TAIL.format(n=more, seat=seat) if more else ""
-    trunc_tail = _NUDGE_TRUNC_TAIL.format(seat=seat) + more_tail
+    trunc = _NUDGE_TRUNC_TAIL.format(seat=seat)          # `… (read <seat>)`
+    trunc_more = trunc + more_tail                       # + `(+N more, ...)`
     prefix = f"[nudge: {sender}]: "
     full = prefix + flat + more_tail + trailing
     if len(full) <= _NUDGE_LINE_MAX:
         return full
-    keep = _NUDGE_LINE_MAX - len(prefix) - len(trunc_tail) - len(trailing)
-    return prefix + flat[:keep].rstrip() + trunc_tail + trailing
+    # The full line is over the cap: the BODY slice must be floored at 0 --
+    # `flat[:keep]` with a negative keep is a LONG slice, not an empty one
+    # (residue of clause c: a 494-char line against a 95-char cap). When even
+    # `prefix + tails` alone busts the cap (long seat/sender names), retreat
+    # from richest to leanest tail -- trailing first, then the trunc tail's
+    # `(+N more)`, then the read-seat tail itself -- and only give the freed
+    # budget to the body, never the reverse. The first tail that fits wins.
+    for tail in (trunc_more + trailing,   # read + `(+N more)` + inbox note
+                 trunc_more,              # drop the inbox note (trailing first)
+                 trunc,                   # then shorten the trunc tail: drop +N more
+                 ""):                     # drop every tail
+        keep = _NUDGE_LINE_MAX - len(prefix) - len(tail)
+        if keep >= 0:
+            return prefix + flat[:keep].rstrip() + tail
+    # Unreachable in the declared seat/sender range (`prefix` alone fits),
+    # but floor at 0 so a pathological sender never yields a long slice.
+    keep = max(0, _NUDGE_LINE_MAX - len(prefix))
+    return prefix + flat[:keep].rstrip()
 
 
 def _nudge_token_head(token: str) -> str:
