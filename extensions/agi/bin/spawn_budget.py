@@ -56,6 +56,16 @@ TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
+#: How long `status --iter` sleeps sampling CPU ticks before judging a round
+#: stalled. The director's stall definition (8 s) — a module constant, not a
+#: bare literal, so a test can read it and shrink it.
+TICK_SAMPLE_SECONDS = 8
+
+#: Overridable sample window for the tick measurement. Defaults to
+#: TICK_SAMPLE_SECONDS; tests monkeypatch this down so the falsifier does not
+#: sleep 8 real seconds against live processes.
+_STATUS_SAMPLE_SECONDS = TICK_SAMPLE_SECONDS
+
 
 def budget_dir(root: Path) -> Path:
     """Where leases live: one directory per MAIN checkout.
@@ -494,12 +504,19 @@ def _pid_ticks(pid: int) -> int:
         return 0
 
 
-def _pid_established_sockets(pid: int) -> int:
-    """Established (state 01) sockets owned by `pid`.
+def _pid_sockets(pid: int) -> int:
+    """Every socket inode held by `pid` — TCP in ANY state plus unix sockets.
 
-    Reads the process fd table for `socket:[inode]` entries, then counts how
-    many of those inodes appear in /proc/net/tcp|tcp6 with state 01. Cheap
-    enough for a status probe; 0 for any unreadable edge.
+    The old `_pid_established_sockets` counted only ESTABLISHED (state 01)
+    TCP. A parent mid-review between two API calls holds a LISTEN/CLOSE port
+    or a unix control socket and reads as `sockets=0` — a false
+    STALL-CANDIDATE. This reads the pid's fd table for `socket:[inode]`
+    targets, then intersects those inodes with the inode sets of
+    /proc/net/tcp, /proc/net/tcp6 (any state) and /proc/net/unix. Count is
+    len(intersection); 0 on any unreadable edge.
+
+    inode column: index 9 in tcp/tcp6 (10th column), index 6 in unix (a
+    trailing Path may contain spaces, so it is never `cols[-1]`).
     """
     try:
         fds = Path(f"/proc/{pid}/fd").iterdir()
@@ -515,7 +532,7 @@ def _pid_established_sockets(pid: int) -> int:
             inodes.add(target[len("socket:["):-1])
     if not inodes:
         return 0
-    established = set()
+    table = set()
     for path in ("/proc/net/tcp", "/proc/net/tcp6"):
         try:
             lines = Path(path).read_text().splitlines()[1:]
@@ -523,12 +540,18 @@ def _pid_established_sockets(pid: int) -> int:
             continue
         for line in lines:
             cols = line.split()
-            if len(cols) < 4 or cols[3] != "01":
-                continue
-            # local_address column is hex:HEX; the inode is the 10th column.
-            if len(cols) >= 10:
-                established.add(cols[9])
-    return len(inodes & established)
+            # any TCP state counts, not just ESTABLISHED (01)
+            if len(cols) >= 10 and cols[9].isdigit():
+                table.add(cols[9])
+    try:
+        lines = Path("/proc/net/unix").read_text().splitlines()[1:]
+    except OSError:
+        lines = []
+    for line in lines:
+        cols = line.split()
+        if len(cols) >= 7 and cols[6].isdigit():
+            table.add(cols[6])
+    return len(inodes & table)
 
 
 def _iter_num(iter_str: str) -> int | None:
@@ -584,15 +607,22 @@ def _round_status(root: Path, iter_str: str) -> int:
     total_ticks = 0
     total_socks = 0
     done = False
-    for rec in rows:
-        pid = int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+    # Sample EVERY row's starting tick count first, sleep the ONE shared
+    # window, then re-read every row. Net wall time is one window regardless
+    # of round size, yet every pid still sits under the full window. The
+    # pre-fix loop slept INSIDE the per-row loop, so a 5-row round cost 5
+    # windows — and `status --iter` is exactly the command the director runs
+    # when a round may be stalled.
+    pids = [int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+            for rec in rows]
+    t0s = [_pid_ticks(pid) for pid in pids]
+    time.sleep(_STATUS_SAMPLE_SECONDS)
+    deltas = [max(0, _pid_ticks(pid) - t0) for pid, t0 in zip(pids, t0s)]
+    for rec, pid, ticks in zip(rows, pids, deltas):
         tier = rec.get("tier") or "?"
         started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
         elapsed = max(0, int(time.time()) - started)
-        t0 = _pid_ticks(pid)
-        time.sleep(2)
-        ticks = max(0, _pid_ticks(pid) - t0)
-        socks = _pid_established_sockets(pid)
+        socks = _pid_sockets(pid)
         status = _agent_status(root, rec.get("agent_id", "?"), rec.get("iter"))
         total_ticks += ticks
         total_socks += socks
@@ -606,11 +636,15 @@ def _round_status(root: Path, iter_str: str) -> int:
     if kids >= 1:
         print(f"round L{nnn}: parent alive, {kids} live kid(s)")
         return 0
+    # STALL-CANDIDATE only when EVERY signal says stalled: 0 ticks over the
+    # sample, 0 sockets, 0 live kids, no terminal agent.json status. A parent
+    # mid-review holds a socket or burns CPU and must not be called stalled.
     if total_ticks == 0 and total_socks == 0 and not done:
         print(f"STALL-CANDIDATE: parent alive, 0 live kids, 0 ticks, "
-              f"0 sockets, no done:")
+              f"0 sockets, no done")
         return 0
-    print(f"round L{nnn}: parent alive, 0 live kids (active)")
+    print(f"round L{nnn}: parent alive, reviewing "
+          f"(ticks={total_ticks}, sockets={total_socks})")
     return 0
 
 
