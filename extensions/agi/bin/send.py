@@ -1728,6 +1728,14 @@ def read(root: Path, me: str, sender: str | None) -> None:
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
     _clear_announced(root, me)
+    # A consuming read drains the coalesced nudge count too
+    # (hypothesis:l4-a-read-clears-the-coalesced-nudge-count): the count is
+    # "how many sends coalesced into the one token", and the read has just
+    # consumed everything that count stood for, so drop `.nudge.pending` in
+    # the same consuming branch. The empty case is already handled by the
+    # early return above: a read that consumed nothing must NOT touch the
+    # sidecars. `peek` clears nothing, unchanged.
+    _clear_pending(root, me)
 
 
 def peek(root: Path, me: str) -> None:
