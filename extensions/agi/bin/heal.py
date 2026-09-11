@@ -257,7 +257,8 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
     observes and marks.
     """
     try:
-        outcome = _reap_pass(root, iter_dir, adapter, cap=1, cfg=None)
+        outcome = _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
+                             restart_ok=False)
     except Exception as exc:  # noqa: BLE001
         _watch_log(f"watch: reap pass failed for {iter_dir}: {exc}")
         return
@@ -270,17 +271,70 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
     except (OSError, json.JSONDecodeError):
         manifest = {}
     timeout_s = int(manifest.get("timeout_seconds", 600))
+
+    # Residue (a), service death path: `_reap_pass` already wrote each dead
+    # pid as an honest DEATH (status `failed`, fail_reason "pid N died ...").
+    # The dm is the watcher's job — exactly ONE death dm per dead agent, one
+    # log line — so a service with inline_reaper off loses NO death dm
+    # (dispatch.py's inline reaper wrote `failed` with a bogus "restart
+    # unavailable" reason and no dm at all). The manifest already carries the
+    # mark, so this is dm + log only.
+    for agent_id in outcome.get("died", []):
+        rec_path = iter_dir / agent_id / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        # One status, one dm, distinguishable: death vs timeout are separate
+        # events with separate dms; never re-dm an already-dm'd death on a
+        # later pass (idempotence: skip once the record is terminal).
+        if rec.get("status") == "failed" and rec.get("finished_at"):
+            _alarm_dispatcher(rec, iter_dir.name, "death", root)
+            _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
+                       f"DEAD ({rec.get('fail_reason') or 'pid died'}; "
+                       f"dispatched_by={rec.get('dispatched_by') or '-'})")
+
     for agent_id in outcome["still"]:
         rec_path = iter_dir / agent_id / "agent.json"
         try:
             rec = json.loads(rec_path.read_text())
         except (OSError, json.JSONDecodeError):
             continue
+        # `_reap_pass` may have ALREADY made this agent terminal this pass
+        # (a death it reaped, or a done-unreported). It sat in `still` only
+        # because it was live at reap time; skip it rather than re-marking a
+        # death as a timeout over six seconds later.
+        if rec.get("status", "running") not in (None, "running"):
+            continue
         started = int(rec.get("started_at", 0) or 0)
         if started <= 0:
             continue
         elapsed = int(time.time()) - started
         if elapsed <= timeout_s:
+            continue
+        pid = int(rec.get("pid", 0) or 0)
+        # Residue (a): a dead pid past its deadline is DEATH, never a timeout
+        # overwrite. `_reap_pass` may have seen it alive and left it in
+        # `still`; if it has since died, record the death (one status, one dm)
+        # instead of mis-recording the elapsed time as a timeout.
+        if pid > 0 and not adapter.is_alive(pid):
+            death = {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": f"pid {pid} died (detected by reaper)",
+            }
+            rec.update(death)
+            rec_path.write_text(json.dumps(rec, indent=2))
+            for entry in manifest.get("agents", []):
+                if entry.get("id") == agent_id:
+                    entry["status"] = "failed"
+                    entry["finished_at"] = rec["finished_at"]
+                    entry["fail_reason"] = rec["fail_reason"]
+            manifest_path.write_text(json.dumps(manifest, indent=2))
+            _alarm_dispatcher(rec, iter_dir.name, "death", root)
+            _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
+                       f"DEAD past deadline ({rec['fail_reason']}; "
+                       f"dispatched_by={rec.get('dispatched_by') or '-'})")
             continue
         rec["status"] = "timeout"
         rec["finished_at"] = int(time.time())

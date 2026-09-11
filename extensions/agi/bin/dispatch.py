@@ -2060,7 +2060,8 @@ def _reaper_phase(
     print("reaper: finished")
 
 
-def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
+def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
+               restart_ok: bool = True) -> dict:
     """ONE reaper pass over one round's manifest. NO deadline inside.
 
     hypothesis:l4-the-reaper-is-one-persistent-service — the per-round pass
@@ -2070,9 +2071,16 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
     stalls, reaps any agent whose pid is dead, and writes terminal states
     back to the manifest it read. Returns:
 
-        `{"marked": [agent ids reaped this pass],
-          "still":  [agent ids still `running`],
+        `{"marked":  [agent ids reaped this pass],
+          "still":   [agent ids still `running`],
+          "died":    [agent ids reaped as DEATHS this pass],
           "terminal": bool}`
+
+    `restart_ok` is the lane switch: dispatch's inline reaper calls with
+    `restart_ok=True` (a dead pid may be respawned through the adapter); the
+    service (`heal.py watch`) calls with `restart_ok=False` — it has no
+    harness, never restarts, and records a dead pid as an honest DEATH, so
+    `died` is populated only in the service lane.
 
     Callers own the deadline (the loop), the timeout-vs-orphaned marks and
     the dm (the watcher), never this function. The `if status != "running"`
@@ -2084,11 +2092,11 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
 
     manifest_path = iter_dir / "manifest.json"
     if not manifest_path.exists():
-        return {"marked": [], "still": [], "terminal": True}
+        return {"marked": [], "still": [], "terminal": True, "died": []}
     try:
         manifest = json.loads(manifest_path.read_text())
     except (json.JSONDecodeError, OSError):
-        return {"marked": [], "still": [], "terminal": True}
+        return {"marked": [], "still": [], "terminal": True, "died": []}
 
     # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
     # The reaper already reads every live `agent.json`; this is where a
@@ -2105,6 +2113,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
     updated = False
     marked: list[str] = []
     still: list[str] = []
+    died: list[str] = []
     for entry in manifest.get("agents", []):
         agent_id = entry.get("id", "")
         agent_json_path = iter_dir / agent_id / "agent.json"
@@ -2125,7 +2134,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
         pid = int(rec.get("pid", 0))
         if pid > 0 and not adapter.is_alive(pid):
             outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
-                                cap=cap, cfg=cfg)
+                                cap=cap, cfg=cfg, restart_ok=restart_ok)
             rec.update(outcome["record"])
             agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
             entry["status"] = rec["status"]
@@ -2152,12 +2161,21 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
                     entry[k] = rec[k]
             updated = True
             marked.append(agent_id)
+            # The SERVICE lane records a dead pid as DEATH (status failed from
+            # `_reap_one`'s restart_ok=False branch). Those ids are surfaced
+            # separately so the watcher can dm ONE death per agent and never
+            # let a dead pid be re-interpreted as a timeout later in the pass.
+            if not restart_ok and rec.get("status") == "failed" \
+                    and outcome["record"]["fail_reason"].startswith(
+                        f"pid {pid} died"):
+                died.append(agent_id)
             print(f"reaper: {outcome['message']}")
 
     if updated:
         manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
 
-    return {"marked": marked, "still": still, "terminal": all_terminal}
+    return {"marked": marked, "still": still, "died": died,
+            "terminal": all_terminal}
 
 
 def _reaper_give_up(root, iter_dir):
@@ -2284,7 +2302,8 @@ def _branch_has_done_commit(root, rec, agent_id) -> bool:
     return (_commits_ahead(root, rec) or 0) > 0
 
 
-def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+             restart_ok: bool = True):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
     **The filesystem is consulted before the restart, and that ordering is the
@@ -2292,20 +2311,26 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     lost only its report; respawning it would redo finished work and hand a
     second agent the same scaffolded node.
 
+    `restart_ok` is the lane switch: True for dispatch's inline reaper (a
+    dead pid may be respawned), False for the service watcher (`heal.py
+    watch`), which never restarts and records the dead pid as an honest
+    DEATH. See `_reap_pass`.
+
     hypothesis:l3w4-branch-visibility — the returned record also carries
     `commits_ahead` for a `--branch` agent (computed in `_commits_ahead`), so
     whatever the reap decided, the round file records how far the branch had
     climbed.
     """
     out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
-                         cap=cap, cfg=cfg)
+                         cap=cap, cfg=cfg, restart_ok=restart_ok)
     commits = _commits_ahead(root, rec)
     if commits is not None:
         out["record"]["commits_ahead"] = commits
     return out
 
 
-def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+                   restart_ok: bool = True):
     import completion
 
     node_id = rec.get("node_id") or ""
@@ -2350,6 +2375,26 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             },
             "message": (f"agent {agent_id} died with its round already "
                         f"committed — NOT restarted"),
+        }
+
+    # hypothesis:l4-the-reaper-is-one-persistent-service — the SERVICE lane
+    # (`heal.py watch`, restart_ok=False) never restarts: it has no harness,
+    # a resume would be a second writer on the manifest, and there is no
+    # spawn budget behind it. A dead pid here is DEATH, recorded honestly —
+    # status `failed`, fail_reason naming the death — NOT the bogus
+    # "restart unavailable" scalar that previously masked the crash (the
+    # watcher was never going to restart, so a missing restart path was not
+    # the reason it failed). The inline reaper (restart_ok=True) keeps the
+    # full paused/restart/budget decision below.
+    if not restart_ok:
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": f"pid {pid} died (detected by reaper)",
+            },
+            "message": (f"agent {agent_id} failed (pid {pid} died — death "
+                        f"recorded by the reaper service)"),
         }
 
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not

@@ -11,6 +11,7 @@ never the live seats row, never a real kill:
 """
 import json
 import os
+from pathlib import Path
 import signal
 import subprocess
 import time
@@ -433,7 +434,10 @@ def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
     assert own["session_id"] == "00000000-0000-4000-8000-000000000001"
     assert own["pid"] == 48123
     assert own["generation"] == 1
-    assert own["window"] == "adv-alive"
+    # merge-up 24 residue (W): the row's `window` cell is the WINDOW @id, not
+    # the name — so send.py `_nudge_window` can address it without the
+    # L4.120 name-resolution hazard.
+    assert own["window"] == "@9"
 
 
 def test_join_missing_registry_file_records_skipped(_fix, tmp_path,
@@ -505,3 +509,109 @@ def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
     code, answer = send._resolve_rows(rows, "ab", None)
     assert code == send.WHOIS_NO_MATCH
     assert "too short" in answer
+
+
+# ── L4.122 — transcript derivation from registry cwd + sessionId ───────────
+
+
+def test_join_derives_transcript_from_cwd_session_id(_fix, tmp_path,
+                                                     monkeypatch):
+    """merge-up 24 / the live gen IX->X record: the registry file carries cwd
+    + sessionId (never a transcript path), so the JOIN must DERIVE the Claude
+    Code transcript — `~/.claude/projects/<cwd with every '/' and '.' replaced
+    by '-'>/<sessionId>.jsonl` — the exact path gen X pinned by hand at
+    spawn+1s. Without it the live join returned `transcript: ""` and
+    meter_pin / model_confirm were SKIPPED."""
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    (reg / "99999.json").write_text(json.dumps({
+        "session_id": "abc-def-123",            # a uuid suffix
+        "cwd": "/home/usr/foo/.bar/proj",       # note the '.bar'
+        "tmux": "view-x:@9.%9",
+    }), encoding="utf-8")
+    joined = rotate._join_successor(root=tmp_path, seat="adv-alive",
+                                    window_id="@9", registry_dir=str(reg),
+                                    poll_secs=2)
+    assert joined["found"] is True
+    p = Path(joined["transcript"])
+    assert p.name == "abc-def-123.jsonl"
+    # both '/' and '.' become '-': ".bar" -> "-bar" (measured slug shape).
+    assert "-home-usr-foo--bar-proj" in str(p)
+    assert str(p).startswith(str(rotate.CC_PROJECTS_DIR))
+
+
+def test_join_still_prefers_explicit_transcript(_fix, tmp_path):
+    """A registry file that carries an explicit `transcript` field keeps it
+    (the existing join contract); the cwd+sessionId derivation is the
+    fallback, never an override."""
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    explicit = str(tmp_path / "explicit.jsonl")
+    (reg / "99999.json").write_text(json.dumps({
+        "session_id": "abc-def-123",
+        "cwd": "/home/usr/foo",
+        "transcript": explicit,
+        "tmux": "view-x:@9.%9",
+    }), encoding="utf-8")
+    joined = rotate._join_successor(root=tmp_path, seat="adv-alive",
+                                    window_id="@9", registry_dir=str(reg),
+                                    poll_secs=2)
+    assert joined["transcript"] == explicit
+
+
+# ── L4.122 merge-up 24 (S): longest-prefix seat resolution ────────────────
+
+
+def test_resolve_seat_for_name_longest_prefix(_fix, tmp_path):
+    """A seat that is a DASH-PREFIX of another (rows `a` and `a-b`) must
+    resolve `a-b-X` to the LONGER `a-b`, never the shorter `a` (first-match
+    sent the ack to the wrong row / ack path)."""
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x"},
+        {"name": "a-b", "role": "parent", "model": "y"},
+    ])
+    assert rotate._resolve_seat_for_name(tmp_path, "a-b-helper") == "a-b"
+    assert rotate._resolve_seat_for_name(tmp_path, "a-helper") == "a"
+    assert rotate._resolve_seat_for_name(tmp_path, "a-b") == "a-b"
+    assert rotate._resolve_seat_for_name(tmp_path, "unregistered") == \
+        "unregistered"
+
+
+# ── L4.122 merge-up 24 (B): the Belam cap counts the successor, not the seat ─
+
+
+def test_belam_oldest_counts_successor_not_seat(_fix):
+    """The Belam-cap call site passes the SUCCESSOR (the numeral window that
+    is actually live), never the SEAT base. Passing the bare base inflates the
+    chain by one (treats the phantom base as a live window) and wrongly reaps
+    the oldest."""
+    live = ["belam-S1-L4-I", "belam-S1-L4-II", "belam-S1-L4-III",
+            "belam-S1-L4-IV", "belam-S1-L4-V"]
+    # correct: pass the real successor (already observed as the 5th window):
+    #   5 live belam windows + it = 5 => no reap (chain stays five deep).
+    assert rotate._belam_oldest(live, "belam-S1-L4-V", "belam") is None
+    # old bug-shaped caller passes the SEAT base "belam": the phantom base
+    # makes a SIXTH candidate and wrongly reaps the oldest.
+    assert rotate._belam_oldest(live, "belam", "belam") == "belam-S1-L4-I"
+
+
+def test_chain_seat_dry_run_derives_gen_before_from_numeral(_fix, tmp_path,
+                                                       monkeypatch,
+                                                       capsys):
+    """For a numeral-chain seat the predecessor's generation is its OWN
+    window's line value (3 for `belam-S1-L4-III`), never the handoff counter
+    (which has nothing to do with it and announced 0 -> 8 on the live record).
+    The dry-run prints the derived pair; with the fix it says 3 -> 4, where
+    the old `_read_generation(root, seat)` (no handoff file) would say 0 -> 4."""
+    win = tmp_path / "windows.txt"
+    win.write_text("belam-S1-L4-III\n", encoding="utf-8")
+    args = SimpleNamespace(
+        name="belam", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=True, successor_argv=None, role="prime_director",
+        session_ref=None, template=None, registry_dir=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "generation 3 -> 4" in out
