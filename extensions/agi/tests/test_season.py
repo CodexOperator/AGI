@@ -1350,6 +1350,108 @@ class TestMergeUp:
         assert "parent work" not in _git(
             tmp_path, "log", "season/s1", "--format=%s").stdout
 
+    def test_merge_up_recorded_base_branch_beats_town_base(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-town-base-honours-the-recorded-base-branch -- a core
+        round whose record names a base_branch merges into THAT rung, never
+        straight into the town/season branch. town_branches declares core's
+        integration branch as season/s2; the recorded base is the rung
+        tier1/director; without --target the RECORDED base must win over the
+        town base (regression: _town_base preceded the recorded base_branch,
+        so a core round merged straight into season/s2, skipping its rung)."""
+        _init_project(tmp_path, season="season/s2")
+        # Director (rung) layer cut off the season.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+
+        # Loop branch cut off the director layer -- its rung.
+        _git(tmp_path, "checkout", "-q", "season/s2")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "rung work", content="rung\n")
+
+        # Round node + ladder declared AFTER the branch setup (checking out a
+        # branch that lacks an untracked round node would delete it).
+        ladder = tmp_path / ".agi" / "nodes" / ".geometry" / "ladder.md"
+        ladder.write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n---\nbody\n",
+            encoding="utf-8")
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: core\n"
+            "---\nbody\n", encoding="utf-8")
+
+        # Record names the rung as the base_branch. NO --target passed.
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record),
+             "--round", "experiment:round"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        # The chosen base is the RECORDED rung, and the print names its source.
+        assert "tier1/director" in result.stdout
+        assert "from record" in result.stdout
+        # Rung work landed in the director branch, not the season/season branch.
+        assert "rung work" in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+        assert "rung work" not in _git(
+            tmp_path, "log", "season/s2", "--format=%s").stdout
+
+    def test_merge_up_town_base_resolves_without_record(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-town-base-honours-the-recorded-base-branch -- a town
+        round with NO record still resolves the town base (the town base is
+        the fallback when there is no recorded base_branch)."""
+        _init_project(tmp_path, season="season/s2")
+        # Town branch cut off the season; loop branch cut off the town branch.
+        _git(tmp_path, "checkout", "-q", "-b", "town/streaming-suite@s2")
+        _commit(tmp_path, "town work", content="town\n")
+        _git(tmp_path, "checkout", "-q", "season/s2")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-bbbb@s2",
+             str(worktree), "town/streaming-suite@s2")
+        _commit(worktree, "rung work", content="rung\n")
+
+        # Round node + ladder declared AFTER the branch setup.
+        ladder = tmp_path / ".agi" / "nodes" / ".geometry" / "ladder.md"
+        ladder.write_text(
+            "---\nid: ladder:ladder\ntype: ladder\ncurrent_season: 2\n"
+            "town_branches:\n  core: season/s2\n"
+            "  streaming-suite: town/streaming-suite@s2\n---\nbody\n",
+            encoding="utf-8")
+        exp_dir = tmp_path / ".agi" / "nodes" / "experiment"
+        exp_dir.mkdir(parents=True, exist_ok=True)
+        (exp_dir / "round.md").write_text(
+            "---\nid: experiment:round\ntype: experiment\ntown: "
+            "streaming-suite\n---\nbody\n", encoding="utf-8")
+
+        # NO record (no base_branch) -- town base must win.
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-bbbb@s2", "--suite", "exit 0",
+             "--round", "experiment:round", "--worktree", str(worktree)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "town/streaming-suite@s2" in result.stdout
+        assert "from town" in result.stdout
+        assert "rung work" in _git(
+            tmp_path, "log", "town/streaming-suite@s2",
+            "--format=%s").stdout
+
     def test_three_layer_rehearsal(self, season_py, temp_graph, tmp_path):
         """season -> director branch -> parent branch, merged up in order;
         hashes never rewritten (the ADDENDUM's recursive rehearsal)."""
