@@ -4,7 +4,7 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: sanctuary-director
+edited_by: master-sensei
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
@@ -17,7 +17,7 @@ seats:
   - {"name": "self-perpetuating", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "tty", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/self-perpetuating.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
   - {"name": "alive", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "tty", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/alive.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
   - {"name": "sanctuary-master", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "high", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-master.meter", "rotated_by": "quorum", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
-  - {"name": "master-sensei", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/master-sensei.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
+  - {"name": "master-sensei", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/master-sensei.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": "", "session_ref": "ea4504", "town": "all"}
   - {"name": "sanctuary-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-director", "session_ref": "7aeee9", "session_id": "914d302a-b33f-4c5f-b78d-a8b7320df6c5", "generation": 14, "window": "@278", "pid": 3096987, "town": "all"}
   - {"name": "sensei-director", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sensei-director.meter", "rotated_by": "master-sensei", "owning_goal": "goal:g16", "worktree": ".agi/worktrees/seat-master-sensei", "session_ref": "", "town": "all"}
   - {"name": "sanctuary-helper", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "", "pin_ref": ".agi/sessions/sanctuary-helper.meter", "rotated_by": "sanctuary-master", "owning_goal": "", "worktree": ".agi/worktrees/seat-sanctuary-helper", "session_ref": "71b63a", "rotate_at": 0.29, "town": "all"}
