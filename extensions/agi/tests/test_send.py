@@ -855,6 +855,96 @@ def test_deferred_delivery_names_the_unread_inbox(project: Path,
     assert pane.submitted == [line], pane.submitted
 
 
+def test_truncated_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """CLAUSE (d) FALSIFIER (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats): the pane holds the RENDERED inline line, so
+    OLD bytes' `body_for_match in region` against the RAW body (a 400-char
+    body truncated to the 95-char rendered line) never matched OUR OWN
+    stranded line -- it read as foreign, the dm was deferred, and the
+    stranded line was re-deferred forever. Fixed: ownership matches region
+    against `text`, the EXACT line send() renders for this body (the same
+    flatten + truncation), so a truncated own line is recognised and
+    submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                       # flattened over the cap -> truncated
+    line = send_mod._nudge_line(seat, sender, big)   # the rendered line
+    assert len(line) <= send_mod._NUDGE_LINE_MAX and "read" in line
+    pane = _FixturePane(width=200)          # wide: the <=95-char line untruncated
+    pane.send_keys(["-l", "-t", "w", line])          # strand OUR OWN truncated line
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, big, sender)
+    # recognised as ours: Enter only, no second line typed, nothing deferred
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_flattened_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """CLAUSE (d) FALSIFIER (newline body): a body containing newlines is
+    rendered FLATTENED (`first line / second line`) in the pane, and the OLD
+    raw-body match never saw it (the `\n`s are gone), so the own stranded
+    line was read as foreign and re-deferred forever. Fixed: region is
+    matched against the rendered `text`, so a flattened own line is
+    recognised and submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = "first line\nsecond line\nthird line"
+    line = send_mod._nudge_line(seat, sender, body)
+    assert "/" in line and "first line" in line
+    pane = _FixturePane()                   # short flattened line: no wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    assert _typed(calls) == [], "no second line after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_zero_body_line_is_refused_not_delivered(project: Path,
+                                                 monkeypatch):
+    """CLAUSE (d) FALSIFIER (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats): OLD bytes accepted `keep >= 0`, so a
+    pathological sender whose `[nudge: <from>]:` prefix alone fills the
+    `_NUDGE_LINE_MAX` budget produced a ZERO-BODY line (prefix + tail, no
+    body) -- a delivered line carrying no dm. Fixed: the body must keep at
+    least ONE character (keep < 1 retreats), and when no tail leaves room
+    `_nudge_line` returns None so the caller DEFERS instead."""
+    cap = send_mod._NUDGE_LINE_MAX
+    # prefix `[nudge: <from>]: ` eats the whole budget -> keep == 0 for every
+    # tail incl. ""; OLD bytes emitted prefix+tail with an empty body.
+    pathological = "x" * (cap - 11)         # len("[nudge: ]: ") == 11
+    assert len(f"[nudge: {pathological}]: ") == cap
+    assert send_mod._nudge_line("adv-alive", pathological, "hello") is None
+    # one char shorter leaves room for a body char -> a real line, not None
+    shorter = "x" * (cap - 12)
+    line = send_mod._nudge_line("adv-alive", shorter, "hello")
+    assert line is not None and len(line) <= cap
+    # full path: send_dm with the pathological sender types NOTHING and
+    # defers the body (a zero-body line is unreachable)
+    root = project / ".agi"
+    seat = "adv-alive"
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, pathological, seat, "hello", pathological)
+    assert _typed(calls) == [], "no zero-body line may be typed"
+    assert send_mod._read_deferred(root, seat) \
+        == {"sender": pathological, "body": "hello"}, \
+        "the unrenderable dm is deferred for a later retry, not dropped"
+
+
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, [])  # an empty/absent window listing
     send_mod.send(project, "ephemeral-kid", "fire and forget", "parent")
