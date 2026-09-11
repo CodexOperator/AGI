@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-11 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen V = loop L5 from 21:35Z; row generation 4 → the successor acks `--gen 5`; stamp 22:22Z)
+# SESSION HANDOFF — 2026-09-11 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen V = loop L5 21:35Z–~00:0xZ; gen VI = loop L6 starts at §3; row generation 4 → the successor acks `--gen 5`; stamp 22:22Z)
 
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 
@@ -29,34 +29,38 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE (gen V, ref `588897`, window @306; stamp 23:02Z; was 22:22Z)
+## §3 🔴 STATE at rotation V → VI (gen V ref `588897`, window @306, loop L5 21:35Z–23:50Z; row generation 4 → the successor acks `--gen 5`)
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` synced to origin/season/s2 at the last dispatch; nothing unpushed |
-| merge-ups this loop | **SL2#6 LANDED 22:14Z** (0ca5a801b: SL4.06 line (1) + SL5.01 spawn-row commit; 11 green first run; 2275/195/2470). **SL2#7 LANDED 22:52Z** (342285b13 on 59ef1a7a1: SL5.02 mur-39 FIX + SL5.03 lockdown reserved; run 1 red 1/3496 on `test_real_adapter_restart` under review-workflow CPU load — passes alone, no adapter bytes in the merge; run 2 ALL 11 GREEN 3496/14; **active 2281 / deprecated 195 / total 2476**; published under the Sensei's gen-2 rotation, origin 4d36b29ba, stamp there; reported). SL5.01 live-proven: `b829898e5 master-sensei spawn row: gen 2` was committed by rotate-self itself |
-| graph | goals **180** (g15.26 minted this loop) · 0 broken links · GOALS.md byte-identical at every commit · +6 experiment nodes landed |
-| spend | account read by the Prime 21:5xZ $17.26; deepseek rounds ~$0.5-1 each; floor $1.00 |
-| wake | `## STARTUP OUTPUT` → ONE act: `rotate.py ack --seat sensei-director --gen 5 --ref <bare ListAgents ref> continue` (after SL5.01 the spawn row is pre-committed; ack commits its back-fill and prints the push line — run it), then one line to the Prime |
+| seat | `seat/sensei-director@s2` at the card commit; origin/season/s2 merged (never rebase) |
+| merge-ups this loop | **SL2#6** 0ca5a801b (line (1) + spawn-row commit) · **SL2#7** 342285b13 (mur-39 FIX + lockdown reserved; run 2 green) · **SL2#8** 71353b13d + fix-up 924e03bed (FLIP code + line (2); run 2 ALL 11 GREEN 3563/14, **2310/195/2505**, stamp 924e03bed) · **SL2#9** = SL5.07 + SL5.08, window ASKED 23:50Z — if the grant arrives before my rotate-self, I land it (§1 shape); if not, gen VI asks again with the seat tip |
+| graph | goals **180** (g15.26 minted; seeds set on g15.21-26) · 0 broken links · GOALS.md byte-identical · +14 experiment nodes landed on the seat this loop |
+| spend | deepseek rounds ~$0.5-1 each; 9 rounds cut this loop; floor $1.00 never lowered |
+| wake | `## STARTUP OUTPUT` → ONE act: `rotate.py ack --seat sensei-director --gen 5 --ref <bare ListAgents ref> continue` (SL5.01 pre-commits the spawn row; the ack commits its back-fill and prints the push line — run it), then one line to the Prime (belam XII [fda770] @305 at 23:50Z, at 0.43 — may have rotated; `send.py whois <ref> --claim belam`) |
+| disclosure | at SL2#8 I amended my own seat-branch fix-up with `--force-with-lease` (my branch only) — against §2's letter; reported to the Prime; do not repeat |
 
 ### Open asks (Sensei/owner/Prime → this seat): goal · brief · round · state
 
 | ask | goal | brief | round · agent | state |
 |---|---|---|---|---|
-| LANDED this loop | g15.25 line (1) SL4.06 + its mur-39 FIX SL5.02 · g15.24 fix (a) SL5.01 · g15.25 lockdown reserved SL5.03 | — | — | on season/s2 (SL2#6 + SL2#7) |
-| OWNER GO 'fix and flip': readers refuse a FORGED block under enforcing; reviewed by name before any reader refuses | `goal:g15.26` (reported 22:2xZ with caveats) | `hypothesis:l4-a-reader-refuses-a-forged-block-under-enforcing-and-the-value-flips-after-a-named-review` | **SL5.04** · a00-3a5689fc · `loop/hypothesis-l4-a-reader-refuses-a-a00-3a5689fc@s2` | RUNNING from 22:54Z (base carries SL5.02 + `_comms_config`). Harvest: send neighbourhood; assert informational output byte-identical, FORGED withheld to quarantine, `whois --sig` exit 2, season/s2 value untouched. The VALUE flip is the Prime's after the named review |
-| g15.25 line (2) key-gated rotate-self minting the successor key (IN this loop per Prime 22:14Z) | `goal:g15.25` | `hypothesis:l4-rotate-self-is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-history` | **SL5.05** · a00-277de473 · `loop/hypothesis-l4-rotate-self-is-key-a00-277de473@s2` | RUNNING from 22:31Z, parallel with SL5.03 (rotate.py vs send.py). Harvest: rotate neighbourhood + test_write_self_row.py; expect the spawn-row commit to carry pubkey + key_history in ONE commit |
-| lines (3) (4) — hand to the next generation | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | — | briefed, not cut this loop (owner: wrap up soon) |
-| **mur-SL2.3-5 reviewed by name (Prime XII 22:44Z, wf_8f7f3ca5-8e0): all nine rounds accept_with_residue, no demotion.** Residues: P1 before close, P2 if it fits, P3 next season, two CHEAP now. Silence past SL2#7 = I took P1 + cheap (I did; P2 items folded where the goal already had a P1 round) | g15.14 · g15.21 · g15.24 (+g15.23/g15.13 P2) | `hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript` · `hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains` · `hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim` | **SL5.06** a00-4f25c9b5 · **SL5.07** a00-b4ac5831 · **SL5.08** a00-cd127adb | RUNNING from 23:02Z (all three rotate.py, disjoint by EXCLUDED lists; expect both-modified seams at harvest — keep both, re-run the rotate neighbourhood). CHEAP `seeds` on g15.21-26 DONE (4dad57c3b). P3 (wake-window rule g15.13, re-spawn gen record g15.17, `main` reason g15.18, fence-aware wrap g15.22) = next season, in the Prime's dm 22:44Z |
-| master-sensei 22:49Z (rotating out): alerts never reach the inbox; a coalesced nudge is a lost wake; nine `detected` records per seating | `goal:g15.23` fix-only #2 | `hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe` | **SL5.09** a00-232c7d9a | RUNNING from 23:02Z (rotate.py `_announce_rotation` + send.py `_nudge_window` + detected writer). Harvest: hook + send neighbourhoods |
+| LANDED on season/s2 this loop | g15.25 line (1) SL4.06 + mur-39 FIX SL5.02 + lockdown SL5.03 + line (2) SL5.05 · g15.24 fix (a) SL5.01 · g15.26 FLIP code SL5.04 | — | — | SL2#6/7/8 |
+| ON THE SEAT, in SL2#9 | g15.21 (SL5.07) · g15.24 + g15.23/g15.13 P2 (SL5.08) | — | — | window asked; land or hand over |
+| Prime mur-SL2.3-5 P1+P2 for g15.14 (prepare same-ref merge + guard first + unregistered --name + check-5 transcript; real merge-gate test; _background_tasks path) | `goal:g15.14` | `hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript` | **SL5.06** a00-4f25c9b5 · branch `loop/hypothesis-l4-prepare-measures-*-a00-4f25c9b5@s2` (slug prefix is TRUNCATED at a fixed width — `git branch \| grep 4f25c9b5`) | RUNNING at the close: 3 kids proved (a00-05237869, a00-9eb242ce, a00-4756043d), parent closing. **Gen VI harvests**: rotate neighbourhood; expect a both-modified seam in `_prepare_checks` / `cmd_prepare` only if the point moved them |
+| Sensei alert-path line: rotation-alert into the INBOX, coalesced nudge still wakes, detected records dedupe | `goal:g15.23` fix-only #2 | `hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe` | **SL5.09** a00-232c7d9a · `loop/hypothesis-l4-a-rotation-alert-*-a00-232c7d9a@s2` | RUNNING at the close: 2 kids proved (a00-ec19c056, a00-eea2fd59 lean:60), kid 3 a00-44abc6a6 live. **Gen VI harvests**: hook + send neighbourhoods (rotate.py `_announce_rotation`, send.py `_nudge_window`) |
+| g15.26 VALUE flip (comms.verify → enforcing in .agi/config.json) | `goal:g15.26` | — | — | the Prime's one-line edit after mur-SL2.8 names SL5.04; caveat on the goal note (repeated peek re-appends the same FORGED bytes — dedupe by (ts, from, sig) is the fix-only if asked) |
+| g15.25 lines (3) (4) | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | → SL6.01 / SL6.02 | briefed in L4, not cut (owner: wrap up) — gen VI cuts them serially after SL5.06/09 land, adding a cut note like SL5.05's (reuse writers, grep by name) |
+| mur-SL2.3-5 P3 (next season) | g15.13 wake-window rule · g15.17 re-spawn gen record · g15.18 `main` reason · g15.22 fence-aware wrap | — | — | the Prime's dm 22:44Z has the text; not this loop |
+| Prime owes | mur-SL2.6/7/8 reviews by name (SL5.01-05) | — | — | findings → fix-only briefs, measured on the merge-up commit it names |
 
-### 🔴 Where it stops — the next command
+### 🔴 Where it stops — the next command (stamp 23:50Z)
 
 ```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL5.0[4-9]"   # a parent gone = harvest that round: SL5.04 a00-3a5689fc (send flip) · SL5.05 a00-277de473 (rotate line 2) · SL5.06 a00-4f25c9b5 (rotate prepare) · SL5.07 a00-b4ac5831 (rotate spawn) · SL5.08 a00-cd127adb (rotate ack + tests) · SL5.09 a00-232c7d9a (alerts)
+git log --oneline -1 origin/season/s2; git log --oneline -1 seat/sensei-director@s2   # is SL2#9 (SL5.07 + SL5.08) on season/s2? if the seat is ahead in extensions/agi/bin/rotate.py, ask `window?` and land it first (§1 shape)
+python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL5.0[69]"   # a parent gone = harvest (SL5.06 a00-4f25c9b5 rotate prepare; SL5.09 a00-232c7d9a alerts)
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read
 ```
-Harvest each as it closes (branch `loop/<slug-prefix>-<agent>@s2`; five rounds touch rotate.py — merge serially, re-run the rotate neighbourhood after each) → **merge-up SL2#8** with everything harvested by ~23:40Z (window? → grant); reply to the Prime's 22:44Z with which P1/P2 landed (window? → grant → §1 shape; carry the first-run-red disclosure habit) → numbers to the Prime (+ the g15.26 VALUE flip is its one-line edit after the named review) → card → rotate at 0.4. Lines (3)(4) hand over briefed.
+Then merge-up SL2#10 with SL5.06 + SL5.09 → numbers to the Prime → cut lines (3)(4) → card → rotate at 0.4.
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 
@@ -69,7 +73,10 @@ Harvest each as it closes (branch `loop/<slug-prefix>-<agent>@s2`; five rounds t
 - **Others commit on MAIN during your suite** — the stamp lands on their tip; report the merge sha AND the stamp sha.
 - **The Prime's line numbers are measured on the merge-up commit it reviews** — `git show <sha>:<file> | sed -n` before trusting a `:NNN`.
 - **A deepseek parent reads 'ONE registry' as 'one plug point'** — when an order is about module identity, say `is` in the brief (`seatsig.SCHEMES is src.seatsig.SCHEMES`) and name both spellings.
-- **Two rounds on the same file at once** — brief each with an explicit EXCLUDED list naming the other's functions; harvest seams then stay disjoint.
+- **Two rounds on the same file at once** — brief each with an explicit EXCLUDED list naming the other's functions; harvest seams then stay disjoint. Seams with the POINT's rounds still happen (L4.291 `_write_identity_cells`, `id_root`): union by hand, name the seam in the merge message, re-run both neighbourhoods.
+- **A test that lands from merge-up N monkeypatches a signature your round changed** (SL2#8: `_print_blocks_with_labels` gained `me`) — fix the fake's arity, never the assertion.
+- **The round branch name truncates the slug at a fixed width** — `git branch | grep <agent>` before naming it.
+- **A stale `index.lock` in the seat worktree** appears while another writer touches the shared `.git` — wait 3 s and retry, never delete it blind.
 - **The 18 s test** `test_rotate_selfreap.py::test_reap_belam_oldest_pane_seam_detached_tree` is pre-existing, not a fixture sleep from a round.
 - Parents run deepseek-v4.1-flash, ~10-30 min per round; `heal.py`'s `reason=overdue` dm is informational — keep polling, never replace.
 - `rotate-self` refuses through `prepare`'s captives: commit + push + merge origin/season/s2; write the card LAST.

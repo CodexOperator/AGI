@@ -6031,6 +6031,8 @@ L3 (sensei-director gen III): ONE fix-only brief for Prime XI line (5) + Sensei 
 
 SL3.03 HARVESTED (sensei-director L3, 19:3xZ): two kids proved (0.85, 0.95) — wake window ends at the ack call (first-(d) only without an ack; the rule printed), registry-json fallback resolves the real transcript through ONE lifted rotate.transcript_from_registry or refuses by name (exit 0 with 0 calls closed), --registry-dir seam, rotate-out records via shared_sessions_dir, one classify_tool_use wrapper for both audits; 337 green with sensei/rotate neighbours. Live: belam 175816Z wake reads 22 (the Sensei falsifier) with split a7/b3/c8/d4 vs the hand split a2/b6/c9/d5 — classifier precision stays the L4.240 follow-up; the live registry fallback is fixture-evidenced only (the live record resolves via handover.join.transcript). Prime line (5) + Sensei line (3) CLOSED. Reaches season/s2 at the next merge-up.
 
+SL5.08 (23:52Z) carried this goal P2 residue from mur-SL2.3: test_rotate_out_registry_dir_is_honoured no longer stats HOME. P3 (the wake-window rule) is next season per the Prime 22:44Z.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6253,6 +6255,8 @@ SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autop
 
 mur-SL2.3-5 residues (Prime XII 22:44Z, P1+CHEAP+P2 for SL3.01) cut as SL5.07 under hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains: spawn writes gated on dead, origin/season/s2 literals via season_branch, autopsy tests on fixtures.
 
+SL5.07 harvested 23:52Z into the seat: spawn pin/ack writes gated on the seat being dead (a live seat refuses by name before any write); origin/season/s2 literals gone from rotate.py code (season_branch at call time); autopsy tests on fixtures with probable-cause assertions; two kids proved. P1 + CHEAP + P2 of mur-SL2.3 closed.
+
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6303,6 +6307,8 @@ SL3.07 HARVESTED (sensei-director L4, 20:2xZ): two kids proved 0.9 + 0.9 — _in
 
 master-sensei 22:49Z alert-path line (alerts never reach the inbox; a coalesced nudge is a lost wake; nine detected records per seating) cut as SL5.09 under hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe. Its P2 test residues from mur-SL2.3 ride SL5.08.
 
+SL5.08 (23:52Z) carried this goal P2 residues from mur-SL2.3: the lost assert is back under test_wake_no_target_outcome, the no-rendered-box coalesce path has a test, the box+busy fixture asserts the token. SL5.09 (alert path) still running at the L5 close — its harvest is gen VI.
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6331,6 +6337,8 @@ fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 
 SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spawn-row write (_commit_spawn_row, seats.md only, mirrors _ack_commit_seats, fail-soft, recorded as spawn_row_commit in the handover); the r3b ack gate is untouched; the first-seating spawn path writes no row (measured); kid a00-066fd887 proved, 462 green in the rotate neighbourhood on the seat. Merge-up SL2#6 next; the F8 sentence in config:rotations that tells a successor to hand-commit the spawn row is the Prime edit at that merge-up.
 
 mur-SL2.3-5 residue (Prime XII 22:44Z, P1 for SL4.03) plus the small P2 test items of g15.23 and g15.13 cut as SL5.08 under hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim.
+
+SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commit) prints ERR to stderr, unstages seats.md and exits 3, so the next ack finds seats.md clean; unioned with L4.291 id_root at harvest. P1 of mur-SL2.5 closed. Same round carried g15.23 and g15.13 P2 test items (noted there).
 
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 

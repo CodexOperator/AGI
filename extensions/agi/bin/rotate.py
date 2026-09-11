@@ -1518,6 +1518,36 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     if seat is not None:
+        # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
+        # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
+        # seat-and-no-season-literal-remains): the seat row's pid is still
+        # running, or a live tmux window is already up for the seat. The
+        # liveness read is the SAME one the autopsy block uses — the row pid
+        # via `_pid_gone` AND `_successor_window_id` for the live window —
+        # never a second derivation, so the gate and the autopsy agree.
+        _alive_note = None
+        if root is not None:
+            _gpid = (_find_seat(root, seat) or {}).get("pid")
+            if _gpid is not None:
+                # the row names a predecessor pid: the seat is ALIVE iff the
+                # pid is still running, or a live window is up for the seat
+                # (test_rotate.py test_spawn_first_seating... proves a seat
+                # with NO row pid — a genuine first seating — is never gated).
+                try:
+                    if not _pid_gone(int(_gpid)):
+                        _alive_note = f"pid {_gpid}"
+                    else:
+                        _lwid = _successor_window_id(
+                            seat, tmux_session, args.window_path)
+                        if _lwid is not None:
+                            _alive_note = f"window {_lwid}"
+                except (TypeError, ValueError):
+                    _alive_note = None
+        if _alive_note is not None:
+            print(f"ERR: seat {seat!r} is alive ({_alive_note}); refusing "
+                  f"spawn — the seat is already up (goal:g15.21)",
+                  file=sys.stderr)
+            return 1
         if root is None:
             # goal:g15.17 (a): a caller that OWNS a seat but stands OUTSIDE
             # any project root cannot compose a role template (no
@@ -1933,7 +1963,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (write + print, no commit). Nothing written -> nothing to
             # commit.
             if do_commit and not already:
-                print(_ack_commit_seats(id_root, seat, args, ref))
+                # SL2#9 seam: L4.291's id_root (the identity root, MAIN) with
+                # SL5.08's failure path (stderr + unstage + exit 3).
+                _ok, _out = _ack_commit_seats(id_root, seat, args, ref)
+                if _ok:
+                    print(_out)
+                else:
+                    # a failed ack commit (git add OR git commit) printed its
+                    # error here, on STDERR, and UNSTAGED the row; cmd_ack
+                    # exits 3 so the failure is visible and the NEXT ack's
+                    # dirty gate (_ack_seats_dirty) finds seats.md clean
+                    # again, not staged.
+                    print(_out, file=sys.stderr)
+                    return 3
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -3819,13 +3861,21 @@ def _reaper_lines_for(pid: int, sources: list[tuple[str, Path | None]]) -> list[
     return out
 
 
-def _seating_worktree_lines(root: Path, season: str = "origin/season/s2") -> list[str]:
+def _seating_worktree_lines(root: Path, season: str | None = None) -> list[str]:
     """The three worktree-state facts read for BOTH every `[seating]` block and
     the autopsy — one helper, two callers (cmd_spawn tags the line `[seating]`,
     the autopsy re-tags it `{AUTOPSY_TAG}`). Reads only: `behind N` (rev-list
     count), `unresolved merge: yes|no` (`MERGE_HEAD` present), `dirty: <n>
     paths` (porcelain, cron churn excluded exactly as `_prepare_churn_path`
-    does). Returns a single rendered line carrying all three facts."""
+    does). Returns a single rendered line carrying all three facts. The season
+    is never a literal: the default resolves through `season_branch(root)` at
+    call time and is addressed as the remote ref `origin/{season}` (the same
+    shape every other season reader in rotate.py uses), so a season change is
+    ONLY the ladder's `current_season` (hypothesis:l4-the-prepare-captives-
+    measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam)."""
+    if season is None:
+        season = season_branch(root)
+    season = f"origin/{season}"
     behind = _git_count_maybe(root, "rev-list", "--count", f"HEAD..{season}")
     merge_head = _git_maybe(root, "rev-parse", "-q", "--verify", "MERGE_HEAD")
     unresolved = bool(merge_head)
@@ -3865,11 +3915,14 @@ def _compose_seating_base_block(*, seat: str, source: str, now: str,
 
 
 def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
-                 root: Path, season: str = "origin/season/s2") -> list[str]:
+                 root: Path, season: str | None = None) -> list[str]:
     """Render the full autopsy block for a predecessor `pid` of `seat`. Prints
     FROM FILES ONLY and runs read-only commands only. Returns the `[autopsy]`
     lines (the caller may tag them into the `[seating]` block or print them as
-    `rotate.py autopsy`)."""
+    `rotate.py autopsy`). The worktree season default resolves through
+    `season_branch(root)` — never a hardcoded season literal."""
+    if season is None:
+        season = season_branch(root)
     lines: list[str] = []
     data = _registry_read(registry_dir, pid)
     alive = not _pid_gone(pid)
@@ -5060,7 +5113,7 @@ def _ack_seats_dirty(root: Path, top: Path) -> str | None:
 
 
 def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
-                      ref: str) -> str:
+                      ref: str) -> tuple[bool, str]:
     """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
     row rewrite it just back-filled: `git add` seats.md + ONE commit whose
     message is a single line
@@ -5070,22 +5123,31 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     the successor never re-reads. A back-fill that changed nothing (the row
     already carried the ref) commits nothing and says so in one line. The
     last printed line is the exact `git push` command — printed, never run.
-    Returns one multi-line outcome string (or "" when it did nothing)."""
+
+    Returns (ok, out). ok True -> out is the multi-line success string for
+    STDOUT and the row is committed. ok False -> EITHER `git add` OR
+    `git commit` failed: the row was UNSTAGED with `git reset -q -- <rel>`
+    (the working tree keeps the back-filled row) and out is the error line
+    the caller must PRINT TO STDERR and pair with a non-zero (3) exit: a
+    failed ack commit must never leave seats.md staged — that is exactly
+    the dirt that would refuse the NEXT ack."""
     top = _git_toplevel(root)
     if top is None:
-        return ("ack: no git repo — row written, not committed "
+        return (True, "ack: no git repo — row written, not committed "
                 "(a gitless worktree has no commit to make)")
     seats = _ack_seats_path(root)
     rel = os.path.relpath(seats, top)
     add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        return f"ERR: git add {rel!r} failed: {add.stderr.strip()}"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git add {rel!r} failed: {add.stderr.strip()}")
     cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
                              "--", rel], capture_output=True, text=True)
     diff = cached.stdout if cached.returncode == 0 else ""
     if not diff.strip():
-        return "ack: no change to seats.md — nothing committed"
+        return (True, "ack: no change to seats.md — nothing committed")
     lines = []
     for ln in diff.splitlines():
         if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
@@ -5101,9 +5163,11 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
                          msg, "--", rel], capture_output=True, text=True)
     if rc.returncode != 0:
-        return f"ERR: git commit failed: {rc.stderr.strip()}"
-    return "ack: committed own row write (" + str(rel) + "):\n" + \
-        "\n".join(lines) + f"\ngit -C {top} push"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git commit failed: {rc.stderr.strip()}")
+    return (True, "ack: committed own row write (" + str(rel) + "):\n"
+            + "\n".join(lines) + f"\ngit -C {top} push")
 
 
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
