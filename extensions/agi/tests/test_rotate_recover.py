@@ -336,16 +336,21 @@ def test_chain_seat_successor_is_next_numeral(graph):
     assert row["window"] == "@777"
 
 
-def test_chain_successor_refuses_existing_numeral_name(graph):
-    """(1c) a live window named for the chain seat means a live successor, not
-    a corpse -> the dead prime is NOT respawned into that name."""
+def test_chain_corpse_behind_predecessor_window_is_respawned(graph):
+    """(1c) DELETED (prime XI ruling 2026-09-11 19:38Z): an idle predecessor
+    window (`belam-S1-L4-II`, the owner's capped chain) is NOT a live
+    successor — the dead prime (@50 gone) IS respawned, into the NEXT numeral,
+    with the predecessor window still open. Before the ruling this read
+    `nothing` and prime crash-recovery was structurally dead."""
     _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@50",
-                          "role": "prime_director"}])
+                          "role": "prime_director", "generation": 2}])
     launch_recs: list = []
     acted = _scan(graph, launcher=_working_launcher(launch_recs),
-                  window_names=("", "belam-S1-L4-II"))
-    assert acted == [], "a window named for the seat is a live successor"
-    assert not launch_recs and _crash_records(graph, "belam") == []
+                  window_names=("", "@2 belam-S1-L4-II"))
+    assert len(acted) == 1 and acted[0]["respawned"] is True, \
+        "a corpse behind an open predecessor window is DEAD"
+    assert len(launch_recs) == 1
+    assert launch_recs[0]["name"].endswith("-III"), launch_recs[0]["name"]
 
 
 def test_spawn_failure_leaves_no_row_and_no_dm(graph):

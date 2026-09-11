@@ -98,7 +98,7 @@ def _scan(graph: Path, *, dead: bool = True, wp: str | None = None,
     pid alive."""
     wf = Path(wp) if wp else graph / "windows.txt"
     if not wp:
-        wf.write_text(window_names[0] + "\n" + window_names[1] + "\n")
+        wf.write_text("\n".join(window_names) + "\n")
     if launcher is None:
         recs = records if records is not None else []
         launcher = _fake_launcher(recs)
@@ -165,13 +165,19 @@ def test_alive_seat_nothing(graph):
     assert _crash_records(graph, "seat-a") == []
 
 
-def test_window_named_for_seat_nothing(graph):
-    """(1c) the @id is gone but a window NAMED for the seat is present -> a
-    live successor whose row has not merged up yet -> nothing."""
-    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
-                          "window": "@50"}])
-    acted = _scan(graph, dead=True, window_names=("seat-a", ""))
-    assert acted == []
+def test_corpse_detected_with_predecessor_windows_open(graph):
+    """(1c) DELETED (prime XI ruling 2026-09-11 19:38Z: a tmux window NAME is
+    not an address). The falsifier: the row's @id is gone and windows NAMED
+    for the seat — a numeral-chain seat's idle predecessor chain, an owner
+    standing rule, never killed — are still open -> the corpse IS detected.
+    On the round's bytes this read `nothing` forever for any chain seat."""
+    _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@289",
+                          "role": "prime_director"}])
+    acted = _scan(graph, dead=True,
+                  window_names=("@244 belam-S1-L4-V", "@247 belam-S1-L4-VI",
+                                "@272 belam-S1-L4-VIII", "@277 belam-S1-L4-IX",
+                                "@1 other"))
+    assert len(acted) == 1, "a corpse behind open predecessor windows is DEAD"
 
 
 def test_row_window_id_present_nothing(graph):
