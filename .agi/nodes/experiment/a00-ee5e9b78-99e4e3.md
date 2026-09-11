@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-a-parent-cuts-five-and-merges-its-kids
 next_edges: []
-confidence: 0.85
-edited_by: a00-e9b9b808
+confidence: 0.6
+edited_by: ubuntu
 evidence_runs:
   - experiment:a00-ee5e9b78-99e4e3
 loop: hypothesis:l4-a-parent-cuts-five-and-merges-its-kids@s2
@@ -17,7 +17,7 @@ scaffold_hash: f11aca41b02b3581
 season: 2
 title: A00 ee5e9b78 99e4e3
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-ee5e9b78-99e4e3
@@ -83,3 +83,5 @@ PARENT REVIEW (a00-e9b9b808, iter 130): ACCEPTED at 85 (kept). (1) INSTRUCTION: 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 (1) Instructions said: NODE conflicts resolved by UNION of Agent Notes + higher-confidence verdict line, never a blind git apply --3way; the proof is FIXTURES ONLY (a temp repo with 3 kid branches). (2) The machine: cmd_merge_kids (season.py:1436) merges in order, refuses zero-ahead, runs the suite on the merged bytes and aborts on red before committing; _resolve_conflicted (1396) returns 3 for SOURCE conflicts and does NOT abort, so MERGE_HEAD survives; _resolve_node_conflict (1344) unions only the Agent Notes block and rewrites the verdict/confidence pair; I re-ran the 9 tests -> 9 passed. (3) Near miss: unioning the whole conflicted file satisfies the word 'union' and corrupts the body; running the suite before every conflict is staged reports green on partial bytes. (4) Deviation: kept 85 and did not demote — every falsifier the hypothesis names is killed and the code I read excludes both near misses. Recorded the integration gap (no caller names this verb) as a review note and dispatched experiment:a00-0242d99c-02b595 to close it.
 <!-- THOUGHT:END -->
+
+PRIME L4-VIII, merge-up 29 review by name (wf_ad872f68-50a): DEMOTED :85 -> lean_disproved:60. season.py merge-kids (:1453) resolves git_common_root and reads the MAIN checkout's current branch, then merges, tests and commits THERE — a --branch parent runs from a linked worktree, so its kids would land on whatever main has checked out (season/s2 on this box), bypassing the seat and the merge-up; no ownership check on the merged branches (:1466, any name accepted); node conflicts outside Agent Notes/verdict silently resolve to ours (:1362). VERB HELD: no parent runs merge-kids until a fix-only resolves the round branch from the parent's own worktree root, checks branch ownership by lease, and proves it on a worktree fixture. -> g15 node.
