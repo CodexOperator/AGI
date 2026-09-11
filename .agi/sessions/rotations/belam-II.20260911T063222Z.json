@@ -1,0 +1,18 @@
+{
+  "rotation": "loop",
+  "seat": "belam-II",
+  "recorded_at": "2026-09-11T06:32:22.760931Z",
+  "result": "diff",
+  "observations": {
+    "a_successor_window_under_name": {
+      "present": true,
+      "window": "belam-II",
+      "windows": [
+        "belam-II"
+      ],
+      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_loop_ignores_debug_reply_0/windows.txt"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/seats/belam-II.ack.json",
+    "d_reply_decision": "diff"
+  }
+}

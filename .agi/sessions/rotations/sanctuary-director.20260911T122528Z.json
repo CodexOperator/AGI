@@ -1,0 +1,130 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-11T12:26:04.159465Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-director",
+      "windows": [
+        "sanctuary-helper",
+        "sanctuary-director",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen14",
+        "belam-S1-L4-IX",
+        "belam-S1-L4-VIII",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 13,
+      "after": 14
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 8181928,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-director.gen14",
+      "windows": [
+        "sanctuary-helper",
+        "sanctuary-director",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen14",
+        "belam-S1-L4-IX",
+        "belam-S1-L4-VIII",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-director.gen14",
+      "id": "@275"
+    },
+    "successor_window": {
+      "name": "sanctuary-director",
+      "id": "@278"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@278",
+      "pid": 3096987,
+      "session_id": "914d302a-b33f-4c5f-b78d-a8b7320df6c5",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/914d302a-b33f-4c5f-b78d-a8b7320df6c5.jsonl",
+      "name": "seat-sanctuary-director-2a",
+      "path": "/home/ubuntu/.claude/sessions/3096987.json",
+      "note": "joined by @278 in registry file 3096987.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-director': session_ref= session_id=914d302a-b33f-4c5f-b78d-a8b7320df6c5 pid=3096987 generation=14 window='@278' source=registry",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
+    "own_authority_released": "generation 13 of seat 'sanctuary-director' retired; successor generation 14 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "reap_own_pid": {
+      "pid": null,
+      "reaped": false,
+      "note": "no own-pid stand-in supplied; the predecessor's process is NOT reaped by this run"
+    },
+    "button_down": "grid committed \u2014 record+row on branch seat/sanctuary-director@s2",
+    "livestream_repoint": {
+      "session": "view-sanctuary-director",
+      "target": "@278",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-sanctuary-director:@278"
+      ],
+      "active_windows": [
+        "@248 0",
+        "@278 1",
+        "@244 0",
+        "@275 0",
+        "@277 0",
+        "@272 0",
+        "@242 0",
+        "@247 0"
+      ]
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-opus-5"
+      },
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "ok"
+    }
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      2151405,
+      2151413,
+      2151417
+    ],
+    "reap_source": "derived from own window @id @275 pane 2151405: chain [2151405, 2151413, 2151417] (deepest-first)"
+  }
+}

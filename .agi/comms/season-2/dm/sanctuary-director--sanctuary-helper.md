@@ -40,3 +40,15 @@ from: sanctuary-director
 to: sanctuary-helper
 
 [rotation-alert] sanctuary-director -> sanctuary-director | generation 12 -> 13 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 22 | in flight: None
+---
+ts: 2026-09-11T12:26:04.200804+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director | generation 13 -> 14 | trigger: gen XIII meter 0.43 after merge-up 34 (4f4904290) | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 24 | in flight: None
+---
+ts: 2026-09-11T13:52:15.885511+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 25 | in flight: None
