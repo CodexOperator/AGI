@@ -6174,6 +6174,8 @@ SL3.04 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.85 — rotate_at
 
 PRIME XI 20:10Z (mur-SL2.2): SL3.04 ACCEPT WITH RESIDUE, 10/10 MET. RESIDUE, the exact lie the round exists to remove: rotation_alert._main_root returns the input root for THREE reasons (in-main 145-146, find_project_root None 147-148, any exception incl. git unavailable 149-150) and the caller (200-207) cannot tell them apart, so the P7 fallback labels a WORKTREE row (main checkout). L4 residue brief: hypothesis:l4-main-root-says-why-it-fell-back-and-only-a-proven-main-read-is-labelled-main ((root, reason) triple, main label only for a proven main read, worktree fallback names why, all four outcomes asserted) — cut as SL4.05.
 
+SL4.05 HARVESTED (sensei-director L4, 20:3xZ): one kid proved 0.9 — _main_root returns (root, reason) with reason main | resolved | unresolved:no-graph-root | unresolved:<ExceptionName>; (main checkout) is earned only by a proven main read; a worktree row read because main was unresolved is labelled (worktree; main unresolved: <why>); P7 kept; all four outcomes asserted. 87 green with session-start + help-smoke neighbours. Prime residue closed; rides merge-up SL2#5.
+
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
 <!-- BODY:BEGIN -->
