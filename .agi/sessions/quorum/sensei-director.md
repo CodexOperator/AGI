@@ -71,7 +71,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | captive window reply + point's harvest-or-cut | `goal:g15.14` (3+4) | `hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps` | SL1.04 · a00-d7f4b9bf · `loop/hypothesis-l4-the-window-reply-a-a00-d7f4b9bf@s2` | RUNNING 16:29Z |
 | rotation_alert.py residue (owner 16:2xZ item B) | `goal:g15.18` | `hypothesis:l4-the-rotation-alert-hook-says-what-it-measures` | SL1.05 · a00-12731a28 · `loop/hypothesis-l4-the-rotation-alert-a00-12731a28@s2` | RUNNING 16:5xZ |
 | alert carries the address · ack without --ref · rotate-self reads geometry at `{repo}` or refuses when behind (Sensei 4/5/h/i) | `goal:g15.16` | `hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one` | — | NEXT: `SL1.06` after SL1.03 lands (same rotate.py region) |
-| first seating alerts the Sensei (owner 16:2xZ item A) | `goal:g15.17` | `hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-does` | — | after SL1.06 lands (both edit `_announce_rotation`) |
+| first seating alerts the Sensei (owner 16:2xZ item A) + spawn runs the role's first_turn / STARTUP OUTPUT (Sensei 16:38Z, measured on THIS seat's hand seating: 22/40 calls free under the template) | `goal:g15.17` | `hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-does` + `hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor` | — | after SL1.03 AND SL1.06 land (spawn tail + first_turn region); one parent, two kids |
 | Sensei line 9 (L4.94 reminder hook) | — | installed by the Prime 16:21Z (398572f43) | — | closed |
 | Sensei loose (a)(d) landed; (b)(c)(e/g/j/m) in the point's queue / L4.240 follow-up; (f) `provisioning.py credits` | — | not mine unless the Sensei re-asks | — | parked |
 
@@ -81,6 +81,7 @@ Reported to the Prime 16:2xZ (g15.13–15 + 4 caveats), 16:4xZ (g15.16), 16:5xZ 
 
 ```
 python3 extensions/agi/bin/send.py read sensei-director                       # Prime amendments / new Sensei asks first
+python3 extensions/agi/bin/write.py config:rotations 'read body 35:60'        # F1-F15 — ONLY if your first input carried no '## STARTUP OUTPUT' (a hand seating; Sensei 16:38Z)
 python3 extensions/agi/bin/spawn_budget.py status | grep SL1                  # a parent gone from the list = exited
 git branch --list 'loop/*@s2' | tr -d ' +*'                                    # EXACT branch names for the harvest
 ```
