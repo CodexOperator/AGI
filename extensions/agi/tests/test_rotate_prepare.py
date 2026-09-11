@@ -198,10 +198,11 @@ def test_rotate_self_refuses_on_dirty_with_same_line(
     unpushed commit + stale pin refuse with the exact blocker line, exit 3,
     before any side effect (no started record, no handoff)."""
     dirty = {("status", "--porcelain"): [" M rotate.py"]}
+    branch = {("rev-parse", "--abbrev-ref", "HEAD"): ["feature/rotate"]}
     unpushed = {("rev-list", "--count", "@{u}..HEAD"): ["1"]}
     ok = {("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe",
-                        _git_map({**dirty, **unpushed, **ok}))
+                        _git_map({**dirty, **branch, **unpushed, **ok}))
     _stale_pin(prep_root)
     rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
     err = capsys.readouterr().err
@@ -235,3 +236,123 @@ def test_prepare_names_behind_captive_and_card_stale(prep_root, capsys,
     assert "git merge --no-edit origin/season/s2" in out
     assert "rebase" not in out
     assert "card older than last commit" in out
+
+
+def _seat_row(prep_root, gen):
+    """Write a config:seats row for adv-alive carrying an explicit
+    `generation` — the AUTHORITY the check reads FIRST (the handoff header
+    is only the fallback)."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    row = {"name": "adv-alive", "role": "parent",
+           "generation": gen, "worktree": ""}
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        encoding="utf-8")
+
+
+def test_prepare_blocks_when_row_generation_older_than_pin(
+        prep_root, capsys, monkeypatch):
+    """The generation comes from the config:seats ROW first (the authority),
+    not the handoff header. Row generation 2 while the pin is written for gen
+    3 -> the meter-pin captive BLOCKS by name with cur=2. (Hypothesis l4-...-
+    measure-generation-upstream-and-season, piece 1.)"""
+    _seat_row(prep_root, 2)          # row outweighs the fixture handoff's 3
+    _no_git(monkeypatch)             # git degrades to ok; only the pin blocks
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] meter pin stale (seat_pin-stale) cur=2" in out
+
+
+def test_prepare_blocks_when_ack_is_from_older_generation(
+        prep_root, capsys, monkeypatch):
+    """Same row-first authority for the ack: row generation 2 while the ack
+    records gen_after 1 -> the stale-ack captive BLOCKS by name."""
+    _seat_row(prep_root, 2)
+    sess = prep_root / "sessions"
+    (sess / "seats" / "adv-alive.ack.json").write_text(
+        json.dumps({"seat": "adv-alive", "gen_after": 1}), encoding="utf-8")
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] stale ack (adv-alive.ack.json) cur=2" in out
+
+
+def test_prepare_generation_unmeasured_is_said_not_silent(
+        prep_root, capsys, monkeypatch):
+    """A seat with NEITHER a config:seats row generation NOR a handoff header
+    prints both captives as ok + a plain `generation unmeasured` note, never
+    silently passing with cur_gen=0 (the old `cur_gen`-truthiness gate made
+    them inert on exactly that seat)."""
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(seat="ghost"), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert ("[ok] meter pin stale (seat_pin-stale) generation unmeasured: "
+            "no config:seats row, no handoff") in out
+    assert ("[ok] stale ack (ghost.ack.json) generation unmeasured: "
+            "no config:seats row, no handoff") in out
+
+
+def test_rotate_self_still_refuses_with_window_path_set(
+        prep_root, capsys, monkeypatch):
+    """The rotate-self gate is NOT keyed on the `--window-path` fixture seam
+    (hypothesis l4-...-the-gate-is-not-a-test-seam): a live-invoked --window-
+    path used to skip the whole checklist silently; now with a dirty fixture
+    tree it STILL refuses BY NAME and exit 3."""
+    dirty = {("status", "--porcelain"): [" M rotate.py"]}
+    branch = {("rev-parse", "--abbrev-ref", "HEAD"): ["feature/rotate"]}
+    ok = {("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**dirty, **branch, **ok}))
+    rc = rotate.cmd_rotate_self(_rotate_self_args(window_path="/tmp/fake.txt"),
+                                prep_root)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self blocked: dirty tree" in err
+
+
+def test_prepare_blocks_no_upstream_named(
+        prep_root, capsys, monkeypatch):
+    """A branch with NO upstream: `@{u}` does not resolve and `origin/<br>`
+    does not exist either -> the unpushed captive BLOCKS `no upstream for
+    <branch>` with the push -u command, instead of falling through inert as
+    (None or 0) > 0 = False."""
+    branch = {("rev-parse", "--abbrev-ref", "HEAD"): ["fresh/unpushed"]}
+    ok = {("status", "--porcelain"): [],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    # neither `@{u}..HEAD` nor `origin/fresh/unpushed..HEAD` is injected -> None
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map({**branch, **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] no upstream for fresh/unpushed" in out
+    assert "git push -u origin fresh/unpushed" in out
+
+
+def test_prepare_season_branch_comes_from_the_ladder(
+        prep_root, capsys, monkeypatch):
+    """The season is resolved from the ladder's `current_season`, never a
+    hardcoded season/s2. Ladder season 3 -> check 3 names origin/season/s3 and
+    the merge command merges origin/season/s3 (and the geometry sync command
+    derives the same branch)."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "ladder.md").write_text(
+        "---\ntype: config\ncurrent_season: 3\n---\n", encoding="utf-8")
+    behind = {("status", "--porcelain"): [],
+              ("rev-parse", "--abbrev-ref", "HEAD"): ["feature/x"],
+              ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+              ("rev-list", "--count", "HEAD..origin/season/s3"): ["5"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(behind))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] behind origin/season/s3 (5)" in out
+    assert "git fetch origin season/s3 && git merge --no-edit origin/season/s3" \
+        in out
+    assert rotate._geometry_sync_cmd(prep_root) == \
+        "git fetch origin season/s3 && git merge --no-edit origin/season/s3"
