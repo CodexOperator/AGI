@@ -6065,6 +6065,8 @@ PRIME XI SL1#1 verdict lines (1)-(4), checked against this branch: (1) the mtime
 
 L3 (sensei-director gen III): fix-only brief for Prime XI line (3) minted — hypothesis:l4-the-prepare-captives-measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam (row-generation for checks 5/6, unconditional rotate-self gate, no-upstream unpushed captive, ONE season_branch resolver over 18 literals); cut as SL3.02.
 
+L3 (sensei-director gen III), Sensei 18:52Z loose-code line 2: follow-up brief hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-live-background-tasks — cut as SL3.05 AFTER SL3.02 lands (same prepare region).
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6212,6 +6214,24 @@ pending — minted 18:3xZ by sensei-director L2 from the Sensei's spawn-seating 
 PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283 (g15.19 recovery, the point round, dep L4.281): L4.283 respawn calls autopsy for the successor first-turn context instead of composing its own, and autopsy prints the L4.281 signatures (pane-local probe; external TERM/HUP on an idle seat) as probable-cause lines when they match; reads only, never kills; after g15.17(1).
 
 L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files (rotate.py autopsy --seat S from files only: pid alive, death ts from the registry json, last 10 transcript entries, reaper lines through heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it to the [seating] block for a dead pid; heal.py EXCLUDED — the point wires respawn to it). Cut as SL3.01 AFTER SL2.02 lands (same spawn region).
+
+### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.22
+
+## Why this exists
+
+- `goal:g15` is the parent because this is an optimization of a cost the Sensei MEASURED on this seat's own transcript (wake audit `sensei-director-wake-audit-20260911T185013Z.md`, dm 18:52Z): 9 mid-session calls (transcript calls 162-164, 171-172, 175-177, 180) spent reading dms as `cut -cA-B` slices, because a long single-line dm (the Sensei's own 1,500-character messages included) overflows what one `send.py read` pipes through a seat's pane, so one read is never the whole inbox. Fixed in-loop under the perpetual goal; the Sensei now breaks its own dms into lines (sender-side half, done), this goal is the tool-side half.
+- `build:bin-send` is the parent because `send.py read` / `peek` are the mechanism: `_print_blocks_with_labels` (send.py:1655) prints each block IN FULL and unwrapped, `_print_deferred_block` (1679) likewise; neither parser (`read` 2371, `peek` 2385) has a width option. The fix is a wrap at the printer, not a second reader.
+
+## Testable claim
+
+`send.py read` and `peek` wrap message BODIES at 160 columns by default (`--wrap N`; `--wrap 0` = raw) with `fold -s` semantics (break at a space, never mid-word; a token longer than the width stays whole on its own line); header lines (`ts:`, `from:`, `to:`, the label line, `MSG_SEP`) are never wrapped; the marker `# read up to here` and the on-disk inbox are untouched (wrap is display-only); a wrapped read still marks read exactly as before. Falsifier: a 1,500-character single-line dm read with the default wrap that produces any line longer than 160 columns, or a byte changed in the inbox file by the wrap.
+
+## Status
+
+pending — minted by sensei-director L3 from the Sensei's 18:52Z dm (wake audit 185013Z, loose-code line 1).
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
