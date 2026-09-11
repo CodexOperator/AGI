@@ -736,6 +736,33 @@ def test_filter_short_cluster_expansion_pinned(tmp_path):
     assert rotate._producing_refusal(f"{P} | sort -k2 -nr") is None
 
 
+def test_producing_refusal_path_form_exe_and_sed_grammar(tmp_path):
+    # hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-grammar-
+    # anchors-its-fields. TWO escapes must be REFUSED by name.
+    P = "python3 extensions/agi/bin/foo.py"
+    name = "producer %s is a path, not an allowlisted name"
+    # (1) EXE TOKEN BY PATH: a path-form exe (any `/`) is refused BY NAME
+    # for unit-leading producers AND pipe-fed filter stages; basename would
+    # silently allow an off-allowlist binary behind a path.
+    assert rotate._producing_refusal(f"{P} | /tmp/x/head -5") == \
+        name % "/tmp/x/head"
+    assert rotate._producing_refusal(f"{P} | ./head -5") == name % "./head"
+    assert rotate._producing_refusal("/tmp/x/git status -sb") == name % "/tmp/x/git"
+    assert rotate._producing_refusal("git status -sb | /tmp/x/head -5") == \
+        name % "/tmp/x/head"
+    # (2) SED GRAMMAR BACKTRACKING: the delimiter may NOT be a flag char or
+    # alphanumeric, and each field is anchored to never contain it — so a
+    # delimiter-absorbed `e` flag can no longer pass. Benign forms still run.
+    for cmd, allowed in [("s/x/y/", True), ("s/x/y/g", True),
+                         ("s/x/y/e", False), ("s|x|y|e", False),
+                         ("sgxgygeg", False), ("s0x0y0e0", False)]:
+        ref = rotate._producing_refusal(f"{P} | sed {cmd}")
+        if allowed:
+            assert ref is None, (cmd, ref)
+        else:
+            assert ref == "filter sed program", (cmd, ref)
+
+
 def test_filter_sed_program_grammar_allowlist(tmp_path):
     # sed programs are allowlisted by GRAMMAR, not by token. A `;`-split
     # command must be `s<d>...<d>...<d>[gIp0-9]*` or an address command
