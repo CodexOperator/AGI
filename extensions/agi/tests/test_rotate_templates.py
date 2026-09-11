@@ -177,17 +177,23 @@ STARTUP_VALUES = {
 # this replaced only MIRRORED the node, so a live node that regressed to
 # `rotate.py whois` would keep them green; reading the bytes the suite ships is
 # the only claim that holds the templates to what rotates the seats.
-def _live_first_turn() -> dict:
+def _live_first_turn(path: "str | Path | None" = None) -> dict:
     """Templates.<role>.startup.first_turn for EVERY role, read from the
-    checked-in .agi/nodes/.geometry/rotations.md (not a fixture copy). The
-    rotations node is `type: config`, owned by the owner/prime — a kid reads it
-    (and the fixed templates it already carries under
-    hypothesis:l4-rotations-startup-commands-must-parse) and never writes it.
+    checked-in .agi/nodes/.geometry/rotations.md by default (not a fixture
+    copy) — or from an explicit `path=` copy, so a drift test can point the
+    SHARED reader at a /tmp copy and show the live-config judgement go red
+    without touching the live node (hypothesis:l4-the-drifted-node-test-is-
+    in-the-suite). The rotations node is `type: config`, owned by the
+    owner/prime — a kid reads it (and the fixed templates it already carries
+    under hypothesis:l4-rotations-startup-commands-must-parse) and never
+    writes it.
     """
     from graph_core.persistence import frontmatter as _fm  # noqa: E402
-    rot = (Path(__file__).resolve().parents[3]
-           / ".agi" / "nodes" / ".geometry" / "rotations.md")
-    assert rot.exists(), f"live rotations.md missing: {rot}"
+    if path is None:
+        path = (Path(__file__).resolve().parents[3]
+                / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    rot = Path(path)
+    assert rot.exists(), f"rotations.md missing: {rot}"
     nf = _fm.load_node_file(rot)
     templates = nf.frontmatter.get("templates") or {}
     out = {}
