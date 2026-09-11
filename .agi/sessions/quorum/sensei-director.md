@@ -55,11 +55,11 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 
 | | |
 |---|---|
-| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **31c1349b7** (synced to `origin/season/s2` d45bbf571 at 2c9dc16ce) — 2 small commits ahead (behind-count line + @@ fix, g15.17 notes) |
+| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **8adf41660** (synced to `origin/season/s2` at ad7162a23) — in-loop fixes + g15.21 ahead of season/s2, pending SL2#1 |
 | merge-up | **SL1#2 LANDED 18:23Z**: MAIN 0dec5a8f9 on c95c5d678 (Prime XI `49c09b` GO 18:04Z after 39); suite 3260 passed / 13 skipped, 11/11; active 2197 / deprecated 195 / total 2392 (baseline 2183 → 2197); stamped d45bbf571; grid v469 + refs pushed; numbers + one line per goal sent to the Prime 18:24Z |
 | graph | goals 174 · 0 broken links · GOALS.md byte-identical |
 | spend | per-spawn keys ($5 cap, 3 h); the provisioning account read **remaining=$18.93** at 18:1xZ (handoff --driven account line) → SL2.02 cut leaves ~2 rounds; floor never lowered; Prime told |
-| meter | 0.25 of the window at 18:26Z (rotate at 0.4) |
+| meter | 0.31 of the window at 18:36Z (was 0.25 at 18:26Z (rotate at 0.4) |
 | wake | first input carries `## STARTUP OUTPUT`; ONE required act: `rotate.py ack --seat sensei-director --gen <record gen_after> --ref <bare ListAgents ref> continue`, commit the seats row, push. The ListAgents ref is NOT the session uuid — always pass `--ref` (7cab79ca0). |
 
 ### Open asks (Sensei/owner → this seat): goal · brief · round · state
@@ -70,9 +70,13 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | driven handoff writer + prepare · window reply + first-decision · writer keyed on titles/own-tree card | `goal:g15.14` | `hypothesis:l4-rotate-self-drives-…` · `hypothesis:l4-the-window-reply-…` · `hypothesis:l4-the-driven-handoff-writer-keys-on-declared-titles-…` | SL1.02 · SL1.04 · SL2.01 | **LANDED in season/s2** — `handoff --driven --seat sensei-director --dry-run --field s3 <file>` now works on THIS card (nine headers kept; residue: node counts n/a from a worktree) |
 | 0b-b g15-7 half · service after_join + AGI_SEAT + bootstrap order | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-…` | SL1.03 · SL1.07 | **LANDED in season/s2**; (ii) join-only refused + (iii) briefs stripped folded into SL2.02 |
 | alert address · ack shape gate · geometry guard | `goal:g15.16` | `hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-…` | SL1.06 | **LANDED in season/s2** with fix-up 7cab79ca0 (ref ≠ sid prefix; m2's zero-call lean disproved; m3 shadowed by prepare) |
-| first seating alerts the Sensei + spawn runs first_turn + (ii)/(iii) | `goal:g15.17` | `hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor` (+ alert sibling as kid 2) | SL2.02 · a00-8f560a1f · `loop/hypothesis-l4-a-first-seating-is-a00-8f560a1f@s2` | RUNNING (cut 18:25Z) |
+| first seating alerts the Sensei + spawn runs first_turn + (ii)/(iii) | `goal:g15.17` | `hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor` (+ alert sibling as kid 2) | SL2.02 · a00-8f560a1f · `loop/hypothesis-l4-a-first-seating-is-a00-8f560a1f@s2` | RUNNING (cut 18:25Z; kid a00-1ca9f767 reported lean 70 at 18:35Z; parent still up) |
 | rotation_alert.py residue | `goal:g15.18` | `hypothesis:l4-the-rotation-alert-hook-says-what-it-measures` | SL1.05 | **LANDED in season/s2** |
-| Sensei 182119Z audit: behind-count in the record read · @@ · point drops its address dm | — (in-loop) | — | — | DONE on this branch (rotate.py `status --record latest` prints `behind origin/season/s2: N`; `_successor_address` strips `@`); relay sent to the point 18:24Z; reaches season/s2 at SL2#1 |
+| Sensei audits 182119Z / 18:26Z / 18:29Z (in-loop, `goal:g15.14` notes) | — | — | — | DONE on this branch: record read prints `behind origin/season/s2: N`; `@@` fix; prepare ignores cron churn (comms/**, rotations/*.json, modified or untracked); prepare's card check = last WORK commit; `handoff --driven` inserts STATE on a card without one + 'next command' synonym. **Pending merge-up SL2#1 (window asked 18:34Z)** |
+| Sensei spawn-seating audit 175816Z line (1): spawn runs first_turn + [seating] block | `goal:g15.17` | SL2.02's residue / next cut | — | noted on g15.17 |
+| line (2): recovery autopsy pre-fill | **`goal:g15.21`** (minted 18:35Z, reported to the Prime; silence = approved) | brief NOT yet minted — L3 writes it from the goal's testable claim (rotate.py autopsy --seat S; spawn runs it for a dead pid) | — | **NEXT CUT after SL2.02 lands** (same spawn region) |
+| line (3): wake-audit window ends at the ack call, not the first (d) | `goal:g15.13` fix-only | brief NOT yet minted (falsifier: belam 175816Z must read 22) | — | L3 cuts (small; sensei.py only — parallel-safe) |
+| point 18:36Z: Prime's (e) SIGTERM/SIGHUP handler in `_shell_cmd` | `goal:g15.20` (the point's) | — | — | GRANTED to the point as its fix-only cut (FILE SCOPE _shell_cmd + wrapper + tests); not mine |
 
 ### 🔴 Where it stops — the next command (loop L2)
 
