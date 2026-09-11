@@ -3049,9 +3049,15 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
     )[1]
     assert "AGI_SEAT=" not in base
     assert f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && " in seated
-    # the ONLY difference is the export: the rest of the launch line is identical
-    export = f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && "
-    assert seated.replace(export, "") == base
+    # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
+    # wrapper is the direct parent of claude, so the ONLY thing that changes
+    # vs base is the `export AGI_SEAT=... &&` prefix plus the wrapper inserted
+    # before claude; base's claude argv must ride AFTER the wrapper's `--`,
+    # byte-identical.
+    assert "launch-wrapper" in seated
+    claude_argv = base.split(" && ")[-1]
+    assert f" -- {claude_argv}" in seated
+    assert seated.index("launch-wrapper") < seated.index("claude")
 
 
 def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
