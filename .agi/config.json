@@ -17,7 +17,7 @@
     },
     "enhanced_survival": {
       "name": "enhanced survival",
-      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) — the Texas two-step formation, three seats, helper answers to the point",
+      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) \u2014 the Texas two-step formation, three seats, helper answers to the point",
       "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
       "source": "goal:g17.1:26 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
       "in_force": true
@@ -86,7 +86,8 @@
       "per_spawn_limit_usd": 5.0,
       "ttl_minutes": 180,
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
-    }
+    },
+    "parent_max_kids": 5
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
@@ -98,7 +99,8 @@
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
     "model": "deepseek/deepseek-v4.1-flash",
-    "thinking": "medium"
+    "thinking": "medium",
+    "inline_reaper": false
   },
   "agent_timeout_mins": 20,
   "delay_mins": 0,
@@ -121,13 +123,13 @@
     "review": {
       "effort": "medium",
       "provider": "pi",
-      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row — a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
+      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
       "model": "sonnet",
       "effort": "max",
       "provider": "claude-code",
-      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through — owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
+      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
     },
     "deep-search": {
       "effort": "high",

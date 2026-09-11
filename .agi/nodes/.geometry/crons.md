@@ -18,8 +18,16 @@ cadences:
     schedule: 47 * * * *
     enabled: false
 crons_live: true
-edited_by: season.py
+edited_by: ubuntu
 season: 1
+services:
+  agi-reaper:
+    enabled: true
+    exec_start: /usr/bin/python3 /home/ubuntu/work/agi/extensions/agi/bin/heal.py watch --root /home/ubuntu/work/agi --poll-s 30
+    restart: on-failure
+    working_directory: /home/ubuntu/work/agi
+    environment:
+      AGI_REAPER_LOG: /home/ubuntu/logs/agi-reaper-agi-2f118e6f.log
 status: active
 tags:
   - geometry

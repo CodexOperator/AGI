@@ -1,0 +1,20 @@
+---
+id: hypothesis:l4-crons-systemctl-seam-converges-from-cron
+mint_id: 3f72333de934432fb20516f3ce92d526
+type: hypothesis
+parents:
+  - goal:g15
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: f5ab6f37ec5fa96f
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix findings are g15 hypothesis nodes fixed in-loop. Re-filed from goal:g17.1 (merge-up 26 residue (c)) PLUS one LIVE finding measured by sanctuary-director gen XI at 05:1xZ. Both are the same seam: `_apply_systemctl` / `reconcile_units` in extensions/agi/bin/crons.py (:440-520 on db9b3d573). (c1) LIVE: the :10 grid_sync cron pass re-runs `crons.py apply --unit-dir` and logs, EVERY 5 MIN under crons_live:true with the unit already up to date: `systemctl --user daemon-reload FAILED (Failed to connect to bus: No medium found)` and `systemctl --user enable --now agi-agi-reaper-2f118e6f.service FAILED (Failed to connect to bus: No medium found)` (~/logs/agi-crons-agi-2f118e6f.log:37497-37498). Cause: cron runs with NO XDG_RUNTIME_DIR / DBUS_SESSION_BUS_ADDRESS, so `systemctl --user` cannot reach the user bus; the unit is ACTIVE only because the prime's TERMINAL apply started it (ActiveEnterTimestamp 05:06Z) -- a dead unit can NOT be healed by the cron, which defeats the service's whole point (CLAUDE.md: a healing step that only runs when X is up is not a healing step). FIX: `_apply_systemctl` builds the subprocess env with `XDG_RUNTIME_DIR=/run/user/<uid>` and `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/<uid>/bus` WHEN they are absent AND that bus socket exists; when the socket does not exist it records ONE named skip (`no user bus at /run/user/<uid>/bus`) instead of two FAILED actions. (c2) RESIDUE: under crons_live:false (or the service disabled) `disable --now` on an ABSENT unit (file already removed, unit not loaded) logs a FAILED action every 5 min; FIX: probe first (`systemctl --user is-enabled <unit>` / `is-active`, or `cat`), and when the unit is not loaded record `unit <name> absent, nothing to disable` (one line, no FAILED) and skip the daemon-reload when nothing changed. (c3) IDEMPOTENCE: when the unit file is up to date AND the unit reads enabled+active, `apply` records `unit <name> enabled+active (no-op)` and runs neither daemon-reload nor enable --now -- the every-5-min log carries the STATE, not two actions; a change of state (file rewritten, unit inactive, unit not enabled) still runs the real seam. TESTS in extensions/agi/tests/test_crons.py through the existing `fake_systemctl` fixture (:30) -- assert the env the fake receives (both vars present when the caller's env lacks them and the socket path exists; a tmp socket path stands in), the named skip when it does not, the absent-unit no-FAILED path, and the enabled+active no-op path; the dry-run output for all three. VERIFY ON THE REAL TREE, READ-ONLY: `env -i PATH=\"$PATH\" HOME=\"$HOME\" systemctl --user is-active agi-agi-reaper-2f118e6f.service` (reproduces `No medium found`) vs the same with `XDG_RUNTIME_DIR=/run/user/$(id -u) DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus` (prints `active`); paste both. NEVER run `crons.py apply` for real (MAIN-only fence; the live unit and crontab are the prime's) -- dry-run only, from the worktree. FALSIFIERS: a FAILED line still written on the next :x5 pass after the fix would land (predicted from the bytes, the prime measures after merge-up); a real state change that the no-op path swallows. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/crons.py + extensions/agi/tests/test_crons.py ONLY. EXCLUDED: cron:crons node (.agi/nodes/.geometry/crons.md -- the schedule/services table is the prime's), heal.py, rotate.py, the crontab. Disjoint from the rotate.py and heal tests g15 rounds; runs in PARALLEL with them."
+title: crons.py reaches the user bus from cron, never logs FAILED for an absent unit, and records state not actions when nothing changed
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-crons-systemctl-seam-converges-from-cron
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?

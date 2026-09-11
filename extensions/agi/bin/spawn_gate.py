@@ -630,6 +630,248 @@ def read_ladder_season(nodes_dir: Path) -> int | None:
     return None
 
 
+def read_town_branches(nodes_dir) -> dict[str, str]:
+    """Read the ladder's `town_branches` map: town -> opaque integration branch.
+
+    OPAQUE CONFIG, READ ONLY -- owner/prime-written, never parsed by this
+    code (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council;
+    owner ruling 01:4xZ: every non-core town works on its own branch cut from
+    season/sN, and the branch NAME may be renamed by a later round at one
+    config edit and zero code). Returns {} when unset or unreadable -- fail
+    open, a missing ladder must never block the stale-base guard or the
+    merge-up gate.
+    """
+    if not nodes_dir:
+        return {}
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md"
+    if not ladder.is_file():
+        return {}
+    fm = _read_frontmatter(ladder) or {}
+    tb = fm.get("town_branches")
+    if not isinstance(tb, dict):
+        return {}
+    out: dict[str, str] = {}
+    for k, v in tb.items():
+        if isinstance(k, str) and isinstance(v, str) and v.strip():
+            out[k] = v.strip()
+    return out
+
+
+def town_integration_branch(nodes_dir, town: str) -> str | None:
+    """A town's integration branch (the opaque `town_branches` value), or None.
+
+    The ONE town -> branch lookup; callers never parse the opaque value (see
+    read_town_branches). A town with no declared branch maps to None, which is
+    the fail-open floor -- the caller keeps its today's-behaviour base.
+    """
+    if not town:
+        return None
+    return read_town_branches(nodes_dir).get(town)
+
+
+def town_of_branch(nodes_dir, branch: str) -> str | None:
+    """Reverse-look up branch -> town by EXACT equality on the opaque value.
+
+    The ONLY permitted way to go branch -> town (owner ruling 01:4xZ): compare
+    the branch against each town's opaque `town_branches` value as an exact
+    string, never by parsing the branch name -- the value may be renamed by a
+    later round and the lookup must survive at one config edit and zero code.
+    None when the branch matches no town's integration branch (a seat branch,
+    a plain season/sN, or anything unlisted).
+    """
+    if not branch:
+        return None
+    tb = read_town_branches(nodes_dir)
+    for town, b in tb.items():
+        if b == branch:
+            return town
+    return None
+
+
+def vision_town_of(fm: dict | None) -> str:
+    """A vision's town from its frontmatter, defaulting to 'core'.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council. A town is
+    a derived cell, never a NAME a code path branches on (goal:g8.2) -- 'core'
+    is the default denominator for a vision with no `town:` cell, and any
+    other value is whatever the ladder's `towns:` list declares.
+    """
+    if not isinstance(fm, dict):
+        return "core"
+    t = fm.get("town")
+    return str(t).strip() if isinstance(t, str) and t.strip() else "core"
+
+
+def count_visions_per_town(nodes_dir) -> dict:
+    """Map town -> number of vision nodes (a vision's `town:` cell, default core).
+
+    The primitive both the season status and the vision mint gate call -- one
+    shared helper, no second copy of the counting rule. Returns {} when the
+    nodes dir or the vision subdir is missing/unreadable (fail open: a missing
+    graph must not block anything).
+
+    SEASON-SCOPED: only visions whose `season:` equals the ladder's
+    current_season are counted (hypothesis:l4-towns-each-app-is-a-vision-with-
+    its-own-council). A season-blind count reads 20 historical visions against
+    a cap of 3 and reports core AT CAP, so a fresh season could never mint.
+    Fails OPEN on a missing ladder (read_ladder_season -> None): then every
+    vision counts, which is exactly what the old season-blind behaviour did --
+    a project with no ladder is untouched. A vision with NO season field is
+    legacy/ambiguous and counts; only a vision that EXPLICITLY declares a
+    season differing from current is excluded. On the real graph every vision
+    carries a season, so an old season's whole cohort drops out at rollover
+    instead of pinning the town at its cap.
+    """
+    counts: dict[str, int] = {}
+    if not nodes_dir:
+        return counts
+    vdir = Path(nodes_dir) / "vision"
+    if not vdir.is_dir():
+        return counts
+    season = read_ladder_season(nodes_dir)
+    for f in sorted(vdir.glob("*.md")):
+        fm = _read_frontmatter(f)
+        if not fm or fm.get("type") != "vision":
+            continue
+        if season is not None:
+            fs = fm.get("season")
+            if isinstance(fs, int) and not isinstance(fs, bool) and fs != season:
+                continue
+        t = vision_town_of(fm)
+        counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
+def vision_scope(nodes_dir) -> str:
+    """The ladder's caps_vision_scope ('town', 'global' or '' when unset).
+
+    '' means the old behaviour -- count visions as one global pool -- which is
+    exactly what the per-town counting must NOT do, so callers gate on this.
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return ""
+    fm = _read_frontmatter(ladder) or {}
+    scope = fm.get("caps_vision_scope")
+    return str(scope).strip() if isinstance(scope, str) else ""
+
+
+def vision_cap(nodes_dir) -> int:
+    """caps.vision from the ladder, default 3. Same default `_get_caps` uses."""
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return 3
+    fm = _read_frontmatter(ladder) or {}
+    caps = fm.get("caps")
+    if isinstance(caps, dict):
+        v = caps.get("vision")
+        if isinstance(v, int) and not isinstance(v, bool):
+            return v
+    return 3
+
+
+def vision_remaining_for_town(nodes_dir, town: str, *, counts=None) -> int:
+    """How many more visions a town may take before hitting caps.vision.
+
+    remaining = cap - existing_in_town, clamped at 0. `counts` lets a caller
+    pass a precomputed `count_visions_per_town` result (e.g. the rollover's
+    new-season pool) without re-reading the graph; defaults to a live count.
+    """
+    cap = vision_cap(nodes_dir)
+    if counts is None:
+        counts = count_visions_per_town(nodes_dir)
+    return max(0, cap - counts.get(town, 0))
+
+
+def _node_fm(nodes_dir, node_id):
+    """A live node's frontmatter by id `type:name`, or None.
+
+    Live-first (hypothesis:l3w4-hierarchy-one-source): resolves
+    `nodes/<type>/<name>.md`, never the retired sibling. Returns None for an
+    unresolvable or malformed id, so callers fail soft -- a missing node must
+    not crash a mint or a brief.
+    """
+    if not nodes_dir or not node_id or ":" not in node_id:
+        return None
+    ntype, _, name = node_id.partition(":")
+    ntype = ntype.strip()
+    name = name.strip()
+    if not ntype or not name:
+        return None
+    return _read_frontmatter(Path(nodes_dir) / ntype / f"{name}.md")
+
+
+def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
+    """The nearest ancestor vision of `start_ids` via the `parents:` edge.
+
+    Returns `(vision_id, town)`, or `(None, core)` when no vision is reached.
+    BFS over live node files, depth-bounded so a cycle or a long chain cannot
+    hang a spawn; a start id that IS a vision is its own nearest vision
+    (depth 0). Both halves of the addendum use this -- a minted node and a
+    brief both read the target's nearest vision's town cell (default core),
+    never an imagined cell and never a town NAME (goal:g8.2).
+    """
+    if not nodes_dir:
+        return (None, "core")
+    from collections import deque
+    seen: set = set()
+    dq = deque()
+    for sid in start_ids or ():
+        sid = str(sid or "").strip()
+        if sid and sid not in seen:
+            seen.add(sid)
+            dq.append((sid, 0))
+    while dq:
+        nid, depth = dq.popleft()
+        ntype = nid.split(":", 1)[0] if ":" in nid else ""
+        fm = _node_fm(nodes_dir, nid)
+        # A vision node is its own nearest vision (depth 0).
+        if ntype == "vision":
+            return (nid, vision_town_of(fm))
+        # Honour THIS node's own declared town:/vision_ref BEFORE climbing to
+        # any ancestor (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-
+        # council). A node that says which town it lives in is not answered by
+        # an ancestor's cell -- else a non-core round stamped with its own town
+        # at mint would read back 'core' every time. Order: a resolving
+        # vision_ref wins the id, the node's own `town:` decides the town; a
+        # town with no vision_ref still answers with the node itself.
+        if fm:
+            own_town = fm.get("town")
+            own_town = own_town.strip() if isinstance(own_town, str) else ""
+            vr = fm.get("vision_ref")
+            vr_id = ""
+            if isinstance(vr, str) and vr.strip():
+                vr_s = vr.strip()
+                vr_id = vr_s if ":" in vr_s else f"vision:{vr_s}"
+                vfm = _node_fm(nodes_dir, vr_id)
+                if vfm is not None and vfm.get("type") == "vision":
+                    return (vr_id, own_town or vision_town_of(vfm))
+            if own_town:
+                return (vr_id or nid, own_town)
+        if depth >= max_depth:
+            continue
+        if not fm:
+            continue
+        parents = fm.get("parents") or []
+        if isinstance(parents, str):
+            parents = [parents]
+        for p in parents:
+            p = str(p or "").strip()
+            if p and p not in seen:
+                seen.add(p)
+                dq.append((p, depth + 1))
+    return (None, "core")
+
+
+def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6) -> str:
+    """The town of a target's nearest vision, default `core`.
+
+    Thin wrapper over `nearest_vision` so a caller that only wants the town
+    (mint, brief, viewport) never has to unpack the tuple.
+    """
+    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth)[1]
+
+
 def read_ladder_roles(nodes_dir: Path) -> list | None:
     """Read the `roles` table from `.geometry/ladder.md`.
 
@@ -697,6 +939,7 @@ def check_spawn(
     bypass: bool = False,
     season_parents: list | None = None,
     current_season: int | None = None,
+    nodes_dir: Path | None = None,
 ) -> SpawnResult:
     """Check one spawn against the schema. Never raises.
 
@@ -903,6 +1146,38 @@ def check_spawn(
                 return res
             res.applied.append(
                 "parent_shapes=[" + ", ".join(got) + "]")
+
+    # 5b. per-town vision cap on the WRITE path (hypothesis:l4-towns-each-app-
+    #     is-a-vision-with-its-own-council). The rollover mint already refuses a
+    #     4th vision per town; this gates a direct `write.py create vision:...`
+    #     the same way, so the cap is not only enforced on one path. Reuses the
+    #     same counting helpers as the rollover -- no second counting rule.
+    #     Scoped to caps_vision_scope: town; inert otherwise (a non-town
+    #     project is untouched). nodes_dir is required to count -- absent means
+    #     the gate is skipped, not approved-by-default-where-it-could-count.
+    if ntype == "vision" and nodes_dir is not None \
+            and vision_scope(nodes_dir) == "town":
+        town = nearest_vision_town(nodes_dir, plist)
+        cap = vision_cap(nodes_dir)
+        remaining = vision_remaining_for_town(nodes_dir, town)
+        if remaining <= 0:
+            res.status = REJECTED
+            res.reason = (
+                f"rule 'town vision cap' from ladder: a vision parented into "
+                f"town '{town}' would exceed caps.vision ({cap}/town)"
+            )
+            res.fix = (
+                f"the '{town}' town already has {cap} vision(s) this season "
+                f"(caps.vision). Rotate a new season, mint under another "
+                f"town, or raise caps.vision in the ladder -- do not avoid "
+                "the cap by writing around it."
+            )
+            res.messages.append(
+                f"SPAWN-GATE REJECTED: {res.node_id} — {res.reason}."
+            )
+            return res
+        res.applied.append(
+            f"town vision cap: {town} has room for {remaining} more")
 
     # 6. season_parents: validate by type, with grandfathering.
     if season_parents is not None and rule.season_parents_allowed:

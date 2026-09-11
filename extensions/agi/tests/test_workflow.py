@@ -787,9 +787,9 @@ def _pair(wf: Path, name: str, typ: "str | None", stages: list,
         json.dumps(mf, indent=2) + "\n", encoding="utf-8")
 
 
-def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
-    """PROVED-BY: with a workflows.md declaring the six types + per-workflow
-    rows, `workflow.py list` on the REAL registry shows all six registered
+def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
+    """PROVED-BY: with a workflows.md declaring every live type + per-workflow
+    rows (eight since merge-up-review and desktop-check), `workflow.py list` on the REAL registry shows every registered
     workflows resolving through the node, each with the LEVEL it came from
     (config row / per-workflow override / per-type override) — no literal.
     The node is a TEMP file the test writes; `_geometry_node_path` is
@@ -805,6 +805,10 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
             {"name": "route-probe", "harness": "pi"},
             {"name": "plan-research", "harness": "pi"},
             {"name": "investigate-refute", "harness": "pi"},
+            # merge-up-review: registered by the Prime L4-VII (owner 2026-09-11,
+            # the merge-up review runs through the unified router).
+            {"name": "merge-up-review", "harness": "claude-code"},
+            {"name": "desktop-check", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -814,6 +818,8 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
              "harness": "claude-code"},
             {"name": "l4-plan-research", "type": "plan-research"},
             {"name": "prime-open-questions", "type": "investigate-refute"},
+            {"name": "merge-up-review", "type": "merge-up-review"},
+            {"name": "desktop-check", "type": "desktop-check"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
@@ -822,7 +828,8 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
     assert rc == 0, buf.getvalue()
     txt = buf.getvalue()
     for k in ("deep-search", "drafting", "l3w-route-probe",
-              "l4-plan-research", "prime-open-questions", "review"):
+              "l4-plan-research", "prime-open-questions", "review",
+              "merge-up-review", "desktop-check"):
         assert k in txt, (k, txt)
     assert "config row" in txt, txt          # review/drafting/deep-search rows
     assert "claude-code" in txt, txt         # drafting config row
@@ -994,3 +1001,67 @@ def test_config_row_shadows_node_perworkflow_and_type(tmp_path):
     y_line = next(l for l in txt2.splitlines() if "agi-Y" in l)
     assert "claude-code-py" in y_line, y_line
     assert "manifest" in y_line, y_line
+
+
+def _workflow_body_parses(script_text: str) -> str | None:
+    """Wrap a generated Workflow script the way the Workflow tool does (an
+    async body with top-level `return` and `await`) and parse it with node
+    when node is on PATH. Returns the SyntaxError line, or None when it
+    parses (or when node is absent — then the caller falls back to the
+    textual assertions)."""
+    import shutil
+    import subprocess
+    import tempfile
+    node = shutil.which("node")
+    if not node:
+        return None
+    body = "\n".join(ln for ln in script_text.splitlines()
+                     if not ln.startswith("export const meta"))
+    # drop the meta literal's remaining lines up to its closing brace
+    lines = body.splitlines()
+    for i, ln in enumerate(lines):
+        if ln.strip() == "}":
+            lines = lines[i + 1:]
+            break
+    wrapped = ("async function __w(args, agent, parallel, pipeline, phase, "
+               "log) {\n" + "\n".join(lines) + "\n}\n")
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False) as fh:
+        fh.write(wrapped)
+        path = fh.name
+    proc = subprocess.run([node, "--check", path], capture_output=True,
+                          text=True, timeout=30)
+    for ln in (proc.stderr or "").splitlines():
+        if "SyntaxError" in ln:
+            return ln
+    return None
+
+
+def test_generated_script_parses_as_a_workflow_body():
+    """PROVED-BY (Prime L4-VII, 2026-09-11): the first two pairs authored
+    through `workflow.py author` failed at the Workflow tool with
+    `Unterminated regular expression` — the generated `fill` line escaped its
+    closing slash (`\\}\\/g`) — and a single-stage pair with a hyphenated
+    label returned `{ capture-and-read: r0 }`, not an identifier. Both are
+    generator defects the existing tests could not see, because they check
+    the manifest round-trip and never parse the script. This test parses the
+    generated body with node (when present) and asserts the two lines
+    textually regardless."""
+    from workflow import _gen_script
+    single = {"name": "parse-probe", "description": "d", "stages": [
+        {"label": "capture-and-read", "prompt": "look at {focus}",
+         "schema": {"type": "object", "properties": {"x": {"type": "string"}},
+                    "required": ["x"]}}]}
+    text = _gen_script(single)
+    fill = [ln for ln in text.splitlines() if ln.startswith("const fill")][0]
+    assert "\\}/g," in fill and "\\}\\/g" not in fill, fill
+    assert 'return { "capture-and-read": r0 }' in text, text.splitlines()[-1]
+    err = _workflow_body_parses(text)
+    assert err is None, err
+    chained = {"name": "parse-probe-2", "description": "d", "stages": [
+        {"label": "review", "prompt": "review {key}",
+         "repeat": {"of": "rounds", "label_template": "review:{key}"}},
+        {"label": "verify", "prompt": "verify {key} {summary}",
+         "chained_from": "review",
+         "repeat": {"of": "rounds", "label_template": "verify:{key}"}}]}
+    err = _workflow_body_parses(_gen_script(chained))
+    assert err is None, err

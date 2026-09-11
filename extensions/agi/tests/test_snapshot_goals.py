@@ -1216,3 +1216,81 @@ def test_no_change_case_is_unaffected_and_costs_one_comparison(project, monkeypa
     assert rc == 0
     assert "retrying" not in err
     assert calls["n"] == 1, calls["n"]   # no second comparison, no extra render
+
+
+def test_render_goals_groups_non_core_goals_by_town(tmp_path):
+    """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — a
+    ladder declaring `caps_vision_scope: town` and a vision carrying a
+    non-core town makes the goal whose vision_ref lands in that town render
+    under an `## App: <town>` section, while core goals stay in the default
+    position, and `--render --check` still round-trips byte-identical."""
+    (tmp_path / "nodes" / ".geometry").mkdir(parents=True)
+    (tmp_path / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ntype: ladder\ntowns:\n  - core\n  - townA\n"
+        "caps_vision_scope: town\n---\nbody\n", encoding="utf-8")
+    (tmp_path / "nodes" / "vision").mkdir()
+    (tmp_path / "nodes" / "vision" / "va.md").write_text(
+        "---\nid: vision:va\ntype: vision\ntown: townA\n---\nbody\n",
+        encoding="utf-8")
+    (tmp_path / "nodes" / "goal").mkdir()
+    sg.write_frontmatter(
+        (tmp_path / "nodes" / "goal" / "g1.md"),
+        {"id": "goal:g1", "type": "goal", "goal_id": "G1", "status": "active",
+         "goal_kind": "long-term", "heading_level": 2,
+         "title": "G1: Core goal"}, "Core body.", origin="goals-doc")
+    sg.write_frontmatter(
+        (tmp_path / "nodes" / "goal" / "ga.md"),
+        {"id": "goal:ga", "type": "goal", "goal_id": "GA", "status": "active",
+         "goal_kind": "long-term", "heading_level": 2,
+         "title": "GA: App goal", "vision_ref": "vision:va"}, "App body.",
+        origin="goals-doc")
+    rc = run(tmp_path, "--render")
+    assert rc.returncode == 0, rc.stderr
+    assert run(tmp_path, "--render", "--check").returncode == 0
+    rendered = (tmp_path / "GOALS.md").read_text(encoding="utf-8")
+    assert "## App: townA" in rendered
+    assert "## G1 — Core goal — status: active" in rendered
+    assert rendered.index("## G1 —") < rendered.index("## App:")
+    assert "## GA — App goal — status: active" in rendered
+
+
+def test_render_town_goal_nests_strictly_below_the_app_head(tmp_path):
+    """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    App section head renders at `##` and every goal under it (a root at
+    heading_level 2, a subgoal at heading_level 3) must carry STRICTLY more
+    `#` than the head, or the label collides with its own member instead of
+    nesting below it (was the defect, visible at real-tree GOALS.md:8659-8665)."""
+    (tmp_path / "nodes" / ".geometry").mkdir(parents=True)
+    (tmp_path / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ntype: ladder\ntowns:\n  - core\n  - townA\n"
+        "caps_vision_scope: town\n---\nbody\n", encoding="utf-8")
+    (tmp_path / "nodes" / "vision").mkdir()
+    (tmp_path / "nodes" / "vision" / "va.md").write_text(
+        "---\nid: vision:va\ntype: vision\ntown: townA\n---\nbody\n",
+        encoding="utf-8")
+    (tmp_path / "nodes" / "goal").mkdir()
+    sg.write_frontmatter(
+        (tmp_path / "nodes" / "goal" / "ga.md"),
+        {"id": "goal:ga", "type": "goal", "goal_id": "GA", "status": "active",
+         "goal_kind": "long-term", "heading_level": 2,
+         "title": "GA: App root", "vision_ref": "vision:va"}, "Root body.",
+        origin="goals-doc")
+    sg.write_frontmatter(
+        (tmp_path / "nodes" / "goal" / "ga1.md"),
+        {"id": "goal:ga1", "type": "goal", "goal_id": "GA.1",
+         "status": "active", "goal_kind": "long-term", "heading_level": 3,
+         "title": "GA.1: App sub", "vision_ref": "vision:va"}, "Sub body.",
+        origin="goals-doc")
+    assert run(tmp_path, "--render").returncode == 0
+    assert run(tmp_path, "--render", "--check").returncode == 0
+    rendered = (tmp_path / "GOALS.md").read_text(encoding="utf-8")
+    head = "## App: townA"
+    head_hashes = len(head) - len(head.lstrip("#"))
+    head_idx = rendered.index(head)
+    for want in ("GA — App root", "GA.1 — App sub"):
+        line = next(l for l in rendered.splitlines() if l.startswith("#") and want in l)
+        hashes = len(line) - len(line.lstrip("#"))
+        assert hashes > head_hashes, (
+            f"{want} renders at {hashes}x'#' but must nest strictly below "
+            f"the app head's {head_hashes}x'#'")
+        assert rendered.index(line) > head_idx

@@ -585,6 +585,7 @@ def write_node(
         node_id=node_id, bypass=bypass,
         season_parents=gate_fm.get("season_parents"),
         current_season=current_season,
+        nodes_dir=str(Path(root) / "nodes"),
     )
     if announce:
         spawn_gate.announce(gate)
@@ -646,6 +647,17 @@ def write_node(
     # stamp — `update_node` is deliberately separate.
     _stamp_env_fields(fm, current_season=current_season, stamp=stamp)
     spawn_gate.stamp(fm, gate)
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council -- a node
+    # is born into a town, derived from its parents' nearest vision, default
+    # core. Mint-only (updates never re-stamp); read from the shared helper so
+    # the deriving rule lives exactly once. A failure must never block a mint:
+    # town is a derived convenience, and the graph stops being a town graph
+    # the moment a write dies for lack of one.
+    try:
+        fm.setdefault("town", spawn_gate.nearest_vision_town(
+            str(Path(root) / "nodes"), plist))
+    except Exception:
+        pass
 
     text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
 

@@ -48,6 +48,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -359,21 +360,162 @@ def _norm(ts: str) -> str:
         return ts
 
 
-def _nudge_window(tmux_session: str | None, window: str, text: str) -> bool:
-    """Best-effort `tmux send-keys` nudge into a perpetual seat's window
-    (hypothesis:l3w4-seat-transport).
+#: One fixed machine-prefixed wake token. The only variable part is the
+#: recipient seat name — never the sender, never the message body. The body
+#: lives ONLY in the inbox/dm file; the token is a wake, not a message
+#: (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message, claim 1).
+NUDGE_TOKEN_TEMPLATE = (
+    "[agi-nudge] unread for {seat}:"
+    " send.py read {seat}"
+)
 
-    Types `text Enter` into the window literally named `window` in the tmux
-    session; fires only when that window exists and silently returns False
-    otherwise — windowless (ephemeral/fire-and-forget) recipients are
-    untouched. Never raises: tmux missing, a missing session/window, or a
-    timeout is a no-op.
+#: The token is SHORT on purpose (< 100 chars for every live seat name):
+#: the prime pinned on a real Claude Code pane (nudge node 83fe8049c) that a
+#: long chunk typed with its Enter in ONE send-keys call is taken for a paste
+#: and stranded, and a token that wraps in the input box also defeats the
+#: "already unsubmitted" capture-pane check. A seat name so long that the
+#: full form would reach the cap gets the bare form instead (every brief
+#: already carries the read command).
+_NUDGE_TOKEN_MAX = 99
+NUDGE_TOKEN_BARE_TEMPLATE = "[agi-nudge] unread for {seat}"
+
+#: The pause between typing the literal token and the SEPARATE Enter call —
+#: probe (D): `send-keys -l <text>`, sleep 0.3, then `send-keys Enter` as
+#: its own call is queued and delivered; the two keys in one call are not.
+_NUDGE_ENTER_DELAY_S = 0.3
+
+#: At most ONE wake token per unread batch per seat. The per-seat nudge
+#: marker (ts of the last token) absorbs a rapid succession of dms into a
+#: single token; a later send re-issues the token when the marker is stale.
+_NUDGE_COALESCE_WINDOW_S = 30.0
+
+
+def _build_nudge_token(seat: str) -> str:
+    """ONE fixed machine-prefixed wake token for one recipient seat, always
+    shorter than `_NUDGE_TOKEN_MAX` (the bare form when the seat name is
+    long enough to threaten the cap)."""
+    token = NUDGE_TOKEN_TEMPLATE.format(seat=seat)
+    if len(token) > _NUDGE_TOKEN_MAX:
+        token = NUDGE_TOKEN_BARE_TEMPLATE.format(seat=seat)
+    return token
+
+
+def _nudge_token_head(token: str) -> str:
+    """The part of a token that survives the input box wrapping it: up to
+    and including the first `:` (`[agi-nudge] unread for <seat>:`), or the
+    whole token when it has none (the bare form)."""
+    i = token.find(":")
+    return token if i < 0 else token[:i + 1]
+
+
+def _seat_row_by_name(rows: list, name: str) -> dict | None:
+    """The config:seats row whose `name` equals `name`, else None."""
+    for r in rows:
+        if r.get("name") == name:
+            return r
+    return None
+
+
+def _nudge_marker_path(root: Path, seat: str) -> Path:
+    return _inbox_dir(root) / f"{seat}.nudge"
+
+
+def _record_nudge(root: Path, seat: str) -> None:
+    """Stamp the per-seat nudge marker; best-effort, never raises."""
+    try:
+        p = _nudge_marker_path(root, seat)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(_now() + "\n")
+    except OSError:
+        pass
+
+
+def _last_nudge_age(root: Path, seat: str) -> float | None:
+    """Seconds since the last typed nudge token for this seat, or None."""
+    try:
+        ts = _nudge_marker_path(root, seat).read_text().strip()
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc)
+                - dt.astimezone(timezone.utc)).total_seconds()
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _capture_pane(tmux_session: str, target: str) -> str | None:
+    """Read-only snapshot of one tmux pane; None on any tmux failure.
+
+    Read-only on purpose: the busy/idle measurement never mutates the pane,
+    and a test that reaches a real pane is the falsifier — the suite's tmux
+    guard routes every tmux call to a fake.
     """
-    if not window:
-        return False
-    if tmux_session is None:
-        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
-        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    try:
+        cp = subprocess.run(["tmux", "capture-pane", "-p", "-t", target],
+                            capture_output=True, text=True, timeout=5)
+        if cp.returncode != 0:
+            return None
+        return cp.stdout
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+
+
+def _registry_status(pid: str | int | None) -> str | None:
+    """`busy` | `idle` | None from the Claude Code session registry
+    `~/.claude/sessions/<pid>.json`, when the seat row carries a pid — the
+    cleaner busy signal than capture-pane, used when present."""
+    if not pid:
+        return None
+    try:
+        p = (Path(os.path.expanduser("~")) / ".claude" / "sessions"
+             / f"{pid}.json")
+        if not p.is_file():
+            return None
+        st = json.loads(p.read_text()).get("status")
+        return st if st in ("busy", "idle") else None
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _input_region(pane: str | None) -> str:
+    """The INPUT-LINE region of a capture: from the LAST prompt-marker line
+    (the `\u276f` prompt glyph that heads the Claude Code input box) to the
+    end, inclusive. Everything ABOVE the box -- a SUBMITTED token echoed in
+    the transcript, an old `esc to interrupt` scrolled up -- is transcript
+    and must not read as stranded/busy (hypothesis:l4-a-nudge-is-a-wake-
+    token-not-a-message, residue 2). When no prompt glyph is found (a busy
+    pane renders the spinner in place of the box) the whole capture IS the
+    region -- conservative."""
+    lines = (pane or "").splitlines()
+    for i in range(len(lines) - 1, -1, -1):
+        if "\u276f" in lines[i]:
+            return "\n".join(lines[i:])
+    return pane or ""
+
+
+def _nudge_coalesce_reason(pane: str | None, token: str,
+                           registry: str | None) -> str | None:
+    """Coalescing reason when the pane must not be typed into right now: the
+    pane is busy (a Claude Code mid-turn spinner), or the token already sits
+    unsubmitted in the pane's input line (already queued). None = nudge now.
+
+    Both checks are scoped to the INPUT REGION (`_input_region`), never the
+    whole capture -- a submitted token echoed in the transcript, or an old
+    `esc to interrupt` scrolled up, must not read as stranded/busy and cost
+    a wake until it scrolls off."""
+    if registry == "busy":
+        return "pane busy (registry)"
+    if pane is not None:
+        region = _input_region(pane)
+        if "esc to interrupt" in region.lower():
+            return "pane busy (spinner)"
+        # The input box WRAPS a token wider than the pane (measured on the
+        # sanctuary-director pane 2026-09-11 02:38Z: the 101-char token sat
+        # unsubmitted across two lines), so match the head, never the whole.
+        if _nudge_token_head(token) in region:
+            return "token already unsubmitted"
+    return None
+
+
+def _list_windows(tmux_session: str) -> list:
     try:
         listing = subprocess.run(
             ["tmux", "list-windows", "-t", tmux_session,
@@ -381,19 +523,125 @@ def _nudge_window(tmux_session: str | None, window: str, text: str) -> bool:
             capture_output=True, text=True, timeout=5,
         )
         if listing.returncode != 0:
+            return []
+        return [ln.strip() for ln in listing.stdout.strip().splitlines()
+                if ln.strip()]
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+
+
+def _window_listed(tmux_session: str, name: str) -> bool:
+    return name in _list_windows(tmux_session)
+
+
+def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
+    """Fire ONE fixed wake token (never the message body) at a perpetual
+    seat's tmux window (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
+
+    (1) TYPES A TOKEN, not the body: the only variable part is the seat name.
+    (2) IDEMPOTENT UNDER BUSY: a busy pane, or a pane already holding the
+        token unsubmitted, receives nothing and a `nudge: coalesced` line
+        goes to stderr; at most ONE token per unread batch (per-seat marker).
+    (3) ADDRESSES BY @id: the recipient's config:seats row `window` (@id) is
+        the send-keys target; the window NAME is used only when the row
+        carries no window; a send-key is never addressed by name to a window
+        a name-matched predecessor or namesake could occupy.
+    Best-effort: a missing row/window/session/tmux is a silent no-op; never
+    raises. read-only (capture-pane) only — never send-keys into a pane a
+    test has not faked.
+    """
+    rows = _locally_loaded_rows(root)
+    row = _seat_row_by_name(rows, to)
+    window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
+    pid = (row or {}).get("pid")
+    if tmux_session is None:
+        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
+        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    token = _build_nudge_token(to)
+    # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
+    # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
+    # target: never send-keys into a name-addressed window the row was
+    # supposed to carry as an @id (a predecessor or a namesake could occupy
+    # it). Refuse, print the reason on stderr, and FALL BACK to the by-name
+    # listing below.
+    if window_ref and not str(window_ref).startswith("@"):
+        print(f"nudge: row for {to} carries window {window_ref!r} -- a NAME,"
+              f" not an @id; refusing it as a target, falling back to the"
+              f" window NAME", file=sys.stderr)
+        window_ref = None
+    # (3) an @id target never needs the name listed; a name fallback (row has
+    # no window at all, or the NAME above was refused) must still be a real
+    # listed window — a windowless (ephemeral/fire-and-forget) recipient is
+    # untouched, as before.
+    if window_ref:
+        target = f"{tmux_session}:{window_ref}"
+    else:
+        if not _window_listed(tmux_session, to):
             return False
-        names = [ln.strip() for ln in listing.stdout.strip().splitlines()
-                 if ln.strip()]
-        if window not in names:
+        target = f"{tmux_session}:{to}"
+    # (2) cap: one token per unread batch; a batch of dms yields one token.
+    last_age = _last_nudge_age(root, to)
+    if last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S:
+        print(f"nudge: coalesced (already nudged within "
+              f"{int(_NUDGE_COALESCE_WINDOW_S)}s)", file=sys.stderr)
+        return False
+    # (2) busy / already-queued coalescing. Measure read-only, never send.
+    reason = _nudge_coalesce_reason(_capture_pane(tmux_session, target),
+                                    token, _registry_status(pid))
+    if reason == "token already unsubmitted":
+        # Probe (C): a token STRANDED in an idle pane (typed by the old
+        # one-call shape, or by a `-l` call whose Enter never came) is
+        # submitted by a later bare Enter. Without this an idle pane holding
+        # a stranded token coalesces every later send forever (the marker is
+        # never stamped, the pane never changes) and the seat is never woken.
+        # The busy checks come first in _nudge_coalesce_reason, so this Enter
+        # never lands in a mid-turn pane.
+        if not _send_keys(target, "Enter"):
             return False
-        subprocess.run(
-            ["tmux", "send-keys", "-t", f"{tmux_session}:{window}",
-             text, "Enter"],
-            capture_output=True, text=True, timeout=5,
-        )
+        print("nudge: submitted a stranded token (Enter only)",
+              file=sys.stderr)
+        _record_nudge(root, to)
         return True
+    if reason:
+        # F1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): this
+        # batch was NOT typed into the pane. NEVER stamp the marker here --
+        # a busy/queued coalesce that records itself as a delivered token
+        # suppresses the later send once the pane goes idle, and the message
+        # is never woken. The marker records only a DELIVERED token.
+        print(f"nudge: coalesced ({reason})", file=sys.stderr)
+        return False
+    # (4) THE SHAPE, pinned by the prime on a real Claude Code pane (nudge
+    # node 83fe8049c, four probes): (A) short text + Enter in ONE send-keys
+    # call is delivered, (B) a long chunk + Enter in ONE call is taken for a
+    # PASTE -- the Enter becomes a newline and the text sits stranded (every
+    # alarm dm of 2026-09-10), (C) a later bare Enter submits it, (D) the
+    # text as a LITERAL (`-l`) in one call, a pause, then Enter as a
+    # SEPARATE call is delivered. So: never `text Enter` in one call.
+    if not _send_keys(target, token, literal=True):
+        # Nothing typed; do not mark delivered, so a retry is not suppressed
+        # (F1, same rationale).
+        return False
+    time.sleep(_NUDGE_ENTER_DELAY_S)
+    if not _send_keys(target, "Enter"):
+        # The token sits unsubmitted; the next send finds it by its head and
+        # takes the probe-(C) path above. Not delivered yet: no marker.
+        return False
+    _record_nudge(root, to)
+    return True
+
+
+def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
+    """One `tmux send-keys` call; False on any failure. `literal=True` types
+    the keys as text (`-l`) — no key-name parsing, no Enter."""
+    argv = ["tmux", "send-keys"]
+    if literal:
+        argv.append("-l")
+    argv += ["-t", target, *keys]
+    try:
+        cp = subprocess.run(argv, capture_output=True, text=True, timeout=5)
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
+    return cp.returncode == 0
 
 
 # ── verbs ─────────────────────────────────────────────────────────────────
@@ -411,9 +659,10 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     with open(inbox, "a") as f:
         f.write(block)
 
-    # Best-effort nudge into a perpetual seat's window; a no-op for
-    # windowless (ephemeral) recipients (hypothesis:l3w4-seat-transport).
-    _nudge_window(None, to, text)
+    # Best-effort wake-token nudge into a perpetual seat's window; a no-op
+    # for windowless (ephemeral) recipients. One fixed token only — never the
+    # body (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
+    _nudge_window(root, to)
 
     print(inbox.resolve())
 
@@ -512,9 +761,10 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a") as f:
         f.write(_block(_now(), _detect_sender(sender), other, text))
-    # Nudge the other party's tmux window when it exists (silent no-op
-    # otherwise) — hypothesis:l3w4-seat-transport.
-    _nudge_window(None, other, text)
+    # Wake-token nudge of the other party when it exists (silent no-op
+    # otherwise) — one fixed token, never the body, idempotent under a busy
+    # pane (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
+    _nudge_window(locations.find_project_root(croot) or croot, other)
     return path
 
 

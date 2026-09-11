@@ -12,6 +12,7 @@ the real `crontab` binary in write mode — every apply/remove goes through
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +24,39 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import crons  # noqa: E402
+
+
+@pytest.fixture
+def fake_systemctl(tmp_path, monkeypatch):
+    """A FAKE `systemctl` on PATH (residue b): records every argv line into
+    `tmp_path/systemctl.calls` and exits 0. Proves `apply`'s exact unit
+    systemctl argv and guarantees the REAL user manager (`systemctl --user`
+    is live on the box) is never reached from a test.
+
+    Also pins a REACHABLE user bus for the seam: XDG_RUNTIME_DIR points at a
+    tmp dir whose `bus` socket exists, and DBUS_SESSION_BUS_ADDRESS is cleared,
+    so `_systemd_bus_env` resolves the env to add and the systemctl calls run
+    deterministically regardless of whether the test shell itself has a login
+    session (a cron-style apply does not). Tests that want the NO-BUS skip
+    monkeypatch these over.
+    """
+    bin = tmp_path / "fakebin"
+    bin.mkdir()
+    log = tmp_path / "systemctl.calls"
+    script = bin / "systemctl"
+    script.write_text(
+        "#!/usr/bin/env bash\n"
+        f'echo "$@" >> {log}\n'
+        "exit 0\n")
+    script.chmod(0o755)
+    monkeypatch.setenv(
+        "PATH", str(bin) + os.pathsep + os.environ.get("PATH", ""))
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "bus").write_text("")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    return log
 
 
 # --- fixtures ---------------------------------------------------------
@@ -486,14 +520,16 @@ def test_apply_from_common_root_only_separator_delta(tmp_path):
     log = crons._log_path(repo_root)
     grid_py = engine_root / "extensions" / "agi" / "bin" / "grid.py"
     crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
+    udir = Path.home() / ".config" / "systemd" / "user"
 
-    # What today rendered (the `&&` chain) — reconstructed honestly as the
-    # reference the delta is measured against.
+    # What today rendered (the `&&` chain, plus the residue-b --unit-dir on
+    # the self-reapply) — reconstructed honestly as the reference the delta
+    # is measured against.
     today = (
         f"*/5 * * * * cd {root} && python3 {grid_py} commit --all "
         f"--prefix 'cron: ' >> {log} 2>&1 && git -C {repo_root} push -q origin "
         f"'refs/grid/*:refs/grid/*' >> {log} 2>&1 && python3 {crons_py} apply "
-        f">> {log} 2>&1"
+        f"--unit-dir {udir} >> {log} 2>&1"
     )
     # Same jobs and schedules, and the only delta is: `;` where the chain had
     # `&&` between the steps (never touching the leading `cd {root} &&`).
@@ -730,7 +766,7 @@ def test_plain_apply_without_unit_dir_touches_no_units(tmp_path, capsys):
     assert result["unit_dir"] is None
 
 
-def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
+def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
@@ -747,6 +783,13 @@ def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
     assert "Environment=NOTIFY=off" in first
     assert "WantedBy=default.target" in first
 
+    # Residue (b): apply actually RAN systemctl through the fake on PATH,
+    # with the exact argv — daemon-reload then enable --now.
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0] == "--user daemon-reload"
+    assert calls[1].startswith("--user enable --now ")
+    assert calls[1].endswith(unit.name)
+
     r2 = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     assert unit.read_text() == first, "running apply twice must be byte-identical"
     assert any("up to date" in a for a in r2["unit_actions"])
@@ -754,7 +797,7 @@ def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
     assert r2["crons_live"] is True
 
 
-def test_crons_live_false_removes_unit_and_records_disable(tmp_path):
+def test_crons_live_false_removes_unit_and_runs_disable(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
@@ -763,13 +806,19 @@ def test_crons_live_false_removes_unit_and_records_disable(tmp_path):
     crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     unit = next(ud.glob("agi-*.service"))
 
+    fake_systemctl.write_text("")
     write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
     res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     assert not unit.exists()
     assert any("remove unit" in a for a in res["unit_actions"])
-    # the disable intent is recorded through the seam, never run for real
+    # The kill switch is REAL: disable --now ran through the fake, in the
+    # order disable, then file removal, then daemon-reload.
     assert any("systemctl --user disable --now" in a for a in res["unit_actions"])
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0].startswith("--user disable --now ")
+    assert calls[0].endswith(unit.name)
+    assert calls[1] == "--user daemon-reload"
 
 
 def test_unit_dry_run_writes_nothing(tmp_path, capsys):
@@ -788,7 +837,7 @@ def test_unit_dry_run_writes_nothing(tmp_path, capsys):
     assert not ud.exists() or not list(ud.iterdir())
 
 
-def test_rendered_unit_never_carries_a_credential_path(tmp_path):
+def test_rendered_unit_never_carries_a_credential_path(tmp_path, fake_systemctl):
     """The claim's hard rule — the watcher never reads a credential — is a
     property of the renderer too: Environment= takes plain key=value settings
     and every value round-trips unchanged; assert the unit text contains the
@@ -801,3 +850,113 @@ def test_rendered_unit_never_carries_a_credential_path(tmp_path):
     text = next(ud.glob("agi-*.service")).read_text()
     assert "Environment=NOTIFY=off" in text
     assert "SystemdEnvironment" not in text or "SECRET" not in text
+
+
+# --- the user-bus seam (hypothesis:l4-crons-systemctl-seam- ---
+# --- converges-from-cron): cron has no login session -------
+
+
+def test_systemd_bus_env_inherits_when_caller_has_dbus(monkeypatch):
+    """An interactive shell already carries DBUS_SESSION_BUS_ADDRESS; the seam
+    adds nothing, the inherited env already reaches the bus."""
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/some/bus")
+    assert crons._systemd_bus_env() == {}
+
+
+def test_systemd_bus_env_adds_when_fallback_socket_exists(monkeypatch, tmp_path):
+    """The cron case: neither var present, but the XDG_RUNTIME_DIR bus socket
+    is there — add both vars pointing at it so `systemctl --user` can reach
+    the bus from a cron with no login session."""
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "bus").write_text("")
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    assert crons._systemd_bus_env() == {
+        "XDG_RUNTIME_DIR": str(runtime),
+        "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime}/bus",
+    }
+
+
+def test_systemd_bus_env_none_when_socket_absent(monkeypatch, tmp_path):
+    """No caller bus and no socket: any `systemctl --user` call is doomed
+    (`No medium found`); the caller must record a named skip."""
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    assert crons._systemd_bus_env() is None
+
+
+def test_wanted_unit_runs_systemctl_with_env_when_bus_reachable(tmp_path,
+                                                                fake_systemctl):
+    """Bus reachable: a wanted unit writes its file then runs daemon-reload
+    and enable --now (existing behaviour preserved), with the bus-env merged
+    into the subprocess so it works from a cron."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    res = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                          unit_dir=ud)
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0] == "--user daemon-reload"
+    assert calls[1].startswith("--user enable --now ")
+    assert not any("no user bus" in a for a in res["unit_actions"])
+
+
+def test_wanted_unit_records_named_skip_without_bus(tmp_path, monkeypatch,
+                                                    fake_systemctl):
+    """No reachable bus: a wanted unit still writes its file (a file on disk
+    needs no bus) but records ONE named skip and runs neither daemon-reload
+    nor enable --now — the two FAILED `No medium found` actions are gone."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    runtime = tmp_path / "nobus"
+    runtime.mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    ud = tmp_path / "units"
+    res = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                          unit_dir=ud)
+    assert any("no user bus, skip systemctl" in a for a in res["unit_actions"])
+    assert not fake_systemctl.exists(), \
+        "no systemctl may run without a bus"
+    assert list(ud.glob("agi-*.service")), "the unit FILE is still written"
+
+
+def test_kill_switch_with_no_unit_file_records_absent(tmp_path, fake_systemctl):
+    """crons_live false with the unit file already gone (never landed, or
+    manually removed): not loaded, nothing to disable — one state line, no
+    `disable --now` on an absent unit and no FAILED, no daemon-reload."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"  # never created -> unit file absent
+    res = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                          unit_dir=ud)
+    assert any("absent, nothing to disable" in a for a in res["unit_actions"])
+    assert not fake_systemctl.exists(), \
+        "no disable may run on an absent unit"
+
+
+def test_kill_switch_with_unit_present_runs_disable(tmp_path, fake_systemctl):
+    """The kill switch stays REAL when the unit file exists: disable --now,
+    remove, daemon-reload all run through the seam."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    unit = next(ud.glob("agi-*.service"))
+
+    fake_systemctl.write_text("")
+    write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert not unit.exists()
+    assert any("remove unit" in a for a in res["unit_actions"])
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0].startswith("--user disable --now ")
+    assert calls[1] == "--user daemon-reload"
