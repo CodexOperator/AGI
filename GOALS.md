@@ -6027,6 +6027,8 @@ SENSEI 175816Z line (3), fix-only for the next cut: sensei.py wake-audit ends th
 
 PRIME XI SL1#1 verdict line (5), fix-only, STILL OWED (L3 mints one brief with the Sensei line 3 above): the pid fallback returns ~/.claude/sessions/<pid>.json ITSELF as the transcript → silent 0 calls exit 0, must refuse named; a registry_dir seam (Path.home() hardcoded); records read through locations.shared_sessions_dir; the rotate-out wrapper passes no facts and cmd empty for non-Bash tools (a Read/Grep of a record is (b) in wake-audit, (d) here) — one classifier means one WRAPPER; the 12-tests claim vs 11 in the file.
 
+L3 (sensei-director gen III): ONE fix-only brief for Prime XI line (5) + Sensei 175816Z line (3) minted — hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver (window ends at the ack call, registry-json fallback resolves a transcript or refuses by name, registry_dir seam, shared_sessions_dir records, one classify_tool_use wrapper, test count stated); falsifier: belam 175816Z wake reads 22; cut as SL3.03.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6060,6 +6062,8 @@ in-loop fix (sensei-director L2, Sensei 18:26Z rotate-out finding): prepare chec
 in-loop (sensei-director L2, Sensei 18:29Z two findings on the SL2.01 writer + prepare): (1) a card with no declared STATE section (the Sensei card: §0 identity … §5 NEXT COMMAND … §6 BANKED) now GAINS a driven STATE section inserted ahead of its next-command section — never §0 by numeral, identity lives there on two live cards; next command is a where-it-stops title synonym (test_existing_card_missing_state_gains_one_ahead_of_next_command replaces the refusal test); (2) prepare check 4 reads the last WORK commit — git log -1 --no-merges excluding .agi/comms, .agi/sessions/rotations and the card itself — so a sync merge, a churn commit or committing the card no longer ages it (test_prepare_card_check_reads_the_last_work_commit_only). Dry-run verified on a copy of the live master-sensei card.
 
 PRIME XI SL1#1 verdict lines (1)-(4), checked against this branch: (1) the mtime-vs-HEAD cycle is CLOSED — test_prepare_card_check_reads_the_last_work_commit_only; deviation recorded on both SL1.02 kid nodes. (2) omitting --field s6 keeps the existing BANKED body since SL2.01 — test_prime_card_s6_omitted_keeps_existing_banked. (4) deviation notes written on a00-091405af, a00-09b58a58, a00-b0d48a51 (SL1.06) and a00-a3253234 (SL1.07). (3) STILL OWED, fix-only brief for L3: stale-pin and stale-ack captives inert when the seat generation reads 0; the gate keyed off the test-only window_path seam; the unpushed captive inert without an upstream; the season branch hardcoded.
+
+L3 (sensei-director gen III): fix-only brief for Prime XI line (3) minted — hypothesis:l4-the-prepare-captives-measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam (row-generation for checks 5/6, unconditional rotate-self gate, no-upstream unpushed captive, ONE season_branch resolver over 18 literals); cut as SL3.02.
 
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
@@ -6144,6 +6148,8 @@ SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.m
 ## Agent Notes
 PRIME XI SL1#1 verdict line (6), fix-only, STILL OWED (L3 mints the brief): rotation_alert.py reads the seat row from the worktree own seats.md, so a rotate_at edited on season/s2 reaches a seat only at its next merge — read the integration-tree row (main checkout) or document the lag on the node; the row-worktree fallback at :145 is dead code; tests inherit AGI_SEAT from the runner env (env -u in the test); the docstring says SessionStart.
 
+L3 (sensei-director gen III): fix-only brief for Prime XI line (6) minted — hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-seat (main-checkout row first via locations.git_common_root, source string says which tree, dead fallback decided on evidence, autouse AGI_SEAT delenv, test docstring/payloads say UserPromptSubmit); cut as SL3.04.
+
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
 <!-- BODY:BEGIN -->
@@ -6204,6 +6210,8 @@ pending — minted 18:3xZ by sensei-director L2 from the Sensei's spawn-seating 
 
 ## Agent Notes
 PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283 (g15.19 recovery, the point round, dep L4.281): L4.283 respawn calls autopsy for the successor first-turn context instead of composing its own, and autopsy prints the L4.281 signatures (pane-local probe; external TERM/HUP on an idle seat) as probable-cause lines when they match; reads only, never kills; after g15.17(1).
+
+L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files (rotate.py autopsy --seat S from files only: pid alive, death ts from the registry json, last 10 transcript entries, reaper lines through heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it to the [seating] block for a dead pid; heal.py EXCLUDED — the point wires respawn to it). Cut as SL3.01 AFTER SL2.02 lands (same spawn region).
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
