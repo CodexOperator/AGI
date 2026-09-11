@@ -134,6 +134,14 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
         tmp_path, window_path=str(ft.win), timeout=5,
         session_ref="00000000-0000-4000-8000-000000000000",
         successor_transcript=str(transcript))
+    # L4.114 (s6/s7): the ack is written `pending`; the SUCCESSOR flips it to
+    # `continue`. The read-back polls for the flip — on the fixture the test
+    # stands in for the successor flipping it, exactly as test_rotate.py does.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue",
+                          "session_ref": "00000000-0000-4000-8000-000000000000"})
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
 
@@ -154,12 +162,14 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
         .read_text(encoding="utf-8")
     assert "session_ref: 00000000-0000-4000-8000-000000000000" in hand
 
-    # ack written on the successor's behalf: the read-back confirmed it.
+    # ack written on the successor's behalf as `pending` (s6/s7): it carries
+    # the machine identity but is NOT a confirmation until the successor
+    # flips it to continue.
     ack = json.loads(
         (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
         .read_text(encoding="utf-8"))
     assert ack["gen_after"] == 1
-    assert ack["answer"] == "continue"
+    assert ack["answer"] == "pending"         # never pre-write `continue`
     assert ack["session_ref"] == "00000000-0000-4000-8000-000000000000"
 
     # the record shows each handover step.
@@ -206,7 +216,14 @@ def test_handover_without_session_ref_records_skipped(_fix, tmp_path,
     assert own.get("session_ref", "") == ""      # row untouched
     assert own.get("generation", None) is None   # row untouched
     rec = _latest_record(tmp_path, "adv-alive")
-    assert rec["handover"] == {}                 # no handover steps recorded
+    # No identity => no identity-bearing handover step ran: only the window
+    # identities and the s8 button-down (skipped on a fixture) are recorded.
+    assert "successor_row" not in rec["handover"]
+    assert "ack_written" not in rec["handover"]
+    assert "own_authority_released" not in rec["handover"]
+    assert rec["handover"]["successor_window"] == {"name": "adv-alive",
+                                                    "id": None}
+    assert "SKIPPED: grid commit illegal" in rec["handover"]["button_down"]
 
 
 # PRIME RULING (L4.110): the seats-row write is admitted by DATA (the
@@ -295,6 +312,11 @@ def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
     proc = subprocess.Popen(["sleep", "1000"])
     pid = proc.pid
     try:
+        # L4.114: ack is `pending`; stand-in for the successor flipping it.
+        monkeypatch.setattr(
+            rotate, "_read_ack",
+            lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                              "answer": "continue"})
         args = _rotate_self_args(
             tmp_path, window_path=str(ft.win), timeout=5,
             session_ref="abc", own_pid=str(pid))
@@ -339,6 +361,11 @@ def test_rotate_self_belam_cap_records_decision(_fix, tmp_path,
                    initial=["adv-alive", "belam", "belam-II", "belam-III",
                             "belam-IV", "belam-V"])
     monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    # L4.114: ack is `pending`; stand-in for the successor flipping it.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
     args = _rotate_self_args(
         tmp_path, window_path=str(ft.win), timeout=5,
         session_ref="abc", belam_prefix="belam")
@@ -348,3 +375,133 @@ def test_rotate_self_belam_cap_records_decision(_fix, tmp_path,
     bc = rec["handover"]["belam_cap"]
     assert bc["would_exceed_five"] is True
     assert bc["oldest_to_reap"] == "belam"
+
+# ── L4.114 s4/s6/(b)/(a) — the registry JOIN and the source=registry row ────
+
+
+def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
+    """(a) The JOIN matches the successor's WINDOW @id in a registry file
+    whose content is `view-x:@9.%9` — the session prefix is IGNORED, only the
+    @id is the key. The row write carries session_id/pid/window/generation
+    with source=registry (b)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "claude-sonnet-5", "effort": "max",
+                         "settings": ""}])
+    # fixture window-path carries the successor's @id (test seam for s3): a
+    # custom spawn appends `@N <name>` as tmux new-window -P would print it.
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def my_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@9 adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    # the registry file's content carries the window @id inside a session
+    # prefix `view-x:@9.%9` — the prefix must never be the key; only `@9`.
+    (reg / "48123.json").write_text(json.dumps({
+        "session_id": "00000000-0000-4000-8000-000000000001",
+        "name": "adv-alive",
+        "window": "view-x:@9.%9",
+        "transcript": str(tmp_path / "succ.jsonl"),
+    }), encoding="utf-8")
+    # stand-in for the successor flipping the pending ack.
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                                         "answer": "continue"})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(win), timeout=5,
+        registry_dir=str(reg), registry_poll=2)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    join = rec["handover"]["join"]
+    assert join["found"] is True
+    assert join["window_id"] == "@9"
+    assert join["session_id"] == "00000000-0000-4000-8000-000000000001"
+    assert join["pid"] == 48123
+    assert "48123.json" in join["note"]   # matched INSIDE `view-x:@9.%9`
+    # (b) row write carries session_id/pid/window/generation, source=registry.
+    assert "source=registry" in rec["handover"]["successor_row"]
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own["session_id"] == "00000000-0000-4000-8000-000000000001"
+    assert own["pid"] == 48123
+    assert own["generation"] == 1
+    assert own["window"] == "adv-alive"
+
+
+def test_join_missing_registry_file_records_skipped(_fix, tmp_path,
+                                                    monkeypatch):
+    """(a) A successor @id with NO registry file within the bounded poll =>
+    the rotation is recorded `skipped` naming `registry file for @<id>` and
+    the result is NOT success."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def my_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@9 adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    (reg / "999.json").write_text(json.dumps({"session_id": "zzz"}),
+                                  encoding="utf-8")  # no @9 in content
+    args = _rotate_self_args(
+        tmp_path, window_path=str(win), timeout=5,
+        registry_dir=str(reg), registry_poll=1)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "skipped"
+    assert "registry file for @9" in rec["refusal_reason"]
+
+
+# ── L4.114 (c) — ack --ref back-fill (r3) + whois by ref AND uuid prefix ───
+
+
+def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
+    """(c) `rotate.py ack --ref` BACK-FILLS session_ref into the successor's
+    own row (source: ack); whois authorizes by that ref AND by a session_id
+    uuid prefix, and refuses a prefix shorter than the stated minimum."""
+    schemas = tmp_path / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    (schemas / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\n"
+        "self_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "---\nbody\n", encoding="utf-8")
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent", "model": "x",
+                         "session_id":
+                         "abcdef12-0000-4000-8000-000000000000"}])
+    # (c1) ack --ref back-fills session_ref into own row (source: ack)
+    args = SimpleNamespace(seat="adv-alive", gen=1, ref="7902ac",
+                           answer="continue", text=None)
+    rc = rotate.cmd_ack(args, tmp_path)
+    assert rc == 0
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own["session_ref"] == "7902ac"
+
+    # (c2) whois authorizes by the short 6-hex ref (an exact session_ref).
+    import send  # same dir (under test)
+    code, _ = send._resolve_rows(rows, "7902ac", None)
+    assert code == send.WHOIS_OK
+    # (c3) whois authorizes by a session_id UUID prefix (>= min 6 chars).
+    code, _ = send._resolve_rows(rows, "abcdef12", None)
+    assert code == send.WHOIS_OK
+    # (c4) a too-short prefix is REFUSED (never a guess).
+    code, answer = send._resolve_rows(rows, "ab", None)
+    assert code == send.WHOIS_NO_MATCH
+    assert "too short" in answer
