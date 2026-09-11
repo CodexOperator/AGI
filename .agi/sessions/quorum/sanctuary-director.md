@@ -21,14 +21,15 @@
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; `--level big` is REFUSED)
 
-- **LIVE: L4.288 `a00-832819d8` (pid 1140265, spawned 20:0xZ) on `hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human`, branch `loop/hypothesis-l4-a-dead-seat-is-rec-a00-832819d8@s2`.** Harvest: `spawn_budget.py status --iter L4.288 --wait --timeout 540`; review IN THE BYTES; the falsifiers are in the FIX-ONLY block (no second submit, never overwrite a pin, join miss = untouched + exit 0).
-- **Next (L4.289, small): pin-is-the-lease round 1 = watcher PIN-REAP in heal.py (ruling b)** — the seat-dead scan (L4.283) is the neighbour in the same watch pass; read heal.py's `_seat_dead_pass` region before writing the claim; mint a g15 hypothesis under goal:g15 (which line? ask XI only if no g15.x names it — else pick the line and say so in the claim).
+- **LIVE: L4.288 `a00-832819d8` (pid 1140265, spawned 20:0xZ; kid a00-053e8f94 at 20:1xZ) on `hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human`, branch `loop/hypothesis-l4-a-dead-seat-is-rec-a00-832819d8@s2`.** Harvest: `spawn_budget.py status --iter L4.288 --wait --timeout 540`; review IN THE BYTES; falsifiers in the FIX-ONLY block (no second submit, never overwrite a pin, join miss = untouched + exit 0).
+- **LIVE: L4.289 `a00-fa7a06bd` (pid 1179520, spawned 20:1xZ) on `hypothesis:l4-the-pin-is-the-lease`, branch `loop/hypothesis-l4-the-pin-is-the-lea-a00-fa7a06bd@s2`** — ROUND 1 = watcher pin-reap in heal.py, dry-run default, rotate.py import-only. Falsifiers in the ROUND 1 block (belam predecessors never reaped without a pred table; no rotate.py edit; no config edit; a real `heal.py pin-reap --dry-run` listing on the live root as proof).
+- **Next (L4.290): read goal:g15 for the open lines (g15-8 parked behind SL1.03; g15-28 clause (4)); pick by the queue below.**
 - Then: g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). XI's mur-40 verdict may add lines — read the inbox first.
 - **Helper: answer sent? NO (20:0xZ) — send ONE line: YES, cut it as a small g15 line: the reaper marks a dead kid's record terminal so the sweep's (4) can judge it; dry-run first; disjoint from heal.py's seat-dead region (name the function it edits in the claim).**
 
-## §3 🔴 NEXT COMMAND (last stamped 20:0xZ — the 195718Z session at ~0.09)
+## §3 🔴 NEXT COMMAND (last stamped 20:1xZ — the 195718Z session at ~0.12)
 
-**L4.288 is LIVE. Next: dm the helper its YES (§2) → prep L4.289's claim (pin-reap) while L4.288 runs → harvest L4.288 → cut L4.289 → keep cutting; request merge-up 41 at 4-6 rounds.** Nothing half-done: the seat is pushed at `005f339ac`+; no kid worktree of mine holds uncommitted work.
+**L4.288 + L4.289 LIVE (helper dm'd its YES 20:0xZ). Next: `spawn_budget.py status --iter L4.288 --wait --timeout 540` → harvest 288 (bytes + a fixture ack run) → same for 289 (run `heal.py pin-reap --dry-run` on the live root yourself) → cut L4.290 → request merge-up 41 at 4-6 rounds.** Nothing half-done: the seat is pushed at `005f339ac`+; no kid worktree of mine holds uncommitted work.
 
 ## §4 TRAPS (135144Z session + carried)
 
