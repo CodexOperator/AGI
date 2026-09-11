@@ -301,6 +301,41 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     return pins[-1] if pins else None
 
 
+def _seat_pin_path(root: Path, seat: str) -> Path:
+    """The seat's OWN pin path, `<sessions>/<seat>.meter`, the ONE form a
+    `meter --pin` clear line must print (hypothesis:l4-meter-pin-refuses-a-
+    target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears).
+    Resolved via `_sessions_dir` so the printed path and the write target can
+    never disagree."""
+    return _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
+
+
+def _valid_meter_pin_target(pinp: Path, root: Path) -> tuple[bool, str]:
+    """A `--pin` write target must BE a meter pin: a basename ending in
+    `{METER_PIN_EXT}` AND directly under the graph's sessions dir (the claim
+    naming it). A target is otherwise refused BY NAME and never written --
+    the Prime passed its own transcript (a `.jsonl`) as --pin and the live
+    file became one line, so the target's shape is checked BEFORE any write.
+    Returns (ok, reason); `pinp` must be resolved. The refusal prints the
+    one clear line that actually clears: `--pin` takes the PIN FILE, and
+    never `--seat` (which trips the cross-generation read refusal)."""
+    sessions = _sessions_dir(root).resolve()
+    if not pinp.name.endswith(METER_PIN_EXT):
+        return (False,
+                f"{pinp} is not a meter pin (a pin's name ends "
+                f"'{METER_PIN_EXT}'); wrote it, it would truncate. Run: "
+                f"rotate.py meter --pin "
+                f"{sessions / ('<seat>' + METER_PIN_EXT)} "
+                f"--session-log <path-to-the-transcript-you-own>")
+    if pinp.parent.resolve() != sessions:
+        return (False,
+                f"{pinp} is not under the graph's sessions dir ({sessions}); "
+                f"pins live there by name. Run: rotate.py meter --pin "
+                f"{sessions / ('<seat>' + METER_PIN_EXT)} "
+                f"--session-log <path-to-the-transcript-you-own>")
+    return True, ""
+
+
 def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
     """A pin's content, split into `(generation, transcript_path)`.
 
@@ -969,6 +1004,27 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
                 f"<path-to-the-transcript-you-own>", file=sys.stderr)
             return 1
         pinp = Path(args.pin).expanduser().resolve()
+        # A --pin target must BE a pin by name and home (hypothesis:l4-meter-
+        # pin-refuses-a-target-that-is-not-a-pin...): a .jsonl transcript, a
+        # node or a script is refused BY NAME and never written -- the Prime
+        # passed its own transcript as --pin and the live .jsonl became one
+        # line. And an EXISTING valid-path pin is overwritten only when its
+        # current content parses as a pin record; a target sitting on non-pin
+        # bytes is refused and left byte-identical.
+        ok_target, reason = _valid_meter_pin_target(pinp, root)
+        if not ok_target:
+            print(f"ERR: meter --pin refuses its target. {reason}",
+                  file=sys.stderr)
+            return 1
+        if pinp.exists() and _parse_pin_record(pinp)[1] is None:
+            print(
+                f"ERR: --pin {pinp} exists but its content is not a meter "
+                f"pin record (one line `<generation>\\t<transcript>` or a "
+                f"bare `<transcript>`); writing it would destroy those bytes. "
+                f"Run: rotate.py meter --pin {_seat_pin_path(root, '<seat>')} "
+                f"--session-log <path-to-the-transcript-you-own>",
+                file=sys.stderr)
+            return 1
         pinp.parent.mkdir(parents=True, exist_ok=True)
         seat_for_gen = getattr(args, "seat", None)
         if not seat_for_gen and pinp.name.endswith(METER_PIN_EXT):
@@ -7859,13 +7915,31 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     gen_note = (f"cur={cur_gen} ({gen_src})" if gen_measured else
                 "generation unmeasured: no config:seats row, no handoff")
     stale_pin = False
+    # The clear line must print the ONE command that actually clears, both
+    # halves right (hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-
+    # pin-and-prepare-prints-the-clear-line-that-clears): --pin takes the
+    # PIN FILE (the seat's real `<sessions>/<seat>.meter`, resolved via
+    # _sessions_dir so the printed path and the write target agree), and
+    # the transcript comes from the pin/registry when known else the literal
+    # placeholder -- never --seat (which trips the cross-generation read
+    # refusal).
+    known_transcript = None
     if pin is not None:
-        written_gen, _ = _parse_pin_record(pin)
+        written_gen, written_path = _parse_pin_record(pin)
         if written_gen is not None and gen_measured and written_gen != cur_gen:
             stale_pin = True
+        known_transcript = written_path or None
+    if known_transcript is None and root is not None:
+        seat_row = _find_seat(root, seat)
+        if seat_row:
+            known_transcript = (seat_row.get("transcript_path")
+                                or transcript_from_registry_dict(seat_row))
+            known_transcript = known_transcript or None
+    clear5 = (f"rotate.py meter --pin {_seat_pin_path(root, seat)} "
+              f"--session-log {known_transcript or '<transcript>'}")
     checks.append((stale_pin,
                    f"meter pin stale (seat_pin-stale) {gen_note}",
-                   f"rotate.py meter --seat {seat} --pin <transcript>"))
+                   clear5))
 
     # 6 stale <seat>.ack.json — an ack from a generation other than the seat's
     # own is a leftover that would misreport the rotation (the ack channel is
