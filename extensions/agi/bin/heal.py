@@ -527,6 +527,7 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
 # the FIRST match below wins for a refusal whose stdout carries more than one.
 def _sweep_refusal_reason(text: str) -> str:
     for needle, tag in (
+        (" is not terminal", "non-terminal"),
         ("not every agent record is terminal", "non-terminal"),
         ("target already exists and is not empty", "target exists"),
         ("a live lease is active", "live lease"),
@@ -558,8 +559,13 @@ sweep-judges-it.
     """
     if iter_name in homed:
         # already attempted this pass; the memoized outcome holds, but the
-        # on-disk target is always re-read because a sibling may have landed it
-        return None if (main_sessions / iter_name).is_dir() else homed[iter_name]
+        # on-disk target is always re-read because a sibling may have landed it.
+        # A memoized "" means the iter came home (or WOULD, in a dry run where
+        # nothing is on disk) -- the second tree of a two-tree round is then
+        # home too, never refused with an empty reason (harvest fix, L4.255).
+        if homed[iter_name] == "" or (main_sessions / iter_name).is_dir():
+            return None
+        return homed[iter_name]
     try:
         import cli as _cli  # noqa: E402 — cli imports evidence_gate/locations/
         # spawn_budget, so heal must NOT load it at module import time
