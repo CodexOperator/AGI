@@ -2599,30 +2599,44 @@ def _kill_window(name: str, tmux_session: str,
     when we have it; fall back to the name only when we do not.
 
     With `window_path` (tests) the name / @id line is dropped from the file
-    instead of a real tmux kill-window."""
+    instead of a real tmux kill-window. Returns a status string: "killed"
+    when the kill landed (or, on the test seam, an owned line was dropped),
+    "already_gone" when the window is already absent (no owned line to drop,
+    or tmux reports `can't find window`), or "error" when tmux threw. Never
+    raises (L4.158: a kill failure is recorded, not raised)."""
     if window_path is not None:
         p = Path(window_path)
         if p.exists():
             lines = []
+            found = False
             for ln in p.read_text(encoding="utf-8").splitlines():
                 ln = ln.strip()
                 if not ln:
                     continue
                 if window_id and ln.startswith(window_id):
+                    found = True
                     continue  # drop the line owned by the reap-by-@id
                 if ln == name:
+                    found = True
                     continue
                 lines.append(ln)
             p.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        return
+            return "killed" if found else "already_gone"
+        return "already_gone"
     target = f"{tmux_session}:{window_id}" if window_id else f"{tmux_session}:{name}"
     try:
-        subprocess.run(
+        r = subprocess.run(
             ["tmux", "kill-window", "-t", target],
             capture_output=True, text=True, timeout=5,
         )
-    except Exception:
-        pass
+    except Exception:  # noqa: BLE001
+        return "error"
+    err = (r.stderr or "").lower()
+    if r.returncode != 0 and ("can't find window" in err
+                              or "no such window" in err
+                              or "can't find session" in err):
+        return "already_gone"
+    return "killed"
 
 
 def _seat_fraction(root: Path, row: dict) -> float | None:
@@ -3209,6 +3223,23 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     the chain from the oldest window's pane pid. Never raises; a chain it
     cannot derive records SKIPPED naming the missing input."""
     oldest_id = _successor_window_id(oldest, tmux_session, window_path)
+
+    def _kill_oldest_by_id() -> dict:
+        """L4.158 — on a SKIPPED path, still kill the oldest window BY @id
+        so the FIFO cap never leaves six windows. When no @id was resolved
+        record `window_killed: false` and do NOT call tmux. A window that is
+        already gone records it (never an error); a kill failure never
+        raises."""
+        if not oldest_id:
+            return {"window_killed": False, "already_gone": False}
+        try:
+            status = _kill_window(oldest, tmux_session, window_path,
+                                  window_id=oldest_id)
+        except Exception:  # noqa: BLE001
+            status = "error"
+        return {"window_killed": status == "killed",
+                "already_gone": status == "already_gone"}
+
     _write_belam_planned = (lambda e: (
         s12_reap.__setitem__("belam_reap", e)
         if s12_reap is not None else None,
@@ -3217,20 +3248,33 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     if not pids:
         pane_pid = _pane_pid(oldest_id) if oldest_id else None
         if not pane_pid:
+            kill = _kill_oldest_by_id()
             e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
                  "reaped": False, "ps_after": [],
-                 "skipped": ("SKIPPED: no pane pid for the oldest window "
-                              f"{oldest!r} (@id {oldest_id}); the Belam "
-                              "FIFO cap could not derive its chain")}
+                 "window_killed": kill["window_killed"],
+                 "skipped": (("already gone: the oldest window "
+                               f"{oldest!r} (@id {oldest_id}); no pane pid; "
+                               "window already gone")
+                              if kill["already_gone"]
+                              else ("SKIPPED: no pane pid for the oldest "
+                                    f"window {oldest!r} (@id {oldest_id}); "
+                                    "the Belam FIFO cap could not derive "
+                                    "its chain"))}
             _write_belam_planned(e)
             return e
         pids = _descendant_chain(pane_pid)
         if not pids:
+            kill = _kill_oldest_by_id()
             e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
                  "reaped": False, "ps_after": [], "pane_pid": pane_pid,
-                 "skipped": ("SKIPPED: no chain under pane pid "
-                              f"{pane_pid} for the oldest window "
-                              f"{oldest!r}; nothing to reap")}
+                 "window_killed": kill["window_killed"],
+                 "skipped": (("already gone: the oldest window "
+                               f"{oldest!r} (@id {oldest_id}); no chain "
+                               "under the pane pid; window already gone")
+                              if kill["already_gone"]
+                              else ("SKIPPED: no chain under pane pid "
+                                    f"{pane_pid} for the oldest window "
+                                    f"{oldest!r}; nothing to reap"))}
             _write_belam_planned(e)
             return e
     # (e) the PLANNED belam-cap entry — written BEFORE the first TERM, so an
