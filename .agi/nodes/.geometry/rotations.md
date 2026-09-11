@@ -5,7 +5,7 @@ type: config
 parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
-edited_by: belam-S1-L4-VII
+edited_by: belam
 locations: {}
 scaffold_hash: c15eeda9b6db679a
 season: 2
@@ -31,8 +31,7 @@ templates:
       - ack
     startup:
       first_turn:
-        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py whois --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record + sequence + own row read by hand"}
-        - {"label": "seat-row", "cmd": "python3 extensions/agi/bin/send.py whois {succ_ref} --claim {seat}", "why": "gen X call 1: the row after the handover, from the PUSHED graph"}
+        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "gen X call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "gen X call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
@@ -67,8 +66,7 @@ templates:
       - prev_gen
     startup:
       first_turn:
-        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py whois --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record + sequence + own row read by hand"}
-        - {"label": "seat-row", "cmd": "python3 extensions/agi/bin/send.py whois {succ_ref} --claim {seat}", "why": "gen X call 1: the row after the handover, from the PUSHED graph"}
+        - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "gen X call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "gen X call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}

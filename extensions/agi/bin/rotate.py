@@ -1553,6 +1553,43 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     `--seats` is the graph-reading half and needs the project root; tmux is
     never touched for it."""
 
+    if getattr(args, "record", None):
+        # hypothesis:l4-rotations-startup-commands-must-parse — the read a
+        # rotated-in seat does first thing, in the FIRST TURN: the latest
+        # durable rotation record for its seat + the current sequence + its
+        # own row. Read-only; never touches tmux and never writes (it replaces
+        # the old first_turn `rotate.py whois`, which did not exist).
+        seat = getattr(args, "seat", None)
+        if not seat:
+            print("ERR: --record latest needs --seat <seat>", file=sys.stderr)
+            return 2
+        if root is None:
+            print("ERR: --record needs an agi project root", file=sys.stderr)
+            return 1
+        rot_dir = _rotations_dir(root)
+        files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
+        if not files:
+            print(f"(no rotation record for {seat})")
+        else:
+            try:
+                latest = files[-1]
+                print(f"# latest rotation record: {latest.name}")
+                print(latest.read_text(encoding="utf-8").rstrip())
+            except OSError as exc:
+                print(f"ERR: could not read latest record: {exc}",
+                      file=sys.stderr)
+                return 1
+        print(f"sequence={_current_sequence(root)}")
+        row = _find_seat(root, seat)
+        if row is None:
+            print(f"(no seats row for {seat})")
+        else:
+            gen = _read_generation(root, seat)
+            frac = _seat_fraction(root, row)
+            frac_str = "?" if frac is None else f"{frac:.3f}"
+            print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+        return 0
+
     if getattr(args, "seats", False):
         if root is None:
             print("ERR: --seats needs an agi project root", file=sys.stderr)
@@ -4160,15 +4197,26 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
     return None
 
 
-def _resolve_startup_placeholders(command: str, values: dict) -> str:
+def _resolve_startup_placeholders(command: str, values: dict, *,
+                                  refuse_empty: bool = False) -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
     key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
-    unknown/unresolved placeholder is never silently left in the command."""
+    unknown/unresolved placeholder is never silently left in the command.
+    With `refuse_empty=True` (the first_turn path only), a placeholder the
+    command USES whose value resolves to EMPTY is ALSO refused, naming the
+    placeholder (`placeholder {key} empty at spawn`), instead of producing a
+    command that runs on an empty slot and dumps a usage error. Other callers
+    (the driven `next` walk, bootstrap) leave `refuse_empty` False: for them
+    an empty placeholder may be legitimate, and they must not be forced to
+    fall over on it."""
     def _sub(m):
         key = m.group(1)
         if key not in STARTUP_PLACEHOLDERS:
             raise ValueError(f"unknown startup placeholder {{{key}}}")
-        return str(values.get(key, ""))
+        value = values.get(key, "")
+        if refuse_empty and not str(value):
+            raise ValueError(f"placeholder {{{key}}} empty at spawn")
+        return str(value)
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
 
 
@@ -4211,7 +4259,8 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "refused": f"not on startup.allow: {refusal}"})
             continue
         try:
-            record_cmd = _resolve_startup_placeholders(cmd, values)
+            record_cmd = _resolve_startup_placeholders(cmd, values,
+                                                       refuse_empty=True)
         except ValueError as exc:
             results.append({"label": label, "cmd": cmd, "refused": str(exc)})
             continue
@@ -5439,6 +5488,12 @@ def main(argv: list[str] | None = None) -> int:
     p_status.add_argument("--seats", action="store_true",
                           help="list registry seats instead (seat/generation/"
                                "fraction/age, one line per row)")
+    p_status.add_argument("--seat", default=None,
+                          help="seat name to read with --record")
+    p_status.add_argument("--record", default=None,
+                          help="print the LATEST durable rotation record for "
+                               "--seat, plus the current sequence and the "
+                               "seat's own row (read-only)")
     p_status.set_defaults(func=cmd_status)
 
     # seq: print the current rotation-alert sequence number (one read)
