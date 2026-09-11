@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+COUPLING (prime XI 18:40Z on goal:g15.21, read by sanctuary-director 182119Z at 2026-09-11 18:50:44Z while this round is live — binding at harvest): g15.21 (`rotate.py autopsy --seat S`, sensei-director's round after g15.17(1)) is the BRIEF half of this round — the successor's first-turn context comes from autopsy, not from a composition of this pass's own; and autopsy prints the L4.281 signatures as probable-cause lines. So at harvest: the probable_cause classifier this round builds in heal.py must be ONE importable function (log-tail text in → named cause out, the list in the claim) that autopsy can call, not inline in the watch pass; the dm/record carry its output. If the kid inlined it, the director lifts it into a function in a fix-up commit (no re-cut). The respawn's 'nothing is composed specially' clause stands — the successor wakes on its ordinary handoff; autopsy (when it lands) adds the pre-filled autopsy on top.
