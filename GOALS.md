@@ -6107,6 +6107,46 @@ DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z mea
 
 **Falsifiers:** a firing whose printed band is not `b_frac × 100`; a registration block naming SessionStart; a seat with `rotate_at` 0.4 measured against 0.47. **FILE SCOPE:** `extensions/agi/hooks/rotation_alert.py`, `extensions/agi/tests/test_rotation_alert.py`. EXCLUDED: `~/.claude/settings.json` (the Prime's live install), `rotate.py`, `config:*`. **CEILING:** 1 parent, up to 2 kids. Disjoint from every other L1 round — cut now.
 
+### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.19
+
+## Agent Notes
+**A seat whose process dies is recovered by the loop, not by a human noticing.** Measured 2026-09-11: prime X (`belam` gen 10, @281, pid 3526521) died ~17:51:50Z with no rotation record (last: 14:03Z), no successor, and the seat stayed dead until the owner saw the GUI go blank and the sanctuary director spawned XI by hand at 17:58Z (`rotate.py spawn --tier prime_director`, row written on the owner's GO). Seven minutes of a headless loop, recovered only because a human was watching.
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a fix to a live failure of the loop's own machinery, done in-loop (owner 2026-09-11 17:5xZ: "add doing graceful recovery in case of crashes").
+- `build:bin-heal` is the parent because `heal.py watch` is the persistent pass that already reads every seat row each poll (`_repair_stranded_wakes`, 30 s) — detection belongs there, not in a new daemon.
+
+## Testable claim (a build order)
+
+(1) DETECT: on each watch pass, for every seat row with a `pid`, a seat is DEAD when its pid is gone AND its `window` @id is absent from tmux AND no rotation record for that seat is `started` within the last 10 minutes (a rotation in flight is not a crash); a dead seat is named ONCE on stderr and in the watch log with the row's cells. (2) RECOVER: the pass respawns the seat through the existing spawn path for its tier (`spawn_window` with the row's model/effort/settings, the prime on the standing prime brief, a director/helper on its quorum scratchpad via the same template `rotate-self` uses), names the successor by the seat's rule (numeral chain for `belam`: next numeral; plain seats: the seat name), writes the row's `generation`/`window`/`pid`/`session_id` exactly as rotate-self does at spawn (session_ref stays empty for the successor's ack), pins the meter, and dms the seat's `rotated_by` holder AND the Sensei one line (`[crash-recovery] <seat> pid <old> dead at <ts>; respawned <name> @id <id>`); the successor wakes on its ordinary handoff (the prime's live `HANDOFF.md`, a director's quorum scratchpad) — nothing is composed specially. (3) GRACEFUL: what the dead seat held is released, never lost — a stale `verify-suite.lock` under the dead seat's tree is removed with a log line; rounds it dispatched keep running (dispatch already exits after the spawn); its inbox unread stays unread for the successor; the recovery is recorded as a rotation record with `rotation: crash-recovery` so `status --record latest` and the Sensei audit see it. (4) NEVER: a seat with `crons_live`-style opt-out (`recover: false` in its row) is named, not respawned; a seat whose pid is alive is never touched; two passes never spawn twice (the record from (3) is the guard). TESTS: fixture rows + a fake process table + a fake window list: dead seat -> one spawn, one row write, one dm, one record; alive seat -> nothing; in-flight rotation -> nothing; second pass -> nothing. PROOF ON THE REAL TREE: kill a throwaway seat's spawned window and watch one pass recover it (paste). CEILING: 2 kids serial (detect+record, then respawn+row). FILE SCOPE: extensions/agi/bin/heal.py, extensions/agi/bin/rotate.py (spawn_window callers ONLY; nothing in first_turn/bootstrap/handoff — the sensei-director's regions), tests. EXCLUDED: the ladder, config:seats schema (a `recover` cell is the prime's edit), moral:*.
+
+### G15.20 — Why prime X died at 17:51:50Z — find the cause from the evidence on the box and land the prevention if it is preventable — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.20
+
+## Agent Notes
+**Prime X died without a rotation; the loop must know why.** Owner 2026-09-11 17:5xZ: "do a goal to figure out why the crash happened if there's a good, preventable reason other than something somewhat random due to VPS cloud environment."
+
+## Why this exists
+
+- `goal:g15` is the parent because a preventable crash of the loop's prime is a bug in the loop, fixed in-loop; an environmental one is recorded so the next one is recognised in one read.
+- `build:bin-rotate` is the parent because the prime's lifecycle (spawn, pin, reap) lives there and any prevention lands beside it.
+
+## Evidence already measured (sanctuary-director 163547Z, 17:52-17:58Z)
+
+- X = `belam` gen 10, @281, pid 3526521, transcript `e18063bd-…`; last transcript entry 17:31:13Z, transcript mtime 17:45:46Z; meter 0.36 (not due to rotate).
+- `belam.log` (X's debug file): `[bridge:repl] Sent control_response for get_context_usage` 17:49:19Z (the owner's GUI); `[ERROR] SSETransport: Stream read error: The socket connection was closed unexpectedly` 17:51:09Z — the SAME error at the same second in `belam-S1-L4-V.log` and `belam-S1-L4-VI.log` (whose processes SURVIVED); `CCRClient: Heartbeat sent` until 17:51:45Z; pid gone by 17:52:10Z; the tmux window @281 gone (a pane whose process exits closes its window).
+- No rotation record after 14:03Z; no `rotate-self` process; `heal.py watch` journal empty for the interval; no kernel OOM line (`journalctl -k`, `dmesg`); box memory 24 GB with 3.5 GB free at 17:57Z; `hermes-gateway.service` in failed state (unrelated?).
+
+## Testable claim
+
+(1) Read the last 60 s of X's log before the pid vanished (17:51:10-17:52:10Z, all levels) and its transcript tail, and name the exit: a signal (from whom — `ps`/journal/tmux `remain-on-exit` state), an uncaught error in the claude process, a remote-control disconnect that ends the session (the bridge's disconnect handling — compare with V/VI which took the same SSE error and lived: what differed — X was the ACTIVE remote-control target in the GUI), or an explicit GUI action; (2) if preventable: land the prevention (e.g. the spawn's `--remote-control` reconnect setting, a wrapper that restarts claude in place, or `remain-on-exit on` for seat windows so a dead pane keeps its @id and its last screen for the post-mortem) and prove it by reproducing the trigger on a throwaway seat; (3) if environmental (VPS network blip): record the signature (the exact log lines) on this node and make `goal:g15.19`'s detector name it as `probable-cause: remote-control disconnect` when the same lines precede a death. FALSIFIER: a cause named without a log line that shows it. CEILING: 1 kid (an investigation round; code only under (2)). FILE SCOPE: read-only over `.agi/sessions/*.log` and the transcript; writes only under (2) in extensions/agi/bin/rotate.py spawn region + tests. Quote log LINES, never a key.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
