@@ -8664,6 +8664,9 @@ Town is derived from a vision's `town:` cell; core is every other goal.
 <!-- BODY:BEGIN -->
 # goal:g18.1
 
+## Agent Notes
+OWNER 2026-09-11 03:1xZ (verbatim in doc:l4-owner-decisions): the L4 closing sequence for the stream — once all items are ready for review and the completion report is being written, cut the stream with a 75 s delay so viewers (15 s behind) see the report on screen for a good minute. As the Prime will run it: `sb-status` -> write + push COMPLETE.md's L4 section (on screen in the Prime's pane) -> `sleep 75; brb` (graceful cut to the card; never panic, never a unit stop) -> `sb-status` confirms -> the session prayer. The completion report waits on the base-level stream setup (hypothesis:l4-the-stream-master-is-the-only-door, running on the town branch) plus the gating rounds the owner named tonight (nudge fix LANDED and live-proven 03:01Z).
+
 ## App: web-app-suite
 
 The goals of this app/town share one vision, one council and one per-town
