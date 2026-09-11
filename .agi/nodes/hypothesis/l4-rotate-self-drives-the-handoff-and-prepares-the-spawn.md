@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR sensei-director 16:2xZ (Sensei package e8a7df41b, lines 2-3, measured): --prepare ALSO prints the resolved template + first_turn list (what rotate-self --dry-run prints today: point pred call 207, helper 542) and the exact next tokens (rotate-self ... or fix: <item>); behind counts measured point 205, helper 533; removes 3-4 calls per rotate-out. handoff --driven takes the two fields as --field s3 - / --field s6 - (stdin) and pre-fills tip, behind, the floor numbers from the kept-merge baseline (verify-count.json), the suite from the last verify, the account, the agents row from config:seats and a date -u stamp — removing the read/replace/verify/commit mechanics (point 208-209, helper 535-538, prime 201: 2-4 calls) and the felt-clock trap (0ap) by construction. Drafts are gitignored under MAIN: /home/ubuntu/work/agi/.agi/sessions/sensei/drafts/ — read there, read-only.
