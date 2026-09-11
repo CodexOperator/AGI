@@ -1023,22 +1023,34 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
 # --- spawn subcommand -----------------------------------------------------
 
 
-def _shell_cmd(claude_cmd: list[str], settings) -> str:
+def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
-    TWO exports may ride in front of the command, and both compose:
+    Three exports may ride in front of the command, and all compose:
     every launch carries CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 so the
     background-shell reaper is disarmed in the launched shell's OWN
     environment rather than inherited from the tmux session, which is one
     server restart from gone (hypothesis:l4-spawn-paths-export-the-reaper-knob);
     an ultracode role's launch additionally exports CLAUDE_CODE_WORKFLOWS=1
-    (hypothesis:l3-rotate-ultracode-env).
+    (hypothesis:l3-rotate-ultracode-env); a SEAT successor's launch exports
+    AGI_SEAT so the SessionStart hook COPY (cc-session-start.next.sh, which
+    keys its bootstrap injection on AGI_SEAT) can fire at turn one on the
+    live path (hypothesis:l4-startup-first-turn-is-performed-by-the-service-
+    and-the-hook-fires-at-turn-one). AGI_SEAT is emitted only when a seat is
+    given, so a plain `spawn`/`loop` with NO seat stays byte-identical to
+    today — the export appears only for a seat successor.
 
     `claude_cmd` is quoted element by element, so the constitution head riding
     in argv survives whatever is prepended.
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
-    reaper = REAPER_ENV_EXPORT + " && " + joined
+    # AGI_SEAT rides FIRST in the export chain, so it is set before the
+    # reaper/ultracode knobs and the claude process — composed the same way
+    # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
+    cmd = joined
+    if seat is not None:
+        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + cmd
+    reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
@@ -1123,6 +1135,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  window_path: str | None = None, root: Path | None = None,
                  dry_run: bool = False, debug_file: str | None = None,
                  extra: str = "",
+                 seat: str | None = None,
                  successor_argv: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
@@ -1132,6 +1145,13 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     command, quotes it for the shell and (unless dry-run) opens it in a new
     tmux window. Refuses when a window of that name already exists. Core is
     not prime-specific -- any named seat may launch through it.
+
+    `seat` (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...)
+    is the successor's SEAT identity, exported into the launched shell as
+    AGI_SEAT BEFORE the claude process starts. Only a caller that OWNS a
+    concrete seat passes it (cmd_rotate_self, cmd_seats_launch); a generic
+    spawn/loop passes None and the launch line stays byte-identical to
+    today (see _shell_cmd).
 
     `successor_argv` (hypothesis:l3-rotate-self-successor-override) is an
     EXPLICIT stand-in command that replaces the real claude successor. When
@@ -1200,7 +1220,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
-        shell_cmd = _shell_cmd(claude_cmd, settings)
+        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat)
 
     if dry_run:
         print(shell_cmd)
@@ -1544,30 +1564,31 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
-def _record_is_terminal(path) -> bool:
-    """True when the rotation record has a present s12_self_reap section —
-    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
-    that does not parse is not terminal."""
+def _record_is_terminal_text(text: str) -> bool:
+    """True when the rotation record bytes have a present s12_self_reap
+    section — the terminal sentinel `--wait` polls for (L4.233).
+    Best-effort: text that does not parse is not terminal."""
     try:
-        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+        doc = json.loads(text)
     except Exception:  # noqa: BLE001
         return False
     return isinstance(doc.get("s12_self_reap"), dict)
 
 
-def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
     """Poll `path` at a <=2s interval until its s12_self_reap section is
-    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
-    When the record is already terminal on the first read it returns True
-    immediately — never sleeps past an already-terminal record."""
-    deadline = time.monotonic() + max(0, wait)
+    present, or `deadline` (a monotonic instant) passes. Returns
+    (terminal, last_seen_text). One read per tick: the text this function
+    reads is the text it parses. When the record is already terminal on the
+    first read it returns True immediately — never sleeps past an
+    already-terminal record."""
     last = ""
     while True:
         try:
             last = Path(path).read_text(encoding="utf-8")
         except OSError:
             last = ""
-        if _record_is_terminal(path):
+        if _record_is_terminal_text(last):
             return True, last
         if time.monotonic() >= deadline:
             return False, last
@@ -1598,23 +1619,36 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         rot_dir = _rotations_dir(root)
         files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
-        if not files:
-            print(f"(no rotation record for {seat})")
-        else:
-            latest = files[-1]
-            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
-            # `--wait N` re-reads the latest record until its s12_self_reap
-            # section is terminal, or N seconds elapse. A caller that needs
-            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
-            wait = int(getattr(args, "wait", 0) or 0)
-            if wait > 0:
-                terminal, last_txt = _poll_record_terminal(latest, wait)
-                if not terminal:
-                    print(f"# latest rotation record: {latest.name}")
-                    print(last_txt, end="")
-                    print(f"ERR: still not terminal after {wait}s",
-                          file=sys.stderr)
-                    return 2
+        latest = files[-1] if files else None
+        wait = int(getattr(args, "wait", 0) or 0)
+        if wait > 0:
+            # hypothesis:l4-status-wait-waits-for-the-record-to-appear —
+            # the wait deadline covers BOTH phases: the record appearing
+            # (a successor's first seconds may run before the predecessor
+            # writes it) and that record reaching its terminal section.
+            deadline = time.monotonic() + max(0, wait)
+            if latest is None:
+                # wait for a record to APPEAR within the same deadline
+                while True:
+                    files = (sorted(rot_dir.glob(f"{seat}.*.json"))
+                             if rot_dir.exists() else [])
+                    if files:
+                        latest = files[-1]
+                        break
+                    if time.monotonic() >= deadline:
+                        print(f"ERR: no rotation record for {seat} "
+                              f"after {wait}s", file=sys.stderr)
+                        return 2
+                    time.sleep(min(2.0, max(0.05,
+                                            deadline - time.monotonic())))
+            terminal, last_txt = _poll_record_terminal(latest, deadline)
+            if not terminal:
+                print(f"# latest rotation record: {latest.name}")
+                print(last_txt, end="")
+                print(f"ERR: still not terminal after {wait}s",
+                      file=sys.stderr)
+                return 2
+        if latest is not None:
             try:
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
@@ -1622,6 +1656,8 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                 print(f"ERR: could not read latest record: {exc}",
                       file=sys.stderr)
                 return 1
+        else:
+            print(f"(no rotation record for {seat})")
         print(f"sequence={_current_sequence(root)}")
         row = _find_seat(root, seat)
         if row is None:
@@ -2038,6 +2074,7 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             root=root,
             dry_run=args.dry_run,
             extra="",
+            seat=name,
             successor_argv=getattr(args, "successor_argv", None),
         )
         if rc != 0:
@@ -2622,6 +2659,23 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             continue
     print(f"announced rotation -> {len(delivered)} recipient(s) "
           f"{delivered!r}", file=sys.stderr)
+    # hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+    # `send_dm` nudges each recipient on the seat-transport hop; a recipient
+    # whose pane was BUSY at that moment now holds the dm UNREAD but unwoken
+    # (the nudge coalesced). Re-run `send.wake` once per delivered recipient
+    # right here, NON-fatal and never a gate -- the announcement is the proof.
+    # An immediately-woken recipient is already delivered (the per-seat
+    # coalesce-window marker stops a second type); one still busy coalesces
+    # again and heal.py's watch pass (next poll, <= 30 s) repairs the strand.
+    # This call site does NOT sleep 30 s on the rotation path: a daemon delay
+    # would die when the short-lived announce process exits, so the prompt
+    # re-wake is immediate and heal's poll is the delayed repair.
+    for recv in delivered:
+        try:
+            send.wake(root, recv)
+        except Exception as exc:                          # noqa: BLE001
+            print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
+                  file=sys.stderr)
     return delivered
 
 
@@ -2789,6 +2843,354 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     while True:
         time.sleep(args.interval)
         return cmd_alarms(args, root)
+
+
+# --- driven handoff writer (hypothesis:l4-rotate-self-drives-the-handoff-
+#     and-prepares-the-spawn, STEP 1) --------------------------------------
+#
+# `rotate.py handoff --driven --seat S [--field s3 SRC] [--field s6 SRC]`
+# builds §0 of the seat's CARD (<sessions>/quorum/<S>.md — the file the LLM
+# writes today) from MEASURED values only, prints the ONE bounded question
+# (exactly §3 where-it-stops and §6 banked), reads the answers, and writes
+# the card with §0 replaced, §3/§6 filled and every other section carried
+# verbatim. The 5-line header file <sessions>/seats/<S>.handoff.md is never
+# touched. This is the CAPTIVE/DRIVEN rule (goal:g15.14 §2): the script
+# performs every mechanical read it can and asks the LLM only for the two
+# judgements the successor must make. It never writes §3/§6 for the LLM —
+# that is the falsifier, and it refuses instead.
+#
+#: The card-length guard — the EXISTING "keep it under 100 lines total" rule
+#: (hypothesis:l3w4-context-load-minimal, RULE FIVE: "keep it under 100
+#: lines total across all blocks for the fattest role"). A composed card
+#: past this line count refuses, naming the section with the most lines to
+#: cut. Found, not invented — the rule the graph already enforces by hand.
+HANDOFF_CARD_LIMIT_LINES = 100
+
+
+#: The two bounded judgements the driven writer asks the LLM for. Everything
+#: else on the card is measured (STEP 1 pre-fills §0) or carried verbatim.
+HANDOFF_ASKED_FIELDS = ("s3", "s6")
+
+
+def _git_maybe(cwd: Path, *args: str) -> list[str] | None:
+    """git in `cwd`, stdout lines, or None on ANY failure (not a repo, a
+    missing remote ref, a network read). The driven writer degrades a
+    measurement to `n/a` rather than failing the whole card on one absent
+    read; a measurement no one can see is still a line the successor can
+    trust says `n/a`."""
+    try:
+        out = subprocess.run(["git", "-C", str(cwd), *args],
+                             capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    return [ln for ln in out.stdout.splitlines() if ln]
+
+
+def _latest_rotation_record(root: Path, seat: str) -> dict | None:
+    """The newest durable rotation record for `seat`
+    (`<sessions>/rotations/<seat>.*.json`), or None when the seat has no
+    record yet. Record filenames carry the stamp `YYYYMMDDTHHMMSSZ`, which
+    sorts lexically, so the max by name is the newest."""
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return None
+    files = sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name)
+    if not files:
+        return None
+    try:
+        return json.loads(files[-1].read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _handoff_record_facts(rec: dict) -> dict:
+    """The four facts STEP 1 names the record for: gen (before/after), the
+    successor's window @id, its pid, and the model_confirm verdict. Each
+    degrades to None when the record does not hold it."""
+    facts: dict[str, object] = {"gen_before": None, "gen_after": None,
+                                "window": None, "pid": None,
+                                "model_confirm": None}
+    obs = rec.get("observations") or {}
+    gen = obs.get("b_generation") if isinstance(obs, dict) else None
+    if isinstance(gen, dict):
+        facts["gen_before"] = gen.get("before")
+        facts["gen_after"] = gen.get("after")
+    handover = rec.get("handover") or {}
+    if isinstance(handover, dict):
+        join = handover.get("join") or {}
+        if isinstance(join, dict):
+            facts["window"] = join.get("window_id")
+            facts["pid"] = join.get("pid")
+        mc = handover.get("model_confirm") or {}
+        if isinstance(mc, dict):
+            facts["model_confirm"] = mc.get("verdict")
+    return facts
+
+
+def _harvest_handoff_facts(root: Path, seat: str) -> dict:
+    """MEASURE every value the driven handoff §0 carries, each degrading to
+    a readable `n/a` rather than failing the card on one absent read. This
+    is RULE FOUR of hypothesis:l3w4-context-load-minimal — the state card
+    is GENERATED from live sources, never hand-maintained."""
+    facts: dict[str, object] = {}
+    facts["stamp"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # verification.py's last counts (verification imports rotate, so this is
+    # a LAZY import — READ-ONLY, verification.py is never edited). The floor
+    # numbers the kept-merge baseline stamped; the suite numbers when the
+    # state already holds them.
+    counts = None
+    try:
+        import verification  # noqa: E402 -- lazy: verification imports rotate
+        counts = verification._read_state(root)
+    except Exception:
+        counts = None
+    facts["counts_active"] = str(counts.get("active")) if (counts and counts.get("active") is not None) else None
+    facts["counts_deprecated"] = str(counts.get("deprecated")) if (counts and counts.get("deprecated") is not None) else None
+    suite = counts.get("suite") if counts else None
+    if isinstance(suite, dict) and suite:
+        facts["suite"] = " / ".join(f"{k}={v}" for k, v in suite.items())
+    else:
+        facts["suite"] = None
+
+    # the latest rotation record: gen, window @id, pid, model_confirm.
+    rec = _latest_rotation_record(root, seat)
+    if isinstance(rec, dict):
+        facts.update(_handoff_record_facts(rec))
+    else:
+        facts.update({"gen_before": None, "gen_after": None, "window": None,
+                      "pid": None, "model_confirm": None})
+
+    # branch + behind-count vs origin/season/s2 + unpushed commits.
+    branch_lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD")
+    facts["branch"] = branch_lines[0] if branch_lines else None
+    behind = _git_maybe(root, "rev-list", "--count", "HEAD..origin/season/s2")
+    facts["behind"] = behind[0] if behind else None
+    ahead = _git_maybe(root, "rev-list", "--count", "@{u}..HEAD")
+    facts["unpushed"] = ahead[0] if ahead else None
+
+    # the meter fraction (the seat's own pin + pinned transcript) and the
+    # seat's registry row.
+    row = _find_seat(root, seat) or {}
+    facts["fraction"] = _seat_fraction(root, row)
+    facts["role"] = row.get("role")
+    facts["model"] = row.get("model")
+
+    # the account line (provisioning.py credit_balance, READ-ONLY). A read
+    # that cannot complete (no key, a refused seam, a fixture) is n/a, never
+    # a hard fail.
+    bal = None
+    try:
+        import provisioning  # noqa: E402
+        bal = provisioning.credit_balance(root)
+    except Exception:
+        bal = None
+    if bal and len(bal) >= 3:
+        total, used, remaining = bal[0], bal[1], bal[2]
+        facts["account"] = (f"total=${total:.2f} used=${used:.2f} "
+                            f"remaining=${remaining:.2f}")
+    else:
+        facts["account"] = None
+    return facts
+
+
+def _fmt_fact(facts: dict, key: str, label: str) -> str:
+    v = facts.get(key)
+    return f"- **{label}:** {v if v is not None else 'n/a'}\n"
+
+
+def _compose_card_s0(seat: str, facts: dict) -> str:
+    """The generated §0 state block. Every measurable value is pre-filled
+    here; the LLM is asked only for §3/§6. `seat` is kept for provenance so
+    the block names whose card it is."""
+    gb, ga = facts.get("gen_before"), facts.get("gen_after")
+    if gb is not None and ga is not None:
+        gen_s = f"{gb}->{ga}"
+    elif ga is not None:
+        gen_s = str(ga)
+    elif gb is not None:
+        gen_s = str(gb)
+    else:
+        gen_s = None
+    out = []
+    out.append(f"## §0 STATE (driven — `rotate.py handoff --driven --seat {seat}`, {facts.get('stamp')})")
+    out.append("")
+    out.append(f"- **Rotation record:** gen {gen_s if gen_s is not None else 'n/a'}, "
+               f"window {facts.get('window') or 'n/a'}, "
+               f"pid {facts.get('pid') or 'n/a'}, "
+               f"model_confirm {facts.get('model_confirm') or 'n/a'}.")
+    out.append(f"- **Node counts (verify-count.json):** active "
+               f"{facts.get('counts_active') or 'n/a'}, deprecated "
+               f"{facts.get('counts_deprecated') or 'n/a'}."
+               + (f" Suite {facts['suite']}." if facts.get("suite") else ""))
+    out.append(f"- **Tree:** branch {facts.get('branch') or 'n/a'}, "
+               f"behind season/s2 {facts.get('behind') or 'n/a'}, "
+               f"unpushed {facts.get('unpushed') or 'n/a'}.")
+    fr = facts.get("fraction")
+    out.append(f"- **Meter:** {fr if fr is not None else 'n/a'} · "
+               f"role {facts.get('role') or 'n/a'} · "
+               f"model {facts.get('model') or 'n/a'}.")
+    out.append(f"- **Account:** {facts.get('account') or 'n/a'}.")
+    out.append("")
+    return "\n".join(out)
+
+
+def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
+    """Split a card into `(preamble, [(header, body), ...])`.
+
+    The preamble is every line before the first `## ` header (the single-`#`
+    title, a carried owner rule, blank lines) — CARRIED VERBATIM, never
+    dropped. Sections split on lines starting with `## `; each header keeps
+    its `## ` prefix and its body is the lines below up to the next `## `
+    (leading/trailing blank trimmed)."""
+    preamble: list[str] = []
+    sections: list[tuple[str, str]] = []
+    header: str | None = None
+    body: list[str] = []
+    for ln in text.splitlines():
+        if ln.startswith("## "):
+            if header is not None:
+                sections.append((header, "\n".join(body).strip()))
+            header = ln
+            body = []
+        else:
+            if header is None:
+                preamble.append(ln)
+            else:
+                body.append(ln)
+    if header is not None:
+        sections.append((header, "\n".join(body).strip()))
+    return "\n".join(preamble), sections
+
+
+def _render_card(preamble: str,
+                 sections: list[tuple[str, str]]) -> str:
+    """Re-join a preamble and its `(header, body)` sections into one card
+    document, each section's header then its body, one per line."""
+    lines: list[str] = []
+    if preamble:
+        lines.append(preamble)
+    for header, body in sections:
+        lines.append(header)
+        if body:
+            lines.extend(body.splitlines())
+    return "\n".join(lines) + "\n"
+
+
+def _section_tag(header: str) -> str | None:
+    """Which of §0 / §3 / §6 a `## ...` header names, or None. Headers like
+    `## 🔴 §6 BANKED` still resolve to §6 (the token is searched, not the
+    first word)."""
+    for tok in ("§0", "§3", "§6"):
+        if tok in header:
+            return tok
+    return None
+
+
+def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py handoff --driven --seat S [--field s3 SRC] [--field s6 SRC]`.
+
+    Builds §0 of the seat's card (<sessions>/quorum/<S>.md) from measured
+    values, PRINTS the one bounded question (exactly §3 where-it-stops and
+    §6 banked), reads the answers, runs the trim guard (a composed card over
+    HANDOFF_CARD_LIMIT_LINES refuses, naming the section to cut), and writes
+    the card — §0 replaced, §3/§6 filled, every other section verbatim.
+    `-` for a field reads one line from stdin; a filename reads that file in
+    full. An empty §3 is REFUSED (exit 2): §3 is the critical next command,
+    never guessed. Nothing is written on a refusal.
+    """
+    if root is None:
+        print("ERR: handoff --driven needs an agi project root.",
+              file=sys.stderr)
+        return 1
+    if not args.driven:
+        print("ERR: only `handoff --driven` exists today; pass --driven.",
+              file=sys.stderr)
+        return 2
+    seat = args.seat
+    if not seat:
+        print("ERR: handoff --driven needs --seat S.", file=sys.stderr)
+        return 2
+
+    fields: dict[str, str] = {}
+    for field, src in (args.field or []):
+        if field not in HANDOFF_ASKED_FIELDS:
+            print(f"ERR: handoff --driven asks only for "
+                  f"{' and '.join(HANDOFF_ASKED_FIELDS)}; field {field!r} "
+                  f"is not one of them.", file=sys.stderr)
+            return 2
+        fields[field] = src
+
+    def _read(field_name: str) -> tuple[str, str | None]:
+        src = fields.get(field_name)
+        if src is None:
+            return "", None
+        if src == "-":
+            return sys.stdin.readline().rstrip("\n"), None
+        try:
+            return Path(src).read_text(encoding="utf-8").strip(), None
+        except OSError as e:
+            return "", f"cannot read {field_name} source {src!r}: {e}"
+
+    s3, s3_err = _read("s3")
+    s6, s6_err = _read("s6")
+    if s3_err:
+        print(f"ERR: {s3_err}", file=sys.stderr)
+        return 2
+    if s6_err:
+        print(f"ERR: {s6_err}", file=sys.stderr)
+        return 2
+    if not s3.strip():
+        print("ERR: handoff --driven refuses an EMPTY §3 where-it-stops "
+              "(the one next command); supply --field s3 - (or a file).",
+              file=sys.stderr)
+        return 2
+
+    print("## DRIVEN HANDOFF — the LLM answers exactly these TWO fields, "
+          "nothing else.")
+    print("§3 where-it-stops (the one next command).")
+    print("§6 banked (options + recommendation).")
+    print("Supply each as --field s3 <src> / --field s6 <src> (`-` = stdin); "
+          "an empty §3 is refused.")
+
+    card_path = _sessions_dir(root) / "quorum" / f"{seat}.md"
+    existing = card_path.read_text(encoding="utf-8") if card_path.exists() else ""
+    preamble, sections = _split_card_sections(existing)
+
+    facts = _harvest_handoff_facts(root, seat)
+    s0 = _compose_card_s0(seat, facts)
+
+    new_sections: list[tuple[str, str]] = []
+    told = {"§0": False, "§3": False, "§6": False}
+    replacements = {"§0": s0, "§3": s3, "§6": s6}
+    for header, body in sections:
+        tag = _section_tag(header)
+        if tag in replacements:
+            new_sections.append((header, replacements[tag]))
+            told[tag] = True
+        else:
+            new_sections.append((header, body))  # carried verbatim
+    for tag in ("§0", "§3", "§6"):
+        if not told[tag]:
+            new_sections.append((f"## {tag}", replacements[tag]))
+
+    full = _render_card(preamble, new_sections)
+    line_count = full.count("\n")
+    if line_count > HANDOFF_CARD_LIMIT_LINES:
+        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        print(f"ERR: composed card is {line_count} lines, over the "
+              f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
+              f"section ({biggest}).", file=sys.stderr)
+        return 2
+
+    card_path.parent.mkdir(parents=True, exist_ok=True)
+    card_path.write_text(full, encoding="utf-8")
+    print(f"wrote driven handoff card {card_path} (§0 built; §3/§6 "
+          f"filled; {len(sections) - sum(told.values())} section(s) carried "
+          f"verbatim).")
+    return 0
 
 
 # --- rotate-self subcommand -----------------------------------------------
@@ -3689,10 +4091,22 @@ BOOTSTRAP_FIXED_FACTS = [
     "crons",
 ]
 
+# The bootstrap facts that depend on the @id JOIN (hypothesis:l4-startup-...).
+# Pre-spawn they cannot be resolved, so the pre-spawn record writes each with
+# the explicit `pending: resolved after join` marker — never a blank, never a
+# `SKIPPED: <predecessor owns>` reason that leaves a cold reader guessing who
+# to ask. After the join, rotate-self REWRITES the same record with these
+# resolved (post-join overrides).
+BOOTSTRAP_JOIN_ONLY_FACTS = [
+    "successor_live_model", "successor_address", "model_refusal_fallback",
+]
+
 
 def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      telemetry, verification: dict | None,
-                     commit: str | None = None) -> str:
+                     commit: str | None = None,
+                     join_pending: set | None = None,
+                     overrides: dict | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -3704,11 +4118,24 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     cannot yet (a join-only or sibling-round fact — never the old blanket
     `0b owns deriving`). Every derived fact is stamped in `measured_at` with
     the commit it was measured at, so `_bootstrap_stale` can refuse any record
-    that is not at HEAD. Returns the written path (string)."""
+    that is not at HEAD. Returns the written path (string).
+
+    `join_pending` (a set of fact keys) and `overrides` (a key->value dict)
+    support the PRE-SPAWN write (hypothesis:l4-startup-first-turn-is-
+    performed-by-the-service-and-the-hook-fires-at-turn-one): a key present in
+    `overrides` takes that resolved value (stamped at HEAD); a key in
+    `join_pending` but NOT overridden is written as `pending: resolved after
+    join` (not SKIPPED, not blank) because the @id join has not happened yet.
+    Default ({} / {}) writes every fact through `_derive_bootstrap_fact`
+    exactly as before — the post-join call passes the joined facts as
+    overrides, so the same record is UPDATED in place, not re-minted.
+    """
     if commit is None:
         commit = _git_head(root)
     seat_row = _find_seat(root, seat)
 
+    join_pending = join_pending or set()
+    overrides = overrides or {}
     keys = []
     if isinstance(telemetry, list):
         keys = list(telemetry)
@@ -3721,6 +4148,14 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     tele: dict = {}
     measured_at: dict = {}
     for key in keys:
+        if key in overrides:
+            tele[key] = overrides[key]
+            if commit:
+                measured_at[key] = commit
+            continue
+        if key in join_pending:
+            tele[key] = "pending: resolved after join"
+            continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit)
         if value is None:
@@ -4156,7 +4591,8 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
         tok = args[i]
         # EVERY token of EVERY filter stage — options, option values and
         # positionals alike. A `$`, backtick or `~` anywhere is refused:
-        # `_resolve_shell_vars` expands `$VAR` from the whole environment at
+        # `_resolve_shell_vars_per_token` expands `$VAR` from the whole
+        # environment at
         # exec time even inside single quotes, so `sed 's/x/$SECRET/'`,
         # `grep '$SECRET'` (a match oracle) and `tr abcdef "$SECRET"` (a
         # mapping) would otherwise leak or map an env value into the record
@@ -4234,20 +4670,28 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
 #: not model it. A refusal now is the explicit floor: if a future change
 #: reintroduces `shell=True`, this named gate still stops the bypass. A bare
 #: `$VAR`/`${VAR}` is NOT here — it is resolved safely from os.environ (see
-#: _resolve_shell_vars), never handed to a shell.
+#: _resolve_shell_vars_per_token), never handed to a shell.
 _STARTUP_SHELL_OPS = ("&&", "||", "$(", "`", "<<", ">>", ">",
                      "<", "&", "\n")
 
 
-def _operator_refusal(command: str) -> str | None:
+def _operator_refusal(command_or_tokens) -> str | None:
     """Return a one-line named refusal if `command` contains an unmodeled
     shell operator (`&&` `||` `$(...`  backtick `<` `>` `<<` `>>` `&` newline),
     else None. `|` and `;` are modeled separators (the no-shell executor wires
     them explicitly) and `$VAR`/`${VAR}` expands from env, so none of those
     trip this gate. Checked at allowlist time AND again on the resolved command
-    before it runs (belt over the no-shell executor)."""
+    before it runs (belt over the no-shell executor). Accepts a command string
+    or a resolved structural token list."""
+    if isinstance(command_or_tokens, str):
+        text = command_or_tokens
+    else:
+        # structural form: any operator text carried in a token (an env VALUE
+        # holding `&&`, or a placeholder-injected one) is still refused — the
+        # separator chars are model edges, the rest is data and checked here.
+        text = "".join(t for _, t in command_or_tokens)
     for op in _STARTUP_SHELL_OPS:
-        if op in command:
+        if op in text:
             name = "newline" if op == "\n" else op
             return f"unmodeled shell operator {name!r} in first_turn command"
     return None
@@ -4255,20 +4699,73 @@ def _operator_refusal(command: str) -> str | None:
 _SHELL_VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
 
 
-def _resolve_shell_vars(command: str) -> str:
-    """Expand `$VAR` and `${VAR}` from os.environ WITHOUT a shell, substituting
-    the value as a literal token. REFUSE (raise ValueError, the var named) on a
-    referenced var that is not set in the environment, so an unexpanded `$VAR`
-    is never silently handed to a program as a literal string. Only this bare
-    env form is modeled; `$(` command substitution is refused by
-    _operator_refusal before this is reached."""
-    def _sub(m):
-        name = m.group(1) or m.group(2)
-        val = os.environ.get(name)
-        if val is None:
-            raise ValueError(f"first_turn env var ${name} is not set")
-        return val
-    return _SHELL_VAR_RE.sub(_sub, command)
+def _resolve_shell_var(m: "re.Match") -> str:
+    """Return the env value for one `$VAR`/`${VAR}` match, or REFUSE (raise
+    ValueError, naming the var) if it is unset. Used by the per-token resolver
+    (_resolve_shell_vars_per_token). It is NO-SHELL: the value is substituted
+    AS A LITERAL and never handed to a shell. Only this bare env form is
+    modeled; `$(` command substitution is refused by _operator_refusal before
+    it is reached."""
+    name = m.group(1) or m.group(2)
+    val = os.environ.get(name)
+    if val is None:
+        raise ValueError(f"first_turn env var ${name} is not set")
+    return val
+
+
+def _tokenize_struct(command: str) -> list:
+    """Tokenize `command` into the STRUCTURAL form the stage grammar consumes:
+    a list of ("sep", punct) elements for each genuine BARE `|`/`;` separator
+    and ("arg", value) elements for every literal argv token. The punctuation-
+    vs-boundary decision is made HERE, at tokenize time, so a token that is not
+    itself a bare `|`/`;` (a normal argv element, or an env `$VAR` reference)
+    is tagged "arg" and no later substitution can turn it into a boundary.
+    A QUOTED punctuation char such as `'|'` in the template is emitted, as
+    before, as a bare `|` token (token text loses the quote): it was already
+    an unquoted-stage edge in _startup_units and stays one. Raises
+    _StartupParseError on an unparseable command."""
+    out = []
+    for t in _tokenize_startup(command):
+        if t == "|" or t == ";":
+            out.append(("sep", t))
+        else:
+            out.append(("arg", t))
+    return out
+
+
+def _as_tokens(command_or_tokens):
+    """Accept either a command STRING or a resolved structural token list
+    (from _resolve_shell_vars_per_token) and return a structural token list.
+    Lets the one stage grammar serve both the allowlist judge (a literal
+    string, env UNEXPANDED — so `$HOME` stays literal, as before) and the
+    first_turn executor (which passes its already-env-resolved structure)."""
+    if isinstance(command_or_tokens, str):
+        return _tokenize_struct(command_or_tokens)
+    return command_or_tokens
+
+
+def _resolve_shell_vars_per_token(command: str) -> list:
+    """Expand `$VAR`/`${VAR}` PER ARGV ELEMENT and return the STRUCTURAL token
+    list (not a re-serialised string): ("sep", punct) for each bare `|`/`;`
+    separator, ("arg", value) for each literal argv element with its `$VAR`
+    references replaced by the env value as ONE whole element.
+
+    This never re-parses: the boundary decision is fixed by _tokenize_struct
+    BEFORE substitution, so an env VALUE that is exactly a shlex punctuation
+    char (`|`, `;`, ...) stays a single ("arg", "|") element and cannot inject
+    a stage — the thing a string round-trip through shlex.join could not do
+    (hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage). A value
+    carrying a double quote, a space, or a `|`/`;` cannot add an argv element
+    or a boundary; what the judge and executor see is exactly the argv that
+    will run. Raises _StartupParseError (unparseable command, named) or
+    ValueError (an unset `$VAR`, named); never returns an unexpanded `$VAR`."""
+    out = []
+    for kind, t in _tokenize_struct(command):
+        if kind == "arg":
+            out.append(("arg", _SHELL_VAR_RE.sub(_resolve_shell_var, t)))
+        else:
+            out.append((kind, t))
+    return out
 
 
 class _StartupParseError(ValueError):
@@ -4297,22 +4794,22 @@ def _tokenize_startup(command: str) -> list:
             "unparseable first_turn command: %s" % exc) from exc
 
 
-def _startup_units(command: str) -> list:
-    """Quote-aware split of a tokenized command into `;`-units of `|`-stages.
-    Returns a list of units, each a list of stages, each a list of tokens, with
-    the unquoted `|`/`;` separators removed (they became single tokens in
-    _tokenize_startup and are consumed here as boundaries). An unquoted `|`
-    closes the current stage; an unquoted `;` closes the current unit. Runs
-    NOTHING. Both the allowlist judge and the no-shell executor derive their
-    groups from this one function."""
-    toks = _tokenize_startup(command)
+def _startup_units(command_or_tokens) -> list:
+    """Quote-aware split of a command into `;`-units of `|`-stages, from its
+    STRUCTURAL token list (a string is tokenized first by _as_tokens). Returns
+    a list of units, each a list of stages, each a list of argv tokens, with
+    the bare `|`/`;` separator elements consumed as boundaries and every "arg"
+    element (an env value included WHOLE) retained. A bare `|` closes the
+    current stage; a bare `;` closes the current unit. Runs NOTHING. Both the
+    allowlist judge and the no-shell executor derive their groups from this
+    one function."""
     units, stages, cur = [], [], []
-    for t in toks:
-        if t == "|":
+    for kind, t in _as_tokens(command_or_tokens):
+        if kind == "sep" and t == "|":
             if cur:
                 stages.append(cur)
                 cur = []
-        elif t == ";":
+        elif kind == "sep" and t == ";":
             if cur:
                 stages.append(cur)
                 cur = []
@@ -4328,17 +4825,18 @@ def _startup_units(command: str) -> list:
     return units
 
 
-def _command_units(command: str) -> list:
+def _command_units(command_or_tokens) -> list:
     """Parse a (fully resolved) first_turn command into sequential `;`-units,
     each a list of `|`-stage (argv, env_prefix) pairs. A leading `VAR=value`
     prefix token of a stage is retained and applied as THAT ONE stage's
     environment (never the whole command); it is stripped from the argv. Runs
     NOTHING. Same grammar as the allowlist judge (_segment_parts): both derive
-    from _tokenize_startup / _startup_units, so the separators are identical
+    from _tokenize_struct / _startup_units, so the separators are identical
     (unquoted `|`/`;` only) and nothing outside these tokens can reach the box.
+    Accepts a command string or a resolved structural token list.
     Raises _StartupParseError on an unparseable command."""
     units = []
-    for stage_list in _startup_units(command):
+    for stage_list in _startup_units(command_or_tokens):
         parsed = []
         for stage in stage_list:
             toks = stage[:]
@@ -4392,17 +4890,18 @@ def _run_units_no_shell(units: list, timeout_s: int):
     return last_rc, "\n".join(c for c in chunks if c)
 
 
-def _segment_parts(command: str) -> list:
+def _segment_parts(command_or_tokens) -> list:
     """Split a first_turn command into producing pipeline parts, quote-aware
     (a `|`/`;` inside quotes stays inside its argument). Returns one token-
     list per `|`-/`;`-part, a leading env assignment skipped per part. THE SAME
     grammar as the no-shell executor (_command_units): both derive from
-    _tokenize_startup / _startup_units, so the judge and the executor split on
-    identical separators (unquoted `|`/`;` only) and cannot diverge. Raises
+    _tokenize_struct / _startup_units, so the judge and the executor split on
+    identical separators (unquoted `|`/`;` only) and cannot diverge. Accepts a
+    command string or a resolved structural token list. Raises
     _StartupParseError on an unparseable command; the allowlist guard turns
     that into a refusal, never a crash."""
     parts = []
-    for stage_list in _startup_units(command):
+    for stage_list in _startup_units(command_or_tokens):
         for stage in stage_list:
             toks = stage[:]
             i = 0
@@ -4477,7 +4976,7 @@ def _git_arg_refusal(args: list) -> str | None:
     return None
 
 
-def _producing_refusal(command: str) -> str | None:
+def _producing_refusal(command_or_tokens) -> str | None:
     """Return a one-line refusal (naming the executable/verb) if ANY producing
     pipeline part of `command` is not on the startup allowlist, else None.
 
@@ -4486,12 +4985,12 @@ def _producing_refusal(command: str) -> str | None:
     An unmodeled shell operator (`&&` `||` `&` `$(...)` backtick `<` `>`
     `>>` newline) is refused first with its name — the floor that keeps the
     grammar closed even if a future executor reintroduces a shell.
-    """
-    op = _operator_refusal(command)
+    Accepts a command string or a resolved structural token list."""
+    op = _operator_refusal(command_or_tokens)
     if op:
         return op
     try:
-        units = _startup_units(command)
+        units = _startup_units(command_or_tokens)
     except _StartupParseError as exc:
         # Never raise out of the guard: an unparseable command (unbalanced
         # quote, trailing backslash, ...) is a NAMED refusal, not a crash of
@@ -4558,7 +5057,7 @@ def _producing_refusal(command: str) -> str | None:
     return None
 
 
-def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
+def _env_prefix_refusal(command_or_tokens, allow: frozenset) -> str | None:
     """Return a one-line refusal (naming the VAR and the allowlist) if ANY
     leading `VAR=value` env prefix in `command` names a VAR not on the startup
     env allowlist, else None. A leading `VAR=value` is APPLIED to that stage's
@@ -4570,9 +5069,10 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
     before the executor ever sees the command. An unparseable command yields
     None — the producing judge (_producing_refusal) names that separately.
     Only the leading `VAR=value` run per stage is checked, matching exactly how
-    the executor collects prefixes."""
+    the executor collects prefixes. Accepts a command string or a resolved
+    structural token list."""
     try:
-        units = _startup_units(command)
+        units = _startup_units(command_or_tokens)
     except _StartupParseError:
         return None
     for stage_list in units:
@@ -4592,22 +5092,43 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
 _REFUSAL_REDACT = "<expanded value redacted>"
 
 
+_REFUSAL_MIN_DROP_CHARS = 4
+
+# The fixed prose words rotate.py's own refusal messages emit (whitespace-
+# split form). A message word that is one of these is never mistaken for an
+# env-injected fragment even when — by coincidence — it is a substring of some
+# env VALUE (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument).
+_REFUSAL_TEMPLATE_WORDS = frozenset([
+    "allowlist", "allowlisted", "startup.allow:", "startup.env_allow",
+    "unmodeled", "shell", "operator", "first_turn", "command",
+    "unparseable", "unconditionally", "injected", "producer", "filter",
+    "prefix", "refused", "placeholder", "executable", "spawn",
+])
+
+
 def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
     """Rebuild a RE-JUDGE refusal message so no fragment of an env VALUE
     survives into it. The re-judge (`_producing_refusal` / `_env_prefix_refusal`
     on the env-EXPANDED `exec_cmd`) must run on the expanded form to SEE an
     injected stage, but the record keeps every `$VAR` literal (fix b), so a
-    word of `message` that (a) is a substring of some expanded env value and
-    (b) is absent verbatim from the literal `record_cmd` is an ENV-INJECTED
-    fragment — a secret-shaped word the value carried. It is dropped and the
-    record's literal `$VAR` names are appended, so the refusal names its
-    source without ever echoing the value. A word present in `record_cmd`
-    (template text, boilerplate, a genuinely-spelled stage) is kept; a message
-    naming no env value at all is returned unchanged (placeholder-injected
-    content already lives in `record_cmd` by design — only ENV vars stay
-    literal). This is the FALSIFIER guard of hypothesis:l4-the-refusal-names-
-    the-record-stage-not-the-expanded-tokens: a refusal never contains a
-    substring of an env value that is not in record_cmd."""
+    word of `message` that is a substring of some expanded env value AND is
+    absent verbatim from the literal `record_cmd` is an ENV-INJECTED fragment —
+    a secret-shaped word the value carried. It is dropped and the record's
+    literal `$VAR` names are appended, so the refusal names its source without
+    ever echoing the value. A word present in `record_cmd` (template text,
+    boilerplate, a genuinely-spelled stage) is kept; a message naming no env
+    value at all is returned unchanged (placeholder-injected content already
+    lives in `record_cmd` by design — only ENV vars stay literal).
+
+    Two guards keep an INNOCENT refusal intact (hypothesis:l4-an-env-value-
+    cannot-break-a-quoted-argument): a word is only ever dropped when it is at
+    least _REFUSAL_MIN_DROP_CHARS long (short common words like `a`/`on`/`me`/`the`
+    are substrings of almost any path VALUE and are NOT injection) and when it
+    is not a word of rotate.py's own refusal prose (_REFUSAL_TEMPLATE_WORDS).
+    This is the FALSIFIER guard of hypothesis:l4-the-refusal-names- the-record-
+    stage-not-the-expanded-tokens: a refusal never contains a substring of an
+    env value that is not in record_cmd, and an honest refusal never collapses
+    to the bare redaction trailer."""
     sources = []
     for m in _SHELL_VAR_RE.finditer(record_cmd):
         name = m.group(1) or m.group(2)
@@ -4619,7 +5140,10 @@ def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
         return message
     kept, redacted_any = [], False
     for tok in message.split():
-        if any(tok in val for _, val in sources) and tok not in record_cmd:
+        if (len(tok) >= _REFUSAL_MIN_DROP_CHARS
+                and tok not in _REFUSAL_TEMPLATE_WORDS
+                and any(tok in val for _, val in sources)
+                and tok not in record_cmd):
             redacted_any = True      # an injected value fragment: drop it
             continue
         kept.append(tok)
@@ -4700,30 +5224,44 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             continue
         # Two forms (fix b): `record_cmd` keeps `$VAR` LITERAL — what the result
         # dict's `cmd` and dry-run report, byte-identical to the pre-expansion
-        # text so a secret never lands in the record. `exec_cmd` env-expands it
-        # and is used ONLY to build the no-shell argv; execution needs the
-        # value, the record must not hold it.
+        # text so a secret never lands in the record. `exec_tokens` env-expands
+        # the STRUCTURAL token list PER ARGV ELEMENT (never a whole-string
+        # re-serialisation) and is used ONLY to build the no-shell argv;
+        # execution needs the value, the record must not hold it. A value
+        # carrying a double quote, a space, or a `|`/`;` stays inside ONE argv
+        # element and is never re-parsed — the boundary decision is fixed at
+        # tokenize time, so even a value that IS exactly a punctuation char
+        # cannot inject a stage (hypothesis:l4-an-env-value-cannot-break-a-
+        # quoted-argument, hypothesis:l4-a-bare-separator-env-value-cannot-
+        # inject-a-stage).
         try:
-            exec_cmd = _resolve_shell_vars(record_cmd)
+            exec_tokens = _resolve_shell_vars_per_token(record_cmd)
+        except _StartupParseError as exc:
+            results.append({"label": label, "cmd": record_cmd,
+                            "refused": "unparseable command: %s" % exc})
+            continue
         except ValueError as exc:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": str(exc)})
             continue
         # Belt over the no-shell executor: re-judge the EXEC command IN FULL.
-        # A placeholder or env value can inject a whole new stage wrapped in
-        # `;` or `|` (both MODELED separators), which the template judge never
-        # saw and _operator_refusal cannot see either. So re-run the env
-        # allowlist and the producing allowlist on exec_cmd (not just the
-        # operator check) BEFORE _command_units splits it, so an injected
-        # `touch`-style stage is refused, not run, and its `$VAR` stays literal
-        # in the record (hypothesis:l4-the-judge-runs-on-the-substituted-command).
-        exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
+        # A PLACEHOLDER value can inject a whole new stage wrapped in `;` or `|`
+        # (both MODELED separators); placeholders substitute into the string
+        # BEFORE tokenization, so the injected stage is here and the template
+        # judge never saw it. An ENV value cannot inject one (expansion keeps
+        # it inside one element), but the re-judge still runs on exec_tokens so
+        # what is judged is what is executed. Re-run the env
+        # allowlist and the producing allowlist BEFORE _command_units splits it,
+        # so an injected `touch`-style stage is refused, not run, and its
+        # `$VAR` stays literal in the record (hypothesis:l4-the-judge-runs-on-
+        # the-substituted-command).
+        exec_env_refusal = _env_prefix_refusal(exec_tokens, env_allow)
         if exec_env_refusal:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": _scrub_injected_refusal(
                                 exec_env_refusal, record_cmd)})
             continue
-        exec_refusal = _producing_refusal(exec_cmd)
+        exec_refusal = _producing_refusal(exec_tokens)
         if exec_refusal:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": "not on startup.allow: "
@@ -4733,7 +5271,7 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         # Unmodeled-operator check stays: an operator `_producing_refusal`
         # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
         # expanded for execution only; the record keeps the literal `$VAR`.
-        op = _operator_refusal(exec_cmd)
+        op = _operator_refusal(exec_tokens)
         if op:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": op})
@@ -4742,7 +5280,7 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             results.append({"label": label, "cmd": record_cmd, "dry": True})
             continue
         try:
-            units = _command_units(exec_cmd)
+            units = _command_units(exec_tokens)
         except _StartupParseError as exc:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": "unparseable command: %s" % exc})
@@ -5009,6 +5547,132 @@ def cmd_next(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- rotate.py prepare -- the CAPTIVE rotate-out checklist (goal:g15.14
+#     STEP 2, hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-\n#     spawn) ---------------------------------------------------------------
+#
+# `rotate.py prepare --seat S` prints the captive rotate-out checklist
+# BEFORE any spawn — unpushed commits, dirty tree, behind origin/season/s2,
+# card mtime older than the last commit, a stale meter pin (seat_pin-stale),
+# a stale <S>.ack.json — ONE line each with the ONE command that clears it.
+# exit 0 only when nothing blocks, exit 3 otherwise. rotate-self runs the
+# SAME checks and refuses BY NAME with the same line: one function,
+# `_prepare_checks`, two callers — never a second implementation. `--force`
+# bypasses only what it bypassed today (the meter-due gate); these checklist
+# blockers are not that gate.
+
+
+def _git_count_maybe(root: Path, *args: str) -> int | None:
+    """`_git_maybe` as an integer count, or None when git cannot answer.
+
+    A git 'rev-list --count' may return 0 on stdout even for an empty set;
+    None means 'could not measure', which the checklist treats as ok rather
+    than a blocker (the degrade-to-n/a discipline of the driven writer:
+    a check blocks only when there is recorded evidence to block on)."""
+    lines = _git_maybe(root, *args)
+    if lines is None:
+        return None
+    try:
+        return int(lines[0].strip())
+    except (ValueError, IndexError):
+        return None
+
+
+def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
+    """The ordered captive rotate-out checklist for `seat`.
+
+    Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
+    implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
+    A check whose basis cannot be measured (no git repo, no pin file, no
+    ack) reports ok rather than guessing — a captive step names a blocker
+    only when the evidence for the blocker is actually present."""
+    checks: list[tuple[bool, str, str]] = []
+
+    # 1 unpushed commits on the checked-out branch
+    unpushed = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
+    checks.append(((unpushed or 0) > 0, "unpushed commits", "git push"))
+
+    # 2 dirty tree
+    porcelain = _git_maybe(root, "status", "--porcelain")
+    # The clear command names YOUR OWN paths -- `git add -A` is forbidden in
+    # this tree (parallel agents share it; it has swept a second agent's
+    # half-written node and a human's uncommitted edits into one commit).
+    checks.append((bool(porcelain), "dirty tree",
+                   "git commit -m '<msg>' -- <the files you changed>"))
+
+    # 3 behind origin/season/s2 (N commits)
+    behind = _git_count_maybe(root, "rev-list", "--count",
+                              "HEAD..origin/season/s2")
+    ahead_n = behind or 0
+    # The clear command MERGES, never rebases: `never rebase` is a standing
+    # rule of this tree (CLAUDE.md, every seat card) and the seat protocol's
+    # behind check is `git merge origin/season/s2` into the worktree
+    # (director fix-up at the SL1.02 harvest; the kid printed `pull --rebase`).
+    checks.append((ahead_n > 0, f"behind origin/season/s2 ({ahead_n})",
+                   "git fetch origin season/s2 && git merge --no-edit "
+                   "origin/season/s2"))
+
+    # 4 card mtime older than the last commit
+    card = _sessions_dir(root) / "quorum" / f"{seat}.md"
+    last_ts = _git_count_maybe(root, "log", "-1", "--format=%ct")
+    card_stale = (last_ts is not None and card.exists()
+                  and card.stat().st_mtime < last_ts)
+    checks.append((card_stale, "card older than last commit",
+                   f"rotate.py handoff --driven --seat {seat}"))
+
+    # 5 meter pin missing or stale (seat_pin-stale)
+    pin = find_pin_log(root, seat)
+    cur_gen = _read_generation(root, seat)
+    stale_pin = False
+    if pin is not None:
+        written_gen, _ = _parse_pin_record(pin)
+        if written_gen is not None and cur_gen and written_gen != cur_gen:
+            stale_pin = True
+    checks.append((stale_pin,
+                   f"meter pin stale (seat_pin-stale) cur={cur_gen}",
+                   f"rotate.py meter --seat {seat} --pin <transcript>"))
+
+    # 6 stale <seat>.ack.json — an ack from a generation other than the seat's
+    # own is a leftover that would misreport the rotation (the ack channel is
+    # generation-checked: hypothesis:l4-rotate-readback-false-negative-and-
+    # the-orphan-by-design). Absence is fine — this is the pre-first-rotation
+    # state.
+    ack = _ack_path(root, seat)
+    stale_ack = False
+    if ack.exists():
+        try:
+            data = json.loads(ack.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            data = {}
+        ga = data.get("gen_after")
+        if ga is not None and cur_gen and ga != cur_gen:
+            stale_ack = True
+    checks.append((stale_ack, f"stale ack ({seat}.ack.json)", f"rm {ack}"))
+
+    return checks
+
+
+def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py prepare --seat S`: print the captive rotate-out checklist.
+
+    One line per checked condition, the blocking ones each carrying the ONE
+    command that clears them. exit 0 only when nothing blocks; exit 3 when
+    any check names a blocker. `cmd_rotate_self` runs the SAME function to
+    refuse BY NAME before it spawns."""
+    seat = getattr(args, "seat", None) or ""
+    checks = _prepare_checks(root, seat)
+    blocks = [c for c in checks if c[0]]
+    for blocker, name, clear in checks:
+        print(f"[{'BLOCK' if blocker else 'ok'}] {name}")
+        if blocker:
+            print(f"       clear: {clear}")
+    if blocks:
+        print(f"prepare: {len(blocks)} check(s) block the spawn; fix each "
+              f"BLOCK line or re-run after clearing.", file=sys.stderr)
+        return 3
+    print("prepare: no blockers — safe to rotate.", file=sys.stderr)
+    return 0
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -5024,11 +5688,40 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if root is None:
         print("ERR: rotate-self needs an agi project root.", file=sys.stderr)
         return 1
+    # goal:g15.14 STEP 2 -- `rotate-self --prepare` is the same captive
+    # checklist the `prepare` subcommand prints, on the SAME 
+    # `_prepare_checks`: one implementation, two spellings. It is READ-ONLY
+    # and therefore runs before the branch guard, so a seat can ask what
+    # blocks it from wherever it stands.
+    if getattr(args, "prepare", False):
+        args.seat = args.name
+        return cmd_prepare(args, root)
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
         return 1
     seat = args.name
+    # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
+    # side effect (the started record, the handoff, the own-window rename,
+    # the spawn). THIS is the one implementation: `rotate.py prepare` prints
+    # it, rotate-self runs the SAME `_prepare_checks` and refuses BY NAME
+    # with the same line. `--force` bypasses only what it bypassed today
+    # (the meter-due gate); these blockers are not that gate.
+    # Fixture seam (director fix-up at the SL1.02 harvest): the checks read
+    # the REAL tree through git; a fixture run (window_path seam set — the
+    # same seam that makes (s11) verification record a SKIP instead of
+    # running against a fake root) has no tree to check and its subprocess
+    # fakes refuse anything but `ps`. A live rotate-self (window_path None)
+    # always runs the gate; kid 2's refusal test drives it that way.
+    _blocks = ([c for c in _prepare_checks(root, seat) if c[0]]
+               if args.window_path is None else [])
+    if _blocks:
+        for _b, _nm, _cl in _blocks:
+            print(f"rotate-self blocked: {_nm} — {_cl}", file=sys.stderr)
+        print("rotate-self refused: clear the prepare blocker(s) above, then "
+              "re-run (rotate.py prepare --seat <S> lists them).",
+              file=sys.stderr)
+        return 3
     row = None
     # A THROWAWAY seat (hypothesis:l3-rotate-self-successor-override) is a
     # rehearsal-only registration that NEVER writes seats.md: it skips the
@@ -5209,6 +5902,41 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         "gen_after is not this generation."
     )
     extra = ack_gate + ("\n\n" + startup_block if startup_block else "")
+
+    # (2.75) PRE-SPAWN VERIFICATION + BOOTSTRAP (hypothesis:l4-startup-first-
+    #     turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one).
+    #     The bootstrap record must EXIST at turn one: the SessionStart hook
+    #     COPY (cc-session-start.next.sh) keys its injection on the record's
+    #     presence, and it can only fire at turn one if the record is on disk
+    #     BEFORE the claude successor starts. Every fact knowable pre-spawn
+    #     (seat, generation, the rotation template's telemetry facts, the HEAD
+    #     commit, the verification result) is written NOW; the join-only facts
+    #     (BOOTSTRAP_JOIN_ONLY_FACTS — successor's live model vs its row, its
+    #     @id address, the model_refusal_fallback) carry the explicit
+    #     `pending: resolved after join` marker — never a blank, never a
+    #     `SKIPPED: <predecessor owns>` reason. Verification is tree-wide and
+    #     independent of the successor, so it runs ONCE here (moved from s11)
+    #     and is reused for both writes. After the join, s11 REWRITES the same
+    #     record with the joined facts resolved.
+    if args.dry_run:
+        # dry-run stays a refusal/planning check: no verification subprocess,
+        # no bootstrap write (turn-one proof is a live/fixture property).
+        verification = None
+    elif (args.window_path is not None
+          and getattr(args, "verification_argv", None) is None):
+        verification = {"ok": False, "level": VERIFICATION_LEVEL,
+                        "skipped": "SKIPPED: fixture, real verification "
+                                    "deferred (no graph; "
+                                    "--verification-argv seam absent)"}
+    else:
+        verification = _run_verification(
+            root, argv=getattr(args, "verification_argv", None))
+    if not args.dry_run:
+        _write_bootstrap(
+            root, seat=seat, generation=gen,
+            telemetry=tmpl.get("telemetry"), verification=verification,
+            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -5218,7 +5946,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   else _normalize_settings(row.get("settings") if row
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg, extra=extra,
+        dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -5293,47 +6021,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
               f"under the {'numeral-chain' if is_chain_seat else 'plain'} name "
               f"{spawn_name!r}")
+        _belam_gate = (role == "prime_director"
+                       or getattr(args, "belam_prefix", None))
         if is_chain_seat:
             print(f"(dry-run) numeral-chain seat: successor name "
                   f"{spawn_name!r}, generation = numeral {gen}, own window "
                   "@id = tmux display-message -p '#{window_id}' "
                   "(knowable only live), ack path "
                   f"{_ack_path(root, seat)}")
-            # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-
-            #     chain seat runs. NAMED live-derived, read-only: the
-            #     OLDEST predecessor window when the chain would exceed
-            #     FIVE, its @id, its pane pid and the ps -e chain it would
-            #     TERM deepest-first. Touches nothing. Same call path the
-            #     live r5 uses (`_belam_oldest` over the live windows + the
-            #     spawn_name successor; `_pane_pid(@id)` -> `_descendant_chain`).
-            pfx = getattr(args, "belam_prefix", None) or "belam"
-            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
-            if oldest is None:
-                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
-                      f"live {pfx!r} windows -> no reap (the own-window "
-                      f"reap is GATED OFF on a numeral-chain seat)")
-            else:
-                oldest_id = _successor_window_id(
-                    oldest, tmux_session, args.window_path)
-                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
-                      f"predecessor {oldest!r} (@id {oldest_id})")
-                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
-                if not pane_pid:
-                    print(f"        SKIPPED: no pane pid for window "
-                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
-                          f"cap could not derive its chain (a live tmux "
-                          f"run reads `tmux display-message -p -t @id "
-                          f"#{{pane_pid}}` -> `ps -e` climb)")
-                else:
-                    chain = _descendant_chain(pane_pid)
-                    if not chain:
-                        print(f"        SKIPPED: no ps -e chain under pane "
-                              f"pid {pane_pid} for {oldest!r}; nothing to "
-                              f"reap")
-                    else:
-                        print(f"        pane pid {pane_pid} -> ps -e chain "
-                              f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                              f"window killed by @id")
         else:
             print("(dry-run) ends on the PLAIN seat name; "
                   f"generation: {gen} (never a Roman numeral)")
@@ -5364,8 +6059,53 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                           f"{pane_pid} for {seat!r}; nothing to reap")
                 else:
                     print(f"        pane pid {pane_pid} -> ps -e chain "
-                          f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                          f"window killed by @id")
+                          f"{list(reversed(chain))!r}, TERM'd "
+                          f"DEEPEST-FIRST, then the window killed by @id")
+        # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-chain
+        #     seat runs, and the cap reap for ANY `--belam-prefix` seat.
+        #     GATED on the LIVE seam (role == "prime_director" OR
+        #     --belam-prefix, the same condition s6.6 at the LIVE cap uses),
+        #     NEVER on `is_chain_seat` alone: a plain seat GIVEN
+        #     --belam-prefix reaps live but its dry-run used to print no r5
+        #     plan at all. NAMED live-derived, read-only: the OLDEST
+        #     predecessor window when the chain would exceed FIVE, its @id,
+        #     its pane pid and the ps -e chain it would TERM deepest-first.
+        #     Touches nothing. Same call path the live r5 uses
+        #     (`_belam_oldest` over the live windows + the spawn_name
+        #     successor; `_pane_pid(@id)` -> `_descendant_chain`).
+        if _belam_gate:
+            pfx = getattr(args, "belam_prefix", None) or "belam"
+            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
+            if oldest is None:
+                _gated_own = ("the own-window reap is GATED OFF on a "
+                              "numeral-chain seat" if is_chain_seat else
+                              "the own-window reap (r4/s12) above still "
+                              "runs")
+                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
+                      f"live {pfx!r} windows -> no Belam cap reap "
+                      f"({_gated_own})")
+            else:
+                oldest_id = _successor_window_id(
+                    oldest, tmux_session, args.window_path)
+                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
+                      f"predecessor {oldest!r} (@id {oldest_id})")
+                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
+                if not pane_pid:
+                    print(f"        SKIPPED: no pane pid for window "
+                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
+                          f"cap could not derive its chain (a live tmux "
+                          f"run reads `tmux display-message -p -t @id "
+                          f"#{{pane_pid}}` -> `ps -e` climb)")
+                else:
+                    chain = _descendant_chain(pane_pid)
+                    if not chain:
+                        print(f"        SKIPPED: no ps -e chain under pane "
+                              f"pid {pane_pid} for {oldest!r}; nothing to "
+                              f"reap")
+                    else:
+                        print(f"        pane pid {pane_pid} -> ps -e chain "
+                              f"{list(reversed(chain))!r}, TERM'd "
+                              f"DEEPEST-FIRST, then the window killed by @id")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
@@ -5625,34 +6365,38 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         tmux_session=tmux_session, seat=seat, succ_id=succ_window_id,
         window_path=args.window_path,
         view_path=getattr(args, "view_path", None))
-    # (s11) verification at the cheapest cited level, then (s10) telemetry +
-    #     verification result into the bootstrap record the 0b round reads.
-    #     In a fixture (window_path seam set, no verification_argv) this
-    #     RECORDS the skip and never runs verification.py against a fake root.
-    if (args.window_path is not None
-            and getattr(args, "verification_argv", None) is None):
-        verification = {"ok": False, "level": VERIFICATION_LEVEL,
-                        "skipped": "SKIPPED: fixture, real verification "
-                                    "deferred (no graph; "
-                                    "--verification-argv seam absent)"}
-    else:
-        verification = _run_verification(
-            root, argv=getattr(args, "verification_argv", None))
-    handover["bootstrap"] = _write_bootstrap(
-        root, seat=seat, generation=gen,
-        telemetry=tmpl.get("telemetry"), verification=verification)
-
-    # (s5) model_confirm — computed AFTER the successor's ack confirmed an
-    #     ASSISTANT TURN exists (r1): REQUESTED from `ps -o args=` after the
+    # (s11) POST-JOIN BOOTSTRAP REWRITE (hypothesis:l4-startup-first-turn-
+    #     is-performed-by-the-service-and-the-hook-fires-at-turn-one). The
+    #     record was WRITTEN pre-spawn (step 2.75) so the hook finds it at
+    #     turn one; this UPDATES the SAME path in place (never re-minted)
+    #     with the @id-join facts now resolved, so the join-only markers
+    #     (`pending: resolved after join`) become real values. Verification
+    #     was computed pre-spawn and is reused — it never runs twice.
+    # (s5) model_confirm first — computed AFTER the successor's ack confirmed
+    #     an ASSISTANT TURN exists (r1): REQUESTED from `ps -o args=` after the
     #     first `--model`; LIVE from the first `"model":"..."` in the
-    #     successor transcript. Never a read of the transcript before a
-    #     first turn (the X->XI record said `skipped: no assistant turn`).
+    #     successor transcript. Never a read of the transcript before a first
+    #     turn (the X->XI record said `skipped: no assistant turn`). The live
+    #     model is one of the join-resolved bootstrap facts.
     handover["model_confirm"] = _confirm_successor_model(
         seat=seat,
         expected_model=((row.get("model") if row else None) or args.model),
         expected_effort=((row.get("effort") if row else None)
                          or args.effort),
         pid=succ_pid, transcript=succ_transcript)
+
+    overrides: dict = {}
+    succ_wid = handover.get("successor_window", {}).get("id")
+    if succ_wid:
+        overrides["successor_address"] = str(succ_wid)
+    mc = handover.get("model_confirm")
+    if isinstance(mc, dict) and mc.get("live"):
+        overrides["successor_live_model"] = str(mc["live"])
+    handover["bootstrap"] = _write_bootstrap(
+        root, seat=seat, generation=gen,
+        telemetry=tmpl.get("telemetry"), verification=verification,
+        join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)),
+        overrides=overrides)
 
     # (6) the record is the deliverable — write it, durably, BEFORE the own
     #     window is killed, so it survives regardless of what the kill does.
@@ -6346,6 +7090,35 @@ def main(argv: list[str] | None = None) -> int:
                         help="project root override (default: resolve from cwd)")
     p_next.set_defaults(func=cmd_next)
 
+    # handoff --driven: the STEP 1 driven handoff card writer (goal:g15.14).
+    # Builds §0 from measured values, asks the LLM ONLY for §3/§6.
+    p_h = sub.add_parser(
+        "handoff", help="driven handoff card writer: build §0 of the seat's "
+                          "quorum card from measured values, ask the LLM only "
+                          "for §3 where-it-stops and §6 banked "
+                         "(hypothesis:l4-rotate-self-drives-the-handoff-and-"
+                         "prepares-the-spawn)")
+    p_h.add_argument("--driven", action="store_true",
+                     help="driven mode: build §0, prompt for §3/§6 (the only "
+                          "mode that exists today)")
+    p_h.add_argument("--seat", default=None, help="seat name")
+    p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
+                     help="field value source; FIELD is s3 or s6, SRC is a "
+                          "filename or `-` for stdin (repeatable)")
+    p_h.set_defaults(func=cmd_handoff)
+
+    # prepare: the captive rotate-out checklist (goal:g15.14 STEP 2).
+    p_pr = sub.add_parser(
+        "prepare", help="print the captive rotate-out checklist: one line per "
+                          "check with the ONE command that clears it; exit 0 "
+                          "when nothing blocks, exit 3 otherwise "
+                         "(hypothesis:l4-rotate-self-drives-the-handoff-and-"
+                         "prepares-the-spawn)")
+    p_pr.add_argument("--seat", default="",
+                      help="seat name (a seat-bound checklist: card path, "
+                           "meter pin, ack file)")
+    p_pr.set_defaults(func=cmd_prepare)
+
     # rotate-self --name S: the non-prime self-rotation primitive
     p_rs = sub.add_parser(
         "rotate-self", help="rotate a non-prime seat onto a same-named "
@@ -6405,6 +7178,11 @@ def main(argv: list[str] | None = None) -> int:
                       help="read/write window names from this file (tests)")
     p_rs.add_argument("--dry-run", action="store_true",
                       help="print all five steps and touch nothing")
+    p_rs.add_argument("--prepare", action="store_true",
+                      help="print the captive rotate-out checklist and exit "
+                           "(0 clear / 3 blocked) without rotating -- the "
+                           "same `_prepare_checks` rotate-self refuses on "
+                           "(goal:g15.14 STEP 2)")
     p_rs.add_argument("--comms-root", default=None,
                       help="override the comms dir the rotation announcement "
                            "is delivered to (default: send.py's comms_root)")
@@ -6502,7 +7280,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
-                    "next", "seats-launch", "seq"):
+                    "next", "seats-launch", "seq", "handoff", "prepare"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)

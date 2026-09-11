@@ -111,7 +111,12 @@ def project(tmp_path: Path) -> Path:
     (agi / "nodes/.geometry/seats.md").write_text(
         "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
         "type: config\nseats:\n"
-        "  - {name: master-sensei, role: director}\n---\n# seats\n\nfixture\n")
+        "  - {name: master-sensei, role: director}\n"
+        # A longer-prefix collision seat: an actor string starting with
+        # `master-sensei-` that resolves (longest-prefix) to THIS seat, not the
+        # real master-sensei — the impostor the seat-keyed identity must refuse.
+        "  - {name: master-sensei-impostor, role: director}\n"
+        "---\n# seats\n\nfixture\n")
     return agi  # the graph root (.agi), which is what find_project_root returns
 
 
@@ -256,3 +261,96 @@ def test_master_sensei_body_edit_outside_facts_refused(project):
         write.submit(project, e, actor="master-sensei-7a")
     msg = str(ei.value)
     assert "facts" in msg
+
+
+def test_master_sensei_refused_non_dict_template_value(project):
+    """CLAIM (1): a non-dict new template value (here director = 'garbage', a
+    str) is REFUSED BY NAME — it must not silently drop brief_file + steps
+    (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-on-the-
+    resolved-seat, falsifier: 4 probes)."""
+    new = _clone()
+    new["director"] = "garbage"  # a str, not a dict — the silent-drop shape
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _templates_edit(new), actor="master-sensei-7a")
+    msg = str(ei.value)
+    assert "director" in msg        # names the role
+    assert "must be a dict" in msg  # names the shape
+    assert "str" in msg             # names what it actually got
+    # the drop must not land: nothing was written
+    assert "garbage" not in (project / "nodes/.geometry/rotations.md").read_text()
+
+
+def test_master_sensei_refused_non_dict_template_list_value(project):
+    """CLAIM (1), list shape: templates.director = [] is refused by name."""
+    new = _clone()
+    new["director"] = []
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _templates_edit(new), actor="master-sensei-7a")
+    msg = str(ei.value)
+    assert "director" in msg
+    assert "must be a dict" in msg
+    assert "list" in msg
+
+
+def test_master_sensei_refused_config_seats_body_edit(project):
+    """CLAIM (2): the facts-body gate applies only to the node that carries the
+    declaration's list_key (`templates`). A body-only master-sensei edit to a
+    config:seats node — even confined to a `## facts` section — is REFUSED,
+    not granted by the templates carve-out. Under the pre-fix code this probe
+    was ADMITTED (defect (2)); the repaired gate falls it through to the
+    written_by/self_row refusal."""
+    new_body = (
+        "# seats\n\ncameo\n\n## facts\n\n- F probe one\n"
+    )
+    src = project / "fakts.md"
+    src.write_text(new_body)
+    e = write.Edit("config:seats")
+    write.verb_replace(e, "body", "1:", str(src))
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, e, actor="master-sensei-7a")
+    msg = str(ei.value)
+    assert "seats" in msg or "templates" in msg or "facts" in msg
+
+
+def test_master_sensei_impostor_resolves_to_other_seat_refused(project):
+    """CLAIM (3): the master-sensei identity is the RESOLVED SEAT name only
+    (`_resolve_seat(root, actor) == the declared actor`), never the free-text
+    `--actor` string. `master-sensei-impostor-9f` resolves (longest-prefix) to
+    the `master-sensei-impostor` seat, NOT the master-sensei seat, so a
+    templates write by it is REFUSED. Under the pre-fix code its string
+    `startswith('master-sensei-')` admitted it to the carve-out (defect (3))."""
+    new = _clone()
+    new["director"]["telemetry"].append("impostor")
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _templates_edit(new),
+                     actor="master-sensei-impostor-9f")
+    msg = str(ei.value)
+    # refused on SOME ground — the impostor is never the master-sensei
+    assert "seats" in msg or "templates" in msg or "written_by" in msg
+
+
+def test_verb_examples_parse_as_their_arity(project):
+    """CLAIM (4): every VERB_EXAMPLES entry PARSES as its verb's arity via the
+    shared `parse_script` — so the grammar the -h epilog teaches is real, not
+    just hand-checked. The repaired `set` example is `set key value` (arity 2);
+    the pre-fix `set k=v` parsed as one token and would be refused."""
+    for name, example in write.VERB_EXAMPLES.items():
+        # parse_script takes the verb line exactly as the CLI's `--script`
+        # positional does (the node-id is a separate argument), which is the
+        # same form the epilog examples are written in.
+        parsed = write.parse_script(example)
+        assert len(parsed) == 1, f"{name}: {example} did not parse to one verb"
+        got_name, got_args = parsed[0]
+        assert got_name == name, f"example for {name!r} parsed as {got_name!r}"
+        assert len(got_args) == write.ARITY[name], (
+            f"{name}: example {example!r} parses to {len(got_args)} args, "
+            f"arity is {write.ARITY[name]}")
+
+
+def test_set_epilog_example_is_two_arg(project):
+    """CLAIM (4), the named regression: the epilog `set` example is `set key
+    value` (TWO arguments), never `set k=v` (one token, refused)."""
+    assert write.VERB_EXAMPLES["set"] == "set key value"
+    # and it genuinely parses to two args (the grammar the epilog teaches)
+    parsed = write.parse_script("set key value")
+    assert len(parsed[0][1]) == 2
