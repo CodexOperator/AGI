@@ -57,6 +57,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 from node_writer import log_write  # noqa: E402
+from spawn_gate import nearest_vision_town, vision_scope  # noqa: E402
 
 #: **goal:g11.1's first casualty, found the hour the layout changed.** This was
 #: `... or os.getcwd()`: an env var, else whatever directory you happened to be
@@ -646,6 +647,17 @@ PERPETUAL_INTRO = (
     "node; they simply carry no per-goal complete/retired lifecycle line here."
 )
 
+#: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the non-core
+#: town sections label an app/town that is a vision with its own council and
+#: its own vision cap. The town is a DERIVED value (a vision's `town:` cell,
+#: default `core`, goal:g8.2), so this header is a neutral sentence with the
+#: town's value interpolated — never a branch on a town's literal name.
+APP_TOWN_INTRO = (
+    "The goals of this app/town share one vision, one council and one per-town\n"
+    "vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).\n"
+    "Town is derived from a vision's `town:` cell; core is every other goal."
+)
+
 
 def strip_banner(text: str) -> str:
     """Remove the generated banner if present, so a rendered document can be
@@ -696,8 +708,22 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
     # and grouping them apart keeps the G/S lifecycle view short. They carry no
     # `— status:` line (no complete/retired lifecycle column); retire is still
     # legal on the node and is simply not rendered as a per-goal lifecycle here.
-    perpetual = [g for g in goals if g.get("goal_kind") == "perpetual"]
-    regular = [g for g in goals if g.get("goal_kind") != "perpetual"]
+    #
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — when the
+    # ladder declares `caps_vision_scope: town`, goals ALSO group by town: core
+    # renders in the default position; each non-core town's goals render under
+    # an `## App: <town>` section. With no town scope ('' — the old global
+    # behaviour) this block is inert and the document renders exactly as it
+    # always did, so a project that never declares towns round-trips unchanged.
+    def _town_of(g):
+        return (g.get("town") or "core").strip() or "core"
+
+    scope_town = vision_scope(NODES_DIR) == "town"
+    _core = [g for g in goals if not scope_town or _town_of(g) == "core"]
+    _apps = [g for g in goals if scope_town and _town_of(g) != "core"]
+
+    perpetual = [g for g in _core if g.get("goal_kind") == "perpetual"]
+    regular = [g for g in _core if g.get("goal_kind") != "perpetual"]
     for g in sorted(regular, key=lambda x: natural_sort_key(x["gid"])):
         hashes = "#" * int(g["heading_level"])
         out.append(f"{hashes} {g['gid']} — {g['title']} — status: {g['status']}")
@@ -721,6 +747,25 @@ def render_goals(preamble: str, goals: list[dict]) -> str:
             out.append("")
             out.append(strip_thought(g["body"]))
             out.append("")
+    if _apps:
+        for town in sorted({_town_of(g) for g in _apps}):
+            out.append(f"## App: {town}")
+            out.append("")
+            out.append(APP_TOWN_INTRO)
+            out.append("")
+            for g in sorted((x for x in _apps if _town_of(x) == town),
+                            key=lambda x: natural_sort_key(x["gid"])):
+                # Lay one level deeper than the node's own heading_level (a
+                # root at level 2 becomes `###`, a subgoal at level 3 becomes
+                # `####`) so every app goal nests strictly below the `## App:`
+                # section head instead of colliding with it; the status
+                # lifecycle line stays, exactly as in the core default render.
+                # Matches the Perpetual block, which already adds one.
+                hashes = "#" * (int(g["heading_level"]) + 1)
+                out.append(f"{hashes} {g['gid']} — {g['title']} — status: {g['status']}")
+                out.append("")
+                out.append(strip_thought(g["body"]))
+                out.append("")
     # One trailing newline, no trailing blank line — matches the hand-written
     # document byte for byte, which is what `--check` compares.
     return "\n".join(out).rstrip("\n") + "\n"
@@ -865,12 +910,26 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
         # "G7 — Title". Strip the stored prefix rather than re-deriving it.
         if title.startswith(f"{gid}:"):
             title = title[len(gid) + 1:].strip()
+        # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — a
+        # goal's town is DERIVED: its own `town:` cell wins (g18 carries it),
+        # else its vision_ref's town cell, else core. Never a branch on a town
+        # NAME (goal:g8.2). Default/core means the goal renders in the default
+        # position, not under an App section.
+        town = ""
+        own_town = fm.get("town")
+        if isinstance(own_town, str) and own_town.strip():
+            town = own_town.strip()
+        else:
+            vr = fm.get("vision_ref")
+            if isinstance(vr, str) and vr.strip():
+                town = nearest_vision_town(str(NODES_DIR), [vr])
         goals.append({
             "gid": gid,
             "title": title,
             "status": fm.get("status", "active"),
             "goal_kind": str(fm.get("goal_kind") or "").strip(),
             "heading_level": int(fm["heading_level"]),
+            "town": town.strip() or "core",
             "body": (node.get("body") or "").strip(),
         })
     return preamble, goals
