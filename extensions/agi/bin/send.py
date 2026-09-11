@@ -43,6 +43,7 @@ Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -691,6 +692,10 @@ def _nudge_pending_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge.pending"
 
 
+def _nudge_pending_lock_path(root: Path, seat: str) -> Path:
+    return _inbox_dir(root) / f"{seat}.nudge.pending.lock"
+
+
 def _pending_more(root: Path, seat: str) -> int:
     """Coalesced-but-untyped dms awaiting the next delivered nudge's
     `(+N more, read <seat>)` tail (hypothesis:l4-the-nudge-carries-the-dm-
@@ -701,23 +706,58 @@ def _pending_more(root: Path, seat: str) -> int:
         return 0
 
 
+class _PendingLock:
+    """Exclusive advisory lock over a seat's pending-count read-modify-write.
+    Both `_bump_pending` and `_clear_pending` hold it, so a clear cannot
+    zero a bump made at the same moment, and a bump cannot race a
+    concurrent clear (hypothesis:l4-a-read-clears-the-coalesced-nudge-count)."""
+
+    def __init__(self, root: Path, seat: str):
+        self._path = _nudge_pending_lock_path(root, seat)
+
+    def __enter__(self):
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._f = open(self._path, "a+")
+        fcntl.flock(self._f, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc):
+        fcntl.flock(self._f, fcntl.LOCK_UN)
+        self._f.close()
+        return False
+
+
 def _bump_pending(root: Path, seat: str) -> None:
     """Increment the pending-coalesced count; a dm coalesced inside the
     per-seat window is counted here so a LATER delivered nudge carries it.
-    Best-effort, never raises."""
+    Best-effort, never raises. The read-modify-write runs under the same
+    exclusive flock as `_clear_pending`, so a concurrent clear cannot zero
+    a bump made at the same moment."""
     try:
         p = _nudge_pending_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(str(_pending_more(root, seat) + 1))
+        with _PendingLock(root, seat):
+            p.write_text(str(_pending_more(root, seat) + 1))
     except OSError:
         pass
 
 
-def _clear_pending(root: Path, seat: str) -> None:
-    """Reset the pending-coalesced count after a nudge that carried it.
-    Best-effort, never raises."""
+def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
+    """Reset (or decrement-by-observed) the pending-coalesced count after a
+    nudge that carried it. Best-effort, never raises.
+
+    When the caller passes `observed` -- the count the read saw BEFORE it
+    began consuming -- writes max(0, current - observed): a dm that
+    coalesced DURING the read is preserved rather than silently zeroed by
+    an unconditional write. Absent `observed` clears to 0 exactly as
+    before. Runs under the same exclusive flock as `_bump_pending`."""
     try:
-        _nudge_pending_path(root, seat).write_text("0")
+        p = _nudge_pending_path(root, seat)
+        with _PendingLock(root, seat):
+            if observed is None:
+                p.write_text("0")
+            else:
+                p.write_text(str(max(0, _pending_more(root, seat) - observed)))
     except OSError:
         pass
 
@@ -1969,6 +2009,13 @@ def read(root: Path, me: str, sender: str | None,
         print(f"inbox for {me}: empty")
         return
 
+    # Observe the coalesced count ONCE, before anything is marked read. The
+    # clear below is compare-and-clear (it subtracts this observed value),
+    # so a dm that coalesces DURING the read survives instead of being
+    # silently zeroed by an unconditional write (L4.294). An empty read
+    # returns above, so it never observes nor touches a sidecar.
+    observed = _pending_more(root, me)
+
     # A stored deferred dm prints FIRST, before the inbox blocks, and the
     # record is then cleared — a director who never had an idle pane still
     # sees it at a seam, exactly once (clause 4). The record's own
@@ -2004,7 +2051,7 @@ def read(root: Path, me: str, sender: str | None,
     # the same consuming branch. The empty case is already handled by the
     # early return above: a read that consumed nothing must NOT touch the
     # sidecars. `peek` clears nothing, unchanged.
-    _clear_pending(root, me)
+    _clear_pending(root, me, observed)
 
 
 def peek(root: Path, me: str, wrap: int = 160) -> None:
