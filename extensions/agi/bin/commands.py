@@ -141,7 +141,8 @@ def _substitute(value: str, root: Path, engine: Path | None = None) -> str:
             .replace("<root>", str(Path(root).resolve()))
             .replace("<engine>", str(engine if engine is not None
                                 else engine_for(root)))
-            .replace("<stub>", str(locations.streamer_stub(root))))
+            .replace("<stub>", str(locations.streamer_stub(root)))
+            .replace("<home>", str(Path.home())))
 
 
 def load(root) -> dict[str, Command]:

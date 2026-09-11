@@ -19,6 +19,13 @@ SEASON_PY = BIN_DIR / "season.py"
 GREEN_SUITE = "true"
 RED_SUITE = "false"
 
+# hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — the OWNERSHIP
+# gate: merge-kids refuses to run unless the checked-out branch is a parent's
+# round branch (`loop/<slug>-<agent8>@s<N>`). The plain-mechanics fixtures
+# below therefore run on a round-shaped branch (the realistic invocation), not
+# on a bare feature branch the gate would rightly refuse.
+ROUND_BRANCH = "loop/merge-sim-00000000@s2"
+
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(repo), *args],
@@ -31,7 +38,7 @@ def repo(tmp_path):
     one source file, plus an always-green `--suite` command."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    _git(repo, "init", "-b", "round").check_returncode()
+    _git(repo, "init", "-b", ROUND_BRANCH).check_returncode()
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Test")
     # project marker so season.py's find_project_root resolves here
@@ -96,11 +103,11 @@ def test_branch_a_clean_merges(repo):
     src = repo / "src.py"
     src.write_text(src.read_text() + "CLEAN_A = True\n")
     _commit_all(repo, "kid A")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     r = _run_merge_kids(repo, "kid-A")
     assert r.returncode == 0, r.stderr
-    assert "merged kid-A --no-ff into round" in r.stdout
+    assert f"merged kid-A --no-ff into {ROUND_BRANCH}" in r.stdout
     out = _git(repo, "log", "--oneline", "-3").stdout
     assert "kid A" in out
     # merge commit has two parents and both bytes are present
@@ -126,11 +133,11 @@ def test_branch_b_node_conflict_union(repo):
 
     # kid B branches from base (round~1) with a lower-confidence verdict and
     # edits the SAME note line -> genuine same-line modify/modify conflict
-    _git(repo, "checkout", "-b", "kid-B", "round~1")
+    _git(repo, "checkout", "-b", "kid-B", ROUND_BRANCH + "~1")
     node.write_text(set_node("inconclusive_lean_proved:30", "0.3",
                              "kid-selected-note"))
     _commit_all(repo, "kid B")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     r = _run_merge_kids(repo, "kid-B")
     assert r.returncode == 0, r.stderr
@@ -159,10 +166,10 @@ def test_branch_b_node_union_keeps_consumers_stronger(repo):
     node.write_text(set_node("pending", "0.5", "round-note"))
     _commit_all(repo, "round pending")
     # kid B branches from base (round~1) and proves it, editing the SAME note
-    _git(repo, "checkout", "-b", "kid-B", "round~1")
+    _git(repo, "checkout", "-b", "kid-B", ROUND_BRANCH + "~1")
     node.write_text(set_node("proved", "0.9", "kid-proves-note"))
     _commit_all(repo, "kid B proves")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     r = _run_merge_kids(repo, "kid-B")
     assert r.returncode == 0, r.stderr
@@ -183,10 +190,10 @@ def test_branch_c_source_conflict_refuses_and_leaves_merge(repo):
     src.write_text(src.read_text().replace("VALUE = 1", "VALUE = 2"))
     _commit_all(repo, "round touches source")
     # kid C branches from base (round~1) and edits the SAME line differently
-    _git(repo, "checkout", "-b", "kid-C", "round~1")
+    _git(repo, "checkout", "-b", "kid-C", ROUND_BRANCH + "~1")
     src.write_text(src.read_text().replace("VALUE = 1", "VALUE = 3"))
     _commit_all(repo, "kid C")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     before = _git(repo, "rev-parse", "HEAD").stdout.strip()
     r = _run_merge_kids(repo, "kid-C")
@@ -204,11 +211,11 @@ def test_branch_c_source_conflict_refuses_and_leaves_merge(repo):
 def test_suite_red_aborts_and_commits_nothing(repo):
     """A branch whose suite fails causes `git merge --abort` and no merge
     commit."""
-    _splitbranch(repo, "round", "kid-red")
+    _splitbranch(repo, ROUND_BRANCH, "kid-red")
     src = repo / "src.py"
     src.write_text(src.read_text() + "RED = True\n")
     _commit_all(repo, "kid red")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     before = _git(repo, "rev-parse", "HEAD").stdout.strip()
     r = _run_merge_kids(repo, "kid-red", suite=RED_SUITE)
@@ -224,7 +231,7 @@ def test_suite_red_aborts_and_commits_nothing(repo):
 def test_zero_ahead_branch_refused(repo):
     """A zero-commits-ahead branch is refused (no no-op green merge commit)."""
     _mkalias(repo, "kid-empty")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
     before = _git(repo, "rev-parse", "HEAD").stdout.strip()
     r = _run_merge_kids(repo, "kid-empty")
     assert r.returncode != 0
@@ -242,12 +249,12 @@ def test_multiple_branches_merged_in_order(repo):
     _mkalias(repo, "kid-2")
     (repo / "src.py").write_text((repo / "src.py").read_text() + "TWO\n")
     _commit_all(repo, "kid 2")
-    _git(repo, "checkout", "round")
+    _git(repo, "checkout", ROUND_BRANCH)
 
     r = _run_merge_kids(repo, "kid-1", "kid-2")
     assert r.returncode == 0, r.stderr
-    assert "merged kid-1 --no-ff into round" in r.stdout
-    assert "merged kid-2 --no-ff into round" in r.stdout
+    assert f"merged kid-1 --no-ff into {ROUND_BRANCH}" in r.stdout
+    assert f"merged kid-2 --no-ff into {ROUND_BRANCH}" in r.stdout
     log = _git(repo, "log", "--oneline", "-4").stdout
     # three merge parents' content all present
     txt = (repo / "src.py").read_text()
@@ -306,6 +313,103 @@ kidline-added
     assert "<<<<<<<" not in resolved
     assert "=======" not in resolved
     assert ">>>>>>>" not in resolved
+
+
+# hypothesis:l4-merge-kids-resolves-the-parents-own-worktree — the REGRESSION
+# the bare-temp-repo fixtures above cannot see: a linked git worktree differs
+# from the main checkout's git root, so `git_common_root` there resolves to
+# MAIN and `_current_branch` returns MAIN's checked-out branch. A parent's
+# merge-kids run from its OWN worktree must resolve the round branch from
+# that worktree (loop/<slug>-<agent>@s<N>), never main. This uses a REAL
+# `git worktree add` in a throwaway temp repo, never this repo.
+
+
+def _parent_worktree(repo: Path):
+    # the parent's OWN round branch in its OWN worktree (regex-shaped so the
+    # ownership gate admits it); base `round` is MAIN's checked-out branch,
+    # which must stay byte-identical through the whole merge.
+    wt = repo / "wt"
+    _git(repo, "worktree", "add", "-q",
+         "-b", "loop/merge-dev-01234567@s2", str(wt), "round").check_returncode()
+    return wt
+
+
+def _run_merge_kids_in(work_root: Path, *branches: str,
+                       suite: str = GREEN_SUITE):
+    """Run merge-kids with a sanitised env: the commit guard's tier vars
+    (AGI_TIER / AGI_PROJECT_ROOT) are stripped so a `loop/*` round-branch
+    merge is tested as pure git mechanics, independent of whatever tier the
+    test process inherited."""
+    import os
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_TIER", "AGI_PROJECT_ROOT")}
+    return subprocess.run(
+        [sys_executable(), SEASON_PY, "--root", str(work_root),
+         "merge-kids", *branches, "--suite", suite],
+        capture_output=True, text=True, env=env)
+
+
+def test_merge_kids_from_linked_worktree_never_touches_main(repo):
+    """The load-bearing regression: a parent's merge-kids called from its
+    linked worktree on loop/parent@s2 must merge kids into THAT round branch
+    and leave the main checkout's checked-out branch (round) untouched.
+    Before the fix, `git_common_root` resolved to main and the merge landed
+    on main's branch instead."""
+    # the fixture's base is the round-branch shape; cut the PROTECTED main
+    # branch `round` off it so the load-bearing bounds are explicit
+    _git(repo, "checkout", "-b", "round").check_returncode()
+    wt = _parent_worktree(repo)
+    # kid branch cut from base with one commit
+    _splitbranch(repo, "round", "kid-wt")
+    (repo / "src.py").write_text(
+        (repo / "src.py").read_text() + "WTKID = True\n")
+    _commit_all(repo, "kid wt")
+
+    main_head = _git(repo, "rev-parse", "round").stdout.strip()
+
+    r = _run_merge_kids_in(wt, "kid-wt")
+    assert r.returncode == 0, r.stderr
+    assert ("merged kid-wt --no-ff into "
+            "loop/merge-dev-01234567@s2") in r.stdout
+
+    # the MAIN checkout's branch (round) is completely untouched
+    assert _git(repo, "rev-parse", "round").stdout.strip() == main_head, \
+        "merge-kids from a linked worktree must never touch main's branch"
+    # and the main branch's TREE carries none of the kid's merged bytes
+    assert "WTKID" not in _git(repo, "show", "round:src.py").stdout, \
+        "main's branch must not receive the kid's merged bytes"
+
+    # the parent's OWN round branch carries the merge and the bytes
+    wtlog = _git(repo, "log", "--oneline", "-3",
+                 "loop/merge-dev-01234567@s2").stdout
+    assert "kid wt" in wtlog
+    assert "WTKID = True" in (wt / "src.py").read_text()
+
+
+def test_merge_kids_refused_from_non_round_checkout(repo):
+    """OWNERSHIP GATE (hypothesis:l4-merge-kids-stays-in-the-parents-own-
+    worktree): merge-kids must refuse to run when the checked-out branch is
+    NOT a parent's round branch (loop/<slug>-<agent8>@s<N>) — the case of
+    being run from the MAIN checkout, whose branch is bare (round / season/sN
+    / master). Before the gate a main-checkout run would merge the kids onto
+    a non-round branch; now it is refused before any kid branch is touched."""
+    _mkalias(repo, "kid-g")
+    (repo / "src.py").write_text((repo / "src.py").read_text() + "G = 1\n")
+    _commit_all(repo, "kid g")
+
+    # main checkout: a bare (non-loop) branch
+    _git(repo, "checkout", "-b", "round").check_returncode()
+    main_head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+    r = _run_merge_kids(repo, "kid-g")
+    assert r.returncode != 0
+    assert "REFUSED" in r.stderr
+    assert "not a parent's round branch" in r.stderr
+    # not a single branch was touched
+    after = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    assert after == main_head
+    mh = _git(repo, "rev-parse", "--verify", "MERGE_HEAD")
+    assert mh.returncode != 0, "nothing may be left mid-merge by a refusal"
 
 
 def test_merge_kids_is_a_registered_subcommand():

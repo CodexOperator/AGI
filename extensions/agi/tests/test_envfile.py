@@ -561,3 +561,65 @@ def test_env_get_from_worktree_resolves_shared_env_file(tmp_path):
     assert res.env_file == repo / ".env"
     env = agi_secrets.read_env(main_env)
     assert env["OPENROUTER_API_KEY"] == "sk-main-only"
+
+
+# --- the management-key lookup is bounded to the given root's own -------
+# --- repository (hypothesis:l4-the-management-key-lookup-is-bounded-to- ---
+# --- the-given-root) ----------------------------------------------------
+# `_read_provisioning_key(root)` may climb to the nearest enclosing `.agi/`
+# and to the git common root of THAT SAME repository, but never into a
+# different (ancestral) repository: a tmp dir under an unrelated nested git
+# repo resolves None, and a synthetic `.agi` root resolves only its OWN `.env`.
+
+
+def _git(cwd, *args):
+    import subprocess
+    subprocess.run(["git", "-C", str(cwd), *args], check=True,
+                   capture_output=True, text=True)
+
+
+def _nested_repo(tmp_path, with_agi: bool, key: str) -> Path:
+    """(outer, nested) — outer is a live project; nested is a real git repo
+    dropped under `outer/vendor/`, optionally carrying its own `.agi`/`.env`."""
+    import provisioning as _prov
+    outer = tmp_path / "project"
+    outer.mkdir(parents=True)
+    make_project(outer)
+    write_node(outer / ".agi", DEFAULT_NODE)
+    write_env(outer, f"{_prov.PROVISIONING_KEY_VAR}=sk-outer-pk\n")
+    nested = outer / "vendor" / "dep"
+    nested.mkdir(parents=True)
+    _git(nested, "init", "-b", "main")
+    if with_agi:
+        make_project(nested)
+        write_node(nested / ".agi", DEFAULT_NODE)
+        write_env(nested, f"{_prov.PROVISIONING_KEY_VAR}={key}\n")
+    return outer, nested
+
+
+def test_bounded_key_lookup_does_not_cross_a_nested_unrelated_repo(tmp_path):
+    """A tmp dir under a nested git repo with no `.agi` of its own resolves
+    None — it must NOT walk up across the nested repo's `.git` boundary into
+    the outer project and read the outer key (the L4.146 leak shape)."""
+    import provisioning as _prov
+    _outer, nested = _nested_repo(tmp_path, with_agi=False, key="")
+    deep = nested / "sub" / "deep"
+    deep.mkdir(parents=True)
+    assert _prov._read_provisioning_key(deep) is None, (
+        "crossed an unrelated nested repo's git boundary to read a real key")
+    assert _prov._read_provisioning_key(nested) is None
+
+
+def test_synthetic_agi_root_resolves_only_its_own_env_key(tmp_path):
+    """A synthetic `.agi` fixture root (a real git repo with its own `.agi`
+    and its own fake `.env`) resolves THAT key only, never the outer project's
+    real key — its own repository's graph wins, bounded to its own `.env`."""
+    import provisioning as _prov
+    _outer, nested = _nested_repo(tmp_path, with_agi=True, key="sk-nested-pk")
+    got = _prov._read_provisioning_key(nested)
+    assert got == "sk-nested-pk", f"got {got!r}"
+    assert got != "sk-outer-pk"
+    # a deep child of the synthetic root still reaches that root's own key:
+    deep = nested / "a" / "b"
+    deep.mkdir(parents=True)
+    assert _prov._read_provisioning_key(deep) == "sk-nested-pk"
