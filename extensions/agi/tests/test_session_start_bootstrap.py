@@ -8,8 +8,8 @@ the `.next` hook copy (cc-session-start.next.sh — NOT the live hook, NOT
 ~/.claude) is driven the way CC drives it (scrubbed env, cwd = project root),
 and asserted for all four gates:
   (a) fresh record  -> the bootstrap block IS emitted, carrying its facts;
-  (b) stale record  -> REFUSED, block NOT emitted (stale state is never
-                       injected);
+  (b) stale record  -> emitted WITH per-fact `[stale: ...]` marks (L4.290:
+                       staleness is per-fact, never a whole-block refusal);
   (c) no record     -> silence + exit 0 (a non-seat session is untouched);
   (d) outside a project -> silence + exit 0 (the hook's load-bearing
                        invariant — its global registration is only safe
@@ -103,17 +103,26 @@ def test_fresh_record_emits_block_with_facts(project, tmp_path):
 
 
 # (b) a STALE record -> REFUSED, the block is NOT emitted
-def test_stale_record_refused_not_emitted(project, tmp_path):
+def test_stale_record_emits_with_mark(project, tmp_path):
+    """L4.290: a stale record is never a whole-block refusal anymore — a
+    head-bound fact measured at a non-live HEAD is EMITTED with a
+    `[stale: ...]` mark (a permanent fact would stay plain), never dropped
+    and never blocking the rest of the block. (Amendment: `reason: stale`
+    left cmd_bootstrap_block's vocabulary; `test_bootstrap_every_fact_stale_
+    still_emits` pins the no-refusal half on the fixture.)"""
     head = _head(project)
     _write_bootstrap(
         project, seat="adv-alive", shape="v1", generation=1, commit=head,
-        # a fact measured at a commit that is NOT live HEAD => refuse.
+        # a fact measured at a commit that is NOT live HEAD => marked stale.
         measured_at={"seed": "deadbeef", "model": head},
         telemetry={"seed": "s-7", "model": "claude-sonnet-5"})
     r = _run_hook(project, home=tmp_path / "home", seat="adv-alive")
     assert r.returncode == 0
-    assert BOOTSTRAP_MARKER not in r.stdout
-    assert "## ⚓ bootstrap" not in r.stdout
+    assert BOOTSTRAP_MARKER in r.stdout
+    assert "## ⚓ bootstrap" in r.stdout
+    # the stale head-bound fact is marked; the fresh model is plain.
+    assert "[stale: measured@deadbeef" in r.stdout
+    assert "model: claude-sonnet-5\n" in r.stdout
 
 
 # (c) NO record -> silence + exit 0 (a non-seat session is untouched)
