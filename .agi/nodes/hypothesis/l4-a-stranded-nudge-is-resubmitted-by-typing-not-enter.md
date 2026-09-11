@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter
+mint_id: f8758df1e5064e67a27ecdfb25fff2ab
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-a-nudge-is-a-wake-token-not-a-message
+next_edges: []
+edited_by: belam
+scaffold_hash: e35eae50ef1dd856
+season: 2
+testable_claim: "OWNER 2026-09-11 15:0xZ (verbatim in doc:l4-owner-decisions): \"let's fix the lack of sensei wake on role rotation\". MEASURED PRE-FIX on the master-sensei pane @279 (Prime L4-IX, predecessor): (a) a nudge typed while the recipient pane is BUSY strands in its input box; when the turn ends the stranded line stays; Enter-only NEVER submits it — three Enter-only attempts failed (13:59Z, 14:00Z, and rotate-self's own 'submitted a stranded token (Enter only)' at 14:04Z); typing a fresh line + Enter submitted at once (14:05Z); (b) a nudge on an IDLE pane submits immediately (probe 15:05:28Z, transcript grew within 2 s). CONSEQUENCE: the XIV->XV rotation alert (13:52Z) reached the Sensei's inbox but never woke it. BUILD ORDER (measure pre-fix on the fake pane, implement, prove): (1) send.py's stranded/deferred retry (the L4.159/171/180/198 path) resubmits by TYPING a fresh token (the rendered nudge line again, or a single space) followed by Enter — never Enter-only — and judges ownership on the rendered line as today; (2) the retry is not only 'on the next send': `send.py wake <seat>` (new verb, or the existing deferred path) re-checks a recipient with a stranded line and resubmits when the pane is idle; rotate-self's announce path calls it once ~30 s after the alert for every recipient whose line stranded, and heal.py watch (the reaper unit) runs the same check for every live seat row on each pass so a stranded wake is repaired within one poll (30 s) with no operator; (3) the rotation-alert dm to a BUSY recipient is not lost: the deferred record is written as today and the wake above delivers it; (4) tests, fixture-only on the fake tmux pane (_fake_tmux / _FixturePane): busy-at-nudge -> stranded -> idle -> resubmitted by type+Enter -> owned -> delivered ONCE (no duplicate body); Enter-only must NOT be the retry (assert the argv sequence types text before Enter); heal.py watch repairs a stranded seat within one pass on a fixture. FALSIFIER: a recipient whose pane is busy at alert time and idle afterwards that is still not woken after one heal pass, or a nudge delivered twice. FILE SCOPE: extensions/agi/bin/send.py, extensions/agi/bin/heal.py (the pass hook only), extensions/agi/bin/rotate.py (_announce_rotation call site only), extensions/agi/tests/test_send.py, extensions/agi/tests/test_heal_watch.py. CEILING: 1 kid. PRIME STEP after landing: restart the reaper unit (agi-agi-reaper-2f118e6f) so heal.py's new pass is live. Different files from the golden-web round — cut in PARALLEL, not behind it."
+title: A stranded nudge is resubmitted by typing + Enter, never Enter-only, and a seat with a stranded wake is repaired by the reaper pass
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
