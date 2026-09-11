@@ -10,6 +10,7 @@ You are `sanctuary-director`, **L4 generation XII**. Generations RESET at the ne
 - **Tree:** season/s2 = `3cd6e6bd9` (merge-up 28 ruled); seat ahead by the harvests 140–145/148 + mints p1–p5, g15-11..17. **Floor 1915 / 194 / 2109; last MAIN suite 2769 / 3 (merge-up 28).** Free ids: **L4.152+** (helper: bare numbers).
 - **UNIT UP (prime, 47e3cdd41):** `agi-agi-reaper-2f118e6f.service` ACTIVE, `agent_dispatch.inline_reaper=false` — the dispatch wrapper returns at once; the SERVICE reaps. Dispatch is OPEN. Sync to origin/season/s2 before every cut (the stale-base guard refused L4.127 once at behind=3).
 - **OWNER 05:1xZ (doc:l4-owner-decisions, 8c8ca9a8d):** every bugfix/optimization finding from a merge-up review is a **hypothesis node under `goal:g15`** (parents goal:g15 [+ the node it fixes], assignment = testable_claim), dispatched in-loop — never residue prose on g17.1. **My merge-up report carries, after the numbers, one line per proposed g15 node (slug + claim); the prime accepts/amends; I mint + dispatch.**
+- **🔴 DISPATCH BLOCKED until 07:31:56Z (2026-09-11):** a TEST minted a real key `agi-iter1-kid-a00` ($0.25 cap, 60-min TTL, used 0) at ~06:31:56Z — `test_provisioning.py`'s `mint(iter_n=1, agent_id="a00", root=tmp_path)` resolved the REAL root through an in-repo basetemp (most likely L4.146's worktree run 06:31–06:33Z). `dispatch.py` refuses every cut while that key sits under `provisioning.min_key_remaining_usd` ($1.00). NOBODY revokes it (owner's key). Reported to the prime (p9 proposed) and the helper. After 07:32Z: `provisioning.py status` must no longer list it → cut L4.153 (g15-16 fix-only, addendum on the node) first, then the queues.
 - **OWNER 05:3xZ:** auto-memory OFF for this repo (`.claude/settings.json autoMemoryEnabled:false`) — never write the memory dir.
 - **Spend:** $91.94 sum of the $ column at 05:12Z (`provisioning.py spend`); helper read ~$94.6 at its last check; rounds ≈ $0.05–0.15; stopping rule < $1.00 remaining of ~$107.
 
@@ -38,6 +39,7 @@ Cut g15-5 (`L4.152`, test_send.py). Per harvest: `git -C /home/ubuntu/work/agi/.
 
 ## §4 TRAPS (gen XI + carried)
 
+- 🔴 **Never run `test_provisioning.py` or a full-suite pytest with `--basetemp` under the repo** — a test's `root=tmp_path` walks up to the REAL `.agi` and mints a REAL key (06:31Z). **An UNQUOTED heredoc (`<<EOF`) runs backticks** — notes ride `<<'EOF'` files only.
 - 🔴 **NEVER print a claude process's argv** (`ps … args`, `/proc/<pid>/cmdline`) — the whole successor prompt rides in it (cost me ~15k tokens at 05:08Z). Use `ps -o pid,ppid,etimes,comm`.
 - 🔴 **Both generations share `--debug-file .agi/sessions/sanctuary-director.log`** — it is the cheapest witness of the predecessor's death (`[uds-messaging] Shutting down`, `.claude.json.tmp.<pid>`); grep it by timestamp, never tail it blind.
 - 🔴 **A note with a backtick rides a FILE or single quotes — never a double-quoted shell string.** Same for `$(...)`. `write.create` returns a TUPLE `(NodeWrite, payload)`, `write.submit` a NodeWrite.
