@@ -596,6 +596,96 @@ def test_h_dead_fallback_reached_by_nonconvention_worktree(tmp_path, run_hook, m
     assert "ROTATION OWED" not in out, out
 
 
+def _unresolved_worktree(tmp_path, seats):
+    """A single worktree graph root holding `seats` in its config:seats row and
+    a ladder, for the P7 fallback cases where main cannot be resolved."""
+    outer = tmp_path / "outer"
+    graph = outer / "repo" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(seats)
+    return graph
+
+
+def _stub_git_common_root_raise(monkeypatch):
+    """locations.git_common_root RAISES — the main-checkout resolver is down
+    (git unavailable). The hook must not crash and must not label main."""
+    import sys as _s
+    _s.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+    import locations
+    def _boom(_root):
+        raise RuntimeError("git unavailable")
+    monkeypatch.setattr(locations, "git_common_root", _boom)
+
+
+def _stub_git_common_root_no_graph(monkeypatch, tmp_path):
+    """git_common_root returns a repo root that find_project_root cannot map to
+    any graph (no `.agi`/config.json under it) → `unresolved:no-graph-root`."""
+    import sys as _s
+    _s.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+    import locations
+    bare = tmp_path / "bare-repo-root"
+    bare.mkdir(exist_ok=True)
+    monkeypatch.setattr(locations, "git_common_root", lambda _root: bare)
+
+
+# --- (j) main UNRESOLVED via exception → worktree row, named reason ---------
+def test_j_main_unresolved_exception_labels_worktree(tmp_path, run_hook,
+                                                     monkeypatch, capsys):
+    """When locations.git_common_root RAISES (git unavailable, any Exception),
+    the hook must NOT crash (P7) and must NOT label the worktree's row
+    `(main checkout)` — the exact lie this round removes. It emits the worktree
+    threshold with a source string that NAMES why main was unresolved."""
+    seats = ("---\nseats:\n  - {\"name\": \"booms\", \"role\": \"director\", "
+             "\"worktree\": \".agi/worktrees/seat-booms\", "
+             "\"rotate_at\": 0.4}\n---\n")
+    graph = _unresolved_worktree(tmp_path, seats)
+    _stub_git_common_root_raise(monkeypatch)
+
+    tp = tmp_path / "j.jsonl"
+    _write_transcript(tp, 30_000)   # 0.30 < 0.4 -> approaching, not over
+    state_dir = tmp_path / "state-j"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.setenv("AGI_SEAT", "booms")
+    code, out, err = run_hook(_payload(graph, tp, "sess-j",
+                                       cwd=str(graph.parent)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, (err, out)      # P7: an exception path must not crash/hang
+    assert "Traceback" not in err
+    # threshold from the WORKTREE row, labelled with the unresolved reason.
+    assert "config:seats booms.rotate_at (worktree; main unresolved:" in out, out
+    assert "main checkout" not in out, out
+
+
+# --- (k) main UNRESOLVED via no graph root → named reason -------------------
+def test_k_main_unresolved_no_graph_root_labels_worktree(tmp_path, run_hook,
+                                                         monkeypatch, capsys):
+    """When git_common_root resolves a repo root but find_project_root finds no
+    graph under it (case (ii) of the round), main is unresolved with reason
+    `no-graph-root`; the worktree row is labelled with that reason, never
+    `(main checkout)`."""
+    seats = ("---\nseats:\n  - {\"name\": \"ngr\", \"role\": \"director\", "
+             "\"worktree\": \".agi/worktrees/seat-ngr\", "
+             "\"rotate_at\": 0.47}\n---\n")
+    graph = _unresolved_worktree(tmp_path, seats)
+    _stub_git_common_root_no_graph(monkeypatch, tmp_path)
+
+    tp = tmp_path / "k.jsonl"
+    _write_transcript(tp, 45_000)   # 0.45 < 0.47 -> approaching, not over
+    state_dir = tmp_path / "state-k"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.setenv("AGI_SEAT", "ngr")
+    code, out, err = run_hook(_payload(graph, tp, "sess-k",
+                                       cwd=str(graph.parent)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, (err, out)
+    assert ("config:seats ngr.rotate_at "
+            "(worktree; main unresolved: unresolved:no-graph-root)") in out, out
+    assert "main checkout" not in out, out
+
+
 # --- (i) the autouse fixture clears an inherited AGI_SEAT -------------------
 def test_module_agiseat_is_cleared_at_entry():
     """The module's autouse fixture must clear the RUNNER's AGI_SEAT at every
