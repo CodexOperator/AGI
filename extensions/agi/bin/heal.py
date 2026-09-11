@@ -53,6 +53,7 @@ def _default_tier_for_role(role):
 from dispatch import pi_model_args, _reap_pass  # noqa: E402
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
+import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
 
 
 def _pi_model_args(root: Path, tier: str = "kid",
@@ -202,21 +203,14 @@ class _WatcherAdapter:
 def _watch_log(line: str) -> None:
     """Log ONE line per watcher event to the reaper log (the same dir and
     hash style as crons.py's), or to stderr when the log is not overridable.
+    Delegates to the SHARED resolver `reaper_log.log` (lifted here so send.py's
+    `wake` outcome line uses the SAME log path -- never a second one; clause
+    (3) of hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box
+    and-wake-names-its-path). A MOVE, not a behaviour change.
     Tests set AGI_REAPER_LOG to a tmp path so they never touch ~/logs; the
     unit (the systemd service) sets it in Environment= or lets it default.
     """
-    log = os.environ.get("AGI_REAPER_LOG")
-    if log:
-        try:
-            p = Path(log)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            with open(p, "a", encoding="utf-8") as fh:
-                fh.write(line.rstrip("\n") + "\n")
-            return
-        except Exception as exc:
-            print(f"watch: log write failed ({exc}); falling back to stderr",
-                  file=sys.stderr)
-    print(line, file=sys.stderr)
+    reaper_log.log(line)
 
 
 def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:

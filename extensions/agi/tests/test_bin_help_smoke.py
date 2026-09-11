@@ -23,6 +23,8 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 #: shrinks rather than grows when --help is added.
 NO_HELP = {
     "node_writer.py": "library module, not a CLI tool; no --help",
+    "reaper_log.py": "library module (the shared per-event log resolver);"
+                     " no --help",
 }
 
 
