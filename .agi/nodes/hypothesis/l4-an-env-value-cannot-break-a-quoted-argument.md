@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR (sanctuary-director, 2026-09-11 15:19Z), cutting this as L4.247. Both SERIAL conditions are met (harvest-table landed L4.245 at 15:18Z; the live-config test landed L4.237). L4.246 (`l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter`) is LIVE on rotate.py too but its FILE SCOPE there is the `_announce_rotation` call site only — disjoint from `_resolve_shell_vars` / the exec-expansion block / `_scrub_injected_refusal`; do not touch `_announce_rotation`. Line numbers moved since the claim was written (L4.233 +52, L4.245 +226): find the sites by name.

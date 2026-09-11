@@ -377,3 +377,51 @@ def test_dry_run_reaper_knob_overrides_an_inherited_zero(project):
     assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1" in r.stdout, (
         f"inherited 0 must be overridden to 1:\n{r.stdout}")
     assert "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=0" not in r.stdout
+
+
+def _g15_project(tmp_path: Path) -> Path:
+    """A scratch project whose OWN graph carries a g15-lineage target.
+
+    hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — the
+    end-to-end wiring: dispatch.py passes its resolved project root to the
+    brief, so the g15 build-order rule is decided against THIS project's
+    `.agi`, not against the `.agi` enclosing the engine's brief.py (which on
+    this test rig is the real repo — a different graph, exactly the
+    cloned-engine boundary the hypothesis names).
+    """
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n", encoding="utf-8")
+    return tmp_path
+
+
+
+
+def test_dispatch_threads_project_root_into_the_assembled_brief(
+        project, monkeypatch, capsys):
+    """dispatch.py hands its own resolved project root to brief.assemble as
+    `project_root`, so the g15 build-order rule is decided against the PROJECT
+    graph the dispatcher owns, not the `.agi` enclosing brief.py
+    (hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi — proof on
+    the calls, by monkeypatching `assemble` to capture kwargs, since the
+    dry-run printer shows only the first 20 brief lines)."""
+    import dispatch as _dispatch
+    import brief as _brief_mod
+
+    calls: list = []
+    monkeypatch.setattr(_brief_mod, "assemble",
+                        lambda *a, **k: calls.append(k) or ["MARKER-SEGMENT"])
+    _g15_project(project)  # give the scratch graph a g15-lineage target
+    monkeypatch.setattr(sys, "argv",
+                        [str(BIN / "dispatch.py"), str(project), "1",
+                         "--harness", "pi", "--tier", "parent",
+                         "--target", "hypothesis:x", "--dry-run"])
+    code = _dispatch.main()
+    capsys.readouterr()
+    assert code == 0
+    assert any(c.get("project_root") == project / ".agi" for c in calls), calls
