@@ -27,7 +27,7 @@ Two L3 lessons kept: check `git rev-list --count season/s2..<branch>` before bel
 ### 🔴 Where it stops — Belam L4-VII, live 2026-09-11 (L4-VI's last card: `git show 315357c91:HANDOFF.md`)
 
 ```
-BELAM L4-VII — LIVE (Opus 5 max, standing — owner)   agi-07 [f52a4c] @267 / agi-rc:4   season/s2 @ 383570d5b+   2026-09-11 02:5xZ (date -u)   pin 0.36 at 02:55Z / cap 0.47   ACCOUNT $12.76 of $107.00 at 02:28Z
+BELAM L4-VII — LIVE (Opus 5 max, standing — owner)   agi-07 [f52a4c] @267 / agi-rc:4   season/s2 @ 45e07d2b5+   2026-09-11 03:1xZ (date -u)   pin 0.38 at 03:12Z / cap 0.47   ACCOUNT $12.76 of $107.00 at 02:28Z
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; the newest notes are the rulings on 0a's gate, the ack channel's prime-path proof, the reaper, the respawn)
@@ -69,7 +69,7 @@ LIVE   L4-VII, 2026-09-11 01:18Z-> (every owner ruling below is verbatim in doc:
        SPAWN ARMS ITS OWN WATCH (heartbeat + unharvested reminders from the persistent watcher) · NUDGE FIX (L4.120) IS THE GATING ROUND before the loop closes (owner 02:2xZ).
        ROUNDS MINTED BY THE PRIME tonight, all handed to the point: hypothesis:l4-a-nudge-is-a-wake-token-not-a-message (g15; LIVE as L4.120 kid 2) · l4-a-spawn-arms-its-own-watch (g4.7;
        serial behind L4.120 + the L4.116 unit) · l4-a-parent-cuts-five-and-merges-its-kids (g4.1) · l4-branches-are-one-tree-under-the-season (g17; serial behind L4.117 towns) ·
-       l4-the-stream-master-is-the-only-door (g18.1, minted by L4-VI; the helper runs it on the town branch).
+       l4-the-stream-master-is-the-only-door (g18.1, minted by L4-VI; the helper runs it on the town branch) · l4-the-pin-is-the-lease (g17; the watcher reaps the unpinned, Belam keeps five predecessor pins; serial behind L4.123 + the watch round) · 0b refined: after_join PERFORMED BY THE SERVICE on a 20 s delay, captive where a decision remains (config:rotations startup).
        NUDGE MECHANISM PINNED on a real pane (four probes, on the nudge node): long text + Enter in ONE send-keys chunk = PASTE (stranded, Enter becomes a newline); a SEPARATE
        `send-keys Enter` submits it; `send-keys -l <text>`, sleep 0.3, `send-keys Enter` delivers. Until L4.120 lands: a stranded line in a seat pane is submitted by ONE bare Enter
        (done twice on the helper, 02:10Z and 02:20Z); `desktop-check` finds them.
@@ -87,6 +87,10 @@ LIVE   L4-VII, 2026-09-11 01:18Z-> (every owner ruling below is verbatim in doc:
        ENGINE FIXES BY THE PRIME (small, tested): workflow.py author generator — fill regex `\}\/g` made every authored script unparseable at the Workflow tool, hyphenated single-stage
        label as a bare return key; three scripts regenerated from their manifests; parse test added (in-process PASS; the file run waits for a free suite window).
        0a RESIDUE (unchanged): rotate-self is not yet prime-rotatable; the Prime still writes seat rows from the join and reaps by PID; two acks needed on the prime path (g17.1).
+CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged and COMPLETE.md's L4 section is being written —
+       `sb-status` → write + push the L4 section (appended, never replaced; on screen in this pane) → `sleep 75 && brb` (graceful cut to the card 75 s later: viewers 15 s behind see the report
+       a good minute; NEVER `panic` — the owner's — never a unit stop) → `sb-status` confirms → the prayer, once. Gating rounds before it: stream-master (helper, town branch) + whatever
+       the point names as base-level; the nudge fix is LANDED and live-proven (03:01Z). The fold-in is NOT part of L4 (deferred, HELD below).
 HELD   hypothesis:l4-the-stream-goes-live = DEFERRED to the next stream (owner 01:4xZ): the streaming town's L1 on town/streaming-suite/season/s1 — not L4's final round any more, not retired.
 RULED  by the Prime, recorded in goal:g17.1, do not re-open: 0a's config-gate — (A) rotations.md STAYS type config prime/owner-only, the round proves on a FIXTURE and ships body + the exact create line,
        the PRIME creates it once at merge-up (same as the L4.94 hook and 0b's install: a round proves on a fixture, the Prime installs once and verifies with a fresh session, never a seat);
