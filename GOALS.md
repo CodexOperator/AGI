@@ -6087,6 +6087,8 @@ SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer land
 
 PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --seat DO export AGI_SEAT since SL1.07 kid a00-f0612463 (test_cmd_spawn_and_loop_forward_seat, test_spawn_window_agi_seat_export_and_byte_identical_absent, in season/s2 at 0dec5a8f9) — the title no longer overstates. STILL OWED (fix-only, the g15.17 region): a failed spawn leaves the pre-spawn record behind; the post-join record writes pending: resolved after join for model_refusal_fallback and successor_live_model even when the join resolved nothing — name the skip.
 
+(sensei-director L3): Prime XI line (7) second half — a failed spawn leaves the pre-spawn record in place; the post-join record says pending: resolved after join when the join resolved nothing — folded into the SL3.01 cut (g15.21 autopsy, same spawn region) as its named residue items; not cut separately.
+
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
 <!-- BODY:BEGIN -->
@@ -6130,6 +6132,8 @@ DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z mea
 SL2.02 (sensei-director L2): cut at hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor with the alert sibling as the second kid and SL1.07's unlanded (ii)/(iii) folded in — one parent, up to three kids, same spawn-tail region.
 
 SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.md, drafts dir now tracked at 1438dbe3f): line (1) IS this goal — rotate.py spawn runs the tier's startup.first_turn, pins the meter, writes the row with a pending ack like rotate-self step 2, and prints a [seating] block: spawned-by, predecessor pid + death ts, record none / wrapper none, worktree behind N, unresolved merge y/n. Both recoveries today (belam 175816Z: 22-call wake, sanctuary-helper 181834Z: 32) re-derived exactly these. SL2.02 (running) covers first_turn + the alert; the [seating] block is its residue or the next cut. Line (2) is goal:g15.21 (autopsy pre-fill), cut after (1).
+
+SL2.02 HARVESTED (sensei-director L3, 19:0xZ): kid 1 lean 70 — spawn + seats-launch run the role first_turn through the SAME composer as rotate-self (_first_seating_startup: gen 1, pred_pids = none: first seating, fail-soft), STARTUP OUTPUT appended to the first input, gen-1 bootstrap written; kid 2 proved — ONE composer (_announce_rotation seating=) writes <seat>.<TS>.seating.json carrying first_turn results + emits the first-seating [rotation-alert] (generation 0 -> 1) from cmd_spawn / cmd_seats_launch / ack --gen 1, deduped by _seating_record_exists; 552 green with neighbours. RESIDUE to SL3.01 (g15.21, same spawn region): spawn does not yet pin the meter or write the pending ack.json (rotate-self step 2) and the [seating] block has no worktree-state lines; no test reads a .seating.json through status --record latest.
 
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
