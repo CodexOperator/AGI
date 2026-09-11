@@ -141,3 +141,27 @@ def test_owner_still_writes_whole_list_model_and_all(project):
     new[0]["session_ref"] = "PRIMMOVE"
     res = write.submit(project, _set_seats_edit(new), actor="owner")
     assert res.status == node_writer.UPDATED
+
+def test_seated_writer_may_write_own_signing_cells(project):
+    """hypothesis:l4-every-live-row-is-keyed... clause (5) -- the new seat-row
+    signing cells (pubkey, sig_scheme, enc_scheme, key_history) are declared
+    self_row fields, so a seated seat's `send.py keygen` row write passes the
+    write guard on its OWN row and touches nothing else."""
+    new = _clone_rows()
+    new[1]["pubkey"] = "abc123"
+    new[1]["sig_scheme"] = "ed25519"
+    new[1]["enc_scheme"] = "none"
+    new[1]["key_history"] = []
+    res = write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes/.geometry/seats.md").read_text()
+    assert "enc_scheme" in text and "key_history" in text and "abc123" in text
+
+
+def test_seated_writer_own_signing_cells_still_refuse_other_rows(project):
+    """Adding the signing cells to self_row.fields must NOT widen the carve-out:
+    another row's cells are still refused whole."""
+    new = _clone_rows()
+    new[2]["pubkey"] = "abc123"  # sanctuary-helper's row
+    with pytest.raises(write.EditError):
+        write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
