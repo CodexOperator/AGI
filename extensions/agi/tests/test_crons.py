@@ -12,6 +12,7 @@ the real `crontab` binary in write mode — every apply/remove goes through
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +24,27 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import crons  # noqa: E402
+
+
+@pytest.fixture
+def fake_systemctl(tmp_path, monkeypatch):
+    """A FAKE `systemctl` on PATH (residue b): records every argv line into
+    `tmp_path/systemctl.calls` and exits 0. Proves `apply`'s exact unit
+    systemctl argv and guarantees the REAL user manager (`systemctl --user`
+    is live on the box) is never reached from a test.
+    """
+    bin = tmp_path / "fakebin"
+    bin.mkdir()
+    log = tmp_path / "systemctl.calls"
+    script = bin / "systemctl"
+    script.write_text(
+        "#!/usr/bin/env bash\n"
+        f'echo "$@" >> {log}\n'
+        "exit 0\n")
+    script.chmod(0o755)
+    monkeypatch.setenv(
+        "PATH", str(bin) + os.pathsep + os.environ.get("PATH", ""))
+    return log
 
 
 # --- fixtures ---------------------------------------------------------
@@ -486,14 +508,16 @@ def test_apply_from_common_root_only_separator_delta(tmp_path):
     log = crons._log_path(repo_root)
     grid_py = engine_root / "extensions" / "agi" / "bin" / "grid.py"
     crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
+    udir = Path.home() / ".config" / "systemd" / "user"
 
-    # What today rendered (the `&&` chain) — reconstructed honestly as the
-    # reference the delta is measured against.
+    # What today rendered (the `&&` chain, plus the residue-b --unit-dir on
+    # the self-reapply) — reconstructed honestly as the reference the delta
+    # is measured against.
     today = (
         f"*/5 * * * * cd {root} && python3 {grid_py} commit --all "
         f"--prefix 'cron: ' >> {log} 2>&1 && git -C {repo_root} push -q origin "
         f"'refs/grid/*:refs/grid/*' >> {log} 2>&1 && python3 {crons_py} apply "
-        f">> {log} 2>&1"
+        f"--unit-dir {udir} >> {log} 2>&1"
     )
     # Same jobs and schedules, and the only delta is: `;` where the chain had
     # `&&` between the steps (never touching the leading `cd {root} &&`).
@@ -730,7 +754,7 @@ def test_plain_apply_without_unit_dir_touches_no_units(tmp_path, capsys):
     assert result["unit_dir"] is None
 
 
-def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
+def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
@@ -747,6 +771,13 @@ def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
     assert "Environment=NOTIFY=off" in first
     assert "WantedBy=default.target" in first
 
+    # Residue (b): apply actually RAN systemctl through the fake on PATH,
+    # with the exact argv — daemon-reload then enable --now.
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0] == "--user daemon-reload"
+    assert calls[1].startswith("--user enable --now ")
+    assert calls[1].endswith(unit.name)
+
     r2 = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     assert unit.read_text() == first, "running apply twice must be byte-identical"
     assert any("up to date" in a for a in r2["unit_actions"])
@@ -754,7 +785,7 @@ def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
     assert r2["crons_live"] is True
 
 
-def test_crons_live_false_removes_unit_and_records_disable(tmp_path):
+def test_crons_live_false_removes_unit_and_runs_disable(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
@@ -763,13 +794,19 @@ def test_crons_live_false_removes_unit_and_records_disable(tmp_path):
     crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     unit = next(ud.glob("agi-*.service"))
 
+    fake_systemctl.write_text("")
     write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
                      services=SER_REAPER)
     res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     assert not unit.exists()
     assert any("remove unit" in a for a in res["unit_actions"])
-    # the disable intent is recorded through the seam, never run for real
+    # The kill switch is REAL: disable --now ran through the fake, in the
+    # order disable, then file removal, then daemon-reload.
     assert any("systemctl --user disable --now" in a for a in res["unit_actions"])
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0].startswith("--user disable --now ")
+    assert calls[0].endswith(unit.name)
+    assert calls[1] == "--user daemon-reload"
 
 
 def test_unit_dry_run_writes_nothing(tmp_path, capsys):
@@ -788,7 +825,7 @@ def test_unit_dry_run_writes_nothing(tmp_path, capsys):
     assert not ud.exists() or not list(ud.iterdir())
 
 
-def test_rendered_unit_never_carries_a_credential_path(tmp_path):
+def test_rendered_unit_never_carries_a_credential_path(tmp_path, fake_systemctl):
     """The claim's hard rule — the watcher never reads a credential — is a
     property of the renderer too: Environment= takes plain key=value settings
     and every value round-trips unchanged; assert the unit text contains the

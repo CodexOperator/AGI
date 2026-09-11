@@ -39,6 +39,7 @@ have to be the same object.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -95,6 +96,7 @@ class Command:
     cwd: str = ""
     raw_cwd: str = ""
     workflow: str = ""
+    owner_only: bool = False
 
     def shell(self, *, placeholders: bool = False) -> str:
         """Render the command as a shell string.
@@ -138,7 +140,8 @@ def _substitute(value: str, root: Path, engine: Path | None = None) -> str:
     return (str(value)
             .replace("<root>", str(Path(root).resolve()))
             .replace("<engine>", str(engine if engine is not None
-                                else engine_for(root))))
+                                else engine_for(root)))
+            .replace("<stub>", str(locations.streamer_stub(root))))
 
 
 def load(root) -> dict[str, Command]:
@@ -166,6 +169,7 @@ def load(root) -> dict[str, Command]:
             cwd=_substitute(raw_cwd, root, engine),
             raw_cwd=raw_cwd,
             workflow=str(spec.get("workflow") or ""),
+            owner_only=bool(spec.get("owner_only")),
         )
     return out
 
@@ -202,14 +206,36 @@ def get(root, name: str) -> Command:
     return table[name]
 
 
+def _actor() -> str:
+    """The actor running this process: `$AGI_ACTOR`, else `$USER`, else
+    `unknown`. The same resolution `write.py:_default_actor` uses, so the
+    owner gate here and the role resolution there agree on who is who."""
+    return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
+
+
 def run(root, name: str, extra: list[str] | None = None) -> int:
     """Run one declared command. Returns its exit code.
 
     Deliberately thin: this resolves and executes, it does not capture, retry
     or interpret. A resolver that starts making decisions about a command's
     output has become the program the node exists to avoid being.
+
+    One decision it DOES make, and only when the declaration asks: an
+    `owner_only: true` command (the stream `panic`) is refused for every
+    actor other than `owner`, before any subprocess call. The refusal is
+    machine-readable (names the flag honoured) and non-zero, so the stream
+    stays live -- a non-owner asking for `panic` gets no whisper.
     """
     cmd = get(root, name)
+    if cmd.owner_only:
+        actor = _actor()
+        if actor != "owner":
+            print(
+                f"REFUSED: {name!r} is owner_only; actor {actor!r} is not "
+                f"the owner. Nothing was executed, the stream is untouched.",
+                file=sys.stderr,
+            )
+            return 3
     argv = list(cmd.argv) + list(extra or [])
     return subprocess.call(argv, cwd=cmd.cwd or None)
 
