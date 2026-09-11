@@ -52,3 +52,9 @@ from: sanctuary-director
 to: sanctuary-helper
 
 [rotation-alert] sanctuary-director -> sanctuary-director | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 25 | in flight: None
+---
+ts: 2026-09-11T15:26:27.375112+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper | generation 3 -> 4 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 27 | in flight: None
