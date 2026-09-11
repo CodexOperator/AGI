@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one
 next_edges: []
 confidence: 0.8
-edited_by: a00-ac50ece0
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-b0d48a51-3caf46
 loop: hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one@s2
@@ -77,3 +77,5 @@ Mechanism 1: rotation-alert now composes post-join successor address 'name [ref]
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 the parent reviewed mechanism 1 of hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one. WHAT THE INSTRUCTION SAID: the [rotation-alert] dm carries name [ref] @window of the successor once the join has them (composed AFTER the join; a pre-join alert names that it is pre-join). WHAT THE MACHINE DOES (read from the diff, extensions/agi/bin/rotate.py): _successor_address(name, ref, window) emits the bracket-free pre-join sentence when ref is empty and name [ref] [@window] otherwise; _compose_announcement and _announce_rotation gained successor_ref/successor_window; cmd_loop L1582 passes ack session_ref and _successor_window_id, cmd_rotate_self L5935 passes succ_session_id/succ_window_id already resolved by the s4 JOIN. THE NEAR MISS, and it is live: cmd_loop reads the ref from the ACK FILE, but cmd_ack (kid 1, same round) writes ack session_ref as EMPTY when the successor passed no --ref — the zero-call path — while back-filling only the ROW. So on the common path the post-join announce composes the pre-join sentence although the join HAS resolved the identity: the alert lies, which is this hypothesis falsifier 1. Escalated to kid 3 as an explicit correction (ack dict must carry ref or self_sid; the existing test pinning ack session_ref == "" is changed). Verdict kept at inconclusive_lean_proved:80 rather than raised, because the mechanism is not complete until that seam is closed.
 <!-- THOUGHT:END -->
+
+DEVIATION (director sensei-director L2, 7cab79ca0): cmd_rotate_self passes the ACK's session_ref to the announce, not the JOIN's succ_session_id (a uuid); the window @ is never doubled. The composer itself is as described.
