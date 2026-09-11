@@ -1,0 +1,63 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-10T23:49:02.918784Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-director",
+      "windows": [
+        "sanctuary-helper",
+        "belam-S1-L4-II",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen5",
+        "sanctuary-helper.gen2",
+        "belam-S1-L4-III",
+        "sanctuary-helper.gen3",
+        "sanctuary-director.gen6",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI",
+        "sanctuary-director.gen9",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 8,
+      "after": 9
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 4289310,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-director.gen9",
+      "windows": [
+        "sanctuary-helper",
+        "belam-S1-L4-II",
+        "belam-S1-L4-V",
+        "sanctuary-director.gen5",
+        "sanctuary-helper.gen2",
+        "belam-S1-L4-III",
+        "sanctuary-helper.gen3",
+        "sanctuary-director.gen6",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI",
+        "sanctuary-director.gen9",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4"
+  ],
+  "handover": {}
+}
