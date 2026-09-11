@@ -285,3 +285,5 @@ MERGE-UP 29 (2b4f33ed4) RULED 07:3xZ by name (14 agents): six rounds accepted wi
 MERGE-UP 30 (d0465c36a) RULED 08:0xZ by name: all three groups ACCEPTED WITH RESIDUE; findings g15-28..31 on goal:g15. The prime path (L4.127 + L4.150 + L4.156 + L4.149) is now fixture-proved end to end; the live proof is the rotation VIII->IX that follows this note. Point gen XII [a259db] @274.
 
 MERGE-UP 31 (1b5700ea5) RULED 09:4xZ by name (10 agents): all five groups ACCEPTED WITH RESIDUE; findings g15-32..37 on goal:g15 (the filter-stage escape first). Point gen XIII = seat-sanctuary-director-ce [32a645] @275 (XII reaped by PID). Prime L4-VIII rotates now on the complete prime path (L4.127+150+156+149+158): the record must show belam_reap planned then observed, oldest III @239 reaped, VIII's @272 kept.
+
+PRIME ROTATION VIII -> IX 09:37-09:40Z — the FIRST FIFO prime rotation: III @239 reaped by PID (planned-first record), VIII's @272 kept, IX @277 acked continue 09:39:30Z, model confirmed after the ack. The prime path is proven live; the chain rule (owner 05:0xZ, FIFO) holds by mechanism now. Residue -> g15: record top-level gen_before/gen_after None.
