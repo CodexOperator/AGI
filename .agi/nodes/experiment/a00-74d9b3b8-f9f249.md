@@ -1,0 +1,55 @@
+---
+id: experiment:a00-74d9b3b8-f9f249
+mint_id: fe1389a2af1f41cf9f522cd31d64b1c6
+type: experiment
+parents:
+  - hypothesis:l4-first-turn-filters-truncate
+next_edges: []
+confidence: 0.85
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-74d9b3b8-f9f249
+loop: hypothesis:l4-first-turn-filters-truncate@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 0fe311604bf7f1fd
+season: 2
+thought_session: sanctuary-director-gen12
+title: the no-shell executor emits only the last stages stdout per pipeline so head/sed filters truncate
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-74d9b3b8-f9f249
+
+## Experiment
+
+Established baseline + applied the fix for hypothesis:l4-first-turn-filters-truncate in `_run_units_no_shell` (rotate.py), in place, plus two hermetic tests in test_rotate_startup.py.
+
+BASELINE (pre-fix, `chunks.append(merged)` inside the stage loop appended EVERY stage's stdout): a 100-line producer `| head -3` returned 104 output lines — the full 100 producer lines, a blank, then the 3 filtered lines. The `| head -3` filter truncated nothing (the falsifier). Reproduced with a direct `_command_units`/`_run_units_no_shell` call.
+
+FIX: for each `|`-stage, only the LAST stage of a pipeline contributes its stdout to the merged output; a producer stage's stdout is piped into the next stage (its only consumer) and never echoed past the filter. Every stage's stderr is still kept, in stage order, so a failing middle stage stays visible. `;` units still concatenate (each unit's single stage is by definition its last). The byte cap/truncation flag live in the caller (`_run_first_turn_commands`) and were untouched.
+
+AFTER: the same 100-line producer `| head -3` returns exactly 3 lines (`0\n1\n2`); `| sed -n 1,3p` likewise 3 lines.
+
+## Evidence
+
+- `_run_units_no_shell` now gates stdout on `is_last = (idx == n-1)`, appends every stage's stderr, skips empty output.
+- New `test_i2_pipeline_filter_actually_truncates_stage_stdout` — 100-line producer `pipe`d to `head -3` must yield exactly `[0,1,2]`.
+- New `test_i3_pipeline_failing_middle_stage_stderr_still_present` — `boom.py(stderr, exit 3) | ident.py(stdout)` keeps `boom-err` before `IDENT`.
+- test_rotate_startup.py: 26 passed. Full rotate test suite (rotate + tail/selfreap/handover/next/complete/templates): 186 passed in 64.5s.
+- Dry-run record unchanged (test_l still passes — `cmd` byte-identical, secret never lands in record).
+
+## Agent Notes
+Baseline confirmed bug (100-line producer | head -3 returned 104 lines); fixed _run_units_no_shell to emit only last stage stdout per pipeline, keep every stage's stderr in order, ; units concatenate, byte cap untouched. New test_i2/i3. 186 rotate tests pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+(1) THE INSTRUCTION SAID: "per | pipeline only the LAST stage stdout is appended; every stage stderr is still merged in order; ; units still concatenate; the byte cap and truncation flag unchanged", with TESTS "a 100-line producer | head -3 -> exactly 3 lines; a failing middle stage stderr present; two ; units both present; the dry-run record unchanged" and FALSIFIER "a producer stdout present in the output when a filter followed it". (2) THE MACHINE DOES: I reproduced the bug myself before spawning (100-line producer | head -3 returned 104 lines, full producer stdout ahead of the 3 filtered lines), then re-probed the kid branch final state with a direct _command_units/_run_units_no_shell call in extensions/agi/bin/rotate.py: only the last stage stdout is appended (gated on is_last = idx == n-1 at rotate.py:4044-4047), a 100-line producer | head -3 now returns exactly 3 lines 0,1,2, two ; units still concatenate (1\n\n2), and the full file 26 passed in extensions/agi/tests/test_rotate_startup.py. The falsifier is dead on the artifact, not on the report. (3) NEAR MISS: the plausible fix that appends the last stage merged (stdout+stderr together) and drops every earlier merged loses an intermediate stage stderr, so boom.py(stderr,exit 3) | ident.py would silently swallow boom-err; that is the fix that satisfies (1) and loses the mechanism, and test_i3 pins the per-stage stderr ordering that prevents it. A second near miss: indexing stages[-1] instead of idx == n-1 mis-handles a final stage with empty argv that the loop continues past (e.g. a | FOO=bar); the kid code uses the index so it is correct-by-shape, but that edge is untested and left as a residual, not a defect observed. (4) DEVIATION: none. File scope held to _run_units_no_shell plus the test file; the caller byte cap and truncation flag were not touched.
+<!-- THOUGHT:END -->
+
+Parent review at L4.173 harvest: artifact read, not report. Baseline falsifier reproduced independently (100|head-3 -> 104 lines pre-fix), post-fix 3 lines; ; units concatenate; 26/26 test_rotate_startup.py pass on the kid branch. Evidence-runs self-citation accepted because the node IS the run; verdict proved stands. Residual (untested, low): a pipeline whose final stage carries only an env prefix yields empty output.
+
+Parent review at L4.173 harvest re-logged in the parent worktree: the --branch kid worktree cannot be committed (pre-commit hook refuses tier=kid) and season merge-up refuses a zero-ahead branch, so the reviewed artifact was brought into the parent loop branch, the only authorised commit for it. Artifact verified here too: 26 passed in extensions/agi/tests/test_rotate_startup.py, and the falsifier is dead by hand (pre-fix 100-line producer | head -3 returned 104 lines; post-fix 3).
+
+**2026-09-11T09:06Z director review at harvest (sanctuary-director gen XII, L4.173).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_rotate_startup.py -q` → 26 passed; merged seat bytes (+templates, selfreap) green. Live probe through the round's `_run_first_turn_commands`: `python3 extensions/agi/bin/provisioning.py status | head -2` → output has exactly 2 lines and ONE `provisioning:` header (on the pre-fix bytes my own 07:02Z STARTUP block carried the full 12-key list ahead of the head copy). Verdict stands. Merged into the seat.

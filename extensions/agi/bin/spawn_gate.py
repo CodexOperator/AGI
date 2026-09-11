@@ -762,6 +762,25 @@ def vision_scope(nodes_dir) -> str:
     return str(scope).strip() if isinstance(scope, str) else ""
 
 
+def read_ladder_towns(nodes_dir) -> list:
+    """The ladder's declared `towns:` list, or [] when absent/unreadable.
+
+    An empty list means the ladder does not declare a towns table, so the
+    write path has nothing to validate against and MUST skip the declared-town
+    refusal (hypothesis:l4-an-undeclared-town-is-refused-not-capped) -- a
+    project that never declared towns is untouched, exactly like the other
+    fail-open town helpers.
+    """
+    ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
+    if ladder is None or not ladder.is_file():
+        return []
+    fm = _read_frontmatter(ladder) or {}
+    towns = fm.get("towns")
+    if not isinstance(towns, list):
+        return []
+    return [t.strip() for t in towns if isinstance(t, str) and t.strip()]
+
+
 def vision_cap(nodes_dir) -> int:
     """caps.vision from the ladder, default 3. Same default `_get_caps` uses."""
     ladder = Path(nodes_dir) / ".geometry" / "ladder.md" if nodes_dir else None
@@ -1179,6 +1198,34 @@ def check_spawn(
         else:
             town, town_source = \
                 nearest_vision_town(nodes_dir, plist), "parents"
+        # hypothesis:l4-an-undeclared-town-is-refused-not-capped. A vision
+        # that names a town the ladder's `towns:` table does not declare must
+        # be REFUSED, not granted a fresh cap -- an undeclared town reads '0
+        # existing' so it would otherwise sail past caps.vision, defeating the
+        # town cap by minting into a town that does not exist. Only the OWN
+        # declared town is validated; a vision with no town falls back to the
+        # parents'/default path untouched. An absent towns table ([]) skips
+        # the refusal -- nothing to validate against, non-town projects and
+        # old ladders are untouched.
+        if own:
+            declared = read_ladder_towns(nodes_dir)
+            if declared and own not in declared:
+                res.status = REJECTED
+                res.reason = (
+                    f"rule 'declared town' from ladder: town {own!r} is "
+                    "not declared in ladder towns"
+                )
+                res.fix = (
+                    f"'{own}' is not one of the ladder's declared towns "
+                    f"({', '.join(declared)}). Set `town:` to a declared "
+                    "town, or add it to the `towns:` table in "
+                    ".geometry/ladder.md -- do not mint a vision into a town "
+                    "the graph has not declared."
+                )
+                res.messages.append(
+                    f"SPAWN-GATE REJECTED: {res.node_id} — {res.reason}."
+                )
+                return res
         cap = vision_cap(nodes_dir)
         remaining = vision_remaining_for_town(nodes_dir, town)
         if remaining <= 0:

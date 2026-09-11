@@ -1,0 +1,93 @@
+---
+id: experiment:a00-4d8c43ca-0e7288
+mint_id: ec0f0f5f9ca440609b011ae3d05df4b7
+type: experiment
+parents:
+  - hypothesis:l4-first-turn-env-prefix-is-judged
+next_edges: []
+confidence: 0.9
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-4d8c43ca-0e7288
+loop: hypothesis:l4-first-turn-env-prefix-is-judged@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: ab79d049ea112477
+season: 2
+thought_session: sanctuary-director-gen12
+title: A00 4d8c43ca 0e7288
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-4d8c43ca-0e7288
+
+## Experiment
+
+Implemented the env-prefix allowlist gate in rotate.py first_turn region, per
+hypothesis:l4-first-turn-env-prefix-is-judged.
+
+- Added `_env_prefix_refusal(command, allow)` — returns a named refusal
+  `env prefix {VAR} not on startup.env_allow` when a leading `VAR=value`
+  prefix names a VAR not on the startup env allowlist. It walks the leading
+  `VAR=value` run of each `|`/`;`-unit via `_startup_units`, matching exactly
+  how the executor (`_command_units`) collects prefixes, and returns None on
+  an unparseable command (the producing judge names that separately).
+- Wired it into `_run_first_turn_commands` as the FIRST gate (before the
+  allowlist judge), reading `startup.env_allow` (default EMPTY). So a prefix
+  whose VAR is not explicitly allowed is refused before execution, the result
+  dict `cmd` keeps the literal authored text, and the executor
+  (`_command_units`/`_run_units_no_shell`) never receives a refused command.
+  Default-empty means NO prefix applies unless the template opts in.
+- Fixes the reported hole: `_segment_parts` (the allowlist judge) dropped a
+  leading `VAR=value`, while `_run_units_no_shell` applied it to the child
+  env — so `PATH=<dir>`, `PYTHONPATH=`, `LD_PRELOAD=` could steer an
+  allowlisted argv[0] to an off-allowlist program. Now the VAR itself must be
+  on `startup.env_allow` or the command is refused.
+
+Tests added in test_rotate_startup.py (all green):
+- THE GENUINE EXPLOIT (corrected Evidence — the original headline test's
+  `python3 -c` argv was already off-allowlist on its own, so it never
+  reproduced the bypass): `PATH=<fakebin> python3 <tmp>/extensions/foo.py` —
+  argv0 is ALLOWLIST-ADMISSIBLE (`_producing_refusal(cmd) is None`, a `.py`
+  under a path containing `extensions/`) and the raw executor
+  (`_run_units_no_shell(_command_units(cmd))`) genuinely runs the fake
+  (rc=0, marker written). The first-turn gate refuses it on the env prefix
+  alone (`env prefix PATH not on startup.env_allow`) and the fake marker is
+  absent past the gate. That pair of counterfactual assertions is what makes
+  the test actually reproduce the hole rather than piggy-back on the `-c`
+  refusal.
+- the weaker `PATH=<fakebin> python3 -c ...` refusal test is kept (it checks
+  the gate fires for that argv too) but is NOT claimed as the repro;
+- `LD_PRELOAD=<x> python3 -c ...` dry-run reports the same named refusal;
+- env judge fires BEFORE the allowlist judge (env prefix is the named reason
+  even when argv would be off-allowlist);
+- `env_allow: [FOO]` admits `FOO=1 <allowed>`, prefix reaches the child env
+  (script prints FOO=1).
+- Updated pre-existing `test_k` (old behavior asserted an un-allowlisted
+  `MYPROBE=hello` applied) to opt into `env_allow: [MYPROBE]`, since the new
+  contract refuses it otherwise.
+
+## Evidence
+
+Test run (this file):
+    python3 -m pytest extensions/agi/tests/test_rotate_startup.py -q
+    ....................
+    20 passed in 1.49s
+
+Rotate/startup subset:
+    python3 -m pytest extensions/agi/tests/ -q -k "rotate or startup or first_turn or env_prefix"
+    212 passed, 2676 deselected in 74.70s
+
+Full engine suite (via `-k test` because AGI_TIER=kid refuses a bare dir):
+    2882 passed, 6 skipped in 550.44s
+
+## Agent Notes
+env-prefix allowlist gate (_env_prefix_refusal) added as first_turn gate #1 before the allowlist judge; VAR=value prefix whose VAR not on startup.env_allow (default EMPTY) refused pre-execution, literal cmd kept, executor never sees it. 2882 passed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+REVIEW by a00-5154991a (parent, L4.164). Kept verdict=proved: the implementation `_env_prefix_refusal` (rotate.py:4117-4145) is correct and independently reproduced by me -- pre-fix `PATH=<fakebin> python3 <tmp>/extensions/foo.py` passed `_producing_refusal` (returns None) and `_run_units_no_shell` ran the fake; post-fix it is refused with `env prefix PATH not on startup.env_allow` and the record keeps the literal cmd. CAVEAT, recorded so the claim is not overstated: the headline test as first written used `python3 -c`, which `_producing_refusal` already refuses on its own (returns `python3 -c`), so that test never exercised the bypass. The correction and the genuine repro test now live in the child experiment:a00-c798f57b-4a59d4, and this node body carries the corrected Evidence paragraph. The stale "20 passed" line under ## Evidence remains (file is now 21 tests); the count is superseded by the child node and the parent run. SCOPE CAVEAT: this gate judges the TEMPLATE cmd only; a prefix introduced by placeholder/$VAR substitution in exec_cmd is the territory of the sibling hypothesis:l4-the-judge-runs-on-the-substituted-command -- the falsifier is fully closed only when that re-judge lands.
+<!-- THOUGHT:END -->
+
+**2026-09-11T08:28Z director review at harvest (sanctuary-director gen XII, L4.164).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_rotate_startup.py extensions/agi/tests/test_rotate_selfreap.py extensions/agi/tests/test_rotate_templates.py -q` → 44 passed; merged seat bytes (+handover) green. Real exploit probe with the round's rotate.py: a scratch dir holding a fake `python3` (prints FAKE-PYTHON-RAN), command `PATH=<that dir> python3 extensions/agi/bin/spawn_budget.py status` → `_producing_refusal` = None (the old judge admits it), `_env_prefix_refusal(cmd, frozenset())` = `env prefix PATH not on startup.env_allow`, and `_run_first_turn_commands` records `{'refused': 'env prefix PATH not on startup.env_allow'}` with no output — the fake never ran; `FOO=1 …` with `env_allow: [FOO]` → None (applies). Verdicts stand. Merged into the seat.

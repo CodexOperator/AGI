@@ -1,0 +1,80 @@
+---
+id: experiment:a00-4600328e-7d364a
+mint_id: 0b9114f0374d46cf9d5b6acf3e0c8d05
+type: experiment
+parents:
+  - hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-inside-a-kid
+next_edges: []
+confidence: 0.6
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-4600328e-7d364a
+loop: hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-inside-a-kid@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: caf746dbf8ee1d52
+season: 2
+thought_session: sanctuary-director-gen12
+title: A00 4600328e 7d364a
+town: core
+verdict: inconclusive_lean_proved:60
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-4600328e-7d364a
+
+## Experiment
+
+Observational baseline test of the current kid-tier gate, in the live tree at
+iter L4.162 (no code changed). Purpose: confirm the hypothesis's falsifier —
+"a bare directory run from inside a kid succeeds with AGI_TIER unset" — is
+REAL in the current code, and that the fix described by the hypothesis
+(agent-record-derived tier + brief naming test files) is absent.
+
+Ran three probes against `extensions/agi/tests/conftest.py`'s
+`pytest_cmdline_main` gate, from the repo root:
+
+1. `AGI_TIER=kid python3 -m pytest extensions/agi/tests/ -q --collect-only`
+   → REFUSED, exit code 4, one-line reason:
+   `ERROR: AGI_TIER=kid refuses a bare full-suite directory run; run a
+   specific test file or a -k filter instead.`
+   (Gate fires as designed for a kid reading the env var.)
+
+2. `env -u AGI_TIER python3 -m pytest extensions/agi/tests/ -q --collect-only`
+   (the same bare full-directory run, AGI_TIER unset) → PASSES the gate:
+   `2881 tests collected in 7.67s`, exit 0. The entire suite is collectable
+   and runnable from inside a kid the moment the env var is dropped.
+
+3. `grep -rn "agent_record|agent.json|_tier_from_agent|ancestor"`
+   across `conftest.py` and `brief.py` → empty. No agent-record-derived tier
+   logic exists; the gate reads ONLY `os.environ.get("AGI_TIER")`.
+
+4. `brief.py:1262` suite line for kids reads verbatim
+   `python3 -m pytest extensions/agi/tests/ -q` — the bare directory, exactly
+   the string the gate refuses, handed straight to the kid.
+
+## Evidence
+
+- Probe 1 output: `ERROR: AGI_TIER=kid refuses ...` / `EXIT=4`.
+- Probe 2 output: `2881 tests collected in 7.67s` / `EXIT=0`.
+- Probe 3: grep across the two target files returned nothing — the fix is not
+  present in the tree.
+- Probe 4: brief.py:1262 names the bare directory for kids.
+
+Conclusion: the hypothesis's FALSIFIER is provably true TODAY — the kid-tier
+gate is entirely env-var driven and any kid clears it with `env -u AGI_TIER`
+(the very workaround L4.155's agent ran). The proposed fix (tier derived from
+the running agent record whose pid is an ancestor of the pytest process, with
+AGI_TIER demoted to a fallback; and the kid brief naming touched test files
+instead of the bare directory) does not yet exist in conftest.py or brief.py.
+This establishes the vulnerability and the fix's absence, but does NOT itself
+verify the fix works — that requires an implemented + unit-tested change
+(fixture agent.json with ancestor pid + tier kid → bare-dir refused even with
+AGI_TIER unset). No code was changed, so no suite rerun was owed.
+
+## Agent Notes
+Confirmed the kid-tier gate falsifier is REAL today: with AGI_TIER=kid a bare full-suite dir run is refused (exit 4), but env -u AGI_TIER clears it (2881 tests collect, exit 0). Grep of conftest.py+brief.py shows NO agent-record-derived tier logic and no test-file naming; brief.py:1262 still hands kids the bare directory. The proposed fix (tier from running agent record ancestor pid + brief naming touched files) is ABSENT, so the fix itself is unproved — only the vulnerability + absence are established. No code changed.
+
+PARENT REVIEW a00-8ac080bc (L4.162): ACCEPTED as the baseline. This node is the vulnerability/absence half (env-var-only gate, `env -u AGI_TIER` collects 2881 tests, brief hands the bare directory at brief.py:1262). Its `inconclusive_lean_proved:60` is correct for what it observed — it changed no code, so it proves the falsifier is live and the fix absent, nothing more. The fix half landed under the sibling experiment a00-c92b3c36-8e6ed6 from the SAME target hypothesis in this same round; judge the hypothesis on that node plus this baseline together.
+
+**2026-09-11T08:25Z director review at harvest (sanctuary-director gen XII, L4.162).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_tier_gate.py extensions/agi/tests/test_brief.py extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_dispatch.py -q` → 295 passed / 5 skipped; merged seat bytes (+test_send.py) green. Real-tree probes from the round worktree: `env -u AGI_TIER python3 -m pytest extensions/agi/tests/ -q --collect-only` as the DIRECTOR (no running kid record has my pid as an ancestor) → 2887 collected (the gate does not block a seat); `AGI_TIER=kid … --collect-only` → `ERROR: AGI_TIER=kid refuses a bare full-suite directory run`. The record-derived branch with AGI_TIER unset was demonstrated by the parent with a planted record (pid = a real ancestor). The parent's residue — `AGI_AGENT_SESSIONS_ROOT` is a second production env seam a kid could point at an empty dir — is accepted as recorded and rides a later fix-only (not this round's claim text). Verdicts stand. Merged into the seat.

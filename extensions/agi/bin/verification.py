@@ -160,10 +160,85 @@ def _passed(name: str, exitcode: int, number: dict | None) -> bool:
 
 
 # --- the count baseline (a comparison, not a print) -------------------------
+# hypothesis:l4-the-never-lower-baseline-is-stamped-only-by-a-kept-merge. The
+# baseline is a STAMP on bytes that are KEPT — the integration branch whose
+# HEAD is pushed — never a first read of droppable bytes. A merge-up 28
+# defect: a red 28c read stamped 1921, 28c was dropped, and a green re-run
+# then FAILED node-count against a baseline that never existed on the branch.
 
 
 def _state_path(groot: Path) -> Path:
     return Path(groot) / "sessions" / STATE_FILE
+
+
+def _git(groot: Path, args: list[str]) -> str | None:
+    """A git probe from `groot`'s tree. Returns stdout stripped, or None when
+    git cannot answer (not a tree, absent binary, non-zero exit)."""
+    try:
+        r = subprocess.run(["git", *args], cwd=str(groot),
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip()
+
+
+def _is_ancestor(groot: Path, sha: str) -> bool | None:
+    """Is `sha` an ancestor of HEAD? True/False definite; None when git
+    cannot answer (not a git tree, sha meaningless)."""
+    try:
+        r = subprocess.run(["git", "merge-base", "--is-ancestor", sha, "HEAD"],
+                           cwd=str(groot), capture_output=True, text=True,
+                           timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode == 0:
+        return True
+    if r.returncode == 1:
+        return False
+    return None
+
+
+def _integration_branch(groot: Path) -> str | None:
+    """The integration branch these bytes merge up to, from the ladder's
+    `town_branches` — NEVER hardcoded (goal:g10.2). Core's branch (season/s2)
+    is the declared default; a non-core town's own branch is used when the
+    graph resolves to that town. Any single declared branch else None."""
+    tb = rotate.load_ladder_field(groot, "town_branches", None)
+    if isinstance(tb, dict):
+        if tb.get("core"):
+            return str(tb["core"])
+        for b in tb.values():
+            return str(b)
+    return None
+
+
+def _stamp_context(groot: Path) -> tuple[bool, str | None, str]:
+    """(can_stamp, head_sha, reason) for THIS run's bytes.
+
+    KEPT means the read is on the declared integration branch AND HEAD is an
+    ancestor of the pushed `origin/<branch>` — a kept merge is pushed, while
+    a worktree or a seat branch (not on the declared branch) is not. The
+    check is branch + reachability only: an uncommitted working tree whose
+    HEAD is already pushed still counts as kept here. A read that cannot
+    stamp still COMPARES (it just never writes the baseline).
+    """
+    branch = _integration_branch(groot)
+    if branch is None:
+        return False, None, "no integration branch declared in the ladder"
+    cur = _git(groot, ["rev-parse", "--abbrev-ref", "HEAD"])
+    if cur is None:
+        return False, None, "not a git tree"
+    if cur != branch:
+        return False, None, f"not on integration branch {branch!r} (on {cur!r})"
+    head = _git(groot, ["rev-parse", "HEAD"])
+    if head is None:
+        return False, None, "not a git tree"
+    if _git(groot, ["merge-base", "--is-ancestor", "HEAD",
+                    f"origin/{branch}"]) is None:
+        return False, head, f"unpushed — HEAD not an ancestor of origin/{branch}"
+    return True, head, f"kept (on {branch}, HEAD pushed)"
 
 
 def _read_state(groot: Path) -> dict | None:
@@ -173,23 +248,47 @@ def _read_state(groot: Path) -> dict | None:
         return None
 
 
-def compare_count(groot: Path, current: dict | None) -> CheckResult:
+def compare_count(groot: Path, current: dict | None,
+                  *, stamp: bool = False) -> CheckResult:
     """The node-count check: FAIL when active is below the recorded baseline.
 
-    First run has no baseline — record the triple, pass, and SAY SO. Later
-    runs FAIL when current active < recorded active, else update and pass.
+    The baseline is STAMPED only on bytes that are KEPT (`_stamp_context`)
+    or when an explicit `--stamp` is passed (the merge-up step, AFTER its
+    push). Every other read — a worktree, a seat branch, an unpushed MAIN —
+    COMPARES but prints `NOT STAMPED: <reason>` and never writes the file
+    (the falsifier: a red or dropped read that stamps). A recorded baseline
+    whose `sha` is no longer an ancestor of HEAD is stale: REPORTED and
+    treated as absent, never silently leaned on.
     """
     start = time.monotonic()
     if current is None or current.get("active", -1) < 0:
         return CheckResult("node-count", "SKIP", time.monotonic() - start,
                            note="smoke did not report an active count")
+    if stamp:
+        can_stamp, head_sha, why = (
+            True, _git(groot, ["rev-parse", "HEAD"]), "explicit --stamp")
+    else:
+        can_stamp, head_sha, why = _stamp_context(groot)
     state = _read_state(groot)
+    stale = ""
+    if state and state.get("sha"):
+        anc = _is_ancestor(groot, str(state["sha"]))
+        if anc is False:
+            stale = (f"; baseline sha {state['sha']} not an ancestor of HEAD "
+                     "(stale — treated as absent)")
+            state = None
     if state is None:
-        _write_state(groot, current)
-        return CheckResult("node-count", "PASS", time.monotonic() - start,
-                           current,
-                           note="baseline recorded (no prior baseline)",
-                           message=f"active={current['active']} recorded")
+        if can_stamp and head_sha:
+            _write_state(groot, current, head_sha, why)
+            return CheckResult(
+                "node-count", "PASS", time.monotonic() - start, current,
+                note=f"baseline recorded (sha={head_sha}){stale}",
+                message=f"active={current['active']} recorded, stamped {why}")
+        note = f"no baseline; NOT STAMPED: {why}{stale}"
+        return CheckResult(
+            "node-count", "PASS", time.monotonic() - start, current,
+            note=note,
+            message=f"active compared, no baseline stamped: {why}")
     if current["active"] < state["active"]:
         return CheckResult(
             "node-count", "FAIL", time.monotonic() - start, current,
@@ -198,16 +297,33 @@ def compare_count(groot: Path, current: dict | None) -> CheckResult:
                   "(H0/H0b: 29k nodes lost to a silent drop)"),
             message=("active below recorded baseline: "
                      f"{current['active']} < {state['active']}"))
-    _write_state(groot, current)
+    if can_stamp and head_sha:
+        _write_state(groot, current, head_sha, why)
+        note = f"active steady; baseline updated (sha={head_sha}){stale}"
+    else:
+        note = f"active steady; NOT STAMPED: {why}{stale}"
     return CheckResult("node-count", "PASS", time.monotonic() - start, current,
-                       message=("active steady: "
-                                f"{current['active']} >= baseline {state['active']}"))
+                       note=note, message=("active steady: "
+                                           f"{current['active']} >= baseline "
+                                           f"{state['active']}"))
 
 
-def _write_state(groot: Path, current: dict) -> None:
+def _write_state(groot: Path, current: dict, sha: str | None,
+                 reason: str) -> None:
+    """The stamped baseline carries provenance: the counts, the head sha, the
+    moment, and WHY it was stamped — so a hand reset is never needed and a
+    stale baseline can be REPORTED rather than silently trusted."""
     path = _state_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(current), encoding="utf-8")
+    doc = {
+        "active": int(current.get("active", -1)),
+        "deprecated": int(current.get("deprecated", -1)),
+        "total": int(current.get("total", -1)),
+        "sha": sha,
+        "stamped_at": time.time(),
+        "reason": reason,
+    }
+    path.write_text(json.dumps(doc), encoding="utf-8")
 
 
 # --- the suite lock (opt-in; one runner at a time) --------------------------
@@ -551,7 +667,8 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
                        time.monotonic() - start, number, note=note)
 
 
-def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[CheckResult]:
+def run_level(groot: Path, level: str, suite: bool, verbose: bool,
+               stamp: bool = False) -> list[CheckResult]:
     """Execute a level: its checks in order, then the count comparison."""
     names = list(LEVELS[level])
     if suite:
@@ -581,8 +698,29 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[Check
     if level in ("rotation", "full"):
         results.append(check_seat_model(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
-    if smoke is not None:
-        results.append(compare_count(groot, smoke.number))
+    current = smoke.number if smoke is not None else None
+    if current is None and stamp:
+        # --stamp must never go SILENT on a level that has no smoke (quick is
+        # links/goals-check/write-guard): a quiet no-op would print no stamp
+        # line and stamp nothing, which is the falsifier. With no smoke there
+        # are no fresh counts to record, so re-stamp the already-recorded
+        # baseline onto the now-kept bytes (the merge-up step's intent), or,
+        # with no prior baseline at all, print the refusal out loud.
+        prior = _read_state(groot)
+        if prior:
+            current = {k: (prior[k] if k in prior else -1)
+                       for k in ("active", "deprecated", "total")}
+        else:
+            results.append(CheckResult(
+                "node-count", "SKIP", 0.0, None,
+                note="--stamp: no smoke count and no prior baseline to re-stamp"))
+            return results
+    # A level WITH a smoke round closes on node-count even when smoke reported
+    # no number (compare_count SKIPs); a --stamp round closes on it always —
+    # the stamp must never be a silent no-op. Only a bare quick with no stamp
+    # stays without a node-count result.
+    if smoke is not None or stamp:
+        results.append(compare_count(groot, current, stamp=stamp))
     return results
 
 
@@ -598,8 +736,10 @@ def _one_line(r: CheckResult) -> str:
 
 
 def render_summary(level: str, suite: bool, results: list[CheckResult],
-                   graph_root: str = "", engine_root: str = "") -> str:
-    lines = [f"== verification summary (level={level}, suite={'on' if suite else 'off'}) =="]
+                   graph_root: str = "", engine_root: str = "",
+                   stamp: bool = False) -> str:
+    lines = [f"== verification summary (level={level}, suite={'on' if suite else 'off'}"
+             f", stamp={'on' if stamp else 'auto'}) =="]
     # The tool must say WHAT it measured. A number without provenance is the
     # thing this project keeps paying for — a mixed tree slips through silent
     # (hypothesis:l4-verification-counts-and-engine-root).
@@ -617,10 +757,12 @@ def render_summary(level: str, suite: bool, results: list[CheckResult],
 
 
 def render_json(level: str, suite: bool, results: list[CheckResult],
-                graph_root: str = "", engine_root: str = "") -> dict:
+                graph_root: str = "", engine_root: str = "",
+                stamp: bool = False) -> dict:
     return {
         "level": level,
         "suite": suite,
+        "stamp": stamp,
         "graph_root": graph_root,
         "engine_root": engine_root,
         "result": "FAIL" if any(r.status == "FAIL" for r in results) else "PASS",
@@ -647,6 +789,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="emit only a JSON object of the same facts")
     ap.add_argument("--seat-model", action="store_true",
                     help="run only the seat-model check (config:seats drift)")
+    ap.add_argument("--stamp", action="store_true",
+                    help="force-stamp the never-lower baseline (merge-up step, AFTER its push)")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="show per-check output even when it passes")
     ap.add_argument("--root", default=".",
@@ -687,7 +831,8 @@ def main(argv: list[str] | None = None) -> int:
     # merge-up, a bare shell — contends for the SAME lock. This runner spawns
     # pytest as a child with no env= (so it inherits os.environ), and that
     # child acquires. Exactly one acquirer exists now.
-    results = run_level(groot, args.level, args.suite, args.verbose)
+    results = run_level(groot, args.level, args.suite, args.verbose,
+                        stamp=args.stamp)
     if args.suite:
         # A COMPLETED suite run records its timestamp, pass or fail. The
         # freshness check answers "has the suite run since this file
@@ -698,12 +843,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,
                                      graph_root=str(groot),
-                                     engine_root=str(engine_root)),
+                                     engine_root=str(engine_root),
+                                     stamp=args.stamp),
                          indent=2))
     else:
         print(render_summary(args.level, args.suite, results,
                              graph_root=str(groot),
-                             engine_root=str(engine_root)))
+                             engine_root=str(engine_root),
+                             stamp=args.stamp))
 
     return 1 if any(r.status == "FAIL" for r in results) else 0
 
