@@ -834,3 +834,50 @@ def test_shared_sessions_dir_resolves_main_room_from_worktree(tmp_path):
     # The per-worktree resolver honors the fork (iteration output stays local).
     assert str(locations.sessions_dir(wt_graph)) == str(wt_graph / "sessions")
     assert locations.sessions_dir(wt_graph) != locations.sessions_dir(main_graph)
+
+
+# --- the lookup is bounded to the given root's own repository (l4-the- ---
+# --- management-key-lookup-is-bounded-to-the-given-root) --------------
+# A directory with `.git` is the boundary of the repo `start` is inside. An
+# `.agi`/config found AT that level (a main checkout or a linked worktree that
+# keeps its `.agi` beside its `.git`) is `start`'s own; anything ABOVE that
+# boundary lives in a DIFFERENT (ancestral) repository and must never be
+# climbed into. This is the primitive that makes a tmp dir under an unrelated
+# nested fixture git repo resolve None instead of walking up to the outer
+# project's key.
+
+
+def test_find_project_root_never_crosses_a_git_boundary_into_an_ancestor(tmp_path):
+    """A nested git repo with no `.agi` of its own must resolve None, not the
+    OUTER project's graph -- the walk stops at the nested repo's `.git`."""
+    outer = tmp_path / "project"
+    outer.mkdir(parents=True)
+    graph = make_graph_dir(outer)
+    assert locations.find_project_root(outer) == graph  # sanity: outer findable
+    # a real nested repo (no .agi) inside the outer project:
+    nested = outer / "vendor" / "dep"
+    nested.mkdir(parents=True)
+    _git(nested, "init", "-b", "main")
+    deep = nested / "sub" / "deep"
+    deep.mkdir(parents=True)
+    assert locations.find_project_root(deep) is None, (
+        "must not cross the nested repo's `.git` boundary into the outer "
+        "project's `.agi`")
+    # its own repo root, still inside the nested repo, is also None (no .agi):
+    assert locations.find_project_root(nested) is None
+
+
+def test_find_project_root_own_repo_agi_beside_git_still_resolves(tmp_path):
+    """A linked worktree whose `.agi` fork sits beside its `.git` still
+    resolves its own fork -- the bound must not break worktree provisioning."""
+    repo = _make_project_repo(tmp_path)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add graph dir")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/slug@s2", str(wt), "master")
+    assert (wt / ".agi").is_dir()
+    wt_graph = locations.find_project_root(wt)
+    assert wt_graph is not None and wt_graph.parent == wt
+    # a deep child of the worktree still reaches the fork (bounded to the
+    # worktree's own repo, never crossing out):
+    assert locations.find_project_root(wt / "deep" / "sub") == wt_graph
