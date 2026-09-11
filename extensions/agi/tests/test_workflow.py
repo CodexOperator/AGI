@@ -787,9 +787,9 @@ def _pair(wf: Path, name: str, typ: "str | None", stages: list,
         json.dumps(mf, indent=2) + "\n", encoding="utf-8")
 
 
-def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
-    """PROVED-BY: with a workflows.md declaring the six types + per-workflow
-    rows, `workflow.py list` on the REAL registry shows all six registered
+def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
+    """PROVED-BY: with a workflows.md declaring every live type + per-workflow
+    rows (seven since merge-up-review), `workflow.py list` on the REAL registry shows every registered
     workflows resolving through the node, each with the LEVEL it came from
     (config row / per-workflow override / per-type override) — no literal.
     The node is a TEMP file the test writes; `_geometry_node_path` is
@@ -805,6 +805,9 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
             {"name": "route-probe", "harness": "pi"},
             {"name": "plan-research", "harness": "pi"},
             {"name": "investigate-refute", "harness": "pi"},
+            # merge-up-review: registered by the Prime L4-VII (owner 2026-09-11,
+            # the merge-up review runs through the unified router).
+            {"name": "merge-up-review", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -814,6 +817,7 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
              "harness": "claude-code"},
             {"name": "l4-plan-research", "type": "plan-research"},
             {"name": "prime-open-questions", "type": "investigate-refute"},
+            {"name": "merge-up-review", "type": "merge-up-review"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
@@ -822,7 +826,8 @@ def test_geometry_node_resolves_all_six_live_workflows(tmp_path, monkeypatch):
     assert rc == 0, buf.getvalue()
     txt = buf.getvalue()
     for k in ("deep-search", "drafting", "l3w-route-probe",
-              "l4-plan-research", "prime-open-questions", "review"):
+              "l4-plan-research", "prime-open-questions", "review",
+              "merge-up-review"):
         assert k in txt, (k, txt)
     assert "config row" in txt, txt          # review/drafting/deep-search rows
     assert "claude-code" in txt, txt         # drafting config row
