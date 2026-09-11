@@ -384,8 +384,29 @@ def _read_conv(path: Path) -> list[dict]:
     return _parse_blocks(path.read_text())
 
 
-def render_transcript(blocks: list[dict]) -> list[str]:
-    """Render messages as a chat transcript: `**sender** HH:MM — text`."""
+def _wrap_transcript_line(prefix: str, text: str, width: int) -> str:
+    """Wrap a transcript line's message body under its fixed `prefix` (the
+    `**sender** HH:MM — ` header), which itself is never wrapped, so a
+    reader's grep on the sender still works. Continuation lines are padded
+    by the prefix width, so no transcribed line exceeds `width`."""
+    if width <= 0:
+        return prefix + text
+    avail = max(10, width - len(prefix))
+    wrapped = _wrap_body(text, avail)
+    if "\n" not in wrapped:
+        return prefix + wrapped
+    body_lines = wrapped.split("\n")
+    pad = " " * len(prefix)
+    out = [prefix + body_lines[0]]
+    for cont in body_lines[1:]:
+        out.append(pad + cont if cont else "")
+    return "\n".join(out)
+
+
+def render_transcript(blocks: list[dict], wrap: int = 160) -> list[str]:
+    """Render messages as a chat transcript: `**sender** HH:MM — text`, the
+    message body wrapped at `wrap` columns (the header prefix is never
+    wrapped; `wrap <= 0` renders today's one-line-per-message form)."""
     lines: list[str] = []
     for b in blocks:
         sender = b.get("from", "?")
@@ -397,7 +418,8 @@ def render_transcript(blocks: list[dict]) -> list[str]:
             hhmm = dt.astimezone().strftime("%H:%M")
         except Exception:
             pass
-        lines.append(f"**{sender}** {hhmm} — {text}")
+        lines.append(_wrap_transcript_line(f"**{sender}** {hhmm} — ", text,
+                                           wrap))
     return lines
 
 
@@ -1652,14 +1674,91 @@ def _labels_for_blocks(root: Path, blocks: list[str]) -> list[str]:
     return [_verify_block(root, rows, m, t) for m, t in parsed]
 
 
-def _print_blocks_with_labels(root: Path, blocks: list[str]) -> None:
-    """Print one label line before each block, then the block in FULL."""
+def _wrap_body(text: str, width: int) -> str:
+    """`fold -s` wrap of a message body: break only at a space, never
+    mid-word; a token longer than `width` stays whole on its own line;
+    existing newlines are kept; `width <= 0` returns the text unchanged.
+    (hypothesis:l4-send-read-and-peek-wrap-message-bodies-at-160-columns-
+    display-only)
+    """
+    if width <= 0:
+        return text
+    out: list[str] = []
+    for para in text.split("\n"):
+        if not para:
+            out.append("")
+            continue
+        line = ""
+        pushed = False
+        for tok in para.split(" "):
+            if tok == "":
+                if line:
+                    line += " "
+                continue
+            if len(tok) > width:
+                if line:
+                    out.append(line.rstrip())
+                    line = ""
+                    pushed = True
+                out.append(tok)          # an over-long token stays whole
+                pushed = True
+                continue
+            if not line:
+                line = tok
+            elif len(line) + 1 + len(tok) <= width:
+                line += " " + tok
+            else:
+                out.append(line.rstrip())
+                line = tok
+                pushed = True
+        if line:
+            out.append(line.rstrip())
+            pushed = True
+        if not pushed:
+            out.append(para)             # whitespace-only line, kept as-is
+    return "\n".join(out)
+
+
+def _wrap_block(block: str, width: int) -> str:
+    """Wrap ONLY a block's message body (everything after the header's blank
+    line), leaving the header line set (`ts:`/`from:`/`to:`/`sig:`) byte-
+    identical, so a reader's `grep '^from:'` and the `awk`/read-marker idioms
+    keep working. The header-vs-body boundary is the SAME first-blank-line
+    rule as `_parse_block`, never re-derived by a second rule. Display-only:
+    `width <= 0` returns the block unchanged, byte for byte.
+    """
+    if width <= 0:
+        return block
+    b = block[len(MSG_SEP):] if block.startswith(MSG_SEP) else block
+    lines = b.splitlines()
+    i = 0
+    while i < len(lines) and lines[i] != "":
+        i += 1
+    if i >= len(lines) or not lines[i + 1:]:
+        return block                      # header-only block (no body)
+    header = lines[:i]
+    body_lines = lines[i + 1:]
+    wrapped = _wrap_body("\n".join(body_lines), width)
+    rebuilt = "\n".join(header) + "\n\n" + wrapped
+    if b.endswith("\n") and not rebuilt.endswith("\n"):
+        rebuilt += "\n"
+    if block.startswith(MSG_SEP) and not rebuilt.startswith(MSG_SEP):
+        rebuilt = MSG_SEP + rebuilt
+    return rebuilt
+
+
+def _print_blocks_with_labels(root: Path, blocks: list[str],
+                              wrap: int = 160) -> None:
+    """Print one label line before each block, then the block in FULL, its
+    message body wrapped at `wrap` columns (display-only; the inbox file and
+    read marker are untouched). `wrap <= 0` prints today's byte-for-byte
+    output."""
     labels = _labels_for_blocks(root, blocks)
     for i, block in enumerate(blocks):
         if i > 0:
             print(MSG_SEP, end="")
         print(labels[i])
-        print(block, end="")
+        print(_wrap_block(block, wrap), end="")
 
 
 def _deferred_stamp(root: Path, me: str, deferred: dict) -> str:
@@ -1676,22 +1775,29 @@ def _deferred_stamp(root: Path, me: str, deferred: dict) -> str:
         return "<unknown ts>"
 
 
-def _print_deferred_block(root: Path, me: str, deferred: dict) -> None:
+def _print_deferred_block(root: Path, me: str, deferred: dict,
+                          wrap: int = 160) -> None:
     """Print a stored deferred dm as its OWN block, headed
     `deferred dm from <sender> (<ts>)`, so a reader at a seam sees it as a
     thing of its own rather than folded into the inbox stream
     (hypothesis:l4-wake-repair-is-quiet-honest-and-readable, clause 4).
-    read-only for the record — the caller chooses whether to clear it."""
+    The heading is never wrapped; the body is wrapped at `wrap` (detail of
+    hypothesis:l4-send-read-and-peek-wrap-message-bodies-at-160-columns-
+    display-only). read-only for the record — the caller chooses whether to
+    clear it."""
     sender = deferred.get("sender") or "unknown"
     print(f"deferred dm from {sender} ({_deferred_stamp(root, me, deferred)})")
     body = deferred.get("body", "") or ""
+    body = _wrap_body(body, wrap)
     if body and not body.endswith("\n"):
         body += "\n"
     print(body, end="")
 
 
-def read(root: Path, me: str, sender: str | None) -> None:
-    """Print unread blocks and mark them read."""
+def read(root: Path, me: str, sender: str | None,
+         wrap: int = 160) -> None:
+    """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
+    and mark them read."""
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
@@ -1706,12 +1812,12 @@ def read(root: Path, me: str, sender: str | None) -> None:
     # delivered-count semantics for the PANE path are untouched
     # (`_clear_deferred` is the same no-op-guarded helper that path uses).
     if deferred is not None:
-        _print_deferred_block(root, me, deferred)
+        _print_deferred_block(root, me, deferred, wrap=wrap)
         _clear_deferred(root, me)
 
     # Print inbox blocks, each prefixed by its verification label.
     if blocks:
-        _print_blocks_with_labels(root, blocks)
+        _print_blocks_with_labels(root, blocks, wrap=wrap)
 
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
@@ -1738,8 +1844,9 @@ def read(root: Path, me: str, sender: str | None) -> None:
     _clear_pending(root, me)
 
 
-def peek(root: Path, me: str) -> None:
-    """Print unread blocks without marking them read."""
+def peek(root: Path, me: str, wrap: int = 160) -> None:
+    """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
+    without marking them read."""
     inbox = _inbox_path(root, me)
     blocks, _ = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
@@ -1751,11 +1858,11 @@ def peek(root: Path, me: str) -> None:
     # peek shows a stored deferred dm WITHOUT clearing it — a seam without
     # the delivered-count side effects of `read` (clause 4).
     if deferred is not None:
-        _print_deferred_block(root, me, deferred)
+        _print_deferred_block(root, me, deferred, wrap=wrap)
 
     # Print inbox blocks (peek never marks read).
     if blocks:
-        _print_blocks_with_labels(root, blocks)
+        _print_blocks_with_labels(root, blocks, wrap=wrap)
 
 
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
@@ -1895,46 +2002,47 @@ def escalate(croot: Path, text: str, to: str | None, concern: str,
 
 
 def read_dm(croot: Path, me: str, other: str, since: str | None,
-            sender: str | None, all_: bool = False) -> list[str]:
+            sender: str | None, all_: bool = False, wrap: int = 160) -> list[str]:
     """Render a dm transcript after `since` (or the reader's read position),
     and mark the latest shown message read. `all_` shows the whole transcript
-    without advancing the cursor."""
+    without advancing the cursor; `wrap` wraps the message bodies."""
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(me, 0), me, path, commit=True,
                   all_=all_)
-    return render_transcript(shown)
+    return render_transcript(shown, wrap=wrap)
 
 
 def peek_dm(croot: Path, me: str, other: str, since: str | None,
-            all_: bool = False) -> list[str]:
+            all_: bool = False, wrap: int = 160) -> list[str]:
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(me, 0), me, path, commit=False,
                   all_=all_)
-    return render_transcript(shown)
+    return render_transcript(shown, wrap=wrap)
 
 
 def read_room(croot: Path, room: str, participant: str, since: str | None,
-              sender: str | None, all_: bool = False) -> list[str]:
+              sender: str | None, all_: bool = False,
+              wrap: int = 160) -> list[str]:
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(participant, 0), participant, path,
                   commit=True, all_=all_)
-    return render_transcript(shown)
+    return render_transcript(shown, wrap=wrap)
 
 
 def peek_room(croot: Path, room: str, participant: str, since: str | None,
-              all_: bool = False) -> list[str]:
+              all_: bool = False, wrap: int = 160) -> list[str]:
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
     shown = _past(blocks, since, state.get(participant, 0), participant, path,
                   commit=False, all_=all_)
-    return render_transcript(shown)
+    return render_transcript(shown, wrap=wrap)
 
 
 def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
@@ -2389,6 +2497,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="show the whole transcript without advancing the cursor")
     p_read.add_argument("--me", default=None,
                         help="participant id for read positions (default: sender)")
+    p_read.add_argument("--wrap", type=int, default=160,
+                        help="wrap message bodies at N columns (0 = raw)")
 
     p_peek = sub.add_parser("peek", parents=[common], help="peek without marking read")
     p_peek.add_argument("target", nargs="?", default=None,
@@ -2400,6 +2510,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="show the whole transcript without advancing the cursor")
     p_peek.add_argument("--me", default=None,
                         help="participant id (default: sender)")
+    p_peek.add_argument("--wrap", type=int, default=160,
+                        help="wrap message bodies at N columns (0 = raw)")
 
     p_rooms = sub.add_parser("rooms", parents=[common],
                              help="list rooms and dms with unread")
@@ -2537,38 +2649,43 @@ def main(argv: list[str] | None = None) -> int:
     if args.verb == "read":
         me = args.me or _detect_sender(sender)
         all_ = getattr(args, "all_", False)
+        wrap = args.wrap
         if args.room is not None:
             for line in read_room(croot, args.room, me, args.since, sender,
-                                  all_):
+                                  all_, wrap=wrap):
                 print(line)
             return 0
         if args.dm is not None:
-            for line in read_dm(croot, me, args.dm, args.since, sender, all_):
+            for line in read_dm(croot, me, args.dm, args.since, sender, all_,
+                                wrap=wrap):
                 print(line)
             return 0
         if not args.target:
             print("ERR: read needs a target (inbox) or --room/--dm",
                   file=sys.stderr)
             return 1
-        read(root, args.target, sender)
+        read(root, args.target, sender, wrap=wrap)
         return 0
 
     if args.verb == "peek":
         me = args.me or _detect_sender(sender)
         all_ = getattr(args, "all_", False)
+        wrap = args.wrap
         if args.room is not None:
-            for line in peek_room(croot, args.room, me, args.since, all_):
+            for line in peek_room(croot, args.room, me, args.since, all_,
+                                  wrap=wrap):
                 print(line)
             return 0
         if args.dm is not None:
-            for line in peek_dm(croot, me, args.dm, args.since, all_):
+            for line in peek_dm(croot, me, args.dm, args.since, all_,
+                                wrap=wrap):
                 print(line)
             return 0
         if not args.target:
             print("ERR: peek needs a target (inbox) or --room/--dm",
                   file=sys.stderr)
             return 1
-        peek(root, args.target)
+        peek(root, args.target, wrap=wrap)
         return 0
 
     if args.verb == "rooms":
