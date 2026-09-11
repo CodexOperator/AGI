@@ -182,14 +182,37 @@ def test_prepare_card_check_reads_the_last_work_commit_only(
 
 
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
-    """No blocker named: every check reports ok and the checklist exits 0 —
-    safe to rotate."""
-    _no_git(monkeypatch)   # non-repo: git checks degrade to ok
+    """A genuinely-CLEAN fixture exits 0 — every git captive MEASURED ok, the
+    unpushed captive asserted at its real pushed value (0 ahead of upstream),
+    never degraded to `unmeasured`. The vacuous form used `_no_git`, so check
+    1 read `unpushed commits (unmeasured)` and the pass said nothing about the
+    seat's real push state at all: the fixture passed whether the captive was
+    pushed or unpushed. FALSIFIER (hypothesis:l4-meter-pin-refuses-a-target-
+    that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears piece 4):
+    mutate the captive IN the test — set the SAME fixture's `@{u}..HEAD` count
+    to 1 — and the checklist must now BLOCK by name, exit 3, proving the
+    fixture asserts the real outcome instead of reading it."""
+    clean = {("status", "--porcelain"): [],
+             ("rev-parse", "--abbrev-ref", "HEAD"): ["feature/clean"],
+             ("rev-list", "--count", "@{u}..HEAD"): ["0"],   # really pushed
+             ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(clean))
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
-    assert rc == 0
-    assert "[ok]" in out
+    assert rc == 0, out
+    assert "[ok] unpushed commits" in out          # measured pushed, not unmeasured
+    assert "[ok] dirty tree" in out
+    assert "[ok] behind origin/season/s2 (0)" in out
     assert "[BLOCK]" not in out
+    # FALSIFIER: flip the captive to unpushed, by mutating the injected count
+    # (never by reading the fixture) — the same clean fixture must now BLOCK.
+    unpushed = dict(clean)
+    unpushed[("rev-list", "--count", "@{u}..HEAD")] = ["1"]
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(unpushed))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] unpushed commits" in out
 
 
 def test_rotate_self_refuses_on_dirty_with_same_line(
@@ -266,6 +289,44 @@ def test_prepare_blocks_when_row_generation_older_than_pin(
     out = capsys.readouterr().out
     assert rc == 3
     assert "[BLOCK] meter pin stale (seat_pin-stale) cur=2" in out
+
+
+def test_prepare_check5_clear_line_names_pin_file_and_clears_when_run(
+        prep_root, monkeypatch, capsys, tmp_path):
+    """The stale-pin clear line is the ONE command that actually clears, both
+    halves right (hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin-
+    and-prepare-prints-the-clear-line-that-clears): --pin names the seat's REAL
+    <sessions>/<seat>.meter (never a --seat --pin <transcript> pair that both
+    misleads and trips the cross-generation read refusal), and --session-log
+    names the pin's own recorded transcript when known. Running that EXACT
+    printed line re-points the pin to the current generation, and the NEXT
+    prepare passes check 5."""
+    transcript = tmp_path / "the-predecessor.jsonl"
+    transcript.write_text("FAKE JSONL\n", encoding="utf-8")
+    pin = prep_root / "sessions" / "adv-alive.meter"
+    pin.write_text(f"2\t{transcript}\n", encoding="utf-8")   # stale: cur=3
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] meter pin stale" in out
+    clear = (f"rotate.py meter --pin {prep_root / 'sessions' / 'adv-alive.meter'} "
+             f"--session-log {transcript}")
+    assert clear in out, out
+    assert "--seat" not in clear, "the clear line never uses --seat"
+    assert "<transcript>" not in clear, "a known transcript is named, not a placeholder"
+    # RUN the printed line as printed (same CLI entry, pin + transcript)
+    m = SimpleNamespace(session_log=str(transcript),
+                        pin=str(prep_root / "sessions" / "adv-alive.meter"),
+                        seat=None, check=False)
+    rc2 = rotate.cmd_meter(m, prep_root)
+    err = capsys.readouterr()
+    assert rc2 == 0, err
+    # the NEXT prepare passes check 5 (stale pin cleared)
+    rc3 = rotate.cmd_prepare(_args(), prep_root)
+    out3 = capsys.readouterr().out
+    assert rc3 == 0, out3
+    assert "[ok] meter pin stale" in out3
 
 
 def test_prepare_blocks_when_ack_is_from_older_generation(
