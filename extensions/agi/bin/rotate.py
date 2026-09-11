@@ -1262,6 +1262,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -1460,6 +1461,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -4765,6 +4767,15 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     an empty placeholder may be legitimate, and they must not be forced to
     fall over on it."""
     def _sub(m):
+        # A `{name}` that is part of tmux's OWN format syntax is LITERAL and
+        # must pass through byte-for-byte: it is immediately preceded by `#`
+        # (`#{window_id}`, `#{window_name}`, `#{...}`, or the newer
+        # `#{...}` forms). Treating it as a startup placeholder both refused
+        # the whole join command and would corrupt the literal tmux needs
+        # (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...).
+        # A bare `{name}` NOT preceded by `#` still refuses below.
+        if m.start() > 0 and command[m.start() - 1] == "#":
+            return m.group(0)
         key = m.group(1)
         if key not in STARTUP_PLACEHOLDERS:
             raise ValueError(f"unknown startup placeholder {{{key}}}")
@@ -6676,6 +6687,11 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
+    p_spawn.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to a plain spawn (owed item v)")
     p_spawn.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help="tmux session to create the window in "
                              f"(default: {DEFAULT_TMUX_SESSION})")
@@ -6705,6 +6721,11 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
+    p_loop.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to today (owed item v)")
     p_loop.add_argument("--model", default=None, help="model override")
     p_loop.add_argument("--effort", default=None, help="effort override")
     p_loop.add_argument("--settings", default=None,
