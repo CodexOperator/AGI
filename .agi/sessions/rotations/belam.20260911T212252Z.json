@@ -1,0 +1,16 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-11T21:23:51.051204Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "4",
+    "4.5",
+    "handoff",
+    "spawn"
+  ],
+  "template_source": "worktree (geometry current)",
+  "gen_before": 11,
+  "gen_after": 12
+}
