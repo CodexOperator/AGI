@@ -56,3 +56,4 @@ the graph is the Stream Master's (`vision:unbroken-signal`,
 Town: `streaming-suite`. Goals it proposes: interactivity (viewer input that
 becomes graph input through one guarded door), monetisation (boosts, subs, paid
 suggestions), and the human view of the same frame stream.
+<!-- BODY:END -->
