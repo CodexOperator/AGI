@@ -4117,6 +4117,35 @@ def _producing_refusal(command: str) -> str | None:
     return None
 
 
+def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
+    """Return a one-line refusal (naming the VAR and the allowlist) if ANY
+    leading `VAR=value` env prefix in `command` names a VAR not on the startup
+    env allowlist, else None. A leading `VAR=value` is APPLIED to that stage's
+    child env by the no-shell executor (_command_units/_run_units_no_shell) but
+    was DROPPED by the allowlist judge (_segment_parts skips it), so
+    `PATH=<dir> <allowlisted argv0>` could silently reach an off-allowlist
+    program (hypothesis:l4-first-turn-env-prefix-is-judged). A prefix whose VAR
+    is not explicitly on `startup.env_allow` (default EMPTY) is REFUSED here,
+    before the executor ever sees the command. An unparseable command yields
+    None — the producing judge (_producing_refusal) names that separately.
+    Only the leading `VAR=value` run per stage is checked, matching exactly how
+    the executor collects prefixes."""
+    try:
+        units = _startup_units(command)
+    except _StartupParseError:
+        return None
+    for stage_list in units:
+        for stage in stage_list:
+            for t in stage:
+                if "=" in t and not t.startswith("-"):
+                    var = t.partition("=")[0]
+                    if var not in allow:
+                        return f"env prefix {var} not on startup.env_allow"
+                else:
+                    break
+    return None
+
+
 def _resolve_startup_placeholders(command: str, values: dict) -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
     key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
@@ -4135,10 +4164,13 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
     spawn, returning one result dict per entry.
 
     Order of gates per entry, all fail-closed and named in the result:
-      1. allowlist — an off-allowlist executable/verb is REFUSED (label named)
+      1. env allowlist — a leading `VAR=value` prefix whose VAR is not on
+         `startup.env_allow` (default EMPTY) is REFUSED (var named) and never
+         applied (hypothesis:l4-first-turn-env-prefix-is-judged);
+      2. allowlist — an off-allowlist executable/verb is REFUSED (label named)
          and never run;
-      2. placeholders — an unknown `{key}` is REFUSED (key named);
-      3. run — one command at a time, per-command timeout
+      3. placeholders — an unknown `{key}` is REFUSED (key named);
+      4. run — one command at a time, per-command timeout
          (`first_turn_timeout_s`, default 60); output truncated to the byte
          cap (`byte_cap`, default 4000) and marked.
     `dry_run` resolves and records every entry but runs NOTHING. Never
@@ -4148,11 +4180,17 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
     entries = startup.get("first_turn") or []
     timeout_s = startup.get("first_turn_timeout_s") or DEFAULT_FIRST_TURN_TIMEOUT_S
     byte_cap = startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP
+    env_allow = frozenset(startup.get("env_allow") or [])
     results = []
     for e in entries:
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        env_refusal = _env_prefix_refusal(cmd, env_allow)
+        if env_refusal:
+            results.append({"label": label, "cmd": cmd,
+                            "refused": env_refusal})
+            continue
         refusal = _producing_refusal(cmd)
         if refusal:
             results.append({"label": label, "cmd": cmd,
