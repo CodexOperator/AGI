@@ -10,7 +10,10 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 - **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]`, tmux `agi-rc:@248`** — on round `113` (seat-model verify-half: verification.py/commands.py; MUST NOT touch rotate.py/dispatch.py). Reports to me; its seat merges up separately.
 - **Tree:** seat = season/s2 `980f06315` (towns ruling: caps.vision 3 per town; `hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council` minted for my batch — g17). Floor **1865 / 194 / 2059**; last MAIN suite 2647 / 3 (merge-up 22).
 - ✅ **L4.114 HARVESTED + merged** (`e5c7a8d95`; kids 70/65; 488/1 with neighbours). ✅ **L4.115 HARVESTED + merged** (`1a5ba6407`; kids 88/85; 444/1). Both = seat `81146e776`, 787/1 together, node count 1862/194/2056.
-- 🟢 **LIVE: L4.116** (persistent reaper round, dispatch.py lane, STAMPED `dispatched_by: sanctuary-director`) — agent `a00-0fa5cde6`, kid `a00-effd25bd`, dispatched 00:59Z from seat `21e9a6e53` (background task `b5sjuoip8`; its wrapper will give up at 1200 s — read the manifest, not the exit). Budget 2/25. Free ids: **L4.117+**. Spend at 00:02Z: $91.94 used (~$15 left of ~$107); three rounds since (~$0.06 each).
+- 🟢 **LIVE: L4.116** (persistent reaper round, dispatch.py lane, STAMPED `dispatched_by: sanctuary-director`) — agent `a00-0fa5cde6`, kid `a00-effd25bd`, dispatched 00:59Z from seat `21e9a6e53` (background task `b5sjuoip8`; its wrapper will give up at 1200 s — read the manifest, not the exit). 
+- 🟢 **LIVE: L4.117** (towns round `hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council`, lane season/spawn_gate/renderers/brief/write-mint; dispatch.py + commands.py EXCLUDED in its addendum; config bodies shipped as fragments) — agent `a00-295f1de5`, dispatched 01:2xZ from seat `bda86a145` (task `bnptwqle2`).
+- 🟢 **LIVE: L4.118** (FOURTH 0a fix-only: live self-reap derived from `$TMUX_PANE`, dry-run enumerates s2–s12; rotate.py only, 1 kid) — agent `a00-68853df0` (task `b0vy66ggt`).
+- Budget 3/25. Free ids: **L4.119+**. All three stamped `dispatched_by: sanctuary-director` → each terminal event should land ONE dm (`send.py read sanctuary-director`) — the L4.113 positive proof; record on `experiment:a00-30068a81-e81dff` at first arrival. Spend at 00:02Z: $91.94 used (~$15 left of ~$107); three rounds since (~$0.06 each).
 - ✅ **MERGE-UP 22 DONE `59ca6a23d`** (01:12Z; suite 10/10 first read: **2647 passed / 3 skipped**, floor **1865 / 194 / 2059**, links 0, goals byte-identical; the prime's `980f06315` rides on it). Seat = season/s2 `980f06315`. Prime's next: L4.115 cut-over commit from `briefs/harness-config.fragment.json`.
 - **Parent model = `deepseek/deepseek-v4.1-flash`** — re-prove with `--dry-run` before every dispatch.
 
@@ -33,7 +36,7 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 
 ## §3 🔴 WHERE I STOPPED / NEXT COMMAND
 
-L4.114 and L4.115 are RUNNING. Harvest each on its background-task notification (L4.114 first if both land). Next:
+L4.116 / L4.117 / L4.118 are RUNNING (three lanes, disjoint by addendum). Harvest each when `spawn_budget.py status` drops its parent (the wrapper exit is NOT the signal). Next:
 1. Watch it: `spawn_budget.py status`; `jq -c '.agents[] | {id,pid,status,branch}' .agi/sessions/iter-L4.114/manifest.json`; kid tree under `.agi/worktrees/a00-2a2921ea/`; stall rule in "Watching a round". (`--dry-run` prints the model UNQUOTED now: grep `-o 'model [^ ]*'`.)
 2. On done: the L4.113 proof — `python3 extensions/agi/bin/send.py read sanctuary-director` must show ONE dm from the round; record yes/no on `experiment:a00-30068a81-e81dff`.
 3. Watch per "Watching a round"; at harvest run `pytest tests/test_rotate*.py tests/test_write*.py tests/test_node_writer.py tests/test_stall_detect.py` TOGETHER; grep new tests for bare `module.attr =` and for `REPO / ".agi"`.
