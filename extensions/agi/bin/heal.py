@@ -1429,7 +1429,31 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
 def _live_seat_row(gdir: Path, seat: str, _rotate) -> dict | None:
     """Read the seat row LIVE-FIRST from `<gdir>/nodes/.geometry/seats.md`
     (a worktree seat's row reaches MAIN only at its merge-up, so a worktree
-    seat must be read from its own copy first). None when absent."""
+    seat must be read from its own copy first). The IDENTITY cells
+    (`generation`/`window`/`pid`/`session_ref`/`session_id`) are taken from
+    the MAIN checkout's copy instead — a worktree rotation writes ONLY MAIN
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main),
+    so the worktree copy carries the PRE-rotation @id and reading it would
+    misjudge the seat dead. Other cells stay live-first. None when absent."""
+    live = _read_row(_rotate, gdir, seat)
+    main = _read_row(_rotate, _main_graph_root(gdir), seat)
+    if live is None and main is None:
+        return None
+    row: dict = dict(live) if live is not None else dict(main)
+    if main is not None:
+        for cell in IDENTITY_CELLS:
+            if cell in main:
+                row[cell] = main[cell]
+    return row
+
+
+#: The identity cells a rotation writes into config:seats. Read from MAIN.
+IDENTITY_CELLS = ("generation", "window", "pid", "session_ref",
+                  "session_id")
+
+
+def _read_row(_rotate, gdir: Path, seat: str) -> dict | None:
+    """The seat's row read from one geometry dir, or None."""
     try:
         rows = _rotate._load_seats(gdir) or []
     except Exception:  # noqa: BLE001
@@ -1438,6 +1462,21 @@ def _live_seat_row(gdir: Path, seat: str, _rotate) -> dict | None:
         if r.get("name") == seat:
             return r
     return None
+
+
+def _main_graph_root(gdir: Path) -> Path:
+    """The MAIN checkout's graph root, identity for a non-worktree caller —
+    the resolution `locations.git_common_root` performs (hypothesis:l4-a-
+    seats-identity-cell-has-one-writer-and-it-writes-main). Only a real
+    linked-worktree call rebases to MAIN; a caller in the main checkout or
+    outside git keeps `gdir` unchanged."""
+    graph = Path(gdir)
+    main = locations.git_common_root(graph)
+    if main is not None and main != graph:
+        graph = locations.find_project_root(main) or main
+    if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
+        return graph / locations.GRAPH_DIR_NAME
+    return graph
 
 
 def _read_seat_log_tail(root: Path, row: dict, _rotate,
