@@ -33,6 +33,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
+# hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the per-town
+# vision counting is ONE shared helper in spawn_gate.py that both the season
+# status/rollover and the spawn gate call (no second copy of the rule).
+from spawn_gate import (  # noqa: E402
+    count_visions_per_town,
+    vision_cap as spawn_vision_cap,
+    vision_remaining_for_town,
+    vision_scope as spawn_vision_scope,
+    vision_town_of,
+)
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -320,6 +331,23 @@ def cmd_status(root: Path, args) -> int:
     print(f"  subgoal: 71 (8 active) / outcome: 23 → 0.32")
     print(f"  long-term: 21 (4 active) / bigger_outcome: 19 → ~1.0")
     print(f"  vision: 17 / overview: 0")
+
+    # Per-town vision counts (hypothesis:l4-towns-each-app-is-a-vision-with-
+    # its-own-council): when the ladder declares caps_vision_scope: town, the
+    # season shows each town's vision count against its cap. Towns come from
+    # the graph (a vision's `town:` cell, default core) — no literal name.
+    nodes_dir = Path(root) / "nodes"
+    scope = spawn_vision_scope(nodes_dir)
+    if scope == "town":
+        per_town = count_visions_per_town(nodes_dir)
+        cap = spawn_vision_cap(nodes_dir)
+        print()
+        print(f"Visions by town (scope: {scope}, cap {cap}/town):")
+        for town in sorted(per_town):
+            n = per_town[town]
+            rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
+            print(f"  {town}: {n}  (room for {rem} more)")
+        print()
 
     return 0
 
@@ -769,6 +797,16 @@ def _load_vision_sources(arg: str) -> list[dict]:
         text = fp.read_text(encoding="utf-8")
         lines = text.splitlines()
         title = fp.stem
+        town = "core"
+        # A `town:` cell in the source's frontmatter (if any) decides which
+        # town the vision belongs to; default core. hypothesis:l4-towns-...
+        if text.startswith("---"):
+            parts = text.split("---", 2)
+            if len(parts) >= 3:
+                import re
+                m = re.search(r"^town:\s*(\S+)", parts[1], re.M)
+                if m:
+                    town = m.group(1)
         i = 0
         while i < len(lines) and not lines[i].strip():
             i += 1
@@ -779,7 +817,7 @@ def _load_vision_sources(arg: str) -> list[dict]:
                 i += 1
         body = "\n".join(lines[i:]).strip("\n")
         sources.append({"file": str(fp), "slug": fp.stem,
-                        "title": title, "body": body})
+                        "title": title, "body": body, "town": town})
     return sources
 
 
@@ -794,6 +832,7 @@ def _mint_vision(root: Path, source: dict, season_overviews: list[str],
         "season_parents": list(season_overviews),
         "proposes_goals": [],
         "moral_adherence": moral_adherence,
+        "town": source.get("town") or "core",
         "status": "open",
         "tags": ["vision", "rollover"],
         "edited_by": "owner",
@@ -885,6 +924,7 @@ def cmd_rollover(root: Path, args) -> int:
                 continue
             print(f"  MINT {nid}")
             print(f"    title: {s['title']}")
+            print(f"    town: {s.get('town') or 'core'}")
             print(f"    parents: {', '.join(MORALS)}")
             print(f"    season_parents: {', '.join(season_overviews) or '(none)'}")
             print("    actor: owner")
@@ -907,6 +947,18 @@ def cmd_rollover(root: Path, args) -> int:
             print(f"    each parents: {', '.join(MORALS)}")
             print(f"    each season_parents: {', '.join(season_overviews) or '(none)'}")
             print("    each actor: owner")
+    # Per-town gate note (hypothesis:l4-towns-...): when the ladder declares
+    # caps_vision_scope: town, each town is capped independently at
+    # caps.vision; the mint refuses a town already at its cap.
+    nodes_dir = Path(root) / "nodes"
+    if spawn_vision_scope(nodes_dir) == "town":
+        per_town = count_visions_per_town(nodes_dir)
+        cap = spawn_vision_cap(nodes_dir)
+        print(f"  per-town cap: {cap}/town (scope town)")
+        for town in sorted(per_town):
+            rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
+            flag = "OK" if rem > 0 else "AT CAP — mint refused"
+            print(f"    {town}: {per_town[town]} ({flag})")
     print()
 
     # ---- Ladder fields (through write.py).
@@ -935,20 +987,36 @@ def cmd_rollover(root: Path, args) -> int:
         if visions_from:
             from node_writer import WRITTEN, SKIPPED, REJECTED
             sources = _load_vision_sources(visions_from)
+            nodes_dir = Path(root) / "nodes"
+            town_mode = spawn_vision_scope(nodes_dir) == "town"
+            per_town = count_visions_per_town(nodes_dir) if town_mode else {}
             minted = 0
+            refused = 0
             for s in sources:
                 nid = f"vision:{s['slug']}"
                 if nid in existing_new:
                     continue
+                town = s.get("town") or "core"
+                # Per-town cap gate (hypothesis:l4-towns-...): a town already
+                # at caps.vision refuses another vision of the same town.
+                if town_mode and vision_remaining_for_town(
+                        nodes_dir, town, counts=per_town) <= 0:
+                    print(f"REFUSE {nid} — town '{town}' is at its cap of "
+                          f"{spawn_vision_cap(nodes_dir)} visions (scope town)")
+                    refused += 1
+                    continue
                 res = _mint_vision(root, s, season_overviews, new_season)
                 if res.status in (WRITTEN,):
-                    print(f"minted {nid} (parents: {len(MORALS)} morals, "
-                          f"season_parents: {len(season_overviews)} overviews, actor owner)")
+                    print(f"minted {nid} (town {town}; parents: {len(MORALS)} "
+                          f"morals, season_parents: {len(season_overviews)} "
+                          f"overviews, actor owner)")
                     minted += 1
+                    if town_mode:
+                        per_town[town] = per_town.get(town, 0) + 1
                 else:
                     print(f"ERR: {nid} not minted ({res.status}: {res.reason})",
                           file=sys.stderr)
-            if not minted:
+            if not minted and not refused:
                 print("no new visions minted (all already exist or files missing)")
     finally:
         if old_env_season is None:
@@ -1042,6 +1110,48 @@ def _recorded_field(record_path: Path | None, key: str) -> str | None:
     return val if isinstance(val, str) and val else None
 
 
+def _merge_up_town_gate(root: Path, args) -> str | None:
+    """Enforce the merge-up town rule, or None to allow the merge.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — a round
+    merges up through the seat of the town that origated it. Both halves are
+    read, never assumed: the round's own `town:` cell (stamped at mint) and
+    the target seat's `town` cell from config:seats. They differ -> a refusal
+    string naming both towns; anything unknowable -> None (fail open, no town
+    claim to enforce).
+    """
+    round_id = getattr(args, "round", "") or ""
+    seat_name = getattr(args, "seat", "") or ""
+    if not round_id and not seat_name:
+        return None  # nothing to gate on; pure legacy merge-up
+    round_town = None
+    if round_id and ":" in round_id:
+        ntype, _, name = round_id.partition(":")
+        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
+        if node_file.is_file():
+            nf = frontmatter.load_node_file(node_file)
+            rt = nf.frontmatter.get("town")
+            round_town = (str(rt).strip() if isinstance(rt, str)
+                          and rt.strip() else "core")
+    seat_town = None
+    if seat_name:
+        from spawn_gate import read_seat_registry
+        rows = read_seat_registry(Path(root) / "nodes") or []
+        for r in rows:
+            if str(r.get("name") or "") == seat_name:
+                st = r.get("town")
+                seat_town = (str(st).strip() if isinstance(st, str)
+                             and st.strip() else "core")
+                break
+    if round_town is None or seat_town is None:
+        return None
+    if round_town == seat_town:
+        return None
+    return (f"REFUSED: round {round_id} is in town `{round_town}` but "
+            f"seat `{seat_name}` belongs to town `{seat_town}` -- a round "
+            "merges up through the seat of the town that originated it")
+
+
 def cmd_merge_up(root: Path, args) -> int:
     """`season.py merge-up <branch>` -- merge a branch --no-ff into its base."""
     git_root = locations.git_common_root(root)
@@ -1051,6 +1161,19 @@ def cmd_merge_up(root: Path, args) -> int:
 
     branch = args.branch
     record_path = Path(args.record).resolve() if args.record else None
+
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # merge-up town gate. A round merges up through the seat of the town that
+    # ORIGINATED it: the round node's `town:` (stamped at mint, node_writer)
+    # must match the seat the merge lands through (`--seat`, read from
+    # config:seats' `town` cell). They differ -> REFUSE, printing both, before
+    # any git write. Fail-open: no round id / no seat / no town on either side
+    # means "no town claim to enforce" and the merge proceeds exactly as it
+    # always did, so a graph that never declared towns is completely untouched.
+    town_gate = _merge_up_town_gate(root, args)
+    if town_gate is not None:
+        print(town_gate, file=sys.stderr)
+        return 1
 
     base = (args.target
             or _recorded_field(record_path, "base_branch")
@@ -1243,6 +1366,12 @@ def main(argv: list[str] | None = None) -> int:
     p_merge.add_argument("--record", default="",
                          help="JSON lease/agent record supplying base_branch, "
                               "suite, worktree")
+    p_merge.add_argument("--round", default="",
+                         help="round node id (e.g. experiment:x) whose town "
+                              "cell the merge-up town gate checks")
+    p_merge.add_argument("--seat", default="",
+                         help="seat name whose config:seats town cell the "
+                              "merge-up town gate checks")
 
     args = ap.parse_args(argv)
 

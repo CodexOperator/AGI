@@ -625,6 +625,45 @@ def render(root: Path) -> str:
             f"| {r.get('harness', '')} | {r.get('model', '')} "
             f"| {r.get('effort', '')} | {r.get('settings', '')} |")
     lines.append("")
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # reporting chain, derived from the ladder's `towns:` list and the
+    # council-role rows in config:seats (none exist yet): Core Council ->
+    # Prime, every other town's Council -> Core Council. A declared town with
+    # no council seat renders as UNSEATED, never as an absent edge; with no
+    # Core Council seat at all, the Prime IS the Core Council for the other
+    # towns (rendered as such, never a missing edge).
+    raw_towns = ladder.get("towns") or []
+    declared = [str(t).strip() for t in raw_towns
+                if isinstance(t, str) and t.strip()] or ["core"]
+    councils = [s for s in seats
+                if str(s.get("role") or "").strip() == "council"]
+    council_town = {}
+    for c in councils:
+        t = str(c.get("town") or "").strip() or "core"
+        council_town.setdefault(t, str(c.get("name") or "?"))
+    lines.append("TOWN COUNCILS — reporting chain "
+                 "(hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council)")
+    lines.append("| town | council | reports_to |")
+    lines.append("|---|---|---|")
+    for t in declared:
+        reports = "Prime" if t == "core" else "Core Council"
+        if t == "core" and t not in council_town:
+            # No Core Council seat — the Prime plays it. Rendered as such,
+            # never as a missing edge.
+            lines.append(f"| {t} | Prime (as Core Council) | Prime |")
+        elif t in council_town:
+            lines.append(f"| {t} | {council_town[t]} | {reports} |")
+        else:
+            # A declared town with no council seat renders as unseated rather
+            # than inventing a row.
+            lines.append(f"| {t} | ? (unseated) | {reports} |")
+    lines.append("")
+    lines.append("Chain: Core Council -> Prime; every other town's Council -> "
+                 "Core Council. A council is a seat row with `role: council` and "
+                 "a `town:` cell; absent one the town's council is unseated, and "
+                 "with no core council seat the Prime plays it (never a missing "
+                 "edge).")
+    lines.append("")
     lines.append("PRECEDENCE (dispatch.py resolve_seat_spec): seat row overrides "
                  "'(tier,role)' class overrides config.harnesses. The word 'role' "
                  "is overloaded across two axes — a rotate.py spawn --tier profile "

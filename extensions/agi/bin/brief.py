@@ -1059,9 +1059,15 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         )
     title, body = vision
 
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — ONE
+    # town line, derived from the embodied vision's `town:` cell (default
+    # core) via the shared helper; never a branch on a town NAME (goal:g8.2).
+    root = _resolve_graph_root(project_root)
+    import spawn_gate
+    town = spawn_gate.nearest_vision_town(str(root / "nodes"), [target])
+
     # Real, runnable paths. dispatch.py is passed in from the spawn site;
     # send.py / rotate.py / season.py live beside it in the same bin/.
-    root = _resolve_graph_root(project_root)
     root_arg = str(root)
     dp = Path(dispatch_py) if dispatch_py else Path(
         "extensions/agi/bin/dispatch.py")
@@ -1121,6 +1127,11 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"proposal, every report through its text and gloss, verbatim below.",
         f"THE VISION YOU EMBODY\n"
         f"Body of {target} ({title}), verbatim:\n\n{body}",
+        f"TOWN OF {target}\n"
+        f"Your vision belongs to town {town}. A town is a vision with its "
+        f"own council, its own vision cap and its own goals "
+        f"(hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council); "
+        f"every non-core town's council reports to the Core Council.",
         f"YOUR DUTIES\n"
         f"1. Sit the quorum: stay a standing member of the room "
         f"{_ADVISOR_QUORUM_ROOM} — free horizontal comms with the other "
