@@ -5386,47 +5386,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
               f"under the {'numeral-chain' if is_chain_seat else 'plain'} name "
               f"{spawn_name!r}")
+        _belam_gate = (role == "prime_director"
+                       or getattr(args, "belam_prefix", None))
         if is_chain_seat:
             print(f"(dry-run) numeral-chain seat: successor name "
                   f"{spawn_name!r}, generation = numeral {gen}, own window "
                   "@id = tmux display-message -p '#{window_id}' "
                   "(knowable only live), ack path "
                   f"{_ack_path(root, seat)}")
-            # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-
-            #     chain seat runs. NAMED live-derived, read-only: the
-            #     OLDEST predecessor window when the chain would exceed
-            #     FIVE, its @id, its pane pid and the ps -e chain it would
-            #     TERM deepest-first. Touches nothing. Same call path the
-            #     live r5 uses (`_belam_oldest` over the live windows + the
-            #     spawn_name successor; `_pane_pid(@id)` -> `_descendant_chain`).
-            pfx = getattr(args, "belam_prefix", None) or "belam"
-            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
-            if oldest is None:
-                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
-                      f"live {pfx!r} windows -> no reap (the own-window "
-                      f"reap is GATED OFF on a numeral-chain seat)")
-            else:
-                oldest_id = _successor_window_id(
-                    oldest, tmux_session, args.window_path)
-                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
-                      f"predecessor {oldest!r} (@id {oldest_id})")
-                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
-                if not pane_pid:
-                    print(f"        SKIPPED: no pane pid for window "
-                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
-                          f"cap could not derive its chain (a live tmux "
-                          f"run reads `tmux display-message -p -t @id "
-                          f"#{{pane_pid}}` -> `ps -e` climb)")
-                else:
-                    chain = _descendant_chain(pane_pid)
-                    if not chain:
-                        print(f"        SKIPPED: no ps -e chain under pane "
-                              f"pid {pane_pid} for {oldest!r}; nothing to "
-                              f"reap")
-                    else:
-                        print(f"        pane pid {pane_pid} -> ps -e chain "
-                              f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                              f"window killed by @id")
         else:
             print("(dry-run) ends on the PLAIN seat name; "
                   f"generation: {gen} (never a Roman numeral)")
@@ -5457,8 +5424,53 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                           f"{pane_pid} for {seat!r}; nothing to reap")
                 else:
                     print(f"        pane pid {pane_pid} -> ps -e chain "
-                          f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                          f"window killed by @id")
+                          f"{list(reversed(chain))!r}, TERM'd "
+                          f"DEEPEST-FIRST, then the window killed by @id")
+        # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-chain
+        #     seat runs, and the cap reap for ANY `--belam-prefix` seat.
+        #     GATED on the LIVE seam (role == "prime_director" OR
+        #     --belam-prefix, the same condition s6.6 at the LIVE cap uses),
+        #     NEVER on `is_chain_seat` alone: a plain seat GIVEN
+        #     --belam-prefix reaps live but its dry-run used to print no r5
+        #     plan at all. NAMED live-derived, read-only: the OLDEST
+        #     predecessor window when the chain would exceed FIVE, its @id,
+        #     its pane pid and the ps -e chain it would TERM deepest-first.
+        #     Touches nothing. Same call path the live r5 uses
+        #     (`_belam_oldest` over the live windows + the spawn_name
+        #     successor; `_pane_pid(@id)` -> `_descendant_chain`).
+        if _belam_gate:
+            pfx = getattr(args, "belam_prefix", None) or "belam"
+            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
+            if oldest is None:
+                _gated_own = ("the own-window reap is GATED OFF on a "
+                              "numeral-chain seat" if is_chain_seat else
+                              "the own-window reap (r4/s12) above still "
+                              "runs")
+                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
+                      f"live {pfx!r} windows -> no Belam cap reap "
+                      f"({_gated_own})")
+            else:
+                oldest_id = _successor_window_id(
+                    oldest, tmux_session, args.window_path)
+                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
+                      f"predecessor {oldest!r} (@id {oldest_id})")
+                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
+                if not pane_pid:
+                    print(f"        SKIPPED: no pane pid for window "
+                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
+                          f"cap could not derive its chain (a live tmux "
+                          f"run reads `tmux display-message -p -t @id "
+                          f"#{{pane_pid}}` -> `ps -e` climb)")
+                else:
+                    chain = _descendant_chain(pane_pid)
+                    if not chain:
+                        print(f"        SKIPPED: no ps -e chain under pane "
+                              f"pid {pane_pid} for {oldest!r}; nothing to "
+                              f"reap")
+                    else:
+                        print(f"        pane pid {pane_pid} -> ps -e chain "
+                              f"{list(reversed(chain))!r}, TERM'd "
+                              f"DEEPEST-FIRST, then the window killed by @id")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
