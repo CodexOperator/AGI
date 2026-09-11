@@ -48,3 +48,4 @@ shortly" is care for the viewer, not an apology.
 Town: `streaming-suite`. Proposes no goal yet; goals it will propose: the fold of
 the stream commands into the engine's own commands, and a broadcast watcher that
 alarms the Council on every terminal event.
+<!-- BODY:END -->
