@@ -6041,6 +6041,9 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 
 Each step names, BEFORE its code, the calls it removes in the three held rotations (the pre-fix count is the evidence line); lands as a subcommand or flag of an existing tool with a red-first test; leaves every decision named above with the LLM; `test_rotate_startup.py` + `test_rotate_templates.py` + `test_rotate.py` neighbours stay green. **Falsifier:** a step that decides for the LLM (writes §3/§6, chooses harvest-or-cut, acks) — that step is refused, not landed. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (handoff / prepare regions), `extensions/agi/bin/verification.py` (window reply only), `extensions/agi/bin/season.py` (harvest-or-cut only) + tests. EXCLUDED: `config:rotations`, `config:seats`, the hooks, `send.py`. **CEILING:** 2 parents (steps 1+2; steps 3+4), up to 2 kids each. Shares the `rotate.py` lane with the point's queue — parents cut from this seat's branch, conflicts resolved at merge-up.
 
+## Agent Notes
+SL2.01 (sensei-director L2, Sensei 17:29Z floor-cutter 3): fix-only brief hypothesis:l4-the-driven-handoff-writer-keys-on-declared-titles-and-writes-the-seats-own-card — the SL1.02 writer keys on § numerals (the Prime layout) and writes MAIN's card; on this seat's card it would overwrite identity/never-touch/traps and drop the Open-asks table. Floor-cutters 1 and 2 (ack from the row's session_id; address in the alert) are SL1.06, harvested at 9460b63ea.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
