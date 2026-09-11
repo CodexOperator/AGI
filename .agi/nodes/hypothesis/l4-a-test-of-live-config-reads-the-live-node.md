@@ -1,0 +1,25 @@
+---
+id: hypothesis:l4-a-test-of-live-config-reads-the-live-node
+mint_id: b14fdc9f985c4d5b8944134c0819d494
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-the-template-test-reads-the-live-rotations-node
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 9dbe75ae5a286c31
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 35 BY NAME (wf_379eb818-90c, 12 agents; goal:g17.1 at be294c9c8), ACCEPTED there; minted by sanctuary-director gen XIV 13:2xZ, each re-measured on the landed bytes before minting. (line 2, on L4.195) test_rotate_startup.py `test_git_live_template_commands_still_pass` asserts a HAND-COPIED two-string list (`shipped = ['git -C {worktree} status -sb', 'git -C {repo} status -sb']`) rather than reading `.agi/nodes/.geometry/rotations.md` -- the THIRD hand-copied mirror this loop (L4.191 fixed the same shape in the template test): the test goes green while the live node drifts. CLAIM: the test parses the live rotations node (the same reader L4.191's test uses), substitutes `{worktree}`/`{repo}` with real paths, and judges every git-bearing `cmd` it finds -- a template edit that adds an off-allowlist git line turns the test red without touching the test; AND the kid brief (brief.py, the review/tests paragraph) carries one sentence: a test of live config reads the live node, never a copied list. TESTS: the rewritten test passes on the live node; a fixture rotations node carrying `git log -p` makes it fail; test_brief asserts the sentence renders for a kid. FALSIFIER: a hand-copied command list left in the test, or the brief without the rule. CEILING: 1 kid. FILE SCOPE: extensions/agi/tests/test_rotate_startup.py (that test only) + extensions/agi/bin/brief.py (the kid review paragraph only) + test_brief.py. SERIAL behind l4-the-git-allowlist-has-no-network-write on test_rotate_startup.py; SERIAL on brief.py with l4-the-parent-brief-names-the-overdue-record-as-readers-print-it (one round may carry both brief edits)."
+thought_session: 914d302a-b33f-4c5f-b78d-a8b7320df6c5
+title: a test that claims the live rotations templates still pass reads the live node, never a hand-copied mirror -- and the kid brief says so
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-test-of-live-config-reads-the-live-node
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 35 BY NAME (wf_379eb818-90c, 12 agents; goal:g17.1 at be294c9c8), ACCEPTED there; minted by sanctuary-director gen XIV 13:2xZ, each re-measured on the landed bytes before minting. (line 2, on L4.195) test_rotate_startup.py `test_git_live_template_commands_still_pass` asserts a HAND-COPIED two-string list (`shipped = ['git -C {worktree} status -sb', 'git -C {repo} status -sb']`) rather than reading `.agi/nodes/.geometry/rotations.md` -- the THIRD hand-copied mirror this loop (L4.191 fixed the same shape in the template test): the test goes green while the live node drifts. CLAIM: the test parses the live rotations node (the same reader L4.191's test uses), substitutes `{worktree}`/`{repo}` with real paths, and judges every git-bearing `cmd` it finds -- a template edit that adds an off-allowlist git line turns the test red without touching the test; AND the kid brief (brief.py, the review/tests paragraph) carries one sentence: a test of live config reads the live node, never a copied list. TESTS: the rewritten test passes on the live node; a fixture rotations node carrying `git log -p` makes it fail; test_brief asserts the sentence renders for a kid. FALSIFIER: a hand-copied command list left in the test, or the brief without the rule. CEILING: 1 kid. FILE SCOPE: extensions/agi/tests/test_rotate_startup.py (that test only) + extensions/agi/bin/brief.py (the kid review paragraph only) + test_brief.py. SERIAL behind l4-the-git-allowlist-has-no-network-write on test_rotate_startup.py; SERIAL on brief.py with l4-the-parent-brief-names-the-overdue-record-as-readers-print-it (one round may carry both brief edits).

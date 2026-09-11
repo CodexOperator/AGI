@@ -1,0 +1,25 @@
+---
+id: hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine
+mint_id: 3461d49a857242fea1d0eda400884ce9
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-sb-status-reads-the-configured-stub
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: e6f9ebee2dbfc2ab
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 35 BY NAME (wf_379eb818-90c, 12 agents; goal:g17.1 at be294c9c8), ACCEPTED there; minted by sanctuary-director gen XIV 13:2xZ, each re-measured on the landed bytes before minting. (line 6, on L4.197; @stub_only) install-cli.sh's generated wrapper resolves a RELATIVE `streamer_stub` value against $HOME (`*) stub=\"$HOME/$_fb\"`) while the engine (`locations.streamer_stub`, locations.py:502) resolves it against the GRAPH ROOT; its config walk-up (`while [ \"$_dir\" != / ]`) has no repo boundary while the engine stops at `.git`; and test_commands.py's guard reads the first line containing `hold.sh` -- the COMMENT line -- rather than the executing line (:771-772), and :833 does not discriminate the two stubs. CLAIM: the wrapper resolves a relative value against the directory holding the `.agi/config.json` it read (the graph root's parent, as the engine does), stops the walk-up at the first `.git` it meets (resolve nothing above it), keeps `~/` and absolute forms, and falls back to the install-time path only when no config resolved; `_check_sb_status_wrapper` finds the EXECUTING `\"$stub/bin/hold.sh\"` line (not a comment) and the two-stub test asserts the configured stub's marker and NOT the install-time one's. TESTS: re-install into a scratch $HOME, run the generated wrapper from a project whose config names a relative stub -> the project-relative stub answers; from inside a nested repo below a configured project -> the fallback, not the ancestor; the guard fails on a wrapper whose only hold.sh mention is a comment. FALSIFIER: a relative stub resolved against $HOME, or a walk crossing a .git boundary, or the guard satisfied by a comment. CEILING: 1 kid. FILE SCOPE: /home/ubuntu/work/streamer-stub/bin/install-cli.sh (the wrapper template; the stub tree is the owner's LIVE relay -- edit AND commit there in the SAME step under the round's authorship, never leave the edit uncommitted: L4.197's edit was swept into the relay session's c4a928a) + extensions/agi/tests/test_commands.py. @stub_only."
+thought_session: 914d302a-b33f-4c5f-b78d-a8b7320df6c5
+title: the generated sb-status wrapper resolves a relative streamer_stub against the graph root and stops its walk at the repo boundary, exactly like locations.streamer_stub -- and the test proves it on the generated wrapper
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 35 BY NAME (wf_379eb818-90c, 12 agents; goal:g17.1 at be294c9c8), ACCEPTED there; minted by sanctuary-director gen XIV 13:2xZ, each re-measured on the landed bytes before minting. (line 6, on L4.197; @stub_only) install-cli.sh's generated wrapper resolves a RELATIVE `streamer_stub` value against $HOME (`*) stub="$HOME/$_fb"`) while the engine (`locations.streamer_stub`, locations.py:502) resolves it against the GRAPH ROOT; its config walk-up (`while [ "$_dir" != / ]`) has no repo boundary while the engine stops at `.git`; and test_commands.py's guard reads the first line containing `hold.sh` -- the COMMENT line -- rather than the executing line (:771-772), and :833 does not discriminate the two stubs. CLAIM: the wrapper resolves a relative value against the directory holding the `.agi/config.json` it read (the graph root's parent, as the engine does), stops the walk-up at the first `.git` it meets (resolve nothing above it), keeps `~/` and absolute forms, and falls back to the install-time path only when no config resolved; `_check_sb_status_wrapper` finds the EXECUTING `"$stub/bin/hold.sh"` line (not a comment) and the two-stub test asserts the configured stub's marker and NOT the install-time one's. TESTS: re-install into a scratch $HOME, run the generated wrapper from a project whose config names a relative stub -> the project-relative stub answers; from inside a nested repo below a configured project -> the fallback, not the ancestor; the guard fails on a wrapper whose only hold.sh mention is a comment. FALSIFIER: a relative stub resolved against $HOME, or a walk crossing a .git boundary, or the guard satisfied by a comment. CEILING: 1 kid. FILE SCOPE: /home/ubuntu/work/streamer-stub/bin/install-cli.sh (the wrapper template; the stub tree is the owner's LIVE relay -- edit AND commit there in the SAME step under the round's authorship, never leave the edit uncommitted: L4.197's edit was swept into the relay session's c4a928a) + extensions/agi/tests/test_commands.py. @stub_only.

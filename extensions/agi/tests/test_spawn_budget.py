@@ -814,3 +814,60 @@ def test_pid_sockets_counts_any_tcp_state_and_unix(tmp_path, monkeypatch):
     # LISTEN(0A) tcp6 inode 111 + unix inode 222 = 2; CLOSE_WAIT 999 and the
     # path-less unix 555 are not held by the pid; anon_inode never counts.
     assert sb._pid_sockets(123) == 2
+
+
+def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch):
+    """A pid whose fd dir vanishes after the first entry is yielded must
+    return 0, NOT raise. iterdir() is lazy, so a pid that exits mid-read raises
+    FileNotFoundError/ProcessLookupError out of the `for fd in fds:` loop; the
+    whole walk (listing + readlinks) must sit in one guarded try, else the
+    exception escapes the helper up into status()."""
+    import pathlib
+    import shutil
+    import spawn_budget as sb
+
+    proc = tmp_path / "proc"
+    (proc / "net").mkdir(parents=True)
+    fd = proc / "123" / "fd"
+    fd.mkdir(parents=True)
+    (fd / "3").symlink_to("socket:[111]")
+
+    _real = pathlib.Path
+
+    def make_bomb(p):
+        """A Path subclass whose iterdir() yields one entry, then deletes the
+        real fd dir so the generator's SECOND next() raises FileNotFoundError
+        (an OSError) — exactly the process-exits-mid-read condition."""
+        real = _real(str(p))
+        _flav = _real(str(p))._flavour
+
+        class _BombPath(_real):
+            _flavour = _flav
+
+            def iterdir(self):
+                it = super().iterdir()
+                fired = False
+                def _gen():
+                    nonlocal fired
+                    for ent in it:
+                        yield ent
+                        if not fired:
+                            fired = True
+                            shutil.rmtree(real, ignore_errors=True)
+                return _gen()
+
+        return _BombPath(str(p))
+
+    def _redirect(p):
+        s = str(p)
+        if s == f"/proc/{123}/fd":
+            return make_bomb(s)
+        if s.startswith("/proc/net/"):
+            return _real(s.replace("/proc/", str(proc) + "/"))
+        return _real(s)
+
+    monkeypatch.setattr(sb, "Path", lambda p: _redirect(_real(p)))
+    # the walk collects inode 111 then the listing raises; the guarded try must
+    # collapse to the documented 0, and no OSError may escape.
+    assert sb._pid_sockets(123) == 0
+

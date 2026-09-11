@@ -367,7 +367,7 @@ def _bash_find_root(start: Path) -> str | None:
 
 
 @pytest.mark.parametrize("shape", ["legacy", "graph_dir", "nested", "half_migrated",
-                                   "nested_git", "descend", "ambiguous", "none"])
+                                   "nested_git", "nested_git_descend", "descend", "ambiguous", "none"])
 def test_bash_and_python_agree(tmp_path, shape):
     """lib/find-root.sh and bin/locations.py implement ONE rule, twice.
 
@@ -405,6 +405,23 @@ def test_bash_and_python_agree(tmp_path, shape):
         start = nested / "deep" / "child"
         start.mkdir(parents=True)
         expected = None
+    elif shape == "nested_git_descend":
+        # hypothesis:l4-find-root-sh-stops-at-the-git-boundary-all-the-way.
+        # The near-miss pinner: a `.git` boundary break must STILL reach phase
+        # 2 descend. An outer repo with .agi, a nested unrelated `git init`
+        # WITHOUT .agi, and a legacy `<start>/<start>-tree/` WITH a config
+        # BELOW the boundary. Both halves break at the nested .git, skip the
+        # "/" probe, and descend into that tree. A `return 1` at the break —
+        # the tempting "fix" — would make bash refuse while python still
+        # descends (locations.py runs `_descend(d)` after the break), so bash
+        # must agree with python that the tree resolves.
+        outer = tmp_path / "outer-repo"
+        make_graph_dir(outer)
+        nested = outer / "nested"
+        nested.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(nested)], check=True)
+        start = nested
+        expected = make_legacy(nested / "nested-tree")
     elif shape == "descend":
         start = tmp_path / "fantasia"
         start.mkdir()
@@ -426,6 +443,68 @@ def test_bash_and_python_agree(tmp_path, shape):
     assert (str(py) if py else None) == (str(expected) if expected else None)
     assert sh == (str(expected) if expected else None), (
         f"bash and python disagree on shape={shape}: bash={sh!r} python={py!r}"
+    )
+
+
+def _bash_find_root_stub_graph_at_root(start: Path) -> tuple[int, str]:
+    """Run the REAL find-project_root with the lookup helpers stubbed so ONLY
+    "/" looks like a graph dir.
+
+    Sources find-root.sh in a subprocess (so the real loop, break and flag
+    logic all run), then redefines the two helpers: `agi_graph_dir_in`
+    returns a fake graph ONLY for "/", and `agi_tree_config_path` always
+    misses. Thus the walk resolves nothing on its way up and the ONLY way to
+    get a hit is the explicit "/" probe firing. This makes the hidden probe
+    observable without real root access — exactly the situation the
+    hypothesis calls out as hard to fixture for real.
+    """
+    script = f'''
+source "{LIB}/find-root.sh" || {{ echo "source failed" >&2; exit 9; }}
+agi_graph_dir_in() {{
+  if [[ "$1" == "/" ]]; then echo "/__fake_root_graph"; return 0; fi
+  return 1
+}}
+agi_tree_config_path() {{ return 1; }}
+find_project_root "{start}"
+'''
+    res = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+    return res.returncode, res.stdout.strip()
+
+
+def test_root_probe_runs_on_boundary_free_walk_not_after_git_boundary(tmp_path):
+    """The fix, at the source: the explicit "/" probe fires on a boundary-free
+    walk but is SKIPPED after a `.git` boundary break.
+
+    This is the hypothesis's falsifier stated directly — find-root.sh must not
+    resolve a root above a .git boundary via the trailing "/" probe — made
+    observable by stubbing so only "/" looks like a project:
+      * boundary-free walk from a deep dir  → the "/" probe fires, rc==0
+      * walk under a nested `git init`      → the "/" probe is skipped, rc==1
+    No root access required; nothing is ever touched on the real filesystem
+    root.
+    """
+    # (1) boundary-free walk: the "/" probe is the walk's own final level and
+    # must fire, exactly as the python while-True loop probes "/" as its last
+    # iteration on a boundary-free walk.
+    deep = tmp_path / "a" / "b" / "c"
+    deep.mkdir(parents=True)
+    rc, out = _bash_find_root_stub_graph_at_root(deep)
+    assert rc == 0, (
+        f"boundary-free walk should probe '/' and resolve, got rc={rc} out={out!r}"
+    )
+    assert out == "/__fake_root_graph"
+
+    # (2) under a nested .git boundary the "/" probe must be skipped entirely
+    # — bash must agree with python, which goes straight to phase 2 descend
+    # and never probes "/" after a boundary break.
+    nested = tmp_path / "innerrepo"
+    nested.mkdir()
+    subprocess.run(["git", "init", "-q", str(nested)], check=True)
+    deep_under = nested / "deep"
+    deep_under.mkdir()
+    rc, out = _bash_find_root_stub_graph_at_root(deep_under)
+    assert rc == 1, (
+        f"under a .git boundary the '/' probe must be skipped, got rc={rc} out={out!r}"
     )
 
 
