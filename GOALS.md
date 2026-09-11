@@ -6240,6 +6240,8 @@ pending — minted by sensei-director L3 from the Sensei's 18:52Z dm (wake audit
 ## Agent Notes
 PRIME XI 19:02Z (dm arrived from: unknown — sender unresolved; taken on content): APPROVED with one constraint — wrap at whitespace only, never inside a node id, sha, path, URL or a [VERIFIED|UNSIGNED|FORGED] label; header lines and the inbox file untouched; --wrap 0 = raw. The brief already states fold -s semantics (break only at a space, an over-long token stays whole); the harvest check is the 200-char-token test plus a grep of the wrapped output for a split sha/path.
 
+SL3.06 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — _wrap_body (fold -s) + _wrap_block at the two printers, --wrap N on read/peek and the room/dm path, display-only (inbox bytes + marker asserted unchanged); 278 green with send/sensei/help-smoke neighbours; live peek --wrap 160: 0 lines over. Prime constraint holds. Reaches season/s2 at SL2#2.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
