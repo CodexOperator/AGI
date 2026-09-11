@@ -113,6 +113,36 @@ def _no_real_tmux(monkeypatch):
     monkeypatch.setattr(subprocess, "run", _guarded_run)
 
 
+@pytest.fixture(autouse=True)
+def _no_real_provisioning_call(monkeypatch):
+    """hypothesis:l4-mint-refuses-under-pytest-unless-mocked — project-wide
+    provisioning guard: no test may ever reach the real key-management HTTP
+    seam (`provisioning._call`), which would mint/revoke a REAL key against
+    OpenRouter.
+
+    The `mint`/`revoke` guard in provisioning.py is the first line (it
+    refuses under `PYTEST_CURRENT_TEST` when the seams are real). This
+    autouse fixture is the second, independent line: it replaces
+    `provisioning._call` with a function that raises, so ANY test that
+    reaches the HTTP seam without mocking it in its own body fails loudly
+    instead of minting.
+
+    Every test that exercises mint/revoke mocks `_call` (and
+    `_read_provisioning_key`) in its own BODY, and monkeypatch is
+    function-scoped (same instance as this fixture), so the test's fake wins
+    for the duration of the test and this raised sentinel never fires. Only a
+    test that forgot to mock — or a live-API test — reaches it, and both are
+    exactly what must fail loudly under this round's policy.
+    """
+    import provisioning
+
+    def _refuse(method, url, key, payload=None, timeout=30):
+        raise RuntimeError(
+            "real provisioning HTTP call from a test")
+
+    monkeypatch.setattr(provisioning, "_call", _refuse)
+
+
 # --- the suite lock belongs to the resource, not a caller -------------------
 # `hypothesis:l4-the-suite-lock-belongs-to-pytest-not-its-caller`. Every path
 # that starts the pytest suite goes THROUGH this conftest (commands.py run
@@ -124,6 +154,14 @@ if str(_BIN) not in sys.path:
     sys.path.insert(0, str(_BIN))
 import locations  # noqa: E402
 import verification  # noqa: E402
+
+#: Whether the provisioning mutation guard (hypothesis:l4-mint-refuses-under-
+#: pytest-unless-mocked) is engaged for this suite. When True, the `@live`
+#: real-API provisioning tests are skipped by policy: a test can never mint or
+#: revoke a real key, so no test may reach provisioning._call un-mocked. Read
+#: by test_provisioning.py's `live` marker to skip them cleanly.
+PROVISIONING_TESTS_ARE_GUARDED = True
+
 
 #: Reentrancy marker. The suite runs pytest INSIDE pytest (test_tier_gate.py's
 #: nested runs) and verification.py --suite spawns pytest as a child with no
