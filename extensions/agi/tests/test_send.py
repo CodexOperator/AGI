@@ -3908,6 +3908,72 @@ def test_keygen_all_live_keys_live_rows_only_and_skips_keyed(project, capsys):
     assert obj["priv_hex"] not in stdout
 
 
+def test_keygen_all_live_refuses_non_prime_director_by_name(project, capsys,
+                                                             monkeypatch):
+    """mur-39 order (c), PRIME GATE: --all-live is a PRIME-ONLY backstop. A
+    seat whose OWN row role is not prime_director is refused by name BEFORE any
+    key file is minted -- the refusal names the seat and the role, and zero
+    .key files land (today only the row write was refused and the keys leaked)."""
+    _write_seats_node(project, [
+        {"name": "sanctuary-director", "role": "director", "pid": 1234},
+        {"name": "s1", "role": "director", "pid": 111},
+    ])
+    out = send_mod.keygen(project, all_live=True, actor="sanctuary-director")
+    assert out is None, "--all-live must refuse a non-prime_director seat"
+    # zero keys minted anywhere: the gate runs before the first _mint_seat_key
+    assert not _seat_key_file(project, "sanctuary-director").exists()
+    assert not _seat_key_file(project, "s1").exists()
+    err = capsys.readouterr().err
+    assert "REFUSED sanctuary-director" in err, err
+    assert "director" in err and "prime_director" in err, \
+        "the refusal names the seat AND the role"
+
+
+def test_keygen_all_live_grants_a_row_prime_director(project, capsys,
+                                                      monkeypatch):
+    """mur-39 order (c): a caller whose OWN row holds role prime_director is
+    allowed to run --all-live (the gate refuses by name, never blocks the
+    prime)."""
+    _write_seats_node(project, [
+        {"name": "belam", "role": "prime_director"},   # not live -> not keyed
+        {"name": "s1", "role": "director", "pid": 111},
+    ])
+    out = send_mod.keygen(project, all_live=True, actor="belam")
+    assert out is not None and len(out) == 1
+    assert _seat_key_file(project, "s1").is_file()
+    stdout = capsys.readouterr().out
+    assert "keyed s1" in stdout
+
+
+def test_cr_body_with_crlf_and_lone_cr_verifies_and_keeps_bytes(
+        project, capsys, monkeypatch):
+    """mur-39 order (d): a signed body carrying a CRLF, a LONE CR and a
+    TRAILING CR must (i) read VERIFIED (never FORGED) and (ii) store the exact
+    bytes the sender passed -- the parser must not normalize CR, or the
+    canonical bytes the sig covers change and the message reads FORGED."""
+    send_mod.keygen(project, "seat-cr")
+    body = "line1\r\nline2\rline3\r"
+    pub_hex = _seat_pubkey_hex(project, "seat-cr")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-cr", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-cr")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    # (ii) the stored body bytes equal the sent bytes, CR included. Read with
+    # newline="" so the check measures what is ON DISK, not a universal-newline
+    # read that collapses CR before we can compare.
+    raw = inbox.open("r", newline="").read()
+    _, parsed = send_mod._parse_block(raw.split(send_mod.MSG_SEP)[1])
+    assert parsed == body, (
+        "parser must return the exact sent bytes (CRLF/lone CR/trailing CR); "
+        f"got {parsed!r}")
+    # (i) the read label is VERIFIED, never FORGED
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out
+
+
 # ── hypothesis:l4-every-live-row-is-keyed... clauses (2)+(3)+(4): envelope, ──
 # key_history RETIRED, and whois verifies with INFORMATIONAL labels.
 # (2) every signed message carries `env: v1` beside its `sig:` line and the

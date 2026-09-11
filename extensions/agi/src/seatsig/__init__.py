@@ -35,6 +35,7 @@ nothing, so nobody believes a message is encrypted when it is not.
 from __future__ import annotations
 
 import hashlib
+import sys
 
 from . import ed25519 as _ed25519
 
@@ -123,3 +124,21 @@ def fingerprint(pub):
 
 # Register the default scheme at import time so ``get("ed25519")`` just works.
 register(_ED25519)
+
+# ONE registry, whichever spelling loads last adopts the first's objects
+# (mur-39 order (e)). The package really is imported two ways across the
+# codebase -- send.py does ``import seatsig`` (src/ on sys.path), while tests
+# historically did ``from src.seatsig import`` -- and without this a ``Scheme``
+# registered through one spelling is invisible to the other, because ``SCHEMES``
+# is a module-global on TWO module objects. Fold late-loading spellings into
+# the already-loaded twin so there is exactly one table: a scheme registered
+# through either spelling is ``get()``-able through both.
+_TWIN_NAME = "src.seatsig" if __name__ == "seatsig" else "seatsig"
+_TWIN = sys.modules.get(_TWIN_NAME)
+if _TWIN is not None and _TWIN is not sys.modules.get(__name__):
+    # Adopt the twin's objects as our own; register() now writes into the
+    # SHARED dict (module-global rebind is visible to the functions below).
+    SCHEMES = _TWIN.SCHEMES
+    _ED25519 = _TWIN._ED25519
+    DEFAULT_SCHEME = _TWIN.DEFAULT_SCHEME
+    register(_ED25519)  # idempotent: (re)binds ed25519 into the shared table
