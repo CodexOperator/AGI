@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-send-py-same-sender-stranded-line-and-the-swallowed-wake
 next_edges: []
 confidence: 0.7
-edited_by: a00-c204c274
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-d0ff5d7b-fd202d
 loop: hypothesis:l4-send-py-same-sender-stranded-line-and-the-swallowed-wake@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 466e6b7b1a2cba64
 season: 2
+thought_session: sanctuary-director-gen12
 title: "Clause (c): nudge line cap measured and binding"
 town: core
 verdict: inconclusive_lean_proved:70
@@ -109,3 +110,5 @@ DEVIATION / why demoted rather than proved: the geometry derivation (the clause'
 <!-- THOUGHT:END -->
 
 PARENT REVIEW (a00-c204c274, L4.159): DEMOTED proved -> inconclusive_lean_proved:70. The geometry derivation lands (send.py:404-425: real-capture separator 104 cols, minus `❯ ` 2, minus 7 margin under the 100 paste threshold = 95; committed fixture used as the honest bound since no fresh pane could be captured). The `trailing=` accounting lands for short names (119 passed here). But the node's extra claim "no delivery path may emit a line longer than `_NUDGE_LINE_MAX`" is FALSIFIED: `keep` has no floor, so a long sender+seat pushes `keep` negative and `flat[:keep]` returns a LONG slice -- measured 494 chars (cap 95) for sender=seat='sanctuary-director'. Counterexample and fix sketch recorded in the THOUGHT block; the parent hypothesis's 2-kid ceiling is spent, so the follow-up is push_further, not another kid.
+
+**2026-09-11T08:23Z director review at harvest (sanctuary-director gen XII, L4.159).** Re-ran on the round bytes and on the merged seat bytes: `python3 -m pytest extensions/agi/tests/test_send.py -q` → 119 passed both. Real-tree measurement of the cap for every LIVE seat pair with the round's `send._nudge_line(seat, sender, 'word '*80, trailing=_NUDGE_INBOX_TAIL.format(seat=…))`: a00-kid→sanctuary-director, sanctuary-helper↔sanctuary-director, belam↔sanctuary-director all = 95 chars — the cap binds on every pair that exists in the tree. The parent's counterexample (a same-name pair, `keep` negative → 494 chars) is real on the bytes but not reachable by any live pair; it rides a fix-only on the hypothesis (floor `keep` at 0 and shorten/drop the tails before the body when prefix+tails alone exceed the cap). Verdicts stand as the parent set them. Merged into the seat.
