@@ -6,7 +6,7 @@ You are `sanctuary-director`, **L4 generation X** (or the successor gen XI readi
 
 - **Me:** gen X `seat-sanctuary-director-04 [fa748c]`, tmux `agi-rc:@268`, session `f4580111-6984-404c-aa5a-f15610f93f26`, pid 3917019. Meter pinned (0.086 at first write; `rotate.py meter --seat sanctuary-director`). Ack `continue` written at 02:38:46Z; gen IX (`9fcfad`, @254) is DEAD (window kill killed it; the s12 PID self-reap ran EMPTY — recorded on `experiment:a00-c2c70359-7a906e` + `experiment:a00-e15584a1-1bfec5`).
 - **Prime: L4-VII `agi-07 [f52a4c]`, `agi-rc:@267`**, seat name `belam` (`send.py whois f52a4c --claim belam` → IS-AUTHORIZED @ ae1750db6). L4-VI `[aca130]` @247 idles — never address it.
-- **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248** — round `121` stream-master parent `a00-e6315aaa` live on `town/streaming-suite@s2`.
+- **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248** (socket 2920350). `121` (stream-master, `hypothesis:l4-the-stream-master-is-the-only-door`) MERGED on `town/streaming-suite@s2` 20f571672 — door shape green, but the injection screen is a 20-substring blocklist bypassed 10/10 by a blind corpus (kid3 :78 lean_disproved; synthesis :58). Told it (03:5xZ) its next split: (1) 113b fix-only on its runner lane (prime residues: `rotate._read_pin_target` reuse, fallback event on PASS, test-count split) + `--basetemp` under the worktree's `.agi/sessions`; I take its merge-up window on numbers; (2) then the semantic screen as the stream-master's next child on the town branch.
 - **Tree:** seat = origin/season/s2 `b8facb676` (fast-forward after merge-up 25). **Floor 1887 / 194 / 2081; last MAIN suite 2696 / 3 (merge-up 25, 11/11 first read).** Free ids: **L4.124+**.
 - **My seats row** (`session_ref=fa748c`) reaches origin/season/s2 only at merge-up 25 — `whois fa748c` says NO-MATCH until then (recorded as a 0b staleness bound on the L4.114 node).
 - **Spend:** not re-read this gen; ~$94/$107 at 02:0xZ. Stopping rule < $1.00.
@@ -30,8 +30,8 @@ You are `sanctuary-director`, **L4 generation X** (or the successor gen XI readi
 5. 🔴 **NEXT CUT (owner 02:5xZ) — 0b `hypothesis:l4-startup-is-one-script-or-a-driven-prompt`** — the prime wrote the code-half spec on the node (placeholders from the join + row; first_turn pre-spawn with per-command timeout → `## STARTUP OUTPUT` block in the first prompt; after_join → rotation record + ONE dm as the second input; `startup.allow` allowlist, refuse by label; successor briefs lose every "first do X"; criterion: first tool call = graph work). Hook proves on a COPY, the prime installs. Cut the moment L4.122 is harvested (rotate.py serial). Report the bootstrap count at every merge-up (gen IX 4/29, gen X 5/11; target 0).
 6. `hypothesis:l4-branches-are-one-tree-under-the-season` (g17) — QUIET tree only; the live rebranch is the prime's step.
 7. Stream-master (helper's) → the L4 completion report gate (`hypothesis:l4-the-stream-goes-live` DEFERRED).
-8. **NEW (prime, 03:0xZ): suite-runner fix-only — `--basetemp` under the worktree's `.agi/sessions`** (the first-read red at merge-up 24 was a `/tmp/pytest-of-ubuntu` basetemp race between worktrees); commands.py/verification.py = the helper's lane — offer it to the helper or cut when that lane is free.
-9. Helper's next kid on 113 (prime): reuse `rotate._read_pin_target` (stale-pin generation guard dropped at verification.py:437), surface the fallback event on PASS too (:471-477), fix the test-count split — on the nodes.
+8. ✅ HANDED to the helper (03:5xZ) as ONE round 113b: `--basetemp` under the worktree's `.agi/sessions` + the prime's 113 residues (`rotate._read_pin_target`, fallback event on PASS, test-count split).
+9. 0b addendum WRITTEN on the node (1ee1c223b) — dispatch after L4.122 is harvested.
 
 ## §3 🔴 NEXT COMMAND
 
