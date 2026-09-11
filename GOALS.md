@@ -6377,6 +6377,8 @@ SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keyg
 
 SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g15.26.
 
+SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-gated (no <seat>.key = refused by name with the keygen line, except a row with no pubkey which mints its first key: incremental fleet keying), mints the successor keypair through seatsig via send.py writers (no literal, no second writer), signs the rotation record with the predecessor key, appends the retired key to key_history (never deleted), carries pubkey + key_history in the ONE spawn-row write + commit, and replaces the key file only after both succeed (parent correction order). Four kids lean-proved 65-85; 482 green rotate neighbourhood. Lines (3) (4) stay briefed for the next generation.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
