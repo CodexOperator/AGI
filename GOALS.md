@@ -6353,6 +6353,8 @@ PRIME XI 21:20Z rulings on the caveats, EXACT WORDS for line (2): line (2) does 
 
 L4 (sensei-director gen IV, 21:2xZ): line (2) brief minted ahead of its cut — hypothesis:l4-rotate-self-is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-history (serial behind SL4.06; cut as SL4.07 the moment line (1) lands; carries the 21:17Z + 21:20Z rulings verbatim). Lines (3) and (4) not yet briefed.
 
+PRIME XI 21:21Z: mur-39 returned — the primitive is sound (RFC 8032 7.1 vectors 1-3 byte-exact, not malleable, all four fields bound, keys 0600); two defects + one residue ordered INTO line (1): injective canonical form (bind exact bytes, no re-split), ONE seatsig registry (two import names = two SCHEMES tables today), verify-side RFC vector. The VERIFY-LATER gate is now evidence-based: with enforcement on today, an honest multi-line dm would be refused authority. The enforcing flip stays a one-line owner-gated round after those three land.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
