@@ -577,6 +577,36 @@ def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, c
             p.kill(); p.wait()
 
 
+def test_status_iter_unparseable_iter_lease_prints_row_not_traceback(root, capsys, fast_tick_sample):
+    """hypothesis:l4-agent-status-returns-three-on-every-path — a live lease
+    whose `iter` field `_iter_num` matches but `locations.iteration_dirname`
+    rejects drives `status --iter` INTO `_agent_status`'s `except ValueError`
+    branch. That branch was a stale 2-TUPLE return (`"(no agent.json)", None`)
+    after L4.232 made the contract a 3-tuple, so the caller's
+    `status, src, overdue = _agent_status(...)` raised
+    `ValueError: not enough values to unpack` — a crash in `status --iter`
+    for a lease whose iter field does not parse. The row must PRINT, never
+    traceback. The corrupt value is `"9.140"`: `_iter_num` strips it to 140
+    (so the round matches `--iter L4.140`) but `iteration_id("9.140")` raises
+    ValueError because a loop label must start with a letter."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.170")
+    spawn_budget.commit(p_lease, parent.pid)
+    rec = json.loads(p_lease.path.read_text())
+    rec["iter"] = "9.140"
+    p_lease.path.write_text(json.dumps(rec))
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "parent-0 tier=" in out, out
+        assert "(no agent.json)" in out, out
+        assert "Traceback" not in out, out
+    finally:
+        parent.kill(); parent.wait()
+
+
 def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
     """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir,
     MEASURED layout: a PARENT agent.json is written by the DISPATCHER into
