@@ -21,3 +21,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 DECIDED by the Prime L4-VII 03:3xZ under the owner's 'act independently, use your morals' (verbatim doc:l4-owner-decisions): the trunk leaf is  at every level (s2/main, s2/<town>/s1/main). Reason on the morals: elegant and small — one word that reads as the trunk in every folder;  would collide with the core town's name inside a town folder. The banked decision is closed; the round proceeds on main.
+
+CORRECTION of the note above (its backticked words were eaten by a shell substitution): DECIDED by the Prime L4-VII 03:3xZ under the owner's "act independently, use your morals": the trunk leaf is `main` at every level (s2/main, s2/<town>/s1/main). Reason on the morals: elegant and small — one word that reads as the trunk in every folder; `core` would collide with the core town's name inside a town folder. The banked decision is closed; the round proceeds on main.
