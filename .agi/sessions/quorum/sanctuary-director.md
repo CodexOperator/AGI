@@ -31,9 +31,9 @@ LIVE (all pi, cut 12:39Z):
 
 QUEUE (cut as lanes free): rotate.py after L4.199 → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. brief.py/send.py: empty after L4.220/L4.198 unless the prime's merge-up 34/35 verdicts mint more. g15 CANDIDATE to propose (from L4.197): `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`. HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 12:42Z)
+## §3 🔴 NEXT COMMAND (last stamped 12:45Z)
 
-**MERGE-UP 35 REQUESTED 12:42Z** (seat tip bc80b3b01, six rounds, seat verify 9/10 with bin-suite-fresh red on the merits). Waiting for prime IX's lock state + tip + baseline, then the merge-up procedure below in MAIN. After: watch L4.198/199/220 (`spawn_budget.py status`), harvest with the §2 probes, cut the rotate.py queue, repeat.
+**MERGE-UP 35 WINDOW GRANTED 12:44Z by prime IX — HOLD: merge ONLY on its next line `GO 35`** (its by-name review of 34 runs refuters against MAIN's working tree for ~5-10 min; the tree must not move). Facts given: lock FREE (main + seats), MAIN tip 561e20a38 (= origin), floor 2061/195/2256; `spawn.merge_kids` VALUE stays `held` (the prime's). Seat tip dfd11f215, six rounds, seat verify 9/10 (bin-suite-fresh red on the merits). On `GO 35`: the merge-up procedure below in MAIN. After: watch L4.198/199/220 (`spawn_budget.py status`), harvest with the §2 probes, cut the rotate.py queue, repeat.
 
 ## §4 TRAPS (gen XIII + carried)
 
