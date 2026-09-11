@@ -767,3 +767,93 @@ def test_belam_cap_record_planned_entry_when_term_interrupted(
     assert b["window_id"] == "@10"
     assert set(b["pids"]) == {p1.pid, p2.pid}
     assert b["chain"] == [p1.pid, p2.pid]
+
+
+# ── L4.158 — hypothesis:l4-cap-skipped-paths-still-kill-the-oldest-window ──
+# A SKIPPED Belam cap (no pane pid; pane pid but no descendants) still kills
+# the oldESST window BY @id before returning, so the FIFO cap never leaves
+# six windows. Before the fix both skipped paths returned EARLY before
+# `_kill_window`, leaving the oldest @id line in the window file (measured by
+# experiment:a00-edfd2a9d-4b64c4). Tested on the window-file seam: the oldest
+# @id line must be gone and the record must carry window_id/window_killed. A
+# window that is already gone records `already gone`, never an error.
+
+
+def test_belam_cap_skip_no_pane_pid_still_kills_oldest_by_id(
+        _fix, tmp_path, monkeypatch):
+    """(a) — the `SKIPPED: no pane pid` path. The oldest window's @id IS
+    resolved, but no pane pid can be derived; the cap must still kill the
+    oldest window BY @id (oldest line gone from the window file) and record
+    window_id/window_killed. Falsifier: the skipped path returns early and
+    leaves the six-window oldest line in place."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 belam-S1-L4-I\n@10 belam-S1-L4-II\n"
+                   "@11 belam-S1-L4-III\n@12 belam-S1-L4-IV\n"
+                   "@13 belam-S1-L4-V\n@14 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: None)
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "skipped" in out
+    assert "SKIPPED: no pane pid" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is True
+    # the OLDEST window's line is gone — the skip still killed by @id.
+    assert "@9 belam-S1-L4-I" not in win.read_text(encoding="utf-8")
+    # chain no longer exceeds five belam lines.
+    assert sum(1 for ln in win.read_text(encoding="utf-8").splitlines()
+               if ln.strip()) <= 5
+
+
+def test_belam_cap_skip_pane_pid_no_descendants_still_kills_oldest(
+        _fix, tmp_path, monkeypatch):
+    """(b) — the `SKIPPED: no chain under pane pid` path. The pane pid IS
+    resolved but has no descendants; the cap must still kill the oldest
+    window BY its @id ('@9'), record window_id/window_killed, and never
+    raise."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 belam-S1-L4-I\n@10 belam-S1-L4-II\n"
+                   "@11 belam-S1-L4-III\n@12 belam-S1-L4-IV\n"
+                   "@13 belam-S1-L4-V\n@14 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: 4242)
+    monkeypatch.setattr(rotate, "_descendant_chain", lambda pid: [])
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "skipped" in out
+    assert "SKIPPED: no chain under pane pid" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is True
+    assert "@9 belam-S1-L4-I" not in win.read_text(encoding="utf-8")
+    assert sum(1 for ln in win.read_text(encoding="utf-8").splitlines()
+               if ln.strip()) <= 5
+
+
+def test_belam_cap_skip_already_gone_records_not_an_error(
+        _fix, tmp_path, monkeypatch):
+    """(c) — the oldest window is ALREADY gone by kill time. The @id was
+    resolved from live tmux, but the window file (the present-window seam)
+    no longer holds its line; `_kill_window` reports it gone. The cap must
+    record the `already gone` phrase, not raise, and keep window_killed
+    false."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@10 belam-S1-L4-II\n@11 belam-S1-L4-III\n"
+                   "@12 belam-S1-L4-IV\n@13 belam-S1-L4-V\n"
+                   "@14 belam-S1-L4-VI\n", encoding="utf-8")
+    # the @id was resolved from live tmux, but the window no longer exists.
+    monkeypatch.setattr(rotate, "_successor_window_id",
+                        lambda *a, **k: "@9")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: None)
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "already gone" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is False
+    # no exception, and nothing was killed (nothing to kill).
+    assert "@9" not in win.read_text(encoding="utf-8")
