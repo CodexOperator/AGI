@@ -17,6 +17,15 @@ import pytest
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+
+def _fixture_text(name: str) -> str:
+    """A real-pane capture pasted as a test fixture. See the fixture files:
+    claude_pane_busy.txt / claude_pane_idle.txt carry `tmux capture-pane -p`
+    output of live Claude Code panes (the burn-in is in the file header)."""
+    return (FIXTURES / name).read_text()
+
 spec = importlib.util.spec_from_file_location("send", BIN / "send.py")
 send_mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(send_mod)
@@ -152,12 +161,16 @@ class _FixturePane:
     def capture(self) -> str:
         import textwrap
         if self.busy:
-            # A BUSY Claude Code pane shows the spinner/`esc to interrupt`
-            # line IN PLACE of the input box (the box is not rendered during
-            # a turn) -- no `\u276f` prompt glyph, so the input region is the
-            # whole capture and busy is read; a mid-turn pane must never be
-            # typed into, whatever sits in `self.input`.
-            return "...\u280b... esc to interrupt\n"
+            # A BUSY Claude Code pane KEEPS its `\u276f` input box (the box
+            # stays rendered through the turn); `esc to interrupt` sits in the
+            # FOOTER immediately BELOW the box's `\u2500\u2500\u2500\u2500`
+            # separator, still INSIDE the input region (which starts at that
+            # `\u276f`). This is a REAL capture (`tmux capture-pane -p`) pasted
+            # as fixtures/claude_pane_busy.txt -- not the box-less spinner line
+            # the old fixture invented. Because the signal lives in the footer
+            # under the box, a region narrowed to drop the box also drops it:
+            # the busy test is only honest against this real shape.
+            return _fixture_text("claude_pane_busy.txt")
         lines = []
         body = []
         for raw in self.input.split("\n"):
@@ -301,6 +314,50 @@ def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
     assert "nudge: coalesced (pane busy" in capsys.readouterr().err
 
 
+def test_real_busy_capture_reads_busy_from_the_footer():
+    """The REAL busy capture (fixtures/claude_pane_busy.txt) KEEPS the `\u276f`
+    box; `esc to interrupt` sits in the FOOTER below it. Scoped to the input
+    region (from the last `\u276f`), the busy signal is still caught -- the
+    box does not hide it. This is the shape the old box-less fixture lacked."""
+    busy = _fixture_text("claude_pane_busy.txt")
+    assert "\u276f" in busy, "a real busy pane keeps its input box"
+    assert "esc to interrupt" in busy.lower()
+    # the region starts at the box and reaches the footer
+    region = send_mod._input_region(busy)
+    assert "\u276f" in region
+    assert "esc to interrupt" in region.lower()
+    assert send_mod._nudge_coalesce_reason(busy, "any-token", None) \
+        == "pane busy (spinner)"
+
+
+def test_real_idle_capture_is_not_busy():
+    """The REAL idle capture (fixtures/claude_pane_idle.txt) has the same box
+    and separator but NO `esc to interrupt` in its footer -- not busy."""
+    idle = _fixture_text("claude_pane_idle.txt")
+    assert "\u276f" in idle
+    assert "esc to interrupt" not in idle.lower()
+    assert send_mod._nudge_coalesce_reason(idle, "any-token", None) is None
+
+
+def test_real_busy_capture_narrowed_region_misses_the_busy_signal():
+    """FALSIFIER (hypothesis:l4-the-busy-pane-fixture-is-a-real-capture): with
+    the REAL busy capture the busy signal (`esc to interrupt`) lives in the
+    FOOTER BELOW the `\u276f` box. A region narrowed to exclude the box --
+    stopping at the box line, dropping the footer under it -- no longer reads
+    as busy. The old box-less fixture could not expose this (its `esc to
+    interrupt` WAS the box), which is exactly why it was a false capture."""
+    busy = _fixture_text("claude_pane_busy.txt")
+    lines = busy.splitlines()
+    box_idx = max(i for i, l in enumerate(lines) if "\u276f" in l)
+    box_only = lines[box_idx]              # `\u276f ` -- the box alone
+    assert "esc to interrupt" not in box_only.lower()
+    # current region reaches the footer -> busy
+    assert send_mod._nudge_coalesce_reason(busy, "t", None) \
+        == "pane busy (spinner)"
+    # a narrowed region that stops at the box misses the footer -> not busy
+    assert send_mod._nudge_coalesce_reason(box_only, "t", None) is None
+
+
 def test_nudge_token_is_short_for_every_seat_name():
     """< 100 chars for the live seat names and for an absurd one (which
     falls back to the bare form rather than breaching the cap)."""
@@ -380,12 +437,260 @@ def test_send_nudges_existing_window(project: Path, monkeypatch):
 
 
 def test_send_dm_nudges_other_party(project: Path, monkeypatch):
+    """The DM wake now carries the body INLINE (hypothesis:l4-the-nudge-
+    carries-the-dm-body-inline): `[nudge: <from>]: <body>` -- the recipient
+    sees the message without a `send.py read` round-trip. The body still
+    lands in the dm file (the record); the pane line is the delivery. The
+    literal-then-Enter shape is unchanged: never `text Enter` in one call."""
     calls = _fake_tmux(monkeypatch, ["adv-alive"])
-    send_mod.send_dm(project, "mee", "adv-alive", "psst", "mee")
+    send_mod.send_dm(project, "mee", "adv-alive", "psst over the wall",
+                     "mee")
     nudges = _typed(calls)
     assert nudges
     assert nudges[0][4] == "agi-rc:adv-alive"
-    assert "psst" not in nudges[0][5]  # token, never the dm body
+    line = nudges[0][5]
+    assert line == "[nudge: mee]: psst over the wall", line
+    assert line.startswith("[nudge: mee]: ")
+    assert "psst over the wall" in line       # the body is INLINE now
+    assert "send.py read" not in line, "no read round-trip needed"
+    assert "Enter" not in nudges[0], "the Enter is a SEPARATE call"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               "agi-rc:adv-alive", "Enter"]]
+    # the body still lands in the dm file (the record)
+    dm = project / "dm" / "adv-alive--mee.md"
+    assert dm.is_file() and "psst over the wall" in dm.read_text()
+
+
+def test_dm_nudge_flattens_newlines(project: Path, monkeypatch):
+    """A body with newlines FLATTENS to one ` / `-joined line in the pane
+    line (a newline would paste as more than one line / Enter)."""
+    calls = _fake_tmux(monkeypatch, ["adv-alive"])
+    send_mod.send_dm(project, "mee", "adv-alive",
+                     "line one\n\nline two", "mee")
+    line = _typed(calls)[0][5]
+    assert "\n" not in line
+    assert line == "[nudge: mee]: line one / line two", line
+    assert "send.py read" not in line
+
+
+def test_dm_nudge_truncates_with_read_tail(project: Path, monkeypatch):
+    """A body long enough to exceed the measured line cap is TRUNCATED with
+    a `… (read <seat>)` tail; the whole delivered line stays under
+    `_NUDGE_LINE_MAX` (95, safely under the 100-char paste threshold) and
+    the body head survives."""
+    long = "w" * 200
+    calls = _fake_tmux(monkeypatch, ["adv-alive"])
+    send_mod.send_dm(project, "mee", "adv-alive", long, "mee")
+    line = _typed(calls)[0][5]
+    assert len(line) <= send_mod._NUDGE_LINE_MAX, (len(line), line)
+    assert line.endswith("… (read adv-alive)"), line
+    assert line.startswith("[nudge: mee]: ")
+    body = line[len("[nudge: mee]: "):]
+    assert body, "a truncated body must not be entirely eaten"
+    assert body.startswith("w") and "…" in body
+
+
+def test_dm_nudge_line_head_matches_wrapped():
+    """The inline line's HEAD (`[nudge: <from>:`) is what the unsubmitted
+    check matches, so a line the input box wrapped across two lines is still
+    seen; a pane holding unrelated text is not (the token-head contract,
+    now applied to the inline body line)."""
+    line = send_mod._nudge_line("adv-alive", "mee", "hello world")
+    assert send_mod._nudge_token_head(line) == "[nudge: mee]:"
+    wrapped = "\u276f [nudge: mee]: hello\n  world\n"
+    assert send_mod._nudge_coalesce_reason(wrapped, line, None) \
+        == "token already unsubmitted"
+    assert send_mod._nudge_coalesce_reason("\u276f other\n", line, None) \
+        is None
+
+
+def test_dm_nudge_defers_under_busy_pane(project: Path, monkeypatch, capsys):
+    """BUSY DEFER UNCHANGED for the dm path: a busy pane receives NO typed
+    inline line (no body text, no concatenation) and reports a coalesce --
+    the inline body never types into a mid-turn pane."""
+    busy = "...ǿ...\nesc to interrupt\n"
+    calls = _fake_tmux(monkeypatch, ["adv-alive"], capture_text=busy)
+    send_mod.send_dm(project, "mee", "adv-alive", "urgent", "mee")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges == [], "busy dm pane must receive NO typed line"
+    assert "nudge: coalesced (pane busy" in capsys.readouterr().err
+
+
+def test_dm_batch_coalesces_with_more_tail(project: Path, monkeypatch,
+                                           capsys):
+    """Coalesced dms out of a batch: the first dm delivers its body; a dm
+    inside the window is coalesced (not typed) and counted; the NEXT
+    delivered line carries `(+N more, read <seat>)` -- coalesce stays as
+    landed by L4.126 (one delivery per window), the tail is the enrichment."""
+    calls = _fake_tmux(monkeypatch, ["adv-alive"])
+    send_mod.send_dm(project, "mee", "adv-alive", "first", "mee")
+    assert _typed(calls)[0][5] == "[nudge: mee]: first"
+    send_mod.send_dm(project, "mee", "adv-alive", "second", "mee")
+    assert len(_typed(calls)) == 1, "the second dm must NOT type"
+    # age the marker so the next dm leaves the window and delivers
+    marker = project / ".agi" / "sessions" / "inbox" / "adv-alive.nudge"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    send_mod.send_dm(project, "mee", "adv-alive", "third", "mee")
+    typed = _typed(calls)
+    assert len(typed) == 2, typed
+    assert typed[1][5] == \
+        "[nudge: mee]: third (+1 more, read adv-alive)", typed[1][5]
+    assert "nudge: coalesced" in capsys.readouterr().err
+    # the pending count was consumed by the delivered line
+    assert send_mod._pending_more(project, "adv-alive") == 0
+
+
+def test_dm_deferred_under_busy_retries_inline(project: Path, monkeypatch,
+                                                capsys):
+    """FALSIFIER (hypothesis:l4-the-nudge-carries-the-dm-body-inline): a dm
+    that coalesces on a BUSY pane must reach the pane INLINE when it
+    eventually goes out, not as the old wake token. The busy send stores the
+    deferred body; the idled retry (an inbox `send()`, body=None) delivers it
+    as `[nudge: <from>]: <body>` -- the round-trip survives no longer.
+
+    Old bytes: the busy dm stored nothing, so the idle retry typed the fixed
+    `[agi-nudge] unread for <seat> ...` wake token -- the very round-trip
+    this hypothesis exists to remove, exactly in the common mid-turn case.
+    """
+    captures = ["...⠋...\nesc to interrupt\n", ""]   # busy, then idle
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout="adv-alive\n",
+                                               stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout=captures.pop(0),
+                                               stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    monkeypatch.setattr(send_mod.time, "sleep", lambda s: None)
+    # a dm lands while the pane is busy -> coalesced, no typed line
+    root = project / ".agi"
+    send_mod.send_dm(project, "mee", "adv-alive", "urgent talk", "mee")
+    assert _typed(calls) == [], "busy send must not type"
+    assert send_mod._read_deferred(root, "adv-alive") is not None
+    # the pane goes idle; an inbox retry (body=None) fires
+    send_mod.send(project, "adv-alive", "placeholder", "ki")
+    typed = _typed(calls)
+    assert len(typed) == 1, typed
+    line = typed[0][5]
+    assert line == "[nudge: mee]: urgent talk", line
+    assert "send.py read" not in line, "the deferred dm body, not the wake"
+    assert "nudge: coalesced (pane busy" in capsys.readouterr().err
+    # the deferred body was consumed by the delivered line
+    assert send_mod._read_deferred(root, "adv-alive") is None
+
+
+# ── L4.140 residues: never append a second line, never clear an
+#    undelivered deferred ──────────────────────────────────────────────────
+
+def test_stranded_inline_line_no_concat_on_inbox_retry(project: Path,
+                                                      monkeypatch, capsys):
+    """RESIDUE A FALSIFIER (1): an inline dm line stranded in the box (by a
+    failed long delivery) followed by an inbox `send()` retry must NOT
+    concatenate. Old bytes compared only the retry's own head
+    (`[agi-nudge] ...`) against the box, found no match, and TYPED the wake
+    token after the stranded inline line -- the separate Enter then submitted
+    BOTH as one user turn (the owner's 2026-09-11 defect, a `[nudge: mee]:
+    first body[agi-nudge] unread ...` concatenation). Fixed: ANY stranded
+    nudge line is detected; the Enter submits the stranded line ALONE and
+    nothing is typed after it."""
+    pane = _FixturePane()
+    pane.send_keys(["-l", "-t", "w", "[nudge: mee]: first body"])
+    assert pane.submitted == [] and pane.input == "[nudge: mee]: first body"
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send(project, "adv-alive", "hello", "ki")   # inbox retry
+    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
+        == [], "the retry must type NO second line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               "agi-rc:adv-alive", "Enter"]]
+    assert pane.submitted == ["[nudge: mee]: first body"], pane.submitted
+    assert pane.input == ""
+
+
+def test_stranded_wake_token_dm_no_concat(project: Path, monkeypatch,
+                                          capsys):
+    """RESIDUE A FALSIFIER (2a): a stranded `[agi-nudge]` wake token, then a
+    dm -- the dm's inline line must not be typed after the token; the token
+    is submitted ALONE and the dm's body is DEFERRED (carried by a later
+    retry), never appended as a second line."""
+    pane = _FixturePane()
+    tok = send_mod._build_nudge_token("adv-alive")
+    pane.send_keys(["-l", "-t", "w", tok])
+    assert pane.submitted == [] and pane.input == tok
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send_dm(project, "mee", "adv-alive", "dm body", "mee")
+    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
+        == [], "the dm must not type an inline line after the token"
+    assert pane.submitted == [tok], pane.submitted
+    assert pane.input == ""
+    assert send_mod._read_deferred(project / ".agi", "adv-alive") \
+        is not None, "the dm body must be deferred, not lost"
+
+
+def test_rotation_alert_line_dm_no_concat(project: Path, monkeypatch, capsys):
+    """RESIDUE A FALSIFIER (2c): a stale `[rotation-alert] ...` line left in
+    the box by rotate.py (not send.py), then a dm -- the dm's inline line
+    must never be typed after it (no concatenation). The stale line is
+    submitted alone."""
+    pane = _FixturePane()
+    pane.send_keys(["-l", "-t", "w", "[rotation-alert] changing seats"])
+    assert pane.submitted == [] and pane.input == "[rotation-alert] "\
+        "changing seats"
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send_dm(project, "mee", "adv-alive", "dm body", "mee")
+    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
+        == [], "the dm must not type an inline line after rotation-alert"
+    assert pane.submitted == ["[rotation-alert] changing seats"], \
+        pane.submitted
+    assert pane.input == ""
+    assert send_mod._read_deferred(project / ".agi", "adv-alive") \
+        is not None, "the dm body must be deferred, not lost"
+
+
+def test_deferred_kept_when_different_line_submitted(project: Path,
+                                                     monkeypatch, capsys):
+    """RESIDUE B FALSIFIER: a deferred dm body is cleared ONLY when a line
+    CARRYING it is actually submitted (probe-C on its own stranded line / the
+    plain delivery path). When the box holds a DIFFERENT stranded line, the
+    probe-(C) Enter submits that line ALONE and the deferred body must
+    SURVIVE for a later retry. Old bytes ran `_clear_deferred` unconditionally
+    in the probe-(C) branch, dropping a deferred body that had never reached
+    the pane."""
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, "adv-alive", "mee", "urgent")
+    pane = _FixturePane()
+    pane.send_keys(["-l", "-t", "w", "[rotation-alert] rotating"])  # other
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send(project, "adv-alive", "placeholder", "ki")  # inbox retry
+    assert pane.submitted == ["[rotation-alert] rotating"], pane.submitted
+    assert pane.input == ""
+    assert send_mod._read_deferred(root, "adv-alive") is not None, \
+        "the deferred body must survive (it never reached the pane)"
+
+
+def test_deferred_cleared_when_its_own_line_stranded(project: Path,
+                                                     monkeypatch, capsys):
+    """RESIDUE B control: when the stranded line IS the deferred body's own
+    line, the idle retry submitting it MAY clear the deferred -- a line
+    carrying it reached the pane. Distinguishes the keep-on-different-line fix
+    from a blanket 'never clear'."""
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, "adv-alive", "mee", "urgent")
+    pane = _FixturePane()
+    pane.send_keys(["-l", "-t", "w", "[nudge: mee]: urgent"])
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send(project, "adv-alive", "placeholder", "ki")  # inbox retry
+    assert pane.submitted == ["[nudge: mee]: urgent"], pane.submitted
+    assert pane.input == ""
+    assert send_mod._read_deferred(root, "adv-alive") is None, \
+        "the deferred body's own line was delivered -- cleared"
 
 
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):

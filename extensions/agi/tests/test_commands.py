@@ -14,6 +14,7 @@ declared"* about a fully parseable node sitting right there.
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -223,6 +224,29 @@ real_only = pytest.mark.skipif(
     REAL_ROOT is None
     or not (REAL_ROOT / commands.COMMANDS_NODE_REL).is_file(),
     reason="this project's own commands node is not present")
+
+# The stream group's argv resolves `<stub>` through `locations.streamer_stub`
+# (default `~/work/streamer-stub`), and the real-fragment tests below assert
+# `os.path.isfile` / `os.access(X_OK)` / `.is_dir()` against that directory ON
+# DISK. On a box where the stub is not installed -- a fresh engine clone, CI,
+# an unrelated project -- those assertions FAIL, not skip (the argument is
+# `<stub>/bin/hold.sh`; the file is missing). `@real_only` does not cover this:
+# it skips only when `REAL_ROOT` is None or this project's own commands node is
+# missing, both true on any machine including ones with no stub. This is the
+# same external-artifact convention as test_reconciler.py's
+# `pytest.skip("... not present; evidence is elsewhere")` -- a machine without
+# the stub skips the STUB-DEPENDENT assertions, never runs-and-fails them.
+STREAM_STUB_PRESENT = (
+    REAL_ROOT is not None
+    and locations.streamer_stub(REAL_ROOT).is_dir()
+)
+stub_only = pytest.mark.skipif(
+    not STREAM_STUB_PRESENT,
+    reason=(
+        "streamer stub not installed under locations.streamer_stub "
+        "(default ~/work/streamer-stub); the executable-FILE evidence these "
+        "assertions check lives on the operator's box, not in a fresh clone "
+        "(cf. test_reconciler.py `not present; evidence is elsewhere`)"))
 
 
 def test_resolved_root_follows_the_tree_under_test():
@@ -537,14 +561,33 @@ def test_a_wrapper_flag_after_the_name_still_binds_to_the_wrapper():
 # is LIVE — these tests never execute the stub; the owner-path test
 # monkeypatches `subprocess.call` and would fail if the real one were reached.
 
+# The landed argv spelling for the stream group (see the real fragment,
+# briefs/commands.stream.fragment.md): each argv[0] is `<stub>/bin/<script>` —
+# an executable FILE, never `<stub>` alone (a directory) — carrying the
+# explicit flag that reaches its mode. hold.sh dispatches on argv[0]'s
+# basename (case "${0##*/}"), so a bare `hold.sh brb` spelling falls through
+# to usage/exit 2; only the explicit --status/--pause/--off reach a mode.
 STREAM_NODE = """---
 commands:
   sb-status:
-    argv: ["<stub>", "sb-status"]
+    argv: ["<stub>/bin/hold.sh", "--status"]
     about: "read-only stream status"
+    workflow: read
+    owner_only: false
+  brb:
+    argv: ["<stub>/bin/hold.sh", "--pause"]
+    about: "pause the streamer — operator sets the stub to be-right-back"
+    workflow: see
+    owner_only: false
+  back:
+    argv: ["<stub>/bin/hold.sh", "--off"]
+    about: "resume the streamer after brb — operator brings the stub back to live"
+    workflow: see
+    owner_only: false
   panic:
-    argv: ["<stub>", "panic"]
+    argv: ["<stub>/bin/panic.sh"]
     about: "OWNER-ONLY emergency stop"
+    workflow: see
     owner_only: true
 id: "command:commands"
 mint_id: aaacccc11112222
@@ -571,9 +614,17 @@ def test_stub_is_substituted_at_resolve_time_not_left_literal(stream_project):
     docs keep the placeholder (goal:g8.2)."""
     cmd = commands.get(stream_project, "sb-status")
     assert cmd.argv[0] != "<stub>"
-    assert cmd.argv[0] == str(locations.streamer_stub(stream_project))
-    assert cmd.argv[0].endswith("streamer-stub")
-    assert cmd.argv[1] == "sb-status"
+    assert cmd.argv[0] == str(
+        locations.streamer_stub(stream_project) / "bin" / "hold.sh")
+    assert cmd.argv[0].endswith("streamer-stub/bin/hold.sh")
+    # The landed argv carries an explicit flag, not a bare subcommand word —
+    # hold.sh dispatches on argv[0] basename, so a bare `hold.sh sb-status`
+    # spelling would fall through to usage/exit 2 (measured).
+    assert cmd.argv == [
+        str(locations.streamer_stub(stream_project) / "bin" / "hold.sh"),
+        "--status",
+    ]
+    assert "<stub>" not in " ".join(cmd.argv), "resolve-time, not literal"
     # The rendered form keeps the raw token so docs stay machine-agnostic
     # (the resolved path must never leak into docs, goal:g8.2).
     assert "<stub>" in cmd.shell(placeholders=True)
@@ -593,7 +644,11 @@ def test_stub_is_configurable_from_locations_streamer_stub(stream_project, monke
     )
     stub = locations.streamer_stub(stream_project)
     assert str(stub) == str(custom.resolve())
-    assert commands.get(stream_project, "sb-status").argv[0] == str(custom.resolve())
+    # argv[0] resolves under the configured stub — `<stub>/bin/hold.sh`
+    assert commands.get(stream_project, "sb-status").argv[0] == str(
+        custom.resolve() / "bin" / "hold.sh")
+    assert commands.get(stream_project, "sb-status").argv[0].startswith(
+        str(custom.resolve()))
 
 
 def test_panic_is_refused_for_a_non_owner_without_any_subprocess(
@@ -635,8 +690,11 @@ def test_panic_passes_for_the_owner_without_spawning_the_stub(
     monkeypatch.setattr(commands.subprocess, "call", _fake_call)
 
     assert commands.run(stream_project, "panic") == 0
-    assert seen["argv"][0] == str(locations.streamer_stub(stream_project))
-    assert seen["argv"][1] == "panic"
+    # The landed argv is `<stub>/bin/panic.sh` with NO flag — a bare panic.sh
+    # with no argument is the full hard cut.
+    assert seen["argv"] == [
+        str(locations.streamer_stub(stream_project) / "bin" / "panic.sh")]
+    assert len(seen["argv"]) == 1
 
 
 def test_owner_only_defaults_to_false(stream_project):
@@ -644,3 +702,160 @@ def test_owner_only_defaults_to_false(stream_project):
     default to False, not reject everything."""
     assert commands.get(stream_project, "sb-status").owner_only is False
     assert commands.get(stream_project, "panic").owner_only is True
+
+
+# --------------------------------------------------------------------------
+# L4.143 — hypothesis:l4-the-stream-fragment-argv-resolves-to-executables.
+# The stream group's argv must resolve to EXECUTABLE FILES, each reaching its
+# intended mode — READ FROM THE REAL FRAGMENT, not a synthetic fixture.
+#
+# 🔴 First version of these four entries declared argv as `<stub>` plus a bare
+# subcommand word (`["<stub>", "sb-status"]`, `["<stub>", "brb"]`, ...) and a
+# rewrite proposal said `hold.sh brb`. Both spellings are false, measured
+# against the real stub:
+#   * `<stub>` alone resolves to the stub DIRECTORY — executing it runs a
+#     directory, not a script.
+#   * `hold.sh brb` (argv[0]=hold.sh, argv[1]=brb) hits the usage error:
+#     hold.sh dispatches on argv[0]'s BASENAME via `case "${0##*/}"`
+#     (bin/hold.sh:21-25). A `hold.sh` basename falls to `*)`, setting
+#     MODE="$1"="brb"; "brb" is not a known MODE, so `case "$MODE"` falls to
+#     `*)` → usage/exit 2. Measured in a SANDBOXED SB_HOME: `hold.sh brb`
+#     → "usage: brb | retract | back | brb --status", exit 2 (does NOT pause);
+#     `hold.sh --pause` → "PAUSED.", exit 0.
+# So each argv is now `<stub>/bin/<script> <explicit-flag>`, keeping
+# `locations.streamer_stub` as the ONE configurable root. These tests assert
+# the real argv resolves to an executable FILE that carries an explicit flag
+# reaching its mode. They must NOT execute hold.sh / panic.sh / live.sh — the
+# stream is LIVE; this is a static + filesystem assertion only.
+# --------------------------------------------------------------------------
+
+FRAGMENT = BIN.parent / "briefs" / "commands.stream.fragment.md"
+
+# Which argv[1] reaches each intended mode of the executable, as measured.
+# hold.sh dispatches on basename, so with argv[0] always `hold.sh` a bare
+# word can never reach a mode — only these explicit flags can.
+_HOLD_FLAG_MODES = {
+    "sb-status": "--status",   # read-only status
+    "brb":        "--pause",   # pause / BRB card
+    "back":       "--off",     # release the hold
+}
+_PANIC_SCRIPT = "panic.sh"     # no flag = the full hard cut
+
+
+def _stream_fragment_commands():
+    """The yaml `commands:` block from the REAL stream fragment."""
+    import yaml
+    text = FRAGMENT.read_text()
+    block = text.split("```yaml", 1)[1].split("```", 1)[0]
+    decl = yaml.safe_load(block)
+    assert isinstance(decl, dict) and decl, "fragment must declare commands"
+    return decl
+
+
+@real_only
+@stub_only
+def test_stream_fragment_argv_resolves_to_executable_files():
+    """Every declared stream argv, after `<stub>` substitution, must start with
+    an existing executable FILE and pass an explicit flag reaching the command's
+    intended mode — a directory (`<stub> <word>`) or a bare-word `hold.sh brb`
+    spelling is a command that fails the first time a cold operator trusts it
+    (or executes a directory)."""
+    commands_decl = _stream_fragment_commands()
+    stub = locations.streamer_stub(REAL_ROOT)
+    assert stub.name == "streamer-stub" and stub.is_dir(), stub
+
+    problems = []
+    for name, spec in commands_decl.items():
+        exe = str(spec["argv"][0]).replace("<stub>", str(stub))
+        tail = [str(a).replace("<stub>", str(stub)) for a in spec["argv"][1:]]
+        if not os.path.isfile(exe):
+            problems.append(f"{name}: argv[0] is not a file: {exe}")
+            continue
+        if not os.access(exe, os.X_OK):
+            problems.append(f"{name}: argv[0] not executable: {exe}")
+        if name == "panic":
+            if Path(exe).name != _PANIC_SCRIPT:
+                problems.append(
+                    f"panic: argv[0] must be {_PANIC_SCRIPT}, got {Path(exe).name}")
+            if tail:
+                problems.append(f"panic: no flag expected (full hard cut), got {tail}")
+            continue
+        want = _HOLD_FLAG_MODES.get(name)
+        if want is None:
+            problems.append(f"{name}: no expected mode registered for it")
+            continue
+        if Path(exe).name != "hold.sh":
+            problems.append(f"{name}: argv[0] must be hold.sh, got {Path(exe).name}")
+        if tail != [want]:
+            problems.append(
+                f"{name}: argv[1]={tail} does not reach its mode; want ['{want}'] "
+                f"(hold.sh dispatches on basename — a bare word like 'brb' would "
+                f"fall through to usage/exit 2)")
+    assert problems == [], "\n".join(problems)
+
+
+@stub_only
+def test_real_fragment_resolves_through_commands_py_and_owner_gate(
+        tmp_path, monkeypatch, capsys):
+    """The REAL fragment's commands yaml, materialised into a temp project's
+    commands node, must resolve through commands.py ITSELF — not a synthetic
+    fixture (hypothesis:l4-the-stream-fragment-argv-resolves-to-executables).
+
+    Every old resolve+gate test exercised a synthetic STREAM_NODE whose argv
+    carried the BROKEN `<stub> <word>` / `<stub> panic` shape, so the code
+    path was only tested against the spelling that was disproved. This test
+    runs the real fragment's argv through commands.get / commands.run, so a
+    future reader cannot re-derive the bug from a canonised fixture. The
+    stream is LIVE — panic is REFUSED and nothing is executed; subprocess.call
+    is monkeypatched to fail the test if it is ever reached.
+    """
+    import yaml
+    decl = _stream_fragment_commands()
+    node = ("---\n" + yaml.safe_dump({"commands": decl}, sort_keys=False)
+            + "---\nbody\n")
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(node)
+
+    # 1) every resolved argv: no `<stub>` left literal, argv[0] an existing
+    #    executable FILE reaching its loaded mode (via commands.py itself).
+    stub = locations.streamer_stub(graph)
+    for name in ("sb-status", "brb", "back", "panic"):
+        cmd = commands.get(graph, name)
+        assert "<stub>" not in cmd.shell(), f"{name}: <stub> left literal"
+        argv0 = cmd.argv[0]
+        assert os.path.isfile(argv0), f"{name}: argv[0] not a file: {argv0}"
+        assert os.access(argv0, os.X_OK), (
+            f"{name}: argv[0] not executable: {argv0}")
+        assert str(stub) in argv0, f"{name}: {argv0} off the stub root"
+
+    # 2) panic is REFUSED for a non-owner with a non-zero exit and NOTHING
+    #    executed under any circumstance.
+    def _never(*_a, **_k):
+        raise AssertionError(
+            "panic must be refused before any subprocess call")
+
+    monkeypatch.setenv("AGI_ACTOR", "some-agent")
+    monkeypatch.delenv("USER", raising=False)
+    monkeypatch.setattr(commands.subprocess, "call", _never)
+
+    assert commands.run(graph, "panic") == 3
+    err = capsys.readouterr().err
+    assert "REFUSED" in err and "owner_only" in err
+    assert "some-agent" in err
+
+
+@real_only
+@stub_only
+def test_stream_panic_is_declared_owner_only_and_never_executed():
+    """`panic` must still be a DECLARATION, not a run green-light: owner_only
+    stays true and the group is never executed by these fragments (the stream
+    is LIVE). Asserted on the fragment's own yaml."""
+    decl = _stream_fragment_commands()
+    panic = decl["panic"]
+    assert panic.get("owner_only") is True, "panic must stay owner_only: true"
+    # Every entry is a template declaration for the operator table — none of
+    # them may carry an eager/workflow that would execute the live stream.
+    for name, spec in decl.items():
+        assert "workflow" in spec, f"{name} missing workflow cell"
