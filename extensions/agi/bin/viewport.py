@@ -117,6 +117,7 @@ class Frame:
     verdict: str
     damaged: str         # "" when sound, else why
     agents: tuple        # agent ids working here (live axis)
+    town: str = ""      # town of nearest vision (hyp:l4-towns-...), "" when unknown
 
 
 def _title_of(node, fm: dict) -> str:
@@ -128,7 +129,8 @@ def _title_of(node, fm: dict) -> str:
 
 def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
                  agents_at: dict | None = None,
-                 hide_deprecated: bool = False) -> list[Frame]:
+                 hide_deprecated: bool = False,
+                 nodes_dir: str | None = None) -> list[Frame]:
     """Walk the graph once from `anchor` and emit frames in display order.
 
     Ordering is `(depth, node_id)` and is deterministic: two runs over an
@@ -172,6 +174,22 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
         return str((fm_by_id.get(nid) or {}).get("status") or "").strip().lower() \
             == "deprecated"
 
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # town a node belongs to, derived through the shared helper (the same one
+    # node_writer, brief and zoom use). Memoized per node_id so a large graph
+    # only pays the BFS up the parents edge once per node actually in view.
+    _town_cache: dict = {}
+
+    def _town_of(nid: str) -> str:
+        if not nodes_dir:
+            return ""
+        t = _town_cache.get(nid)
+        if t is None:
+            import spawn_gate
+            t = spawn_gate.nearest_vision_town(nodes_dir, [nid])
+            _town_cache[nid] = t
+        return t
+
     def walk(nid: str, depth: int) -> None:
         if nid in seen or depth > max_depth:
             return
@@ -196,6 +214,7 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
             verdict=str(fm.get("verdict") or ""),
             damaged=_damage_of(g, node, fm),
             agents=tuple(agents_at.get(nid, ())),
+            town=_town_of(nid),
         ))
         if depth < max_depth:
             for k in kids:
@@ -302,7 +321,8 @@ def render_human(frames: list[Frame], top: int, left: int,
         note = f"   {GLYPH['damaged']} {f.damaged}" if f.damaged else ""
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
-        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{v}{spider}{seat_mark}{note}")
+        town_mark = f" [town:{f.town}]" if f.town and f.town != "core" else ""
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{v}{spider}{seat_mark}{note}")
 
     # Round 2 — stacked layers. Top renders full; the layer beneath is
     # faint-prefixed so it peeks around the top one in a plain terminal.
@@ -369,7 +389,8 @@ def render_llm(frames: list[Frame], top: int, left: int,
         who = f" agents={','.join(f.agents)}" if f.agents else ""
         seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
         seating = f" seats={','.join(seats_here)}" if seats_here else ""
-        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{v}{dmg}{who}{seating}")
+        tn = f" town={f.town}" if f.town and f.town != "core" else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{v}{dmg}{who}{seating}")
     head = [
         "# graph viewport",
         f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
@@ -1047,7 +1068,8 @@ def main() -> int:
         iter_name = pts[-1] if pts else None
     agents = agents_of_iteration(root, iter_name) if iter_name else {}
 
-    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents)
+    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
+                          nodes_dir=str(root / "nodes"))
 
     # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
     # formatters, exactly as the frame stream is. Failing to build it is not
