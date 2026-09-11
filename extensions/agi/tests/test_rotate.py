@@ -3537,6 +3537,139 @@ def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
     assert "git -C {0} push".format(top) not in out
 
 
+# ── hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack- ──
+# -finds-seats-clean (g15.24 fix (a), Sensei's pick). rotate-self commits its
+# OWN s6.1 spawn-row write itself (seats.md only, one line) so the successor's
+# ack finds seats.md CLEAN and the r3b gate (`_ack_seats_dirty`) stays as
+# written. The falsifier: rotate-self-then-ack yields EXACTLY two commits on
+# seats.md — first '<seat> spawn row: ...' authored by rotate-self, then
+# '<seat> ack: gen ...' authored by the ack — with NO exit-3 refusal in
+# between and `git status --porcelain -- seats.md` empty after each.
+
+def _spawn_seed_git(tmp_path):
+    """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
+    COMMITTED seats.md carrying one row — the rotate-self s6.1 spawn-row
+    write + commit + ack path. sessions/ is gitignored so the ack.json the
+    ack writes stays out of `git status`. Returns (graph_root, repo_top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "spawn@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "spawn test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path, ladder_roles="")
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
+                               "model": "x", "effort": "max",
+                               "settings": "", "session_ref": "",
+                               "session_id": "", "generation": 2,
+                               "window": "", "pid": 0}])
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "seats seed"], check=True)
+    return root, tmp_path
+
+
+def _git_commits(top, path):
+    """`<shortsha> <subject>` for every commit that touched `path` (oldest
+    last). The current HEAD subject is first."""
+    cmd = ["git", "-C", str(top), "log", "--format=%h %s", "--", path]
+    return subprocess.run(cmd, capture_output=True,
+                          text=True).stdout.splitlines()
+
+
+def test_rotate_self_commits_own_spawn_row_write_then_ack_passes(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 falsifier (fix (a)): rotate-self's s6.1 `_successor_row_write`
+    leaves seats.md DIRTY; `_commit_spawn_row` (seats.md only) makes it clean;
+    the successor's `ack ... continue` then passes the r3b gate (no exit 3)
+    and lands a SECOND commit. EXACTLY two commits on seats.md: spawn row
+    (rotate-self) then ack. Working tree clean after each."""
+    root, top = _spawn_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+
+    # (a) PRE-FIX reproduction: the s6.1 spawn-row write dirties seats.md
+    # (uncommitted) — the exact dirt the ack's r3b gate would refuse with
+    # exit 3 before this round.
+    wrote = rotate._successor_row_write(
+        root, actor="belam", seat="belam", role="prime_director",
+        session_ref="", pid=4242, session_id="sess-123",
+        generation=3, window="@w9")
+    assert wrote.startswith("config:seats row")
+    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root)), \
+        "PRE-FIX: spawn-row write must leave seats.md dirty (the exit-3)"
+
+    # (b) THE FIX: rotate-self commits its OWN spawn-row write, seats.md only.
+    outcome = rotate._commit_spawn_row(
+        root, seat="belam", generation=3, session_id="sess-123",
+        window="@w9", pid=4242)
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    # seats.md clean again -> the ack's dirty gate has nothing to refuse.
+    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root)) is None
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain",
+                         "--", "proj/nodes/.geometry/seats.md"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == ""      # clean after the rotate-self commit
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert len(commits) == 2 and commits[0].endswith(
+        "belam spawn row: gen 3, session_id sess-123, window @w9, pid 4242")
+
+    # (c) The successor's wake act finds seats.md clean -> continues, no
+    # exit-3, lands the ack commit.
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 0, capsys.readouterr().err
+    ack_head = _git_head(top)
+    assert ack_head != before            # the ack made a second commit
+
+    # (d) EXACTLY two commits on seats.md (beyond the seed): spawn row
+    # (rotate-self), then the ack. No exit-3 refusal in between; seats.md
+    # clean after each.
+    log = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert len(log) == 3, log  # [ack, spawn row, seed]
+    assert log[0].endswith("belam ack: gen 3, session_ref f52a4c, "
+                           "window @w9, pid 4242")
+    assert log[1].endswith("belam spawn row: gen 3, session_id sess-123, "
+                           "window @w9, pid 4242")
+    assert log[2].endswith("seats seed")
+    for h in (log[0].split()[0], log[1].split()[0]):
+        files = subprocess.run(["git", "-C", str(top), "diff-tree",
+                                "--no-commit-id", "--name-only", "-r", h],
+                               capture_output=True, text=True).stdout.split()
+        assert files == ["proj/nodes/.geometry/seats.md"], files
+    status = subprocess.run(["git", "-C", str(top), "status",
+                             "--porcelain"], capture_output=True, text=True)
+    assert status.stdout.strip() == ""   # clean after the whole round
+    assert "git -C {0} push".format(top) in capsys.readouterr().out
+
+
+def test_commit_spawn_row_records_skip_no_change_or_no_repo(
+        tmp_path, monkeypatch):
+    """g15.24 falsifier: `_commit_spawn_row` NEVER raises and records a one-
+    line skip when there is nothing to commit — seats.md already clean after
+    the write (the row was byte-identical), or no git repo at all. The
+    rotation still completes; no commit is forced."""
+    root, top = _spawn_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    # seats.md clean + committed and NO pending row write -> nothing to stage.
+    no_change = rotate._commit_spawn_row(
+        root, seat="belam", generation=4, session_id="sess-9",
+        window="@w9", pid=4242)
+    assert "spawn_row_commit: SKIPPED" in no_change, no_change
+    assert _git_head(top) == _git_head(top)   # no commit was made
+
+    # a gitless root (sibling OUTSIDE the seeded repo): _git_toplevel -> None
+    # -> records SKIPPED, no commit.
+    bare = tmp_path.parent / "gitless"
+    (bare / "nodes" / ".geometry").mkdir(parents=True)
+    gitless = rotate._commit_spawn_row(
+        bare, seat="belam", generation=4, session_id="sess-9",
+        window="@w9", pid=4242)
+    assert "spawn_row_commit: SKIPPED" in gitless and "no git repo" in gitless
+
+
 def test_bootstrap_writes_before_spawn_in_rotate_self():
     """Owed item (iv) — turn-one proof is a CODE-ORDER falsifier, not a code-
     position guess. `cmd_rotate_self` must write the bootstrap record BEFORE

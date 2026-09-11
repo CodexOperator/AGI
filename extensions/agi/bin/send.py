@@ -208,22 +208,44 @@ def _sign_line(root: Path, from_id: str, ts: str, to: str,
     return f"sig: {scheme_name}:{seatsig.fingerprint(pub)}:{sig.hex()}"
 
 
-def keygen(root: Path, seat: str, scheme_name: str = "ed25519") -> Path:
-    """Mint a seat signing key under ``<sessions>/seats/<seat>.key``.
+def _graph_root(root: Path) -> Path:
+    """The graph root (the `.agi` dir holding config.json) for a given root.
 
-    Writes JSON {"scheme": ..., "priv_hex": ...} with mode 0600, creating the
-    directory if needed. PRINTS the two seat-row cells someone must put into
-    config:seats for this seat -- ``pubkey: <hex>`` and ``sig_scheme: <name>``
-    -- and writes NO graph node (a seated role writes only its own row and
-    only declared fields; the schema change adding pubkey + sig_scheme to the
-    seat row is the prime's edit, not this command's). The PRIVATE seed is
-    never printed, logged, or written outside sessions/.
+    A G11 project root is the parent of `.agi/`; an already-resolved graph
+    root IS the `.agi` dir. ``write.submit`` keys every node path off THIS
+    root (write.py `_load_seats` reads `<root>/nodes/.geometry/seats.md`),
+    so keygen must hand write.submit the graph root, never the project root.
+    """
+    if (root / ".agi" / "config.json").is_file():
+        return root / ".agi"
+    return root
+
+
+def _live_row(row: dict) -> bool:
+    """A LIVE seat row carries a live pid or a session_id (hypothesis
+    l4-every-live-row-is-keyed...) -- exactly the rows a prime keys with
+    `keygen --all-live`. A row with neither is not live and is left alone.
+    """
+    return bool(row.get("pid") or row.get("session_id"))
+
+
+def _mint_seat_key(root: Path, seat: str,
+                   scheme_name: str) -> tuple[Path, bytes] | None:
+    """Mint ``<sessions>/seats/<seat>.key`` (0600) and return ``(path, pub)``.
+
+    REFUSES -- returns None -- when a key file ALREADY exists: a second
+    keygen must never destroy a key by name (hypothesis:l4-every-live-row-is-
+    keyed...). ``KeyError`` names an unknown scheme before anything is touched.
+    The PRIVATE seed is used only to write the file; it is never printed,
+    logged, or returned.
     """
     scheme = seatsig.get(scheme_name)  # KeyError names the unknown scheme
-    _priv, pub = scheme.keygen()
     d = _seats_dir(root)
     d.mkdir(parents=True, exist_ok=True)
     path = d / f"{seat}.key"
+    if path.exists():
+        return None
+    _priv, pub = scheme.keygen()
     payload = json.dumps({"scheme": scheme_name, "priv_hex": _priv.hex()})
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, SEAT_KEY_MODE)
     try:
@@ -236,10 +258,109 @@ def keygen(root: Path, seat: str, scheme_name: str = "ed25519") -> Path:
             pass
         raise
     os.chmod(path, SEAT_KEY_MODE)
-    # The two cells the row needs -- NEVER the private seed.
+    return path, pub
+
+
+def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
+    """Write the ``config:seats`` rows through write.submit (the sanctioned
+    writer). Returns True on success, False when the write could not be
+    admitted (no config node, no admitted actor, no seating) -- a keygen
+    never fails to mint a key because the row could not be written, and it
+    never prints the private seed either way.
+    """
+    try:
+        import write as write_mod  # local; write.py imports no send.py
+        e = write_mod.Edit("config:seats")
+        write_mod.verb_set(e, "seats", json.dumps(rows))
+        write_mod.submit(graph, e, actor=actor, role=role)
+        return True
+    except Exception as exc:                                   # noqa: BLE001
+        print(f"note: row write not admitted ({exc}); key still minted",
+              file=sys.stderr)
+        return False
+
+
+def _seats_rows(graph: Path) -> list:
+    """The current `config:seats` rows on disk, or [] when absent."""
+    try:
+        import write as write_mod  # local
+        return list(write_mod._load_seats(graph))
+    except Exception:                                          # noqa: BLE001
+        return []
+
+
+def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME,
+           all_live: bool = False, actor: str = "",
+           role: str = "") -> Path | list[Path] | None:
+    """Mint one or more seat signing keys and WRITE the row cells the seat
+    row carries (hypothesis:l4-every-live-row-is-keyed...).
+
+    ``keygen <seat>`` mints ``<sessions>/seats/<seat>.key`` (0600), prints the
+    ``pubkey`` / ``sig_scheme`` / ``enc_scheme: none`` cells, and via
+    write.submit writes them into the seat's OWN row in config:seats under
+    the self-row carve-out declared in schemas/[config].md. ``keygen
+    --all-live`` (the prime, the registry-wide writer the schema admits) keys
+    every LIVE row (a live pid / session_id) that carries no ``pubkey``,
+    skips already-keyed rows, and prints one line per row.
+
+    A key file that ALREADY exists is NEVER overwritten: the seat is refused
+    by name (returns None), so a second keygen cannot destroy a key. The
+    PRIVATE seed is never printed, logged, or written outside sessions/.
+    Returns the key Path (single), a list of Paths (--all-live), or None
+    when the requested key was refused (already exists).
+    """
+    if all_live:
+        graph = _graph_root(root)
+        rows = _seats_rows(graph)
+        results: list[Path] = []
+        new_rows = [dict(r) for r in rows]
+        wrote_any = False
+        for row in rows:
+            if not _live_row(row):
+                continue
+            name = str(row.get("name") or "")
+            if row.get("pubkey"):
+                print(f"skipped {name} (already keyed)")
+                continue
+            minted = _mint_seat_key(root, name, scheme_name)
+            if minted is None:
+                print(f"REFUSED {name}: key {_seat_key_path(root, name)} "
+                      f"already exists; not overwriting", file=sys.stderr)
+                continue
+            path, pub = minted
+            for nr in new_rows:
+                if nr.get("name") == name:
+                    nr["pubkey"] = pub.hex()
+                    nr["sig_scheme"] = scheme_name
+                    nr["enc_scheme"] = nr.get("enc_scheme") or "none"
+            print(f"keyed {name} {seatsig.fingerprint(pub)}")
+            results.append(path)
+            wrote_any = True
+        if wrote_any:
+            _row_write_submit(graph, new_rows, actor=actor, role=role)
+        return results
+    minted = _mint_seat_key(root, seat, scheme_name)
+    if minted is None:
+        path = _seat_key_path(root, seat)
+        print(f"REFUSED: {seat}'s key {path} already exists; not overwriting",
+              file=sys.stderr)
+        return None
+    _path, pub = minted
+    # The cells the row needs -- NEVER the private seed.
     print(f"pubkey: {pub.hex()}")
     print(f"sig_scheme: {scheme_name}")
-    return path
+    print("enc_scheme: none")
+    # Write the cells into the seat's own row (self-row carve-out).
+    graph = _graph_root(root)
+    rows = _seats_rows(graph)
+    new_rows = [dict(r) for r in rows]
+    own = next((r for r in new_rows if r.get("name") == seat), None)
+    if own is not None:
+        own["pubkey"] = pub.hex()
+        own["sig_scheme"] = scheme_name
+        own["enc_scheme"] = own.get("enc_scheme") or "none"
+        _row_write_submit(graph, new_rows, actor=actor, role=role)
+    return _path
 
 
 def _quorum_caller() -> bool:
@@ -1642,7 +1763,11 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     sig_line = _sign_line(root, from_id, ts, to, text)
     head = f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n"
     if sig_line is not None:
-        head += sig_line + "\n"
+        # The envelope (Prime ruling B, hypothesis:l4-every-live-row-is-keyed...):
+        # a signed message carries `env: v1` beside its `sig:` line so a reader
+        # can tell the envelope version from the payload. The scheme NAME on the
+        # sig line comes from the signing key's row, never a literal.
+        head += "env: v1\n" + sig_line + "\n"
     block = head + f"\n{text}\n"
 
     with open(inbox, "a") as f:
@@ -1740,17 +1865,68 @@ def _load_rows(root: Path) -> list | None:
     return rows or None
 
 
+def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
+                   msg: bytes, seat_name: str) -> str:
+    """The ONE label for a parsed sig against ONE seat row.
+
+    Shared by the inbox label writer (:func:`_verify_block`) and whois's
+    signature verification, so both answer identically. Resolves the
+    scheme from the sig's OWN name (the registry is the only coupling),
+    then the RETIRED path comes FIRST: a sig whose fingerprint matches a
+    ``key_history`` entry on the row AND verifies under that retired pub
+    answers ``RETIRED:<fp>`` (never FORGED). Otherwise the row must NAME the
+    sig's scheme (a genuine sig under a scheme the row does not declare is
+    a forgery) AND verify under the row's current pubkey for ``VERIFIED``.
+    """
+    try:
+        scheme = seatsig.get(sig_scheme)
+    except Exception:                                              # noqa: BLE001
+        return "FORGED"
+    # RETIRED path: a key_history entry matching the sig's fingerprint, whose
+    # pub verifies the sig. A retired pub the seat once owned is still a
+    # genuine past key -- RETIRED, never FORGED (hypothesis:l4-every-live-
+    # row-is-keyed...). The scheme used is the sig's own name.
+    for entry in row.get("key_history") or []:
+        if entry.get("fp") != fp:
+            continue
+        entry_pub = entry.get("pub") or ""
+        if not entry_pub:
+            continue
+        try:
+            if scheme.verify(bytes.fromhex(entry_pub), msg, sig_bytes):
+                return f"RETIRED:{fp}"
+        except Exception:                                          # noqa: BLE001
+            continue
+    # LIVE path: the row declares what it accepts -- a sig under a scheme the
+    # row does not name is a forgery even if the bytes are genuine.
+    row_scheme = row.get("sig_scheme") or ""
+    row_pub = row.get("pubkey") or ""
+    if not row_scheme or not row_pub:
+        return "FORGED"
+    if row_scheme != sig_scheme:
+        return "FORGED"
+    try:
+        pub = bytes.fromhex(row_pub)
+    except ValueError:
+        return "FORGED"
+    if not scheme.verify(pub, msg, sig_bytes):
+        return "FORGED"
+    return f"VERIFIED {seat_name} ({sig_scheme})"
+
+
 def _verify_block(root: Path, rows: list | None,
                   meta: dict, text: str) -> str:
-    """The ONE label line for a block: VERIFIED / UNSIGNED / FORGED.
+    """The ONE label line for a block: VERIFIED / UNSIGNED / FORGED / RETIRED.
 
     ``VERIFIED <seat> (<scheme>)`` when a ``sig`` line is present and verifies
     against the from-seat's row (pubkey + sig_scheme matched); ``UNSIGNED``
     when there is no sig line; ``FORGED`` when a sig is present and fails any
     check (bad shape, unknown scheme, unknown sender, a row with no
     pubkey/sig_scheme, a scheme the row does not name, or a signature that
-    does not verify). The label is NEVER a drop -- the caller prints the block
-    in full under all three.
+    does not verify); ``RETIRED:<fp>`` when the sig's fingerprint matches a
+    key_history entry of the from-seat and verifies under that retired pub.
+    The label is NEVER a drop -- the caller prints the block in full under all
+    four.
     """
     sig = meta.get("sig")
     if not sig:
@@ -1765,25 +1941,10 @@ def _verify_block(root: Path, rows: list | None,
     row = _seat_row_in(rows, meta.get("from", ""))
     if row is None:
         return "FORGED"
-    row_scheme = row.get("sig_scheme") or ""
-    row_pub = row.get("pubkey") or ""
-    if not row_scheme or not row_pub:
-        return "FORGED"
-    # a sig under a scheme the row does not name is a forgery, even if the
-    # bytes happen to be signed with something -- the row declares what it
-    # will accept.
-    if row_scheme != sig_scheme:
-        return "FORGED"
-    try:
-        scheme = seatsig.get(sig_scheme)
-        pub = bytes.fromhex(row_pub)
-    except Exception:                                              # noqa: BLE001
-        return "FORGED"
     msg = _canonical_msg(meta.get("ts", ""), meta.get("from", ""),
                          meta.get("to", ""), text).encode()
-    if not scheme.verify(pub, msg, sig_bytes):
-        return "FORGED"
-    return f"VERIFIED {row.get('name', meta.get('from', '?'))} ({sig_scheme})"
+    return _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
+                          row.get("name", meta.get("from", "?")))
 
 
 def _labels_for_blocks(root: Path, blocks: list[str]) -> list[str]:
@@ -2559,31 +2720,76 @@ def _resolve_rows(rows: list, session_ref: str,
     return WHOIS_OK, f"SEAT: {session_ref} -> seat {name}, role {role}"
 
 
+def _whois_sig_label(rows: list | None, session_ref: str,
+                     sig_line: str | None, msg_text: str | None) -> str | None:
+    """The signature label for a whois call, or None when no signature was
+    given (nothing to verify). INFORMATIONAL only: the caller (whois) reports
+    this in the text but NEVER keys its exit code on it (Prime ruling A).
+
+    ``UNSIGNED`` when no signed line was given; otherwise resolve the row for
+    ``session_ref`` and answer ``VERIFIED`` / ``FORGED`` / ``RETIRED:<fp>``
+    exactly as the inbox writer does (:func:`_label_for_sig`), so whois and
+    the speaker agree byte-for-byte.
+    """
+    if not sig_line:
+        return "UNSIGNED"
+    try:
+        sig_scheme, fp, sig_hex = sig_line.split(":", 2)
+        sig_bytes = bytes.fromhex(sig_hex)
+    except (ValueError, TypeError):
+        return "FORGED"
+    if rows is None:
+        return "FORGED"
+    row = _seat_row_in(rows, session_ref)
+    if row is None:
+        return "FORGED"
+    # --msg IS the exact canonical message bytes the sig covers; the caller
+    # reconstructs them (ts\nfrom\nto\n\ntext), because only the ONE canonical
+    # shape can verify. We do not re-derive it here.
+    msg = (msg_text or "").encode()
+    return _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
+                          row.get("name", session_ref))
+
+
 def whois(root: Path, session_ref: str, claim: str | None,
-          source: str = _PUSHED_SEATS, do_fetch: bool = True):
+          source: str = _PUSHED_SEATS, do_fetch: bool = True,
+          sig_line: str | None = None, msg_text: str | None = None):
     """Resolve session_ref against the PUSHED config:seats.
 
     Returns `(exit, text)` using the WHOIS_* codes: 0 only when the answer is
     both authoritative AND affirmative, 1 UNVERIFIED, 2 NOT-AUTHORIZED,
     3 NO-MATCH. Provenance (source ref + commit sha) is in every verified
-    answer."""
+    answer. When a ``sig_line`` (and ``msg_text``) is given, whois ALSO
+    verifies the signature against the resolved row and reports the label
+    (VERIFIED/UNSIGNED/FORGED/RETIRED) as an INFORMATIONAL extra line -- the
+    exit code stays on the claim/role authority axis and is NEVER keyed on the
+    signature label (Prime ruling A).
+    """
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
         # Pushed authority unreachable. Do NOT silently answer from the working
         # tree: answer, but label it UNVERIFIED and exit non-zero. An
         # unauthoritative answer must never exit 0.
-        _code, answer = _resolve_rows(_locally_loaded_rows(root), session_ref,
-                                      claim)
+        local = _locally_loaded_rows(root)
+        _code, answer = _resolve_rows(local, session_ref, claim)
         text = (f"UNVERIFIED {session_ref}: pushed ref {source!r} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
+        label = _whois_sig_label(local, session_ref, sig_line, msg_text)
+        if label is not None:
+            text += f"\n{label}"
         # UNVERIFIED outranks whatever the working tree happened to say: the
         # caller must not act on an answer we could not authenticate, even a
         # negative one.
         return WHOIS_UNVERIFIED, text
     rows, sha = seeded
     code, answer = _resolve_rows(rows, session_ref, claim)
-    return code, f"{answer}  (verified against {source} @ {sha})"
+    text = f"{answer}  (verified against {source} @ {sha})"
+    # INFORMATIONAL signature label: never part of the exit decision.
+    label = _whois_sig_label(rows, session_ref, sig_line, msg_text)
+    if label is not None:
+        text += f"\n{label}"
+    return code, text
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2726,16 +2932,32 @@ def main(argv: list[str] | None = None) -> int:
                               "origin/season/s2)")
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",
                          help="skip the `git fetch` before reading")
+    p_whois.add_argument("--sig", dest="sig", default=None,
+                         help="a signed header line `scheme:fp:hex` to verify "
+                              "against the resolved seat's row; the label "
+                              "(VERIFIED/FORGED/RETIRED) is reported but is "
+                              "INFORMATIONAL -- it never changes the exit "
+                              "code (Prime ruling A)")
+    p_whois.add_argument("--msg", dest="msg", default=None,
+                         help="the EXACT canonical message bytes the sig "
+                              "covers (ts\nfrom\nto\n\ntext), to verify it "
+                              "against (with --sig)")
 
     p_keygen = sub.add_parser(
         "keygen", parents=[common],
         help="mint a seat signing key under <sessions>/seats/<seat>.key (mode "
-             "0600); prints the two seat-row cells (pubkey, sig_scheme) and "
-             "writes no graph node -- hypothesis:l4-a-seat-signs-with-a-"
-             "swappable-scheme")
-    p_keygen.add_argument("--seat", required=True, help="seat name")
-    p_keygen.add_argument("--scheme", default="ed25519",
-                          help="swappable scheme name (default ed25519)")
+             "0600); prints and writes the row cells (pubkey, sig_scheme, "
+             "enc_scheme: none) into the seat's own config:seats row -- or "
+             "with --all-live, the prime keys every LIVE row that has no "
+             "pubkey (hypothesis:l4-every-live-row-is-keyed...)")
+    p_keygen.add_argument("--seat", default=None, help="seat name")
+    p_keygen.add_argument("--scheme", default=seatsig.DEFAULT_SCHEME,
+                          help="swappable scheme name (default "
+                               f"{seatsig.DEFAULT_SCHEME})")
+    p_keygen.add_argument("--all-live", dest="all_live",
+                          action="store_true",
+                          help="key every LIVE config:seats row lacking a "
+                               "pubkey; run by the prime seat")
 
     p_wake = sub.add_parser(
         "wake", parents=[common],
@@ -2899,8 +3121,7 @@ def main(argv: list[str] | None = None) -> int:
         return rc
 
     if args.verb == "keygen":
-        keygen(root, args.seat, args.scheme)
-        return 0
+        return _cli_keygen(root, args)
 
     if args.verb == "wake":
         # Clause (2) (hypothesis:l4-wake-repair-is-quiet-honest-and-readable):
@@ -2918,6 +3139,21 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     return 0
+
+
+def _cli_keygen(root: Path, args) -> int:
+    """The keygen CLI: exit 0 when every requested key was minted, else 1
+    (a single-seat refusal, or an unnamed seat without --all-live)."""
+    actor = _detect_sender(getattr(args, "from_id", None))
+    if getattr(args, "all_live", False):
+        out = keygen(root, all_live=True, scheme_name=args.scheme,
+                     actor=actor)
+        return 0 if out is not None else 1
+    if not args.seat:
+        print("ERR: keygen needs --seat (or --all-live)", file=sys.stderr)
+        return 1
+    out = keygen(root, args.seat, args.scheme, actor=actor)
+    return 0 if out is not None else 1
 
 
 if __name__ == "__main__":
