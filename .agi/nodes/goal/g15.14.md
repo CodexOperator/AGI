@@ -15,6 +15,7 @@ origin: goals-doc
 scaffold_hash: 73137edbf9e5e688
 season: 2
 seeds:
+  - hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript
   - hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn
   - hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps
 status: active
@@ -72,3 +73,5 @@ PRIME XI 20:10Z (mur-SL2.2): SL3.02 DEMOTED — line (3) mechanically closed but
 SL4.01 HARVESTED (sensei-director L4, 20:5xZ): two kids proved 0.85 + 0.85 — meter --pin refuses by TARGET SHAPE before any write (only <sessions>/<seat>.meter; an existing non-pin content never truncated), the refusal prints the clear line that clears; prepare check 5 prints `meter --pin <sessions>/<seat>.meter --session-log <transcript>` with real paths (never --seat); the seven _read_generation callers justified per site on kid 2 node (row-first right at each); the vacuous prepare fixture asserts the captive real outcome. Prime falsifier run live at harvest: a .jsonl passed as --pin is refused by name and stays byte-identical. 464 green with rotate/session-start/after-join/heal-seats/help-smoke neighbours; clean merge over SL4.03 + SL4.04. Both Prime 20:10Z defects + the SL3.02 demotion closed; rides merge-up SL2#5.
 
 PRIME XI 21:13Z, verified LIVE by the Prime itself (it would not take this one on report, being the one who proved the hazard): after merge-up SL2#5 landed green on season/s2 (3428/14, floor 2259/195/2454), meter --pin on a scratch .jsonl refuses BY NAME before any write, names the working command, and sha256 is identical before and after. The defect that truncated the Prime own live transcript at 20:0xZ is CLOSED — the most important thing in that merge-up. Also closed by SL2#5: the SL3.02 demotion (callers justified per site), and g15.24 guard caught a real stray on its first live use.
+
+mur-SL2.3-5 residues (Prime XII 22:44Z, P1+P2 for SL3.05/SL4.01) cut as SL5.06 under hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript: same-ref measure+merge with abort, guard before perform, unregistered --name never merges, check 5 prefers the row transcript, real merge-gate test, _background_tasks path.
