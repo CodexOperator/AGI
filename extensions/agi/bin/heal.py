@@ -648,27 +648,51 @@ def _seat_geometry_dir(root: Path, row: dict) -> Path:
     return Path(root)
 
 
-def _crash_recovery_recorded(root: Path, seat: str, _rotate) -> bool:
+CRASH_LOOP_MAX_PER_HOUR = 3
+
+
+def _crash_recovery_recorded(root: Path, seat: str, _rotate,
+                             now: float | None = None) -> bool:
     """The once-guard, keyed on a RESPAWN OUTCOME, never on mere detection
-    (the defect kid 2 holds). A `crash-recovery` record whose `result` is
-    `respawned` means the loop already healed this death -> a second pass must
-    not re-name, re-record or re-spawn. A `result: detected`-only record (kid
-    1 wrote one `detected` per detected death) must NOT suppress a later pass:
-    the spawn either failed or was never attempted, the seat is STILL dead, and
-    the NEXT pass must retry the respawn. Scans every record (a late
-    `respawned` may follow an earlier `detected` on the same seat) and returns
-    True only when at least one carries the respawn outcome."""
+    (the defect kid 2 holds) — and BOUNDED IN TIME, never "ever". A
+    `crash-recovery` record whose `result` is `respawned` within the last
+    `SEAT_DEAD_WINDOW_S` (10 min, the same window (1d) grants a rotation in
+    flight) means the loop already healed this death and the successor is
+    still waking -> a second pass must not re-name, re-record or re-spawn.
+    An OLDER `respawned` record does NOT suppress: found by the L4.283
+    harvest's live proof (sanctuary-director 182119Z 19:29Z) — on the round's
+    bytes the guard scanned every record ever written, so the FIRST recovery
+    of a seat was also its LAST (the recovered successor's own death, minutes
+    later, read `0 dead` forever). A `result: detected`-only record never
+    suppresses (the spawn failed or was never attempted; the NEXT pass must
+    retry). CRASH LOOP: `CRASH_LOOP_MAX_PER_HOUR` or more `respawned` records
+    in the last hour -> suppressed and NAMED in the watch log, because a seat
+    that dies every few minutes is a finding for a human, not a spawn budget
+    (the Belam cap of FIVE bounds the numeral chain the same way)."""
     rot = _rotate._rotations_dir(root)
     if not rot.is_dir():
         return False
+    now = now if now is not None else time.time()
+    recent: list[float] = []
     for path in sorted(rot.glob(f"{seat}.*.json")):
         try:
             rec = json.loads(path.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        if (rec.get("rotation") == "crash-recovery"
-                and rec.get("result") == "respawned"):
+        if (rec.get("rotation") != "crash-recovery"
+                or rec.get("result") != "respawned"):
+            continue
+        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        if ts is None:
+            continue
+        if (now - ts) <= SEAT_DEAD_WINDOW_S:
             return True
+        if (now - ts) <= 3600:
+            recent.append(ts)
+    if len(recent) >= CRASH_LOOP_MAX_PER_HOUR:
+        _watch_log(f"watch: seat {seat!r}: {len(recent)} crash-recoveries in the "
+             "last hour -- CRASH LOOP, not respawning again; a human decides")
+        return True
     return False
 
 
@@ -873,6 +897,18 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if role == "prime_director":
         # the prime resumes on the standing prime brief.
         prompt_file = _rotate.DEFAULT_PROMPT_FILE
+    else:
+        # A director/helper resumes on ITS OWN quorum card — the file
+        # rotate-self hands its successor (`--prompt-file
+        # .agi/sessions/quorum/<seat>.md`, F16) — never the assembled generic
+        # brief, which carries none of the seat's §0-§3 state (the 22-32-call
+        # spawn-seating wakes the Sensei measured on 175816Z/181834Z). Found
+        # by the L4.283 harvest's live proof (sanctuary-director 182119Z
+        # 19:27Z): with prompt_file None, spawn_window assembled the generic
+        # director brief. Absent card -> the assembled brief, as before.
+        card = _rotate._sessions_dir(root) / "quorum" / f"{seat}.md"
+        if card.is_file():
+            prompt_file = str(card)
     ack_gate = (
         "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
         f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
@@ -973,7 +1009,7 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # means this death is already healed — never re-name, never re-record,
     # never re-spawn on a later pass. A `detected`-only record does NOT stop
     # the respawn (the defect pin: that seat is still dead).
-    if _crash_recovery_recorded(root, seat, _rotate):
+    if _crash_recovery_recorded(root, seat, _rotate, now=now):
         return {}
     # (1a) the row pid is gone from the process table.
     if pid_alive(pid):
