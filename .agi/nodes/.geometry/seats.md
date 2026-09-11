@@ -4,11 +4,11 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam-S1-L4-VII
+edited_by: belam
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
-  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "f52a4c", "session_id": "28852772-a965-4d05-bde8-32d8651cb6e0", "pid": 3418468, "window": "@267", "generation": 7, "town": "all"}
+  - {"name": "belam", "role": "prime_director", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "<graph_root>/HANDOFF.md", "pin_ref": ".agi/sessions/belam.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "7cff1a", "session_id": "2aeaecba-9db0-4755-8e41-37806a3ae852", "pid": 4158336, "window": "belam-S1-L4-VIII", "generation": 8, "town": "all"}
   - {"name": "adv-self-perpetuating", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:self-perpetuating", "handoff_file": "", "pin_ref": ".agi/sessions/adv-self-perpetuating.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
   - {"name": "adv-all-is-one", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:all-is-one", "handoff_file": "", "pin_ref": ".agi/sessions/adv-all-is-one.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
   - {"name": "adv-alive", "role": "parent", "tier": 3, "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "vision:alive", "handoff_file": "", "pin_ref": ".agi/sessions/adv-alive.meter", "rotated_by": "prime", "owning_goal": "", "worktree": "", "session_ref": "", "town": "all"}
