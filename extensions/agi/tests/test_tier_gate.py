@@ -429,6 +429,45 @@ def test_decide_running_record_with_dead_pid_derives_no_tier():
         shutil.rmtree(root)
 
 
+def test_decide_phantom_dead_pid_is_named_once_on_stderr():
+    """hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named.
+    When the scan skips a `status: running` record whose pid has no /proc
+    entry, it prints ONE stderr line naming the record path and pid
+    (`tier-gate: phantom running record <path> pid=<n> (dead) -- skipped`),
+    deduplicated per session -- two calls name it once. A live-pid running
+    record prints NOTHING. The phantom is named, not deleted: the file\'s
+    still there afterwards (cleaning is the reaper\'s, not the scan\'s).
+    """
+    import tempfile, io, contextlib
+    root = tempfile.mkdtemp()
+    try:
+        dead = _some_dead_pid()
+        rec_dir = _write_agent_record(root, "phantom", dead, "kid", status="running")
+        # live control: a running record at a live pid names nothing.
+        live_dir = _write_agent_record(root, "live", os.getpid(), "director", status="running")
+
+        def _capture():
+            buf = io.StringIO()
+            with contextlib.redirect_stderr(buf):
+                tiers = gate._running_record_tiers(root)
+            return tiers, buf.getvalue()
+
+        tiers, err = _capture()
+        # the phantom derives no tier; the live record still does
+        assert tiers == {os.getpid(): "director"}, f"got {tiers}"
+        # the named line appears exactly once, naming path + pid, no deletion
+        expected = f"tier-gate: phantom running record {rec_dir/'agent.json'} pid={dead} (dead) -- skipped"
+        assert err.count(expected) == 1, f"phantom named {err.count(expected)}x: {err!r}"
+        assert (rec_dir / "agent.json").exists(), "scan must not delete the record"
+        # second call -- same session -- names it zero more times.
+        _, err2 = _capture()
+        assert expected not in err2, f"phantom re-named on second call: {err2!r}"
+        # live record path is never named as a phantom
+        assert f"{live_dir/'agent.json'}" not in err
+    finally:
+        shutil.rmtree(root)
+
+
 def test_planted_dir_is_removed_after_the_test():
     """The throwaway iter-test dir a falsifier plants in the REAL tree is
     gone after the run -- the real tree must be left exactly as it was.
