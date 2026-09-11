@@ -28,11 +28,13 @@
 - **L4.283 LIVE** (18:39Z) `l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human` — parent `a00-d7ab0daa`, branch `loop/hypothesis-l4-a-dead-seat-is-rec-a00-d7ab0daa@s2`, 2 kids serial. Probe: fixture-root real-tmux proof pasted (sleep window killed → one `heal.py watch --once` pass names it dead, respawns via the launcher seam, writes row + `rotation: crash-recovery` record); the 1c guard test; recover:false named-not-spawned; second pass spawns nothing; NO edit inside spawn_window/_shell_cmd/first_turn/bootstrap/handoff (sensei-director's) — diff the deletions.
 - **L4.284 LIVE** (18:40Z) fix-only on `l4-a-workflow-run-is-named-not-numbered` — parent `a00-abf40f7b`, branch `loop/hypothesis-l4-a-workflow-run-is--a00-abf40f7b@s2`, 1 kid, workflow.py only. Probe: `workflow.py note <key> --harness-id wf_x` then `status <key>` / `status wf_x` on a fixture; unknown key exit 2; nothing above the fix re-derived.
 
-QUEUE after that: L4.281 (e) — sensei-director's answer → SL round or my fix-only → helper's seat fold (Nb) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; AFTER L4.283 lands, same heal.py watch pass) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 once 283 + 284 land** (279 + 281 + 282 + 283 + 284 + 3 nodes) — after XI reports its suite run.
+- **L4.285 LIVE** (18:43Z) fix-only (e) on `l4-rotate-self-under-pytest-reaps-the-host-prime` — parent `a00-e8a9fbe7`, branch `loop/hypothesis-l4-rotate-self-under--a00-e8a9fbe7@s2`, 1 kid; `rotate.py launch-wrapper` subcommand + `_shell_cmd` wrap-when-seat (sensei-director granted 18:36Z; SL2.02 live on cmd_spawn/first_turn tail — whichever lands second merges s2 first). Probe: the throwaway-window HUP line + the `kill -TERM <wrapper>` sender line pasted; `_shell_cmd` seatless byte-identical (test); nothing in the reap region touched.
 
-## §3 🔴 NEXT COMMAND (last stamped 18:41Z)
+QUEUE after that: helper's seat fold (Nb) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; AFTER L4.283 lands, same watch pass) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 once 283 + 284 + 285 land** — after XI reports its suite run.
 
-**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.284 --wait --timeout 540` (short round) → harvest with its §2 probe → same for L4.283 → request merge-up 40 (ONE message, numbers) once XI has reported the suite.** Inbox at every seam: `send.py read sanctuary-director`.
+## §3 🔴 NEXT COMMAND (last stamped 18:44Z)
+
+**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.284 --wait --timeout 540` → harvest (§2 probe) → same for L4.285, then L4.283 (2 kids serial, longest) → request merge-up 40 (ONE message, numbers) once XI has reported the suite.** Inbox at every seam: ONE `send.py read sanctuary-director`.
 
 ## §4 TRAPS (135144Z session + carried)
 
