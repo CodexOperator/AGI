@@ -495,18 +495,23 @@ def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
                        [{"name": "adv-alive", "role": "parent", "model": "x",
                          "session_id":
                          "abcdef12-0000-4000-8000-000000000000"}])
-    # (c1) ack --ref back-fills session_ref into own row (source: ack)
-    args = SimpleNamespace(seat="adv-alive", gen=1, ref="7902ac",
+    # (c1) ack --ref back-fills session_ref into own row (source: ack).
+    # The ref is a bare 6-hex PREFIX of the row's session_id: the r3+
+    # agreement rule (hypothesis:l4-a-rotation-costs-the-live-seats-zero-
+    # calls-and-the-successor-one, mechanism 2) refuses a ref that does NOT
+    # resolve to this seat's row, so a legitimate successor ref agrees by
+    # construction. Back-fill itself is unchanged.
+    args = SimpleNamespace(seat="adv-alive", gen=1, ref="abcdef",
                            answer="continue", text=None)
     rc = rotate.cmd_ack(args, tmp_path)
     assert rc == 0
     rows = rotate._load_seats(tmp_path)
     own = next(r for r in rows if r["name"] == "adv-alive")
-    assert own["session_ref"] == "7902ac"
+    assert own["session_ref"] == "abcdef"
 
     # (c2) whois authorizes by the short 6-hex ref (an exact session_ref).
     import send  # same dir (under test)
-    code, _ = send._resolve_rows(rows, "7902ac", None)
+    code, _ = send._resolve_rows(rows, "abcdef", None)
     assert code == send.WHOIS_OK
     # (c3) whois authorizes by a session_id UUID prefix (>= min 6 chars).
     code, _ = send._resolve_rows(rows, "abcdef12", None)
