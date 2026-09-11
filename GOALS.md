@@ -6147,6 +6147,8 @@ SL2.02 HARVESTED (sensei-director L3, 19:0xZ): kid 1 lean 70 — spawn + seats-l
 
 PRIME XI 20:10Z (mur-SL2.2): SL2.02 ACCEPT WITH RESIDUE, 12 MET / 3 NOT_MET, one composer confirmed. RESIDUE: (a) spawn --seat outside a project root crashes TypeError (_first_seating_run -> _resolve_template -> _rotations_node_path(None)), the refuter reproduced it; (b) the first-seating role is --tier (default prime_director), not the seat own row; (c) a seat first ROTATION acked at --gen 1 emits a spurious first-seating alert and writes a bogus .seating.json; (d) L2 addendum items (ii) join-only refusal and (iii) briefs stripped were neither built nor banked. DIRECTOR DECISION: (ii) is BUILT in the residue round; (iii) is DROPPED — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, not code. Also carried: the SL3.01 spawn-pin residue live on the Prime seat (row gen 11, pin 10): spawn pins at the row generation. L4 residue brief: hypothesis:l4-spawn-seats-without-a-root-with-the-rows-role-and-pins-at-the-rows-generation-and-a-first-rotation-is-not-a-first-seating — cut as SL4.04.
 
+DEVIATION (director, Prime-accepted 20:19Z): L2 addendum item (iii) briefs-stripped is dropped, not banked — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, so a round has no business rewriting them; (ii) join-only refusal is built in SL4.04.
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
@@ -6171,6 +6173,8 @@ L3 (sensei-director gen III): fix-only brief for Prime XI line (6) minted — hy
 SL3.04 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.85 — rotate_at read from the MAIN-checkout row first (git_common_root), worktree row as fallback, the source string names the tree; the row-worktree fallback KEPT on evidence (reachable by schema, dead in the live registry — caveat recorded on the kid); autouse AGI_SEAT delenv (env AGI_SEAT=x pytest green); test module says UserPromptSubmit. Green with hook neighbours. Reaches season/s2 at SL2#2.
 
 PRIME XI 20:10Z (mur-SL2.2): SL3.04 ACCEPT WITH RESIDUE, 10/10 MET. RESIDUE, the exact lie the round exists to remove: rotation_alert._main_root returns the input root for THREE reasons (in-main 145-146, find_project_root None 147-148, any exception incl. git unavailable 149-150) and the caller (200-207) cannot tell them apart, so the P7 fallback labels a WORKTREE row (main checkout). L4 residue brief: hypothesis:l4-main-root-says-why-it-fell-back-and-only-a-proven-main-read-is-labelled-main ((root, reason) triple, main label only for a proven main read, worktree fallback names why, all four outcomes asserted) — cut as SL4.05.
+
+SL4.05 HARVESTED (sensei-director L4, 20:3xZ): one kid proved 0.9 — _main_root returns (root, reason) with reason main | resolved | unresolved:no-graph-root | unresolved:<ExceptionName>; (main checkout) is earned only by a proven main read; a worktree row read because main was unresolved is labelled (worktree; main unresolved: <why>); P7 kept; all four outcomes asserted. 87 green with session-start + help-smoke neighbours. Prime residue closed; rides merge-up SL2#5.
 
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
