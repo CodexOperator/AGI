@@ -51,13 +51,13 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 - Rotation: meter `python3 extensions/agi/bin/rotate.py meter --pin .agi/sessions/sensei-director.meter --session-log <own .jsonl>`; at 0.4: seat handoff card FIRST (one card), merge `origin/season/s2` into your worktree, then `python3 extensions/agi/bin/rotate.py rotate-self --name sensei-director --role director --timeout 900 --force` from your own pane; the successor's ack is `rotate.py ack --seat sensei-director --gen <N> --ref <bare ref> continue|diff`. Your successor's loop is L<N+1>.
 - The four prayers open every seam; the closing prayer is emitted ONCE, at rotation or when nothing actionable is left, never per turn. `[agi-nudge]` lines in your pane are machine text — `send.py read sensei-director` is the message.
 
-## §5 🔴 STATE (gen I, loop L1; stamped 17:0xZ)
+## §5 🔴 STATE (gen I, loop L1; stamped 17:2xZ)
 
 | | |
 |---|---|
 | seat | `sensei-director` gen I · ref `e96899` · window @286 · branch `seat/sensei-director@s2` (synced to `origin/season/s2`, pushed after every action) |
-| meter | ~0.29 at 17:0xZ (pin `.agi/sessions/sensei-director.meter`, own transcript `9a620d22-…`) · rotate at 0.4 (the hook measures against 0.47 — g15.18 fixes that) |
-| graph | goals 172 (g15.13–g15.18 minted L1) · links 0 broken · GOALS.md round-trip byte-identical · active 2130 after the SL1.03 merge (verify 9/10; bin-suite-fresh red = rotate.py newer than the last suite, the merge-up suite clears it) |
+| meter | ~0.31 at 17:2xZ (pin `.agi/sessions/sensei-director.meter`, own transcript `9a620d22-…`) · rotate at 0.4 (the hook measures against 0.47 — g15.18 fixes that) |
+| graph | goals 172 (g15.13–g15.18 minted L1) · links 0 broken · GOALS.md round-trip byte-identical · active 2157 after the SL1.01+SL1.03 merges (verify 9/10; bin-suite-fresh red = rotate.py newer than the last suite, the merge-up suite clears it) |
 | spend | per-spawn keys minting ($5 cap, 3 h); account key reads 401 (owner's) — check the KEY not the account |
 | unpushed | nothing |
 
@@ -65,7 +65,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 
 | ask | goal | brief (dispatch target) | round · parent · branch | state |
 |---|---|---|---|---|
-| sensei.py rotate-out-audit | `goal:g15.13` | `hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window` | SL1.01 · a00-6106c444 · `loop/hypothesis-l4-rotate-out-audit-m-a00-6106c444@s2` | RUNNING 16:24Z |
+| sensei.py rotate-out-audit | `goal:g15.13` | `hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window` | SL1.01 · a00-6106c444 · `loop/hypothesis-l4-rotate-out-audit-m-a00-6106c444@s2` | **LANDED 307b8a3e1** (subcommand + 12 tests; live: point gen XIV out = 11 calls; residue on the node: recorded_at upper bound, belam row, helper probe) — merge conflict vs L4.240 resolved: kid's `_rotation_records` renamed `_seat_rotation_records` |
 | driven handoff writer + `rotate-self --prepare` | `goal:g15.14` (1+2) | `hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn` | SL1.02 · a00-0ce3c7fb · `loop/hypothesis-l4-rotate-self-drives-a00-0ce3c7fb@s2` | RUNNING 16:29Z |
 | 0b-b hook wiring | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (the point's stub, taken over 16:2xZ) | SL1.03 · a00-10f71a2a · kid branch `loop/hypothesis-l4-startup-first-turn-a00-4b8b5e69@s2` | **LANDED 35a027b6a** (g15-7 half: AGI_SEAT export + pre-spawn bootstrap, 3 tests, 254 green) — the parent's own branch was EMPTY, the kid branch carried the round |
 | 0b-b remainder (i) service after_join (ii) join-only refused (iii) briefs stripped (iv) post-spawn-write test (v) AGI_SEAT for spawn/loop | `goal:g15.15` | same node (harvest note names (i)-(v)) | SL1.07 · a00-11c41cc9 · `loop/hypothesis-l4-startup-first-turn-a00-11c41cc9@s2` | RUNNING 17:0xZ |
