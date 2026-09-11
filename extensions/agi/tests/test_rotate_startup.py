@@ -647,6 +647,9 @@ def test_filter_allowlist_refuses_escape_list(tmp_path):
         (f"{P} | sed -i s/a/b/", "filter sed -i not on the allowlist"),
         (f"{P} | echo $SMOKE_SECRET", "filter echo $SMOKE_SECRET not on the allowlist"),
         (f"{P} | echo ~", "filter echo ~ not on the allowlist"),
+        # sed `$`-address is now refused as a forbidden char too: `$` on any
+        # filter token (the `$d` would fail at exec anyway — env var never set).
+        (f"{P} | sed '$d'", "filter sed $d not on the allowlist"),
     ]
     for cmd, name in refused:
         ref = rotate._producing_refusal(cmd)
@@ -689,9 +692,12 @@ def test_filter_sed_program_grammar_allowlist(tmp_path):
         assert rotate._producing_refusal(cmd) == "filter sed program", cmd
     # a single path-looking positional fails the grammar, not the path rule
     assert rotate._producing_refusal(f"{P} | sed /etc/passwd") == "filter sed program"
-    # benign grammar-form programs still run
+    # benign grammar-form programs still run. `sed '$d'` (a `$` address) is
+    # NOT here: `$` is _FILTER_FORBIDDEN across every filter token, and `$d`
+    # ends up refused by our new token-sweep (it would also fail at exec time
+    # — env var $d is never set).
     for cmd in ["sed -n 1,40p", "sed s/x/y/g", "sed 's/a b/c/'", "sed 2d",
-                "sed 5q", "sed /foo/d", "sed 1,5p", "sed '$d'",
+                "sed 5q", "sed /foo/d", "sed 1,5p",
                 "sed s/x//I", "sed 's/a\\/b/c/g'", "sed -E s/x/y/g",
                 "sed -r s/x/y/"]:
         assert rotate._producing_refusal(f"{P} | {cmd}") is None, cmd
@@ -763,7 +769,6 @@ def test_filter_benign_stdio_filters_still_run(tmp_path):
         f"{P} | sed -n 1,40p",
         f"{P} | sed 's/x/y/g'",
         f"{P} | sed /foo/d",
-        f"{P} | sed '$d'",
         f"{P} | cut -c1-80",
         f"{P} | cut -f1",
         f"{P} | cut -d: -f1",
@@ -782,6 +787,81 @@ def test_filter_benign_stdio_filters_still_run(tmp_path):
     ]
     for cmd in benign:
         assert rotate._producing_refusal(cmd) is None, cmd
+
+def test_filter_forbidden_scans_every_token_env_never_leaks(
+        monkeypatch, tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, FIX-ONLY #3
+    # (L4.184): `_FILTER_FORBIDDEN` (`$` backtick `~`) is checked on EVERY
+    # token of every filter stage — options, option values and positionals
+    # alike — not just echo positionals. Without this, `_resolve_shell_vars`
+    # expands `$VAR` from the whole environment at exec time even inside
+    # single quotes, so these all passed the judge and leaked/mapped an env
+    # value into the committed rotation record and the successor's STARTUP
+    # OUTPUT. Hermetic: SECRET_PROBE is set, and assert the value appears in
+    # NO result — each cmd is refused by name.
+    secret = "sk-probe-value"
+    monkeypatch.setenv("SECRET_PROBE", secret)
+    P = "python3 extensions/agi/bin/foo.py"
+    lethal = [
+        f"{P} | sed 's/x/$SECRET_PROBE/'",
+        f"{P} | grep '$SECRET_PROBE'",
+        f"{P} | tr abcdef \"$SECRET_PROBE\"",
+        f"{P} | echo $SECRET_PROBE",
+    ]
+    startup = {"first_turn": [{"label": f"leak{i}", "cmd": c}
+                              for i, c in enumerate(lethal)]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    for r, cmd in zip(res, lethal):
+        assert r["refused"], (r)
+        assert "not on startup.allow" in r["refused"], r
+        assert "filter" in r["refused"], r
+        assert secret not in r["cmd"], r        # record keeps the literal $VAR
+        assert secret not in str(r), r          # nothing leaks anywhere in result
+    # the same stages WITHOUT `$` still run (existing positive controls).
+    for cmd in [f"{P} | echo -n hi", f"{P} | tr a-z A-Z"]:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_filter_forbidden_sweeps_consumed_option_values(monkeypatch, tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, FIX-ONLY #4
+    # (L4.184): `_FILTER_FORBIDDEN` must also run on the SEPARATE token a
+    # value-taking option CONSUMES (the `skip = 2` branch). The top-of-loop
+    # sweep never re-visits that token — `-e $SECRET_PROBE` advances past the
+    # value and would otherwise let `_resolve_shell_vars` expand the env value
+    # into the record. Hermetic: SECRET_PROBE set, every cmd refused by name,
+    # the value absent from every result.
+    secret = "sk-probe-value"
+    monkeypatch.setenv("SECRET_PROBE", secret)
+    P = "python3 extensions/agi/bin/foo.py"
+    lethal = [
+        f"{P} | grep -e $SECRET_PROBE",
+        f"{P} | head -n $SECRET_PROBE",
+        f"{P} | cut -d $SECRET_PROBE",
+        f"{P} | sort -k $SECRET_PROBE",
+        f"{P} | uniq -w $SECRET_PROBE",
+        f"{P} | grep -ne $SECRET_PROBE",   # cluster `-ne`, value in next token
+    ]
+    startup = {"first_turn": [{"label": f"leak{i}", "cmd": c}
+                              for i, c in enumerate(lethal)]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    for r, cmd in zip(res, lethal):
+        assert r["refused"], r
+        assert "filter" in r["refused"], r
+        assert "not on the allowlist" in r["refused"], r
+        assert secret not in r["cmd"], r        # literal $VAR kept in record
+        assert secret not in str(r), r          # nothing leaks in any result
+    # positive controls with non-`$` values still run.
+    benign = [
+        f"{P} | grep -e x",
+        f"{P} | head -n 5",
+        f"{P} | cut -d: -f1",
+        f"{P} | sort -k2 -n",
+        f"{P} | uniq -w 3",
+        f"{P} | sort -t: -k2",
+    ]
+    for cmd in benign:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
 
 def test_filter_refusal_named_before_run(tmp_path):
     # the NAMED refusal surfaces on the actual run path too — the startup
