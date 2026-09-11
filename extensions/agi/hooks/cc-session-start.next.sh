@@ -227,8 +227,8 @@ fi
 # bootstrap-block reader emits it here as ONE small block, so a successor
 # wakes KNOWING its state and spends zero tool calls deriving it. Injected
 # when — and only when — the record exists for the seat AND is not stale
-# (`_bootstrap_stale`: a measured fact not at HEAD is refused, never
-# injected). A seat is named by AGI_SEAT (set by the spawner for a seat
+# (`_bootstrap_stale`: a measured fact not at HEAD is MARKED stale per its
+# `fact_bounds` entry and still emitted, never withheld). A seat is named by AGI_SEAT (set by the spawner for a seat
 # session); with no AGI_SEAT this is a silent no-op, exactly like every
 # other optional section of this hook. rotate.py returns 0+block on emit,
 # 1+silence on refuse — SILENCE is the safe direction (no stale state, no
