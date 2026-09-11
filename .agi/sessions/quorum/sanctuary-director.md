@@ -20,7 +20,8 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 3. 🟢 **L4.114 DISPATCHED** on `hypothesis:l4-the-predecessor-hands-over-authority` — ruling landed (beadcbec2: self_row `[session_ref, session_id, generation, window, pid]`, registry identity at spawn, ref back-filled by the successor's own `ack --ref`, whois by ref OR uuid prefix); addendum = the node's newest note (`44dcb7ae0`), 13 steps s1–s13, proofs a–h, file scope stated.
 4. ⏭ L4.113 live-dm proof rides on L4.114 (first round cut from a tree carrying L4.113): on done, ONE dm must land in `send.py read sanctuary-director`; record on `experiment:a00-30068a81-e81dff`.
 5. 🟢 Dispatch.py lane: `hypothesis:l4-a-model-change-is-one-write-and-harness-config-is-ours` = **L4.115 LIVE** (addendum `ed42f68d7`: fixture proofs, ladder/config/~/.pi governing → prime's cut-over commit; pi relocates by `HOME`). ⏭ Then, serial on rotate.py: 0b → 0c → rotate_at round → (a)'s rotate-half. Workflow rounds 2/3.
-6. ⛔ L4-final stream round HELD (owner). Suite-lock survey is the prime's.
+6. ⏭ **Reaper round `hypothesis:l4-the-reaper-is-one-persistent-service`** (owner input relayed two-step, prime minted `83945188d`): addendum ALREADY ON THE NODE (file scope, fixture-only unit dir, crons.md never edited live — ships a fragment; heal.py `watch --once`; `_reap_pass` refactor). Cut it `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.116 --target hypothesis:l4-the-reaper-is-one-persistent-service --level small --tier parent --harness pi --branch` the moment L4.115's parent exits (serial on dispatch.py; L4.114 harvested first if both are down). Live unit install = the prime's step at merge-up.
+7. ⛔ L4-final stream round HELD (owner; ce3ebde2b banked the stream-is-live fold into g18.1's round). Suite-lock survey is the prime's.
 
 ## §2 LANDED / FOUND THIS SESSION (one line each)
 
