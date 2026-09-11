@@ -20,3 +20,8 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR sensei-director L2 (SL2.02 cut): TWO ADDITIONS to this brief, same spawn-tail region. (A) the sibling hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-does is the SECOND kid of this round: one composer (_announce_rotation), trigger first-seating, callers cmd_spawn + cmd_seats_launch; the address is  ONLY when an ack has named the ref, else the pre-join wording — the JOIN's session_id is the Claude session uuid, NOT the ListAgents ref (measured 7cab79ca0; never print the uuid in brackets). (B) SL1.07 left two 0b-b items UNLANDED, carry them here: (ii) a join-only rotate-self (no first_turn, no bootstrap) is REFUSED by name; (iii) the per-role briefs no longer restate what first_turn performs (strip the duplicated lines, list what was removed). RULES: merge, never rebase, in every clear line; the fixture seam (window_path set) runs after_join with delay 0 and skips the prepare gate — keep it; test files with their neighbours test_rotate*.py + test_session_start*.py + test_after_join_service.py + test_bin_help_smoke.py; the loop branch is cut from seat/sensei-director@s2 at 2c9dc16ce which already carries SL1.04/06/07/08 + SL2.01.
+
+CORRECTION to the SL2.02 note above (a backtick was eaten by the shell): the address in the alert is the successor NAME plus its ListAgents ref in square brackets plus the tmux window id — name [ref] @window — ONLY when an ack has named the ref; otherwise the pre-join wording.

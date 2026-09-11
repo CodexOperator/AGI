@@ -1721,6 +1721,15 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
             print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+        # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
+        # call left above the wake floor was a fetch + behind check, because
+        # F9's "the refusal IS the behind check" was not trusted. The record
+        # read prints it instead, from the tree as it stands (no fetch: what
+        # the seat's own git knows now), n/a when git cannot answer.
+        behind = _git_count_maybe(root, "rev-list", "--count",
+                                  "HEAD..origin/season/s2")
+        print(f"behind origin/season/s2: "
+              f"{'n/a' if behind is None else behind}")
         return 0
 
     if getattr(args, "seats", False):
@@ -2651,6 +2660,9 @@ def _successor_address(name: str, ref: str = "",
     appended only when a tmux `@<N>` is actually known (the internal-seam
     path has none).
     """
+    # a tmux window id already carries its `@` (`@291`); never double it
+    # (Sensei 182119Z audit: the live alert read `@@291`).
+    window = str(window or "").lstrip("@")
     if ref:
         addr = f"{name} [{ref}]"
         if window:
@@ -3214,6 +3226,16 @@ def _subheader_in_body(body: str, token: str) -> int | None:
     return None
 
 
+STOPS_TITLE_TOKENS = ("where it stops", "next command")
+
+
+def _is_stops_title(header: str) -> bool:
+    """A header names the where-it-stops slot by TITLE: 'where it stops' or
+    its synonym 'next command' (case-insensitive)."""
+    h = header.lower()
+    return any(tok in h for tok in STOPS_TITLE_TOKENS)
+
+
 def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
     """Where the where-it-stops slot lives in `sections` (a `_split_card_
     sections` list). Returns `(section_idx, sub)` where `sub == -1` means the
@@ -3226,10 +3248,15 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
       3. the legacy PRIME fallback: a `## ` header carrying the §3 numeral
          (`## §3 🔴 NEXT COMMAND` has no title, but is the next-command slot).
     Never numerals ahead of titles — the sensei-director §3 is NEVER TOUCH."""
+    # "next command" is the same slot under the Prime's and the Sensei's
+    # titles (`## §3 🔴 NEXT COMMAND`, `## §5 🔴 NEXT COMMAND — the loop …`);
+    # a title synonym, keyed ahead of any numeral (Sensei 18:29Z: the §5
+    # card refused as 'no where-it-stops slot').
     top = [(i, -1) for i, (h, _) in enumerate(sections)
-           if "where it stops" in h.lower()]
+           if _is_stops_title(h)]
     sub = [(i, j) for i, (_, b) in enumerate(sections)
-           if (j := _subheader_in_body(b, "where it stops")) is not None]
+           if (j := _subheader_in_body(b, "where it stops")) is not None
+           or (j := _subheader_in_body(b, "next command")) is not None]
     if len(top) + len(sub) > 1:
         return "ambiguous"
     if len(top) == 1:
@@ -3483,11 +3510,29 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
                   f"sections, ambiguous; refusing — {found}.", file=sys.stderr)
             return 2
         if len(state_idx) == 0:
-            found = " / ".join(h for h, _ in sections)
-            print(f"ERR: handoff --driven finds no STATE section (declared "
-                  f"title, not §0) to drive; refusing — found: "
-                  f"{found or '(none)'}.", file=sys.stderr)
-            return 2
+            # A card that never declared a STATE section (the Sensei's:
+            # §0 WHO YOU ARE … §5 NEXT COMMAND … §6 BANKED) GAINS one — the
+            # driven block is measured values, so it is inserted ahead of
+            # the next-command section (or appended when there is none),
+            # under a header the NEXT run keys on by title. Never guess §0
+            # by numeral: on that card §0 is identity (Sensei 18:29Z asked
+            # for '§0 by prefix'; it would have overwritten its own §0).
+            insert_at = (stops[0] if isinstance(stops, tuple)
+                         else len(sections))
+            # no numeral on an inserted header: the card already has a §0
+            # (identity there), and the next run keys on the TITLE
+            inserted = _state_header(seat, facts).replace(
+                "## §0 STATE", "## 🔴 STATE", 1)
+            sections = (list(sections[:insert_at])
+                        + [(inserted, "")]
+                        + list(sections[insert_at:]))
+            state_idx = [insert_at]
+            stops = _locate_where_it_stops(sections)
+            banked = _locate_banked(sections)
+            nxt = (sections[insert_at + 1][0]
+                   if insert_at + 1 < len(sections) else "the end")
+            print(f"handoff --driven: no STATE section declared; inserting "
+                  f"one ahead of {nxt}.", file=sys.stderr)
         if isinstance(stops, str):
             print("ERR: handoff --driven finds an ambiguous where-it-stops "
                   "slot; refusing rather than guessing.", file=sys.stderr)
@@ -3495,7 +3540,8 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         if stops is None:
             found = " / ".join(h for h, _ in sections)
             print("ERR: handoff --driven finds no where-it-stops slot (no "
-                  "'where it stops' title and no §3 numeral) to fill; "
+                  "'where it stops' / 'next command' title and no §3 "
+                  "numeral) to fill; "
                   f"refusing — found: {found or '(none)'}.", file=sys.stderr)
             return 2
         if banked == "ambiguous":
@@ -6264,6 +6310,33 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+#: porcelain paths the checklist never counts as the seat's dirt: written by
+#: the comms layer and the rotation sequence as a side effect of every dm and
+#: every rotation, committed by grid_sync (not by any seat).
+PREPARE_CHURN_PREFIXES = (".agi/comms/",)
+#: the rotation records + sequence.json: written by rotate-self / the loop
+#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
+#: five uncommitted records blocked a rotate-self with 0 modified files).
+PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
+
+
+def _prepare_churn_path(porcelain_line: str) -> bool:
+    """True when a `git status --porcelain` line -- modified OR untracked --
+    names cron-owned churn rather than a file the seat changed:
+    `.agi/comms/**` (send.py writes a dm file per pair as dms flow) and
+    `.agi/sessions/rotations/*.json` (the records + sequence.json). Untracked
+    files elsewhere still count: a new test file never `git add`-ed is
+    exactly the stranded work the captive exists to name. Renames
+    (`R old -> new`) are judged on the new path."""
+    path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1]
+    path = path.strip().strip('"')
+    if path.startswith(PREPARE_CHURN_PREFIXES):
+        return True
+    return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
+
+
 def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
@@ -6283,7 +6356,14 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # The clear command names YOUR OWN paths -- `git add -A` is forbidden in
     # this tree (parallel agents share it; it has swept a second agent's
     # half-written node and a human's uncommitted edits into one commit).
-    checks.append((bool(porcelain), "dirty tree",
+    # Cron-owned churn is not the seat's dirt (Sensei 18:26Z, measured on a
+    # MAIN-checkout seat: the checklist blocked on `.agi/comms/season-2/dm/
+    # *.md`, which send.py writes as dms flow -- the seat's own included --
+    # and `.agi/sessions/rotations/sequence.json`; grid_sync commits both,
+    # a worktree seat never sees them). Those paths are excluded by name.
+    dirty = [ln for ln in (porcelain or [])
+             if ln.strip() and not _prepare_churn_path(ln)]
+    checks.append((bool(dirty), "dirty tree",
                    "git commit -m '<msg>' -- <the files you changed>"))
 
     # 3 behind origin/season/s2 (N commits)
@@ -6308,7 +6388,22 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # handoff writer use (hypothesis:l4-the-driven-handoff-writer-keys-on-
     # declared-titles-and-writes-the-seats-own-card).
     card = _own_card_path(root, seat)
-    last_ts = _git_count_maybe(root, "log", "-1", "--format=%ct")
+    # "Older than the last commit" means the last commit that is WORK: a
+    # merge from origin/season/s2 (a sync) is not, a commit of cron-owned
+    # churn (comms dms, rotation records) is not, and the commit that
+    # committed the card itself is not (Sensei 18:29Z: two porcelain syncs
+    # aged the card and blocked the rotation). Measured at the repo top so
+    # engine edits under extensions/ count, not only the graph dir.
+    top = _git_toplevel(root) or root
+    try:
+        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
+    except (ValueError, OSError):
+        card_rel = None
+    spec = ["log", "-1", "--no-merges", "--format=%ct", "--", ".",
+            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
+    if card_rel:
+        spec.append(f":(exclude){card_rel}")
+    last_ts = _git_count_maybe(top, *spec)
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
     checks.append((card_stale, "card older than last commit",
