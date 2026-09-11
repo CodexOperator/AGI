@@ -273,7 +273,7 @@ def _shell_out_write(root: Path, node_id: str,
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(root))
     if result.returncode != 0:
         print(f"ERR: write.py failed for {node_id}: {result.stderr.strip()}",
-              file=sys.stderr)
+              )
     return result.returncode
 
 
@@ -416,7 +416,7 @@ def cmd_judge(root: Path, args) -> int:
     if report_type not in report_types:
         print(f"ERR: {report_id} has type {report_type!r}, not a report type "
               f"(known: {', '.join(sorted(report_types))}). Refusing to judge.",
-              file=sys.stderr)
+              )
         return 1
 
     tier_num = tier_map.get(report_type, -1)
@@ -455,7 +455,7 @@ def cmd_judge(root: Path, args) -> int:
 
     if not final_against:
         print(f"ERR: no plan parent found for {report_id} (and --against not given)",
-              file=sys.stderr)
+              )
         return 1
 
     # Load the plan node to derive the lens
@@ -542,7 +542,7 @@ def cmd_judge(root: Path, args) -> int:
             if res.returncode != 0:
                 print(f"ERR: audience prime failed: "
                       f"{res.stderr.strip() or res.stdout.strip()}",
-                      file=sys.stderr)
+                      )
                 return 1
             if res.stdout.strip():
                 print(res.stdout.strip())
@@ -612,7 +612,7 @@ def cmd_judge(root: Path, args) -> int:
 
     if not lens_id:
         print(f"WARN: lens not derived — plan node {final_against} has no goal/vision parent",
-              file=sys.stderr)
+              )
 
     return 0
 
@@ -915,7 +915,7 @@ def cmd_rollover(root: Path, args) -> int:
         sources = _load_vision_sources(visions_from)
         if not sources:
             print("ERR: no vision source files read from --visions-from",
-                  file=sys.stderr)
+                  )
             return 1
         for s in sources:
             nid = f"vision:{s['slug']}"
@@ -1015,7 +1015,7 @@ def cmd_rollover(root: Path, args) -> int:
                         per_town[town] = per_town.get(town, 0) + 1
                 else:
                     print(f"ERR: {nid} not minted ({res.status}: {res.reason})",
-                          file=sys.stderr)
+                          )
             if not minted and not refused:
                 print("no new visions minted (all already exist or files missing)")
     finally:
@@ -1050,7 +1050,7 @@ def cmd_rollover(root: Path, args) -> int:
             capture_output=True, text=True)
         if brc.returncode != 0:
             print(f"ERR git checkout -b {branch_name}: {brc.stderr.strip()}",
-                  file=sys.stderr)
+                  )
             return 1
         print(f"opened branch {branch_name}")
 
@@ -1238,10 +1238,26 @@ def cmd_merge_up(root: Path, args) -> int:
         print(town_gate, file=sys.stderr)
         return 1
 
-    base = (args.target
-            or _town_base(Path(root) / "nodes", _resolve_round_town(root, args))
-            or _recorded_field(record_path, "base_branch")
-            or _current_branch(git_root))
+    target = args.target or None
+    recorded = _recorded_field(record_path, "base_branch")
+    rt = _resolve_round_town(root, args)
+    town = _town_base(Path(root) / "nodes", rt)
+    # hypothesis:l4-town-base-honours-the-recorded-base-branch -- an explicit
+    # --target is first (explicit beats recorded); a RECORDED base_branch
+    # names the round's own rung and beats the town base (regression: the
+    # town base preceded it, so a core-town round with a record merged
+    # straight into its town/season branch, skipping the rung). The town base
+    # is the fallback for a round with no record; git's current branch is
+    # last. The print names WHICH base was chosen and WHY (its source).
+    if target:
+        base, src = target, "target"
+    elif recorded:
+        base, src = recorded, "record"
+    elif town:
+        base, src = town, "town"
+    else:
+        base, src = _current_branch(git_root), "current"
+    print(f"base {base} from {src} (target|record|town|current)")
     if not base:
         print("ERR: cannot determine a base branch (detached HEAD?); "
               "pass --target", file=sys.stderr)
@@ -1282,7 +1298,7 @@ def cmd_merge_up(root: Path, args) -> int:
     mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
     if mg.returncode != 0:
         print(f"ERR merge --no-ff {branch}: {mg.stderr.strip()}",
-              file=sys.stderr)
+              )
         return 1
     # Never claim the merge before its commit exists -- a pretence of green is
     # indistinguishable from a real green, which is why the old success line
@@ -1298,7 +1314,7 @@ def cmd_merge_up(root: Path, args) -> int:
               f"merge aborted, branch {branch} left in place")
         if ab.returncode != 0:
             print(f"  (warn: git merge --abort failed: {ab.stderr.strip()})",
-                  file=sys.stderr)
+                  )
         return 1
 
     # Green: finalize the merge commit (default merge message, two parents).
@@ -1315,7 +1331,7 @@ def cmd_merge_up(root: Path, args) -> int:
         if still_merging:
             print(f"ERR finalize merge commit: "
                   f"{cmt.stderr.strip() or '(no stderr from git)'}",
-                  file=sys.stderr)
+                  )
             return 1
         # The merge actually landed; git merely mis-reported. Say so rather
         # than cry wolf and strand the worktree on a success.
