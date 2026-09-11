@@ -702,7 +702,7 @@ def vision_town_of(fm: dict | None) -> str:
     return str(t).strip() if isinstance(t, str) and t.strip() else "core"
 
 
-def count_visions_per_town(nodes_dir) -> dict:
+def count_visions_per_town(nodes_dir, *, season=None) -> dict:
     """Map town -> number of vision nodes (a vision's `town:` cell, default core).
 
     The primitive both the season status and the vision mint gate call -- one
@@ -721,6 +721,11 @@ def count_visions_per_town(nodes_dir) -> dict:
     season differing from current is excluded. On the real graph every vision
     carries a season, so an old season's whole cohort drops out at rollover
     instead of pinning the town at its cap.
+
+    Optional `season=` (keyword-only) overrides the scope season directly,
+    e.g. cmd_rollover passing season=new_season so the count reflects the
+    season being entered, not the ladder's still-current one. Default None
+    keeps the behaviour above byte-for-byte for every existing caller.
     """
     counts: dict[str, int] = {}
     if not nodes_dir:
@@ -728,7 +733,8 @@ def count_visions_per_town(nodes_dir) -> dict:
     vdir = Path(nodes_dir) / "vision"
     if not vdir.is_dir():
         return counts
-    season = read_ladder_season(nodes_dir)
+    if season is None:
+        season = read_ladder_season(nodes_dir)
     for f in sorted(vdir.glob("*.md")):
         fm = _read_frontmatter(f)
         if not fm or fm.get("type") != "vision":
