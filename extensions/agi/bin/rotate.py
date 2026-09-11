@@ -1963,7 +1963,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (write + print, no commit). Nothing written -> nothing to
             # commit.
             if do_commit and not already:
-                print(_ack_commit_seats(id_root, seat, args, ref))
+                # SL2#9 seam: L4.291's id_root (the identity root, MAIN) with
+                # SL5.08's failure path (stderr + unstage + exit 3).
+                _ok, _out = _ack_commit_seats(id_root, seat, args, ref)
+                if _ok:
+                    print(_out)
+                else:
+                    # a failed ack commit (git add OR git commit) printed its
+                    # error here, on STDERR, and UNSTAGED the row; cmd_ack
+                    # exits 3 so the failure is visible and the NEXT ack's
+                    # dirty gate (_ack_seats_dirty) finds seats.md clean
+                    # again, not staged.
+                    print(_out, file=sys.stderr)
+                    return 3
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -5101,7 +5113,7 @@ def _ack_seats_dirty(root: Path, top: Path) -> str | None:
 
 
 def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
-                      ref: str) -> str:
+                      ref: str) -> tuple[bool, str]:
     """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
     row rewrite it just back-filled: `git add` seats.md + ONE commit whose
     message is a single line
@@ -5111,22 +5123,31 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     the successor never re-reads. A back-fill that changed nothing (the row
     already carried the ref) commits nothing and says so in one line. The
     last printed line is the exact `git push` command — printed, never run.
-    Returns one multi-line outcome string (or "" when it did nothing)."""
+
+    Returns (ok, out). ok True -> out is the multi-line success string for
+    STDOUT and the row is committed. ok False -> EITHER `git add` OR
+    `git commit` failed: the row was UNSTAGED with `git reset -q -- <rel>`
+    (the working tree keeps the back-filled row) and out is the error line
+    the caller must PRINT TO STDERR and pair with a non-zero (3) exit: a
+    failed ack commit must never leave seats.md staged — that is exactly
+    the dirt that would refuse the NEXT ack."""
     top = _git_toplevel(root)
     if top is None:
-        return ("ack: no git repo — row written, not committed "
+        return (True, "ack: no git repo — row written, not committed "
                 "(a gitless worktree has no commit to make)")
     seats = _ack_seats_path(root)
     rel = os.path.relpath(seats, top)
     add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        return f"ERR: git add {rel!r} failed: {add.stderr.strip()}"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git add {rel!r} failed: {add.stderr.strip()}")
     cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
                              "--", rel], capture_output=True, text=True)
     diff = cached.stdout if cached.returncode == 0 else ""
     if not diff.strip():
-        return "ack: no change to seats.md — nothing committed"
+        return (True, "ack: no change to seats.md — nothing committed")
     lines = []
     for ln in diff.splitlines():
         if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
@@ -5142,9 +5163,11 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
                          msg, "--", rel], capture_output=True, text=True)
     if rc.returncode != 0:
-        return f"ERR: git commit failed: {rc.stderr.strip()}"
-    return "ack: committed own row write (" + str(rel) + "):\n" + \
-        "\n".join(lines) + f"\ngit -C {top} push"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git commit failed: {rc.stderr.strip()}")
+    return (True, "ack: committed own row write (" + str(rel) + "):\n"
+            + "\n".join(lines) + f"\ngit -C {top} push")
 
 
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
