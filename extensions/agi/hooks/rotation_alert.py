@@ -8,7 +8,7 @@
 # loses as it fills up (it proved out twice: gen IV ran 67% past its line
 # believing it was under it; gen III closed at 0.56 and wrote a worse brief).
 #
-# This hook is a SessionStart side-channel that speaks into the session's OWN
+# This hook is a UserPromptSubmit side-channel that speaks into the session's OWN
 # turn: the hook runner hands it a JSON payload on stdin carrying that
 # session's own transcript path and session id, so it structurally cannot
 # capture another seat's transcript the way the fail-open meter did
@@ -38,19 +38,21 @@
 #       break one.
 #
 # REGISTRATION (do NOT install — that is the owner's call, and registering it
-# globally changes every session on this box). To enable, add a SessionStart
-# entry pointing at a thin wrapper that passes stdin through:
+# globally changes every session on this box). The Prime INSTALLED this hook
+# under `UserPromptSubmit` — copy the shape that is ACTUALLY in
+# `~/.claude/settings.json` and never edit that file:
 #
-#    "SessionStart": [ { "hooks": [
+#    "UserPromptSubmit": [ { "hooks": [
 #        { "type": "command",
 #          "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/rotation_alert.py",
-#          "timeout": 10 } ] } ]
+#          "timeout": 10,
+#          "statusMessage": "agi rotation meter..." } ] } ]
 #
 # The hook must receive the runner's JSON on stdin UNCHANGED. (Claude Code's
 # own `cc-session-start.sh` in this repo is a bash sibling and reads env vars
 # instead; this one is stdin-driven because the rotation alert needs the
 # handed transcript path, which env vars do not carry.)
-"""SessionStart rotation-alert hook — stdin JSON in, warning text out."""
+"""UserPromptSubmit rotation-alert hook — stdin JSON in, warning text out."""
 
 import json
 import os
@@ -89,6 +91,85 @@ def _seat_from_cwd(cwd: str) -> str | None:
         if part.startswith("seat-"):
             return part[len("seat-"):] or None
     return None
+
+def _seat_rows(root: Path) -> list:
+    """Rows of the `config:seats` node — `.agi/nodes/.geometry/seats.md`.
+
+    The node's frontmatter carries a YAML `seats:` key whose values are inline
+    JSON objects, one per seat. We read what `dispatch.py --seat` and
+    `rotate.py meter --seat` read — no second copy of the registry.
+    """
+    path = root / "nodes" / ".geometry" / "seats.md"
+    if not path.is_file():
+        return []
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    rows = []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s.startswith("- "):
+            continue
+        try:
+            rows.append(json.loads(s[2:]))
+        except (json.JSONDecodeError, ValueError):
+            continue
+    return rows
+
+
+def _seat_line(root: Path, cwd: str, ladder_default: float):
+    """(seat, threshold, source_label) — the line a seat is measured against.
+
+    Item 4 of this round: a seat rotates at its OWN `rotate_at` from its
+    `config:seats` row, not at the ladder's `director_rotate_at`. The seat is
+    identified by `AGI_SEAT` when present, else by the cwd sitting under a
+    row's `worktree` (derived from the `seat-<name>` directory). A row that
+    declares `rotate_at` wins over the ladder default — and the caller says
+    which source won in the emitted message. Threshold is int/float-typed from
+    the row; a row that fails to parse falls through to the default.
+    """
+    seat = os.environ.get("AGI_SEAT")
+    if seat is None:
+        seat = _seat_from_cwd(cwd)
+        if seat is None:
+            # Fidelity against the claim's word "the cwd equals a row's
+            # worktree": a row may name a worktree that does not follow the
+            # `seat-<name>` convention, so a path-match on the row's OWN
+            # `worktree` field beats the convention parse when it exists.
+            cwd_res = Path(cwd).resolve()
+            for row in _seat_rows(root):
+                wt = row.get("worktree")
+                if isinstance(wt, str) and wt:
+                    try:
+                        base = root.parent if wt.startswith(".agi/") else root
+                        wt_res = (base / wt).resolve()
+                    except (OSError, TypeError):
+                        continue
+                    if cwd_res.is_relative_to(wt_res) or cwd_res == wt_res:
+                        seat = row.get("name")
+                        break
+    if seat:
+        for row in _seat_rows(root):
+            if row.get("name") == seat and "rotate_at" in row:
+                try:
+                    rt = float(row["rotate_at"])
+                except (TypeError, ValueError):
+                    break
+                # 🔴 NON-POSITIVE is the same as MISSING. A rotate_at of 0 (or
+                # negative) must fall through to the ladder default, never
+                # become threshold 0.0: `over_line = fraction >= 0.0` is then
+                # ALWAYS True and `_emit` computes `fraction / threshold` →
+                # **ZeroDivisionError**, a traceback on every prompt for that
+                # seat (P6: fail closed, never emit a confident wrong fraction
+                # — and a crash is the loud wrong way). Threshold must never
+                # reach the emit path as <= 0.
+                if rt > 0:
+                    return (seat, rt,
+                            f"config:seats {seat}.rotate_at")
+                break
+    return seat, ladder_default, "ladder.director_rotate_at"
+
 
 #: Headline used at and above the rotation line (fires every call).
 AT_OR_OVER_TITLE = "## ⚠️  ROTATION OWED NOW — at or over the line"
@@ -281,17 +362,23 @@ def main(argv: list[str] | None = None) -> int:
     ladder = _load_ladder(root)
     try:
         window = int(ladder.get("director_context_tokens") or 0)
-        threshold = float(ladder.get("director_rotate_at") or 0.0)
+        ladder_default = float(ladder.get("director_rotate_at") or 0.0)
     except (TypeError, ValueError):
         window = 0
-        threshold = 0.0
-    if window <= 0 or threshold <= 0:
+        ladder_default = 0.0
+    if window <= 0 or ladder_default <= 0:
         print("rotation-alert: fail-closed: ladder declares no "
               f"director_context_tokens/window (got {ladder.get('director_context_tokens')!r}) and no "
               f"director_rotate_at (got {ladder.get('director_rotate_at')!r}); "
               "refusing to assume a denominator. Emitting no rotation warning.",
               file=sys.stderr)
         return 4
+    # The line a seat is measured against is the seat's OWN rotate_at from its
+    # config:seats row when the seat is identifiable (AGI_SEAT, else the cwd
+    # under a row's worktree), falling back to the ladder's
+    # director_rotate_at — and the emitted message SAYS which source won
+    # (hypothesis:l4-a-seat-rotates-at-its-own-line).
+    seat, threshold, threshold_source = _seat_line(root, cwd, ladder_default)
 
     try:
         used, seen = _latest_usage(tp)
@@ -336,7 +423,6 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print("```bash")
         bin_dir = (Path(__file__).resolve().parents[1] / "bin")
-        seat = _seat_from_cwd(cwd)
         pin = _canonical_pin(root, seat) if seat else None
         if pin is not None:
             print(ROTATE_CMD.format(bin=bin_dir, pin=pin, transcript=transcript))
@@ -347,8 +433,9 @@ def main(argv: list[str] | None = None) -> int:
         print("(Fraction computed from `input_tokens + cache_read_input_tokens + "
               "cache_creation_input_tokens` on the NEWEST assistant message of the "
               f"handed transcript — a level, not a running total: {used} tokens of "
-              f"a {window}-token window = {fraction:.4f}, threshold "
-              f"{threshold:.4f}.)")
+              f"a {window}-token window = {fraction:.4f} of the window = "
+              f"{fraction/threshold:.4f} of the line; threshold {threshold:.4f} "
+              f"from {threshold_source}.)")
         print("---")
         return 0
 
@@ -370,9 +457,10 @@ def main(argv: list[str] | None = None) -> int:
                                               "fired": sorted(fired_bands)}))
         except OSError:
             pass
-        pct = int((b_frac * threshold) * 100)
+        pct = int(b_frac * 100)
         return _emit(BENEATH_TITLE,
-                     f"Approaching rotation ({fraction:.4f} of the line). "
+                     f"Approaching rotation ({fraction:.4f} of the window = "
+                     f"{fraction/threshold:.4f} of the line). "
                      f"Crossed band {pct}% of threshold.")
 
     # Already fired this band this session — silence (P3).

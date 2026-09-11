@@ -299,3 +299,147 @@ def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
         ns = parser.parse_args(argv[2:])      # drop "python3 <path>"
         assert ns.session_log == str(tp)
         assert ns.pin and not str(ns.pin).startswith("--")
+
+# --------------------------------------------------------------------------
+# Round SL1.05 — the hook SAYS WHAT IT MEASURES (hypothesis:l4-the-rotation-
+# alert-hook-says-what-it-measures). Build order, not measurement: the
+# fixtures (a)-(d) FAIL against the pre-fix bytes and pass on the built ones.
+# --------------------------------------------------------------------------
+
+# --- (a) registration text names UserPromptSubmit, never SessionStart -------
+def test_a_registration_names_userpromptsubmit():
+    src = _HOOK.read_text(encoding="utf-8")
+    # The Prime INSTALLED the hook under UserPromptSubmit (16:21Z). The
+    # registration comment and docstring must name the hook point that is
+    # actually wired, not the SessionStart it was drafted for.
+    assert "UserPromptSubmit" in src
+    assert "SessionStart" not in src
+
+
+# --- (b) the printed band pct is the band's OWN fraction of threshold -------
+def _fraction_test(graph, transcript, session, state_dir, run_hook, monkeypatch, capsys):
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    return run_hook(_payload(graph, transcript, session), state_dir, monkeypatch, capsys)
+
+
+def test_b_band_pct_is_own_fraction(agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    # threshold 0.25, window 100k. band 0.55 -> 0.1375; band 0.40 -> 0.10.
+    t40 = tmp_path / "b40.jsonl"
+    _write_transcript(t40, 10_000)          # fraction 0.10 -> crossed band 0.40
+    code, out, err = _fraction_test(agi_project, t40, "sess-b40",
+                                    tmp_path / "state-b40", run_hook,
+                                    monkeypatch, capsys)
+    assert code == 0
+    # int(0.40*threshold*100)=18 on the old bytes; int(0.40*100)=40 on the fix.
+    assert "Crossed band 40% of threshold" in out, out
+
+    t55 = tmp_path / "b55.jsonl"
+    _write_transcript(t55, 16_000)          # fraction 0.16 -> crossed band 0.55
+    code, out, err = _fraction_test(agi_project, t55, "sess-b55",
+                                    tmp_path / "state-b55", run_hook,
+                                    monkeypatch, capsys)
+    assert code == 0
+    assert "Crossed band 55% of threshold" in out, out
+    assert "Crossed band 18" not in out
+
+
+# --- (c) the fraction line names BOTH the window and the line ---------------
+def test_c_fraction_line_names_window_and_line(agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    tp = tmp_path / "c.jsonl"
+    _write_transcript(tp, 10_000)          # fraction 0.10 = 0.40 of the line
+    code, out, err = _fraction_test(agi_project, tp, "sess-c", tmp_path / "state-c",
+                                    run_hook, monkeypatch, capsys)
+    assert code == 0
+    assert "of the window" in out, out
+    assert "of the line" in out, out
+    # the arithmetic is explicit, not just the words: 0.10/0.25 -> .4000
+    assert "0.1000 of the window" in out, out
+    assert "0.4000 of the line" in out, out
+
+
+# --- (d) a fixture worktree seat is measured against its OWN rotate_at ------
+def test_d_seat_measured_at_own_rotate_at(tmp_path, run_hook, monkeypatch, capsys):
+    """A seat whose config:seats row declares rotate_at 0.4 is measured at 0.4,
+    not at the ladder's director_rotate_at 0.47 — and the emitted message names
+    the row that won."""
+    outer = tmp_path / "outer"
+    graph = outer / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n"
+        "  - {\"name\": \"sensei-director\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/seat-sensei-director\", "
+        "\"rotate_at\": 0.4}\n---\n")
+
+    # cwd sits under the seat's worktree -> the seat is identifiable by path.
+    seat_cwd = graph / "worktrees" / "seat-sensei-director"
+    seat_cwd.mkdir(parents=True, exist_ok=True)
+
+    tp = tmp_path / "d.jsonl"
+    _write_transcript(tp, 45_000)          # fraction 0.45: >= 0.4, < 0.47
+    state_dir = tmp_path / "state-d"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    code, out, err = run_hook(_payload(graph, tp, "sess-d", cwd=str(seat_cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    # 0.45 >= 0.4 => ROTATION OWED proves it fired against the SEAT's 0.4,
+    # not the ladder's 0.47 (0.45 < 0.47 would only be "approaching").
+    assert "ROTATION OWED" in out, out
+    # the emitted message NAMES the row that supplied the threshold.
+    assert "config:seats" in out and "sensei-director" in out, out
+    assert "ladder.director_rotate_at" not in out, out
+
+
+# --- (e) a seat rotate_at of 0 is treated as MISSING, not as threshold 0 ----
+def test_e_nonpositive_seat_rotate_at_falls_back_to_ladder(tmp_path, run_hook, monkeypatch, capsys):
+    """RED-FIRST guard for the ZeroDivisionError. A config:seats row whose
+    `rotate_at` is 0 (or negative) must NOT become threshold 0.0.
+
+    On the pre-fix bytes `_seat_line()` returns float(0) unconditionally;
+    `over_line = fraction >= 0.0` is True and `_emit` computes
+    `fraction / threshold` -> **ZeroDivisionError**, a traceback on every
+    prompt for that seat. The seat's own row must lose to the ladder default
+    exactly the way a MISSING row does, and the message must say the ladder
+    won.
+    """
+    outer = tmp_path / "outer"
+    graph = outer / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    # The seat's row declares rotate_at 0 — a real value that must be treated
+    # as missing, never as a 0.0 threshold.
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n"
+        "  - {\"name\": \"sensei-director\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/seat-sensei-director\", "
+        "\"rotate_at\": 0}\n---\n")
+
+    seat_cwd = graph / "worktrees" / "seat-sensei-director"
+    seat_cwd.mkdir(parents=True, exist_ok=True)
+
+    tp = tmp_path / "e.jsonl"
+    _write_transcript(tp, 25_000)          # fraction 0.25: >=0.188 (band 0.40)
+                                             # yet < 0.47, so it must fire as
+                                             # "approaching" against the LADDER line
+    state_dir = tmp_path / "state-e"
+    state_dir.mkdir(exist_ok=True)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    # (i)+(ii) must NOT raise / crash, and (iii) must not collapse to a
+    # 0.0 threshold that forces `over_line` true and divides by zero.
+    code, out, err = run_hook(_payload(graph, tp, "sess-e", cwd=str(seat_cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, (err, out)           # (i) exit 0, not a traceback
+    assert "ZeroDivisionError" not in err
+    assert "Traceback" not in err
+    assert "ROTATION OWED" not in out     # 0.10 < 0.47 -> approaching, not over
+    # the row's 0 was rejected -> the message names the LADDER as the source.
+    assert "ladder.director_rotate_at" in out, out
+    assert "config:seats" not in out, out
