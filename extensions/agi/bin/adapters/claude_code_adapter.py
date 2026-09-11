@@ -544,6 +544,10 @@ def build_command(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    # hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi -- the
+    # project graph root the dispatcher resolved, threaded into the brief so
+    # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
+    project_root: str | Path | None = None,
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -578,6 +582,7 @@ def build_command(
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, source_root=source_root,
         kid_ceiling=kid_ceiling, addendum=addendum,
+        project_root=project_root,
     )
     prompt_file = write_system_prompt(
         sess_dir=sess_dir, context_file=context_file, segments=segments,
