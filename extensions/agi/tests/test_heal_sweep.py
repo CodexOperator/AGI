@@ -29,6 +29,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -109,9 +110,17 @@ def _stamp_round(wt: Path, iter_name: str, agent_id: str, base: str) -> None:
         {"timeout_seconds": 600, "agents": []}))
 
 
-def _home(repo: Path, iter_name: str) -> None:
-    """The round's session dir `come home` to the main checkout."""
-    (_graph(repo) / "sessions" / iter_name).mkdir(parents=True, exist_ok=True)
+def _home(repo: Path, wt: Path, iter_name: str) -> None:
+    """Bring the round's session dir `home` to the main checkout as
+    session-complete leaves it: every source file under the worktree's iter
+    dir present in the main target with EQUAL BYTES. A REAL byte copy
+    (copytree), never a bare empty mkdir -- the sweep's condition (4) is
+    per-source and byte-exact (_sweep_iter_home), so an empty placeholder no
+    longer counts as home (hyp:l4-a-finished-rounds-worktree-is-removed-after-
+    harvest, L4.257)."""
+    src = wt / ".agi" / "sessions" / iter_name
+    target = _graph(repo) / "sessions" / iter_name
+    shutil.copytree(src, target)
 
 
 def _lease(repo: Path, agent_id: str) -> None:
@@ -142,22 +151,22 @@ def four_worktrees(repo_root: Path):
     _sh("git", "-C", str(repo), "merge", "--no-ff", "-q", "-m",
         "merge A", "loop/n-A@2")
     _stamp_round(wt_a, "iter-001", "a00-aaaa11", "season/s2")
-    _home(repo, "iter-001")
+    _home(repo, wt_a, "iter-001")
     # B, C, D cut from the now-merged base.
     wt_b = _cut(repo, "a00-bbbb22", "loop/b-B@2", "season/s2")
     (wt_b / "base.txt").write_text("base\nmodified\n")  # tracked change
     _stamp_round(wt_b, "iter-002", "a00-bbbb22", "season/s2")
-    _home(repo, "iter-002")
+    _home(repo, wt_b, "iter-002")
     wt_c = _cut(repo, "a00-cccc33", "loop/c-C@2", "season/s2")
     _stamp_round(wt_c, "iter-003", "a00-cccc33", "season/s2")
-    _home(repo, "iter-003")
+    _home(repo, wt_c, "iter-003")
     _lease(repo, "a00-cccc33")  # live lease -> kept
     wt_d = _cut(repo, "a00-dddd44", "loop/d-D@2", "season/s2")
     (wt_d / "nodeD.md").write_text("d\n")
     _sh("git", "-C", str(wt_d), "add", "-A")
     _sh("git", "-C", str(wt_d), "commit", "-q", "-m", "round D")
     _stamp_round(wt_d, "iter-004", "a00-dddd44", "season/s2")
-    _home(repo, "iter-004")
+    _home(repo, wt_d, "iter-004")
     return {"a00-aaaa11": wt_a, "a00-bbbb22": wt_b,
             "a00-cccc33": wt_c, "a00-dddd44": wt_d}
 
@@ -251,11 +260,19 @@ def test_sweep_help_exits_zero(repo_root):
 
 
 def test_watch_once_calls_sweep_exactly_once(repo_root, four_worktrees,
-                                             monkeypatch):
+                                             monkeypatch, tmp_path):
     """A `heal.py watch --once` pass runs the sweep exactly once: the
     released (merged+clean+homed) worktree is gone after the single pass, the
-    refused ones still stand."""
+    refused ones still stand. Defence-in-depth: the seat scan reads a real
+    window file (AGI_WINDOW_PATH) and never a tmux subprocess, so this test
+    cannot reach the live session even if the conftest guard is lost."""
     log = _graph(repo_root) / "reaper.log"
+    # Name an empty window file so `_all_windows` reads it, never `tmux
+    # list-windows -a` / `tmux new-window` (see heal.WINDOW_PATH_ENV seam).
+    _wins = tmp_path / "windows"
+    _wins.write_text("@1 nobody\n")
+    monkeypatch.setenv("AGI_WINDOW_PATH", str(_wins))
+    assert heal._all_windows() == [("@1", "nobody")]
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     monkeypatch.setattr(sys, "argv",
                         ["heal.py", "watch", "--root", str(_graph(repo_root)),
@@ -407,15 +424,16 @@ def test_sweep_bring_home_refuses_non_terminal(repo_root, monkeypatch):
     assert "non-terminal" in text
 
 
-def test_sweep_bring_home_never_overwrites_foreign_target(repo_root):
-    """(c) A pre-existing NON-EMPTY main target is NEVER overwritten by the
-    sweep: session-complete (whose authority stays intact) refuses the
-    collision and the foreign bytes are byte-identical after the pass. The
-    sweep's OWN removal verdict here follows the baseline (f) contract 'an
-    on-disk target is home' -- a source-present round with a target already on
-    disk is reachable as home without a home attempt, so the worktree IS
-    reaped (the claim's (c) `refused` expectation is a documented deviation,
-    see the node thought). The foreign BYTES are preserved either way."""
+def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
+                                                           monkeypatch):
+    """(c, RE-PINNED L4.257 to the claim's ORIGINAL (c)) A pre-existing
+    NON-EMPTY main target is never overwritten by the sweep AND the round is
+    REFUSED: a foreign non-empty dir is NOT home (condition (4) is per-source
+    and byte-exact, `_sweep_iter_home`), so the bring-home IS attempted,
+    session-complete (whose authority stays intact) refuses the collision,
+    and the source-holding worktree is left standing with its bytes (the
+    earlier-documented 'deviation' is gone -- an on-disk target is no longer
+    home by is_dir alone)."""
     repo = repo_root
     graph = _graph(repo)
     wt = _cut(repo, "a00-1111aa", "loop/1-A@2", "season/s2")
@@ -424,15 +442,20 @@ def test_sweep_bring_home_never_overwrites_foreign_target(repo_root):
     tgt = graph / "sessions" / "iter-503"
     tgt.mkdir(parents=True, exist_ok=True)
     (tgt / "preexisting.txt").write_text("foreign\n")
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, _ = heal._sweep_finished_worktrees(graph)
     # THE invariant the falsifier names: a non-empty target is never
     # overwritten (session-complete refused the collision).
     assert (tgt / "preexisting.txt").read_text() == "foreign\n", \
         "the foreign target bytes must survive the pass untouched"
-    assert not wt.exists(), (
-        "baseline (f) contract: an on-disk target is home, so the round's "
-        "worktree is reaped; the claim's (c) refusal is not reachable while "
-        "the homed-fixture (f) case must stay removable")
+    # ...AND the foreign dir is NOT home, so the tree is REFUSED, never reaped
+    # with its own unmigrated records.
+    assert (removed, refused) == (0, 1)
+    assert wt.exists(), "the source-holding tree is not home (foreign target)"
+    text = log.read_text()
+    assert "[sweep] refused a00-1111aa: session dir not home" in text
+    assert "target exists" in text
 
 
 def test_sweep_bring_home_branch_round_calls_once(repo_root, monkeypatch):
@@ -586,3 +609,141 @@ def test_sweep_refusal_reason_dead_needle_removed():
     assert h("not every agent record is terminal; round still running") \
         == "home failed", \
         "the dead needle must not get a named tag; only live refusals do"
+
+
+# ---------------------------------------------------------------------------
+# L4.257 — the empty/foreign-clicktive-placeholder DATA-LOSS defect
+# (hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest)
+#
+# Condition (4) used to prove 'the session dir came home' with a bare is_dir()
+# on the main target. An EMPTY pre-created placeholder (dispatch pre-creates
+# one) or a FOREIGN non-empty dir (the OTHER tree's half of a --branch round,
+# or a hand-made dir) both satisfied it, so the bring-home was never attempted
+# and `git worktree remove` reaped the tree WITH ITS OWN UNMIGRATED RECORDS.
+# `home` is now per-source and byte-exact (_sweep_iter_home), so an absent or
+# empty target, or any missing/unequal file, is NOT home and the bring-home
+# runs (session-complete's own guards stay the authority).
+# ---------------------------------------------------------------------------
+
+def _stamp_plain_round(wt: Path, iter_name: str, agent_id: str) -> None:
+    """A round whose manifest has `agents: []` -- session-complete's 'no
+    agents in manifest' REFUSE (un-homeable). Carries the top-level
+    dispatcher agent.json with `base_branch` (the tuple _sweep_worktree_base
+    climbs)."""
+    it = wt / ".agi" / "sessions" / iter_name
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "agent.json").write_text(json.dumps(
+        {"id": agent_id, "status": "done", "base_branch": "season/s2"}))
+    (it / "manifest.json").write_text(json.dumps(
+        {"iter": iter_name, "agents": []}))
+    (it / "output.log").write_text("precious records\n")
+
+
+def test_sweep_empty_target_is_not_home(repo_root, monkeypatch):
+    """(a, FALSIFIER) A merged+clean+past-grace round with an EMPTY main target dir
+    (a pre-created placeholder), whose source is UN-HOMEABLE: NOT home. The
+    bring-home is attempted, session-complete refuses (non-terminal /
+    'no agents in manifest'), the worktree is REFUSED and its records are
+    byte-intact; the empty target is left alone. THE regressed failure: the
+    old bare-is_dir() proof would have reaped this tree with its own
+    unmigrated records."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-eeee55", "loop/e-E@2", "season/s2")
+    _land(repo, wt, "loop/e-E@2")
+    _stamp_plain_round(wt, "iter-601", "a00-eeee55")
+    # main target = an EMPTY pre-created placeholder.
+    tgt = graph / "sessions" / "iter-601"
+    tgt.mkdir(parents=True, exist_ok=True)
+    assert not any(tgt.iterdir()), "fixture: the placeholder is EMPTY"
+
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    src_before = _snapshot(wt / ".agi" / "sessions" / "iter-601")
+
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (0, 1, 0)
+    assert wt.exists(), "the source-holding tree is NOT reaped on an empty hit"
+    assert _snapshot(wt / ".agi" / "sessions" / "iter-601") == src_before, \
+        "the worktree's own records are byte-intact"
+    assert any(tgt.iterdir()) is False, "the empty placeholder is left alone"
+    text = log.read_text()
+    assert "[sweep] refused a00-eeee55: session dir not home" in text
+    assert "non-terminal" in text
+
+
+def test_sweep_empty_target_homes_content_before_removal(repo_root, monkeypatch):
+    """(b) A merged+clean+past-grace round with an EMPTY main target dir but a
+    HOMEABLE source: the dry-run logs homed-would + removed(dry-run), writes
+    NOTHING (target stays empty, worktree stays); the live pass brings the
+    content home byte-equal, removes the source, then removes the worktree,
+    keeping the loop branch."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-ffff66", "loop/f-F@2", "season/s2")
+    _land(repo, wt, "loop/f-F@2")
+    _stamp_complete_round(wt, "iter-602", "a00-ffff66")
+    tgt = graph / "sessions" / "iter-602"
+    tgt.mkdir(parents=True, exist_ok=True)  # EMPTY placeholder
+    assert not any(tgt.iterdir()), "fixture: the placeholder is EMPTY"
+
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    # DRY-RUN: nothing written, would-home + removed(dry-run) logged.
+    removed, refused, kept = heal._sweep_finished_worktrees(graph, dry_run=True)
+    assert (removed, refused, kept) == (1, 0, 0)
+    assert not any(tgt.iterdir()), "dry-run writes nothing under the target"
+    assert wt.exists(), "dry-run removes nothing"
+    assert "[sweep] homed a00-ffff66 iter=iter-602" in log.read_text()
+
+    # LIVE: content comes home byte-equal, source gone, worktree removed.
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (1, 0, 0)
+    assert (tgt / "manifest.json").is_file()
+    assert (tgt / "a00-ffff66" / "agent.json").is_file()
+    assert (tgt / "output.log").read_text() == "round output\n"
+    assert not (wt / ".agi" / "sessions" / "iter-602").exists(), \
+        "source removed from the worktree after homing"
+    assert not wt.exists(), "worktree removed"
+    text = log.read_text()
+    assert "[sweep] homed a00-ffff66 iter=iter-602" in text
+    assert "[sweep] removed a00-ffff66 iter=iter-602 base=season/s2" in text
+    branches = subprocess.run(
+        ["git", "-C", str(repo), "branch", "--list", "loop/f-F@2"],
+        capture_output=True, text=True).stdout
+    assert "loop/f-F@2" in branches, "the loop/ branch is the history, keep it"
+
+
+def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
+    """(d) A target holding a BYTE-EQUAL copy of the source (hand-copied,
+    no session-complete) IS home: the worktree is removed. A target that
+    differs by one byte is NOT home: the bring-home is attempted and refused
+    (non-empty target), the tree stands."""
+    repo = repo_root
+    graph = _graph(repo)
+    # -- home twin: byte-equal copy --
+    wt_a = _cut(repo, "a00-3333cc", "loop/3-C@2", "season/s2")
+    _land(repo, wt_a, "loop/3-C@2")
+    _stamp_complete_round(wt_a, "iter-701", "a00-3333cc")
+    shutil.copytree(wt_a / ".agi" / "sessions" / "iter-701",
+                    graph / "sessions" / "iter-701")
+    # -- foreign twin: one byte differs --
+    wt_b = _cut(repo, "a00-4444dd", "loop/4-D@2", "season/s2")
+    _land(repo, wt_b, "loop/4-D@2")
+    _stamp_complete_round(wt_b, "iter-702", "a00-4444dd")
+    tgt_b = graph / "sessions" / "iter-702"
+    shutil.copytree(wt_b / ".agi" / "sessions" / "iter-702", tgt_b)
+    (tgt_b / "output.log").write_text("foreign byte differs\n")
+
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (1, 1, 0)
+    assert not wt_a.exists(), "byte-equal copy is home -> removed"
+    assert wt_b.exists(), "one-byte-differing target is not home -> refused"
+    assert (tgt_b / "output.log").read_text() == "foreign byte differs\n", \
+        "the differing foreign bytes survive untouched"
+    text = log.read_text()
+    assert "removed a00-3333cc iter=iter-701" in text
+    assert "refused a00-4444dd: session dir not home" in text
