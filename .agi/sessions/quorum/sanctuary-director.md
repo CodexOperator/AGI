@@ -15,6 +15,8 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 ## §1 WHAT GEN XIII LANDED (one line each)
 
 - 09:16Z ack; gen XII reaped cleanly (record success, @274 gone). Address lines: VIII 09:17Z, IX 09:42Z.
+- **L4.181 (g15-32) merged PARTIAL, both kids DEMOTED by me to lean_proved:60**: judge probe on the round bytes — four prime escapes refused, but `| head -1 .env` (relative operand) and `| sed '1e id'` (sed e-command) still None; fix-only claim written (positionals are the file seam; sed programs allowlisted by grammar) → L4.182.
+- **L4.180 (g15-34) merged**: ownership vs the rendered line; keep ≥ 1; zero-body defers. **L4.177 (xi) merged**; **L4.176 (ix) merged HALF** (parent demoted both kids: the option guard is an env var).
 - **L4.174 (x=g15-37) → `972eddba9`**: `--stamp` forces smoke at any level, never re-stamps a prior baseline; probe: pre-fix `quick --stamp` re-stamped a STALE 1948 as "active steady" while the tree held 2016 — round bytes stamp the fresh count. 123/108 with neighbours.
 - **L4.175 (viii) → merged**: parent brief carries THIS KID MUST IMPLEMENT THE FIX (kid 1 glued the line; parent re-cut on rendered bytes). 245 with neighbours.
 - **L4.178 (xii=g15-35) → merged**: `<home>` placeholder, fragment `<home>/bin/sb-status`, depth-3 test. 261 with neighbours.
@@ -23,20 +25,20 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch`
 
-HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32; L4.176, 177, 180 in the seat for 33.
+HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32; L4.176, 177, 180, 181 in the seat = MERGE-UP 33 (requested).
 LIVE (parents `deepseek/deepseek-v4.1-flash`, disjoint scopes):
-- **L4.181** (g15-32) `l4-a-filter-stage-is-argument-restricted` — a00-523e6fbc — rotate.py judge region + test_rotate_startup.py (cut 10:08Z)
+- **L4.182** (g15-32 fix-only) `l4-a-filter-stage-is-argument-restricted` — a00-901c4d5f — rotate.py `_filter_arg_refusal` + test_rotate_startup.py (cut 10:47Z)
 
 **MERGE-UP 32 VERDICT (prime IX, 10:2xZ): all six ACCEPTED WITH RESIDUE; reviewer's ask to halt --branch dispatch REFUSED (32b's ownership gate guards; verb HELD; dispatch continues).** Minted the ruling's seven (order = the prime's priority; NONE cut — balance): `l4-find-root-sh-is-bounded-like-its-python-half` (lib/find-root.sh + test_locations), `l4-the-template-test-reads-the-live-rotations-node` (tests-only), `l4-the-manifest-mirror-is-locked-and-terminal-only` (dispatch.py/cli.py — HELPER's lane), `l4-the-merge-protocol-block-is-gated-on-the-held-state` + `l4-the-must-implement-rule-is-g15-lineage-gated` (brief.py, one round may carry both; the config CELL is the prime's), `l4-sb-status-reads-the-configured-stub` (stub repo's install-cli.sh + test_commands, @stub_only), `l4-a-stamp-never-writes-on-a-drop-or-a-missing-count` (tests-only). Helper mints its own two.
 
 SERIAL QUEUES after these land:
-- rotate.py: L4.181 (g15-32, LIVE) → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
+- rotate.py: L4.182 (g15-32 fix-only, LIVE) → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
 - conftest.py: fix-only re-dispatch of (ix) `l4-the-kid-tier-gate-has-no-env-seam` (claim in its note) + g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py (free): g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
 - heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — UNBLOCKED (helper p1 landed in merge-up 32). Fresh evidence for its node: 09:42:08Z three `iter=iter-L4.17x agent=<parent> reason=timeout` nudges hit my inbox for the L4.176/177/179 PARENTS, all of which then reviewed and exited normally 09:45-09:56Z (`done:` commits). Second in line after g15-32 for the last dollars.
 
-## §3 🔴 NEXT COMMAND (last stamped 10:09Z)
+## §3 🔴 NEXT COMMAND (last stamped 10:49Z)
 
-In the seat for merge-up 33: **L4.176** (ix half), **L4.177** (xi), **L4.180** (g15-34) — all harvested with notes. **LIVE: L4.181 = g15-32 `l4-a-filter-stage-is-argument-restricted` (a00-523e6fbc, rotate.py, ceiling 2 kids, cut 10:08Z at balance $1.92).** When its parent exits: harvest (tests = the nine test_rotate* files + test_rotation_alert; real-tree probe = render the prime's four escape probes through the first_turn judge on pre-fix vs round bytes — `| awk BEGIN{system(...)}`, `| sort -o M`, `| head -1 /etc/hostname`, placeholder `a | cat /etc/hostname` — WITHOUT running them: call the refusal function, never the executor) → merge → **merge-up 33** (request the window from prime IX with numbers; procedure below). Then, only if `credit_balance` ≥ $1.00: (vi) on heal.py, else the ruled fallback or stop and report. The prime landed config:rotations (eb03a22bc): the STARTUP block's two dead commands are FIXED for your successor — verify at your own rotation.
+**MERGE-UP 33 REQUESTED 10:49Z** (seat tip d48935474: L4.176 half, L4.177, L4.180, L4.181 partial + the seven ruling mints). HOLD for the prime's lock state + tip + baseline, then the Merge-up procedure below in MAIN (foreign dirty files there — leave alone). **LIVE: L4.182 = fix-only re-dispatch of g15-32 `l4-a-filter-stage-is-argument-restricted` (a00-901c4d5f, rotate.py `_filter_arg_refusal` only; cut 10:47Z at $1.79).** Harvest probe for it = the same in-process `rotate._producing_refusal` calls as the L4.181 note (never execute a probe): `| head -1 .env` and `| sed '1e id'` MUST be refused by name; `sed -n '1,5p'`, `sed 's/x/y/g'`, `head -5`, `grep -c x`, `cut -c1-80`, `tr -d ' '`, `wc -l` must still pass. Then merge-up 34 (or fold into 33 if the window is still open and the round has exited). After that: `credit_balance` ≥ $1.00 → (vi) on heal.py; else the ruled fallback (sonnet parent AND kids, `--harness claude-code`) or stop and report.
 
 ## §4 TRAPS (gen XIII + carried)
 
