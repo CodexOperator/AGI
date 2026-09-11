@@ -39,6 +39,10 @@ L4.114 and L4.115 are RUNNING. Harvest each on its background-task notification 
 
 ## §4 TRAPS HIT THIS SESSION
 
+- 🔴 **THE DISPATCH WRAPPER EXITING IS NOT THE ROUND FINISHING.** `_reaper_phase` gives up at its bound (~20 min) and prints `reaper: finished` with the parent still `running` (reparented to init, polling its detached kid with `sleep 420`). Read the manifest + `spawn_budget.py status`, never the wrapper's exit. The give-up is L4.113's alarm event — the dm needs the stamp below.
+- 🔴 **STAMP THE DISPATCHER OR NO DM EVER LANDS: `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py …`** (env form). `dispatched_by` = `--seat` or `$AGI_SEAT`, else null → one stderr line, no dm (L4.114/L4.115 both unstamped — negative proof recorded on `experiment:a00-30068a81-e81dff`). NEVER `--seat` for a pi round: it also pulls the seat's own row (claude-code/opus) over the ladder (dispatch.py:1171).
+- **`cut` is shadowed by a shell function in this session (`usage: brb | cut | back`)** — use `awk '{print substr($0,1,N)}'`.
+
 - **A `success` record over an empty handover is the trap the owner named** — the record's `steps_reached` was honest (no `4.5`), the stdout `(7) killed own window` was not. Read the record, never the print.
 - **tmux targets: a window name with a `.` cannot be addressed by name** (`session:name.genN` = window `name`, pane `genN`); `display-message -t` even RESOLVES it to the plain-named window — i.e. to the SUCCESSOR. Always address windows by `@id`.
 - **`ListAgents` `[ref]` is not on disk anywhere** — only the registry `name`/`sessionId`/`pid`/`tmux` are. Any script that needs the ref must be handed it.
