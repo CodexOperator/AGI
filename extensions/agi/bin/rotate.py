@@ -1840,29 +1840,95 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # no-ref path. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
     if ref:
-        # r3b: a back-fill that changed NOTHING (the row already carries this
-        # ref) SKIPS the write + commit entirely and says so in one line —
-        # write.submit's own metadata churn would otherwise dirty seats.md for
-        # no row change (falsifier 3: nothing committed, one line says it).
-        before_row = _find_seat(root, seat)
-        already = before_row is not None \
-            and (before_row.get("session_ref") or "") == ref
-        if already:
-            print(f"ack: {seat} row already carries session_ref={ref} — "
-                  "nothing to back-fill or commit")
-        else:
-            try:
-                print(_backfill_session_ref(
-                    root, seat=seat, role="parent", ref=ref))
-            except Exception as exc:  # noqa: BLE001
-                print(f"warn: session_ref back-fill failed: {exc}",
-                      file=sys.stderr)
-            # r3b: `continue` (no --no-commit) commits the row it just wrote
-            # and prints the +/- lines + the exact `git push` line;
-            # `--no-commit`/`diff` leave the working tree as today (write +
-            # print, no commit).
-            if do_commit:
+        # MERGE-UP 41 RESOLUTION (sanctuary-director 195718Z, prime XI's
+        # ordering line 21:0xZ: KEEP BOTH halves -- L4.288's join-by-@id
+        # back-fill of pid+session_id and SL4.03's commits-its-own-row +/-
+        # lines; neither is a superset). The JOIN runs first and decides
+        # whether anything changed; SL4.03's "already" short-circuit applies
+        # only when neither the ref nor an identity cell differs.
+        try:
+            # L4.288 (the stale-pid hazard, FIX-ONLY): besides back-filling
+            # session_ref, an ack ALSO resolves the successor's OWN identity
+            # (pid + session_id) and pins its meter. Source is EXCLUSIVELY the
+            # EXISTING JOIN keyed on the row's own `window` @id (L4.114: the
+            # @id is the load-bearing key) — never ppid-walking, never the
+            # newest registry file, never re-implemented. A recovered row
+            # (`heal.py _recover_seat`) carries the DEAD pid and a blanked
+            # session_id; this is where the successor's real identity lands so
+            # a later pass that trusts the row's pid reads the LIVE seat.
+            row = _find_seat(root, seat)
+            window_id = (row.get("window") or "") if row else ""
+            join = _join_successor(
+                root=root, seat=seat, window_id=window_id or None,
+                registry_dir=getattr(args, "registry_dir", None),
+                poll_secs=ACK_JOIN_POLL_S)
+            got_session_id = str(join.get("session_id") or "") if join.get(
+                "found") else ""
+            got_pid = join.get("pid") if join.get("found") else None
+            # write pid/from the JOIN ONLY when it DIFFERS from the row's, and
+            # session_id only when it is non-empty and DIFFERS — so a
+            # rotate-self-shaped row (pid + session_id already seated) ends
+            # byte-identical except session_ref.
+            have_row = row is not None
+            back_pid = (got_pid if (have_row and got_pid is not None
+                                    and got_pid != row.get("pid")) else None)
+            back_sid = (got_session_id if (have_row and got_session_id
+                                           and got_session_id != (row.get(
+                                               "session_id") or ""))
+                        else None)
+            # r3b (SL4.03): a back-fill that changed NOTHING (the row already
+            # carries this ref AND the join changes no identity cell) SKIPS
+            # the write + commit entirely and says so in one line —
+            # write.submit's own metadata churn would otherwise dirty seats.md
+            # for no row change (falsifier 3: nothing committed, one line
+            # says it).
+            already = (have_row
+                       and (row.get("session_ref") or "") == ref
+                       and back_pid is None and back_sid is None)
+            if already:
+                print(f"ack: {seat} row already carries session_ref={ref} — "
+                      "nothing to back-fill or commit")
+            else:
+                # ONE outcome line per cell group: the single `write.submit`
+                # carries whichever of session_ref/pid/session_id differs,
+                # and the helper's own outcome line ALWAYS prints (F8: the
+                # ack PRINTS the back-fill it wrote — a join miss must not
+                # silence the session_ref line; director fix-up at the
+                # L4.288 harvest). A hit appends the @id it joined by.
+                line = _backfill_session_ref(
+                    root, seat=seat, role="parent", ref=ref, pid=back_pid,
+                    session_id=back_sid)
+                if join.get("found") and line.endswith("(source: ack)"):
+                    line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
+                print(line)
+            if join.get("found"):
+                # The meter pin is the lease (prime XI 19:38Z): pin the
+                # successor's OWN transcript from the JOIN, but ONLY when no
+                # pin exists — never overwrite an EXISTING pin.
+                trans = join.get("transcript") or ""
+                if trans:
+                    pinp = _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
+                    if pinp.exists():
+                        print(f"meter pin present (untouched): {pinp}")
+                    else:
+                        pin_path = _pin_successor_meter(
+                            root, seat=seat, generation=args.gen,
+                            transcript=trans)
+                        print(f"meter pinned: {pin_path}")
+            else:
+                # join miss: pid/session_id/pin left UNTOUCHED, the ref back-
+                # fill (if any) still lands, the ack still returns 0.
+                print(f"join: {join.get('note')}")
+            # r3b (SL4.03): `continue` (no --no-commit) commits the row it
+            # just wrote and prints the +/- lines + the exact `git push`
+            # line; `--no-commit`/`diff` leave the working tree as today
+            # (write + print, no commit). Nothing written -> nothing to
+            # commit.
+            if do_commit and not already:
                 print(_ack_commit_seats(root, seat, args, ref))
+        except Exception as exc:  # noqa: BLE001
+            print(f"warn: session_ref back-fill failed: {exc}",
+                  file=sys.stderr)
     # A HAND launch (a seat the owner started directly, never through
     # spawn/seats-launch) is a first seating acked at --gen 1 (no predecessor):
     # record it and send the SAME rotation-alert dm a rotation emits — but
@@ -4840,13 +4906,20 @@ def _ref_shape_issue(ref: str, seat: str) -> str | None:
 
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
-                          ref: str) -> str:
+                          ref: str, pid: int | None = None,
+                          session_id: str | None = None) -> str:
     """r3 — `rotate.py ack --ref <ref>` BACK-FILLS `session_ref` into the
     successor's OWN seats row through the self_row write (source: ack).
 
     The `session_ref` (the successor's session/uuid prefix, proven by whois)
-    travels in the row so a later whois can authorize by it. Returns a
-    one-line outcome; the write is admitted by the self_row declaration."""
+    travels in the row so a later whois can authorize by it. L4.288: the
+    optional `pid`/`session_id` kwargs carry the successor's OWN identity from
+    the JOIN by the row's own window @id, so ONE `write.submit` moves
+    session_ref + pid + session_id together — never a second submit, and
+    never a write from any source but the JOIN (pass only joined values that
+    DIFFER from the row's, so a rotate-self-seated successor's row ends
+    byte-identical to today's except session_ref). Returns a one-line
+    outcome; the write is admitted by the self_row declaration."""
     import write  # local: same dir
     rows = write._load_seats(root)
     new_rows = []
@@ -4855,6 +4928,10 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         if r.get("name") == seat:
             nr = dict(r)
             nr["session_ref"] = ref
+            if session_id is not None:
+                nr["session_id"] = session_id
+            if pid is not None:
+                nr["pid"] = pid
             new_rows.append(nr)
             found = True
         else:
@@ -4865,7 +4942,12 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     edit = write.Edit(node_id="config:seats")
     edit.set_fm["seats"] = new_rows
     write.submit(root, edit, actor=seat, role=role)
-    return f"back-filled session_ref={ref} into own row (source: ack)"
+    parts = [f"session_ref={ref}"]
+    if session_id is not None:
+        parts.append(f"session_id={session_id}")
+    if pid is not None:
+        parts.append(f"pid={pid}")
+    return f"back-filled {', '.join(parts)} into own row (source: ack)"
 
 
 def _ack_seats_path(root: Path) -> Path:
@@ -5432,6 +5514,10 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
 REGISTRY_DEFAULT_DIR = "~/.claude/sessions"
 REGISTRY_JOIN_POLL_S = 2      #: poll interval, seconds
 REGISTRY_JOIN_TIMEOUT_S = 60  #: bounded join poll
+#: L4.288 — the ack-path identity join is a best-effort back-fill, never a
+#: gate: bounded SHORT (at most 5 s) so a join miss costs an ack at most a few
+#: seconds, never an error exit and never a >5 s wait.
+ACK_JOIN_POLL_S = 3
 
 
 def _successor_window_id(seat: str, tmux_session: str,
@@ -5851,27 +5937,53 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     return str(p)
 
 
-def _bootstrap_stale(doc: dict, current_commit: str | None,
-                     bounds: dict | None = None) -> bool:
-    """True when the bootstrap record carries a fact measured at a commit
-    older than HEAD — i.e. it must be REFUSED, never injected stale state.
+def _fact_bounds(root: Path) -> dict:
+    """The `fact_bounds:` staleness map of config:rotations (the frontmatter
+    of `.geometry/rotations.md`): fact -> 'head' | 'permanent'. Absent or
+    malformed -> {}. Read from graph content (written by write.py, never a
+    hand edit); `_bootstrap_block` falls back to it when no `bounds` kwarg is
+    passed."""
+    try:
+        nf = frontmatter.load_node_file(_rotations_node_path(root))
+        fb = nf.frontmatter.get("fact_bounds")
+    except Exception:  # noqa: BLE001
+        return {}
+    if not isinstance(fb, dict):
+        return {}
+    return {str(k): ("permanent" if v == "permanent" else "head")
+            for k, v in fb.items()}
+
+
+def _stale_facts(doc: dict, current_commit: str | None,
+                 bounds: dict | None = None) -> set:
+    """The head-bound facts in a bootstrap record whose measured commit
+    differs from HEAD — the facts the reader must mark `[stale: ...]`.
     `bounds` maps fact -> 'head' | 'permanent' (declared in config:rotations
-    `## facts`; default 'head' = must be the live commit) and is parsed by the
-    caller — the SessionStart hook (the sibling round) calls this before
-    injecting. A SKIPPED fact (absent from `measured_at`) asserted nothing and
-    is never stale; a fully-skipped doc (no `measured_at`) is never stale
-    (nothing to refuse) — the hook injects what is fresh and leaves the named
-    skip to the driven prompt. The function the hook can call."""
+    `fact_bounds`, default 'head'); a 'permanent' fact is never stale; an
+    unbounded fact is treated as 'head'. A fact absent from `measured_at`
+    asserted nothing and is never stale; a fully-skipped doc (no
+    `measured_at`) is never stale."""
     measured = (doc or {}).get("measured_at") or {}
-    if not measured:
-        return False
     bounds = bounds or {}
+    stale = set()
     for fact, commit in measured.items():
         if bounds.get(fact, "head") == "permanent":
             continue
         if commit != current_commit:
-            return True
-    return False
+            stale.add(fact)
+    return stale
+
+
+def _bootstrap_stale(doc: dict, current_commit: str | None,
+                     bounds: dict | None = None) -> bool:
+    """True when the bootstrap record carries a head-bound fact measured at a
+    commit other than HEAD (the whole-block refusal the hook used to enforce),
+    False otherwise. PRESERVED as the bool wrapper over `_stale_facts` so the
+    whole-block refusal vocabulary survives for callers that want it;
+    `_bootstrap_block` no longer refuses on it (staleness is now per-fact, a
+    `[stale: ...]` mark, never a refusal). `bounds` maps fact -> 'head' |
+    'permanent' (declared in config:rotations `fact_bounds`; default 'head')."""
+    return bool(_stale_facts(doc, current_commit, bounds))
 
 
 def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
@@ -5884,12 +5996,13 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
     tiny diagram-shaped block the SessionStart hook should inject for a seat
     successor that wakes KNOWING its state -- or REFUSES (returns [None,
     reason]) when the record is absent ('no_record'), not a JSON object
-    ('malformed'), or `_bootstrap_stale(.., HEAD, bounds)` says a measured
-    fact is not at HEAD ('stale'). NEVER raises into the hook. `commit` is
+    ('malformed') — it never refuses on staleness. `commit` is
     the test seam for HEAD (defaults to `_git_head`); `bounds` is the
-    fact->'head'|'permanent' staleness map of config:rotations `## facts`
-    (default {} = everything must be the live commit). Returns [block, None]
-    when fresh."""
+    fact->'head'|'permanent' staleness map of config:rotations `fact_bounds`
+    (when None read from the node; default for an unbounded fact = 'head').
+    Returns [block, None] — a head-bound fact measured at an older commit is
+    emitted with a `[stale: measured@<sha>, HEAD@<sha>]` mark, a permanent
+    fact is never marked."""
     if commit is None:
         commit = _git_head(root)
     p = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
@@ -5901,8 +6014,9 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
         return [None, "malformed"]
     if not isinstance(doc, dict):
         return [None, "malformed"]
-    if _bootstrap_stale(doc, commit, bounds):
-        return [None, "stale"]
+    if bounds is None:
+        bounds = _fact_bounds(root)
+    stale = _stale_facts(doc, commit, bounds)
     gen = doc.get("generation")
     gen_s = f"gen {gen}" if isinstance(gen, int) else "gen ?"
     head = f"HEAD@{commit}" if commit else "HEAD@?"
@@ -5911,12 +6025,17 @@ def _bootstrap_block(root: Path, seat: str, *, commit: str | None = None,
         f"(shape {doc.get('shape', '?')} · {gen_s} · {head})",
         "",
     ]
+    measured = doc.get("measured_at") or {}
     tele = doc.get("telemetry")
     if isinstance(tele, dict) and tele:
         for key in sorted(tele):
             val = str(tele[key])
             if len(val) > 400:
                 val = val[:397] + "…"
+            if key in stale:
+                msha = measured.get(key)
+                m = msha if msha else "?"
+                val = f"{val}  [stale: measured@{m}, HEAD@{commit or '?'}]"
             lines.append(f"- {key}: {val}")
     else:
         lines.append("- (no telemetry recorded)")
@@ -9977,6 +10096,13 @@ def main(argv: list[str] | None = None) -> int:
     p_ack.add_argument("--text", default=None,
                        help="the diff text, when answer is diff; `-` reads it "
                             "from stdin")
+    # L4.288 (the stale-pid hazard, FIX-ONLY): the test seam + the registry
+    # source for the ack-path identity JOIN. Same option spawn/loop take; the
+    # ack resolves the successor's OWN row by the JOIN keyed on the row's
+    # `window` @id, from HERE, never from ~/.claude/sessions under test.
+    p_ack.add_argument("--registry-dir", default=None,
+                       help="per-session registry dir for the own-row identity "
+                            "JOIN (default: ~/.claude/sessions)")
     p_ack.add_argument("--no-commit", action="store_true", dest="no_commit",
                        help="write + print the back-fill but do NOT commit "
                             "the seat row (continue commits by default; "
