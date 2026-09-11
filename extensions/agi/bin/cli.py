@@ -1287,6 +1287,44 @@ def _iteration_agents_complete(iter_dir: Path) -> bool:
     return True
 
 
+def _first_non_terminal(iter_dir: Path):
+    """The first `(agent_id, status)` in `iter_dir`'s manifest that is not
+    terminal, or None when every manifest entry is terminal.
+
+    The naming twin of `_iteration_agents_complete` (kept unchanged: heal.py's
+    tier-gate and other readers share the boolean). Re-reads each agent's own
+    `agent.json` when present, exactly as that helper does, so the refusal
+    names the SAME record a reader would see. Called only on a manifest-
+    bearing (authority) source, so the missing/unreadable-manifest branches
+    are defensive; the caller refuses such a source before reaching here.
+    """
+    mpath = iter_dir / "manifest.json"
+    if not mpath.is_file():
+        return ("?", "missing manifest")
+    try:
+        manifest = json.loads(mpath.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return ("?", "unreadable manifest")
+    agents = manifest.get("agents") or []
+    if not agents:
+        # An empty agents list is NOT complete -- nothing to judge, so nothing
+        # may move; the same rule `_iteration_agents_complete` states. Kept
+        # here at harvest (L4.255) so an authority with no records fails
+        # CLOSED exactly as it did before the partial-source carry.
+        return ("?", "no agents in manifest")
+    for entry in agents:
+        status = entry.get("status", "running")
+        rec_path = iter_dir / str(entry.get("id", "")) / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text(encoding="utf-8"))
+            status = rec.get("status", status)
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass  # no agent.json: trust the manifest entry
+        if status not in TERMINAL_STATUSES:
+            return (entry.get("id", "?"), status)
+    return None
+
+
 def _dir_snapshot(root: Path) -> dict:
     """A filesystem snapshot: relative path -> bytes, for every file under
     `root`. The symmetric ground truth for `_merge_verified`: a merged target
@@ -1652,27 +1690,49 @@ def _session_complete(
         return 1
 
     # A round is ONE logical unit spread across trees. If ANY of its sources
-    # is still live or incomplete, the whole round is still running and NONE
-    # of it may come home -- migrating only the finished half strands the
-    # other, precisely the half-a-round outcome this command exists to
-    # prevent. So the liveness/completeness checks run across every candidate
-    # and a single refusal holds the whole iteration.
+    # is still live or its completeness cannot be judged, the whole round is
+    # still running and NONE of it may come home -- migrating only the
+    # finished half strands the other, precisely the half-a-round outcome this
+    # command exists to prevent. With an old TWO-worktree round, however, only
+    # the manifest-bearing half is judged for completeness; a manifest-LESS
+    # partial copy is a CONTRIBUTOR, not a judge -- it rides into the merge
+    # and never vetoes (hypothesis:l4-a-manifest-less-partial-source-never-
+    # vetoes-a-rounds-bring-home).
+    #
+    # 1. LIVENESS is per-iteration and first: a live spawn-budget lease
+    #    refuses the whole round whatever any record says.
+    # 2. COMPLETENESS is judged only from manifest-bearing (authority)
+    #    sources: no authority -> `no manifest.json in any source`; an
+    #    authority with a non-terminal record refuses naming that agent and
+    #    its status. A manifest-less candidate never refuses.
     ready: list[Path] = []
     refused_any = False
-    for src in candidates:
-        if iter_n in live_iters:
+    if iter_n in live_iters:
+        for src in candidates:
             print(f"session-complete: {_MSG_REFUSE} {src} -- a live lease is "
                   f"active for iteration {iter_n}; round still running")
+        refused_any = True
+    else:
+        authorities = [s for s in candidates
+                       if (s / "manifest.json").is_file()]
+        if not authorities:
+            print(f"session-complete: {_MSG_REFUSE} -- no manifest.json in any "
+                  f"source for iteration {iter_n}; nothing to judge, nothing "
+                  f"moves")
             refused_any = True
-            continue
-        if not _iteration_agents_complete(src):
-            print(f"session-complete: {_MSG_REFUSE} {src} -- not every agent "
-                  f"record is terminal; round still running")
-            refused_any = True
-            continue
-        ready.append(src)
+        else:
+            for src in authorities:
+                bad = _first_non_terminal(src)
+                if bad is not None:
+                    aid, st = bad
+                    print(f"session-complete: {_MSG_REFUSE} {src} -- agent "
+                          f"{aid} status={st} is not terminal; round still "
+                          f"running")
+                    refused_any = True
+                    break
     if refused_any:
         return 0 if dry_run else 1
+    ready = list(candidates)
     if not ready:
         return 0 if dry_run else 1
 
