@@ -59,9 +59,12 @@ def test_send_prints_inbox_path(project: Path, capsys):
 # ── hypothesis:l3w4-seat-transport: best-effort tmux nudge ───────────────
 
 
-def _fake_tmux(monkeypatch, window_names):
+def _fake_tmux(monkeypatch, window_names, capture_text=""):
     """Fake subprocess.run so send can nudge without a live tmux; records
-    every tmux invocation. `window_names` are returned by list-windows."""
+    every tmux invocation. `window_names` are returned by list-windows (a
+    NAME fallback must see the recipient listed); `capture_text` is what
+    capture-pane returns (empty = idle pane). A fixture pane only, never a
+    live session (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message, 5)."""
     calls = []
 
     def fake_run(cmd, capture_output, text, timeout):
@@ -69,6 +72,10 @@ def _fake_tmux(monkeypatch, window_names):
         if cmd[:2] == ["tmux", "list-windows"]:
             return subprocess.CompletedProcess(cmd, 0,
                                                stdout="\n".join(window_names),
+                                               stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout=capture_text,
                                                stderr="")
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
@@ -123,9 +130,13 @@ def test_send_nudges_existing_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, ["director"])
     send_mod.send(project, "director", "hello world", "a00-xxxx")
     nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
-    assert nudges, "expected a nudge to the director's tmux window"
+    assert nudges, "expected a wake-token nudge to the director's window"
     assert nudges[0][:4] == ["tmux", "send-keys", "-t", "agi-rc:director"]
-    assert nudges[0][4] == "hello world"
+    # the typed text is the FIXED wake token, NEVER the message body
+    token = nudges[0][4]
+    assert "hello world" not in token
+    assert token.startswith("[agi-nudge] unread for director:")
+    assert token.endswith("send.py read director")
     assert nudges[0][5] == "Enter"
     # the inbox contract is unchanged
     assert (project / ".agi" / "sessions" / "inbox" / "director.md").is_file()
@@ -137,6 +148,7 @@ def test_send_dm_nudges_other_party(project: Path, monkeypatch):
     nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
     assert nudges
     assert nudges[0][3] == "agi-rc:adv-alive"
+    assert "psst" not in nudges[0][4]  # token, never the dm body
 
 
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
@@ -146,6 +158,117 @@ def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     inbox = project / ".agi" / "sessions" / "inbox" / "ephemeral-kid.md"
     assert inbox.is_file()
     assert "fire and forget" in inbox.read_text()
+
+
+def _seats_md(rows):
+    """A config:seats node body for the PARSER `_locally_loaded_rows` uses
+    (the engine's frontmatter loader); rows are YAML mappings, `window` is
+    the tmux @id a seat row carries in production."""
+    import json as _j
+    lines = ["---", "id: config:seats", "type: config", "seats:"]
+    for r in rows:
+        lines.append("  - " + _j.dumps(r))
+    lines.append("---")
+    return "\n".join(lines) + "\n"
+
+
+def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
+    """Falsifier (3): a row that carries a window @id must be addressed by
+    @id, never by name — a namesake/predecessor window has a different @id.
+
+    HERMETIC: the fixture row's pid would stat ~/.claude/sessions/<pid>.json
+    on the host, an ambient home-dir read that must not decide this test
+    (fixture-leak). Neutralized: registry status is forced None so the test
+    deterministically falls to the capture-pane fake."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    # NB the fake lists a window that shares the seat NAME but not its @id;
+    # the @id target must win and the name must never be addressed.
+    calls = _fake_tmux(monkeypatch, ["sanctuary-director"])
+    send_mod.send(project, "sanctuary-director", "secret body", "kid")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges, "expected a nudge to the seat's @id window"
+    assert nudges[0][3] == "agi-rc:@246", nudges[0][3]
+    assert "sanctuary-director" not in nudges[0][3]
+    assert nudges[0][4].startswith("[agi-nudge]")
+    assert "secret body" not in nudges[0][4]
+
+
+def test_nudge_coalesces_under_busy_pane(project: Path, monkeypatch):
+    """Falsifier (2): two nudges into a busy pane must yield ZERO typed
+    tokens (no body text, no concatenation) and a `nudge: coalesced` stderr
+    line — a busy Claude Code pane shows `esc to interrupt`."""
+    busy = "...⠋...\nesc to interrupt\n"
+    calls = _fake_tmux(monkeypatch, ["director"], capture_text=busy)
+    send_mod.send(project, "director", "first", "kid")
+    send_mod.send(project, "director", "second", "kid")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges == [], "busy pane must receive NO typed token"
+    # the wake token is still built but never sent; inbox bytes stay bodies
+    inbox = (project / ".agi" / "sessions" / "inbox" / "director.md")
+    assert "first" in inbox.read_text() and "second" in inbox.read_text()
+
+
+def test_busy_then_idle_fires_token_on_retry(project: Path, monkeypatch,
+                                            capsys):
+    """Falsifier (F1): busy -> idle with NO third send — the idled retry
+    must still fire the wake token once the pane goes idle.
+
+    The pane MUST change state BETWEEN the two sends, so the fake reads a
+    MUTABLE capture source (a list this test rewrites), never a static
+    string — a static capture cannot express the sequence.
+
+    Old behaviour (the defect): the busy send stamped the per-seat marker
+    even though nothing was typed, so the idled retry inside the
+    coalescing window was suppressed by the batch cap — ZERO tokens, the
+    message never woken. Fixed: the marker records only a DELIVERED token,
+    so the idle retry is not suppressed and the token fires.
+
+    HERMETIC: recipient `director` carries no pid, so registry status is
+    None and the capture-pane fake decides busy vs idle deterministically.
+    """
+    # busy pane first, idle (empty capture) on retry
+    captures = ["...⠋...\nesc to interrupt\n", ""]   # busy, then idle
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout="director\n",
+                                               stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout=captures.pop(0),
+                                               stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    send_mod.send(project, "director", "first", "kid")    # pane busy
+    send_mod.send(project, "director", "second", "kid")   # pane now idle
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert len(nudges) == 1, \
+        f"the idled retry must fire exactly one token, saw {nudges}"
+    assert nudges[0][4].startswith("[agi-nudge]")
+    assert "second" not in nudges[0][4], "token, never the body"
+    err = capsys.readouterr().err
+    assert "nudge: coalesced" in err   # the busy send still reports
+
+
+def test_batch_of_dms_yields_one_token(project: Path, monkeypatch, capsys):
+    """Falsifier (2): at most ONE token per unread batch — two sends in the
+    coalescing window yield a single send-keys, the second absorbed by the
+    per-seat nudge marker."""
+    calls = _fake_tmux(monkeypatch, ["director"])  # idle pane (empty capture)
+    send_mod.send(project, "director", "first", "kid")
+    send_mod.send(project, "director", "second", "kid")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert len(nudges) == 1, f"expected exactly one token, saw {nudges}"
+    err = capsys.readouterr().err
+    assert "nudge: coalesced" in err
 
 
 def test_read_returns_block_once_and_marks_read(project: Path, capsys):

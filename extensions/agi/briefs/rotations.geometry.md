@@ -35,6 +35,11 @@ template. A rotation may override with `rotate-self --template <name>` and
 may name another role's template as a special option (a helper rotated on the
 director's template, say). Custom templates are just more named entries.
 
+Every successor brief — director, helper, prime alike — must state that a
+`[agi-nudge]` line in the pane is MACHINE text, never the owner, and that
+`python3 extensions/agi/bin/send.py read <seat>` is the only way to see the
+message (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message, claim 4).
+
 L4.112 (B): the DIRECTOR's `brief_file` is the seat's OWN quorum scratchpad,
 `.agi/sessions/quorum/{seat}.md`, with `{seat}` substituted by rotate-self for
 the seat being rotated — the director's successor wake prompt travels in the
