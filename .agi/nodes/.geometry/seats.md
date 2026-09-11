@@ -4,7 +4,7 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam
+edited_by: sanctuary-director
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:

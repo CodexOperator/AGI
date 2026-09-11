@@ -132,9 +132,14 @@ def test_shell_cmd_exports_seat_only_when_seat_given():
         "--remote-control s")
     seated = rotate._shell_cmd(["claude", "--remote-control", "s"], None,
                                seat=SEAT)
-    assert f"export AGI_SEAT={SEAT} && claude --remote-control s" in seated
-    # the export rides before the claude process, after the reaper knob.
+    # (a.2, amendment e) the AGI_SEAT export still rides before the claude
+    # process — but claude is now WRAPPED, so the raw `&& claude` adjacency is
+    # gone: the export launches `rotate.py launch-wrapper --seat <seat> --`
+    # which is the direct parent of claude. The AGI_SEAT export and the claude
+    # argv both survive; the wrapper insertion is the only change.
     assert seated.index("export AGI_SEAT") < seated.index("claude")
+    assert "launch-wrapper" in seated
+    assert " -- claude --remote-control s" in seated
 
 
 # (b)+(c) a PRE-SPAWN record (production writer, join facts pending) is
