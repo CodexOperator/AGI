@@ -128,11 +128,13 @@ class _FixturePane:
 
     PASTE_CHARS = 100
 
-    def __init__(self, width: int = 80, busy: bool = False):
+    def __init__(self, width: int = 80, busy: bool = False,
+                 cell: bool = False):
         self.input = ""
         self.submitted: list = []
         self.width = width
         self.busy = busy
+        self.cell = cell
 
     def send_keys(self, argv: list) -> None:
         """`argv` = everything after `tmux send-keys`."""
@@ -173,8 +175,18 @@ class _FixturePane:
             return _fixture_text("claude_pane_busy.txt")
         lines = []
         body = []
-        for raw in self.input.split("\n"):
-            body.extend(textwrap.wrap(raw, self.width) or [""])
+        if self.cell:
+            # CELL wrap (real tmux): the box splits at the pane width even in
+            # the MIDDLE of a word -- no whitespace at the boundary, unlike the
+            # word-boundary `textwrap` below. Chunk at `width` chars so the
+            # split is mid-word for a line longer than the width.
+            for raw in self.input.split("\n"):
+                chunked = [raw[i:i + self.width]
+                           for i in range(0, len(raw), self.width)] or [""]
+                body.extend(chunked)
+        else:
+            for raw in self.input.split("\n"):
+                body.extend(textwrap.wrap(raw, self.width) or [""])
         lines.append("\u276f " + (body[0] if body else ""))
         lines.extend("  " + b for b in body[1:])
         return "\n".join(lines) + "\n"
@@ -830,6 +842,254 @@ def test_same_sender_stranded_line_does_not_swallow_new_dm(
         "the new same-sender dm body must be deferred, not lost"
 
 
+def test_wrapped_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap,
+    clause (d) continuation): the box WRAPS a line wider than the pane
+    across display rows (the fixture pane is 80 columns), inserting a `\n`
+    mid-line. OLD bytes tested `own_line in region` against that split
+    region, so OUR OWN 88-char stranded line (longer than the 80-col pane)
+    showed on two rows and never matched -- it read as foreign and was
+    re-deferred forever. Fixed: the ownership check collapses the wrap on
+    the region side (joins the rows, drops the wrap-inserted whitespace)
+    before the membership test, so a wrapped own line is recognised and
+    submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("ask the sanctuary director about the merged seat rotation "
+            "and home dir pad")
+    line = send_mod._nudge_line(seat, sender, body)   # the rendered line
+    assert len(line) > 80 \
+        and len(line) <= send_mod._NUDGE_LINE_MAX, f"line {len(line)}"
+    pane = _FixturePane(width=80)      # the panel wraps our >80-char line
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == []
+    assert len(pane.capture().splitlines()) > 1, "the pane wraps the line"
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    # recognised as ours: Enter only, no second line, nothing deferred
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_wrapped_own_line_recognised_at_measured_104(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER companion (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the same >80-char rendered line at the MEASURED pane width (104
+    columns -- the sanctuary-director pane) does NOT wrap, so ownership must
+    hold there too. Guards the regression where a collapse fix only handled
+    the fixture width and dropped the no-wrap case."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("ask the sanctuary director about the merged seat rotation "
+            "and home dir pad")
+    line = send_mod._nudge_line(seat, sender, body)
+    assert len(line) <= 104, f"line {len(line)}"
+    pane = _FixturePane(width=104)     # the measured width: no wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_wrapped_own_line_cell_wrapped_recognised_at_80(
+        project: Path, monkeypatch, capsys):
+    """Fix-only #2 FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the earlier fix joined the wrapped rows with ONE SPACE, which
+    recognises a WORD-boundary wrap but not the CELL wrap a real tmux pane
+    performs -- a line split in the MIDDLE of a word has no whitespace at the
+    break, so a space-join inserts a spurious space and the own line still
+    never matches. This fixture CELL-wraps (mid-word) at width 80: the
+    reconstructed region must be owned under BOTH joins, so the own stranded
+    line is recognised and submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("the rotation merged five seats and repointed every pin "
+            "from the sanctuary home")
+    line = send_mod._nudge_line(seat, sender, body)
+    assert len(line) > 80, f"line {len(line)}"
+    pane = _FixturePane(width=80, cell=True)   # mid-word cell wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == []
+    assert len(pane.capture().splitlines()) > 1, "the pane cell-wraps the line"
+    # the cell wrap must actually split MID-WORD, else the space-join would
+    # already reconstruct it and this would not be a cell-wrap falsifier
+    region = pane.capture()
+    first, second = region.splitlines()[0], region.splitlines()[1]
+    tail = first.lstrip().lstrip("\u276f").lstrip()[-1]
+    head = second.strip()[0]
+    assert tail != " " and head != " " and tail != head, \
+        f"boundary {tail!r}/{head!r} is not a mid-word cell split"
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    # recognised as ours under the cell (empty) join: Enter only, nothing typed
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_region_join_wrap_cell_wrapped_at_measured_104():
+    """Fix-only #2 FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the `_region_join_wrap` FALLBACK (a region captured WITHOUT
+    `-J`) must also reconstruct an own line that tmux CELL-wrapped mid-word at
+    the MEASURED pane width (104 columns). A word-boundary (space) join cannot
+    restore a mid-word break -- only the no-space (cell) join can -- so the
+    helper must offer BOTH and ownership must accept either."""
+    body = "abcdefghij" * 20                 # >104 chars, no spaces -> mid-word
+    line = "[nudge: adv-alive]: " + body
+    assert len(line) > 104, f"line {len(line)}"
+    # cell-wrap it at 104 the way a real pane would (no space at the break)
+    wrapped = line[:104] + "\n" + line[104:]
+    assert wrapped[103] != " " and wrapped[104] != " "  # mid-word boundary
+    region = "\u276f " + wrapped
+    space, empty = send_mod._region_join_wrap(region)
+    assert line not in space, \
+        "a word-boundary (space) join cannot reconstruct a mid-word cell wrap"
+    assert line in empty, "the no-space (cell) join restores a mid-word wrap"
+    assert any(line in c for c in (space, empty)), "ownership accepts either"
+
+
+def test_capture_pane_uses_join_flag(project, monkeypatch):
+    """Fix-only #2 CLAIM (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the ownership capture passes `-J` (`tmux capture-pane -p -J`) so
+    a REAL capture joins soft-wrapped lines and carries no soft-wrap at all;
+    `_region_join_wrap` remains the fallback for a region without `-J`. The
+    argv of every capture-pane call a send makes must contain `-J`."""
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send_dm(project, "mee", "adv-alive", "hello world", "mee")
+    caps = [c for c in calls if c[:2] == ["tmux", "capture-pane"]]
+    assert caps, "a dm send must capture the pane for the ownership check"
+    for c in caps:
+        assert "-J" in c, f"capture-pane argv must carry -J: {c}"
+
+
+def test_deferred_strand_judged_with_the_rendered_more_count(
+        project: Path, monkeypatch, capsys):
+    """FALSIFIER (hypothesis:l4-deferred-ownership-uses-the-rendered-count):
+    a short deferred dm delivered by an inbox retry is stranded in the pane
+    with the `(+N more, read <seat>)` tail count AT ITS render time. A later
+    retry that renders its ownership line with the CURRENT pending count (a
+    drift, e.g. more coalesced since) reads that own strand as FOREIGN, keeps
+    the deferred record, and the NEXT retry types the body AGAIN -- delivered
+    twice for one deferral. Fixed: the deferred record stores the `more`
+    count each delivery rendered with, and ownership judges against THAT
+    render, so the own strand is recognised (Enter only) and the deferred
+    record cleared -- never typed twice."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    assert send_mod._store_deferred(root, seat, sender, "urgent")
+    # simulate a PRIOR delivery render that typed the strand with more=1
+    send_mod._record_deferred_render(root, seat, 1)
+    assert send_mod._read_deferred(root, seat).get("more") == 1
+    # the pending count has since grown to 3 (two more coalesced)
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 3
+    # the pane holds the strand typed by that prior delivery (more=1 tail +
+    # inbox tail, no Enter yet)
+    strand = send_mod._nudge_line(seat, sender, "urgent", 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)               # wide: no wrap distracts
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")   # inbox retry, body=None
+    # OWN strand with the STORED more=1 render is recognised: Enter only, no
+    # second line typed, and -- the double-delivery falsifier -- the deferred
+    # record is CLEARED so the body can never be typed twice.
+    assert _typed(calls) == [], \
+        "the own stranded deferred line must not be typed again"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own deferred strand is a real delivery -- the record is cleared, " \
+        "so the body is never typed twice for one deferral"
+
+
+def test_render_that_never_types_does_not_move_the_stored_deferred_count(
+        project: Path, monkeypatch, capsys):
+    """RESIDUE FALSIFIER (hypothesis:l4-deferred-ownership-uses-the-rendered-
+    count): the first fix recorded the render count when the deferred line was
+    RENDERED, before it was TYPED. A deferred delivery that RENDERS but never
+    TYPES (the coalesce-window, a busy pane, a failed literal send) still
+    OVERWROTE the stored count, so after (Z) type-and-strands at more=1 and
+    (B) renders at a different count without typing, the retry (C) judges the
+    Z strand against B's count, reads it as FOREIGN, keeps the deferred
+    record, and the NEXT retry types the already-delivered body AGAIN.
+    Fixed: the count is recorded ONLY on the path where the line is actually
+    TYPED into the pane; a render that never reaches the pane stays a no-op.
+    A record with no `more` key still falls back to the current count."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    # (Z) a deferred delivery types its line (with the inbox tail) at more=1
+    # and strands it in the pane (Enter never lands)
+    assert send_mod._store_deferred(root, seat, sender, "urgent")
+    send_mod._record_deferred_render(root, seat, 1)      # Z typed at more=1
+    strand = send_mod._nudge_line(
+        seat, sender, "urgent", 1,
+        trailing=send_mod._NUDGE_INBOX_TAIL.format(seat=seat))
+    pane = _FixturePane(width=200)               # wide: a straight line
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    # the pending count has grown to 2 since Z's render
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 2
+
+    # (B) an intervening call that RENDERS at more=2 but does NOT type: a
+    # fresh nudge marker forces the coalesce-window short-circuit (the window
+    # check precedes the capture/typing path). OLD bytes recorded `more=2`
+    # here; NEW bytes must leave the stored `more=1` untouched.
+    send_mod._record_nudge(root, seat)           # inside the window
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "more mail", "ki")    # body=None nudge
+    assert _typed(calls) == [], "B must not type (coalesce-window)"
+    still = send_mod._read_deferred(root, seat)
+    assert still is not None and still.get("more") == 1, \
+        f"a render that never types must not move the stored count: " \
+        f"{still!r}"
+
+    # (C) the retry once the window passes: the Z strand is judged against
+    # the STORED more=1 render -> OURS -> Enter only, record cleared.
+    send_mod._nudge_marker_path(root, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")         # long-stale marker
+    calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "more mail", "ki")
+    assert _typed(calls2) == [], \
+        "the own stranded deferred line must not be typed again"
+    assert _enters(calls2) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls2
+    assert pane.submitted == [strand], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- the record is cleared, so the " \
+        "body is never typed a second time for one deferral"
+
+
 def test_deferred_delivery_names_the_unread_inbox(project: Path,
                                                   monkeypatch, capsys):
     """CLAUSE (b) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-
@@ -853,6 +1113,96 @@ def test_deferred_delivery_names_the_unread_inbox(project: Path,
     # the deferred body was consumed by the delivered line
     assert send_mod._read_deferred(root, "adv-alive") is None
     assert pane.submitted == [line], pane.submitted
+
+
+def test_truncated_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """CLAUSE (d) FALSIFIER (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats): the pane holds the RENDERED inline line, so
+    OLD bytes' `body_for_match in region` against the RAW body (a 400-char
+    body truncated to the 95-char rendered line) never matched OUR OWN
+    stranded line -- it read as foreign, the dm was deferred, and the
+    stranded line was re-deferred forever. Fixed: ownership matches region
+    against `text`, the EXACT line send() renders for this body (the same
+    flatten + truncation), so a truncated own line is recognised and
+    submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                       # flattened over the cap -> truncated
+    line = send_mod._nudge_line(seat, sender, big)   # the rendered line
+    assert len(line) <= send_mod._NUDGE_LINE_MAX and "read" in line
+    pane = _FixturePane(width=200)          # wide: the <=95-char line untruncated
+    pane.send_keys(["-l", "-t", "w", line])          # strand OUR OWN truncated line
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, big, sender)
+    # recognised as ours: Enter only, no second line typed, nothing deferred
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_flattened_own_stranded_line_is_recognised_as_ours(
+        project: Path, monkeypatch, capsys):
+    """CLAUSE (d) FALSIFIER (newline body): a body containing newlines is
+    rendered FLATTENED (`first line / second line`) in the pane, and the OLD
+    raw-body match never saw it (the `\n`s are gone), so the own stranded
+    line was read as foreign and re-deferred forever. Fixed: region is
+    matched against the rendered `text`, so a flattened own line is
+    recognised and submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = "first line\nsecond line\nthird line"
+    line = send_mod._nudge_line(seat, sender, body)
+    assert "/" in line and "first line" in line
+    pane = _FixturePane()                   # short flattened line: no wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == [] and pane.input == line
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    assert _typed(calls) == [], "no second line after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_zero_body_line_is_refused_not_delivered(project: Path,
+                                                 monkeypatch):
+    """CLAUSE (d) FALSIFIER (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats): OLD bytes accepted `keep >= 0`, so a
+    pathological sender whose `[nudge: <from>]:` prefix alone fills the
+    `_NUDGE_LINE_MAX` budget produced a ZERO-BODY line (prefix + tail, no
+    body) -- a delivered line carrying no dm. Fixed: the body must keep at
+    least ONE character (keep < 1 retreats), and when no tail leaves room
+    `_nudge_line` returns None so the caller DEFERS instead."""
+    cap = send_mod._NUDGE_LINE_MAX
+    # prefix `[nudge: <from>]: ` eats the whole budget -> keep == 0 for every
+    # tail incl. ""; OLD bytes emitted prefix+tail with an empty body.
+    pathological = "x" * (cap - 11)         # len("[nudge: ]: ") == 11
+    assert len(f"[nudge: {pathological}]: ") == cap
+    assert send_mod._nudge_line("adv-alive", pathological, "hello") is None
+    # one char shorter leaves room for a body char -> a real line, not None
+    shorter = "x" * (cap - 12)
+    line = send_mod._nudge_line("adv-alive", shorter, "hello")
+    assert line is not None and len(line) <= cap
+    # full path: send_dm with the pathological sender types NOTHING and
+    # defers the body (a zero-body line is unreachable)
+    root = project / ".agi"
+    seat = "adv-alive"
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, pathological, seat, "hello", pathological)
+    assert _typed(calls) == [], "no zero-body line may be typed"
+    assert send_mod._read_deferred(root, seat) \
+        == {"sender": pathological, "body": "hello"}, \
+        "the unrenderable dm is deferred for a later retry, not dropped"
 
 
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):

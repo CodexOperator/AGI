@@ -56,6 +56,16 @@ TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
+#: How long `status --iter` sleeps sampling CPU ticks before judging a round
+#: stalled. The director's stall definition (8 s) — a module constant, not a
+#: bare literal, so a test can read it and shrink it.
+TICK_SAMPLE_SECONDS = 8
+
+#: Overridable sample window for the tick measurement. Defaults to
+#: TICK_SAMPLE_SECONDS; tests monkeypatch this down so the falsifier does not
+#: sleep 8 real seconds against live processes.
+_STATUS_SAMPLE_SECONDS = TICK_SAMPLE_SECONDS
+
 
 def budget_dir(root: Path) -> Path:
     """Where leases live: one directory per MAIN checkout.
@@ -494,28 +504,41 @@ def _pid_ticks(pid: int) -> int:
         return 0
 
 
-def _pid_established_sockets(pid: int) -> int:
-    """Established (state 01) sockets owned by `pid`.
+def _pid_sockets(pid: int) -> int:
+    """Every socket inode held by `pid` — TCP in ANY state plus unix sockets.
 
-    Reads the process fd table for `socket:[inode]` entries, then counts how
-    many of those inodes appear in /proc/net/tcp|tcp6 with state 01. Cheap
-    enough for a status probe; 0 for any unreadable edge.
+    The old `_pid_established_sockets` counted only ESTABLISHED (state 01)
+    TCP. A parent mid-review between two API calls holds a LISTEN/CLOSE port
+    or a unix control socket and reads as `sockets=0` — a false
+    STALL-CANDIDATE. This reads the pid's fd table for `socket:[inode]`
+    targets, then intersects those inodes with the inode sets of
+    /proc/net/tcp, /proc/net/tcp6 (any state) and /proc/net/unix. Count is
+    len(intersection); 0 on any unreadable edge.
+
+    inode column: index 9 in tcp/tcp6 (10th column), index 6 in unix (a
+    trailing Path may contain spaces, so it is never `cols[-1]`).
     """
     try:
-        fds = Path(f"/proc/{pid}/fd").iterdir()
+        # iterdir() is LAZY: the directory listing happens inside the first
+        # iteration of the for loop below, NOT at the iterdir() call. So the
+        # whole walk (the listing AND each readlink) must sit inside one try.
+        # A pid that exits mid-read raises FileNotFoundError/ProcessLookupError
+        # out of the `for fd in fds:` loop, which would otherwise escape
+        # _pid_sockets() up into status(). Any OSError here returns the
+        # documented 0.
+        inodes = set()
+        for fd in Path(f"/proc/{pid}/fd").iterdir():
+            try:
+                target = str(fd.readlink())
+            except OSError:
+                continue
+            if target.startswith("socket:[") and target.endswith("]"):
+                inodes.add(target[len("socket:["):-1])
     except OSError:
         return 0
-    inodes = set()
-    for fd in fds:
-        try:
-            target = str(fd.readlink())
-        except OSError:
-            continue
-        if target.startswith("socket:[") and target.endswith("]"):
-            inodes.add(target[len("socket:["):-1])
     if not inodes:
         return 0
-    established = set()
+    table = set()
     for path in ("/proc/net/tcp", "/proc/net/tcp6"):
         try:
             lines = Path(path).read_text().splitlines()[1:]
@@ -523,12 +546,18 @@ def _pid_established_sockets(pid: int) -> int:
             continue
         for line in lines:
             cols = line.split()
-            if len(cols) < 4 or cols[3] != "01":
-                continue
-            # local_address column is hex:HEX; the inode is the 10th column.
-            if len(cols) >= 10:
-                established.add(cols[9])
-    return len(inodes & established)
+            # any TCP state counts, not just ESTABLISHED (01)
+            if len(cols) >= 10 and cols[9].isdigit():
+                table.add(cols[9])
+    try:
+        lines = Path("/proc/net/unix").read_text().splitlines()[1:]
+    except OSError:
+        lines = []
+    for line in lines:
+        cols = line.split()
+        if len(cols) >= 7 and cols[6].isdigit():
+            table.add(cols[6])
+    return len(inodes & table)
 
 
 def _iter_num(iter_str: str) -> int | None:
@@ -542,8 +571,20 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val) -> str:
-    """The agent.json `status` for this agent, if a record exists.
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, object]:
+    """The agent.json `status` for this agent, if a record exists, plus which
+    sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
+    None for none), plus the record's `overdue_since` value (epoch int, or
+    None when absent). The `worktree` hint is accepted for call-signature
+    compatibility but is no longer authoritative: the search is a plain glob.
+
+    The overdue_since field is what lets the status reader print
+    `agent=running(overdue)` — the word the parent brief now names. heal.py
+    keeps a live-but-past-deadline agent's status `running` and adds
+    `overdue_since`/`overdue_reason` rather than a terminal `overdue`
+    status, so the overdue signal lives HERE, on the one record that is
+    read (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+    readers-print-it).
 
     `iter_val` is the lease's own `iter` field, which is the round's genuine
     id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
@@ -551,19 +592,88 @@ def _agent_status(root: Path, agent_id: str, iter_val) -> str:
     live round. `locations.iteration_dirname` turns the lease value into the
     exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
     `iter-140`.
+
+    The record layout is NOT "the round's own worktree" (hypothesis:l4-spawn-
+    budget-iter-reads-the-rounds-own-sessions-dir, measured 2026-09-11): a
+    PARENT's agent.json is written by the DISPATCHER into the DISPATCHING
+    tree's sessions dir — a seat worktree
+    (`<main>/.agi/worktrees/seat-<name>/.agi/sessions`) or MAIN itself; a KID's
+    agent.json is written by its PARENT into the PARENT's worktree
+    (`<main>/.agi/worktrees/<parent-id>/.agi/sessions`). So the old probe of
+    the agent's OWN `worktrees/<agent_id>` dir could never find a record — it
+    holds the agent's KIDS, never itself — and every worktree-spawned row
+    printed `(no agent.json)` while the record was live on disk.
+
+    The lookup therefore searches `<iter dir>/<agent_id>/agent.json` under
+    EVERY sessions root the tree can name, in order:
+      1. the invoking root's own graph sessions dir,
+      2. MAIN's graph sessions dir (`budget_dir(root).parent`, as before),
+      3. every `<main>/.agi/worktrees/*/.agi/sessions` — ONE glob over the
+         worktree dir (~150 siblings is cheap), sorted so the answer is
+         deterministic.
+    The label names the answering root: `"main"` for MAIN, `"seat:<name>"`
+    for a worktree named `seat-<name>`, `"wt:<parent-id>"` for any other work
+    worktree. `(no agent.json)` is returned only when NO root holds a record.
     """
-    # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
-    # sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
-        return "(no agent.json)"
-    p = (budget_dir(root).parent / dirname / agent_id / "agent.json")
-    try:
-        rec = json.loads(p.read_text())
-    except (OSError, json.JSONDecodeError):
-        return "(no agent.json)"
-    return rec.get("status") or "(no status)"
+        return "(no agent.json)", None
+
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+
+    def wt_label(wt_root: Path) -> str:
+        """`seat-sanctuary-director` -> `seat:sanctuary-director`; any other
+        worktree root (`a00-06c44930`) -> `wt:<parent-id>`."""
+        name = wt_root.name
+        if name.startswith("seat-"):
+            return f"seat:{name[5:]}"
+        return f"wt:{name}"
+
+    # (graph dir, label) candidates in precedence order, deduplicated by path.
+    cands: list[tuple[Path, str]] = []
+    seen: set[Path] = set()
+
+    own = graph
+    if own not in seen:
+        # Label the OWN candidate from the WORKTREE directory, exactly as the
+        # glob candidates below: when the graph dir is `.agi` (the normal
+        # layout) the worktree root is its PARENT; otherwise the graph dir
+        # itself is the worktree root. The pre-fix line passed the graph dir
+        # to `wt_label`, whose `.name` is always `.agi`, so every record
+        # answered from its own non-main root printed `@wt:.agi` — the label
+        # depended on where you stood
+        # (hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name).
+        own_wt = graph.parent if graph.name == ".agi" else graph
+        cands.append((own, "main" if own == main_graph else wt_label(own_wt)))
+        seen.add(own)
+    if main_graph and main_graph not in seen:
+        cands.append((main_graph, "main"))
+        seen.add(main_graph)
+    if main_graph:
+        for wt in sorted(main_graph.glob("worktrees/*")):
+            wt_graph = locations.find_project_root(wt) or wt
+            # Never bleed upward: when a worktree root has no graph of its own,
+            # `find_project_root` resolves an ANCESTOR's graph (the MAIN one)
+            # and a main-tree record would get mislabeled as a worktree record.
+            # Only accept a graph at or below the candidate worktree root.
+            if not (wt_graph == wt or wt in wt_graph.parents):
+                continue
+            if wt_graph in seen:
+                continue
+            cands.append((wt_graph, wt_label(wt)))
+            seen.add(wt_graph)
+
+    for cand, src in cands:
+        p = cand / locations.SESSIONS_DIR_NAME / dirname / agent_id / "agent.json"
+        try:
+            rec = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        return rec.get("status") or "(no status)", src, rec.get("overdue_since")
+    return "(no agent.json)", None, None
 
 
 def _round_status(root: Path, iter_str: str) -> int:
@@ -584,33 +694,56 @@ def _round_status(root: Path, iter_str: str) -> int:
     total_ticks = 0
     total_socks = 0
     done = False
-    for rec in rows:
-        pid = int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+    # Sample EVERY row's starting tick count first, sleep the ONE shared
+    # window, then re-read every row. Net wall time is one window regardless
+    # of round size, yet every pid still sits under the full window. The
+    # pre-fix loop slept INSIDE the per-row loop, so a 5-row round cost 5
+    # windows — and `status --iter` is exactly the command the director runs
+    # when a round may be stalled.
+    pids = [int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+            for rec in rows]
+    t0s = [_pid_ticks(pid) for pid in pids]
+    time.sleep(_STATUS_SAMPLE_SECONDS)
+    deltas = [max(0, _pid_ticks(pid) - t0) for pid, t0 in zip(pids, t0s)]
+    for rec, pid, ticks in zip(rows, pids, deltas):
         tier = rec.get("tier") or "?"
         started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
         elapsed = max(0, int(time.time()) - started)
-        t0 = _pid_ticks(pid)
-        time.sleep(2)
-        ticks = max(0, _pid_ticks(pid) - t0)
-        socks = _pid_established_sockets(pid)
-        status = _agent_status(root, rec.get("agent_id", "?"), rec.get("iter"))
+        socks = _pid_sockets(pid)
+        status, src, overdue = _agent_status(root, rec.get("agent_id", "?"),
+                                             rec.get("iter"), rec.get("worktree"))
         total_ticks += ticks
         total_socks += socks
         if tier == "kid":
             kids += 1
         if status in TERMINAL:
             done = True
+        # `@...` names the sessions root that answered: `@main`, `@seat:<name>`
+        # for a seat worktree, `@wt:<parent-id>` for any other worktree
+        # (hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir).
+        # Nothing when src is None — `(no agent.json)` already names that case.
+        suffix = f"@{src}" if src else ""
+        # A live agent past its deadline keeps `status: running` and gains
+        # `overdue_since` (heal.py) — print `running(overdue)` so the word
+        # the parent brief names is a word THIS reader actually prints
+        # (hypothesis:l4-the-parent-brief-names-the-overdue-record-as-
+        # readers-print-it).
+        mark = "(overdue)" if overdue else ""
         print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
               f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
-              f"agent={status}")
+              f"agent={status}{mark}{suffix}")
     if kids >= 1:
         print(f"round L{nnn}: parent alive, {kids} live kid(s)")
         return 0
+    # STALL-CANDIDATE only when EVERY signal says stalled: 0 ticks over the
+    # sample, 0 sockets, 0 live kids, no terminal agent.json status. A parent
+    # mid-review holds a socket or burns CPU and must not be called stalled.
     if total_ticks == 0 and total_socks == 0 and not done:
         print(f"STALL-CANDIDATE: parent alive, 0 live kids, 0 ticks, "
-              f"0 sockets, no done:")
+              f"0 sockets, no done")
         return 0
-    print(f"round L{nnn}: parent alive, 0 live kids (active)")
+    print(f"round L{nnn}: parent alive, reviewing "
+          f"(ticks={total_ticks}, sockets={total_socks})")
     return 0
 
 

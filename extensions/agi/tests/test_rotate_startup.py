@@ -261,7 +261,11 @@ def test_i2_pipeline_filter_actually_truncates_stage_stdout(tmp_path):
 def test_i3_pipeline_failing_middle_stage_stderr_still_present(tmp_path):
     # Every stage's stderr is still merged in order — a failing middle stage
     # must stay visible even though its stdout is consumed by the next stage
-    # and never echoed past the filter.
+    # and never echoed past the filter. Tested against the executor directly
+    # (_run_units_no_shell): a pipe-fed PRODUCER (`python3 | python3`) is
+    # deliberately REFUSED by the allowlist judge now (a first_turn pipeline
+    # has no reason to pipe into a producer), so the stderr-merge property is
+    # pinned at the executor layer, not through the full allowlist gate.
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     (bin_dir / "boom.py").write_text(
@@ -272,14 +276,13 @@ def test_i3_pipeline_failing_middle_stage_stderr_still_present(tmp_path):
     boom = str(bin_dir / "boom.py")
     ident = str(bin_dir / "ident.py")
 
-    res = rotate._run_first_turn_commands(
-        {"first_turn": [{"label": "mid",
-                          "cmd": f"python3 {boom} | python3 {ident}"}]}, VALUES)
+    units = [[(["python3", boom], {}), (["python3", ident], {})]]
+    rc, out = rotate._run_units_no_shell(units, 30)
     # last stage exit code (ident normally 0) — but boom's stderr must be present
-    assert res[0]["rc"] == 0, res
-    assert "boom-err" in res[0]["output"], res
-    assert "IDENT" in res[0]["output"], res
-    assert res[0]["output"].index("boom-err") < res[0]["output"].index("IDENT"), res
+    assert rc == 0, (rc, out)
+    assert "boom-err" in out, out
+    assert "IDENT" in out, out
+    assert out.index("boom-err") < out.index("IDENT"), out
 
 
 def test_k_env_assignment_prefix_applied_and_stage_scoped(tmp_path):
@@ -430,7 +433,7 @@ def test_env_prefix_off_allowlist_refused_and_fake_never_runs(tmp_path):
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
     assert res[0]["refused"], res
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
     assert res[0]["cmd"] == cmd, res  # literal text kept in the record
     assert not marker.exists(), "fake python3 under PATH must never run"
 
@@ -473,7 +476,7 @@ def test_env_prefix_allowlisted_argv_exploit_is_refused(tmp_path):
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
     assert res[0]["refused"], res
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
     assert res[0]["cmd"] == cmd, res  # literal text kept in the record
     assert not marker.exists(), "fake python3 under PATH must never run past the gate"
 
@@ -486,7 +489,7 @@ def test_env_prefix_off_allowlist_dry_run_names_refusal(tmp_path):
         {"first_turn": [{"label": "lp", "cmd": cmd}]},
         VALUES, dry_run=True)
     assert "refused" in res[0], res
-    assert "env prefix LD_PRELOAD not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix LD_PRELOAD refused unconditionally" in res[0]["refused"], res
 
 
 def test_env_prefix_not_allowed_fires_before_allowlist(tmp_path):
@@ -495,7 +498,7 @@ def test_env_prefix_not_allowed_fires_before_allowlist(tmp_path):
     cmd = "PATH=/tmp/x python3 -c 'print(1)'"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "xp", "cmd": cmd}]}, VALUES)
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
 
 
 def test_env_prefix_allowed_still_applies(tmp_path):
@@ -540,15 +543,73 @@ def test_s_env_var_injection_refused_no_marker(monkeypatch, tmp_path):
     # an env var VALUE carries `| touch <marker>`. The record keeps `$SEAT`
     # literal (fix b), while exec_cmd expands it for execution; the re-judge of
     # the substituted command refuses the injected `touch` stage before it runs.
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # the refusal is NAMED from the record's literal `$SEAT`, NEVER from the
+    # expanded tokens, so the secret-shaped value fragment (`touch <marker>`)
+    # never survives into the refusal / record / successor STARTUP OUTPUT.
     marker = tmp_path / "pwned2-MARKER"
     monkeypatch.setenv("SEAT", f"seatA | touch {marker}")
     cmd = "python3 {worktree}/extensions/list.py $SEAT"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
     assert "refused" in res[0], res
-    assert "touch" in res[0]["refused"], res
+    assert "$SEAT" in res[0]["refused"], res
+    assert "touch" not in res[0]["refused"], res
+    assert str(marker) not in res[0]["refused"], res
     assert not marker.exists(), res
     assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s2_env_injected_stage_refusal_redacted(monkeypatch):
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # an env var VALUE that injects a whole off-allowlist stage (`;`-separated)
+    # is refused with the expanded value fragment scrubbed to
+    # `<expanded value redacted>` and the record's literal `$VAR` named — the
+    # value itself never appears in the refusal (FALSIFIER: no substring of an
+    # env value that is not in record_cmd).
+    monkeypatch.setenv("SEAT", "x; cat /etc/hostname")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    ref = res[0]["refused"]
+    assert "$SEAT" in ref, ref
+    assert "<expanded value redacted>" in ref, ref
+    assert "/etc/hostname" not in ref, ref
+    assert "cat" not in ref or "redacted" in ref, ref
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s3_env_value_never_in_any_result_field(monkeypatch, tmp_path):
+    # an env value injected via `$VAR` must not surface in the refusal OR the
+    # rendered STARTUP OUTPUT block — the value is the secret-shaped payload.
+    secret = "tkn-yz-9f00ba"
+    monkeypatch.setenv("SEAT", f"x; cat {secret}")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    assert secret not in str(res), res
+    block = rotate._compose_startup_output(res)
+    assert secret not in block, block
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s4_placeholder_injection_still_refuses(tmp_path):
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # the PLACEHOLDER injection path is untouched by the env-value scrub — a
+    # `{seat}` value that injects an off-allowlist `cat` stage is still refused
+    # by name, the marker never runs, and the record keeps the placeholder's
+    # (already-substituted) value, exactly as test_r pins. Only ENV vars stay
+    # literal; placeholder VALUES are record content by design (fix b).
+    vals = dict(VALUES, seat="a | cat /etc/hostname")
+    cmd = "python3 {worktree}/extensions/list.py {seat}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "ph", "cmd": cmd}]}, vals)
+    assert "refused" in res[0], res
+    assert "cat" in res[0]["refused"], res
+    assert "not on startup.allow" in res[0]["refused"], res
+
 
 
 def test_q_clean_substitution_still_runs(tmp_path):
@@ -614,3 +675,468 @@ def test_t_other_callers_resolve_empty_happily():
         "python3 extensions/agi/bin/send.py whois {succ_ref}", {"succ_ref": ""})
     assert resolved == "python3 extensions/agi/bin/send.py whois "
     assert "{" not in resolved
+
+
+def test_filter_allowlist_refuses_escape_list(tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted / goal:g17.1 ruling
+    # (merge-up 33): the post-`|` filter judge is an ALLOWLIST parser, not a
+    # denylist. Every escape of the known list is refused by NAME — a free
+    # operand where none is allowed, an off-allowlist option or `--long`, a
+    # `$`/`~`/backtick echo leak, awk's program — all as `filter <exe> <tok>
+    # not on the allowlist`.
+    P = "python3 extensions/agi/bin/foo.py"
+    refused = [
+        (f"{P} | head -1 /etc/hostname", "filter head /etc/hostname not on the allowlist"),
+        (f"{P} | cat /etc/hostname", "filter cat /etc/hostname not on the allowlist"),
+        (f"{P} | tail -n 5 /var/log/syslog", "filter tail /var/log/syslog not on the allowlist"),
+        (f"{P} | grep -f /tmp/pat.txt", "filter grep -f not on the allowlist"),
+        (f"{P} | head -1 .env", "filter head .env not on the allowlist"),
+        (f"{P} | sort .env", "filter sort .env not on the allowlist"),
+        (f"{P} | wc -l .env", "filter wc .env not on the allowlist"),
+        (f"{P} | uniq x", "filter uniq x not on the allowlist"),
+        (f"{P} | cut x", "filter cut x not on the allowlist"),
+        (f"{P} | tail .env", "filter tail .env not on the allowlist"),
+        (f"{P} | grep foo x y", "filter grep x not on the allowlist"),
+        (f"{P} | sed s/a/b/g .env", "filter sed .env not on the allowlist"),
+        (f"{P} | tr a b c", "filter tr c not on the allowlist"),
+        (f"{P} | sort -o M", "filter sort -o not on the allowlist"),
+        (f"{P} | sort --output=M", "filter sort --output=M not on the allowlist"),
+        (f"{P} | grep -f3", "filter grep -f not on the allowlist"),
+        (f"{P} | sed -i s/a/b/", "filter sed -i not on the allowlist"),
+        (f"{P} | echo $SMOKE_SECRET", "filter echo $SMOKE_SECRET not on the allowlist"),
+        (f"{P} | echo ~", "filter echo ~ not on the allowlist"),
+        # sed `$`-address is now refused as a forbidden char too: `$` on any
+        # filter token (the `$d` would fail at exec anyway — env var never set).
+        (f"{P} | sed '$d'", "filter sed $d not on the allowlist"),
+    ]
+    for cmd, name in refused:
+        ref = rotate._producing_refusal(cmd)
+        assert ref == name, (cmd, ref)
+
+
+def test_filter_awk_refused_outright(tmp_path):
+    # `| awk BEGIN{system(...)}` executes a command through awk's program body;
+    # awk is refused outright (its program can reach system/getline/`>`/`|`).
+    cmd = "python3 extensions/agi/bin/foo.py | awk 'BEGIN{system(\"touch /tmp/x\")}'"
+    assert rotate._producing_refusal(cmd) == "filter awk"
+
+
+def test_filter_short_cluster_expansion_pinned(tmp_path):
+    # Short-option CLUSTERS are expanded character by character: `-ni` is
+    # `-n -i`, `-if` is `-i -f`. An unlisted letter INSIDE a cluster is
+    # refused (`-f` is off grep's allowlist), so the escape `grep -if pats`
+    # and `sed -ni p` both fall; the same letters that are ON a list pass.
+    P = "python3 extensions/agi/bin/foo.py"
+    assert (rotate._producing_refusal(f"{P} | grep -if pats")
+            == "filter grep -f not on the allowlist")
+    assert (rotate._producing_refusal(f"{P} | sed -ni p")
+            == "filter sed -i not on the allowlist")
+    assert rotate._producing_refusal(f"{P} | grep -in x") is None
+    assert rotate._producing_refusal(f"{P} | sort -rn") is None
+    assert rotate._producing_refusal(f"{P} | sort -k2 -nr") is None
+
+
+def test_producing_refusal_path_form_exe_and_sed_grammar(tmp_path):
+    # hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-grammar-
+    # anchors-its-fields. TWO escapes must be REFUSED by name.
+    P = "python3 extensions/agi/bin/foo.py"
+    name = "producer %s is a path, not an allowlisted name"
+    # (1) EXE TOKEN BY PATH: a path-form exe (any `/`) is refused BY NAME
+    # for unit-leading producers AND pipe-fed filter stages; basename would
+    # silently allow an off-allowlist binary behind a path.
+    assert rotate._producing_refusal(f"{P} | /tmp/x/head -5") == \
+        name % "/tmp/x/head"
+    assert rotate._producing_refusal(f"{P} | ./head -5") == name % "./head"
+    assert rotate._producing_refusal("/tmp/x/git status -sb") == name % "/tmp/x/git"
+    assert rotate._producing_refusal("git status -sb | /tmp/x/head -5") == \
+        name % "/tmp/x/head"
+    # (2) SED GRAMMAR BACKTRACKING: the delimiter may NOT be a flag char or
+    # alphanumeric, and each field is anchored to never contain it — so a
+    # delimiter-absorbed `e` flag can no longer pass. Benign forms still run.
+    for cmd, allowed in [("s/x/y/", True), ("s/x/y/g", True),
+                         ("s/x/y/e", False), ("s|x|y|e", False),
+                         ("sgxgygeg", False), ("s0x0y0e0", False)]:
+        ref = rotate._producing_refusal(f"{P} | sed {cmd}")
+        if allowed:
+            assert ref is None, (cmd, ref)
+        else:
+            assert ref == "filter sed program", (cmd, ref)
+
+
+def test_filter_sed_program_grammar_allowlist(tmp_path):
+    # sed programs are allowlisted by GRAMMAR, not by token. A `;`-split
+    # command must be `s<d>...<d>...<d>[gIp0-9]*` or an address command
+    # (`A`,`A,B`,`/re/`,`$` + one of p/d/q/!d) — sed `e` executes a shell
+    # command (`1e id` runs `id`) and `r`/`w` read/write files. sed's FLAGS
+    # are themselves allowlisted (`-n -E -r` only), so `-i`/`-e`/`-f` are
+    # refused as off-allowlist before the program is even read.
+    P = "python3 extensions/agi/bin/foo.py"
+    for cmd in [f"{P} | sed e id", f"{P} | sed '1e id'",
+                f"{P} | sed 'w /tmp/f'", f"{P} | sed 'r /tmp/f'",
+                f"{P} | sed '/foo/{{;s/a/b/;}}'"]:
+        assert rotate._producing_refusal(cmd) == "filter sed program", cmd
+    # a single path-looking positional fails the grammar, not the path rule
+    assert rotate._producing_refusal(f"{P} | sed /etc/passwd") == "filter sed program"
+    # benign grammar-form programs still run. `sed '$d'` (a `$` address) is
+    # NOT here: `$` is _FILTER_FORBIDDEN across every filter token, and `$d`
+    # ends up refused by our new token-sweep (it would also fail at exec time
+    # — env var $d is never set).
+    for cmd in ["sed -n 1,40p", "sed s/x/y/g", "sed 's/a b/c/'", "sed 2d",
+                "sed 5q", "sed /foo/d", "sed 1,5p",
+                "sed s/x//I", "sed 's/a\\/b/c/g'", "sed -E s/x/y/g",
+                "sed -r s/x/y/"]:
+        assert rotate._producing_refusal(f"{P} | {cmd}") is None, cmd
+
+
+def test_filter_grep_pattern_option_kills_the_free_positional(tmp_path):
+    # grep/egrep `-e PAT` SUPPLIES the pattern, so the one free positional
+    # the single-pattern budget allowed was actually a FILE: `| grep -e x
+    # .env` read the key file into the rotation record AND the successor's
+    # STARTUP OUTPUT. Once `-e` has supplied the pattern, the free-positional
+    # budget is ZERO — a further non-option token is refused.
+    for cmd in ["python3 extensions/agi/bin/foo.py | grep -e x .env",
+                "python3 extensions/agi/bin/foo.py | egrep -e x .env"]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref == "filter grep .env not on the allowlist" \
+            or ref == "filter egrep .env not on the allowlist", (cmd, ref)
+    # pattern supplied by -e / free positional, no file: runs
+    for cmd in ["python3 extensions/agi/bin/foo.py | grep -e x",
+                "python3 extensions/agi/bin/foo.py | egrep -e x",
+                "python3 extensions/agi/bin/foo.py | grep -c x",
+                "python3 extensions/agi/bin/foo.py | grep -i x",
+                "python3 extensions/agi/bin/foo.py | grep foo"]:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_git_unit_leading_refused_by_argument(tmp_path):
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted: a unit-
+    # LEADING git stage must be refused by NAMED TOKEN, not accepted on its
+    # read-only subcommand alone. These used to return None (accepted) and
+    # leak file contents / write a file / run a program: `git log -p -- .env`
+    # prints a tracked file into the rotation record, `git diff HEAD -- .env`
+    # same, `git --all -p` same, `git -c core.pager=less log` runs a pager
+    # program, `git log --output=FILE` writes a file.
+    bad = [
+        "git log -p -- .env",
+        "git diff HEAD -- .env",
+        "git log --all -p -- .env",
+        "git -c core.pager=less log",
+        "git log --output=/tmp/x",
+    ]
+    for cmd in bad:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+
+
+def test_git_off_allowlist_token_names_itself():
+    # the refusal must NAME the offending token, not just refuse the stage
+    assert rotate._producing_refusal("git log -p -- .env") \
+        == "producer git -p not on the allowlist"
+    assert rotate._producing_refusal("git log --output=/tmp/x") \
+        == "producer git --output not on the allowlist"
+    assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
+
+
+def _live_first_turn_cmds() -> list:
+    """Every startup.first_turn cmd from BOTH templates, read from the LIVE
+    checked-in .agi/nodes/.geometry/rotations.md -- never a hand-copied mirror
+    (hypothesis:l4-a-test-of-live-config-reads-the-live-node). The rotations
+    node is `type: config`, owned by the owner/prime; a test reads it and
+    never writes it."""
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    rot = (Path(__file__).resolve().parents[3]
+           / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert rot.exists(), f"live rotations.md missing: {rot}"
+    nf = _fm.load_node_file(rot)
+    templates = nf.frontmatter.get("templates") or {}
+    cmds = []
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        ft = startup.get("first_turn") or []
+        for e in ft:
+            if isinstance(e, dict) and e.get("cmd"):
+                cmds.append(e["cmd"])
+    return cmds
+
+
+def test_git_live_template_commands_still_pass():
+    # every git command in the LIVE rotations template
+    # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist -- read
+    # from the node, never a hand-copied list (hypothesis:l4-a-test-of-live-
+    # config-reads-the-live-node). A NEW off-allowlist git line added to the
+    # live node must turn this test red.
+    import tempfile
+    git_cmds = [c for c in _live_first_turn_cmds() if "git" in c]
+    assert git_cmds, "no git commands in the live rotations.md first_turn lists"
+    with tempfile.TemporaryDirectory() as d:
+        wt, ro = d + "/worktree", d + "/repo"
+        for cmd in git_cmds:
+            rendered = (cmd.replace("{worktree}", wt)
+                        .replace("{repo}", ro))
+            assert rotate._producing_refusal(rendered) is None, rendered
+
+
+def test_git_benign_set_still_passes():
+    for cmd in [
+        "git status -sb",
+        "git log --oneline -5",
+        "git rev-parse --abbrev-ref HEAD",
+        "git branch --show-current",
+        "git diff --stat",
+    ]:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_git_benign_prefix_unit_cannot_bypass_later_unit():
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted FIX: a one-
+    # token BENIGN prefix unit used to `return` out of the WHOLE judge on the
+    # first `;`-unit, so every LATER unit was never judged by the git branch:
+    # `git status -sb; git log -p -- .env` -> None (WRONG). A benign git unit
+    # must `continue` to the next unit/stage like every other producer branch.
+    bad = [
+        "git status -sb; git log -p -- .env",
+        "git status -sb; git log --all -p -- .env",
+        "git status -sb; git diff HEAD -- .env",
+        "git status; git -c core.pager=less log",
+    ]
+    for cmd in bad:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+    assert rotate._producing_refusal("git status -sb; git log -p -- .env") \
+        == "producer git -p not on the allowlist"
+
+
+def test_git_benign_prefix_unit_then_all_benign_passes():
+    # same mechanics in the positive direction: every `;`-unit is judged, and
+    # when ALL are benign the whole line still passes.
+    assert rotate._producing_refusal("git status -sb; git log --oneline -5") is None
+    assert rotate._producing_refusal("git status -sb; git branch --show-current") is None
+
+
+def test_git_negC_value_subject_to_bad_token_scan():
+    # hypothesis:l4-a-producing-git-stage-is-argument-restricted FIX: the
+    # `-C <path>` VALUE was consumed by the skip loop with NO `$`/backtick/`~`
+    # check, so `git -C $HOME status -sb` leaked the shell-expanded value into
+    # the record while returning None. The value is now scanned like every
+    # other token.
+    assert rotate._producing_refusal("git -C $HOME status -sb") \
+        == "producer git $HOME not on the allowlist"
+    # backtick inside the -C value is REFUSED too, but one stage earlier by
+    # _operator_refusal (unmodeled shell operator) — a refusal either way
+    assert rotate._producing_refusal("git -C `pwd` status -sb") is not None
+    assert rotate._producing_refusal("git -C ~ status -sb") \
+        == "producer git ~ not on the allowlist"
+    # a literal (non-shell) path stays benign
+    assert rotate._producing_refusal("git -C /a/b status -sb") is None
+
+
+def test_filter_pipe_fed_nonfilter_refused(tmp_path):
+    # A `;`-unit's FIRST stage is judged as a PRODUCER; a PIPE-FED stage that
+    # is NOT a modeled filter is refused by name — a first_turn pipeline has
+    # no reason to pipe into a producer, which closes `| git log -p -- .env`
+    # and `| git diff HEAD -- .env` WITHOUT touching the git allowlist.
+    P = "python3 extensions/agi/bin/foo.py"
+    assert rotate._producing_refusal(f"{P} | git log -p -- .env") == "filter git"
+    assert rotate._producing_refusal(f"{P} | git diff HEAD -- .env") == "filter git"
+    assert rotate._producing_refusal(f"{P} | python3 extensions/agi/bin/bar.py") == "filter python3"
+    assert rotate._producing_refusal(f"{P} | ps aux") == "filter ps"
+
+
+def test_filter_env_value_never_leaks_into_output(tmp_path, monkeypatch):
+    # goal:g17.1 / hypothesis:l4-a-filter-stage-is-argument-restricted: an env
+    # value set for the run must never appear in the rendered output or the
+    # record. `| echo $ANY_SECRET` is REFUSED (echo positionals may not
+    # contain `$`), so the value is never printed and never recorded.
+    monkeypatch.setenv("SMOKE_SECRET_VAL", "plaintext-leak-xyz")
+    P = "python3 extensions/agi/bin/foo.py"
+    startup = {"first_turn": [
+        {"label": "leak", "cmd": f"{P} | echo $SMOKE_SECRET_VAL"}]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    assert res[0]["refused"], res
+    assert "not on the allowlist" in res[0]["refused"], res
+    block = rotate._compose_startup_output(res)
+    assert "plaintext-leak-xyz" not in block
+    assert "plaintext-leak-xyz" not in str(res)
+
+
+def test_filter_benign_stdio_filters_still_run(tmp_path):
+    # The allowed stdio-filter invocations all pass the allowlist parser:
+    # the positive-control set from the build order plus the benign cluster /
+    # value forms that used to pass and must STILL pass.
+    P = "python3 extensions/agi/bin/foo.py"
+    benign = [
+        f"{P} | head -5",
+        f"{P} | head -n 5",
+        f"{P} | tail -3",
+        f"{P} | grep -c x",
+        f"{P} | grep -i x",
+        f"{P} | grep -o abc",
+        f"{P} | grep -w x",
+        f"{P} | grep -v x",
+        f"{P} | sed -n 1,40p",
+        f"{P} | sed 's/x/y/g'",
+        f"{P} | sed /foo/d",
+        f"{P} | cut -c1-80",
+        f"{P} | cut -f1",
+        f"{P} | cut -d: -f1",
+        f"{P} | sort",
+        f"{P} | sort -f",
+        f"{P} | sort -rn",
+        f"{P} | sort -k2 -n",
+        f"{P} | uniq",
+        f"{P} | uniq -w 3",
+        f"{P} | uniq -c",
+        f"{P} | wc -l",
+        f"{P} | tr a-z A-Z",
+        f"{P} | tr -d ' '",
+        f"{P} | cat -n",
+        f"{P} | echo -n hi",
+    ]
+    for cmd in benign:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+def test_filter_forbidden_scans_every_token_env_never_leaks(
+        monkeypatch, tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, FIX-ONLY #3
+    # (L4.184): `_FILTER_FORBIDDEN` (`$` backtick `~`) is checked on EVERY
+    # token of every filter stage — options, option values and positionals
+    # alike — not just echo positionals. Without this, `_resolve_shell_vars`
+    # expands `$VAR` from the whole environment at exec time even inside
+    # single quotes, so these all passed the judge and leaked/mapped an env
+    # value into the committed rotation record and the successor's STARTUP
+    # OUTPUT. Hermetic: SECRET_PROBE is set, and assert the value appears in
+    # NO result — each cmd is refused by name.
+    secret = "sk-probe-value"
+    monkeypatch.setenv("SECRET_PROBE", secret)
+    P = "python3 extensions/agi/bin/foo.py"
+    lethal = [
+        f"{P} | sed 's/x/$SECRET_PROBE/'",
+        f"{P} | grep '$SECRET_PROBE'",
+        f"{P} | tr abcdef \"$SECRET_PROBE\"",
+        f"{P} | echo $SECRET_PROBE",
+    ]
+    startup = {"first_turn": [{"label": f"leak{i}", "cmd": c}
+                              for i, c in enumerate(lethal)]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    for r, cmd in zip(res, lethal):
+        assert r["refused"], (r)
+        assert "not on startup.allow" in r["refused"], r
+        assert "filter" in r["refused"], r
+        assert secret not in r["cmd"], r        # record keeps the literal $VAR
+        assert secret not in str(r), r          # nothing leaks anywhere in result
+    # the same stages WITHOUT `$` still run (existing positive controls).
+    for cmd in [f"{P} | echo -n hi", f"{P} | tr a-z A-Z"]:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_filter_forbidden_sweeps_consumed_option_values(monkeypatch, tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, FIX-ONLY #4
+    # (L4.184): `_FILTER_FORBIDDEN` must also run on the SEPARATE token a
+    # value-taking option CONSUMES (the `skip = 2` branch). The top-of-loop
+    # sweep never re-visits that token — `-e $SECRET_PROBE` advances past the
+    # value and would otherwise let `_resolve_shell_vars` expand the env value
+    # into the record. Hermetic: SECRET_PROBE set, every cmd refused by name,
+    # the value absent from every result.
+    secret = "sk-probe-value"
+    monkeypatch.setenv("SECRET_PROBE", secret)
+    P = "python3 extensions/agi/bin/foo.py"
+    lethal = [
+        f"{P} | grep -e $SECRET_PROBE",
+        f"{P} | head -n $SECRET_PROBE",
+        f"{P} | cut -d $SECRET_PROBE",
+        f"{P} | sort -k $SECRET_PROBE",
+        f"{P} | uniq -w $SECRET_PROBE",
+        f"{P} | grep -ne $SECRET_PROBE",   # cluster `-ne`, value in next token
+    ]
+    startup = {"first_turn": [{"label": f"leak{i}", "cmd": c}
+                              for i, c in enumerate(lethal)]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    for r, cmd in zip(res, lethal):
+        assert r["refused"], r
+        assert "filter" in r["refused"], r
+        assert "not on the allowlist" in r["refused"], r
+        assert secret not in r["cmd"], r        # literal $VAR kept in record
+        assert secret not in str(r), r          # nothing leaks in any result
+    # positive controls with non-`$` values still run.
+    benign = [
+        f"{P} | grep -e x",
+        f"{P} | head -n 5",
+        f"{P} | cut -d: -f1",
+        f"{P} | sort -k2 -n",
+        f"{P} | uniq -w 3",
+        f"{P} | sort -t: -k2",
+    ]
+    for cmd in benign:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_filter_refusal_named_before_run(tmp_path):
+    # the NAMED refusal surfaces on the actual run path too — the startup
+    # output names the filter, nothing runs, no marker.
+    marker = tmp_path / "pwned-MARKER"
+    cmd = f"python3 extensions/agi/bin/foo.py | awk 'BEGIN{{system(\"touch {marker}\")}}'"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "badfilt", "cmd": cmd}]}, VALUES)
+    assert res[0]["refused"], res
+    assert "filter awk" in res[0]["refused"], res
+    assert "not on startup.allow" in res[0]["refused"], res
+    assert not marker.exists(), res
+    block = rotate._compose_startup_output(res)
+    assert "[badfilt] REFUSED" in block
+
+
+def test_fold_env_path_refused_even_when_allowlisted(tmp_path):
+    # hypothesis FOLD: PATH/PYTHONPATH/LD_* are refused UNCONDITIONALLY, even
+    # when a template puts them on startup.env_allow — a template author cannot
+    # redirect binary lookup out of convenience.
+    for cmd, name in [("PATH=/x python3 /wt/a.py", "PATH"),
+                      ("PYTHONPATH=/x python3 /wt/a.py", "PYTHONPATH"),
+                      ("LD_PRELOAD=/x.so python3 /wt/a.py", "LD_PRELOAD")]:
+        startup = {"env_allow": ["PATH", "PYTHONPATH", "LD_PRELOAD"],
+                   "first_turn": [{"label": "fold", "cmd": cmd}]}
+        res = rotate._run_first_turn_commands(startup, VALUES)
+        assert res[0]["refused"], res
+        assert f"env prefix {name} refused unconditionally" in res[0]["refused"], \
+            (cmd, res)
+
+
+def test_git_fetch_off_the_allowlist():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: `fetch` was on
+    # _GIT_ALLOW and a bare `git fetch` returned None (accepted) — a NETWORK
+    # WRITE (it advances remote-tracking refs) that no rotation template uses.
+    # fetch is now NOT on the allowlist, so a git first stage naming it falls
+    # through to a named refusal. The FALSIFIER is acceptance: any `git fetch`
+    # accepted by the judge fails the claim.
+    for cmd in ["git fetch", "git fetch origin", "git fetch upstream"]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+        assert "fetch" in ref, (cmd, ref)
+
+
+def test_git_diff_requires_stat():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: `diff` REQUIRES
+    # `--stat`. A bare `git diff` would print the working-tree PATCH (file
+    # contents) into the rotation record and the successor's STARTUP OUTPUT;
+    # it is refused by name. `git diff HEAD` is refused (HEAD is not a diff
+    # operand on the allowlist). `git diff --stat` still passes.
+    for cmd in ["git diff", "git diff HEAD"]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref is not None, cmd
+        assert ref.startswith("producer git "), cmd
+    assert "stat" in rotate._producing_refusal("git diff")
+    # --stat present -> passes; the flag also STAYS allowed on log
+    assert rotate._producing_refusal("git diff --stat") is None
+    assert rotate._producing_refusal("git log --stat -5") is None
+
+
+def test_git_readonly_subcmds_deleted():
+    # hypothesis:l4-the-git-allowlist-has-no-network-write: _GIT_READONLY_SUBCMDS
+    # had ONE remaining reference, its own definition — dead code whose
+    # `fetch`-inclusion kept implying a bare fetch was a safe read. It is
+    # deleted with no remaining reference (its name no longer binds).
+    assert not hasattr(rotate, "_GIT_READONLY_SUBCMDS")

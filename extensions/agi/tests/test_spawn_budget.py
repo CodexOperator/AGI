@@ -455,12 +455,24 @@ def _sleeping():
                              "import time, signal; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(120)"])
 
 
+@pytest.fixture()
+def fast_tick_sample(monkeypatch):
+    """`status --iter` samples CPU over TICK_SAMPLE_SECONDS (8 s). Tests must
+    not sleep 8 real seconds each, so shrink the module seam to nearly
+    nothing. The seam is `spawn_budget._STATUS_SAMPLE_SECONDS` — a test that
+    reads the documented constant instead of monkeypatching it back into a
+    bare literal keeps both the definition and the seam honest."""
+    assert spawn_budget.TICK_SAMPLE_SECONDS == 8
+    monkeypatch.setattr(spawn_budget, "_STATUS_SAMPLE_SECONDS", 0.01)
+    yield spawn_budget
+
+
 def _mk_project(root: Path) -> None:
     (root / ".agi").mkdir(exist_ok=True)
     (root / ".agi" / "config.json").write_text('{}')
 
 
-def test_status_iter_parent_with_live_kid_is_never_a_stall_candidate(root, capsys):
+def test_status_iter_parent_with_live_kid_is_never_a_stall_candidate(root, capsys, fast_tick_sample):
     """The falsifier, run for real: parent + live kid must NOT be a candidate."""
     _mk_project(root)
     parent = _sleeping()
@@ -481,7 +493,7 @@ def test_status_iter_parent_with_live_kid_is_never_a_stall_candidate(root, capsy
             p.kill(); p.wait()
 
 
-def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys):
+def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys, fast_tick_sample):
     """Parent alive but idle (0 ticks, 0 sockets, no done) and no kid → candidate."""
     _mk_project(root)
     parent = _sleeping()
@@ -499,7 +511,7 @@ def test_status_iter_parent_alone_idle_is_a_stall_candidate(root, capsys):
         parent.kill(); parent.wait()
 
 
-def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys):
+def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys, fast_tick_sample):
     """A REAL lease stores `iter` as the string 'L4.NNN' (locations.
     iteration_id), never an int. The old int-only comparison (`rec.get("iter")
     == nnn`) never matched a live round and `iter-L{int}` never found the
@@ -529,6 +541,184 @@ def test_status_iter_string_iter_lease_matches_and_reads_agent_json(root, capsys
             p.kill(); p.wait()
 
 
+def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, capsys, fast_tick_sample):
+    """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
+    print-it — heal.py keeps a live past-deadline agent's status `running`
+    and adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue.
+    So the parent brief must not tell a parent to read a `status reads
+    overdue` word that nothing emits, and THIS reader must print
+    `agent=running(overdue)` — the word the brief now names. A record with
+    `status: running` + `overdue_since` must therefore print `running(overdue)`, and
+    a plain running record must stay `agent=running` with no suffix."""
+    _mk_project(root)
+    parent = _sleeping()
+    overdue = _sleeping()
+    plain = _sleeping()
+    p_lease = spawn_budget.acquire(root, 3, "parent-0", tier="parent", iter_n="L4.168")
+    spawn_budget.commit(p_lease, parent.pid)
+    o_lease = spawn_budget.acquire(root, 3, "kid-overdue", tier="kid", iter_n="L4.168")
+    spawn_budget.commit(o_lease, overdue.pid)
+    k_lease = spawn_budget.acquire(root, 3, "kid-plain", tier="kid", iter_n="L4.168")
+    spawn_budget.commit(k_lease, plain.pid)
+    for leaf, body in (("parent-0", '{"status": "running"}'),
+                       ("kid-overdue", '{"status": "running", "overdue_since": 1700000000, "overdue_reason": "past manifest timeout_seconds=3600"}'),
+                       ("kid-plain", '{"status": "running"}')):
+        ajson = root / ".agi" / "sessions" / "iter-L4.168" / leaf / "agent.json"
+        ajson.parent.mkdir(parents=True)
+        ajson.write_text(body)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.168"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "agent=running(overdue)" in out, out
+        assert out.count("agent=running") == 3, out
+    finally:
+        for p in (parent, overdue, plain):
+            p.kill(); p.wait()
+
+
+def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
+    """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir,
+    MEASURED layout: a PARENT agent.json is written by the DISPATCHER into
+    the DISPATCHING seat's worktree sessions dir
+    (`<main>/.agi/worktrees/seat-sanctuary-director/.agi/sessions`). The
+    lookup must find it there and name the root `seat:sanctuary-director`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    wt_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    wt_graph.mkdir(parents=True, exist_ok=True)
+    (wt_graph / "config.json").write_text("{}")
+    ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    status, src, overdue = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
+    assert status == "running", status
+    assert src == "seat:sanctuary-director", src
+
+
+def test_agent_status_finds_kid_record_under_parents_worktree(root: Path):
+    """MEASURED layout: a KID agent.json is written by its PARENT into the
+    PARENT's worktree (`<main>/.agi/worktrees/<parent-id>/.agi/sessions`). The
+    lookup must find it there and name the root `wt:<parent-id>`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    wt_graph = main_graph / "worktrees" / "a00-06c44930" / ".agi"
+    wt_graph.mkdir(parents=True, exist_ok=True)
+    (wt_graph / "config.json").write_text("{}")
+    ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-71de766d" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    status, src, overdue = spawn_budget._agent_status(root, "a00-71de766d", "L4.193")
+    assert status == "running", status
+    assert src == "wt:a00-06c44930", src
+
+
+def test_agent_status_finds_main_tree_record(root: Path):
+    """A record under only MAIN's sessions dir is found and named `main`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    ajson = main_graph / "sessions" / "iter-L4.193" / "a0" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "done"}')
+    status, src, overdue = spawn_budget._agent_status(root, "a0", "L4.193")
+    assert status == "done", status
+    assert src == "main", src
+
+
+def test_agent_status_own_candidate_from_its_own_seat_labels_seat_not_wt_agi(
+        root: Path, monkeypatch):
+    """hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name —
+    the FALSIFIER. Invoking `_agent_status` FROM a non-main worktree makes the
+    record's OWN candidate the seat's own graph dir. The own candidate used to
+    be labeled `wt_label(own)` where `own` is the GRAPH dir
+    (`<worktree>/.agi`), whose `.name` is always `.agi` — so every record
+    answered from its own root printed `@wt:.agi` (the label depended on where
+    you stood: the same record printed `@seat:sanctuary-director` when reached
+    through another tree's glob). The label must now derive from the WORKTREE
+    directory (the graph dir's parent when the graph dir is `.agi`, else the
+    graph dir itself), identically for the own and the glob candidates, so
+    `@seat:sanctuary-director` prints from any tree.
+
+    `git_common_root` is stubbed to the tmp main because a tmp tree has no real
+    common git dir (in production it resolves the main checkout); the seat
+    graph is a distinct path from it, which is what makes `own` non-main."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    seat_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    seat_graph.mkdir(parents=True, exist_ok=True)
+    (seat_graph / "config.json").write_text("{}")
+    ajson = seat_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    monkeypatch.setattr(spawn_budget.locations, "git_common_root",
+                        lambda g: root)
+    status, src, overdue = spawn_budget._agent_status(
+        root / ".agi" / "worktrees" / "seat-sanctuary-director",
+        "a00-06c44930", "L4.193")
+    assert status == "running", status
+    assert src == "seat:sanctuary-director", src
+    assert "wt:.agi" not in src, src
+
+
+def test_agent_status_no_record_anywhere_is_no_agent_json(root: Path):
+    """`(no agent.json)` is returned only when NOTHING holds the record —
+    MAIN empty, no worktree, no seat — and then src is None."""
+    _mk_project(root)
+    # a seat and a parent worktree both exist but hold no record for `a0`
+    for wt_name in ("seat-sanctuary-director", "a00-06c44930"):
+        wt_graph = root / ".agi" / "worktrees" / wt_name / ".agi"
+        wt_graph.mkdir(parents=True, exist_ok=True)
+        (wt_graph / "config.json").write_text("{}")
+    status, src, overdue = spawn_budget._agent_status(root, "a0", "L4.193")
+    assert status == "(no agent.json)", status
+    assert src is None, src
+
+
+def test_status_iter_worktree_round_is_no_longer_a_false_negative(root, capsys, fast_tick_sample):
+    """FALSIFIER of hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-
+    sessions-dir with the MEASURED layout. A parent dispatched from a seat
+    keeps its agent.json in the seat worktree; its kid keeps its own in the
+    parent's worktree. Before the fix both live rows printed `(no agent.json)`
+    while both records sat on disk; now each is found and the column names
+    the root as `@seat:<name>` / `@wt:<parent-id>`."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    # seat worktree holds the PARENT record
+    seat_graph = main_graph / "worktrees" / "seat-sanctuary-director" / ".agi"
+    seat_graph.mkdir(parents=True, exist_ok=True)
+    (seat_graph / "config.json").write_text("{}")
+    (seat_graph / "sessions" / "iter-L4.193" / "parent-0").mkdir(parents=True)
+    (seat_graph / "sessions" / "iter-L4.193" / "parent-0" / "agent.json").write_text(
+        '{"status": "running"}')
+    # parent's worktree holds the KID record
+    parent_graph = main_graph / "worktrees" / "parent-0" / ".agi"
+    parent_graph.mkdir(parents=True, exist_ok=True)
+    (parent_graph / "config.json").write_text("{}")
+    (parent_graph / "sessions" / "iter-L4.193" / "kid-0").mkdir(parents=True)
+    (parent_graph / "sessions" / "iter-L4.193" / "kid-0" / "agent.json").write_text(
+        '{"status": "running"}')
+    parent = _sleeping()
+    kid = _sleeping()
+    try:
+        p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                       iter_n="L4.193")
+        spawn_budget.commit(p_lease, parent.pid)
+        k_lease = spawn_budget.acquire(root, 2, "kid-0", tier="kid",
+                                       iter_n="L4.193")
+        spawn_budget.commit(k_lease, kid.pid)
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.193"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "STALL-CANDIDATE" not in out, out
+        assert "1 live kid(s)" in out, out
+        assert "agent=running@seat:sanctuary-director" in out, out
+        assert "agent=running@wt:parent-0" in out, out
+        assert "(no agent.json)" not in out, out
+    finally:
+        for p in (parent, kid):
+            p.kill(); p.wait()
+
+
 def test_status_iter_unknown_iteration_names_it_and_exits_1(root, capsys):
     """An unknown iteration is a NAMED message, exit 1 — never a silent 0."""
     _mk_project(root)
@@ -541,3 +731,214 @@ def test_status_iter_unknown_iteration_names_it_and_exits_1(root, capsys):
     out2 = capsys.readouterr().err
     assert rc2 == 1
     assert "unknown iteration" in out2, out2
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-stall-candidate-measures-an-api-bound-parent-honestly — the
+# verdict line must carry the numbers it measured, and STALL-CANDIDATE must
+# fire ONLY when ticks AND sockets AND kids AND done all say stalled
+# --------------------------------------------------------------------------
+
+class _FakeSampler:
+    """Injects the tick/socket samplers so the falsifier needs no real sockets
+    and no 8 s wall clock. `_round_status` calls the module globals
+    `_pid_ticks`/`_pid_sockets`, so monkeypatching them IS the seam."""
+
+    def __init__(self, ticks_steps=(0, 0), sockets=0):
+        self._steps = list(ticks_steps)
+        self._sockets = sockets
+        self._samples = []
+
+    def ticks(self, pid):
+        # sampled twice per pid (t0 then t1); the delta is what matters
+        return self._steps.pop(0) if self._steps else 0
+
+    def sockets(self, pid):
+        return self._sockets
+
+
+def test_status_iter_parent_with_ticks_but_no_sockets_is_reviewing_not_candidate(
+        root, capsys, fast_tick_sample, monkeypatch):
+    """THE FALSIFIER: a parent that consumed CPU over the sample (ticks > 0,
+    0 sockets) must print `reviewing` and MUST NOT print STALL-CANDIDATE. The
+    pre-fix code judged only on ticks and sockets from real /proc state over a
+    2 s sample, so an API-bound parent could read 0/0 and be called stalled
+    while alive. A fixture with ticks then positive proves the verdict path
+    keeps the evidence it measured."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.170")
+    spawn_budget.commit(p_lease, parent.pid)
+    fake = _FakeSampler(ticks_steps=(0, 500), sockets=0)
+    monkeypatch.setattr(spawn_budget, "_pid_ticks", fake.ticks)
+    monkeypatch.setattr(spawn_budget, "_pid_sockets", fake.sockets)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.170"])
+        out = capsys.readouterr().out
+        assert rc == 0
+        assert "STALL-CANDIDATE" not in out, out
+        assert "reviewing" in out, out
+        assert "ticks=500" in out, out
+        assert "sockets=0" in out, out
+    finally:
+        parent.kill(); parent.wait()
+
+
+def test_status_iter_parent_with_sockets_but_no_ticks_is_reviewing_not_candidate(
+        root, capsys, fast_tick_sample, monkeypatch):
+    """The mirror falsifier: a parent holding 3 sockets but 0 CPU ticks over
+    the sample (mid-review between API calls, waiting on a control socket) must
+    be `reviewing`, never STALL-CANDIDATE. The pre-fix helper counted only
+    ESTABLISHED TCP (state 01), so a unix/LISTEN-holding parent read
+    `sockets=0` and was falsely flagged."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.172")
+    spawn_budget.commit(p_lease, parent.pid)
+    fake = _FakeSampler(ticks_steps=(0, 0), sockets=3)
+    monkeypatch.setattr(spawn_budget, "_pid_ticks", fake.ticks)
+    monkeypatch.setattr(spawn_budget, "_pid_sockets", fake.sockets)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.172"])
+        out = capsys.readouterr().out
+        assert rc == 0
+        assert "STALL-CANDIDATE" not in out, out
+        assert "reviewing" in out, out
+        assert "sockets=3" in out, out
+        assert "ticks=0" in out, out
+    finally:
+        parent.kill(); parent.wait()
+
+
+def test_status_iter_samples_tick_window_once_for_many_rows(root, capsys, monkeypatch):
+    """The sample window is paid ONCE per round, not once per row. A round
+    of 3+ live rows whose `status --iter` runs under a real (non-seam) window
+    must finish in well under 3x that window. Per-row serial sleeps (the
+    pre-fix shape) cost 3 windows and FAIL this assertion; concurrent
+    sampling costs exactly one."""
+    _mk_project(root)
+    window = 0.2
+    monkeypatch.setattr(spawn_budget, "_STATUS_SAMPLE_SECONDS", window)
+    procs = [_sleeping() for _ in range(3)]
+    for i, p in enumerate(procs):
+        lease = spawn_budget.acquire(root, 3, f"parent-{i}", tier="parent", iter_n="L4.175")
+        assert lease is not None
+        spawn_budget.commit(lease, p.pid)
+    try:
+        t0 = time.monotonic()
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.175"])
+        elapsed = time.monotonic() - t0
+        assert rc == 0
+        assert elapsed < 2 * window, (
+            f"window paid {elapsed:.2f}s for 3 rows; expected < 2*{window}s "
+            f"({2*window:.2f}s). Serial per-row sleeps cost 3*{window}s "
+            f"({3*window:.2f}s).")
+    finally:
+        for p in procs:
+            p.kill(); p.wait()
+
+
+def test_pid_sockets_counts_any_tcp_state_and_unix(tmp_path, monkeypatch):
+    """The rewritten helper must count every socket the pid holds, in any TCP
+    state plus unix — not just ESTABLISHED (01). Verifies the /proc parsing
+    against a synthetic /proc tree redirected from a tmp dir, so it needs no
+    real sockets and touches no real /proc."""
+    import pathlib
+    import spawn_budget as sb
+
+    proc = tmp_path / "proc"
+    (proc / "net").mkdir(parents=True)
+    # pid holds two socket links: LISTEN (0A) tcp6 inode 111 and a unix socket
+    # inode 222; the anon_inode must NOT count.
+    fd = proc / "123" / "fd"
+    fd.mkdir(parents=True)
+    (fd / "3").symlink_to("socket:[111]")
+    (fd / "4").symlink_to("socket:[222]")
+    (fd / "5").symlink_to("anon_inode:[eventpoll]")
+    # tcp6 lines in the REAL 17-column /proc layout: inode is index 9. States
+    # 0A (LISTEN) and 12 (CLOSE_WAIT) — neither is 01, so the old helper that
+    # counted only ESTABLISHED would have missed the LISTEN socket entirely.
+    (proc / "net" / "tcp").write_text(
+        "sl local rem st tx rx tr tm retr uid timeout inode\n")
+    (proc / "net" / "tcp6").write_text(
+        "sl local rem st tx rx tr tm retr uid timeout inode\n"
+        " 0: 0100007F:04D2 00000000:0000 0A 00:00 0:0 0 0 0 111 1 0000 100 0 0 10 0\n"
+        " 1: 0100007F:04D3 00000000:0000 12 00:00 0:0 0 0 0 999 1 0000 100 0 0 10 0\n")
+    (proc / "net" / "unix").write_text(
+        "Num RefCount Protocol Flags Type St Inode Path\n"
+        "0000: 00000003 00000000 00000000 0001 03 222 /run/x.sock\n"
+        "0001: 00000003 00000000 00000000 0001 03 555\n")
+
+    _real = pathlib.Path
+
+    def _redirect(p):
+        s = str(p)
+        # only the /proc strings the helper reads get redirected to the fake;
+        # everything else is a normal real path (pytest's own tmp handling)
+        if s == f"/proc/{123}/fd" or s.startswith("/proc/net/"):
+            return _real(s.replace("/proc/", str(proc) + "/"))
+        return _real(s)
+
+    # patch the module's Path alias, not pathlib globally, so pytest's own
+    # tmp_path bookkeeping is untouched and nothing recurses
+    monkeypatch.setattr(sb, "Path", lambda p: _redirect(_real(p)))
+    # LISTEN(0A) tcp6 inode 111 + unix inode 222 = 2; CLOSE_WAIT 999 and the
+    # path-less unix 555 are not held by the pid; anon_inode never counts.
+    assert sb._pid_sockets(123) == 2
+
+
+def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch):
+    """A pid whose fd dir vanishes after the first entry is yielded must
+    return 0, NOT raise. iterdir() is lazy, so a pid that exits mid-read raises
+    FileNotFoundError/ProcessLookupError out of the `for fd in fds:` loop; the
+    whole walk (listing + readlinks) must sit in one guarded try, else the
+    exception escapes the helper up into status()."""
+    import pathlib
+    import shutil
+    import spawn_budget as sb
+
+    proc = tmp_path / "proc"
+    (proc / "net").mkdir(parents=True)
+    fd = proc / "123" / "fd"
+    fd.mkdir(parents=True)
+    (fd / "3").symlink_to("socket:[111]")
+
+    _real = pathlib.Path
+
+    def make_bomb(p):
+        """A Path subclass whose iterdir() yields one entry, then deletes the
+        real fd dir so the generator's SECOND next() raises FileNotFoundError
+        (an OSError) — exactly the process-exits-mid-read condition."""
+        real = _real(str(p))
+        _flav = _real(str(p))._flavour
+
+        class _BombPath(_real):
+            _flavour = _flav
+
+            def iterdir(self):
+                it = super().iterdir()
+                fired = False
+                def _gen():
+                    nonlocal fired
+                    for ent in it:
+                        yield ent
+                        if not fired:
+                            fired = True
+                            shutil.rmtree(real, ignore_errors=True)
+                return _gen()
+
+        return _BombPath(str(p))
+
+    def _redirect(p):
+        s = str(p)
+        if s == f"/proc/{123}/fd":
+            return make_bomb(s)
+        if s.startswith("/proc/net/"):
+            return _real(s.replace("/proc/", str(proc) + "/"))
+        return _real(s)
+
+    monkeypatch.setattr(sb, "Path", lambda p: _redirect(_real(p)))
+    # the walk collects inode 111 then the listing raises; the guarded try must
+    # collapse to the documented 0, and no OSError may escape.
+    assert sb._pid_sockets(123) == 0
+
