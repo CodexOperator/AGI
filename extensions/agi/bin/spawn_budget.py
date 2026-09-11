@@ -579,7 +579,7 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, object]:
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, int | None]:
     """The agent.json `status` for this agent, if a record exists, plus which
     sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
     None for none), plus the record's `overdue_since` value (epoch int, or
@@ -626,7 +626,7 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
-        return "(no agent.json)", None
+        return "(no agent.json)", None, None
 
     graph = locations.find_project_root(root) or root
     main = locations.git_common_root(graph)
