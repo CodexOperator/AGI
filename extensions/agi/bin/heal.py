@@ -355,23 +355,41 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                        f"DEAD past deadline ({rec['fail_reason']}; "
                        f"dispatched_by={rec.get('dispatched_by') or '-'})")
             continue
-        rec["status"] = "timeout"
-        rec["finished_at"] = int(time.time())
-        rec["timeout_reason"] = (f"past manifest timeout_seconds={timeout_s} "
-                                 f"at {elapsed}s")
+        # hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal — a
+        # LIVE pid past its deadline is OVERDUE, never terminal. The watcher
+        # does not TERM (kill is the round's own declared choice), so a
+        # `timeout` mark here would be a terminal word on a pid that is still
+        # working — which the pi parent reads as a licence to cut a REPLACEMENT
+        # kid into the same worktree (L4.155/L4.156: two kids editing one file
+        # set). A live agent keeps status `running`, gains `overdue_since` +
+        # `overdue_reason`, gets EXACTLY ONE `overdue` dm (never a second on a
+        # later pass — the `overdue_since` guard), and the parent brief names
+        # `overdue` as still-working so no replacement is cut. The admin heap
+        # path that actually TERMs a hung pid is the one place a `timeout`
+        # verdict is legal; the watcher never derives it.
+        if rec.get("overdue_since"):
+            _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} STILL "
+                       f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; "
+                       f"pid {pid} alive)")
+            continue
+        rec["overdue_since"] = int(time.time())
+        rec["overdue_reason"] = (f"past manifest timeout_seconds={timeout_s} "
+                                  f"at {elapsed}s; pid {pid} still alive")
         rec_path.write_text(json.dumps(rec, indent=2))
         for entry in manifest.get("agents", []):
             if entry.get("id") == agent_id:
-                entry["status"] = "timeout"
-                entry["finished_at"] = rec["finished_at"]
+                # status STAYS running — never a terminal word for a live pid.
+                entry.setdefault("status", "running")
+                entry["overdue_since"] = rec["overdue_since"]
+                entry["overdue_reason"] = rec["overdue_reason"]
         manifest_path.write_text(json.dumps(manifest, indent=2))
         # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — ONE dm per
-        # terminal event, through heal.py's own L4.113 helper. No stamp -> the
-        # helper logs a warn line and returns; never silence, never crash.
-        _alarm_dispatcher(rec, iter_dir.name, "timeout", root)
+        # event, through heal.py's own L4.113 helper. No stamp -> the helper
+        # logs a warn line and returns; never silence, never crash.
+        _alarm_dispatcher(rec, iter_dir.name, "overdue", root)
         _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
-                   f"timeout (elapsed {elapsed}s > {timeout_s}s; "
-                   f"dispatched_by={rec.get('dispatched_by') or '-'})")
+                   f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; pid {pid} "
+                   f"alive; dispatched_by={rec.get('dispatched_by') or '-'})")
 
 
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
