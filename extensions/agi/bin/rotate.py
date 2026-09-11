@@ -1708,6 +1708,22 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                   "another seat's identity; pass your OWN bare ListAgents "
                   "ref.", file=sys.stderr)
             return 2
+    # r3b: `continue` COMMITS its own row write (unless --no-commit); `diff`
+    # never commits (the successor still edits). Only the commit path checks
+    # a pre-dirtied seats.md — a dirty config:seats BEFORE the ack (unrelated
+    # staged OR unstaged hunks in THAT file) is REFUSED BY NAME before any
+    # write, so the ack's own commit never bundles someone else's row change.
+    do_commit = args.answer == "continue" \
+        and not getattr(args, "no_commit", False)
+    if do_commit and ref:
+        top = _git_toplevel(root)
+        dirty = _ack_seats_dirty(root, top) if top else None
+        if dirty:
+            print(f"ERR: refuse to ack --commit: {dirty!r} is dirty "
+                  "(staged or unstaged) before this ack; resolve it first so "
+                  "the ack never bundles someone else's row change into its "
+                  "own commit.", file=sys.stderr)
+            return 3
     ack = {
         "seat": seat,
         "gen_after": args.gen,
@@ -1736,12 +1752,29 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # no-ref path. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
     if ref:
-        try:
-            print(_backfill_session_ref(
-                root, seat=seat, role="parent", ref=ref))
-        except Exception as exc:  # noqa: BLE001
-            print(f"warn: session_ref back-fill failed: {exc}",
-                  file=sys.stderr)
+        # r3b: a back-fill that changed NOTHING (the row already carries this
+        # ref) SKIPS the write + commit entirely and says so in one line —
+        # write.submit's own metadata churn would otherwise dirty seats.md for
+        # no row change (falsifier 3: nothing committed, one line says it).
+        before_row = _find_seat(root, seat)
+        already = before_row is not None \
+            and (before_row.get("session_ref") or "") == ref
+        if already:
+            print(f"ack: {seat} row already carries session_ref={ref} — "
+                  "nothing to back-fill or commit")
+        else:
+            try:
+                print(_backfill_session_ref(
+                    root, seat=seat, role="parent", ref=ref))
+            except Exception as exc:  # noqa: BLE001
+                print(f"warn: session_ref back-fill failed: {exc}",
+                      file=sys.stderr)
+            # r3b: `continue` (no --no-commit) commits the row it just wrote
+            # and prints the +/- lines + the exact `git push` line;
+            # `--no-commit`/`diff` leave the working tree as today (write +
+            # print, no commit).
+            if do_commit:
+                print(_ack_commit_seats(root, seat, args, ref))
     # A HAND launch (a seat the owner started directly, never through
     # spawn/seats-launch) is a first seating acked at --gen 1 (no predecessor):
     # record it and send the SAME rotation-alert dm a rotation emits — but
@@ -4708,6 +4741,78 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     edit.set_fm["seats"] = new_rows
     write.submit(root, edit, actor=seat, role=role)
     return f"back-filled session_ref={ref} into own row (source: ack)"
+
+
+def _ack_seats_path(root: Path) -> Path:
+    """The config:seats file the ack's back-fill writes
+    (`.agi/nodes/.geometry/seats.md`) — the ONE path the ack ever stages or
+    commits, never `-A`, never a sibling."""
+    return Path(root) / "nodes" / ".geometry" / "seats.md"
+
+
+def _ack_seats_dirty(root: Path, top: Path) -> str | None:
+    """The config:seats path (relative to repo top) when seats.md is ALREADY
+    dirty — staged OR unstaged hunks in THAT file — else None. r3b: the ack
+    refuses the commit path on a pre-dirtied seats.md so its own back-fill
+    commit never bundles someone else's row change. None when seats.md is
+    clean, or when the read cannot answer (not a repo). Never raises."""
+    rel = os.path.relpath(_ack_seats_path(root), top)
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(top), "status", "--porcelain", "--", rel],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if out.returncode != 0 or not out.stdout.strip():
+        return None
+    return rel
+
+
+def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
+                      ref: str) -> str:
+    """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
+    row rewrite it just back-filled: `git add` seats.md + ONE commit whose
+    message is a single line
+    `<seat> ack: gen <N>, session_ref <ref>, window <@id>, pid <pid>`
+    (the values read from the row it just wrote), touching seats.md ONLY,
+    and PRINTS the seat's old and new row lines from `git diff --cached` so
+    the successor never re-reads. A back-fill that changed nothing (the row
+    already carried the ref) commits nothing and says so in one line. The
+    last printed line is the exact `git push` command — printed, never run.
+    Returns one multi-line outcome string (or "" when it did nothing)."""
+    top = _git_toplevel(root)
+    if top is None:
+        return ("ack: no git repo — row written, not committed "
+                "(a gitless worktree has no commit to make)")
+    seats = _ack_seats_path(root)
+    rel = os.path.relpath(seats, top)
+    add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                         capture_output=True, text=True)
+    if add.returncode != 0:
+        return f"ERR: git add {rel!r} failed: {add.stderr.strip()}"
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    diff = cached.stdout if cached.returncode == 0 else ""
+    if not diff.strip():
+        return "ack: no change to seats.md — nothing committed"
+    lines = []
+    for ln in diff.splitlines():
+        if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
+            continue
+        if ln.startswith(("+", "-")):
+            lines.append(ln)
+    row = _find_seat(root, seat) or {}
+    gen = getattr(args, "gen", None)
+    win = str(row.get("window") or "")
+    pid = str(row.get("pid") or "")
+    msg = (f"{seat} ack: gen {gen}, session_ref {ref}, "
+           f"window {win}, pid {pid}")
+    rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                         msg, "--", rel], capture_output=True, text=True)
+    if rc.returncode != 0:
+        return f"ERR: git commit failed: {rc.stderr.strip()}"
+    return "ack: committed own row write (" + str(rel) + "):\n" + \
+        "\n".join(lines) + f"\ngit -C {top} push"
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -9715,6 +9820,10 @@ def main(argv: list[str] | None = None) -> int:
     p_ack.add_argument("--text", default=None,
                        help="the diff text, when answer is diff; `-` reads it "
                             "from stdin")
+    p_ack.add_argument("--no-commit", action="store_true", dest="no_commit",
+                       help="write + print the back-fill but do NOT commit "
+                            "the seat row (continue commits by default; "
+                            "diff never commits)")
     p_ack.set_defaults(func=cmd_ack)
 
     # status
