@@ -30,7 +30,7 @@ LIVE (parents `deepseek/deepseek-v4.1-flash`, disjoint scopes):
 SERIAL QUEUES after these land:
 - rotate.py: (iv)/L4.179 → **g15-32 `l4-a-filter-stage-is-argument-restricted` (SECURITY, FIRST — cut the moment L4.179 exits)** → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
 - conftest.py: fix-only re-dispatch of (ix) `l4-the-kid-tier-gate-has-no-env-seam` (claim in its note) + g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py (free): g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
-- heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — FIRST priority per the prime, SERIAL behind helper p1 (check `git grep -l manifest-mirrors origin/season/s2 -- .agi/nodes/experiment` — cut the moment an experiment appears on season).
+- heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — UNBLOCKED (helper p1 landed in merge-up 32). Fresh evidence for its node: 09:42:08Z three `iter=iter-L4.17x agent=<parent> reason=timeout` nudges hit my inbox for the L4.176/177/179 PARENTS, all of which then reviewed and exited normally 09:45-09:56Z (`done:` commits). Second in line after g15-32 for the last dollars.
 
 ## §3 🔴 NEXT COMMAND (last stamped 10:01Z)
 
