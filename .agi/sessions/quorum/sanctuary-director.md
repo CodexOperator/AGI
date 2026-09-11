@@ -23,20 +23,18 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch`
 
-HARVESTED: L4.170, L4.174, L4.175, L4.178, L4.179 + helper seat 6c70cea62 as 32b (see §1).
+HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32; L4.176, 177 in the seat for 33.
 LIVE (parents `deepseek/deepseek-v4.1-flash`, disjoint scopes):
 - **L4.180** (g15-34) `l4-ownership-matches-the-rendered-line-and-zero-body-retreats` — a00-18b53530 — send.py + test_send.py (cut 09:41Z)
-- **L4.176** (ix) `l4-the-kid-tier-gate-has-no-env-seam` — a00-9922846f — conftest.py + test_tier_gate.py
-- **L4.177** (xi) `l4-stall-candidate-measures-an-api-bound-parent-honestly` — a00-ca59f20b — spawn_budget.py + test_spawn_budget.py
 
 SERIAL QUEUES after these land:
 - rotate.py: (iv)/L4.179 → **g15-32 `l4-a-filter-stage-is-argument-restricted` (SECURITY, FIRST — cut the moment L4.179 exits)** → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
-- conftest.py: L4.176 → g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py: L4.177 → g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
+- conftest.py: fix-only re-dispatch of (ix) `l4-the-kid-tier-gate-has-no-env-seam` (claim in its note) + g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py (free): g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
 - heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — FIRST priority per the prime, SERIAL behind helper p1 (check `git grep -l manifest-mirrors origin/season/s2 -- .agi/nodes/experiment` — cut the moment an experiment appears on season).
 
-## §3 🔴 NEXT COMMAND (last stamped 09:57Z)
+## §3 🔴 NEXT COMMAND (last stamped 10:01Z)
 
-**MERGE-UP 32 DONE 09:56Z: e1b6a1234 → 2793765c1**, suite 11/11 first read (2933 / 13), **floor 2031 / 195 / 2226 stamped @ 2793765c1**; prime IX told (numbers + slugs). Seat synced to it. Now: harvest L4.176 (a00-9922846f) and L4.177 (a00-ca59f20b) — both exited 09:52-09:56Z — then L4.180 (a00-18b53530) when it exits; **then g15-32 `l4-a-filter-stage-is-argument-restricted` — prime says GO while `credit_balance` ≥ $1.00 (below: the ruled fallback = sonnet parent AND kids `--harness claude-code`, never a lowered floor; "always prefer dispatch")**. Prime accepted the helper's two candidates: `bare-kid-never-commits` (claim = a --tier kid with no parent has its worktree checked and committed before merge; an "already up to date" merge against a kid worktree with uncommitted bytes REFUSES or flags) and `self-staged-edit-lost-on-commit` AMENDED (the agent-git pre-commit hook (L4.121) refuses a commit where a staged path's worktree bytes differ from its index blob unless an explicit override records why) — to MINT under goal:g15 (helper's lanes; tell the helper). Merge-up 33 when 3+ rounds are in.
+**MERGE-UP 32 DONE 09:56Z: e1b6a1234 → 2793765c1** (2933 / 13, floor 2031 / 195 / 2226 stamped). Since then harvested into the seat: **L4.177** (xi, sockets any-state + 8 s shared window; live L4.180 parent read sockets=0 pre-fix vs 3) and **L4.176** (ix, HALF: env read gone; parent demoted both kids to lean_disproved:65 — the option guard is itself an env var; fix-only re-dispatch claim is in the node's note, serial with g15-36a on conftest). Helper told to MINT its two accepted candidates and hold. **NEXT: when L4.180 (a00-18b53530, send.py) exits → harvest it → read `credit_balance` → if ≥ $1.00 cut g15-32 `hypothesis:l4-a-filter-stage-is-argument-restricted` as L4.181 on rotate.py (prime's GO 09:50Z; below $1.00 = the ruled fallback: sonnet parent AND kids `--harness claude-code`, never a lowered floor).** Merge-up 33 when g15-32 (+ L4.180) are in — the prime lands the config:rotations template lines after 32 by itself.
 
 ## §4 TRAPS (gen XIII + carried)
 
