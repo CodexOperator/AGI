@@ -1,0 +1,22 @@
+---
+id: hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn
+mint_id: 78051a39b6bd48cab23a26965c82e282
+type: hypothesis
+parents:
+  - goal:g15.14
+  - hypothesis:l4-startup-is-one-script-or-a-driven-prompt
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: a70e271d62bb0007
+season: 2
+testable_claim: "OWNER 2026-09-11 15:5xZ (doc:l4-owner-decisions): 'propose any additional captive or driven steps the rotate.py script needs so that LLM's are properly prompted through parts needing their input, not just write and read things raw'. Goal goal:g15.14 (parents + '## Why this exists' there; steps 1+2 of its four). DESIGN RULE: where an LLM's judgement is needed the script PRINTS the exact bounded question with every measurable value pre-filled; where it is not, the script PERFORMS the step. Never remove a decision from the LLM. MEASURE FIRST: from the Sensei's drafts (.agi/sessions/sensei/drafts/sanctuary-director-wake-audit-20260911T135144Z.md, sanctuary-helper-…152548Z.md, belam-…140328Z.md) and the predecessor transcripts (rotation records: handover.join.transcript of the PREVIOUS record of the seat), count the rotate-out calls each step removes — the pre-fix number is the evidence line, written BEFORE the code. STEP 1 — DRIVEN HANDOFF WRITER: rotate.py handoff --driven --seat S [--answers FILE]: builds §0 of the seat's CARD (<sessions>/quorum/<S>.md — the file the LLM writes today; <sessions>/seats/<S>.handoff.md stays the 5-line header _write_handoff writes) from measured values only: verification.py's last counts (active/deprecated/links/goals round-trip; the suite numbers when verify-count.json holds them), the latest rotation record (gen, window @id, pid, model_confirm.verdict), the branch + behind-count vs origin/season/s2 + unpushed commits, the meter fraction, the account line (provisioning.py status first line); then PROMPTS: prints a bounded question naming exactly two fields — §3 where-it-stops (next command) and §6 banked (options + recommendation) — and reads the answers from --answers FILE (or stdin), refusing an empty §3; writes the card with §0 replaced and §3/§6 filled, every other section carried verbatim; the trim guard (the existing card-length rule; find it, do not invent one) runs inside and refuses over the limit naming the section to cut. STEP 2 — rotate-self --prepare: prints the captive rotate-out checklist BEFORE any spawn — unpushed commits on the checked-out branch, dirty tree, behind origin/season/s2 (N commits), card mtime older than the last commit, meter pin missing or stale (seat_pin-stale), a stale <S>.ack.json — one line each with the ONE command that clears it; exit 0 only when nothing blocks, exit 3 otherwise; rotate-self itself runs the same checks and refuses BY NAME with the same line (no second implementation — one function, two callers); --force bypasses only what it bypasses today. RED-FIRST TESTS in test_rotate_prepare.py + test_rotate_handoff_driven.py on a fixture root: driven §0 carries the fixture record's gen/window/pid and the fixture verify counts; an empty §3 answer is refused; a card over the guard is refused naming the section; --prepare lists the dirty tree + the unpushed commit + the stale pin by name and exits 3; clean fixture exits 0; rotate-self on the dirty fixture refuses with the same line. Neighbours test_rotate.py, test_rotate_startup.py, test_rotate_templates.py, test_bin_help_smoke.py stay green. FALSIFIER: a step that writes §3/§6 for the LLM, or decides to rotate — refused, not landed; a --prepare that passes while rotate-self refuses (or vice versa). FILE SCOPE: extensions/agi/bin/rotate.py (handoff + prepare regions ONLY; nothing in the first_turn/bootstrap/spawn region, which goal:g15.15 owns in parallel), extensions/agi/bin/verification.py READ-ONLY (import, never edit), + the two new test files. EXCLUDED: config:rotations, config:seats, hooks, send.py, season.py. CEILING: up to 2 kids PARALLEL (step 1 / step 2), the parent merges every kid branch into the round branch before done:. Report: per step the calls removed per held rotation, pre vs post."
+thought_session: sensei-director-genI-L1
+title: rotate.py drives the handoff card's §0 and prompts only for §3/§6, and rotate-self --prepare prints what blocks a spawn before the LLM spends a call finding it
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
