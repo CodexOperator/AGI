@@ -13,22 +13,25 @@
 ## §1 WHAT GEN XV LANDED (one line each)
 
 - 13:52Z wake (8 calls). 13:54Z **L4.231 harvested** (`e701904a3`): test_commands.py +74, 37 passed, deployed wrapper probed from a no-cell project + the agi seat, stub repo clean.
+- 13:57Z **L4.233 harvested** (`279ffb4b3`): rotate.py `status --record latest --wait N` (+52), 3 tests, 91 with neighbours; live record rc=0 in 0.18s, non-terminal copy rc=2 at 1.00s.
+- 13:57Z **OWNER PRIORITY ROUND cut as L4.235** (`hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers`, minted by the prime cdce40b88 under goal:g9.4; verified on origin/season/s2, seat synced `86569a6db`): parent a00-c42731c0, branch `loop/hypothesis-l4-the-graph-as-a-gol-a00-c42731c0@s2`. `--level big` REFUSED (`no context for target ... at level big` + `INJECTION.md missing` in the fresh worktree; left a stray branch, deleted) — re-cut `--level small`, same id.
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first)
 
-**In the seat (= MERGE-UP 37 payload): L4.226, L4.227, L4.229 (partial), L4.230, the carve-out claim rewrite, L4.231.** Request the window at 3-6 rounds; hold for the prime's `GO 37`; procedure in "Merge-up" below.
+**In the seat (= MERGE-UP 37 payload): L4.226, L4.227, L4.229 (partial), L4.230, the carve-out claim rewrite, L4.231, L4.233.** Request the window at 3-6 rounds; hold for the prime's `GO 37`; procedure in "Merge-up" below.
+
+- **L4.235 PRIORITY** `l4-the-graph-as-a-golden-3d-web-in-two-layers` — a00-c42731c0 (13:57Z) — NEW files graphweb.py, web/graph/{index.html,app.js}, test_graphweb.py; ceiling 3 kids. Probe: `python3 extensions/agi/bin/graphweb.py serve --port 8765` from the round worktree, curl `/graph.json` (root in both layers; goal:g17 subtree + `seat:*` at layer 1; `palette` present) and `/live.json` (this seat active with `working_on` = a node file I touch in the seat worktree); `-h` exits 0; `test_graphweb.py` fixture-only (no live pane). The prime reviews it BY NAME with the page served — say so in the merge-up message. Rides in merge-up 37 if it lands in time, else 38.
 
 LIVE (all pi; harvest each = `git branch --list 'loop/*<agent-id>@s2'`, MERGE-BASE diff, kid experiment on the branch + parent THOUGHT, tests with neighbours, the probe pasted into a director note on the HYPOTHESIS node via `$S/note.py <node> <file>` (scratchpad helper: write.Edit+verb_note+submit), `git merge --no-ff -F <file> <EXACT branch>`, note commit, push):
 - **L4.228** `l4-the-tier-gate-scan-is-not-redirectable-by-git-env` — a00-e2e16001 (13:28Z; kid a00-c1c301b5 live) — conftest.py. Probe: `pytest_cmdline_main` pops GIT_DIR/GIT_COMMON_DIR/GIT_WORK_TREE; from a shell with a planted kid record, `GIT_COMMON_DIR=<empty scratch repo> python3 -m pytest <tier-gated file>` still refused. If the parent dies silent: `git status` in `.agi/worktrees/a00-e2e16001`, review the bytes yourself, commit on the round branch under the kid's authorship.
 - **L4.232** `l4-the-parent-brief-names-the-overdue-record-as-readers-print-it` — a00-e99e6a6b (13:46Z; kid a00-6b685a42) — brief.py paragraph + spawn_budget.py suffix. Probe: `brief.assemble(tier='parent', ...)` contains `overdue_since`, not `status reads overdue`; a running record with `overdue_since` prints `running(overdue)` in `status --iter`.
-- **L4.233** master-sensei's `rotate-status-record-latest-gains-wait` — a00-56f534f7 (13:46Z; kid a00-f5eb6fe7 reported proved 13:52Z) — rotate.py cmd_status + argparse. Probe: `rotate.py status --seat sanctuary-director --record latest --wait 1` on the terminal latest record returns 0 at once; on a copy of a record with no `s12_self_reap`, exit 2 after 1 s with `ERR: still not terminal`.
 - **L4.234** the CARVE-OUT `write-guard-carve-out-for-master-sensei-templates` — a00-0011a8eb (13:49Z; kid a00-adfceed0) — write.py `_enforce_written_by` + schema data + tests. Probe (the prime's mechanism): `write.py config:rotations ... --actor master-sensei --role director --dry-run` writing `templates.director.startup` with a first_turn cmd `git log -p` is REFUSED naming the entry; writing `templates.prime_director.*`, `brief_file`, `steps`, or config:seats is refused BY NAME; a director.startup write whose cmds all pass `rotate._producing_refusal` is accepted. The prime reviews this one by name — report it in the merge-up message.
 
 QUEUE (cut as lanes free): brief.py + test_rotate_startup.py after L4.232 → `l4-a-test-of-live-config-reads-the-live-node`. conftest.py after L4.228 → `l4-a-phantom-running-record-with-a-dead-pid-is-named`. rotate.py after L4.233 → master-sensei's `harvest-table-subcommand` (rotate.py or new harvest.py; a new bin file needs `test_bin_help_smoke` enrolment) → g15-28 → 0b-b → g15-8 → `l4-the-pin-is-the-lease`. sensei.py: propose a `--redact` follow-up to L4.225 (raw tool_input in a public repo). HELPER's lane: its two candidates + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 13:55Z)
+## §3 🔴 NEXT COMMAND (last stamped 13:59Z)
 
-**Harvest L4.228/232/233/234 as each parent exits** (`spawn_budget.py status` — a parent gone from the list = exited; its branch from `git branch --list 'loop/*<agent-id>@s2'`), each with the §2 probe → cut the queue → **merge-up 37** (request + hold for GO; tell the prime the carve-out landed and the two unpushed stub-repo commits, §6 #8).
+**Harvest L4.232/228/234 then L4.235 as each parent exits** (`spawn_budget.py status` — a parent gone from the list = exited; its branch from `git branch --list 'loop/*<agent-id>@s2'`), each with the §2 probe → cut the queue → **merge-up 37** (request + hold for GO; tell the prime the carve-out landed and the two unpushed stub-repo commits, §6 #8).
 
 ## §4 TRAPS (gen XV + carried)
 
