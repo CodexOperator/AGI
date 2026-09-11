@@ -48,6 +48,14 @@ def _aj_entries():
     return [dict(e) for e in AJ]
 
 
+def _cats(counts: dict):
+    """The wake category counts only (a/b/c/d + service-owed s) — `counts` also carries
+    the machine-readable `window_reason` (hypothesis:l4-wake-window-ends-at-
+    the-ack), so exact-equality on the whole dict would bind the audit to a
+    specific window ending."""
+    return {k: counts.get(k, 0) for k in ("a", "b", "c", "d", "s")}
+
+
 def _ft_entries():
     # we don't substitute {seat} at construction; classify_call binds it.
     return [dict(e) for e in FT]
@@ -238,10 +246,114 @@ def test_wake_audit_end_to_end_cuts_window_and_counts_on_synthetic(tmp_path):
     assert len(calls) == 4
     cats = [c["cat"] for c in calls]
     assert cats == ["a", "b", "c", "d"]
-    assert counts == {"a": 1, "b": 1, "c": 1, "d": 1, "s": 0}
+    assert _cats(counts) == {"a": 1, "b": 1, "c": 1, "d": 1, "s": 0}
+    assert counts["window_reason"] == "first (d) at 4"
     assert calls[0]["label"] == "rotation-record"
     assert calls[2]["label"] == "write-verbs"  # -h matched the label but is c
     assert calls[3]["tool"] == "Bash"
+
+
+# ── SL3.03 window items (hypothesis:l4-the-wake-window-ends-at-the-ack-and-
+# ── both-audits-share-one-tool-wrapper): the wake window ends at the ack call
+# ── INCLUSIVE (+ the row commit right after it), not at the first
+# ── classifier-(d); a transcript with NO ack keeps the first-(d) rule ──────
+
+def _ack_window_blocks(seed: str = "20260911T120000Z"):
+    """[git status (d), 20 covered Read tool_use, rotate.py ack, git commit
+    naming seats.md, then REAL work] — the ack-window fixture."""
+    blocks = [{"type": "tool_use", "name": "Bash",
+               "input": {"command": "git status -sb"}}]
+    for i in range(20):
+        blocks.append({"type": "tool_use", "name": "Read",
+                       "input": {"path": f"sessions/rotations/"
+                                  f"{SEAT}.20260911T{i:06d}Z.json"}})
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": f"python3 extensions/agi/bin/"
+                              f"rotate.py ack --seat {SEAT} --ref abc123 "
+                              "continue"}})
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": "git add HANDOFF.md seats.md "
+                              "&& git commit -q -m 'seat row'"}})
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": "python3 -m pytest "
+                              "extensions/agi/tests/test_sensei.py -q"}})
+    return blocks
+
+
+def test_wake_ack_ends_window_inclusive_and_extends_to_the_row_commit(tmp_path):
+    # git status (d) 1 + 20 reads (b) 20 + ack (b) + row commit (b) = 23;
+    # the real work AFTER the commit is beyond the window and NOT listed.
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    tr = graph / "ack.jsonl"
+    tr.write_text(_events(_ack_window_blocks()), encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert len(calls) == 23                      # ack(idx22) + row commit(idx23)
+    assert counts["window_reason"] == "ack call 22 + row commit 23"
+    # git status(d) + 20 reads(b) + ack(b) + row commit(d, git add/commit is
+    # not a by-hand read) — 23 calls, the pytest run beyond the commit excluded.
+    # the ack is service-owed (s) since L4.251 — 20 reads (b), ack (s),
+    # git status + row commit (d)
+    assert _cats(counts) == {"a": 0, "b": 20, "c": 0, "d": 2, "s": 1}
+    # the row commit is the sealed end; the pytest run is excluded
+    assert "commit" in calls[-1]["cmd"]
+    assert "pytest" not in calls[-1]["cmd"]
+
+
+def test_wake_ack_ends_at_ack_with_reason_when_no_row_commit_follows(tmp_path):
+    # ack present but no `git commit` naming seats.md right after -> window
+    # stops INCLUSIVE at the ack call, reason names just the ack.
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    blocks = [{"type": "tool_use", "name": "Bash",
+               "input": {"command": "git status -sb"}}]
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": f"python3 extensions/agi/bin/"
+                              f"rotate.py ack --seat {SEAT} --ref abc123 "
+                              "// continue"}})
+    tr = graph / "ack_only.jsonl"
+    tr.write_text(_events(blocks), encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert len(calls) == 2
+    assert counts["window_reason"] == "ack call 2"
+
+
+def test_wake_no_ack_keeps_first_d_rule_with_reason(tmp_path):
+    # no ack call anywhere -> the OLD first-(d) cut, reason names the boundary.
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    blocks = [{"type": "tool_use", "name": "Read",
+               "input": {"path": f"sessions/rotations/{SEAT}.json"}},
+              {"type": "tool_use", "name": "Bash",
+               "input": {"command": "git status -sb"}},
+              {"type": "tool_use", "name": "Bash",
+               "input": {"command": "python3 -m pytest x.py -q"}},
+              {"type": "tool_use", "name": "Bash",
+               "input": {"command": "rotate.py ack --help"}}]  # help, not the act
+    tr = graph / "noack.jsonl"
+    tr.write_text(_events(blocks), encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert len(calls) == 2
+    assert counts["window_reason"] == "first (d) at 2"
+    assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
+
+
+def test_wake_ack_help_probe_is_not_treated_as_the_ack_call(tmp_path):
+    # `rotate.py ack --help` is protocol learning (c); the WINDOW must not
+    # treat it as the ack (it would cut the wake at a usage read).
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    blocks = [{"type": "tool_use", "name": "Bash",
+               "input": {"command": "python3 extensions/agi/bin/rotate.py "
+                          "ack --help"}},
+              {"type": "tool_use", "name": "Bash",
+               "input": {"command": "git status -sb"}}]
+    tr = graph / "help.jsonl"
+    tr.write_text(_events(blocks), encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert len(calls) == 2
+    assert counts["window_reason"] == "first (d) at 2"
+
 
 
 def test_wake_audit_no_transcript_is_a_named_error(tmp_path, monkeypatch):
@@ -364,7 +476,7 @@ class TestNonBashCalls:
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
         assert code == 0
         assert calls[0]["cat"] == "b"
-        assert counts == {"a": 0, "b": 1, "c": 0, "d": 0, "s": 0}
+        assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 0, "s": 0}
 
     def test_read_of_uncovered_path_is_category_d(self, tmp_path):
         block = {"type": "tool_use", "name": "Read",
@@ -420,7 +532,8 @@ class TestOptionalGenDefaultsToLatestRecord:
                                gen=14)
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert counts["window_reason"] == "transcript end"
         assert calls[0]["cat"] == "a"
         assert calls[0]["label"] == "F2"
         # source pins WHICH record the transcript came from (never a slug)
@@ -444,7 +557,8 @@ class TestOptionalGenDefaultsToLatestRecord:
         monkeypatch.setattr(rotate, "resolve_transcript", boom)
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert counts["window_reason"] == "transcript end"
         assert calls[0]["label"] == "F2"
 
     def test_record_naming_no_transcript_refuses_naming_the_record(self,
@@ -473,7 +587,8 @@ class TestOptionalGenDefaultsToLatestRecord:
         # with no tool windows before the first d) — NOT the latest record.
         code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
         assert code == 0
-        assert counts == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
+        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
+        assert counts["window_reason"] == "first (d) at 1"
         assert calls[0]["cmd"] == "true"
 
     def test_real_record_shape_names_transcript_only_at_handover_join(self,
@@ -498,7 +613,8 @@ class TestOptionalGenDefaultsToLatestRecord:
         # --gen-less wake-audit defaults to this latest record and audits it
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert counts == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert counts["window_reason"] == "transcript end"
         assert calls[0]["label"] == "F2"
         assert calls[0]["source"].endswith("20260911T135144Z.json")
 
@@ -524,7 +640,8 @@ class TestOptionalGenDefaultsToLatestRecord:
                                ts="20260911T110000Z")
         code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
         assert code == 0
-        assert counts == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
+        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
+        assert counts["window_reason"] == "first (d) at 1"
         assert calls[0]["cmd"] == "true"
         assert calls[0]["source"].endswith("20260911T100000Z.json")
 
@@ -809,7 +926,9 @@ class TestServiceOwedEndToEnd:
         # s calls do not cut the window; the d call cuts it at position 5
         assert len(calls) == 5
         assert [c["cat"] for c in calls] == ["s", "s", "b", "b", "d"]
-        assert counts == {"a": 0, "b": 2, "c": 0, "d": 1, "s": 2}
+        # counts also carries window_reason (SL3.03) — compare the buckets
+        assert _cats(counts) == {"a": 0, "b": 2, "c": 0, "d": 1, "s": 2}
+        assert counts["window_reason"] == "ack call 1, first (d) at 5"
         args = SimpleNamespace(seat=SEAT, gen=14, transcript=str(tr),
                                redact=True)
         rc = sensei.cmd_wake_audit(graph, args)

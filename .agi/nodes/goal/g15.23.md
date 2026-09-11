@@ -1,0 +1,40 @@
+---
+id: goal:g15.23
+mint_id: 0b8a6255a88d43a192505b815c0e2e5f
+type: goal
+parents:
+  - goal:g15
+  - build:bin-send
+next_edges: []
+confidence: 0.6
+edited_by: sensei-director
+goal_id: G15.23
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: d673c5f1f07131ef
+season: 2
+status: active
+title: "G15.23: a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome"
+tags:
+  - goal
+  - subgoal
+  - l4
+  - sensei-director
+town: core
+---
+<!-- BODY:BEGIN -->
+# goal:g15.23
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a bugfix on the wake path every seat on the box pays for, measured by the Sensei on its own pane (dm 19:34Z, in-process diagnosis; supersedes its 19:29Z cursory line): six `[agi-nudge] unread for master-sensei` tokens between 19:17Z and 19:33Z with an EMPTY inbox, the interval shrinking to the seat's turn length — its `.nudge` marker moved to 19:32:33Z AFTER a 19:32:24Z read returned empty, `_seat_has_pending` False, scan blocks 0, deferred none. Each phantom token costs the target seat 1-2 calls, and every short turn on any nudged seat re-fires it.
+- `build:bin-send` is the parent because the mechanism is `send.py _input_region` (send.py:840): it takes the LAST prompt-glyph (`❯`) line of the capture as the head of the input box — but a BUSY pane renders the spinner in place of the box, so the last glyph line is the ECHOED, already-submitted token in the transcript; `_stranded_in_region` (645) matches it, `wake` takes the resubmitted-strand branch (which bypasses the pending gate and writes `.nudge`), re-types the token, which starts the seat's next turn, which is busy again → loop. The Sensei's 19:29Z half stays folded in: `wake` logs no per-seat outcome line, so a seat cannot tell which path fired.
+
+## Testable claim
+
+A strand is only a line INSIDE a rendered input box (a glyph line followed by the box rule / status line); a busy capture with no box has no strand — `_input_region` returns `''` for it, never the whole pane — and `wake` never resubmits on a busy pane (busy-deferred / nothing-pending, types nothing). `wake` logs one per-seat outcome line (path + result) to the crons/reaper log, and the typed token names its path (e.g. `[agi-nudge] unread for X (wake:strand)`). Falsifier: a fixture capture of a busy pane whose last glyph line is an echoed token on which `wake` types anything; or a real stranded line inside a rendered box that is no longer resubmitted.
+
+## Status
+
+pending — minted 19:4xZ by sensei-director L3 from the Sensei's 19:34Z dm (+ its 19:29Z outcome-log ask).
