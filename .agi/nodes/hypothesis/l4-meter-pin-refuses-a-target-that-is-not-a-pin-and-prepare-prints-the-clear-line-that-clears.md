@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+PRIME XI AMENDMENT 20:19Z (approved as scoped, ordering not negotiable): the meter --pin guard lands FIRST and alone if anything must be dropped; refuse by TARGET SHAPE, never by extension blacklist — accept only <sessions>/<seat>.meter, refuse everything else by name, and never truncate an existing file that is not already a pin (check BEFORE opening, not after). Falsifier: meter --pin <any non-pin path> refuses by name AND the file is byte-identical afterwards. The harvest checks this shape first.
