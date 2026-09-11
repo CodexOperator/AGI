@@ -302,8 +302,8 @@ def test_spawn_recovery_appends_autopsy_and_no_autopsy_omits(
 def test_spawn_pins_meter_gen1_ack_pending_and_three_worktree_facts(
         tmp_path, monkeypatch, capsys):
     """(h) SL2.02 residue: a successful spawn ALSO does rotate-self step 2's
-    two writes — pins the seat's meter at gen 1 (the SAME `_pin_successor_
-    meter`, never a second format) and writes seats/<S>.ack.json with `answer:
+    two writes — pins the seat's meter at the ROW's generation (the SAME
+    `_pin_successor_meter`, never a second format) and writes seats/<S>.ack.json with `answer:
     pending`; and the `[seating]` block carries all three worktree facts (the
     `behind N` / `unresolved merge` / `dirty` line from `_seating_worktree_
     lines`)."""
@@ -323,16 +323,19 @@ def test_spawn_pins_meter_gen1_ack_pending_and_three_worktree_facts(
     out = capsys.readouterr().out
     assert rc == 0
 
-    # the meter pin: `sessions/<seat>.meter` = `1\t<transcript>` (gen 1)
+    # the meter pin: `sessions/<seat>.meter` = `<gen>\t<transcript>`. The
+    # seat row lives at generation 11, so a RE-spawn pins at 11 (always the
+    # generation it leaves in the row — the SL3.01 residue that re-pinned the
+    # prime's gen-11 row back to 1 is the defect this test locks closed).
     pin = root / "sessions" / "pinseat.meter"
     assert pin.is_file(), out
-    assert pin.read_text(encoding="utf-8").startswith("1\t")
+    assert pin.read_text(encoding="utf-8").startswith("11\t")
     # the ack: `sessions/seats/<seat>.ack.json` with `answer: pending`
     ack = root / "sessions" / "seats" / "pinseat.ack.json"
     assert ack.is_file(), out
     ack_doc = json.loads(ack.read_text(encoding="utf-8"))
     assert ack_doc["answer"] == "pending"
-    assert ack_doc["seat"] == "pinseat" and ack_doc["gen_after"] == 1
+    assert ack_doc["seat"] == "pinseat" and ack_doc["gen_after"] == 11
     # the [seating] base block carries all three worktree facts
     assert "[seating] worktree: behind" in out
     assert "unresolved merge:" in out
