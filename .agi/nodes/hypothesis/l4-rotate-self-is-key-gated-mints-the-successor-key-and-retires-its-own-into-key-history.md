@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CUT as SL5.05 at 84a9a429f (loop L5). Line (1) is on season/s2 (SL2#6 0ca5a801b) and its mur-39 fix-only round is on this seat (SL5.02): rows admit pubkey/sig_scheme/enc_scheme/key_history under the self-row carve-out in schemas/[config].md; send.py has _mint_seat_key / keygen / _seat_key_path and seatsig.DEFAULT_SCHEME — REUSE them from rotate.py (import send as a module the way rotate.py imports write; no second key writer, no ed25519 literal). The rotate.py line numbers above were measured in L4; SL5.01 added _commit_spawn_row right after the s6.1 row write (grep by name) — the successor pubkey + key_history cells go into THAT one spawn-row write and its ONE commit, never a second commit. The ack path and _backfill_session_ref stay untouched (session_ref remains a label cell). File scope for this round: rotate.py, schemas/[config].md self_row line, tests (rotate neighbourhood + test_write_self_row.py); EXCLUDED: send.py bodies (call them), the read/label path (goal:g15.26), config.json. Ceiling 1 parent, up to 2 kids, small.

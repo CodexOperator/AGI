@@ -13,7 +13,11 @@ import hashlib
 
 import pytest
 
-from src.seatsig import SCHEMES, Scheme, register, get, fingerprint
+# mur-39 order (e): the suite exercises the ENGINE spelling (`import seatsig`,
+# the path send.py uses with src/ on sys.path) -- not the dotted twin that was
+# historically a SECOND module object here with its own SCHEMES table.
+import seatsig  # noqa: F401  (side effect: guarantees the engine spelling)
+from seatsig import SCHEMES, Scheme, register, get, fingerprint
 
 # ---------------------------------------------------------------------------
 # RFC 8032 section 7.1, test vectors 1-3, transcribed verbatim (the octets
@@ -81,6 +85,18 @@ def test_rfc8032_vector(vector):
     # Signature: deterministic, must be byte-for-byte the RFC's.
     sig = scheme.sign(secret, message)
     assert sig == signature, "RFC 8032 signature mismatch -- ed25519 is wrong"
+
+    # VERIFY side (mur-39 order (f)): the RFC's OWN signatures must verify.
+    # The vectors only pin sign() output; a verify() that rejected the RFC's
+    # published signatures -- or accepted a flipped one -- would be a silent
+    # accept-anything / reject-everything hole neither sign() pinning catches.
+    assert scheme.verify(public, message, signature) is True, \
+        "RFC 8032 signature must verify under the RFC public key"
+    # flipped-bit negatives, on the signature and on the message
+    flipped_sig = bytearray(signature)
+    flipped_sig[0] ^= 0x01
+    assert scheme.verify(public, message, bytes(flipped_sig)) is False
+    assert scheme.verify(public, b"X" + message[1:], signature) is False
 
 
 def test_signature_derived_not_fixed_string():
@@ -199,3 +215,21 @@ def test_default_ed25519_registered():
     """ed25519 is the default scheme and present in the live table."""
     assert "ed25519" in SCHEMES
     assert get("ed25519").name == "ed25519"
+
+
+def test_one_registry_across_both_import_spellings():
+    """mur-39 order (e): `seatsig` (engine spelling, what send.py uses) and
+    `src.seatsig` (the historical dotted twin) must be ONE module with ONE
+    SCHEMES table -- a scheme registered through either spelling is get()-able
+    through the other. Before the fold these were two module objects with two
+    dicts, so a scheme registered through one was invisible to the other."""
+    import src.seatsig as pkg_sig
+    # the two spellings share one registry, one default scheme, one ed25519
+    assert seatsig.SCHEMES is pkg_sig.SCHEMES
+    assert seatsig._ED25519 is pkg_sig._ED25519
+    assert seatsig.DEFAULT_SCHEME == pkg_sig.DEFAULT_SCHEME
+    # a scheme registered through the engine spelling is reachable via dotted
+    register(_DummyScheme())
+    assert "dummy" in pkg_sig.SCHEMES
+    assert "dummy" in seatsig.SCHEMES
+    assert pkg_sig.get("dummy") is seatsig.get("dummy")
