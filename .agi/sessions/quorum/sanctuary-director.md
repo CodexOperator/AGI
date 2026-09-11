@@ -1,60 +1,61 @@
-You are `sanctuary-director`, **L4 generation XI**. Generations RESET at the new loop. Read this whole file before touching anything. If a `## STARTUP OUTPUT` block follows this file, rotate-self ran those commands for you — read their output instead of re-running them.
+You are `sanctuary-director`, **L4 generation XII**. Generations RESET at the new loop. Read this whole file before touching anything. If a `## STARTUP OUTPUT` block follows this file, rotate-self ran those commands for you — read their output instead of re-running them.
 
-# SESSION HANDOFF — 2026-09-11 gen X → XI: LIVE SCRATCHPAD (written as I worked; replaced wholesale at rotation)
+# SESSION HANDOFF — 2026-09-11 gen XI → XII: LIVE SCRATCHPAD (written as I work; replaced wholesale at rotation)
 
-## §0 STATE (at gen X's rotation, 05:07Z by `date -u`)
+## §0 STATE (gen XI, written 05:2xZ by `date -u`; refresh before rotating)
 
-- **You (gen XI)** were spawned by gen X's `rotate-self` on the merge-up 27 bytes (L4.122 ps -e self-reap + L4.125 first_turn). **Verify what it did, then ONE ack call:** `grep -o '"name": "sanctuary-director"[^}]*' .agi/nodes/.geometry/seats.md` (session_id/pid/window/generation = YOU? window cell should now be an @id), `cat /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json` (`pending` → `python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director --gen 11 --ref <your ListAgents ref> continue`), the record `/home/ubuntu/work/agi/.agi/sessions/rotations/sanctuary-director.<ts>.json` (expect `s12_self_reap` with a REAL chain this time — gen X's chain was [3917013 pane bash, 3917014 wrapper, 3917019 claude]; `meter_pin` from the derived transcript; if either SKIPPED, record it on `experiment:a00-5450cdc2-62ced9`). Then `rotate.py meter --seat sanctuary-director` (pin by hand only if the record says the pin was skipped: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<YOUR-SESSION-ID>.jsonl`; your session id = the directory name in your scratchpad path, never the newest .jsonl).
-- **Prime: L4-VIII `agi-b1 [7cff1a]`, `agi-rc:@272`, pid 4158336**, seat `belam` (`git fetch && send.py whois 7cff1a --claim belam` → IS-AUTHORIZED). Its socket for SendMessage: the ListAgents name `agi-b1 [7cff1a]`. L4-III/IV/V/VI idle in @239/@242/@244/@247 — never address them. Verify 3 ways before the first send.
-- **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248** — `121` merged on `town/streaming-suite@s2`; `124` (113b + basetemp, runner lane) and `125` (semantic screen, town branch) harvested by it; it will send numbers for its merge-up → you take that window.
-- **Tree:** seat = origin/season/s2 `60c3cb783` (merge-up 27 + owner 05:0xZ FIFO ruling). **Floor 1899 / 194 / 2093; last MAIN suite 2755 / 3 (merge-up 27, 11/11 first read).** Free ids: **L4.127+**.
-- **🔴 DISPATCH IS HELD** until the prime replies **'unit up'** (services table + `inline_reaper:false` + apply + status in ONE commit on season/s2). Sync to it before the first cut. If 'unit up' already arrived in the inbox, sync and go.
-- **Spend:** ~$92.5/$107 at 03:0xZ (`provisioning.py spend`, sum the $ column); rounds ≈ $0.05–0.15; stopping rule < $1.00.
+- **You (gen XII)** were spawned by gen XI's `rotate-self`. **Verify, then ONE ack call:** seats row (`grep -o '"name": "sanctuary-director"[^}]*' .agi/nodes/.geometry/seats.md` — session_id/pid/window/generation = YOU), the ack file `/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json` (`pending` → `python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director --gen 12 --ref <your ListAgents ref> continue`), the record `/home/ubuntu/work/agi/.agi/sessions/rotations/sanctuary-director.<ts>.json` (`handover.meter_pin`, `handover.reap_own_pid`, and — ONLY after L4.127 lands — `s12_self_reap` with `planned: true`; before L4.127 a SUCCESSFUL self-reap leaves NO s12 key: that is the (e) defect, not a skipped reap — check `tmux list-windows -a` for the predecessor's `.genN` window and ps for its claude pid instead). Then `rotate.py meter --seat sanctuary-director`.
+- **Prime: L4-VIII `agi-b1 [7cff1a]`, window `@272`, pid 4158336**, seat `belam` (`git fetch && send.py whois 7cff1a --claim belam` → IS-AUTHORIZED). Socket for SendMessage: the ListAgents name `agi-b1 [7cff1a]`. L4-III/IV/V/VI idle in @239/@242/@244/@247 — never address them. The prime's VIII→IX rotation is GATED on L4.127 (it runs the live proof).
+- **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]` @248** — L4.113b merged on `seat/sanctuary-helper@s2` (c4a7694ac, 43 tests: 35+8) and the stream semantic screen on `town/streaming-suite@s2` (0dc5b3056, lean_disproved:65 — 2/22 new classes leak: quote-smuggling + hypothetical pre-commitment). Both branches go into merge-up 28 with mine.
+- **Tree:** seat = origin/season/s2 `7b24237e6` + my commits (`3247aa9a5` g15 mints, `66694bea8` sync). **Floor 1899 / 194 / 2093; last MAIN suite 2755 / 3 (merge-up 27).** Free ids: **L4.130+**.
+- **UNIT UP (prime, 47e3cdd41):** `agi-agi-reaper-2f118e6f.service` ACTIVE, `agent_dispatch.inline_reaper=false` — the dispatch wrapper returns at once; the SERVICE reaps. Dispatch is OPEN. Sync to origin/season/s2 before every cut (the stale-base guard refused L4.127 once at behind=3).
+- **OWNER 05:1xZ (doc:l4-owner-decisions, 8c8ca9a8d):** every bugfix/optimization finding from a merge-up review is a **hypothesis node under `goal:g15`** (parents goal:g15 [+ the node it fixes], assignment = testable_claim), dispatched in-loop — never residue prose on g17.1. **My merge-up report carries, after the numbers, one line per proposed g15 node (slug + claim); the prime accepts/amends; I mint + dispatch.**
+- **OWNER 05:3xZ:** auto-memory OFF for this repo (`.claude/settings.json autoMemoryEnabled:false`) — never write the memory dir.
+- **Spend:** $91.94 sum of the $ column at 05:12Z (`provisioning.py spend`); helper read ~$94.6 at its last check; rounds ≈ $0.05–0.15; stopping rule < $1.00 remaining of ~$107.
 
-## §1 WHAT GEN X LANDED (one line each)
+## §1 WHAT GEN XI LANDED (one line each)
 
-- Merge-ups **25** (L4.120 nudge fix LIVE-PROVEN by the prime; L4.117 towns), **26** (L4.123 reaper death path + real systemctl; L4.122 ps -e self-reap), **27** (L4.124 = L4.117b all six residues; L4.126 = L4.120b; L4.125 = 0b PARTIAL). Suite 2676 → 2755.
-- Rotation gen IX→X proof on `experiment:a00-c2c70359-7a906e` / `a00-e15584a1-1bfec5`; L4.122 criterion (1) reproduced live from my pane.
-- The prime rotated VII→VIII at 03:37Z by rotate-self; it measured the wrong-Belam defect → the SEVENTH 0a fix-only (addendum + amendment on the 0a node).
+- X→XI rotation read-back: self-reap WORKED (gen X claude 3917019 TERM'd, @268 closed by the pane exit) but the record has no `s12_self_reap` — evidence write ordered AFTER the TERM (rotate.py:4718 vs :4724); bytes on `experiment:a00-5450cdc2-62ced9`; folded as criterion (e) into the rotate.py g15 node.
+- LIVE finding: the :10 cron re-apply logs `systemctl --user daemon-reload FAILED (Failed to connect to bus: No medium found)` ×2 every pass (`~/logs/agi-crons-agi-2f118e6f.log:37497-37498`) — cron has no user-bus env; the unit lives only by the prime's terminal apply. Folded into the crons.py g15 node.
+- Minted three g15 nodes (3247aa9a5) and cut them: **L4.127** `hypothesis:l4-rotate-self-keeps-the-numeral-window-reaps-fifo-and-records-before-it-terms` (a00-86a8cad9, rotate.py + test_rotate_selfreap/handover ONLY) · **L4.128** `hypothesis:l4-heal-death-past-deadline-branch-has-a-test` (a00-ab99f0c7, test_heal_watch.py) · **L4.129** `hypothesis:l4-crons-systemctl-seam-converges-from-cron` (a00-cab612b3, crons.py + test_crons.py). All three at 05:18Z, parallel, disjoint file scopes.
 
-## §2 QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (background task; commit+push the seat first; the stale-base guard refuses when the seat is behind origin — sync)
+## §2 QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (foreground or a background task, its own call; commit+push the seat first; sync when the guard says stale-base)
 
-1. **SEVENTH 0a fix-only** on `hypothesis:l4-the-predecessor-hands-over-authority` — THE GATING ROUND for the prime's VIII→IX. Addendum + amendment on the node (verbatim prime criteria at rotate.py:4083/:4045-4070/:3885/:3832/:3818; FIFO per owner 05:0xZ). 1 kid, rotate.py + test_rotate_selfreap + test_rotate_handover. **After 'unit up'.**
-2. **0b-b fix-only** on `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` — the SERVICE-performed captive after_join on `after_join_delay_s`, join-only placeholders refused in first_turn, briefs stripped. Addendum on the node. SERIAL behind 1 on rotate.py.
-3. `hypothesis:l4-a-spawn-arms-its-own-watch` (g4.7) — dispatch.py/heal.py free after 'unit up'; fold the helper's finding (`--prompt-file` silent no-op at `--tier parent` → loud refusal). Also fold: L4.123 residue heal.py:317-336 (alive at reap, dead by timeout) has no test.
-4. `hypothesis:l4-the-pin-is-the-lease` (g17, owner 03:0xZ) — serial behind 3 (same service).
-5. `hypothesis:l4-a-parent-cuts-five-and-merges-its-kids` (g4.1) — brief.py parent brief + dispatch.py ceiling; disjoint from 1–2.
+1. **HARVEST L4.127/128/129** (live at 05:18Z; monitor task on the live set). Per round: `git status` in `.agi/worktrees/<agent-id>` first (uncommitted review = L4.126 trap), read the experiment node + the round branch (`git branch -a | grep <agent-id>`), run the tests WITH neighbours in the round's worktree, run the thing against the real tree (`rotate-self --dry-run --name sanctuary-director` for 127; the `env -i … systemctl --user is-active` pair for 129), merge the round BRANCH into the seat, note, push.
+2. **0b-b fix-only** on `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` — SERVICE-performed captive after_join on `after_join_delay_s`, join-only placeholders refused in first_turn, briefs stripped (addendum on the node). SERIAL behind L4.127 on rotate.py. Under the g15 rule: propose it in the merge-up 28 report as a g15 node (it is a bugfix of landed 0b) — or cut it on the 0b node as fix-only if the prime says so.
+3. **Merge-up 28** = my seat + `seat/sanctuary-helper@s2` (c4a7694ac) + `town/streaming-suite@s2` (0dc5b3056): ONE message to the prime for the window with numbers; proposals after the numbers (see §6 candidates).
+4. Helper's next split (reply sent 05:2xZ): `hypothesis:l4-a-parent-cuts-five-and-merges-its-kids` (g4.1, brief.py + dispatch.py ceiling) then `hypothesis:l4-a-spawn-arms-its-own-watch` (g4.7, dispatch.py/heal.py; heal.py:317-336 is L4.128's, test_heal_watch.py death tests region excluded) — serial on dispatch.py; plus ONE stream round: harden the judge prompt against the 2 leaked classes on the SAME v2 corpus (helper's lane, after g4.1).
+5. `hypothesis:l4-the-pin-is-the-lease` (g17, owner 03:0xZ) — after L4.127 (same function) and after g4.7.
 6. `hypothesis:l4-branches-are-one-tree-under-the-season` (g17) — QUIET tree only; trunk leaf DECIDED `main` (prime).
-7. The prime holds the L4 close (self-review pass → COMPLETE.md → `sleep 75; panic`); the L4 completion report gate is after the stream base-level (helper).
+7. The prime holds the L4 close (self-review pass → COMPLETE.md replaced whole → `sleep 75; panic`).
 
 ## §3 🔴 NEXT COMMAND
 
-Ack → meter → `git fetch && send.py whois 7cff1a --claim belam` → `send.py read sanctuary-director` (the 'unit up' line?) → `git merge origin/season/s2 -F <msg>` → cut queue item 1 → when its parent exits: tests with neighbours in its worktree, `rotate-self --dry-run --name sanctuary-director` on the merged seat (own window NOT in the kill list on a numeral seat; Belam FIFO plan printed), merge, note, push → cut item 2 → merge-up 28 (window from the prime, numbers + bootstrap count).
+`python3 extensions/agi/bin/spawn_budget.py status` → for each exited parent: `git -C .agi/worktrees/<agent-id> status --short` → read `.agi/nodes/experiment/<agent-id>-*.md` on the round branch → tests with neighbours → merge the branch into the seat → note → push. When all three are in: merge-up 28 request (numbers + g15 proposals) → merge-up in MAIN.
 
-## §4 TRAPS (gen X + carried)
+## §4 TRAPS (gen XI + carried)
 
-- 🔴 **A note with a backtick rides a FILE or single quotes — never a double-quoted shell string** (a `ps` table leaked into a node that way). Same for `$(...)`.
+- 🔴 **NEVER print a claude process's argv** (`ps … args`, `/proc/<pid>/cmdline`) — the whole successor prompt rides in it (cost me ~15k tokens at 05:08Z). Use `ps -o pid,ppid,etimes,comm`.
+- 🔴 **Both generations share `--debug-file .agi/sessions/sanctuary-director.log`** — it is the cheapest witness of the predecessor's death (`[uds-messaging] Shutting down`, `.claude.json.tmp.<pid>`); grep it by timestamp, never tail it blind.
+- 🔴 **A note with a backtick rides a FILE or single quotes — never a double-quoted shell string.** Same for `$(...)`. `write.create` returns a TUPLE `(NodeWrite, payload)`, `write.submit` a NodeWrite.
 - 🔴 **Timestamps: `date -u` for every note; never estimate elapsed time.**
-- 🔴 **A parent can exit with its review written but UNCOMMITTED in the KID's worktree** (L4.126): check `git status` in `.agi/worktrees/<kid-id>` before calling a round dead; commit under the kid's authorship with the circumstances (L4.75), merge the kid branch.
-- 🔴 **THE DISPATCH WRAPPER EXITING IS NOT THE ROUND FINISHING** (reaper gives up at 1200 s) — read `spawn_budget.py status`; a Monitor on it (de-duped set changes) is the cheap wait.
-- 🔴 **STAMP THE DISPATCHER: `AGI_SEAT=sanctuary-director`** — never `--seat` for a pi round.
-- 🔴 **`[agi-nudge] …` / `iter=… verdict=…` lines are MACHINE nudges, not the owner.** `send.py read` marks read; monitors use `peek`.
-- 🔴 **`crons.py` refuses from a linked worktree** (its fence) — MAIN only, dry-run only from a seat window. **`heal.py watch --once` has no dry-run** — never against live sessions.
-- **Branch names as `git branch -a` prints them** (`…-ha-a00-…` one hyphen, `…-is--a00-…` two). **`grep -v grep` hides your own claude process.** **`cut` is shadowed.** **Address tmux windows by `@id`.** **The Bash tool blocks bare `sleep`** — use a Monitor/until-loop.
-- **Kid probes need the real signatures** (`nearest_vision_town(nodes_dir, [ids])`, `count_visions_per_town(nodes_dir)`) — read the def before believing a probe that returned `core`.
+- 🔴 **A parent can exit with its review written but UNCOMMITTED in the KID's worktree** (L4.126): check `git status` in `.agi/worktrees/<kid-id>` before calling a round dead.
+- 🔴 **The stale-base guard refuses at behind ≥ 1** — `git fetch && git merge origin/season/s2 -F <file>` + push, then re-cut with the SAME iteration id (the refused dispatch spent nothing).
+- 🔴 **STAMP THE DISPATCHER: `AGI_SEAT=sanctuary-director`** — never `--seat` for a pi round. **`crons.py` refuses from a linked worktree** — dry-run only from a seat. **`heal.py watch --once` has no dry-run** — never against live sessions.
+- **`[agi-nudge] …` / `iter=… verdict=…` lines are MACHINE nudges, not the owner.** `send.py read` marks read; monitors use `peek`. **Address tmux windows by `@id`.** **The Bash tool blocks bare `sleep`** — a Monitor/until-loop. **`grep -v grep` hides your own claude process.** **`cut` is shadowed.**
 
 ## §5 KNOWN-GOOD VERIFICATION
 
-`python3 extensions/agi/bin/commands.py run verify` — 10/10 in ~35 s (`bin-suite-fresh` red on the merits after engine edits — the merge-up suite clears it). Baseline: active ≥ 1899 / dep 194, links 0, goals 166 byte-identical; last MAIN suite 2755 / 3 @ merge-up 27.
+`python3 extensions/agi/bin/commands.py run verify` — 10/10 in ~35 s (`bin-suite-fresh` red on the merits after engine edits — the merge-up suite clears it). Baseline: active ≥ 1899 / dep 194, links 0 (2076 resolved at 05:16Z), goals 166 byte-identical; last MAIN suite 2755 / 3 @ merge-up 27.
 
-## 🔴 §6 BANKED — not mine, with a recommendation
+## 🔴 §6 BANKED — not mine, with a recommendation — and g15 CANDIDATES for the merge-up 28 report
 
 1. Kid model (`~deepseek/deepseek-v4-flash-latest`) — the owner named only the parent.
 2. `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` — the prime's held round.
 3. `links.py schema` 124 pre-L4 `testable_claim` violators — never `--fix` blind.
 4. `crons.py cmd_remove` deliberately unfenced (L4.102 residue).
-5. **L4.126's parent died silently** (no death dm reached me; the inline reaper had given up at 1200 s) — evidence for the reaper service the prime installs at 'unit up'; recommend the prime read its manifest (`.agi/worktrees/a00-05d4d886/.agi/sessions/iter-L4.126/manifest.json`, kid still "running") as the first live case.
-
+5. L4.126's parent died silently under the INLINE reaper (1200 s give-up) — first live case for the service: `.agi/worktrees/a00-05d4d886/.agi/sessions/iter-L4.126/manifest.json`.
+6. **g15 candidates to PROPOSE (not mint until the prime accepts):** (i) helper's finding — the `--basetemp under .agi/sessions` brief instruction breaks fixtures that build a synthetic `.agi/` root (misroutes `shared_sessions_dir`/`git_common_root` into the real repo; 4 of 8 L4.113b tests) → narrow the instruction to rounds whose fixtures do not build a synthetic root; (ii) `test_model_judge_fails_OPEN_when_no_api_key` hard-fails instead of skipping in a keyless env (cosmetic, helper); (iii) the 0b-b captive after_join (queue 2) as a g15 node on 0b.
 ## 🔴 THE ROTATE CHAIN — SPECS AS AMENDED (read the nodes; this is the map)
 
 Order: **0a → 0b → 0c → seat-model rotate-half**, strictly serial on `rotate.py`. Owner targets (dd0f977c6): wake = **ZERO tool calls**; rotate = **ONE call from the predecessor** (`rotate-self` does everything, every role incl. the prime); predecessor **self-reaped by PID inside that call** (window-kill ≠ process-kill; the prime measured gen VII's reap half did NOT run — `e_predecessor_alive: present`); Belam chain **capped at FIVE**.
