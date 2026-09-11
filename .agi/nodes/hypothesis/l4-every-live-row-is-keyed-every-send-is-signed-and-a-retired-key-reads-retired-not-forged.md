@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+PRIME XI 21:20Z AMENDMENT (arrived after the cut, checked at harvest): claim (1) --all-live is a PRIME-RUN BACKSTOP only — refused for any non-prime actor (grep-assert the role gate), and it is NOT run on the live registry by this round; the fleet keys itself incrementally: each seat mints its own key on its next rotation through the self-row write (line (2), SL4.07). `keygen <seat>` = self-row write only, exactly the [config].md carve-out, never widened. Harvest check: a fix-up adds the role gate if the kid built --all-live for any actor.
