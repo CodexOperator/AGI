@@ -1,0 +1,108 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-11T05:08:17.899133Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-director",
+      "windows": [
+        "sanctuary-helper",
+        "sanctuary-director.gen11",
+        "belam-S1-L4-V",
+        "sanctuary-director",
+        "belam-S1-L4-III",
+        "belam-S1-L4-VIII",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 10,
+      "after": 11
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 5808208,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-director.gen11",
+      "windows": [
+        "sanctuary-helper",
+        "sanctuary-director.gen11",
+        "belam-S1-L4-V",
+        "sanctuary-director",
+        "belam-S1-L4-III",
+        "belam-S1-L4-VIII",
+        "belam-S1-L4-IV",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-director.gen11",
+      "id": "@268"
+    },
+    "successor_window": {
+      "name": "sanctuary-director",
+      "id": "@273"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@273",
+      "pid": 467263,
+      "session_id": "0c43ba20-62ba-49af-9c07-b27988111213",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/0c43ba20-62ba-49af-9c07-b27988111213.jsonl",
+      "name": "seat-sanctuary-director-86",
+      "path": "/home/ubuntu/.claude/sessions/467263.json",
+      "note": "joined by @273 in registry file 467263.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-director': session_ref=0c43ba20-62ba-49af-9c07-b27988111213 session_id=0c43ba20-62ba-49af-9c07-b27988111213 pid=467263 generation=11 window='@273' source=registry",
+    "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
+    "own_authority_released": "generation 10 of seat 'sanctuary-director' retired; successor generation 11 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "reap_own_pid": {
+      "pid": null,
+      "reaped": false,
+      "note": "no own-pid stand-in supplied; the predecessor's process is NOT reaped by this run"
+    },
+    "button_down": "grid committed \u2014 record+row on branch seat/sanctuary-director@s2",
+    "livestream_repoint": {
+      "session": "view-sanctuary-director",
+      "target": "@273",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-sanctuary-director:@273"
+      ],
+      "active_windows": [
+        "@248 0",
+        "@268 0",
+        "@244 0",
+        "@273 1",
+        "@239 0",
+        "@272 0",
+        "@242 0",
+        "@247 0"
+      ]
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json"
+  }
+}
