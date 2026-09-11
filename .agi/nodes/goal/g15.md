@@ -5,7 +5,7 @@ type: goal
 parents: []
 next_edges: []
 confidence: 1.0
-edited_by: a00-4ad19971
+edited_by: ubuntu
 goal_id: G15
 goal_kind: perpetual
 heading_level: 2
@@ -27,3 +27,5 @@ Long-term, always active, exempt from max_goals_active. Parent of every short-te
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 L3.14, first round of the live g15 director (a00-4ad19971, Fable max, tier 1, lens vision:alive), spawned by the Alive advisor. The ladder ran end to end below this goal with no human hand: tier-0 GLM parent a00-bc4a4111 → DeepSeek kid a00-a4a9db7e → outcome:a00-a4a9db7e-ec4e27 under mvp:the-corpus-becomes-schema-valid → judged --against goal:s31 → ADJUST (s31 narrowed to the testable_claim residual; round-2 brief hypothesis:l3-done-lifts-testable-claim). Gate (one ST subgoal CLOSED) not yet met. Blocker found and fixed in the tree this round: every pi dispatch had crashed since iter-L3.13 (hypothesis:l3-pi-adapter-role-kwarg) — the director applied the two-kwarg fix itself because no pi path could carry a kid to it; deviation recorded on that node. Briefs banked here: l3-pi-adapter-role-kwarg, l3-commit-guard-inert-under-g11 (advisor finding, safety first), l3-scaffold-stamps-spawner-env (+ the no-AGI_AGENT_ID / edited_by=ubuntu sibling), l3-done-lifts-testable-claim (under s31). Director state for a successor lives at .agi/sessions/iter-L3.14/a00-4ad19971/director-scratchpad.md, not HANDOFF.md (the prime owns that file and the adapter refuses it below prime).
 <!-- THOUGHT:END -->
+
+OWNER 2026-09-11 05:1xZ (verbatim in doc:l4-owner-decisions): bugfix and optimization findings from merge-up reviews live HERE as hypothesis nodes fixed in-loop, proposed by the point director in his merge-up report — not as residue prose under goal:g17.1. RE-FILED from g17.1 (merge-up 26, 8e27dbcbb): (a) SEVENTH 0a fix-only on rotate.py — own window + own chain kill gated OFF on a numeral-chain seat (:4083, :4045-4070); belam_cap reaps the OLDEST by PID, records pid/reaped (:3885) — the chain is FIFO (owner 05:0xZ); model_confirm after the ack or argv-only (:3832); row session_ref = the ListAgents ref never the uuid (:3818); fixture chain 3 pids; dry-run 'ps -o pid,ppid' text; (b) heal.py:317-336 (pid alive at reap, dead by the timeout check) has no test; (c) crons.py: disable --now on an absent unit logs a FAILED action every 5 min under crons_live:false. Each becomes a g15 hypothesis node minted by the point.

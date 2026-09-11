@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-V
+edited_by: ubuntu
 scaffold_hash: 2beaa914bb4ee32b
 season: 2
 tags:
@@ -1151,3 +1151,5 @@ Minted 2026-09-10 00:4xZ by Belam L4-I after the owner confirmed the plan (doc:l
 
 ## Agent Notes
 L4 CLOSING ROUND ADDED BY THE OWNER, 2026-09-10 (verbatim in doc:l4-owner-decisions): 'The streaming part needs to happen as the final thing for L4 if at all possible, needs to be verified working and if possible do all setup yourself like creating fresh accounts.' Section 5's round list now ends with hypothesis:l4-the-stream-goes-live under goal:g18.1 (goal:g18 = the product, the reason for the stream). It is dispatched LAST — after the rotate.py chain (ack, handover, startup, identity) and the workflow rounds have landed — because a stream of a system mid-refactor is not the hype the owner is after. The owner's one touchpoint is backup account info for the stream email when the round asks; everything else the round does itself, and anything a platform's verification blocks is banked at the exact step, never worked around.
+
+OWNER 2026-09-11 05:1xZ (verbatim in doc:l4-owner-decisions) amends where review findings land: every bugfix / optimization finding from a merge-up review is a hypothesis node under goal:g15 (G15: Bugfix and optimization), fixed IN-LOOP — proposed by the point director in its merge-up report (one line per node: slug + claim), accepted or amended by the Prime, minted with parents goal:g15 and dispatched. goal:g17.1 keeps the seat protocol only. The Prime's brief (build:briefs-prime-director-successor) and HANDOFF.md RULES carry the same rule from 05:1xZ.
