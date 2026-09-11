@@ -146,6 +146,41 @@ def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
     assert "[BLOCK] dirty tree" in out
 
 
+def test_prepare_card_check_reads_the_last_work_commit_only(
+        prep_root, capsys, monkeypatch):
+    """Sensei 18:29Z: two porcelain sync commits aged the card and blocked
+    the rotation. The card check now reads the last NON-MERGE commit that
+    touched something other than cron-owned churn (.agi/comms, the rotation
+    records) or the card itself — that spec, and no bare `log -1`. A stale
+    card against THAT commit still blocks."""
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# card\n", encoding="utf-8")
+    import os
+    os.utime(card, (1000000000, 1000000000))   # long before any commit
+    spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
+            ":(exclude)sessions/quorum/adv-alive.md")
+    ok = {("status", "--porcelain"): [],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    # the bare `log -1` answer is NOT consulted any more
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**ok, ("log", "-1", "--format=%ct"):
+                                  ["9999999999"]}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] card older than last commit" in out
+    # the work-commit spec IS, and a card older than it blocks
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**ok, spec: ["9999999999"]}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] card older than last commit" in out
+
+
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
     """No blocker named: every check reports ok and the checklist exits 0 —
     safe to rotate."""
