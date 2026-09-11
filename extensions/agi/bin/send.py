@@ -43,6 +43,7 @@ Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -467,20 +468,25 @@ def _quorum_caller() -> bool:
 
 
 def _detect_sender(from_flag: str | None) -> str:
-    """Sender: AGI_AGENT_ID env, then the --from flag, then "unknown".
+    """Sender: AGI_AGENT_ID env, then AGI_SEAT, then --from, then "unknown".
 
     The agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message
-    even when the caller forgot a flag; an explicit --from beats the
-    fallback (hypothesis:l3-send-comms-root). No seat/terminal name is
-    ever used as an identity: a tmux window name is a seat, not an agent,
-    and signing one was exactly the false-identity hazard this became
-    (hypothesis:l3-agent-id-never-exported). When no id and no flag are
-    present the message is signed "unknown" — an honest absence, not a
-    confident wrong name.
+    even when the caller forgot a flag; next a SEAT name (AGI_SEAT, exported
+    by rotate-self / spawn / seats-launch / recovery) signs under the seat
+    name; then an explicit --from beats both fallbacks; then "unknown" — an
+    honest absence, not a confident wrong name (hypothesis:l3-send-comms-
+    root, extended by hypothesis:l4-send-py-same-sender-stranded-line-and-
+    the-swallowed-wake clause c: so every AGI_SEAT-exporting path dms under
+    its seat name, never "from: unknown"). The tmux window NAME is never an
+    identity — a window name is a seat, not an agent (hypothesis:l3-agent-
+    id-never-exported).
     """
     env = os.environ.get("AGI_AGENT_ID", "").strip()
     if env:
         return env
+    seat = os.environ.get("AGI_SEAT", "").strip()
+    if seat:
+        return seat
     if from_flag:
         return from_flag
     return "unknown"
@@ -901,6 +907,10 @@ def _nudge_pending_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge.pending"
 
 
+def _nudge_pending_lock_path(root: Path, seat: str) -> Path:
+    return _inbox_dir(root) / f"{seat}.nudge.pending.lock"
+
+
 def _pending_more(root: Path, seat: str) -> int:
     """Coalesced-but-untyped dms awaiting the next delivered nudge's
     `(+N more, read <seat>)` tail (hypothesis:l4-the-nudge-carries-the-dm-
@@ -911,23 +921,58 @@ def _pending_more(root: Path, seat: str) -> int:
         return 0
 
 
+class _PendingLock:
+    """Exclusive advisory lock over a seat's pending-count read-modify-write.
+    Both `_bump_pending` and `_clear_pending` hold it, so a clear cannot
+    zero a bump made at the same moment, and a bump cannot race a
+    concurrent clear (hypothesis:l4-a-read-clears-the-coalesced-nudge-count)."""
+
+    def __init__(self, root: Path, seat: str):
+        self._path = _nudge_pending_lock_path(root, seat)
+
+    def __enter__(self):
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._f = open(self._path, "a+")
+        fcntl.flock(self._f, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc):
+        fcntl.flock(self._f, fcntl.LOCK_UN)
+        self._f.close()
+        return False
+
+
 def _bump_pending(root: Path, seat: str) -> None:
     """Increment the pending-coalesced count; a dm coalesced inside the
     per-seat window is counted here so a LATER delivered nudge carries it.
-    Best-effort, never raises."""
+    Best-effort, never raises. The read-modify-write runs under the same
+    exclusive flock as `_clear_pending`, so a concurrent clear cannot zero
+    a bump made at the same moment."""
     try:
         p = _nudge_pending_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(str(_pending_more(root, seat) + 1))
+        with _PendingLock(root, seat):
+            p.write_text(str(_pending_more(root, seat) + 1))
     except OSError:
         pass
 
 
-def _clear_pending(root: Path, seat: str) -> None:
-    """Reset the pending-coalesced count after a nudge that carried it.
-    Best-effort, never raises."""
+def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
+    """Reset (or decrement-by-observed) the pending-coalesced count after a
+    nudge that carried it. Best-effort, never raises.
+
+    When the caller passes `observed` -- the count the read saw BEFORE it
+    began consuming -- writes max(0, current - observed): a dm that
+    coalesced DURING the read is preserved rather than silently zeroed by
+    an unconditional write. Absent `observed` clears to 0 exactly as
+    before. Runs under the same exclusive flock as `_bump_pending`."""
     try:
-        _nudge_pending_path(root, seat).write_text("0")
+        p = _nudge_pending_path(root, seat)
+        with _PendingLock(root, seat):
+            if observed is None:
+                p.write_text("0")
+            else:
+                p.write_text(str(max(0, _pending_more(root, seat) - observed)))
     except OSError:
         pass
 
@@ -1260,7 +1305,7 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
 
 
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
-                  repair_stale_id: bool = False,
+                  repair_stale_id: bool = True,
                   ) -> tuple[str, object, str] | None:
     """Resolve the send-keys target a seat's wake lands in, exactly as
     `_nudge_window` uses it, so a silent re-check (`wake`) and the delivery
@@ -1270,15 +1315,19 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     refused (a predecessor/namesake could occupy it) and a windowless
     (ephemeral) recipient may not be nudged by name unless actually listed.
 
-    CLAUSE (3) (hypothesis:l4-wake-repair-is-quiet-honest-and-readable): an
-    @id target is trusted ONLY while it is still a LISTED window. A stale @id
-    (the row's window was reaped/rotated away) would fail inside
-    `tmux send-keys -t session:@id` and the failure is swallowed -- a wake
-    addressed to it returns with no line and the seat is never woken. When
-    `repair_stale_id=True` (the `wake` verb passes it; the ordinary send/dms
-    leave a stale @id alone -- best-effort nudge, unchanged) a stale @id
-    prints a `wake repair:` line and FALLS BACK to the by-name lookup below,
-    the same `_window_listed` path a name-addressed row uses.
+    CLAUSE (3) (hypothesis:l4-wake-repair-is-quiet-honest-and-readable,
+    extended by hypothesis:l4-send-py-same-sender-stranded-line-and-the-
+    swallowed-wake clause b): an @id target is trusted ONLY while it is still
+    a LISTED window. A stale @id (the row's window was reaped/rotated away)
+    would fail inside `tmux send-keys -t session:@id` and the failure would
+    be swallowed -- a message addressed to it returns with no line and the
+    seat is never woken. `repair_stale_id` now defaults True for EVERY
+    caller (send, dm and wake alike): a stale @id prints a `nudge repair:`
+    line and FALLS BACK to the by-name lookup below, the same
+    `_window_listed` path a name-addressed row uses. When that by-name
+    fallback ALSO finds no window, ONE named line goes to stderr -- silence
+    is the defect -- then None is returned, and the message itself stays in
+    the inbox as always.
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
@@ -1287,13 +1336,15 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     if tmux_session is None:
         import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
         tmux_session = rotate.DEFAULT_TMUX_SESSION
+    stale_ref: str | None = None
     if window_ref and str(window_ref).startswith("@"):
         # CLAUSE (3): an @id is only a live target while it is a CURRENT
         # window; a stale one is named, then repaired by name below.
         if repair_stale_id and not _window_id_listed(
                 tmux_session, str(window_ref)):
-            print(f"wake repair: {to} row window {window_ref} is gone; "
+            print(f"nudge repair: {to} row window {window_ref} is gone; "
                   f"falling back to name", file=sys.stderr)
+            stale_ref = str(window_ref)
             window_ref = None
     elif window_ref:
         # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a
@@ -1313,6 +1364,13 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
         target = f"{tmux_session}:{window_ref}"
     else:
         if not _window_listed(tmux_session, to):
+            # A stale @id that the by-name fallback ALSO cannot find is
+            # never silent: ONE named line (clause b). A row that simply had
+            # no window (ephemeral) stays a silent no-op as before.
+            if stale_ref is not None:
+                print(f"nudge: {to} row window {stale_ref} is gone and no "
+                      f"window named {to} is listed -- message written, no "
+                      f"wake", file=sys.stderr)
             return None
         target = f"{tmux_session}:{to}"
     return (target, pid, tmux_session)
@@ -1321,7 +1379,7 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
 def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                  sender: str | None = None,
                  body: str | None = None,
-                 repair_stale_id: bool = False,
+                 repair_stale_id: bool = True,
                  resolved: tuple | None = None,
                  path: str | None = None) -> bool:
     """Fire ONE fixed wake token (never the message body) at a perpetual
@@ -1734,7 +1792,7 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         stderr line and does nothing (the deferred record is already written);
       - nothing pending at all -> a silent no-op.
     Address by @id when the row carries one and it is still a LISTED window
-    (clause 3: a stale @id prints a `wake repair:` line and falls back to
+    (clause 3: a stale @id prints a `nudge repair:` line and falls back to
     name); name fallback only as today.
 
     Clause (1): at most ONE token per unread state. After typing a token for
@@ -2271,6 +2329,13 @@ def read(root: Path, me: str, sender: str | None,
         print(f"inbox for {me}: empty")
         return
 
+    # Observe the coalesced count ONCE, before anything is marked read. The
+    # clear below is compare-and-clear (it subtracts this observed value),
+    # so a dm that coalesces DURING the read survives instead of being
+    # silently zeroed by an unconditional write (L4.294). An empty read
+    # returns above, so it never observes nor touches a sidecar.
+    observed = _pending_more(root, me)
+
     # A stored deferred dm prints FIRST, before the inbox blocks, and the
     # record is then cleared — a director who never had an idle pane still
     # sees it at a seam, exactly once (clause 4). The record's own
@@ -2308,7 +2373,7 @@ def read(root: Path, me: str, sender: str | None,
     # the same consuming branch. The empty case is already handled by the
     # early return above: a read that consumed nothing must NOT touch the
     # sidecars. `peek` clears nothing, unchanged.
-    _clear_pending(root, me)
+    _clear_pending(root, me, observed)
 
 
 def peek(root: Path, me: str, wrap: int = 160) -> None:
@@ -2812,14 +2877,41 @@ def _pushed_seats(root: Path, ref: str, do_fetch: bool):
 
 def _locally_loaded_rows(root: Path) -> list:
     """Fallback rows from the WORKING-TREE file, used only for the UNVERIFIED
-    fallback path — never the authority, always clearly labelled so."""
-    p = root / "nodes" / ".geometry" / "seats.md"
+    fallback path — never the authority, always clearly labelled so.
+
+    **hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main**
+    — the seats node that carries `generation`/`window`/`pid`/`session_ref`/
+    `session_id` (the cell a rotation moves and this reader resolves to
+    address a live @id/pid) lives in the MAIN checkout's graph; a worktree
+    rotation writes MAIN and never the worktree copy, so a sender reading
+    from a worktree resolves MAIN's copy and addresses the same row the
+    writer wrote."""
+    p = _shared_seats_path(root)
     if not p.is_file():
         return []
     try:
         return _load_seats_rows(p.read_text())
     except Exception:                                            # noqa: BLE001
         return []
+
+
+def _shared_seats_path(root: Path) -> Path:
+    """The MAIN checkout's `nodes/.geometry/seats.md`, identity for a
+    non-worktree caller — the resolution `locations.git_common_root` performs
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main).
+    The seats row a rotation writes lives in MAIN, so this reader addresses
+    the same copy. Only a real linked-worktree call rebases to MAIN; a caller
+    in the main checkout or outside git keeps its own literal root (the
+    legacy/graph-root and test-fixture layouts read exactly the file they
+    mean)."""
+    graph = Path(root)
+    main = locations.git_common_root(graph)
+    if main is not None and main != graph:
+        # inside a git repo: the MAIN checkout's graph root.
+        graph = locations.find_project_root(main) or main
+    if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
+        graph = graph / locations.GRAPH_DIR_NAME
+    return graph / "nodes" / ".geometry" / "seats.md"
 
 
 #: whois exit codes. 🔴 A NEGATIVE ANSWER MUST NOT EXIT 0. This check exists
