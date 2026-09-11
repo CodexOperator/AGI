@@ -85,6 +85,49 @@ def test_wrapper_termed_forwards_and_names_sender(tmp_path):
             child.wait()
 
 
+# HANG UP the wrapper's controlling tty (what `tmux kill-window` does): the
+# kernel signals ONLY the session leader — the wrapper — never the child's
+# group, so the wrapper must FORWARD the hangup or the child survives as an
+# orphan. Measured pre-fix at the L4.285 harvest (sanctuary-director
+# 182119Z 19:05Z): SIG1 logged "NOT forwarded", wrapper + sleep both alive
+# after the window was gone. Real pty, real session leader, no tmux.
+def test_wrapper_tty_hangup_forwards_to_the_child(tmp_path):
+    import fcntl
+    import termios
+    log = tmp_path / "seat.log"
+    master, slave = os.openpty()
+
+    def _lead():
+        os.setsid()
+        fcntl.ioctl(0, termios.TIOCSCTTY, 0)
+
+    wrapper = subprocess.Popen(
+        [sys.executable, str(ROTATE), "launch-wrapper",
+         "--seat", "seatH", "--log", str(log), "--", "sleep", "30"],
+        stdin=slave, stdout=slave, stderr=slave, preexec_fn=_lead,
+    )
+    os.close(slave)
+    try:
+        sleeper = _poll_child(wrapper.pid)
+        assert sleeper, "wrapper child (sleep) never appeared"
+        os.close(master)          # the hangup: the pty's master side is gone
+        body = _wait_log(log, "FORWARDED to child")
+        assert "SIG1 from kernel/tty (si_pid 0)" in body, body or "no HUP line"
+        assert f"FORWARDED to child {sleeper}" in body, body
+        rc = wrapper.wait(timeout=12)
+        body = _wait_log(log, "wrapper received")
+        assert "exited signal 1" in body, body
+        assert rc == 128 + signal.SIGHUP
+        deadline = time.time() + 5
+        while time.time() < deadline and Path(f"/proc/{sleeper}").exists():
+            time.sleep(0.05)
+        assert not Path(f"/proc/{sleeper}").exists(), "sleep survived the hangup"
+    finally:
+        if wrapper.poll() is None:
+            wrapper.kill()
+            wrapper.wait()
+
+
 # TERM the CHILD directly: the sender is unknown to the wrapper (signal went
 # straight to the child's own pid), so the log shows signal 15 with
 # `wrapper received none` and NO sender line.

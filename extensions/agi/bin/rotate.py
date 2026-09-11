@@ -1181,10 +1181,30 @@ def cmd_launch_wrapper(args, root) -> int:
                     os.kill(child.pid, info.si_signo)
                 except ProcessLookupError:
                     pass
-            elif info.si_pid == 0:
+            elif info.si_pid == 0 and info.si_signo == signal.SIGINT:
+                # A tty SIGINT (Ctrl-C, `isig`) is delivered by the kernel to
+                # the whole FOREGROUND PROCESS GROUP, so the child already has
+                # it; forwarding would deliver it twice.
                 _log(f"SIG{info.si_signo} from kernel/tty (si_pid 0) "
                      f"uid {info.si_uid} — already reached the child's group, "
                      f"NOT forwarded at {_launch_wrapper_now()}")
+            elif info.si_pid == 0:
+                # A tty HANGUP is different: the kernel signals only the
+                # SESSION LEADER (`tty_signal_session_leader`), and signals
+                # the foreground group only when that leader EXITS. Under
+                # tmux the wrapper IS the pane's session leader, so a
+                # `kill-window` reached nobody but us — measured by the L4.285
+                # harvest (sanctuary-director 182119Z 19:05Z): the pre-fix
+                # wrapper logged SIG1 "NOT forwarded" and both it and its
+                # `sleep` child survived the window kill as orphans. Forward.
+                _log(f"SIG{info.si_signo} from kernel/tty (si_pid 0) "
+                     f"uid {info.si_uid} — a hangup reaches only the session "
+                     f"leader; FORWARDED to child {child.pid} at "
+                     f"{_launch_wrapper_now()}")
+                try:
+                    os.kill(child.pid, info.si_signo)
+                except ProcessLookupError:
+                    pass
             else:
                 _log(f"SIG{info.si_signo} si_code {info.si_code} uid "
                      f"{info.si_uid} — NOT forwarded at "
