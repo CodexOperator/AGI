@@ -1275,6 +1275,28 @@ def _ack_path(root: Path, seat: str) -> Path:
     return _seat_hands(root) / f"{seat}.ack.json"
 
 
+def _resolve_seat_for_name(root: Path, session_name: str) -> str:
+    """The SEAT for a session/window name, resolved through the seats row.
+
+    The ACK channel is keyed by the SEAT name everywhere (`_ack_path(root,
+    seat)`); `rotate.py ack --seat <seat>` is the ONE call that writes it. A
+    reader that holds only a numeral-chain session/window name
+    (`belam-S1-L4-VII` — the successor's tmux window / remote-control name)
+    resolves the SEAT through config:seats (the row's `name` is the seat; the
+    numeral is the session/window name), so it reads the SAME
+    `<sessions>/seats/<seat>.ack.json` the one ack wrote — not a phantom
+    per-numeral file. A name with no matching row (a THROWAWAY / unregistered
+    numeral) falls back to the name itself, so existing plain-seat paths are
+    unchanged. P2, fifth fix-only dispatch.
+    """
+    for row in _load_seats(root):
+        rname = row.get("name") or ""
+        if rname and (session_name == rname
+                      or session_name.startswith(rname + "-")):
+            return rname
+    return session_name
+
+
 def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
         -> dict | None:
     """Poll `<seat>.ack.json` until it carries an ACK for `gen_after`.
@@ -1458,7 +1480,15 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # that owns the meter. A missing checksum here is a DOCUMENTED residue, not
     # a silent gap (see the experiment under hypothesis:l4-rotate-readback-
     # false-negative-and-the-orphan-by-design).
-    ack_path = _ack_path(root, name)
+    #
+    # P2 (fifth dispatch): the ACK channel is keyed by the SEAT name
+    # EVERYWHERE. `name` here is the successor's session/window name (a
+    # numeral chain for the prime — `belam-S1-L4-<numeral>`), so resolve the
+    # SEAT through the seats row and read `_ack_path(root, seat)`; a numeral
+    # ack written under `--seat belam` must reach this exact file. A name with
+    # no row falls back to the name itself (THROWAWAY seat unchanged).
+    ack_seat = _resolve_seat_for_name(root, name)
+    ack_path = _ack_path(root, ack_seat)
     ack = _read_ack(ack_path, gen_after=None, timeout=args.timeout)
     if ack is not None:
         answer = ack.get("answer")
@@ -1484,7 +1514,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         _announce_rotation(
             root=root,
             croot=send.comms_root(root, getattr(args, "comms_root", None)),
-            seat=name, successor=name, gen_before=None, gen_after=None,
+            seat=ack_seat, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
             handoff_path=str(Path(ack_path).expanduser().resolve()),
             in_flight="successor acked `continue`; handoff stood",
@@ -3454,10 +3484,39 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # `steps_reached` are spelled from these names where the step exists.
     tmpl_steps: list[str] = [str(s) for s in (tmpl.get("steps") or [])]
 
-    gen_before = _read_generation(root, seat)
-    gen = gen_before + 1
-    new_name = f"{seat}.gen{gen}"
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
+    # P1 (fifth dispatch): a NUMERAL-CHAIN seat — the prime, today the only
+    # such seat (role prime_director) — derives its successor name from the
+    # existing windows the way cmd_loop does (`belam-S1-L4-<next numeral>`, by
+    # REUSING `_derive_successor_name` / `_split_roman_suffix`, never copied),
+    # and its generation IS the numeral. The chain prefix comes from the seat
+    # row's `name` (goal:g8.2); nothing here branches on any literal seat
+    # string. A plain-named seat is unchanged: predecessor window `seat` ->
+    # successor `seat`, `.gen<N>` own-window rename, generation = gen_before+1.
+    _existing_for_chain = _existing_windows(tmux_session, args.window_path)
+    is_chain_seat = (role == "prime_director")
+    if is_chain_seat:
+        gen_before = _read_generation(root, seat)
+        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
+        _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
+        # the predecessor's own (pre-rotation) window is the highest live
+        # numeral in the chain (its numeral is the successor's minus one line)
+        _chain_live = [w for w in _existing_for_chain
+                       if w == seat or w.startswith(seat + "-")]
+        own_chain_name = max(
+            _chain_live, key=lambda w: _split_roman_suffix(w)[1],
+            default=None)
+        new_name = None   # .gen<N> own-window rename is plain-seat only
+    else:
+        gen_before = _read_generation(root, seat)
+        gen = gen_before + 1
+        spawn_name = seat
+        own_chain_name = None
+        new_name = f"{seat}.gen{gen}"
+    # `pred_name` is the window that will be killed by @id at s12 after the
+    # successor is confirmed: the renamed own window (plain seat) or the
+    # predecessor's own numeral window (chain seat).
+    pred_name = new_name if not is_chain_seat else own_chain_name
     dbg = args.debug_file or str(_sessions_dir(root) / f"{seat}.log")
     # L4.112 (D): the successor's identity from the JOIN (ListAgents `@id`),
     # SUPPLIED, never inferred. None of the identity-bearing handover writes
@@ -3490,13 +3549,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
-    # (2) rename own window aside, freeing the plain seat name
-    if not args.dry_run:
-        _rename_own_window(seat, new_name, tmux_session, args.window_path)
-        _rs_mark(steps_reached, tmpl_steps, "rename", "2")
-        _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
-    print(f"(2) rename own window {seat!r} -> {new_name!r}")
+    # (2) rename own window aside, freeing the plain seat name. The `.genN`
+    #     rename applies ONLY to plain-named seats (P1): a numeral-chain seat
+    #     (the prime) keeps its numeral windows and is reaped by @id at s12;
+    #     it records the rename as done-by-skip, never renaming a constructed
+    #     name that has no window behind it (measured L4-VI: renaming 'belam'
+    #     failed — the real window is belam-S1-L4-<numeral>).
+    if is_chain_seat:
+        if not args.dry_run:
+            _rs_mark(steps_reached, tmpl_steps, "rename", "2")
+            _write_rotate_self_started(rec_path, seat=seat,
+                                       steps=steps_reached,
+                                       gen_before=gen_before, gen_after=gen)
+        print(f"(2) own-window rename: SKIPPED for numeral-chain seat "
+              f"{seat!r} (`.genN` applies only to plain-named seats; the "
+              f"predecessor window {pred_name!r} is reaped by @id at step 8)")
+    else:
+        if not args.dry_run:
+            _rename_own_window(seat, new_name, tmux_session, args.window_path)
+            _rs_mark(steps_reached, tmpl_steps, "rename", "2")
+            _write_rotate_self_started(rec_path, seat=seat,
+                                       steps=steps_reached,
+                                       gen_before=gen_before, gen_after=gen)
+        print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
     # L4.112 (C): the template is consumed on the existing call path -- when
@@ -3521,7 +3596,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         "gen_after is not this generation."
     )
     rc, _ = spawn_window(
-        name=seat, tier=role,
+        name=spawn_name, tier=role,
         prompt_file=prompt_file,
         model=args.model or ((row.get("model") if row else None) or None),
         effort=args.effort or ((row.get("effort") if row else None) or None),
@@ -3538,7 +3613,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen)
-    print(f"(3) spawn successor under the plain name {seat!r} (role {role!r})")
+    print(f"(3) spawn successor under the "
+          f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
+          f"{spawn_name!r} (role {role!r})")
 
     if args.dry_run:
         # L4.118 (R1) — the dry-run ENUMERATES every step live would execute,
@@ -3552,7 +3629,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"{seat} --gen {gen}` flips it continue/diff; a diff leaves "
               "the renamed window for inspection)")
         print("(5) successor-window guarantee: tmux list-windows must show "
-              f"the plain name {seat!r}")
+              f"the {'numeral-chain' if is_chain_seat else 'plain'} name "
+              f"{spawn_name!r}")
         print("    join: follow the successor's window @id into the "
               f"registry dir "
               f"{getattr(args, 'registry_dir', None) or REGISTRY_DEFAULT_DIR}; "
@@ -3587,9 +3665,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print("    own @id it would capture: tmux display-message -p "
               "'#{window_id}' (knowable only live)")
         print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
-              f"under the plain name {seat!r}")
-        print("(dry-run) ends on the PLAIN seat name; "
-              f"generation: {gen} (never a Roman numeral)")
+              f"under the {'numeral-chain' if is_chain_seat else 'plain'} name "
+              f"{spawn_name!r}")
+        if is_chain_seat:
+            print(f"(dry-run) numeral-chain seat: successor name "
+                  f"{spawn_name!r}, generation = numeral {gen}, own window "
+                  "@id = tmux display-message -p '#{window_id}' "
+                  "(knowable only live), ack path "
+                  f"{_ack_path(root, seat)}")
+        else:
+            print("(dry-run) ends on the PLAIN seat name; "
+                  f"generation: {gen} (never a Roman numeral)")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
@@ -3598,18 +3684,18 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     successful rotation and spawned no window at all). Refuse to report
     #     success when it is absent.
     succ = _observed_windows(tmux_session, args.window_path)
-    if seat not in succ["names"]:
+    if spawn_name not in succ["names"]:
         pred_o = _observed_windows(tmux_session, args.window_path)
         _write_rotation_record(root, _rotate_self_record(
             seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
-            succ=succ, pred={"name": new_name, "windows": pred_o["names"],
+            succ=succ, pred={"name": pred_name, "windows": pred_o["names"],
                              "source": pred_o["source"]},
             readback_log=Path(dbg).expanduser().resolve(),
             cursor_offset=(Path(dbg).expanduser().resolve().stat().st_size
                            if Path(dbg).expanduser().resolve().exists() else 0),
             refusal="successor window absent"), path=rec_path)
-        print(f"ERR: successor window {seat!r} is NOT present in tmux session "
-              f"{tmux_session!r}; refusing to report rotation success "
+        print(f"ERR: successor window {spawn_name!r} is NOT present in tmux "
+              f"session {tmux_session!r}; refusing to report rotation success "
               f"(windows: {succ['names']!r}).", file=sys.stderr)
         return 1
 
@@ -3626,13 +3712,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (proof a). Every step writes its own evidence; any skipped step makes
     # the result something other than success.
     handover: dict = {}
-    succ_window_id = _successor_window_id(seat, tmux_session, args.window_path)
+    succ_window_id = _successor_window_id(
+        spawn_name, tmux_session, args.window_path)
     # (s2) record BOTH own and successor window identities (name + @id); the
     #      @id is what a later rename/kill-by-@id (s12, kid 2) will address.
+    #      For a chain seat the own window is the predecessor's numeral window
+    #      (pred_name), never a constructed `.genN` name.
     handover["own_window"] = {
-        "name": new_name,
-        "id": _successor_window_id(new_name, tmux_session, args.window_path)}
-    handover["successor_window"] = {"name": seat, "id": succ_window_id}
+        "name": pred_name,
+        "id": (_successor_window_id(pred_name, tmux_session, args.window_path)
+               if pred_name else None)}
+    handover["successor_window"] = {"name": spawn_name, "id": succ_window_id}
 
     succ_session_id = None
     succ_pid = None
@@ -3669,7 +3759,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         try:
             handover["successor_row"] = _successor_row_write(
                 root, actor=seat, seat=seat, role=role,
-                session_ref=succ_session_id, generation=gen, window=seat,
+                session_ref=succ_session_id, generation=gen, window=spawn_name,
                 pid=succ_pid, session_id=succ_session_id)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
@@ -3800,15 +3890,15 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     Belam chain in the direction nobody notices until they need it.
     #     Refuse to report success when it is gone.
     pred_raw = _observed_windows(tmux_session, args.window_path)
-    pred = {"name": new_name, "windows": pred_raw["names"],
+    pred = {"name": pred_name, "windows": pred_raw["names"],
             "source": pred_raw["source"]}
-    pred_alive = new_name in pred_raw["names"]
+    pred_alive = (pred_name is not None) and (pred_name in pred_raw["names"])
     if not pred_alive:
         _write_rotation_record(root, _rotate_self_record(
             seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
             refusal=f"predecessor window {new_name!r} gone"), path=rec_path)
-        print(f"ERR: predecessor window {new_name!r} is NOT present in tmux "
+        print(f"ERR: predecessor window {pred_name!r} is NOT present in tmux "
               f"session {tmux_session!r}; refusing to report rotation "
               f"success (windows: {pred_raw['names']!r}).",
               file=sys.stderr)
@@ -3859,7 +3949,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     _announce_rotation(
         root=root,
         croot=send.comms_root(root, getattr(args, "comms_root", None)),
-        seat=seat, successor=seat, gen_before=gen_before, gen_after=gen,
+        seat=seat, successor=spawn_name, gen_before=gen_before, gen_after=gen,
         trigger=getattr(args, "trigger", "rotate-self"),
         handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
@@ -3901,7 +3991,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
           f"reap [{reap_source}]: "
           f"{s12_reap.get('chain', s12_reap.get('skipped'))}")
     print(f"    ps after: {ps_after or '(no chain derived/reaped)'}")
-    _kill_window(new_name, tmux_session, args.window_path,
+    _kill_window(pred_name, tmux_session, args.window_path,
                  window_id=own_window_id)
     print(f"    predecessor window list: "
           f"{_observed_windows(tmux_session, args.window_path)['names']!r}")

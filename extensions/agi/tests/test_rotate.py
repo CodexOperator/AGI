@@ -2680,3 +2680,132 @@ def test_rotate_self_step_markers_come_from_template_steps(
     done = [s for step in written for s in step]
     assert "handoff" in done
     assert "spawn" in done
+
+
+# ---- L4.119 fifth fix-only dispatch: P1 prime numeral-chain path, P2 one-key ack ----
+
+def test_rotate_self_chain_dry_run_prime_numeral_successor(fake_ladder, tmp_path,
+                                                           capsys, monkeypatch):
+    """P1: a numeral-chain seat (role prime_director) derives its successor
+    NAME the way cmd_loop does (`belam-S1-L4-<next numeral>` from the existing
+    windows — `_derive_successor_name`, never a constructed `gen` name), its
+    generation IS the numeral, the `.genN` rename does NOT apply, and the ack
+    path stays keyed by the SEAT name (`belam.ack.json`) for the ONE ack call.
+    Dry-run only; touches nothing."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@8 belam-S1-L4-V\n@9 belam-S1-L4-VI\n", encoding="utf-8")
+    seen = {}
+    def fake_spawn(**kw):
+        seen["name"] = kw["name"]
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    args = _rotate_self_args(tmp_path, name="belam", role="prime_director",
+                             window_path=str(win), dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    # successor name is the numeral successor, never the plain seat name
+    assert seen["name"] == "belam-S1-L4-VII"
+    out = capsys.readouterr().out
+    # generation IS the numeral of the successor (VII = 7), not gen_before+1
+    assert "generation = numeral 7" in out
+    assert "belam-S1-L4-VII" in out
+    # the ack channel is keyed by the SEAT name, not the numeral
+    assert rotate._ack_path(tmp_path, "belam").as_posix() in out
+    # dry-run touched nothing
+    assert not (tmp_path / "sessions" / "seats" / "belam.handoff.md").exists()
+
+
+def test_rotate_self_chain_generation_is_numeral_not_plus_one(
+        fake_ladder, tmp_path, capsys, monkeypatch):
+    """P1: the prime's generation is the successor's NUMERAL (measured: a
+    chain ending at -VI rotates to -VII => generation 7), never gen_before+1
+    read off the handoff. Exercises the full rotation on a fixture window_path
+    so the successor-window and predecessor-window guarantees are real."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    win = tmp_path / "windows.txt"
+    win.write_text("@8 belam-S1-L4-IV\n@9 belam-S1-L4-V\n@10 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+
+    def fake_spawn(**kw):
+        # the successor appears immediately under the derived numeral name
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@11 belam-S1-L4-VII\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "belam", "gen_after": 7,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    monkeypatch.setattr(rotate, "_reap_chain", lambda *a, **k: {"ok": True})
+    monkeypatch.setattr(rotate, "_write_rotation_record",
+                        lambda *a, **k: str(tmp_path / "rec.json"))
+    monkeypatch.setattr(rotate, "_record_s12_self_reap", lambda *a, **k: None)
+    monkeypatch.setattr(rotate, "_write_rotate_self_started",
+                        lambda *a, **k: None)
+    monkeypatch.setattr(rotate, "_announce_rotation", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, name="belam", role="prime_director",
+                             window_path=str(win), session_ref="f52feed")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "generation = numeral 7" not in out  # not a dry-run
+    # the follower / record got a numeral successor window
+    assert "belam-S1-L4-VII" in out
+
+
+def test_resolve_seat_for_ack_maps_numeral_name_to_seat(tmp_path, monkeypatch):
+    """P2: the ack channel is keyed by the SEAT name everywhere. A reader that
+    holds only the numeral session/window name (`belam-S1-L4-VII`) resolves
+    the SEAT through the seats row, so the ONE `ack --seat belam` write reaches
+    the read-back — one ack, one file, both sides."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root,
+                       [{"name": "belam", "role": "prime_director",
+                         "session_ref": ""}])
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    # numeral session name -> seat row name
+    assert rotate._resolve_seat_for_name(root, "belam-S1-L4-VII") == "belam"
+    # plain name stays itself (a THROWAWAY / unregistered numeral echoes)
+    assert rotate._resolve_seat_for_name(root, "ghost") == "ghost"
+    # therefore the numeral reader reads the SAME file `ack --seat belam` wrote
+    numeral_reader_path = rotate._ack_path(
+        root, rotate._resolve_seat_for_name(root, "belam-S1-L4-VII"))
+    assert numeral_reader_path == rotate._ack_path(root, "belam")
+
+
+def test_ack_seat_writes_row_and_matches_numeral_reader(tmp_path, monkeypatch,
+                                                        capsys):
+    """P2: ONE `ack --seat belam` writes `belam.ack.json`, confirms the
+    read-back, AND back-fills session_ref into belam's row (source: ack) —
+    no second ack needed and no per-numeral file."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": "",
+                         "session_ref": ""}])
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""), root)
+    assert code == 0
+    # the ack file is keyed by the SEAT name
+    ac = rotate._ack_path(root, "belam")
+    assert ac.exists()
+    doc = json.loads(ac.read_text(encoding="utf-8"))
+    assert doc["seat"] == "belam" and doc["gen_after"] == 7
+    assert doc["session_ref"] == "f52a4c"
+    # the numeral reader resolves to the SAME file the one ack wrote
+    reader_path = rotate._ack_path(
+        root, rotate._resolve_seat_for_name(root, "belam-S1-L4-VII"))
+    assert reader_path == ac
+    # the ONE ack back-filled the row (source: ack) — no second ack needed
+    rows = rotate._load_seats(root)
+    belam = next(r for r in rows if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
