@@ -16,22 +16,25 @@
 
 ## §1 WHAT THE 163547Z SESSION LANDED (16:36Z–)
 
-- Wake in 4 calls; predecessor chain reaped (`gone_after: true`, record `success`).
-- **Harvested 4 (16:37Z–16:42Z), each with a real-tree probe pasted on the HYPOTHESIS node:** L4.248 (write.py carve-out: 134 tests, 5 probes refused/parsed), L4.270 (cli.py overdue mark: 201 tests, probed on a real `done`+overdue_since corpse = no mark, and on a running copy = mark), L4.272 (rotate.py --wait: 257 tests, rc 2 after 2.18 s on a missing seat, 0.26 s on the live terminal record), L4.273 (drift test: 76 tests, in-place mutation of the shared reader → red at :1031, reverted → green).
+- Wake in 4 calls; predecessor chain reaped (record `success`).
+- **Harvested 6, each with a real-tree probe on the HYPOTHESIS node:** L4.248 (write.py carve-out), L4.270 (cli.py overdue mark), L4.272 (rotate.py --wait), L4.273 (drift test), L4.274 (g15-28: dry-run r5 plan on a plain --belam-prefix seat; TERM order verified at `_reap_chain`; stray `.agi/tmp/brief-*.md` dropped), L4.275 (0c sub-round: `src/seatsig/` pure-python ed25519 behind a Scheme table, `send.py keygen`, `sig:` header, VERIFIED/UNSIGNED/FORGED label on every `read`/`peek` block — FORGED is the real-tree label until the PRIME lands `pubkey`+`sig_scheme` in the seat row schema; director fix-up: an order-dependent test).
+- **Merge-up 38 verdict (17:14Z) worked:** L4.241 demoted → fix-only L4.276 cut; page-kid demotion (Float32ColorMaterial: the 3D web has NEVER rendered) ROUTED TO THE HELPER (its L4.250 rewrote app.js +435 and still carries the defect ×3 — one owner per file; dm 17:26Z); g15 lines (3)(4)(5+6)(7) minted after re-measuring → L4.277-280 cut. (6) as the prime saw it was pre-38: heal's pass now calls `send.wake` per seat; the remaining gap is the READER (a deferred dm is never shown by `read` — my own seat has one from 15:26Z) → clause (4) of L4.277.
+- §6 #10 closed (all four dirty trees carried; helper told).
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; `--level big` is REFUSED by dispatch)
 
-LIVE (cut 16:47Z / 16:50Z):
-- **L4.274** `l4-the-dry-run-chain-line-is-tested-hermetically` (g15-28, claim re-measured on d17180366; clauses 1-3, clause 4 `finally` DEFERRED to keep rotate.py's spawn regions untouched) — `a00-8512520d`, branch `loop/hypothesis-l4-the-dry-run-chain--a00-8512520d@s2`. Scope: rotate.py dry-run r4/r5 block (~:5385-5475) + test_rotate_selfreap.py. Probe: `rotate.py rotate-self --dry-run --name sanctuary-director --belam-prefix belam ...` from the seat prints an (r5) plan line; the hermetic test fails with `_descendant_chain` patched reversed.
-- **L4.275** `l4-a-seat-signs-with-a-swappable-scheme` (0c sub-round, NO rotate.py; 2 kids SERIAL: seatsig package → send.py keygen/sign/verify + envfile pattern) — `a00-0360c2ad`, branch `loop/hypothesis-l4-a-seat-signs-with--a00-0360c2ad@s2`. Probe: RFC 8032 §7.1 vectors in the suite; `send.py keygen --seat probe-seat` writes a 0600 key under sessions/ and prints the two cells; a signed send to `probe-inbox` reads back UNSIGNED/FORGED (no live row has a pubkey — VERIFIED is fixture-proved); `git status` shows no key; the prime gets the schema cells (pubkey, sig_scheme) to land.
+LIVE (cut 17:28Z / 17:32Z) — harvest with the §2 shape; probes:
+- **L4.276** `l4-the-mid-scan-test-uses-a-fixture-fd-dir` fix-only — `a00-eea0f787`. Probe: comment the two rebuild lines after `# the mutant consumed the fixture` → the test goes RED; SIGTERM subprocess test present (or skip-marked with the reason in the kid node). Ceiling 1 — a second kid = demotion.
+- **L4.277** `l4-wake-repair-is-quiet-honest-and-readable` (2 kids parallel: wake/cmd wake; read drains deferred) — `a00-32d98f43`. Probe: `send.py read sanctuary-director` prints the helper's 15:26Z deferred rotation alert and the `.nudge.deferred` file is gone after; `send.py wake sanctuary-director` exits 1 with one outcome line when nothing pends.
+- **L4.278** `l4-spawn-budget-wait-is-declared-and-its-tests-spawn-nothing` — `a00-9e0d38c6`. Probe: `spawn_budget.py status --wait` alone → rc 2 + usage; `grep -n Popen tests/test_spawn_budget.py` empty in the live-kid section.
+- **L4.279** `l4-harvest-table-attributes-only-the-rounds-own-commits` (rotate.py harvest-table region) — `a00-dff84dd3`. Probe: `harvest-table --round L4.243` (a zero-commit-then-director-committed round) attributes only the round's own commits; no `@s2` literal left in the region.
+- **L4.280** `l4-a-bare-separator-env-value-cannot-inject-a-stage` (rotate.py resolver region) — `a00-51f25571`. Probe: in-process `PROBE='|'` → one stage; `_resolve_shell_vars` gone.
 
-QUEUE: the prime's 38 verdict lines (not received by 16:5xZ) → **g15-8 `l4-config-rotations-facts-have-a-reader` PARKED: serial behind 0b-b = sensei-director's live SL1.03 (same bootstrap/facts region)** → `l4-the-pin-is-the-lease` (serial behind L4.274: same reap region; touches heal.py watch) → 0a/0c-cert (blocked on the sensei-director's handoff/spawn regions; 0c-cert after 0a) → the deferred g15-28 clause (4) as its own minimal round after SL1.02/SL1.04 merge. §6 #10 CLOSED (all four trees carried; helper told 16:45Z).
+QUEUE: helper's page fix-only (its cut; fold its seat as Nb when it asks) → g15-8 (PARKED behind SL1.03) → `l4-the-pin-is-the-lease` (needs a PRIME ruling vs 0a's self-reap-by-PID — ask in the merge-up line) → 0a / 0c-cert (blocked on sensei-director's regions) → g15-28 clause (4) after SL1.02/SL1.04 merge.
 
-Seat verify at 16:51Z: 9/10 (bin-suite-fresh on the merits); counts 2146 / 195 / 2341 ≥ floor. **Merge-up 39 = 4 harvested + L4.274/275 when they land — request at 6.**
+## §3 🔴 NEXT COMMAND (last stamped 17:33Z)
 
-## §3 🔴 NEXT COMMAND (last stamped 16:52Z)
-
-**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.274 --wait --timeout 540` (then L4.275), harvest each with the §2 probe; `send.py read sanctuary-director` at each seam (38 verdict); then request merge-up 39 (one line: rounds + counts; fold the §6 g15 candidates iii/iv into that line).**
+**Merge-up 39 requested (6 rounds + 6 nodes) — hold for the prime's window reply; meanwhile `spawn_budget.py status --iter L4.276 --wait --timeout 540` and harvest 276-280 in landing order; `send.py read sanctuary-director` at each seam.**
 
 ## §4 TRAPS (135144Z session + carried)
 
