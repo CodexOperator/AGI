@@ -139,11 +139,30 @@ def test_pushed_kept_read_stamps_the_baseline(tmp_path):
     assert state["sha"]
 
 
-def test_kept_run_teaches_not_stamped_then_missing():
-    """Consistency of the two above: the fixture's unpushed read says NOT
-    STAMPED while its pushed twin stamps — the falsifier is dead in the fixed
-    bytes, and the two halves agree with each other."""
-    assert True
+def test_kept_run_teaches_not_stamped_then_missing(tmp_path):
+    """Consistency of the two halves above in ONE fixture: the pushed twin
+    STAMPS the baseline, then a single unpushed commit flips the SAME read to
+    NOT STAMPED and leaves the recorded baseline untouched — the falsifier
+    (a non-kept read that stamps) stays dead across the transition."""
+    root = _init_fixture(tmp_path)      # HEAD pushed == origin
+    groot = root / ".agi"
+    # half 1 — the pushed twin stamps the baseline
+    r1 = verification.compare_count(groot, CURRENT)
+    assert r1.status == "PASS"
+    assert "baseline recorded" in r1.note
+    state1 = json.loads((groot / "sessions" / verification.STATE_FILE)
+                        .read_text())
+    assert state1["reason"].startswith("kept")
+    # half 2 — an unpushed commit makes the very next read refuse to stamp
+    _mk_commit(root)
+    r2 = verification.compare_count(groot, CURRENT)
+    assert r2.status == "PASS"
+    assert "NOT STAMPED" in r2.note
+    assert "unpushed" in r2.note
+    state2 = json.loads((groot / "sessions" / verification.STATE_FILE)
+                        .read_text())
+    assert state2["sha"] == state1["sha"], (
+        "a non-kept read must not re-stamp the baseline it already holds")
 
 
 # --- explicit --stamp stamps even when the auto-context says no -------------
@@ -201,6 +220,52 @@ def test_drop_still_fails_but_never_stamps(tmp_path):
     state = json.loads((groot / "sessions" / verification.STATE_FILE)
                        .read_text())
     assert state["active"] == 9999, "the drop read must not have overwritten"
+
+
+def test_stamp_at_level_quick_re_stamps_the_recorded_baseline(tmp_path, monkeypatch):
+    """`--stamp` must not go SILENT on a level without smoke (quick). With no
+    smoke there are no fresh counts, so it re-stamps the already-recorded
+    baseline onto the now-kept bytes."""
+
+    def fake_run(groot, name, verbose):
+        return verification.CheckResult(name, "PASS", 0.0)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    root = _init_fixture(tmp_path)      # HEAD pushed == origin
+    groot = root / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    before = {"active": 1707, "deprecated": 194, "total": 1901}
+    (groot / "sessions" / verification.STATE_FILE).write_text(json.dumps(before))
+    results = verification.run_level(groot, "quick", suite=False, verbose=False,
+                                     stamp=True)
+    nc = next((r for r in results if r.name == "node-count"), None)
+    assert nc is not None, "--stamp must emit a node-count check even on quick"
+    assert nc.status != "FAIL"
+    assert "baseline updated" in nc.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert state["sha"], "--stamp re-stamped the baseline onto kept bytes"
+    assert state["reason"] == "explicit --stamp"
+
+
+def test_stamp_at_level_quick_with_no_prior_baseline_refuses(tmp_path, monkeypatch):
+    """--stamp on quick with no recordable counts says so OUT LOUD — the
+    falsifier is a quiet no-op, and a refusal is never a stamped baseline."""
+
+    def fake_run(groot, name, verbose):
+        return verification.CheckResult(name, "PASS", 0.0)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    root = _init_fixture(tmp_path)
+    groot = root / ".agi"
+    results = verification.run_level(groot, "quick", suite=False, verbose=False,
+                                     stamp=True)
+    nc = next((r for r in results if r.name == "node-count"), None)
+    assert nc is not None, "--stamp must emit a node-count check even on quick"
+    assert nc.status == "SKIP"
+    assert "--stamp:" in nc.note
+    assert "no smoke count and no prior baseline" in nc.note
+    assert not (groot / "sessions" / verification.STATE_FILE).exists(), (
+        "--stamp must not mint a baseline from thin air")
 
 
 # --- old 3-key state files still read --------------------------------------

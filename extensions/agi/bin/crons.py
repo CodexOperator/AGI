@@ -459,14 +459,26 @@ def _systemd_bus_env() -> dict[str, str] | None:
 
 
 def _apply_systemctl(args: list[str], *, dry_run: bool,
-                     env: dict[str, str] | None = None) -> str:
+                     env: dict[str, str] | None = None,
+                     read_only: bool = False) -> str:
     """Actually run `systemctl --user <args>` via PATH — a FAKE systemctl in
     tests (residue b: tests prove the exact argv and never touch the real
     user manager or ~/.config/systemd). The real user manager is only ever
     reached when a services table has landed and grid_sync self-reapplies
     with `--unit-dir`. Under `--dry-run` the intent is recorded and nothing
-    runs. A failed systemctl becomes a visible action string, never an
-    exception — a crontab apply must not die midway because one unit refused.
+    runs (unless `read_only`, see below). A failed systemctl becomes a
+    visible action string, never an exception — a crontab apply must not die
+    midway because one unit refused.
+
+    `read_only` marks a genuinely READ-ONLY probe (`is-enabled` / `is-active`
+    or any byte comparison that mutates nothing) so a `--dry-run` apply can
+    ask the same question the live pass would ask and reach the same branch:
+    with `dry_run and read_only` the subprocess still RUNS (it mutates
+    nothing) and its real `(ok)`/`FAILED (...)` string is returned — a dry
+    run must not answer a question the live pass does not ask (the original
+    bug: every dry run printed seam intent for a unit the live pass marked
+    `(no-op)`). Mutations (daemon-reload, enable/disable --now, writes,
+    removes) keep `read_only=False` and so NEVER run under `--dry-run`.
 
     `env`, when given, is merged over the caller's environment before the
     subprocess runs so a cron-invoked apply can reach the user bus (see
@@ -475,7 +487,7 @@ def _apply_systemctl(args: list[str], *, dry_run: bool,
     (`{}`).
     """
     label = " ".join(["systemctl", "--user", *args])
-    if dry_run:
+    if dry_run and not read_only:
         return f"{label} (dry-run)"
     merged = os.environ.copy()
     if env:
@@ -555,9 +567,11 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
                         f"unit {target.name} no user bus, skip systemctl")
                 else:
                     enabled = _apply_systemctl(["is-enabled", service_arg],
-                                               dry_run=dry_run, env=bus_env)
+                                               dry_run=dry_run, env=bus_env,
+                                               read_only=True)
                     active = _apply_systemctl(["is-active", service_arg],
-                                              dry_run=dry_run, env=bus_env)
+                                              dry_run=dry_run, env=bus_env,
+                                              read_only=True)
                     if enabled.endswith("(ok)") and active.endswith("(ok)"):
                         actions.append(
                             f"unit {target.name} enabled+active (no-op)")

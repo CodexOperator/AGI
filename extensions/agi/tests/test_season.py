@@ -1410,6 +1410,53 @@ class TestMergeUp:
         assert "rung work" not in _git(
             tmp_path, "log", "season/s2", "--format=%s").stdout
 
+    def test_explicit_target_beats_both(
+            self, season_py, temp_graph, tmp_path):
+        """hypothesis:l4-test-season-third-test-and-l4-141-evidence-corrected
+        -- the third stated test: an explicit --target Z beats BOTH the
+        recorded base_branch X and the current checked-out branch Y. base is
+        resolved as Z, the print names `from target`, and the merge lands in
+        Z, never in X or Y."""
+        _init_project(tmp_path)  # current branch Y = season/s1
+        # Recorded base X = tier1/director, cut off Y with its own work.
+        _git(tmp_path, "checkout", "-q", "-b", "tier1/director")
+        _commit(tmp_path, "director work", content="director\n")
+        # Loop branch cut off X, carrying rung work.
+        _git(tmp_path, "checkout", "-q", "season/s1")
+        worktree = tmp_path / "wt"
+        _git(tmp_path, "worktree", "add", "-b", "loop/parent-aaaa@s2",
+             str(worktree), "tier1/director")
+        _commit(worktree, "rung work", content="rung\n")
+        # Target Z = releases/v4 sitting on the same lineage as Y, so a
+        # merge into Z (not X) is fully observable.
+        _git(tmp_path, "branch", "releases/v4", "season/s1")
+
+        # Record names X as base_branch; current branch is Y (season/s1).
+        record = tmp_path / ".agi" / "sessions" / "lease.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({
+            "branch": "loop/parent-aaaa@s2",
+            "base_branch": "tier1/director",
+            "worktree": str(worktree),
+            "suite": "exit 0",
+        }))
+
+        result = subprocess.run(
+            [sys.executable, str(season_py), "--root", str(temp_graph),
+             "merge-up", "loop/parent-aaaa@s2", "--record", str(record),
+             "--target", "releases/v4"],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        # Z, not X, not Y, is the resolved base.
+        assert "releases/v4" in result.stdout
+        assert "from target" in result.stdout
+        # Rung work landed in Z, never in the recorded base X.
+        assert "rung work" in _git(
+            tmp_path, "log", "releases/v4", "--format=%s").stdout
+        assert "rung work" not in _git(
+            tmp_path, "log", "tier1/director", "--format=%s").stdout
+
     def test_merge_up_town_base_resolves_without_record(
             self, season_py, temp_graph, tmp_path):
         """hypothesis:l4-town-base-honours-the-recorded-base-branch -- a town

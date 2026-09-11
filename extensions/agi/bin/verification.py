@@ -219,8 +219,10 @@ def _stamp_context(groot: Path) -> tuple[bool, str | None, str]:
 
     KEPT means the read is on the declared integration branch AND HEAD is an
     ancestor of the pushed `origin/<branch>` — a kept merge is pushed, while
-    a worktree, a seat branch, or an uncommitted MAIN read is not. A read
-    that cannot stamp still COMPARES (it just never writes the baseline).
+    a worktree or a seat branch (not on the declared branch) is not. The
+    check is branch + reachability only: an uncommitted working tree whose
+    HEAD is already pushed still counts as kept here. A read that cannot
+    stamp still COMPARES (it just never writes the baseline).
     """
     branch = _integration_branch(groot)
     if branch is None:
@@ -696,8 +698,29 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     if level in ("rotation", "full"):
         results.append(check_seat_model(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
-    if smoke is not None:
-        results.append(compare_count(groot, smoke.number, stamp=stamp))
+    current = smoke.number if smoke is not None else None
+    if current is None and stamp:
+        # --stamp must never go SILENT on a level that has no smoke (quick is
+        # links/goals-check/write-guard): a quiet no-op would print no stamp
+        # line and stamp nothing, which is the falsifier. With no smoke there
+        # are no fresh counts to record, so re-stamp the already-recorded
+        # baseline onto the now-kept bytes (the merge-up step's intent), or,
+        # with no prior baseline at all, print the refusal out loud.
+        prior = _read_state(groot)
+        if prior:
+            current = {k: (prior[k] if k in prior else -1)
+                       for k in ("active", "deprecated", "total")}
+        else:
+            results.append(CheckResult(
+                "node-count", "SKIP", 0.0, None,
+                note="--stamp: no smoke count and no prior baseline to re-stamp"))
+            return results
+    # A level WITH a smoke round closes on node-count even when smoke reported
+    # no number (compare_count SKIPs); a --stamp round closes on it always —
+    # the stamp must never be a silent no-op. Only a bare quick with no stamp
+    # stays without a node-count result.
+    if smoke is not None or stamp:
+        results.append(compare_count(groot, current, stamp=stamp))
     return results
 
 

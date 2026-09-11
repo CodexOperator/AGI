@@ -1333,6 +1333,97 @@ def test_write_path_vision_cap_explicit_core_own_cell_counted_in_core(vision_cap
     assert "(from own cell)" in res.reason
 
 
+# hypothesis:l4-an-undeclared-town-is-refused-not-capped — a vision naming a
+# town the ladder does not declare is REFUSED, not granted a fresh cap.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def town_ladder_graph(project):
+    """project + a vision schema and a town-scoped ladder that DECLARES a
+    towns table of two towns, plus a moral parent with no town (so a
+    town-less vision falls back to the default)."""
+    sd = project / "context" / "schemas"
+    (sd / "[vision].md").write_text(VISION_CAP_SCHEMA)
+    (sd / "[shape].md").write_text(SHAPE.replace(
+        "max_parents_ceiling: 2", "max_parents_ceiling: 4"))
+    gd = project / "nodes" / ".geometry"
+    gd.mkdir(parents=True, exist_ok=True)
+    (gd / "ladder.md").write_text("""\
+---
+id: ladder:ladder
+type: ladder
+current_season: 1
+caps:
+  vision: 3
+caps_vision_scope: town
+towns:
+  - streaming-suite
+  - web-app-suite
+---
+# ladder
+""")
+    md = project / "nodes" / "moral"
+    md.mkdir(parents=True, exist_ok=True)
+    md.joinpath("m.md").write_text(
+        "---\nid: moral:m\ntype: moral\n---\n# m\n")
+    return project
+
+
+def test_undeclared_own_town_is_refused(town_ladder_graph):
+    """A vision whose OWN `town:` cell names a town absent from the ladder's
+    towns table is REFUSED, naming the undeclared town. This is the falsifier
+    of the old behaviour (town: nowhere-declared -> APPROVED with a fresh
+    cap)."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "nowhere-declared"},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.REJECTED, res
+    assert "nowhere-declared" in res.reason
+    assert "not declared in ladder towns" in res.reason
+
+
+def test_declared_own_town_keeps_its_own_cell(town_ladder_graph):
+    """A vision naming a DECLARED town is counted against that town's own
+    cell, as before -- the refusal must not break a declared town."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "streaming-suite"},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+    assert any("town vision cap: streaming-suite" in a
+               for a in res.applied), res.applied
+
+
+def test_no_own_town_uses_existing_default(town_ladder_graph):
+    """A vision with NO own `town:` cell is not refused -- it falls back to
+    the parents'/default path untouched."""
+    rules, index, cs = sg.gate_for_root(town_ladder_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs, fm={},
+        nodes_dir=str(town_ladder_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+
+
+def test_undeclared_refusal_inert_when_ladder_has_no_towns(vision_cap_graph):
+    """A ladder with NO towns table ([] -> nothing to validate) is untouched:
+    an undeclared-looking town is still counted against its own fresh cell.
+    This preserves the existing fixture tests and non-declaring ladders."""
+    rules, index, cs = sg.gate_for_root(vision_cap_graph)
+    res = sg.check_spawn(
+        "vision", ["moral:m-wa"], rules=rules, type_index=index,
+        node_id="vision:probe", current_season=cs,
+        fm={"town": "some-town"},
+        nodes_dir=str(vision_cap_graph / "nodes"))
+    assert res.status == sg.APPROVED, res
+
+
 # ---------------------------------------------------------------------------
 # Residue 4 — the opaque town_branches reader (hypothesis:l4-towns-each-app-
 # is-a-vision-with-its-own-council; owner ruling 01:4xZ). The map value is

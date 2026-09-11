@@ -504,11 +504,117 @@ def test_dm_nudge_line_head_matches_wrapped():
         is None
 
 
+def test_every_delivered_line_within_nudge_line_max(project: Path,
+                                                   monkeypatch):
+    """CLAUSE (c) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-
+    and-the-swallowed-wake): NO delivery path may emit a line longer than
+    `_NUDGE_LINE_MAX`. Exercised on the three tails that reach a pane: a
+    plain large dm (truncation tail), a large deferred-dm delivery riding an
+    inbox retry (the `${_NUDGE_INBOX_TAIL}` case -- 127 chars on the OLD
+    bytes, because the inbox tail was `+=`d AFTER `_nudge_line` had already
+    truncated), and a `(+N more)` batch. Old bytes: 127 > 95."""
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                      # flattened body well over the cap
+    cap = send_mod._NUDGE_LINE_MAX
+    # (1) plain large dm
+    calls1 = _fake_tmux(monkeypatch, [seat])
+    send_mod.send_dm(project, sender, seat, big, sender)
+    plain = _typed(calls1)[0][5]
+    assert len(plain) <= cap, (len(plain), plain)
+    # (2) large deferred-dm delivery riding an inbox retry -- the real
+    #     delivering_deferred branch of send(): the inbox tail is counted
+    #     INSIDE the truncation budget, not `+=`d after it (old bytes 127)
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, seat, sender, big)
+    # age the per-seat marker left by part (1) so this inbox retry fires
+    marker = root / "sessions" / "inbox" / f"{seat}.nudge"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    pane = _FixturePane()                                  # idle
+    calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")       # body=None -> defer
+    typed = _typed(calls2)
+    deferred = typed[0][5]
+    assert len(deferred) <= cap, (len(deferred), deferred)
+    assert deferred.endswith(send_mod._NUDGE_INBOX_TAIL.format(seat=seat)), \
+        deferred                      # the tail still lands
+    assert send_mod._read_deferred(root, seat) is None     # consumed
+    # (3) (+N more) batch
+    batch = send_mod._nudge_line(seat, sender, big, more=3)
+    assert len(batch) <= cap, (len(batch), batch)
+
+
+def test_nudge_line_never_exceeds_max_for_any_name_lengths():
+    """PROPERTY FALSIFIER (residue of clause c, hypothesis:l4-send-py-same-
+    sender-stranded-line-and-the-swallowed-wake): for EVERY seat and sender
+    name length 1..40, `_nudge_line` never emits a line longer than
+    `_NUDGE_LINE_MAX` -- even when the inbox tail rides the delivery and
+    `more>0` -- and never grows the body slice past the budget (old bytes:
+    `flat[:keep]` with a negative `keep` returned a LONG slice, emitting a
+    494-char line against the 95-char cap for a long same-name pair).
+    Flattened body `word `*80 is far over the cap, so the body is always
+    needing truncation."""
+    cap = send_mod._NUDGE_LINE_MAX
+    big = "word " * 80
+    for sender_len in range(1, 41):
+        for seat_len in range(1, 41):
+            sender = "A" * sender_len
+            seat = "S" * seat_len
+            for trailing, more in (
+                    ("", 0),
+                    (send_mod._NUDGE_INBOX_TAIL.format(seat=seat), 0),
+                    (send_mod._NUDGE_INBOX_TAIL.format(seat=seat), 3),
+                    ("", 3)):
+                line = send_mod._nudge_line(seat, sender, big, more=more,
+                                            trailing=trailing)
+                assert len(line) <= cap, \
+                    (sender_len, seat_len, more, len(line), line[:40])
+
+
+def test_nudge_line_floors_keep_on_the_measured_counterexample():
+    """PINNED FALSIFIER (residue of clause c): the exact measured
+    counterexample -- the long same-name pair plus the inbox tail, which on
+    the OLD bytes emitted a 494-char line (5.2x the 95-char cap) -- now
+    stays at or under `_NUDGE_LINE_MAX` for every seat/sender length 1..40
+    with `trailing=_NUDGE_INBOX_TAIL`."""
+    cap = send_mod._NUDGE_LINE_MAX
+    for n in range(1, 41):
+        name = "x" * n
+        trailing = send_mod._NUDGE_INBOX_TAIL.format(seat=name)
+        line = send_mod._nudge_line(name, name, "word " * 80,
+                                    trailing=trailing)
+        assert len(line) <= cap, (n, len(line), line)
+
+
+def test_nudge_line_max_derived_from_fixture_geometry():
+    """CLAUSE (c): `_NUDGE_LINE_MAX` is (re)derivable from the REAL capture's
+    geometry -- the `─` separator row is 104 columns and the input box
+    renders a `❯ ` (U+276F + space, 2 columns) prefix -- NOT a magic number.
+    Asserts the relationship, not a hardcoded int."""
+    idle = _fixture_text("claude_pane_idle.txt").splitlines()
+    busy = _fixture_text("claude_pane_busy.txt").splitlines()
+    def sep_width(lines):
+        return max(len(l) for l in lines if set(l.strip()) == {"─"})
+    for lines in (idle, busy):
+        assert lines, "fixture must carry the verbatim region"
+        w = sep_width(lines)
+        assert w >= 100, (w,)                     # a real wide pane
+        box_prefix = 2                            # `❯ ` (U+276F + space)
+        box_content = w - box_prefix              # one-row line budget
+        assert send_mod._NUDGE_LINE_MAX <= box_content, \
+            (send_mod._NUDGE_LINE_MAX, box_content)
+        assert send_mod._NUDGE_LINE_MAX < 100, \
+            send_mod._NUDGE_LINE_MAX  # under the paste threshold
+
+
 def test_dm_nudge_defers_under_busy_pane(project: Path, monkeypatch, capsys):
     """BUSY DEFER UNCHANGED for the dm path: a busy pane receives NO typed
     inline line (no body text, no concatenation) and reports a coalesce --
-    the inline body never types into a mid-turn pane."""
-    busy = "...ǿ...\nesc to interrupt\n"
+    the inline body never types into a mid-turn pane. Runs on the REAL busy
+    capture fixture (clause d of hypothesis:l4-send-py-same-sender-stranded-
+    line-and-the-swallowed-wake): a test that passes only on the box-less
+    synthetic spinner is the very defect this clause names."""
+    busy = _fixture_text("claude_pane_busy.txt")
     calls = _fake_tmux(monkeypatch, ["adv-alive"], capture_text=busy)
     send_mod.send_dm(project, "mee", "adv-alive", "urgent", "mee")
     nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
@@ -580,8 +686,11 @@ def test_dm_deferred_under_busy_retries_inline(project: Path, monkeypatch,
     typed = _typed(calls)
     assert len(typed) == 1, typed
     line = typed[0][5]
-    assert line == "[nudge: mee]: urgent talk", line
+    assert line == \
+        "[nudge: mee]: urgent talk (+unread inbox, read adv-alive)", line
     assert "send.py read" not in line, "the deferred dm body, not the wake"
+    assert "inbox" in line, \
+        "the inbox send's own wake must not be swallowed (clause b)"
     assert "nudge: coalesced (pane busy" in capsys.readouterr().err
     # the deferred body was consumed by the delivered line
     assert send_mod._read_deferred(root, "adv-alive") is None
@@ -693,6 +802,59 @@ def test_deferred_cleared_when_its_own_line_stranded(project: Path,
         "the deferred body's own line was delivered -- cleared"
 
 
+def test_same_sender_stranded_line_does_not_swallow_new_dm(
+        project: Path, monkeypatch, capsys):
+    """CLAUSE (a) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-
+    and-the-swallowed-wake): a stranded inline line left by an EARLIER dm
+    from the SAME sender (different body) shares the head `[nudge: <from>]:`
+    with the new dm. Old bytes matched only that head, read the older line as
+    "ours", Entered it, recorded the marker and cleared pending -- and never
+    stored the NEW body, so the new dm is neither typed nor deferred: lost
+    until the next wake. Fixed: the head alone is not proof our SPECIFIC
+    body reached the pane; unless the new body is shown in the pane, the new
+    dm must be carried (deferred), never dropped."""
+    root = project / ".agi"
+    pane = _FixturePane()
+    pane.send_keys(["-l", "-t", "w", "[nudge: mee]: older body"])
+    assert pane.submitted == [] and pane.input == "[nudge: mee]: older body"
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send_dm(project, "mee", "adv-alive", "newer body", "mee")
+    # the stranded OLDER line alone is submitted -- no second line typed
+    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
+        == [], "the new dm must not type a second line after the stranded one"
+    assert pane.submitted == ["[nudge: mee]: older body"], pane.submitted
+    assert pane.input == ""
+    # the NEW body survives -- deferred for a later idle retry, never dropped
+    assert send_mod._read_deferred(root, "adv-alive") \
+        == {"sender": "mee", "body": "newer body"}, \
+        "the new same-sender dm body must be deferred, not lost"
+
+
+def test_deferred_delivery_names_the_unread_inbox(project: Path,
+                                                  monkeypatch, capsys):
+    """CLAUSE (b) FALSIFIER (hypothesis:l4-send-py-same-sender-stranded-line-
+    and-the-swallowed-wake): an inbox `send()` (body=None) that retries while
+    a deferred dm body is stored types the DEFERRED body's line, so the inbox
+    message's OWN wake token is never typed -- the recipient is never told
+    there is a new unread inbox message (the wake is swallowed). Fixed: the
+    deferred delivery carries a tail naming the unread inbox, so the current
+    send's wake is not lost."""
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, "adv-alive", "mee", "urgent")
+    pane = _FixturePane()                                  # idle
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send(project, "adv-alive", "inbox body", "ki")
+    typed = _typed(calls)
+    assert len(typed) == 1, typed
+    line = typed[0][5]
+    assert "[nudge: mee]: urgent" in line, line   # the deferred dm still goes
+    assert "inbox" in line, \
+        f"the current inbox send's wake is swallowed: {line!r}"
+    # the deferred body was consumed by the delivered line
+    assert send_mod._read_deferred(root, "adv-alive") is None
+    assert pane.submitted == [line], pane.submitted
+
+
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, [])  # an empty/absent window listing
     send_mod.send(project, "ephemeral-kid", "fire and forget", "parent")
@@ -743,8 +905,11 @@ def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
 def test_nudge_coalesces_under_busy_pane(project: Path, monkeypatch):
     """Falsifier (2): two nudges into a busy pane must yield ZERO typed
     tokens (no body text, no concatenation) and a `nudge: coalesced` stderr
-    line — a busy Claude Code pane shows `esc to interrupt`."""
-    busy = "...⠋...\nesc to interrupt\n"
+    line — a busy Claude Code pane shows `esc to interrupt`. Runs on the REAL
+    busy capture fixture (clause d of hypothesis:l4-send-py-same-sender-
+    stranded-line-and-the-swallowed-wake) -- the busy signal lives in the
+    FOOTER below the `\u276f` box, the shape the synthetic spinner lacked."""
+    busy = _fixture_text("claude_pane_busy.txt")
     calls = _fake_tmux(monkeypatch, ["director"], capture_text=busy)
     send_mod.send(project, "director", "first", "kid")
     send_mod.send(project, "director", "second", "kid")
