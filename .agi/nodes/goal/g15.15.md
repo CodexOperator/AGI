@@ -39,3 +39,6 @@ town: core
 ## Tracking
 
 Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127, g15-6) are both harvested (merge-ups 28, 31). The Prime installs into the live global hook and verifies with a fresh session at THIS round's merge-up (L4.94 rule); the round proves on the COPY only.
+
+## Agent Notes
+SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer landed — rotate.run_after_join + run_after_join_for_seat, callers: rotate-self fallback when inline_reaper is truthy, heal.py watch loop when false (live); (v) AGI_SEAT exported for spawn/loop; (iv) bootstrap-before-spawn proven by code order; a tmux placeholder false-positive refusal fixed. NOT landed: (ii) join-only refused, (iii) briefs stripped — carried to the g15.17 cut (same region). Director fix-ups: fixture-seam after_join delay 0 (five selfreap fixtures slept 20 s each for real); succ_ref = the ack's ListAgents ref, not the JOIN's uuid. RESIDUE: the captive after_join dm's diff line still names {succ_ref} from the JOIN when the ack has none; live tmux/ps not exercised by any fixture (the kid says so); the service path (heal.py watch) is unmeasured live until the next rotation on this box.
