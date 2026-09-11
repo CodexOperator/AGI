@@ -252,6 +252,24 @@ def test_director_card_identity_nevertouch_traps_untouched_and_scoped_state(
     assert "old command" not in card
 
 
+def test_prime_card_s6_omitted_keeps_existing_banked(card_root, capsys,
+                                                    monkeypatch):
+    """Prime XI SL1#1 verdict line (2): omitting --field s6 must NOT erase an
+    existing §6 BANKED body. Closed by the declared-titles writer (SL2.01):
+    with no s6 the banked slot is carried verbatim."""
+    q = card_root / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    (q / "adv-alive.md").write_text(
+        "# card\n\n## §0 STATE\n- old\n\n## §3 🔴 NEXT COMMAND\nold next\n\n"
+        "## §6 BANKED\nkeep this banked line\n", encoding="utf-8")
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    card = _written_card(card_root)
+    assert "keep this banked line" in card
+    assert "bash next.sh" in card
+
+
 def test_director_card_banked_absent_appends_nothing(card_root, capsys,
                                                      monkeypatch):
     """The sensei-director card has no BANKED section; a supplied s6 is

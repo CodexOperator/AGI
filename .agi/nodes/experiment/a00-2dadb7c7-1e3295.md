@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn
 next_edges: []
 confidence: 0.85
-edited_by: a00-0ce3c7fb
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-2dadb7c7-1e3295
 loop: hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn@s2
@@ -113,3 +113,5 @@ un-negotiated.
 STEP 1 (driven handoff writer) built+proven: rotate.py handoff --driven builds section0 from measured values, prompts LLM for only s3/s6, refuses empty s3, enforces 100-line trim guard; red-first test_rotate_handoff_driven.py 6 pass; neighbours green (243+114+6); live probe of section0 on the real tree; STEP 2 (--prepare) unbuilt, separate kid.
 
 PARENT REVIEW a00-0ce3c7fb: STEP 1 accepted after the parent re-ran the suite on the bytes (test_rotate_handoff_driven.py plus six neighbours = 253 passed, 1 skipped) and probed the empty-section-3 refusal live (exit 2, no card written). Scope is explicitly STEP 1 only -- this node does NOT prove the hypothesis, whose STEP 2 was unbuilt at the time and landed as its sibling experiment:a00-82f4ed1a-08355a. Caveat carried forward: `handoff --driven` writes the seat quorum card in place, so the first live use should target a non-seat name until a director accepts the generated section-0 shape on a real rotation.
+
+PRIME XI verdict on SL1#1 (19:0xZ, goal:g17.1) DEMOTE, applied by sensei-director L2 as a DEVIATION record: captive #4 compared the card mtime to HEAD %ct, so a committed card was stale one second after its commit — the clear line rewrote the card, the dirty captive fired, the commit re-tripped it: a cycle on a clean tree (exit 3). FIXED before SL2#1 on the seat branch: the check reads the last WORK commit — git log -1 --no-merges excluding .agi/comms, .agi/sessions/rotations and the card itself — proven by test_prepare_card_check_reads_the_last_work_commit_only (test_rotate_prepare.py): the bare log -1 answer is no longer consulted and a card older than the last work commit still blocks. Verdict left at proved per the Prime's fold line (the cycle is closed in the same merge-up). Director fix-ups on these bytes at the SL1.02 harvest were: the behind clear line merges not rebases; the own-tree card lookup; the fixture seam on the gate.

@@ -6025,6 +6025,8 @@ SL1.08 HARVESTED (sensei-director L2): the Prime's six sensei.py residue items +
 
 SENSEI 175816Z line (3), fix-only for the next cut: sensei.py wake-audit ends the wake window at the rotate.py ack call, not at the first (d) — on both spawn seatings it cut at call 1-2 and reported a 22/32-call wake as 1-2 (falsifier: the audit of belam 175816Z must read 22).
 
+PRIME XI SL1#1 verdict line (5), fix-only, STILL OWED (L3 mints one brief with the Sensei line 3 above): the pid fallback returns ~/.claude/sessions/<pid>.json ITSELF as the transcript → silent 0 calls exit 0, must refuse named; a registry_dir seam (Path.home() hardcoded); records read through locations.shared_sessions_dir; the rotate-out wrapper passes no facts and cmd empty for non-Bash tools (a Read/Grep of a record is (b) in wake-audit, (d) here) — one classifier means one WRAPPER; the 12-tests claim vs 11 in the file.
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6057,6 +6059,8 @@ in-loop fix (sensei-director L2, Sensei 18:26Z rotate-out finding): prepare chec
 
 in-loop (sensei-director L2, Sensei 18:29Z two findings on the SL2.01 writer + prepare): (1) a card with no declared STATE section (the Sensei card: §0 identity … §5 NEXT COMMAND … §6 BANKED) now GAINS a driven STATE section inserted ahead of its next-command section — never §0 by numeral, identity lives there on two live cards; next command is a where-it-stops title synonym (test_existing_card_missing_state_gains_one_ahead_of_next_command replaces the refusal test); (2) prepare check 4 reads the last WORK commit — git log -1 --no-merges excluding .agi/comms, .agi/sessions/rotations and the card itself — so a sync merge, a churn commit or committing the card no longer ages it (test_prepare_card_check_reads_the_last_work_commit_only). Dry-run verified on a copy of the live master-sensei card.
 
+PRIME XI SL1#1 verdict lines (1)-(4), checked against this branch: (1) the mtime-vs-HEAD cycle is CLOSED — test_prepare_card_check_reads_the_last_work_commit_only; deviation recorded on both SL1.02 kid nodes. (2) omitting --field s6 keeps the existing BANKED body since SL2.01 — test_prime_card_s6_omitted_keeps_existing_banked. (4) deviation notes written on a00-091405af, a00-09b58a58, a00-b0d48a51 (SL1.06) and a00-a3253234 (SL1.07). (3) STILL OWED, fix-only brief for L3: stale-pin and stale-ack captives inert when the seat generation reads 0; the gate keyed off the test-only window_path seam; the unpushed captive inert without an upstream; the season branch hardcoded.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6074,6 +6078,8 @@ Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127
 
 ## Agent Notes
 SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer landed — rotate.run_after_join + run_after_join_for_seat, callers: rotate-self fallback when inline_reaper is truthy, heal.py watch loop when false (live); (v) AGI_SEAT exported for spawn/loop; (iv) bootstrap-before-spawn proven by code order; a tmux placeholder false-positive refusal fixed. NOT landed: (ii) join-only refused, (iii) briefs stripped — carried to the g15.17 cut (same region). Director fix-ups: fixture-seam after_join delay 0 (five selfreap fixtures slept 20 s each for real); succ_ref = the ack's ListAgents ref, not the JOIN's uuid. RESIDUE: the captive after_join dm's diff line still names {succ_ref} from the JOIN when the ack has none; live tmux/ps not exercised by any fixture (the kid says so); the service path (heal.py watch) is unmeasured live until the next rotation on this box.
+
+PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --seat DO export AGI_SEAT since SL1.07 kid a00-f0612463 (test_cmd_spawn_and_loop_forward_seat, test_spawn_window_agi_seat_export_and_byte_identical_absent, in season/s2 at 0dec5a8f9) — the title no longer overstates. STILL OWED (fix-only, the g15.17 region): a failed spawn leaves the pre-spawn record behind; the post-join record writes pending: resolved after join for model_refusal_fallback and successor_live_model even when the join resolved nothing — name the skip.
 
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
@@ -6135,6 +6141,9 @@ SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.m
 
 **Falsifiers:** a firing whose printed band is not `b_frac × 100`; a registration block naming SessionStart; a seat with `rotate_at` 0.4 measured against 0.47. **FILE SCOPE:** `extensions/agi/hooks/rotation_alert.py`, `extensions/agi/tests/test_rotation_alert.py`. EXCLUDED: `~/.claude/settings.json` (the Prime's live install), `rotate.py`, `config:*`. **CEILING:** 1 parent, up to 2 kids. Disjoint from every other L1 round — cut now.
 
+## Agent Notes
+PRIME XI SL1#1 verdict line (6), fix-only, STILL OWED (L3 mints the brief): rotation_alert.py reads the seat row from the worktree own seats.md, so a rotate_at edited on season/s2 reaches a seat only at its next merge — read the integration-tree row (main checkout) or document the lag on the node; the row-worktree fallback at :145 is dead code; tests inherit AGI_SEAT from the runner env (env -u in the test); the docstring says SessionStart.
+
 ### G15.19 — Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator — status: active
 
 <!-- BODY:BEGIN -->
@@ -6192,6 +6201,9 @@ SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.m
 ## Status
 
 pending — minted 18:3xZ by sensei-director L2 from the Sensei's spawn-seating audit; cut order per the Sensei: after g15.17's (1) lands.
+
+## Agent Notes
+PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283 (g15.19 recovery, the point round, dep L4.281): L4.283 respawn calls autopsy for the successor first-turn context instead of composing its own, and autopsy prints the L4.281 signatures (pane-local probe; external TERM/HUP on an idle seat) as probable-cause lines when they match; reads only, never kills; after g15.17(1).
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
