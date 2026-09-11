@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR sensei-director 16:2xZ (Sensei package e8a7df41b, lines 7-8, measured): the window reply prints lock state + season/s2 tip + kept-merge baseline + the exact GO <n> line to send (prime 140328Z calls 40-45 did it by hand: 6 calls); the point's first decision is the F5 shape, 9-12 calls per turn today — harvest-table output + harvest <round> | cut <node> as the exact next tokens. Drafts are gitignored under MAIN: /home/ubuntu/work/agi/.agi/sessions/sensei/drafts/ — read there, read-only.

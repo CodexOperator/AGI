@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR sensei-director 16:2xZ (Sensei package e8a7df41b, line 1): accept --record TS as the exact key beside --gen N (the record filename <seat>.<TS>.json; --gen resolves to it). The Sensei's drafts are NOT in this worktree — they are gitignored under MAIN: /home/ubuntu/work/agi/.agi/sessions/sensei/drafts/ (captive-driven-proposals-20260911.md + the three <seat>-wake-audit-<TS>.md files with their appended rotate-out sections); read them there, read-only. Hand counts to beat: point 135144Z rotate-out 6 calls, helper 152548Z 11, prime 140328Z 3; genuine decisions in each: 2.
