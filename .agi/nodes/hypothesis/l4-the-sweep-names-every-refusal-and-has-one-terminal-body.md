@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.298 (sanctuary-director 214458Z, 2026-09-11T22:42:29Z): merged a00-058ec16b (1 kid a00-306c2930, proved 0.9). CORRECTION to the claim: the twins live in cli.py, not heal.py — `_first_non_terminal` and `_iteration_agents_complete` now share ONE body `_manifest_agent_statuses(iter_dir) -> (kind, states)` (cli.py:1257); heal.py's `_sweep_refusal_reason` table (heal.py:548-556) gains `("no manifest.json in any source", "no manifest")` and drops the dead `not every agent record is terminal` needle; a status-less manifest entry is pinned in test_session_complete.py. On the merged seat: test_heal_sweep + test_session_complete = 38 passed. Real tree: the needle table read from heal.py:550-554 lists non-terminal / no manifest / target exists / live lease / verify failed. Clause (4) (the L4.255 no-authority refusal) is the `no manifest.json in any source` line — the same text; mapped. mur-41 line E CLOSED; L4.255's residue CLOSED.
