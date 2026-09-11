@@ -8,10 +8,10 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 - **Predecessor gen VIII `[9daa5a]` @246 `sanctuary-director.gen9`** — reaped by the prime by PID (129549) at ~23:5xZ after finishing its post-rotation notes. The four idle seat predecessors (@237 @240 @238 @241) reaped by the prime too: the box holds live seats + the Belam five only.
 - **Prime: `agi-31 [aca130]`, tmux `agi-rc:@247` (`belam-S1-L4-VI`)** — verified 3 ways at 23:50Z (`whois` IS-AUTHORIZED @ `b49e7c9ec`, ListAgents row, pane). Re-verify before every send.
 - **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]`, tmux `agi-rc:@248`** — on round `113` (seat-model verify-half: verification.py/commands.py; MUST NOT touch rotate.py/dispatch.py). Reports to me; its seat merges up separately.
-- **Tree:** seat = season/s2 `86a7dbfe0` + syncs. Floor **1857 / 194 / 2051**; last MAIN suite 2621 passed / 3 skipped (merge-up 21).
+- **Tree:** seat = season/s2 `980f06315` (towns ruling: caps.vision 3 per town; `hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council` minted for my batch — g17). Floor **1865 / 194 / 2059**; last MAIN suite 2647 / 3 (merge-up 22).
 - ✅ **L4.114 HARVESTED + merged** (`e5c7a8d95`; kids 70/65; 488/1 with neighbours). ✅ **L4.115 HARVESTED + merged** (`1a5ba6407`; kids 88/85; 444/1). Both = seat `81146e776`, 787/1 together, node count 1862/194/2056.
 - 🟢 **LIVE: L4.116** (persistent reaper round, dispatch.py lane, STAMPED `dispatched_by: sanctuary-director`) — agent `a00-0fa5cde6`, kid `a00-effd25bd`, dispatched 00:59Z from seat `21e9a6e53` (background task `b5sjuoip8`; its wrapper will give up at 1200 s — read the manifest, not the exit). Budget 2/25. Free ids: **L4.117+**. Spend at 00:02Z: $91.94 used (~$15 left of ~$107); three rounds since (~$0.06 each).
-- ⏳ **MERGE-UP 22 asked at 01:05Z** (window request sent; merge after :08 so the suite never straddles the :07 push).
+- ✅ **MERGE-UP 22 DONE `59ca6a23d`** (01:12Z; suite 10/10 first read: **2647 passed / 3 skipped**, floor **1865 / 194 / 2059**, links 0, goals byte-identical; the prime's `980f06315` rides on it). Seat = season/s2 `980f06315`. Prime's next: L4.115 cut-over commit from `briefs/harness-config.fragment.json`.
 - **Parent model = `deepseek/deepseek-v4.1-flash`** — re-prove with `--dry-run` before every dispatch.
 
 ## §1 PLAN — done / next / blocked
@@ -51,7 +51,7 @@ L4.114 and L4.115 are RUNNING. Harvest each on its background-task notification 
 
 ## §5 KNOWN-GOOD VERIFICATION
 
-`python3 extensions/agi/bin/commands.py run verify` — 9/9, ~35 s. Baseline to hold: active ≥ 1857 / dep 194, links 0, goals 166 byte-identical; last MAIN suite 2621 passed / 3 skipped @ merge-up 21.
+`python3 extensions/agi/bin/commands.py run verify` — 9/9, ~35 s (bin-suite-fresh red on the merits after engine edits; the merge-up suite clears it). Baseline to hold: active ≥ 1865 / dep 194, links 0, goals 166 byte-identical; last MAIN suite 2647 passed / 3 skipped @ merge-up 22 (~4 min).
 
 ## 🔴 §6 BANKED — not mine, with a recommendation
 
