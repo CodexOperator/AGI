@@ -428,8 +428,20 @@ def _summarize_tool_input(inp) -> str:
 def _iter_tool_uses(path: Path):
     """Yield `(tool, input_dict)` for every assistant tool_use in a CC JSONL
     transcript, in file order, tolerating corrupt lines (errors=replace)."""
+    for _idx, tool, inp in _iter_assistant_tool_uses(path):
+        yield tool, inp
+
+
+def _iter_assistant_tool_uses(path: Path):
+    """Yield `(line_index, tool, input_dict)` for every assistant tool_use.
+
+    Shared low-level read behind both `_iter_tool_uses` (wake-audit) and the
+    rotate-out window scanner (which needs the line offset to start after the
+    last real input). line_index is the jsonl offset (0-based). One JSONL
+    line may carry several tool_use blocks; each yields its own row.
+    """
     with open(path, encoding="utf-8", errors="replace") as fh:
-        for line in fh:
+        for ln_idx, line in enumerate(fh):
             line = line.strip()
             if not line:
                 continue
@@ -444,8 +456,63 @@ def _iter_tool_uses(path: Path):
                 continue
             for b in content:
                 if isinstance(b, dict) and b.get("type") == "tool_use":
-                    yield b.get("name", "?"), b.get("input") or {}
+                    yield ln_idx, b.get("name", "?"), b.get("input") or {}
 
+
+def _tool_uses_after(path: Path, start_line: int):
+    """The subset of `_iter_tool_uses` on jsonl lines at/after `start_line`.
+
+    Used for the rotate-out window: every assistant tool_use after the last
+    real user input, to the end of the predecessor's transcript.
+    """
+    for idx, tool, inp in _iter_assistant_tool_uses(path):
+        if idx >= start_line:
+            yield tool, inp
+
+
+def _last_real_input(path: Path) -> tuple[int, str | None]:
+    """The last user turn that is NOT a tool_result (a merge-up reply, an
+    owner/Prime turn). Returns `(line_index, timestamp|None)`; (-1, None)
+    when the transcript has no real user turn (the whole head is the window).
+    """
+    last_idx = -1
+    last_ts = None
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for ln_idx, line in enumerate(fh):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if ev.get("type") != "user":
+                continue
+            content = ev.get("message", {}).get("content")
+            if isinstance(content, str):
+                # Plain-string content = human-authored text (a merge-up
+                # reply, an owner/Prime turn). A non-empty string IS a real
+                # input; empty/whitespace-only is not (and is never counted).
+                has_text = bool(content.strip())
+            elif isinstance(content, list):
+                # A REAL input is one that carries human-authored text, not
+                # just tool_result feedback. A user turn may hold both a text
+                # block and tool_result blocks; the text decides. Contents
+                # that are plain strings are uniformly text.
+                has_text = any(
+                    (isinstance(b, dict) and b.get("type") == "text"
+                     and (b.get("text") or "").strip())
+                    or isinstance(b, str)
+                    for b in content)
+            else:
+                continue
+            if not has_text:
+                continue  # tool_result-only feedback / empty, not a real input
+            last_idx = ln_idx
+            ts = ev.get("timestamp") or ev.get("message", {}).get("timestamp")
+            if ts:
+                last_ts = str(ts)
+    return last_idx, last_ts
 
 def wake_audit(root: Path, seat: str, gen: int,
                transcript_path: Path | None) -> tuple[int, list[dict], dict]:
@@ -519,6 +586,216 @@ def cmd_wake_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
     if not calls:
         print("  (no assistant tool_use found in the transcript)")
+    return 0
+
+
+# ── rotate-out-audit ──────────────────────────────────────────────────────
+# The mirror of wake-audit over the OUTGOING predecessor, instead of the
+# incoming successor (goal:g15.13 / hypothesis
+# :l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window): same
+# classifier (`classify_call` and its helpers), different window — every
+# assistant tool_use from the predecessor's LAST real input (a merge-up reply
+# / an owner/Prime turn, never a tool_result) to the end of ITS OWN
+# transcript, resolved from the rotation records, never the newest slug-dir
+# transcript (that one is the successor's).
+
+
+def _rotation_records(root: Path, seat: str) -> list[tuple[Path, dict]]:
+    """`(path, record)` for every rotation record whose `seat` field equals
+    `seat`, sorted by record filename (the timestamp-ordered glob). Matches
+    on the record's own `seat` field, so `belam-S1-L4-*` names never leak
+    onto a bare `belam` query."""
+    rot = Path(root) / "sessions" / "rotations"
+    if not rot.is_dir():
+        return []
+    out: list[tuple[Path, dict]] = []
+    for p in sorted(rot.glob("*.json")):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(rec, dict):
+            continue
+        if (str(rec.get("seat") or "").strip()) != seat:
+            continue
+        out.append((p, rec))
+    return out
+
+
+def _gen_bounds(rec: dict) -> tuple[int | None, int | None]:
+    """`(b_generation.before, b_generation.after)`; tolerant of the field
+    living at top level or under `observations`."""
+    bg = rec.get("observations", {})
+    if isinstance(bg, dict):
+        bg = bg.get("b_generation")
+    if not isinstance(bg, dict):
+        bg = rec.get("b_generation")
+    if not isinstance(bg, dict):
+        return None, None
+    before = bg.get("before")
+    after = bg.get("after")
+    return (before if isinstance(before, int) else None,
+            after if isinstance(after, int) else None)
+
+
+def _fallback_pids(rec: dict) -> list[int]:
+    """Pids to try as `~/.claude/sessions/<pid>.json` for the predecessor
+    transcript: the outgoing record's `s12_self_reap.chain` and its
+    `handover.reap_own_pid.pid`."""
+    pids: list[int] = []
+    s12 = rec.get("s12_self_reap")
+    if isinstance(s12, dict) and isinstance(s12.get("chain"), list):
+        pids += [p for p in s12["chain"] if isinstance(p, int)]
+    rop = rec.get("handover")
+    if isinstance(rop, dict):
+        rop = rop.get("reap_own_pid")
+    if isinstance(rop, dict) and isinstance(rop.get("pid"), int):
+        pids.append(rop["pid"])
+    return pids
+
+
+def _resolve_predecessor_transcript(
+        root: Path, seat: str, gen: int, records: list[tuple[Path, dict]],
+        explicit: str | None) -> tuple[Path | None, str]:
+    """Resolve the OUTGOING predecessor's transcript `--gen N`.
+
+    Resolution order (never the newest slug-dir transcript — that one is the
+    successor's, and it would be a named false positive): (1) explicit
+    `--transcript`; (2) the previous record of the same seat whose
+    `b_generation.after == N` — it carries the `handover.join.transcript` of
+    gen N joining; (3) `~/.claude/sessions/<pid>.json` for a pid in the
+    OUTGOING record's `s12_self_reap.chain`/`handover.reap_own_pid`.
+    Returns `(path|None, reason)`; None when nothing resolved."""
+    if explicit:
+        return Path(explicit), "explicit --transcript"
+    for _p, rec in records:
+        bf, af = _gen_bounds(rec)
+        if af == gen:
+            join = rec.get("handover", {})
+            if isinstance(join, dict):
+                join = join.get("join")
+            if isinstance(join, dict) and join.get("transcript"):
+                return (Path(str(join["transcript"])),
+                        f"previous record b_generation.after=={gen} "
+                        "handover.join.transcript")
+    # fallback: the pid chain of the record that rotated gen N out
+    out_rec = next((rec for _p, rec in records
+                    if (rec.get("observations", {}).get("b_generation", {})
+                        or {}).get("before") == gen
+                    or rec.get("b_generation", {}).get("before") == gen),
+                   None)
+    home = Path.home()
+    for pid in _fallback_pids(out_rec) if out_rec else []:
+        cand = home / ".claude" / "sessions" / f"{pid}.json"
+        if cand.is_file():
+            return cand, f"~/.claude/sessions/{pid}.json " \
+                         "/ s12_self_reap.chain"
+    return None, "no predecessor transcript resolved"
+
+
+def rotate_out_audit(root: Path, seat: str, gen: int | None,
+                     transcript_path: Path | None) -> tuple[int, list[dict], dict, dict]:
+    """Classify the outgoing predecessor's calls from its last real input to
+    the record's `recorded_at` (mirror of `wake_audit`).
+
+    Returns `(exit_code, per_call_rows, counts, window)`. Reuses
+    `classify_call`/`_iter_tool_uses`/_is_protocol_learning — refactored
+    shared, never copied. `--gen` defaults to the latest record's
+    `b_generation.before` (the most recent rotation). Window = every
+    assistant tool_use after the last real user turn to the transcript end;
+    category (d) rows are the genuine decisions (card edit, rotate-self,
+    ack, one-line report) and are NOT a cut point here."""
+    rows = load_seats(root)
+    row = seat_row(rows, seat)
+    if row is None:
+        print(f"ERR: no seat row for {seat!r} in config:seats", file=sys.stderr)
+        return 2, [], {}, {}
+    role = (row.get("role") or "").strip()
+    fm, facts = _read_rotations(root)
+    if not fm:
+        print("ERR: config:rotations not found; cannot classify a rotate-out",
+              file=sys.stderr)
+        return 2, [], {}, {}
+    entries = _extract_first_turn(fm, role)
+    if not entries:
+        print(f"ERR: no templates.{role}.startup.first_turn in config:rotations "
+              f"(role {role!r} has no template; refusing to fall back to "
+              f"another role's)", file=sys.stderr)
+        return 2, [], {}, {}
+
+    records = _rotation_records(root, seat)
+    if not records:
+        print(f"ERR: no rotation records under sessions/rotations for seat "
+              f"{seat!r}", file=sys.stderr)
+        return 2, [], {}, {}
+
+    if gen is None:
+        gen = _gen_bounds(records[-1][1])[0]
+        if gen is None:
+            print("ERR: cannot default --gen: the latest record has no "
+                  "b_generation.before", file=sys.stderr)
+            return 2, [], {}, {}
+
+    # the record that rotated gen N OUT narrows resolution + gives recorded_at
+    out_rec = next((rec for _p, rec in records
+                    if _gen_bounds(rec)[0] == gen), None)
+    if out_rec is None:
+        print(f"ERR: no rotation record with b_generation.before == {gen} "
+              f"for seat {seat!r}", file=sys.stderr)
+        return 2, [], {}, {}
+    recorded_at = out_rec.get("recorded_at") or ""
+
+    log_path, source = _resolve_predecessor_transcript(
+        root, seat, gen, records,
+        str(transcript_path) if transcript_path else None)
+    if log_path is None:
+        print(f"ERR: no predecessor transcript resolved for seat {seat!r} "
+              f"gen {gen} ({source}); pass --transcript PATH", file=sys.stderr)
+        return 2, [], {}, {}
+    if not log_path.is_file():
+        print(f"ERR: predecessor transcript not found: {log_path} "
+              f"({source})", file=sys.stderr)
+        return 2, [], {}, {}
+
+    start_idx, start_ts = _last_real_input(log_path)
+    calls: list[dict] = []
+    counts = {"a": 0, "b": 0, "c": 0, "d": 0}
+    for tool, inp in _tool_uses_after(log_path, start_idx):
+        cmd = inp.get("command", "") if isinstance(inp, dict) else ""
+        cat, label = classify_call(cmd, tool, seat, entries)
+        calls.append({"tool": tool, "cmd": cmd, "cat": cat,
+                      "summary": _summarize_tool_input(inp), "label": label})
+        counts[cat] += 1
+    window = {"gen": gen, "start_line": start_idx, "start_ts": start_ts,
+              "recorded_at": recorded_at, "source": source,
+              "log_path": str(log_path)}
+    return 0, calls, counts, window
+
+
+def cmd_rotate_out_audit(root: Path, args) -> int:
+    code, calls, counts, window = rotate_out_audit(
+        root, args.seat, args.gen,
+        Path(args.transcript) if args.transcript else None)
+    if code != 0:
+        return code
+    row = seat_row(load_seats(root), args.seat)
+    print(f"sensei.py rotate-out-audit --seat {args.seat} --gen {window['gen']} "
+          f"(role {row['role']})")
+    print(f"predecessor transcript: {window['log_path']} "
+          f"({window['source']})")
+    end = window["recorded_at"]
+    print(f"window: [last real input {window['start_line']} "
+          f"{window['start_ts'] or '(no ts)'} -> {end or 'record end'}] "
+          f"{len(calls)} calls")
+    print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} "
+          f"d={counts['d']}")
+    print(f"  (a=duplicates a rotate-self step/record field; b=hand poll/read; "
+          f"c=protocol learning; d=genuine decision)")
+    for i, c in enumerate(calls, 1):
+        lbl = f" <{c['label']}>" if c["label"] else ""
+        print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
+    if not calls:
+        print("  (no assistant tool_use after the last real input)")
     return 0
 
 
@@ -661,6 +938,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--transcript", default=None,
                    help="explicit transcript path (else rotate's resolution)")
 
+    p = sub.add_parser("rotate-out-audit",
+                        help="classify the outgoing predecessor's rotate-out calls")
+    p.add_argument("--seat", required=True)
+    p.add_argument("--gen", type=int, default=None,
+                   help="generation that ROTATED OUT (default: the latest "
+                        "record's b_generation.before)")
+    p.add_argument("--transcript", default=None,
+                   help="explicit predecessor transcript path (else resolved "
+                        "from the rotation records)")
+
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
     p.add_argument("--node-id", default=None,
@@ -694,6 +981,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_propose(root, croot, args)
     if args.cmd == "wake-audit":
         return cmd_wake_audit(root, args)
+    if args.cmd == "rotate-out-audit":
+        return cmd_rotate_out_audit(root, args)
     if args.cmd == "apply":
         return cmd_apply(root, croot, args)
     return 2
