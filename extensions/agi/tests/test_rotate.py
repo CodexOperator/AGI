@@ -882,6 +882,61 @@ def test_f_seat_named_correct_gen_pin_still_reads(monkeypatch, tmp_path, fake_la
     assert "seat_pin" in out, out
 
 
+# --- hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin ----------
+# A --pin target must BE a pin by name AND home. The Prime passed its own
+# transcript (a .jsonl) as --pin and the live file became one line, so the
+# write target is shape-checked BEFORE any write: a .jsonl / node / script is
+# refused BY NAME, named, and left byte-identical; the refusal prints the one
+# form that clears (--pin takes the PIN FILE, never --seat). A legitimate
+# <sessions>/<seat>.meter still writes.
+
+
+def test_meter_pin_refuses_a_jsonl_target_by_name_and_leaves_bytes(
+        monkeypatch, tmp_path, fake_ladder, capsys):
+    # The live defect: the transcript (.jsonl) passed as --pin must be refused
+    # BY NAME and never written -- exit non-zero, the offending path NAMED,
+    # the file byte-identical (sha256 before == after).
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    before = pinned.read_bytes()
+    code = rotate.main(["meter", "--pin", str(pinned),
+                        "--session-log", str(pinned)])
+    err = capsys.readouterr().err
+    assert code != 0, err
+    assert str(pinned) in err              # names the offending path
+    assert "meter" in err and "--session-log" in err  # prints the repair form
+    assert pinned.read_bytes() == before   # byte-identical, nothing truncated
+
+
+def test_meter_pin_refuses_a_node_target_by_name_and_leaves_bytes(
+        monkeypatch, tmp_path, fake_ladder, capsys):
+    # A graph node (.md) is not a pin either: refused by name, byte-identical.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    node = tmp_path / "nodes"
+    node.mkdir(parents=True, exist_ok=True)
+    target = node / "some-node.md"
+    target.write_text("# graph node\n", encoding="utf-8")
+    before = target.read_bytes()
+    code = rotate.main(["meter", "--pin", str(target),
+                        "--session-log", str(pinned)])
+    err = capsys.readouterr().err
+    assert code != 0, err
+    assert str(target) in err
+    assert target.read_bytes() == before
+
+
+def test_meter_pin_valid_seat_pin_still_writes(monkeypatch, tmp_path,
+                                               fake_ladder, capsys):
+    # The repair is not scoped to the refusal: a legitimate <sessions>/
+    # <seat>.meter with an identity still writes the pin naming the transcript.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _sessions_dir_of(tmp_path) / "belam.meter"
+    code = rotate.main(["meter", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert str(pinned) in p.read_text(encoding="utf-8")
+
+
 # --- hypothesis:l3-rotate-pin-path-readback (red-first) -------------------
 
 
