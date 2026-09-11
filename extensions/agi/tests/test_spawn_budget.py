@@ -892,7 +892,15 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     return 0, NOT raise. iterdir() is lazy, so a pid that exits mid-read raises
     FileNotFoundError/ProcessLookupError out of the `for fd in fds:` loop; the
     whole walk (listing + readlinks) must sit in one guarded try, else the
-    exception escapes the helper up into status()."""
+    exception escapes the helper up into status().
+
+    The bomb here targets the FIXTURE fd dir built under tmp_path -- never the
+    host's /proc/123/fd -- so the walk really walks `socket:[111]` and then
+    raises on the second next(). This test was a NON-FALSIFIER while the bomb
+    resolved `_real(str(p))` to the host path: on a box where pid 123 is
+    unreadable/absent the iteration is empty and `== 0` held on pre-fix bytes
+    too. The counterfactual and mutation assertions below pin both the fixture
+    walk and the guard's load-bearingness."""
     import pathlib
     import shutil
     import spawn_budget as sb
@@ -904,13 +912,21 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     (fd / "3").symlink_to("socket:[111]")
 
     _real = pathlib.Path
+    _flav = _real(str(fd))._flavour
 
-    def make_bomb(p):
-        """A Path subclass whose iterdir() yields one entry, then deletes the
-        real fd dir so the generator's SECOND next() raises FileNotFoundError
-        (an OSError) — exactly the process-exits-mid-read condition."""
-        real = _real(str(p))
-        _flav = _real(str(p))._flavour
+    def _bomb_path():
+        """A Path over the FIXTURE fd dir whose iterdir() yields one entry,
+        deletes that fixture, then raises FileNotFoundError on the SECOND
+        next() -- the process-exits-mid-read condition. Pointed at the fixture
+        (closure `fd`), not the host path, so the walk really yields
+        `socket:[111]` before the dir vanishes.
+
+        The rmtree alone would NOT raise: on a plain tmp dir the open scandir
+        fd survives the unlink and reads every buffered entry to StopIteration
+        (probe 2026-09-11). Only a real /proc readdir fails once /proc/<pid>
+        vanishes, so the generator raises explicitly to reproduce that failure
+        deterministically; the rmtree is kept as the counterfactual signal that
+        the fixture (not the host /proc) was walked."""
 
         class _BombPath(_real):
             _flavour = _flav
@@ -924,21 +940,52 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
                         yield ent
                         if not fired:
                             fired = True
-                            shutil.rmtree(real, ignore_errors=True)
+                            shutil.rmtree(fd, ignore_errors=True)
+                            raise FileNotFoundError(f"{fd}")
                 return _gen()
 
-        return _BombPath(str(p))
+        return _BombPath(str(fd))
 
     def _redirect(p):
         s = str(p)
         if s == f"/proc/{123}/fd":
-            return make_bomb(s)
+            return _bomb_path()
         if s.startswith("/proc/net/"):
             return _real(s.replace("/proc/", str(proc) + "/"))
         return _real(s)
 
     monkeypatch.setattr(sb, "Path", lambda p: _redirect(_real(p)))
-    # the walk collects inode 111 then the listing raises; the guarded try must
-    # collapse to the documented 0, and no OSError may escape.
+
+    # MUTATION CHECK: with the guard's try narrowed to the readlink only -- the
+    # PRE-FIX shape, where the lazy listing runs in the `for` loop OUTSIDE the
+    # try -- the SAME fixture raises FileNotFoundError out of the walk. This is
+    # what proves the guard (the whole walk inside one try) is load-bearing:
+    # the rewritten test is RED on the pre-fix shape and GREEN only on the
+    # fixed helper, so it is a real falsifier of the vanish-mid-read bug.
+    def _mutant_sockets_pre_fix(pid):
+        try:
+            fds = sb.Path(f"/proc/{pid}/fd").iterdir()
+        except OSError:
+            return 0
+        inodes = set()
+        for fdes in fds:  # <- OUTSIDE the try: a vanished dir raises here
+            target = str(fdes.readlink())
+            if target.startswith("socket:[") and target.endswith("]"):
+                inodes.add(target[len("socket:["):-1])
+        return len(inodes)
+
+    with pytest.raises(FileNotFoundError):
+        _mutant_sockets_pre_fix(123)
+
+    # the mutant consumed the fixture; rebuild it for the real helper
+    fd.mkdir(parents=True)
+    (fd / "3").symlink_to("socket:[111]")
+
+    # the fixed helper survives the vanish: the guarded walk collapses to the
+    # documented 0, and no OSError escapes.
     assert sb._pid_sockets(123) == 0
+    # COUNTERFACTUAL: the bomb FIRED -- the fixture fd dir is gone after the
+    # walk. Had the walk iterated the host's /proc instead of the fixture (the
+    # non-falsifier shape), this dir would still exist.
+    assert not fd.exists(), "the bomb never fired: the walk did not touch the fixture"
 
