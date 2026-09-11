@@ -47,8 +47,10 @@ LANDED merge-ups 1-21 = season/s2 aafb4be0a -> ... -> f7635cf5b -> 582ea4219 (18
        spawn path since L4.55 · THE RESPAWN BLEED (a finished parent restarted onto its own round) fixed at merge-up 4, proven L4.55 · FREE MODELS = NO (availability is not capability; only 2 of 21 usable;
        enumerate by pricing == 0, the :free suffix misses 14%) · BATCHING = no OpenRouter route (re-probe /files each rollover) · READ-BACK false negative = the reader read a DEBUG LOG; replaced by the
        explicit ack channel (L4.106), proven on BOTH seats (gen VIII `continue` 22:10Z, prime `diff` 22:17Z) · THE TWO-READ SUITE RULE retired (L4.101) · qwen/qwen3.8-27b spend is the owner's, authorized.
-STREAM 🔴 LIVE NOW (owner 23:5xZ): ~/work/streamer-stub @ ccabc20 as systemd user unit streamer-stub.service, 15-min delay. YOUR PANE IS ON AIR. Surgery surface = the stub's CLI: `sb-status` first, `brb`
-       (cut to card) before touching the desktop/views/stub, `back` after the branch verifies, `panic` = the OWNER's kill switch, never scripted. The fold (hypothesis:l4-the-stream-goes-live, HELD) is
+STREAM 🔴 LIVE NOW (owner 00:4xZ: "stream is launched. 15s delay" — the stub's README says 15 min; same discipline either way): ~/work/streamer-stub @ ccabc20 as systemd user unit
+       streamer-stub.service. YOUR PANE IS ON AIR. THE STUB'S GLOBAL COMMANDS (owner: in the handoff now, integrated into command:commands by the towns round): `sb-status` (hold state, what runs,
+       unaired seconds) · `brb` (graceful cut to the card; the unaired buffer never airs) · `back` (release; card stays one more delay window) · `panic` (HARD OFF, kills every ffmpeg + stops the unit —
+       the OWNER's kill switch, never scripted, never run by a kid or a test). `sb-status` first, `brb` before touching the desktop/views/stub, `back` after the branch verifies. The fold (hypothesis:l4-the-stream-goes-live, HELD) is
        mid-stream surgery on a branch, never a blind unit restart. X :1 shows THREE read-only views (grouped tmux sessions view-<seat>, `tmux attach -r`, xfce4-terminal, tiled by
        `rotate.py tile --apply` — wmctrl + xdotool now installed), tmux status OFF in the views (status-right leaks the HOSTNAME), both xfce panels AUTOHIDE (clock = timezone, panel = user name), VNC config
        + Thunar windows closed, wallpaper stock xfce (nothing Oracle). Follower `.agi/sessions/stream-follow.sh` (tmux session `stream-follow`, gitignored) re-points the views at the LIVE seats every
@@ -63,7 +65,12 @@ LIVE   (point's lanes, dispatching on deepseek since 55783ac8a; ~6-8 pi parents 
        spawn from ~/.claude/sessions/<pid>.json, 6-hex ref back-filled by the successor's own ack, whois by either) · L4.115 live on dispatch.py/adapters/heal.py/workflow.py · 🔴 OWNER 00:3xZ (relayed
        two-step by gen IX): THE REAPER GAVE UP because its lifetime = the round's nominal timeout (1200 s), parents outlive it reparented to init, manifests freeze at running, no dm when the round was
        dispatched without AGI_SEAT — minted hypothesis:l4-the-reaper-is-one-persistent-service (g4.7): ONE watcher as a graph-declared systemd --user unit (crons.md services table, crons.py apply,
-       kill switch), serial behind L4.115; the live unit install is the PRIME's step at merge-up. Rule: no dispatch without the AGI_SEAT stamp · NEXT in the dispatch.py lane: hypothesis:l4-a-round-alarms-its-dispatcher-by-default
+       kill switch), serial behind L4.115; the live unit install is the PRIME's step at merge-up. Rule: no dispatch without the AGI_SEAT stamp · 🔴 OWNER 00:4xZ TOWNS (verbatim in
+       doc:l4-owner-decisions + both vision charters): the streaming suite (goal:g18.1) and the web app suite (goal:g18) are the first NON-CORE goals, each a whole shippable app with its OWN vision
+       sharing the morals — APPLIED as config: caps.vision 3->5, vision:streaming-suite + vision:web-app-suite minted on the five morals (proposes_goals = the split), the two goals carry town / core:
+       false / vision_ref. Formation: a Council per town, the Keep shared across towns, Core Council -> Prime, other Councils -> Core Council (the Prime IS the Core Council for them until seated),
+       masters return work to the originating Council; stream commands into command:commands — minted hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council (g17) for the point ·
+       NEXT in the dispatch.py lane: hypothesis:l4-a-round-alarms-its-dispatcher-by-default
        (OWNER 22:44Z, g4.7 — completion/death/timeout each send ONE nudged dm to the seat stamped dispatched_by at spawn, no flag; the defect that lost L4.120/121's completions) · then the model-change
        round · the SERIAL chain on rotate.py: 0a -> 0b hypothesis:l4-startup-is-one-script-or-a-driven-prompt
        -> 0c hypothesis:l4-identity-is-a-signature-not-a-story (MODULAR: swappable Signer/Verifier, ed25519 default, secp256k1/EIP-191 so a wallet key can be a seat key; on one box a spoofing guard, not
