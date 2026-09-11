@@ -6367,6 +6367,8 @@ OWNER 22:1xZ (verbatim in doc:l4-owner-decisions lines 657-658, relayed by Prime
 
 SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keygen --all-live refuses a non-prime_director by name before any key file mints; a CR/CRLF body signs and verifies byte-for-byte (the READER was stripping CR; fixed at the reader, not the test); the seatsig package binds to its sys.modules twin so seatsig.SCHEMES is src.seatsig.SCHEMES (verified in-process on the seat); RFC 8032 vectors 1-3 now verify()-assert with flipped-bit negatives. Kid a00-82e704e6 proved, 316 green send neighbourhood. The crypto gate FIX is complete; the FLIP is goal:g15.26 after merge-up SL2#7.
 
+SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g15.26.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
