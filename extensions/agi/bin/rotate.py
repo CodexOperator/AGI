@@ -5073,6 +5073,68 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
         "\n".join(lines) + f"\ngit -C {top} push"
 
 
+def _commit_spawn_row(root: Path, *, seat: str, generation: int,
+                      session_id: str | None = None,
+                      window: str = "",
+                      pid: int | None = None) -> str:
+    """g15.24 (Sensei's pick, fix (a)) — rotate-self COMMITS its own s6.1
+    spawn-row write, so the successor's ONE required wake act (`rotate.py
+    ack --gen N --ref X continue`) finds seats.md CLEAN and the r3b gate
+    `_ack_seats_dirty` stays exactly as written (it still refuses a
+    pre-dirtied seats.md from ANOTHER seat by name).
+
+    ONE plain `git commit` in the seat worktree's toplevel
+    (`_git_toplevel(root)`): `git add -- <seats.md rel>` then
+    `git commit -q -m '<seat> spawn row: gen <N>, session_id <uuid>,
+    window <@id>, pid <pid>' -- <rel>`, touching seats.md ONLY (mirror
+    `_ack_commit_seats` 4978-5022): same toplevel resolution, same
+    'seats.md only' pathspec, NEVER `git add -A`, never a grid commit,
+    never a push.
+
+    A rotate-self on a root with no git repo (`_git_toplevel` -> None), or
+    whose seats.md is already clean after the write (the row was
+    byte-identical and `git add` staged nothing), RECORDS the skip in
+    one line and commits nothing. NEVER raises, never fails the rotation.
+    Returns a one-line outcome for the handover's `spawn_row_commit`.
+    """
+    top = _git_toplevel(root)
+    if top is None:
+        return ("spawn_row_commit: SKIPPED — no git repo; the spawn-row "
+                "write stays in the tree, never committed (gitless "
+                "fixture/root)")
+    seats = _ack_seats_path(root)
+    rel = os.path.relpath(seats, top)
+    add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                         capture_output=True, text=True, timeout=10)
+    if add.returncode != 0:
+        return (f"spawn_row_commit: FAILED — git add {rel!r}: "
+                f"{add.stderr.strip()}")
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True,
+                            timeout=10)
+    if staged.returncode != 0 or not (staged.stdout or "").strip():
+        return ("spawn_row_commit: SKIPPED — seats.md already clean after "
+                "the write (row was byte-identical); nothing committed")
+    msg = (f"{seat} spawn row: gen {generation}, session_id "
+           f"{session_id or ''}, window {window or ''}, pid {pid or ''}")
+    rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                         msg, "--", rel], capture_output=True, text=True,
+                        timeout=10)
+    if rc.returncode != 0:
+        return (f"spawn_row_commit: FAILED — git commit: "
+                f"{rc.stderr.strip()}")
+    sha = ""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(top), "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=10)
+        sha = (out.stdout or "").strip()
+    except Exception:  # noqa: BLE001
+        sha = ""
+    return (f"spawn_row_commit: committed (sha {sha}) — seats.md only: "
+            f"{msg}")
+
+
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
                          transcript: str) -> str:
     """Pin the successor's meter at ITS transcript (kid-2 step 4).
@@ -9209,6 +9271,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 generation=gen)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
+        # (g15.24, Sensei's pick, fix (a)): rotate-self COMMITS the s6.1
+        # spawn-row write ITSELF, immediately after `_successor_row_write`
+        # succeeds and before anything else runs — ONE plain `git commit` in
+        # the seat worktree's toplevel, seats.md ONLY (mirror
+        # `_ack_commit_seats`; never `-A`, never a grid commit, never a
+        # push). The successor's ONE required wake act, `rotate.py ack ...
+        # continue`, then finds seats.md CLEAN and the r3b gate
+        # `_ack_seats_dirty` stays as written. The outcome (sha or the reason
+        # it did not commit) is recorded in the handover as
+        # `spawn_row_commit` and printed in the rotation record. A THROWAWAY
+        # seat (`successor_row` = skipped) wrote NO row, so nothing commits.
+        # Never raises, never fails the rotation (gated + helper is
+        # already fail-soft).
+        if handover["successor_row"].startswith("config:seats row"):
+            try:
+                handover["spawn_row_commit"] = _commit_spawn_row(
+                    root, seat=seat, generation=gen,
+                    session_id=succ_session_id,
+                    window=succ_window_id or spawn_name,
+                    pid=succ_pid)
+            except Exception as exc:  # noqa: BLE001
+                handover["spawn_row_commit"] = f"FAILED: {exc}"
         # (s5, deferred to the post-ack success path — r1): model_confirm
         # runs AFTER the ack confirms a successor ASSISTANT TURN exists, or
         # reads argv only — NEVER a read of the successor transcript before

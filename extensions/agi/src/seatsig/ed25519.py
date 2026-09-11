@@ -127,6 +127,12 @@ class Ed25519Scheme:
     """RFC 8032 Ed25519 exposed through the seatsig Scheme interface."""
 
     name = "ed25519"
+    # Optional encryption seam (Prime ruling B: the seam, not the cipher).
+    # None today -- NO encryption is implemented; these are the slots a future
+    # scheme or cipher fills. SCHEMES is the ONE plug point.
+    enc_scheme = None
+    encrypt = None
+    decrypt = None
 
     def keygen(self):
         """Generate a fresh (private seed, public key) pair."""
