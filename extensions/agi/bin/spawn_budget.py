@@ -629,7 +629,16 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
 
     own = graph
     if own not in seen:
-        cands.append((own, "main" if own == main_graph else wt_label(own)))
+        # Label the OWN candidate from the WORKTREE directory, exactly as the
+        # glob candidates below: when the graph dir is `.agi` (the normal
+        # layout) the worktree root is its PARENT; otherwise the graph dir
+        # itself is the worktree root. The pre-fix line passed the graph dir
+        # to `wt_label`, whose `.name` is always `.agi`, so every record
+        # answered from its own non-main root printed `@wt:.agi` — the label
+        # depended on where you stood
+        # (hypothesis:l4-status-iter-labels-every-root-by-its-worktree-name).
+        own_wt = graph.parent if graph.name == ".agi" else graph
+        cands.append((own, "main" if own == main_graph else wt_label(own_wt)))
         seen.add(own)
     if main_graph and main_graph not in seen:
         cands.append((main_graph, "main"))
