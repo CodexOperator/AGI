@@ -173,7 +173,10 @@ def test_repoint_livestream_views_uses_view_path_seam(_fix, tmp_path):
 
 def test_bootstrap_records_telemetry_and_skips_0b(_fix, tmp_path):
     """<sessions>/seats/<seat>.bootstrap.json carries the template telemetry;
-    values rotate-self cannot derive are `SKIPPED: 0b owns deriving <name>`."""
+    a value rotate-self cannot derive is a NAMED `SKIPPED: <reason>`, never
+    the old blanket `0b owns deriving <name>` (0b ADDENDUM kid 2 replaced it
+    with per-fact derivation). On a fixture with no seats row and no repo,
+    every fact resolves to a NAMED skip or stays unstamped."""
     path = rotate._write_bootstrap(
         tmp_path, seat="adv-alive", generation=1,
         telemetry=["seed", "model", "worktree"],
@@ -183,8 +186,77 @@ def test_bootstrap_records_telemetry_and_skips_0b(_fix, tmp_path):
     doc = json.loads(p.read_text(encoding="utf-8"))
     assert doc["shape"] == "v1"
     assert doc["generation"] == 1
-    assert doc["telemetry"]["seed"].startswith("SKIPPED: 0b owns")
     assert doc["verification"]["count"] == 7
+    # no blanket skip anywhere: every SKIPPED names its reason.
+    for key, val in doc["telemetry"].items():
+        if val.startswith("SKIPPED:"):
+            assert "0b owns" not in val, val
+            assert len(val) > len("SKIPPED:")
+    # no repo => nothing was measured_at-stamped.
+    assert doc["measured_at"] == {}
+    assert doc["commit"] is None
+
+
+def test_bootstrap_derives_real_facts_stamped_at_head(_fix, tmp_path,
+                                                      monkeypatch):
+    """0b kid 2: with a config:seats row and a git HEAD, _write_bootstrap
+    derives the seat-row facts for real and stamps each in measured_at with
+    the commit — never a skip for a fact the handover CAN see."""
+    _write_seats_sheet(tmp_path, [
+        {"name": "adv-alive", "seed": "s-7", "model": "claude-sonnet-5",
+         "effort": "max", "window": "@5", "worktree": "/wt/adv",
+         "ack": "continue", "prev_gen": 0},
+    ])
+    monkeypatch.setattr(rotate, "_git_head", lambda *a, **k: "7cff1aa")
+    path = rotate._write_bootstrap(
+        tmp_path, seat="adv-alive", generation=1,
+        telemetry=["seed", "model", "effort", "window", "worktree",
+                   "ack", "prev_gen"],
+        verification={"ok": True, "level": "quick", "count": 7})
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    assert doc["shape"] == "v1"
+    assert doc["commit"] == "7cff1aa"
+    assert doc["telemetry"]["seed"] == "s-7"
+    assert doc["telemetry"]["model"] == "claude-sonnet-5"
+    assert doc["telemetry"]["prev_gen"] == "0"
+    assert doc["telemetry"]["seat_row"].startswith("HEAD@7cff1aa:")
+    # join-only / sibling facts are named SKIPPED, present by default.
+    assert doc["telemetry"]["successor_live_model"].startswith("SKIPPED:")
+    assert "join" in doc["telemetry"]["successor_live_model"]
+    assert doc["telemetry"]["mail"].startswith("SKIPPED:")
+    # every derived fact is stamped at HEAD.
+    for fact in ("seed", "model", "effort", "window", "worktree", "ack",
+                 "prev_gen", "seat_row", "verification"):
+        assert doc["measured_at"][fact] == "7cff1aa", fact
+    # SKIPPED facts are NOT stamped.
+    assert "successor_live_model" not in doc["measured_at"]
+
+
+def test_bootstrap_staleness_refuses_stale_accepts_fresh(_fix):
+    """0b kid 2: _bootstrap_stale refuses a record whose measured fact is at
+    an older commit than HEAD (the staleness bound the hook enforces), and
+    accepts a fresh one; it also accepts a permanent fact at an older commit
+    and a record with nothing measured."""
+    fresh = {"shape": "v1", "commit": "abc1234",
+             "measured_at": {"seed": "abc1234", "model": "abc1234",
+                              "verification": "abc1234"}}
+    assert rotate._bootstrap_stale(fresh, "abc1234") is False
+    stale = {"shape": "v1", "commit": "abc1234",
+             "measured_at": {"seed": "abc1234", "model": "deadbeef"}}
+    assert rotate._bootstrap_stale(stale, "abc1234") is True
+    # default bound is 'head': a fresh model at deadbeef is refused.
+    assert rotate._bootstrap_stale(stale, "abc1234") is True
+    # a permanent-bound fact (seed) never goes stale; model is still 'head'.
+    assert rotate._bootstrap_stale(
+        stale, "abc1234", {"seed": "permanent"}) is True
+    # when the ONLY stale fact is permanent-bound, the record stays fresh.
+    stale_perm = {"shape": "v1", "commit": "abc1234",
+                  "measured_at": {"seed": "deadbeef", "model": "abc1234"}}
+    assert rotate._bootstrap_stale(
+        stale_perm, "abc1234", {"seed": "permanent"}) is False
+    # a fully-skipped doc (nothing measured) is never stale.
+    assert rotate._bootstrap_stale({"shape": "v1", "measured_at": {}},
+                                   "abc1234") is False
 
 
 # ── (s11) verification at the cheapest level ──────────────────────────────
