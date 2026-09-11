@@ -1,0 +1,16 @@
+{
+  "rotation": "rotate-self",
+  "seat": "master-sensei",
+  "recorded_at": "2026-09-11T18:30:11.063239Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "4",
+    "4.5",
+    "handoff",
+    "spawn"
+  ],
+  "template_source": "worktree (geometry current)",
+  "gen_before": 0,
+  "gen_after": 1
+}
