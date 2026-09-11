@@ -1,0 +1,22 @@
+---
+id: hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears
+mint_id: 73e27d46631e457da1e4792032be09e6
+type: hypothesis
+parents:
+  - goal:g15.14
+  - hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: 5f7eb2d7bb19ea5a
+season: 2
+testable_claim: "goal:g15.14 fix-only #2 (Prime XI 20:10Z dm, measured live on the Prime's own seat): DESTRUCTIVE — `rotate.py meter --pin PATH` truncates ANY path it is given. MEASURED in extensions/agi/bin/rotate.py `cmd_meter` (939-981): with --pin and a resolved log, `pinp.write_text(...)` (977-980) rewrites the target with no check that it is a pin file — the Prime passed its own transcript as --pin and the live .jsonl became one line (records before 20:09:00Z gone, file invalid JSONL, repaired by hand). Second defect, same command family: the prepare BLOCK for check 5 (7691-7693) prints `clear: rotate.py meter --seat <seat> --pin <transcript>` — BOTH halves wrong: --pin takes the PIN FILE not the transcript, and --seat trips the cross-generation read refusal (a guard whose printed remedy the guard refuses). Third, SL3.02 residue (Prime, same dm): the row-first rewrite of the SHARED `_read_generation` (2737) reached every caller (397, 977, 2034, 2056, 7291, 8328, 8333) under a round scoped to two prepare captives, and a pre-existing prepare fixture now passes vacuously on its unpushed captive. CLAIM: (1) `meter --pin` REFUSES BY NAME a target that is not `<sessions>/<seat>.meter` (basename ends with METER_PIN_EXT AND parent is the graph's sessions dir, `_sessions_dir(root)`) and never writes it; an EXISTING target is written only when its current content parses as a pin record (`_parse_pin_record` / the one-line `<gen>\\t<path>` or bare `<path>` shape) — anything else (a .jsonl, a node, a script) is refused with the exact file named and left byte-identical; the refusal prints the correct form `rotate.py meter --pin <sessions>/<seat>.meter --session-log <transcript>`; (2) prepare check 5's clear line prints exactly `rotate.py meter --pin <sessions>/<seat>.meter --session-log <transcript>` with both paths resolved (the seat's real pin path; the transcript from the registry/pin when known, else the literal placeholder) — and that printed line, run as printed, clears the captive (assert in a test that runs it); (3) `_read_generation`'s row-first read is either JUSTIFIED per caller on the experiment node (each of the seven call sites: what it reads the generation for, why row-first is right there — the Prime's own stale pin cur=11 vs pin 10 is the live proof for the prepare captives) or SCOPED back to the prepare captives with a named helper — the kid measures each caller and decides, and writes the seven-line table into its experiment node; (4) the vacuous prepare fixture asserts the captive's real outcome (a fixture that passes with the captive unpushed must FAIL when the captive is pushed and vice versa — name the fixture and the assertion that was vacuous). FALSIFIERS: `meter --pin <any .jsonl> --session-log <log>` exits non-zero naming the file and the file is byte-identical afterwards (sha256 before == after); `meter --pin <sessions>/x.meter --session-log <log>` still writes the pin; a prepare BLOCK on a stale pin prints the clear line and running that exact line makes the next prepare pass check 5. TESTS: test_rotate*.py + test_bin_help_smoke.py, run with neighbours; a real time.sleep in a fixture shows as a 20 s test — gate delays on the fixture seam. RULES: merge, never rebase, in every clear line; never lower any guard to make a test pass; the refusal text names the offending path. FILE SCOPE: rotate.py cmd_meter, the prepare check-5 line, _read_generation callers (justify or scope), the vacuous fixture; tests. EXCLUDED: send.py, write.py, config:*. CEILING: 1 parent, up to 3 kids (kid 1 = (1)+(2), kid 2 = (3)+(4)), small."
+thought_session: sensei-director-genIV-L4
+title: meter --pin refuses by name a target that is not <sessions>/<seat>.meter and never truncates a non-pin file; prepare check 5 prints the clear line that clears; _read_generation's seven callers justified or scoped; the vacuous prepare fixture asserts
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
