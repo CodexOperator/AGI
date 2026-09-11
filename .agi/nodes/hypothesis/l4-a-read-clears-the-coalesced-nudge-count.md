@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.287 (sanctuary-director 182119Z, 2026-09-11 19:20:39Z): merged a00-a95792c0 (1 kid a00-a917d0ba, proved). `grep -n '_clear_pending(root, me)' send.py` = :1738, in the consuming branch after the read-marker write; the empty read returns early at :1698-1701; test_send.py 164 passed. REAL TREE ON MY OWN SEAT (the only live inbox I may touch): `.nudge.pending` for sanctuary-director read `1` (stale, exactly the helper's shape); one self-dm (`send` → coalesced, pane busy, count stayed 1) then ONE `send.py read sanctuary-director` consumed it and the count read `0` — the announced sidecar is also gone. Before this fix that stale 1 would have had heal type a bare [agi-nudge] into this pane after every read.
