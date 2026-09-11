@@ -1,7 +1,7 @@
 ---
 name: config
 written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
-self_row: {list_key: seats, match_key: name, fields: [session_ref, session_id, generation, window, pid]}  # L4.110 prime ruling B + L4.114 r3: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration. r3 added session_id (the successor's session uuid) and pid (its process), both supplied by the L4.114 registry JOIN; the row write records source in the rotation record, never here.
+self_row: {list_key: seats, match_key: name, fields: [session_ref, session_id, generation, window, pid, pubkey, sig_scheme, enc_scheme, key_history]}  # L4.110 prime ruling B + L4.114 r3: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration. r3 added session_id (the successor's session uuid) and pid (its process), both supplied by the L4.114 registry JOIN; the row write records source in the rotation record, never here. pubkey/sig_scheme/enc_scheme/key_history added hypothesis:l4-every-live-row-is-keyed...: a seated seat writes its own signing cells via `send.py keygen` (self-row), the prime writes other rows via `keygen --all-live`, and key_history records rotations.
 master_sensei_row: {actor: master-sensei, list_key: templates, role_field: id, fields: [startup, telemetry], deny_roles: [prime_director]}  # PRIME RULING 2026-09-11 (hypothesis:write-guard-carve-out-for-master-sensei-templates): the master-sensei seat may write config:rotations `templates` (startup + telemetry per role) and the `## facts` body section for EVERY role EXCEPT prime_director, without dm-and-wait. `brief_file` and `steps` of any template stay prime/owner-only, refused BY NAME. Every resolved first_turn/after_join cmd in the written value must pass rotate's startup producing judge (`rotate._producing_refusal`), so a Sensei cannot land an entry the executor would refuse. One generic rule in write.py `_enforce_written_by`, the regions as DATA here (the self_row pattern).
 structural: true
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
@@ -15,7 +15,16 @@ fields:
   seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat:
                                       # {name, role, tier, harness, model, effort, settings,
                                       #  session_kind, personality_ref, handoff_file, pin_ref,
-                                      #  rotated_by, owning_goal, worktree, session_ref}.
+                                      #  rotated_by, owning_goal, worktree, session_ref,
+                                      #  pubkey, sig_scheme, enc_scheme, key_history}.
+                                      #  pubkey/sig_scheme/enc_scheme/key_history (hypothesis:l4-
+                                      #  every-live-row-is-keyed...): the seat's signing/encryption
+                                      #  cells. pubkey <hex> and the scheme names are written by
+                                      #  `send.py keygen` to its own row (enc_scheme: none today);
+                                      #  key_history is a list of {pub, fp, from, to, rotated_by_sig}
+                                      #  records of retired keys (declared here; the reader half is
+                                      #  a later round). A row write carrying them passes the write
+                                      #  guard because they are self_row fields.
                                       #  `worktree` (added hypothesis:l3w4-hierarchy-one-source,
                                       #  goal:g17): the seat's git worktree path relative to
                                       #  graph_root, empty string for a seat that runs in the main
