@@ -301,6 +301,41 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
     return pins[-1] if pins else None
 
 
+def _seat_pin_path(root: Path, seat: str) -> Path:
+    """The seat's OWN pin path, `<sessions>/<seat>.meter`, the ONE form a
+    `meter --pin` clear line must print (hypothesis:l4-meter-pin-refuses-a-
+    target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears).
+    Resolved via `_sessions_dir` so the printed path and the write target can
+    never disagree."""
+    return _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
+
+
+def _valid_meter_pin_target(pinp: Path, root: Path) -> tuple[bool, str]:
+    """A `--pin` write target must BE a meter pin: a basename ending in
+    `{METER_PIN_EXT}` AND directly under the graph's sessions dir (the claim
+    naming it). A target is otherwise refused BY NAME and never written --
+    the Prime passed its own transcript (a `.jsonl`) as --pin and the live
+    file became one line, so the target's shape is checked BEFORE any write.
+    Returns (ok, reason); `pinp` must be resolved. The refusal prints the
+    one clear line that actually clears: `--pin` takes the PIN FILE, and
+    never `--seat` (which trips the cross-generation read refusal)."""
+    sessions = _sessions_dir(root).resolve()
+    if not pinp.name.endswith(METER_PIN_EXT):
+        return (False,
+                f"{pinp} is not a meter pin (a pin's name ends "
+                f"'{METER_PIN_EXT}'); wrote it, it would truncate. Run: "
+                f"rotate.py meter --pin "
+                f"{sessions / ('<seat>' + METER_PIN_EXT)} "
+                f"--session-log <path-to-the-transcript-you-own>")
+    if pinp.parent.resolve() != sessions:
+        return (False,
+                f"{pinp} is not under the graph's sessions dir ({sessions}); "
+                f"pins live there by name. Run: rotate.py meter --pin "
+                f"{sessions / ('<seat>' + METER_PIN_EXT)} "
+                f"--session-log <path-to-the-transcript-you-own>")
+    return True, ""
+
+
 def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
     """A pin's content, split into `(generation, transcript_path)`.
 
@@ -969,6 +1004,27 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
                 f"<path-to-the-transcript-you-own>", file=sys.stderr)
             return 1
         pinp = Path(args.pin).expanduser().resolve()
+        # A --pin target must BE a pin by name and home (hypothesis:l4-meter-
+        # pin-refuses-a-target-that-is-not-a-pin...): a .jsonl transcript, a
+        # node or a script is refused BY NAME and never written -- the Prime
+        # passed its own transcript as --pin and the live .jsonl became one
+        # line. And an EXISTING valid-path pin is overwritten only when its
+        # current content parses as a pin record; a target sitting on non-pin
+        # bytes is refused and left byte-identical.
+        ok_target, reason = _valid_meter_pin_target(pinp, root)
+        if not ok_target:
+            print(f"ERR: meter --pin refuses its target. {reason}",
+                  file=sys.stderr)
+            return 1
+        if pinp.exists() and _parse_pin_record(pinp)[1] is None:
+            print(
+                f"ERR: --pin {pinp} exists but its content is not a meter "
+                f"pin record (one line `<generation>\\t<transcript>` or a "
+                f"bare `<transcript>`); writing it would destroy those bytes. "
+                f"Run: rotate.py meter --pin {_seat_pin_path(root, '<seat>')} "
+                f"--session-log <path-to-the-transcript-you-own>",
+                file=sys.stderr)
+            return 1
         pinp.parent.mkdir(parents=True, exist_ok=True)
         seat_for_gen = getattr(args, "seat", None)
         if not seat_for_gen and pinp.name.endswith(METER_PIN_EXT):
@@ -1452,10 +1508,35 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     # no template / no first_turn yields empty.
     startup_block = ""
     first_turn = []
+    # goal:g15.17 (b): a first seating's role is the SEAT ROW's role when a
+    # row exists, `--tier` only as the fallback — a director seat's first-
+    # seating alert/template/record never homogenizes to a prime just because
+    # `--tier` defaulted to prime_director. (e): a RE-spawn of an EXISTING
+    # seat pins at the generation it leaves in its row (SL3.01 residue: the
+    # prime's row sat at gen 11 while the re-spawn re-pinned it to 1), never
+    # at FIRST_SEATING_GEN.
+    _fs_role = args.tier
+    _spawn_gen = FIRST_SEATING_GEN
     if seat is not None:
-        startup_block, first_turn = _first_seating_run(
-            root, seat=seat, role=args.tier, succ_name=name,
-            tmux_session=tmux_session, dry_run=args.dry_run)
+        if root is None:
+            # goal:g15.17 (a): a caller that OWNS a seat but stands OUTSIDE
+            # any project root cannot compose a role template (no
+            # rotations.md), write a bootstrap record, or pin a meter — every
+            # first-seating side effect needs the graph. Seat the window
+            # anyway and skip the template/bootstrap, saying so (the SL2.02
+            # refuter's crash: the tail reached Path(None) -> TypeError at
+            # _rotations_node_path).
+            print("[seating] no project root: template + bootstrap skipped")
+        else:
+            _srow = _find_seat(root, seat)
+            if _srow is not None and _srow.get("role"):
+                _fs_role = _srow["role"]
+            _rowgen = _seat_row_generation(root, seat)
+            if _rowgen is not None:
+                _spawn_gen = _rowgen
+            startup_block, first_turn = _first_seating_run(
+                root, seat=seat, role=_fs_role, succ_name=name,
+                tmux_session=tmux_session, dry_run=args.dry_run)
     rc, _ = spawn_window(
         name=name, tier=args.tier,
         prompt_file=args.prompt_file,
@@ -1476,7 +1557,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # has no `result` field by shape, and a stale `pending: resolved after
         # join` pointing at a seating that never happened is worse than an
         # absent file.
-        if seat is not None:
+        if seat is not None and root is not None:
             _remove_first_seating_record(root, seat)
         return rc
     if not args.dry_run:
@@ -1526,11 +1607,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # rotation-does): after the window is up, emit the trigger: first-
         # seating dm + write the gen-1 seating record. Non-fatal — a failure
         # never fails the seating.
-        if seat is not None:
+        if seat is not None and root is not None:
             try:
                 _first_seating_announce(
                     root, None,  # croot None -> resolved inside
-                    seat=seat, role=args.tier, source="cmd_spawn",
+                    seat=seat, role=_fs_role, source="cmd_spawn",
                     tmux_session=tmux_session,
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
@@ -1549,10 +1630,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # (empty target -- rotate-self repoints it when a successor joins at
         # gen 2); an empty-target pin is safe (`_read_pin_target` returns
         # None). Non-fatal: a pin/ack failure never fails the seating.
-        if seat is not None:
+        if seat is not None and root is not None:
             try:
                 _first_seating_spawn_writes(
-                    root=root, seat=seat, generation=FIRST_SEATING_GEN)
+                    root=root, seat=seat, generation=_spawn_gen)
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -1685,6 +1766,13 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # false at the harvest — see the fix-up notes below).
     import send  # local: same dir, no import cycle (send.py pattern)
     ref = (args.ref or "").strip()
+    # goal:g15.17 (c): snapshot whether the seat carried a PENDING ack BEFORE
+    # this ack overwrites it — rotate-self wrote `answer: pending` before the
+    # successor joins, so that pending state is the proof the gen-1 ack is a
+    # first ROTATION (a predecessor exists), not a first seating. cmd_ack's
+    # own write below overwrites the pending ack, so the flag must be taken
+    # here, before the write.
+    _pending_ack_present = _pending_ack_exists(root, seat)
     issue = _ref_shape_issue(ref, seat)
     if issue:
         print(f"ERR: --ref {ref!r} refused: {issue}; pass the bare ListAgents "
@@ -1708,6 +1796,22 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                   "another seat's identity; pass your OWN bare ListAgents "
                   "ref.", file=sys.stderr)
             return 2
+    # r3b: `continue` COMMITS its own row write (unless --no-commit); `diff`
+    # never commits (the successor still edits). Only the commit path checks
+    # a pre-dirtied seats.md — a dirty config:seats BEFORE the ack (unrelated
+    # staged OR unstaged hunks in THAT file) is REFUSED BY NAME before any
+    # write, so the ack's own commit never bundles someone else's row change.
+    do_commit = args.answer == "continue" \
+        and not getattr(args, "no_commit", False)
+    if do_commit and ref:
+        top = _git_toplevel(root)
+        dirty = _ack_seats_dirty(root, top) if top else None
+        if dirty:
+            print(f"ERR: refuse to ack --commit: {dirty!r} is dirty "
+                  "(staged or unstaged) before this ack; resolve it first so "
+                  "the ack never bundles someone else's row change into its "
+                  "own commit.", file=sys.stderr)
+            return 3
     ack = {
         "seat": seat,
         "gen_after": args.gen,
@@ -1736,6 +1840,12 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # no-ref path. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
     if ref:
+        # MERGE-UP 41 RESOLUTION (sanctuary-director 195718Z, prime XI's
+        # ordering line 21:0xZ: KEEP BOTH halves -- L4.288's join-by-@id
+        # back-fill of pid+session_id and SL4.03's commits-its-own-row +/-
+        # lines; neither is a superset). The JOIN runs first and decides
+        # whether anything changed; SL4.03's "already" short-circuit applies
+        # only when neither the ref nor an identity cell differs.
         try:
             # L4.288 (the stale-pid hazard, FIX-ONLY): besides back-filling
             # session_ref, an ack ALSO resolves the successor's OWN identity
@@ -1766,19 +1876,31 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                                            and got_session_id != (row.get(
                                                "session_id") or ""))
                         else None)
-            # ONE outcome line per cell group: the single `write.submit`
-            # carries whichever of session_ref/pid/session_id differs, and
-            # the helper's own outcome line ALWAYS prints (F8: the ack PRINTS
-            # the back-fill it wrote — a join miss must not silence the
-            # session_ref line; director fix-up at the L4.288 harvest, the
-            # kid printed it only on a join hit). A hit appends the @id it
-            # joined by.
-            line = _backfill_session_ref(
-                root, seat=seat, role="parent", ref=ref, pid=back_pid,
-                session_id=back_sid)
-            if join.get("found") and line.endswith("(source: ack)"):
-                line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
-            print(line)
+            # r3b (SL4.03): a back-fill that changed NOTHING (the row already
+            # carries this ref AND the join changes no identity cell) SKIPS
+            # the write + commit entirely and says so in one line —
+            # write.submit's own metadata churn would otherwise dirty seats.md
+            # for no row change (falsifier 3: nothing committed, one line
+            # says it).
+            already = (have_row
+                       and (row.get("session_ref") or "") == ref
+                       and back_pid is None and back_sid is None)
+            if already:
+                print(f"ack: {seat} row already carries session_ref={ref} — "
+                      "nothing to back-fill or commit")
+            else:
+                # ONE outcome line per cell group: the single `write.submit`
+                # carries whichever of session_ref/pid/session_id differs,
+                # and the helper's own outcome line ALWAYS prints (F8: the
+                # ack PRINTS the back-fill it wrote — a join miss must not
+                # silence the session_ref line; director fix-up at the
+                # L4.288 harvest). A hit appends the @id it joined by.
+                line = _backfill_session_ref(
+                    root, seat=seat, role="parent", ref=ref, pid=back_pid,
+                    session_id=back_sid)
+                if join.get("found") and line.endswith("(source: ack)"):
+                    line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
+                print(line)
             if join.get("found"):
                 # The meter pin is the lease (prime XI 19:38Z): pin the
                 # successor's OWN transcript from the JOIN, but ONLY when no
@@ -1797,6 +1919,13 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 # join miss: pid/session_id/pin left UNTOUCHED, the ref back-
                 # fill (if any) still lands, the ack still returns 0.
                 print(f"join: {join.get('note')}")
+            # r3b (SL4.03): `continue` (no --no-commit) commits the row it
+            # just wrote and prints the +/- lines + the exact `git push`
+            # line; `--no-commit`/`diff` leave the working tree as today
+            # (write + print, no commit). Nothing written -> nothing to
+            # commit.
+            if do_commit and not already:
+                print(_ack_commit_seats(root, seat, args, ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -1808,7 +1937,9 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
     if args.gen == FIRST_SEATING_GEN and args.answer == "continue" \
-            and not _seating_record_exists(root, seat, generation=args.gen):
+            and not _seating_record_exists(root, seat, generation=args.gen) \
+            and not _rotation_record_exists(root, seat) \
+            and not _pending_ack_present:
         role = "parent"
         srow = _find_seat(root, seat)
         if srow is not None:
@@ -3328,6 +3459,41 @@ def _seating_record_exists(root: Path, seat: str,
     return False
 
 
+def _rotation_record_exists(root: Path, seat: str) -> bool:
+    """True when `seat` already has a ROTATION record (a loop or rotate-self
+    `.json`, never a `.seating.json`). rotate-self/loop write one BEFORE the
+    successor joins, so a successor acking at gen 1 after a rotation is NOT a
+    first seating — it belongs to a predecessor, and must not announce/write a
+    second gen-1 seating record. A HAND launch (no spawn, no rotate-self)
+    leaves none, so its ack stays a genuine first seating.
+    """
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return False
+    for p in rot.glob(f"{seat}.*.json"):
+        if p.name.endswith(".seating.json"):
+            continue
+        return True
+    return False
+
+
+def _pending_ack_exists(root: Path, seat: str) -> bool:
+    """True when `seat` has a PENDING ack (`seats/<seat>.ack.json` carrying
+    `answer: pending`). rotate-self writes that pending ack BEFORE its
+    successor joins (F8's contract), so its successor acking at gen 1 has a
+    predecessor — NOT a first seating. A HAND-launched seat has no ack file,
+    so its ack stays genuine.
+    """
+    p = _ack_path(root, seat)
+    if not p.exists():
+        return False
+    try:
+        ack = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(ack, dict) and ack.get("answer") == "pending"
+
+
 def _seating_in_flight(first_turn) -> str:
     """One line of what the first seating ran, for the alert's `in flight`."""
     if not first_turn:
@@ -4782,6 +4948,78 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     if pid is not None:
         parts.append(f"pid={pid}")
     return f"back-filled {', '.join(parts)} into own row (source: ack)"
+
+
+def _ack_seats_path(root: Path) -> Path:
+    """The config:seats file the ack's back-fill writes
+    (`.agi/nodes/.geometry/seats.md`) — the ONE path the ack ever stages or
+    commits, never `-A`, never a sibling."""
+    return Path(root) / "nodes" / ".geometry" / "seats.md"
+
+
+def _ack_seats_dirty(root: Path, top: Path) -> str | None:
+    """The config:seats path (relative to repo top) when seats.md is ALREADY
+    dirty — staged OR unstaged hunks in THAT file — else None. r3b: the ack
+    refuses the commit path on a pre-dirtied seats.md so its own back-fill
+    commit never bundles someone else's row change. None when seats.md is
+    clean, or when the read cannot answer (not a repo). Never raises."""
+    rel = os.path.relpath(_ack_seats_path(root), top)
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(top), "status", "--porcelain", "--", rel],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if out.returncode != 0 or not out.stdout.strip():
+        return None
+    return rel
+
+
+def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
+                      ref: str) -> str:
+    """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
+    row rewrite it just back-filled: `git add` seats.md + ONE commit whose
+    message is a single line
+    `<seat> ack: gen <N>, session_ref <ref>, window <@id>, pid <pid>`
+    (the values read from the row it just wrote), touching seats.md ONLY,
+    and PRINTS the seat's old and new row lines from `git diff --cached` so
+    the successor never re-reads. A back-fill that changed nothing (the row
+    already carried the ref) commits nothing and says so in one line. The
+    last printed line is the exact `git push` command — printed, never run.
+    Returns one multi-line outcome string (or "" when it did nothing)."""
+    top = _git_toplevel(root)
+    if top is None:
+        return ("ack: no git repo — row written, not committed "
+                "(a gitless worktree has no commit to make)")
+    seats = _ack_seats_path(root)
+    rel = os.path.relpath(seats, top)
+    add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                         capture_output=True, text=True)
+    if add.returncode != 0:
+        return f"ERR: git add {rel!r} failed: {add.stderr.strip()}"
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    diff = cached.stdout if cached.returncode == 0 else ""
+    if not diff.strip():
+        return "ack: no change to seats.md — nothing committed"
+    lines = []
+    for ln in diff.splitlines():
+        if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
+            continue
+        if ln.startswith(("+", "-")):
+            lines.append(ln)
+    row = _find_seat(root, seat) or {}
+    gen = getattr(args, "gen", None)
+    win = str(row.get("window") or "")
+    pid = str(row.get("pid") or "")
+    msg = (f"{seat} ack: gen {gen}, session_ref {ref}, "
+           f"window {win}, pid {pid}")
+    rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                         msg, "--", rel], capture_output=True, text=True)
+    if rc.returncode != 0:
+        return f"ERR: git commit failed: {rc.stderr.strip()}"
+    return "ack: committed own row write (" + str(rel) + "):\n" + \
+        "\n".join(lines) + f"\ngit -C {top} push"
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -7796,13 +8034,31 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     gen_note = (f"cur={cur_gen} ({gen_src})" if gen_measured else
                 "generation unmeasured: no config:seats row, no handoff")
     stale_pin = False
+    # The clear line must print the ONE command that actually clears, both
+    # halves right (hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-
+    # pin-and-prepare-prints-the-clear-line-that-clears): --pin takes the
+    # PIN FILE (the seat's real `<sessions>/<seat>.meter`, resolved via
+    # _sessions_dir so the printed path and the write target agree), and
+    # the transcript comes from the pin/registry when known else the literal
+    # placeholder -- never --seat (which trips the cross-generation read
+    # refusal).
+    known_transcript = None
     if pin is not None:
-        written_gen, _ = _parse_pin_record(pin)
+        written_gen, written_path = _parse_pin_record(pin)
         if written_gen is not None and gen_measured and written_gen != cur_gen:
             stale_pin = True
+        known_transcript = written_path or None
+    if known_transcript is None and root is not None:
+        seat_row = _find_seat(root, seat)
+        if seat_row:
+            known_transcript = (seat_row.get("transcript_path")
+                                or transcript_from_registry_dict(seat_row))
+            known_transcript = known_transcript or None
+    clear5 = (f"rotate.py meter --pin {_seat_pin_path(root, seat)} "
+              f"--session-log {known_transcript or '<transcript>'}")
     checks.append((stale_pin,
                    f"meter pin stale (seat_pin-stale) {gen_note}",
-                   f"rotate.py meter --seat {seat} --pin <transcript>"))
+                   clear5))
 
     # 6 stale <seat>.ack.json — an ack from a generation other than the seat's
     # own is a leftover that would misreport the rotation (the ack channel is
@@ -8400,6 +8656,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         cfg_root, role, getattr(args, "template", None))
     if tmpl is None:
         print(f"ERR: {tmpl_src}", file=sys.stderr)
+        return 1
+    # goal:g15.17 (d)(ii): a JOIN-ONLY rotate-self is refused BY NAME — a
+    # role whose template declares a `startup` block but no `first_turn` has
+    # nothing to hand its successor but the join itself; rotating it would
+    # spawn a successor that boots into emptiness. (The plain legacy template
+    # with NO `startup` key — the pre-startup shape many tests and the
+    # historical rotations use — is untouched; the refusal targets a template
+    # that DECLARES a startup pipeline and then strips first_turn from it.)
+    _fs_startup = tmpl.get("startup")
+    if isinstance(_fs_startup, dict) and not (_fs_startup.get("first_turn") or []):
+        print(f"ERR: role {role!r} template {tmpl_name!r} is join-only "
+              "(startup declared with no first_turn) — rotate-self refused: "
+              "a seat with no first_turn has nothing to hand off. "
+              "(goal:g15.17)", file=sys.stderr)
         return 1
     print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
           f"brief={tmpl.get('brief_file')!r} "
@@ -9833,6 +10103,10 @@ def main(argv: list[str] | None = None) -> int:
     p_ack.add_argument("--registry-dir", default=None,
                        help="per-session registry dir for the own-row identity "
                             "JOIN (default: ~/.claude/sessions)")
+    p_ack.add_argument("--no-commit", action="store_true", dest="no_commit",
+                       help="write + print the back-fill but do NOT commit "
+                            "the seat row (continue commits by default; "
+                            "diff never commits)")
     p_ack.set_defaults(func=cmd_ack)
 
     # status
