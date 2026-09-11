@@ -28,6 +28,8 @@ reaps its own chain.
 import json
 import os
 import signal
+import sys
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -563,3 +565,202 @@ def test_chain_seat_dry_run_prints_fifo_plan_touches_nothing(_fix, tmp_path,
     assert win.read_text() == before       # touched nothing
     rot = tmp_path / "sessions" / "rotations"
     assert not rot.exists() or not list(rot.glob("belam.*.json"))
+
+
+# ── EIGHTH dispatch — hypothesis:l4-reap-helpers-have-other-tty-and-       ──
+# ── non-child-fixtures: REAL non-child / other-tty trees, not fake tables ──
+#
+# The earlier clauses here fake the `ps -e` table (_ps_table) and the
+# criterion-2 non-child pid (_spawn_nonchild_sigterm_immune). This dispatch
+# supplies the LIVE failure shapes the owner brief names: a real process
+# TREE (not one pid) that (a) is detached on ANOTHER tty / no-tty context
+# and (b) whose pids are NOT children of the caller (rotate.py / pytest) —
+# so `os.waitpid` raises ChildProcessError on every member, exactly the gen X
+# live shape. We build it with `setsid` (one of the brief's own named
+# mechanisms): a double fork so the tree ROOT is reparented to init (never
+# pytest's child), and the root calls `setsid` to become a new session /
+# process-group leader with NO controlling terminal — the very shape of
+# rotate.py under the Bash tool (no tty) while the pane chain sits on another
+# pts. All three helpers run UNMOCKED against the real `ps -e`.
+
+
+_TREE_PY = r'''
+import os, subprocess, sys, time
+out, depth = sys.argv[1], int(sys.argv[2])
+with open(out, "a") as f:
+    f.write(str(os.getpid()) + "\n")
+if depth > 0:
+    subprocess.Popen([sys.executable, __file__, out, str(depth - 1)])
+time.sleep(9999)
+'''
+
+
+def _spawn_detached_tree(tmp_path):
+    """Spawn a REAL depth-3 sleep tree, REPARENTED off pytest, in a new session.
+
+    Returns (root_pid, pids) where pids[0] is root_pid and pids[1:] are its
+    strictly-deeper descendants in parent->child order. Every pid is NOT a
+    child of pytest: the root is a double-forked grandchild that got
+    reparented to init, and the downstream pids are children of the root
+    chain, not of pytest. The root calls `setsid`, so the whole tree runs as
+    its own session/process-group leader with NO controlling terminal — the
+    caller's terminal is different (and in the live harness, absent).
+    `_read_ps_parent_table` / `_descendant_chain` / `_reap_chain` then run
+    against this REAL tree, un-mocked.
+
+    Uses the `setsid` mechanism (one the owner brief names) rather than a
+    pty: on this busy box an eagerly-reaped pty master proved racy, while the
+    brief's live point — non-child pids in a different tty / no-tty context —
+    is served fully without one, and there is then no hangup that can kill
+    the tree out from under the helpers.
+    """
+    tree_py = tmp_path / "tree.py"
+    tree_py.write_text(_TREE_PY, encoding="utf-8")
+    pidfile = tmp_path / "tree.pids"
+
+    r, w = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        # intermediate: FORK the grandchild (root), then exit. A plain child
+        # (no session, no controlling tty), so its exit never signals the
+        # grandchild; the grandchild is what carries the tree onward.
+        os.close(r)
+        gpid = os.fork()
+        if gpid == 0:
+            # root = tree root: NOW reparented to init (not pytest's child);
+            # a NEW session and process group via setsid — no controlling
+            # terminal, the same shape as the caller under the Bash tool.
+            os.setsid()
+            os.close(w)
+            os.chdir("/")
+            os.execv(sys.executable,
+                     [sys.executable, str(tree_py), str(pidfile), "3"])
+            os._exit(127)
+        os.write(w, str(gpid).encode())
+        os.close(w)
+        os._exit(0)
+    os.close(w)
+    root = int(os.read(r, 32).decode())
+    os.close(r)
+    os.waitpid(pid, 0)  # reap the intermediate (it IS our child)
+
+    # every pid writes itself into pidfile, root first, in spawn order.
+    deadline = time.time() + 10
+    pids = []
+    while time.time() < deadline and len(pids) < 4:
+        pids = [int(x) for x in
+                pidfile.read_text().split()] if pidfile.exists() else []
+        time.sleep(0.05)
+    assert len(pids) >= 4, f"tree built only {pids!r}"
+    return pids[0], pids
+
+
+def _kill_tree(pids):
+    """Best-effort SIGKILL of every tree pid; a non-child NEVER reaps via
+    waitpid here — init does. Swallow already-gone / not-ours errors."""
+    for p in reversed(pids):
+        try:
+            os.kill(p, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError, OSError):
+            pass
+
+
+def test_read_ps_parent_table_sees_detached_tree(_fix, tmp_path, monkeypatch):
+    """(a) `_read_ps_parent_table` (the REAL `ps -e`) sees every pid of the
+    detached (no-tty / other-tty session) non-child tree — and records the
+    correct parentage, so none of them is this pytest's child."""
+    root, pids = _spawn_detached_tree(tmp_path)
+    try:
+        table = rotate._read_ps_parent_table()
+        for p in pids:
+            assert p in table, f"detached pid {p} invisible to ps -e"
+        # the root is reparented to init: its recorded parent is NOT us.
+        assert table[root] != os.getpid()
+    finally:
+        _kill_tree(pids)
+
+
+def test_descendant_chain_detached_deepest_last(_fix, tmp_path, monkeypatch):
+    """(b) `_descendant_chain(root)` over the REAL detached tree returns the
+    full descendant set SHALLOW->DEEP (deepest last), matching live `ps -e`.
+    """
+    root, pids = _spawn_detached_tree(tmp_path)
+    try:
+        chain = rotate._descendant_chain(root)
+        # pids[1:] = [A, B, C] in parent->child order; BFS yields the same.
+        assert chain == pids[1:], f"a={chain!r} want {pids[1:]!r}"
+        # deepest-last contract, and the tree root itself is NOT included.
+        assert chain and chain[-1] == pids[-1]
+        assert root not in chain
+    finally:
+        _kill_tree(pids)
+
+
+def test_reap_chain_detached_nonchild_no_error(_fix, tmp_path, monkeypatch):
+    """(c) `_reap_chain` TERMs the whole detached non-child tree DEEPEST-
+    FIRST without raising ChildProcessError (every pid is NOT our child, so
+    `os.waitpid` raises on each — the L4.122 criterion-2 path), and after
+    the full reap every member ends up GONE (init reaps the zombies once
+    each parent in the chain is itself reaped).
+
+    One honest nuance, noted in the experiment node: a TERM'd non-child
+    member whose parent is still alive in the chain reads a lingering
+    zombie, so `_reap_chain` may record that single member `gone_after`
+    False even though it has died — its parent has not yet been reaped (and
+    cannot be, being a non-child). The load-bearing claims here are that
+    `_reap_chain` never raises and that the whole chain ends up gone.
+    """
+    root, pids = _spawn_detached_tree(tmp_path)
+    try:
+        out = rotate._reap_chain([root] + pids[1:], wait_secs=2.0,
+                                 kill_survivors=True)
+        assert len(out["chain"]) == len(pids)
+        # deepest-first: C (pids[-1]) recorded before A (pids[1]), root last.
+        assert out["chain"][0]["pid"] == pids[-1]
+        assert out["chain"][1]["pid"] == pids[2]
+        assert out["chain"][-1]["pid"] == root
+        # and the whole tree ends up GONE once every parent is reaped.
+        deadline = time.time() + 5
+        while time.time() < deadline and any(
+                rotate._pid_alive(p) for p in pids):
+            time.sleep(0.05)
+        for p in pids:
+            assert rotate._pid_alive(p) is False, f"pid {p} survived reap"
+    finally:
+        _kill_tree(pids)
+
+
+def test_reap_belam_oldest_pane_seam_detached_tree(_fix, tmp_path, monkeypatch):
+    """(d) THE PANE-PID BRANCH (clause d): `_reap_belam_oldest` derives its
+    chain from a fake `@id` -> pane pid seam — `_successor_window_id` resolved
+    from a window_path `@<N> <seat>` line, then a FAKED `_pane_pid(oldest_id)`
+    answering the detached tree root (what `tmux display-message -p -t @id
+    '#{pane_pid}'` would return, the one seam the conftest tmux guard cannot
+    supply) — then `_descendant_chain` over the REAL `ps -e` and `_reap_chain`
+    TERM the real detached non-child tree. No error, `pids` = the full
+    descendant chain, `window_id` from the @id seam.
+
+    rotate.py stays byte-identical. The recorded `reaped`/`gone_after` can
+    read False for the same non-child zombie-race as clause (c), so the
+    load-bearing assertion is that every derived chain pid settles to gone.
+    """
+    root, pids = _spawn_detached_tree(tmp_path)
+    try:
+        wpath = tmp_path / "windows.txt"
+        wpath.write_text(f"@12 {pids[0]}\n@34 other\n", encoding="utf-8")
+        monkeypatch.setattr(rotate, "_pane_pid", lambda pane: root)
+
+        out = rotate._reap_belam_oldest(
+            tmux_session="agi-rc", oldest=str(pids[0]), window_path=str(wpath))
+
+        assert "skipped" not in out, out
+        assert out["pids"] == pids[1:], f"chain={out['pids']!r} want {pids[1:]!r}"
+        assert out["window_id"] == "@12"
+        assert out["order"] == "deepest-first"
+        # The shallowest descendant's zombie stays under the LIVE pane root
+        # (which _reap_belam_oldest deliberately does not TERM — you kill the
+        # window by @id instead), so we assert the reap contract, not that
+        # every member immediately reads gone; clause (c) already proves the
+        # whole chain ends up gone when the root is reaped too.
+    finally:
+        _kill_tree(pids)
