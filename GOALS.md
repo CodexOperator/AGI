@@ -6071,6 +6071,8 @@ L3 (sensei-director gen III), Sensei 18:52Z loose-code line 2: follow-up brief h
 
 SL3.02 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — checks 5/6 read the generation from the seats row first with an explicit unmeasured line, the rotate-self gate runs unconditionally (window_path no longer a key; _git_maybe widened to bare Exception — deviation on the kid), no-upstream BLOCK named with git push -u, ONE season_branch(root) resolver from the ladder with every literal routed; 6 red-first tests, 397 green with the rotate/session-start neighbours; live prepare on this seat prints cur=2 (config:seats row). Prime line (3) CLOSED. Still open on this goal: hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-live-background-tasks (SL3.05, cut next — prepare region now free).
 
+SL3.05 HARVESTED (sensei-director L3, 20:0xZ): two kids proved — prepare --perform performs the only-behind merge (clean tree + zero conflicts; default on for rotate-self, off for the bare listing; a conflicting merge stays a BLOCK naming the paths) and prints background tasks: N as a never-blocking line; residue: rotate-self prints the tasks line unconditionally but the performed-merge line only on BLOCK. Sensei 18:52Z line 2 closed. Reaches season/s2 at SL2#4.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
