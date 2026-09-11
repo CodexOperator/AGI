@@ -212,6 +212,23 @@ def test_parent_brief_names_the_carry_forward_lever():
 
 
 
+def test_parent_brief_names_overdue_as_still_working():
+    """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
+    print-it — heal.py keeps a live past-deadline kid's status `running` and
+    adds `overdue_since`/`overdue_reason`; it NEVER sets status=overdue. So
+    the brief must tell the parent to READ THE SHAPE THE RECORD HAS
+    (contain `overdue_since`), must NOT use the unprintable phrase `status
+    reads overdue`, and must still say a replacement is never cut. This is
+    the old l4-a-timeout-mark-on-a-live-agent-is-not-terminal paragraph,
+    corrected to name the fields a reader actually prints."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y", max_live=25, kid_ceiling=3)
+    assert "overdue_since" in parent
+    assert "never cut a replacement" in parent
+    assert "status reads overdue" not in parent
+    assert "is STILL WORKING" in parent
+
+
 def test_parent_brief_forbids_committing_and_bypassing():
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "--no-evidence-gate" in parent
@@ -232,6 +249,10 @@ def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
     monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
     monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
     monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state —
+    # this legacy assertion pins the LIVE block (item 5 MERGE PROTOCOL),
+    # not the default: the merge-protocol cell now gates it (default held).
+    monkeypatch.setenv("AGI_MERGE_KIDS", "live")
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "loop/slug-abc@s3" in parent, "brief must name the loop branch"
     assert "/repo/.agi/worktrees/abc" in parent, "brief must name the worktree"
@@ -290,6 +311,9 @@ def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
     monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
     monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
     monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    # LIVE cell — this pins the live merge protocol (hypothesis:l4-the-
+    # merge-protocol-block-is-gated-on-the-held-state).
+    monkeypatch.setenv("AGI_MERGE_KIDS", "live")
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     lower = parent.lower()
     # union resolution for NODE conflicts, and the explicit no-blind-3way rule
@@ -326,6 +350,138 @@ def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
     # the merge is THE one git operation; the rest stays forbidden
     assert "one git" in lower or "the one git" in lower
     assert "no push" in lower and "no rebase" in lower
+
+
+_ABSENT_CELL = object()  # sentinel: the config carries NO spawn.merge_kids cell
+
+
+def _branch_parent_text(monkeypatch, merge_kids=None, config_cell=_ABSENT_CELL):
+    """Build a branch-parent brief for either merge-kids cell state.
+    hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state.
+    Returns the joined text.
+
+    HERMETIC: the config the reader sees is pinned by monkeypatching
+    `brief._resolve_graph_root` to a temp `.agi` dir whose config.json
+    carries `{"spawn": {"merge_kids": <config_cell>}}` — or carries NO
+    `spawn` key when `config_cell` is `_ABSENT_CELL`. This decouples the
+    DEFAULT test from the LIVE checkout's ambient `.agi/config.json`
+    (which flipped the two default tests red the moment the prime set the
+    cell to `live`). `AGI_MERGE_KIDS` still overrides, as in production."""
+    import tempfile
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    if merge_kids is None:
+        monkeypatch.delenv("AGI_MERGE_KIDS", raising=False)
+    else:
+        monkeypatch.setenv("AGI_MERGE_KIDS", merge_kids)
+    cfg_dir = Path(tempfile.mkdtemp(prefix="merge-kids-seam-"))
+    if config_cell is _ABSENT_CELL:
+        cfg = {}
+    else:
+        cfg = {"spawn": {"merge_kids": config_cell}}
+    (cfg_dir / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda _root: cfg_dir)
+    return _text("parent", dispatch_py="/x/d.py", target="t:1")
+
+
+def test_merge_kids_held_default_renders_held_block(monkeypatch):
+    """hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state —
+    the merge-protocol block is gated on the held state, and the DEFAULT
+    (no `spawn.merge_kids` cell) is held. A branch parent must be told the
+    `season.py merge-kids` verb is HELD and must NOT be run, and what to do
+    instead (merge each kid branch into its own round branch with
+    `git merge --no-ff` in its own worktree, union the ## Agent Notes blocks
+    on node conflict, re-run the round's tests with their neighbours on the
+    merged bytes, then `cli.py done`)."""
+    parent = _branch_parent_text(monkeypatch, config_cell=_ABSENT_CELL)
+    assert "MERGE-KIDS IS HELD" in parent, (
+        "default branch brief must say the merge-kids verb is HELD"
+    )
+    assert "MUST NOT" in parent, (
+        "held text must say the verb must not be run"
+    )
+    assert "git merge --no-ff" in parent, (
+        "held text must tell the parent to merge with git merge --no-ff"
+    )
+    assert "AGENT NOTES" in parent or "Agent Notes" in parent, (
+        "held text must tell the parent to union the ## Agent Notes blocks"
+    )
+    assert "NEIGHBOURS" in parent or "Neighbours" in parent or "neighbours" in parent, (
+        "held text must say tests re-run with their neighbours on merged bytes"
+    )
+    assert "cli.py done" in parent, (
+        "held text must end the manual merge with cli.py done"
+    )
+    # the held block must NOT name merge-kids as a command to run
+    assert "merge-kids <kid-branch>" not in parent, (
+        "held block must not instruct running merge-kids on a kid branch"
+    )
+    assert "season.py merge-kids " not in parent.rstrip(), (
+        "held block must not give a runnable season.py merge-kids command"
+    )
+
+
+def test_merge_kids_live_renders_current_block(monkeypatch):
+    """An explicit `spawn.merge_kids: live` renders the current merge-
+    protocol block verbatim (item 5 + item 6, the `season.py merge-kids`
+    helper), even when the pinned config cell is ABSENT — the env override
+    forces `live` regardless of the (hermetically pinned) cell."""
+    parent = _branch_parent_text(monkeypatch, merge_kids="live",
+                                 config_cell=_ABSENT_CELL)
+    assert "season.py merge-kids" in parent, (
+        "live cell must render the runnable season.py merge-kids helper"
+    )
+    assert "MERGE PROTOCOL" in parent, (
+        "live cell must render the MERGE PROTOCOL block"
+    )
+    assert "MERGE-KIDS IS HELD" not in parent, (
+        "live cell must not render the held block"
+    )
+
+
+def test_merge_kids_explicit_held_renders_held_block(monkeypatch):
+    """An explicit `spawn.merge_kids: held` renders the held block, same as
+    the default."""
+    parent = _branch_parent_text(monkeypatch, merge_kids="held",
+                                 config_cell=_ABSENT_CELL)
+    assert "MERGE-KIDS IS HELD" in parent
+    assert "merge-kids <kid-branch>" not in parent
+
+
+def test_merge_kids_live_config_cell_no_env_renders_runnable(monkeypatch):
+    """HERMETIC (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
+    held-state): when the config CELL is `spawn.merge_kids: live` and
+    `AGI_MERGE_KIDS` env is UNSET, the brief renders the runnable
+    `season.py merge-kids <kid-branch>` instruction — the cell value, not
+    the ambient checkout, decides the DEFAULT. With the cell pinning `live`
+    this must pass even if the live `.agi/config.json` says `held`."""
+    parent = _branch_parent_text(monkeypatch, config_cell="live")
+    assert "season.py merge-kids" in parent, (
+        "a live config cell with no env override must render the runnable helper"
+    )
+    assert "MERGE PROTOCOL" in parent
+    assert "MERGE-KIDS IS HELD" not in parent
+    assert "season.py merge-kids <kid-branch>" in parent, (
+        "live cell must give the runnable season.py merge-kids <kid-branch> command"
+    )
+
+
+def test_held_block_never_instructs_running_merge_kids(monkeypatch):
+    """FALSIFIER (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
+    held-state): the held block must never render an instruction to run
+    `merge-kids`. A held cell whose text named `season.py merge-kids
+    <kid-branch>` as a command to run would contradict the prime's ruling
+    (g15-20), so this test fails on such a regression."""
+    parent = _branch_parent_text(monkeypatch, config_cell=_ABSENT_CELL)
+    # the only way the held text may name the verb is to say it is held
+    assert "merge-kids" in parent, "held text must name merge-kids only to say it is held"
+    assert "season.py merge-kids <kid-branch>" not in parent, (
+        "held block must never render a runnable merge-kids instruction"
+    )
+    assert "merge-kids <kid-branch>" not in parent, (
+        "held block must never name merge-kids as a command to run"
+    )
 
 
 def test_branch_parent_disjoint_scope_says_serialised_until_disjoint(monkeypatch):
@@ -444,6 +600,11 @@ def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
     assert "test files you changed" in kid, (
         "the kid suite line must name the touched test files")
     assert "<the test files you changed" in kid
+    # hypothesis:l4-a-test-of-live-config-reads-the-live-node -- the kid
+    # suite line must also teach the live-config rule: a test that guards a
+    # live config cell (rotations.md) reads the live node, never a copied list.
+    assert "A test of live config reads the live node, never a copied list." \
+        in kid
 
 
 
@@ -706,19 +867,52 @@ def test_a_g15_claim_is_behaviour_to_build_in_both_tier_briefs():
     re-cut before it is recorded.
     """
     kid = _text("kid", scaffold=SCAFFOLD)
-    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     # kid brief: the claim is behaviour to build, not a hypothesis to measure
     assert "BEHAVIOUR TO BUILD" in kid
     assert "not a hypothesis to measure" in kid
-    # parent brief: review rule demands the fix be implemented
-    assert "THIS KID MUST IMPLEMENT THE FIX" in parent
-    # the parent brief must not measure-only-accept a kid as finished
-    assert "finished round" in parent
-    # the segment is terminated so the next rule starts on its own line:
-    # a missing trailing newline glues the g15 sentence onto "4. DO NOT
-    # bypass the gate" (the exact defect the parent re-cut this round for).
-    assert "measurement).\n4. DO NOT" in parent
-    assert ").4. DO NOT" not in parent
+
+
+def test_must_implement_rule_is_g15_lineage_gated(tmp_path, monkeypatch):
+    """hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
+    "THIS KID MUST IMPLEMENT THE FIX" review rule rendered for EVERY parent
+    target (L4.175), so a parent on a NON-g15 hypothesis was told a
+    measurement-only kid node is not a finished round -- forbidding a
+    legitimate `disproved` there (a non-g15 hypothesis may be DISPROVED by
+    measurement; forbidding that forbids the science). The rule must render
+    only when the target's `parents:` lineage reaches `goal:g15`; for any
+    other target the block is absent. The L4.175 newline assertion (the block
+    terminates cleanly onto "4. DO NOT") moves to the g15 case.
+    """
+    # A g15-descended target: hypothesis:gated -> goal:g15. The slug ends in
+    # 'd' on purpose -- a previous implementation stripped it with str.rstrip
+    # (".md"), a character-set strip that ate the trailing 'd' of "gated" and
+    # made the walk miss goal:g15 entirely; the fixture is the regression guard.
+    gfix = tmp_path / "nodes" / "hypothesis" / "gated.md"
+    gfix.parent.mkdir(parents=True)
+    gfix.write_text("---\nid: hypothesis:gated\nparents:\n  - goal:g15\n---\n\nbody")
+    # A non-g15 target with a parent that is NOT g15
+    other = tmp_path / "nodes" / "hypothesis" / "other.md"
+    other.parent.mkdir(parents=True, exist_ok=True)
+    other.write_text("---\nid: hypothesis:other\nparents:\n  - goal:g17\n---\n\nbody")
+    # Unresolvable target (not on disk) falls back to not-g15
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda pr=None: tmp_path)
+
+    g15_parent = _text("parent", dispatch_py="/x/d.py",
+                       target="hypothesis:gated")
+    non_g15_parent = _text("parent", dispatch_py="/x/d.py",
+                           target="hypothesis:other")
+    unknown_parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+
+    # g15-descended target renders the rule and it terminates cleanly onto the
+    # next rule (a missing trailing newline glues it onto "4. DO NOT").
+    assert "THIS KID MUST IMPLEMENT THE FIX" in g15_parent
+    assert "finished round" in g15_parent
+    assert "measurement).\n4. DO NOT" in g15_parent
+    assert ").4. DO NOT" not in g15_parent
+    # non-g15 and unresolvable targets do NOT render it -- a measurement-only
+    # `disproved` there is a legitimate scientific outcome.
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in non_g15_parent
+    assert "THIS KID MUST IMPLEMENT THE FIX" not in unknown_parent
 
 
 # ---------------------------------- l2w3-brief-heads: kid + parent constitution heads

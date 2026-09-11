@@ -714,10 +714,223 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     return None
 
 
+def _read_node_fm(root, node_id):
+    """Read a node's CURRENT frontmatter as a dict, or None if unreadable.
+
+    Needed by the master-sensei templates carve-out to compare the bytes the
+    write would replace against the bytes on disk (the self_row pattern).
+    Read-only; this module performs no file write.
+    """
+    try:
+        from graph_core.persistence import frontmatter as fm_reader
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        path = node_writer.find_node_file(root, node_id)
+    except Exception:  # noqa: BLE001
+        return None
+    if path is None:
+        return None
+    try:
+        return dict(fm_reader.load_node_file(path).frontmatter)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
+                                     where: str):
+    """The master-sensei templates carve-out (PRIME RULING 2026-09-11,
+    hypothesis:write-guard-carve-out-for-master-sensei-templates).
+
+    The Sensei keeps improving the roles' rotation config directly instead of
+    dm-and-wait. It may write ONLY certain regions of config:rotations
+    `templates`: each role entry's `startup` and `telemetry`, and the `## facts`
+    body section, for EVERY role EXCEPT the declared deny-roles (prime_director
+    -- Prime/owner-only). `brief_file` and `steps` of any template stay
+    prime/owner-only. The rule is DATA - the allowed regions, the deny roles
+    and the writable fields all live in the schema's `master_sensei_row`
+    declaration, with no role literal in this function (the self_row pattern).
+
+    A second, load-bearing half is the PRODUCING JUDGE: every resolved
+    first_turn/after_join cmd in the written value must pass
+    `rotate._producing_refusal` - the guard runs the same judge the executor
+    would, so a Sensei cannot land an entry the executor would refuse, and the
+    refusal NAMES the entry. Returns None when the write is a valid
+    master-sensei template write, else a human refusal message.
+    """
+    ms = schema.frontmatter.get("master_sensei_row")
+    if not isinstance(ms, dict):
+        return None  # no declaration -> the written_by gate decides
+    actor_row = ms.get("actor")
+    if not actor_row:
+        return None
+    resolved = _resolve_role(root, actor, "")
+    is_ms = (resolved == actor_row or str(actor) == str(actor_row)
+             or str(actor).startswith(str(actor_row) + "-"))
+    if not is_ms:
+        return None  # not the master-sensei seat; not this carve-out
+    list_key = ms.get("list_key")
+    fields = [str(f) for f in (ms.get("fields") or [])]
+    role_field = ms.get("role_field") or "id"
+    deny = [str(r) for r in (ms.get("deny_roles") or [])]
+    if not list_key:
+        return "master_sensei_row declaration is missing list_key"
+
+    # The whole-list replacement is the write shape (set_fm[list_key] == the
+    # full `templates` mapping), exactly as self_row replaces the full list.
+    if list_key not in set_fm:
+        return None  # not touching templates; body gate / written_by decide
+    new_val = set_fm[list_key]
+    if not isinstance(new_val, dict):
+        return f"`{list_key}` must be a dict of role templates, got " \
+               f"{type(new_val).__name__}"
+    old_fm = _read_node_fm(root, where)
+    old_val = (old_fm or {}).get(list_key)
+    if old_val is None:
+        old_val = {}
+    if not isinstance(old_val, dict):
+        return f"current `{list_key}` is not a dict; refusing to judge the delta"
+
+    roles = set(old_val.keys()) | set(new_val.keys())
+    for role in roles:
+        if role in deny:
+            if old_val.get(role) != new_val.get(role):
+                return (f"the {role!r} template is prime/owner-only; a "
+                        "master-sensei write may NOT touch it (owner: "
+                        "'modifications to Belam or his advisors require "
+                        "owner approval')")
+            continue
+        old_r = old_val.get(role) or {}
+        new_r = new_val.get(role) or {}
+        if isinstance(old_r, dict) and isinstance(new_r, dict):
+            keys = set(old_r.keys()) | set(new_r.keys())
+            for k in keys:
+                if old_r.get(k) != new_r.get(k):
+                    if k not in fields:
+                        return (f"template field {k!r} is prime/owner-only; a "
+                                f"master-sensei write may change only "
+                                f"{', '.join(sorted(fields))} (the regions "
+                                f"declared writable)")
+
+    # PRODUCING JUDGE gate: every resolved first_turn/after_join cmd in the
+    # written templates (deny-role entries excluded) must pass
+    # rotate._producing_refusal; a refused entry refuses the whole write,
+    # naming the entry (test c).
+    try:
+        import rotate
+    except Exception:  # noqa: BLE001
+        return None
+    for role in roles:
+        if role in deny:
+            continue
+        new_r = new_val.get(role)
+        if not isinstance(new_r, dict):
+            continue
+        startup = new_r.get("startup")
+        if isinstance(startup, dict):
+            for sec in ("first_turn", "after_join"):
+                for entry in startup.get(sec) or []:
+                    if not isinstance(entry, dict):
+                        continue
+                    label = entry.get("label") or "(unlabeled)"
+                    cmd = entry.get("cmd") or ""
+                    refusal = rotate._producing_refusal(str(cmd))
+                    if refusal is not None:
+                        return (f"master-sensei write refused: startup entry "
+                                f"{label!r} would be refused by the startup "
+                                f"producing judge: {refusal}")
+    return None
+
+
+def _sectionize(body: str):
+    """Split a node body into {header: text} + a preamble, keyed on `## `.
+
+    A `## ` header starts a section; the preamble is everything before the
+    first one. Same-splitting both the old and new body lets the facts gate
+    require byte-identity OUTSIDE the `## facts` section without diffing.
+    """
+    if body is None:
+        return None, {}
+    lines = body.splitlines(keepends=True)
+    preamble: list[str] = []
+    sections: dict[str, list[str]] = {}
+    cur = None
+    for ln in lines:
+        if ln.startswith("## "):
+            cur = ln[3:].strip()
+            sections.setdefault(cur, [])
+        elif cur is None:
+            preamble.append(ln)
+        else:
+            sections[cur].append(ln)
+    # Normalise a single trailing newline so a serializer-perceived difference
+    # (the frontmatter reader strips it, the splice can keep it) does not look
+    # like a section delta.
+    return "".join(preamble).rstrip("\n"), {
+        k: "".join(v).rstrip("\n") for k, v in sections.items()}
+
+
+def _enforce_master_sensei_facts_body(root, node_id, actor, new_body):
+    """Refuse a master-sensei body edit whose delta leaves `## facts`.
+
+    The third writable region of the carve-out: the `## facts` body section
+    of the governed node. The rest of the body (templates/steps/preamble and
+    every other section) stays prime/owner-only, so the delta must be
+    byte-identical outside the `## facts` section. A no-op for any non
+    master-sensei writer (their admission is the written_by gate's business).
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return
+    if new_body is None:
+        return
+    node_type = str(node_id).split(":", 1)[0]
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return
+    ms = schema.frontmatter.get("master_sensei_row") if schema else None
+    if not isinstance(ms, dict) or not ms.get("actor"):
+        return
+    resolved = _resolve_role(root, actor, "")
+    is_ms = (resolved == ms.get("actor")
+             or str(actor).startswith(str(ms.get("actor")) + "-"))
+    if not is_ms:
+        return  # a non-master-sensei writer's body edit is not this gate
+    try:
+        old_body = _read_body_text(root, node_id)
+    except EditError:
+        return
+    old_preamble, old_secs = _sectionize(old_body)
+    new_preamble, new_secs = _sectionize(new_body)
+    if old_secs is None or new_secs is None:
+        return
+    if old_preamble != new_preamble:
+        raise EditError(
+            f"{node_id}: a master-sensei body edit may change ONLY the "
+            f"`## facts` section; the preamble changed (PRIME RULING "
+            f"2026-09-11, hypothesis:write-guard-carve-out-for-master-"
+            f"sensei-templates)")
+    for sec in set(old_secs) | set(new_secs):
+        if sec == "facts":
+            continue
+        if old_secs.get(sec) != new_secs.get(sec):
+            raise EditError(
+                f"{node_id}: a master-sensei body edit may change ONLY the "
+                f"`## facts` section; section {sec!r} changed "
+                f"(PRIME RULING 2026-09-11, hypothesis:write-guard-carve-"
+                f"out-for-master-sensei-templates)")
+
+
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         set_fm: dict | None = None,
                         unset_fm: list | None = None,
-                        allow_self_row: bool = False):
+                        allow_self_row: bool = False,
+                        has_body: bool = False):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
@@ -759,6 +972,42 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     if resolved in admitted:
         return
 
+    # PRIME RULING 2026-09-11 carve-out: the master-sensei seat may write
+    # config:rotations `templates` (startup/telemetry, facts body) directly
+    # instead of dm-and-wait. Authorized by the schema's `master_sensei_row`
+    # declaration, gated by the startup producing judge -- one generic rule,
+    # no role literal in the enforcement path (the self_row pattern). Must be
+    # tried only when the writer is NOT admitted. Two entry shapes: a
+    # templates frontmatter set (checked here against old bytes + the
+    # judge), and a body-only edit (set_fm/unset_fm empty -- checked by
+    # submit's facts-region gate, since the body bytes only exist after
+    # composition). This block comes BEFORE the self_row gate so a
+    # master-sensei templates write is adjudicated by this carve-out, not
+    # refused by an unrelated seats declaration.
+    ms = schema.frontmatter.get("master_sensei_row")
+    if isinstance(ms, dict) and ms.get("actor") and has_body is not None:
+        is_ms = (resolved == ms.get("actor")
+                 or str(actor) == str(ms.get("actor"))
+                 or str(actor).startswith(str(ms.get("actor")) + "-"))
+        if is_ms:
+            touches_templates = (set_fm is not None
+                                 and ms.get("list_key") in set_fm)
+            if touches_templates:
+                mrefusal = _master_sensei_templates_refusal(
+                    root, schema, actor, set_fm, unset_fm, where)
+                if mrefusal is None:
+                    return
+                raise EditError(
+                    f"{node_type} nodes ({where}): a master-sensei write is "
+                    f"limited to the declared template regions and must pass "
+                    f"the startup producing judge; {mrefusal} "
+                    f"(PRIME RULING 2026-09-11)")
+            if has_body and not (set_fm or unset_fm):
+                # body-only master-sensei edit: admission here is refined by
+                # submit's facts-region gate, which refuses any delta outside
+                # the `## facts` section.
+                return
+
     # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
     # say) is not in `written_by` and yet may update ONE thing — its own seat
     # row, restricted to the fields the type's `self_row` declaration names.
@@ -778,7 +1027,7 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 f"its OWN row and only the declared fields; {refusal}. "
                 f"(L4.110 prime ruling B)")
 
-    raise EditError(
+    raise EditError(        
         f"{node_type} nodes ({where}) may be hand-edited only by "
         f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
         f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
@@ -887,7 +1136,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
                         edit.node_id, role,
                         set_fm=edit.set_fm, unset_fm=edit.unset_fm,
-                        allow_self_row=True)
+                        allow_self_row=True,
+                        has_body=bool(edit.body_append or edit.thought
+                                      or edit.body_patch_diff
+                                      or edit.replace_target == "body"))
 
     set_fm = dict(edit.set_fm)
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
@@ -967,6 +1219,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     # new base and moving the bytes is one intention, not two.
     if "location" in set_fm:
         location = set_fm["location"]
+
+    # PRIME RULING 2026-09-11 facts-region gate: a master-sensei BODY edit on
+    # a `master_sensei_row`-governed node may change ONLY the `## facts`
+    # section. Written here (post-composition) because the body bytes only
+    # exist after the splice; `_enforce_written_by` admitted the writer on
+    # the body-only path and this gate is the load-bearing confinement.
+    _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
@@ -1364,7 +1623,44 @@ def main(argv: list[str] | None = None) -> int:
     """
     import argparse
 
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    #: One-line example per verb, for the help epilog. Chosen hand-in-sync by
+    #: intent but CHECKED against VERBS/ARITY below so a divergence fails at
+    #: help-build time instead of silently reaching a seat whose first_turn
+    #: `write-verbs` fact reads this epilog for the grammar (config:rotations
+    #: F4, hypothesis:write-py-help-epilog-lists-verb-grammar).
+    VERB_EXAMPLES = {
+        "set": "set k=v",
+        "unset": "unset frontmatter_key",
+        "link": "link self",
+        "thought": "thought why this version differs",
+        "note": "note a whole sentence, spaces absorbed",
+        "payload": "payload path/to/source.py",
+        "payload_text": "payload_text literal text body",
+        "patch": "patch -",
+        "body_patch": "body_patch -",
+        "read": "read body 4:9",
+        "replace": "replace body 4:9 path/to/file",
+        "adopt": "adopt",
+    }
+    missing_v = sorted(set(VERBS) - set(VERB_EXAMPLES))
+    missing_a = sorted(set(VERB_EXAMPLES) - set(ARITY))
+    if missing_v or missing_a:
+        raise SystemExit(
+            f"write.py help epilog drift: verbs without examples "
+            f"{missing_v}, examples without arity {missing_a} -- "
+            "add the example (and ARITY entry) or remove stale help "
+            "(hypothesis:write-py-help-epilog-lists-verb-grammar)")
+    epilog_lines = [
+        "verbs (each accepts a node_id first; join several with &&):",
+    ]
+    for name in VERBS:
+        epilog_lines.append(
+            f"  {name}\t{ARITY[name]} arg(s)\t{VERB_EXAMPLES[name]}")
+    epilog = "\n".join(epilog_lines)
+
+    ap = argparse.ArgumentParser(
+        description=__doc__.splitlines()[0], epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("node_id",
                     help='a node id, or "create" to mint one')
     ap.add_argument("script", nargs="?", default=None,

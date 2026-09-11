@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-an-env-value-cannot-break-a-quoted-argument
+mint_id: 4f812450baa34c66828012835b659704
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 2d05412a959a3bc7
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 36 BY NAME (wf_ad998696-022; goal:g17.1 at e385f3f47), ACCEPTED there as residue line 1 on L4.220 (rotate.py first_turn executor); minted by sanctuary-director gen XV 14:1xZ after re-measuring on the seat's bytes (tip past 4764f6070, L4.233 merged so lines moved +52 from the prime's :4208/:4565). MEASURED: rotate.py:4707 `exec_cmd = _resolve_shell_vars(record_cmd)` expands `$VAR`/`${VAR}` (:4258-4271, a plain `re.sub` on the command STRING) BEFORE `_tokenize_startup` (:4279-4295, posix shlex with punctuation_chars) builds argv, so an env VALUE that carries a double quote, a space, or a `|`/`;` is re-parsed as shell syntax: `git -C \"$WT\" status -sb` with WT=`x\" --no-such-flag \"y` yields four argv tokens where the template wrote three -- extra argv on an ALLOWLISTED producer that the re-judge at :4712-4720 (which judges the expanded string in full) cannot see because the producer and the grammar both still pass; a value carrying `| sh` even injects a stage (the re-judge does catch that one). The record keeps `$VAR` literal (fix b of L4.220) -- that half is right and stays. SECOND HALF: `_scrub_injected_refusal` (:4595-4632) drops every whitespace-token of the refusal message that is a SUBSTRING of any expanded env value and absent from `record_cmd` (:4621-4623 `tok in val`), so short innocent words of the refusal (`a`, `on`, `me`, `the`, `in` are substrings of almost any path value such as $HOME) are dropped as if injected, and a message can collapse to the bare `<expanded value redacted>` trailer, naming nothing. CLAIM: env expansion happens AFTER tokenization, PER TOKEN -- `_tokenize_startup(record_cmd)` first, then each argv token has its `$VAR`/`${VAR}` references replaced by the value as ONE literal token (a value with quotes, spaces, or operators stays inside that single argv element; nothing is re-parsed), the re-judge runs on the argv list (or a `shlex.join` of it) so what is judged is what is executed; AND the refusal scrub drops a message word only when it is a substring of an env value AND at least 4 characters long AND not a word of the message template (the refusal wording rotate.py itself emits), so an innocent refusal survives intact and an injected fragment is still redacted. TESTS (test_rotate_startup.py, monkeypatched os.environ, dry-run only, never executing anything but `true`/`echo`): (a) WT=`x\" --flag \"y` in `git -C \"$WT\" status -sb` -> argv is exactly `['git','-C','x\" --flag \"y','status','-sb']` (3 user tokens + 2), no extra flag; (b) a value carrying `| sh` -> ONE argv token containing the pipe, no second stage, and the operator refusal does NOT fire on it (it is data now) -- the run executes `git -C '<that>' status -sb` which git refuses as a bad path, exit != 0, recorded; (c) a refusal message whose words are all >= 4 chars and none inside any env value survives byte-identical through `_scrub_injected_refusal`; (d) a message carrying a 12-char fragment of $HOME is redacted as today; (e) the record's `cmd` still shows `$WT` literal. FALSIFIER: an env value that adds an argv element or a stage to an allowlisted producer, or an innocent refusal reduced to the bare redaction trailer. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/rotate.py (`_resolve_shell_vars` / the :4699-4720 expansion+re-judge block / `_scrub_injected_refusal`) + extensions/agi/tests/test_rotate_startup.py. SERIAL on rotate.py behind hypothesis:harvest-table-subcommand (L4.236) and on test_rotate_startup.py behind hypothesis:l4-a-test-of-live-config-reads-the-live-node (L4.237)."
+title: "An env value cannot break a quoted argument: expand after shlex, per token; the refusal scrub keeps innocent words"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-an-env-value-cannot-break-a-quoted-argument
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?

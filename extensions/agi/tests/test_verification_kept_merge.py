@@ -284,6 +284,71 @@ def test_stamp_quick_stamps_fresh_even_with_no_prior_baseline(tmp_path, monkeypa
     assert state["reason"] == "explicit --stamp"
 
 
+# --- L4.190 edges: --stamp never writes on a drop or a missing count -------
+
+
+def test_stamp_with_fresh_count_below_baseline_fails_never_writes(tmp_path, monkeypatch):
+    """(edge a) `--stamp` with a fresh smoke count whose active is BELOW the
+    recorded baseline -> node-count FAIL and the state file is byte-identical
+    afterwards. Explicit --stamp is an OVERRIDE on stamping context, never a
+    waiver of the never-lower guard: a drop must fail and write nothing, even
+    under an explicit stamp."""
+
+    def fake_run(groot, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(
+                name, "PASS", 0.0,
+                number={"active": 1700, "deprecated": 190, "total": 1890})
+        return verification.CheckResult(name, "PASS", 0.0)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    root = _init_fixture(tmp_path)
+    groot = root / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    state_path = groot / "sessions" / verification.STATE_FILE
+    prior = {"active": 1712, "deprecated": 196, "total": 1908,
+             "sha": "prior", "stamped_at": 1, "reason": "kept"}
+    state_path.write_text(json.dumps(prior))
+    before = state_path.read_bytes()
+    results = verification.run_level(groot, "quick", suite=False, verbose=False,
+                                     stamp=True)
+    nc = next((r for r in results if r.name == "node-count"), None)
+    assert nc is not None, "--stamp must emit a node-count check even on quick"
+    assert nc.status == "FAIL", nc.note
+    assert "below baseline=1712" in nc.note
+    assert state_path.read_bytes() == before, (
+        "a FAILING --stamp must not write the state file")
+
+
+def test_stamp_with_no_smoke_number_skips_and_never_writes(tmp_path, monkeypatch):
+    """(edge b) `--stamp` where the forced smoke round reports NO number ->
+    node-count SKIP and the state file is byte-identical afterwards. A stamp
+    is never a silent write of nothing: with no measured count there is
+    nothing to record, so the baseline is left exactly as it was."""
+
+    def fake_run(groot, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(name, "PASS", 0.0, None)  # no number
+        return verification.CheckResult(name, "PASS", 0.0)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    root = _init_fixture(tmp_path)
+    groot = root / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    state_path = groot / "sessions" / verification.STATE_FILE
+    prior = {"active": 1712, "deprecated": 196, "total": 1908,
+             "sha": "prior", "stamped_at": 1, "reason": "kept"}
+    state_path.write_text(json.dumps(prior))
+    before = state_path.read_bytes()
+    results = verification.run_level(groot, "quick", suite=False, verbose=False,
+                                     stamp=True)
+    nc = next((r for r in results if r.name == "node-count"), None)
+    assert nc is not None, "--stamp must emit a node-count check even on quick"
+    assert nc.status == "SKIP", nc.note
+    assert state_path.read_bytes() == before, (
+        "a SKIP with no number must not touch the state file")
+
+
 # --- old 3-key state files still read --------------------------------------
 
 

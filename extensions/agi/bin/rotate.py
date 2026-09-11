@@ -1544,6 +1544,36 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
+def _record_is_terminal(path) -> bool:
+    """True when the rotation record has a present s12_self_reap section —
+    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
+    that does not parse is not terminal."""
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    return isinstance(doc.get("s12_self_reap"), dict)
+
+
+def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+    """Poll `path` at a <=2s interval until its s12_self_reap section is
+    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
+    When the record is already terminal on the first read it returns True
+    immediately — never sleeps past an already-terminal record."""
+    deadline = time.monotonic() + max(0, wait)
+    last = ""
+    while True:
+        try:
+            last = Path(path).read_text(encoding="utf-8")
+        except OSError:
+            last = ""
+        if _record_is_terminal(path):
+            return True, last
+        if time.monotonic() >= deadline:
+            return False, last
+        time.sleep(min(2.0, max(0.05, deadline - time.monotonic())))
+
+
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in sessions whose name starts with agi-master or
     belam; with `--seats`, list the registry seats instead — one line per
@@ -1571,8 +1601,21 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         if not files:
             print(f"(no rotation record for {seat})")
         else:
+            latest = files[-1]
+            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
+            # `--wait N` re-reads the latest record until its s12_self_reap
+            # section is terminal, or N seconds elapse. A caller that needs
+            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
+            wait = int(getattr(args, "wait", 0) or 0)
+            if wait > 0:
+                terminal, last_txt = _poll_record_terminal(latest, wait)
+                if not terminal:
+                    print(f"# latest rotation record: {latest.name}")
+                    print(last_txt, end="")
+                    print(f"ERR: still not terminal after {wait}s",
+                          file=sys.stderr)
+                    return 2
             try:
-                latest = files[-1]
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
             except OSError as exc:
@@ -3918,7 +3961,40 @@ DEFAULT_STARTUP_BYTE_CAP = 4000
 #: against _STARTUP_FILTERS below.
 DEFAULT_STARTUP_ALLOW = {"python", "python3", "git", "tmux", "ps", "curl"}
 
-_GIT_READONLY_SUBCMDS = {"status", "log", "diff"}
+#: Per-subcommand ALLOWLIST over the git producing judge's arguments
+#: (hypothesis:l4-a-producing-git-stage-is-argument-restricted). A git first
+#: stage used to be accepted on the READONLY SUBCMD name alone, so its
+#: ARGUMENTS never reached the judge: `git log -p -- .env` printed a tracked
+#: file's contents into the rotation record and the successor's STARTUP
+#: OUTPUT, `git log --output=FILE` (or `git diff --output=FILE`) wrote a file,
+#: and `git -c core.pager=<cmd> log` / `--exec-path` ran a program. Now a git
+#: stage is an ALLOWLIST PARSER over subcommand AND arguments, in the same
+#: spirit as _filter_arg_refusal: `-C <path>` is the one value-taking global
+#: option (consumed before the subcommand), then every token is judged against
+#: the subcommand's sets below. Each entry is (allowed short-FLAG letters,
+#: allowed `--long` forms, allow-bare-`-N`), where the bare `-N` slot is the
+#: log count (`git log --oneline -5`). Nothing else — `-p`/`--patch` (dumps
+#: file contents), `--output` (writes a file), `-c`/`--exec-path` (runs a
+#: program), `-- <pathspec>` (reads a named path), or any token containing
+#: `$`/backtick/`~` — is ever on a set, so each falls through to the NAMED
+#: refusal `producer git <token> not on the allowlist`.
+#:
+#: Each row is a 4-tuple (allowed short-FLAG letters, allowed `--long` forms,
+#: allow-bare-`-N`, REQUIRED `--long` forms). `fetch` is NOT on the allowlist
+#: at all (hypothesis:l4-the-git-allowlist-has-no-network-write): a bare `git
+#: fetch` is a NETWORK WRITE (it advances remote-tracking refs) and no
+#: rotation template uses it, so it falls through to `producer git fetch not
+#: on the allowlist`. `diff` REQUIRES `--stat`: a bare `git diff` would print
+#: the working-tree PATCH into the record and the successor's STARTUP OUTPUT,
+#: so a `diff` whose args never name `--stat` is refused even though the flag
+#: itself is allowed.
+_GIT_ALLOW = {
+    "status":    (frozenset("sb"), frozenset(), False, frozenset()),
+    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True, frozenset()),
+    "diff":      (frozenset(), frozenset(("--stat",)), False, frozenset(("--stat",))),
+    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False, frozenset()),
+    "branch":    (frozenset(), frozenset(("--show-current",)), False, frozenset()),
+}
 _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
                           "display-message"}
 
@@ -3927,6 +4003,228 @@ _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
 #: reach the box on their own.
 _STARTUP_FILTERS = {"head", "tail", "sed", "grep", "egrep", "cat", "echo",
                     "cut", "sort", "wc", "tr", "awk", "uniq"}
+
+#: Refused FILTER-STAGE argument classes (hypothesis:l4-a-filter-stage-is-
+#: argument-restricted). A post-`|` stdio filter used to be skipped by
+#: executable NAME alone, so its ARGUMENTS never reached the judge:
+#: `| sort -o M` wrote a file, `| head -1 /etc/hostname` read a path into the
+#: startup output, and `| awk BEGIN{system(...)}` executed a program body. Now
+#: a filter stage is judged too, on the SAME strict standard a producing
+#: command is: no argument token may name a path (contain `/`), no argument
+#: may be a file-writing/redirecting option (`-o`/`-w`/`-i`/`--output`/`-f`,
+#: which for sed/grep/sort/cut name an output file or in-place write), awk is
+#: refused outright (its program body can reach `system`/`getline`/`>`/`|`),
+#: and sed's `-i` (in-place write) / bare `e` (execute) program forms are
+#: refused. Any refused argument is a NAMED refusal (`filter <exe> <arg>`)
+#: before anything runs.
+#:
+#: The refusal is PER-TOOL, not blanket (hypothesis:l4-a-filter-stage-is-
+#: argument-restricted, counter-example fix): an option is refused only where
+#: it already NAMES a file/in-place write/execute for that executable. The
+#: earlier blanket list (`-o -w -i --output -f` on EVERY filter) over-refused
+#: benign stdio flags — `sort -f` (fold case), `cut -f1` (fields), `grep -i`
+#: (ignore case), `uniq -w` (compare width) are all benign and MUST run. Only
+#: sort (`-o`/`--output` output file), sed (`-i` in-place) and grep/egrep
+#: (`-f`/`--file` pattern file) carry a real file option; every other filter
+#: (head/tail/tr/wc/cat/echo/cut/uniq) is governed ONLY by the path rule.
+#: The post-`|` stdio-filter judge is an ALLOWLIST PARSER, not a denylist
+#: (hypothesis:l4-a-filter-stage-is-argument-restricted, goal:g17.1 ruling
+#: merge-up 33: a denylist of known-bad options is the WRONG mechanism for a
+#: security judge — it cannot keep up with the option space, and every miss is
+#: a leak). A filter stage is (exe, tokens); SHORT-OPTION CLUSTERS are expanded
+#: character by character (`-ni` = `-n -i`, `-if` = `-i -f`); a value-taking
+#: option consumes exactly its value (attached `-c1-80` or a separate next
+#: token); every option must be in the exe's ALLOWED set; each positional is
+#: governed by COUNT and SHAPE. Anything else — an unlisted short letter, an
+#: unlisted `--long`, an extra/odd positional, a token containing
+#: `$`/`${`/backtick/`~` — is refused as `filter <exe> <token> not on the
+#: allowlist`. awk is refused outright; a pipe-fed exe that is not a modeled
+#: filter is refused as `filter <exe>` (a first_turn pipeline has no reason to
+#: pipe into a producer, closing `| git log -p -- .env` without touching the
+#: git allowlist).
+
+#: {exe: (allowed short FLAGS [no value], allowed VALUE-TAKING short letters)}
+_FILTER_ALLOW = {
+    "head": (frozenset(), frozenset("nc")),
+    "tail": (frozenset(), frozenset("nc")),
+    "grep": (frozenset("civnowxEFh"), frozenset("mABCe")),
+    "egrep": (frozenset("civnowxEFh"), frozenset("mABCe")),
+    "sed": (frozenset("nEr"), frozenset()),
+    "cut": (frozenset("s"), frozenset("cfd")),
+    "sort": (frozenset("nrufs"), frozenset("kt")),
+    "uniq": (frozenset("cudi"), frozenset("w")),
+    "wc": (frozenset("lwcm"), frozenset()),
+    "tr": (frozenset("dsc"), frozenset()),
+    "cat": (frozenset("nAs"), frozenset()),
+    "echo": (frozenset("n"), frozenset()),
+}
+
+#: max free POSITIONALS per exe (grep/egrep the PATTERN, sed the PROGRAM;
+#: a second on either is a FILE operand). tr allows up to two SETS; echo's
+#: positionals are free (below).
+_FILTER_POS_MAX = {
+    "head": 0, "tail": 0, "grep": 1, "egrep": 1, "sed": 1,
+    "cut": 0, "sort": 0, "uniq": 0, "wc": 0, "cat": 0, "echo": 0,
+}
+
+#: tr takes up to TWO SET positionals (`tr a-z A-Z`); a third is a refusal.
+_FILTER_TR_SETS = 2
+
+#: Substrings that make an echo positional a leak (it would otherwise print an
+#: env value into the record/output) and are therefore refused outright.
+_FILTER_FORBIDDEN = ("$", "`", "~")
+
+#: head/tail accept a bare numeric option `-N` (`head -5`); the digit-run form
+#: is its own allowlist slot.
+_NUM_OPT_RE = re.compile(r"^-\d+$")
+
+#: sed program GRAMMAR allowlist. A program is split on `;`; every command must
+#: be a substitute `s` (delimiter d, three fields, flags g/I/p/[0-9]) or an
+#: address command (`A`, `A,B`, `/re/`, `$`, optional, then one of p/d/q/!d).
+#: Anything else — any `e`/`w`/`r`/`R`/`W` command, a `{`, a `:label`, a `b` —
+#: is refused as `filter sed program`, because sed commands can read (`r`),
+#: write (`w`), or execute (`e`) files/shell.
+_SED_SUB_RE = re.compile(
+    # substitute `s`. The delimiter must be a punctuation SEPARATOR — not a
+    # flag char, not alphanumeric, not backslash — so a flag char can never
+    # be mistaken for a delimiter (under the old lazy `(.*?)` grammar
+    # `sgxgygeg`/`s0x0y0e0` let a delimiter that was itself a legal flag char
+    # absorb an `e`/`w` into the flags field). Each field is anchored to
+    # never contain a bare delimiter (an escaped `\.` pair is allowed, so
+    # `s/a\/b/c/g` still passes), and flags stay limited to `[gIp0-9]*`.
+    r"^s([^gIp0-9a-zA-Z\\])"
+    r"(?:(?:\\.)|(?!\1).)*\1"
+    r"(?:(?:\\.)|(?!\1).)*\1"
+    r"([gIp0-9]*)$", re.S)
+_SED_ADDR_RE = re.compile(
+    r"^(?:(?:\d+|\$|/(?:\\.|[^/\\])*/)"
+    r"(?:,(?:\d+|\$|/(?:\\.|[^/\\])*/))?)?"
+    r"(p|d|q|!d)$", re.S)
+
+
+#: Env VARs refused UNCONDITIONALLY in a first_turn `VAR=value` prefix, even
+#: when a template declares them on `startup.env_allow` (hypothesis:l4-a-
+#: filter-stage-is-argument-restricted, FOLD). PATH and PYTHONPATH steer which
+#: binary the executor finds; LD_* subverts a running binary's loader. A
+#: template author adding `env_allow: [PATH]` out of convenience must still
+#: not be able to redirect binary lookup, so these are refused no matter what
+#: the allowlist says, not only by their absence from it.
+_FOLD_ENV = ("PATH", "PYTHONPATH")
+
+
+def _sed_program_allowed(program: str) -> bool:
+    """True iff every `;`-separated command of `program` matches the sed
+    grammar allowlist (substitute `s`, or `A`/`A,B`/`/re/`/`$` address + one of
+    p/d/q/!d). Any `e`/`w`/`r`/`R`/`W` command, brace, label, `b`, `=` or
+    other form is refused."""
+    for cmd in program.split(";"):
+        cmd = cmd.strip()
+        if not cmd:
+            continue
+        if not (_SED_SUB_RE.match(cmd) or _SED_ADDR_RE.match(cmd)):
+            return False
+    return True
+
+
+def _filter_arg_refusal(exe: str, args: list) -> str | None:
+    """Return a one-line NAMED refusal for a post-`|` stdio filter stage, or
+    None if the stage is on the allowlist. ALLOWLIST PARSER (goal:g17.1
+    ruling, merge-up 33): short-option clusters expand char by char, a
+    value-taking option consumes its value, every option must be in the exe's
+    ALLOWED set, positionals are governed by COUNT and SHAPE. Anything else is
+    refused as `filter <exe> <token> not on the allowlist`; awk outright as
+    `filter awk`; an unmodeled exe as `filter <exe>`.
+    """
+    if exe == "awk":
+        # a program body can reach system/getline/`>`/`|`; refused outright
+        return "filter awk"
+    if exe not in _FILTER_ALLOW:
+        # a pipe-fed stage that is not a modeled filter — never a producer
+        return f"filter {exe}"
+    flags, valueopts = _FILTER_ALLOW[exe]
+    if exe == "tr":
+        pos_max = _FILTER_TR_SETS
+    else:
+        pos_max = _FILTER_POS_MAX[exe]
+    pos = 0
+    # grep/egrep: once the PATTERN has been supplied by `-e`, the free-
+    # positional budget drops to ZERO — a further non-option token is a FILE
+    # operand (`grep -e x .env` reads .env), not a second pattern.
+    pattern_supplied = False
+    i = 0
+    while i < len(args):
+        tok = args[i]
+        # EVERY token of EVERY filter stage — options, option values and
+        # positionals alike. A `$`, backtick or `~` anywhere is refused:
+        # `_resolve_shell_vars` expands `$VAR` from the whole environment at
+        # exec time even inside single quotes, so `sed 's/x/$SECRET/'`,
+        # `grep '$SECRET'` (a match oracle) and `tr abcdef "$SECRET"` (a
+        # mapping) would otherwise leak or map an env value into the record
+        # and the successor's STARTUP OUTPUT. A `~` is a path homing/
+        # tilde-expansion vector. Nothing legitimate is lost: a sed `$p`
+        # address or grep `x$` anchor already fails at exec time (`first
+        # turn env var $p is not set`).
+        for bad in _FILTER_FORBIDDEN:
+            if bad in tok:
+                return f"filter {exe} {tok} not on the allowlist"
+        if not tok.startswith("-"):
+            # a POSITIONAL, governed by count and shape
+            if exe == "echo":
+                # echo positionals are FREE (forbidden chars already swept
+                # above) — the value prints back to the record verbatim.
+                i += 1
+                continue
+            if exe in ("grep", "egrep") and pattern_supplied:
+                return f"filter {exe} {tok} not on the allowlist"
+            if pos >= pos_max:
+                return f"filter {exe} {tok} not on the allowlist"
+            pos += 1
+            if exe == "sed" and not _sed_program_allowed(tok):
+                # the program positional is the whole gate; a bad program is
+                # refused with its grammar name, not the generic allowlist msg
+                return "filter sed program"
+            i += 1
+            continue
+        if tok.startswith("--"):
+            # no `--long` form is on any filter's ALLOWED set
+            return f"filter {exe} {tok} not on the allowlist"
+        if exe in ("head", "tail") and _NUM_OPT_RE.match(tok):
+            i += 1                  # bare `-N` form (`head -5`)
+            continue
+        # SHORT-OPTION CLUSTER: expand char by char; a value-taking letter
+        # consumes the rest of the cluster (attached) or the next token.
+        body = tok[1:]
+        j = 0
+        skip = 1                    # tokens past this one the cluster consumes
+        while j < len(body):
+            ch = body[j]
+            if ch in valueopts:
+                if ch == "e" and exe in ("grep", "egrep"):
+                    pattern_supplied = True    # `-e PAT` IS the pattern
+                if body[j + 1:]:
+                    j = len(body)  # attached value `-c1-80` / `-m3`
+                elif i + 1 < len(args):
+                    # a separate-token value `-n 5` consumed via skip; the
+                    # outer loop never re-visits it, so sweep it for
+                    # forbidden chars HERE, exactly like the option token, or
+                    # `-e $SECRET` would expand the env value at exec time.
+                    val_tok = args[i + 1]
+                    for bad in _FILTER_FORBIDDEN:
+                        if bad in val_tok:
+                            return (f"filter {exe} {val_tok} "
+                                    "not on the allowlist")
+                    skip = 2        # separate value `-n 5` consumed
+                    j = len(body)
+                else:
+                    return f"filter {exe} -{ch} not on the allowlist"
+            elif ch in flags:
+                j += 1
+            else:
+                return f"filter {exe} -{ch} not on the allowlist"
+        i += skip
+    return None
+
+
 
 #: Shell operators a first_turn command may NOT contain. `|` and `;` ARE
 #: modeled (the no-shell executor wires pipelines and sequential commands
@@ -4114,6 +4412,71 @@ def _segment_parts(command: str) -> list:
     return parts
 
 
+def _git_arg_refusal(args: list) -> str | None:
+    """Return a one-line NAMED refusal for a unit-leading git stage, or None
+    if (subcommand, args) is on the allowlist (hypothesis:l4-a-producing-git-
+    stage-is-argument-restricted). ALLOWLIST PARSER, same spirit as
+    _filter_arg_refusal: `-C <path>` (git's global workdir option) is the one
+    value-taking option, consumed before the subcommand; then every token is
+    judged against the subcommand's allowed short-FLAG letters, `--long`
+    forms, and (for log) the bare `-N` count. A `--` pathspec separator, a
+    `$`/backtick/`~` anywhere, and any off-allowlist option fall through to
+    the same NAMED `producer git <token> not on the allowlist` refusal.
+    """
+    i = 0
+    while i + 1 < len(args) and args[i] == "-C":
+        val = args[i + 1]
+        for bad in ("$", "`", "~"):
+            if bad in val:
+                return f"producer git {val} not on the allowlist"
+        i += 2                      # consume git's global `-C <path>`
+    if i >= len(args):
+        return "producer git"
+    sub = args[i]
+    allow = _GIT_ALLOW.get(sub)
+    if allow is None:
+        return ("producer git " + " ".join(args)).strip()
+    flags, longs, numeric, requires = allow
+    i += 1
+    pos = 0
+    seen = set()
+    while i < len(args):
+        tok = args[i]
+        for bad in ("$", "`", "~"):
+            if bad in tok:
+                return f"producer git {tok} not on the allowlist"
+        if tok == "--":
+            return f"producer git {tok} not on the allowlist"
+        if not tok.startswith("-"):
+            # a positional; only rev-parse takes HEAD (and once)
+            if sub == "rev-parse" and pos == 0 and tok == "HEAD":
+                pos += 1
+                i += 1
+                continue
+            return f"producer git {tok} not on the allowlist"
+        if tok.startswith("--"):
+            base = tok.split("=", 1)[0]
+            if base not in longs:
+                return f"producer git {base} not on the allowlist"
+            seen.add(base)
+            i += 1
+            continue
+        if numeric and _NUM_OPT_RE.match(tok):
+            i += 1                  # log's bare `-N` count
+            continue
+        # short-option cluster; every letter must be an allowed flag
+        for ch in tok[1:]:
+            if ch not in flags:
+                return f"producer git {tok} not on the allowlist"
+        i += 1
+    for req in requires:
+        if req not in seen:
+            # a REQUIRED --long form never appeared (diff without --stat would
+            # print the working-tree patch) — refuse the subcommand by name
+            return f"producer git {sub} {req} required"
+    return None
+
+
 def _producing_refusal(command: str) -> str | None:
     """Return a one-line refusal (naming the executable/verb) if ANY producing
     pipeline part of `command` is not on the startup allowlist, else None.
@@ -4128,43 +4491,70 @@ def _producing_refusal(command: str) -> str | None:
     if op:
         return op
     try:
-        parts = _segment_parts(command)
+        units = _startup_units(command)
     except _StartupParseError as exc:
         # Never raise out of the guard: an unparseable command (unbalanced
         # quote, trailing backslash, ...) is a NAMED refusal, not a crash of
         # rotate-self.
         return "unparseable command: %s" % exc
-    for idx, toks in enumerate(parts):
-        if not toks:
-            continue
-        exe = os.path.basename(toks[0])
-        args = toks[1:]
-        if idx > 0 and exe in _STARTUP_FILTERS:
-            continue  # a post-`|` stdio filter, not a producing command
-        if exe == "ps":
-            continue
-        if exe in ("python", "python3"):
-            script = args[0] if args else ""
-            if not (script.endswith(".py")
-                    and ("extensions/" in script or "/bin/" in script)):
-                return f"{exe} {script}".strip()
-            continue
-        if exe == "git":
-            sub = next((a for a in args if a in _GIT_READONLY_SUBCMDS), None)
-            if sub is None:
-                return ("git " + " ".join(args)).strip()
-            continue
-        if exe == "tmux":
-            sub = args[0] if args else ""
-            if sub not in _TMUX_READONLY_SUBCMDS:
-                return ("tmux " + " ".join(args)).strip()
-            continue
-        if exe == "curl":
-            joined = " ".join(toks)
-            if "openrouter.ai" in joined and "credits" in joined:
+    for unit in units:
+        for stageno, stage in enumerate(unit):
+            toks = stage[:]
+            i = 0
+            while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
+                i += 1
+            toks = toks[i:]
+            if not toks:
                 continue
-            return ("curl " + " ".join(args)).strip()
-        return (exe + " " + " ".join(args)).strip()
+            raw_exe = toks[0]
+            if "/" in raw_exe:
+                # a path-form exe token (any `/`, incl. `/tmp/x/head`, `./head`)
+                # is judged BY NAME, not by basename — basename would silently
+                # allow an off-allowlist binary behind a path. This holds for
+                # unit-leading producers AND pipe-fed filter stages alike
+                # (hypothesis:l4-a-filter-exe-is-judged-by-path-and-a-sed-
+                # grammar-anchors-its-fields).
+                return f"producer {raw_exe} is a path, not an allowlisted name"
+            exe = raw_exe
+            args = toks[1:]
+            if stageno > 0:
+                # a PIPE-FED stage: must be a stdio filter, judged on its
+                # ARGUMENTS (hypothesis:l4-a-filter-stage-is-argument-
+                # restricted) — no off-allowlist option, no positionals.
+                if exe in _STARTUP_FILTERS:
+                    fret = _filter_arg_refusal(exe, args)
+                    if fret:
+                        return fret
+                    continue
+                # a pipe-fed PRODUCER (git/python3/ps/...) has no reason to
+                # appear mid-pipeline; refused by name (closes
+                # `| git log -p -- .env` without touching the git allowlist).
+                return f"filter {exe}"
+            # unit-leading PRODUCER, on the strict allowlist
+            if exe == "ps":
+                continue
+            if exe in ("python", "python3"):
+                script = args[0] if args else ""
+                if not (script.endswith(".py")
+                        and ("extensions/" in script or "/bin/" in script)):
+                    return f"{exe} {script}".strip()
+                continue
+            if exe == "git":
+                gref = _git_arg_refusal(args)
+                if gref:
+                    return gref
+                continue
+            if exe == "tmux":
+                sub = args[0] if args else ""
+                if sub not in _TMUX_READONLY_SUBCMDS:
+                    return ("tmux " + " ".join(args)).strip()
+                continue
+            if exe == "curl":
+                joined = " ".join(toks)
+                if "openrouter.ai" in joined and "credits" in joined:
+                    continue
+                return ("curl " + " ".join(args)).strip()
+            return (exe + " " + " ".join(args)).strip()
     return None
 
 
@@ -4190,11 +4580,55 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
             for t in stage:
                 if "=" in t and not t.startswith("-"):
                     var = t.partition("=")[0]
+                    if var in _FOLD_ENV or var.startswith("LD_"):
+                        return f"env prefix {var} refused unconditionally"
                     if var not in allow:
                         return f"env prefix {var} not on startup.env_allow"
                 else:
                     break
     return None
+
+
+_REFUSAL_REDACT = "<expanded value redacted>"
+
+
+def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
+    """Rebuild a RE-JUDGE refusal message so no fragment of an env VALUE
+    survives into it. The re-judge (`_producing_refusal` / `_env_prefix_refusal`
+    on the env-EXPANDED `exec_cmd`) must run on the expanded form to SEE an
+    injected stage, but the record keeps every `$VAR` literal (fix b), so a
+    word of `message` that (a) is a substring of some expanded env value and
+    (b) is absent verbatim from the literal `record_cmd` is an ENV-INJECTED
+    fragment — a secret-shaped word the value carried. It is dropped and the
+    record's literal `$VAR` names are appended, so the refusal names its
+    source without ever echoing the value. A word present in `record_cmd`
+    (template text, boilerplate, a genuinely-spelled stage) is kept; a message
+    naming no env value at all is returned unchanged (placeholder-injected
+    content already lives in `record_cmd` by design — only ENV vars stay
+    literal). This is the FALSIFIER guard of hypothesis:l4-the-refusal-names-
+    the-record-stage-not-the-expanded-tokens: a refusal never contains a
+    substring of an env value that is not in record_cmd."""
+    sources = []
+    for m in _SHELL_VAR_RE.finditer(record_cmd):
+        name = m.group(1) or m.group(2)
+        val = os.environ.get(name)
+        if val is None:
+            continue
+        sources.append((name, val))
+    if not sources:
+        return message
+    kept, redacted_any = [], False
+    for tok in message.split():
+        if any(tok in val for _, val in sources) and tok not in record_cmd:
+            redacted_any = True      # an injected value fragment: drop it
+            continue
+        kept.append(tok)
+    if not redacted_any:
+        return message
+    names = ", ".join("$" + n for n, _ in sources)
+    label = " ".join(kept).strip()
+    trailer = f"{_REFUSAL_REDACT} (expanded from {names})"
+    return f"{label} {trailer}" if label else trailer
 
 
 def _resolve_startup_placeholders(command: str, values: dict, *,
@@ -4286,12 +4720,15 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
         if exec_env_refusal:
             results.append({"label": label, "cmd": record_cmd,
-                            "refused": exec_env_refusal})
+                            "refused": _scrub_injected_refusal(
+                                exec_env_refusal, record_cmd)})
             continue
         exec_refusal = _producing_refusal(exec_cmd)
         if exec_refusal:
             results.append({"label": label, "cmd": record_cmd,
-                            "refused": f"not on startup.allow: {exec_refusal}"})
+                            "refused": "not on startup.allow: "
+                                       + _scrub_injected_refusal(
+                                           exec_refusal, record_cmd)})
             continue
         # Unmodeled-operator check stays: an operator `_producing_refusal`
         # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
@@ -5494,6 +5931,13 @@ def main(argv: list[str] | None = None) -> int:
                           help="print the LATEST durable rotation record for "
                                "--seat, plus the current sequence and the "
                                "seat's own row (read-only)")
+    p_status.add_argument("--wait", type=int, default=0,
+                          help="with --record latest: re-read the latest "
+                               "record at a <=2s interval until its "
+                               "s12_self_reap section is present (terminal) "
+                               "or N seconds elapse. On success print the "
+                               "normal output; on timeout print the last-seen "
+                               "record, ERR and exit 2.")
     p_status.set_defaults(func=cmd_status)
 
     # seq: print the current rotation-alert sequence number (one read)

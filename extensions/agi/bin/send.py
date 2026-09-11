@@ -440,7 +440,7 @@ _NUDGE_INBOX_TAIL = " (+unread inbox, read {seat})"
 
 
 def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
-                trailing: str = "") -> str:
+                trailing: str = "") -> str | None:
     """The inline pane line for a dm nudge (hypothesis:l4-the-nudge-carries-\
     the-dm-body-inline): `[nudge: <from>]: <body>`. The body is FLATTENED
     to one line (newlines -> ` / `) and, if the delivered line would exceed
@@ -449,7 +449,14 @@ def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
     `trailing` (e.g. the `(+unread inbox, read <seat>)` deferred-delivery
     tail) is appended and counted INSIDE the `_NUDGE_LINE_MAX` budget, so no
     delivery path emits a line longer than the cap. The body STILL lands in
-    the dm file (the record); this line is delivery."""
+    the dm file (the record); this line is delivery.
+
+    Returns None when NO tail leaves room for at least one body character --
+    a pathological sender/seat whose `prefix` alone eats the whole
+    `_NUDGE_LINE_MAX` budget (hypothesis:l4-ownership-matches-the-rendered-
+    line-and-zero-body-retreats). The caller DEFERS the dm instead of typing
+    a zero-body line (prefix + tails only): zero-body delivery is
+    unreachable. None is unobservable in the declared seat/sender range."""
     flat = " / ".join(p.strip() for p in body.splitlines() if p.strip())
     if not flat:
         flat = body
@@ -472,12 +479,17 @@ def _nudge_line(seat: str, sender: str, body: str, more: int = 0,
                  trunc,                   # then shorten the trunc tail: drop +N more
                  ""):                     # drop every tail
         keep = _NUDGE_LINE_MAX - len(prefix) - len(tail)
-        if keep >= 0:
+        if keep >= 1:
+            # a body must keep at least ONE character -- keep == 0 would
+            # emit a zero-body line (prefix + tails only), which carries no
+            # dm; retreat to a leaner tail instead. Zero-body delivery is
+            # unreachable (hypothesis:l4-ownership-matches-the-rendered-line-
+            # and-zero-body-retreats).
             return prefix + flat[:keep].rstrip() + tail
-    # Unreachable in the declared seat/sender range (`prefix` alone fits),
-    # but floor at 0 so a pathological sender never yields a long slice.
-    keep = max(0, _NUDGE_LINE_MAX - len(prefix))
-    return prefix + flat[:keep].rstrip()
+    # No tail leaves room for a single body character (pathological
+    # sender/seat). Refuse the line: the caller defers, never emits a
+    # zero-body delivery (not reached in the declared seat/sender range).
+    return None
 
 
 def _nudge_token_head(token: str) -> str:
@@ -590,6 +602,26 @@ def _read_deferred(root: Path, seat: str) -> dict | None:
     return None
 
 
+def _record_deferred_render(root: Path, seat: str, more: int) -> None:
+    """Persist the `(+N more)` count a deferred delivery rendered its
+    inline line with (hypothesis:l4-deferred-ownership-uses-the-rendered-
+    count). A stranded line left by a PRIOR deferred delivery was typed
+    with the count at ITS render time, so a later retry must judge
+    ownership against THAT count, not the (changed) current pending --
+    otherwise a short body whose `(+N more)` tail moved between attempts
+    reads as foreign and the deferred body is delivered TWICE. Best-effort,
+    never raises; a record with no prior render simply stays without the
+    key and the caller falls back to the current count."""
+    try:
+        d = _read_deferred(root, seat)
+        if d is None:
+            return
+        d["more"] = more
+        _nudge_deferred_path(root, seat).write_text(json.dumps(d))
+    except OSError:
+        pass
+
+
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
     same batch is COUNTED (pending), never overwrites the first. Returns
@@ -645,9 +677,15 @@ def _capture_pane(tmux_session: str, target: str) -> str | None:
     Read-only on purpose: the busy/idle measurement never mutates the pane,
     and a test that reaches a real pane is the falsifier — the suite's tmux
     guard routes every tmux call to a fake.
+
+    `-J` (tmux 3.1+): JOIN soft-wrapped lines, so a line the box wrapped
+    across display rows comes back as ONE row and the ownership region
+    carries no soft-wrap at all (hypothesis:l4-rendered-line-ownership-
+    tolerates-the-wrap). `_region_join_wrap` stays the fallback for a
+    region captured WITHOUT `-J`.
     """
     try:
-        cp = subprocess.run(["tmux", "capture-pane", "-p", "-t", target],
+        cp = subprocess.run(["tmux", "capture-pane", "-p", "-J", "-t", target],
                             capture_output=True, text=True, timeout=5)
         if cp.returncode != 0:
             return None
@@ -687,6 +725,50 @@ def _input_region(pane: str | None) -> str:
         if "\u276f" in lines[i]:
             return "\n".join(lines[i:])
     return pane or ""
+
+
+def _region_join_wrap(region: str) -> list[str]:
+    """Two candidate reconstructions of the input region with any tmux
+    SOFT-WRAP collapsed. The box splits a line wider than the pane across
+    display rows (the measured sanctuary-director pane is 104 columns; the
+    test fixture pane is 80), so a `own_line in region` membership test reads
+    OUR OWN wrapped stranded line as FOREIGN -- the `\n` tmux inserts at the
+    wrap column breaks the substring mid-line and the own line is re-deferred
+    forever (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap).
+    Collapse the display rows back toward one logical line: strip each row's
+    trailing whitespace, strip the first row's prompt glyph and leading
+    whitespace, strip every other row's leading box/continuation whitespace.
+    The box DROPS the whitespace at a WORD-boundary wrap (the break's space
+    is consumed), so a word-wrapped line reconstructs by joining the rows
+    with ONE SPACE; a CELL wrap in the MIDDLE of a word leaves no whitespace
+    at the break, so it reconstructs only by joining with NOTHING. Try BOTH
+    joins and return both reconstructions (deduplicated); a membership test
+    accepts the line if it sits in EITHER, so both a word wrap and a real
+    tmux cell wrap are recognised. A line that did not wrap yields the same
+    row for both (the prompt glyph aside). This is the fallback for a region
+    captured WITHOUT `-J`; the live capture passes `-J` and carries no
+    soft-wrap at all. A multi-logical-line region is joined too; acceptable,
+    because ownership only asks whether our rendered line's characters, in
+    order, sit in the box, and the rendered line carries the `[nudge:
+    <sender>]:` head that discriminates one sender's line from another's
+    (clause (a) still holds: a DIFFERENT body's line does not share our
+    body's characters)."""
+    rows: list = []
+    for i, raw in enumerate((region or "").splitlines()):
+        ln = raw.rstrip()
+        if i == 0:
+            # the prompt glyph heads the first row of the input box
+            ln = ln.lstrip().lstrip("\u276f").lstrip()
+        else:
+            ln = ln.strip()
+        if ln:
+            rows.append(ln)
+    candidates: list = []
+    for join in (" ", ""):
+        joined = join.join(rows)
+        if joined not in candidates:
+            candidates.append(joined)
+    return candidates
 
 
 def _nudge_coalesce_reason(pane: str | None, token: str,
@@ -792,8 +874,28 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         d_body = deferred.get("body") or ""
         text = _nudge_line(to, d_sender, d_body, more,
                            trailing=_NUDGE_INBOX_TAIL.format(seat=to))
+        # The render count is NOT recorded here. It is recorded only after
+        # the line is actually TYPED into the pane (below), so a render that
+        # never reaches the pane (coalesce-window, busy, literal-send
+        # failure, or `text is None`) must not move the stored count -- a
+        # strand left by a PRIOR delivery is judged against the count that
+        # delivery rendered with (hypothesis:l4-deferred-ownership-uses-the-
+        # rendered-count, residue: a render that does not type must not
+        # overwrite the stored count).
     else:
         text = _build_nudge_token(to)
+    if text is None:
+        # `_nudge_line` found no tail leaving room for a single body
+        # character (a pathological sender/seat whose prefix eats the whole
+        # budget): never type a zero-body line -- defer the dm for a later
+        # retry (hypothesis:l4-ownership-matches-the-rendered-line-and-zero-
+        # body-retreats). Zero-body delivery is unreachable.
+        if body is not None:
+            if not _store_deferred(root, to, sender or "unknown", body):
+                _bump_pending(root, to)
+        print("nudge: deferred (no room to render the body inline)",
+              file=sys.stderr)
+        return False
     # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
     # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
     # target: never send-keys into a name-addressed window the row was
@@ -863,8 +965,36 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # keeps the head-only match.
         body_for_match = body if body is not None else (d_body if delivering_deferred else None)
         if body_for_match is not None:
-            our_line_was_stranded = (_nudge_token_head(text) in region
-                                     and body_for_match in region)
+            # CLAUSE (d) (hypothesis:l4-ownership-matches-the-rendered-line-
+            # and-zero-body-retreats): the pane holds the RENDERED line, not
+            # the raw body. A body truncated to the cap (with a `… (read
+            # <seat>)` / `(+N more)` tail) or flattened (newlines -> ` / `)
+            # never appears verbatim in `region`, so `body_for_match in
+            # region` misread our OWN stranded line as foreign and re-deferred
+            # it forever. Compare region against the line this body RENDERS
+            # (the same _nudge_line flatten + truncation), so a truncated /
+            # flattened own line is recognised as ours and submitted with
+            # Enter only. For a DIRECT dm that line IS `text`; for a DEFERRED
+            # delivery `text` also carries the `(+unread inbox...)` tail of
+            # THIS retry, but a stranded line left by the body's earlier
+            # (deferred-under-busy) attempt has NO inbox tail -- match the
+            # no-tail render so that own line is still recognised (residue B
+            # control).
+            own_line = (text if body is not None
+                        else _nudge_line(to, d_sender, d_body,
+                                         (deferred or {}).get("more", more)))
+            # hypothesis:l4-rendered-line-ownership-tolerates-the-wrap: the
+            # box WRAPS a line wider than the pane across display rows, so
+            # `own_line in region` reads our OWN wrapped stranded line as
+            # foreign and re-defers it forever (the wrap-inserted `\n` breaks
+            # the substring). The live capture passes `-J` so a real region
+            # carries no soft-wrap; for a region captured WITHOUT `-J` the
+            # wrap is collapsed first (join the rows, drop the wrap-inserted
+            # whitespace, trying BOTH a word-boundary join and a mid-word
+            # cell join) -- then test membership, so a wrapped own line is
+            # still recognised.
+            our_line_was_stranded = any(
+                own_line in r for r in _region_join_wrap(region))
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
@@ -907,8 +1037,20 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # SEPARATE call is delivered. So: never `text Enter` in one call.
     if not _send_keys(target, text, literal=True):
         # Nothing typed; do not mark delivered, so a retry is not suppressed
-        # (F1, same rationale).
+        # (F1, same rationale). A deferred render count is NOT recorded here
+        # either: a failed literal send means the line never reached the pane
+        # and must not move the stored count.
         return False
+    if delivering_deferred:
+        # The deferred body's line is now TYPED into the pane. Record the
+        # count THIS typing rendered with, so a later retry judges the strand
+        # this delivery may leave (Should the Enter below fail) against THAT
+        # render -- not the (possibly changed) current pending, and not a
+        # count from an intervening render that never typed
+        # (hypothesis:l4-deferred-ownership-uses-the-rendered-count). The
+        # record is a no-op on every non-typing path above. A prior record
+        # with no `more` key stays, and falls back to the current count.
+        _record_deferred_render(root, to, more)
     time.sleep(_NUDGE_ENTER_DELAY_S)
     if not _send_keys(target, "Enter"):
         # The text sits unsubmitted; the next send finds it by its head and
