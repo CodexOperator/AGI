@@ -18,6 +18,8 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
+
 BIN = Path(__file__).resolve().parents[1] / "bin"
 REPO = Path(__file__).resolve().parents[3]  # .../tests/.. = repo root
 sys.path.insert(0, str(BIN))
@@ -598,12 +600,24 @@ def test_summary_byte_identical_across_harnesses():
     assert summaries[0] == summaries[1]
 
 
-def test_pi_live_run_renders_tree_through_view():
+def test_pi_live_run_renders_tree_through_view(tmp_path_factory):
     """The pi path redraws the stage tree live per event and ends with the
-    same summary shape — no more flat log lines."""
+    same summary shape — no more flat log lines. Tracking is redirected to a
+    tmp root: this NON-dry pi run (stages mocked) tracked one real row per
+    suite run from MAIN (review-16/17, merge-up 40) — the same leak L4.286
+    closed for the claude-code sibling below."""
     import subprocess as _sp
     from unittest import mock
+    import workflow as _wf
     from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        _pi_live_run_body(_sp, mock, run_workflow)
+    finally:
+        restore()
+
+
+def _pi_live_run_body(_sp, mock, run_workflow):
     # one JSON valid under BOTH review stages' schemas (extra keys allowed)
     good = ('preamble glue {"git_status": [], "links_broken": 0, "goals_check_ok": true, '
             '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
@@ -624,19 +638,36 @@ def test_pi_live_run_renders_tree_through_view():
     assert "[claude-code]" not in text and "[ok]" not in text
 
 
-def test_claude_code_path_feeds_the_same_view():
+def test_claude_code_path_feeds_the_same_view(tmp_path_factory):
+    # This test predated the tmp-path tracking seam its neighbours use and
+    # ran a NON-dry claude-code workflow against the REAL project root, so
+    # `_track_run` appended one phantom row to the production
+    # `.agi/sessions/workflows/review.jsonl` on EVERY suite run
+    # (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp). Redirect
+    # the SESSIONS resolver through the same `_tmp_session_root` seam the
+    # tracking tests below use -- never the real path.
+    import workflow as _wf
     from workflow import run_workflow
-    buf = io.StringIO()
-    rc = run_workflow(REPO / ".agi", "review", "claude-code",
-                      {"targets": [{"window": "t1"}]}, False, out=buf)
-    assert rc == 0
-    text = buf.getvalue()
-    assert "workflow review (harness=claude-code)" in text
-    assert "[·] global-checks" in text          # resolved, not executed here
-    tail = [l for l in text.splitlines()
-            if l.startswith(("[stage]", "[summary]"))]
-    assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
-    assert all("claude-code" not in l for l in tail), tail
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        text = buf.getvalue()
+        assert "workflow review (harness=claude-code)" in text
+        assert "[·] global-checks" in text      # resolved, not executed here
+        tail = [l for l in text.splitlines()
+                if l.startswith(("[stage]", "[summary]"))]
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
+        assert all("claude-code" not in l for l in tail), tail
+        # Tracking still happens, but ONLY into the throwaway seam -- one
+        # row under tmp, never the real `.agi/sessions/workflows/`.
+        lines = (tmp / "sessions" / "workflows" / "review.jsonl")\
+            .read_text(encoding="utf-8").splitlines()
+        assert len(lines) == 1, lines
+    finally:
+        restore()
 
 
 # ---------- run tracking: one row/real run, none on dry-run, never fatal ----
@@ -724,6 +755,61 @@ def test_dry_run_writes_no_row(tmp_path_factory):
             "dry-run must not create a sessions dir"
     finally:
         restore()
+
+
+# ---------- suite-wide leak guard: no row may reach the REAL sessions dir  --
+# The class of defect :630 used to be: a workflow test that runs a NON-dry
+# workflow against the real project root appends a phantom row to the
+# production `.agi/sessions/workflows/<key>.jsonl` on every suite run. The
+# per-test tmp seam fixes the known instance; this session fixture pins the
+# OUTCOME so any FUTURE test that leaks a row -- by using the wrong root, by
+# forgetting the seam, or by a new non-dry path -- is red at session end
+# (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp).
+
+
+def _real_workflow_jsonl_counts():
+    """{path: line_count} for every *.jsonl under the REAL (main-checkout)
+    sessions/workflows dir, resolving through the same tracker seam a live
+    run uses, or {} when no dir exists yet."""
+    import workflow as _wf
+    try:
+        sess = _wf._loc.shared_project_root(REPO) or REPO
+    except Exception:  # resolver blown up mid-fix: fall back, stay strict
+        sess = REPO
+    # BOTH the shared (MAIN) dir and this checkout's own: in a seat worktree
+    # `_track_run(REPO / ".agi")` lands in the worktree's gitignored
+    # `.agi/sessions/workflows/`, so a guard that reads only the shared dir
+    # is blind there (merge-up 40, sanctuary-director 182119Z: the guard was
+    # green from the seat and red from MAIN on the same bytes).
+    counts: dict = {}
+    for base in {Path(sess), Path(REPO) / ".agi"}:
+        wf_dir = base / "sessions" / "workflows"
+        if not wf_dir.is_dir():
+            continue
+        counts.update({str(p): len(p.read_text(encoding="utf-8").splitlines())
+                       for p in sorted(wf_dir.glob("*.jsonl"))})
+    return counts
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _no_workflow_row_leaks_to_real_sessions():
+    """Assert the real `.agi/sessions/workflows/*.jsonl` line counts are
+    IDENTICAL at session end to what they were at session start -- i.e. no
+    test in this file appended a phantom row to production state. The counts
+    are taken fresh (not cached), and every per-test tmp redirect is restored
+    by a `finally` long before this session-scoped teardown fires, so the
+    real resolver is what we measure."""
+    before = _real_workflow_jsonl_counts()
+    yield
+    after = _real_workflow_jsonl_counts()
+    changed = {p for p, c in before.items() if after.get(p) != c}
+    changed |= {p for p in after if p not in before}
+    assert not changed, (
+        "workflow tests leaked rows into the real sessions dir "
+        f"(changed/added: {sorted(changed)}); a non-dry workflow run test "
+        "must redirect tracking to a tmp root via _tmp_session_root, never "
+        "run against the real project root."
+    )
 
 
 def test_tracking_failure_does_not_fail_workflow(tmp_path_factory, capsys):
@@ -1065,3 +1151,210 @@ def test_generated_script_parses_as_a_workflow_body():
          "repeat": {"of": "rounds", "label_template": "verify:{key}"}}]}
     err = _workflow_body_parses(_gen_script(chained))
     assert err is None, err
+
+
+# ---------- descriptive per-run keys (hypothesis:l4-a-workflow-run-is- ---
+# named-not-numbered) -----------------------------------------------------
+# A workflow run is cited by a KEY derived from its type + run args, printed
+# first, recorded beside the workflow in the tracked row, and resolved by
+# `workflow.py status` — never by the opaque harness-minted id.
+
+
+def test_mint_run_key_three_shapes(tmp_path):
+    from workflow import _mint_run_key
+    # merge-up review of merge-up 39
+    assert _mint_run_key(tmp_path, "merge-up-review",
+                         {"rounds": [39]}) == "mur-39"
+    # SL1#2 -> slugified to sl1-2
+    assert _mint_run_key(tmp_path, "merge-up-review",
+                         {"rounds": ["SL1#2"]}) == "mur-sl1-2"
+    # author/validate keep their whole name with no run args
+    assert _mint_run_key(tmp_path, "author", {}) == "author"
+    assert _mint_run_key(tmp_path, "validate", {}) == "validate"
+    # a single-word key keeps its name and joins the slugged scalar arg
+    assert _mint_run_key(tmp_path, "review",
+                         {"window": "SL1#2"}) == "review-sl1-2"
+
+
+def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
+    import workflow as _wf
+    from workflow import _mint_run_key
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        assert _mint_run_key(tmp, "merge-up-review",
+                             {"rounds": [39]}) == "mur-39"
+        # a tracked row already claimed mur-39 -> deterministic -2, -3
+        wf_dir = tmp / "sessions" / "workflows"
+        wf_dir.mkdir(parents=True, exist_ok=True)
+        path = wf_dir / "merge-up-review.jsonl"
+        for rk in ("mur-39", "mur-39-2"):
+            with open(path, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"run_key": rk,
+                                     "workflow": "merge-up-review"}) + "\n")
+        assert _mint_run_key(tmp, "merge-up-review",
+                             {"rounds": [39]}) == "mur-39-3"
+    finally:
+        restore()
+
+
+def test_run_prints_run_key_first_and_tracks_it(tmp_path_factory):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    good = ('{"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+            '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+            '"verdict": "v", "overclaims": [], "open_gaps": []}')
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"window": "SL1#2"}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        text = buf.getvalue()
+        # the run key is printed FIRST, before any stage tree line
+        assert text.splitlines()[0] == "[run-key] review-sl1-2", text
+        # and recorded BESIDE the workflow in the tracked row
+        rows = [json.loads(l) for l in (tmp / "sessions" / "workflows"
+                / "review.jsonl").read_text(encoding="utf-8")
+                .splitlines()]
+        assert rows[0]["run_key"] == "review-sl1-2"
+        assert rows[0]["workflow"] == "review"
+    finally:
+        restore()
+
+
+def test_status_resolves_by_run_key(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "pi",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "pi", v, "mur-39")
+        buf = io.StringIO()
+        rc = status_workflow(tmp, "mur-39", out=buf)
+        assert rc == 0, buf.getvalue()
+        assert "mur-39" in buf.getvalue()
+        assert "merge-up-review" in buf.getvalue()
+        # a key naming no run resolves to a miss (exit 1)
+        miss = io.StringIO()
+        assert status_workflow(tmp, "nope", out=miss) == 1
+    finally:
+        restore()
+
+
+def test_note_records_harness_id_and_status_shows_it(tmp_path_factory):
+    """`workflow.py note <run_key> --harness-id wf_<id>` records the claude-
+    code harness's minted id beside the tracked row, and `status <run_key>`
+    prints it (hypothesis:l4-a-workflow-run-is-named-not-numbered)."""
+    import workflow as _wf
+    from workflow import RunView, _track_run, note_workflow, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        note = io.StringIO()
+        rc = note_workflow(tmp, "mur-39", "wf_ba530baa-dab", out=note)
+        assert rc == 0, note.getvalue()
+        buf = io.StringIO()
+        assert status_workflow(tmp, "mur-39", out=buf) == 0
+        assert "harness_id=wf_ba530baa-dab" in buf.getvalue(), buf.getvalue()
+        # before any note, status shows a dash
+        v2 = RunView("review", [{"label": "a"}], "claude-code",
+                     out=io.StringIO())
+        _track_run(tmp, "review", "claude-code", v2, "review")
+        pre = io.StringIO()
+        status_workflow(tmp, "review", out=pre)
+        assert "harness_id=-" in pre.getvalue(), pre.getvalue()
+    finally:
+        restore()
+
+
+def test_note_unknown_run_key_refused(tmp_path_factory):
+    import workflow as _wf
+    from workflow import note_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        note = io.StringIO()
+        rc = note_workflow(tmp, "never-minted", "wf_x", out=note)
+        assert rc == 2, note.getvalue()
+        assert "never-minted" in note.getvalue()
+    finally:
+        restore()
+
+
+def test_note_second_different_id_appends_not_overwrites(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, note_workflow, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        for hid in ("wf_ba530baa-dab", "wf_c7475c13-812"):
+            assert note_workflow(tmp, "mur-39", hid) == 0
+        # re-noting the SAME id is a no-op; the two distinct ids both survive
+        assert note_workflow(tmp, "mur-39", "wf_ba530baa-dab") == 0
+        buf = io.StringIO()
+        assert status_workflow(tmp, "mur-39", out=buf) == 0
+        assert "harness_id=wf_ba530baa-dab,wf_c7475c13-812" in buf.getvalue(), \
+            buf.getvalue()
+    finally:
+        restore()
+
+
+def test_status_resolves_by_harness_id(tmp_path_factory):
+    import workflow as _wf
+    from workflow import RunView, _track_run, status_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        v = RunView("merge-up-review", [{"label": "a"}], "claude-code",
+                    out=io.StringIO())
+        _track_run(tmp, "merge-up-review", "claude-code", v, "mur-39")
+        buf = io.StringIO()
+        assert status_workflow(tmp, "wf_ba530baa-dab", out=buf) == 1
+        from workflow import note_workflow
+        note_workflow(tmp, "mur-39", "wf_ba530baa-dab")
+        hit = io.StringIO()
+        assert status_workflow(tmp, "wf_ba530baa-dab", out=hit) == 0
+        assert "mur-39" in hit.getvalue(), hit.getvalue()
+    finally:
+        restore()
+
+
+def test_author_round_trip_keeps_type_and_appends_note(tmp_path, monkeypatch):
+    """Re-authoring an EXISTING manifest must carry `type` through (a dropped
+    type is one more validate violation) and APPEND the --note to the existing
+    description instead of replacing it (measured: author dropped type and
+    replaced description; restored by hand at 07bae9ea8)."""
+    from workflow import author_workflow
+    wf = tmp_path / "wf"
+    wf.mkdir()
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(workflow, "WORKFLOWS_DIR_REL", ("wf",))
+    orig = {
+        "name": "merge-up-review",
+        "script": "agi-merge-up-review.js",
+        "type": "merge-up-review",
+        "description": "base description of the workflow",
+        "stages": _AUTHOR_STAGES(),
+    }
+    (wf / "merge-up-review.json").write_text(
+        json.dumps(orig, indent=2) + "\n", encoding="utf-8")
+    rc = author_workflow(tmp_path, "merge-up-review",
+                         json.dumps(_AUTHOR_STAGES()),
+                         out=io.StringIO(), source_note="X")
+    assert rc == 0
+    carried = json.loads((wf / "merge-up-review.json")
+                         .read_text(encoding="utf-8"))
+    assert carried["type"] == "merge-up-review", \
+        "the type cell must survive re-authoring"
+    assert carried["description"].startswith("base description"), carried
+    assert "(X)" in carried["description"], \
+        "the --note must be APPENDED to the existing description"

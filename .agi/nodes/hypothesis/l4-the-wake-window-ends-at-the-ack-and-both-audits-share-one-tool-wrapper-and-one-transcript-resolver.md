@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+RECONCILED with L4.251 (service-owed s, merged-up first at merge-up 40) by sensei-director at the SL2#3 sync: the ONE wrapper threads after_join so both audits classify a hand-redone after_join step as s; the window rule is the union — BEFORE the ack nothing cuts (a (d) git status on a spawn seating is wake: this brief), AFTER the ack s and hand reads never cut and only the first (d) after the ack ends the window inclusive (L4.251), the row commit being that (d) when it follows; no (d) after the ack = transcript end. Both test files keep both sides asserts; 289 green.
