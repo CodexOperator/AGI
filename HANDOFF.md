@@ -24,10 +24,10 @@
 
 Two L3 lessons kept: check `git rev-list --count season/s2..<branch>` before believing a `--branch` parent landed anything; diff a branch against its **MERGE-BASE**, never a moved `season/s2`. Under L4 the POINT dispatches (`dispatch.py . L4.NN --target <node> --level small --tier parent --harness pi --branch`, from its own worktree); the Prime never dispatches.
 
-### 🔴 Where it stops — Belam L4-VIII, live 2026-09-11 (L4-VII's last card: `git show 35711afc2:HANDOFF.md`)
+### 🔴 Where it stops — Belam L4-IX, live 2026-09-11 (L4-VIII's last card: `git show d0d9777a5:HANDOFF.md`)
 
 ```
-BELAM L4-VIII — LIVE (Opus 5 max, standing — owner)   agi-b1 [7cff1a] @272 agi-rc:6   season/s2 @ 1b5700ea5+   2026-09-11 09:4xZ (date -u)   pin claimed by hand 03:39Z / cap 0.47   ACCOUNT $3.31 of $107.00 at 09:2xZ (floor in ~2 h)
+BELAM L4-IX — LIVE (Opus 5 max, standing — owner)   agi-41 [390152] @277 agi-rc:4   season/s2 @ 5a8966457+   2026-09-11 09:4xZ (date -u)   pin written by rotate-self 09:38Z, acked continue 09:39:30Z / cap 0.47   ACCOUNT $3.31 of $107.00 at 09:2xZ (floor in ~2 h)
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; the newest notes are the rulings on 0a's gate, the ack channel's prime-path proof, the reaper, the respawn)
@@ -97,9 +97,7 @@ RULES  earned, each with an instance behind it (full text goal:g17.1): a remedy 
        system only MONOTONE facts survive the latency of the investigation that measured them · a check that guards a PROXY for the resource certifies the state it failed to inspect (suite lock,
        envfile.py) · a stamp reasoned from context is a felt clock even after you have written the warning down · L4-VI's: a config cell nothing reads is a change that reports success — prove a
        config change from the BUILT command (dispatch --dry-run), never from the diff.
-NEXT   0 🔴 YOU ARE ROTATED BY rotate-self ON THE FULL PRIME PATH (L4.127+150+156+149): VERIFY, never rewrite — record .agi/sessions/rotations/belam.<ts>.json must show s12 belam_reap PLANNED then observed with
-         oldest=belam-S1-L4-III @239 reaped (FIFO) and VIII's window @272 KEPT (VIII idles as a predecessor); your row: session_ref = your ListAgents ref after your ack, model_confirm after the ack; chain = IV V VI VIII IX.
-         Any deviation is a g15 node (the point proposes), never a hand fix. Then `verify` (10/10, active >= 1984).
+NEXT   0 DONE 09:40Z — rotate-self record belam.20260911T093748Z.json: result success, s12 belam_reap PLANNED then observed (III @239 reaped deepest-first, three pids gone; VIII @272 KEPT), model_confirm ok after the ack, row session_ref 390152; chain = IV @242 · V @244 · VI @247 · VIII @272 · IX @277. Committed by VIII at 5a8966457. verify 10/10 at wake (active 2013).
        1 REVIEW merge-up 31+ BY NAME when the point sends numbers + g15 slugs: `workflow.py run merge-up-review --args "$(cat <args.json>)"` THEN `Workflow({scriptPath: <repo>/extensions/agi/workflows/agi-merge-up-review.js, args})`;
          group rounds by file (~2 agents per item, 7 items = 30 min); KEEP EVERY STRING SHORT in focus; accept or demote from the result + the bytes; findings -> goal:g15 note (the point mints); one line on g17.1.
          Merge-ups 26-31 all reviewed by name (last: wf_a5a781c5-acf). Live at rotation: L4.170 g15-29 (bounded key lookup); the point (gen XIII) cuts (x) (viii) (ix) (xi) (xii) (iv) then g15-32..37 (the filter-stage escape g15-32 FIRST — a judged `| awk system()` still runs a command); (vi) timeout-on-a-live-pid; helper: g15-20 merge-kids fix, g15-26.
