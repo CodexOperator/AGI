@@ -43,6 +43,7 @@ Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -927,8 +928,29 @@ def _window_listed(tmux_session: str, name: str) -> bool:
     return name in _list_windows(tmux_session)
 
 
+def _window_id_listed(tmux_session: str, wid: str) -> bool:
+    """True when the tmux window `@id` (`wid`, e.g. `@267`) is a CURRENT
+    window of the session -- judged by `#{window_id}`, never by window name
+    (clause (3) of hypothesis:l4-wake-repair-is-quiet-honest-and-readable: a
+    stale @id from a reaped/rotated seat row must be detected and repaired,
+    not swallowed inside `tmux send-keys`)."""
+    try:
+        listing = subprocess.run(
+            ["tmux", "list-windows", "-t", tmux_session,
+             "-F", "#{window_id}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if listing.returncode != 0:
+            return False
+        return wid in [ln.strip() for ln in listing.stdout.splitlines()
+                       if ln.strip()]
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
-                 ) -> tuple[str, object, str] | None:
+                  repair_stale_id: bool = False,
+                  ) -> tuple[str, object, str] | None:
     """Resolve the send-keys target a seat's wake lands in, exactly as
     `_nudge_window` uses it, so a silent re-check (`wake`) and the delivery
     path share ONE address resolution (hypothesis:l4-a-stranded-nudge-is-
@@ -936,6 +958,16 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     or None when the seat has no addressable window: a NAME-addressed row is
     refused (a predecessor/namesake could occupy it) and a windowless
     (ephemeral) recipient may not be nudged by name unless actually listed.
+
+    CLAUSE (3) (hypothesis:l4-wake-repair-is-quiet-honest-and-readable): an
+    @id target is trusted ONLY while it is still a LISTED window. A stale @id
+    (the row's window was reaped/rotated away) would fail inside
+    `tmux send-keys -t session:@id` and the failure is swallowed -- a wake
+    addressed to it returns with no line and the seat is never woken. When
+    `repair_stale_id=True` (the `wake` verb passes it; the ordinary send/dms
+    leave a stale @id alone -- best-effort nudge, unchanged) a stale @id
+    prints a `wake repair:` line and FALLS BACK to the by-name lookup below,
+    the same `_window_listed` path a name-addressed row uses.
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
@@ -944,21 +976,28 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     if tmux_session is None:
         import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
         tmux_session = rotate.DEFAULT_TMUX_SESSION
-    # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
-    # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
-    # target: never send-keys into a name-addressed window the row was
-    # supposed to carry as an @id (a predecessor or a namesake could occupy
-    # it). Refuse, print the reason on stderr, and FALL BACK to the by-name
-    # listing below.
-    if window_ref and not str(window_ref).startswith("@"):
+    if window_ref and str(window_ref).startswith("@"):
+        # CLAUSE (3): an @id is only a live target while it is a CURRENT
+        # window; a stale one is named, then repaired by name below.
+        if repair_stale_id and not _window_id_listed(
+                tmux_session, str(window_ref)):
+            print(f"wake repair: {to} row window {window_ref} is gone; "
+                  f"falling back to name", file=sys.stderr)
+            window_ref = None
+    elif window_ref:
+        # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a
+        # row whose `window` cell is a NAME -- not an @id -- must be REFUSED
+        # as a target: never send-keys into a name-addressed window the row
+        # was supposed to carry as an @id (a predecessor or a namesake could
+        # occupy it). Refuse, print the reason on stderr, and FALL BACK to
+        # the by-name listing below.
         print(f"nudge: row for {to} carries window {window_ref!r} -- a NAME,"
               f" not an @id; refusing it as a target, falling back to the"
               f" window NAME", file=sys.stderr)
         window_ref = None
-    # (3) an @id target never needs the name listed; a name fallback (row has
-    # no window at all, or the NAME above was refused) must still be a real
-    # listed window — a windowless (ephemeral/fire-and-forget) recipient is
-    # untouched, as before.
+    # a name fallback (row has no window at all, or the @id/NAME above was
+    # refused) must still be a real listed window — a windowless
+    # (ephemeral/fire-and-forget) recipient is untouched, as before.
     if window_ref:
         target = f"{tmux_session}:{window_ref}"
     else:
@@ -970,7 +1009,9 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
 
 def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                  sender: str | None = None,
-                 body: str | None = None) -> bool:
+                 body: str | None = None,
+                 repair_stale_id: bool = False,
+                 resolved: tuple | None = None) -> bool:
     """Fire ONE fixed wake token (never the message body) at a perpetual
     seat's tmux window (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
 
@@ -986,10 +1027,14 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     raises. read-only (capture-pane) only — never send-keys into a pane a
     test has not faked.
     """
-    resolved = _nudge_target(root, to, tmux_session)
-    if resolved is None:
-        return False
-    target, pid, tmux_session = resolved
+    if resolved is not None:
+        target, pid, tmux_session = resolved
+    else:
+        resolved = _nudge_target(root, to, tmux_session,
+                                 repair_stale_id=repair_stale_id)
+        if resolved is None:
+            return False
+        target, pid, tmux_session = resolved
     # A DM's pending-coalesced count (read now so the delivered/coalesced
     # decision knows whether to carry a `(+N more, read <seat>)` tail). An
     # inbox send never reads it. A DM types the INLINE pane line
@@ -1257,38 +1302,162 @@ def _seat_has_pending(root: Path, to: str) -> bool:
     return _read_deferred(root, to) is not None
 
 
+def _nudge_announced_path(root: Path, seat: str) -> Path:
+    """Sidecar next to the nudge marker recording the identity of the unread
+    state the last wake token was typed FOR (clause (1) of hypothesis:l4-wake-
+    repair-is-quiet-honest-and-readable: at most ONE token per unread state).
+    Kept SEPARATE from `_nudge_marker_path` (`{seat}.nudge`), whose `<ts>`
+    shape other paths and tests read and must not change."""
+    return _inbox_dir(root) / f"{seat}.nudge.announced"
+
+
+def _announced_digest(root: Path, seat: str) -> str | None:
+    """The digest of the unread state `wake` last announced for the seat, or
+    None when no wake has typed a token yet."""
+    try:
+        p = _nudge_announced_path(root, seat)
+        return p.read_text().strip() or None
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _record_announced(root: Path, seat: str, digest: str) -> None:
+    """Stamp the announced-state sidecar after a wake token is actually
+    TYPED for a NEW unread state; best-effort, never raises."""
+    try:
+        p = _nudge_announced_path(root, seat)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(digest)
+    except OSError:
+        pass
+
+
+def _clear_announced(root: Path, seat: str) -> None:
+    """Drop the announced-state sidecar when the seat's unread is consumed
+    (a read moves the marker, so a later NEW state must not look already-
+    announced). Best-effort, never raises."""
+    try:
+        p = _nudge_announced_path(root, seat)
+        if p.exists():
+            p.unlink()
+    except OSError:
+        pass
+
+
+def _unread_digest(root: Path, seat: str) -> str:
+    """Identity of the seat's current announce state: the unread inbox text
+    (after any read marker), the pending-coalesced count, and whether a
+    deferred dm body waits. `wake` records this after typing a token and stays
+    quiet on a later pass whose digest is unchanged (clause (1)): healing polls
+    every seat every pass, so an unchanged unread inbox would otherwise retype
+    the token once the 30s `_NUDGE_COALESCE_WINDOW_S` lapses."""
+    text = ""
+    try:
+        inbox = _inbox_path(root, seat)
+        if inbox.is_file():
+            raw = inbox.read_text()
+            lines = raw.splitlines(keepends=True)
+            for i, ln in enumerate(lines):
+                if ln == READ_MARKER:
+                    raw = "".join(lines[i + 1:])
+                    break
+            text = raw
+    except Exception:                                    # noqa: BLE001
+        pass
+    blob = "\x00".join((text, str(_pending_more(root, seat)),
+                        "1" if _read_deferred(root, seat) else "0"))
+    return hashlib.sha256(blob.encode("utf-8", "replace")).hexdigest()
+
+
+def _wake_outcome(outcome: str, delivered: bool) -> bool:
+    """Print the ONE outcome line for the `wake` verb and return the delivery
+    truth (True = a token/strand/deferred actually reached the pane, so the
+    exit code is 0; False = nothing delivered, exit 1). The line is exactly one
+    of: typed-token | resubmitted-strand | delivered-deferred | busy-deferred
+    | nothing-pending | no-target (clause (2) of hypothesis:l4-wake-repair-is-
+    quiet-honest-and-readable)."""
+    print(outcome)
+    return delivered
+
+
 def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     """Re-check ONE seat and resubmit / deliver a wake when there is
     something to deliver (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-
-    typing-not-enter). Called by rotate.py's `_announce_rotation` right after
-    the alert and by heal.py's watch pass for every live seat row each poll.
+    typing-not-enter, extended by hypothesis:l4-wake-repair-is-quiet-honest-
+    and-readable for clauses (1)-(3)). Called by rotate.py's
+    `_announce_rotation` right after the alert and by heal.py's watch pass
+    for every live seat row each poll.
 
     READ-ONLY until it has something to do:
       - pane IDLE with a stranded nudge-shaped line -> the shared
         `_nudge_window` path resubmits it by TYPING (space + Enter, never
-        Enter-only) and judges ownership on the rendered line as one delivery
-        (a rotation-alert dm that stranded under a BUSY pane now reaches the
-        Sensei, delivered ONCE);
-      - pane IDLE, no strand, but the seat has unread/pending/deferred ->
-        the ordinary waking path types the wake token (as today);
-      - pane BUSY (or coalesce-windowed) with something pending ->
-        `_nudge_window` coalesces to ONE stderr line and does nothing (the
-        deferred record is already written);
+        Enter-only) and judges ownership on the rendered line as one delivery;
+      - pane IDLE, no strand, but the seat has unread/pending/deferred and
+        that state was NOT already announced -> the ordinary waking path
+        types the wake token (or delivers a stored deferred dm INLINE);
+      - pane BUSY with something pending -> `_nudge_window` coalesces to ONE
+        stderr line and does nothing (the deferred record is already written);
       - nothing pending at all -> a silent no-op.
-    Address by @id when the row carries one; name fallback only as today.
+    Address by @id when the row carries one and it is still a LISTED window
+    (clause 3: a stale @id prints a `wake repair:` line and falls back to
+    name); name fallback only as today.
+
+    Clause (1): at most ONE token per unread state. After typing a token for
+    a state, `wake` records the state's digest and stays quiet on a later
+    pass over the SAME digest -- the heal polls every seat every pass, so an
+    unchanged unread inbox would otherwise retype the token once the 30s
+    coalesce window lapses. The seat's own read clears the sidecar.
+
+    Clause (2): prints exactly ONE outcome line and returns True only when
+    something actually reached the pane (so `main()` exits 0 only on a
+    delivery). heal.py/rotate.py ignore the return value by design.
     """
-    resolved = _nudge_target(root, to, tmux_session)
+    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
-        return False
+        return _wake_outcome("no-target", delivered=False)
     target, pid, tms = resolved
     pane = _capture_pane(tms, target)
     reason = _nudge_coalesce_reason(pane, _build_nudge_token(to),
                                     _registry_status(pid))
-    if reason != "token already unsubmitted" and not _seat_has_pending(root, to):
+
+    # A stranded nudge-shaped line in the pane is delivered (resubmitted by
+    # TYPING) regardless of pending -- the resubmit itself IS the wake.
+    if reason == "token already unsubmitted":
+        ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
+        return _wake_outcome("resubmitted-strand", delivered=ok)
+
+    if not _seat_has_pending(root, to):
         # nothing stranded and nothing pending: never type a bare wake token
         # into a seat with nothing to announce (the heal polls every seat).
-        return False
-    return _nudge_window(root, to, tmux_session=tms)
+        return _wake_outcome("nothing-pending", delivered=False)
+
+    # Clause (1): never retype a token for an unread state we already
+    # announced. The 30s `_NUDGE_COALESCE_WINDOW_S` alone would let an
+    # unchanged unread inbox retype once it lapses under heal's every-seat
+    # polling; the digest gate stops that for as long as the state is unchanged.
+    digest = _unread_digest(root, to)
+    if _announced_digest(root, to) == digest:
+        return _wake_outcome("nothing-pending", delivered=False)
+
+    if reason is not None:
+        # Pane busy / spinner with something pending: nothing typed. The
+        # deferred record is already written; `_nudge_window` prints its own
+        # coalesced line, this wake prints its ONE outcome.
+        _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
+        return _wake_outcome("busy-deferred", delivered=False)
+
+    # Pane IDLE with a NEW unread state: type the wake token, or deliver the
+    # stored deferred dm INLINE when one waits (read before `_nudge_window`
+    # clears it).
+    delivering_deferred = _read_deferred(root, to) is not None
+    ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
+    if ok:
+        _record_announced(root, to, digest)
+        return _wake_outcome("delivered-deferred" if delivering_deferred
+                             else "typed-token", delivered=True)
+    # A delivery was attempted but nothing reached the pane (e.g. the 30s
+    # window caught it); `_nudge_window` already printed its own line.
+    return _wake_outcome("nothing-pending", delivered=False)
 
 
 def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
@@ -1493,17 +1662,56 @@ def _print_blocks_with_labels(root: Path, blocks: list[str]) -> None:
         print(block, end="")
 
 
+def _deferred_stamp(root: Path, me: str, deferred: dict) -> str:
+    """A display timestamp for a stored deferred dm: the record's own `ts`
+    when one exists, else the sidecar's mtime (a record stored by the live
+    path carries no `ts`). UTC, HH:MM with a Z, like the nudge stream."""
+    ts = deferred.get("ts")
+    if ts:
+        return str(ts)
+    try:
+        m = _nudge_deferred_path(root, me).stat().st_mtime
+        return datetime.fromtimestamp(m, timezone.utc).strftime("%H:%MZ")
+    except OSError:
+        return "<unknown ts>"
+
+
+def _print_deferred_block(root: Path, me: str, deferred: dict) -> None:
+    """Print a stored deferred dm as its OWN block, headed
+    `deferred dm from <sender> (<ts>)`, so a reader at a seam sees it as a
+    thing of its own rather than folded into the inbox stream
+    (hypothesis:l4-wake-repair-is-quiet-honest-and-readable, clause 4).
+    read-only for the record — the caller chooses whether to clear it."""
+    sender = deferred.get("sender") or "unknown"
+    print(f"deferred dm from {sender} ({_deferred_stamp(root, me, deferred)})")
+    body = deferred.get("body", "") or ""
+    if body and not body.endswith("\n"):
+        body += "\n"
+    print(body, end="")
+
+
 def read(root: Path, me: str, sender: str | None) -> None:
     """Print unread blocks and mark them read."""
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
+    deferred = _read_deferred(root, me)
 
-    if not blocks:
+    if not blocks and deferred is None:
         print(f"inbox for {me}: empty")
         return
 
-    # Print blocks, each prefixed by its verification label.
-    _print_blocks_with_labels(root, blocks)
+    # A stored deferred dm prints FIRST, before the inbox blocks, and the
+    # record is then cleared — a director who never had an idle pane still
+    # sees it at a seam, exactly once (clause 4). The record's own
+    # delivered-count semantics for the PANE path are untouched
+    # (`_clear_deferred` is the same no-op-guarded helper that path uses).
+    if deferred is not None:
+        _print_deferred_block(root, me, deferred)
+        _clear_deferred(root, me)
+
+    # Print inbox blocks, each prefixed by its verification label.
+    if blocks:
+        _print_blocks_with_labels(root, blocks)
 
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
@@ -1516,20 +1724,30 @@ def read(root: Path, me: str, sender: str | None) -> None:
         # Strip trailing whitespace, then add marker + trailing newline.
         content = "".join(lines).rstrip("\n")
         inbox.write_text(content + "\n" + READ_MARKER)
+    # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
+    # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
+    # so a LATER new unread state is never mistaken for one already typed.
+    _clear_announced(root, me)
 
 
 def peek(root: Path, me: str) -> None:
     """Print unread blocks without marking them read."""
     inbox = _inbox_path(root, me)
     blocks, _ = _scan_messages(inbox)
+    deferred = _read_deferred(root, me)
 
-    if not blocks:
+    if not blocks and deferred is None:
         print(f"inbox for {me}: empty")
         return
 
-    # Print blocks, each prefixed by its verification label (peek never marks
-    # read).
-    _print_blocks_with_labels(root, blocks)
+    # peek shows a stored deferred dm WITHOUT clearing it — a seam without
+    # the delivered-count side effects of `read` (clause 4).
+    if deferred is not None:
+        _print_deferred_block(root, me, deferred)
+
+    # Print inbox blocks (peek never marks read).
+    if blocks:
+        _print_blocks_with_labels(root, blocks)
 
 
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
@@ -2415,8 +2633,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.verb == "wake":
-        wake(root, args.target)
-        return 0
+        # Clause (2) (hypothesis:l4-wake-repair-is-quiet-honest-and-readable):
+        # exit 0 ONLY when the wake actually delivered a token/strand/deferred
+        # to a pane; 1 otherwise. heal.py/rotate.py call send.wake() directly
+        # and deliberately ignore the value; only this verb path returns it.
+        return 0 if wake(root, args.target) else 1
 
     if args.verb == "escalate":
         text = " ".join(args.text) if args.text else ""
