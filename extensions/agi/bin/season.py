@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -1444,24 +1445,66 @@ def _resolve_conflicted(git_root: Path, branch: str) -> int:
     return 0
 
 
+# hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — the OWNERSHIP
+# gate shape for `cmd_merge_kids`: the parent's round branch
+# (`loop/<slug>-<agent8>@s<N>`, as cut by `dispatch.loop_branch_name`). Only
+# this shape may be the merge-kids target; anything else (season/s<N>, master,
+# a bare feature branch) means the helper is being run from the wrong place.
+_ROUND_BRANCH_RE = re.compile(r"^loop/.+-[0-9a-fA-F]{8}@s\d+$")
+
+
 def cmd_merge_kids(root: Path, args) -> int:
     """`season.py merge-kids <kid-branch> ...` -- merge kid branches --no-ff
     into the CURRENT branch, one at a time, union-resolving node-file
     conflicts, suite-gated, stopping (merge left in progress) on a SOURCE
     conflict. hypothesis:l4-a-parent-cuts-five-and-merges-its-kids half 2.
     """
-    git_root = locations.git_common_root(root)
-    if git_root is None or not (git_root / ".git").exists():
+    # hypothesis:l4-merge-kids-resolves-the-parents-own-worktree — resolve the
+    # round branch from the CALLING worktree's OWN top, never
+    # git_common_root walks to the MAIN checkout, so
+    # `_current_branch` there returns whatever MAIN has checked out (often
+    # season/s<N> or master) — a branch-parent running merge-kids from its
+    # linked worktree would merge its kids into MAIN's branch instead of its
+    # own `loop/<slug>-<agent>@s<N>` round branch. `root` is the graph dir
+    # (`.agi`) inside whichever worktree invoked this; `git rev-parse
+    # --show-toplevel` names that SAME worktree's checkout top, so `cur` is
+    # the parent's OWN round branch and every git op runs in that worktree
+    # onto that branch, and node/source paths ({work_root}/{p}) stay
+    # worktree-top-relative as `git diff` reports them. In a single checkout
+    # (no linked worktree) show-toplevel == git_common_root, so behaviour is
+    # unchanged there.
+    top = _git(root, "rev-parse", "--show-toplevel")
+    if top.returncode != 0 or not top.stdout.strip():
         print("ERR: no git repo found", file=sys.stderr)
         return 1
-    cur = _current_branch(git_root)
+    work_root = Path(top.stdout.strip())
+    cur = _current_branch(work_root)
     if not cur:
         print("ERR: not on a branch (detached HEAD?)", file=sys.stderr)
+        return 1
+    # hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — OWNERSHIP
+    # GATE. `merge-kids` is the ONE git operation a branch parent runs, and it
+    # must land the round's kids onto the parent's OWN round branch in its own
+    # worktree — never onto whatever MAIN has checked out. The worktree
+    # resolution above already points every git op at the calling worktree's
+    # top, but a parent that runs the helper from MAIN's checkout (on
+    # season/s<N>, master or a bare feature branch) would still merge its kids
+    # onto a branch that is not its own round branch. So: refuse unless the
+    # checked-out branch is a `loop/<slug>-<agent8>@s<N>` round branch — the
+    # shape dispatch cuts for a branch parent (`dispatch.loop_branch_name`). A
+    # non-round checkout means whoever invoked this is in the wrong place and
+    # has not understood the protocol; refuse before any kid branch is touched.
+    if not _ROUND_BRANCH_RE.match(cur):
+        print(f"REFUSED: current branch {cur!r} is not a parent's round "
+              f"branch (loop/<slug>-<agent8>@s<N>) -- merge-kids merges a "
+              f"round's kids onto the parent's OWN round branch and must run "
+              f"from that branch in its own worktree, never the main "
+              f"checkout", file=sys.stderr)
         return 1
     suite = args.suite or DEFAULT_SUITE
     branches = args.branches
     for branch in branches:
-        ahead = _git(git_root, "rev-list", "--count", f"{cur}..{branch}")
+        ahead = _git(work_root, "rev-list", "--count", f"{cur}..{branch}")
         if ahead.returncode != 0:
             print(f"ERR cannot count {branch} ahead of {cur}: "
                   f"{ahead.stderr.strip()}", file=sys.stderr)
@@ -1472,23 +1515,23 @@ def cmd_merge_kids(root: Path, args) -> int:
             return 1
         print(f"{branch} is {ahead.stdout.strip()} commit(s) ahead of {cur}")
 
-        mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
+        mg = _git(work_root, "merge", "--no-ff", "--no-commit", branch)
         if mg.returncode != 0:
-            rc = _resolve_conflicted(git_root, branch)
+            rc = _resolve_conflicted(work_root, branch)
             if rc != 0:
                 return rc
 
-        suite_proc = subprocess.run(suite, shell=True, cwd=str(git_root),
+        suite_proc = subprocess.run(suite, shell=True, cwd=str(work_root),
                                     capture_output=True, text=True)
         if suite_proc.returncode != 0:
-            _git(git_root, "merge", "--abort")
+            _git(work_root, "merge", "--abort")
             print(f"REFUSED: suite red after merging {branch} -- merge aborted, "
                   f"branch {branch} left in place", file=sys.stderr)
             return 1
 
-        cmt = _git(git_root, "commit", "--no-edit")
+        cmt = _git(work_root, "commit", "--no-edit")
         if cmt.returncode != 0:
-            still = (_git(git_root, "rev-parse", "--verify",
+            still = (_git(work_root, "rev-parse", "--verify",
                           "MERGE_HEAD").returncode == 0)
             if still:
                 print(f"ERR finalize merge commit: "

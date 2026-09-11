@@ -697,6 +697,30 @@ def test_both_tiers_are_told_not_to_commit():
     assert "commit" in kid.lower() and "commit" in parent.lower()
 
 
+def test_a_g15_claim_is_behaviour_to_build_in_both_tier_briefs():
+    """hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement -- four
+    kids measured instead of building, then reported `disproved`. The kid
+    brief must say a g15 claim is behaviour to BUILD (implement the fix, prove
+    it on the built bytes), and the parent brief's review rule must carry
+    "THIS KID MUST IMPLEMENT THE FIX" so a measurement-only kid node is
+    re-cut before it is recorded.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    # kid brief: the claim is behaviour to build, not a hypothesis to measure
+    assert "BEHAVIOUR TO BUILD" in kid
+    assert "not a hypothesis to measure" in kid
+    # parent brief: review rule demands the fix be implemented
+    assert "THIS KID MUST IMPLEMENT THE FIX" in parent
+    # the parent brief must not measure-only-accept a kid as finished
+    assert "finished round" in parent
+    # the segment is terminated so the next rule starts on its own line:
+    # a missing trailing newline glues the g15 sentence onto "4. DO NOT
+    # bypass the gate" (the exact defect the parent re-cut this round for).
+    assert "measurement).\n4. DO NOT" in parent
+    assert ").4. DO NOT" not in parent
+
+
 # ---------------------------------- l2w3-brief-heads: kid + parent constitution heads
 
 

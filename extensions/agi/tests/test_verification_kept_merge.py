@@ -222,36 +222,52 @@ def test_drop_still_fails_but_never_stamps(tmp_path):
     assert state["active"] == 9999, "the drop read must not have overwritten"
 
 
-def test_stamp_at_level_quick_re_stamps_the_recorded_baseline(tmp_path, monkeypatch):
-    """`--stamp` must not go SILENT on a level without smoke (quick). With no
-    smoke there are no fresh counts, so it re-stamps the already-recorded
-    baseline onto the now-kept bytes."""
+def test_stamp_at_level_quick_forces_smoke_and_stamps_fresh_counts(tmp_path, monkeypatch):
+    """`--stamp` forces the smoke round even on a level that has none (quick),
+    and stamps the FRESH count — never the prior baseline. The L4.169 defect
+    re-stamped the RECORDED baseline onto the new sha (the never-lower floor
+    never rising on a kept merge that added nodes); the fix runs smoke (~25 s
+    is the price of a stamp) and records THAT run's numbers with the sha."""
 
     def fake_run(groot, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(
+                name, "PASS", 0.0,
+                number={"active": 1712, "deprecated": 196, "total": 1908})
         return verification.CheckResult(name, "PASS", 0.0)
 
     monkeypatch.setattr(verification, "run_check", fake_run)
     root = _init_fixture(tmp_path)      # HEAD pushed == origin
     groot = root / ".agi"
     (groot / "sessions").mkdir(parents=True)
-    before = {"active": 1707, "deprecated": 194, "total": 1901}
-    (groot / "sessions" / verification.STATE_FILE).write_text(json.dumps(before))
+    # a PRIOR baseline at a LOWER count — the L4.169 defect would re-stamp it
+    prior = {"active": 1707, "deprecated": 194, "total": 1901, "sha": "prior",
+             "stamped_at": 1, "reason": "kept"}
+    (groot / "sessions" / verification.STATE_FILE).write_text(json.dumps(prior))
     results = verification.run_level(groot, "quick", suite=False, verbose=False,
                                      stamp=True)
     nc = next((r for r in results if r.name == "node-count"), None)
     assert nc is not None, "--stamp must emit a node-count check even on quick"
     assert nc.status != "FAIL"
-    assert "baseline updated" in nc.note
+    assert sum(1 for r in results if r.name == "smoke") == 1, (
+        "--stamp must run the smoke round, not short-circuit to the prior count")
     state = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
-    assert state["sha"], "--stamp re-stamped the baseline onto kept bytes"
+    assert state["active"] == 1712, (
+        "the FRESH count must land in the state file, not the prior 1707")
+    assert state["total"] == 1908
     assert state["reason"] == "explicit --stamp"
 
 
-def test_stamp_at_level_quick_with_no_prior_baseline_refuses(tmp_path, monkeypatch):
-    """--stamp on quick with no recordable counts says so OUT LOUD — the
-    falsifier is a quiet no-op, and a refusal is never a stamped baseline."""
+def test_stamp_quick_stamps_fresh_even_with_no_prior_baseline(tmp_path, monkeypatch):
+    """--stamp on quick stamps the fresh smoke count even when NO prior
+    baseline exists — smoke is forced, so the numbers are measured, never
+    minted from thin air or re-read from a file."""
 
     def fake_run(groot, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(
+                name, "PASS", 0.0,
+                number={"active": 1712, "deprecated": 196, "total": 1908})
         return verification.CheckResult(name, "PASS", 0.0)
 
     monkeypatch.setattr(verification, "run_check", fake_run)
@@ -261,11 +277,11 @@ def test_stamp_at_level_quick_with_no_prior_baseline_refuses(tmp_path, monkeypat
                                      stamp=True)
     nc = next((r for r in results if r.name == "node-count"), None)
     assert nc is not None, "--stamp must emit a node-count check even on quick"
-    assert nc.status == "SKIP"
-    assert "--stamp:" in nc.note
-    assert "no smoke count and no prior baseline" in nc.note
-    assert not (groot / "sessions" / verification.STATE_FILE).exists(), (
-        "--stamp must not mint a baseline from thin air")
+    assert nc.status != "FAIL"
+    assert nc.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert state["active"] == 1712
+    assert state["reason"] == "explicit --stamp"
 
 
 # --- old 3-key state files still read --------------------------------------
@@ -330,3 +346,20 @@ def test_compare_count_now_consults_git_context():
     assert "_stamp_context" in body, (
         "compare_count does not consult git context — the fix is missing")
     assert "NOT STAMPED" in body
+
+
+def test_run_level_stamp_path_never_re_reads_a_prior_baseline():
+    """(flipped) The L4.169 re-stamp defect is GONE from `run_level`: a --stamp
+    round must not reach into `_read_state` to re-stamp the RECORDED baseline
+    when a level has no smoke — smoke is forced instead. The body of
+    `run_level` must therefore build the stamp round from the FORCED smoke's
+    fresh number, never from the prior file."""
+    src = (BIN / "verification.py").read_text(encoding="utf-8")
+    start = src.index("def run_level")
+    end = src.index("def render_summary", start)
+    body = src[start:end]
+    assert "if stamp and \"smoke\" not in names:" in body, (
+        "--stamp does not force the smoke round — the fix is missing")
+    assert "prior = _read_state(groot)" not in body and \
+        "no smoke count and no prior baseline" not in body, (
+        "the L4.169 re-stamp branch is still present in run_level")

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-mint-refuses-under-pytest-unless-mocked
 next_edges: []
 confidence: 0.8
-edited_by: sanctuary-director
+edited_by: a00-0b7f0b48
 evidence_runs:
   - experiment:a00-1422fa2e-960761
 loop: hypothesis:l4-mint-refuses-under-pytest-unless-mocked@s2
@@ -63,3 +63,5 @@ Implemented+proved the pytest mint guard: mint/revoke now refuse under PYTEST_CU
 PARENT REVIEW (a00-218ab03a, L4.155): this kid TIMED OUT at the harness limit (~25 min) with the scaffolded body EMPTY and zero code changes; it produced recon only (70 tests collect, 5 @live tests run unmocked because available() is True; provisioning references found in six test files). No node content, no verdict of its own, so this node is recorded pending rather than left blank. Its successor experiment:a00-2f023d4b-d061a9 carries the actual result. Do not treat this node as evidence.
 
 **2026-09-11T07:33:35Z director review at harvest (sanctuary-director gen XII, L4.155).** Re-ran on the round bytes WITHOUT `--basetemp` (tmp_path under /tmp, so no walk-up can reach the real `.agi`): `python3 -m pytest extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_envfile.py -q` → 205 passed / 5 skipped, `provisioning.py status` outstanding keys 5 before and 5 after (nothing minted); on the merged seat bytes → 210 passed / 5 skipped. Real-tree probe of the guard: with `PYTEST_CURRENT_TEST` set, the round's `provisioning._call` replaced by a recorder that raises, and `_read_provisioning_key` REAL, `mint(root=/home/ubuntu/work/agi)` and `mint(root=<round worktree>)` both raised `ProvisioningError: provisioning.mint refused under pytest (…): a REAL seam (`_read_provisioning_key`) is still present`, 0 HTTP calls — the 06:31Z hazard (a test's root walking up to the real key) is closed at the mint, not at the lookup. Repair at harvest: this node's `verdict` was committed by the parent as `pending` although the kid's own `cli.py done` recorded `inconclusive_lean_proved:85` in its agent.json (`.agi/sessions/iter-L4.155/a00-1422fa2e/agent.json`); set to the author's own value, nothing else changed. Merged into the seat at c1e2a57f1.
+
+2026-09-11 CORRECTION: claim (3) "by design / not implemented" is now PASSÉ — the tree DID implement a path-bounded walk-up. hypothesis:l4-the-management-key-lookup-is-bounded-to-the-given-root landed in L4.170 (experiment:a00-0b7f0b48-b83b68): find_project_root now BREAKS its upward walk at the given root's own .git boundary (locations.py:217), after checking for an .agi/config BESIDE that same .git. So a tmp dir under an unrelated nested git repo resolves None; a linked worktree resolves its OWN .agi fork; git_common_root still climbs to the main checkout's shared .env so worktree key-provisioning keeps working. The L4.155 mint/revoke pytest guard stays the second line; the bound and the shared-.env design BOTH hold, resolving the A-or-B tension claim (3) asserted.
