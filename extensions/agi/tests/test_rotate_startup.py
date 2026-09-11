@@ -639,7 +639,6 @@ def test_filter_arg_file_write_option_is_refused(tmp_path):
     # (`-oM`, `-f3`) forms, and `--output=foo`.
     for exe, arg, opt in [("sort", "-o", "-o"), ("sort", "-oM", "-o"),
                           ("sort", "--output", "--output"),
-                          ("sed", "-i", "-i"),
                           ("grep", "-f3", "-f"), ("grep", "-f", "-f"),
                           ("egrep", "-f", "-f")]:
         cmd = f"python3 extensions/agi/bin/foo.py | {exe} {arg}"
@@ -666,11 +665,84 @@ def test_awk_filter_refused_outright(tmp_path):
     assert rotate._producing_refusal(cmd) == "filter awk"
 
 
-def test_sed_exec_and_inplace_program_refused(tmp_path):
-    # sed's `-i` (in-place write, already a file option) and its bare `e`
-    # (execute a shell command from the program) forms are refused.
-    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed -i s/a/b/") == "filter sed -i"
-    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed e 'touch /tmp/y'") == "filter sed e"
+def test_filter_operand_refused(tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, RELATIVE operand
+    # seam — the startup cwd is MAIN (drive root), so a free positional on a
+    # file-taking filter names a file there (`| head -1 .env`), which would
+    # print the key file's first line into the rotation record AND the
+    # successor's STARTUP OUTPUT. Refused per-tool as `filter <exe> operand
+    # <tok>`; grep/egrep/sed get ONE free positional (pattern/program), a
+    # second is a file operand; tr gets two. The value of a value-taking
+    # option (`-n 5`, `-d:`, `-w 3`) is consumed, not an operand.
+    for cmd, name in [
+        ("python3 extensions/agi/bin/foo.py | head -1 .env", "filter head operand .env"),
+        ("python3 extensions/agi/bin/foo.py | cat .env", "filter cat operand .env"),
+        ("python3 extensions/agi/bin/foo.py | sort .env", "filter sort operand .env"),
+        ("python3 extensions/agi/bin/foo.py | wc -l .env", "filter wc operand .env"),
+        ("python3 extensions/agi/bin/foo.py | uniq x", "filter uniq operand x"),
+        ("python3 extensions/agi/bin/foo.py | cut x", "filter cut operand x"),
+        ("python3 extensions/agi/bin/foo.py | tail .env", "filter tail operand .env"),
+        ("python3 extensions/agi/bin/foo.py | grep foo x y", "filter grep operand x"),
+        ("python3 extensions/agi/bin/foo.py | sed s/a/b/g .env", "filter sed operand .env"),
+        ("python3 extensions/agi/bin/foo.py | tr a b c", "filter tr operand c"),
+    ]:
+        assert rotate._producing_refusal(cmd) == name, (cmd, rotate._producing_refusal(cmd))
+    # the one/two free positional pattern still runs
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed s/x/y/g") is None
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | grep -c x") is None
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | tr a-z A-Z") is None
+
+
+def test_sed_program_grammar_allowlist(tmp_path):
+    # sed programs are allowlisted by GRAMMAR, not by token. A `;`-split
+    # command must be `s<d>...<d>...<d>[gIp0-9]*` or an address command
+    # (`A`,`A,B`,`/re/`,`$` + one of p/d/q/!d). Any `e`/`w`/`r`/`R`/`W`
+    # command, `-f`/`-i`/`-e`/`--file`/`--in-place`/`--expression` (each incl.
+    # attached suffix) is `filter sed program` — sed `e` executes a shell
+    # command (`1e id` runs `id`), and `r`/`w` read/write files.
+    for cmd in ["sed -i s/a/b/", "sed e id", "sed '1e id'",
+                "sed -f /tmp/x", "sed --expression='s/a/b/'",
+                "sed -i.bak s/a/b/", "sed 'w /tmp/f'", "sed 'r /tmp/f'",
+                "sed '/foo/{;s/a/b/;}'"]:
+        ref = rotate._producing_refusal(f"python3 extensions/agi/bin/foo.py | {cmd}")
+        assert ref == "filter sed program", (cmd, ref)
+    # a sed program also does not accidentally trip the `/` path rule
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed /etc/passwd") == "filter sed program"
+    # benign grammar-form programs still run
+    for cmd in ["sed -n 1,40p", "sed s/x/y/g", "sed 's/a b/c/'", "sed 2d",
+                "sed 5q", "sed /foo/d", "sed 1,5p", "sed '$d'",
+                "sed s/x//I", "sed 's/a\\/b/c/g'"]:
+        assert rotate._producing_refusal(f"python3 extensions/agi/bin/foo.py | {cmd}") is None, cmd
+
+
+def test_grep_pattern_option_kills_the_free_positional(tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted, the THIRD form of
+    # the relative-operand seam. grep/egrep `-e`/`--regexp` SUPPLY the pattern,
+    # so the one free positional the old code allowed was actually a FILE:
+    # `| grep -e x .env` read the 1868-byte key file into the rotation record
+    # AND the successor's STARTUP OUTPUT. Once the pattern is supplied by
+    # `-e`/`--regexp` (exact `-e PAT`/`--regexp PAT`, or attached
+    # `-ePAT`/`--regexp=PAT`), the free-positional budget is ZERO — a further
+    # non-option token is `filter <exe> operand <tok>`.
+    for cmd in [
+        "python3 extensions/agi/bin/foo.py | grep -e x .env",
+        "python3 extensions/agi/bin/foo.py | grep --regexp=x .env",
+        "python3 extensions/agi/bin/foo.py | grep --regexp x .env",
+        "python3 extensions/agi/bin/foo.py | egrep -e x .env",
+    ]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref == "filter grep operand .env" or ref == "filter egrep operand .env", (cmd, ref)
+    # pattern-only (no file) still runs; `-e`/`--regexp` consumed the pattern
+    for cmd in [
+        "python3 extensions/agi/bin/foo.py | grep -e x",
+        "python3 extensions/agi/bin/foo.py | grep --regexp x",
+        "python3 extensions/agi/bin/foo.py | grep --regexp=x",
+        "python3 extensions/agi/bin/foo.py | egrep -e x",
+        "python3 extensions/agi/bin/foo.py | grep -c x",
+        "python3 extensions/agi/bin/foo.py | grep -i x",
+        "python3 extensions/agi/bin/foo.py | grep foo",
+    ]:
+        assert rotate._producing_refusal(cmd) is None, cmd
 
 
 def test_benign_stdio_filters_still_run(tmp_path):
