@@ -1,0 +1,9 @@
+PARENT REVIEW L4.278 (a00-9e0d38c6), accepted as inconclusive_lean_proved:70.
+
+(1) INSTRUCTION SAID: "the pairing is declared where argparse can see it -- `--wait` and `--timeout` live in an argument group whose help says `--wait requires --iter`, and the refusal comes from `parser.error(...)` (exit 2, usage line printed)".
+
+(2) WHAT THE MACHINE DOES, on the merged round tree: spawn_budget.py:887 opens `ap.add_argument_group(...)` and adds `--wait`/`--timeout` inside it; the post-parse branch is `ap.error("--wait requires --iter")`. Built and ran: `python3 extensions/agi/bin/spawn_budget.py status --wait` prints the four-line `usage:` block and `spawn_budget.py: error: --wait requires --iter`, exit 2.
+
+(3) NEAR MISS: a group that only carries the HELP text while the refusal stays a bare `print(...); return 2` would satisfy the words and lose the mechanism -- no usage line, and any future add_argument could reintroduce the pairing drift. A second: declaring the group but leaving the post-parse check as `parser.error` on a subparser would still fail because the args are top-level.
+
+(4) DEVIATION: none. The kid read "the argparse block ONLY" as exempting claim (2); that reading is wrong (it bounds the PRODUCTION file, not the second file's own section) and the next kid closed claim (2). Kept at lean 70 rather than proved because this node's own claim covers part (1) only.

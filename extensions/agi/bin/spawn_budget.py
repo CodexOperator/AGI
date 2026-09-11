@@ -884,17 +884,26 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--iter", default="",
                     help="status: restrict to one iteration (L4.NNN or NNN) "
                          "and emit the round verdict")
-    ap.add_argument("--wait", action="store_true",
-                    help="status --iter: block until the round's PARENT lease "
-                         "is gone (the parent exited, whatever the kids did)")
-    ap.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
-                    help="with --wait: give up after S seconds "
-                         f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
+    wait = ap.add_argument_group(
+        "status --wait",
+        "--wait blocks until the round's PARENT lease is gone (the parent "
+        "exited, whatever the kids did). It is only meaningful with --iter: "
+        "--wait requires --iter.")
+    wait.add_argument("--wait", action="store_true",
+                      help="with --iter: block until the round's PARENT lease "
+                           "is gone (the parent exited, whatever the kids did)")
+    wait.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
+                      help="with --wait: give up after S seconds "
+                           f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
     args = ap.parse_args(argv)
 
     if args.wait and not args.iter:
-        print("spawn_budget: --wait requires --iter", file=sys.stderr)
-        return 2
+        # The cross-argument pairing is enforced HERE, at the parser, so the
+        # refusal is argparse's own: usage line printed, `error:` prefix,
+        # exit 2 via SystemExit — not a bare print+return.
+        # (hypothesis:l4-spawn-budget-wait-is-declared-and-its-tests-spawn-
+        # nothing)
+        ap.error("--wait requires --iter")
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
