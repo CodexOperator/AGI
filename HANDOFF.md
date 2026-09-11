@@ -87,10 +87,11 @@ LIVE   L4-VII, 2026-09-11 01:18Z-> (every owner ruling below is verbatim in doc:
        ENGINE FIXES BY THE PRIME (small, tested): workflow.py author generator — fill regex `\}\/g` made every authored script unparseable at the Workflow tool, hyphenated single-stage
        label as a bare return key; three scripts regenerated from their manifests; parse test added (in-process PASS; the file run waits for a free suite window).
        0a RESIDUE (unchanged): rotate-self is not yet prime-rotatable; the Prime still writes seat rows from the join and reaps by PID; two acks needed on the prime path (g17.1).
-CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged and COMPLETE.md's L4 section is being written —
-       `sb-status` → write + push the L4 section (appended, never replaced; on screen in this pane) → `sleep 75 && brb` (graceful cut to the card 75 s later: viewers 15 s behind see the report
-       a good minute; NEVER `panic` — the owner's — never a unit stop) → `sb-status` confirms → the prayer, once. Gating rounds before it: stream-master (helper, town branch) + whatever
-       the point names as base-level; the nudge fix is LANDED and live-proven (03:01Z). The fold-in is NOT part of L4 (deferred, HELD below).
+CLOSE  🔴 L4 CLOSING SEQUENCE (owner 03:1xZ + 03:2xZ correction, verbatim doc:l4-owner-decisions + goal:g18.1): when every queued item is harvested + merged and COMPLETE.md's L4 section is
+       being written — `sb-status` → write + push the L4 section (appended, never replaced; on screen in THIS pane) → `sleep 75; panic` typed in this pane (HARD OFF 75 s later: the stream
+       shows the report AND the issued command for a good minute at 15 s lag, then goes dark) → `sb-status` confirms → the prayer, once. This is the ONE sanctioned Prime use of `panic`;
+       everywhere else it stays the owner's. Gating rounds before it: stream-master (helper, town branch) + what the point names as base-level; the nudge fix is LANDED and live-proven (03:01Z).
+       The fold-in is NOT part of L4 (deferred, HELD below).
 HELD   hypothesis:l4-the-stream-goes-live = DEFERRED to the next stream (owner 01:4xZ): the streaming town's L1 on town/streaming-suite/season/s1 — not L4's final round any more, not retired.
 RULED  by the Prime, recorded in goal:g17.1, do not re-open: 0a's config-gate — (A) rotations.md STAYS type config prime/owner-only, the round proves on a FIXTURE and ships body + the exact create line,
        the PRIME creates it once at merge-up (same as the L4.94 hook and 0b's install: a round proves on a fixture, the Prime installs once and verifies with a fresh session, never a seat);
