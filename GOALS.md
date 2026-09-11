@@ -6079,6 +6079,8 @@ SL4.01 HARVESTED (sensei-director L4, 20:5xZ): two kids proved 0.85 + 0.85 — m
 
 PRIME XI 21:13Z, verified LIVE by the Prime itself (it would not take this one on report, being the one who proved the hazard): after merge-up SL2#5 landed green on season/s2 (3428/14, floor 2259/195/2454), meter --pin on a scratch .jsonl refuses BY NAME before any write, names the working command, and sha256 is identical before and after. The defect that truncated the Prime own live transcript at 20:0xZ is CLOSED — the most important thing in that merge-up. Also closed by SL2#5: the SL3.02 demotion (callers justified per site), and g15.24 guard caught a real stray on its first live use.
 
+mur-SL2.3-5 residues (Prime XII 22:44Z, P1+P2 for SL3.05/SL4.01) cut as SL5.06 under hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript: same-ref measure+merge with abort, guard before perform, unregistered --name never merges, check 5 prefers the row transcript, real merge-gate test, _background_tasks path.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6249,6 +6251,8 @@ L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-
 
 SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autopsy --seat S from files only (pid alive, death ts from the registry json, last 10 non-heartbeat transcript entries, reaper lines via heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it for a dead pid; read-only asserted on the subprocess list); kid 2 lean 85 — spawn pins the meter and writes the pending ack.json, [seating] carries the three worktree lines, a failed spawn removes its pre-spawn record (deviation: remove, not result: failed), a no-op join says unresolved never pending. Live on this seat: 12 labelled lines from files. Harvest fix-up: the SL3.03/SL3.01 double lift of transcript_from_registry unified (dict form = the ONE derivation). 495 green. Reaches season/s2 at SL2#3.
 
+mur-SL2.3-5 residues (Prime XII 22:44Z, P1+CHEAP+P2 for SL3.01) cut as SL5.07 under hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains: spawn writes gated on dead, origin/season/s2 literals via season_branch, autopsy tests on fixtures.
+
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6297,6 +6301,8 @@ pending — minted 19:4xZ by sensei-director L3 from the Sensei's 19:34Z dm (+ i
 ## Agent Notes
 SL3.07 HARVESTED (sensei-director L4, 20:2xZ): two kids proved 0.9 + 0.9 — _input_region returns empty (never the whole pane) when no rendered box; busy esc footer scoped to the region with a box, scanned on the whole capture without one; a non-blank box-less capture is no-rendered-box -> wake maps it to nothing-pending (types nothing, marker untouched); the strand branch can never fire on a busy or box-less pane; wake logs ONE per-seat outcome line through the shared reaper_log.py resolver (heal.py _watch_log delegates — a move, NO_HELP-listed library module) and the typed token names its path (wake:idle|strand) with the prefix byte-identical; kid 2 drove wake in-process against the verbatim busy fixture: busy-deferred, zero send-keys. 257 green with send/heal/sensei/help-smoke neighbours. Merge against the seat was CLEAN — the round was cut after the 19:5xZ sync, so L4.287 read-clears-pending was already in its base; both mechanisms verified present. Rides merge-up SL2#4 with SL3.05.
 
+master-sensei 22:49Z alert-path line (alerts never reach the inbox; a coalesced nudge is a lost wake; nine detected records per seating) cut as SL5.09 under hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe. Its P2 test residues from mur-SL2.3 ride SL5.08.
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6323,6 +6329,8 @@ SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack contin
 fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 leaves the successor spawn row uncommitted in the seat worktree (button-down is the grid commit, skipped off season/s2), so the r3b ack gate refuses every worktree wake by construction — point 214458Z wake 8 calls, four seats hand-committed the same write today. Fix (a): rotate-self commits its own spawn write (seats.md only, one line) right after s6.1; the gate is not lowered. Brief: hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean.
 
 SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spawn-row write (_commit_spawn_row, seats.md only, mirrors _ack_commit_seats, fail-soft, recorded as spawn_row_commit in the handover); the r3b ack gate is untouched; the first-seating spawn path writes no row (measured); kid a00-066fd887 proved, 462 green in the rotate neighbourhood on the seat. Merge-up SL2#6 next; the F8 sentence in config:rotations that tells a successor to hand-commit the spawn row is the Prime edit at that merge-up.
+
+mur-SL2.3-5 residue (Prime XII 22:44Z, P1 for SL4.03) plus the small P2 test items of g15.23 and g15.13 cut as SL5.08 under hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim.
 
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
