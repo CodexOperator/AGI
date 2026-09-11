@@ -265,6 +265,112 @@ def test_bootstrap_staleness_refuses_stale_accepts_fresh(_fix):
                                    "abc1234") is False
 
 
+def _write_rotations_with_fact_bounds(root, fact_bounds):
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    body = "---\nid: config:rotations\ntype: config\nfact_bounds:\n"
+    for k, v in fact_bounds.items():
+        body += f"  {k}: {v}\n"
+    body += "---\n\nbody\n"
+    (g / "rotations.md").write_text(body, encoding="utf-8")
+
+
+def _write_record(root, measured_at, telemetry):
+    seats = root / "sessions" / "seats"
+    seats.mkdir(parents=True, exist_ok=True)
+    doc = {"shape": "v1", "generation": 7,
+           "measured_at": measured_at, "telemetry": telemetry}
+    (seats / "adv-alive.bootstrap.json").write_text(
+        json.dumps(doc) + "\n", encoding="utf-8")
+
+
+# (L4.290) per-fact staleness: `fact_bounds` has a reader — the block marks
+# only head-bound facts, never refuses the whole block, reads the map from the
+# node when no `bounds` kwarg is passed.
+def test_bootstrap_permanent_fact_at_old_commit_emits_plain(_fix, tmp_path):
+    """A permanent-bound fact measured at an old commit is emitted with NO
+    stale mark (and does not refuse the block)."""
+    _write_rotations_with_fact_bounds(tmp_path, {"model": "permanent"})
+    _write_record(tmp_path, {"model": "deadbeef"},
+                  {"model": "claude-sonnet-5"})
+    block, reason = rotate._bootstrap_block(
+        tmp_path, "adv-alive", commit="abc1234")
+    assert reason is None
+    assert "[stale:" not in block
+    assert "model: claude-sonnet-5" in block
+
+
+def test_bootstrap_head_fact_at_old_commit_emits_stale_mark(_fix, tmp_path):
+    """A head-bound fact measured at an old commit is emitted with the
+    `[stale: measured@<sha>, HEAD@<sha>]` mark."""
+    _write_rotations_with_fact_bounds(tmp_path, {"model": "head"})
+    _write_record(tmp_path, {"model": "deadbeef"}, {"model": "x"})
+    block, reason = rotate._bootstrap_block(
+        tmp_path, "adv-alive", commit="abc1234")
+    assert reason is None
+    assert "[stale: measured@deadbeef, HEAD@abc1234]" in block
+
+
+def test_bootstrap_unbounded_fact_is_treated_as_head(_fix, tmp_path):
+    """An unbounded fact (not in the map) takes the declared default 'head'
+    and is marked stale at an old commit."""
+    _write_rotations_with_fact_bounds(tmp_path, {"model": "permanent"})
+    _write_record(tmp_path, {"seed": "deadbeef"}, {"seed": "s-7"})
+    block, reason = rotate._bootstrap_block(
+        tmp_path, "adv-alive", commit="abc1234")
+    assert reason is None
+    assert "seed: s-7  [stale: measured@deadbeef, HEAD@abc1234]" in block
+
+
+def test_bootstrap_every_fact_stale_still_emits(_fix, tmp_path):
+    """A record with EVERY measured fact stale still emits — staleness is a
+    per-fact mark, never a whole-block refusal."""
+    _write_rotations_with_fact_bounds(tmp_path, {})
+    _write_record(tmp_path, {"seed": "deadbeef", "model": "cafebabe"},
+                  {"seed": "s-7", "model": "x"})
+    block, reason = rotate._bootstrap_block(
+        tmp_path, "adv-alive", commit="abc1234")
+    assert reason is None
+    assert "## ⚓ bootstrap: adv-alive successor handover" in block
+    assert "[stale:" in block
+
+
+def test_bootstrap_bounds_kwarg_overrides_node(_fix, tmp_path):
+    """The `bounds=` kwarg overrides the node's `fact_bounds` — the seam a
+    test/other reader can pin an explicit map against."""
+    _write_rotations_with_fact_bounds(tmp_path, {"model": "head"})
+    _write_record(tmp_path, {"model": "deadbeef"}, {"model": "x"})
+    block, _ = rotate._bootstrap_block(
+        tmp_path, "adv-alive", commit="abc1234",
+        bounds={"model": "permanent"})
+    assert "[stale:" not in block
+
+
+def test_fact_bounds_absent_key_returns_empty(_fix, tmp_path):
+    """`_fact_bounds` on a node without the key (or without the node) returns
+    {}"""
+    assert rotate._fact_bounds(tmp_path) == {}
+    _write_rotations_with_fact_bounds(tmp_path, {"model": "permanent"})
+    assert rotate._fact_bounds(tmp_path) == {"model": "permanent"}
+    # malformed (non-dict) -> {}
+    g = tmp_path / "nodes" / ".geometry"
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nfact_bounds: nope\n---\n\n",
+        encoding="utf-8")
+    assert rotate._fact_bounds(tmp_path) == {}
+
+
+def test_live_rotations_declares_permanent_model():
+    """The LIVE config:rotations declares `fact_bounds` with model:
+    permanent — a test of live config reads the live node, never a copy."""
+    # reuse rotate's own resolver to locate the graph, so the test reads the
+    # same bytes the engine reads (no `_fix` fixture: it mocks
+    # find_project_root to a tmp dir).
+    root = rotate.find_project_root()
+    fb = rotate._fact_bounds(root)
+    assert fb.get("model") == "permanent"
+
+
 # ── (s11) verification at the cheapest level ──────────────────────────────
 
 
