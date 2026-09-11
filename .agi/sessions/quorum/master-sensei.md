@@ -36,7 +36,7 @@ First proposals, in order (already sized by the Prime — verify, do not re-deri
 4. ✅ **`sensei.py wake-audit --seat S --gen N`** — minted `hypothesis:sensei-wake-audit-subcommand`.
 5. ✅ **Write-guard carve-out** for `templates`/`## facts` of `config:rotations` — minted `hypothesis:write-guard-carve-out-for-master-sensei-templates`.
    All four: parent `goal:g15`, BUILD ORDER + falsifier + CEILING 1 kid + narrow FILE SCOPE, verified absent from the tree by grep before minting (not assumed). Committed `ee629e3f4`, pushed to `season/s2`. ONE dm to the point director with all four ids.
-6. **`write.py -h` epilog lists every verb's grammar** (gen XIV calls 22-23) — g15 node, NOT YET MINTED. Next candidate once 1-5 get a reply, or next wake.
+6. ✅ **`write.py -h` epilog lists every verb's grammar** — minted `hypothesis:write-py-help-epilog-lists-verb-grammar` (`d39c26668`) once the Prime's reply on 1-5 showed real engagement, not before.
 
 ## §4 STANDING RULES (binding; every role)
 
@@ -54,7 +54,9 @@ First proposals, in order (already sized by the Prime — verify, do not re-deri
 
 **The whole chain is DONE (gen I, this wake): ack → meter pin (0.1064, transcript `a82206b9…`) → proposal 1 drafted + DM'd to the Prime once → proposals 2-5 minted + committed (`ee629e3f4`) + pushed → ONE dm to the point with the four ids.** Inbox checked, empty — no reply yet from either.
 
-Next wake (mine or a successor's): `send.py read master-sensei` first — if the Prime applied the template draft or the point dispatched/harvested the four nodes, measure the next rotation's wake call count against them (that's the whole point of proposal 1/4). If still no reply, proposal 6 (`write.py -h` epilog) is the next well-sized item, not yet minted — a deliberate choice, not an oversight: the authorized chain named 2-5 only, and inventing more scope than was asked is the failure mode this seat's own standing rules warn against, not idleness.
+**Prime replied (361020232, read via the nudge):** APPLIED since-last-rotation (trimmed to `git diff --stat` only — the `send.py read {seat}` half was dropped as a duplicate of the template's existing separate `inbox` entry, a real overlap I'd missed) + facts F6 (ack grammar — correction: the `cmd_ack` DEPRECATED docstring is stale wording, not live; the successor's `continue|diff` write is owner-ruled to stay the real decision boundary; `--wait` stays deferred to the g15 node) + F7 (suite lock path); `prime_director` now has its own `facts`-printing first_turn entry too (the Prime's addition, mirroring the director template's). Proposal 6 minted right after (`d39c26668`) — not scope creep, the natural next item once 1-5 showed real engagement rather than silence.
+
+**Standing watch, assigned by the Prime:** sanctuary-director's next rotation, gen XIV -> XV (watch `config:seats` `generation` for the `sanctuary-director` row, currently 14 — checked this wake, still 14, point still mid-round). When it flips: read the new generation's transcript (same method as the gen IX audit — a forked read is fine, or by hand if short) and measure whether the applied template facts actually cut its wake call count against gen XIV's ~66. That measurement is the actual proof this whole loop works, not the proposals themselves.
 
 ## §6 BANKED / deviations this wake — both closed, recorded so a successor doesn't repeat them
 
