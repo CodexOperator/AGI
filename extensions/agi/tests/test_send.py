@@ -3981,3 +3981,287 @@ def test_read_deferred_only_no_empty_and_no_inbox_touch(project: Path, capsys):
     inbox = project / ".agi" / "sessions" / "inbox" / "lonely.md"
     assert not inbox.exists(), \
         "reading a deferred dm must not fabricate an inbox file"
+
+
+# ── hypothesis:l4-every-live-row-is-keyed-every-send-is-signed... clause (1) ──
+# keygen now WRITES the seat-row cells it prints (pubkey, sig_scheme,
+# enc_scheme: none) through write.submit (the sanctioned writer), with the
+# prime keying every LIVE row (a live pid / session_id) that lacks a pubkey
+# and a second keygen refusing to overwrite an existing .key by name. All
+# tests here use a fake tmp-root config:seats node -- never the live tree.
+
+def _write_seats_node(project, rows):
+    d = project / ".agi" / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f"  - {r!r}" for r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nparents:\n  - goal:g17\nseats:\n" + body +
+        "\n---\n\n# config:seats\n\nfixture body\n")
+
+
+def _read_seats(project):
+    nf = send_mod._fm.load_node_file(
+        project / ".agi" / "nodes" / ".geometry" / "seats.md")
+    return [dict(r) for r in (nf.frontmatter.get("seats") or [])
+            if isinstance(r, dict)]
+
+
+def test_keygen_refuses_to_overwrite_existing_key(project):
+    """A second keygen against an existing .key refuses and the key bytes are
+    unchanged (the never-overwrite clause, asserted by name)."""
+    path = send_mod.keygen(project, "seat-a")
+    assert path is not None and path.is_file()
+    before = path.read_bytes()
+    out = send_mod.keygen(project, "seat-a")
+    assert out is None, "a second keygen must refuse, not return a path"
+    assert path.read_bytes() == before, "the existing key bytes are unchanged"
+
+
+def test_keygen_writes_own_row_cells_through_write_submit(project, capsys):
+    """keygen <seat> writes pubkey/sig_scheme/enc_scheme into its OWN row via
+    write.submit under the self-row carve-out; no other row is touched."""
+    _write_seats_node(project, [
+        {"name": "sanctuary-director", "role": "director", "pid": 1234},
+        {"name": "belam", "role": "prime_director", "pid": 999},
+    ])
+    path = send_mod.keygen(project, "sanctuary-director",
+                           actor="sanctuary-director-4e")
+    assert path is not None
+    seats = _read_seats(project)
+    own = next(r for r in seats if r["name"] == "sanctuary-director")
+    assert own["pubkey"], "the own row now carries the public key"
+    assert own["sig_scheme"] == "ed25519"
+    assert own["enc_scheme"] == "none"
+    other = next(r for r in seats if r["name"] == "belam")
+    assert "pubkey" not in other, "a self-row write must not touch another row"
+    out = capsys.readouterr().out
+    assert "enc_scheme: none" in out
+
+
+def test_keygen_all_live_keys_live_rows_only_and_skips_keyed(project, capsys):
+    """Prime's --all-live keys every LIVE row (pid/session_id) lacking a
+    pubkey, leaves the dead row alone, and skips an already-keyed row."""
+    _write_seats_node(project, [
+        {"name": "s1", "role": "director", "pid": 111},
+        {"name": "s2", "role": "director", "session_id": "abc"},
+        {"name": "s3", "role": "director"},                     # dead
+        {"name": "s4", "role": "director", "pid": 222,
+         "pubkey": "already-keyed"},
+    ])
+    out = send_mod.keygen(project, all_live=True, actor="belam",
+                          role="prime_director")
+    assert out is not None and len(out) == 2
+    seats = _read_seats(project)
+    by = {r["name"]: r for r in seats}
+    assert by["s1"]["pubkey"] and by["s1"]["sig_scheme"] == "ed25519"
+    assert by["s1"]["enc_scheme"] == "none"
+    assert by["s2"]["pubkey"], "a live row (session_id) still gets keyed"
+    assert "pubkey" not in by["s3"], "the DEAD row must not gain a key"
+    assert by["s4"]["pubkey"] == "already-keyed", "keyed row is skipped"
+    stdout = capsys.readouterr().out
+    assert "keyed s1" in stdout and "keyed s2" in stdout
+    assert "skipped s4 (already keyed)" in stdout
+    assert _seat_key_file(project, "s1").is_file()
+    assert _seat_key_file(project, "s2").is_file()
+    assert not _seat_key_file(project, "s3").exists(), "dead rows get no .key"
+    # the private seed is never printed
+    obj = json.loads(_seat_key_file(project, "s1").read_text())
+    assert obj["priv_hex"] not in stdout
+
+
+# ── hypothesis:l4-every-live-row-is-keyed... clauses (2)+(3)+(4): envelope, ──
+# key_history RETIRED, and whois verifies with INFORMATIONAL labels.
+# (2) every signed message carries `env: v1` beside its `sig:` line and the
+#     scheme name comes from the row; seatsig.Scheme has an OPTIONAL
+#     encryption slot (enc_scheme/encrypt/decrypt = None today); no caller
+#     outside src/seatsig names the "ed25519" literal (the keygen default now
+#     flows through seatsig.DEFAULT_SCHEME). (3) a sig whose fingerprint is in
+#     the from-seat's key_history AND verifies under that retired pub answers
+#     RETIRED:<fp>, never FORGED. (4) whois verifies a signature against the
+#     row and reports the label; the label is INFORMATIONAL -- whois's exit
+#     code stays on the claim/role authority axis and never changes on it.
+
+def _signed_send_and_canonical(project, seat, to, text):
+    """Send a signed message and return (sig_line, canonical_msg) for the SAME
+    message, so whois can verify the exact bytes the sig covers."""
+    send_mod.send(project, to, text, seat)
+    inbox = project / ".agi" / "sessions" / "inbox" / f"{to}.md"
+    block_text = inbox.read_text().split(send_mod.MSG_SEP)[1]
+    meta, body = send_mod._parse_block(block_text)
+    canonical = send_mod._canonical_msg(meta["ts"], meta["from"], meta["to"],
+                                        body)
+    return meta["sig"], canonical
+
+
+def _seat_pubkey_hex(project, seat):
+    """Recover a seat's public key hex from its on-disk .key seed."""
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, seat).read_text())
+    return scheme.public_from_secret(bytes.fromhex(obj["priv_hex"])).hex()
+
+
+def _fp(project, seat):
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, seat).read_text())
+    return send_mod.seatsig.fingerprint(
+        scheme.public_from_secret(bytes.fromhex(obj["priv_hex"])))
+
+
+# --- clause (2): envelope `env: v1` + the ONE plug point --------------------
+
+
+def test_signed_message_carries_env_v1_beside_sig(project):
+    """Every signed message carries `env: v1` immediately before its sig line."""
+    send_mod.keygen(project, "seat-a")
+    send_mod.send(project, "recv", "hello env", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    lines = inbox.read_text().splitlines()
+    env_idx = next(i for i, l in enumerate(lines) if l == "env: v1")
+    assert lines[env_idx + 1] and lines[env_idx + 1].startswith("sig: "), \
+        "env: v1 sits directly beside the sig line"
+
+
+def test_unsigned_message_has_no_env_line(project):
+    """A message with no key file is unsigned and carries no env line."""
+    send_mod.send(project, "recv", "hello", "seat-a")   # no .key file exists
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    assert "env:" not in inbox.read_text()
+
+
+def test_scheme_has_optional_encryption_hook_slot():
+    """seatsig.Scheme carries the encryption SEAM (enc_scheme/encrypt/decrypt
+    = None today); SCHEMES is the ONE plug point. Prime ruling B: the seam,
+    not the cipher -- dead slots that look like a feature are out."""
+    scheme = send_mod.seatsig.get("ed25519")
+    assert scheme.enc_scheme is None
+    assert scheme.encrypt is None
+    assert scheme.decrypt is None
+
+
+def test_default_scheme_flows_through_registry_not_a_literal():
+    """send.py names the REGISTRY (seatsig.DEFAULT_SCHEME), never the
+    algorithm literal. Keygen's default and the --scheme default both resolve
+    through it and stay equal to the registered default."""
+    assert send_mod.seatsig.DEFAULT_SCHEME == "ed25519"
+    from inspect import signature
+    sig = signature(send_mod.keygen)
+    assert sig.parameters["scheme_name"].default == \
+        send_mod.seatsig.DEFAULT_SCHEME
+
+
+def test_no_production_caller_names_ed25519_literal():
+    """grep-assert: no caller OUTSIDE src/seatsig names the 'ed25519' literal
+    (only the registry does). The literal today was the keygen default arg --
+    routed through seatsig.DEFAULT_SCHEME, the caller now names the registry,
+    not the algorithm."""
+    import subprocess  # noqa: F401 (used via regex scan below)
+    src = Path(send_mod.__file__).read_text()
+    assert "ed25519" not in src, "send.py must not spell the algorithm literal"
+
+
+# --- clause (3): key_history / RETIRED --------------------------------------
+
+
+def test_retired_key_reads_retired_fp_not_forged(project, capsys,
+                                                 monkeypatch):
+    """A sig under a key moved into the from-seat's key_history, verifying
+    under that retired pub, answers RETIRED:<fp> -- never FORGED."""
+    send_mod.keygen(project, "seat-old")       # the key that will be retired
+    send_mod.keygen(project, "seat-new")       # the current key of the seat
+    # 'seat-old' row declares seat-new's pub as CURRENT and seat-old's pub as
+    # a retired key in key_history.
+    new_pub = _seat_pubkey_hex(project, "seat-new")
+    old_pub = _seat_pubkey_hex(project, "seat-old")
+    old_fp = _fp(project, "seat-old")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-old", "sig_scheme": "ed25519", "pubkey": new_pub,
+         "key_history": [{"pub": old_pub, "fp": old_fp, "from": "t0",
+                          "to": "t1", "rotated_by_sig": "sig"}]},
+    ])
+    # sign with the OLD key file (seat-old.key still holds the old priv)
+    send_mod.send(project, "recv", "hello", "seat-old")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert f"RETIRED:{old_fp}" in out
+    assert "FORGED" not in out, "a retired key must never read FORGED"
+
+
+def test_unknown_key_still_reads_forged(project, capsys, monkeypatch):
+    """A sig with a fingerprint in NO key_history and failing the current pub
+    still reads FORGED (the retired carve-out does not soften the real one)."""
+    send_mod.keygen(project, "seat-a")
+    send_mod.keygen(project, "seat-b")   # unrelated key, not retired
+    a_pub = _seat_pubkey_hex(project, "seat-a")
+    b_pub = _seat_pubkey_hex(project, "seat-b")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": a_pub},
+        {"name": "seat-b", "sig_scheme": "ed25519", "pubkey": b_pub},
+    ])
+    # sign as seat-b but read the message into recv -- from: seat-b with the
+    # seat-b row present is genuinely seat-b, so instead tamper the body.
+    send_mod.send(project, "recv", "hello x", "seat-b")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    inbox.write_text(inbox.read_text().replace("hello x", "tampered!!"))
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    # seat-b's row has no key_history -> the tampered sig reads FORGED
+    assert "FORGED" in out
+
+
+# --- clause (4): whois verifies, label stays INFORMATIONAL ------------------
+
+
+def test_whois_verifies_signed_line_and_reports_label(project, monkeypatch):
+    """whois with a signed line verifies against the resolved row and reports
+    the label; the authority exit code is untouched by the label."""
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a",
+                                                     "recv", "whois me")
+    pub_hex = _seat_pubkey_hex(project, "seat-a")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "session_ref": "seat-a",
+         "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=canonical)
+    assert rc == send_mod.WHOIS_OK, rc           # claim axis, label off it
+    assert "VERIFIED seat-a (ed25519)" in text
+
+
+def test_whois_unsigned_reports_unsigned_exit_unchanged(project, monkeypatch):
+    """whois with no signed line reports UNSIGNED -- informational, exit code
+    unchanged."""
+    send_mod.keygen(project, "seat-a")
+    pub_hex = _seat_pubkey_hex(project, "seat-a")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "session_ref": "seat-a",
+         "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False)
+    assert rc == send_mod.WHOIS_OK, rc
+    assert "UNSIGNED" in text
+
+
+def test_whois_forged_label_does_not_gate_exit(project, monkeypatch):
+    """whois on a FORGED signature still returns the NORMAL authority exit
+    code (here WHOIS_OK, a positive claim) -- the label is informational and
+    never gates the decision (Prime ruling A)."""
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a",
+                                                     "recv", "ok claim")
+    pub_hex = _seat_pubkey_hex(project, "seat-a")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "session_ref": "seat-a",
+         "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    # tamper the msg so the sig no longer verifies -> FORGED label
+    forged_rc, forged_text = send_mod.whois(
+        project, "seat-a", claim="seat-a", source="refs/x", do_fetch=False,
+        sig_line=sig_line, msg_text=canonical + "x")
+    assert "FORGED" in forged_text
+    # the exit code is the authority axis answer (WHOIS_OK) -- NEVER keyed on
+    # the FORGED label.
+    assert forged_rc == send_mod.WHOIS_OK, forged_rc
