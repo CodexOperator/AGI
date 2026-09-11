@@ -361,6 +361,132 @@ def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
                        note="SUITE REQUIRED: " + "; ".join(stale))
 
 
+# --- the seat-model check (surface 2: verify FAILS on a drifted seat) --------
+# hypothesis:l4-a-seats-live-model-is-measured-not-assumed. The DATA half
+# (experiment:a00-9af5f5f0-38aaed) confirmed message.model rides every
+# assistant turn of a CC transcript and the real gen VII drift reads cleanly
+# (129 opus-5 turns, a model_refusal_fallback system event, 297 opus-4-8
+# after). This is the READER: walk config:seats rows that have a live
+# session_ref, resolve each seat's OWN transcript THROUGH rotate.py's pin
+# resolution (find_pin_log / _parse_pin_record) -- identity supplied, never
+# inferred, trap 0c: no seat is ever opened as "newest file in a directory" --
+# and FAIL (not warn) when the newest assistant turn's model differs from the
+# row's declared model, naming seat, live/row models, the first drifted turn
+# and the last model_refusal_fallback event. DETECT, NEVER REPAIR: no code
+# path here may rewrite a seat row or restart a session. A row with no
+# session_ref, or a pin that does not resolve, is SKIPPED silently.
+
+
+def _scan_seat_transcript(path: Path, declared: str) -> dict:
+    """One transcript .jsonl -> the fields the seat-model check needs.
+
+    Returns {live, first_drift, fallback_ts, fallback_category,
+    fallback_request_id}. `live` is the newest assistant-turn `message.model`
+    (a turn with no model never overrides a measured one); `first_drift` is
+    the timestamp of the first assistant turn whose model differs from the
+    `declared` row model; the fallback keys are the LAST
+    model_refusal_fallback system event observed. Any of them may be None.
+    """
+    live = None
+    first_drift = None
+    fb = {"fallback_ts": None, "fallback_category": None,
+          "fallback_request_id": None}
+    try:
+        fh = open(path, encoding="utf-8", errors="replace")
+    except OSError:
+        return {"live": None, "first_drift": None, **fb}
+    with fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                o = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(o, dict):
+                continue
+            typ = o.get("type")
+            if typ == "assistant":
+                msg = o.get("message") or {}
+                model = msg.get("model")
+                if model is None:
+                    continue  # an unmeasured turn never overrides a measured one
+                live = model
+                if first_drift is None and model != declared:
+                    first_drift = o.get("timestamp")
+            elif o.get("subtype") == "model_refusal_fallback":
+                fb = {"fallback_ts": o.get("timestamp"),
+                      "fallback_category": o.get("apiRefusalCategory"),
+                      "fallback_request_id": o.get("requestId")}
+    return {"live": live, "first_drift": first_drift, **fb}
+
+
+def _seat_transcript(groot: Path, seat: str) -> Path | None:
+    """The transcript a seat's own pin names, or None when it does not resolve.
+
+    Identity is SUPPLIED by the seat's pin (`rotate.find_pin_log` reads the
+    seat-stable `<sessions>/<seat>.meter`), never inferred from a directory's
+    newest mtime -- trap 0c of the hypothesis. A missing/empty/absent pin or
+    a pin naming a missing file all resolve to None and the caller skips the
+    row silently.
+    """
+    pin = rotate.find_pin_log(groot, seat)
+    if pin is None:
+        return None
+    _, target = rotate._parse_pin_record(pin)
+    if not target:
+        return None
+    lp = Path(target).expanduser().resolve()
+    return lp if lp.exists() else None
+
+
+def check_seat_model(groot: Path) -> CheckResult:
+    """FAIL when any config:seats row's live transcript model drifted from its
+    declared model; PASS otherwise. Detect, never repair. (Surface 2 of
+    hypothesis:l4-a-seats-live-model-is-measured-not-assumed.)"""
+    start = time.monotonic()
+    rows = rotate._load_seats(groot)
+    candidate = [r for r in rows if (r.get("session_ref") or "").strip()]
+    lines: list[str] = []
+    drifted: list[str] = []
+    skipped = 0
+    for row in candidate:
+        seat = row.get("name") or "?"
+        declared = (row.get("model") or "").strip()
+        tp = _seat_transcript(groot, seat)
+        if tp is None:
+            skipped += 1
+            lines.append(f"{seat}: no pin-to-transcript (skipped)")
+            continue
+        scan = _scan_seat_transcript(tp, declared)
+        live = scan["live"]
+        if live is None:
+            skipped += 1
+            lines.append(f"{seat}: no assistant turns with a model (skipped)")
+            continue
+        if live == declared:
+            lines.append(f"{seat}: model={live} row={declared}")
+            continue
+        fb = ""
+        if scan["fallback_ts"] is not None:
+            fb = (f"; last model_refusal_fallback ts={scan['fallback_ts']} "
+                  f"category={scan['fallback_category']} "
+                  f"requestId={scan['fallback_request_id']}")
+        lines.append(f"{seat}: DRIFT live={live} row={declared} "
+                     f"first-drifted-turn={scan['first_drift']}{fb}")
+        drifted.append(seat)
+    n_cand = len(candidate)
+    note = ("; ".join(lines) if lines else "no seated rows to check")
+    if drifted:
+        note = ("DRIFTED SEAT(S): " + ", ".join(drifted) + " -- " + note)
+    return CheckResult(
+        "seat-model", "FAIL" if drifted else "PASS",
+        time.monotonic() - start,
+        {"seats": n_cand, "drifted": len(drifted), "skipped": skipped},
+        note=note)
+
+
 # --- the runner ------------------------------------------------------------
 
 
@@ -432,6 +558,11 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool) -> list[Check
         eff_ts = time.time() if (suite and suite_res is not None
                                  and suite_res.status == "PASS") else None
         results.append(check_bin_freshness(groot, effective_ts=eff_ts))
+    # surface 2 of hypothesis:l4-a-seats-live-model-is-measured-not-assumed
+    # -- the READER that turns the measured seat model into a verdict. Runs in
+    # the rotation/full rounds so `verify` (verification.py) carries it.
+    if level in ("rotation", "full"):
+        results.append(check_seat_model(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
     if smoke is not None:
         results.append(compare_count(groot, smoke.number))
@@ -497,6 +628,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in: also run the pytest suite (never taken)")
     ap.add_argument("--json", action="store_true",
                     help="emit only a JSON object of the same facts")
+    ap.add_argument("--seat-model", action="store_true",
+                    help="run only the seat-model check (config:seats drift)")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="show per-check output even when it passes")
     ap.add_argument("--root", default=".",
@@ -513,6 +646,22 @@ def main(argv: list[str] | None = None) -> int:
     # and graph line must appear even when they agree (it is provenance, not
     # a diff).
     engine_root = commands.engine_for(groot)
+
+    # Standalone seat-model round — proof (d) of hypothesis:l4-...-measured-
+    # not-assumed, and the operator shorthand. Runs only this check; `verify`
+    # gets the same verdict from the rotation/full level wiring.
+    if args.seat_model:
+        r = check_seat_model(groot)
+        if args.json:
+            print(json.dumps(render_json("seat-model", False, [r],
+                                         graph_root=str(groot),
+                                         engine_root=str(engine_root)),
+                             indent=2))
+        else:
+            print(render_summary("seat-model", False, [r],
+                                 graph_root=str(groot),
+                                 engine_root=str(engine_root)))
+        return 1 if r.status == "FAIL" else 0
 
     # The suite lock no longer lives here — it moved to the RESOURCE.
     # `extensions/agi/tests/conftest.py` acquires it (`hypothesis:l4-the-suite-
