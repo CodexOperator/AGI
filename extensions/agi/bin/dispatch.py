@@ -1456,6 +1456,21 @@ def main() -> int:
         except (json.JSONDecodeError, OSError):
             print(f"warn: corrupt manifest at {manifest_path}, starting fresh", file=sys.stderr)
 
+    # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the ceiling that
+    # `spawn.parent_max_kids` already prints into the parent brief is now ALSO
+    # a refusal. A parent (AGI_AGENT_ID set) whose own KID dispatches in this
+    # iteration's manifest would cross the ceiling exits 2 HERE — before a
+    # spawn-budget slot lease, before minting a session dir, before scaffold.
+    # Counts `spawned_by_agent == this parent` in the merged manifest and adds
+    # what THIS invocation would spawn. Fail-open when AGI_AGENT_ID is absent
+    # (a director or a human at a shell), like the stale-base gate.
+    if args.tier == "kid":
+        _kid_gate = _parent_kid_ceiling_gate(manifest, cfg, len(targets))
+        if _kid_gate:
+            _cg_code, _cg_msg = _kid_gate
+            print(_cg_msg, file=sys.stderr)
+            return _cg_code
+
     # Records created by THIS invocation. The authoritative merge happens once,
     # at the end, under lock and against a fresh read -- see `_merge_manifest`.
     new_records: list[dict] = []
@@ -1898,6 +1913,14 @@ def main() -> int:
             # line naming the gap rather than guessing a pane identity. Never
             # inferred from a tmux window name or $USER (identity supplied).
             "dispatched_by": _resolved_seat(args.seat),
+            # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — WHO
+            # spawned this kid, by agent id (not seat): the parent-kid
+            # ceiling gate (_parent_kid_ceiling_gate) counts these records
+            # in the current iteration manifest to refuse a parent whose own
+            # kid dispatches would cross spawn.parent_max_kids. None for a
+            # director or a human at a shell (no AGI_AGENT_ID), which also
+            # keeps the gate fail-open.
+            "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
         }
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
@@ -2886,6 +2909,37 @@ def _push_further_gate(root: Path, target: str | None):
     if ttype in PUSH_FURTHER_REFUSED_TYPES:
         return (2, f"ERR: --push-further refuses {target}: node type "
                    f"'{ttype}' is quorum-judged; push stops at the quorum")
+    return None
+
+
+def _parent_kid_ceiling_gate(manifest: dict, cfg: dict, requested: int):
+    """The parent-kid ceiling refusal, as (exit_code, stderr_msg) or None.
+
+    hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — `spawn.parent_max_kids`
+    was only PRINTED into the parent brief; nothing refused a parent whose OWN
+    kid dispatches exceeded it. Counts the kids THIS parent has already
+    dispatched in the current iteration manifest (records whose
+    `spawned_by_agent` equals the caller's `AGI_AGENT_ID`), adds the kids THIS
+    invocation would spawn, and refuses — exit 2, naming BOTH numbers — the
+    moment that would cross the ceiling. Fail-open when there is no caller id
+    (a director or a human at a shell), exactly like the stale-base gate.
+    Pure and deterministic so the gate is unit-testable without a spawn.
+    """
+    caller = os.environ.get("AGI_AGENT_ID")
+    if not caller:
+        return None  # fail open: no parent caller to attribute spawns to
+    ceiling = spawn_budget.parent_max_kids(cfg)
+    if requested <= 0:
+        return None
+    already = sum(
+        1 for a in manifest.get("agents", [])
+        if a.get("spawned_by_agent") == caller
+    )
+    if already + requested > ceiling:
+        next_kid = already + requested
+        return (2, f"ERR parent {caller} has dispatched {already} kids; "
+                   f"ceiling spawn.parent_max_kids={ceiling} refuses kid "
+                   f"{next_kid}")
     return None
 
 
