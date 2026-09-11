@@ -40,6 +40,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import stat
 import sys
 from pathlib import Path
@@ -71,6 +72,48 @@ ALWAYS_FORBIDDEN = (
     "ANTHROPIC_AUTH_TOKEN",
     "ANTHROPIC_BASE_URL",
 )
+
+#: Forbidden PRIVATE-KEY patterns (extensions/agi/bin/envfile.py). The seat-
+#: keys layer (hypothesis:l4-a-seat-signs-with-a-swappable-scheme) writes
+#: private seeds ONLY under sessions/seats -- never into .env -- and this
+#: floor refuses a private-key line that lands here anyway. Stated as exact
+#: regexes so the rule is reviewable:
+#:
+#:   * a KEY NAME whose final token is a private-key name -- suffix
+#:     ``_PRIV_HEX`` (the exact cell envfile must refuse) or ``PRIVATE_KEY``:
+#:         (?i).+_(?:PRIV_HEX)$     -- e.g. MY_SEAT_PRIV_HEX
+#:         (?i).+PRIVATE_KEY$       -- e.g. SSH_PRIVATE_KEY
+#:
+#:   * a VALUE that is exactly 64 hex chars (the hex shape of a 32-byte
+#:     Ed25519 seed) on a line whose KEY NAME mentions KEY:
+#:         (?i)KEY                    -- the key name gate
+#:         ^[0-9a-fA-F]{64}$          -- the value shape
+
+
+#: Regex for a private-key KEY NAME (case-insensitive): the name ends in the
+#: ``_PRIV_HEX`` or ``PRIVATE_KEY`` token.
+_FORBIDDEN_KEY_NAME = re.compile(r".+_(?:PRIV_HEX)$|.+PRIVATE_KEY$",
+                                 re.IGNORECASE)
+#: Regex for the value shape of a hex-encoded 32-byte seed: exactly 64 hex.
+_HEX64 = re.compile(r"^[0-9a-fA-F]{64}$")
+#: Key-name gate for the value rule: the name must mention KEY (so an
+#: ordinary 64-hex config value under a non-KEY name is not refused).
+_FORBIDDEN_KEY_MENTION = re.compile(r"(?i)KEY")
+
+
+def _line_is_forbidden_key(key: str, value: str) -> bool:
+    """True when a KEY=value line is a private-key that must never be in .env.
+
+    Clause 1 (by name): the key ends in ``_PRIV_HEX`` or ``PRIVATE_KEY``.
+    Clause 2 (by value): the value is exactly 64 hex chars AND the key name
+    mentions KEY (a key containing KEY holding a hex seed). Never echoes the
+    value; the caller reports only that the line is forbidden and which rule.
+    """
+    if _FORBIDDEN_KEY_NAME.search(key):
+        return True
+    if _FORBIDDEN_KEY_MENTION.search(key) and _HEX64.fullmatch(value or ""):
+        return True
+    return False
 
 
 class SecretsError(Exception):
@@ -438,6 +481,21 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
                 f"{key} is set in {res.env_file} and must never be — dispatch.py "
                 f"scrubs it from pi children so subagents cannot bill the Claude "
                 f"Code subscription; setting it here re-adds the leak below the scrub"
+            )
+
+    # Private-key pattern floor (hypothesis:l4-a-seat-signs-with-a-swappable-
+    # scheme, clause (2)): a NAME ending in _PRIV_HEX / PRIVATE_KEY, or a
+    # 64-hex VALUE under a KEY-mentioning name. Reported by which rule, never
+    # by value -- a secret must never reach a logged/screen-shared terminal.
+    for key, value in env.items():
+        if _line_is_forbidden_key(key, value):
+            rule = ("key name"
+                    if _FORBIDDEN_KEY_NAME.search(key)
+                    else "64-hex value under a KEY-named key")
+            problems.append(
+                f"{key} is set in {res.env_file} and looks like a PRIVATE KEY "
+                f"({rule}) — private seeds belong in sessions/seats, never "
+                f"in .env. Refused by the envfile.py forbidden-key floor."
             )
     return problems, notes
 
