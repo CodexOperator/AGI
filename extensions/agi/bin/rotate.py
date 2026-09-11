@@ -4845,7 +4845,8 @@ def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
-                         session_id: str | None = None) -> str:
+                         session_id: str | None = None,
+                         key_rotation: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`generation`/`window`/
@@ -4859,7 +4860,16 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     (only its own row, only the declared fields; every other row and every
     prime-only field byte-identical). Admission lives in write.py's
     `_enforce_written_by` reading the schema's `self_row` data; nothing here
-    names `seats` in a branch. Returns a one-line outcome string."""
+    names `seats` in a branch. Returns a one-line outcome string.
+
+    `key_rotation` (goal:g15.25 line (2), hypothesis l4-rotate-self-is-key-
+    gated...): the dict returned by `_rotate_successor_key`. When present
+    (a KEYED seat rotated and minted a successor key), the SAME ONE row
+    write additionally sets the seat's `pubkey` to the successor pub and
+    APPENDS the retired-predecessor `key_history` entry — never deletes or
+    shrinks existing history, never a second submit, committed by the ONE
+    `_commit_spawn_row` call that follows. `pubkey`/`key_history`/`sig_scheme`
+    are declared self_row fields, so admission holds."""
     import write  # local: same dir (send.py pattern, no import cycle)
     rows = write._load_seats(root)
     new_rows: list[dict] = []
@@ -4874,6 +4884,22 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
             nr["window"] = window
             if pid is not None:
                 nr["pid"] = pid
+            # goal:g15.25 line (2): the successor half's cells ride the SAME
+            # one row write -- write the successor pubkey into the seat's own
+            # row and APPEND the retired-predecessor key_history entry (never
+            # shrink existing history). `key_rotation` carries a retired pub
+            # whose rotated_by_sig verifies under it.
+            if key_rotation:
+                _ret = key_rotation.get("retired")
+                nr["pubkey"] = key_rotation.get("successor_pub")
+                nr["sig_scheme"] = (nr.get("sig_scheme")
+                                     or key_rotation.get("scheme"))
+                _hist = list(nr.get("key_history") or [])
+                if _ret and not any(h.get("from") == _ret.get("from")
+                                    and h.get("to") == _ret.get("to")
+                                    for h in _hist if isinstance(h, dict)):
+                    _hist.append(_ret)
+                nr["key_history"] = _hist
             new_rows.append(nr)
             found = True
         else:
@@ -4884,9 +4910,12 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     edit = write.Edit(node_id="config:seats")
     edit.set_fm["seats"] = new_rows
     write.submit(root, edit, actor=actor, role=role)
+    _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
+              f"key_history={len(key_rotation['retired'])}"
+              if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
-            f"window={window!r} source=registry")
+            f"window={window!r} source=registry{_extra}")
 
 
 def _ref_shape_issue(ref: str, seat: str) -> str | None:
@@ -8615,6 +8644,266 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     return 0
 
 
+def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
+    """rotate-self is KEY-GATED (hypothesis:l4-rotate-self-is-key-gated...
+    piece 1). A KEYED seat -- its row already names a ``pubkey`` -- must hold
+    its own signing key file before it rotates: a rotation whose successor
+    wakes without the key cannot sign its own first message. Returns an error
+    line (the ``keygen`` recovery) when the gate holds, None when it passes.
+
+    The ONE exception is a seat whose row carries NO pubkey yet -- an
+    incrementally-keyed seat mints its own first key in the same step (that
+    minting half is out of this slice's scope; the gate only *refuses*). A
+    throwaway seat (``row`` is an empty dict / None) is never keyed and never
+    refused here.
+    """
+    if not row or not row.get("pubkey"):
+        return None
+    import send  # local: same dir, no import cycle (send.py pattern)
+    key_path = send._seat_key_path(root, seat)
+    if key_path.exists():
+        return None
+    return (f"rotate-self refused: seat {seat!r} carries a pubkey but no "
+            f"signing key at {key_path} -- run `send.py keygen {seat}` "
+            f"first (rotate-self is key-gated: a keyed seat must hold its "
+            f"own signing key to rotate).")
+
+
+def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
+                      dry_run: bool = False) -> str:
+    """rotate-self KEY-GATING, line (1) MINTING half (hypothesis
+    l4-rotate-self-is-key-gated...): the ONE gate exception -- a REAL row
+    whose cell carries NO pubkey yet (an incrementally-keyed fleet seat)
+    mints its own FIRST key IN THE SAME rotate-self step, so its successor
+    wakes with a signing key it can use (Prime 21:20Z (b)).
+
+    REUSES ``send._mint_seat_key`` -- the one key writer, no second path, no
+    ed25519 literal -- and then CLOSES the line-(1) loop by writing the
+    ``pubkey`` / ``sig_scheme`` / ``enc_scheme`` cells into the seat's OWN row
+    through ``send._row_write_submit`` (best-effort, exactly like ``keygen``:
+    a refused / unadmitted row write NEVER fails the rotation -- the key file
+    is still minted, and the note says which half landed). A row that is
+    already keyed, a THROWAWAY/rehearsal row (never written to seats.md), and
+    the case where the key already exists (idempotent re-rotate) are all left
+    alone -- returns '' then. Returns a one-line note when it mints.
+
+    ``--dry-run`` (ORDER 1, SL5.05): touches nothing -- no key file, no row
+    write. It still REPORTS what it would do (a one-line ``(dry-run)`` note
+    naming the mint it would perform) so a caller on an unkeyed real row sees
+    the refusal/mint plan without a side effect.
+    """
+    if not row or row.get("pubkey"):
+        return ""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    scheme = row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME
+    if dry_run:
+        # dry-run is a planning check: report what an unkeyed real row would
+        # do, but mint NOTHING and write NO row cell. Already-keyed rows
+        # (above) and idempotent re-rotates (key file already exists, so the
+        # live path would mint nothing) both return '' -- nothing to report.
+        if send._seat_key_path(root, seat).exists():
+            return ""
+        return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
+                f"key at {send._seat_key_path(root, seat)} (0600) and write "
+                f"its pubkey cells -- NOTHING done")
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is None:
+        # a key file already exists though the row is unkeyed -- idempotent
+        # re-rotate; leave it, the next rotation sees the row still unkeyed
+        # and re-passing the gate. Nothing to do here.
+        return ""
+    _path, pub = minted
+    note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
+            f"{_path} (incremental fleet keying) -- "
+            f"{send.seatsig.fingerprint(pub)}")
+    try:
+        graph = send._graph_root(root)
+        rows = send._seats_rows(graph)
+        new_rows = [dict(r) for r in rows]
+        own = next((r for r in new_rows if r.get("name") == seat), None)
+        if own is not None:
+            own["pubkey"] = pub.hex()
+            own["sig_scheme"] = own.get("sig_scheme") or scheme
+            own["enc_scheme"] = own.get("enc_scheme") or "none"
+            send._row_write_submit(graph, new_rows, actor=seat,
+                                   role=str(row.get("role") or ""))
+            note += f"; row {seat!r} keyed"
+    except Exception as exc:  # noqa: BLE001
+        note += f"; row write not admitted ({exc})"
+    return note
+
+
+def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
+                          gen_before: int, gen_after: int,
+                          dry_run: bool = False) -> dict | None:
+    """goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
+    is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-
+    history, pieces (2)-(4)): a KEYED seat (its row names a ``pubkey``)
+    mints its successor keypair at rotation handover, RETIRES its own
+    (predecessor) key into the row's ``key_history`` -- NEVER deleted --
+    signing the retirement with the PREDECESSOR key BEFORE the handover, and
+    hands the successor the new private key at ``<sessions>/seats/<seat>.key``
+    (0600, atomic replace) with the successor ``pubkey`` written into the
+    seat's OWN row.
+
+    Returns a dict the caller rides onto the ONE existing spawn-row write
+    (s6.1 ``_successor_row_write`` / its ONE ``_commit_spawn_row`` commit --
+    never a second commit): ``{successor_pub, scheme, retired, note,
+    pending_key}``. None when there is nothing to retire -- an unkeyed row,
+    a THROWAWAY/empty row, or a keyed row with no key file (the gate
+    refused that earlier).
+
+    SL5.05 handover-order fix: the function mints + signs EARLY (while the
+    PREDECESSOR private key is still on disk) but does NOT flip ``<seat>.key``
+    itself -- it returns the successor private key in ``pending_key`` and the
+    actual `os.replace` is DEFERRED (by `_apply_successor_key_gated`) until
+    after the successor spawn-row write and its ONE commit have SUCCEEDED.
+    A failed spawn / row write / commit therefore leaves the predecessor key
+    file BYTE-IDENTICAL, never a successor key out of step with the row that
+    names it.
+
+    Reuses the seatsig registry and send's key-file shape/mode -- no
+    ed25519 literal, no second key-writer. ``send._mint_seat_key`` is NOT
+    usable here on purpose: it REFUSES when ``<seat>.key`` already exists
+    (the protection that makes a retirement a REPLACE, not a mint), so the
+    successor key is generated through the SAME ``seatsig.get(scheme)`` the
+    one writer uses and the file is atomically replaced in the same shape.
+
+    ``--dry-run`` mints nothing, replaces nothing, writes nothing: it
+    returns a ``{dry_run: True, note}`` dict that names the retirement it
+    would perform.
+    """
+    if not row or not row.get("pubkey"):
+        return None
+    import send  # local: same dir (send.py pattern, no import cycle)
+    scheme_name = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
+    scheme = send.seatsig.get(scheme_name)  # KeyError names an unknown scheme
+    key_path = send._seat_key_path(root, seat)
+    if not key_path.is_file():
+        return None
+    if dry_run:
+        _fp = send.seatsig.fingerprint(
+            bytes.fromhex(str(row.get("pubkey"))))
+        return {
+            "dry_run": True,
+            "scheme": scheme_name,
+            "note": (f"(dry-run) seat {seat!r} is keyed; would mint its "
+                     f"successor key at {key_path} (0600, atomic replace), "
+                     f"retire {_fp} (gen {gen_before}->{gen_after}) into "
+                     f"key_history and write the successor pubkey -- "
+                     f"NOTHING done"),
+        }
+    # (a) read the PREDECESSOR private key (to sign the retirement) BEFORE
+    #     the atomic replace destroys the file on disk.
+    try:
+        _obj = json.loads(key_path.read_text())
+        _pred_priv = bytes.fromhex(str(_obj.get("priv_hex") or ""))
+        _pred_pub = scheme.public_from_secret(_pred_priv)
+    except (ValueError, OSError, TypeError):
+        return None
+    # (b) mint the SUCCESSOR keypair through the SAME registry.
+    _succ_priv, _succ_pub = scheme.keygen()
+    # (c) sign the retirement record with the PREDECESSOR key BEFORE the
+    #     handover; the retired pub must verify this signature. The payload
+    #     is the canonical retirement fact, reconstructible by a verifier:
+    #     ``<seat>\nretire\n<from>\n<to>\n<successor pub hex>``.
+    _record = (f"{seat}\nretire\n{gen_before}\n{gen_after}\n"
+               f"{_succ_pub.hex()}")
+    _sig = scheme.sign(_pred_priv, _record.encode()).hex()
+    # (d) SL5.05 handover-order fix -- DEFER the <seat>.key REPLACE. The
+    #     successor private key travels back in ``pending_key`` instead of
+    #     being written here, and the actual atomic `os.replace` happens in
+    #     cmd_rotate_self ONLY after the successor spawn-row write
+    #     (`_successor_row_write`) and its ONE commit (`_commit_spawn_row`)
+    #     have SUCCEEDED. A failed spawn (the `rc != 0` return after
+    #     spawn_window), a failed row write, or a failed commit therefore
+    #     leaves <seat>.key BYTE-IDENTICAL holding the PREDECESSOR key -- no
+    #     successor key is ever written out of step with the row that names
+    #     it. send's exact JSON shape + SEAT_KEY_MODE 0600 are re-applied by
+    #     `_apply_successor_key_pending`.
+    _retired = {
+        "pub": _pred_pub.hex(),
+        "fp": send.seatsig.fingerprint(_pred_pub),
+        "from": gen_before,
+        "to": gen_after,
+        "rotated_by_sig": _sig,
+    }
+    return {
+        "successor_pub": _succ_pub.hex(),
+        "scheme": scheme_name,
+        "retired": _retired,
+        "pending_key": {
+            "path": str(key_path),
+            "scheme": scheme_name,
+            "priv_hex": _succ_priv.hex(),
+        },
+        "note": (f"retired seat {seat!r}'s key {_retired['fp']} "
+                 f"(gen {gen_before}->{gen_after}); successor key minted "
+                 f"but NOT yet written (defers to the post-row-write "
+                 f"commit); rotated_by_sig verifies under the retired pub"),
+    }
+
+
+def _apply_successor_key_pending(pending: dict) -> str:
+    """SL5.05 handover-order fix -- perform the ONE deferred <seat>.key
+    atomic replace that `_rotate_successor_key` now defers. ``pending`` is
+    the ``pending_key`` dict the rotation returned (``{path, scheme,
+    priv_hex}``). Writes send's exact JSON key-file shape at SEAT_KEY_MODE
+    0600 via a temp + `os.replace` (no second key-writer format). Called by
+    `_apply_successor_key_gated` ONLY after the successor spawn-row write and
+    its ONE commit have SUCCEEDED. Returns a one-line outcome."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+    key_path = Path(pending["path"])
+    payload = json.dumps({"scheme": pending["scheme"],
+                          "priv_hex": pending["priv_hex"]})
+    _dir = key_path.parent
+    _dir.mkdir(parents=True, exist_ok=True)
+    _tmp = _dir / f".{key_path.name}.tmp"
+    _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                  send.SEAT_KEY_MODE)
+    try:
+        with os.fdopen(_fd, "w") as _f:
+            _f.write(payload)
+    except BaseException:  # noqa: BLE001
+        try:
+            os.close(_fd)
+        except OSError:
+            pass
+        raise
+    os.chmod(_tmp, send.SEAT_KEY_MODE)
+    os.replace(_tmp, key_path)
+    return (f"key_replace: wrote successor key to {key_path} "
+            f"(0600, atomic replace)")
+
+
+def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
+    """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
+    into the on-disk <seat>.key ONLY when the successor spawn-row write and
+    its ONE commit SUCCEEDED. ``key_rotation`` is `_rotate_successor_key`'s
+    dict (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome``
+    is the `_successor_row_write` return (starts ``config:seats row`` on
+    success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
+    ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure). Any other
+    combination -- row write failed, commit failed, or the write never ran --
+    leaves the predecessor key file BYTE-IDENTICAL and records the refusal,
+    never replacing it. Never raises. Returns one line for the handover's
+    ``key_replace``."""
+    if not key_rotation or not key_rotation.get("pending_key"):
+        return ""
+    _path = key_rotation["pending_key"]["path"]
+    _row_ok = str(row_outcome or "").startswith("config:seats row")
+    _commit = str(commit_outcome or "")
+    _commit_failed = _commit.startswith(("spawn_row_commit: FAILED",
+                                         "FAILED:"))
+    if _row_ok and not _commit_failed:
+        return _apply_successor_key_pending(key_rotation["pending_key"])
+    _why = "row write" if not _row_ok else "commit"
+    return (f"key_replace: NOT applied -- {_why} did not succeed; "
+            f"{_path} left byte-identical with the predecessor key, no "
+            f"successor key written "
+            f"(row={str(row_outcome)!r} commit={_commit!r})")
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -8706,6 +8995,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         row = {}  # default row; never consulted against seats.md
 
+    # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
+    # rotate without its own signing key file; the gate refuses BY NAME and
+    # runs BEFORE any side effect (started record, handoff, rename, spawn).
+    _key_err = _rotate_key_gate(root, seat, row)
+    if _key_err:
+        print(_key_err, file=sys.stderr)
+        return 1
+    # goal:g15.25 line (1) minting half -- an UNKEYED real row mints its own
+    # first key in this SAME step (incremental fleet keying), so its
+    # successor wakes keyed. Best-effort row write; never fails the rotation.
+    _mint_note = _rotate_first_key(
+        root, cfg_root, seat, row,
+        dry_run=bool(getattr(args, "dry_run", False)))
+    if _mint_note:
+        print(_mint_note, file=sys.stderr)
+
     # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
     # BEFORE any side effect (the started record, the handoff, the own-window
     # rename). A missing / unhelpful rotations.md must refuse HERE, leaving the
@@ -8788,6 +9093,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # happens without it — the newest `.jsonl` in the sessions dir never
     # supplies identity.
     session_ref = (getattr(args, "session_ref", None) or "").strip()
+
+    # goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
+    # is-key-gated...): a KEYED seat mints its successor keypair at rotation
+    # handover and signs the retirement with its own (predecessor) key BEFORE
+    # this point (the predecessor private key is read while still on disk).
+    # The actual atomic replace of <sessions>/seats/<seat>.key is DEFERRED
+    # (SL5.05 handover-order fix) until AFTER the successor spawn-row write
+    # (s6.1 `_successor_row_write`) and its ONE commit (g15.24
+    # `_commit_spawn_row`) succeed -- the successor pubkey + key_history
+    # cells ride that ONE write (never a second commit). A failed spawn /
+    # row write / commit leaves the predecessor key file BYTE-IDENTICAL.
+    # `--dry-run` reports what it would do and touches nothing. The row
+    # cells are consumed at s6.1 via `_key_rotation`.
+    _key_rotation = _rotate_successor_key(
+        root, seat, row, gen_before=gen_before, gen_after=gen,
+        dry_run=bool(getattr(args, "dry_run", False)))
+    if _key_rotation:
+        _kn = _key_rotation.get("note")
+        if _kn:
+            print(_kn, file=sys.stderr)
 
     # A rotate-self rotation opens ONE record file up front (a `started`
     # record) and updates it IN PLACE through every step, so an interruption
@@ -9217,7 +9542,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 # cell stays EMPTY — never the uuid.
                 session_ref="",
                 pid=succ_pid, session_id=succ_session_id,
-                generation=gen)
+                generation=gen,
+                # goal:g15.25 line (2): the successor pubkey + key_history
+                # cells ride this ONE spawn-row write (and the ONE
+                # `_commit_spawn_row` below) -- never a second submit.
+                key_rotation=_key_rotation)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
         # (g15.24, Sensei's pick, fix (a)): rotate-self COMMITS the s6.1
@@ -9242,6 +9571,18 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     pid=succ_pid)
             except Exception as exc:  # noqa: BLE001
                 handover["spawn_row_commit"] = f"FAILED: {exc}"
+        # SL5.05 handover-order fix: the actual <seat>.key REPLACE happens
+        # HERE and only here -- after the successor spawn-row write and its
+        # ONE commit have SUCCEEDED (never a second commit). `_rotate_successor_key`
+        # minted + signed EARLY but DEFERRED the os.replace; a failed spawn
+        # (the rc return above), row write, or commit leaves the predecessor
+        # key file BYTE-IDENTICAL and records the refusal in the handover.
+        handover["key_replace"] = _apply_successor_key_gated(
+            _key_rotation,
+            handover.get("successor_row"),
+            handover.get("spawn_row_commit"))
+        if handover["key_replace"]:
+            print(handover["key_replace"], file=sys.stderr)
         # (s5, deferred to the post-ack success path — r1): model_confirm
         # runs AFTER the ack confirms a successor ASSISTANT TURN exists, or
         # reads argv only — NEVER a read of the successor transcript before
