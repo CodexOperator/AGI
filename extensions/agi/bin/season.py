@@ -16,6 +16,8 @@ Subcommands:
   retag                           — backfill the season stamp
   merge-up <branch>               — --no-ff merge a loop branch into its recorded
                                     base branch, suite-green gate, worktree removed
+  merge-kids <kidbranch>...        — --no-ff merge kid branches into the current
+                                    branch, union-resolving node conflicts, stop on SOURCE
 """
 from __future__ import annotations
 
@@ -1215,6 +1217,282 @@ def _merge_up_town_gate(root: Path, args) -> str | None:
             "merges up through the seat of the town that originated it")
 
 
+def _verdict_strength(verdict_line: str, confidence_line: str) -> tuple:
+    """A comparable strength tuple for a `verdict:` line + its `confidence:`.
+
+    PURE (testable without git). Rank order: proved/disproved (definitive)
+    beats any inconclusive_* beats pending beats an unknown/empty state; within
+    a rank, the higher `:N` percent then the higher confidence fraction wins.
+    """
+    v = (verdict_line or "").strip()
+    base = v
+    percent = 0
+    if ":" in v:
+        base, _, pct = v.partition(":")
+        try:
+            percent = int(pct.strip())
+        except ValueError:
+            percent = 0
+    base = base.strip()
+    conf = 0.0
+    c = (confidence_line or "").strip()
+    if c:
+        if ":" in c:
+            c = c.partition(":")[2].strip()
+        try:
+            conf = float(c)
+        except ValueError:
+            conf = 0.0
+    if base in ("proved", "disproved"):
+        rank = 3
+    elif base.startswith("inconclusive"):
+        rank = 2
+    elif base == "pending":
+        rank = 1
+    else:
+        rank = 0
+    return (rank, percent, conf)
+
+
+def _higher_confidence_verdict(a: tuple, b: tuple) -> tuple:
+    """Return the (verdict_line, confidence_line) pair that is higher-confidence.
+
+    PURE. `a` is the ours/current side, `b` the theirs/kid side. Tie -> keep
+    `a` (first-seen order, the already-landed current branch wins).
+    """
+    a_v, a_c = a
+    b_v, b_c = b
+    if _verdict_strength(b_v, b_c) > _verdict_strength(a_v, a_c):
+        return (b_v, b_c)
+    return (a_v, a_c)
+
+
+def _conflict_sides(text: str) -> tuple:
+    """Split a conflicted file on git markers into (ours, theirs) full texts.
+
+    Non-conflicting lines belong to both sides; each side's own lines are
+    carried only by that side. PURE.
+    """
+    ours, theirs = [], []
+    state = None  # None | 'ours' | 'theirs'
+    for ln in text.splitlines(keepends=True):
+        s = ln.rstrip("\n")
+        if s.startswith("<<<<<<<"):
+            state = "ours"
+        elif s.startswith("======="):
+            state = "theirs"
+        elif s.startswith(">>>>>>>"):
+            state = None
+        elif state == "ours":
+            ours.append(ln)
+        elif state == "theirs":
+            theirs.append(ln)
+        else:
+            ours.append(ln)
+            theirs.append(ln)
+    return "".join(ours), "".join(theirs)
+
+
+def _agent_notes_block(text: str) -> list:
+    """The lines of the `## Agent Notes` section (to the next heading), or []."""
+    lines = text.splitlines(keepends=True)
+    start = None
+    for i, ln in enumerate(lines):
+        if ln.strip() == "## Agent Notes":
+            start = i
+            break
+    if start is None:
+        return []
+    block = []
+    for ln in lines[start + 1:]:
+        if ln.startswith("#"):
+            break
+        block.append(ln)
+    return block
+
+
+def _union_notes(a_block: list, b_block: list) -> list:
+    """Union of two Agent Notes blocks, dedup by exact line, first-seen order."""
+    seen, out = set(), []
+    for ln in list(a_block) + list(b_block):
+        if ln not in seen:
+            seen.add(ln)
+            out.append(ln)
+    return out
+
+
+def _frontmatter_lines(text: str) -> list:
+    lines = text.splitlines(keepends=True)
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                return lines[1:i]
+    return []
+
+
+def _frontmatter_value(fm_lines: list, key: str) -> str:
+    prefix = key + ":"
+    for ln in fm_lines:
+        s = ln.strip()
+        if s.startswith(prefix):
+            return s[len(key) + 1:].strip()
+    return ""
+
+
+def _resolve_node_conflict(conflicted: str) -> str:
+    """Resolve a conflicted NODE file by UNION of Agent Notes + the
+    higher-confidence verdict line. PURE.
+
+    Never a blind 3-way apply. Start from the ours side, then merge BOTH
+    sides' Agent Notes blocks (dedup, first-seen) and take the
+    higher-confidence verdict/confidence pair.
+    """
+    ours, theirs = _conflict_sides(conflicted)
+    union = _union_notes(_agent_notes_block(ours), _agent_notes_block(theirs))
+    a_p = (_frontmatter_value(_frontmatter_lines(ours), "verdict"),
+           _frontmatter_value(_frontmatter_lines(ours), "confidence"))
+    b_p = (_frontmatter_value(_frontmatter_lines(theirs), "verdict"),
+           _frontmatter_value(_frontmatter_lines(theirs), "confidence"))
+    w_v, w_c = _higher_confidence_verdict(a_p, b_p)
+
+    lines = ours.splitlines(keepends=True)
+    # Patch the verdict/confidence lines inside the frontmatter region only.
+    fm_end = None
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                fm_end = i
+                break
+    if fm_end is not None:
+        for i in range(1, fm_end):
+            s = lines[i].strip()
+            if w_v and s.startswith("verdict:"):
+                lines[i] = f"verdict: {w_v}\n"
+            elif w_c and s.startswith("confidence:"):
+                lines[i] = f"confidence: {w_c}\n"
+    # Replace the Agent Notes block with the union.
+    for i, ln in enumerate(lines):
+        if ln.strip() == "## Agent Notes":
+            end = len(lines)
+            for j in range(i + 1, len(lines)):
+                if lines[j].startswith("#"):
+                    end = j
+                    break
+            if union:
+                new_block = "".join(union)
+                if not new_block.endswith("\n"):
+                    new_block += "\n"
+                lines[i + 1:end] = [new_block]
+            else:
+                lines[i + 1:end] = []
+            break
+    return "".join(lines)
+
+
+NODE_DIR_PREFIX = ".agi/nodes/"
+
+
+def _resolve_conflicted(git_root: Path, branch: str) -> int:
+    """Resolve the currently-conflicted paths of an in-progress merge.
+
+    Every conflicting path being a NODE file -> union-resolve and `git add`
+    each. ANY conflicting path being SOURCE -> stop, leave MERGE_HEAD in
+    place, return non-zero (the parent resolves it as an edit it owns).
+    """
+    conf = _git(git_root, "diff", "--name-only", "--diff-filter=U")
+    if conf.returncode != 0:
+        print("ERR cannot list conflicted paths", file=sys.stderr)
+        return 1
+    paths = [p for p in conf.stdout.splitlines() if p.strip()]
+    if not paths:
+        print(f"ERR merge --no-ff {branch} failed without conflicts",
+              file=sys.stderr)
+        return 1
+    node_paths = [p for p in paths
+                  if p.replace(os.sep, "/").startswith(NODE_DIR_PREFIX)]
+    source_paths = [p for p in paths if p not in node_paths]
+    if source_paths:
+        print(f"REFUSED: SOURCE conflict in {branch} at: "
+              + ", ".join(source_paths), file=sys.stderr)
+        print("merge left in progress (MERGE_HEAD present) -- the parent "
+              "resolves it as an edit it owns and names", file=sys.stderr)
+        return 3
+    for p in node_paths:
+        full = git_root / p
+        resolved = _resolve_node_conflict(full.read_text())
+        full.write_text(resolved)
+        _git(git_root, "add", p)
+    remaining = [p for p in
+                 _git(git_root, "diff", "--name-only",
+                      "--diff-filter=U").stdout.splitlines()
+                 if p.strip()]
+    if remaining:
+        print("REFUSED: unresolved conflicts remain: " + ", ".join(remaining),
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+def cmd_merge_kids(root: Path, args) -> int:
+    """`season.py merge-kids <kid-branch> ...` -- merge kid branches --no-ff
+    into the CURRENT branch, one at a time, union-resolving node-file
+    conflicts, suite-gated, stopping (merge left in progress) on a SOURCE
+    conflict. hypothesis:l4-a-parent-cuts-five-and-merges-its-kids half 2.
+    """
+    git_root = locations.git_common_root(root)
+    if git_root is None or not (git_root / ".git").exists():
+        print("ERR: no git repo found", file=sys.stderr)
+        return 1
+    cur = _current_branch(git_root)
+    if not cur:
+        print("ERR: not on a branch (detached HEAD?)", file=sys.stderr)
+        return 1
+    suite = args.suite or DEFAULT_SUITE
+    branches = args.branches
+    for branch in branches:
+        ahead = _git(git_root, "rev-list", "--count", f"{cur}..{branch}")
+        if ahead.returncode != 0:
+            print(f"ERR cannot count {branch} ahead of {cur}: "
+                  f"{ahead.stderr.strip()}", file=sys.stderr)
+            return 1
+        if ahead.stdout.strip() == "0":
+            print(f"REFUSED: {branch} is zero commits ahead of {cur} -- "
+                  f"nothing to merge", file=sys.stderr)
+            return 1
+        print(f"{branch} is {ahead.stdout.strip()} commit(s) ahead of {cur}")
+
+        mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
+        if mg.returncode != 0:
+            rc = _resolve_conflicted(git_root, branch)
+            if rc != 0:
+                return rc
+
+        suite_proc = subprocess.run(suite, shell=True, cwd=str(git_root),
+                                    capture_output=True, text=True)
+        if suite_proc.returncode != 0:
+            _git(git_root, "merge", "--abort")
+            print(f"REFUSED: suite red after merging {branch} -- merge aborted, "
+                  f"branch {branch} left in place", file=sys.stderr)
+            return 1
+
+        cmt = _git(git_root, "commit", "--no-edit")
+        if cmt.returncode != 0:
+            still = (_git(git_root, "rev-parse", "--verify",
+                          "MERGE_HEAD").returncode == 0)
+            if still:
+                print(f"ERR finalize merge commit: "
+                      f"{cmt.stderr.strip() or '(no stderr from git)'}",
+                      file=sys.stderr)
+                return 1
+            print(f"merged {branch} --no-ff (finalize returned non-zero "
+                  f"{cmt.returncode} but the merge commit exists; green)")
+        else:
+            print(f"merged {branch} --no-ff into {cur}")
+    print(f"merge-kids complete; all {len(branches)} kid branches merged, "
+          "suite green")
+    return 0
+
+
 def cmd_merge_up(root: Path, args) -> int:
     """`season.py merge-up <branch>` -- merge a branch --no-ff into its base."""
     git_root = locations.git_common_root(root)
@@ -1415,6 +1693,18 @@ def main(argv: list[str] | None = None) -> int:
     p_retag.add_argument("--session", default="",
                          help="thought_session for stamps (default: season)")
 
+    # merge-kids
+    p_kids = sub.add_parser(
+        "merge-kids",
+        help="Merge kid branches --no-ff into the current branch, one at a "
+             "time; union-resolve node-file conflicts, stop on a SOURCE "
+             "conflict (merge left in progress)")
+    p_kids.add_argument(
+        "branches", nargs="+",
+        help="loop/<slug>-<agent8>@s<N> kid branches to merge, in order")
+    p_kids.add_argument("--suite", default="",
+                        help="suite command; non-zero aborts the merge")
+
     # merge-up
     p_merge = sub.add_parser(
         "merge-up",
@@ -1454,6 +1744,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_retag(root, args)
     elif args.command == "merge-up":
         return cmd_merge_up(root, args)
+    elif args.command == "merge-kids":
+        return cmd_merge_kids(root, args)
 
     return 0
 

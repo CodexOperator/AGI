@@ -1411,9 +1411,15 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        `AGI_PARENT_BRANCH` / `AGI_PARENT_WORKTREE` / `AGI_PARENT_BASE_BRANCH`,
        this item names the branch, worktree and base and DEFERS the one commit
        to `cli.py done`, which commits the dirty worktree automatically the
-       moment the parent finishes — the parent runs no git itself. Push, sync,
-       rebase and `grid.py commit --all` stay forbidden, and the model is no
-       longer handed the commit commands to run at all.
+       moment the parent finishes. **The one exception — `hypothesis:l4-a-
+       parent-cuts-five-and-merges-its-kids`: the branch parent itself runs
+       the `season.py merge-kids` helper on each kid branch, onto its OWN
+       round branch (item 5, the merge protocol); that one helper is the sole
+       git operation the parent executes**, and is carved out of the
+       otherwise-total "runs no git itself" so the round's kids' branches
+       actually climb. Push, sync, rebase and `grid.py commit --all` stay
+       forbidden, and the model is no longer handed the commit commands to run
+       at all.
     """
     aim = target or "(pick from the injected map)"
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -1423,29 +1429,62 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     # plans against a bounded number rather than the tree's whole capacity.
     ceiling = kid_ceiling if kid_ceiling is not None else 4
     if branch_name:
-        # hypothesis:l3-parent-brief-forbids-the-only-commit — a --branch
-        # parent's brief names its branch, worktree and base and DEFERS the one
-        # commit a loop branch needs to `cli.py done`, which commits the dirty
-        # worktree automatically at finish time. The model runs no git itself;
-        # hand-committing before done would double-work or leave done nothing
-        # to write, so the old git-add/git-commit commands are gone from the
-        # brief entirely.
+        # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the branch
+        # parent now OWNS the merge: `season.py merge-kids` of each kid branch
+        # onto its OWN round branch (item 5, the merge protocol) is the ONE
+        # git operation a parent runs; the raw `git merge --no-ff` lives only
+        # underneath that helper. The done-time commit `cli.py done` carries
+        # still happens automatically; everything else stays forbidden. The
+        # old blanket "you run NO git commands yourself" is GONE for the
+        # branch case because it directly forbade the merge the hypothesis
+        # requires.
         worktree = branch_worktree or "(worktree)"
         base = branch_base or "(base)"
+        season_cmd = str(Path(dispatch_py).with_name("season.py"))
+        merge_protocol = (
+            f"5. MERGE PROTOCOL — you are on round branch `{branch_name}` in "
+            f"worktree `{worktree}`, cut from `{base}`, and you MERGE every "
+            f"kid's branch into it before you signal done, in dispatch order, "
+            f"with the supported helper:\n"
+            f"    python3 {season_cmd} merge-kids <kid-branch> [<kid-branch> ...]\n"
+            f"  `merge-kids` merges each named kid branch onto your round "
+            f"branch in the order given (`git merge --no-ff --no-commit` "
+            f"under the hood), union-resolves NODE conflicts, refuses a SOURCE "
+            f"conflict by printing the paths and leaving the merge in progress "
+            f"for you, and re-runs THIS round's suite — your test files WITH "
+            f"THEIR NEIGHBOURS in suite order — on the MERGED bytes, so a "
+            f"green kid branch is not a green union and you do NOT re-run the "
+            f"suite separately. That helper is the ONE git operation a parent "
+            f"runs (item 6); you run no raw git.\n"
+            f"  - A conflict in a NODE file is resolved by UNION of the "
+            f"`## Agent Notes` blocks plus the higher-confidence verdict line "
+            f"— never a blind `git apply --3way`, which can drop a note.\n"
+            f"  - A conflict in SOURCE is refused by the helper (paths "
+            f"printed, the merge left in progress) and is resolved by YOU as "
+            f"an edit you own, and named in your review note.\n"
+            f"  - Your review note lists EVERY kid branch merged, every "
+            f"conflict and how it was resolved, and every kid branch NOT "
+            f"merged and why."
+        )
         ship = (
-            f"5. YOUR BRANCH IS THE ONLY ROUTE YOUR KIDS' WORK HAS TO THE SEASON "
-            f"BRANCH. You are on `{branch_name}` in worktree `{worktree}`, cut "
-            f"from `{base}`. A loop branch left at base merges as NOTHING and "
-            f"still reports green — that is already measured waste. Your "
-            f"accepted work on this branch is committed AUTOMATICALLY the moment "
-            f"you call `cli.py done` below, onto your own loop branch. So you run "
-            f"NO git commands yourself, on this branch or any other: nothing is "
-            f"pushed, synced, rebased or staged by hand, and no other branch or "
-            f"the main checkout is touched. Automation still owns remote "
-            f"traffic; the loop owns your branch's merge; the done-time commit "
-            f"is the only write your branch carries and it is automatic."
+            f"6. THE ONE GIT OPERATION A PARENT RUNS IS THE MERGE — via the "
+            f"`merge-kids` helper from item 5, never raw git. Your "
+            f"round branch `{branch_name}` is the only route your kids' work "
+            f"has to the season branch `{base}`, and its accepted work is "
+            f"committed AUTOMATICALLY the moment you call `cli.py done` below. "
+            f"The one git command YOU run is the helper from item 5: "
+            f"`python3 {season_cmd} merge-kids <kid-branch> ...` onto this "
+            f"branch, in dispatch order. A loop branch left at base merges as "
+            f"NOTHING and still reports green — that is measured waste, so "
+            f"item 5 is not optional. Everything else stays forbidden, on this "
+            f"branch or any other: no push, no sync, no rebase, no `grid.py`, "
+            f"no touching any branch other than this round branch, no staging "
+            f"by hand, no raw `git merge`. Automation still owns remote "
+            f"traffic; the done-time commit is automatic and is not yours to "
+            f"reach for."
         )
     else:
+        merge_protocol = ""
         ship = (
             "5. DO NOT commit, push, or sync. Automation owns all remote "
             "traffic"
@@ -1485,10 +1524,13 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"FAN-OUT AND BRANCHES ARE YOURS TOO, WHEN THEY FIT. Sequential "
         f"iteration (continue) and parallel fan-out compose: spawn several "
         f"independent kids at once when the target genuinely splits into "
-        f"slices; give a kid its own `--branch` worktree when concurrent kids "
-        f"would touch the same files (a shared cwd is fine when they would "
-        f"not). One kid when the work is one thing. Do NOT fan three kids onto "
-        f"one file -- that is the measured collision hazard with extra steps.",
+        f"slices. ONE RULE GOVERNS PARALLEL: fan out in parallel ONLY when "
+        f"the kids' file scopes are DISJOINT. Kids that touch the same file "
+        f"are SERIALIZED — spawn one, wait for it, then spawn the next. Give "
+        f"a kid its own `--branch` worktree when concurrent kids would touch "
+        f"the same files (a shared cwd is fine when they would not). One kid "
+        f"when the work is one thing. Do NOT fan three kids onto one file "
+        f"— that is the measured collision hazard with extra steps.",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it
@@ -1525,8 +1567,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   with it is not review -- read the kid's ARTIFACT, not its report.\n"
         f"4. DO NOT bypass the gate. `--no-evidence-gate` stamps the node\n"
         f"   `evidence_gate: bypassed` and marks it unreviewed.\n"
+        f"{merge_protocol}\n"
         f"{ship}\n"
-        f"{'6' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
+        f"{'7' if branch_name else '5'}. SIGNAL DONE when every kid is finished:\n"
         f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
         f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
         f"   `--owns`, NOT `--node-id`. You author no node of your own.",
