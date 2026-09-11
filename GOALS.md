@@ -6283,6 +6283,8 @@ SEAT PROTOCOL, L4-X 15:4xZ (measured): (1) the carve-out gate (L4.234) judges th
 
 MERGE-UP 37 (7f791418f -> cb0515919) REVIEWED BY NAME 16:1xZ (wf_7eb33b06-98e, 12 agents, 20.6 min): six items ACCEPTED — carve-out (7/8 MET, lean_proved:80 stands with a FALSIFIER hit: a non-dict template value bypasses the gates), help-epilog (7/9), rotate-judge (11/11 accept), spawn-budget (12/13), brief (13/14), sb-status+wait (15/16); the verifier refuted none of the lead defects. Nine g15 lines sent to the point 16:1xZ; the streamer-stub wrapper change is NOT in this merge-up (foreign tree, 3 unpushed commits, the owner's relay — banked). Merge-ups 26-37 all reviewed by name.
 
+SEAT PROTOCOL, L4-X 16:1xZ: the SANCTUARY DIRECTOR is seated on the owner's 15:5xZ + 16:0xZ order (verbatim in doc:l4-owner-decisions) as seat sensei-director (the g15 perpetual-goal seat of the standard layout; plan A:128/A:244/B:236): Sensei asks only, its own loops L1/L2… one per generation with ids SL<n>.<nn>, goal nodes with a Why-this-exists section reported to the Prime by id + caveats before dispatch, several pi parents per goal (the mvp is the brief), never HANDOFF.md / the prime brief / the L4 docs / this node. First seating mechanics measured: seats-launch and spawn WITHOUT --prompt-file synthesize the generic DIRECTOR prompt — spawn --dry-run --prompt-file <head + brief> gives the command, opened by hand with tmux new-window -c <worktree> (spawn_window has no worktree cwd: a g15 candidate for the Sanctuary director itself); the row is back-filled by the Prime at first seating (no rotation record exists for gen I).
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
