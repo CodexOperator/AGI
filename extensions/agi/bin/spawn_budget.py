@@ -66,6 +66,14 @@ TICK_SAMPLE_SECONDS = 8
 #: sleep 8 real seconds against live processes.
 _STATUS_SAMPLE_SECONDS = TICK_SAMPLE_SECONDS
 
+#: How often `status --iter --wait` re-reads the lease view (hypothesis:l4-
+#: spawn-budget-status-waits-for-the-parent). Must be <= 5 s per the claim.
+_WAIT_POLL_SECONDS = 1.0
+
+#: `--wait` default timeout, seconds (hypothesis:l4-spawn-budget-status-waits-
+#: for-the-parent).
+_WAIT_TIMEOUT_SECONDS = 1800.0
+
 
 def budget_dir(root: Path) -> Path:
     """Where leases live: one directory per MAIN checkout.
@@ -571,7 +579,7 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, object]:
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, int | None]:
     """The agent.json `status` for this agent, if a record exists, plus which
     sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
     None for none), plus the record's `overdue_since` value (epoch int, or
@@ -618,7 +626,7 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
-        return "(no agent.json)", None
+        return "(no agent.json)", None, None
 
     graph = locations.find_project_root(root) or root
     main = locations.git_common_root(graph)
@@ -747,6 +755,111 @@ def _round_status(root: Path, iter_str: str) -> int:
     return 0
 
 
+def _parent_lease_live(root: Path, nnn: int) -> bool:
+    """Whether the round still holds a live PARENT-tier lease.
+
+    The wait is on the parent only: a round is finished, for the director who
+    calls `--wait`, the moment the parent exits -- whatever the kids did
+    (hypothesis:l4-spawn-budget-status-waits-for-the-parent).
+    """
+    for _p, rec in _read_leases(root):
+        if (_lease_is_live(rec)
+                and _iter_num(str(rec.get("iter"))) == nnn
+                and (rec.get("tier") or "") == "parent"):
+            return True
+    return False
+
+
+def _round_session_dir_exists(root: Path, iter_val) -> bool:
+    """Whether the round's session dir exists under ANY sessions root.
+
+    This is the "already-finished" signal: an iteration whose parent lease is
+    gone but whose recorded session dir still exists was a real round that
+    ran and finished; a round with neither a lease nor a session dir is an
+    unknown id (exit 3). Searches the same roots `_agent_status` walks
+    (the invoking graph, MAIN's graph, every worktree graph) so a round whose
+    records live in a seat or parent worktree reads as present.
+    """
+    try:
+        dirname = locations.iteration_dirname(iter_val)
+    except ValueError:
+        return False
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    roots: list[Path] = [graph]
+    if main_graph and main_graph not in roots:
+        roots.append(main_graph)
+    if main_graph:
+        for wt in sorted(main_graph.glob("worktrees/*")):
+            wt_graph = locations.find_project_root(wt) or wt
+            if not (wt_graph == wt or wt in wt_graph.parents):
+                continue
+            if wt_graph not in roots:
+                roots.append(wt_graph)
+    for g in roots:
+        if (g / locations.SESSIONS_DIR_NAME / dirname).exists():
+            return True
+    return False
+
+
+def _print_remaining_rows(root: Path, nnn: int) -> int:
+    """Print what is left of the round's live rows once the parent is gone.
+
+    Lightweight final view for the `--wait` success path: the parent lease is
+    gone, so the `_round_status` verdict lines (`parent alive, ...`) would all
+    be lies by construction. Instead we list whatever live rows remain (the
+    kids, if any) and the exit is 0 regardless -- the director asked for the
+    parent to be gone and it is.
+    """
+    rows = [rec for _, rec in _read_leases(root)
+            if _lease_is_live(rec) and _iter_num(str(rec.get("iter"))) == nnn]
+    for rec in rows:
+        pid = int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+        tier = rec.get("tier") or "?"
+        print(f"  {rec.get('agent_id')} tier={tier} pid={pid}")
+    if not rows:
+        print(f"  (no live agents remain)")
+    return 0
+
+
+def _round_status_wait(root: Path, iter_str: str, timeout: float) -> int:
+    """`status --iter NNN --wait`: block until the round's PARENT lease is gone.
+
+    The FIRST read decides already-finished vs unknown (no sleep on an
+    already-finished round):
+      * a parent-tier lease present  -> poll until it clears, or the deadline;
+      * no parent lease but a session dir exists -> already-finished, exit 0;
+      * neither -> unknown round, exit 3.
+    On timeout it prints the last-seen view plus `ERR: ... parent still live
+    after Ss` to stderr and exits 2. It never signals or reaps anything -- the
+    reaper's job -- and only reads the lease view (`_parent_lease_live`).
+    """
+    nnn = _iter_num(iter_str)
+    if nnn is None:
+        print(f"spawn_budget: unknown iteration {iter_str!r} "
+              f"(expected L4.NNN or NNN)", file=sys.stderr)
+        return 1
+    if not _parent_lease_live(root, nnn):
+        if _round_session_dir_exists(root, iter_str):
+            print(f"round {iter_str}: already finished (no parent lease)")
+            return 0
+        print(f"ERR: unknown round {iter_str}", file=sys.stderr)
+        return 3
+    deadline = time.monotonic() + timeout
+    while True:
+        if not _parent_lease_live(root, nnn):
+            print(f"round {iter_str}: parent done (no parent lease)")
+            return _print_remaining_rows(root, nnn)
+        if time.monotonic() >= deadline:
+            _print_remaining_rows(root, nnn)
+            print(f"ERR: {iter_str} parent still live after "
+                  f"{timeout:.0f}s", file=sys.stderr)
+            return 2
+        time.sleep(min(_WAIT_POLL_SECONDS,
+                       max(0.0, deadline - time.monotonic())))
+
+
 def main(argv: list[str] | None = None) -> int:
     """`spawn_budget.py [--root R] status|sweep|pause|resume`.
 
@@ -771,7 +884,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--iter", default="",
                     help="status: restrict to one iteration (L4.NNN or NNN) "
                          "and emit the round verdict")
+    ap.add_argument("--wait", action="store_true",
+                    help="status --iter: block until the round's PARENT lease "
+                         "is gone (the parent exited, whatever the kids did)")
+    ap.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
+                    help="with --wait: give up after S seconds "
+                         f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
     args = ap.parse_args(argv)
+
+    if args.wait and not args.iter:
+        print("spawn_budget: --wait requires --iter", file=sys.stderr)
+        return 2
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
@@ -796,6 +919,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg_path = locations.config_path(root)
+    if args.iter and args.wait:
+        return _round_status_wait(root, args.iter, args.timeout)
     if args.iter:
         return _round_status(root, args.iter)
 

@@ -577,6 +577,36 @@ def test_status_iter_prints_running_overdue_for_a_live_past_deadline_kid(root, c
             p.kill(); p.wait()
 
 
+def test_status_iter_unparseable_iter_lease_prints_row_not_traceback(root, capsys, fast_tick_sample):
+    """hypothesis:l4-agent-status-returns-three-on-every-path — a live lease
+    whose `iter` field `_iter_num` matches but `locations.iteration_dirname`
+    rejects drives `status --iter` INTO `_agent_status`'s `except ValueError`
+    branch. That branch was a stale 2-TUPLE return (`"(no agent.json)", None`)
+    after L4.232 made the contract a 3-tuple, so the caller's
+    `status, src, overdue = _agent_status(...)` raised
+    `ValueError: not enough values to unpack` — a crash in `status --iter`
+    for a lease whose iter field does not parse. The row must PRINT, never
+    traceback. The corrupt value is `"9.140"`: `_iter_num` strips it to 140
+    (so the round matches `--iter L4.140`) but `iteration_id("9.140")` raises
+    ValueError because a loop label must start with a letter."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent", iter_n="L4.170")
+    spawn_budget.commit(p_lease, parent.pid)
+    rec = json.loads(p_lease.path.read_text())
+    rec["iter"] = "9.140"
+    p_lease.path.write_text(json.dumps(rec))
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status", "--iter", "L4.140"])
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "parent-0 tier=" in out, out
+        assert "(no agent.json)" in out, out
+        assert "Traceback" not in out, out
+    finally:
+        parent.kill(); parent.wait()
+
+
 def test_agent_status_finds_parent_record_under_a_seat_worktree(root: Path):
     """hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir,
     MEASURED layout: a PARENT agent.json is written by the DISPATCHER into
@@ -892,7 +922,15 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     return 0, NOT raise. iterdir() is lazy, so a pid that exits mid-read raises
     FileNotFoundError/ProcessLookupError out of the `for fd in fds:` loop; the
     whole walk (listing + readlinks) must sit in one guarded try, else the
-    exception escapes the helper up into status()."""
+    exception escapes the helper up into status().
+
+    The bomb here targets the FIXTURE fd dir built under tmp_path -- never the
+    host's /proc/123/fd -- so the walk really walks `socket:[111]` and then
+    raises on the second next(). This test was a NON-FALSIFIER while the bomb
+    resolved `_real(str(p))` to the host path: on a box where pid 123 is
+    unreadable/absent the iteration is empty and `== 0` held on pre-fix bytes
+    too. The counterfactual and mutation assertions below pin both the fixture
+    walk and the guard's load-bearingness."""
     import pathlib
     import shutil
     import spawn_budget as sb
@@ -904,13 +942,21 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
     (fd / "3").symlink_to("socket:[111]")
 
     _real = pathlib.Path
+    _flav = _real(str(fd))._flavour
 
-    def make_bomb(p):
-        """A Path subclass whose iterdir() yields one entry, then deletes the
-        real fd dir so the generator's SECOND next() raises FileNotFoundError
-        (an OSError) — exactly the process-exits-mid-read condition."""
-        real = _real(str(p))
-        _flav = _real(str(p))._flavour
+    def _bomb_path():
+        """A Path over the FIXTURE fd dir whose iterdir() yields one entry,
+        deletes that fixture, then raises FileNotFoundError on the SECOND
+        next() -- the process-exits-mid-read condition. Pointed at the fixture
+        (closure `fd`), not the host path, so the walk really yields
+        `socket:[111]` before the dir vanishes.
+
+        The rmtree alone would NOT raise: on a plain tmp dir the open scandir
+        fd survives the unlink and reads every buffered entry to StopIteration
+        (probe 2026-09-11). Only a real /proc readdir fails once /proc/<pid>
+        vanishes, so the generator raises explicitly to reproduce that failure
+        deterministically; the rmtree is kept as the counterfactual signal that
+        the fixture (not the host /proc) was walked."""
 
         class _BombPath(_real):
             _flavour = _flav
@@ -924,21 +970,159 @@ def test_pid_sockets_returns_0_when_fd_dir_exits_mid_scan(tmp_path, monkeypatch)
                         yield ent
                         if not fired:
                             fired = True
-                            shutil.rmtree(real, ignore_errors=True)
+                            shutil.rmtree(fd, ignore_errors=True)
+                            raise FileNotFoundError(f"{fd}")
                 return _gen()
 
-        return _BombPath(str(p))
+        return _BombPath(str(fd))
 
     def _redirect(p):
         s = str(p)
         if s == f"/proc/{123}/fd":
-            return make_bomb(s)
+            return _bomb_path()
         if s.startswith("/proc/net/"):
             return _real(s.replace("/proc/", str(proc) + "/"))
         return _real(s)
 
     monkeypatch.setattr(sb, "Path", lambda p: _redirect(_real(p)))
-    # the walk collects inode 111 then the listing raises; the guarded try must
-    # collapse to the documented 0, and no OSError may escape.
+
+    # MUTATION CHECK: with the guard's try narrowed to the readlink only -- the
+    # PRE-FIX shape, where the lazy listing runs in the `for` loop OUTSIDE the
+    # try -- the SAME fixture raises FileNotFoundError out of the walk. This is
+    # what proves the guard (the whole walk inside one try) is load-bearing:
+    # the rewritten test is RED on the pre-fix shape and GREEN only on the
+    # fixed helper, so it is a real falsifier of the vanish-mid-read bug.
+    def _mutant_sockets_pre_fix(pid):
+        try:
+            fds = sb.Path(f"/proc/{pid}/fd").iterdir()
+        except OSError:
+            return 0
+        inodes = set()
+        for fdes in fds:  # <- OUTSIDE the try: a vanished dir raises here
+            target = str(fdes.readlink())
+            if target.startswith("socket:[") and target.endswith("]"):
+                inodes.add(target[len("socket:["):-1])
+        return len(inodes)
+
+    with pytest.raises(FileNotFoundError):
+        _mutant_sockets_pre_fix(123)
+
+    # the mutant consumed the fixture; rebuild it for the real helper
+    fd.mkdir(parents=True)
+    (fd / "3").symlink_to("socket:[111]")
+
+    # the fixed helper survives the vanish: the guarded walk collapses to the
+    # documented 0, and no OSError escapes.
     assert sb._pid_sockets(123) == 0
+    # COUNTERFACTUAL: the bomb FIRED -- the fixture fd dir is gone after the
+    # walk. Had the walk iterated the host's /proc instead of the fixture (the
+    # non-falsifier shape), this dir would still exist.
+    assert not fd.exists(), "the bomb never fired: the walk did not touch the fixture"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-spawn-budget-status-waits-for-the-parent — `status --iter
+# --wait [--timeout S]` blocks until the round's PARENT lease is gone
+# --------------------------------------------------------------------------
+
+def test_wait_already_finished_round_exits_0_without_sleep(monkeypatch, root, capsys):
+    """(a) FALSIFIER of the claim's no-sleep clause. A round whose parent
+    lease is already gone but whose session dir exists is already-finished:
+    `--wait` must return 0 on the FIRST read and MUST NOT sleep. The
+    session dir is what separates already-finished (exit 0) from unknown
+    (exit 3).
+
+    `time.sleep` is monkeypatched to raise, so any wait that sleeps on an
+    already-finished round fails red instead of just running slow."""
+    _mk_project(root)
+    sdir = root / ".agi" / "sessions" / "iter-L4.244"
+    sdir.mkdir(parents=True)
+    monkeypatch.setattr(
+        spawn_budget.time, "sleep",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("--wait slept on an already-finished round")))
+    rc = spawn_budget.main(["--root", str(root), "status",
+                            "--iter", "L4.244", "--wait"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "already finished" in out, out
+
+
+def test_wait_parent_removed_returns_0_after_removal(root, capsys):
+    """(b) A parent lease removed by a background thread 0.3 s in:
+    `--wait --timeout 10` returns 0 after the removal with the final view
+    printed. The wait is on the lease view, so the removal (whatever the kid
+    does) is what unblocks it."""
+    import threading
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                   iter_n="L4.245")
+    assert p_lease is not None
+    spawn_budget.commit(p_lease, parent.pid)
+
+    def _drop():
+        time.sleep(0.3)
+        p_lease.path.unlink(missing_ok=True)
+    t = threading.Thread(target=_drop)
+    t.start()
+    try:
+        t0 = time.monotonic()
+        rc = spawn_budget.main(["--root", str(root), "status",
+                                "--iter", "L4.245", "--wait", "--timeout", "10"])
+        elapsed = time.monotonic() - t0
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert elapsed < 9, f"waited {elapsed:.2f}s; expected well under timeout 10"
+        assert "parent done" in out, out
+    finally:
+        t.join(timeout=2)
+        parent.kill(); parent.wait()
+
+
+def test_wait_parent_never_goes_times_out_exit_2(root, capsys):
+    """(c) A parent lease that never goes with `--timeout 1` exits 2, prints
+    the last-seen view (the live parent row) to stdout AND `ERR: ... parent
+    still live after Ns` to stderr, naming the round. The last-seen view is
+    the clause the parent review found overclaimed (hypothesis
+    `l4-spawn-budget-status-waits-for-the-parent`): the code went straight to
+    the ERR print with no `_print_remaining_rows`."""
+    _mk_project(root)
+    parent = _sleeping()
+    p_lease = spawn_budget.acquire(root, 2, "parent-0", tier="parent",
+                                   iter_n="L4.246")
+    assert p_lease is not None
+    spawn_budget.commit(p_lease, parent.pid)
+    try:
+        rc = spawn_budget.main(["--root", str(root), "status",
+                                "--iter", "L4.246", "--wait", "--timeout", "1"])
+        cap = capsys.readouterr()
+        out, err = cap.out, cap.err
+        assert rc == 2, out
+        # last-seen view: the still-live parent row is printed (stdout)
+        assert "parent-0" in out, out
+        assert "parent still live" in err, err
+        assert "L4.246" in err, err
+    finally:
+        parent.kill(); parent.wait()
+
+
+def test_wait_unknown_round_exit_3(root, capsys):
+    """(d) An id with neither a lease nor a session dir -> exit 3 with
+    `ERR: unknown round`."""
+    _mk_project(root)
+    rc = spawn_budget.main(["--root", str(root), "status",
+                            "--iter", "L4.99997", "--wait"])
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "unknown round" in err, err
+
+
+def test_wait_without_iter_is_an_argparse_error(root, capsys):
+    """(e) `--wait` without `--iter` is an argparse error, exit 2."""
+    _mk_project(root)
+    rc = spawn_budget.main(["--root", str(root), "status", "--wait"])
+    err = capsys.readouterr().err
+    assert rc == 2, err
+    assert "--wait requires --iter" in err, err
 

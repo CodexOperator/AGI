@@ -108,6 +108,15 @@ def _enters(calls):
             if c[:2] == ["tmux", "send-keys"] and c[-1] == "Enter"]
 
 
+def _typed_text(calls):
+    """The `-l` payloads send.py types across all its send-keys calls. A
+    stranded resubmit types EXACTLY one printable space -- never a bare
+    Enter-only retry and never a second nudge line (hypothesis:l4-a-stranded-
+    nudge-is-resubmitted-by-typing-not-enter); an ordinary delivery types the
+    full line/token."""
+    return [c[5] for c in _typed(calls)]
+
+
 class _FixturePane:
     """A model of a Claude Code input box driven by `tmux send-keys`, pinned
     by the prime on a REAL pane (nudge node 83fe8049c, 2026-09-11) as four
@@ -296,23 +305,83 @@ def test_wrapped_stranded_token_is_detected_as_unsubmitted():
         "[agi-nudge] unread for sanctuary-director:"
 
 
-def test_stranded_token_is_submitted_by_a_bare_enter(project: Path,
-                                                     monkeypatch, capsys):
-    """Probe (C) as the heal: an IDLE pane already holding the token
-    unsubmitted (the old shape left it there) gets ONE bare Enter -- no
-    second token, no body -- the stranded wake is delivered and the marker
-    stamped. Without it every later send coalesces forever on that pane."""
+def test_stranded_token_is_resubmitted_by_typing_not_enter(
+        project: Path, monkeypatch, capsys):
+    """The stranded-wake retry resubmits by TYPING a printable space (its
+    own `-l` call) then a SEPARATE Enter -- never Enter-only
+    (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter). A
+    bare Enter NEVER submits the stranded line on the master-sensei pane the
+    target measured (three failed attempts 13:59Z/14:00Z/14:04Z); typing +
+    Enter does. The fixture models exactly that pane: the `-l` space appears
+    in the argv BEFORE the Enter call."""
     pane = _FixturePane(width=60)
     pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])      # stranded, wrapped
     assert pane.submitted == []
     calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
     send_mod.send(project, "sanctuary-director", "the body", "kid")
-    assert _typed(calls) == [], "no second token into a pane holding one"
-    assert _enters(calls) == [["tmux", "send-keys", "-t",
-                               "agi-rc:sanctuary-director", "Enter"]]
-    assert pane.submitted == [_OLD_TOKEN + "\n"] and pane.input == ""
+    # the retry is a TYPED space in its own -l call BEFORE a separate Enter
+    # -- a bare Enter-with-nothing is never the whole retry.
+    typed = _typed(calls)
+    assert len(typed) == 1, calls
+    assert typed[0][:5] == ["tmux", "send-keys", "-l", "-t",
+                            "agi-rc:sanctuary-director"], typed
+    assert typed[0][5] == " ", "the only typed retry key is a single space"
+    enters = _enters(calls)
+    assert enters == [["tmux", "send-keys", "-t",
+                       "agi-rc:sanctuary-director", "Enter"]], calls
+    assert calls.index(typed[0]) < calls.index(enters[0]), \
+        "the typed space must come BEFORE the Enter call"
+    # the single stranded line (with the appended space) was submitted.
+    assert pane.submitted and pane.input == ""
     assert "submitted a stranded token" in capsys.readouterr().err
     assert send_mod._last_nudge_age(project, "sanctuary-director") is not None
+
+
+def test_send_wake_verb_submits_a_stranded_line(project: Path, monkeypatch,
+                                                capsys):
+    """`send.py wake <seat>` on a fixture pane holding a stranded nudge line
+    resubmits it by TYPING (space + Enter) and delivers it -- the XIV->XV
+    rotation-alert that stranded reaches the now-idle Sensei."""
+    pane = _FixturePane(width=60)
+    pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])      # stranded, wrapped
+    assert pane.submitted == []
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    send_mod.wake(project, "sanctuary-director")
+    typed = _typed(calls)
+    assert len(typed) == 1, calls
+    assert typed[0][5] == " "
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               "agi-rc:sanctuary-director", "Enter"]], calls
+    assert pane.submitted and pane.input == ""
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_send_wake_verb_busy_pane_coalesces(project: Path, monkeypatch,
+                                            capsys):
+    """`send.py wake <seat>` on a BUSY fixture pane with something pending
+    coalesces to ONE stderr line and types nothing (the deferred record is
+    already written)."""
+    # seed an unread inbox block so wake has something to announce
+    inbox = send_mod._inbox_path(project, "sanctuary-director")
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    pane = _FixturePane(busy=True)
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    send_mod.wake(project, "sanctuary-director")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+    assert "nudge: coalesced (pane busy" in capsys.readouterr().err
+
+
+def test_send_wake_verb_idle_nothing_is_a_silent_noop(project: Path,
+                                                      monkeypatch, capsys):
+    """No stranded line and nothing pending -> `wake` types nothing and
+    prints nothing (heal polls every seat; an ungated bare token would retype
+    once the coalesce window lapses)."""
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    send_mod.wake(project, "sanctuary-director")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+    assert capsys.readouterr().err == ""
 
 
 def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
@@ -727,11 +796,11 @@ def test_stranded_inline_line_no_concat_on_inbox_retry(project: Path,
     assert pane.submitted == [] and pane.input == "[nudge: mee]: first body"
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send(project, "adv-alive", "hello", "ki")   # inbox retry
-    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
-        == [], "the retry must type NO second line"
+    assert _typed_text(calls) == [" "], \
+        "the only typed retry key is ONE space (never a second line)"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                "agi-rc:adv-alive", "Enter"]]
-    assert pane.submitted == ["[nudge: mee]: first body"], pane.submitted
+    assert pane.submitted == ["[nudge: mee]: first body" + " "], pane.submitted
     assert pane.input == ""
 
 
@@ -747,9 +816,9 @@ def test_stranded_wake_token_dm_no_concat(project: Path, monkeypatch,
     assert pane.submitted == [] and pane.input == tok
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send_dm(project, "mee", "adv-alive", "dm body", "mee")
-    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
-        == [], "the dm must not type an inline line after the token"
-    assert pane.submitted == [tok], pane.submitted
+    assert _typed_text(calls) == [" "], \
+        "the only typed retry key is ONE space (never an inline line after the token)"
+    assert pane.submitted == [tok + " "], pane.submitted
     assert pane.input == ""
     assert send_mod._read_deferred(project / ".agi", "adv-alive") \
         is not None, "the dm body must be deferred, not lost"
@@ -766,9 +835,9 @@ def test_rotation_alert_line_dm_no_concat(project: Path, monkeypatch, capsys):
         "changing seats"
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send_dm(project, "mee", "adv-alive", "dm body", "mee")
-    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
-        == [], "the dm must not type an inline line after rotation-alert"
-    assert pane.submitted == ["[rotation-alert] changing seats"], \
+    assert _typed_text(calls) == [" "], \
+        "the only typed retry key is ONE space (never a line after rotation-alert)"
+    assert pane.submitted == ["[rotation-alert] changing seats" + " "], \
         pane.submitted
     assert pane.input == ""
     assert send_mod._read_deferred(project / ".agi", "adv-alive") \
@@ -790,7 +859,7 @@ def test_deferred_kept_when_different_line_submitted(project: Path,
     pane.send_keys(["-l", "-t", "w", "[rotation-alert] rotating"])  # other
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send(project, "adv-alive", "placeholder", "ki")  # inbox retry
-    assert pane.submitted == ["[rotation-alert] rotating"], pane.submitted
+    assert pane.submitted == ["[rotation-alert] rotating" + " "], pane.submitted
     assert pane.input == ""
     assert send_mod._read_deferred(root, "adv-alive") is not None, \
         "the deferred body must survive (it never reached the pane)"
@@ -808,7 +877,7 @@ def test_deferred_cleared_when_its_own_line_stranded(project: Path,
     pane.send_keys(["-l", "-t", "w", "[nudge: mee]: urgent"])
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send(project, "adv-alive", "placeholder", "ki")  # inbox retry
-    assert pane.submitted == ["[nudge: mee]: urgent"], pane.submitted
+    assert pane.submitted == ["[nudge: mee]: urgent" + " "], pane.submitted
     assert pane.input == ""
     assert send_mod._read_deferred(root, "adv-alive") is None, \
         "the deferred body's own line was delivered -- cleared"
@@ -832,9 +901,9 @@ def test_same_sender_stranded_line_does_not_swallow_new_dm(
     calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
     send_mod.send_dm(project, "mee", "adv-alive", "newer body", "mee")
     # the stranded OLDER line alone is submitted -- no second line typed
-    assert [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]] \
-        == [], "the new dm must not type a second line after the stranded one"
-    assert pane.submitted == ["[nudge: mee]: older body"], pane.submitted
+    assert _typed_text(calls) == [" "], \
+        "the new dm must type only ONE space, never a second line after the strand"
+    assert pane.submitted == ["[nudge: mee]: older body" + " "], pane.submitted
     assert pane.input == ""
     # the NEW body survives -- deferred for a later idle retry, never dropped
     assert send_mod._read_deferred(root, "adv-alive") \
@@ -868,10 +937,11 @@ def test_wrapped_own_stranded_line_is_recognised_as_ours(
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, sender, seat, body, sender)
     # recognised as ours: Enter only, no second line, nothing deferred
-    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _typed_text(calls) == [" "], \
+        "stranded resubmit types ONE space, never a new nudge line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [line], pane.submitted
+    assert pane.submitted == [line + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "an own line is a real delivery -- nothing deferred"
     assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
@@ -896,10 +966,11 @@ def test_wrapped_own_line_recognised_at_measured_104(
     assert pane.submitted == [] and pane.input == line
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, sender, seat, body, sender)
-    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _typed_text(calls) == [" "], \
+        "stranded resubmit types ONE space, never a new nudge line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [line], pane.submitted
+    assert pane.submitted == [line + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "an own line is a real delivery -- nothing deferred"
     assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
@@ -937,10 +1008,11 @@ def test_wrapped_own_line_cell_wrapped_recognised_at_80(
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, sender, seat, body, sender)
     # recognised as ours under the cell (empty) join: Enter only, nothing typed
-    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _typed_text(calls) == [" "], \
+        "stranded resubmit types ONE space, never a new nudge line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [line], pane.submitted
+    assert pane.submitted == [line + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "an own line is a real delivery -- nothing deferred"
     assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
@@ -1020,11 +1092,11 @@ def test_deferred_strand_judged_with_the_rendered_more_count(
     # OWN strand with the STORED more=1 render is recognised: Enter only, no
     # second line typed, and -- the double-delivery falsifier -- the deferred
     # record is CLEARED so the body can never be typed twice.
-    assert _typed(calls) == [], \
-        "the own stranded deferred line must not be typed again"
+    assert _typed_text(calls) == [" "], \
+        "the own stranded deferred line is resubmitted by a typed space, never re-typed as a line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [strand], pane.submitted
+    assert pane.submitted == [strand + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "an own deferred strand is a real delivery -- the record is cleared, " \
         "so the body is never typed twice for one deferral"
@@ -1080,11 +1152,11 @@ def test_render_that_never_types_does_not_move_the_stored_deferred_count(
         "2020-01-01T00:00:00+00:00\n")         # long-stale marker
     calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send(project, seat, "more mail", "ki")
-    assert _typed(calls2) == [], \
-        "the own stranded deferred line must not be typed again"
+    assert _typed_text(calls2) == [" "], \
+        "own strand resubmitted by a typed space"
     assert _enters(calls2) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]], calls2
-    assert pane.submitted == [strand], pane.submitted
+    assert pane.submitted == [strand + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "the own strand is a real delivery -- the record is cleared, so the " \
         "body is never typed a second time for one deferral"
@@ -1137,10 +1209,11 @@ def test_truncated_own_stranded_line_is_recognised_as_ours(
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, sender, seat, big, sender)
     # recognised as ours: Enter only, no second line typed, nothing deferred
-    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _typed_text(calls) == [" "], \
+        "stranded resubmit types ONE space, never a new nudge line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [line], pane.submitted
+    assert pane.submitted == [line + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None, \
         "an own line is a real delivery -- nothing deferred"
     assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
@@ -1165,10 +1238,11 @@ def test_flattened_own_stranded_line_is_recognised_as_ours(
     assert pane.submitted == [] and pane.input == line
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, sender, seat, body, sender)
-    assert _typed(calls) == [], "no second line after the own stranded line"
+    assert _typed_text(calls) == [" "], \
+        "stranded resubmit types ONE space, never a second line"
     assert _enters(calls) == [["tmux", "send-keys", "-t",
                                f"agi-rc:{seat}", "Enter"]]
-    assert pane.submitted == [line], pane.submitted
+    assert pane.submitted == [line + " "], pane.submitted
     assert send_mod._read_deferred(root, seat) is None
     assert "submitted a stranded token" in capsys.readouterr().err
 
@@ -2598,3 +2672,197 @@ def test_whois_unverified_outranks_a_working_tree_answer(monkeypatch,
     code, text = _send.whois(tmp_path, "7902ac", "belam")
     assert code == _send.WHOIS_UNVERIFIED, text
     assert "NOT authoritative" in text
+
+
+# ── hypothesis:l4-a-truncated-deferred-body-delivers-once ──────────────────
+#   a truncated deferred body reaches the pane EXACTLY ONCE: the stranded-line
+#   ownership match tries the TAILED rendering of the deferred body at the
+#   recorded count too (the old undo matched only the untailed render, which
+#   for a truncated body is a DIFFERENT slice -- the tail is counted inside
+#   _NUDGE_LINE_MAX, so the tailed render is SHORTER), and a record without a
+#   recorded count is matched against every plausible render the strand could
+#   have carried (each count 0..pending, tailed and untailed).
+
+def test_truncated_tailed_deferred_strand_is_ours(project: Path, monkeypatch,
+                                                  capsys):
+    """(a) FALSIFIER: a deferred body long enough to truncate, stranded as the
+    TAILED render an earlier deferred DELIVERY retry typed (count tail + inbox
+    tail) before its Enter landed. Old bytes judged ownership against the
+    UNTAILED render at the recorded count; for a truncated body that slice is
+    LONGER than the tailed one (the tail is counted inside `_NUDGE_LINE_MAX`),
+    so `own_line in region` missed OUR OWN strand, judged it FOREIGN, and the
+    next retry typed the body AGAIN -- delivered twice. Fixed: the match also
+    tries the TAILED rendering of the deferred body, so the own strand is
+    recognised (Enter only) and the record cleared -- one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                          # flattened over the cap
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)    # typed at more=1
+    strand = send_mod._nudge_line(seat, sender, big, 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    assert len(strand) <= send_mod._NUDGE_LINE_MAX
+    # the FALSIFIER: the untailed render is a DIFFERENT (longer) slice, so the
+    # old single untailed `own_line` is not a substring of the own tailed strand
+    assert send_mod._nudge_line(seat, sender, big, 1) not in strand, \
+        "the tailed strand must diverge from the untailed render (the tail is" \
+        " counted inside the cap)"
+    pane = _FixturePane(width=200)              # wide: no wrap distracts
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed_text(calls) == [" "], \
+        "the own TAILED truncated strand is resubmitted by a typed space"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand + " "], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own strand is a real delivery -- the record is cleared, so the " \
+        "truncated body is never typed a second time"
+
+
+def test_truncated_untailed_deferred_strand_is_ours(project: Path,
+                                                    monkeypatch, capsys):
+    """(b) CLAIM control: the UNTAILED truncated rendering of the deferred body
+    (a strand left by the body's earlier deferred-under-busy attempt, before
+    any inbox retry attached the tail) is also recognised as ours. Guards the
+    tail fix from making the match TAIL-only -- the no-tail render at the
+    recorded count must keep matching its own strand."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)
+    strand = send_mod._nudge_line(seat, sender, big, 1)   # NO inbox tail
+    assert len(strand) <= send_mod._NUDGE_LINE_MAX
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed_text(calls) == [" "], \
+        "the own UNTAILED truncated strand is resubmitted by a typed space"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand + " "], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- cleared"
+
+
+def test_truncated_different_same_sender_deferred_strand_is_foreign(
+        project: Path, monkeypatch, capsys):
+    """(c) FALSIFIER control (hypothesis:l4-send-py-same-sender-stranded-line-
+    and-the-swallowed-wake, clause (a)): a stranded line holding a DIFFERENT
+    body of a DIFFERENT length from the SAME sender must read as FOREIGN even
+    when truncated -- the match is never widened to head-only. The foreign
+    strand alone is submitted and the deferred body SURVIVES for a later
+    retry (never typed twice, never dropped).
+    (a)."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80                                  # the deferred body
+    other = "marker " * 80                              # different body, same sender
+    assert send_mod._store_deferred(root, seat, sender, big)
+    send_mod._record_deferred_render(root, seat, 1)
+    strand = send_mod._nudge_line(seat, sender, other, 1,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed_text(calls) == [" "], \
+        "a FOREIGN truncated strand is submitted by a typed space, never a new line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand + " "], pane.submitted
+    assert (lambda d: d is not None and d.get("sender") == "mee"
+            and d.get("body") == big)(send_mod._read_deferred(root, seat)), \
+        "a different same-sender body is NOT ours -- the deferred body kept"
+
+
+def test_deferred_strand_without_recorded_count_matched_at_its_own_render(
+        project: Path, monkeypatch, capsys):
+    """(d) SECOND-HALF FALSIFIER: a deferred record with NO `more` key (stored
+    by `_store_deferred` and never rendered, or written before L4.222) whose
+    stranded line was typed at more=2 while pending is NOW 3. Old bytes
+    judged it against the CURRENT pending (the `.get("more", more)` default),
+    so the own strand -- truncated under the more=2 tail -- read as foreign
+    and the body was typed again. Fixed: a record without a count is matched
+    against every render the strand could have carried (each count 0..pending,
+    tailed and untailed), so the more=2 strand is recognised (Enter only) and
+    the record cleared -- one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 80
+    # a LEGACY record with no `more` key (write the JSON directly: this is
+    # the state a pre-L4.222 record or a stored-but-never-rendered record has)
+    _nudge_deferred = send_mod._nudge_deferred_path(root, seat)
+    _nudge_deferred.parent.mkdir(parents=True, exist_ok=True)
+    _nudge_deferred.write_text(json.dumps({"sender": sender, "body": big}))
+    assert send_mod._read_deferred(root, seat).get("more") is None
+    # the strand the PRIOR delivery typed (more=2): the own body truncated
+    strand = send_mod._nudge_line(seat, sender, big, 2,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    # pending has since grown to 3 (one more dm coalesced)
+    send_mod._clear_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    send_mod._bump_pending(root, seat)
+    assert send_mod._pending_more(root, seat) == 3
+    pane = _FixturePane(width=200)
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed_text(calls) == [" "], \
+        "own more=2 stratum resubmitted by a typed space"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls
+    assert pane.submitted == [strand + " "], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the own strand is a real delivery -- cleared, never typed twice"
+
+
+def test_truncated_deferred_body_typed_once_across_busy_strand_retry(
+        project: Path, monkeypatch, capsys):
+    """(e) END-TO-END FALSIFIER: a 300-char deferred body across the full
+    saga -- busy (deferred, nothing typed) -> a delivery retry that strands
+    the TAILED truncated line -> a later inbox retry -- reaches the pane
+    EXACTLY ONCE. Old bytes judged the stranded TAILED line foreign and the
+    retry TYPED the body AGAIN (two `[nudge:` typed lines for one deferral).
+    Fixed: the own strand is recognised, Entered alone, and never re-typed
+    -- one body, one typed line, one delivery."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    big = "word " * 60                              # 300 chars flattened
+    # (1) BUSY: the dm coalesces, the body is deferred, nothing typed
+    busy = _fixture_text("claude_pane_busy.txt")
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=busy)
+    send_mod.send_dm(project, sender, seat, big, sender)
+    assert _typed(calls) == [], "the busy send must type nothing"
+    assert send_mod._read_deferred(root, seat) is not None, "deferred"
+    # (2) STRANDED: a delivery retry typed the TAILED truncated line and its
+    # Enter never landed (the line sits unsubmitted in the box)
+    strand = send_mod._nudge_line(seat, sender, big, 0,
+                                  trailing=send_mod._NUDGE_INBOX_TAIL
+                                  .format(seat=seat))
+    pane = _FixturePane(width=200)                  # wide: strand untruncated
+    pane.send_keys(["-l", "-t", "w", strand])
+    assert pane.submitted == [] and pane.input == strand
+    # (3) RETRY: body=None inbox send recognises the own strand (a record with
+    # no recorded count is matched across every plausible render count)
+    calls2 = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "inbox body", "ki")
+    assert _typed_text(calls2) == [" "], \
+        "retry resubmits the already-delivered strand by a typed space"
+    assert _enters(calls2) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]], calls2
+    assert pane.submitted == [strand + " "], pane.submitted
+    # ONE delivery total: the single `[nudge:`-shaped line ever put in the box
+    assert send_mod._read_deferred(root, seat) is None, \
+        "the body was delivered -- the record is cleared, never typed twice"
