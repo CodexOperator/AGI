@@ -18,7 +18,7 @@
 | spend | **ACCOUNT $13.92 remaining of $107.00** (`/api/v1/credits` with `OPENROUTER_PROVISIONING_KEY` at 01:27Z; $2.11 in the 3 h to 01:27Z with three rounds live ≈ $0.7/h → the $1.00 floor in ~18 h at this cadence; BANKED §6: top-up or the owner's Sonnet fallback). 🔴 **The `.env` `OPENROUTER_API_KEY` names a DELETED key (owner, 2026-09-10) and `envfile.py --check` passes on its PRESENCE — a green `verify` says nothing about it.** The loop runs because provisioning is AVAILABLE: every spawn mints its own ~$5 key; the pre-flight (306b77bb6) skips the runtime leg while provisioning is up. Per-spawn keys are **revoked at agent finish — observe DURING, a post-hoc diff cannot see them.** Below **$1.00 account-wide** the point finishes its open round and stops dispatching pi. **FALLBACK (owner, verbatim in `doc:l4-owner-decisions`): SONNET PARENTS AND KIDS via `--harness claude-code`** — the WORK tier falls back; a director's model is a separate formation question he has not decided. 🔴 `agi` ($10.92/$40) is the one unexplained credential left; the owner named only `backup`, so it was NOT touched. |
 | pi parent model | **`deepseek/deepseek-v4.1-flash` (owner order 2026-09-10 ~22:2xZ, verbatim in `doc:l4-owner-decisions`)** — landed at 55783ac8a in the THREE places a dispatched parent actually reads: ladder pi parent rows (tier 1 + tier 0) + `harnesses.pi.models.parent` + `allowed_models`; proved from the built command (`dispatch.py … --dry-run` → `--model deepseek/deepseek-v4.1-flash`). 🔴 `agent_dispatch.model` (6da89f01e) is read ONLY on the legacy no-`harnesses` path — a cell nothing reads here. Kids stay `~deepseek/deepseek-v4-flash-latest`; rounds already live keep their spawn model. |
 | disk | 84% (01:27Z; was 81%) |
-| this session | **Belam L4-VII (2026-09-11 01:18Z → , claude-opus-5 max, `agi-07 [f52a4c]` @267, agi-rc:4).** Seated the OLD way by L4-VI (rotate-self not yet prime-rotatable, 7422189d9); acked `diff` twice (two-key trap, g17.1 note); pin 0.10 claimed on my own transcript; verify-suite 10/10 first read. |
+| this session | **Belam L4-VII (2026-09-11 01:18Z → , claude-opus-5 max, `agi-07 [f52a4c]` @267, agi-rc:4).** Seated the OLD way by L4-VI (rotate-self not yet prime-rotatable, 7422189d9); acked `diff` twice (two-key trap, g17.1 note); pin 0.10 claimed on my own transcript; verify-suite 10/10 first read; three owner rulings banked + applied (completion report after base-level stream; nudge round g15; town branches); merge-up 23 granted 01:43Z. |
 
 ## §0.7 L3 CLOSED 2026-09-09 (rounds L3.01–L3.44 landed; detail: `git log --oneline iter-L3.01..iter-L3.44`, [COMPLETE.md](COMPLETE.md), grid v420) · L4 OPEN on `doc:l4-owner-decisions`
 
@@ -27,7 +27,7 @@ Two L3 lessons kept: check `git rev-list --count season/s2..<branch>` before bel
 ### 🔴 Where it stops — Belam L4-VII, live 2026-09-11 (L4-VI's last card: `git show 315357c91:HANDOFF.md`)
 
 ```
-BELAM L4-VII — LIVE (Opus 5 max, standing — owner)   agi-07 [f52a4c] @267 / agi-rc:4   season/s2 @ a5d1d25ea+   2026-09-11 01:3xZ (date -u)   pin 0.10 at wake / cap 0.47   ACCOUNT $13.92 of $107.00 at 01:27Z
+BELAM L4-VII — LIVE (Opus 5 max, standing — owner)   agi-07 [f52a4c] @267 / agi-rc:4   season/s2 @ c75ec2fc5+   2026-09-11 01:4xZ (date -u)   pin 0.10 at wake / cap 0.47   ACCOUNT $13.92 of $107.00 at 01:27Z
 L4     GO (owner 2026-09-09; plan parts 1-7 CONFIRMED verbatim in doc:l4-owner-decisions "L4 PLAN"; names + role diagram in doc:l4-plan §0.9)
 PLAN   doc:l4-plan (§2 cards, §5 rounds L4.02-L4.27 + ad-hoc L4.28+, §6 questions) · Q1-Q30 in doc:l4-owner-decisions "L4 BANKED QUESTIONS"
 SEATS  goal:g17.1 = the Texas two-step formation + EVERY measured seat-protocol rule (owner verbatim; the newest notes are the rulings on 0a's gate, the ack channel's prime-path proof, the reaper, the respawn)
@@ -59,6 +59,15 @@ STREAM 🔴 LIVE NOW (owner 00:4xZ: "stream is launched. 15s delay" — the stub
        + Thunar windows closed, wallpaper stock xfce (nothing Oracle). Follower `.agi/sessions/stream-follow.sh` (tmux session `stream-follow`, gitignored) re-points the views at the LIVE seats every
        20 s across rotations and renames the prime's view — a rotated seat needs NO hand step. Restore the panels: `xfconf-query -c xfce4-panel -p /panels/panel-N/autohide-behavior -s 0`.
        On-screen residue accepted by the owner: pane contents (paths, public repo URL, key LIMIT lines, local-time stamps), transient notifyd popups.
+LIVE   🔴 OWNER 01:4xZ, three rulings (verbatim doc:l4-owner-decisions 7c193e4ab/c138d51f1): (a) COMPLETION REPORT for L4 once the base-level stream setup (stream master etc.) lands — the
+       streamer-stub FOLD-IN (hypothesis:l4-the-stream-goes-live) is DEFERRED to the next stream, not retired; the Prime writes COMPLETE.md's L4 section from the merge-up numbers · (b) NUDGE FIX
+       ROUND minted real quick: hypothesis:l4-a-nudge-is-a-wake-token-not-a-message under goal:g15 (re-parented from g17 on the owner's question) — measured on the point's transcript: two dms
+       typed by send.py `_nudge_window` into a busy pane arrived as ONE user prompt (01:20:04Z); fix = one fixed machine token, idempotent under busy, addressed by the seat row's @id; the
+       point dispatches it FIRST after merge-up 23 · (c) TOWN BRANCHES: ladder `town_branches` {core: season/s2, streaming-suite: town/streaming-suite@s2, web-app-suite: town/web-app-suite@s2},
+       both cut from season/s2 and pushed; a non-core round is cut from and merged up to its town branch, town -> core is a Prime-reviewed merge; code half (stale-base guard + season.py read
+       town_branches) owed to L4.117 · MERGE-UP 23 GRANTED 01:43Z (point: L4.116 persistent reaper + L4.118 fourth 0a + L4.113 proof + fifth 0a spec; 553/1 + 423 green in the seat; bootstrap
+       gen IX = 4 calls to ack+pin / 29 to first write, target 0) — at its numbers: read the bytes, then the PRIME's step = unit install via `crons.py apply` from briefs/crons.services.fragment.md
+       + `agent_dispatch.inline_reaper` false, verified with `systemctl --user status`.
 LIVE   🔴 OWNER 01:2xZ (verbatim doc:l4-owner-decisions; 98653f8ad/5cd82955a): THE WORK IS THE PERFORMANCE — vision:shown-not-told rewritten (interactive, fun, pragmatic, revenue asap: credits keep the
        loops running) · NEW ROUND hypothesis:l4-the-stream-master-is-the-only-door (g18.1; paid-only intake, hard cap, 50-word typed relay, quarantine as DATA, red-team corpus; FIXTURES ONLY, the stream
        is LIVE) handed to the point 01:34Z with the lane order: third fix-only 0a (+ the two-key ack defect) and 0b at the TOP · PRIME BOOTSTRAP = 42+ tool calls at L4-VII (owner measured) — the
