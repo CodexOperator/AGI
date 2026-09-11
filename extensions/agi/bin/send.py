@@ -475,21 +475,42 @@ def _registry_status(pid: str | int | None) -> str | None:
         return None
 
 
+def _input_region(pane: str | None) -> str:
+    """The INPUT-LINE region of a capture: from the LAST prompt-marker line
+    (the `\u276f` prompt glyph that heads the Claude Code input box) to the
+    end, inclusive. Everything ABOVE the box -- a SUBMITTED token echoed in
+    the transcript, an old `esc to interrupt` scrolled up -- is transcript
+    and must not read as stranded/busy (hypothesis:l4-a-nudge-is-a-wake-
+    token-not-a-message, residue 2). When no prompt glyph is found (a busy
+    pane renders the spinner in place of the box) the whole capture IS the
+    region -- conservative."""
+    lines = (pane or "").splitlines()
+    for i in range(len(lines) - 1, -1, -1):
+        if "\u276f" in lines[i]:
+            return "\n".join(lines[i:])
+    return pane or ""
+
+
 def _nudge_coalesce_reason(pane: str | None, token: str,
                            registry: str | None) -> str | None:
     """Coalescing reason when the pane must not be typed into right now: the
     pane is busy (a Claude Code mid-turn spinner), or the token already sits
-    unsubmitted in the pane's input line (already queued). None = nudge now."""
+    unsubmitted in the pane's input line (already queued). None = nudge now.
+
+    Both checks are scoped to the INPUT REGION (`_input_region`), never the
+    whole capture -- a submitted token echoed in the transcript, or an old
+    `esc to interrupt` scrolled up, must not read as stranded/busy and cost
+    a wake until it scrolls off."""
     if registry == "busy":
         return "pane busy (registry)"
     if pane is not None:
-        low = pane.lower()
-        if "esc to interrupt" in low:
+        region = _input_region(pane)
+        if "esc to interrupt" in region.lower():
             return "pane busy (spinner)"
         # The input box WRAPS a token wider than the pane (measured on the
         # sanctuary-director pane 2026-09-11 02:38Z: the 101-char token sat
         # unsubmitted across two lines), so match the head, never the whole.
-        if _nudge_token_head(token) in pane:
+        if _nudge_token_head(token) in region:
             return "token already unsubmitted"
     return None
 
@@ -531,17 +552,29 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
-    window_id = (row or {}).get("window")            # e.g. "@267", else None
+    window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
         import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
         tmux_session = rotate.DEFAULT_TMUX_SESSION
     token = _build_nudge_token(to)
+    # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
+    # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
+    # target: never send-keys into a name-addressed window the row was
+    # supposed to carry as an @id (a predecessor or a namesake could occupy
+    # it). Refuse, print the reason on stderr, and FALL BACK to the by-name
+    # listing below.
+    if window_ref and not str(window_ref).startswith("@"):
+        print(f"nudge: row for {to} carries window {window_ref!r} -- a NAME,"
+              f" not an @id; refusing it as a target, falling back to the"
+              f" window NAME", file=sys.stderr)
+        window_ref = None
     # (3) an @id target never needs the name listed; a name fallback (row has
-    # no window at all) must still be a real listed window — a windowless
-    # (ephemeral/fire-and-forget) recipient is untouched, as before.
-    if window_id:
-        target = f"{tmux_session}:{window_id}"
+    # no window at all, or the NAME above was refused) must still be a real
+    # listed window — a windowless (ephemeral/fire-and-forget) recipient is
+    # untouched, as before.
+    if window_ref:
+        target = f"{tmux_session}:{window_ref}"
     else:
         if not _window_listed(tmux_session, to):
             return False

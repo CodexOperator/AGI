@@ -99,7 +99,8 @@
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
     "model": "deepseek/deepseek-v4.1-flash",
-    "thinking": "medium"
+    "thinking": "medium",
+    "inline_reaper": false
   },
   "agent_timeout_mins": 20,
   "delay_mins": 0,

@@ -235,7 +235,7 @@ def _is_engine_path(p: str) -> bool:
     return p.startswith(_ENGINE_PATH_LEADS)
 
 
-def _stale_base_spawn(root: Path, season: int) -> dict:
+def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -> dict:
     """How far the spawner's HEAD is behind the integration branch.
 
     Returns one of:
@@ -250,10 +250,13 @@ def _stale_base_spawn(root: Path, season: int) -> dict:
     on origin, not whatever the local ref last happened to see.
     """
     integration = f"origin/season/s{season}"
+    fetch_ref = f"season/s{season}"
+    if town_branch:
+        integration = f"origin/{town_branch}"
+        fetch_ref = town_branch
     try:
         fr = subprocess.run(
-            ["git", "-C", str(root), "fetch", "origin",
-             f"season/s{season}"],
+            ["git", "-C", str(root), "fetch", "origin", fetch_ref],
             capture_output=True, text=True, timeout=60)
         if fr.returncode != 0:
             # A failed fetch means the remote tip is unknowable -> we cannot
@@ -303,7 +306,8 @@ def _stale_base_spawn(root: Path, season: int) -> dict:
     return {"status": "behind", "behind": behind, "files": files}
 
 
-def _stale_base_record(stale: dict, season: int) -> dict:
+def _stale_base_record(stale: dict, season: int,
+                       town_branch: str | None = None) -> dict:
     """The structured next-actions record emitted on a stale base (HALF A).
 
     Machine-readable so HALF B (hypothesis:l4-startup-is-one-script-or-a-
@@ -316,13 +320,44 @@ def _stale_base_record(stale: dict, season: int) -> dict:
         "issue": "stale-base",
         "behind": stale.get("behind", 0),
         "files": stale.get("files", []),
-        "integration": f"season/s{season}",
+        "integration": town_branch or f"season/s{season}",
         "actions": [
-            {"id": "sync", "cmd": f"git merge origin/season/s{season}"},
+            {"id": "sync", "cmd": f"git merge origin/{town_branch or f'season/s{season}'}"},
             {"id": "override", "cmd": "dispatch ... --allow-stale-base <reason>"},
             {"id": "abort"},
         ],
     }
+
+
+def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
+    """The integration branch of the town the spawner's CURRENT branch maps to.
+
+    hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council + owner
+    ruling 01:4xZ: a round on a town's own branch measures its freshness
+    against that town branch, not season/sN. Resolves the spawner's checked-
+    out branch (`git rev-parse --abbrev-ref HEAD` in `git_root`, captured +
+    fail-open), reverse-looks it up in `town_branches` (read from `nodes_dir`,
+    the SAME graph the season was read from) by EXACT equality, and returns
+    the opaque integration branch for the town it maps to. None when it maps
+    to no town (a seat branch, a plain season/sN, detached HEAD) or when the
+    branch is unreadable -- the caller then keeps today's season/sN base.
+    """
+    branch = ""
+    try:
+        br = subprocess.run(
+            ["git", "-C", str(git_root), "rev-parse", "--abbrev-ref",
+             "HEAD"],
+            capture_output=True, text=True, timeout=30)
+        if br.returncode == 0:
+            branch = br.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        branch = ""
+    if not branch or branch == "HEAD":
+        return None  # detached HEAD or unreadable branch; nothing to map
+    town = spawn_gate.town_of_branch(nodes_dir, branch)
+    if not town:
+        return None
+    return spawn_gate.town_integration_branch(nodes_dir, town)
 
 
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
@@ -1556,9 +1591,14 @@ def main() -> int:
             # makes it a conscious override. fail-open: an unreachable origin
             # is a note, never a block (an unreachable remote is not a
             # workflow issue).
-            stale = _stale_base_spawn(Path.cwd(), current_season)
+            stale = _stale_base_spawn(Path.cwd(), current_season,
+                                      _current_town_branch(Path.cwd(),
+                                                            root / "nodes"))
             if stale["status"] == "behind" and not args.allow_stale_base:
-                print(json.dumps(_stale_base_record(stale, current_season)),
+                print(json.dumps(_stale_base_record(stale, current_season,
+                                                    _current_town_branch(
+                                                        Path.cwd(),
+                                                        root / "nodes"))),
                       file=sys.stderr)
                 spawn_budget.release(lease)
                 return 3  # must-pick: no resolving choice, no spawn
@@ -2060,7 +2100,8 @@ def _reaper_phase(
     print("reaper: finished")
 
 
-def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
+def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
+               restart_ok: bool = True) -> dict:
     """ONE reaper pass over one round's manifest. NO deadline inside.
 
     hypothesis:l4-the-reaper-is-one-persistent-service — the per-round pass
@@ -2070,9 +2111,16 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
     stalls, reaps any agent whose pid is dead, and writes terminal states
     back to the manifest it read. Returns:
 
-        `{"marked": [agent ids reaped this pass],
-          "still":  [agent ids still `running`],
+        `{"marked":  [agent ids reaped this pass],
+          "still":   [agent ids still `running`],
+          "died":    [agent ids reaped as DEATHS this pass],
           "terminal": bool}`
+
+    `restart_ok` is the lane switch: dispatch's inline reaper calls with
+    `restart_ok=True` (a dead pid may be respawned through the adapter); the
+    service (`heal.py watch`) calls with `restart_ok=False` — it has no
+    harness, never restarts, and records a dead pid as an honest DEATH, so
+    `died` is populated only in the service lane.
 
     Callers own the deadline (the loop), the timeout-vs-orphaned marks and
     the dm (the watcher), never this function. The `if status != "running"`
@@ -2084,11 +2132,11 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
 
     manifest_path = iter_dir / "manifest.json"
     if not manifest_path.exists():
-        return {"marked": [], "still": [], "terminal": True}
+        return {"marked": [], "still": [], "terminal": True, "died": []}
     try:
         manifest = json.loads(manifest_path.read_text())
     except (json.JSONDecodeError, OSError):
-        return {"marked": [], "still": [], "terminal": True}
+        return {"marked": [], "still": [], "terminal": True, "died": []}
 
     # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
     # The reaper already reads every live `agent.json`; this is where a
@@ -2105,6 +2153,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
     updated = False
     marked: list[str] = []
     still: list[str] = []
+    died: list[str] = []
     for entry in manifest.get("agents", []):
         agent_id = entry.get("id", "")
         agent_json_path = iter_dir / agent_id / "agent.json"
@@ -2125,7 +2174,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
         pid = int(rec.get("pid", 0))
         if pid > 0 and not adapter.is_alive(pid):
             outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
-                                cap=cap, cfg=cfg)
+                                cap=cap, cfg=cfg, restart_ok=restart_ok)
             rec.update(outcome["record"])
             agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
             entry["status"] = rec["status"]
@@ -2152,12 +2201,21 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
                     entry[k] = rec[k]
             updated = True
             marked.append(agent_id)
+            # The SERVICE lane records a dead pid as DEATH (status failed from
+            # `_reap_one`'s restart_ok=False branch). Those ids are surfaced
+            # separately so the watcher can dm ONE death per agent and never
+            # let a dead pid be re-interpreted as a timeout later in the pass.
+            if not restart_ok and rec.get("status") == "failed" \
+                    and outcome["record"]["fail_reason"].startswith(
+                        f"pid {pid} died"):
+                died.append(agent_id)
             print(f"reaper: {outcome['message']}")
 
     if updated:
         manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
 
-    return {"marked": marked, "still": still, "terminal": all_terminal}
+    return {"marked": marked, "still": still, "died": died,
+            "terminal": all_terminal}
 
 
 def _reaper_give_up(root, iter_dir):
@@ -2284,7 +2342,8 @@ def _branch_has_done_commit(root, rec, agent_id) -> bool:
     return (_commits_ahead(root, rec) or 0) > 0
 
 
-def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+             restart_ok: bool = True):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
     **The filesystem is consulted before the restart, and that ordering is the
@@ -2292,20 +2351,26 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
     lost only its report; respawning it would redo finished work and hand a
     second agent the same scaffolded node.
 
+    `restart_ok` is the lane switch: True for dispatch's inline reaper (a
+    dead pid may be respawned), False for the service watcher (`heal.py
+    watch`), which never restarts and records the dead pid as an honest
+    DEATH. See `_reap_pass`.
+
     hypothesis:l3w4-branch-visibility — the returned record also carries
     `commits_ahead` for a `--branch` agent (computed in `_commits_ahead`), so
     whatever the reap decided, the round file records how far the branch had
     climbed.
     """
     out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
-                         cap=cap, cfg=cfg)
+                         cap=cap, cfg=cfg, restart_ok=restart_ok)
     commits = _commits_ahead(root, rec)
     if commits is not None:
         out["record"]["commits_ahead"] = commits
     return out
 
 
-def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None):
+def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
+                   restart_ok: bool = True):
     import completion
 
     node_id = rec.get("node_id") or ""
@@ -2350,6 +2415,26 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None)
             },
             "message": (f"agent {agent_id} died with its round already "
                         f"committed — NOT restarted"),
+        }
+
+    # hypothesis:l4-the-reaper-is-one-persistent-service — the SERVICE lane
+    # (`heal.py watch`, restart_ok=False) never restarts: it has no harness,
+    # a resume would be a second writer on the manifest, and there is no
+    # spawn budget behind it. A dead pid here is DEATH, recorded honestly —
+    # status `failed`, fail_reason naming the death — NOT the bogus
+    # "restart unavailable" scalar that previously masked the crash (the
+    # watcher was never going to restart, so a missing restart path was not
+    # the reason it failed). The inline reaper (restart_ok=True) keeps the
+    # full paused/restart/budget decision below.
+    if not restart_ok:
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": f"pid {pid} died (detected by reaper)",
+            },
+            "message": (f"agent {agent_id} failed (pid {pid} died — death "
+                        f"recorded by the reaper service)"),
         }
 
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
