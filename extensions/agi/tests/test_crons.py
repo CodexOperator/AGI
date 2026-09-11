@@ -39,14 +39,23 @@ def fake_systemctl(tmp_path, monkeypatch):
     deterministically regardless of whether the test shell itself has a login
     session (a cron-style apply does not). Tests that want the NO-BUS skip
     monkeypatch these over.
+
+    Each invocation ALSO records the env it was actually invoked with (the
+    merged env `_apply_systemctl` passes in — residue for the L4.129 bus-env
+    merge): one `XDG_RUNTIME_DIR=<v>|DBUS_SESSION_BUS_ADDRESS=<v>` line per
+    call into `tmp_path/systemctl.env`, in the same order as the argv log, so
+    a test can assert the fallback/caller bus address actually reached the
+    subprocess. Deleting `env=merged` in crons.py then leaves a test red.
     """
     bin = tmp_path / "fakebin"
     bin.mkdir()
     log = tmp_path / "systemctl.calls"
+    envlog = tmp_path / "systemctl.env"
     script = bin / "systemctl"
     script.write_text(
         "#!/usr/bin/env bash\n"
         f'echo "$@" >> {log}\n'
+        f'echo "XDG_RUNTIME_DIR=${{XDG_RUNTIME_DIR-}}|DBUS_SESSION_BUS_ADDRESS=${{DBUS_SESSION_BUS_ADDRESS-}}" >> {envlog}\n'
         "exit 0\n")
     script.chmod(0o755)
     monkeypatch.setenv(
@@ -903,6 +912,42 @@ def test_wanted_unit_runs_systemctl_with_env_when_bus_reachable(tmp_path,
     assert calls[0] == "--user daemon-reload"
     assert calls[1].startswith("--user enable --now ")
     assert not any("no user bus" in a for a in res["unit_actions"])
+
+    # The L4.129 bus-env merge is load-bearing: the FAKE records the env the
+    # subprocess was invoked with, so the fallback DBUS address must actually
+    # have been passed in (not just computed). If `env=merged` in
+    # `_apply_systemctl` is deleted the call inherits the caller env, which
+    # the fixture cleared of DBUS_SESSION_BUS_ADDRESS, and this goes red.
+    envlines = (tmp_path / "systemctl.env").read_text().splitlines()
+    calls = fake_systemctl.read_text().splitlines()
+    assert len(envlines) == len(calls), \
+        "one env line per systemctl call, same order as the argv log"
+    runtime = tmp_path / "runtime"
+    assert f"DBUS_SESSION_BUS_ADDRESS=unix:path={runtime}/bus" in envlines[0], \
+        "fallback bus address must reach the subprocess via the env merge"
+
+
+def test_fake_records_caller_bus_unchanged_when_present(tmp_path,
+                                                        fake_systemctl,
+                                                        monkeypatch):
+    """When the caller already has DBUS_SESSION_BUS_ADDRESS, the seam adds
+    nothing (bus_env == {}) and the fake must see the CALLER's value, not the
+    fallback — the recorded env distinguishes caller-origin from
+    fallback-origin."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    caller_bus = "unix:path=/caller/real-bus"
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", caller_bus)
+    ud = tmp_path / "units"
+    crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                    unit_dir=ud)
+    envlines = (tmp_path / "systemctl.env").read_text().splitlines()
+    assert any(f"DBUS_SESSION_BUS_ADDRESS={caller_bus}" in l
+               for l in envlines), "caller-origin bus must be recorded as-is"
+    assert not any(f"DBUS_SESSION_BUS_ADDRESS=unix:path={tmp_path}" in l
+                   for l in envlines), \
+        "no fallback bus (a tmp_path path) may leak when the caller has one"
 
 
 def test_wanted_unit_records_named_skip_without_bus(tmp_path, monkeypatch,

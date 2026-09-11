@@ -952,13 +952,23 @@ def cmd_rollover(root: Path, args) -> int:
     # caps.vision; the mint refuses a town already at its cap.
     nodes_dir = Path(root) / "nodes"
     if spawn_vision_scope(nodes_dir) == "town":
-        per_town = count_visions_per_town(nodes_dir)
+        # hypothesis:l4-rollover-counts-visions-after-the-ladder-bump -- the
+        # count must reflect the season being ENTERED (new_season), not the
+        # ladder's still-current season. The ladder is not bumped until later;
+        # a count scoped to current_season would read a full old season's 3
+        # visions and REFUSE every new vision at the gate below.
+        per_town = count_visions_per_town(nodes_dir, season=new_season)
         cap = spawn_vision_cap(nodes_dir)
-        print(f"  per-town cap: {cap}/town (scope town)")
-        for town in sorted(per_town):
+        print(f"  per-town cap: {cap}/town (scope town, season {new_season})")
+        # Show every declared town (plus any with scoped visions), so a town
+        # sitting full in the OLD season but empty in the NEW prints a 0 and
+        # remains OK rather than vanishing from the rehearsal.
+        declared = ladder_fm.get("towns") or []
+        shown = [t for t in declared if isinstance(t, str)] or list(per_town)
+        for town in sorted(set(shown) | set(per_town)):
             rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
             flag = "OK" if rem > 0 else "AT CAP — mint refused"
-            print(f"    {town}: {per_town[town]} ({flag})")
+            print(f"    {town}: {per_town.get(town, 0)} ({flag})")
     print()
 
     # ---- Ladder fields (through write.py).
@@ -989,7 +999,8 @@ def cmd_rollover(root: Path, args) -> int:
             sources = _load_vision_sources(visions_from)
             nodes_dir = Path(root) / "nodes"
             town_mode = spawn_vision_scope(nodes_dir) == "town"
-            per_town = count_visions_per_town(nodes_dir) if town_mode else {}
+            per_town = (count_visions_per_town(nodes_dir, season=new_season)
+                        if town_mode else {})
             minted = 0
             refused = 0
             for s in sources:
@@ -1238,10 +1249,26 @@ def cmd_merge_up(root: Path, args) -> int:
         print(town_gate, file=sys.stderr)
         return 1
 
-    base = (args.target
-            or _town_base(Path(root) / "nodes", _resolve_round_town(root, args))
-            or _recorded_field(record_path, "base_branch")
-            or _current_branch(git_root))
+    target = args.target or None
+    recorded = _recorded_field(record_path, "base_branch")
+    rt = _resolve_round_town(root, args)
+    town = _town_base(Path(root) / "nodes", rt)
+    # hypothesis:l4-town-base-honours-the-recorded-base-branch -- an explicit
+    # --target is first (explicit beats recorded); a RECORDED base_branch
+    # names the round's own rung and beats the town base (regression: the
+    # town base preceded it, so a core-town round with a record merged
+    # straight into its town/season branch, skipping the rung). The town base
+    # is the fallback for a round with no record; git's current branch is
+    # last. The print names WHICH base was chosen and WHY (its source).
+    if target:
+        base, src = target, "target"
+    elif recorded:
+        base, src = recorded, "record"
+    elif town:
+        base, src = town, "town"
+    else:
+        base, src = _current_branch(git_root), "current"
+    print(f"base {base} from {src} (target|record|town|current)")
     if not base:
         print("ERR: cannot determine a base branch (detached HEAD?); "
               "pass --target", file=sys.stderr)

@@ -400,12 +400,86 @@ def _build_nudge_token(seat: str) -> str:
     return token
 
 
+#: Measured safe line length for a nudge typed with `-l` then Enter
+#: (hypothesis:l4-the-nudge-carries-the-dm-body-inline). The prime pinned a
+#: 101-char token stranded when chunk+Enter went in ONE send-keys call
+#: (nudge node 83fe8049c) and a token that wraps in the input box defeats
+#: the "already unsubmitted" head check; the fixture models the paste
+#: threshold at 100 chars (_FixturePane.PASTE_CHARS). 95 keeps the whole
+#: delivered line safely under that cap -- under it even a hypothetical
+#: one-call `text Enter` chunk would not strand -- with room for the
+#: `… (read <seat>)` / `(+N more, read <seat>)` tails. The head
+#: (`[nudge: <from>:`) stays short, so a wrapped line still matches.
+_NUDGE_LINE_MAX = 95
+#: Truncation tail appended when the flattened body would exceed the line
+#: cap: `… (read <seat>)` (the newline-flatten ` / ` separator is truncated
+#: with the body).
+_NUDGE_TRUNC_TAIL = "… (read {seat})"
+#: Tail appended to a DELIVERED line when earlier dms in the same batch
+#: were coalesced (within the per-seat window) and never typed:
+#: `(+N more, read <seat>)`.
+_NUDGE_MORE_TAIL = " (+{n} more, read {seat})"
+
+
+def _nudge_line(seat: str, sender: str, body: str, more: int = 0) -> str:
+    """The inline pane line for a dm nudge (hypothesis:l4-the-nudge-carries-\
+    the-dm-body-inline): `[nudge: <from>]: <body>`. The body is FLATTENED
+    to one line (newlines -> ` / `) and, if the delivered line would exceed
+    `_NUDGE_LINE_MAX`, TRUNCATED with a `… (read <seat>)` tail. `more>0`
+    appends `(+N more, read <seat>)` for the dms coalesced before this one.
+    The body STILL lands in the dm file (the record); this line is delivery."""
+    flat = " / ".join(p.strip() for p in body.splitlines() if p.strip())
+    if not flat:
+        flat = body
+    more_tail = _NUDGE_MORE_TAIL.format(n=more, seat=seat) if more else ""
+    trunc_tail = _NUDGE_TRUNC_TAIL.format(seat=seat) + more_tail
+    prefix = f"[nudge: {sender}]: "
+    full = prefix + flat + more_tail
+    if len(full) <= _NUDGE_LINE_MAX:
+        return full
+    keep = _NUDGE_LINE_MAX - len(prefix) - len(trunc_tail)
+    return prefix + flat[:keep].rstrip() + trunc_tail
+
+
 def _nudge_token_head(token: str) -> str:
-    """The part of a token that survives the input box wrapping it: up to
-    and including the first `:` (`[agi-nudge] unread for <seat>:`), or the
-    whole token when it has none (the bare form)."""
+    """The part of a typed line that survives the input box wrapping it, and
+    is what the "already unsubmitted" check matches. For the inline DM line
+    `[nudge: <from>]: <body>` the head is up to and including the SECOND `:`
+    (`[nudge: <from>]:` -- the FIRST `:` is inside the `[nudge:` tag, so it
+    is not a stable end); for the fixed wake token (`[agi-nudge] unread for
+    <seat>: ...`) up to the first `:`."""
+    if token.startswith("[nudge:"):
+        first = token.find(":")
+        i = token.find(":", first + 1)
+        return token if i < 0 else token[:i + 1]
     i = token.find(":")
     return token if i < 0 else token[:i + 1]
+
+
+#: The pane-line shapes send.py (and rotate.py, a sibling) can leave stranded
+#: in an input box. Residue A (hypothesis:l4-the-nudge-carries-the-dm-body-
+#: inline): the OLD unsubmitted check matched only the head of the EXACT line
+#: a call was about to type, so a retry whose text was a DIFFERENT nudge shape
+#: no longer matched a stranded line and typed INTO A NON-EMPTY BOX -- the
+#: separate Enter then submitted BOTH lines as ONE user turn (the owner's
+#: 2026-09-11 defect). Every shape send.py/rotate.py can type must be seen as
+#: "something is already in the box, do not type a second line."
+_NUDGE_PREFIXES = ("[nudge:", "[agi-nudge]", "[rotation-alert]")
+
+
+def _stranded_in_region(region: str) -> str | None:
+    """The first nudge-shaped / rotate-shaped line stranded in the input
+    region, or None when the box holds only the prompt glyph / nothing.
+    Detects ANY of the shapes (inline `[nudge: <from>]:`, the `[agi-nudge]`
+    wake token, and rotate.py's `[rotation-alert]`) -- never only the head of
+    the one line the caller is about to type, so a DIFFERENT stranded line
+    still stops a send from typing a second line after it."""
+    for line in (region or "").splitlines():
+        s = line.strip().lstrip("\u276f").strip()
+        for pre in _NUDGE_PREFIXES:
+            if s.startswith(pre):
+                return pre
+    return None
 
 
 def _seat_row_by_name(rows: list, name: str) -> dict | None:
@@ -418,6 +492,91 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
 
 def _nudge_marker_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge"
+
+
+def _nudge_pending_path(root: Path, seat: str) -> Path:
+    return _inbox_dir(root) / f"{seat}.nudge.pending"
+
+
+def _pending_more(root: Path, seat: str) -> int:
+    """Coalesced-but-untyped dms awaiting the next delivered nudge's
+    `(+N more, read <seat>)` tail (hypothesis:l4-the-nudge-carries-the-dm-
+    body-inline). 0 = no pending tail."""
+    try:
+        return int(_nudge_pending_path(root, seat).read_text().strip() or 0)
+    except Exception:                                    # noqa: BLE001
+        return 0
+
+
+def _bump_pending(root: Path, seat: str) -> None:
+    """Increment the pending-coalesced count; a dm coalesced inside the
+    per-seat window is counted here so a LATER delivered nudge carries it.
+    Best-effort, never raises."""
+    try:
+        p = _nudge_pending_path(root, seat)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(str(_pending_more(root, seat) + 1))
+    except OSError:
+        pass
+
+
+def _clear_pending(root: Path, seat: str) -> None:
+    """Reset the pending-coalesced count after a nudge that carried it.
+    Best-effort, never raises."""
+    try:
+        _nudge_pending_path(root, seat).write_text("0")
+    except OSError:
+        pass
+
+
+def _nudge_deferred_path(root: Path, seat: str) -> Path:
+    """Sidecar holding the FIRST deferred dm body for a seat (sender+body
+    as JSON) -- a dm whose inline line coalesced under a busy pane and must
+    be delivered INLINE by a later idle retry (hypothesis:l4-the-nudge-
+    carries-the-dm-body-inline). Kept OUT of the pending count file so the
+    count stays a bare int (the parse is unchanged)."""
+    return _inbox_dir(root) / f"{seat}.nudge.deferred"
+
+
+def _read_deferred(root: Path, seat: str) -> dict | None:
+    """The stored deferred {sender, body} for a seat, or None."""
+    try:
+        p = _nudge_deferred_path(root, seat)
+        if p.is_file():
+            d = json.loads(p.read_text())
+            if isinstance(d, dict) and d.get("body"):
+                return d
+    except Exception:                                    # noqa: BLE001
+        pass
+    return None
+
+
+def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
+    """Persist the FIRST deferred dm body for a seat; a later dm in the
+    same batch is COUNTED (pending), never overwrites the first. Returns
+    True if it stored (this is the first deferred body), False if one was
+    already pending. Best-effort, never raises."""
+    if _read_deferred(root, seat) is not None:
+        return False
+    try:
+        p = _nudge_deferred_path(root, seat)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({"sender": sender, "body": body}))
+        return True
+    except OSError:
+        return False
+
+
+def _clear_deferred(root: Path, seat: str) -> None:
+    """Drop the deferred dm body after a line carrying it (or a fresher
+    dm that supersedes it) is actually DELIVERED -- never on a coalesce.
+    Best-effort, never raises."""
+    try:
+        p = _nudge_deferred_path(root, seat)
+        if p.exists():
+            p.unlink()
+    except OSError:
+        pass
 
 
 def _record_nudge(root: Path, seat: str) -> None:
@@ -507,10 +666,18 @@ def _nudge_coalesce_reason(pane: str | None, token: str,
         region = _input_region(pane)
         if "esc to interrupt" in region.lower():
             return "pane busy (spinner)"
-        # The input box WRAPS a token wider than the pane (measured on the
-        # sanctuary-director pane 2026-09-11 02:38Z: the 101-char token sat
-        # unsubmitted across two lines), so match the head, never the whole.
-        if _nudge_token_head(token) in region:
+        # RESIDUE A (L4.140): ANY stranded nudge-shaped line in the box
+        # blocks a send -- not only the head of the exact line being typed.
+        # The inline dm line carries the sender (`[nudge: <from>]:`), so a
+        # retry whose text is a DIFFERENT nudge shape used to fail the old
+        # head-equality match and TYPE INTO A NON-EMPTY BOX; the separate
+        # Enter then submitted BOTH lines as one user turn (the owner's
+        # 2026-09-11 defect). `_stranded_in_region` covers the inline line,
+        # the `[agi-nudge]` wake token, AND rotate.py's `[rotation-alert]`,
+        # so a stranded one of ANY shape is never typed after. The box WRAPS
+        # a line wider than the pane (the 101-char token sat unsubmitted
+        # across two lines at 02:38Z); the per-line head scan still sees it.
+        if _stranded_in_region(region) is not None:
             return "token already unsubmitted"
     return None
 
@@ -534,7 +701,9 @@ def _window_listed(tmux_session: str, name: str) -> bool:
     return name in _list_windows(tmux_session)
 
 
-def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
+def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
+                 sender: str | None = None,
+                 body: str | None = None) -> bool:
     """Fire ONE fixed wake token (never the message body) at a perpetual
     seat's tmux window (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
 
@@ -557,7 +726,28 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
     if tmux_session is None:
         import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
         tmux_session = rotate.DEFAULT_TMUX_SESSION
-    token = _build_nudge_token(to)
+    # A DM's pending-coalesced count (read now so the delivered/coalesced
+    # decision knows whether to carry a `(+N more, read <seat>)` tail). An
+    # inbox send never reads it. A DM types the INLINE pane line
+    # `[nudge: <from>]: <body>` (hypothesis:l4-the-nudge-carries-the-dm-body-
+    # inline); an inbox send keeps the fixed wake token.
+    # A DM types the INLINE pane line `[nudge: <from>]: <body>`
+    # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); an inbox send
+    # keeps the fixed wake token -- UNLESS a dm deferred under a busy pane,
+    # in which case the retry (body=None) delivers that deferred body INLINE
+    # (with the `(+N more, read <seat>)` tail) instead of the wake token.
+    deferred = _read_deferred(root, to) if body is None else None
+    delivering_deferred = (body is None and deferred is not None)
+    if body is not None:
+        more = _pending_more(root, to)
+        text = _nudge_line(to, sender or "unknown", body, more)
+    elif delivering_deferred:
+        more = _pending_more(root, to)
+        d_sender = deferred.get("sender") or "unknown"
+        d_body = deferred.get("body") or ""
+        text = _nudge_line(to, d_sender, d_body, more)
+    else:
+        text = _build_nudge_token(to)
     # Residue 1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): a row
     # whose `window` cell is a NAME -- not an @id -- must be REFUSED as a
     # target: never send-keys into a name-addressed window the row was
@@ -582,25 +772,58 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # (2) cap: one token per unread batch; a batch of dms yields one token.
     last_age = _last_nudge_age(root, to)
     if last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S:
+        # A DM coalesced inside the window is counted, not typed -- the NEXT
+        # delivered nudge carries `(+N more, read <seat>)`.
+        if body is not None:
+            _bump_pending(root, to)
         print(f"nudge: coalesced (already nudged within "
               f"{int(_NUDGE_COALESCE_WINDOW_S)}s)", file=sys.stderr)
         return False
     # (2) busy / already-queued coalescing. Measure read-only, never send.
-    reason = _nudge_coalesce_reason(_capture_pane(tmux_session, target),
-                                    token, _registry_status(pid))
+    pane_capture = _capture_pane(tmux_session, target)
+    reason = _nudge_coalesce_reason(pane_capture, text,
+                                    _registry_status(pid))
     if reason == "token already unsubmitted":
-        # Probe (C): a token STRANDED in an idle pane (typed by the old
-        # one-call shape, or by a `-l` call whose Enter never came) is
-        # submitted by a later bare Enter. Without this an idle pane holding
-        # a stranded token coalesces every later send forever (the marker is
-        # never stamped, the pane never changes) and the seat is never woken.
-        # The busy checks come first in _nudge_coalesce_reason, so this Enter
-        # never lands in a mid-turn pane.
+        # Probe (C): a line STRANDED in an idle pane (typed by the old
+        # one-call shape, by a `-l` call whose Enter never came, or left by
+        # rotate.py) is submitted by a later bare Enter. Without this an idle
+        # pane holding a stranded line coalesces every later send forever
+        # (the marker is never stamped, the pane never changes) and the seat
+        # is never woken. The busy checks come first in
+        # _nudge_coalesce_reason, so this Enter never lands in a mid-turn
+        # pane. Residue A (L4.140): a stranded line of ANY shape is detected
+        # (never only the head of the line being typed), so the Enter submits
+        # WHATEVER nudge line sits in the box and we NEVER type a second line
+        # after it (a concatenated box submitted as one user turn is the
+        # owner's 2026-09-11 defect).
+        #
+        # Residue B (L4.140, F1: a marker records only a DELIVERY): a deferred
+        # body / pending is cleared ONLY when a line CARRYING it was actually
+        # submitted -- the plain delivery path, or a stranded line that IS
+        # the deferred body's own line. If the stranded line is a DIFFERENT
+        # line, our text did NOT reach the pane: carry it on a later retry
+        # (store/keep the deferred body) and never clear it here. Old bytes
+        # ran `_clear_deferred` unconditionally, dropping a deferred body that
+        # had never touched the pane.
+        region = _input_region(pane_capture)
+        our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
             return False
         print("nudge: submitted a stranded token (Enter only)",
               file=sys.stderr)
-        _record_nudge(root, to)
+        if our_line_was_stranded:
+            # the stranded line WAS ours -> a real delivery; record + clear
+            _record_nudge(root, to)
+            if body is not None or delivering_deferred:
+                _clear_pending(root, to)
+            _clear_deferred(root, to)
+        elif body is not None:
+            # our dm line never reached the pane (a different line did);
+            # carry our body on a later idle retry -- never lose it.
+            if not _store_deferred(root, to, sender or "unknown", body):
+                _bump_pending(root, to)   # a later dm: +N more
+            # a deferred body that is a DIFFERENT line stays stored (above
+            # elif body is None skips clearing it) for that later retry.
         return True
     if reason:
         # F1 (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message): this
@@ -608,6 +831,11 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # a busy/queued coalesce that records itself as a delivered token
         # suppresses the later send once the pane goes idle, and the message
         # is never woken. The marker records only a DELIVERED token.
+        # A DM coalesced under busy is DEFERRED (the first body stored, a
+        # later one counted) so an idle retry still carries it INLINE.
+        if body is not None:
+            if not _store_deferred(root, to, sender or "unknown", body):
+                _bump_pending(root, to)   # a later dm in the batch: +N more
         print(f"nudge: coalesced ({reason})", file=sys.stderr)
         return False
     # (4) THE SHAPE, pinned by the prime on a real Claude Code pane (nudge
@@ -617,16 +845,19 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # alarm dm of 2026-09-10), (C) a later bare Enter submits it, (D) the
     # text as a LITERAL (`-l`) in one call, a pause, then Enter as a
     # SEPARATE call is delivered. So: never `text Enter` in one call.
-    if not _send_keys(target, token, literal=True):
+    if not _send_keys(target, text, literal=True):
         # Nothing typed; do not mark delivered, so a retry is not suppressed
         # (F1, same rationale).
         return False
     time.sleep(_NUDGE_ENTER_DELAY_S)
     if not _send_keys(target, "Enter"):
-        # The token sits unsubmitted; the next send finds it by its head and
+        # The text sits unsubmitted; the next send finds it by its head and
         # takes the probe-(C) path above. Not delivered yet: no marker.
         return False
     _record_nudge(root, to)
+    if body is not None or delivering_deferred:
+        _clear_pending(root, to)
+    _clear_deferred(root, to)
     return True
 
 
@@ -761,10 +992,14 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a") as f:
         f.write(_block(_now(), _detect_sender(sender), other, text))
-    # Wake-token nudge of the other party when it exists (silent no-op
-    # otherwise) — one fixed token, never the body, idempotent under a busy
-    # pane (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
-    _nudge_window(locations.find_project_root(croot) or croot, other)
+    # Wake nudge of the other party when it exists (silent no-op otherwise),
+    # carrying the DM body INLINE as `[nudge: <me>]: <text>` so the
+    # recipient sees the message without a `send.py read` round-trip
+    # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
+    # a busy pane. The body STILL lands in the dm file -- the pane line is
+    # delivery, the file is the record.
+    _nudge_window(locations.find_project_root(croot) or croot, other,
+                  sender=_detect_sender(sender), body=text)
     return path
 
 
