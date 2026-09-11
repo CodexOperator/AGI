@@ -1110,6 +1110,71 @@ def _recorded_field(record_path: Path | None, key: str) -> str | None:
     return val if isinstance(val, str) and val else None
 
 
+def _resolve_round_town(root: Path, args) -> str | None:
+    """The round being merged up's town, derived (never assumed), or None.
+
+    One shared resolver for the merge-up gate's half A and the merge-up base
+    resolution (one helper, no second copy). Reads, in order: the `--round`
+    node's `town:` cell (stamped at mint), the branch being merged up when it
+    maps to a town (`town_of_branch`, reverse-lookup by exact equality on the
+    opaque `town_branches` value), then the record file's `node_id` town cell.
+    None when none of the three resolves -- fail open, no town claim.
+    """
+    round_id = getattr(args, "round", "") or ""
+    if round_id and ":" in round_id:
+        ntype, _, name = round_id.partition(":")
+        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
+        if node_file.is_file():
+            nf = frontmatter.load_node_file(node_file)
+            rt = nf.frontmatter.get("town")
+            if isinstance(rt, str) and rt.strip():
+                return rt.strip()
+            return "core"
+    from spawn_gate import town_of_branch
+    branch = getattr(args, "branch", "") or ""
+    if branch:
+        t = town_of_branch(Path(root) / "nodes", branch)
+        if t:
+            return t
+    record_path = (Path(args.record).resolve()
+                   if getattr(args, "record", "") else None)
+    rec_node = _recorded_field(record_path, "node_id")
+    if rec_node and ":" in rec_node:
+        ntype, _, name = rec_node.partition(":")
+        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
+        if node_file.is_file():
+            nf = frontmatter.load_node_file(node_file)
+            rt = nf.frontmatter.get("town")
+            if isinstance(rt, str) and rt.strip():
+                return rt.strip()
+            return "core"
+    return None
+
+
+def _town_base(nodes_dir, town: str | None) -> str | None:
+    """The integration branch a round in `town` merges up to, or None.
+
+    Residue 4, season.py half: a round in town T merges up to T's town
+    branch (the opaque `town_branches` value). None when the town is unknown
+    or declares no town branch -- the caller keeps git's resolved base, so a
+    graph with no towns is exactly as it always was.
+    """
+    if not town:
+        return None
+    from spawn_gate import town_integration_branch
+    return town_integration_branch(nodes_dir, town)
+
+
+#: A seat whose `town` cell is `all` is the SHARED/Keep marker, NOT a town
+#: name. config:seats gives the Keep rows (prime, directors, advisors) `all`
+#: because the Keep is shared across every town — only the council seats carry
+#: a specific town. `all` is a bound sentinel, never a literal from the ladder:
+#: towns come from the ladder's `towns:` list (goal:g8.2), and `all` is not one
+#: of them. The gate treats `all` as "serves any town", so a Keep seat never
+#: refuses a merge on town inequality.
+TOWN_ALL = "all"
+
+
 def _merge_up_town_gate(root: Path, args) -> str | None:
     """Enforce the merge-up town rule, or None to allow the merge.
 
@@ -1118,22 +1183,17 @@ def _merge_up_town_gate(root: Path, args) -> str | None:
     read, never assumed: the round's own `town:` cell (stamped at mint) and
     the target seat's `town` cell from config:seats. They differ -> a refusal
     string naming both towns; anything unknowable -> None (fail open, no town
-    claim to enforce).
+    claim to enforce). A seat whose `town` is the shared marker `all` serves
+    any town and is never refused.
     """
     round_id = getattr(args, "round", "") or ""
     seat_name = getattr(args, "seat", "") or ""
-    if not round_id and not seat_name:
-        return None  # nothing to gate on; pure legacy merge-up
-    round_town = None
-    if round_id and ":" in round_id:
-        ntype, _, name = round_id.partition(":")
-        node_file = Path(root) / "nodes" / ntype / f"{name}.md"
-        if node_file.is_file():
-            nf = frontmatter.load_node_file(node_file)
-            rt = nf.frontmatter.get("town")
-            round_town = (str(rt).strip() if isinstance(rt, str)
-                          and rt.strip() else "core")
+    round_town = _resolve_round_town(root, args)
+    # Seat town (half B) -- from --seat, then the exported AGI_SEAT env var
+    # (the seat name the spawn already carries), then the seat registry.
     seat_town = None
+    if not seat_name:
+        seat_name = os.environ.get("AGI_SEAT", "") or ""
     if seat_name:
         from spawn_gate import read_seat_registry
         rows = read_seat_registry(Path(root) / "nodes") or []
@@ -1144,6 +1204,9 @@ def _merge_up_town_gate(root: Path, args) -> str | None:
                              and st.strip() else "core")
                 break
     if round_town is None or seat_town is None:
+        return None
+    if seat_town == TOWN_ALL:
+        # Keep seat — shared across every town, serves any round's town.
         return None
     if round_town == seat_town:
         return None
@@ -1176,6 +1239,7 @@ def cmd_merge_up(root: Path, args) -> int:
         return 1
 
     base = (args.target
+            or _town_base(Path(root) / "nodes", _resolve_round_town(root, args))
             or _recorded_field(record_path, "base_branch")
             or _current_branch(git_root))
     if not base:
