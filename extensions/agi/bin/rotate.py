@@ -1023,22 +1023,34 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
 # --- spawn subcommand -----------------------------------------------------
 
 
-def _shell_cmd(claude_cmd: list[str], settings) -> str:
+def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
-    TWO exports may ride in front of the command, and both compose:
+    Three exports may ride in front of the command, and all compose:
     every launch carries CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 so the
     background-shell reaper is disarmed in the launched shell's OWN
     environment rather than inherited from the tmux session, which is one
     server restart from gone (hypothesis:l4-spawn-paths-export-the-reaper-knob);
     an ultracode role's launch additionally exports CLAUDE_CODE_WORKFLOWS=1
-    (hypothesis:l3-rotate-ultracode-env).
+    (hypothesis:l3-rotate-ultracode-env); a SEAT successor's launch exports
+    AGI_SEAT so the SessionStart hook COPY (cc-session-start.next.sh, which
+    keys its bootstrap injection on AGI_SEAT) can fire at turn one on the
+    live path (hypothesis:l4-startup-first-turn-is-performed-by-the-service-
+    and-the-hook-fires-at-turn-one). AGI_SEAT is emitted only when a seat is
+    given, so a plain `spawn`/`loop` with NO seat stays byte-identical to
+    today — the export appears only for a seat successor.
 
     `claude_cmd` is quoted element by element, so the constitution head riding
     in argv survives whatever is prepended.
     """
     joined = " ".join(shlex.quote(c) for c in claude_cmd)
-    reaper = REAPER_ENV_EXPORT + " && " + joined
+    # AGI_SEAT rides FIRST in the export chain, so it is set before the
+    # reaper/ultracode knobs and the claude process — composed the same way
+    # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
+    cmd = joined
+    if seat is not None:
+        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + cmd
+    reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
@@ -1123,6 +1135,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  window_path: str | None = None, root: Path | None = None,
                  dry_run: bool = False, debug_file: str | None = None,
                  extra: str = "",
+                 seat: str | None = None,
                  successor_argv: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
@@ -1132,6 +1145,13 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     command, quotes it for the shell and (unless dry-run) opens it in a new
     tmux window. Refuses when a window of that name already exists. Core is
     not prime-specific -- any named seat may launch through it.
+
+    `seat` (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...)
+    is the successor's SEAT identity, exported into the launched shell as
+    AGI_SEAT BEFORE the claude process starts. Only a caller that OWNS a
+    concrete seat passes it (cmd_rotate_self, cmd_seats_launch); a generic
+    spawn/loop passes None and the launch line stays byte-identical to
+    today (see _shell_cmd).
 
     `successor_argv` (hypothesis:l3-rotate-self-successor-override) is an
     EXPLICIT stand-in command that replaces the real claude successor. When
@@ -1200,7 +1220,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
-        shell_cmd = _shell_cmd(claude_cmd, settings)
+        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat)
 
     if dry_run:
         print(shell_cmd)
@@ -2038,6 +2058,7 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             root=root,
             dry_run=args.dry_run,
             extra="",
+            seat=name,
             successor_argv=getattr(args, "successor_argv", None),
         )
         if rc != 0:
@@ -3689,10 +3710,22 @@ BOOTSTRAP_FIXED_FACTS = [
     "crons",
 ]
 
+# The bootstrap facts that depend on the @id JOIN (hypothesis:l4-startup-...).
+# Pre-spawn they cannot be resolved, so the pre-spawn record writes each with
+# the explicit `pending: resolved after join` marker — never a blank, never a
+# `SKIPPED: <predecessor owns>` reason that leaves a cold reader guessing who
+# to ask. After the join, rotate-self REWRITES the same record with these
+# resolved (post-join overrides).
+BOOTSTRAP_JOIN_ONLY_FACTS = [
+    "successor_live_model", "successor_address", "model_refusal_fallback",
+]
+
 
 def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      telemetry, verification: dict | None,
-                     commit: str | None = None) -> str:
+                     commit: str | None = None,
+                     join_pending: set | None = None,
+                     overrides: dict | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -3704,11 +3737,24 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     cannot yet (a join-only or sibling-round fact — never the old blanket
     `0b owns deriving`). Every derived fact is stamped in `measured_at` with
     the commit it was measured at, so `_bootstrap_stale` can refuse any record
-    that is not at HEAD. Returns the written path (string)."""
+    that is not at HEAD. Returns the written path (string).
+
+    `join_pending` (a set of fact keys) and `overrides` (a key->value dict)
+    support the PRE-SPAWN write (hypothesis:l4-startup-first-turn-is-
+    performed-by-the-service-and-the-hook-fires-at-turn-one): a key present in
+    `overrides` takes that resolved value (stamped at HEAD); a key in
+    `join_pending` but NOT overridden is written as `pending: resolved after
+    join` (not SKIPPED, not blank) because the @id join has not happened yet.
+    Default ({} / {}) writes every fact through `_derive_bootstrap_fact`
+    exactly as before — the post-join call passes the joined facts as
+    overrides, so the same record is UPDATED in place, not re-minted.
+    """
     if commit is None:
         commit = _git_head(root)
     seat_row = _find_seat(root, seat)
 
+    join_pending = join_pending or set()
+    overrides = overrides or {}
     keys = []
     if isinstance(telemetry, list):
         keys = list(telemetry)
@@ -3721,6 +3767,14 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     tele: dict = {}
     measured_at: dict = {}
     for key in keys:
+        if key in overrides:
+            tele[key] = overrides[key]
+            if commit:
+                measured_at[key] = commit
+            continue
+        if key in join_pending:
+            tele[key] = "pending: resolved after join"
+            continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit)
         if value is None:
@@ -5209,6 +5263,41 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         "gen_after is not this generation."
     )
     extra = ack_gate + ("\n\n" + startup_block if startup_block else "")
+
+    # (2.75) PRE-SPAWN VERIFICATION + BOOTSTRAP (hypothesis:l4-startup-first-
+    #     turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one).
+    #     The bootstrap record must EXIST at turn one: the SessionStart hook
+    #     COPY (cc-session-start.next.sh) keys its injection on the record's
+    #     presence, and it can only fire at turn one if the record is on disk
+    #     BEFORE the claude successor starts. Every fact knowable pre-spawn
+    #     (seat, generation, the rotation template's telemetry facts, the HEAD
+    #     commit, the verification result) is written NOW; the join-only facts
+    #     (BOOTSTRAP_JOIN_ONLY_FACTS — successor's live model vs its row, its
+    #     @id address, the model_refusal_fallback) carry the explicit
+    #     `pending: resolved after join` marker — never a blank, never a
+    #     `SKIPPED: <predecessor owns>` reason. Verification is tree-wide and
+    #     independent of the successor, so it runs ONCE here (moved from s11)
+    #     and is reused for both writes. After the join, s11 REWRITES the same
+    #     record with the joined facts resolved.
+    if args.dry_run:
+        # dry-run stays a refusal/planning check: no verification subprocess,
+        # no bootstrap write (turn-one proof is a live/fixture property).
+        verification = None
+    elif (args.window_path is not None
+          and getattr(args, "verification_argv", None) is None):
+        verification = {"ok": False, "level": VERIFICATION_LEVEL,
+                        "skipped": "SKIPPED: fixture, real verification "
+                                    "deferred (no graph; "
+                                    "--verification-argv seam absent)"}
+    else:
+        verification = _run_verification(
+            root, argv=getattr(args, "verification_argv", None))
+    if not args.dry_run:
+        _write_bootstrap(
+            root, seat=seat, generation=gen,
+            telemetry=tmpl.get("telemetry"), verification=verification,
+            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -5218,7 +5307,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   else _normalize_settings(row.get("settings") if row
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg, extra=extra,
+        dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -5625,34 +5714,38 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         tmux_session=tmux_session, seat=seat, succ_id=succ_window_id,
         window_path=args.window_path,
         view_path=getattr(args, "view_path", None))
-    # (s11) verification at the cheapest cited level, then (s10) telemetry +
-    #     verification result into the bootstrap record the 0b round reads.
-    #     In a fixture (window_path seam set, no verification_argv) this
-    #     RECORDS the skip and never runs verification.py against a fake root.
-    if (args.window_path is not None
-            and getattr(args, "verification_argv", None) is None):
-        verification = {"ok": False, "level": VERIFICATION_LEVEL,
-                        "skipped": "SKIPPED: fixture, real verification "
-                                    "deferred (no graph; "
-                                    "--verification-argv seam absent)"}
-    else:
-        verification = _run_verification(
-            root, argv=getattr(args, "verification_argv", None))
-    handover["bootstrap"] = _write_bootstrap(
-        root, seat=seat, generation=gen,
-        telemetry=tmpl.get("telemetry"), verification=verification)
-
-    # (s5) model_confirm — computed AFTER the successor's ack confirmed an
-    #     ASSISTANT TURN exists (r1): REQUESTED from `ps -o args=` after the
+    # (s11) POST-JOIN BOOTSTRAP REWRITE (hypothesis:l4-startup-first-turn-
+    #     is-performed-by-the-service-and-the-hook-fires-at-turn-one). The
+    #     record was WRITTEN pre-spawn (step 2.75) so the hook finds it at
+    #     turn one; this UPDATES the SAME path in place (never re-minted)
+    #     with the @id-join facts now resolved, so the join-only markers
+    #     (`pending: resolved after join`) become real values. Verification
+    #     was computed pre-spawn and is reused — it never runs twice.
+    # (s5) model_confirm first — computed AFTER the successor's ack confirmed
+    #     an ASSISTANT TURN exists (r1): REQUESTED from `ps -o args=` after the
     #     first `--model`; LIVE from the first `"model":"..."` in the
-    #     successor transcript. Never a read of the transcript before a
-    #     first turn (the X->XI record said `skipped: no assistant turn`).
+    #     successor transcript. Never a read of the transcript before a first
+    #     turn (the X->XI record said `skipped: no assistant turn`). The live
+    #     model is one of the join-resolved bootstrap facts.
     handover["model_confirm"] = _confirm_successor_model(
         seat=seat,
         expected_model=((row.get("model") if row else None) or args.model),
         expected_effort=((row.get("effort") if row else None)
                          or args.effort),
         pid=succ_pid, transcript=succ_transcript)
+
+    overrides: dict = {}
+    succ_wid = handover.get("successor_window", {}).get("id")
+    if succ_wid:
+        overrides["successor_address"] = str(succ_wid)
+    mc = handover.get("model_confirm")
+    if isinstance(mc, dict) and mc.get("live"):
+        overrides["successor_live_model"] = str(mc["live"])
+    handover["bootstrap"] = _write_bootstrap(
+        root, seat=seat, generation=gen,
+        telemetry=tmpl.get("telemetry"), verification=verification,
+        join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)),
+        overrides=overrides)
 
     # (6) the record is the deliverable — write it, durably, BEFORE the own
     #     window is killed, so it survives regardless of what the kill does.
