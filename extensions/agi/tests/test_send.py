@@ -543,6 +543,59 @@ def test_peek_leaves_the_coalesced_nudge_count(project: Path):
     assert send_mod._announced_digest(project, seat) is None
 
 
+def test_read_preserves_a_bump_made_during_the_read(
+        project: Path, monkeypatch):
+    """L4.294: a dm that coalesces DURING a consuming read is not lost. The
+    clear is compare-and-clear (max(0, current - observed)) -- the read
+    observes the count once before it consumes, then subtracts that value --
+    so a bump made after the observe but before the clear survives instead
+    of being silently zeroed by an unconditional write."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    send_mod._bump_pending(project, seat)   # count 1, observed pre-read
+    assert send_mod._pending_more(project, seat) == 1
+
+    real_print = send_mod._print_blocks_with_labels
+    bumped = []
+
+    def _bump_during_consume(root, blocks, wrap=160):
+        # a send coalesces in the middle of the read's consume step, after
+        # the read already observed the count: bump exactly once.
+        if not bumped:
+            send_mod._bump_pending(project, seat)
+            bumped.append(True)
+        real_print(root, blocks, wrap=wrap)
+
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        _bump_during_consume)
+
+    send_mod.read(project, seat, "prime")
+
+    assert bumped, "the consume-step bump must actually fire"
+    assert send_mod._pending_more(project, seat) == 1, \
+        "a count bumped DURING the read must survive the compare-and-clear"
+
+
+def test_clear_pending_observed_decrements_not_zeroes(project: Path):
+    """_clear_pending with a caller-observed value subtracts it, never
+    rewriting the count to 0 outright; absent observed still clears to 0."""
+    seat = "sanctuary-director"
+    _inbox = send_mod._inbox_dir(project)
+    _inbox.mkdir(parents=True, exist_ok=True)
+    send_mod._bump_pending(project, seat)   # current 1 (observed 1 pre-read)
+    send_mod._bump_pending(project, seat)   # +1 coalesced during the read
+    assert send_mod._pending_more(project, seat) == 2
+
+    send_mod._clear_pending(project, seat, observed=1)
+    assert send_mod._pending_more(project, seat) == 1, \
+        "observed clear decrements by the observed value, not to zero"
+
+    send_mod._clear_pending(project, seat)   # absent observed clears to 0
+    assert send_mod._pending_more(project, seat) == 0
+
+
 def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
                                                        monkeypatch, capsys):
     """Clause (3): when the row window @id is no longer a LISTED window,
