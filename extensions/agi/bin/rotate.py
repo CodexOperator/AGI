@@ -1803,9 +1803,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # write, so the ack's own commit never bundles someone else's row change.
     do_commit = args.answer == "continue" \
         and not getattr(args, "no_commit", False)
+    # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
+    # identity cells now have ONE writer and it writes MAIN's seats.md
+    # (`_write_identity_cells` -> `_shared_graph_root`), so every read the
+    # ack makes of its own row -- the @id the JOIN keys on, the `already`
+    # comparison, the dirty check and the commit -- must look at THAT file,
+    # not the worktree copy the writer no longer touches (the kid left
+    # `_find_seat` worktree-local; from MAIN itself `id_root == root`).
+    id_root = _shared_graph_root(Path(root))
     if do_commit and ref:
-        top = _git_toplevel(root)
-        dirty = _ack_seats_dirty(root, top) if top else None
+        top = _git_toplevel(id_root)
+        dirty = _ack_seats_dirty(id_root, top) if top else None
         if dirty:
             print(f"ERR: refuse to ack --commit: {dirty!r} is dirty "
                   "(staged or unstaged) before this ack; resolve it first so "
@@ -1856,7 +1864,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (`heal.py _recover_seat`) carries the DEAD pid and a blanked
             # session_id; this is where the successor's real identity lands so
             # a later pass that trusts the row's pid reads the LIVE seat.
-            row = _find_seat(root, seat)
+            row = _find_seat(id_root, seat)
             window_id = (row.get("window") or "") if row else ""
             join = _join_successor(
                 root=root, seat=seat, window_id=window_id or None,
@@ -1925,7 +1933,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (write + print, no commit). Nothing written -> nothing to
             # commit.
             if do_commit and not already:
-                print(_ack_commit_seats(root, seat, args, ref))
+                print(_ack_commit_seats(id_root, seat, args, ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
