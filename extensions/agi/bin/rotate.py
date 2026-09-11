@@ -5904,18 +5904,26 @@ def _harvest_read_node_fields(main: Path, branch: str, rel: str) -> dict:
     return _frontmatter_scalars(_git_out(main, "show", f"{branch}:{rel}"))
 
 
-def _harvest_diffstat(main: Path, parent_branch: str,
-                      round_branch: str) -> tuple[str, list[str]]:
-    """(diffstat text, kid experiment node relpaths) for the round.
+def _harvest_diffstat(main: Path, base_branch: str,
+                      round_branch: str) -> tuple[str, list[str], bool]:
+    """(diffstat text, kid experiment node relpaths, resolved) for the round.
 
-    Both are diffed from `merge-base(parent_branch, round_branch)` to the
-    round branch tip, so a moved parent tip never shifts the base and the
+    Both are diffed from `merge-base(base_branch, round_branch)` to the
+    round branch tip, so a moved base tip never shifts the base and the
     stat shows exactly what the round added — the round's own nodes, never
-    content merged into the parent after the cut.
+    content merged into the base after the cut.
+
+    `resolved` True means git actually answered: `round_branch` resolved and
+    a merge-base with `base_branch` exists. A resolvable but LEGITIMATELY
+    EMPTY diff (tip == base, or no experimental nodes added) still reports
+    `resolved=True` with an empty kid list — that is git's honest "no
+    changes" answer, not a failure. `resolved` False means git could not
+    answer at all (unknown branch or no merge-base), which is the only
+    situation the on-disk fallback may fire.
     """
-    mb = _git_out(main, "merge-base", parent_branch, round_branch).strip()
+    mb = _git_out(main, "merge-base", base_branch, round_branch).strip()
     if not mb:
-        return "-", []
+        return "-", [], False
     stat = _git_out(main, "diff", "--stat", f"{mb}..{round_branch}").strip()
     stat_s = stat.replace("\n", " | ") or "-"
     names = _git_out(main, "diff", "--name-only",
@@ -5923,7 +5931,7 @@ def _harvest_diffstat(main: Path, parent_branch: str,
     kids = [n for n in names
             if n.startswith(".agi/nodes/experiment/")
             and n.endswith(".md")]
-    return stat_s, kids
+    return stat_s, kids, True
 
 
 def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
@@ -5987,14 +5995,27 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
             wt_s = str(wt) if wt.is_dir() else "-"
             rows_kid: list[tuple[str, str]] = []  # (kid_node_id, verdict)
             diff_s = "-"
-            if branch != "-" and parent:
-                diff_s, rels = _harvest_diffstat(main, parent, branch)
+            resolved = False
+            if branch != "-":
+                # Resolve the diff base PER AGENT from the manifest record,
+                # falling back to the main checkout's current branch only
+                # when the record has no base_branch. The manifest's
+                # `base_branch` is the branch the round was actually cut
+                # from (dispatch.py stamps it); the main checkout's branch
+                # is not the round's base once rounds are cut from seat
+                # branches while main sits on season/ (the cross-round
+                # over-attribution falsifier of hypothesis:harvest-table-subcommand).
+                base = (a.get("base_branch") or "").strip() or parent
+                diff_s, rels, resolved = _harvest_diffstat(main, base, branch)
                 for rel in rels:
                     f = _harvest_read_node_fields(main, branch, rel)
                     rows_kid.append((f.get('id', rel), f.get('verdict', '-')))
-            if not rows_kid and wt.is_dir():
-                # git showed nothing but a live worktree holds the round;
-                # fall back to on-disk experiment nodes naming the target.
+            if not resolved and wt.is_dir():
+                # git could NOT answer at all (no branch, or no recorded base
+                # to diff against). Fall back to on-disk experiment nodes
+                # naming the target. A resolvable-but-empty diff is git's
+                # legitimate "no changes" answer — reported as no kids, never
+                # overridden by scanning a shared worktree's stale nodes.
                 target = (a.get("target") or "")
                 exp = wt / ".agi" / "nodes" / "experiment"
                 if exp.is_dir():

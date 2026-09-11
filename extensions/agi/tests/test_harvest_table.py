@@ -192,3 +192,78 @@ def test_seat_filter(tmp_path: Path) -> None:
     miss = run_harvest(repo, "--seat", "other-seat")
     assert "iter-81" not in miss.stdout
     assert "0 rows" in miss.stderr
+
+
+def _commit_node(wt: Path, name: str, node_id: str, msg: str) -> None:
+    """Write + commit one experiment kid node under wt/.agi/nodes."""
+    n = wt / ".agi" / "nodes" / "experiment"
+    n.mkdir(parents=True, exist_ok=True)
+    p = n / name
+    p.write_text(
+        f"---\nid: {node_id}\ntype: experiment\nverdict: proved\n---\n\n{msg}\n",
+        encoding="utf-8")
+    _git(wt, "add", "-A")
+    _git(wt, "commit", "-m", msg)
+
+
+def test_git_base_resolved_per_agent_prevents_cross_round_over_attribution(
+        tmp_path: Path) -> None:
+    """Round B branches from round A's branch; both worktrees present; main is
+    left on master (NOT round A's branch). Each manifest records its agent's
+    base_branch. `harvest-table --round B` must diff round B against ITS OWN
+    manifest base_branch (round A's branch), so it lists kid B and NOT kid A.
+
+    This is the live falsifier of hypothesis:harvest-table-subcommand: the
+    main checkout's checked-out branch is not the round's base, and a stale
+    single `parent` (main's branch) over-attributes earlier rounds' kids to a
+    later round.
+
+    RED-FIRST: on the pre-fix code (parent = main's current branch = master)
+    round B's merge-base is master and `master..BRANCH_B` spans BOTH kid A and
+    kid B, so the assertion that kid A is absent FAILS before the fix.
+    """
+    repo = make_project_repo(tmp_path)   # init'd on master, main stays there
+
+    AGENT_A = "a00-11112222"
+    AGENT_B = "a00-33334444"
+    BRANCH_A = "loop/hypothesis-harvest-tbl-a-a00-11112222@s2"
+    BRANCH_B = "loop/hypothesis-harvest-tbl-b-a00-33334444@s2"
+
+    # round A: branch cut from master, commits kid A (its base_branch: master)
+    wtA = repo / ".agi" / "worktrees" / AGENT_A
+    _git(repo, "worktree", "add", "-b", BRANCH_A, str(wtA), "master")
+    _commit_node(wtA, "a00-kidA.md", "experiment:a00-kidA", "kid A")
+
+    # round B: branch cut from round A's branch, commits kid B
+    # (its base_branch: round A's branch)
+    wtB = repo / ".agi" / "worktrees" / AGENT_B
+    _git(repo, "worktree", "add", "-b", BRANCH_B, str(wtB), BRANCH_A)
+    _commit_node(wtB, "a00-kidB.md", "experiment:a00-kidB", "kid B")
+
+    def manifest_agent(agent_id: str, base_branch: str, target: str) -> dict:
+        return {
+            "id": agent_id, "base_branch": base_branch, "target": target,
+            "dispatched_by": SEAT, "status": "done",
+        }
+
+    sess_a = repo / ".agi" / "sessions" / "iter-A"
+    sess_a.mkdir(parents=True)
+    (sess_a / "manifest.json").write_text(json.dumps({"iter": "A", "agents": [
+        manifest_agent(AGENT_A, "master", "hypothesis:harvest-table-subcommand")]}),
+        encoding="utf-8")
+    sess_b = repo / ".agi" / "sessions" / "iter-B"
+    sess_b.mkdir(parents=True)
+    (sess_b / "manifest.json").write_text(json.dumps({"iter": "B", "agents": [
+        manifest_agent(AGENT_B, BRANCH_A, "hypothesis:harvest-table-subcommand")]}),
+        encoding="utf-8")
+
+    res_b = run_harvest(repo, "--round", "iter-B")
+    assert res_b.returncode == 0, res_b.stderr
+    assert BRANCH_B in res_b.stdout
+    assert "experiment:a00-kidB" in res_b.stdout   # round B's own kid
+    assert "experiment:a00-kidA" not in res_b.stdout  # NOT round A's kid
+
+    res_a = run_harvest(repo, "--round", "iter-A")
+    assert res_a.returncode == 0, res_a.stderr
+    assert BRANCH_A in res_a.stdout
+    assert "experiment:a00-kidA" in res_a.stdout   # round A's own kid
