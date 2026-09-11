@@ -531,8 +531,12 @@ function render3D() {
       cam.target.x - camera.position.x, cam.target.y - camera.position.y,
       cam.target.z - camera.position.z).normalize();
     const upw = new THREE.Vector3(0, 0, 1);
-    const right = new THREE.Vector3().cross(fw, upw).normalize();
-    const up = new THREE.Vector3().cross(right, fw);
+    // crossVectors(a, b) is the two-argument form. In three r160
+    // Vector3.cross(v) takes ONE argument (the two-argument cross(a, b) was
+    // removed), so `new Vector3().cross(fw, upw)` was (0,0,0) x fw = the zero
+    // vector and right-drag pan was a live no-op (sanctuary-helper L4.259).
+    const right = new THREE.Vector3().crossVectors(fw, upw).normalize();
+    const up = new THREE.Vector3().crossVectors(right, fw);
     const s = cam.dist / 800;
     cam.target.x += -right.x * dx * s + up.x * dy * s;
     cam.target.y += -right.y * dx * s + up.y * dy * s;
@@ -542,13 +546,14 @@ function render3D() {
   function updatePick() {
     if (!mouse.over) { if (pick) { pick = null; showTooltip("", 0, 0); } return; }
     let best = null, bd = 20;
+    // ONE projection per node, at its OWN layer's z — render3D places one
+    // mesh per node at pos[2], so a pick over a phantom z=0 projection of a
+    // layer-1 node (or vice versa) must hit nothing (sanctuary-helper L4.259).
     for (const n of nodes) {
-      for (const zz of [0, layerz]) {
-        const v = new THREE.Vector3(n.pos[0], n.pos[1], zz).project(camera);
-        const sx = (v.x + 1) / 2 * W, sy = (1 - v.y) / 2 * H;
-        const d = Math.hypot(mouse.ix - sx, mouse.iy - sy);
-        if (d < bd) { bd = d; best = n; }
-      }
+      const v = new THREE.Vector3(n.pos[0], n.pos[1], n.pos[2]).project(camera);
+      const sx = (v.x + 1) / 2 * W, sy = (1 - v.y) / 2 * H;
+      const d = Math.hypot(mouse.ix - sx, mouse.iy - sy);
+      if (d < bd) { bd = d; best = n; }
     }
     let tip = best ? `${best.title}  (${best.id})` : "";
     if (!tip) {
