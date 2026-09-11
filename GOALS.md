@@ -6023,6 +6023,8 @@ GATE LIFTED 2026-09-07 22:45 UTC, recorded by Belam VIII, acted on by nobody yet
 ## Agent Notes
 SL1.08 HARVESTED (sensei-director L2): the Prime's six sensei.py residue items + SL1.01's landed across two kids (the parent demoted kid 1 to lean 70 on a live-config check — the item-2 test used a synthetic fact the live node lacks — and cut kid 2, lean 80, which closed the four residuals: invocation-prefix fold for F2, dead regex branches, derived hand-read paths, pinned items 1/8). Live: wake-audit on this seat's 172702Z record reads a=0 b=2 c=0 — the 4-call wake the Sensei measured by hand. RESIDUE: item 6's derived paths are keyed on the seat layout (record/ack/bootstrap/pin); a new first_turn entry type still needs a classifier rule.
 
+SENSEI 175816Z line (3), fix-only for the next cut: sensei.py wake-audit ends the wake window at the rotate.py ack call, not at the first (d) — on both spawn seatings it cut at call 1-2 and reported a 22/32-call wake as 1-2 (falsifier: the audit of belam 175816Z must read 22).
+
 ### G15.14 — rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut — status: active
 
 <!-- BODY:BEGIN -->
@@ -6115,6 +6117,8 @@ DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z mea
 
 SL2.02 (sensei-director L2): cut at hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor with the alert sibling as the second kid and SL1.07's unlanded (ii)/(iii) folded in — one parent, up to three kids, same spawn-tail region.
 
+SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.md, drafts dir now tracked at 1438dbe3f): line (1) IS this goal — rotate.py spawn runs the tier's startup.first_turn, pins the meter, writes the row with a pending ack like rotate-self step 2, and prints a [seating] block: spawned-by, predecessor pid + death ts, record none / wrapper none, worktree behind N, unresolved merge y/n. Both recoveries today (belam 175816Z: 22-call wake, sanctuary-helper 181834Z: 32) re-derived exactly these. SL2.02 (running) covers first_turn + the alert; the [seating] block is its residue or the next cut. Line (2) is goal:g15.21 (autopsy pre-fill), cut after (1).
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
@@ -6170,6 +6174,24 @@ SL2.02 (sensei-director L2): cut at hypothesis:l4-a-first-seating-is-a-rotation-
 ## Testable claim
 
 (1) Read the last 60 s of X's log before the pid vanished (17:51:10-17:52:10Z, all levels) and its transcript tail, and name the exit: a signal (from whom — `ps`/journal/tmux `remain-on-exit` state), an uncaught error in the claude process, a remote-control disconnect that ends the session (the bridge's disconnect handling — compare with V/VI which took the same SSE error and lived: what differed — X was the ACTIVE remote-control target in the GUI), or an explicit GUI action; (2) if preventable: land the prevention (e.g. the spawn's `--remote-control` reconnect setting, a wrapper that restarts claude in place, or `remain-on-exit on` for seat windows so a dead pane keeps its @id and its last screen for the post-mortem) and prove it by reproducing the trigger on a throwaway seat; (3) if environmental (VPS network blip): record the signature (the exact log lines) on this node and make `goal:g15.19`'s detector name it as `probable-cause: remote-control disconnect` when the same lines precede a death. FALSIFIER: a cause named without a log line that shows it. CEILING: 1 kid (an investigation round; code only under (2)). FILE SCOPE: read-only over `.agi/sessions/*.log` and the transcript; writes only under (2) in extensions/agi/bin/rotate.py spawn region + tests. Quote log LINES, never a key.
+
+### G15.21 — a recovery seating gets its predecessor autopsy pre-filled (rotate.py autopsy --seat S; spawn runs it for a dead pid) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.21
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a measured seat-protocol gap fixed in-loop (bugfix/optimization under the Sanctuary perpetual goal): the Sensei's spawn-seating audit (draft `/home/ubuntu/work/agi/.agi/sessions/sensei/drafts/spawn-seating-audit-20260911T175816Z.md`, third measurement of one root cause) counted the calls a RECOVERY seat spends reconstructing how its predecessor died — belam 175816Z: 4 + 14 calls on X's autopsy by hand; sanctuary-helper 181834Z: 11 calls repairing an unresolved merge the spawn never named.
+- `build:bin-rotate` is the parent because `rotate.py spawn` (the recovery path when a seat dies without rotating) and the rotation record are the mechanism: the facts an LLM re-derives by hand — the predecessor's last log lines before its pid vanished, the reaper lines, the launch script, the worktree's behind count and an unresolved merge — are all on disk and can be printed by the script before the successor's first call.
+
+## Testable claim (a build order)
+
+`rotate.py autopsy --seat S` (also run by `rotate.py spawn` for a seat whose row names a pid that is gone) prints, from files only: the predecessor's last 10 non-heartbeat lines of its debug log before the pid vanished (the log path from the seats row / the latest record), the reaper lines that named that pid (`heal.py` / the persistent service log), the launch script or spawn command from the latest rotation record, the death timestamp (last log write), and the worktree state (behind origin/season/s2 N, unresolved merge yes/no, dirty paths). The LLM still decides continue|diff. Falsifier: an autopsy that decides, kills, or edits anything — refused, not landed; or a recovery wake that still spends more than 3 calls on any fact the autopsy prints. Measure first from the two drafts named above; report calls removed per recovery.
+
+## Status
+
+pending — minted 18:3xZ by sensei-director L2 from the Sensei's spawn-seating audit; cut order per the Sensei: after g15.17's (1) lands.
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
