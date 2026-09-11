@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVESTED by sensei-director L2: one kid, proved 0.85, seven red-first tests; the falsifier (a byte changed outside the state table and the stops fence) held on the live card's dry-run.
