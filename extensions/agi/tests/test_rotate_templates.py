@@ -508,3 +508,137 @@ def test_wait_returns_zero_when_record_becomes_terminal_mid_wait(
     out = capsys.readouterr().out
     assert rc == 0
     assert "s12_self_reap" in out and "999" in out
+
+# --- hypothesis:l4-a-rotation-costs-... mechanism 3: geometry freshness ------
+# A rotating WORKTREE's OWN copy of `.agi/nodes/.geometry/` (config:rotations +
+# config:seats) can be BEHIND the shared geometry branch (`origin/season/s2`).
+# Spawning a successor there would bake a STALE rotation config into it
+# SILENTLY. So rotate-self resolves WHICH tree the geometry comes from, once,
+# up front: the integration tree (`locations.git_common_root`) when the
+# worktree's own is behind and that tree's is current, else REFUSE BY NAME with
+# the behind-count and the sync command. Falsifier: a rotate-self that spawns
+# on a stale .geometry/ silently.
+import subprocess as _sp  # noqa: E402
+
+
+def _mgit(root, *args):
+    out = _sp.run(["git", "-C", str(root), *args],
+                  capture_output=True, text=True)
+    assert out.returncode == 0, f"git {' '.join(args)}: {out.stderr.strip()}"
+    return out.stdout.strip()
+
+
+def _geometry_commit(root, rotations_body, message) -> str:
+    """Write .agi/nodes/.geometry/ + config.json into `root`, commit, return the
+    full commit sha. The commit only touches the geometry subtree, so a later
+    `rev-list --count HEAD..ref -- .agi/nodes/.geometry/` sees exactly 1."""
+    agi = root / ".agi"
+    agi.mkdir(parents=True, exist_ok=True)
+    (agi / "config.json").write_text("{}")
+    g = agi / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "rotations.md").write_text(rotations_body)
+    (g / "seats.md").write_text(SEATS_BODY)
+    _mgit(root, "add", "-A")
+    _mgit(root, "commit", "-q", "-m", message)
+    return _mgit(root, "rev-parse", "HEAD")
+
+
+def _mgit_repo(root):
+    root.mkdir(parents=True, exist_ok=True)
+    _mgit(root, "init", "-q")
+    _mgit(root, "config", "user.email", "test@example.com")
+    _mgit(root, "config", "user.name", "test")
+
+
+def test_m3_stale_worktree_refuses_by_name_and_sync_cmd(
+        tmp_path, monkeypatch, capsys):
+    """Mechanism 3 (REFUSE): a worktree whose own .geometry/ is behind
+    origin/season/s2 must refuse rotate-self BY NAME with the behind-count and
+    the sync command — never spawn on the stale config silently."""
+    repo = tmp_path / "repo"
+    _mgit_repo(repo)
+    base = _geometry_commit(repo, ROTATIONS_BODY, "geometry v1")
+    tip = _geometry_commit(repo, ROTATIONS_BODY + "# v2\n", "geometry v2")
+    # Simulate the shared geometry branch having moved: origin/season/s2 points
+    # at the newer geometry while this worktree stays at v1 (behind by 1).
+    _mgit(repo, "update-ref", "refs/remotes/origin/season/s2", tip)
+    _mgit(repo, "checkout", "-q", "-b", "loop/stale", base)
+    root = repo / ".agi"
+
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+    monkeypatch.chdir(repo)
+    rc = rotate.main(["rotate-self", "--name", "sanctuary-director",
+                      "--dry-run", "--role", "director"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "refused" in err
+    assert "behind" in err
+    assert "1 commit" in err
+    assert "origin/season/s2" in err
+    assert "git merge --no-edit origin/season/s2" in err   # merge, never rebase
+
+
+def test_m3_stale_worktree_serves_integration_tree_geometry(
+        tmp_path, monkeypatch, capsys):
+    """Mechanism 3 (serve from {repo}): a WORKTREE behind on .geometry/ whose
+    integration tree (locations.git_common_root) carries CURRENT geometry
+    resolves config:rotations + config:seats FROM that tree — the resolver
+    names it. The live rotate-self still never spawns on it: `_prepare_checks`
+    (goal:g15.14 STEP 2, landed after this mechanism was cut) refuses ANY
+    behind count first — rc 3, the merge line — so a behind seat SYNCS its
+    tree rather than being served around it (director fix-up at the SL1.06
+    harvest; the serve path stays as the guard on the fixture seam, where the
+    checklist does not run)."""
+    main = tmp_path / "main"
+    _mgit_repo(main)
+    base = _geometry_commit(main, ROTATIONS_BODY, "geometry v1")
+    _mgit(main, "checkout", "-q", "-b", "season/s2")
+    # A linked worktree forked at v1: its own geometry is behind.
+    wt = tmp_path / "wt"
+    _mgit(main, "worktree", "add", "-q", "-b", "loop/stale", str(wt), base)
+    # Advance the INTEGRATION tree (season/s2) with newer geometry; the worktree
+    # (still at v1) is now behind origin/season/s2 by exactly 1 geometry commit.
+    tip = _geometry_commit(main, ROTATIONS_BODY + "# v3\n", "geometry v3")
+    _mgit(main, "update-ref", "refs/remotes/origin/season/s2", tip)
+    root = wt / ".agi"
+
+    # the resolver alone: the integration tree's geometry is served, by name
+    cfg_root, note = rotate._geometry_resolution_root(root)
+    assert cfg_root == main / ".agi"
+    assert "integration tree" in note
+    assert str(main) in note
+    assert "by 1 commit" in note
+
+    # the live command: the captive checklist wins — refused by name, rc 3,
+    # with the ONE clear command (merge, never rebase)
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+    monkeypatch.chdir(wt)
+    rc = rotate.main(["rotate-self", "--name", "sanctuary-director",
+                      "--dry-run", "--role", "director"])
+    cap = capsys.readouterr()
+    assert rc == 3, cap.out + cap.err
+    assert "behind origin/season/s2 (1)" in cap.err
+    assert "git merge --no-edit origin/season/s2" in cap.err
+    assert "rebase" not in cap.err
+
+
+def test_m3_template_source_recorded(tmp_path):
+    """Mechanism 3: the rotate-self rotation record NAMES which tree the
+    template came from (`template_source`)."""
+    import json as _json  # noqa: E402
+    rec = tmp_path / "seat.20260101T000000Z.json"
+    rotate._write_rotate_self_started(
+        rec, seat="sanctuary-director", steps=["handoff"],
+        gen_before=10, gen_after=11,
+        template_source="integration tree /repo (worktree geometry behind "
+                        "origin/season/s2 by 2 commit(s))")
+    doc = _json.loads(rec.read_text(encoding="utf-8"))
+    assert doc["template_source"].startswith("integration tree /repo")
+    assert "by 2 commit(s)" in doc["template_source"]
+    assert doc["result"] == "started"
+    assert doc["steps_reached"] == ["handoff"]

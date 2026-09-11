@@ -394,6 +394,45 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                    f"alive; dispatched_by={rec.get('dispatched_by') or '-'})")
 
 
+def _run_pending_after_joins(root: Path) -> None:
+    """hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-
+    hook-fires-at-turn-one, owed (i): the WATCH loop IS the service when
+    `agent_dispatch.inline_reaper` is false, so it performs the captive
+    after_join for any seat whose latest rotation record has not yet had its
+    after_join run and is past its `after_join_delay_s`. Invokes the SAME
+    `rotate.run_after_join_for_seat` the rotate-self fallback caller uses —
+    one function, no parallel driver. Read-only discovery; best-effort; never
+    raises into the watch loop. No seats / no rotate module -> silent no-op."""
+    try:
+        import rotate as _rotate
+    except Exception:                                    # noqa: BLE001
+        return
+    try:
+        if _rotate._inline_reaper_enabled(root):
+            return  # an inline reaper / rotate-self owns after_join
+    except Exception:                                    # noqa: BLE001
+        return
+    try:
+        rows = _rotate._load_seats(root) or []
+    except Exception:                                    # noqa: BLE001
+        return
+    for row in rows:
+        seat = row.get("name") or row.get("seat")
+        if not seat:
+            continue
+        try:
+            result = _rotate.run_after_join_for_seat(root, seat)
+        except Exception as exc:                         # noqa: BLE001
+            print(f"warn: after_join for {seat!r} failed: {exc}",
+                  file=sys.stderr)
+            continue
+        if result is not None:
+            _watch_log(f"watch: after_join performed for seat {seat!r} "
+                       f"({len(result.get('results') or [])} command(s); "
+                       f"record appended: {result.get('appended')}, "
+                       f"dm sent: {result.get('sent')})")
+
+
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
@@ -411,6 +450,7 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # stranded and repairs a strand within ONE poll (30 s) with no
         # operator. The reaper logic above is untouched.
         _repair_stranded_wakes(root)
+        _run_pending_after_joins(root)
         if once:
             break
         _watch_log(f"watch: pass complete over {len(rounds)} round(s); "

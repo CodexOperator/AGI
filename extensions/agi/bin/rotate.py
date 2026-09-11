@@ -1262,6 +1262,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -1385,10 +1386,54 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # r3+ (L4.1xx / hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
+    # and-the-successor-one): the successor's identity is the reason the row
+    # wants a session_ref at all. A GIVEN --ref must be the BARE ref (a
+    # row-shaped ref — brackets, whitespace, or the seat name itself — is
+    # REFUSED BY NAME); and it must not already be ANOTHER seat's identity
+    # through the SAME resolution send.whois uses (imported, never
+    # re-implemented). With NO --ref nothing is back-filled: the ListAgents
+    # ref is harness-only and is NOT derivable from the row's session_id
+    # (the zero-call lean SL1.06 kid 2 built on that derivation was measured
+    # false at the harvest — see the fix-up notes below).
+    import send  # local: same dir, no import cycle (send.py pattern)
+    ref = (args.ref or "").strip()
+    issue = _ref_shape_issue(ref, seat)
+    if issue:
+        print(f"ERR: --ref {ref!r} refused: {issue}; pass the bare ListAgents "
+              "ref (the `[ref]` ListAgents prints beside your name).",
+              file=sys.stderr)
+        return 2
+    rows = send._locally_loaded_rows(root)
+    # Director fix-up at the SL1.06 harvest (sensei-director L2), measured on
+    # the live rotation 20260911T172702Z: the ListAgents ref (`caa927`) is
+    # NOT a prefix of the row's session_id (the Claude session uuid
+    # `27179681-…` the JOIN registers) — the two are different identities
+    # (F8: the ref is harness-only). So a bare ref that resolves to NO row is
+    # the NORMAL first ack, accepted and written verbatim (what whois needs).
+    # What the gate refuses is IMPERSONATION: a ref that already resolves,
+    # by session_ref or session_id prefix, to a DIFFERENT seat's row
+    # (send.whois's IS-NOT-AUTHORIZED, resolved against every row).
+    if ref and rows:
+        code, _text = send._resolve_rows(rows, ref, claim=seat)
+        if code == send.WHOIS_NOT_AUTHORIZED:
+            print(f"ERR: --ref {ref!r} refused: {_text} — that ref is "
+                  "another seat's identity; pass your OWN bare ListAgents "
+                  "ref.", file=sys.stderr)
+            return 2
     ack = {
         "seat": seat,
         "gen_after": args.gen,
-        "session_ref": args.ref or "",
+        # The ack carries the ListAgents ref the successor NAMED, or nothing.
+        # SL1.06 kid 3 wrote `ref or self_sid` here (and back-filled the row
+        # with the session uuid on the no-ref path) so the post-join announce
+        # could compose an address — but the uuid is not an address a peer
+        # can message (ListAgents shows `name [ref]`, never the uuid), so the
+        # alert would have printed `name [27179681-…]`. Director fix-up at
+        # the harvest: an ack without --ref leaves session_ref EMPTY and the
+        # alert says pre-join, which is the truth — the ListAgents ref only
+        # arrives when the successor names it (F8: ListAgents + ack).
+        "session_ref": ref,
         "answer": args.answer,
         "text": text or "",
         "ts": datetime.utcnow().isoformat() + "Z",
@@ -1397,14 +1442,16 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
     print(f"ack written: {path}")
-    # r3: `--ref` back-fills session_ref into the successor's OWN seats row
-    # through the self_row write (source: ack), so a later whois can
-    # authorize by it. A THROWAWAY seat has no row; the back-fill is recorded
+    # r3: back-fill session_ref into the successor's OWN seats row through the
+    # self_row write (source: ack), so a later whois can authorize by it —
+    # only from a validated --ref; the row already carries its session_id
+    # (written by the JOIN at spawn), so there is nothing to back-fill on the
+    # no-ref path. A THROWAWAY seat has no row; the back-fill is recorded
     # skipped and the ack still lands.
-    if args.ref:
+    if ref:
         try:
             print(_backfill_session_ref(
-                root, seat=seat, role="parent", ref=args.ref))
+                root, seat=seat, role="parent", ref=ref))
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -1460,6 +1507,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
         successor_argv=getattr(args, "successor_argv", None),
+        seat=getattr(args, "seat", None),
     )
     if rc != 0:
         return rc
@@ -1546,7 +1594,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             trigger="--force" if getattr(args, "force", False) else "meter due",
             handoff_path=str(Path(ack_path).expanduser().resolve()),
             in_flight="successor acked `continue`; handoff stood",
-            live_names=succ.get("names", []))
+            live_names=succ.get("names", []),
+            # mechanism 1: the successor's ack carries its OWN ref back-filled
+            # from the JOIN (cmd_ack r3), so this post-ack announce composes
+            # the FULL post-join address `name [ref] @window` for every peer.
+            successor_ref=(ack.get("session_ref") or ""),
+            successor_window=_successor_window_id(
+                name, tmux_session, args.window_path) or "")
         return 0
 
     # Three realities, one record (ACKED / PRESENT-BUT-SILENT / ABSENT): the
@@ -2409,7 +2463,8 @@ def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
 
 def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
-                               gen_after: int | None = None) -> None:
+                               gen_after: int | None = None,
+                               template_source: str | None = None) -> None:
     """Write/refresh the IN-PROGRESS rotate-self record.
 
     `result` stays `started` until the rotation reaches an outcome (success or
@@ -2417,6 +2472,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     interrupted rotation leaves a record whose state says exactly where it
     stopped (hypothesis:l4-rotation-record-survives-interruption). Overwrites
     `path` in place; the process keeps writing to the SAME file.
+    `template_source` names which TREE the rotation template came from (the
+    worktree's own, or the integration tree served because the worktree's
+    geometry was stale) — mechanism 3, so a spawn is attributable.
     """
     rec: dict = {
         "rotation": "rotate-self",
@@ -2425,6 +2483,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
         "result": "started",
         "steps_reached": sorted(steps),
     }
+    if template_source is not None:
+        rec["template_source"] = template_source
     if gen_before is not None:
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
@@ -2580,21 +2640,49 @@ def _next_sequence(root: Path) -> int:
     return nxt
 
 
+def _successor_address(name: str, ref: str = "",
+                       window: str = "") -> str:
+    """The successor's callable address for a rotation alert, composed AFTER
+    the join has resolved it: `name [ref] @window`.
+
+    Pre-join (the successor has not yet acked a ref — the ListAgents `@id`
+    from the JOIN) the alert NAMES that it is pre-join rather than silently
+    dropping the ref a peer would need to reach it. The window `@id` is
+    appended only when a tmux `@<N>` is actually known (the internal-seam
+    path has none).
+    """
+    if ref:
+        addr = f"{name} [{ref}]"
+        if window:
+            addr += f" @{window}"
+        return addr
+    # PRE-JOIN: the ref is exactly the join fact that has not resolved yet.
+    if window:
+        return (f"{name} @{window} (pre-join: successor ref "
+                f"not yet resolved)")
+    return f"{name} (pre-join: successor ref not yet resolved)"
+
+
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
-                          trigger, handoff_path, in_flight, seq=0) -> str:
+                          trigger, handoff_path, in_flight, seq=0,
+                          successor_ref: str = "",
+                          successor_window: str = "") -> str:
     """The five-field announcement payload — one message, never more.
 
     Every field is spelled because each has already cost a peer a turn: the
-    outgoing seat, the successor name, generation before/after, the trigger
-    (meter due / --force / fable-limit), and the handoff path the successor
-    is reading, plus one line of what is in flight so a peer can tell whether
-    its own round is orphaned.
+    outgoing seat, the successor address (`name [ref] @window` once the join
+    has resolved the ref — hypothesis:l4-a-rotation-costs-the-live-seats-
+    zero-calls-and-the-successor-one, mechanism 1; a pre-join alert names
+    that it is pre-join), generation before/after, the trigger (meter due /
+    --force / fable-limit), and the handoff path the successor is reading,
+    plus one line of what is in flight so a peer can tell whether its own
+    round is orphaned.
     """
-    return (f"{ROTATION_ALERT_TAG} {seat} -> {successor} | "
+    addr = _successor_address(successor, successor_ref, successor_window)
+    return (f"{ROTATION_ALERT_TAG} {seat} -> {addr} | "
             f"generation {gen_before} -> {gen_after} | "
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
-
 
 def _derive_receivers(root: Path, *, seat: str,
                       live_names: list[str]) -> list[str]:
@@ -2620,7 +2708,9 @@ def _derive_receivers(root: Path, *, seat: str,
 
 def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        gen_before, gen_after, trigger: str, handoff_path: str,
-                       in_flight: str, live_names: list[str]) -> list[str]:
+                       in_flight: str, live_names: list[str],
+                       successor_ref: str = "",
+                       successor_window: str = "") -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -2635,7 +2725,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     text = _compose_announcement(
         seat=seat, successor=successor, gen_before=gen_before,
         gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
-        in_flight=in_flight, seq=seq)
+        in_flight=in_flight, seq=seq, successor_ref=successor_ref,
+        successor_window=successor_window)
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
         try:
@@ -3082,11 +3173,224 @@ def _render_card(preamble: str,
 def _section_tag(header: str) -> str | None:
     """Which of §0 / §3 / §6 a `## ...` header names, or None. Headers like
     `## 🔴 §6 BANKED` still resolve to §6 (the token is searched, not the
-    first word)."""
+    first word).
+
+    **SL2.01 (hypothesis:l4-the-driven-handoff-writer-keys-on-declared-
+    titles-and-writes-the-seats-own-card):** the driven writer no longer keys
+    on the § numerals directly — the sensei-director card's numerics are a
+    DIFFERENT layout (§0 identity, §5 state). The numerals survive here only
+    as the legacy PRIME-card fallback (`## §3 🔴 NEXT COMMAND` has no
+    "where it stops" title), resolved by `_locate_where_it_stops`. KEYS ON
+    DECLARED TITLES first, never on these."""
     for tok in ("§0", "§3", "§6"):
         if tok in header:
             return tok
     return None
+
+
+def _own_card_path(root: Path, seat: str) -> Path:
+    """The seat's OWN card path, found in the worktree FIRST, MAIN's shared
+    copy only when no own copy exists (hypothesis SL2.01 #3). Lifted out of
+    `_prepare_checks` check 4 (the meter-stale card check) — ONE helper, both
+    callers. `root` is the graph root (`<tree>/.agi`, as `find_project_root`
+    returns it), so the seat's own card is `<tree>/.agi/sessions/quorum/
+    <S>.md`; MAIN's shared copy lives under `_sessions_dir` (which routes
+    through `git_common_root` to the main checkout)."""
+    _own = [Path(root) / "sessions" / "quorum" / f"{seat}.md",
+            Path(root) / ".agi" / "sessions" / "quorum" / f"{seat}.md"]
+    return next((c for c in _own if c.exists()),
+                _sessions_dir(root) / "quorum" / f"{seat}.md")
+
+
+def _subheader_in_body(body: str, token: str) -> int | None:
+    """Line index of the first header line at ANY depth (`###`, etc.) in
+    `body` whose text contains `token` (case-insensitive), or None.
+    Subsections live inside a `## ` section's body (`_split_card_sections`
+    splits only on `## `), so `### 🔴 Where it stops` is found here."""
+    for i, ln in enumerate(body.splitlines()):
+        s = ln.strip()
+        if s.startswith("#") and token.lower() in s.lower():
+            return i
+    return None
+
+
+def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
+    """Where the where-it-stops slot lives in `sections` (a `_split_card_
+    sections` list). Returns `(section_idx, sub)` where `sub == -1` means the
+    `## ` section header itself is the slot and `sub >= 0` is the body-line
+    index of the `###`-style subheader inside it. Returns `"ambiguous"` when
+    more than one match, `None` when none (caller refuses an existing-card
+    miss). Resolution order:
+      1. a `## ` header whose TEXT contains "where it stops";
+      2. a `###`-level subheader whose text contains "where it stops";
+      3. the legacy PRIME fallback: a `## ` header carrying the §3 numeral
+         (`## §3 🔴 NEXT COMMAND` has no title, but is the next-command slot).
+    Never numerals ahead of titles — the sensei-director §3 is NEVER TOUCH."""
+    top = [(i, -1) for i, (h, _) in enumerate(sections)
+           if "where it stops" in h.lower()]
+    sub = [(i, j) for i, (_, b) in enumerate(sections)
+           if (j := _subheader_in_body(b, "where it stops")) is not None]
+    if len(top) + len(sub) > 1:
+        return "ambiguous"
+    if len(top) == 1:
+        return top[0]
+    if len(sub) == 1:
+        return sub[0]
+    fallback = [i for i, (h, _) in enumerate(sections) if "§3" in h]
+    if len(fallback) > 1:
+        return "ambiguous"
+    if len(fallback) == 1:
+        return (fallback[0], -1)
+    return None
+
+
+def _locate_banked(sections) -> tuple[int, int] | str | None:
+    """Where the BANKED slot lives, title-keyed exactly like where-it-stops
+    but with NO numeral fallback (the sensei-director §6 is TRAPS, never
+    banked). `None` = absent, which is fine — nothing is appended (hypothesis
+    wording: the Prime card has one, the sensei-director card does not).
+    `"ambiguous"` = more than one BANKED header, refused rather than
+    guessed."""
+    top = [(i, -1) for i, (h, _) in enumerate(sections)
+           if "banked" in h.lower()]
+    sub = [(i, j) for i, (_, b) in enumerate(sections)
+           if (j := _subheader_in_body(b, "banked")) is not None]
+    if len(top) + len(sub) > 1:
+        return "ambiguous"
+    if len(top) == 1:
+        return top[0]
+    if len(sub) == 1:
+        return sub[0]
+    return None
+
+
+def _state_rows(seat: str, facts: dict) -> list[tuple[str, str]]:
+    """The measured state as (label, value) rows — the single source for
+    BOTH shapes the built block can take. `seat` is provenance so the block
+    names whose card it is."""
+    gb, ga = facts.get("gen_before"), facts.get("gen_after")
+    if gb is not None and ga is not None:
+        gen_s = f"{gb}->{ga}"
+    elif ga is not None:
+        gen_s = str(ga)
+    elif gb is not None:
+        gen_s = str(gb)
+    else:
+        gen_s = "n/a"
+    rows: list[tuple[str, str]] = []
+    rows.append(("Rotation record",
+                 f"gen {gen_s}, window {facts.get('window') or 'n/a'}, "
+                 f"pid {facts.get('pid') or 'n/a'}, model_confirm "
+                 f"{facts.get('model_confirm') or 'n/a'}."))
+    nc = (f"active {facts.get('counts_active') or 'n/a'}, deprecated "
+          f"{facts.get('counts_deprecated') or 'n/a'}.")
+    if facts.get("suite"):
+        nc += f" Suite {facts['suite']}."
+    rows.append(("Node counts", nc))
+    rows.append(("Tree",
+                 f"branch {facts.get('branch') or 'n/a'}, behind season/s2 "
+                 f"{facts.get('behind') or 'n/a'}, unpushed "
+                 f"{facts.get('unpushed') or 'n/a'}."))
+    rows.append(("Meter",
+                 f"{facts.get('fraction') or 'n/a'} · "
+                 f"role {facts.get('role') or 'n/a'} · "
+                 f"model {facts.get('model') or 'n/a'}."))
+    rows.append(("Account", str(facts.get("account") or "n/a")))
+    return rows
+
+
+def _render_state_body(shape: str, rows: list[tuple[str, str]]) -> str:
+    """Render the measured state rows into `shape` — a 2-column table or a
+    list — so the built block takes the SHAPE of what it replaces (hypothesis
+    SL2.01 #2): a table card stays a table, a list card stays a list."""
+    if shape == "table":
+        out = ["| Field | Value |", "|---|---|"]
+        for label, value in rows:
+            out.append(f"| {label} | {value} |")
+        return "\n".join(out)
+    out = [f"- **{label}:** {value}" for label, value in rows]
+    return "\n".join(out)
+
+
+def _state_header(seat: str, facts: dict) -> str:
+    """The `## ` header for the state section (used for a FRESH compose only;
+    an existing STATE header is kept untouched while only its first
+    table-or-list is rebuilt)."""
+    return (f"## §0 STATE (driven — `rotate.py handoff --driven --seat "
+            f"{seat}`, {facts.get('stamp')})")
+
+
+def _replace_state_body(body: str, rows: list[tuple[str, str]]) -> str:
+    """Scoped state replacement (hypothesis SL2.01 #2): replace the FIRST
+    table-or-list directly under the STATE header with the measured block,
+    carrying everything else in the section (subsections, prose) verbatim.
+    A section with no table-or-list at all (e.g. the lean PRIME §0 body)
+    is replaced wholesale — the writer still fills it."""
+    lines = body.splitlines()
+    idx = None
+    kind = None
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s.startswith("|"):
+            idx, kind = i, "table"
+            break
+        if s.startswith(("- ", "* ")):
+            idx, kind = i, "list"
+            break
+    if idx is None:
+        # no table/list to scope to: replace the whole body (Prime lean §0)
+        return _render_state_body("list", rows)
+    j = idx
+    if kind == "table":
+        while j < len(lines) and lines[j].strip().startswith("|"):
+            j += 1
+    else:
+        while j < len(lines) and lines[j].strip().startswith(("- ", "* ")):
+            j += 1
+    before = lines[:idx]
+    after = lines[j:]
+    new_block = _render_state_body(kind, rows).splitlines()
+    return "\n".join(before + new_block + after)
+
+
+def _replace_fence_after(lines: list[str], start: int, s3: str):
+    """Replace the fenced code block starting at/after line `start`'s fence
+    with `s3`, keeping the ```` ``` ```` delimiters and the header above it.
+    Returns the new line list, or None when no fence is found below `start`
+    (caller falls back to whole-body replacement)."""
+    fence = None
+    for i in range(start, len(lines)):
+        if lines[i].strip().startswith("```"):
+            fence = i
+            break
+    if fence is None:
+        return None
+    close = None
+    for i in range(fence + 1, len(lines)):
+        if lines[i].strip().startswith("```"):
+            close = i
+            break
+    if close is None:
+        close = len(lines)
+    return lines[:fence + 1] + s3.splitlines() + lines[close:]
+
+
+def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
+    """Where-it-stops replacement (hypothesis SL2.01 #2): replace only the
+    fenced code block under the (possibly `###`-level) header, keeping the
+    header and everything around it. When there is no fence, the whole body
+    is replaced — the lean PRIME `## §3 🔴 NEXT COMMAND` body is one plain
+    line and is filled wholesale."""
+    lines = body.splitlines()
+    for idx, ln in enumerate(lines):
+        if ln.strip().startswith("```"):
+            if sub_offset is None or idx > sub_offset:
+                new = _replace_fence_after(lines, idx, s3)
+                if new is not None:
+                    return "\n".join(new)
+                break
+    # no fenced block: replace the whole body
+    return s3
 
 
 def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
@@ -3155,26 +3459,99 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
     print("Supply each as --field s3 <src> / --field s6 <src> (`-` = stdin); "
           "an empty §3 is refused.")
 
-    card_path = _sessions_dir(root) / "quorum" / f"{seat}.md"
-    existing = card_path.read_text(encoding="utf-8") if card_path.exists() else ""
+    dry_run = bool(getattr(args, "dry_run", False))
+    card_path = _own_card_path(root, seat)
+    existing = (card_path.read_text(encoding="utf-8")
+                if card_path.exists() else "")
+    card_existed = bool(existing.strip())
     preamble, sections = _split_card_sections(existing)
 
     facts = _harvest_handoff_facts(root, seat)
-    s0 = _compose_card_s0(seat, facts)
+    rows = _state_rows(seat, facts)
+
+    # Resolve the three slots by DECLARED TITLE — never by the § numerals
+    # alone (the sensei-director card's numerics are a different layout).
+    state_idx = [i for i, (h, _) in enumerate(sections)
+                 if "state" in h.lower()]
+    stops = _locate_where_it_stops(sections)
+    banked = _locate_banked(sections)
+
+    if card_existed:
+        if len(state_idx) > 1:
+            found = " / ".join(h for h, _ in sections if "state" in h.lower())
+            print(f"ERR: handoff --driven finds {len(state_idx)} STATE "
+                  f"sections, ambiguous; refusing — {found}.", file=sys.stderr)
+            return 2
+        if len(state_idx) == 0:
+            found = " / ".join(h for h, _ in sections)
+            print(f"ERR: handoff --driven finds no STATE section (declared "
+                  f"title, not §0) to drive; refusing — found: "
+                  f"{found or '(none)'}.", file=sys.stderr)
+            return 2
+        if isinstance(stops, str):
+            print("ERR: handoff --driven finds an ambiguous where-it-stops "
+                  "slot; refusing rather than guessing.", file=sys.stderr)
+            return 2
+        if stops is None:
+            found = " / ".join(h for h, _ in sections)
+            print("ERR: handoff --driven finds no where-it-stops slot (no "
+                  "'where it stops' title and no §3 numeral) to fill; "
+                  f"refusing — found: {found or '(none)'}.", file=sys.stderr)
+            return 2
+        if banked == "ambiguous":
+            print("ERR: handoff --driven finds more than one BANKED header; "
+                  "refusing rather than guessing.", file=sys.stderr)
+            return 2
+
+    def _slot_section_idx(slot) -> int | None:
+        if slot is None or isinstance(slot, str):
+            return None
+        return slot[0]
+
+    # Apply transforms per section. A section may hold BOTH the state block
+    # and the `### where it stops` subheader (the sensei-director §5); apply
+    # state-scope first, then stops-scope on the already-rebuilt body.
+    state_i = state_idx[0] if len(state_idx) == 1 else None
+    stops_slot = stops if not isinstance(stops, str) else None
+    banked_slot = banked if not isinstance(banked, str) else None
+    stops_sec = _slot_section_idx(stops_slot)
+    banked_sec = _slot_section_idx(banked_slot)
 
     new_sections: list[tuple[str, str]] = []
-    told = {"§0": False, "§3": False, "§6": False}
-    replacements = {"§0": s0, "§3": s3, "§6": s6}
-    for header, body in sections:
-        tag = _section_tag(header)
-        if tag in replacements:
-            new_sections.append((header, replacements[tag]))
-            told[tag] = True
-        else:
-            new_sections.append((header, body))  # carried verbatim
-    for tag in ("§0", "§3", "§6"):
-        if not told[tag]:
-            new_sections.append((f"## {tag}", replacements[tag]))
+    for i, (header, body) in enumerate(sections):
+        if i == state_i:
+            body = _replace_state_body(body, rows)
+        if stops_slot is not None and stops_sec == i:
+            sub = stops_slot[1]
+            body = _replace_stops_body(body, s3, None if sub == -1 else sub)
+        if banked_slot is not None and banked_sec == i:
+            sub = banked_slot[1]
+            if sub == -1:
+                if s6:
+                    body = s6
+            else:
+                # a `###`-level BANKED: keep the header + what precedes it,
+                # append s6 beneath it, carry everything below the subheader
+                lines = body.splitlines()
+                if sub < len(lines):
+                    head = "\n".join(lines[:sub + 1])
+                    rest = lines[sub + 1:]
+                    trail = [ln for ln in rest if ln.strip()]
+                    body = head
+                    if s6:
+                        body += "\n" + s6
+                    if trail:
+                        body += "\n" + "\n".join(rest)
+        new_sections.append((header, body))
+
+    # Fresh compose: a card that did not exist gets all three slots appended
+    # (the PRIME layout). A card that EXISTS is driven in place.
+    if not card_existed:
+        new_sections = [
+            (_state_header(seat, facts), _render_state_body("list", rows)),
+            ("## §3", s3),
+            ("## §6", s6 or ""),
+        ]
 
     full = _render_card(preamble, new_sections)
     line_count = full.count("\n")
@@ -3185,11 +3562,14 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
               f"section ({biggest}).", file=sys.stderr)
         return 2
 
+    if dry_run:
+        print(full)
+        return 0
+
     card_path.parent.mkdir(parents=True, exist_ok=True)
     card_path.write_text(full, encoding="utf-8")
     print(f"wrote driven handoff card {card_path} (§0 built; §3/§6 "
-          f"filled; {len(sections) - sum(told.values())} section(s) carried "
-          f"verbatim).")
+          f"filled; {len(sections)} section(s) handled).")
     return 0
 
 
@@ -3273,6 +3653,22 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry")
+
+
+def _ref_shape_issue(ref: str, seat: str) -> str | None:
+    """Return a reason if `ref` is NOT a BARE ListAgents ref: it carries
+    brackets (a row-shaped ref), whitespace, or IS the seat name itself. None
+    means it is a safe bare ref to carry/back-fill. An empty ref is None (no
+    --ref passed) — the caller then back-fills from the row's session_id."""
+    if not ref:
+        return None
+    if "[" in ref or "]" in ref:
+        return "carries brackets (that is a row-shaped ref, not a ref)"
+    if any(c.isspace() for c in ref):
+        return "carries whitespace (the ref is a single bare token)"
+    if ref.strip().lower() == str(seat).lower():
+        return "is the seat name, not a ref"
+    return None
 
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
@@ -5168,6 +5564,15 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     an empty placeholder may be legitimate, and they must not be forced to
     fall over on it."""
     def _sub(m):
+        # A `{name}` that is part of tmux's OWN format syntax is LITERAL and
+        # must pass through byte-for-byte: it is immediately preceded by `#`
+        # (`#{window_id}`, `#{window_name}`, `#{...}`, or the newer
+        # `#{...}` forms). Treating it as a startup placeholder both refused
+        # the whole join command and would corrupt the literal tmux needs
+        # (hypothesis:l4-startup-first-turn-is-performed-by-the-service-...).
+        # A bare `{name}` NOT preceded by `#` still refuses below.
+        if m.start() > 0 and command[m.start() - 1] == "#":
+            return m.group(0)
         key = m.group(1)
         if key not in STARTUP_PLACEHOLDERS:
             raise ValueError(f"unknown startup placeholder {{{key}}}")
@@ -5406,6 +5811,288 @@ STARTUP_DONE_LINE = ("## STARTUP DONE — every startup step has a "
                      "recorded success")
 
 
+# ---- STARTUP after_join — THE SERVICE performs the captive first turn ----
+# hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
+# fires-at-turn-one (0b-b owed item (i)). The template `startup` block carries
+# an `after_join` list (commands that need the successor's identity — the join,
+# the pin, the ack `continue` as the default, model_confirm, the reap proof) and
+# `after_join_delay_s` (default 20). THE SERVICE (the heal.py watch loop when
+# `agent_dispatch.inline_reaper` is false, else the rotate-self post-spawn
+# tail when no service runs) waits the delay, then runs the whole list as ONE
+# flow, writes every command's output into the rotation record, and sends ONE
+# dm (the successor's SECOND input) through send.py's fixed nudge. The cap-
+# tive dm prints the exact copy-paste line for the one remaining decision
+# (a `diff` against the handoff); the successor runs NOTHING itself.
+
+DEFAULT_AFTER_JOIN_DELAY_S = 20
+DEFAULT_AFTER_JOIN_TIMEOUT_S = 60
+
+
+def _inline_reaper_enabled(root: Path) -> bool:
+    """True when `agent_dispatch.inline_reaper` is truthy — the reaper runs
+    INSIDE dispatch, so NO separate persistent service exists and rotate-self
+    is the performer of the captive after_join. False means the heal.py watch
+    loop IS the service and owns after_join. Absent config defaults to True
+    (current behaviour unchanged; a declared service is a one-edit opt-in), and
+    a missing `agent_dispatch` block reads defensively."""
+    try:
+        cfg_path = locations.config_path(root) if root is not None else None
+        if cfg_path is None:
+            return True
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:                                   # noqa: BLE001
+        return True
+    ad = (cfg or {}).get("agent_dispatch") or {}
+    return bool(ad.get("inline_reaper", True))
+
+
+def _run_after_join_command(entry, values: dict, timeout_s: int,
+                            byte_cap: int) -> dict:
+    """Resolve + run ONE after_join command through the no-shell executor,
+    returning a first_turn-shaped result dict (label, cmd, rc/output) or a
+    named refusal. The after_join list is PRIME-CLEANED trusted config (judged
+    at the merge-up so the WHOLE templates value passes the L4.234 gate), so it
+    is NOT re-run through the producing allowlist — only placeholder-resolved,
+    tokenized, and executed no-shell (a placeholder value can never inject a
+    stage outside `_command_units`' grammar, and `_operator_refusal` is checked
+    so no unmodeled `&&`/`||` survives).`"""
+    if not isinstance(entry, dict):
+        entry = {"label": str(entry), "cmd": str(entry)}
+    label = entry.get("label", "")
+    cmd = entry.get("cmd", "")
+    try:
+        record_cmd = _resolve_startup_placeholders(cmd, values,
+                                                   refuse_empty=False)
+    except ValueError as exc:
+        return {"label": label, "cmd": cmd, "refused": str(exc)}
+    try:
+        exec_cmd = _resolve_shell_vars_per_token(record_cmd)
+    except (_StartupParseError, ValueError) as exc:
+        return {"label": label, "cmd": record_cmd, "refused": str(exc)}
+    try:
+        units = _command_units(exec_cmd)
+    except _StartupParseError as exc:
+        return {"label": label, "cmd": record_cmd, "refused": str(exc)}
+    op = _operator_refusal(exec_cmd)
+    if op:
+        return {"label": label, "cmd": record_cmd, "refused": op}
+    if not units:
+        return {"label": label, "cmd": record_cmd,
+                "refused": "no executable in after_join command"}
+    try:
+        rc, out = _run_units_no_shell(units, timeout_s)
+    except subprocess.TimeoutExpired:
+        return {"label": label, "cmd": record_cmd,
+                "timed_out_after_s": timeout_s}
+    truncated = False
+    if len(out) > byte_cap:
+        out = out[:byte_cap]
+        truncated = True
+    return {"label": label, "cmd": record_cmd, "rc": rc, "output": out,
+            "truncated": truncated, "byte_cap": byte_cap}
+
+
+def _compose_after_join_dm(seat: str, gen: int, succ_ref: str,
+                           results: list) -> str:
+    """The successor's SECOND input — one captioned block naming the service
+    as the performer, every after_join command's label+output, and the ONE
+    CAPTIVE copy-paste line for the single remaining decision (`diff` against
+    the handoff). Pure formatting; runs and sends nothing."""
+    lines = [
+        "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for "
+        "you; you ran nothing)",
+        "This is your SECOND input, delivered `after_join_delay_s` after spawn.",
+    ]
+    for r in results:
+        lines.append("")
+        if r.get("refused"):
+            status = "REFUSED"
+        elif r.get("timed_out_after_s"):
+            status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
+        else:
+            status = f"exit {r.get('rc')}"
+        lines.append(f"[{r.get('label', '')}] {status}")
+        lines.append(f"$ {r.get('cmd', '')}")
+        if r.get("refused"):
+            lines.append(f"    refused — {r['refused']}")
+        elif r.get("timed_out_after_s"):
+            lines.append(f"    timed out after {r['timed_out_after_s']}s")
+        else:
+            if r.get("truncated"):
+                lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
+            out = (r.get("output") or "").strip()
+            if out:
+                lines.extend(f"    {ln}" for ln in out.splitlines())
+    lines.append("")
+    lines.append("Where a decision remains (only a `diff` against the "
+                 "handoff), emit EXACTLY this copy-paste line:")
+    lines.append("python3 extensions/agi/bin/rotate.py "
+                 f"ack --seat {seat} --gen {gen} "
+                 f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
+    return "\n".join(lines)
+
+
+def run_after_join(root, *, seat: str, gen: int, startup: dict,
+                   values: dict, record_path: str | None = None,
+                   dry_run: bool = False, sleep_impl=None,
+                   delay_override: float | None = None,
+                   send_dm=None, timeout_s: int | None = None,
+                   byte_cap: int | None = None) -> dict:
+    """THE captive after_join first turn, performed by the SERVICE — never by
+    the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
+    service-and-the-hook-fires-at-turn-one, owed (i)).
+
+    Waits `startup.after_join_delay_s` (default 20; `delay_override` wins for
+    tests so nothing waits), then runs the template `startup.after_join` list
+    as ONE ordered flow, writes every command's output into the rotation
+    record at `record_path` (appending an `after_join` key), and sends ONE dm
+    (the successor's SECOND input) through send.py's fixed nudge. `dry_run`
+    resolves and plans everything but waits, runs, writes and sends NOTHING.
+
+    `sleep_impl` (default time.sleep) and `send_dm(to, text)` (default
+    send.send(root, seat, text, None)) are injectable so the fixture proves
+    the delay and the dm without a real 20 s wait or a real tmux nudge.
+    Returns {delay_s, results, dm, appended, record_path}. Never raises on
+    record/send failure — each surfaces as a result / return field."""
+    startup = startup or {}
+    entries = startup.get("after_join") or []
+    delay_s = (delay_override if delay_override is not None
+               else int(startup.get("after_join_delay_s")
+                        or DEFAULT_AFTER_JOIN_DELAY_S))
+    timeout = timeout_s or (startup.get("first_turn_timeout_s")
+                            or DEFAULT_AFTER_JOIN_TIMEOUT_S)
+    cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
+    if not dry_run and delay_s > 0:
+        if sleep_impl is None:
+            time.sleep(delay_s)
+        else:
+            sleep_impl(delay_s)
+    results: list = []
+    if dry_run:
+        for e in entries:
+            entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+            try:
+                cmd = _resolve_startup_placeholders(
+                    entry.get("cmd", ""), values, refuse_empty=False)
+                results.append({"label": entry.get("label", ""),
+                                "cmd": cmd, "dry": True})
+            except ValueError as exc:
+                results.append({"label": entry.get("label", ""),
+                                "cmd": entry.get("cmd", ""),
+                                "refused": str(exc)})
+    else:
+        for e in entries:
+            results.append(_run_after_join_command(e, values, timeout, cap))
+    dm = _compose_after_join_dm(
+        seat, gen, values.get("succ_ref", ""), results)
+    appended = False
+    if not dry_run and record_path is not None:
+        rp = Path(record_path)
+        if rp.exists():
+            try:
+                rec = json.loads(rp.read_text())
+                if not isinstance(rec, dict):
+                    raise ValueError("record not an object")
+                rec["after_join"] = {
+                    "performed_by": "service",
+                    "delay_s": delay_s,
+                    "results": results,
+                    "dm": dm,
+                }
+                rp.write_text(json.dumps(rec, indent=2) + "\n",
+                              encoding="utf-8")
+                appended = True
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                appended = False
+    if not dry_run and send_dm is None:
+        def send_dm(to: str, text: str) -> None:
+            import send as _send
+            _send.send(root, to, text, None)
+    sent = False
+    if not dry_run and send_dm is not None:
+        send_dm(seat, dm)
+        sent = True
+    return {"delay_s": delay_s, "results": results, "dm": dm,
+            "appended": appended, "sent": sent,
+            "record_path": str(record_path) if record_path else None}
+
+
+def _latest_rotate_record(root: Path, seat: str):
+    """The seat's newest recorded rotation document ({..}.json) whose result
+    marks a rotation that happened (started/success), or None. Best-effort
+    discovery for the SERVICE: a rotation's after_join runs against the records
+    rotate-self wrote."""
+    try:
+        pat = _rotations_dir(root) / f"{seat}.*.json"
+        files = sorted(pat.parent.glob(pat.name))
+    except OSError:
+        return None
+    for f in reversed(files):
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(rec, dict) and (rec.get("result") in ("started", "success")
+                                      or rec.get("rotation") in ("rotate-self",)):
+            return rec, f
+    return None
+
+
+def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
+                            sleep_impl=None, send_dm=None) -> dict | None:
+    """The heal.py watch loop's per-seat action: discover the seat's latest
+    rotation record that has NOT yet had its captive after_join run and whose
+    `after_join_delay_s` has elapsed, and run it. Returns None when nothing is
+    due (best-effort, read-only discovery). `now` injectable for the fixture.
+    Reads the startup template through `_resolve_template` for the seat's role
+    so the SAME `after_join` list + delay the rotate-self caller would run is
+    the one the service runs."""
+    pair = _latest_rotate_record(root, seat)
+    if pair is None:
+        return None
+    rec, path = pair
+    if rec.get("after_join"):
+        return None  # already performed
+    delay_s = int((rec.get("after_join") or {}).get("delay_s")
+                  or DEFAULT_AFTER_JOIN_DELAY_S)
+    rec_ts = rec.get("recorded_at", "")
+    if rec_ts:
+        try:
+            ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%S.%fZ")
+        except ValueError:
+            try:
+                ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                ts = None
+        if ts is not None:
+            now = now if now is not None else time.time()
+            if (ts.timestamp() + delay_s) > now:
+                return None  # not yet due
+    row = _find_seat(root, seat)
+    role = (row or {}).get("role") or "parent"
+    tmpl, _name, _src = _resolve_template(root, role)
+    startup = (tmpl.get("startup") if tmpl else None) or {}
+    gen = rec.get("gen_after")
+    values = _first_turn_values(
+        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        succ_name=seat)
+    # succ_ref best-effort from the record's handover, so the ack writes a real
+    # ref when the join supplied one.
+    hov = rec.get("handover") or {}
+    join = hov.get("join") or {}
+    sref = join.get("session_id") or ""
+    if not sref:
+        sr = hov.get("successor_row")
+        if isinstance(sr, dict):
+            sref = sr.get("session_id") or ""
+    if sref:
+        values["succ_ref"] = str(sref)
+    return run_after_join(
+        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        startup=startup, values=values, record_path=str(path),
+        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0)
+
+
 def _startup_step_list(startup) -> list:
     """The template `startup` block as an ordered (phase,label,cmd) list:
     `first_turn` entries then `after_join` entries — the order rotate-self
@@ -5612,7 +6299,15 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
                    "origin/season/s2"))
 
     # 4 card mtime older than the last commit
-    card = _sessions_dir(root) / "quorum" / f"{seat}.md"
+    # The card lives in the SEAT'S OWN tree (`<worktree>/.agi/sessions/quorum/
+    # <seat>.md`, committed on the seat branch); `_sessions_dir` routes to the
+    # shared MAIN checkout, whose copy only moves at merge-up — measured at
+    # gen I's rotation: the live check read MAIN's stale copy and blocked a
+    # clean rotate-self (director fix-up at the SL1.02 harvest).
+    # `_own_card_path` is the ONE resolver both this check and the driven
+    # handoff writer use (hypothesis:l4-the-driven-handoff-writer-keys-on-
+    # declared-titles-and-writes-the-seats-own-card).
+    card = _own_card_path(root, seat)
     last_ts = _git_count_maybe(root, "log", "-1", "--format=%ct")
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
@@ -5673,6 +6368,443 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- geometry freshness (rotate-self must not spawn on a stale config) -----
+# hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-
+# one, mechanism 3: config:rotations + config:seats (the rotation template
+# and the seat registry) live in `.agi/nodes/.geometry/` and are the PRIME's
+# shared source of truth. A rotating WORKTREE carries its own copy of that
+# subtree; if the worktree's branch is BEHIND the shared geometry branch, its
+# copy is stale and spawning a successor on it would bake the wrong template
+# / seat registry into the successor SILENTLY. So rotate-self resolves WHICH
+# tree's geometry it reads, once, up front: the integration tree
+# (`locations.git_common_root`) when the worktree's own is behind AND the
+# integration tree's is itself current; otherwise it refuses BY NAME with the
+# behind-count and the sync command. The rotation record names the tree the
+# template came from (`template_source`) so a spawn is always attributable.
+
+#: the shared geometry branch; a worktree whose `.agi/nodes/.geometry/` is
+#: behind this (by `git rev-list --count HEAD..<ref> -- <subtree>`) is treated
+#: as carrying a STALE rotation config.
+GEOMETRY_BASE_REF = "origin/season/s2"
+
+#: the subtree of the repo whose drift makes a worktree's rotation config
+#: stale. Kept a Path so git's `--` pathspec gets fresh bytes on every OS.
+GEOMETRY_SUBTREE = Path(".agi/nodes/.geometry/")
+
+#: what a refused operator runs to refresh the geometry config before re-spawn.
+# MERGE, never rebase: a standing rule of this tree (CLAUDE.md, every seat
+# card); the same clear line `_prepare_checks` prints for "behind" (director
+# fix-up at the SL1.06 harvest -- the kid printed `rebase`).
+GEOMETRY_SYNC_CMD = ("git fetch origin season/s2 && git merge --no-edit "
+                     "origin/season/s2")
+
+
+def _git_toplevel(root: Path) -> Path | None:
+    """The git work-tree top for `root` (walked up when `root` is a subdir),
+    or None when `root` is not inside a git repo. `root` here is the graph
+    dir (`.agi/`, as `find_project_root` returns), so the repo top is usually
+    its parent. Never raises."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if out.returncode != 0:
+        return None
+    try:
+        return Path(out.stdout.strip())
+    except ValueError:
+        return None
+
+
+def _geometry_behind_count(root: Path | None) -> int:
+    """How many commits the worktree's OWN `.agi/nodes/.geometry/` is behind
+    the shared geometry branch:
+
+        git rev-list --count HEAD..<GEOMETRY_BASE_REF> -- <GEOMETRY_SUBTREE>
+
+    0 (current) when the geometry is already at HEAD, when the remote-
+    tracking base ref does not exist (a fresh/offline clone), or when the
+    check cannot answer (no git at all). Never raises — a gitless test
+    fixture must pass through as current, not refuse."""
+    if root is None:
+        return 0
+    top = _git_toplevel(root)
+    if top is None:
+        return 0
+    try:
+        out = subprocess.run(
+            ["git", "rev-list", "--count",
+             f"HEAD..{GEOMETRY_BASE_REF}", "--", str(GEOMETRY_SUBTREE)],
+            cwd=str(top), capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return 0
+    if out.returncode != 0:
+        return 0
+    try:
+        return max(0, int(out.stdout.strip() or "0"))
+    except ValueError:
+        return 0
+
+
+def _geometry_resolution_root(root: Path) -> tuple[Path | None, str]:
+    """Which tree's `.agi/nodes/.geometry/` a rotate-self should read.
+
+    The worktree's OWN geometry is the default source. When it is behind the
+    shared geometry branch, spawning on it would hand the successor a stale
+    config:rotations / config:seats SILENTLY — mechanism 3's falsifier. Then
+    serve the config from the integration tree (`locations.git_common_root`,
+    the main checkout) when THAT tree's geometry is itself current and it
+    carries the rotations node; otherwise refuse BY NAME with the behind-count
+    and the sync command.
+
+    Returns (resolution_root | None, source_note). A None root means refuse:
+    `source_note` is the full error string the caller prints and returns 1 on.
+    """
+    behind = _geometry_behind_count(root)
+    if behind == 0:
+        return root, "worktree (geometry current)"
+    main = locations.git_common_root(root)
+    main_graph = (Path(main) / ".agi") if main else None
+    if main_graph is not None and str(main_graph) != str(root) \
+            and _geometry_behind_count(main_graph) == 0 \
+            and _rotations_node_path(main_graph).exists():
+        return main_graph, (
+            f"integration tree {main} (worktree geometry behind "
+            f"{GEOMETRY_BASE_REF} by {behind} commit(s))")
+    return None, (
+        "rotate-self refused: this worktree's .agi/nodes/.geometry/ is behind "
+        f"{GEOMETRY_BASE_REF} by {behind} commit(s); spawning on a stale "
+        "rotation config would hand the successor the wrong config:rotations "
+        "/ config:seats. Sync the tree and re-run: "
+        f"`{GEOMETRY_SYNC_CMD}`.")
+
+
+# --- first-decision: the point's captive harvest-or-cut --------------------
+# hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps, step 4.
+# `harvest-table` (L4.236/245) is NOT in this tree (grep confirms no
+# harvest-table subcommand on the cut this branch was made from), so the
+# pre-filled harvest row + the ONE bounded prompt per round live here as
+# `first-decision`, per the brief's "implement directly, never duplicate".
+#
+# The script PRINTS and NEVER ANSWERS the harvest-or-cut decision: for each
+# OPEN round of the seat's worktree it prints the pre-filled row (branch,
+# parent, kids, verdicts, merge-base, behind) and then exactly ONE bounded
+# prompt — `harvest <round> | cut <next queued node> | hold`. `--answers FILE`
+# replays the LLM's choices into the NAMED next command per row — the git
+# merge line carrying the EXACT branch name from `git branch --list` for a
+# harvest, the dispatch line for a cut — printed, never run. FALSIFIER: a
+# code path that RUNS the merge or the dispatch itself is refused; there is
+# none. The decision stays the LLM's; the script only pre-fills and prints.
+
+
+def _fd_git(cwd: Path, *args: str) -> tuple[int, str, str]:
+    """Run git from `cwd`; return (rc, stdout, stderr). Never raises. A
+    non-zero rc is a MEANINGFUL answer (`merge-base --is-ancestor` rc=1 says
+    "not an ancestor", the open-round test), so the caller owns the rc."""
+    try:
+        r = subprocess.run(["git", "-C", str(cwd), *args],
+                           capture_output=True, text=True, timeout=10)
+        return r.returncode, r.stdout.strip(), r.stderr.strip()
+    except OSError:
+        return 127, "", f"cannot run git from {cwd}"
+
+
+def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
+    """The branch a seat works on, resolved in strict order:
+
+      1. the checked-out HEAD of the seat's worktree, from the config:seats
+         `worktree` field (resolved against the MAIN checkout, so a relative
+         `.agi/worktrees/seat-<S>` resolves like the live rows),
+      2. a local `seat/<seat>@s<s>` branch (convention fallback),
+      3. None.
+
+    A worktree seat works on its own checked-out branch; the seat's open
+    rounds are the `loop/*` branches cut from it (F5, config:rotations).
+    """
+    row = _find_seat(root, seat)
+    wt = (row or {}).get("worktree") or ""
+    if wt:
+        p = Path(wt)
+        cand = p if p.is_absolute() else (main / wt)
+        if cand.is_dir():
+            rc, br, _ = _fd_git(cand, "rev-parse", "--abbrev-ref", "HEAD")
+            if rc == 0 and br and br != "HEAD":
+                return br
+    rc, out, _ = _fd_git(main, "branch", "--list", "seat/*")
+    if rc == 0:
+        for line in out.splitlines():
+            # `git branch --list` prefixes `*` for the current branch and `+`
+            # for a branch checked out in a linked worktree; strip all of it.
+            name = line.strip().lstrip("*+").strip()
+            if name.startswith(f"seat/{seat}@s"):
+                return name
+    return None
+
+
+def _fd_frontmatter(text: str) -> str:
+    """The frontmatter block of a node's text, between the first two `---`
+    lines, or '' when absent (keep the kid node body out of the regex)."""
+    if not text.startswith("---"):
+        return ""
+    rest = text.split("\n", 1)[1] if "\n" in text else ""
+    fm, _, _ = rest.partition("\n---")
+    return fm
+
+
+def _fd_node_kids(main: Path, branch: str, merge_base: str,
+                  nodes_rel: str = ".agi/nodes/experiment") -> list[tuple[str, str]]:
+    """(kid_node_id, verdict) for every experiment `.md` file ADDED on the
+    round branch relative to its merge-base with the seat branch (F5: "its
+    kid experiment nodes are under .agi/nodes/experiment/ on that branch").
+    The node id is `experiment:` + the file stem; the verdict is the node's
+    `verdict:` frontmatter field, or "" when the node carries none.
+
+    `git branch --list` + `git diff --name-only` are the ONLY reads; nothing
+    is written, checked out or merged."""
+    rc, out, _ = _fd_git(main, "diff", "--name-only", merge_base, branch,
+                         "--", nodes_rel)
+    if rc != 0:
+        return []
+    kids = []
+    for path in out.splitlines():
+        if not path.endswith(".md") or not path.startswith(nodes_rel + "/"):
+            continue
+        stem = path.rsplit("/", 1)[-1][:-3]
+        rc2, blob, _ = _fd_git(main, "show", f"{branch}:{path}")
+        verdict = ""
+        if rc2 == 0:
+            fm = _fd_frontmatter(blob)
+            for line in fm.splitlines():
+                if line.startswith("verdict:") and ":" in line:
+                    verdict = line.split(":", 1)[1].strip()
+                    break
+        kids.append((f"experiment:{stem}", verdict))
+    return kids
+
+
+def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
+    """The seat's OWN worktree directory, resolved in strict order:
+
+      1. the config:seats `worktree` field (resolved against the MAIN
+         checkout, so a relative `.agi/worktrees/seat-<S>` resolves like the
+         live rows) when it is a directory,
+      2. the convention `.agi/worktrees/seat-<S>` under the main checkout,
+      3. None.
+
+    Mirrors how `_fd_seat_branch` resolves the worktree; the seat's dispatch
+    wrote ITS iteration manifests inside this worktree, so this is where the
+    owned-agent evidence lives."""
+    row = _find_seat(root, seat)
+    wt = (row or {}).get("worktree") or ""
+    if wt:
+        p = Path(wt)
+        cand = p if p.is_absolute() else (main / wt)
+        if cand.is_dir():
+            return cand
+    conv = main / ".agi" / "worktrees" / f"seat-{seat}"
+    return conv if conv.is_dir() else None
+
+
+def _fd_seat_agent_ids(root: Path, main: Path, seat: str) -> set[str]:
+    """The set of agent ids the seat ITSELF dispatched, parsed from the seat
+    worktree's own iteration manifests — `<wt>/.agi/sessions/iter-*/manifest
+    .json` `agents[].id`. The seat's dispatch READ-BEFORE-WRITE wrote these
+    when it cut each round, so they are EVIDENCE of which rounds are this
+    seat's (the manifest-join discriminator, (b)), not a convention guess.
+    An unreadable / absent manifest or a missing worktree yields an empty
+    set — an under-count (no round credited), never a mis-attribution."""
+    wt = _fd_seat_worktree(root, main, seat)
+    if wt is None:
+        return set()
+    sess = wt / ".agi" / "sessions"
+    if not sess.is_dir():
+        return set()
+    ids: set[str] = set()
+    for manifest in sorted(sess.glob("iter-*/manifest.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for agent in data.get("agents") or []:
+            if isinstance(agent, dict) and agent.get("id"):
+                ids.add(str(agent["id"]))
+    return ids
+
+
+def _fd_agent_from_branch(branch: str) -> str:
+    """The agent id embedded in a round branch name, `loop/<slug>-a00-XXXXXX
+    XX@s<N>` — the `a00-<hex>` run immediately before the `@s<N>` season tag
+    (the dispatch convention, F5). Returns '' when the branch carries none,
+    so a manually-cut branch is unresolvable and never credited."""
+    m = re.search(r"(a00-[0-9a-zA-Z]+)@s\d+$", branch)
+    return m.group(1) if m else ""
+
+
+def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict]:
+    """The seat's OWN OPEN round branches, one dict per round.
+
+    A round is a local `loop/<slug>-<agent>@s<N>` branch (the dispatch
+    convention, F5) in the SAME season as the seat branch, that is NOT yet an
+    ancestor of the seat branch — i.e. it still carries commits the seat has
+    not merged (an open, un-harvested round). A round already merged in
+    (--no-ff makes its tip an ancestor of the seat branch) is closed and
+    skipped.
+
+    The glob alone is NOT enough: `loop/*@s<N>` crosses every district, so a
+    sibseat / parent round forking at the shared season base would be swept
+    in. OWNERSHIP is decided by EVIDENCE, discriminator (b) — the manifest
+    join, NOT ancestry (discriminator (a)): dispatch.py writes each spawned
+    agent's id into the seat worktree's own iteration manifests
+    (`<wt>/.agi/sessions/iter-*/manifest.json` `agents[].id`), so a round
+    `loop/<slug>-a00-XXXXXXXX@s<N>` belongs to THIS seat iff its agent id
+    appears in one of those manifests. A parent/sibseat round's agent id
+    lives in ITS OWN seat's manifests, never this one's, so it is dropped
+    outright — never shown with a parent copied from the seat's HEAD (a lie
+    is worse than a gap). The seat worktree is resolved from config:seats
+    `worktree`, falling back to `.agi/worktrees/seat-<S>`, exactly as
+    `_fd_seat_branch` does for the branch. A round whose agent id is not in
+    the owned set is dropped; one that cannot be resolved at all (no
+    `a00-<hex>` run) is unresolvable and would print `parent: ?` were it
+    surfaced — never a copied constant.
+
+    Measured caveat (discriminator (a)'s), now moot: ancestry dropped a
+    round the moment the seat ADVANCED past its fork point. The manifest
+    join does not — the seat's own dispatch record is stable regardless of
+    later merges.
+
+    Every branch name comes from `git branch --list`, so the exact name
+    printed is exactly what the merge line harvests with."""
+    m = re.search(r"@s(\d+)$", seat_branch)
+    season = m.group(1) if m else "2"
+    rc, out, _ = _fd_git(main, "branch", "--list", f"loop/*@s{season}")
+    if rc != 0:
+        return []
+    own_ids = _fd_seat_agent_ids(root, main, seat)
+    rounds = []
+    for line in out.splitlines():
+        # `git branch --list` prefixes `*` (current) / `+` (checked out in a
+        # linked worktree); strip all of it before the loop/ check.
+        branch = line.strip().lstrip("*+").strip()
+        if not branch or not branch.startswith("loop/"):
+            continue
+        rc_a, _, _ = _fd_git(main, "merge-base", "--is-ancestor",
+                             branch, seat_branch)
+        if rc_a == 0:
+            continue  # already merged into the seat: closed, not open
+        # discriminator (b) — the manifest join: the round is THIS seat's
+        # only if its agent id (parsed from the branch name) appears in the
+        # seat's own iteration manifests. No manifest hit => not this seat's
+        # round — dropped, never mis-credited with the seat's parent.
+        agent = _fd_agent_from_branch(branch)
+        if not agent or agent not in own_ids:
+            continue  # not this seat's round — never misattribute
+        rc_mb, mb, _ = _fd_git(main, "merge-base", seat_branch, branch)
+        merge_base = mb.split("\n", 1)[0] if rc_mb == 0 and mb else ""
+        rc_be, behind, _ = _fd_git(main, "rev-list", "--count",
+                                   f"{branch}..{seat_branch}")
+        behind_n = int(behind) if rc_be == 0 and behind.isdigit() else -1
+        kids = _fd_node_kids(main, branch, merge_base) if merge_base else []
+        rounds.append({
+            # `parent` is the seat branch ONLY for a manifest-verified OWN
+            # round (the branch the seat dispatched it from) — never a
+            # constant copied from the seat's HEAD.
+            "branch": branch,
+            "parent": seat_branch,
+            "merge_base": merge_base[:12] if merge_base else "?",
+            "behind": behind_n,
+            "kids": kids,
+        })
+    return rounds
+
+
+def _fd_short(ref: str) -> str:
+    s = str(ref).strip()
+    return s[:12] if len(s) > 12 else s
+
+
+def _fd_print_table(rows: list[dict]) -> None:
+    """Print the pre-filled harvest rows + the ONE bounded prompt per row.
+    The script never chooses; the LLM reads the prompt and writes --answers."""
+    if not rows:
+        print("first-decision: no open rounds for this seat")
+        return
+    for r in rows:
+        print(f"round: {r['branch']}")
+        print(f"  parent: {r['parent']}")
+        print(f"  merge-base: {r['merge_base']}  behind: {r['behind']}")
+        if r["kids"]:
+            kids = ", ".join(
+                f"{kid}{(' (' + ver + ')') if ver else ''}"
+                for kid, ver in r["kids"])
+            print(f"  kids: {kids}")
+        else:
+            print("  kids: (none)")
+        print(f"  prompt: harvest {r['branch']} | cut <next queued node> | hold")
+
+
+def _fd_next_commands(main: Path, rows: list[dict], answers: list[str]) -> None:
+    """Replay the LLM's choices into the named next command per row.
+
+    `answers` is one choice per open round, in the same order the table
+    printed them: `harvest <branch>` -> the git merge line carrying the EXACT
+    branch (the round-trip proof that the branch came from `git branch
+    --list`), `cut <node-id>` -> the dispatch line for that node, `hold` ->
+    nothing. Every line is PRINTED, never run — the falsifier: a step that
+    runs the merge or the dispatch is refused, and there is no code path
+    that could."""
+    for r, ans in zip(rows, answers):
+        tokens = ans.split()
+        verb = tokens[0] if tokens else ""
+        label = " ".join(tokens[1:]) if len(tokens) > 1 else ""
+        if verb == "harvest":
+            branch = label or r["branch"]
+            print(f"# harvest {r['branch']}")
+            print(f"git merge --no-ff {branch}")
+        elif verb == "cut":
+            node = label
+            print(f"# cut {node} (from round {r['branch']})")
+            print(f"python3 extensions/agi/bin/dispatch.py {main} <iter> "
+                  f"--target {node} --level small --branch")
+        else:  # hold / empty
+            print(f"# hold {r['branch']}")
+
+
+def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
+    """`rotate.py first-decision --seat S [--answers FILE]` — the POINT's
+    captive harvest-or-cut (hypothesis:l4-the-window-reply-and-harvest-or-
+    cut-are-captive-steps, step 4). Pre-fills the harvest row for every OPEN
+    round of the seat's worktree, prints ONE bounded prompt per row, and —
+    with --answers — prints the named next command per chosen row. PRINT
+    ONLY: merges and dispatches are never run."""
+    if root is None:
+        print("ERR: first-decision needs an agi project root.",
+              file=sys.stderr)
+        return 1
+    if getattr(args, "root", None):
+        root = Path(args.root).resolve()
+    seat = args.seat
+    main = locations.git_common_root(root)
+    seat_branch = _fd_seat_branch(root, main, seat)
+    if not seat_branch:
+        print(f"ERR: no worktree branch or seat/{seat}@s* branch resolves "
+              f"for seat {seat!r}.", file=sys.stderr)
+        return 1
+    rows = _fd_rounds(root, main, seat, seat_branch)
+    _fd_print_table(rows)
+    answers = getattr(args, "answers", None)
+    if answers:
+        p = Path(answers).expanduser().resolve()
+        if not p.exists():
+            print(f"ERR: --answers file not found: {p}", file=sys.stderr)
+            return 1
+        lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        print("# next commands (printed, never run):")
+        _fd_next_commands(main, rows, lines)
+    return 0
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -5699,6 +6831,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else refuse BY NAME with
+    # the behind-count and the sync command. `cfg_root` feeds seat + template
+    # resolution; every other rotate-self path keeps the worktree `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
         return 1
     seat = args.name
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
@@ -5730,7 +6873,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # the ladder inside spawn_window). Without --throwaway the gate holds
     # exactly as before — an unregistered name errors `no seat`.
     if not getattr(args, "throwaway", False):
-        row = _find_seat(root, seat)
+        row = _find_seat(cfg_root, seat)
         if row is None:
             print(f"ERR: no seat {seat!r} in the seats registry "
                   f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
@@ -5747,13 +6890,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     role = (row.get("role") if row else None) \
         or getattr(args, "role", None) or "parent"
     tmpl, tmpl_name, tmpl_src = _resolve_template(
-        root, role, getattr(args, "template", None))
+        cfg_root, role, getattr(args, "template", None))
     if tmpl is None:
         print(f"ERR: {tmpl_src}", file=sys.stderr)
         return 1
     print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
           f"brief={tmpl.get('brief_file')!r} "
-          f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')}")
+          f"steps={tmpl.get('steps')} telemetry={tmpl.get('telemetry')} "
+          f"geometry={geom_src}")
     # L4.112 (C): the ordered step list rotate-self runs comes from the
     # template, not from a hardcoded list. The progress markers in
     # `steps_reached` are spelled from these names where the step exists.
@@ -5818,7 +6962,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         rec_path = _rotate_self_started_path(root, seat)
         _write_rotate_self_started(
             rec_path, seat=seat, steps=steps_reached,
-            gen_before=gen_before, gen_after=gen)
+            gen_before=gen_before, gen_after=gen,
+            template_source=geom_src)
 
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
@@ -5827,7 +6972,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                        session_ref=session_ref)
         _rs_mark(steps_reached, tmpl_steps, "handoff", "1")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
@@ -5842,7 +6988,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
-                                       gen_before=gen_before, gen_after=gen)
+                                       gen_before=gen_before, gen_after=gen,
+                                       template_source=geom_src)
         print(f"(2) own-window rename: SKIPPED for numeral-chain seat "
               f"{seat!r} (`.genN` applies only to plain-named seats; the "
               f"own-window reap is GATED OFF at step (8) on a numeral- "
@@ -5854,7 +7001,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
-                                       gen_before=gen_before, gen_after=gen)
+                                       gen_before=gen_before, gen_after=gen,
+                                       template_source=geom_src)
         print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
@@ -5954,7 +7102,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if not args.dry_run:
         _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
@@ -6106,6 +7255,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                         print(f"        pane pid {pane_pid} -> ps -e chain "
                               f"{list(reversed(chain))!r}, TERM'd "
                               f"DEEPEST-FIRST, then the window killed by @id")
+        # (0b-b owed (i)) after_join dry-run: the template's `after_join` list
+        # is ENUMERATED (resolved, NOTHING run, no delay, no record write, no
+        # dm) so a caller sees exactly what the service/rotate-self will run
+        # after spawn. The captive copy-paste line is printed as the decision
+        # the successor would receive.
+        if startup:
+            plan = run_after_join(root, seat=seat, gen=gen,
+                                  startup=startup, values=startup_values,
+                                  dry_run=True,
+                                  record_path=str(rec_path) if rec_path else None)
+            print(f"(9) after_join dry-run: {len(plan['results'])} command(s) "
+                  f"resolved after a {plan['delay_s']}s delay; NOTHING run, no "
+                  f"dm sent")
+            for r in plan["results"]:
+                state = "REFUSED: " + r["refused"] if r.get("refused") \
+                    else "dry-run"
+                print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
+            print("    captive dm decision line (the successor's SECOND input):")
+            print(f"    python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+                  f"--gen {gen} --ref <your ListAgents ref> diff --text -")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
@@ -6267,7 +7436,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     if w == pfx or w.startswith(pfx + "-"))}
         _rs_mark(steps_reached, tmpl_steps, "handover", "4.5")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     elif joined is not None and not joined["found"]:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
@@ -6288,7 +7458,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if not args.dry_run:
         _rs_mark(steps_reached, tmpl_steps, "readback", "4")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
-                                   gen_before=gen_before, gen_after=gen)
+                                   gen_before=gen_before, gen_after=gen,
+                                   template_source=geom_src)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -6406,6 +7577,44 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         pred=pred, readback_log=log, cursor_offset=offset,
         handover=handover, steps_reached=steps_reached), path=rec_path)
 
+    # (6.4) THE SERVICE performs the captive after_join first turn (0b-b owed
+    #     (i)). rotate-self is the FALLBACK performer when NO persistent
+    #     service runs (`agent_dispatch.inline_reaper` truthy = the reaper runs
+    #     inline in dispatch, so no heal.py watch owns after_join). When the
+    #     watch loop IS the service (inline_reaper false — the live box),
+    #     rotate-self leaves after_join to it and says so. A fixture forces
+    #     the fallback via `--after-join` (getattr) without touching config.
+    aj = None
+    _force_aj = bool(getattr(args, "after_join", False))
+    if not _inline_reaper_enabled(root) and not _force_aj:
+        print("(6.4) after_join deferred to the persistent service "
+              "(agent_dispatch.inline_reaper=false)")
+    else:
+        # joined facts re-resolved for the after_join values (the successor
+        # identity is known only now).
+        # Director fix-ups at the SL1.07 harvest (sensei-director L2):
+        # `{succ_ref}` is the ListAgents ref the successor NAMED in its ack
+        # (read at (4)) when it did — the JOIN's succ_session_id is the
+        # session uuid, not an address a peer can message; and a FIXTURE run
+        # (window_path seam) has no live successor to wait on, so its delay
+        # is 0 — the default 20 s sleep ran for real in five selfreap
+        # fixtures (115 s of suite time) before this line.
+        aj_values = _first_turn_values(
+            root, seat=seat, gen=gen, succ_name=spawn_name,
+            succ_ref=((ack or {}).get("session_ref") or succ_session_id
+                      or ""),
+            succ_transcript=succ_transcript or "",
+            tmux_session=tmux_session)
+        aj = run_after_join(
+            root, seat=seat, gen=gen, startup=startup or {},
+            values=aj_values, record_path=str(record_path),
+            delay_override=(0 if getattr(args, "window_path", None)
+                            is not None else None))
+        print(f"(6.4) after_join performed by rotate-self (fallback): "
+              f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
+              f"delay; record appended: {aj['appended']}, dm sent: "
+              f"{aj['sent']}")
+
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
     #     (L3.39 ordering — evidence and announcement both survive cleanup).
@@ -6418,7 +7627,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
-        live_names=succ.get("names", []))
+        live_names=succ.get("names", []),
+        # mechanism 1: the address a peer can message is `name [ref]` where
+        # ref is the successor's ListAgents ref — which arrives ONLY in its
+        # ack (`ack --ref`, F8). The JOIN's succ_session_id is the Claude
+        # session uuid from the registry file, a different identity (director
+        # fix-up at the SL1.06 harvest, measured on rotation 172702Z: join
+        # session_id 27179681-…, ListAgents ref caa927). So the announce
+        # carries the ACK's ref, and NAMES pre-join when the ack had none.
+        successor_ref=((ack or {}).get("session_ref") or ""),
+        successor_window=succ_window_id or "")
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
     #     r4 / e / D / r5): after the record is written and (6.5) announced:
@@ -6920,6 +8138,11 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
+    p_spawn.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to a plain spawn (owed item v)")
     p_spawn.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help="tmux session to create the window in "
                              f"(default: {DEFAULT_TMUX_SESSION})")
@@ -6949,6 +8172,11 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
+    p_loop.add_argument("--seat", default=None,
+                        help="seat successor identity; when given, AGI_SEAT=<name> "
+                             "is exported before the claude argv so the SessionStart "
+                             "hook copy can fire at turn one. Absent -> launch line "
+                             "byte-identical to today (owed item v)")
     p_loop.add_argument("--model", default=None, help="model override")
     p_loop.add_argument("--effort", default=None, help="effort override")
     p_loop.add_argument("--settings", default=None,
@@ -7105,6 +8333,10 @@ def main(argv: list[str] | None = None) -> int:
     p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
                      help="field value source; FIELD is s3 or s6, SRC is a "
                           "filename or `-` for stdin (repeatable)")
+    p_h.add_argument("--dry-run", dest="dry_run", action="store_true",
+                     help="compose the card and print it to stdout but write "
+                          "nothing, so the director judges before the real "
+                          "write")
     p_h.set_defaults(func=cmd_handoff)
 
     # prepare: the captive rotate-out checklist (goal:g15.14 STEP 2).
@@ -7118,6 +8350,26 @@ def main(argv: list[str] | None = None) -> int:
                       help="seat name (a seat-bound checklist: card path, "
                            "meter pin, ack file)")
     p_pr.set_defaults(func=cmd_prepare)
+
+
+    # first-decision --seat S: the point's CAPTIVE harvest-or-cut
+    # (hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps,
+    # step 4). Pre-fills the harvest row for each OPEN round, prints ONE
+    # bounded prompt per row, and (--answers) prints the named next command.
+    # PRINT ONLY — the merge/dispatch are never run.
+    p_fd = sub.add_parser(
+        "first-decision", help="the point's captive harvest-or-cut: print "
+                                "the pre-filled row + ONE bounded prompt per "
+                                "open round; --answers replays the choice "
+                                "into the named next command (never run)")
+    p_fd.add_argument("--seat", required=True, help="seat name")
+    p_fd.add_argument("--answers", default=None,
+                      help="file of choices, one per open round in table "
+                           "order: 'harvest <branch>' | 'cut <node-id>' | "
+                           "'hold'")
+    p_fd.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_fd.set_defaults(func=cmd_first_decision)
 
     # rotate-self --name S: the non-prime self-rotation primitive
     p_rs = sub.add_parser(
@@ -7280,7 +8532,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
-                    "next", "seats-launch", "seq", "handoff", "prepare"):
+                    "next", "seats-launch", "seq", "handoff", "prepare",
+                    "first-decision"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
