@@ -43,7 +43,8 @@ templates:
         - {"label": "pin", "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}", "why": "gen X call 5: the pin claim on the successor's own transcript, path derived from ~/.claude/sessions/<pid>.json"}
         - {"label": "ack", "cmd": "python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref {succ_ref} continue", "why": "written by rotate-self as the default; the successor may write `diff` later if the handoff needs a change"}
         - {"label": "reap-proof", "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}' || echo 'predecessor chain gone'", "why": "gen X calls 3, 9: the predecessor's process tree checked twice by hand"}
-      delivery: first_turn outputs are appended to the successor's first input turn after the head and the brief, under `## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)`; after_join outputs need the successor's identity and are delivered as its SECOND input (one dm through the fixed nudge) and written into the rotation record
+      delivery: "first_turn outputs are appended to the successor's first input turn after the head and the brief, under `## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)`. after_join is PERFORMED BY THE SERVICE (the persistent watcher, or rotate-self's post-spawn tail) after_join_delay_s after spawn as ONE flow — the agent runs nothing; its outputs are written into the rotation record and delivered as the successor's SECOND input (one dm through the fixed nudge); where a decision remains (only `diff` against the handoff) the dm is CAPTIVE: it prints the exact next tokens to emit (owner 2026-09-11 03:0xZ)."
+      after_join_delay_s: 20
   prime_director:
     brief_file: extensions/agi/briefs/prime-director-successor.md
     steps:
@@ -81,7 +82,8 @@ templates:
         - {"label": "ack", "cmd": "python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref {succ_ref} continue", "why": "written by rotate-self as the default; the successor may write `diff` later if the handoff needs a change"}
         - {"label": "reap-proof", "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}' || echo 'predecessor chain gone'", "why": "gen X calls 3, 9: the predecessor's process tree checked twice by hand"}
         - {"label": "belam-chain", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep belam-S1", "why": "the chain must be five"}
-      delivery: as director; the prime's `verify-suite` stays a granted-window command and is NOT run at startup
+      delivery: "first_turn outputs are appended to the successor's first input turn after the head and the brief, under `## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)`. after_join is PERFORMED BY THE SERVICE (the persistent watcher, or rotate-self's post-spawn tail) after_join_delay_s after spawn as ONE flow — the agent runs nothing; its outputs are written into the rotation record and delivered as the successor's SECOND input (one dm through the fixed nudge); where a decision remains (only `diff` against the handoff) the dm is CAPTIVE: it prints the exact next tokens to emit (owner 2026-09-11 03:0xZ). The prime's `verify-suite` stays a granted-window command and is NOT run at startup; the Belam chain is kept by predecessor pins (hypothesis:l4-the-pin-is-the-lease), not by a reap step."
+      after_join_delay_s: 20
 thought_session: belam-S1-L4-VII
 title: "Rotation templates — one node, three sections: templates, facts, steps"
 ---
