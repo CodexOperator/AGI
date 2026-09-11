@@ -390,3 +390,161 @@ def test_watch_alive_past_deadline_still_timeout_not_death(graph_project,
     text = _inbox(graph_project, "director").read_text()
     assert "reason=timeout" in text
     assert "reason=death" not in text
+
+
+# --- hypothesis:l4-the-manifest-mirrors-terminal-agent-status --------------
+# A TERMINAL agent.json (done/failed/timeout) whose manifest entry still reads
+# `running` — an agent that finished its work and exited but whose manifest was
+# never updated — must have the terminal truth MIRRORED onto the manifest entry
+# by a clean `_watch_round`, with exactly ONE log line and NO dm (a clean `done`
+# is not an alarm). This is a MIRROR, not a reap: the id never lands in
+# `marked`/`still`/`died`, and a still-running agent is left untouched.
+def _mirror_round(graph: Path, name: str, agent_id: str,
+                  rec_status: str, rec_extra=None) -> None:
+    """A round whose agent.json is TERMINAL (rec_status) but whose manifest
+    entry still says `running` — the clean-mirror gap."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    rec = {"id": agent_id, "status": rec_status,
+           "dispatched_by": "director", "finished_at": 1234567890}
+    if rec_extra:
+        rec.update(rec_extra)
+    (adir / "agent.json").write_text(json.dumps(rec, indent=2))
+
+
+def _entry(graph: Path, name: str, agent_id: str):
+    m = json.loads((graph / "sessions" / f"iter-{name}" / "manifest.json")
+                   .read_text())
+    for e in m["agents"]:
+        if e["id"] == agent_id:
+            return e
+    return {}
+
+
+def test_watch_mirrors_a_clean_done_onto_the_manifest(graph_project, monkeypatch):
+    """agent.json `done` + manifest `running` -> after one `_watch_round` pass
+    the manifest entry reads `done` with `finished_at` mirrored; ONE log line,
+    NO dm."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "M", "kid-m", "done")
+
+    iter_dir = graph_project / "sessions" / "iter-M"
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "M", "kid-m")["status"] == "done"
+    assert _entry(graph_project, "M", "kid-m")["finished_at"] == 1234567890
+    assert not _inbox(graph_project, "director").exists(), \
+        "a clean done must NOT send a dm"
+
+    log_text = log.read_text()
+    assert log_text.count("MIRRORED") == 1, "exactly ONE log line per mirror"
+
+
+def test_watch_mirror_is_idempotent_no_repeat_log_or_write(graph_project,
+                                                           monkeypatch):
+    """A second `_watch_round` pass over an already-mirrored entry adds no new
+    log line and no new write (the manifest mtime is unchanged)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "N", "kid-n", "done")
+    iter_dir = graph_project / "sessions" / "iter-N"
+
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+    mp = graph_project / "sessions" / "iter-N" / "manifest.json"
+    mtime = mp.stat().st_mtime_ns
+    log_len = len(log.read_text())
+
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+
+    assert mp.stat().st_mtime_ns == mtime, "no rewrite on an already-consistent entry"
+    assert len(log.read_text()) == log_len, "no new log line on a second pass"
+    assert log.read_text().count("MIRRORED") == 1
+
+
+def test_watch_mirror_and_running_agent_untouched(graph_project, monkeypatch):
+    """Inside ONE pass: a terminal done is mirrored while a still-running
+    agent (agent.json `running` + manifest `running`) is left exactly as-is —
+    no finished_at, entry unchanged."""
+    it = graph_project / "sessions" / "iter-O"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [
+            {"id": "done-a", "status": "running", "dispatched_by": "director"},
+            {"id": "live-b", "status": "running", "dispatched_by": "director"},
+        ],
+    }, indent=2))
+    for aid in ("done-a", "live-b"):
+        (it / aid).mkdir(parents=True, exist_ok=True)
+    (it / "done-a" / "agent.json").write_text(json.dumps(
+        {"id": "done-a", "status": "done", "dispatched_by": "director",
+         "finished_at": 999}, indent=2))
+    (it / "live-b" / "agent.json").write_text(json.dumps(
+        {"id": "live-b", "status": "running", "dispatched_by": "director",
+         "started_at": int(time.time())}, indent=2))
+
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    heal._watch_round(graph_project, it, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "O", "done-a")["status"] == "done"
+    assert _entry(graph_project, "O", "live-b")["status"] == "running"
+    assert _entry(graph_project, "O", "live-b").get("finished_at") is None, \
+        "a live agent must not gain finished_at"
+    assert "live-b" not in _entry(graph_project, "O", "done-a")
+
+
+def test_watch_mirrors_failed_and_timeout_agent_json_too(graph_project,
+                                                         monkeypatch):
+    """The mirror branch is not done-only: a `failed` and a `timeout`
+    agent.json mirror onto the manifest the same way (with fail_reason)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "P", "kid-p", "failed",
+                  {"fail_reason": "boom"})
+    _mirror_round(graph_project, "Q", "kid-q", "timeout",
+                  {"timeout_reason": "past deadline"})
+
+    for it in (graph_project / "sessions" / "iter-P",
+               graph_project / "sessions" / "iter-Q"):
+        heal._watch_round(graph_project, it, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "P", "kid-p")["status"] == "failed"
+    assert _entry(graph_project, "P", "kid-p")["fail_reason"] == "boom"
+    assert _entry(graph_project, "Q", "kid-q")["status"] == "timeout"
+    assert _entry(graph_project, "Q", "kid-q")["finished_at"] == 1234567890
+
+
+def test_watch_mirror_falsifier_no_terminal_behind_running(graph_project,
+                                                           monkeypatch):
+    """FALSIFIER: after one pass over every mirror fixture, no manifest entry
+    reads `running` whose own agent.json is terminal."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    _mirror_round(graph_project, "R", "done-z", "done")
+    _mirror_round(graph_project, "S", "fail-z", "failed", {"fail_reason": "x"})
+    it = graph_project / "sessions" / "iter-T"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [{"id": "run-z", "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    (it / "run-z").mkdir(parents=True, exist_ok=True)
+    (it / "run-z" / "agent.json").write_text(json.dumps(
+        {"id": "run-z", "status": "running"}, indent=2))
+
+    for nm in ("R", "S", "T"):
+        heal._watch_round(graph_project, graph_project / "sessions" / f"iter-{nm}",
+                          heal._WatcherAdapter())
+
+    for nm in ("R", "S"):
+        e = _entry(graph_project, nm, {"R": "done-z", "S": "fail-z"}[nm])
+        assert e["status"] != "running", \
+            f"iter-{nm} entry must not read running after one pass"
