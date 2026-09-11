@@ -3302,6 +3302,186 @@ def test_ack_no_ref_leaves_session_ref_empty(tmp_path, monkeypatch, capsys):
     assert ack["session_ref"] == ""
 
 
+def _ack_seed_git(tmp_path, session_ref=""):
+    """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
+    COMMITTED seats.md carrying one row — the r3b `ack ... continue` COMMITS
+    path. sessions/ is gitignored so the ack.json the ack writes stays out of
+    `git status`. Returns (graph_root, repo_top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path, ladder_roles="")
+    # the graph root carries the project marker (write.submit resolves the
+    # graph root DESCEND-ONLY inside `root`, like `.agi/config.json` in live)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
+                               "model": "x", "effort": "max",
+                               "settings": "", "session_ref": session_ref}])
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "seats seed"], check=True)
+    return root, tmp_path
+
+
+def _git_head(top):
+    return subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def test_ack_continue_commits_own_row_write(tmp_path, monkeypatch, capsys):
+    """r3b falsifier 1: `continue` COMMITS the row it just back-filled — the
+    tree is clean, exactly ONE new commit whose diff-tree lists seats.md only
+    and whose message is `<seat> ack: gen <N>, session_ref <ref>, ...`, and
+    the ack prints the seat's +/- row lines plus the exact `git push` line as
+    its last line (never runs it)."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    after = _git_head(top)
+    assert after != before                      # exactly ONE new commit
+    status = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                            capture_output=True, text=True)
+    assert status.stdout.strip() == ""          # clean tree (ack own write)
+    files = subprocess.run(["git", "-C", str(top), "diff-tree",
+                            "--no-commit-id", "--name-only", "-r", after],
+                           capture_output=True, text=True).stdout.split()
+    assert files == ["proj/nodes/.geometry/seats.md"]   # seats.md ONLY
+    msg = subprocess.run(["git", "-C", str(top), "log", "-1",
+                          "--format=%s", after],
+                         capture_output=True, text=True).stdout.strip()
+    assert msg == "belam ack: gen 7, session_ref f52a4c, window , pid"
+    out = capsys.readouterr().out
+    assert "ack: committed own row write" in out
+    assert any(ln.startswith("+") for ln in out.splitlines())
+    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "git -C {0} push".format(top) in out  # exact push line printed
+    assert "--no-commit" not in out
+
+
+def test_ack_no_commit_leaves_working_tree(tmp_path, monkeypatch, capsys):
+    """r3b falsifier 2: `--no-commit` (even on continue) leaves seats.md
+    MODIFIED and HEAD unchanged — write + print, no commit, no push line."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    before = _git_head(top)
+    rel = "proj/nodes/.geometry/seats.md"
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        no_commit=True), root)
+    assert code == 0
+    assert _git_head(top) == before              # HEAD unchanged
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"  # write still happened
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain",
+                         "--", rel], capture_output=True, text=True)
+    assert st.stdout.strip()                      # seats.md MODIFIED
+    out = capsys.readouterr().out
+    assert "back-filled session_ref=f52a4c" in out
+    assert "git -C {0} push".format(top) not in out
+    assert "ack: committed" not in out
+
+
+def test_ack_commits_nothing_when_row_already_carries_ref(
+        tmp_path, monkeypatch, capsys):
+    """r3b falsifier 3: a back-fill that changed nothing (row already carries
+    the ref) commits nothing and says so in one line."""
+    root, top = _ack_seed_git(tmp_path, session_ref="f52a4c")
+    monkeypatch.chdir(root)
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 0
+    assert _git_head(top) == before              # nothing committed
+    status = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                            capture_output=True, text=True)
+    assert status.stdout.strip() == ""
+    out = capsys.readouterr().out
+    assert "row already carries session_ref=f52a4c" in out
+    assert "nothing to back-fill or commit" in out
+    assert "git -C {0} push".format(top) not in out
+
+
+def test_ack_diff_answer_never_commits(tmp_path, monkeypatch, capsys):
+    """r3b (2): `diff` is the no-commit default — write + print, HEAD
+    unchanged, no push line (the successor still edits)."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="diff", text=""),
+        root)
+    assert code == 0
+    assert _git_head(top) == before
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    out = capsys.readouterr().out
+    assert "back-filled session_ref=f52a4c" in out
+    assert "git -C {0} push".format(top) not in out
+    assert "ack: committed" not in out
+
+
+def test_ack_dirty_seats_refused_before_write(tmp_path, monkeypatch, capsys):
+    """r3b (4): a pre-dirtied seats.md (unrelated hunk in THAT file) makes
+    the committing `continue` exit non-zero (3) with seats.md byte-identical
+    and no commit — the ack never bundles someone else's row change."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    pristine = seats.read_text(encoding="utf-8")
+    # unrelated dirty hunk in seats.md before the ack
+    seats.write_text(pristine + "unrelated-dirty-hunk\n", encoding="utf-8")
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 3
+    assert seats.read_text(encoding="utf-8") == pristine + "unrelated-dirty-hunk\n"
+    assert _git_head(top) == before               # no commit
+    # row was NOT back-filled (refused before any write)
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    err = capsys.readouterr().err
+    assert "dirty" in err and "refuse" in err
+    assert "!" not in rotate._ack_seats_dirty(root, top).split()[0]
+
+
+def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
+    """r3b boundary: the dirty refusal is for the COMMIT path only — a
+    `--no-commit` ack on the same dirty seats.md proceeds (write + print, no
+    commit), because there is no commit to bundle."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8") + "dirty\n",
+                     encoding="utf-8")
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        no_commit=True), root)
+    assert code == 0
+    assert _git_head(top) == before
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    out = capsys.readouterr().out
+    assert "back-filled session_ref=f52a4c" in out
+    assert "git -C {0} push".format(top) not in out
+
+
 def test_bootstrap_writes_before_spawn_in_rotate_self():
     """Owed item (iv) — turn-one proof is a CODE-ORDER falsifier, not a code-
     position guess. `cmd_rotate_self` must write the bootstrap record BEFORE
