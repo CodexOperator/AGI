@@ -2014,3 +2014,72 @@ def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
     # None -> the guard keeps the plain season/s2 base, byte-for-byte.
     _git(repo, "checkout", "-b", "loop/slug-aaaa@s2")
     assert _current_town_branch(repo, nodes) is None
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the parent-kid
+# ceiling becomes a refusal, not just a printed number.
+# ---------------------------------------------------------------------------
+
+def _kid_manifest(n_kids, by="P"):
+    """A manifest with n_kids records all stamped spawned_by_agent=<by>."""
+    return {
+        "iter": 1,
+        "agents": [
+            {"id": f"k{i}", "tier": "kid", "spawned_by_agent": by}
+            for i in range(n_kids)
+        ],
+    }
+
+
+def _kid_cfg(ceiling):
+    return {"spawn": {"parent_max_kids": ceiling}}
+
+
+def test_parent_kid_ceiling_gate_refuses_at_ceiling_and_names_both_numbers(monkeypatch):
+    """FIXTURES ONLY — a temp manifest, never this repo. A parent that has
+    already dispatched `spawn.parent_max_kids` kids is REFUSED its next kid
+    with BOTH numbers in the message, exactly the shape the brief expects
+    ('refuses kid 6' at ceiling 5)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    refused = dispatch._parent_kid_ceiling_gate(_kid_manifest(5), _kid_cfg(5), 1)
+    assert refused is not None
+    code, msg = refused
+    assert code == 2
+    assert "ERR parent P has dispatched 5 kids" in msg
+    assert "spawn.parent_max_kids=5" in msg
+    assert "refuses kid 6" in msg
+
+
+def test_parent_kid_ceiling_gate_passes_below_the_ceiling(monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(4), _kid_cfg(5), 1) is None
+    # exactly at the ceiling is allowed when THIS invocation adds no kid
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(5), _kid_cfg(5), 0) is None
+
+
+def test_parent_kid_ceiling_gate_counts_only_that_parents_kids(monkeypatch):
+    """Records spawned by OTHER parents or by nobody must not count against
+    this parent's ceiling."""
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    manifest = {
+        "agents": (
+            [{"id": f"o{i}", "tier": "kid", "spawned_by_agent": "OTHER"}
+             for i in range(5)]
+            + [{"id": "human", "tier": "kid"}]  # no spawned_by_agent at all
+        )
+    }
+    assert dispatch._parent_kid_ceiling_gate(manifest, _kid_cfg(5), 1) is None
+
+
+def test_parent_kid_ceiling_gate_fails_open_without_agent_id(monkeypatch):
+    """A director or a human at a shell has no AGI_AGENT_ID — the gate must
+    NEVER fire, however many kid records exist, exactly like the stale-base
+    gate."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    assert dispatch._parent_kid_ceiling_gate(_kid_manifest(50), _kid_cfg(5), 1) is None
+
+
+def test_parent_kid_ceiling_gate_passes_with_no_manifest_agents(monkeypatch):
+    monkeypatch.setenv("AGI_AGENT_ID", "P")
+    assert dispatch._parent_kid_ceiling_gate({"agents": []}, _kid_cfg(5), 1) is None

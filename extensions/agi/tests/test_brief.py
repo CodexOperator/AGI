@@ -247,9 +247,24 @@ def test_branch_parent_brief_names_branch_and_defers_the_commit(monkeypatch):
     assert "git add" not in parent and "git commit" not in parent, (
         "the model must not be handed commit commands to run"
     )
-    # Daylight between the two halves: a --branch parent still knows it holds
-    # a branch, but the prohibit/reason halves are otherwise identical.
-    assert "NO git commands yourself" in parent
+    # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the old blanket
+    # "run NO git commands yourself" is GONE for the branch case because it
+    # directly forbade the one merge the hypothesis requires: the parent now
+    # OWNS the merge (item 5) and `git merge --no-ff` is the sole git
+    # operation it runs (item 6).
+    assert "NO git commands yourself" not in parent, (
+        "the branch parent must no longer be told it runs no git: it owns "
+        "the merge"
+    )
+    assert "MERGE PROTOCOL" in parent, "branch brief must carry the merge protocol"
+    assert "git merge --no-ff" in parent, (
+        "branch brief must keep git merge --no-ff as what the helper does "
+        "underneath"
+    )
+    # The disjoint-file-scope rule for parallel fan-out is in every parent brief.
+    assert "DISJOINT" in parent.upper() or "disjoint" in parent, (
+        "parent brief must state the disjoint-file-scope rule for parallel fan-out"
+    )
 
 
 def test_non_branch_parent_brief_still_forbids_all_git():
@@ -261,6 +276,70 @@ def test_non_branch_parent_brief_still_forbids_all_git():
     assert "git add" not in parent, (
         "a main-checkout parent must not be handed the commit commands"
     )
+
+
+def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
+    """hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the branch
+    parent's brief must carry the merge protocol in the brief's own words:
+    the `season.py merge-kids` helper merges each kid branch onto the round
+    branch in dispatch order, union-resolving node-file conflicts onto the
+    merged bytes and suite-gating them (a green kid branch is not a green
+    union); a SOURCE conflict is resolved by the parent as an edit it owns
+    and names; and a review note listing every kid branch merged / conflict /
+    not-merged."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    lower = parent.lower()
+    # union resolution for NODE conflicts, and the explicit no-blind-3way rule
+    assert "union" in lower, "node conflict must be resolved by UNION, not by apply"
+    assert "agent notes" in lower
+    assert "3way" in lower, "brief must forbid a blind git apply --3way"
+    # source conflicts are the parent's own named edits
+    assert "conflict in source" in lower
+    # kid 3: the NAMED verb is the supported helper (`season.py merge-kids`),
+    # not raw git. A parent must follow item 5 without inventing argv, so the
+    # brief names the verb, a runnable path, and that it runs the suite on the
+    # merged bytes so the parent does not re-run it separately.
+    assert "merge-kids" in parent, (
+        "branch brief must name the merge-kids helper as the parent's merge step"
+    )
+    assert "season.py" in parent, (
+        "branch brief must give a runnable helper path (season.py), not ask "
+        "the parent to hand-roll the merge"
+    )
+    assert "raw git" in lower, (
+        "the parent must be told the helper is the merge and it runs no raw git"
+    )
+    assert "do not re-run" in lower or "does not re-run" in lower, (
+        "the brief must say the helper runs the suite on merged bytes so the "
+        "parent does not re-run it separately"
+    )
+    # tests re-run with neighbours on the MERGED bytes, not trusted per-branch
+    assert "merged" in lower
+    assert "neighbours" in lower or "neighbors" in lower
+    assert "green kid branch is not a green union" in lower or "green union" in lower
+    # review note accounts for every branch and conflict, merged or not
+    assert "not merged" in lower or "not merge" in lower
+    assert "review note" in lower
+    # the merge is THE one git operation; the rest stays forbidden
+    assert "one git" in lower or "the one git" in lower
+    assert "no push" in lower and "no rebase" in lower
+
+
+def test_branch_parent_disjoint_scope_says_serialised_until_disjoint(monkeypatch):
+    """hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the FAN-OUT
+    paragraph must say a parent fans out in parallel ONLY when the kids' file
+    scopes are DISJOINT, and kids touching the same file are SERIALIZED."""
+    monkeypatch.setenv("AGI_PARENT_BRANCH", "loop/slug-abc@s3")
+    monkeypatch.setenv("AGI_PARENT_WORKTREE", "/repo/.agi/worktrees/abc")
+    monkeypatch.setenv("AGI_PARENT_BASE_BRANCH", "season/s3")
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    lower = parent.lower()
+    assert "disjoint" in lower, "brief must state the disjoint-file-scope rule"
+    assert "serialized" in lower, "same-file kids must be serialized"
+
 
 
 def test_a_parent_with_no_target_still_gets_a_usable_brief():
