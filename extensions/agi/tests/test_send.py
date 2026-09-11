@@ -469,6 +469,75 @@ def test_read_clears_announced_so_new_state_types(project: Path, monkeypatch,
     assert len(_typed(calls)) == 2, calls
 
 
+# ── a consuming read clears the coalesced nudge count ──
+# (hypothesis:l4-a-read-clears-the-coalesced-nudge-count): the count is
+# "how many sends coalesced into the one token", and a read drains them
+# all. An empty read and a peek must NOT touch the sidecars.
+
+
+def test_read_clears_coalesced_nudge_count(project: Path):
+    """A read that consumes unread resets `.nudge.pending` to 0, drops the
+    announced digest, and leaves `_seat_has_pending` False -- the repaired
+    outcome: heal no longer types a bare nudge at an empty idle pane after
+    every read."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    # three dms coalesced while the pane was busy/queued -> count becomes 3
+    for _ in range(3):
+        send_mod._bump_pending(project, seat)
+    assert send_mod._pending_more(project, seat) == 3
+
+    send_mod.read(project, seat, "prime")
+
+    assert send_mod._pending_more(project, seat) == 0, \
+        "a consuming read must clear the coalesced nudge count"
+    assert send_mod._announced_digest(project, seat) is None
+    assert send_mod._seat_has_pending(project, seat) is False, \
+        "no fresh wake after a consuming read with nothing new sent"
+
+
+def test_read_on_already_empty_inbox_leaves_count_untouched(project: Path):
+    """An empty read must NOT touch the sidecars: a pre-existing coalesced
+    count survives a read that consumed nothing."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    # an already-read inbox: only the marker, nothing after it -> no unread
+    inbox.write_text("to: sanctuary-director\n" + send_mod.READ_MARKER)
+    for _ in range(2):
+        send_mod._bump_pending(project, seat)
+    assert send_mod._pending_more(project, seat) == 2
+
+    send_mod.read(project, seat, "prime")
+
+    assert send_mod._pending_more(project, seat) == 2, \
+        "an empty read must not clear the pre-existing count"
+
+
+def test_peek_leaves_the_coalesced_nudge_count(project: Path):
+    """peek is unchanged: it shows unread without consuming, so the count
+    and the announced digest survive a peek."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    send_mod._bump_pending(project, seat)   # one coalesced dm
+    send_mod._record_announced(project, seat, "digest")
+    assert send_mod._pending_more(project, seat) == 1
+
+    send_mod.peek(project, seat)
+
+    assert send_mod._pending_more(project, seat) == 1, \
+        "peek must not clear the coalesced count"
+    assert send_mod._announced_digest(project, seat) == "digest"
+    # and peek consumed nothing: a read now drains the count
+    send_mod.read(project, seat, "prime")
+    assert send_mod._pending_more(project, seat) == 0
+    assert send_mod._announced_digest(project, seat) is None
+
+
 def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
                                                        monkeypatch, capsys):
     """Clause (3): when the row window @id is no longer a LISTED window,

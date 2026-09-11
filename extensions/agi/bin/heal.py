@@ -19,8 +19,13 @@ Returns 0 when ALL agents are in terminal status (done/pending/hung-then-healed/
 from __future__ import annotations
 
 import argparse
+import contextlib
+import datetime
+import importlib.util
+import io
 import json
 import os
+import re
 import shlex
 import signal
 import subprocess
@@ -41,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
+import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
 def _default_role_for_tier(tier):
     """Mirror dispatch's default (role == tier) for the heal path."""
     return tier or "kid"
@@ -102,6 +108,8 @@ def main() -> int:
     # untouched so driver.sh's heal call parses identically.
     if len(sys.argv) > 1 and sys.argv[1] == "watch":
         return _main_watch()
+    if len(sys.argv) > 1 and sys.argv[1] == "sweep":
+        return _main_sweep()
     return _main_heal()
 
 
@@ -433,6 +441,322 @@ def _run_pending_after_joins(root: Path) -> None:
                        f"dm sent: {result.get('sent')})")
 
 
+def _sweep_season(branch: str) -> int | None:
+    """Season from a `loop/<slug>-<agent8>@s<N>` branch name, or None.
+    Used to fall back to `origin/season/s<N>` as the round's base when the
+    worktree's own session records no `base_branch`."""
+    if not branch:
+        return None
+    m = re.search(r"@s(\d+)\s*$", branch)
+    if not m:
+        return None
+    try:
+        return int(m.group(1))
+    except ValueError:
+        return None
+
+
+def _git(args: list[str], cwd: Path) -> tuple[list[str], int]:
+    """`git <args>` run in `cwd`, returning (stdout lines, returncode).
+    Best-effort: a broken git yields (empty, nonzero), never raises."""
+    try:
+        out = subprocess.run(["git", "-C", str(cwd), *args],
+                             capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return [], 1
+    return (out.stdout or "").splitlines(), out.returncode
+
+
+def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None:
+    """The branch this round was cut from, for the ancestry check.
+
+    Prefers the `base_branch` dispatch wrote into the worktree's own session
+    records (the same tuple season.py merge-up climbs); falls back to
+    `origin/season/s<N>` from the loop branch. None means the round's base
+    cannot be resolved, so its worktree is NOT removed (a round whose landing
+    cannot be proven must not be reaped)."""
+    sess = wt / ".agi" / "sessions"
+    if sess.is_dir():
+        for it in sorted(sess.glob("iter-*")):
+            ap = it / "agent.json"
+            if ap.exists():
+                try:
+                    bb = json.loads(ap.read_text()).get("base_branch")
+                except (json.JSONDecodeError, OSError):
+                    bb = None
+                if bb:
+                    return bb
+            mp = it / "manifest.json"
+            if mp.exists():
+                try:
+                    man = json.loads(mp.read_text())
+                except (json.JSONDecodeError, OSError):
+                    man = {}
+                for e in man.get("agents") or []:
+                    bb = e.get("base_branch")
+                    if bb:
+                        return bb
+    if season is not None:
+        return f"origin/season/s{season}"
+    return None
+
+
+def _sweep_iter_name(wt: Path) -> str:
+    """The round's iter-dir name as carried in the worktree, or `?` when the
+    worktree has none (the `worktree carries no iter-* dir` condition)."""
+    dirs = sorted(wt.glob(".agi/sessions/iter-*"))
+    return dirs[0].name if dirs else "?"
+
+
+def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
+    """The `git status --porcelain` entries that are NOT under a worktree's
+    own `.agi/sessions/` (per-worktree session scratch is the one tolerated
+    residue; everything else makes the tree dirty and therefore unremovable
+    without `--force`)."""
+    dirty: list[str] = []
+    for ln in status_lines:
+        path = ln[3:].strip().strip('"')
+        if path.startswith(".agi/sessions/"):
+            continue
+        dirty.append(path)
+    return dirty
+
+
+# session-complete refusal markers we reduce to short named reasons in the
+# `[sweep] refused ... session dir not home (<reason>)` line. Order matters:
+# the FIRST match below wins for a refusal whose stdout carries more than one.
+def _sweep_refusal_reason(text: str) -> str:
+    for needle, tag in (
+        ("not every agent record is terminal", "non-terminal"),
+        ("target already exists and is not empty", "target exists"),
+        ("a live lease is active", "live lease"),
+        ("this source's own contribution did not verify", "verify failed"),
+    ):
+        if needle in text:
+            return tag
+    return "home failed"
+
+
+def _sweep_bring_home(root: Path, main_sessions: Path, iter_name: str,
+                      dry_run: bool, homed: dict) -> str | None:
+    """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
+sweep-judges-it.
+
+    Bring a NOT-home round's session dir home via `cli._session_complete`, the
+    one sanctioned caller of that normally-manual command. Resolves `root`
+    (the main graph root the sweep already holds), calls it ONCE PER
+    ITERATION per pass (the `homed` memo guards a `--branch` round whose
+    iter dir sits in TWO worktrees -- `worktree=None` lets the one call
+    merge every source into one target). session-complete's OWN guards stay
+    the authority and are neither duplicated nor bypassed: no live lease for
+    the iteration, every agent record terminal, target not already
+    non-empty, copy-then-verify-then-remove-each-source-by-its-own-
+    contribution. Returns None when the iter dir came home (or would, in a
+    dry run); else a short refusal reason for the `session dir not home` log.
+    Never writes anything itself -- the migrate is session-complete's, this
+    only decides by its captured stdout (dry-run) or the on-disk target.
+    """
+    if iter_name in homed:
+        # already attempted this pass; the memoized outcome holds, but the
+        # on-disk target is always re-read because a sibling may have landed it
+        return None if (main_sessions / iter_name).is_dir() else homed[iter_name]
+    try:
+        import cli as _cli  # noqa: E402 — cli imports evidence_gate/locations/
+        # spawn_budget, so heal must NOT load it at module import time
+    except Exception as exc:  # noqa: BLE001
+        homed[iter_name] = f"cli import failed ({exc})"
+        return homed[iter_name]
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            _cli._session_complete(
+                root, locations.iteration_id(iter_name),
+                worktree=None, dry_run=dry_run)
+        text = buf.getvalue()
+    except Exception as exc:  # noqa: BLE001 — session-complete raised
+        homed[iter_name] = f"home failed (raised: {exc})"
+        return homed[iter_name]
+    if dry_run:
+        # a dry-run session-complete returns 0 for would-migrate, REFUSE and
+        # no-candidate alike -- decide by the CAPTURED stdout, never the rc.
+        if "WOULD migrate" in text and "REFUSE" not in text:
+            homed[iter_name] = ""
+            return None
+        homed[iter_name] = _sweep_refusal_reason(text)
+        return homed[iter_name]
+    # LIVE: only the on-disk target is the proof, never a return code.
+    if (main_sessions / iter_name).is_dir():
+        homed[iter_name] = ""
+        return None
+    homed[iter_name] = _sweep_refusal_reason(text)
+    return homed[iter_name]
+
+
+def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
+                              grace_min: int | None = None
+                              ) -> tuple[int, int, int]:
+    """hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest.
+
+    ONE pass over the main checkout's agent worktrees under
+    `<graph>/worktrees/a00-*`, removing each FINISHED round's worktree when
+    ALL hold:
+      (1) no live spawn-budget lease names the agent (the lease dir is the
+          liveness source, never ps by name);
+      (2) the worktree's HEAD is an ancestor of the branch it was cut from
+          (a round that never landed is NOT removed -- `unmerged`);
+      (3) `git status --porcelain` is empty apart from `.agi/sessions/`
+          paths (a dirty tree is REFUSED by name, never forced);
+      (4) the round's session dir has come home to the main checkout, or
+          the worktree carries no `iter-*` dir at all;
+      (5) the worktree directory is older than the grace
+          (`reaper.worktree_grace_min`, default 30; `.agi/config.json` is
+          read, never edited).
+    Removal is `git -C <main> worktree remove <wt>` WITHOUT `--force`, then
+    `git worktree prune`; the `loop/...` branch is KEPT (refs are history).
+    `--dry-run` logs the same `[sweep] removed` lines and removes nothing.
+    Logs one `[sweep]` line per action and a per-pass summary. Never raises
+    into the watch loop. Returns `(removed, refused, kept)`."""
+    removed = refused = kept = 0
+    wt_base = root / "worktrees"
+    if not wt_base.is_dir():
+        return (0, 0, 0)
+    main_checkout = locations.git_common_root(root)
+    if grace_min is None:
+        grace_min = 30
+        try:
+            cfg_path = locations.config_path(root)
+            if cfg_path is not None:
+                cfg = json.loads(cfg_path.read_text())
+                grace_min = int(cfg.get("reaper", {}).get(
+                    "worktree_grace_min", grace_min))
+        except (ValueError, TypeError, OSError, json.JSONDecodeError):
+            pass  # a malformed grace -> the default stays
+    try:
+        live_ids = {r.get("agent_id") for r in
+                    spawn_budget.live_agents(root) if r.get("agent_id")}
+    except Exception as exc:  # noqa: BLE001 — an unreadable budget must NOT
+        # open a removal window. Fail CLOSED: skip the whole sweep this pass --
+        # every worktree stays, live lease or not. `live_ids = set()` here would
+        # wrongly treat every agent as dead and let a merged+clean+grace-old
+        # live worktree be removed under a transient budget failure.
+        _watch_log(f"[sweep] skipped: budget unreadable ({exc})")
+        return (0, 0, 0)
+    main_sessions = locations.sessions_dir(root)
+    homed: dict[str, str] = {}  # iter dirname -> "" (home) | refusal reason,
+    # memoized per pass so a `--branch` round's TWO trees home its iter dir ONCE
+    now = time.time()
+    # Pre-resolve each worktree's BASE (the branch it was cut from) READ-ONLY
+    # BEFORE any bring-home runs. A `--branch` round's single merge-home
+    # (session-complete, worktree=None) removes the iter dir from EVERY tree it
+    # was found in, so a second tree's records would be gone by its turn in the
+    # loop -- pre-resolving here (hyp:l4-a-finished-rounds-session-dir-comes-
+    # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
+    base_pre: dict[str, str] = {}
+    for wt_p in sorted(wt_base.glob("a00-*")):
+        if not wt_p.is_dir():
+            continue
+        b0, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt_p)
+        base_pre[wt_p.name] = _sweep_worktree_base(
+            root, wt_p, _sweep_season(b0[0] if b0 else ""))
+    for wt in sorted(wt_base.glob("a00-*")):
+        if not wt.is_dir():
+            continue
+        agent_id = wt.name
+        # (1) liveness from the shared lease dir, never ps by name.
+        if agent_id in live_ids:
+            kept += 1
+            _watch_log(f"[sweep] kept {agent_id}: live")
+            continue
+        branch_lines, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt)
+        branch = branch_lines[0] if branch_lines else ""
+        season = _sweep_season(branch)
+        base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
+        if not base:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
+            continue
+        head_lines, _ = _git(["rev-parse", "HEAD"], wt)
+        head = head_lines[0] if head_lines else ""
+        # (2) a round that never landed is NOT removed.
+        if not head:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no HEAD)")
+            continue
+        _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
+                         main_checkout)
+        if anc_rc != 0:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged")
+            continue
+        # (3) a dirty tree is REFUSED by name, never forced.
+        status_lines, _ = _git(["status", "--porcelain"], wt)
+        dirty = _sweep_dirty_paths(status_lines)
+        if dirty:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: dirty "
+                       f"({len(dirty)} paths)")
+            continue
+        # (4)/(5) A finished round's session dir comes home before the sweep
+        # judges condition (4): for a leaseless+merged+clean round, the GRACE
+        # check moves AHEAD of the bring-home step, so a director's hand
+        # harvest inside the 30-minute window is never raced by the reaper --
+        # only a past-grace round is ever homed (or reaped) by the sweep.
+        # The worktree directory must be older than the configured grace.
+        try:
+            age_min = (now - wt.stat().st_mtime) / 60.0
+        except OSError:
+            age_min = 0.0
+        if age_min < grace_min:
+            kept += 1
+            _watch_log(f"[sweep] kept {agent_id}: grace "
+                       f"({age_min:.0f}m < {grace_min}m)")
+            continue
+        # (4) the round's session dir must have come home (or there is none).
+        wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
+        if wt_iters:
+            not_home = [d.name for d in wt_iters
+                        if not (main_sessions / d.name).is_dir()]
+            if not_home:
+                rejected: list[str] = []
+                homed_now: set[str] = set()
+                for dn in not_home:
+                    reason = _sweep_bring_home(root, main_sessions, dn,
+                                               dry_run, homed)
+                    if reason is None:
+                        homed_now.add(dn)
+                        _watch_log(f"[sweep] homed {agent_id} iter={dn}")
+                    else:
+                        rejected.append(f"{dn}:{reason}")
+                # condition (4) is re-read from DISK for a LIVE pass; a
+                # dry-run wrote nothing, so a would-home (helper returned
+                # None) counts as home for the removal decision here.
+                remaining = [d.name for d in wt_iters
+                             if not (main_sessions / d.name).is_dir()
+                             and d.name not in homed_now]
+                if remaining:
+                    refused += 1
+                    _watch_log(f"[sweep] refused {agent_id}: session dir not "
+                               f"home ({','.join(rejected)})")
+                    continue
+        iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
+        if dry_run:
+            _watch_log(f"[sweep] removed {agent_id} "
+                       f"iter={iter_name} base={base} (dry-run)")
+            removed += 1
+            continue
+        _, rm_rc = _git(["worktree", "remove", str(wt)], main_checkout)
+        if rm_rc != 0:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: remove failed")
+            continue
+        _git(["worktree", "prune"], main_checkout)
+        _watch_log(f"[sweep] removed {agent_id} "
+                   f"iter={iter_name} base={base}")
+        removed += 1
+    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}")
+    return (removed, refused, kept)
+
+
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
@@ -451,6 +775,20 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # operator. The reaper logic above is untouched.
         _repair_stranded_wakes(root)
         _run_pending_after_joins(root)
+        # hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human
+        # (kid 1 of 2): the SAME seat rows the wake repair reads are now
+        # scanned for a DEAD seat each pass — pid gone, window @id gone (the
+        # live-first row; (1c) name-lineage deleted, prime XI 19:38Z), no
+        # rotation in flight — and the dead seat is NAMED once and recorded
+        # as a `crash-recovery` rotation record (the once-guard). kid 2 owns
+        # the respawn half.
+        _watch_seats(root)
+        # hypothesis:l4-a-finished-rounds-worktree-is-removed-after-harvest:
+        # once per pass, sweep finished rounds' worktrees. Run unconditionally
+        # (never gated on inline_reaper) so a harness that harvests with raw
+        # `git merge` still gets its residue cleaned by the persistent
+        # watcher. Best-effort; never raises into the watch loop.
+        _sweep_finished_worktrees(root)
         if once:
             break
         _watch_log(f"watch: pass complete over {len(rounds)} round(s); "
@@ -470,6 +808,22 @@ def _main_watch() -> int:
     given = Path(args.root).resolve()
     root = locations.find_project_root(given) or given
     _watch(root, once=args.once, poll_s=args.poll_s)
+    return 0
+
+
+def _main_sweep() -> int:
+    ap = argparse.ArgumentParser(prog="heal.py sweep")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root to sweep")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print what would be removed, remove nothing")
+    # `main()` already consumed the leading `sweep` token; parse what follows.
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    removed, refused, kept = _sweep_finished_worktrees(root,
+                                                       dry_run=args.dry_run)
+    print(f"sweep: removed={removed} refused={refused} kept-live={kept}")
     return 0
 
 
@@ -499,6 +853,586 @@ def _repair_stranded_wakes(root: Path) -> None:
         except Exception as exc:                          # noqa: BLE001
             print(f"warn: wake repair for {seat!r} failed: {exc}",
                   file=sys.stderr)
+
+
+# --- heal.py watch: dead-seat detection + classification + record -----
+# hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human (kid 1 of
+# 2: DETECT + CLASSIFY + RECORD; the respawn half is kid 2, a serial sibling
+# spawned only after this node merges). The persistent watch pass already
+# reads every seat row each poll; THIS pass decides which seat is DEAD (pid
+# gone + window @id gone + no window named for the seat + no rotation in
+# flight), reads a `probable_cause` from the tail of the seat's session log
+# through an ordered signature table, NAMES the dead seat ONCE, and writes ONE
+# durable `crash-recovery` rotation record that is ALSO the once-guard (a
+# second pass never re-names / re-records). A row carrying `recover: false`
+# is NAMED but never recorded as an action; absent means recover. This half
+# never respawns — spawn is kid 2.
+
+#: Test seam for the window list: a window-path file (one `@<N> <name>` or
+#: bare `<name>` line per window) the same way rotate.py's `--window-path`
+#: seams real tmux. Live passes read `tmux list-windows -a`, so a successor
+#: window under any session is still seen (1c reads ACROSS sessions).
+WINDOW_PATH_ENV = "AGI_WINDOW_PATH"
+
+#: A `started` rotation record within this window means a rotation in flight,
+#: not a crash (1d).
+SEAT_DEAD_WINDOW_S = 600
+
+#: Ordered signature table for `probable_cause`, keyed on literal substrings
+#: in the tail of the seat's session log; first match wins, else `unknown`.
+#: `must_also` guards a signature whose marker is only meaningful alongside
+#: another (a pytest probe that reached cmd_rotate_self). Each entry is
+#: `(cause, any_of, all_also)`.
+_CAUSE_SIGNATURES = [
+    ("pane-local-pytest-reap",
+     ("cmd_rotate_self",), ("pytest_current_test", "test_probe", "pytest ")),
+    ("idle-external-teardown",
+     ("uds shutdown", "epoch mismatch (409, session_not_active)",
+      "updatepidfile"), ()),
+    ("remote-control-disconnect",
+     ("disconnect", "connection closed"), ()),
+]
+
+
+def _classify_death(tail: str) -> str:
+    """probable_cause for a dead seat from the tail of its session log.
+    Literal-substring ordered table, first match wins, else `unknown`.
+    Never guesses: an unmatched tail is `unknown`, never a made-up cause."""
+    t = tail.lower()
+    for cause, any_of, must_also in _CAUSE_SIGNATURES:
+        if any(s in t for s in any_of):
+            if not must_also or any(s in t for s in must_also):
+                return cause
+    return "unknown"
+
+
+def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
+    """`[(window_id, window_name), ...]` across EVERY tmux session, or from
+    the window-path test seam (`AGI_WINDOW_PATH` / explicit `window_path`):
+    one `@<N> <name>` or bare `<name>` line per window. `-a` lists windows in
+    all sessions so a successor's window under another session is still seen."""
+    if window_path is None:
+        window_path = os.environ.get(WINDOW_PATH_ENV)
+    if window_path:
+        p = Path(window_path)
+        if not p.exists():
+            return []
+        out: list[tuple[str, str]] = []
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            ln = ln.strip()
+            if not ln:
+                continue
+            if ln.startswith("@"):
+                wid, _, name = ln.partition(" ")
+                out.append((wid.strip(), name.strip()))
+            else:
+                out.append(("", ln))
+        return out
+    try:
+        res = subprocess.run(
+            ["tmux", "list-windows", "-a", "-F", "#{window_id} #{window_name}"],
+            capture_output=True, text=True, timeout=5)
+        if res.returncode == 0:
+            out = []
+            for ln in res.stdout.splitlines():
+                ln = ln.strip()
+                if not ln:
+                    continue
+                wid, _, name = ln.partition(" ")
+                out.append((wid.strip(), name.strip()))
+            return out
+    except Exception:  # noqa: BLE001 — tmux absent/down: [] (pid gate is primary)
+        pass
+    return []
+
+
+def _window_present(row: dict,
+                    windows: list[tuple[str, str]]) -> tuple[bool, bool]:
+    """(1b) the row's `window` @id is present in tmux. Returns
+    `(id_present, False)` — the second cell is the DELETED (1c) name-lineage
+    check, kept in the tuple shape so callers/tests read unchanged.
+
+    (1c) matched any window named `<seat>` or `<seat>-…`. PRIME XI RULING
+    2026-09-11 19:38Z (mur-40 window): a tmux window NAME IS NOT AN ADDRESS.
+    For a numeral-chain seat the predecessor chain (belam-S1-L4-V … -XI) is
+    an OWNER STANDING RULE — rotated primes idle in their windows, capped at
+    five, never killed — so a name-lineage test is satisfied by every
+    predecessor forever and crash-recovery for the prime was structurally
+    dead, not merely masked (measured by the L4.283 harvest: belam with @289
+    removed still read named=True). Its only justification was the worktree
+    row lag (a live successor whose row has not merged up yet), and the row
+    handed here is already read LIVE-FIRST from the seat's own worktree
+    (`_live_seat_row`), so (1b) on that row is the whole check. Interim per
+    the ruling until identity cells get one writer that writes MAIN; the
+    falsifier is a corpse detected WITH the predecessor windows still open."""
+    win_id = (row.get("window") or "").strip()
+    id_present = bool(win_id) and any(
+        w == win_id for (w, _n) in windows)
+    return id_present, False
+
+
+def _parse_record_ts(s: str) -> float | None:
+    """Parse a rotation record `recorded_at`; None when unparsable.
+    The `Z` suffix is UTC (rotate.py writes `datetime.utcnow().isoformat() +
+    "Z"`), so a UTC-stamped record must NOT be read as local time on a
+    non-UTC host (this box is EST). Naive-local (timezone-less) timestamps
+    are a tolerated fallback for hand-written records."""
+    for body in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            dt = datetime.datetime.strptime(s, body + "Z")
+            return dt.replace(tzinfo=datetime.timezone.utc).timestamp()
+        except ValueError:
+            pass
+        try:
+            return datetime.datetime.strptime(s, body).timestamp()
+        except ValueError:
+            continue
+    return None
+
+
+def _seat_geometry_dir(root: Path, row: dict) -> Path:
+    """The seat's own geometry root (the dir whose `nodes/` holds its seats
+    file and whose `sessions/` holds its live session log). For a worktree
+    seat that is the worktree's own `.agi` (live-first, F2), else `root`."""
+    wt = (row.get("worktree") or "").strip()
+    if wt:
+        gdir = Path(root) / "worktrees" / Path(wt).name / ".agi"
+        if gdir.is_dir():
+            return gdir
+    return Path(root)
+
+
+CRASH_LOOP_MAX_PER_HOUR = 3
+
+
+def _crash_recovery_recorded(root: Path, seat: str, _rotate,
+                             now: float | None = None) -> bool:
+    """The once-guard, keyed on a RESPAWN OUTCOME, never on mere detection
+    (the defect kid 2 holds) — and BOUNDED IN TIME, never "ever". A
+    `crash-recovery` record whose `result` is `respawned` within the last
+    `SEAT_DEAD_WINDOW_S` (10 min, the same window (1d) grants a rotation in
+    flight) means the loop already healed this death and the successor is
+    still waking -> a second pass must not re-name, re-record or re-spawn.
+    An OLDER `respawned` record does NOT suppress: found by the L4.283
+    harvest's live proof (sanctuary-director 182119Z 19:29Z) — on the round's
+    bytes the guard scanned every record ever written, so the FIRST recovery
+    of a seat was also its LAST (the recovered successor's own death, minutes
+    later, read `0 dead` forever). A `result: detected`-only record never
+    suppresses (the spawn failed or was never attempted; the NEXT pass must
+    retry). CRASH LOOP: `CRASH_LOOP_MAX_PER_HOUR` or more `respawned` records
+    in the last hour -> suppressed and NAMED in the watch log, because a seat
+    that dies every few minutes is a finding for a human, not a spawn budget
+    (the Belam cap of FIVE bounds the numeral chain the same way)."""
+    rot = _rotate._rotations_dir(root)
+    if not rot.is_dir():
+        return False
+    now = now if now is not None else time.time()
+    recent: list[float] = []
+    for path in sorted(rot.glob(f"{seat}.*.json")):
+        try:
+            rec = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if (rec.get("rotation") != "crash-recovery"
+                or rec.get("result") != "respawned"):
+            continue
+        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        if ts is None:
+            continue
+        if (now - ts) <= SEAT_DEAD_WINDOW_S:
+            return True
+        if (now - ts) <= 3600:
+            recent.append(ts)
+    if len(recent) >= CRASH_LOOP_MAX_PER_HOUR:
+        _watch_log(f"watch: seat {seat!r}: {len(recent)} crash-recoveries in the "
+             "last hour -- CRASH LOOP, not respawning again; a human decides")
+        return True
+    return False
+
+
+def _rotation_in_flight(root: Path, seat: str, _rotate,
+                        now: float) -> bool:
+    """(1d) a rotation record for the seat is `started` within the last
+    10 minutes -> a rotation in flight, not a crash."""
+    rot = _rotate._rotations_dir(root)
+    if not rot.is_dir():
+        return False
+    for path in sorted(rot.glob(f"{seat}.*.json")):
+        try:
+            rec = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if rec.get("result") != "started":
+            continue
+        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        if ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S:
+            return True
+    return False
+
+
+def _live_seat_row(gdir: Path, seat: str, _rotate) -> dict | None:
+    """Read the seat row LIVE-FIRST from `<gdir>/nodes/.geometry/seats.md`
+    (a worktree seat's row reaches MAIN only at its merge-up, so a worktree
+    seat must be read from its own copy first). None when absent."""
+    try:
+        rows = _rotate._load_seats(gdir) or []
+    except Exception:  # noqa: BLE001
+        return None
+    for r in rows:
+        if r.get("name") == seat:
+            return r
+    return None
+
+
+def _read_seat_log_tail(root: Path, row: dict, _rotate,
+                        nbytes: int = 8192) -> str:
+    """The tail of the seat's session log, live-first from its own tree,
+    falling back to the main copy; '' when neither is readable."""
+    seat = (row.get("name") or "").strip()
+    if not seat:
+        return ""
+    cands: list[Path] = []
+    gdir = _seat_geometry_dir(root, row)
+    own = _rotate._sessions_dir(gdir) / f"{seat}.log"
+    cands.append(own)
+    main = _rotate._sessions_dir(root) / f"{seat}.log"
+    if main != own:
+        cands.append(main)
+    for p in cands:
+        try:
+            if p.exists():
+                data = p.read_bytes()
+                return data[-nbytes:].decode("utf-8", errors="replace")
+        except Exception:  # noqa: BLE001
+            continue
+    return ""
+
+
+#: Launcher seam for the recovered successor. A real recover launches through
+#: tmux; the FIXTURE injects a fake launcher so it never spawns a real model.
+RECOVER_LAUNCHER_ENV = "AGI_RECOVER_LAUNCHER"
+
+
+def _launch_recovered(root: Path, name: str, shell_cmd: str,
+                      window_path: str | None = None) -> tuple[int | None, str]:
+    """Real tmux new-window launch of a recovered successor (mirrors
+    rotate._launch_window's shape; the PID is not derivable from tmux, so the
+    successor ack resolves its own identity/ref). Returns `(pid, window @id)`:
+    pid is `None` when launched-but-unknown (row skips pid), `0` when the
+    spawn FAILED (the recover records `detected` and the next pass retries).
+    Never raises into the watch pass."""
+    import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
+    tmux_session = _rotate.DEFAULT_TMUX_SESSION
+    launch_cmd = f"cd {shlex.quote(str(root))} && {shell_cmd}"
+    try:
+        proc = subprocess.run(
+            ["tmux", "new-window", "-t", tmux_session, "-n", name,
+             "-P", "-F", "#{window_id}", launch_cmd],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
+        return 0, ""
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
+        print(f"warn: recovered spawn of {name!r} failed: {detail}",
+              file=sys.stderr)
+        return 0, ""
+    wid = (proc.stdout.strip().splitlines()[-1]
+           if proc.stdout.strip() else "")
+    return None, wid
+
+
+def _load_launcher(launcher) -> callable | None:
+    """Resolve the recover launcher callable: an explicit `launcher` wins;
+    else `AGI_RECOVER_LAUNCHER` naming a python file that exports `launch(
+    root, name, shell_cmd, window_path) -> (pid, window_id)`; else None (real
+    tmux). Called once per `_watch_seats` pass."""
+    if launcher is not None:
+        return launcher
+    envp = os.environ.get(RECOVER_LAUNCHER_ENV)
+    if envp:
+        p = Path(envp)
+        if p.is_file():
+            spec = importlib.util.spec_from_file_location("heal_launcher", p)
+            mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+            spec.loader.exec_module(mod)  # type: ignore[union-attr]
+            return getattr(mod, "launch", None)
+    return None
+
+
+def _clean_stale_layout_locks(root: Path, row: dict) -> None:
+    """GRACEFUL: a stale `verify-suite.lock` under the dead seat's tree is
+    removed with a log line (verification.py holds it under `<groot>/sessions/`;
+    the dead seat is the only holder that could still be mid-suite, and a stale
+    lock would wedge the next suite run forever). Live-first geometry tree;
+    best-effort, never raises."""
+    gdir = _seat_geometry_dir(root, row) / "sessions"
+    lock = gdir / "verify-suite.lock"
+    if lock.is_file():
+        try:
+            lock.unlink()
+            _watch_log(f"watch: removed stale verify-suite.lock under "
+                       f"{gdir} for dead seat {(row.get('name') or '')!r}")
+        except OSError as exc:
+            print(f"warn: could not remove stale lock {lock}: {exc}",
+                  file=sys.stderr)
+
+
+def _dm_crash_recovery(root: Path, row: dict, old_pid: int, cause: str,
+                       name: str, window_id: str, gen: int) -> None:
+    """Exactly ONE dm to the dead seat's `rotated_by` holder AND one to the
+    Sensei, both naming the crash + the respawn outcome. Undeliverable -> one
+    stderr line, never fatal."""
+    seat = str(row.get("name") or "").strip()
+    holder = str(row.get("rotated_by") or "").strip()
+    recipients = [r for r in (holder, "master-sensei") if r]
+    ts = datetime.datetime.utcnow().isoformat() + "Z"
+    wid = f"@{window_id}" if window_id and not str(window_id).startswith("@") \
+        else (str(window_id or "-"))
+    body = (f"[crash-recovery] {seat} pid {old_pid} dead at {ts} "
+            f"({cause}); respawned {name} gen {gen} @id {wid}")
+    try:
+        import send as _send  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        return
+    for to in recipients:
+        try:
+            _send.send(root, to, body, "heal")
+        except Exception as exc:  # noqa: BLE001
+            print(f"warn: crash-recovery dm to {to} failed: {exc}",
+                  file=sys.stderr)
+
+
+def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
+                  windows: list[tuple[str, str]], window_path: str | None,
+                  launcher, now: float) -> dict:
+    """RESPAWN a dead seat through its EXISTING spawn path and bind the
+    successor's row. Builds the successor command with rotate.spawn_window
+    (dry-run) using the ROW's own model/effort/settings, names the successor by
+    the seat's rule exactly as rotate-self does (a chain seat — role
+    prime_director — gets the next Roman numeral; a plain seat the seat name),
+    launches through the launcher seam, writes `generation`/`window`/`pid`/
+    `session_id` into the seat's own config:seats row via the row writer
+    (`session_ref` stays empty for the successor's ack) and sends ONE dm each
+    to the `rotated_by` holder and the Sensei. Returns
+    `{respawned, name, generation, pid, window, reason, row}`."""
+    seat = str(row.get("name") or "").strip()
+    role = str(row.get("role") or "").strip()
+    tier = str(row.get("tier") or role or "kid").strip()
+    model = row.get("model")
+    effort = row.get("effort")
+    settings = row.get("settings")
+    existing = [w for (_i, w) in windows]
+    old_pid = int(row.get("pid", 0) or 0)
+
+    is_chain = (role == "prime_director")
+    if is_chain:
+        spawn_name = _rotate._derive_successor_name(existing, prefix=seat)
+        _base, gen = _rotate._split_roman_suffix(spawn_name)
+    else:
+        spawn_name = seat
+        # generation follows rotate-self's plain-seat rule (`_read_generation`
+        # from the HANDOFF + 1), falling back to the ROW's own `generation`
+        # cell when the handoff is gone: a crash can consume the handoff too,
+        # and a recovery following a row already at gen 3 must be gen 4, not
+        # restart at 1.
+        base = _rotate._read_generation(root, seat)
+        if base <= 0:
+            base = int(row.get("generation", 0) or 0)
+        gen = base + 1
+    if spawn_name in existing:
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": f"successor window {spawn_name!r} already exists",
+                "row": "skipped"}
+    # GRACEFUL: a suite lock the dead seat owned must not wedge the next run.
+    _clean_stale_layout_locks(root, row)
+
+    dbg = str(_rotate._sessions_dir(root) / f"{seat}.log")
+    prompt_file = None
+    if role == "prime_director":
+        # the prime resumes on the standing prime brief.
+        prompt_file = _rotate.DEFAULT_PROMPT_FILE
+    else:
+        # A director/helper resumes on ITS OWN quorum card — the file
+        # rotate-self hands its successor (`--prompt-file
+        # .agi/sessions/quorum/<seat>.md`, F16) — never the assembled generic
+        # brief, which carries none of the seat's §0-§3 state (the 22-32-call
+        # spawn-seating wakes the Sensei measured on 175816Z/181834Z). Found
+        # by the L4.283 harvest's live proof (sanctuary-director 182119Z
+        # 19:27Z): with prompt_file None, spawn_window assembled the generic
+        # director brief. Absent card -> the assembled brief, as before.
+        card = _rotate._sessions_dir(root) / "quorum" / f"{seat}.md"
+        if card.is_file():
+            prompt_file = str(card)
+    ack_gate = (
+        "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
+        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
+        "--ref <your ListAgents ref> continue` to take your identity."
+    )
+    try:
+        rc, shell_cmd = _rotate.spawn_window(
+            name=spawn_name, tier=tier, prompt_file=prompt_file,
+            model=model, effort=effort, settings=settings,
+            root=root, window_path=window_path, dry_run=True,
+            debug_file=dbg, extra=ack_gate, seat=seat)
+    except Exception as exc:  # noqa: BLE001
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": f"spawn_window raised: {exc}", "row": "skipped"}
+    if rc != 0 or not shell_cmd:
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": f"spawn_window refused (rc={rc})", "row": "skipped"}
+
+    launcher = launcher if launcher is not None else _launch_recovered
+    pid, window_id = launcher(root, spawn_name, shell_cmd, window_path)
+    if pid == 0:
+        # spawn did not land -> the seat stays dead; record `detected` only so
+        # the NEXT pass retries (the defect pin).
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": "launcher reported no successor process",
+                "row": "skipped"}
+    # pid is None (launched, unknown) or a real int -> the recovery landed.
+    row_pid = pid if pid else None   # None keeps `_successor_row_write` pid-free
+    try:
+        row_text = _rotate._successor_row_write(
+            root, actor=seat, seat=seat, role=role, session_ref="",
+            generation=gen, window=window_id or spawn_name,
+            pid=row_pid, session_id="")
+    except Exception as exc:  # noqa: BLE001
+        row_text = f"row write FAILED: {exc}"
+    _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
+    return {"respawned": True, "name": spawn_name, "generation": gen,
+            "pid": pid, "window": window_id, "reason": "", "row": row_text}
+
+
+def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
+                          _rotate, now: float, outcome: dict | None = None) \
+        -> Path:
+    """Write ONE durable `rotation: crash-recovery` record carrying the
+    probable_cause AND the respawn outcome (`result: respawned` with the
+    successor name/generation/pid/window when recovery landed, else `result:
+    detected` so the next pass retries). Discoverable by
+    `rotate.py status --record latest <seat>` and the Sensei audit glob."""
+    res = "respawned" if (outcome and outcome.get("respawned")) else "detected"
+    rec = {
+        "rotation": "crash-recovery",
+        "seat": seat,
+        "recorded_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "result": res,
+        "probable_cause": cause,
+        "row": {k: cells.get(k) for k in (
+            "name", "role", "model", "pid", "window", "session_id",
+            "generation", "worktree")},
+    }
+    if outcome:
+        rec["respawn_outcome"] = {
+            "name": outcome.get("name"),
+            "generation": outcome.get("generation"),
+            "pid": outcome.get("pid"),
+            "window": outcome.get("window"),
+            "reason": outcome.get("reason") or "",
+            "row": outcome.get("row") or "",
+        }
+    path = _rotate._write_rotation_record(root, rec)
+    _watch_log(f"watch: wrote crash-recovery record for {seat}: "
+               f"{Path(path).name} (probable_cause={cause} result={res})")
+    return path
+
+
+def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
+                    _rotate, *, now: float | None = None,
+                    pid_alive=None, window_path: str | None = None,
+                    launcher=None) -> dict:
+    """Decide DEAD for one seat row; NAME it once; then, if the seat is
+    recoverable, RESPAWN it through its existing spawn path, write its row, dm
+    the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
+    empty dict when nothing is done, else
+    `{seat, probable_cause, recorded, respawned?, outcome?}`."""
+    now = now if now is not None else time.time()
+    pid_alive = pid_alive if pid_alive is not None else _pid_alive
+
+    seat = (row.get("name") or "").strip()
+    if not seat:
+        return {}
+    # worktree seat -> re-read its row live-first from its own geometry.
+    gdir = _seat_geometry_dir(root, row)
+    row = _live_seat_row(gdir, seat, _rotate) or row
+
+    pid = int(row.get("pid", 0) or 0)
+    if pid <= 0:
+        return {}  # only rows carrying a pid are candidate seats
+    # once-guard keyed on a RESPAWN OUTCOME: an earlier `respawned` record
+    # means this death is already healed — never re-name, never re-record,
+    # never re-spawn on a later pass. A `detected`-only record does NOT stop
+    # the respawn (the defect pin: that seat is still dead).
+    if _crash_recovery_recorded(root, seat, _rotate, now=now):
+        return {}
+    # (1a) the row pid is gone from the process table.
+    if pid_alive(pid):
+        return {}
+    # (1b) the LIVE-FIRST row's window @id is gone from tmux. (1c), the
+    # window-name lineage, is DELETED (prime XI ruling 19:38Z: a name is not
+    # an address; see _window_present).
+    id_present, _named = _window_present(row, windows)
+    if id_present:
+        return {}
+    # (1d) a rotation in flight is not a crash.
+    if _rotation_in_flight(root, seat, _rotate, now):
+        return {}
+
+    cause = _classify_death(_read_seat_log_tail(root, row, _rotate))
+    recover = bool(row.get("recover", True))
+    cells = {k: row.get(k) for k in (
+        "name", "role", "model", "pid", "window", "session_id",
+        "generation", "worktree")}
+    line = (f"DEAD seat {seat} (role={cells.get('role')} "
+            f"model={cells.get('model')} pid={cells.get('pid')} "
+            f"window={cells.get('window') or '-'} "
+            f"generation={cells.get('generation')} "
+            f"probable_cause={cause})")
+    print(line, file=sys.stderr)
+    _watch_log(f"watch: {line}")
+    if not recover:
+        # recover:false -> NAMED, never recorded as an action, NEVER respawned.
+        _watch_log(f"watch: {seat} is recover:false; named only, no "
+                   f"crash-recovery record")
+        return {"seat": seat, "probable_cause": cause, "recorded": False}
+    outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
+                            window_path=window_path, launcher=launcher,
+                            now=now)
+    _write_crash_recovery(root, seat, cause, cells, _rotate, now, outcome)
+    return {"seat": seat, "probable_cause": cause, "recorded": True,
+            "respawned": bool(outcome.get("respawned")), "outcome": outcome}
+
+
+def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
+                 window_path: str | None = None, launcher=None) -> list[dict]:
+    """One dead-seat scan over every configured seat row that carries a pid.
+    No-op when rotate cannot be imported or seats are unreadable. Returns the
+    list of actions taken (empty = nothing dead) and logs a summary line that
+    keeps the falsifier's seat count visible. A dead recoverable seat is
+    RESPAWNED here through the launcher seam (real tmux by default; a fake
+    launcher under test so no real model spawns)."""
+    try:
+        import rotate as _rotate
+    except Exception:  # noqa: BLE001
+        return []
+    try:
+        rows = _rotate._load_seats(root) or []
+    except Exception:  # noqa: BLE001
+        return []
+    windows = _all_windows(window_path)
+    launcher = _load_launcher(launcher)
+    pid_rows = [r for r in rows
+                if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()]
+    acted: list[dict] = []
+    for row in pid_rows:
+        summary = _watch_one_seat(root, row, windows, _rotate,
+                                  now=now, pid_alive=pid_alive,
+                                  window_path=window_path, launcher=launcher)
+        if summary:
+            acted.append(summary)
+    _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
+               f"row(s); {len(acted)} dead")
+    return acted
 
 
 def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:

@@ -95,6 +95,94 @@ def _config_key_for(name: str) -> str:
     return base
 
 
+# ---- descriptive per-run KEY minting (hypothesis:l4-a-workflow-run-is- ---
+# named-not-numbered) -----------------------------------------------------
+# A run is cited by a key DERIVED from its workflow type + run args, easy to
+# type — not by the opaque harness-minted id. The claim's three shapes:
+#   merge-up-review over rounds [39]    -> mur-39
+#   merge-up-review over rounds [SL1#2] -> mur-sl1-2
+#   author / validate (no run args)     -> their own whole name
+# A single-word workflow key is already short and keeps its whole name; a
+# multi-word key abbreviates to the initials of its hyphen-separated words.
+
+
+def _slugify_token(value: object) -> str:
+    """`SL1#2` -> `sl1-2`, `39` -> `39` — lowercased, runs of non-alnum to
+    ONE `-`, collapsed. Empty when nothing alnum survives."""
+    s = re.sub(r"[^0-9a-zA-Z]+", "-", str(value).lower())
+    return re.sub(r"-+", "-", s).strip("-")
+
+
+def _run_key_abbrev(key: str) -> str:
+    """`merge-up-review` -> `mur` (initials of the hyphen-separated words); a
+    single-word key (`author`, `validate`, `review`, `drafting`) is already
+    descriptive and keeps its whole name."""
+    words = [w for w in key.split("-") if w]
+    if len(words) > 1:
+        abbr = "".join(w[0] for w in words if w[0].isalnum())
+        return abbr or key
+    return words[0] if words else key
+
+
+def _run_arg_tokens(args: dict) -> list[str]:
+    """Scalar / list-of-scalar arg values, deterministically ordered by key,
+    each slugged. Nested dicts (e.g. `targets:[{window...}]`) contribute
+    nothing — the run key names the WORKFLOW plus its simple knobs, not the
+    per-target rows inside an arg."""
+    tokens: list[str] = []
+    for k in sorted(args or {}):
+        v = args[k]
+        if isinstance(v, (dict, bool)) or v is None:
+            continue
+        if isinstance(v, (list, tuple)):
+            for item in v:
+                if isinstance(item, (dict, bool)) or item is None:
+                    continue
+                tokens.append(str(item))
+        else:
+            tokens.append(str(v))
+    return [t for t in (_slugify_token(x) for x in tokens) if t]
+
+
+def _existing_run_keys(root: Path, key: str) -> set[str]:
+    """The run_key values already tracked for this workflow key, so a re-run
+    de-collides deterministically (`mur-39`, `mur-39-2`, `mur-39-3`, ...).
+    Best-effort: any read failure yields the empty set — a collision suffix
+    is a nicety, never a gate."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+        path = Path(sess) / "sessions" / "workflows" / f"{key}.jsonl"
+        if not path.is_file():
+            return set()
+        keys: set[str] = set()
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("run_key"):
+                keys.add(row["run_key"])
+        return keys
+    except Exception:
+        return set()
+
+
+def _mint_run_key(root: Path, key: str, args: dict) -> str:
+    """The descriptive run key for this run: workflow-type abbreviation joined
+    to the slugged run args, de-collided against the rows already tracked for
+    this workflow."""
+    base = _run_key_abbrev(key)
+    toks = _run_arg_tokens(args)
+    if toks:
+        base = f"{base}-" + "-".join(toks)
+    used = _existing_run_keys(root, key)
+    candidate, i = base, 2
+    while candidate in used:
+        candidate = f"{base}-{i}"
+        i += 1
+    return candidate
+
+
 class WorkflowsNodeError(Exception):
     """The geometry node that owns workflow-harness resolution is absent or
     malformed. workflow.py REFUSES loudly, naming the node, rather than
@@ -384,6 +472,128 @@ def list_workflows(root: Path, out=sys.stdout) -> int:
     return 0
 
 
+def status_workflow(root: Path, key: str | None = None,
+                    out=sys.stdout) -> int:
+    """Resolve recent workflow runs by key (hypothesis:l4-a-workflow-run-is-
+    named-not-numbered). Rows live at `.agi/sessions/workflows/<workflow>.jsonl`
+    and each carries its descriptive `run_key`, so a user can cite `mur-39`
+    and status finds the row(s) that key names. With no key it lists every
+    tracked run, newest first; with a key it filters to the run_key (or its
+    owning workflow key). Returns 1 if a key matched nothing, 0 otherwise."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+    except Exception:
+        sess = root
+    wf_dir = Path(sess) / "sessions" / "workflows"
+    if not wf_dir.is_dir():
+        out.write("(no workflow runs tracked yet)\n")
+        return 0
+    rows: list[dict] = []
+    for f in sorted(wf_dir.glob("*.jsonl")):
+        for line in f.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("run_key") or row.get("workflow"):
+                rows.append(row)
+    rows.sort(key=lambda r: str(r.get("timestamp", "")), reverse=True)
+    if key:
+        rows = [r for r in rows
+                if _row_matches_key(r, key)]
+    if key and not rows:
+        out.write(f"(no runs match key {key!r})\n")
+        return 1
+    if not rows:
+        out.write("(no workflow runs tracked yet)\n")
+        return 0
+    for r in rows:
+        hid = _row_harness_text(r)
+        out.write(f"{r.get('run_key') or r.get('workflow')}  "
+                  f"workflow={r.get('workflow')} harness={r.get('harness')} "
+                  f"harness_id={hid} "
+                  f"{str(r.get('timestamp') or '')} "
+                  f"ok={r.get('ok')} failed={r.get('failed')}\n")
+    return 0
+
+
+def _row_harness_ids(r: dict) -> list:
+    """A tracked row's harness ids as a list (legacy rows may hold a bare
+    string or nothing)."""
+    v = r.get("harness_id")
+    if not v:
+        return []
+    return v if isinstance(v, list) else [v]
+
+
+def _row_harness_text(r: dict) -> str:
+    """The run's harness ids rendered for status --------- `-` until any are
+    noted, else comma-joined."""
+    ids = _row_harness_ids(r)
+    return ",".join(ids) if ids else "-"
+
+
+def _row_matches_key(r: dict, key: str) -> bool:
+    """Does this tracked row answer a `status <key>` query? Matches the run_key
+    (mur-39), the owning workflow key (merge-up-review), or a harness-minted
+    id printed by status (wf_ba530baa-dab) — so `status wf_<id>` resolves a
+    run through the id the harness minted (hypothesis:l4-a-workflow-run-is-
+    named-not-numbered)."""
+    if key in (str(r.get("run_key") or ""), str(r.get("workflow") or "")):
+        return True
+    return any(key == i for i in _row_harness_ids(r))
+
+
+def note_workflow(root: Path, run_key: str, harness_id: str,
+                  out=sys.stdout) -> int:
+    """Record the claude-code harness's `wf_<id>` beside the tracked row a
+    run_key names (hypothesis:l4-a-workflow-run-is-named-not-numbered). On the
+    claude-code harness workflow.py never executes the .js script — the
+    harness mints the wf_ id when IT runs it — so the id cannot be captured at
+    run time; `note` records it afterward. Idempotent: re-noting the SAME id is
+    a no-op; noting a DIFFERENT id appends, never overwrites; an unknown
+    run_key is a named refusal, exit 2."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+    except Exception:
+        sess = root
+    wf_dir = Path(sess) / "sessions" / "workflows"
+    if not wf_dir.is_dir():
+        out.write(f"workflow.py: note: no runs tracked yet to note "
+                  f"{run_key!r} against\n")
+        return 2
+    # newest tracked row whose run_key names this key (the LAST text line that
+    # parses to it, over each file in dir order)
+    target: dict | None = None
+    target_path: Path | None = None
+    target_idx: int | None = None
+    for f in sorted(wf_dir.glob("*.jsonl")):
+        lines = f.read_text(encoding="utf-8").splitlines(keepends=True)
+        for i, line in enumerate(lines):
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("run_key") == run_key:
+                target, target_path, target_idx = row, f, i
+    if target is None:
+        out.write(f"workflow.py: note: no tracked run keyed {run_key!r}\n")
+        return 2
+    ids = _row_harness_ids(target)
+    if harness_id in ids:
+        out.write(f"(harness_id {harness_id} already recorded on "
+                  f"{run_key})\n")
+        return 0
+    target["harness_id"] = ids + [harness_id]
+    lines = target_path.read_text(encoding="utf-8").splitlines(keepends=True)
+    lines[target_idx] = (json.dumps(target, ensure_ascii=False,
+                                    sort_keys=True) + "\n")
+    target_path.write_text("".join(lines), encoding="utf-8")
+    out.write(f"[noted] {run_key} <- harness_id {harness_id} "
+              f"({len(ids) + 1} recorded)\n")
+    return 0
+
+
 def validate_registry(root: Path, wf: Path | None = None,
                       out=sys.stdout) -> int:
     """The unified-route invariant, both directions.
@@ -629,7 +839,7 @@ _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
           "failed": "[✗]", "resolved": "[·]"}
 
 
-def _track_run(root: Path, key: str, harness: str, view) -> None:
+def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = None) -> None:
     """Append one row per real workflow run to `.agi/sessions/workflows/<key>.jsonl`.
 
     Reuses the `<project>/sessions/` layout dispatch.py writes, resolved to the
@@ -647,7 +857,14 @@ def _track_run(root: Path, key: str, harness: str, view) -> None:
             counts[s["status"]] = counts.get(s["status"], 0) + 1
         row = {
             "workflow": key,
+            "run_key": run_key,
             "harness": harness,
+            # `harness_id` starts empty: on the claude-code harness workflow.py
+            # never runs the .js script — the harness mints the wf_ id itself —
+            # so a caller records it afterward with `workflow.py note
+            # <run_key> --harness-id wf_<id>` (hypothesis:l4-a-workflow-run-is-
+            # named-not-numbered). Absent/`[]` prints `-` in status.
+            "harness_id": [],
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "stages": {lb: st["status"] for lb, st in view.state.items()},
             "ok": counts.get("ok", 0),
@@ -916,6 +1133,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     repo = _repo_root(root)
     cfg = _load_config(root)
     key = _config_key_for(name)
+    # hypothesis:l4-a-workflow-run-is-named-not-numbered — the run is cited
+    # by a DESCRIPTIVE key minted from this workflow's type + run args
+    # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
+    # mint reads existing tracked rows so a re-run de-collides (-2, -3).
+    run_key = _mint_run_key(root, key, args)
+    out.write(f"[run-key] {run_key}\n")
     cfg_row = (cfg.get("workflows") or {}).get(key) or {}
     manifest = _load_manifest(repo, key)
     stages = _expand_stages(manifest, args)
@@ -960,7 +1183,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                                 f"model={knobs[st['label']].get('model')} "
                                 f"script={manifest.get('script')}")
         view.summary()
-        _track_run(root, key, harness, view)
+        _track_run(root, key, harness, view, run_key)
         return 0
 
     # pi harness: execute each stage for real — one headless pi process per
@@ -988,12 +1211,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)
             view.summary()
-            _track_run(root, key, harness, view)
+            _track_run(root, key, harness, view, run_key)
             return rc
         if "_repeat_key" in st and value is not None:
             prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
     view.summary()
-    _track_run(root, key, harness, view)
+    _track_run(root, key, harness, view, run_key)
     return 0
 
 
@@ -1226,13 +1449,33 @@ def author_workflow(root: Path, name: str, stages_text: str, out=sys.stdout,
                       file=sys.stderr)
                 return 2
             _repeat_field(rep["label_template"])
+    # hypothesis:l4-a-workflow-run-is-named-not-numbered (part 2): re-
+    # authoring an EXISTING manifest must CARRY FORWARD `type` (the registry
+    # invariant — dropping it is one more validate violation) and any other
+    # non-derived top-level field, and APPEND the --note to the existing
+    # description rather than REPLACING it (measured: author dropped type and
+    # replaced description; restored by hand at 07bae9ea8).
+    manifest_path = wf / f"{key}.json"
+    existing: dict = {}
+    if manifest_path.is_file():
+        try:
+            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            existing = {}
+    derived = {"name", "script", "description", "stages"}
+    carried = {k: v for k, v in existing.items() if k not in derived}
+    desc = (existing.get("description")
+            or (f"Authored via workflow.py author"
+                + (f" ({source_note})" if source_note else "")))
+    if source_note and f"({source_note})" not in desc:
+        desc = f"{desc.rstrip()} ({source_note})".strip()
     manifest = {
         "name": key,
         "script": f"agi-{key}.js",
-        "description": (f"Authored via workflow.py author"
-                         + (f" ({source_note})" if source_note else "")),
+        "description": desc,
         "stages": stages,
     }
+    manifest.update(carried)
     try:
         script_text = _gen_script(manifest)
     except ValueError as exc:
@@ -1278,6 +1521,15 @@ def main(argv: list[str] | None = None) -> int:
     au.add_argument("--note", default="",
                     help="provenance note to embed in the manifest description")
     lst = sub.add_parser("list", help="enumerate the registered workflows")
+    stt = sub.add_parser("status", help="resolve recent workflow runs by descriptive run key")
+    stt.add_argument("key", nargs="?", default=None,
+                     help="run key or workflow key to filter to (e.g. mur-39)")
+    nt = sub.add_parser("note",
+                        help="record the claude-code harness's wf_ id beside a tracked run key")
+    nt.add_argument("run_key",
+                    help="descriptive run key to note the harness id against (e.g. mur-39)")
+    nt.add_argument("--harness-id", required=True,
+                    help="the harness-minted id to record (e.g. wf_ba530baa-dab)")
     val = sub.add_parser("validate",
                          help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
     args = ap.parse_args(argv)
@@ -1308,6 +1560,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return author_workflow(root, args.name, stages_text,
                                source_note=args.note)
+    if args.cmd == "note":
+        return note_workflow(root, args.run_key, args.harness_id)
     # the harness-resolution node may be absent (pre-prime) or a workflow may
     # declare an undeclared type: refuse LOUDLY naming the node, exit 2 — never
     # a traceback, never a silent literal fallback (hypothesis:
@@ -1315,6 +1569,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.cmd == "list":
             return list_workflows(root)
+        if args.cmd == "status":
+            return status_workflow(root, args.key)
         if args.cmd == "validate":
             return validate_registry(root)
         try:

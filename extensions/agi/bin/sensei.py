@@ -253,6 +253,7 @@ CATEGORY_NAMES = {
     "b": "a read a first_turn entry could pre-run but doesn't yet",
     "c": "protocol learning (-h, source/log grepping)",
     "d": "real work (window stops here)",
+    "s": "service-owed: an after_join step the service performs (does not cut the window)",
 }
 
 
@@ -284,16 +285,16 @@ def _read_rotations(root: Path) -> tuple[str, str]:
     return fm, facts
 
 
-def _extract_first_turn(fm: str, role: str) -> list[dict]:
-    """`templates.<role>.startup.first_turn` as a list of dicts.
+def _extract_template_list(fm: str, role: str, listkey: str) -> list[dict]:
+    """`templates.<role>.startup.<listkey>` as a list of dicts.
 
     Minimal dedicated parser (the frontmatter is YAML-ish JSON-on-lines, the
     same shape load_seats already walks by hand): locate `templates:` then
-    the `  <role>:` key at two-space indent, then the `      first_turn:`
-    key, then collect every `        - {...}` item until the list dedents.
-    Blank/missing role or node -> []. Never falls back to another role's
-    template: an absent role returns [] and the caller refuses loudly.
-    """
+    the `  <role>:` key at two-space indent, then the `      <listkey>:`
+    key (a sibling of `first_turn` under `startup:`), then collect every
+    `        - {...}` item until the list dedents. Blank/missing role or
+    node -> []. Never falls back to another role's template: an absent role
+    returns [] and the caller refuses loudly."""
     lines = fm.splitlines()
     in_templates = False
     role_idx = None
@@ -307,17 +308,17 @@ def _extract_first_turn(fm: str, role: str) -> list[dict]:
     if role_idx is None:
         return []
     entries: list[dict] = []
-    in_ft = False
+    in_list = False
     for ln in lines[role_idx + 1:]:
         stripped = ln.strip()
-        if not in_ft:
+        if not in_list:
             if stripped == "startup:":
                 continue
-            if stripped == "first_turn:":
-                in_ft = True
+            if stripped == f"{listkey}:":
+                in_list = True
                 continue
             continue
-        # inside first_turn: items are `        - {...}` (8-space indent)
+        # inside the list: items are `        - {...}` (8-space indent)
         if ln.startswith("        - "):
             payload = ln[len("        - "):].strip()
             import json as _json
@@ -332,6 +333,22 @@ def _extract_first_turn(fm: str, role: str) -> list[dict]:
         if stripped and not ln.startswith("          "):
             break
     return entries
+
+
+def _extract_first_turn(fm: str, role: str) -> list[dict]:
+    """`templates.<role>.startup.first_turn`, the startup commands the
+    SERVICE runs before spawn (their outputs become the successor's first
+    input turn). Never falls back to another role's template."""
+    return _extract_template_list(fm, role, "first_turn")
+
+
+def _extract_after_join(fm: str, role: str) -> list[dict]:
+    """`templates.<role>.startup.after_join` — the commands the SERVICE
+    performs after the join (this is how a wake's by-hand `rotate.py ack` /
+    `meter --pin` are recognised as service-owed (s)). Read fresh, never a
+    hardcoded list beyond the two named steps (hypothesis:l4-wake-audit-
+    reads-facts-and-defaults-to-the-latest-record, proposal (e) second half)."""
+    return _extract_template_list(fm, role, "after_join")
 
 
 def _first_turn_label(cmd: str, seat: str, entries: list[dict]) -> str | None:
@@ -690,8 +707,9 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
     """Category b: a read/action the seat does BY HAND that a template entry
     (first_turn or after_join) already covers — ps/tmux process-tree checks,
     listing sessions/rotation records, reading a record/bootstrap json, the
-    ListAgents/ToolSearch join, the `rotate.py ack` and `meter --pin` the
-    service performs after_join, and grepping the seat-registry config node."""
+    ListAgents/ToolSearch join, and grepping the seat-registry config node.
+    The `rotate.py ack` / `meter --pin` steps are owned by category `s`
+    (service-owed), handled before this rule is ever reached."""
     nc = _norm_cmd(cmd).lower()
     if re.search(r"\bps(\s|$)", nc) or re.search(r"\btmux\b", nc):
         return True
@@ -709,21 +727,60 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
         return True
     if re.search(r"\bwhois\b", nc) or tool in ("ListAgents", "ToolSearch"):
         return True
+    # a command that names seats.md / config:seats together with a read-ish
+    # verb ANYWHERE (before or after a pipe: `git show ...seats.md | grep`)
+    # is a by-hand read, never real work (master-sensei proposal (e) first
+    # half). Config .md nodes are NOT source/logs, so this never reaches c.
+    if re.search(r"\b(grep|rg|sed|awk|cat|git show)\b", nc) and re.search(
+            r"(seats\.md|config:seats)", nc):
+        return True
     return False
+
+
+def _after_join_label(cmd: str, seat: str,
+                      after_join: list[dict] | None) -> str | None:
+    """The service-owed (s) label of a hand-redone after_join step, or None.
+
+    The two named steps (`rotate.py ack`, `rotate.py meter --pin`) are always
+    service-owed with their fixed labels; every other step must come from the
+    live template's `startup.after_join` list (never a hardcoded list beyond
+    the two named), matched with the same loose `{...}`-folding `_first_turn_`
+    label uses."""
+    nc = _norm_cmd(cmd)
+    if not nc:
+        return None
+    low = nc.lower()
+    if re.search(r"\brotate\.py\s+ack\b", low):
+        return "ack"
+    if re.search(r"\brotate\.py\s+meter\s+--pin\b", low):
+        return "meter"
+    for e in after_join or []:
+        tpl = _norm_cmd((e.get("cmd") or "").replace("{seat}", seat))
+        if not tpl:
+            continue
+        parts = re.split(r"\{[^}]+\}", tpl)
+        toks = [re.escape(p) for p in parts]
+        pattern = r"\S+".join(toks) if len(parts) > 1 else re.escape(tpl)
+        if re.match(r"^" + pattern, nc):
+            return e.get("label")
+    return None
 
 
 def classify_call(cmd: str, tool: str, seat: str,
                   entries: list[dict] | None = None,
-                  facts: list[tuple[str, list[str]]] | None = None) -> tuple[str, str | None]:
-    """One assistant tool_use call across the four wake categories.
+                  facts: list[tuple[str, list[str]]] | None = None,
+                  after_join: list[dict] | None = None) -> tuple[str, str | None]:
+    """One assistant tool_use call across the wake categories.
 
     Returns `(category, label)`. Category precedence: protocol learning (c)
     beats a first_turn re-derive (a) — learning the tool is not re-deriving a
-    fact — and a first_turn/fact re-derive (a) beats a hand-read (b).
+    fact — and a first_turn/fact re-derive (a) beats a service-owed (s), which
+    beats a hand-read (b).
     c only when `-h`/`--help` or a source/log grep; a when the call's command
     re-runs a configured first_turn cmd (label = the entry) or re-derives a
-    `## facts` bullet's own cited command shape (label = `F<N>`); b when it is
-    a hand-read a startup entry could pre-run; d otherwise (real work)."""
+    `## facts` bullet's own cited command shape (label = `F<N>`); s when it is
+    a hand-redone after_join step (label = the step); b when it is a hand-read
+    a startup entry could pre-run; d otherwise (real work)."""
     label = _first_turn_label(cmd, seat, entries or [])
     if _is_protocol_learning(cmd, tool):
         return "c", label
@@ -733,6 +790,9 @@ def classify_call(cmd: str, tool: str, seat: str,
         f_label = _fact_label(cmd, facts)
         if f_label is not None:
             return "a", f_label
+    s_label = _after_join_label(cmd, seat, after_join)
+    if s_label is not None:
+        return "s", s_label
     if _is_byhand_read(cmd, tool):
         return "b", None
     return "d", None
@@ -834,7 +894,8 @@ def _path_is_hand_read(s: str, signals: set) -> bool:
 def classify_tool_use(tool: str, inp, seat: str,
                       entries: list[dict] | None,
                       facts: list[tuple[str, list[str]]] | None,
-                      hand_paths: set) -> tuple[str, str | None, str]:
+                      hand_paths: set,
+                      after_join: list[dict] | None = None) -> tuple[str, str | None, str]:
     """The ONE tool-wrapper BOTH audits call (hypothesis:l4-the-wake-window-
     ends-at-the-ack-and-both-audits-share-one-tool-wrapper). Routes one
     assistant tool_use to `(cat, label, cmd)` by its OWN input shape —
@@ -857,7 +918,10 @@ def classify_tool_use(tool: str, inp, seat: str,
         cat, label = ("b", None) if _path_is_hand_read(cmd, hand_paths) else ("d", None)
         return cat, label, cmd
     cmd = inp.get("command", "") if isinstance(inp, dict) else ""
-    cat, label = classify_call(cmd, tool, seat, entries, facts)
+    # `after_join` (L4.251, merged at the SL2#3 sync): a hand-redone
+    # after_join step is service-owed (s) — passed through unchanged so both
+    # audits keep yielding one (cat, label) for one tool_use.
+    cat, label = classify_call(cmd, tool, seat, entries, facts, after_join)
     return cat, label, cmd
 
 
@@ -1023,7 +1087,7 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     g15 order (explicit --transcript, else the seat's LATEST rotation record's
     own session_log — never the env / newest-.jsonl fallbacks). The window
     runs from the first assistant tool_use to the first call classifiable as
-    real work (category d, excluded)."""
+    real work (category d, excluded); service-owed (s) calls never cut it."""
     rows = load_seats(root)
     row = seat_row(rows, seat)
     if row is None:
@@ -1043,6 +1107,7 @@ def wake_audit(root: Path, seat: str, gen: int | None,
         return 2, [], {}
     facts = _parse_facts(facts_text)
     hand_paths = _hand_read_paths(entries, facts, seat)
+    after_join = _extract_after_join(fm, role)
 
     log_path, source = _resolve_wake_transcript(root, seat, gen, transcript_path)
     if log_path is None:
@@ -1056,7 +1121,7 @@ def wake_audit(root: Path, seat: str, gen: int | None,
         return 2, [], {}
 
     calls: list[dict] = []
-    counts = {"a": 0, "b": 0, "c": 0, "d": 0}
+    counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
     # window bookkeeping: the ack call (F8's wake act) and the first
     # classifier-(d) call, both 1-based call indices over ALL transcript
     # calls scanned (before the window cut).
@@ -1064,7 +1129,7 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     first_d_idx: int | None = None
     for tool, inp in _iter_tool_uses(log_path):
         cat, label, cmd = classify_tool_use(
-            tool, inp, seat, entries, facts, hand_paths)
+            tool, inp, seat, entries, facts, hand_paths, after_join)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "source": source})
@@ -1084,26 +1149,71 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     window_end = len(calls)
     reason = "transcript end"
     if ack_idx is not None:
-        end = ack_idx
-        for i in range(ack_idx, min(ack_idx + ROW_COMMIT_LOOKAHEAD, len(calls))):
-            if _is_row_commit(calls[i - 1]["cmd"]):
+        # Reconciled with L4.251 (service-owed `s`, merged at the SL2#3
+        # sync): BEFORE the ack nothing cuts the window (a classifier-(d)
+        # `git status` on a spawn seating is still wake — the 22/32-call
+        # defect); AFTER the ack, hand-redone after_join steps (s) and hand
+        # reads never cut it either — only the first (d) after the ack does,
+        # inclusive, and the row commit that seals the seating is exactly
+        # that (d) when it follows. No (d) after the ack = the window runs
+        # to the transcript end (the ack was the last real act).
+        end = len(calls)
+        reason = f"ack call {ack_idx}" if end == ack_idx else \
+            f"ack call {ack_idx}, transcript end {end}"
+        for i in range(ack_idx + 1, len(calls) + 1):
+            if calls[i - 1]["cat"] == "d":
                 end = i
+                if _is_row_commit(calls[i - 1]["cmd"]):
+                    reason = f"ack call {ack_idx} + row commit {end}"
+                else:
+                    reason = f"ack call {ack_idx}, first (d) at {end}"
                 break
-        if end > ack_idx:
-            reason = f"ack call {ack_idx} + row commit {end}"
-        else:
-            reason = f"ack call {ack_idx}"
         window_end = end
     elif first_d_idx is not None:
         window_end = first_d_idx
         reason = f"first (d) at {first_d_idx}"
 
     window_calls = calls[:window_end]
-    window_counts = {"a": 0, "b": 0, "c": 0, "d": 0}
+    window_counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
     for c in window_calls:
         window_counts[c["cat"]] += 1
     window_counts["window_reason"] = reason
     return 0, window_calls, window_counts
+
+
+def redact_text(s: str) -> str:
+    """Mask secrets / emails / message bodies in one printed summary or cmd.
+
+    `--redact` is ON by default so the audit never pastes a key/token/email
+    into a tracked report; `--no-redact` gives the local raw view. Order
+    matters: message bodies go first (their whole text becomes
+    `<redacted:message>`), then key/token shapes, then emails — each run once
+    across the string so an earlier replacement can never be re-scanned and
+    re-mangled by a later rule. Counts and categories are untouched.
+    """
+    text = s
+    # message-shaped calls: keep the verb + recipient, mask the text arg
+    m = re.search(
+        r"(?is)(send\.py\s+(?:send|report|escalate)\s+\S+)(\s+.*)?$", text)
+    if m and m.group(2) and m.group(2).strip():
+        text = m.group(1) + " <redacted:message>"
+    # a JSON dump's `"message": "..."` field (SendMessage & friends)
+    text = re.sub(r'("message"\s*:\s*")[^"]*(")',
+                  r"\1<redacted:message>\2", text)
+    # key / token shapes
+    for pat, rep in (
+        (re.compile(r"sk-or-v1-[A-Za-z0-9_-]+"), "<redacted:key>"),
+        (re.compile(r"\bsk-[A-Za-z0-9]{20,}"), "<redacted:key>"),
+        (re.compile(r"\bghp_[A-Za-z0-9]+"), "<redacted:key>"),
+        (re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]+"), "<redacted:key>"),
+        (re.compile(r"\b[A-Za-z0-9_.]+=[A-Za-z0-9+/]{40,}"), "<redacted:key>"),
+        (re.compile(r"\b[0-9a-fA-F]{32,}\b"), "<redacted:key>"),
+    ):
+        text = pat.sub(rep, text)
+    # emails
+    text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+                  "<redacted:email>", text)
+    return text
 
 
 def cmd_wake_audit(root: Path, args) -> int:
@@ -1111,6 +1221,7 @@ def cmd_wake_audit(root: Path, args) -> int:
                                      Path(args.transcript) if args.transcript else None)
     if code != 0:
         return code
+    redact = getattr(args, "redact", True)
     gen_label = args.gen if args.gen is not None else "latest"
     print(f"sensei.py wake-audit --seat {args.seat} --gen {gen_label} "
           f"(role {seat_row(load_seats(root), args.seat)['role']})")
@@ -1118,11 +1229,15 @@ def cmd_wake_audit(root: Path, args) -> int:
           f"({len(calls)} calls scanned, {counts.get('window_reason', '?')})")
     print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} d={counts['d']}")
     print(f"  window_end: {counts.get('window_reason')}")
-    print(f"  (d counts the cut call itself; only a/b/c span the wake window)")
+    s_labels = [c["label"] for c in calls if c["cat"] == "s" and c["label"]]
+    print(f"service-owed: s={counts['s']} ({', '.join(s_labels)})")
+    print(f"  (d counts the cut call itself; only a/b/c span the wake window "
+          f"and s is service-owed, outside the window)")
     print(f"transcript: {calls[0]['source'] if calls else '?'}")
     for i, c in enumerate(calls, 1):
         lbl = f" <{c['label']}>" if c["label"] else ""
-        print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
+        summary = redact_text(c["summary"]) if redact else c["summary"]
+        print(f"  {i:>2} [{c['cat']}] {c['tool']}: {summary}{lbl}")
     if not calls:
         print("  (no assistant tool_use found in the transcript)")
     return 0
@@ -1330,7 +1445,7 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
 
     start_idx, start_ts = _last_real_input(log_path, not_after_ts=until_ts)
     calls: list[dict] = []
-    counts = {"a": 0, "b": 0, "c": 0, "d": 0}
+    counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
     for tool, inp in _tool_uses_after(log_path, start_idx, until_ts=until_ts):
         cat, label, cmd = classify_tool_use(
             tool, inp, seat, entries, facts_list, hand_paths)
@@ -1515,6 +1630,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--transcript", default=None,
                    help="explicit transcript path (overrides the seat's "
                         "rotation record; env/newest-.jsonl are never used)")
+    p.add_argument("--redact", action=argparse.BooleanOptionalAction,
+                   default=True,
+                   help="mask keys/emails/message bodies in the printed "
+                        "report (default ON; --no-redact for a local raw view)")
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")

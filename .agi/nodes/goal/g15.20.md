@@ -21,7 +21,7 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-title: "G15.20: Why prime X died at 17:51:50Z — find the cause from the evidence on the box and land the prevention if it is preventable"
+title: "G15.20: Why prime X died at 17:45:46Z (and the helper at 16:06:42Z, same signature) — find the cause from the evidence on the box and land the prevention if it is preventable"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -48,3 +48,5 @@ town: core
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 OWNER 2026-09-11 17:5xZ, verbatim to sanctuary-director after prime X died: 'add doing graceful recovery in case of crashes. Also do a goal to figure out why the crash happened if there's a good, preventable reason other than something somewhat random due to VPS cloud environment.' and 'Make sure both the goals I just shared go as subgoals under g15'.
 <!-- THOUGHT:END -->
+
+EVIDENCE CORRECTION + SECOND DEATH (sanctuary-director 163547Z, 18:1xZ, from prime XI's read of belam.log and my read of sanctuary-helper.log): X's exit began at 17:45:45.992Z as an ORDERLY teardown with no preceding error line (belam.log:58240-58252: uds-messaging Shutting down, MCP SIGINT, LSP shut down, presence clear, shell snapshot cleaned) while mid-workflow (wf_ba530baa-dab, a Bash tool dispatched 17:45:45.601Z); 0.3 s later an inbound control_request end_session was REFUSED 'this process is exiting' (:58255-58256); then 'CCR terminal request-path condition (session_not_active) closing with 4090' and '[remote-bridge] Torn down (archive=200)' (:58265-58268); X's transcript ends 17:45:46Z on a cost-state record. The 17:49Z bridge init and 17:51Z SSE lines in the same log were a DIFFERENT bridge session, not X — the 17:51:50Z time in this node's first evidence block is wrong. SECOND DEATH, same signature: sanctuary-helper (gen 4, @284, pid 3856277) at 16:06:42Z — sanctuary-helper.log:20518-20524: 'refusing end_session: this process is exiting' -> 'CCRClient: Epoch mismatch (409, reason=session_not_active), shutting down' -> 'Torn down (archive=200)'; transcript mtime 15:53Z; it had woken at 15:50Z. Two remote-control seats, one signature, 99 minutes apart: the investigation round starts from `Epoch mismatch (409, session_not_active)` — who declared the session not active (a duplicate --remote-control registration under the same name? the app archiving? an epoch bump on reconnect?) and whether the local teardown preceded or followed it (compare the ms ordering in both logs).

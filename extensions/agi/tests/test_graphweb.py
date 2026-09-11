@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import http.server
 import json
+import math
 import os
 import struct
 import subprocess
@@ -85,11 +86,11 @@ def write_fixture_agi(graph_root: Path) -> None:
         "  - name: sanctuary-director\n"
         "    window: win_a\n"
         "    pid: 500111\n"
-        "    worktree: worktrees/wt1\n"
+        "    worktree: .agi/worktrees/wt1\n"
         "  - name: sanctuary-helper\n"
         "    window: win_b\n"
         "    pid: 500222\n"
-        "    worktree: worktrees/wt2\n"
+        "    worktree: .agi/worktrees/wt2\n"
         "---\n", encoding="utf-8")
 
     # config.json: point stream_card_png somewhere absent so every build
@@ -99,8 +100,10 @@ def write_fixture_agi(graph_root: Path) -> None:
         encoding="utf-8")
 
     # the fake worktree: one node file that git status reports as MODIFIED.
-    # `worktree` resolves RELATIVE TO graph_root (graphweb),
-    # so wt1 lives under <project>/.agi/worktrees/wt1, not the project root.
+    # seat rows carry the REAL relative shape `.agi/worktrees/wt1` (checkout-
+    # root-relative), and the resolver must join it against the checkout root
+    # (git_common_root / graph_root.parent), so wt1 lives at
+    # <project>/.agi/worktrees/wt1 -- checkout-root-relative.
     wt1_node = (graph_root / "worktrees" / "wt1" / ".agi" / "nodes" /
                 "goal" / "g17child.md")
     wt1_node.parent.mkdir(parents=True, exist_ok=True)
@@ -213,6 +216,30 @@ def test_working_on_from_fake_worktree(graph, monkeypatch) -> None:
     assert graphweb._pid_alive("not-a-pid") is False
 
 
+def test_tmux_list_windows_is_scoped_to_agi_rc(monkeypatch) -> None:
+    """tmux list-windows runs scoped `-t agi-rc` (rotate.py
+    DEFAULT_TMUX_SESSION), NEVER bare — a bare call lists whatever session the
+    caller happens to share, and an absent session is where the round measured
+    seats silently inactive (Prime, merge-up 38).
+
+    The moniker `agi-rc` for rotate DEFAULT_TMUX_SESSION stays live-looking;
+    the point of the test is the `-t` flag is present and names it.
+    """
+    captured = []
+    def fake_run(cmd, *args, **kwargs):
+        captured.append(list(cmd))
+        raise FileNotFoundError("tmux not installed (fixture)")
+    monkeypatch.setattr(graphweb.subprocess, "run", fake_run)
+
+    assert graphweb._tmux_windows() == set()   # absent session -> empty
+    assert captured, "tmux was never invoked"
+    cmd = captured[0]
+    assert cmd[0] == "tmux"
+    assert "list-windows" in cmd
+    assert "-t" in cmd
+    assert cmd[cmd.index("-t") + 1] == "agi-rc", f"argv: {cmd}"
+
+
 def test_worktree_modified_ids_dead_worktree_no_git(graph, monkeypatch) -> None:
     """_worktree_modified_ids on a nonexistent/dead worktree returns [] and
     never fires git (unfired read completes empty)."""
@@ -228,6 +255,35 @@ def test_worktree_modified_ids_dead_worktree_no_git(graph, monkeypatch) -> None:
     # None -> [].
     assert graphweb._worktree_modified_ids(None, graph) == []
     assert fired == []
+
+
+def test_relative_checkout_root_worktree_resolves(graph, monkeypatch) -> None:
+    """A RELATIVE seat row in the real shape `.agi/worktrees/wt1` resolves
+    against the CHECKOUT ROOT (not graph_root) and lists the modified node
+    id. This is the claim's falsifier (hypothesis:l4-the-graph-as-a-golden-
+    3d-web-in-two-layers): the old resolver joined `graph/worktrees/wt1`
+    (i.e. `.agi/.agi/worktrees/wt1`), silently yielding [] for every seat row.
+    """
+    def fake_run(cmd, *args, **kwargs):
+        if cmd[0] == "git":
+            assert Path(cmd[2]).is_dir(), \
+                f"git fired in a non-direct worktree: {cmd[2]}"
+            if "wt1" in cmd[2]:
+                return _FakeResult(0, "?? .agi/nodes/goal/g17child.md\n")
+            return _FakeResult(0, "")
+        raise FileNotFoundError("tmux absent (fixture)")
+    monkeypatch.setattr(graphweb.subprocess, "run", fake_run)
+
+    row = {"name": "sanctuary-director", "worktree": ".agi/worktrees/wt1"}
+    # The relative row resolves against the checkout root: wt1 directory.
+    wt = graphweb._resolve_worktree(row["worktree"], graph)
+    assert wt is not None and wt.is_dir()
+    # And the modified id shows up in working_on via the live view.
+    view = graphweb.live_view(graph)
+    rows = {r["seat"]: r for r in view["seats"]}
+    assert rows["sanctuary-director"]["working_on"] == ["goal:g17child"]
+    # The dead relative worktree (wt2) never fires git and stays empty.
+    assert rows["sanctuary-helper"]["working_on"] == []
 
 
 # --------------------------------------------------------------------------- #
@@ -368,26 +424,279 @@ def test_graphweb_bin_help_exits_zero() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# 7. Cache contract                                                           #
+# 8. Ghost nodes: agent target / parent / new_nodes (owl-priority round,     #
+#    the owner's 2026-09-11 15:5xZ order) + graph_version in /live.json      #
 # --------------------------------------------------------------------------- #
-def test_cache_returns_same_object_until_mtime_changes(graph) -> None:
-    """cached_build_graph returns the SAME payload object when the node mtimes
-    are unchanged, and REBUILDS (new object) when a node file mtime changes —
-    on a tiny fixture graph so it is fast and deterministic."""
-    graphweb._LAYOUT_CACHE.clear()
+def _fake_parent_worktree(base: Path) -> Path:
+    """A fake PARENT lease worktree holding a dispatch manifest and one
+    untracked KID node file. Returns the worktree root."""
+    wt = base / "wt-p"
+    kid_node = wt / ".agi" / "nodes" / "experiment" / "kid-1fbbdf68-abc.md"
+    kid_node.parent.mkdir(parents=True, exist_ok=True)
+    kid_node.write_text(
+        "---\n"
+        "id: experiment:kid-1fbbdf68-abc\n"
+        "type: experiment\n"
+        "title: kid-1fbbdf68 build\n"
+        "parents:\n"
+        "  - hypothesis:some-target\n"
+        "---\n", encoding="utf-8")
+    # the dispatch manifest: parent entry + the kid entry, one shared target.
+    manifest = (wt / ".agi" / "sessions" / "iter-L4.999" / "manifest.json")
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({
+        "iter": "L4.999",
+        "agents": [
+            {"id": "par-a", "tier": "parent",
+             "target": "hypothesis:some-target"},
+            {"id": "kid-1fbbdf68", "tier": "kid",
+             "target": "hypothesis:some-target"},
+        ],
+    }), encoding="utf-8")
+    return wt
 
-    first = graphweb.cached_build_graph(graph)
-    second = graphweb.cached_build_graph(graph)
-    assert first is second, "warm cache must return the identical object"
-    assert second["root"] == ROOT
 
-    # Bump a node mtime -> the shape changed -> a fresh build.
-    target = graph / "nodes" / "goal" / "other.md"
-    st = target.stat()
-    os.utime(target, (st.st_atime, st.st_mtime + 2.0))
+def _fake_seat_run(cmd, *args, **kwargs):
+    """git runner for the ghost-node tests: untracked kid node in wt-p, and
+    seat/os reads just resolve to empty."""
+    if cmd[0] == "git":
+        wt = cmd[2]
+        if "wt-p" in wt:
+            return _FakeResult(
+                0, "?? .agi/nodes/experiment/kid-1fbbdf68-abc.md\n")
+        return _FakeResult(0, "")
+    raise FileNotFoundError("tmux absent (fixture)")
 
-    rebuilt = graphweb.cached_build_graph(graph)
-    assert rebuilt is not first, "an mtime change must rebuild the graph"
 
-    # And a second warm read after the rebuild is stable again.
-    assert graphweb.cached_build_graph(graph) is rebuilt
+def test_live_agents_carry_target_parent_and_new_nodes(graph, monkeypatch) -> None:
+    """In /live.json, a live KID agent (no own worktree) carries: `target`
+    from its parent's dispatch manifest, `parent` (the parent-tier lease id),
+    and a `new_nodes` record parsed from its UNTRACKED node file in the
+    parent's worktree — so the page can snap real details in before the node
+    reaches the served graph (the owner's ghost-node order, kid C)."""
+    wt_p = _fake_parent_worktree(graph.parent)
+    monkeypatch.setattr(graphweb, "live_agents", lambda gr: [
+        {"agent_id": "par-a", "tier": "parent", "iter": "L4.999",
+         "worktree": str(wt_p)},
+        {"agent_id": "kid-1fbbdf68", "tier": "kid", "iter": "L4.999",
+         "worktree": None},
+    ])
+    monkeypatch.setattr(graphweb.subprocess, "run", _fake_seat_run)
+
+    view = graphweb.live_view(graph)
+    agents = {a["agent"]: a for a in view["agents"]}
+
+    kid = agents["kid-1fbbdf68"]
+    # manifests carry the target; the parent lease is a KID's parent with the
+    # same iter.
+    assert kid["target"] == "hypothesis:some-target"
+    assert kid["parent"] == "par-a"
+    # the untracked new node (filtered to ids containing the kid's agent id).
+    assert kid["new_nodes"] == [{
+        "id": "experiment:kid-1fbbdf68-abc",
+        "type": "experiment",
+        "title": "kid-1fbbdf68 build",
+        "parents": ["hypothesis:some-target"],
+    }]
+    # the same untracked node is also in its working_on.
+    assert "experiment:kid-1fbbdf68-abc" in kid["working_on"]
+
+    # A parent-tier agent carries target too, but parent == None.
+    par = agents["par-a"]
+    assert par["target"] == "hypothesis:some-target"
+    assert par["parent"] is None
+    # the parent's worktree holds the kid's file, so it shows up as new for
+    # the parent as well (unfiltered).
+    assert any(n["id"] == "experiment:kid-1fbbdf68-abc"
+               for n in par["new_nodes"])
+
+
+def test_no_manifest_yields_empty_target_no_traceback(graph, monkeypatch) -> None:
+    """An agent whose manifest is absent/unreadable gets target "" (and no
+    new_nodes / no traceback) — the ghost just never snaps."""
+    wt_p = graph.parent / "wt-none"
+    wt_p.mkdir(parents=True, exist_ok=True)   # a worktree with NO manifest
+    monkeypatch.setattr(graphweb, "live_agents", lambda gr: [
+        {"agent_id": "par-x", "tier": "parent", "iter": "L4.777",
+         "worktree": str(wt_p)},
+    ])
+    monkeypatch.setattr(graphweb.subprocess, "run", _fake_seat_run)
+
+    view = graphweb.live_view(graph)
+    agents = {a["agent"]: a for a in view["agents"]}
+    assert agents["par-x"]["target"] == ""
+    assert agents["par-x"]["parent"] is None
+    assert agents["par-x"]["new_nodes"] == []
+
+    # a corrupt manifest also fails open to "".
+    bad = graph.parent / "wt-bad"
+    badm = bad / ".agi" / "sessions" / "iter-L4.777" / "manifest.json"
+    badm.parent.mkdir(parents=True, exist_ok=True)
+    badm.write_text("{ this is not json", encoding="utf-8")
+    monkeypatch.setattr(graphweb, "live_agents", lambda gr: [
+        {"agent_id": "par-y", "tier": "parent", "iter": "L4.777",
+         "worktree": str(bad)},
+    ])
+    view2 = graphweb.live_view(graph)
+    agents2 = {a["agent"]: a for a in view2["agents"]}
+    assert agents2["par-y"]["target"] == ""
+
+
+def test_live_view_carries_graph_version(graph, monkeypatch) -> None:
+    """/live.json carries `graph_version` (the stable ACTIVE id-set hash)
+    for the 5 s poll / re-fetch-on-change contract (kid A). It changes when an
+    id is added."""
+    monkeypatch.setattr(graphweb, "live_agents", lambda gr: [])
+    view = graphweb.live_view(graph)
+    assert view["graph_version"] == graphweb.graph_version(graph)
+    assert isinstance(view["graph_version"], str) and view["graph_version"]
+
+    graphweb._PARSE_CACHE.clear()
+    _write_node(graph.parent, "goal/added2.md", "goal:added2", "goal",
+                [ROOT])
+    view2 = graphweb.live_view(graph)
+    assert view2["graph_version"] != view["graph_version"], \
+        "adding an id must change /live.json graph_version"
+    (graph / "nodes" / "goal" / "added2.md").unlink()
+
+
+# --------------------------------------------------------------------------- #
+# 7. Layout persistence & incremental (B1/B2/B3/B5)                           #
+# --------------------------------------------------------------------------- #
+def _node_positions(payload: dict) -> dict:
+    """{id: (x,y,z)} for the payload's node list. ROOT appears in BOTH
+    layers; the last occurrence (layer 1) wins the dict, which is fine for
+    the byte-identical-position assertions below."""
+    return {n["id"]: tuple(n["pos"]) for n in payload["nodes"]}
+
+
+def test_layout_persists_and_reuses_across_body_edit(graph, monkeypatch) -> None:
+    """An edit that changes no id and no edge must REUSE every position
+    byte-identically (B1), and it must reuse from the PERSISTED file (not
+    just the in-memory memo). This REWRITES the old
+    test_cache_returns_same_object_until_mtime_changes, whose assertion —
+    REBUILD on an mtime bump — contradicted the amended contract (an mtime
+    bump from a body edit is exactly the case that must NOT rebuild)."""
+    calls = []
+    orig = graphweb._force_layout
+
+    def counting(*a, **k):
+        calls.append(1)
+        return orig(*a, **k)
+
+    monkeypatch.setattr(graphweb, "_force_layout", counting)
+    graphweb._POS_MEMO.clear()
+    graphweb._PARSE_CACHE.clear()
+
+    first = graphweb.build_graph(graph)
+    cold_calls = len(calls)
+    assert cold_calls > 0, "the cold build must run the full force layout"
+    pos_first = _node_positions(first)
+
+    # Drop the in-memory memo so the second build has to come from the FILE.
+    graphweb._POS_MEMO.clear()
+
+    # Edit a node BODY: title changes, but the id set and edge set do not.
+    _write_node(graph.parent, "goal/other.md", "goal:other", "goal", [],
+                title="renamed-body")
+    second = graphweb.build_graph(graph)
+
+    # The body edit must NOT re-run the full layout (force-layout call count
+    # stays at the cold build's), and every position is byte-identical.
+    assert len(calls) == cold_calls, \
+        "a body edit must reuse the persisted layout, never re-layout"
+    assert _node_positions(second) == pos_first, \
+        "positions must be byte-identical across a body edit"
+    # The re-parse (cheap, parse-cache per file) still surfaces the new title.
+    titles = {n["id"]: n["title"] for n in second["nodes"]}
+    assert titles["goal:other"] == "renamed-body"
+    # And the layout is on disk (persisted), keyed by the id+edge signature.
+    persisted = json.loads(
+        (graph / "sessions" / "graphweb-layout.json").read_text(
+            encoding="utf-8"))
+    assert persisted["kind"] == "graphweb-layout"
+    assert isinstance(persisted["signature"], str)
+    assert "goal:other" in persisted["layer0"]
+
+
+def test_add_one_node_incremental(graph, monkeypatch) -> None:
+    """Adding one id must NOT re-run the full cold layout: old positions stay
+    byte-identical (pinned survivors), the new node lands within 2 units of
+    its parent, and the INCREMENTAL path (not the full pass) is what runs
+    (B2). Removed ids are dropped."""
+    calls = []
+    orig = graphweb._force_layout
+
+    def counting(*a, **k):
+        calls.append(1)
+        return orig(*a, **k)
+
+    monkeypatch.setattr(graphweb, "_force_layout", counting)
+    graphweb._POS_MEMO.clear()
+    graphweb._PARSE_CACHE.clear()
+
+    first = graphweb.build_graph(graph)
+    cold_calls = len(calls)
+    pos_before = _node_positions(first)
+
+    # Add a new node whose parent is ROOT.
+    _write_node(graph.parent, "goal/brandnew.md", "goal:brandnew", "goal",
+                [ROOT], title="brandnew")
+    graphweb._POS_MEMO.clear()  # force the incremental path through persistence
+
+    second = graphweb.build_graph(graph)
+    # The full layout must NOT rerun for an add — incremental only.
+    assert len(calls) == cold_calls, \
+        "an added id must go through the INCREMENTAL path, never the full pass"
+
+    pos_after = _node_positions(second)
+    # Old positions are byte-identical (survivors pinned).
+    for nid in ("goal:g17", "goal:g17child", "goal:other",
+                "seat:sanctuary-director", "seat:sanctuary-helper"):
+        assert pos_after[nid] == pos_before[nid], \
+            f"{nid} must not move on an incremental add"
+
+    # The new node is within 2 units of its parent (ROOT).
+    pnew = pos_after["goal:brandnew"]
+    proot = pos_after[ROOT]
+    dist = math.hypot(pnew[0] - proot[0], pnew[1] - proot[1])
+    assert dist <= 2.0, f"new node {dist:.3f} units from parent (> 2)"
+
+    # Removed ids are dropped: delete the new node and it vanishes again.
+    (graph / "nodes" / "goal" / "brandnew.md").unlink()
+    graphweb._POS_MEMO.clear()
+    third = graphweb.build_graph(graph)
+    assert "goal:brandnew" not in _node_positions(third)
+    # and the surviving positions are back to the (byte-identical) baseline.
+    pos_third = _node_positions(third)
+    for nid in ("goal:g17", "goal:g17child", "goal:other"):
+        assert pos_third[nid] == pos_before[nid]
+
+
+def test_graph_version_changes_on_add_not_on_body_edit(graph) -> None:
+    """graph_version is a stable hash of the ACTIVE id set: identical across
+    a body edit, and DIFFERENT when an id is added, and back to the baseline
+    when the id is removed again (B5)."""
+    graphweb._PARSE_CACHE.clear()
+
+    v1 = graphweb.graph_version(graph)
+    assert isinstance(v1, str) and v1
+    assert graphweb.graph_version(graph) == v1, "version must be stable"
+
+    # Body edit (title change): no id changes -> same version.
+    _write_node(graph.parent, "goal/other.md", "goal:other", "goal", [],
+                title="edited")
+    assert graphweb.graph_version(graph) == v1, \
+        "a body edit changes no id, so graph_version must NOT change"
+
+    # Add a node -> version changes.
+    _write_node(graph.parent, "goal/added.md", "goal:added", "goal", [ROOT])
+    v2 = graphweb.graph_version(graph)
+    assert v2 != v1, "adding an id must change graph_version"
+
+    # Restore other.md's title and remove the added node -> back to baseline.
+    _write_node(graph.parent, "goal/other.md", "goal:other", "goal", [],
+                title="other")
+    (graph / "nodes" / "goal" / "added.md").unlink()
+    assert graphweb.graph_version(graph) == v1, \
+        "an id-set round-trip must return to the original version"

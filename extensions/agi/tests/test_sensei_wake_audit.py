@@ -32,13 +32,28 @@ FT = [
 ]
 SEAT = "sanctuary-director"
 
+# A synthetic director after_join mirroring the LIVE template's
+# `startup.after_join` (the steps the SERVICE performs after the join, which a
+# hand wake must not redo as "real work"). ack/pin(meter) are also hardcoded
+# in classify_call; `register` exists ONLY to prove the live-list path is real.
+AJ = [
+    {"label": "ack",
+     "cmd": "python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref {succ_ref} continue"},
+    {"label": "register",
+     "cmd": "python3 extensions/agi/bin/rotate.py register --seat {seat}"},
+]
+
+
+def _aj_entries():
+    return [dict(e) for e in AJ]
+
 
 def _cats(counts: dict):
-    """The four wake category counts only (a/b/c/d) — `counts` also carries
+    """The wake category counts only (a/b/c/d + service-owed s) — `counts` also carries
     the machine-readable `window_reason` (hypothesis:l4-wake-window-ends-at-
     the-ack), so exact-equality on the whole dict would bind the audit to a
     specific window ending."""
-    return {k: counts[k] for k in ("a", "b", "c", "d")}
+    return {k: counts.get(k, 0) for k in ("a", "b", "c", "d", "s")}
 
 
 def _ft_entries():
@@ -102,13 +117,17 @@ class TestClassifyCall:
             "Bash", SEAT, _ft_entries())
         assert cat2 == "d"
 
-    def test_after_join_ack_done_by_hand_is_category_b_not_real_work(self):
+    def test_after_join_ack_done_by_hand_is_service_owed(self):
         # rotate.py ack is an after_join step the SERVICE performs; the agent
-        # doing it by hand is a hand redone of a covered action → b, never d.
-        cmd = ("python3 extensions/agi/bin/rotate.py ack --seat "
-               "sanctuary-director --gen 14 --ref 7aeee9 continue")
-        cat, _ = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
-        assert cat == "b"
+        # doing it by hand is category s (service-owed) with the step's label,
+        # never b and never d (amended g15 build order, proposal (e) second
+        # half).
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py ack --seat "
+            "sanctuary-director --gen 14 --ref 7aeee9 continue", "Bash", SEAT,
+            _ft_entries())
+        assert cat == "s"
+        assert label == "ack"
 
     def test_grepping_the_seat_registry_by_hand_is_category_b_not_c(self):
         cmd = ("grep -o '\"name\": \"sanctuary-director\"[^}]*' "
@@ -141,10 +160,12 @@ def _write_root(tmp_path: Path, tools_and_cmds):
         "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
     rot = (nodes / ".geometry" / "rotations.md")
     ft_lines = "\n".join(f'        - {json.dumps(e)}' for e in FT)
+    aj_lines = "\n".join(f'        - {json.dumps(e)}' for e in AJ)
     rot.write_text(
         "---\nid: config:rotations\ntype: config\n"
         "templates:\n  director:\n    startup:\n      first_turn:\n"
-        f"{ft_lines}\n  prime_director:\n    startup:\n      first_turn:\n"
+        f"{ft_lines}\n      after_join:\n{aj_lines}\n"
+        "  prime_director:\n    startup:\n      first_turn:\n"
         '        - {"label": "verify", "cmd": "python3 extensions/agi/bin/commands.py run verify"}\n'
         "edited_by: test\n---\n"
         "<!-- BODY:BEGIN -->\n# config:rotations\n\n"
@@ -225,7 +246,7 @@ def test_wake_audit_end_to_end_cuts_window_and_counts_on_synthetic(tmp_path):
     assert len(calls) == 4
     cats = [c["cat"] for c in calls]
     assert cats == ["a", "b", "c", "d"]
-    assert _cats(counts) == {"a": 1, "b": 1, "c": 1, "d": 1}
+    assert _cats(counts) == {"a": 1, "b": 1, "c": 1, "d": 1, "s": 0}
     assert counts["window_reason"] == "first (d) at 4"
     assert calls[0]["label"] == "rotation-record"
     assert calls[2]["label"] == "write-verbs"  # -h matched the label but is c
@@ -271,7 +292,9 @@ def test_wake_ack_ends_window_inclusive_and_extends_to_the_row_commit(tmp_path):
     assert counts["window_reason"] == "ack call 22 + row commit 23"
     # git status(d) + 20 reads(b) + ack(b) + row commit(d, git add/commit is
     # not a by-hand read) — 23 calls, the pytest run beyond the commit excluded.
-    assert _cats(counts) == {"a": 0, "b": 21, "c": 0, "d": 2}
+    # the ack is service-owed (s) since L4.251 — 20 reads (b), ack (s),
+    # git status + row commit (d)
+    assert _cats(counts) == {"a": 0, "b": 20, "c": 0, "d": 2, "s": 1}
     # the row commit is the sealed end; the pytest run is excluded
     assert "commit" in calls[-1]["cmd"]
     assert "pytest" not in calls[-1]["cmd"]
@@ -312,7 +335,7 @@ def test_wake_no_ack_keeps_first_d_rule_with_reason(tmp_path):
     assert code == 0
     assert len(calls) == 2
     assert counts["window_reason"] == "first (d) at 2"
-    assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 1}
+    assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
 
 
 def test_wake_ack_help_probe_is_not_treated_as_the_ack_call(tmp_path):
@@ -453,7 +476,7 @@ class TestNonBashCalls:
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
         assert code == 0
         assert calls[0]["cat"] == "b"
-        assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 0}
+        assert _cats(counts) == {"a": 0, "b": 1, "c": 0, "d": 0, "s": 0}
 
     def test_read_of_uncovered_path_is_category_d(self, tmp_path):
         block = {"type": "tool_use", "name": "Read",
@@ -509,7 +532,7 @@ class TestOptionalGenDefaultsToLatestRecord:
                                gen=14)
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
         assert counts["window_reason"] == "transcript end"
         assert calls[0]["cat"] == "a"
         assert calls[0]["label"] == "F2"
@@ -534,7 +557,7 @@ class TestOptionalGenDefaultsToLatestRecord:
         monkeypatch.setattr(rotate, "resolve_transcript", boom)
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
         assert counts["window_reason"] == "transcript end"
         assert calls[0]["label"] == "F2"
 
@@ -564,7 +587,7 @@ class TestOptionalGenDefaultsToLatestRecord:
         # with no tool windows before the first d) — NOT the latest record.
         code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
         assert code == 0
-        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1}
+        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
         assert counts["window_reason"] == "first (d) at 1"
         assert calls[0]["cmd"] == "true"
 
@@ -590,7 +613,7 @@ class TestOptionalGenDefaultsToLatestRecord:
         # --gen-less wake-audit defaults to this latest record and audits it
         code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
         assert code == 0
-        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0}
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
         assert counts["window_reason"] == "transcript end"
         assert calls[0]["label"] == "F2"
         assert calls[0]["source"].endswith("20260911T135144Z.json")
@@ -617,7 +640,7 @@ class TestOptionalGenDefaultsToLatestRecord:
                                ts="20260911T110000Z")
         code, calls, counts = sensei.wake_audit(graph, SEAT, 12, None)
         assert code == 0
-        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1}
+        assert _cats(counts) == {"a": 0, "b": 0, "c": 0, "d": 1, "s": 0}
         assert counts["window_reason"] == "first (d) at 1"
         assert calls[0]["cmd"] == "true"
         assert calls[0]["source"].endswith("20260911T100000Z.json")
@@ -649,15 +672,16 @@ class TestSLO8PrescribedFacts:
         cat, label = sensei.classify_call(
             "python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director "
             "--gen 14 --ref fbb88c continue", "Bash", SEAT, [], facts)
-        # pin the actual landing: (b) via _is_byhand_read's `rotate.py ack`
-        # clause (the after_join ack the service performs — a hand redo is a
-        # hand read, see test_after_join_ack_done_by_hand_is_category_b). This
-        # is a DOCUMENTED DEVIATION from the brief's "(d) or its own label":
-        # the prescribed fact's shapes are dropped so no (a) is reachable, and
-        # the ack falls through to the covered after_join hand-read (b), which
-        # the repo already pins for ack. Never (a).
+        # pin the actual landing: (s, "ack") — L4.251 (master-sensei proposal
+        # (e), hypothesis:l4-wake-audit-reads-facts-and-defaults-to-the-latest-
+        # record) made a hand-redone after_join step SERVICE-OWED, checked
+        # before the by-hand-read clause ever runs. Re-pinned at the L4.251
+        # harvest (sanctuary-helper, 2026-09-11): SL1.08 pinned (b, None), the
+        # landing before that round. The invariant this test guards is
+        # unchanged: the prescribed fact's shapes are dropped so no (a) is
+        # reachable. Never (a).
         assert cat != "a"
-        assert cat == "b" and label is None
+        assert cat == "s" and label == "ack"
 
     def test_item2b_prescribe_re_all_alternatives_fire_without_reserved_words(self):
         # the escaped `\\s`/`\\w` branches (`your one ... act`,
@@ -821,3 +845,140 @@ class TestSLO8DerivedHandReadPaths:
         code, calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
         assert code == 0
         assert [c["cat"] for c in calls] == ["b", "d"]
+# ── amended g15 build order (L4.251 fix-only follow-up): piped own-row grep
+# ── of seats.md -> (b); hand ack / meter --pin -> service-owed (s); template
+# ── after_join steps -> (s); and --redact secret/email/message masking ─────
+
+class TestServiceOwedClassification:
+    def test_piped_own_row_grep_of_seats_md_is_byhand_read_not_work(self):
+        # the rule `(ls|cat|sed|grep)\b.*seats\.md` needs the file AFTER the
+        # verb, so `git show ...seats.md | grep` (file BEFORE the pipe) used to
+        # fall to (d). A command naming seats.md with a read-ish verb ANYWHERE
+        # is a by-hand read (b), never real work.
+        cmd = ('git show origin/season/s2:.agi/nodes/.geometry/seats.md '
+               "| grep '\"name\": \"sanctuary-director\"'")
+        cat, _ = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
+        assert cat == "b"
+
+    def test_grep_seats_md_is_byhand_read_unchanged(self):
+        cat, _ = sensei.classify_call(
+            "grep -o '\"name\": \"sanctuary-director\"' "
+            ".agi/nodes/.geometry/seats.md", "Bash", SEAT, _ft_entries())
+        assert cat == "b"
+
+    def test_hand_ack_is_service_owed_with_label(self):
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director "
+            "--gen 3 --ref abc123 continue", "Bash", SEAT, _ft_entries())
+        assert cat == "s"
+        assert label == "ack"
+
+    def test_hand_meter_pin_is_service_owed_with_label(self):
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py meter --pin 5f2 --session-log "
+            "/tmp/s.json", "Bash", SEAT, _ft_entries())
+        assert cat == "s"
+        assert label == "meter"
+
+    def test_template_after_join_step_is_service_owed(self):
+        # a step the LIVE after_join list declares (but not one of the two
+        # hardcoded) is still (s) with the template's own label.
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py register --seat "
+            "sanctuary-director", "Bash", SEAT, _ft_entries(), after_join=_aj_entries())
+        assert cat == "s"
+        assert label == "register"
+
+    def test_plain_read_not_matching_after_join_stays_byhand_or_work(self):
+        # a hand read that matches NO after_join step is (b), unchanged — the
+        # s rule must not swallow general reads.
+        cat, _ = sensei.classify_call(
+            "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5",
+            "Bash", SEAT, _ft_entries(), after_join=_aj_entries())
+        assert cat == "b"
+        cat2, _ = sensei.classify_call(
+            "python3 -m pytest extensions/agi/tests/test_sensei.py -q",
+            "Bash", SEAT, _ft_entries(), after_join=_aj_entries())
+        assert cat2 == "d"
+
+
+class TestServiceOwedEndToEnd:
+    def test_ack_pin_reads_reports_and_window_cut_by_d_not_s(self, tmp_path,
+                                                              capsys):
+        # one hand ack (s), one hand pin (s), two reads (b), then real work
+        # (d). The s calls are OUTSIDE the a/b/c/d counts and NEVER cut the
+        # window — only the d call does.
+        from types import SimpleNamespace
+        tools_and_cmds = [
+            ("Bash", "python3 extensions/agi/bin/rotate.py ack --seat "
+                     "sanctuary-director --gen 14 --ref 7aeee9 continue"),
+            ("Bash", "python3 extensions/agi/bin/rotate.py meter --pin 5f2 "
+                     "--session-log /tmp/s.json"),
+            ("Bash", "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations "
+                     "| tail -5"),
+            ("Bash", "ps -o pid,ppid -p 1234 2>/dev/null"),
+            ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py "
+                     "-q"),
+        ]
+        graph, tr = _write_root(tmp_path, tools_and_cmds)
+        code, calls, counts = sensei.wake_audit(graph, SEAT, 14, tr)
+        assert code == 0
+        # s calls do not cut the window; the d call cuts it at position 5
+        assert len(calls) == 5
+        assert [c["cat"] for c in calls] == ["s", "s", "b", "b", "d"]
+        # counts also carries window_reason (SL3.03) — compare the buckets
+        assert _cats(counts) == {"a": 0, "b": 2, "c": 0, "d": 1, "s": 2}
+        assert counts["window_reason"] == "ack call 1, first (d) at 5"
+        args = SimpleNamespace(seat=SEAT, gen=14, transcript=str(tr),
+                               redact=True)
+        rc = sensei.cmd_wake_audit(graph, args)
+        assert rc == 0
+        out = capsys.readouterr().out
+        assert "counts: a=0 b=2 c=0 d=1" in out
+        assert "service-owed: s=2 (ack, meter)" in out
+
+
+class TestRedact:
+    def test_redact_key_and_email(self):
+        out = sensei.redact_text(
+            "echo Bearer sk-or-v1-0123456789abcdef0123456789abcdef "
+            "someone@example.com")
+        assert "<redacted:key>" in out
+        assert "<redacted:email>" in out
+        assert "sk-or-v1-0123456789abcdef0123456789abcdef" not in out
+        assert "someone@example.com" not in out
+
+    def test_redact_message_body_keeps_verb_and_recipient(self):
+        out = sensei.redact_text("send.py send belam 'secret body'")
+        assert out == "send.py send belam <redacted:message>"
+
+    def test_redact_default_on_and_no_redact_raw(self, tmp_path, capsys):
+        from types import SimpleNamespace
+        cmd = ("echo Bearer sk-or-v1-0123456789abcdef0123456789abcdef "
+               "someone@example.com")
+        graph, tr = _write_root(tmp_path, [("Bash", cmd)])
+        # default (--redact ON): the report carries no raw token or email
+        args = SimpleNamespace(seat=SEAT, gen=14, transcript=str(tr),
+                               redact=True)
+        assert sensei.cmd_wake_audit(graph, args) == 0
+        out = capsys.readouterr().out
+        assert "<redacted:key>" in out and "<redacted:email>" in out
+        assert "sk-or-v1-0123456789abcdef0123456789abcdef" not in out
+        # --no-redact: a local raw view keeps them
+        args2 = SimpleNamespace(seat=SEAT, gen=14, transcript=str(tr),
+                                redact=False)
+        assert sensei.cmd_wake_audit(graph, args2) == 0
+        out2 = capsys.readouterr().out
+        assert "sk-or-v1-0123456789abcdef0123456789abcdef" in out2
+        assert "someone@example.com" in out2
+
+
+def test_wake_audit_help_exits_zero():
+    # `sensei.py wake-audit -h` must exit 0 (argparse -h); the --redact flag
+    # is part of that surface.
+    try:
+        sensei.main(["wake-audit", "-h"])
+    except SystemExit as e:
+        assert e.code == 0
+    else:
+        raise AssertionError("argparse -h should have raised SystemExit(0)")
