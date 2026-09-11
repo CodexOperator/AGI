@@ -17,6 +17,15 @@ import pytest
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+
+def _fixture_text(name: str) -> str:
+    """A real-pane capture pasted as a test fixture. See the fixture files:
+    claude_pane_busy.txt / claude_pane_idle.txt carry `tmux capture-pane -p`
+    output of live Claude Code panes (the burn-in is in the file header)."""
+    return (FIXTURES / name).read_text()
+
 spec = importlib.util.spec_from_file_location("send", BIN / "send.py")
 send_mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(send_mod)
@@ -152,12 +161,16 @@ class _FixturePane:
     def capture(self) -> str:
         import textwrap
         if self.busy:
-            # A BUSY Claude Code pane shows the spinner/`esc to interrupt`
-            # line IN PLACE of the input box (the box is not rendered during
-            # a turn) -- no `\u276f` prompt glyph, so the input region is the
-            # whole capture and busy is read; a mid-turn pane must never be
-            # typed into, whatever sits in `self.input`.
-            return "...\u280b... esc to interrupt\n"
+            # A BUSY Claude Code pane KEEPS its `\u276f` input box (the box
+            # stays rendered through the turn); `esc to interrupt` sits in the
+            # FOOTER immediately BELOW the box's `\u2500\u2500\u2500\u2500`
+            # separator, still INSIDE the input region (which starts at that
+            # `\u276f`). This is a REAL capture (`tmux capture-pane -p`) pasted
+            # as fixtures/claude_pane_busy.txt -- not the box-less spinner line
+            # the old fixture invented. Because the signal lives in the footer
+            # under the box, a region narrowed to drop the box also drops it:
+            # the busy test is only honest against this real shape.
+            return _fixture_text("claude_pane_busy.txt")
         lines = []
         body = []
         for raw in self.input.split("\n"):
@@ -299,6 +312,50 @@ def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
     send_mod.send(project, "director", "the body", "kid")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
     assert "nudge: coalesced (pane busy" in capsys.readouterr().err
+
+
+def test_real_busy_capture_reads_busy_from_the_footer():
+    """The REAL busy capture (fixtures/claude_pane_busy.txt) KEEPS the `\u276f`
+    box; `esc to interrupt` sits in the FOOTER below it. Scoped to the input
+    region (from the last `\u276f`), the busy signal is still caught -- the
+    box does not hide it. This is the shape the old box-less fixture lacked."""
+    busy = _fixture_text("claude_pane_busy.txt")
+    assert "\u276f" in busy, "a real busy pane keeps its input box"
+    assert "esc to interrupt" in busy.lower()
+    # the region starts at the box and reaches the footer
+    region = send_mod._input_region(busy)
+    assert "\u276f" in region
+    assert "esc to interrupt" in region.lower()
+    assert send_mod._nudge_coalesce_reason(busy, "any-token", None) \
+        == "pane busy (spinner)"
+
+
+def test_real_idle_capture_is_not_busy():
+    """The REAL idle capture (fixtures/claude_pane_idle.txt) has the same box
+    and separator but NO `esc to interrupt` in its footer -- not busy."""
+    idle = _fixture_text("claude_pane_idle.txt")
+    assert "\u276f" in idle
+    assert "esc to interrupt" not in idle.lower()
+    assert send_mod._nudge_coalesce_reason(idle, "any-token", None) is None
+
+
+def test_real_busy_capture_narrowed_region_misses_the_busy_signal():
+    """FALSIFIER (hypothesis:l4-the-busy-pane-fixture-is-a-real-capture): with
+    the REAL busy capture the busy signal (`esc to interrupt`) lives in the
+    FOOTER BELOW the `\u276f` box. A region narrowed to exclude the box --
+    stopping at the box line, dropping the footer under it -- no longer reads
+    as busy. The old box-less fixture could not expose this (its `esc to
+    interrupt` WAS the box), which is exactly why it was a false capture."""
+    busy = _fixture_text("claude_pane_busy.txt")
+    lines = busy.splitlines()
+    box_idx = max(i for i, l in enumerate(lines) if "\u276f" in l)
+    box_only = lines[box_idx]              # `\u276f ` -- the box alone
+    assert "esc to interrupt" not in box_only.lower()
+    # current region reaches the footer -> busy
+    assert send_mod._nudge_coalesce_reason(busy, "t", None) \
+        == "pane busy (spinner)"
+    # a narrowed region that stops at the box misses the footer -> not busy
+    assert send_mod._nudge_coalesce_reason(box_only, "t", None) is None
 
 
 def test_nudge_token_is_short_for_every_seat_name():
