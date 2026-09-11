@@ -57,7 +57,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | | |
 |---|---|
 | seat | `sensei-director` · branch `seat/sensei-director@s2`, origin/season/s2 merged at 9fb2f0961 (never rebase) |
-| merge-ups this loop | **SL2#4** 7523293a6 on MAIN (SL3.05 + SL3.07; GOALS.md render d2cf4f60f) — suite running 20:2xZ, numbers + stamp pending (see §🔴) |
+| merge-ups this loop | **SL2#4** 7523293a6 on MAIN (SL3.05 + SL3.07; GOALS.md render d2cf4f60f) — first suite RED 1/3405 (hygiene, SL3.05 kid node) → fix-up merged 69c55d6e6, suite re-run 20:3xZ; numbers + stamp pending (see §🔴) |
 | graph | goals **178** (g15.24 minted this loop) · 0 broken links · GOALS.md byte-identical |
 | spend | account $17.26 at 19:5xZ (Prime read); five deepseek rounds live ~$3-5; floor $1.00 never lowered |
 | unpushed | seat: nothing. MAIN: the SL2#4 merge until its suite passes |
@@ -86,6 +86,7 @@ Harvest each SL4 round: `git fetch`; `MB=$(git merge-base HEAD <branch>)`; `git 
 
 ## §6 TRAPS (L1–L4)
 
+- 🔴 **L4: a kid node whose THOUGHT prose quotes the literal marker `<!-- THOUGHT:BEGIN -->` in backticks fails `test_thought_hygiene` (counts 2) — only at the MERGE-UP suite (the harvest neighbourhood never runs it).** At every harvest: `grep -c THOUGHT:BEGIN` on each new experiment node must be ≤ 1; reword, never delete (SL2#4 went red 1/3405 on SL3.05's kid, fix-up 69c55d6e6).
 - 🔴 **`send.py read` CONSUMES the inbox** — never in a Monitor; count `^from:` lines in `/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md` (a persistent Monitor on the count is safe); read unread text with `awk '/^# read up to here/{f=1;next} f' <file>`, then ONE `send.py read` to mark it — and compare its `from:` count to the peek's: more = a dm landed in between, print the block above the marker.
 - 🔴 **Backticks inside a double-quoted `write.py … "note …"` are eaten by bash** — single-quote the note (F4).
 - 🔴 **The ListAgents ref is NOT a prefix of the row's session_id** (7cab79ca0).
