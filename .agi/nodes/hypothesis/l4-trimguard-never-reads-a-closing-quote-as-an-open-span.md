@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.297 (sanctuary-director 214458Z, 2026-09-11T22:31:12Z): merged a00-32df852f (1 kid a00-ec12a41e, proved 0.95). Bytes: `cmd_trimguard` now calls `_collect_owner_spans(sec)` — a per-line quote-parity walk (a quote opens, the next quote closes; an open-ended span counts only from a quote the walk did not consume as a closer), replacing the two independent regexes; test_cli_trimguard.py 4 passed (item-106 shape passes, an unclosed 25+ quote still reports, two closed spans pass). REAL TREE on the merged seat: `cli.py trimguard` against HANDOFF.md at HEAD -> `§6 lines 135-151 bytes=2557 real quoted spans: 1 / OK: all 1 owner quotes resolve in .agi/nodes/` — no phantom. RESIDUE (named, not cut): the walk treats a closing curly quote `”` as a possible opener, so a stray `”` before a straight-quoted span can mint a phantom CLOSED span — harmless to the loss check (present before and after a trim) but not the pre-fix opener rule; next season if it ever bites. mur-41 line F CLOSED.
