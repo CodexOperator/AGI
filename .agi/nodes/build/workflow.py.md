@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: a00-ee5d3690
+edited_by: a00-2b046d3e
 link_ref: extensions/agi/bin/workflow.py
 location: source_root
 loop: hypothesis:l3w4-workflows-config-maxxed@s2
@@ -31,5 +31,5 @@ title: Workflow.py
 # build:workflow.py
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Authoring verb landed L4.105 (hypothesis:l4-workflow-authoring-is-a-harness-tool): workflow.py author <name> --stages <json|path|stdin> writes BOTH halves of a runnable pair in one action — <name>.json with real prompts AND agi-<name>.js generated FROM the manifest (manifest = source, script = derived). The generated script is a genuine Claude Code Workflow script (meta/phases/phase()/pipeline()/agent()), shaped exactly like the reference templates, so --harness claude-code renders in /workflows natively. Two-stage repeated workflows chain: stage[1].chained_from == stage[0].label + same repeat.of -> the pipeline(items, project, accumulate) form. On pi the chain is real too: a repeated stage with chained_from renders with the PRIOR stage validated return for the same repeat key merged into its prompt context (documented placeholder), carrying the finding across investigate->refute. register no longer lands <TODO> prompt skeletons (it could not author real prompts from labels) — it refuses and names author; validate now FLAGS <TODO> prompts as violations (strictly stronger invariant), so the registry itself can triage runnable from non-runnable. The two pre-existing register skeletons (l3w-route-probe, l4-plan-research) are now surfaced by validate awaiting an author rewrite — out of scope this round (files not in the round write-set).
+<L4.111 a00-2b046d3e (experiment:a00-2b046d3e-35273a, hypothesis:l4-workflow-types-and-default-harness-are-a-geometry-node): the two hardcoded default-harness literals (old list_workflows:227, run_workflow:735) are gone, replaced by _resolve_default_harness reading nodes/.geometry/workflows.md in per-workflow > per-type > prime-default order, then refusing loudly NAMING the node (WorkflowsNodeError; main exits 2 cleanly). list gains a LEVEL column naming the source; run/list refuse when the node is absent (the pre-prime live state); validate refuses an undeclared or missing type when the node exists. The six live manifests gained a `type` (engine files, in scope). The live node is a config node written_by [owner, prime_director], so no kid can create it -- this round proves on a fixture root and ships the body at extensions/agi/briefs/workflows.geometry.md for the prime to land. Residual pre-existing <TODO> skeletons in l3w-route-probe.json and l4-plan-research.json are named, not fixed (authoring is a separate round). Near miss avoided: a code default kept for safety would satisfy the words and keep the literal the owner ordered gone.
 <!-- THOUGHT:END -->

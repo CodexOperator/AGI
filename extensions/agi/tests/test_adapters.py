@@ -259,3 +259,71 @@ def test_non_openrouter_providers_keep_their_aliases(provider):
     claude-code harness, whose namespace is subscription aliases. Refusing it
     there would break the drafting workflow, which names sonnet deliberately."""
     adapters.assert_model_in_provider_namespace("claude-sonnet-5", provider)
+
+
+# -------------------------------------------------- one-write ladder resolver
+# hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` row is the
+# ONE source of a (role, tier)'s model/effort/settings, and the allowlist is
+# DERIVED from those rows. These test the shared resolver at the adapters
+# layer (where dispatch.py, workflow.py and heal.py all import it from).
+
+ROWS = [
+    {"tier": 0, "role": "kid", "harness": "pi",
+     "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""},
+    {"tier": 1, "role": "parent", "harness": "pi",
+     "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""},
+    {"tier": 3, "role": "parent", "harness": "claude-code",
+     "model": "claude-opus-5", "effort": "max", "settings": "ultracode"},
+]
+
+
+def test_ladder_role_row_finds_by_tier_and_role():
+    row = adapters.ladder_role_row(ROWS, 1, "parent")
+    assert row is not None and row["model"] == "deepseek/deepseek-v4.1-flash"
+    assert adapters.ladder_role_row(ROWS, 0, "parent") is None
+    assert adapters.ladder_role_row(ROWS, "1", "parent")["model"] == \
+        "deepseek/deepseek-v4.1-flash"  # string tiers coerce
+
+
+def test_ladder_role_row_none_for_missing_roles():
+    assert adapters.ladder_role_row(ROWS, 0, "nobody") is None
+    assert adapters.ladder_role_row(None, 0, "kid") is None
+    assert adapters.ladder_role_row([], 0, "kid") is None
+
+
+def test_spec_from_ladder_row_maps_blank_cells_to_none():
+    spec = adapters.spec_from_ladder_row(
+        {"tier": 1, "role": "parent", "harness": "pi",
+         "model": "  ~z-ai/glm-flash-latest  ", "effort": "",
+         "thinking": "high", "settings": ""})
+    assert spec["model"] == "~z-ai/glm-flash-latest"
+    assert spec["effort"] is None
+    assert spec["thinking"] == "high"
+    assert spec["settings"] is None
+    assert spec["harness"] == "pi"
+
+
+def test_derived_allowed_models_is_ladder_rows_plus_extra():
+    harness = {"allowed_extra": ["~z-ai/glm-flash-latest"]}
+    allowed = adapters.derived_allowed_models(ROWS, "pi", harness)
+    assert allowed == {"~deepseek/deepseek-v4-flash-latest",
+                       "deepseek/deepseek-v4.1-flash",
+                       "~z-ai/glm-flash-latest"}
+    # claude-code rows are separate: only its own rows join
+    cc = adapters.derived_allowed_models(ROWS, "claude-code", {})
+    assert cc == {"claude-opus-5"}
+
+
+def test_derived_allowed_models_still_unions_legacy_allowed_models():
+    harness = {"allowed_extra": [],
+               "allowed_models": ["claude-sonnet-5", "claude-fable-5-1"]}
+    allowed = adapters.derived_allowed_models(ROWS, "claude-code", harness)
+    # ladder row (claude-opus-5) ∪ legacy census — migration-safe
+    assert "claude-opus-5" in allowed
+    assert "claude-sonnet-5" in allowed
+
+
+def test_derived_allowed_models_empty_when_nothing_names_a_model():
+    assert adapters.derived_allowed_models(ROWS, "nobody", {}) == set()
+    assert adapters.derived_allowed_models([], "pi",
+                                           {"allowed_extra": []}) == set()

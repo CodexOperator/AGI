@@ -39,22 +39,56 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # script; the insert makes it so when it is imported as a module too.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
-from dispatch import pi_model_args, scrubbed_env as _scrubbed_env  # noqa: E402
+import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
+import spawn_gate  # noqa: E402
+def _default_role_for_tier(tier):
+    """Mirror dispatch's default (role == tier) for the heal path."""
+    return tier or "kid"
+
+
+def _default_tier_for_role(role):
+    """The canonical ladder tier a role lives at (mirror of dispatch's)."""
+    return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
+        role, 0)
+from dispatch import pi_model_args, _reap_pass  # noqa: E402
+from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 
-def _pi_model_args(root: Path) -> list[str]:
-    """`agent_dispatch` model flags for the project at `root`, or none.
+def _pi_model_args(root: Path, tier: str = "kid",
+                   role: str | None = None) -> list[str]:
+    """Model flags for the healer, from the ladder when a row exists
+    (hypothesis:l4-a-model-change-is-one-write), else the legacy config path.
 
-    Never raises: healing runs when something is already broken, so a missing
-    or malformed config must cost the healer its model preference, not its
-    existence.
+    Sits on the same shared resolver (`adapters.ladder_role_row` +
+    `adapters.spec_from_ladder_row`) dispatch.py uses, so a `write.py` on the
+    ladder changes what a healed agent is re-spawned with -- same "one write"
+    contract as a fresh dispatch. Never raises: healing runs when something is
+    already broken, so a missing or malformed config must cost the healer its
+    model preference, not its existence.
     """
     try:
         cfg_path = locations.config_path(root)
         if cfg_path is None:
             return []
-        return pi_model_args(json.loads(cfg_path.read_text()))
+        cfg = json.loads(cfg_path.read_text())
+        roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
+        # `tier` here is the HEALED AGENT's record "tier" — a role-string like
+        # `parent`/`kid` (dispatch writes args.tier), not the ladder's int. Map
+        # the role to its canonical int tier for the lookup.
+        _role = role or _default_role_for_tier(tier)
+        if str(tier).isdigit():
+            _tier_int = int(tier)
+        else:
+            _tier_int = _default_tier_for_role(_role)
+        row = adapters.ladder_role_row(roles, _tier_int, _role)
+        if row is not None and (row.get("model") or "").strip():
+            spec = adapters.spec_from_ladder_row(row)
+            harness = {"adapter": "pi", "models": {_role: spec["model"]}}
+            if spec.get("thinking"):
+                harness["thinking"] = spec["thinking"]
+            return adapters.load("pi").model_args(harness, _role)
+        return pi_model_args(cfg)
     except Exception as exc:  # noqa: BLE001 — see docstring
         print(f"heal: could not read model config ({exc}); using pi defaults",
               file=sys.stderr)
@@ -62,6 +96,16 @@ def _pi_model_args(root: Path) -> list[str]:
 
 
 def main() -> int:
+    # hypothesis:l4-the-reaper-is-one-persistent-service — `heal.py watch` is
+    # a SUBCOMMAND of heal.py, never a new bin/*.py (test_bin_help_smoke stays
+    # green). The legacy positional CLI (`heal.py <root> <iter_n>`) is
+    # untouched so driver.sh's heal call parses identically.
+    if len(sys.argv) > 1 and sys.argv[1] == "watch":
+        return _main_watch()
+    return _main_heal()
+
+
+def _main_heal() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
     ap.add_argument("iter_n", type=locations.iteration_id)
@@ -107,6 +151,10 @@ def main() -> int:
             if elapsed > timeout_s and agent_id not in healed_already:
                 _heal(root, args.iter_n, agent_id, rec)
                 healed_already.add(agent_id)
+                # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the
+                # TIMEOUT event: exactly ONE dm to the seat that dispatched it,
+                # naming the reason. No flag; the stamp came from dispatch.
+                _alarm_dispatcher(rec, args.iter_n, "timeout", root)
             else:
                 # Also detect if pid is dead w/o status update → mark failed.
                 pid = int(rec.get("pid", 0))
@@ -118,6 +166,9 @@ def main() -> int:
                     # Sync to manifest too
                     entry["status"] = "failed"
                     print(f"agent {agent_id} marked failed (pid {pid} gone)")
+                    # hypothesis:l4-a-round-alarms-its-dispatcher-by-default —
+                    # the DEATH event: exactly ONE dm naming the reason.
+                    _alarm_dispatcher(rec, args.iter_n, "death", root)
         # Persist manifest so post_wire sees current status
         manifest_path.write_text(json.dumps(manifest, indent=2))
         if all_terminal:
@@ -127,6 +178,184 @@ def main() -> int:
 
     print("ERR: max-wait exceeded; some agents still non-terminal", file=sys.stderr)
     return 2
+
+
+# --- heal.py watch: the ONE persistent reaper service ---
+# hypothesis:l4-the-reaper-is-one-persistent-service part 2. `watch` is the
+# service's loop: discover every live round, run the SAME `_reap_pass`
+# dispatch.py's inline reaper runs, then mark timeouts and dm each terminal
+# event. It exits only when told to (or after one pass with `--once`, which is
+# what the tests drive). A round's deadline stays DATA in its manifest
+# (`timeout_seconds`); the watcher has no per-round lifetime of its own.
+
+
+class _WatcherAdapter:
+    """The one hook `_reap_pass` needs from an adapter, backstopped by
+    heal.py's own pid liveness probe (os.kill(pid, 0)). No harness, no
+    restarts-from-the-service: `_reap_pass` is called with cap=1 cfg=None so
+    a dead pid is recorded but the SERVICE does not decide concurrency."""
+
+    def is_alive(self, pid: int) -> bool:
+        return _pid_alive(pid)
+
+
+def _watch_log(line: str) -> None:
+    """Log ONE line per watcher event to the reaper log (the same dir and
+    hash style as crons.py's), or to stderr when the log is not overridable.
+    Tests set AGI_REAPER_LOG to a tmp path so they never touch ~/logs; the
+    unit (the systemd service) sets it in Environment= or lets it default.
+    """
+    log = os.environ.get("AGI_REAPER_LOG")
+    if log:
+        try:
+            p = Path(log)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with open(p, "a", encoding="utf-8") as fh:
+                fh.write(line.rstrip("\n") + "\n")
+            return
+        except Exception as exc:
+            print(f"watch: log write failed ({exc}); falling back to stderr",
+                  file=sys.stderr)
+    print(line, file=sys.stderr)
+
+
+def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:
+    """`(iter_dir, manifest_path)` for every round manifest the watcher owns:
+    under the main checkout's sessions dir and under every seat worktree's
+    own `.agi/sessions/` (seat manifests live in their own worktrees during a
+    run). The sessions dir is resolved through `locations.sessions_dir` so a
+    graph-root path and a checkout path both land on the live rounds.
+    """
+    rounds: list[tuple[Path, Path]] = []
+    try:
+        sess = locations.sessions_dir(root)
+        for mp in sorted(sess.glob(f"{locations.ITER_DIR_PREFIX}*/manifest.json")):
+            rounds.append((mp.parent, mp))
+    except OSError:
+        pass
+    wt_base = root / "worktrees"
+    if wt_base.is_dir():
+        try:
+            for mp in sorted(wt_base.glob(
+                    f"*/.agi/sessions/{locations.ITER_DIR_PREFIX}*/manifest.json")):
+                rounds.append((mp.parent, mp))
+        except OSError:
+            pass
+    return rounds
+
+
+def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
+    """One watcher pass over one round: death reap (via `_reap_pass`), then a
+    timeout check for every agent still `running`.
+
+    Per-round deadlines stay DATA: a running agent past its manifest's
+    `timeout_seconds` is marked `timeout` in BOTH the agent record and the
+    manifest it was found in, and its dispatcher gets exactly ONE dm through
+    the L4.113 path. A round with no `dispatched_by` stamp gets the mark and
+    one log line, never silence. The round is NEVER killed here — kill is
+    the round's own declared choice (`kill_on_timeout`); this pass only
+    observes and marks.
+    """
+    try:
+        outcome = _reap_pass(root, iter_dir, adapter, cap=1, cfg=None)
+    except Exception as exc:  # noqa: BLE001
+        _watch_log(f"watch: reap pass failed for {iter_dir}: {exc}")
+        return
+
+    # Re-read the manifest: `_reap_pass` may have rewritten it with the reap
+    # marks, and its timeout_seconds IS the round's deadline.
+    manifest_path = iter_dir / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        manifest = {}
+    timeout_s = int(manifest.get("timeout_seconds", 600))
+    for agent_id in outcome["still"]:
+        rec_path = iter_dir / agent_id / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        started = int(rec.get("started_at", 0) or 0)
+        if started <= 0:
+            continue
+        elapsed = int(time.time()) - started
+        if elapsed <= timeout_s:
+            continue
+        rec["status"] = "timeout"
+        rec["finished_at"] = int(time.time())
+        rec["timeout_reason"] = (f"past manifest timeout_seconds={timeout_s} "
+                                 f"at {elapsed}s")
+        rec_path.write_text(json.dumps(rec, indent=2))
+        for entry in manifest.get("agents", []):
+            if entry.get("id") == agent_id:
+                entry["status"] = "timeout"
+                entry["finished_at"] = rec["finished_at"]
+        manifest_path.write_text(json.dumps(manifest, indent=2))
+        # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — ONE dm per
+        # terminal event, through heal.py's own L4.113 helper. No stamp -> the
+        # helper logs a warn line and returns; never silence, never crash.
+        _alarm_dispatcher(rec, iter_dir.name, "timeout", root)
+        _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
+                   f"timeout (elapsed {elapsed}s > {timeout_s}s; "
+                   f"dispatched_by={rec.get('dispatched_by') or '-'})")
+
+
+def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
+    """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
+    UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
+    """
+    adapter = _WatcherAdapter()
+    while True:
+        rounds = _discover_rounds(root)
+        for iter_dir, _mp in rounds:
+            _watch_round(root, iter_dir, adapter)
+        if once:
+            break
+        _watch_log(f"watch: pass complete over {len(rounds)} round(s); "
+                   f"sleeping {poll_s}s")
+        time.sleep(poll_s)
+
+
+def _main_watch() -> int:
+    ap = argparse.ArgumentParser(prog="heal.py watch")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root to watch")
+    ap.add_argument("--poll-s", type=int, default=30)
+    ap.add_argument("--once", action="store_true",
+                    help="run ONE pass over every live round, then exit")
+    # `main()` already consumed the leading `watch` token; parse what follows.
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    _watch(root, once=args.once, poll_s=args.poll_s)
+    return 0
+
+
+def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:
+    """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — a round that
+    DIES or TIMES OUT sends the seat that dispatched it exactly ONE dm naming
+    the reason. ids/numbers plus a short reason token only. Absent stamp -> one
+    stderr line, no crash; an undeliverable dm is logged, never fatal to a heal
+    that is already handling a bad day. The dm must go to the ONE shared inbox
+    (send.py resolves it through `locations.shared_sessions_dir`), never a
+    CWD-local sessions dir that looks delivered to the recipient but is not
+    the file they read.
+    """
+    dispatcher = rec.get("dispatched_by")
+    agent_id = rec.get("id", "?")
+    if not dispatcher:
+        print(f"warn: no dispatcher stamp for {agent_id}; no {reason} dm "
+              "(l4-a-round-alarms-its-dispatcher-)", file=sys.stderr)
+        return
+    try:
+        import send as _send
+        _send.send(root, dispatcher,
+                   f"iter={iter_n} agent={agent_id} reason={reason}",
+                   agent_id)
+    except Exception as exc:
+        print(f"warn: {reason} dm to {dispatcher} failed: {exc}",
+              file=sys.stderr)
 
 
 def _pid_alive(pid: int) -> bool:
@@ -243,7 +472,7 @@ Stay surgical. Don't refactor unrelated code.
     # is a confusing thing to debug.
     pi_args = [
         pi_bin,
-        *_pi_model_args(root),
+        *_pi_model_args(root, rec.get("tier", "kid"), rec.get("role")),
         # Headless, matching `pi_adapter.build_command`. Note this path ran
         # WITHOUT `-p` and did not hang, which is why the hang that prompted
         # adding it is still unexplained -- see `7b57b5955`.

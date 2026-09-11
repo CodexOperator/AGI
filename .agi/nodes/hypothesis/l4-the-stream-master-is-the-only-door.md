@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-the-stream-master-is-the-only-door
+mint_id: 1fb8b4bd95e249c4a8dae6a2b97fea2a
+type: hypothesis
+parents:
+  - goal:g18.1
+next_edges: []
+edited_by: belam-S1-L4-VI
+scaffold_hash: e56d2a2ceb6e7e01
+season: 2
+testable_claim: "OWNER 2026-09-11 01:2xZ (verbatim in doc:l4-owner-decisions): 'if we're gonna have LLM's interact with public stream chats or things like that we need to have strong anti-prompt-injection guards. Ideally all stream interaction happens through a Stream Master eventually, and somehow they need to be isolated when passing ideas or things to the general graph. Obviously, they'd only accept things from boosted chats or sub chats etc, but also must be a limit on ingestion size on purpose. Also some safeguards like if it can't relay the ingestion in less than 50 words just don't let it. If people want to make a more detailed suggestion again later they can just pay again.' CLAIM: the Stream Master is the ONLY door between a public chat and the graph, and the door is narrow by construction. (1) ONE SEAT: a Stream Master row in config:seats (role master, town streaming-suite, owning_goal goal:g18.1, reports to the Streaming Council; idle until the owner wakes it) is the only process that reads chat; no director, parent or kid ever reads a chat transport, and no chat text is ever placed in a brief, a node body or a payload except by the Master's relay. (2) PAID-ONLY INTAKE: the Master accepts a message only from a boosted / subscribed / paid source as the platform reports it (a config table of accepted event kinds per platform, no free-text source names), one message per paid event. (3) A HARD SIZE CAP ON INGESTION, set in config (bytes and tokens), enforced before any model sees the text - an over-cap message is dropped with a one-line log, never truncated into the model. (4) THE 50-WORD RELAY: the Master's output toward the graph is a relay of at most 50 words in its OWN words, typed (suggestion / question / vote), carrying the paid event id and the platform user id, never the original text; if the Master cannot state the ingestion in 50 words it refuses, and the viewer may pay again for another attempt - the limit is the safeguard, not a UX bug. (5) ISOLATION: the relay lands in a quarantine inbox (a node type or a comms room the Master alone writes) that the Streaming Council reads as DATA - never an instruction, never a brief, never executed; a director may mint a node FROM a relay only by its own act, citing the relay id. (6) INJECTION GUARDS, measured not asserted: the Master's prompt names the relay contract and refuses tool use entirely (relay-only, no shell, no write.py); a fixture corpus of injection attempts (role-play, ignore-previous, tool-call mimicry, unicode and markdown smuggling, oversize, multi-message assembly) is replayed against the Master in the round's tests and every one must produce a refusal or a relay whose 50 words contain no instruction to any agent - a red-team kid writes the corpus, a second kid measures. PROVED BY: the fixture replay green; a paid-event simulation producing one relay per paid event and zero for free events; an over-cap message dropped; a 51-word relay refused; the quarantine inbox readable by the Council and unread by every dispatch path (a grep of the brief assembly proves no chat text reaches a kid). DISPROVED BY: any chat text reaching a brief, node or payload except through the Master's typed relay, or any relay carrying more than 50 words or the original text. HARD RULES: no live chat connection in this round (the stream is LIVE - fixtures only; the live platform hookup is a later round on the owner's accounts); panic is never touched; the Master's seat row is created by the Prime on the owner's order; no new bin/*.py; everything platform-specific is config (locations, event kinds, caps) and nothing branches on a platform's name."
+thought_session: belam-S1-L4-VI
+title: The Stream Master is the only door between a public chat and the graph — paid-only intake, a hard ingestion cap, a 50-word typed relay, quarantine, injection guards measured on a corpus
+town: streaming-suite
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-the-stream-master-is-the-only-door
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?

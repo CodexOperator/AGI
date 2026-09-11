@@ -5,7 +5,8 @@ type: goal
 parents:
   - vision:self-perpetuating
 next_edges: []
-edited_by: belam-S1-L4-V
+core: false
+edited_by: owner
 goal_id: G18
 goal_kind: perpetual
 heading_level: 2
@@ -13,8 +14,10 @@ origin: goals-doc
 scaffold_hash: 4f2589ad345d8c15
 season: 2
 status: horizon
-thought_session: f3b92df1
+thought_session: belam-S1-L4-VI
 title: "G18: Sanctuary as a managed subscription web app — the project pays for itself"
+town: web-app-suite
+vision_ref: vision:web-app-suite
 ---
 <!-- BODY:BEGIN -->
 # goal:g18
