@@ -4024,22 +4024,36 @@ def _run_units_no_shell(units: list, timeout_s: int):
     A). Each stage is subprocess.run(stage_argv, shell=False), the prior stage's
     stdout wired as the next stage's stdin; a stage's own `VAR=value` prefix is
     passed as env. Returns (last_rc, merged_output). Nothing outside the parsed
-    argv can execute: no shell, no redirects, no `&&`/`||`/`$(...)`/backticks."""
+    argv can execute: no shell, no redirects, no `&&`/`||`/`$(...)`/backticks.
+
+    Filter semantics (hypothesis:l4-first-turn-filters-truncate): per `|`
+    pipeline only the LAST stage's stdout is appended to the merged output, so
+    a `| head -N` / `| sed -n ...` stdio filter actually truncates — a producer
+    stage's stdout is piped into the next stage (its only destination) and not
+    echoed past the filter. Every stage's stderr is still merged in order
+    (a failing middle stage stays visible). `;` units still concatenate. The
+    byte cap and truncation flag live in the caller and are untouched."""
     last_rc, chunks = 0, []
     for stages in units:
         prev_in = None
-        for argv, prefix in stages:
+        n = len(stages)
+        for idx, (argv, prefix) in enumerate(stages):
             if not argv:
                 continue
             proc = subprocess.run(argv, shell=False, capture_output=True,
                                   input=prev_in, text=True, timeout=timeout_s,
                                   env={**os.environ, **prefix})
             last_rc = proc.returncode
-            merged = proc.stdout or ""
-            if proc.stderr:
-                merged = (merged + "\n" + proc.stderr).strip()
             prev_in = proc.stdout
-            chunks.append(merged)
+            is_last = (idx == n - 1)
+            # Only the LAST stage of a pipeline contributes its stdout; every
+            # stage's stderr is kept, in stage order.
+            merged = proc.stdout if (is_last and proc.stdout) else ""
+            if proc.stderr:
+                merged = ((merged + "\n" + proc.stderr).strip()
+                          if merged else proc.stderr.strip())
+            if merged:
+                chunks.append(merged)
     return last_rc, "\n".join(c for c in chunks if c)
 
 
