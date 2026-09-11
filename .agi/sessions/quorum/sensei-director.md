@@ -55,8 +55,8 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 
 | | |
 |---|---|
-| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **207c6d3fa** (merged `origin/season/s2` 0b19ff154 at 4a831653e; 0 behind at that merge) — 4 commits ahead of season/s2 pending merge-up SL1#2 |
-| suite | 3144 passed / 13 skipped at 4f1fd8d55 (last full run, SL1#1); rotate neighbourhood 451/1 after SL1.06 (test_rotate*, test_session_start*, test_bin_help_smoke, test_send, test_rotation_alert*) · verify 9/10 in worktree (bin-suite-fresh red = expected until the suite) |
+| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **3a11bae1e** (merged `origin/season/s2` 0b19ff154 at 4a831653e) — SL1.06 + SL1.04 harvested, pending merge-up SL1#2 (window asked 17:38Z) |
+| suite | 3144 passed / 13 skipped at 4f1fd8d55 (last full run, SL1#1); rotate+verification neighbourhood 567/1 after SL1.04 (test_rotate*, test_session_start*, test_bin_help_smoke, test_send, test_rotation_alert*) · verify 9/10 in worktree (bin-suite-fresh red = expected until the suite) |
 | graph | active 2165 / deprecated 195 / total 2360 · goals 172 · 0 broken links · GOALS.md byte-identical |
 | spend | per-spawn keys minting ($5 cap, 3 h); ~$1 per parent round; check the KEY not the account |
 | unpushed | nothing (worktree pushed at 207c6d3fa) |
@@ -70,7 +70,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 | sensei.py residue ×6 (Prime 17:14Z) + SL1.01's residue | `goal:g15.13` | `hypothesis:l4-the-audit-classifier-is-derived-and-the-window-is-bounded-by-the-record` | SL1.08 · a00-f7dde91b · `loop/hypothesis-l4-the-audit-classifier-*-a00-f7dde91b@s2` | RUNNING (cut 17:15Z; kid a00-d30cf4b2) |
 | driven handoff writer + prepare | `goal:g15.14` (1+2) | `hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn` | SL1.02 | **LANDED in season/s2** |
 | driven writer keys on declared titles + writes the seat's OWN card (Sensei 17:29Z floor-cutter 3) | `goal:g15.14` fix-only | `hypothesis:l4-the-driven-handoff-writer-keys-on-declared-titles-and-writes-the-seats-own-card` | SL2.01 · a00-5294deb3 · `loop/hypothesis-l4-the-driven-handoff-a00-5294deb3@s2` | RUNNING (cut 17:37Z) |
-| captive window reply + point's harvest-or-cut | `goal:g15.14` (3+4) | `hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps` | SL1.04 · a00-d7f4b9bf · `loop/hypothesis-l4-the-window-reply-a-a00-d7f4b9bf@s2` | RUNNING since 16:29Z (second kid a00-29845d37 at 17:34Z — the parent iterates; harvest the KID branch if the parent is gone) |
+| captive window reply + point's harvest-or-cut | `goal:g15.14` (3+4) | `hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps` | SL1.04 | **HARVESTED on this branch 47c838d02** (5 kids; `verification.py window --grant S` + `rotate.py first-decision --seat S`, both live-probed) — reaches season/s2 at SL1#2 |
 | 0b-b g15-7 half | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` | SL1.03 | **LANDED in season/s2** |
 | 0b-b remainder (i)–(v) | `goal:g15.15` | same node | SL1.07 · a00-11c41cc9 · `loop/hypothesis-l4-startup-first-turn-a00-11c41cc9@s2` | RUNNING (cut ~16:58Z; kid a00-f0612463) |
 | alert address · ack without --ref · geometry guard | `goal:g15.16` | `hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one` | SL1.06 | **HARVESTED on this branch 9460b63ea** (3 kids; fix-ups: merge-not-rebase, m3 serve path shadowed by prepare) — reaches season/s2 at SL1#2 |
