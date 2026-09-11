@@ -602,6 +602,26 @@ def _read_deferred(root: Path, seat: str) -> dict | None:
     return None
 
 
+def _record_deferred_render(root: Path, seat: str, more: int) -> None:
+    """Persist the `(+N more)` count a deferred delivery rendered its
+    inline line with (hypothesis:l4-deferred-ownership-uses-the-rendered-
+    count). A stranded line left by a PRIOR deferred delivery was typed
+    with the count at ITS render time, so a later retry must judge
+    ownership against THAT count, not the (changed) current pending --
+    otherwise a short body whose `(+N more)` tail moved between attempts
+    reads as foreign and the deferred body is delivered TWICE. Best-effort,
+    never raises; a record with no prior render simply stays without the
+    key and the caller falls back to the current count."""
+    try:
+        d = _read_deferred(root, seat)
+        if d is None:
+            return
+        d["more"] = more
+        _nudge_deferred_path(root, seat).write_text(json.dumps(d))
+    except OSError:
+        pass
+
+
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
     same batch is COUNTED (pending), never overwrites the first. Returns
@@ -854,6 +874,14 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         d_body = deferred.get("body") or ""
         text = _nudge_line(to, d_sender, d_body, more,
                            trailing=_NUDGE_INBOX_TAIL.format(seat=to))
+        # The render count is NOT recorded here. It is recorded only after
+        # the line is actually TYPED into the pane (below), so a render that
+        # never reaches the pane (coalesce-window, busy, literal-send
+        # failure, or `text is None`) must not move the stored count -- a
+        # strand left by a PRIOR delivery is judged against the count that
+        # delivery rendered with (hypothesis:l4-deferred-ownership-uses-the-
+        # rendered-count, residue: a render that does not type must not
+        # overwrite the stored count).
     else:
         text = _build_nudge_token(to)
     if text is None:
@@ -953,7 +981,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
             # no-tail render so that own line is still recognised (residue B
             # control).
             own_line = (text if body is not None
-                        else _nudge_line(to, d_sender, d_body, more))
+                        else _nudge_line(to, d_sender, d_body,
+                                         (deferred or {}).get("more", more)))
             # hypothesis:l4-rendered-line-ownership-tolerates-the-wrap: the
             # box WRAPS a line wider than the pane across display rows, so
             # `own_line in region` reads our OWN wrapped stranded line as
@@ -1008,8 +1037,20 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # SEPARATE call is delivered. So: never `text Enter` in one call.
     if not _send_keys(target, text, literal=True):
         # Nothing typed; do not mark delivered, so a retry is not suppressed
-        # (F1, same rationale).
+        # (F1, same rationale). A deferred render count is NOT recorded here
+        # either: a failed literal send means the line never reached the pane
+        # and must not move the stored count.
         return False
+    if delivering_deferred:
+        # The deferred body's line is now TYPED into the pane. Record the
+        # count THIS typing rendered with, so a later retry judges the strand
+        # this delivery may leave (Should the Enter below fail) against THAT
+        # render -- not the (possibly changed) current pending, and not a
+        # count from an intervening render that never typed
+        # (hypothesis:l4-deferred-ownership-uses-the-rendered-count). The
+        # record is a no-op on every non-typing path above. A prior record
+        # with no `more` key stays, and falls back to the current count.
+        _record_deferred_render(root, to, more)
     time.sleep(_NUDGE_ENTER_DELAY_S)
     if not _send_keys(target, "Enter"):
         # The text sits unsubmitted; the next send finds it by its head and
