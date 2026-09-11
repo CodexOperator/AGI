@@ -181,7 +181,28 @@ class _FixturePane:
             # the old fixture invented. Because the signal lives in the footer
             # under the box, a region narrowed to drop the box also drops it:
             # the busy test is only honest against this real shape.
-            return _fixture_text("claude_pane_busy.txt")
+            busy = _fixture_text("claude_pane_busy.txt")
+            if not self.input:
+                # empty-typed busy pane: byte-for-byte the committed fixture.
+                return busy
+            # A line stranded in a busy pane is a REAL part of the capture: it
+            # sits in the box body. Rebuild box + separator + footer from the
+            # fixture's constant parts and put the wrapped input in the box
+            # line, the same way the idle path renders it.
+            prefix, box_and_rest = busy.split("\u276f", 1)
+            footer_and_blanks = box_and_rest[box_and_rest.index("\n"):]
+            box = []
+            if self.cell:
+                for raw in self.input.split("\n"):
+                    chunked = [raw[i:i + self.width]
+                               for i in range(0, len(raw), self.width)] or [""]
+                    box.append("\u276f " + chunked[0])
+                    box.extend("  " + c for c in chunked[1:])
+            else:
+                wrapped = textwrap.wrap(self.input, self.width) or [""]
+                box.append("\u276f " + wrapped[0])
+                box.extend("  " + w for w in wrapped[1:])
+            return prefix + "\n".join(box) + footer_and_blanks
         lines = []
         body = []
         if self.cell:
@@ -629,9 +650,12 @@ def test_wake_busy_outcome(project: Path, monkeypatch, capsys):
 
 def test_wake_no_target_outcome(project: Path, monkeypatch, capsys):
     """Clause (2): a seat with no addressable window -> the ONE `no-target`
-    outcome (exit 1)."""
+    outcome (exit 1), and NOTHING is typed -- a no-target wake must not send
+    `tmux send-keys` into nobody's pane."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     calls = _fake_tmux_pane(monkeypatch, [], _FixturePane(), [])
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), \
+        "a no-target wake must type nothing"
     assert send_mod.wake(project, "ghost-seat") is False
     assert capsys.readouterr().out.strip() == "no-target"
 
@@ -749,6 +773,35 @@ def test_wake_no_box_pending_is_nothing_pending(project: Path, monkeypatch,
     assert len(lines) == 1 and "idle nothing-pending" in lines[0], lines
 
 
+# clause (2) send-side: a dm nudged into a box-less, footer-less capture is
+# a COALESCE (`no rendered box`) -- deferred, never typed.
+
+
+def test_dm_coalesces_no_rendered_box_and_defers_the_body(
+        project: Path, monkeypatch, capsys):
+    """hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-
+    three-tests-assert-what-they-claim (P2b): `send_dm` to a seat whose
+    capture is a NON-BLANK, box-less, footer-less transcript (no `\u276f`,
+    no `esc to interrupt`) is the clause-(2) `(no rendered box)` COALESCE:
+    ZERO `tmux send-keys`, the ONE `nudge: coalesced (no rendered box)`
+    stderr line, and the dm body DEFERRED (carried by `_read_deferred`) for
+    an idle retry -- never typed into a capture that cannot be a box."""
+    seat = "sanctuary-helper"
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n"
+               "some transcript body scrolled above the box\n")
+    assert "\u276f" not in capture and "esc to interrupt" not in capture
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=capture)
+    send_mod.send_dm(project, "sanctuary-director", seat, "the dm body",
+                     "sanctuary-director")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
+    assert "nudge: coalesced (no rendered box)" in capsys.readouterr().err
+    assert send_mod._read_deferred(project / ".agi", seat) \
+        == {"sender": "sanctuary-director", "body": "the dm body"}, \
+        "the unrenderable dm must be deferred for an idle retry, not dropped"
+
+
 # clause (3): the typed token names its path, prefix stays byte-identical
 
 
@@ -839,9 +892,14 @@ def test_wake_main_exit_code_honest(project: Path, monkeypatch):
 
 def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
                                                      monkeypatch, capsys):
-    """The heal never types into a mid-turn pane: busy wins over stranded."""
+    """The heal never types into a mid-turn pane: busy wins over stranded.
+    The busy fixture actually HOLDS the stranded token (its box renders the
+    typed line) -- busy must still win even with a stranded line in the box."""
     pane = _FixturePane(busy=True)
     pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])
+    cap = pane.capture()
+    assert send_mod._nudge_token_head(_OLD_TOKEN) in cap, \
+        "the busy fixture must actually hold the stranded token in its box"
     calls = _fake_tmux_pane(monkeypatch, ["director"], pane, [])
     send_mod.send(project, "director", "the body", "kid")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)

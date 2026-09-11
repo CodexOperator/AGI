@@ -3537,6 +3537,87 @@ def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
     assert "git -C {0} push".format(top) not in out
 
 
+# ── hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and- ──
+# -three-tests-assert-what-they-claim (g15.24 P1). A FAILED commit path
+# (git add rc!=0 OR git commit rc!=0) must not leave seats.md staged — that
+# is exactly the dirt that would refuse the NEXT ack (`_ack_seats_dirty`).
+# So `_ack_commit_seats` returns (ok, out), prints the error on STDERR, runs
+# `git reset -q -- <rel>` (working tree keeps the back-filled row), and
+# `cmd_ack` exits NON-ZERO (3). Falsifier: a forced commit failure leaves
+# seats.md STAGED, or the command exits 0.
+
+def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 P1 falsifier + as-written claim (first integrity test): a
+    FORCED commit failure (a fixture `.git/hooks/pre-commit` that `exit 1`)
+    makes the ack exit NON-ZERO (3), prints the error on STDERR (never
+    stdout), UNSTAGES seats.md (`git diff --cached` empty), and STILL keeps
+    the back-filled row in the WORKING TREE — so the next ack's dirty gate
+    finds seats.md clean, not staged."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    # the harness injects agent-git hooks via GIT_CONFIG_* command-line
+    # config (it wins over the repo's own config); clear it so the repo's
+    # OWN .git/hooks/pre-commit actually runs and can force the commit fail.
+    monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
+    hooks = top / ".git" / "hooks"
+    hooks.mkdir(parents=True, exist_ok=True)
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    pre.chmod(0o755)
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == 3, f"expect exit 3, got {code}"
+    # the row was UNSTAGED — seats.md is not left staged for the next ack.
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    assert cached.stdout.strip() == "", \
+        "seats.md must NOT be left staged after a failed commit"
+    # the row is still written in the WORKING TREE (back-fill kept by reset).
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c", (
+        "working tree must keep the back-filled row after the failed commit")
+    out, err = capsys.readouterr()
+    assert "commit failed" in err, "error must go to STDERR"
+    assert "commit failed" not in out, "error must NOT go to STDOUT"
+
+
+def test_ack_failed_git_add_exits_nonzero_and_no_staged_diff(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 P1 (second integrity test): a FORCED `git add` failure (a
+    mocked subprocess returning rc 1 for the ack's `git add -- seats.md`) also
+    makes the ack exit NON-ZERO (3) with NO staged diff on seats.md."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    real_run = subprocess.run
+
+    def _fail_add(cmd, *a, **k):
+        if cmd and cmd[0] == "git" and "add" in cmd:
+            return subprocess.CompletedProcess(
+                cmd, 1, "", "index is read-only (forced)")
+        return real_run(cmd, *a, **k)
+
+    monkeypatch.setattr(rotate.subprocess, "run", _fail_add)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == 3, f"expect exit 3, got {code}"
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    assert cached.stdout.strip() == "", \
+        "git add failure must not leave seats.md staged"
+    out, err = capsys.readouterr()
+    assert "git add" in err and "failed" in err, \
+        "git add error must go to STDERR"
+    assert "git add" not in out, "git add error must NOT go to STDOUT"
+
+
 # ── hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack- ──
 # -finds-seats-clean (g15.24 fix (a), Sensei's pick). rotate-self commits its
 # OWN s6.1 spawn-row write itself (seats.md only, one line) so the successor's
