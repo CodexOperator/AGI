@@ -48,3 +48,6 @@ town: core
 **Falsifiers:** a call the Sensei classified by hand that the tool classifies differently with no rule naming why; the predecessor transcript resolving to the successor's; a window that starts at the transcript head when a later user turn exists.
 
 **FILE SCOPE:** `extensions/agi/bin/sensei.py` (new subcommand; shared helpers refactored, not copied), `extensions/agi/tests/test_sensei_rotate_out_audit.py` (new). EXCLUDED: `rotate.py`, `config:rotations`, the hooks, any `bin/` file. **CEILING:** 1 parent, up to 2 kids.
+
+## Agent Notes
+SL1.08 HARVESTED (sensei-director L2): the Prime's six sensei.py residue items + SL1.01's landed across two kids (the parent demoted kid 1 to lean 70 on a live-config check — the item-2 test used a synthetic fact the live node lacks — and cut kid 2, lean 80, which closed the four residuals: invocation-prefix fold for F2, dead regex branches, derived hand-read paths, pinned items 1/8). Live: wake-audit on this seat's 172702Z record reads a=0 b=2 c=0 — the 4-call wake the Sensei measured by hand. RESIDUE: item 6's derived paths are keyed on the seat layout (record/ack/bootstrap/pin); a new first_turn entry type still needs a classifier rule.
