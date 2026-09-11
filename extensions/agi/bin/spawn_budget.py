@@ -519,17 +519,23 @@ def _pid_sockets(pid: int) -> int:
     trailing Path may contain spaces, so it is never `cols[-1]`).
     """
     try:
-        fds = Path(f"/proc/{pid}/fd").iterdir()
+        # iterdir() is LAZY: the directory listing happens inside the first
+        # iteration of the for loop below, NOT at the iterdir() call. So the
+        # whole walk (the listing AND each readlink) must sit inside one try.
+        # A pid that exits mid-read raises FileNotFoundError/ProcessLookupError
+        # out of the `for fd in fds:` loop, which would otherwise escape
+        # _pid_sockets() up into status(). Any OSError here returns the
+        # documented 0.
+        inodes = set()
+        for fd in Path(f"/proc/{pid}/fd").iterdir():
+            try:
+                target = str(fd.readlink())
+            except OSError:
+                continue
+            if target.startswith("socket:[") and target.endswith("]"):
+                inodes.add(target[len("socket:["):-1])
     except OSError:
         return 0
-    inodes = set()
-    for fd in fds:
-        try:
-            target = str(fd.readlink())
-        except OSError:
-            continue
-        if target.startswith("socket:[") and target.endswith("]"):
-            inodes.add(target[len("socket:["):-1])
     if not inodes:
         return 0
     table = set()
