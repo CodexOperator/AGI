@@ -1452,10 +1452,35 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     # no template / no first_turn yields empty.
     startup_block = ""
     first_turn = []
+    # goal:g15.17 (b): a first seating's role is the SEAT ROW's role when a
+    # row exists, `--tier` only as the fallback — a director seat's first-
+    # seating alert/template/record never homogenizes to a prime just because
+    # `--tier` defaulted to prime_director. (e): a RE-spawn of an EXISTING
+    # seat pins at the generation it leaves in its row (SL3.01 residue: the
+    # prime's row sat at gen 11 while the re-spawn re-pinned it to 1), never
+    # at FIRST_SEATING_GEN.
+    _fs_role = args.tier
+    _spawn_gen = FIRST_SEATING_GEN
     if seat is not None:
-        startup_block, first_turn = _first_seating_run(
-            root, seat=seat, role=args.tier, succ_name=name,
-            tmux_session=tmux_session, dry_run=args.dry_run)
+        if root is None:
+            # goal:g15.17 (a): a caller that OWNS a seat but stands OUTSIDE
+            # any project root cannot compose a role template (no
+            # rotations.md), write a bootstrap record, or pin a meter — every
+            # first-seating side effect needs the graph. Seat the window
+            # anyway and skip the template/bootstrap, saying so (the SL2.02
+            # refuter's crash: the tail reached Path(None) -> TypeError at
+            # _rotations_node_path).
+            print("[seating] no project root: template + bootstrap skipped")
+        else:
+            _srow = _find_seat(root, seat)
+            if _srow is not None and _srow.get("role"):
+                _fs_role = _srow["role"]
+            _rowgen = _seat_row_generation(root, seat)
+            if _rowgen is not None:
+                _spawn_gen = _rowgen
+            startup_block, first_turn = _first_seating_run(
+                root, seat=seat, role=_fs_role, succ_name=name,
+                tmux_session=tmux_session, dry_run=args.dry_run)
     rc, _ = spawn_window(
         name=name, tier=args.tier,
         prompt_file=args.prompt_file,
@@ -1476,7 +1501,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # has no `result` field by shape, and a stale `pending: resolved after
         # join` pointing at a seating that never happened is worse than an
         # absent file.
-        if seat is not None:
+        if seat is not None and root is not None:
             _remove_first_seating_record(root, seat)
         return rc
     if not args.dry_run:
@@ -1526,11 +1551,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # rotation-does): after the window is up, emit the trigger: first-
         # seating dm + write the gen-1 seating record. Non-fatal — a failure
         # never fails the seating.
-        if seat is not None:
+        if seat is not None and root is not None:
             try:
                 _first_seating_announce(
                     root, None,  # croot None -> resolved inside
-                    seat=seat, role=args.tier, source="cmd_spawn",
+                    seat=seat, role=_fs_role, source="cmd_spawn",
                     tmux_session=tmux_session,
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
@@ -1549,10 +1574,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # (empty target -- rotate-self repoints it when a successor joins at
         # gen 2); an empty-target pin is safe (`_read_pin_target` returns
         # None). Non-fatal: a pin/ack failure never fails the seating.
-        if seat is not None:
+        if seat is not None and root is not None:
             try:
                 _first_seating_spawn_writes(
-                    root=root, seat=seat, generation=FIRST_SEATING_GEN)
+                    root=root, seat=seat, generation=_spawn_gen)
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -1685,6 +1710,13 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # false at the harvest — see the fix-up notes below).
     import send  # local: same dir, no import cycle (send.py pattern)
     ref = (args.ref or "").strip()
+    # goal:g15.17 (c): snapshot whether the seat carried a PENDING ack BEFORE
+    # this ack overwrites it — rotate-self wrote `answer: pending` before the
+    # successor joins, so that pending state is the proof the gen-1 ack is a
+    # first ROTATION (a predecessor exists), not a first seating. cmd_ack's
+    # own write below overwrites the pending ack, so the flag must be taken
+    # here, before the write.
+    _pending_ack_present = _pending_ack_exists(root, seat)
     issue = _ref_shape_issue(ref, seat)
     if issue:
         print(f"ERR: --ref {ref!r} refused: {issue}; pass the bare ListAgents "
@@ -1783,7 +1815,9 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
     if args.gen == FIRST_SEATING_GEN and args.answer == "continue" \
-            and not _seating_record_exists(root, seat, generation=args.gen):
+            and not _seating_record_exists(root, seat, generation=args.gen) \
+            and not _rotation_record_exists(root, seat) \
+            and not _pending_ack_present:
         role = "parent"
         srow = _find_seat(root, seat)
         if srow is not None:
@@ -3301,6 +3335,41 @@ def _seating_record_exists(root: Path, seat: str,
         if rec.get("gen_after") == generation:
             return True
     return False
+
+
+def _rotation_record_exists(root: Path, seat: str) -> bool:
+    """True when `seat` already has a ROTATION record (a loop or rotate-self
+    `.json`, never a `.seating.json`). rotate-self/loop write one BEFORE the
+    successor joins, so a successor acking at gen 1 after a rotation is NOT a
+    first seating — it belongs to a predecessor, and must not announce/write a
+    second gen-1 seating record. A HAND launch (no spawn, no rotate-self)
+    leaves none, so its ack stays a genuine first seating.
+    """
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return False
+    for p in rot.glob(f"{seat}.*.json"):
+        if p.name.endswith(".seating.json"):
+            continue
+        return True
+    return False
+
+
+def _pending_ack_exists(root: Path, seat: str) -> bool:
+    """True when `seat` has a PENDING ack (`seats/<seat>.ack.json` carrying
+    `answer: pending`). rotate-self writes that pending ack BEFORE its
+    successor joins (F8's contract), so its successor acking at gen 1 has a
+    predecessor — NOT a first seating. A HAND-launched seat has no ack file,
+    so its ack stays genuine.
+    """
+    p = _ack_path(root, seat)
+    if not p.exists():
+        return False
+    try:
+        ack = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(ack, dict) and ack.get("answer") == "pending"
 
 
 def _seating_in_flight(first_turn) -> str:
@@ -8394,6 +8463,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         cfg_root, role, getattr(args, "template", None))
     if tmpl is None:
         print(f"ERR: {tmpl_src}", file=sys.stderr)
+        return 1
+    # goal:g15.17 (d)(ii): a JOIN-ONLY rotate-self is refused BY NAME — a
+    # role whose template declares a `startup` block but no `first_turn` has
+    # nothing to hand its successor but the join itself; rotating it would
+    # spawn a successor that boots into emptiness. (The plain legacy template
+    # with NO `startup` key — the pre-startup shape many tests and the
+    # historical rotations use — is untouched; the refusal targets a template
+    # that DECLARES a startup pipeline and then strips first_turn from it.)
+    _fs_startup = tmpl.get("startup")
+    if isinstance(_fs_startup, dict) and not (_fs_startup.get("first_turn") or []):
+        print(f"ERR: role {role!r} template {tmpl_name!r} is join-only "
+              "(startup declared with no first_turn) — rotate-self refused: "
+              "a seat with no first_turn has nothing to hand off. "
+              "(goal:g15.17)", file=sys.stderr)
         return 1
     print(f"(0) template -> {tmpl_name!r} ({tmpl_src}) "
           f"brief={tmpl.get('brief_file')!r} "
