@@ -11,6 +11,7 @@ or write is touched.
 """
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,6 +20,12 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
 
 import sensei  # noqa: E402
+import rotate  # noqa: E402
+
+
+def _git(cwd: Path, *args: str):
+    subprocess.run(["git", "-C", str(cwd), *args], check=True,
+                   capture_output=True, text=True)
 
 # A synthetic director first_turn mirroring the LIVE config:rotations shape,
 # identical to the wake-audit fixture so the two audits share one classifier.
@@ -302,3 +309,202 @@ def test_rotate_out_audit_window_bounded_by_recorded_at_excludes_post_record_far
     assert all(c["cat"] != "b" or c["cmd"] != "true" for c in calls)
     assert all(c["cmd"] != "true" for c in calls)
     assert counts == {"a": 1, "b": 1, "c": 1, "d": 2}
+
+
+# ── SL3.03 one-tool-wrapper parity (hypothesis:l4-the-wake-window-ends-at-
+# ── the-ack-and-both-audits-share-one-tool-wrapper): the SAME tool_use must
+# ── classify identically on the wake side and the rotate-out side — a covered
+# ── Read/Grep is (b), an Edit/Write of the card is (d). rotate_out_audit now
+# ── builds hand_paths + parsed facts and routes through classify_tool_use,
+# ── exactly as wake_audit does. ────────────────────────────────────────────
+
+def _parity_graph(tmp_path):
+    """A graph readable by BOTH audits, plus a transcript carrying a Read of
+    a record (b) and an Edit of the card (d) — one graph, one wrapper."""
+    graph, _ = _write_root(tmp_path, None)   # seats + rotations + prev/out recs
+    rec_tr = graph / "parity.jsonl"
+    events = [json.dumps({"type": "user",
+                          "message": {"role": "user", "content": [
+                              {"type": "text",
+                               "text": "merge-up 14: go"}]}}),
+              json.dumps({"type": "assistant", "message": {"role":
+                          "assistant", "content": [{"type": "tool_use",
+                          "name": "Read", "input": {"path": "sessions/"
+                          f"rotations/{SEAT}.{PREV_STAMP}.json"}}]}}),
+              json.dumps({"type": "user", "message": {"role": "user",
+                          "content": [{"type": "tool_result", "content":
+                          "ok", "tool_use_id": "r"}]}}),
+              json.dumps({"type": "assistant", "message": {"role":
+                          "assistant", "content": [{"type": "tool_use",
+                          "name": "Edit", "input": {"path": "HANDOFF.md",
+                          "old_string": "x", "new_string": "y"}}]}})]
+    rec_tr.write_text("\n".join(events) + "\n", encoding="utf-8")
+    return graph, rec_tr
+
+
+def test_rotate_out_read_of_record_is_b_and_edit_of_card_is_d(tmp_path):
+    # E landed: rotate_out_audit now passes hand_paths + parsed facts, so a
+    # covered Read of a record is (b) — it WAS (d) before (empty cmd, no facts)
+    # — and the card Edit/Write stays (d).
+    graph, tr = _parity_graph(tmp_path)
+    code, calls, counts, window = sensei.rotate_out_audit(
+        graph, SEAT, GEN, tr)
+    assert code == 0
+    assert [c["cat"] for c in calls] == ["b", "d"]
+    assert calls[0]["tool"] == "Read" and calls[0]["label"] is None
+    assert calls[1]["tool"] == "Edit"
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1}
+
+
+def test_rotate_out_and_wake_classify_the_same_tool_use_identically(tmp_path):
+    # the SAME Read-of-a-record and Edit-of-a-card fed to BOTH audits yield
+    # identical (cat, label) — the shared-wrapper parity guarantee.
+    graph, tr = _parity_graph(tmp_path)
+    _, r_calls, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, tr)
+    _, w_calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+    r_cats = [(c["cat"], c["label"], c["tool"]) for c in r_calls]
+    w_cats = [(c["cat"], c["label"], c["tool"]) for c in w_calls]
+    # both audits see the Read then the Edit, in the same order
+    assert r_cats == [("b", None, "Read"), ("d", None, "Edit")]
+    assert r_cats == w_cats
+    # and classify_tool_use is the ONE function both route through
+    hand = sensei._hand_read_paths(sensei._extract_first_turn(
+        sensei._read_rotations(graph)[0], "director"), [], SEAT)
+    read_cat, read_lbl, _ = sensei.classify_tool_use(
+        "Read", {"path": f"sessions/rotations/{SEAT}.{PREV_STAMP}.json"},
+        SEAT, [], [], hand)
+    edit_cat, edit_lbl, _ = sensei.classify_tool_use(
+        "Edit", {"path": "HANDOFF.md", "old_string": "x",
+                  "new_string": "y"}, SEAT, [], [], hand)
+    assert (read_cat, read_lbl) == ("b", None)
+    assert (edit_cat, edit_lbl) == ("d", None)
+
+
+# ── SL3.03 items (B) (C) (D): the registry-json fallback resolves a REAL
+# ── transcript or refuses by name; the registry-dir seam; ONE records path.
+# ── FALSIFIER = an audit that exits 0 with 0 calls on a registry fallback.
+# ──────────────────────────────────────────────────────────────────────────
+
+def _write_out_only(tmp_path, monkeypatch):
+    """_write_root with the PREV record deleted (so resolution skips step 2
+    and reaches the registry fallback) and rotate.CC_PROJECTS_DIR redirected
+    to a fixture, so the DERIVED transcript path is controllable. Returns
+    (graph, reg_dir, proj_dir, pid)."""
+    graph, _ = _write_root(tmp_path, None)
+    (graph / "sessions" / "rotations" / f"{SEAT}.{PREV_STAMP}.json").unlink()
+    reg = tmp_path / "fixture-registry"; reg.mkdir()
+    proj = tmp_path / "fixture-projects"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", proj)
+    return graph, reg, proj, 999999, "aaaa-bbbb"
+
+
+def test_rotate_out_registry_fallback_resolves_derived_transcript(tmp_path, monkeypatch):
+    # item (B): a registry `<pid>.json` {pid, sessionId, cwd} whose DERIVED
+    # transcript exists -> the audit resolves IT (not the registry file) and
+    # classifies its calls (non-zero).
+    graph, reg, proj, pid, sess = _write_out_only(tmp_path, monkeypatch)
+    (reg / f"{pid}.json").write_text(
+        json.dumps({"pid": pid, "sessionId": sess, "cwd": "/a/b.c"}),
+        encoding="utf-8")
+    derived = proj / "-a-b-c" / f"{sess}.jsonl"
+    derived.parent.mkdir(parents=True, exist_ok=True)
+    events = [json.dumps({"type": "user", "message": {"role": "user",
+              "content": [{"type": "text", "text": "merge-up: go"}]}}),
+              json.dumps({"type": "assistant", "message": {"role":
+              "assistant", "content": [{"type": "tool_use", "name": "Bash",
+              "input": {"command": "echo hi"}}]}})]
+    derived.write_text("\n".join(events) + "\n", encoding="utf-8")
+    code, calls, counts, window = sensei.rotate_out_audit(
+        graph, SEAT, GEN, None, registry_dir=str(reg))
+    assert code == 0
+    # the transcript resolved is the DERIVED path, never the registry file
+    assert str(window["log_path"]) == str(derived)
+    assert window["source"] == f"{pid}.json / s12_self_reap.chain"
+    assert len(calls) == 1
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 1}
+
+
+def test_rotate_out_registry_named_refusal_when_derived_absent(tmp_path, monkeypatch, capsys):
+    # item (B): a registry file that PARSES and NAMES a transcript that is
+    # ABSENT is a NAMED REFUSAL (exit 2, message naming both paths) — never
+    # exit 0 with `0 calls` (the falsifier).
+    graph, reg, proj, pid, sess = _write_out_only(tmp_path, monkeypatch)
+    (reg / f"{pid}.json").write_text(
+        json.dumps({"pid": pid, "sessionId": sess, "cwd": "/a/b.c"}),
+        encoding="utf-8")
+    derived = proj / "-a-b-c" / f"{sess}.jsonl"
+    code, calls, counts, window = sensei.rotate_out_audit(
+        graph, SEAT, GEN, None, registry_dir=str(reg))
+    assert code == 2
+    assert calls == [] and counts == {}
+    err = capsys.readouterr().err
+    assert f"{pid}.json" in err and str(derived) in err
+    assert ", absent" in err
+    assert "0 calls" not in err
+
+
+def test_rotate_out_registry_dir_is_honoured(tmp_path, monkeypatch):
+    # item (C): a registry file in a FIXTURE dir is found only when
+    # --registry-dir points at it; the real ~/.claude/sessions is NOT
+    # consulted for the fallback.
+    graph, reg, proj, pid, sess = _write_out_only(tmp_path, monkeypatch)
+    (reg / f"{pid}.json").write_text(
+        json.dumps({"pid": pid, "sessionId": sess, "cwd": "/a/b.c"}),
+        encoding="utf-8")
+    # default registry dir: the fixture reg file is invisible -> no resolution
+    code, _, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 2
+    # --registry-dir points at the fixture: the SAME file is found (and here
+    # parses with an absent derived transcript -> named refusal, exit 2, not
+    # exit 0 with 0 calls).
+    code2, calls, counts, _ = sensei.rotate_out_audit(
+        graph, SEAT, GEN, None, registry_dir=str(reg))
+    assert code2 == 2
+    assert calls == [] and counts == {}
+
+
+def test_rotate_out_transcript_from_registry_derivation(tmp_path, monkeypatch):
+    # the lifted helper (rotate.transcript_from_registry): cwd /a/b.c + sess s
+    # -> CC_PROJECTS_DIR/-a-b-c/s.jsonl; missing cwd or sessionId -> None.
+    proj = tmp_path / "proj"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", proj)
+    reg = tmp_path / "x.json"
+    reg.write_text(json.dumps({"cwd": "/a/b.c", "sessionId": "s"}),
+                   encoding="utf-8")
+    assert rotate.transcript_from_registry(reg) == proj / "-a-b-c" / "s.jsonl"
+    for bad in ({"cwd": "/a/b.c"}, {"sessionId": "s"}, {"cwd": "",
+                 "sessionId": ""}, "not a dict", "{bad json"):
+        reg.write_text(json.dumps(bad) if not isinstance(bad, str) else bad,
+                       encoding="utf-8")
+        assert rotate.transcript_from_registry(reg) is None
+
+
+def test_rotate_out_records_read_shared_sessions_from_worktree(tmp_path):
+    # item (D): _seat_rotation_records reads the SHARED sessions dir, so a
+    # rotation record in the MAIN checkout's sessions is seen from a linked
+    # worktree root (the old per-root `sessions/rotations` refused with
+    # "no rotation records").
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    _git(repo, "init", "-b", "master")
+    _git(repo, "config", "user.email", "t@t")
+    _git(repo, "config", "user.name", "t")
+    graph = repo / ".agi"
+    (graph / "nodes").mkdir(parents=True)
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    rot_dir = graph / "sessions" / "rotations"
+    rot_dir.mkdir(parents=True)
+    rec = {"seat": SEAT, "recorded_at": "2026-09-11T15:00:00Z"}
+    (rot_dir / f"{SEAT}.wt.json").write_text(json.dumps(rec), encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "init")
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "-b", "loop/wt", str(wt), "master")
+    wt_graph = wt / ".agi"
+    # the fork is real: the worktree has its OWN graph dir, but the record
+    # lives in the MAIN checkout's shared sessions
+    assert wt_graph.resolve() != graph.resolve()
+    seen = sensei._seat_rotation_records(wt_graph, SEAT)
+    assert len(seen) == 1
+    assert seen[0][1]["seat"] == SEAT
+

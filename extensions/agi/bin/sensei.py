@@ -484,7 +484,14 @@ def _shape_prefix_matches(shape: str, nc: str) -> bool:
         for mm in re.finditer(r"(?<![A-Za-z0-9_])" + pattern + r"(?=\s|$)", nc):
             prev = nc[:mm.start()].rstrip()
             prev_word = prev.split()[-1] if prev.split() else ""
-            if not prev_word or prev_word.lstrip("|;& ").split()[-1] not in _BARE_FACT_TOOLS:
+            if not prev_word:
+                return True
+            # a prev word that strips to NOTHING is a bare shell separator
+            # (`;`, `&`, `|`), not a filter verb — the bare-verb re-derive stands.
+            clean = prev_word.lstrip(";|& ")
+            if not clean:
+                return True
+            if clean.split()[-1] not in _BARE_FACT_TOOLS:
                 return True
         return False
     # multi-token shape: allow one optional engine-launch prefix
@@ -824,6 +831,36 @@ def _path_is_hand_read(s: str, signals: set) -> bool:
     return any(sig in low for sig in signals)
 
 
+def classify_tool_use(tool: str, inp, seat: str,
+                      entries: list[dict] | None,
+                      facts: list[tuple[str, list[str]]] | None,
+                      hand_paths: set) -> tuple[str, str | None, str]:
+    """The ONE tool-wrapper BOTH audits call (hypothesis:l4-the-wake-window-
+    ends-at-the-ack-and-both-audits-share-one-tool-wrapper). Routes one
+    assistant tool_use to `(cat, label, cmd)` by its OWN input shape —
+    sharing `_synthesize_read_cmd`/`_path_is_hand_read` (Read/Grep/Glob),
+    `_WRITELIKE_TOOLS` (Edit/Write -> d), anything else to `classify_call`
+    with the Bash command and the parsed facts. wake_audit and
+    rotate_out_audit MUST yield the same (cat, label) for the same tool_use;
+    this wrapper is the guarantee (a tool_use the two audits classify
+    differently is a falsifier)."""
+    if tool in _WRITELIKE_TOOLS:
+        # Edit/Write are WRITES: even onto a first_turn-covered path they are
+        # real work (d), never a by-hand read (b).
+        return "d", None, ""
+    if tool in _READLIKE_TOOLS:
+        # non-Bash Read/Grep/Glob are judged by their OWN paths: a covered
+        # path is a by-hand read (b), anything else is real work (d). Such
+        # calls carry no command, so they never match a first_turn/fact
+        # re-derive (a) nor protocol learning (c).
+        cmd = _synthesize_read_cmd(tool, inp)
+        cat, label = ("b", None) if _path_is_hand_read(cmd, hand_paths) else ("d", None)
+        return cat, label, cmd
+    cmd = inp.get("command", "") if isinstance(inp, dict) else ""
+    cat, label = classify_call(cmd, tool, seat, entries, facts)
+    return cat, label, cmd
+
+
 def _iter_tool_uses(path: Path):
     """Yield `(tool, input_dict)` for every assistant tool_use in a CC JSONL
     transcript, in file order, tolerating corrupt lines (errors=replace)."""
@@ -942,6 +979,38 @@ _READLIKE_TOOLS = ("Read", "Grep", "Glob")
 #: regardless of whether the path is one a first_turn entry pre-runs.
 _WRITELIKE_TOOLS = ("Edit", "Write", "WriteFile", "MultiEdit",
                     "NotebookEdit")
+#: How many calls after the ack the wake window will scan for the row commit
+#: that seals the seating (`git commit` naming seats.md). F8's wake ends at
+#: the ack INCLUSIVE; when the card edit + `git add seats.md && git commit`
+#: land right after it (measured: belam 175816Z calls 20-22), the window
+#: extends to that commit. A commit further out is the seat's REAL work, not
+#: wake.
+ROW_COMMIT_LOOKAHEAD = 3
+
+
+def _is_ack_cmd(cmd: str) -> bool:
+    """Whether a Bash command is the `rotate.py ack` wake act itself.
+    Splits on shell separators so a `rotate.py ack --help` protocol probe
+    (a segment carrying `-h`/`--help`) is never mistaken for the act — F8's
+    wake act is the `ack --seat <S> --gen <N> --ref <R> continue|diff`
+    invocation, never a usage read."""
+    nc = _norm_cmd(cmd)
+    for seg in re.split(r"[;&|]+", nc):
+        m = re.search(r"rotate\.py\s+ack\b", seg)
+        if m is None:
+            continue
+        after = seg[m.start():]
+        if re.search(r"(--help|(?<!\w)-h(?=\s|$))", after):
+            continue
+        return True
+    return False
+
+
+def _is_row_commit(cmd: str) -> bool:
+    """Whether a Bash command is the row commit that seals a seating: a
+    `git commit` whose command names `seats.md` (the seat row)."""
+    nc = _norm_cmd(cmd)
+    return bool(re.search(r"\bgit\s+commit\b", nc)) and "seats.md" in nc
 
 
 def wake_audit(root: Path, seat: str, gen: int | None,
@@ -988,28 +1057,53 @@ def wake_audit(root: Path, seat: str, gen: int | None,
 
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0}
-    window_end = None
+    # window bookkeeping: the ack call (F8's wake act) and the first
+    # classifier-(d) call, both 1-based call indices over ALL transcript
+    # calls scanned (before the window cut).
+    ack_idx: int | None = None
+    first_d_idx: int | None = None
     for tool, inp in _iter_tool_uses(log_path):
-        if tool in _WRITELIKE_TOOLS:
-            cat, label, cmd = "d", None, ""
-        elif tool in _READLIKE_TOOLS:
-            # non-Bash Read/Grep/Glob are judged by their OWN paths: a covered
-            # path is a by-hand read (b), anything else is real work (d). Such
-            # calls carry no command, so they never match a first_turn/fact
-            # re-derive (a) nor protocol learning (c).
-            cmd = _synthesize_read_cmd(tool, inp)
-            cat, label = ("b", None) if _path_is_hand_read(cmd, hand_paths) else ("d", None)
-        else:
-            cmd = inp.get("command", "") if isinstance(inp, dict) else ""
-            cat, label = classify_call(cmd, tool, seat, entries, facts)
+        cat, label, cmd = classify_tool_use(
+            tool, inp, seat, entries, facts, hand_paths)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "source": source})
         counts[cat] += 1
-        if cat == "d":
-            window_end = len(calls)
-            break
-    return 0, calls, counts
+        idx = len(calls)
+        if ack_idx is None and _is_ack_cmd(cmd):
+            ack_idx = idx
+        if first_d_idx is None and cat == "d":
+            first_d_idx = idx
+
+    # The window ends at the ack call INCLUSIVE (hypothesis:l4-the-wake-
+    # window-ends-at-the-ack / F8: anything before the ack is wake); when the
+    # row commit that seals the seating (`git commit` naming seats.md) lands
+    # right after it, extend to that commit. No ack call keeps the old
+    # first-(d) rule; no ack and no (d) runs the whole transcript. The reason
+    # is reported machine-readably in the header area via `window_reason`.
+    window_end = len(calls)
+    reason = "transcript end"
+    if ack_idx is not None:
+        end = ack_idx
+        for i in range(ack_idx, min(ack_idx + ROW_COMMIT_LOOKAHEAD, len(calls))):
+            if _is_row_commit(calls[i - 1]["cmd"]):
+                end = i
+                break
+        if end > ack_idx:
+            reason = f"ack call {ack_idx} + row commit {end}"
+        else:
+            reason = f"ack call {ack_idx}"
+        window_end = end
+    elif first_d_idx is not None:
+        window_end = first_d_idx
+        reason = f"first (d) at {first_d_idx}"
+
+    window_calls = calls[:window_end]
+    window_counts = {"a": 0, "b": 0, "c": 0, "d": 0}
+    for c in window_calls:
+        window_counts[c["cat"]] += 1
+    window_counts["window_reason"] = reason
+    return 0, window_calls, window_counts
 
 
 def cmd_wake_audit(root: Path, args) -> int:
@@ -1020,9 +1114,10 @@ def cmd_wake_audit(root: Path, args) -> int:
     gen_label = args.gen if args.gen is not None else "latest"
     print(f"sensei.py wake-audit --seat {args.seat} --gen {gen_label} "
           f"(role {seat_row(load_seats(root), args.seat)['role']})")
-    print(f"window: first assistant tool_use -> first real work "
-          f"({len(calls)} calls scanned, cut at the first category d)")
+    print(f"window: first assistant tool_use -> ack / first real work "
+          f"({len(calls)} calls scanned, {counts.get('window_reason', '?')})")
     print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} d={counts['d']}")
+    print(f"  window_end: {counts.get('window_reason')}")
     print(f"  (d counts the cut call itself; only a/b/c span the wake window)")
     print(f"transcript: {calls[0]['source'] if calls else '?'}")
     for i, c in enumerate(calls, 1):
@@ -1051,7 +1146,7 @@ def _seat_rotation_records(root: Path, seat: str) -> list[tuple[Path, dict]]:
     `seat`, sorted by record filename (the timestamp-ordered glob). Matches
     on the record's own `seat` field, so `belam-S1-L4-*` names never leak
     onto a bare `belam` query."""
-    rot = Path(root) / "sessions" / "rotations"
+    rot = locations.shared_sessions_dir(root) / rotate.ROTATIONS_DIR_NAME
     if not rot.is_dir():
         return []
     out: list[tuple[Path, dict]] = []
@@ -1102,7 +1197,8 @@ def _fallback_pids(rec: dict) -> list[int]:
 
 def _resolve_predecessor_transcript(
         root: Path, seat: str, gen: int, records: list[tuple[Path, dict]],
-        explicit: str | None) -> tuple[Path | None, str]:
+        explicit: str | None,
+        registry_dir: str | None = None) -> tuple[Path | None, str]:
     """Resolve the OUTGOING predecessor's transcript `--gen N`.
 
     Resolution order (never the newest slug-dir transcript — that one is the
@@ -1110,8 +1206,13 @@ def _resolve_predecessor_transcript(
     `--transcript`; (2) the previous record of the same seat whose
     `b_generation.after == N` — it carries the `handover.join.transcript` of
     gen N joining; (3) `~/.claude/sessions/<pid>.json` for a pid in the
-    OUTGOING record's `s12_self_reap.chain`/`handover.reap_own_pid`.
-    Returns `(path|None, reason)`; None when nothing resolved."""
+    OUTGOING record's `s12_self_reap.chain`/`handover.reap_own_pid`, resolved
+    through `rotate.transcript_from_registry` (the registry file is content,
+    never itself the transcript — returning it would read 0 calls and exit 0,
+    a silent false negative).
+    Returns `(path|None, reason)`. A registry file that parses and NAMES a
+    derived transcript that is absent resolves to `(None, "registry <f> names
+    <p>")` — a NAMED REFUSAL the caller must print (never a quiet `0 calls`)."""
     if explicit:
         return Path(explicit), "explicit --transcript"
     for _p, rec in records:
@@ -1130,17 +1231,26 @@ def _resolve_predecessor_transcript(
                         or {}).get("before") == gen
                     or rec.get("b_generation", {}).get("before") == gen),
                    None)
-    home = Path.home()
+    reg_dir = Path(registry_dir or rotate.REGISTRY_DEFAULT_DIR).expanduser()
     for pid in _fallback_pids(out_rec) if out_rec else []:
-        cand = home / ".claude" / "sessions" / f"{pid}.json"
+        cand = reg_dir / f"{pid}.json"
         if cand.is_file():
-            return cand, f"~/.claude/sessions/{pid}.json " \
-                         "/ s12_self_reap.chain"
+            derived = rotate.transcript_from_registry(cand)
+            if derived is None:
+                # registry unreadable or lacks cwd+sessionId: nothing nameable
+                continue
+            if derived.is_file():
+                return derived, f"{cand.name} / s12_self_reap.chain"
+            # registry parses and NAMES a transcript path that is ABSENT:
+            # a named refusal — never a silent `0 calls` exit 0.
+            return None, f"registry {cand.name} names {derived}"
     return None, "no predecessor transcript resolved"
 
 
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
-                     transcript_path: Path | None) -> tuple[int, list[dict], dict, dict]:
+                     transcript_path: Path | None,
+                     registry_dir: str | None = None
+                     ) -> tuple[int, list[dict], dict, dict]:
     """Classify the outgoing predecessor's calls from its last real input to
     the record's `recorded_at` (mirror of `wake_audit`).
 
@@ -1170,6 +1280,13 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
               f"(role {role!r} has no template; refusing to fall back to "
               f"another role's)", file=sys.stderr)
         return 2, [], {}, {}
+    # BOTH audits share ONE tool wrapper (hypothesis:l4-the-wake-window-ends-
+    # at-the-ack-and-both-audits-share-one-tool-wrapper): same parsed facts
+    # and derived hand-read paths, so a tool_use classifies identically here
+    # and on the wake side. `facts` from _read_rotations is the facts_text
+    # string; `_parse_facts` turns it into the re-derive shapes.
+    facts_list = _parse_facts(facts)
+    hand_paths = _hand_read_paths(entries, facts_list, seat)
 
     records = _seat_rotation_records(root, seat)
     if not records:
@@ -1196,10 +1313,15 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
 
     log_path, source = _resolve_predecessor_transcript(
         root, seat, gen, records,
-        str(transcript_path) if transcript_path else None)
+        str(transcript_path) if transcript_path else None,
+        registry_dir=registry_dir)
     if log_path is None:
-        print(f"ERR: no predecessor transcript resolved for seat {seat!r} "
-              f"gen {gen} ({source}); pass --transcript PATH", file=sys.stderr)
+        if source.startswith("registry "):
+            print(f"ERR: {source}, absent", file=sys.stderr)
+        else:
+            print(f"ERR: no predecessor transcript resolved for seat {seat!r} "
+                  f"gen {gen} ({source}); pass --transcript PATH",
+                  file=sys.stderr)
         return 2, [], {}, {}
     if not log_path.is_file():
         print(f"ERR: predecessor transcript not found: {log_path} "
@@ -1210,21 +1332,24 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0}
     for tool, inp in _tool_uses_after(log_path, start_idx, until_ts=until_ts):
-        cmd = inp.get("command", "") if isinstance(inp, dict) else ""
-        cat, label = classify_call(cmd, tool, seat, entries)
+        cat, label, cmd = classify_tool_use(
+            tool, inp, seat, entries, facts_list, hand_paths)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label})
         counts[cat] += 1
     window = {"gen": gen, "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
-              "log_path": str(log_path)}
+              "log_path": str(log_path),
+              "window_reason": "predecessor window, bounded by record (rotate-out; "
+                              "d is the decision, not a cut)"}
     return 0, calls, counts, window
 
 
 def cmd_rotate_out_audit(root: Path, args) -> int:
     code, calls, counts, window = rotate_out_audit(
         root, args.seat, args.gen,
-        Path(args.transcript) if args.transcript else None)
+        Path(args.transcript) if args.transcript else None,
+        registry_dir=args.registry_dir)
     if code != 0:
         return code
     row = seat_row(load_seats(root), args.seat)
@@ -1400,6 +1525,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--transcript", default=None,
                    help="explicit predecessor transcript path (else resolved "
                         "from the rotation records)")
+    p.add_argument("--registry-dir", default=None,
+                   help="registry dir to fall back through (default: "
+                        "rotate.REGISTRY_DEFAULT_DIR)")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
