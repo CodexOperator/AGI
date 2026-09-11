@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST L4.249 (sanctuary-director, 2026-09-11 16:22Z). Parent a00-57f76acb accepted the kid's proved (0.9) after reading the artifact. Landed on the seat as a merge of `loop/hypothesis-l4-agent-status-retur-a00-57f76acb@s2`: spawn_budget.py (+4/-2: the ValueError branch returns `("(no agent.json)", None, None)`, annotation `tuple[str, str | None, int | None]`), one test over an unparseable iter, the kid's node. Ran from the seat with test_tier_gate.py alongside: 85 passed. REAL-TREE probe: `grep -n 'return "(no agent.json)"' spawn_budget.py` -> :629 and :684, both 3-tuples; in-process `_agent_status(<empty .agi>, 'a00-deadbeef', 'not-an-iter', None)` -> `('(no agent.json)', None, None)` — the crash path the prime named is closed.
