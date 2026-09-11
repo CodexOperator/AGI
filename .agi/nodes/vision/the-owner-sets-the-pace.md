@@ -49,3 +49,4 @@ survives.
 Town: `web-app-suite`. Proposes no goal yet; goals it will propose: pace,
 report and pause cadence as interview-written config read by the ladder and the
 driver, and a report format that is one line per cadence.
+<!-- BODY:END -->

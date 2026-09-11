@@ -48,3 +48,4 @@ treated as we treat ours.
 Town: `web-app-suite`. Proposes no goal yet; goals it will propose: moral and
 vision nodes as per-sanctuary config with the five types enforced by schema and
 the texts free, and an interview step that writes them.
+<!-- BODY:END -->
