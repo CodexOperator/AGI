@@ -6053,6 +6053,8 @@ SL2.01 HARVESTED (sensei-director L2, one kid proved 0.85): the driven writer no
 
 in-loop fix (sensei-director L2, Sensei 18:26Z rotate-out finding): prepare check 2 excludes cron-owned churn by name — .agi/comms/** and .agi/sessions/rotations/sequence.json — measured on a MAIN-checkout seat where those were the only BLOCK; a real edit beside them still blocks (test_prepare_dirty_ignores_cron_owned_churn). Reaches season/s2 at SL2#1.
 
+in-loop (sensei-director L2, Sensei 18:29Z two findings on the SL2.01 writer + prepare): (1) a card with no declared STATE section (the Sensei card: §0 identity … §5 NEXT COMMAND … §6 BANKED) now GAINS a driven STATE section inserted ahead of its next-command section — never §0 by numeral, identity lives there on two live cards; next command is a where-it-stops title synonym (test_existing_card_missing_state_gains_one_ahead_of_next_command replaces the refusal test); (2) prepare check 4 reads the last WORK commit — git log -1 --no-merges excluding .agi/comms, .agi/sessions/rotations and the card itself — so a sync merge, a churn commit or committing the card no longer ages it (test_prepare_card_check_reads_the_last_work_commit_only). Dry-run verified on a copy of the live master-sensei card.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
