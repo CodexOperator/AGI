@@ -181,9 +181,12 @@ def test_dummy_scheme_registered_in_test_and_used_through_table():
 def test_sig_scheme_string_indirection():
     """Selecting a scheme from a small string mapping (send.py-style)."""
     # Map a config string to a scheme object exactly as send.py would.
+    # Register the dummy HERE: a test must pass alone, never lean on a
+    # sibling's side effect (L4.275 parent review: alone -> KeyError).
+    register(_DummyScheme())
     sig_scheme = {
         "ed25519": get("ed25519"),
-        "dummy": get("dummy"),  # still registered by the prior test
+        "dummy": get("dummy"),
     }
     for name, scheme in sig_scheme.items():
         priv, pub = scheme.keygen()
