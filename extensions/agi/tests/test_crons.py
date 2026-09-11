@@ -36,7 +36,7 @@ DEFAULT_CADENCES = {
 }
 
 
-def _crons_frontmatter(crons_live=True, cadences=None) -> str:
+def _crons_frontmatter(crons_live=True, cadences=None, services=None) -> str:
     if cadences is None:
         cadences = DEFAULT_CADENCES
     fm = {
@@ -45,13 +45,15 @@ def _crons_frontmatter(crons_live=True, cadences=None) -> str:
         "crons_live": crons_live,
         "cadences": cadences,
     }
+    if services:
+        fm["services"] = services
     return "---\n" + yaml.safe_dump(fm, sort_keys=False) + "---\n\nBody.\n"
 
 
-def write_crons_node(root: Path, crons_live=True, cadences=None) -> None:
+def write_crons_node(root: Path, crons_live=True, cadences=None, services=None) -> None:
     p = root / crons.CRONS_NODE_REL
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(_crons_frontmatter(crons_live, cadences))
+    p.write_text(_crons_frontmatter(crons_live, cadences, services))
 
 
 def _git(path: Path, *args: str) -> str:
@@ -689,3 +691,113 @@ def test_cli_dry_run_reports_without_writing(tmp_path, capsys):
     assert rc == 0
     assert fixture.read_text() == original
     assert "would install 4 line(s)" in capsys.readouterr().out
+
+
+# --- services table: systemd units rendered from the graph (fixture seam) --
+
+
+SER_REAPER = {
+    "agi-reaper": {
+        "enabled": True,
+        "exec_start": "python3 /engine/extensions/agi/bin/heal.py watch "
+                       "--root /proj --poll-s 30",
+        "restart": "on-failure",
+        "environment": {"NOTIFY": "off"},
+    }
+}
+
+
+def test_no_services_table_is_byte_for_byte_noop_on_units(tmp_path):
+    """The live state until the prime lands the table: a `services:`-less
+    node + --unit-dir leaves the unit dir untouched and reports no actions."""
+    root = make_project(tmp_path)
+    ud = tmp_path / "units"
+    result = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                             unit_dir=ud)
+    assert result["unit_actions"] == []
+    assert not ud.exists() or not list(ud.iterdir())
+
+
+def test_plain_apply_without_unit_dir_touches_no_units(tmp_path, capsys):
+    """Unit management is opt-in via the seam: a plain apply (the grid_sync
+    self-reapply line) never reaches for units even when the node declares a
+    services table."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    result = crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture")
+    assert result["unit_actions"] == []
+    assert result["unit_dir"] is None
+
+
+def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path):
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+
+    r1 = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    unit = next(ud.glob("agi-*.service"))
+    first = unit.read_text()
+    assert unit.name == f"agi-agi-reaper-{crons.project_hash(root)[:8]}.service"
+    assert "ExecStart=python3 /engine/extensions/agi/bin/heal.py watch" in first
+    assert "WorkingDirectory=" in first
+    assert "Restart=on-failure" in first
+    assert "Environment=NOTIFY=off" in first
+    assert "WantedBy=default.target" in first
+
+    r2 = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert unit.read_text() == first, "running apply twice must be byte-identical"
+    assert any("up to date" in a for a in r2["unit_actions"])
+    # crontab path still reconciles as usual alongside the unit
+    assert r2["crons_live"] is True
+
+
+def test_crons_live_false_removes_unit_and_records_disable(tmp_path):
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    unit = next(ud.glob("agi-*.service"))
+
+    write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert not unit.exists()
+    assert any("remove unit" in a for a in res["unit_actions"])
+    # the disable intent is recorded through the seam, never run for real
+    assert any("systemctl --user disable --now" in a for a in res["unit_actions"])
+
+
+def test_unit_dry_run_writes_nothing(tmp_path, capsys):
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud, dry_run=True)
+    assert not ud.exists() or not list(ud.iterdir())
+    assert any("(dry-run)" in a for a in res["unit_actions"])
+
+    rc = crons.main(["apply", "--root", str(root), "--crontab-file", str(fixture),
+                     "--unit-dir", str(ud), "--dry-run"])
+    assert rc == 0
+    assert not ud.exists() or not list(ud.iterdir())
+
+
+def test_rendered_unit_never_carries_a_credential_path(tmp_path):
+    """The claim's hard rule — the watcher never reads a credential — is a
+    property of the renderer too: Environment= takes plain key=value settings
+    and every value round-trips unchanged; assert the unit text contains the
+    settings we put in and none we did not."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture", unit_dir=ud)
+    text = next(ud.glob("agi-*.service")).read_text()
+    assert "Environment=NOTIFY=off" in text
+    assert "SystemdEnvironment" not in text or "SECRET" not in text

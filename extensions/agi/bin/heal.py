@@ -50,7 +50,8 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, scrubbed_env as _scrubbed_env  # noqa: E402
+from dispatch import pi_model_args, _reap_pass  # noqa: E402
+from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 
@@ -95,6 +96,16 @@ def _pi_model_args(root: Path, tier: str = "kid",
 
 
 def main() -> int:
+    # hypothesis:l4-the-reaper-is-one-persistent-service — `heal.py watch` is
+    # a SUBCOMMAND of heal.py, never a new bin/*.py (test_bin_help_smoke stays
+    # green). The legacy positional CLI (`heal.py <root> <iter_n>`) is
+    # untouched so driver.sh's heal call parses identically.
+    if len(sys.argv) > 1 and sys.argv[1] == "watch":
+        return _main_watch()
+    return _main_heal()
+
+
+def _main_heal() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
     ap.add_argument("iter_n", type=locations.iteration_id)
@@ -167,6 +178,158 @@ def main() -> int:
 
     print("ERR: max-wait exceeded; some agents still non-terminal", file=sys.stderr)
     return 2
+
+
+# --- heal.py watch: the ONE persistent reaper service ---
+# hypothesis:l4-the-reaper-is-one-persistent-service part 2. `watch` is the
+# service's loop: discover every live round, run the SAME `_reap_pass`
+# dispatch.py's inline reaper runs, then mark timeouts and dm each terminal
+# event. It exits only when told to (or after one pass with `--once`, which is
+# what the tests drive). A round's deadline stays DATA in its manifest
+# (`timeout_seconds`); the watcher has no per-round lifetime of its own.
+
+
+class _WatcherAdapter:
+    """The one hook `_reap_pass` needs from an adapter, backstopped by
+    heal.py's own pid liveness probe (os.kill(pid, 0)). No harness, no
+    restarts-from-the-service: `_reap_pass` is called with cap=1 cfg=None so
+    a dead pid is recorded but the SERVICE does not decide concurrency."""
+
+    def is_alive(self, pid: int) -> bool:
+        return _pid_alive(pid)
+
+
+def _watch_log(line: str) -> None:
+    """Log ONE line per watcher event to the reaper log (the same dir and
+    hash style as crons.py's), or to stderr when the log is not overridable.
+    Tests set AGI_REAPER_LOG to a tmp path so they never touch ~/logs; the
+    unit (the systemd service) sets it in Environment= or lets it default.
+    """
+    log = os.environ.get("AGI_REAPER_LOG")
+    if log:
+        try:
+            p = Path(log)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with open(p, "a", encoding="utf-8") as fh:
+                fh.write(line.rstrip("\n") + "\n")
+            return
+        except Exception as exc:
+            print(f"watch: log write failed ({exc}); falling back to stderr",
+                  file=sys.stderr)
+    print(line, file=sys.stderr)
+
+
+def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:
+    """`(iter_dir, manifest_path)` for every round manifest the watcher owns:
+    under the main checkout's sessions dir and under every seat worktree's
+    own `.agi/sessions/` (seat manifests live in their own worktrees during a
+    run). The sessions dir is resolved through `locations.sessions_dir` so a
+    graph-root path and a checkout path both land on the live rounds.
+    """
+    rounds: list[tuple[Path, Path]] = []
+    try:
+        sess = locations.sessions_dir(root)
+        for mp in sorted(sess.glob(f"{locations.ITER_DIR_PREFIX}*/manifest.json")):
+            rounds.append((mp.parent, mp))
+    except OSError:
+        pass
+    wt_base = root / "worktrees"
+    if wt_base.is_dir():
+        try:
+            for mp in sorted(wt_base.glob(
+                    f"*/.agi/sessions/{locations.ITER_DIR_PREFIX}*/manifest.json")):
+                rounds.append((mp.parent, mp))
+        except OSError:
+            pass
+    return rounds
+
+
+def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
+    """One watcher pass over one round: death reap (via `_reap_pass`), then a
+    timeout check for every agent still `running`.
+
+    Per-round deadlines stay DATA: a running agent past its manifest's
+    `timeout_seconds` is marked `timeout` in BOTH the agent record and the
+    manifest it was found in, and its dispatcher gets exactly ONE dm through
+    the L4.113 path. A round with no `dispatched_by` stamp gets the mark and
+    one log line, never silence. The round is NEVER killed here — kill is
+    the round's own declared choice (`kill_on_timeout`); this pass only
+    observes and marks.
+    """
+    try:
+        outcome = _reap_pass(root, iter_dir, adapter, cap=1, cfg=None)
+    except Exception as exc:  # noqa: BLE001
+        _watch_log(f"watch: reap pass failed for {iter_dir}: {exc}")
+        return
+
+    # Re-read the manifest: `_reap_pass` may have rewritten it with the reap
+    # marks, and its timeout_seconds IS the round's deadline.
+    manifest_path = iter_dir / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        manifest = {}
+    timeout_s = int(manifest.get("timeout_seconds", 600))
+    for agent_id in outcome["still"]:
+        rec_path = iter_dir / agent_id / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        started = int(rec.get("started_at", 0) or 0)
+        if started <= 0:
+            continue
+        elapsed = int(time.time()) - started
+        if elapsed <= timeout_s:
+            continue
+        rec["status"] = "timeout"
+        rec["finished_at"] = int(time.time())
+        rec["timeout_reason"] = (f"past manifest timeout_seconds={timeout_s} "
+                                 f"at {elapsed}s")
+        rec_path.write_text(json.dumps(rec, indent=2))
+        for entry in manifest.get("agents", []):
+            if entry.get("id") == agent_id:
+                entry["status"] = "timeout"
+                entry["finished_at"] = rec["finished_at"]
+        manifest_path.write_text(json.dumps(manifest, indent=2))
+        # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — ONE dm per
+        # terminal event, through heal.py's own L4.113 helper. No stamp -> the
+        # helper logs a warn line and returns; never silence, never crash.
+        _alarm_dispatcher(rec, iter_dir.name, "timeout", root)
+        _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
+                   f"timeout (elapsed {elapsed}s > {timeout_s}s; "
+                   f"dispatched_by={rec.get('dispatched_by') or '-'})")
+
+
+def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
+    """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
+    UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
+    """
+    adapter = _WatcherAdapter()
+    while True:
+        rounds = _discover_rounds(root)
+        for iter_dir, _mp in rounds:
+            _watch_round(root, iter_dir, adapter)
+        if once:
+            break
+        _watch_log(f"watch: pass complete over {len(rounds)} round(s); "
+                   f"sleeping {poll_s}s")
+        time.sleep(poll_s)
+
+
+def _main_watch() -> int:
+    ap = argparse.ArgumentParser(prog="heal.py watch")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root to watch")
+    ap.add_argument("--poll-s", type=int, default=30)
+    ap.add_argument("--once", action="store_true",
+                    help="run ONE pass over every live round, then exit")
+    # `main()` already consumed the leading `watch` token; parse what follows.
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    _watch(root, once=args.once, poll_s=args.poll_s)
+    return 0
 
 
 def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:
