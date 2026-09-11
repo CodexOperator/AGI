@@ -3157,11 +3157,224 @@ def _render_card(preamble: str,
 def _section_tag(header: str) -> str | None:
     """Which of §0 / §3 / §6 a `## ...` header names, or None. Headers like
     `## 🔴 §6 BANKED` still resolve to §6 (the token is searched, not the
-    first word)."""
+    first word).
+
+    **SL2.01 (hypothesis:l4-the-driven-handoff-writer-keys-on-declared-
+    titles-and-writes-the-seats-own-card):** the driven writer no longer keys
+    on the § numerals directly — the sensei-director card's numerics are a
+    DIFFERENT layout (§0 identity, §5 state). The numerals survive here only
+    as the legacy PRIME-card fallback (`## §3 🔴 NEXT COMMAND` has no
+    "where it stops" title), resolved by `_locate_where_it_stops`. KEYS ON
+    DECLARED TITLES first, never on these."""
     for tok in ("§0", "§3", "§6"):
         if tok in header:
             return tok
     return None
+
+
+def _own_card_path(root: Path, seat: str) -> Path:
+    """The seat's OWN card path, found in the worktree FIRST, MAIN's shared
+    copy only when no own copy exists (hypothesis SL2.01 #3). Lifted out of
+    `_prepare_checks` check 4 (the meter-stale card check) — ONE helper, both
+    callers. `root` is the graph root (`<tree>/.agi`, as `find_project_root`
+    returns it), so the seat's own card is `<tree>/.agi/sessions/quorum/
+    <S>.md`; MAIN's shared copy lives under `_sessions_dir` (which routes
+    through `git_common_root` to the main checkout)."""
+    _own = [Path(root) / "sessions" / "quorum" / f"{seat}.md",
+            Path(root) / ".agi" / "sessions" / "quorum" / f"{seat}.md"]
+    return next((c for c in _own if c.exists()),
+                _sessions_dir(root) / "quorum" / f"{seat}.md")
+
+
+def _subheader_in_body(body: str, token: str) -> int | None:
+    """Line index of the first header line at ANY depth (`###`, etc.) in
+    `body` whose text contains `token` (case-insensitive), or None.
+    Subsections live inside a `## ` section's body (`_split_card_sections`
+    splits only on `## `), so `### 🔴 Where it stops` is found here."""
+    for i, ln in enumerate(body.splitlines()):
+        s = ln.strip()
+        if s.startswith("#") and token.lower() in s.lower():
+            return i
+    return None
+
+
+def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
+    """Where the where-it-stops slot lives in `sections` (a `_split_card_
+    sections` list). Returns `(section_idx, sub)` where `sub == -1` means the
+    `## ` section header itself is the slot and `sub >= 0` is the body-line
+    index of the `###`-style subheader inside it. Returns `"ambiguous"` when
+    more than one match, `None` when none (caller refuses an existing-card
+    miss). Resolution order:
+      1. a `## ` header whose TEXT contains "where it stops";
+      2. a `###`-level subheader whose text contains "where it stops";
+      3. the legacy PRIME fallback: a `## ` header carrying the §3 numeral
+         (`## §3 🔴 NEXT COMMAND` has no title, but is the next-command slot).
+    Never numerals ahead of titles — the sensei-director §3 is NEVER TOUCH."""
+    top = [(i, -1) for i, (h, _) in enumerate(sections)
+           if "where it stops" in h.lower()]
+    sub = [(i, j) for i, (_, b) in enumerate(sections)
+           if (j := _subheader_in_body(b, "where it stops")) is not None]
+    if len(top) + len(sub) > 1:
+        return "ambiguous"
+    if len(top) == 1:
+        return top[0]
+    if len(sub) == 1:
+        return sub[0]
+    fallback = [i for i, (h, _) in enumerate(sections) if "§3" in h]
+    if len(fallback) > 1:
+        return "ambiguous"
+    if len(fallback) == 1:
+        return (fallback[0], -1)
+    return None
+
+
+def _locate_banked(sections) -> tuple[int, int] | str | None:
+    """Where the BANKED slot lives, title-keyed exactly like where-it-stops
+    but with NO numeral fallback (the sensei-director §6 is TRAPS, never
+    banked). `None` = absent, which is fine — nothing is appended (hypothesis
+    wording: the Prime card has one, the sensei-director card does not).
+    `"ambiguous"` = more than one BANKED header, refused rather than
+    guessed."""
+    top = [(i, -1) for i, (h, _) in enumerate(sections)
+           if "banked" in h.lower()]
+    sub = [(i, j) for i, (_, b) in enumerate(sections)
+           if (j := _subheader_in_body(b, "banked")) is not None]
+    if len(top) + len(sub) > 1:
+        return "ambiguous"
+    if len(top) == 1:
+        return top[0]
+    if len(sub) == 1:
+        return sub[0]
+    return None
+
+
+def _state_rows(seat: str, facts: dict) -> list[tuple[str, str]]:
+    """The measured state as (label, value) rows — the single source for
+    BOTH shapes the built block can take. `seat` is provenance so the block
+    names whose card it is."""
+    gb, ga = facts.get("gen_before"), facts.get("gen_after")
+    if gb is not None and ga is not None:
+        gen_s = f"{gb}->{ga}"
+    elif ga is not None:
+        gen_s = str(ga)
+    elif gb is not None:
+        gen_s = str(gb)
+    else:
+        gen_s = "n/a"
+    rows: list[tuple[str, str]] = []
+    rows.append(("Rotation record",
+                 f"gen {gen_s}, window {facts.get('window') or 'n/a'}, "
+                 f"pid {facts.get('pid') or 'n/a'}, model_confirm "
+                 f"{facts.get('model_confirm') or 'n/a'}."))
+    nc = (f"active {facts.get('counts_active') or 'n/a'}, deprecated "
+          f"{facts.get('counts_deprecated') or 'n/a'}.")
+    if facts.get("suite"):
+        nc += f" Suite {facts['suite']}."
+    rows.append(("Node counts", nc))
+    rows.append(("Tree",
+                 f"branch {facts.get('branch') or 'n/a'}, behind season/s2 "
+                 f"{facts.get('behind') or 'n/a'}, unpushed "
+                 f"{facts.get('unpushed') or 'n/a'}."))
+    rows.append(("Meter",
+                 f"{facts.get('fraction') or 'n/a'} · "
+                 f"role {facts.get('role') or 'n/a'} · "
+                 f"model {facts.get('model') or 'n/a'}."))
+    rows.append(("Account", str(facts.get("account") or "n/a")))
+    return rows
+
+
+def _render_state_body(shape: str, rows: list[tuple[str, str]]) -> str:
+    """Render the measured state rows into `shape` — a 2-column table or a
+    list — so the built block takes the SHAPE of what it replaces (hypothesis
+    SL2.01 #2): a table card stays a table, a list card stays a list."""
+    if shape == "table":
+        out = ["| Field | Value |", "|---|---|"]
+        for label, value in rows:
+            out.append(f"| {label} | {value} |")
+        return "\n".join(out)
+    out = [f"- **{label}:** {value}" for label, value in rows]
+    return "\n".join(out)
+
+
+def _state_header(seat: str, facts: dict) -> str:
+    """The `## ` header for the state section (used for a FRESH compose only;
+    an existing STATE header is kept untouched while only its first
+    table-or-list is rebuilt)."""
+    return (f"## §0 STATE (driven — `rotate.py handoff --driven --seat "
+            f"{seat}`, {facts.get('stamp')})")
+
+
+def _replace_state_body(body: str, rows: list[tuple[str, str]]) -> str:
+    """Scoped state replacement (hypothesis SL2.01 #2): replace the FIRST
+    table-or-list directly under the STATE header with the measured block,
+    carrying everything else in the section (subsections, prose) verbatim.
+    A section with no table-or-list at all (e.g. the lean PRIME §0 body)
+    is replaced wholesale — the writer still fills it."""
+    lines = body.splitlines()
+    idx = None
+    kind = None
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s.startswith("|"):
+            idx, kind = i, "table"
+            break
+        if s.startswith(("- ", "* ")):
+            idx, kind = i, "list"
+            break
+    if idx is None:
+        # no table/list to scope to: replace the whole body (Prime lean §0)
+        return _render_state_body("list", rows)
+    j = idx
+    if kind == "table":
+        while j < len(lines) and lines[j].strip().startswith("|"):
+            j += 1
+    else:
+        while j < len(lines) and lines[j].strip().startswith(("- ", "* ")):
+            j += 1
+    before = lines[:idx]
+    after = lines[j:]
+    new_block = _render_state_body(kind, rows).splitlines()
+    return "\n".join(before + new_block + after)
+
+
+def _replace_fence_after(lines: list[str], start: int, s3: str):
+    """Replace the fenced code block starting at/after line `start`'s fence
+    with `s3`, keeping the ```` ``` ```` delimiters and the header above it.
+    Returns the new line list, or None when no fence is found below `start`
+    (caller falls back to whole-body replacement)."""
+    fence = None
+    for i in range(start, len(lines)):
+        if lines[i].strip().startswith("```"):
+            fence = i
+            break
+    if fence is None:
+        return None
+    close = None
+    for i in range(fence + 1, len(lines)):
+        if lines[i].strip().startswith("```"):
+            close = i
+            break
+    if close is None:
+        close = len(lines)
+    return lines[:fence + 1] + s3.splitlines() + lines[close:]
+
+
+def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
+    """Where-it-stops replacement (hypothesis SL2.01 #2): replace only the
+    fenced code block under the (possibly `###`-level) header, keeping the
+    header and everything around it. When there is no fence, the whole body
+    is replaced — the lean PRIME `## §3 🔴 NEXT COMMAND` body is one plain
+    line and is filled wholesale."""
+    lines = body.splitlines()
+    for idx, ln in enumerate(lines):
+        if ln.strip().startswith("```"):
+            if sub_offset is None or idx > sub_offset:
+                new = _replace_fence_after(lines, idx, s3)
+                if new is not None:
+                    return "\n".join(new)
+                break
+    # no fenced block: replace the whole body
+    return s3
 
 
 def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
@@ -3230,26 +3443,99 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
     print("Supply each as --field s3 <src> / --field s6 <src> (`-` = stdin); "
           "an empty §3 is refused.")
 
-    card_path = _sessions_dir(root) / "quorum" / f"{seat}.md"
-    existing = card_path.read_text(encoding="utf-8") if card_path.exists() else ""
+    dry_run = bool(getattr(args, "dry_run", False))
+    card_path = _own_card_path(root, seat)
+    existing = (card_path.read_text(encoding="utf-8")
+                if card_path.exists() else "")
+    card_existed = bool(existing.strip())
     preamble, sections = _split_card_sections(existing)
 
     facts = _harvest_handoff_facts(root, seat)
-    s0 = _compose_card_s0(seat, facts)
+    rows = _state_rows(seat, facts)
+
+    # Resolve the three slots by DECLARED TITLE — never by the § numerals
+    # alone (the sensei-director card's numerics are a different layout).
+    state_idx = [i for i, (h, _) in enumerate(sections)
+                 if "state" in h.lower()]
+    stops = _locate_where_it_stops(sections)
+    banked = _locate_banked(sections)
+
+    if card_existed:
+        if len(state_idx) > 1:
+            found = " / ".join(h for h, _ in sections if "state" in h.lower())
+            print(f"ERR: handoff --driven finds {len(state_idx)} STATE "
+                  f"sections, ambiguous; refusing — {found}.", file=sys.stderr)
+            return 2
+        if len(state_idx) == 0:
+            found = " / ".join(h for h, _ in sections)
+            print(f"ERR: handoff --driven finds no STATE section (declared "
+                  f"title, not §0) to drive; refusing — found: "
+                  f"{found or '(none)'}.", file=sys.stderr)
+            return 2
+        if isinstance(stops, str):
+            print("ERR: handoff --driven finds an ambiguous where-it-stops "
+                  "slot; refusing rather than guessing.", file=sys.stderr)
+            return 2
+        if stops is None:
+            found = " / ".join(h for h, _ in sections)
+            print("ERR: handoff --driven finds no where-it-stops slot (no "
+                  "'where it stops' title and no §3 numeral) to fill; "
+                  f"refusing — found: {found or '(none)'}.", file=sys.stderr)
+            return 2
+        if banked == "ambiguous":
+            print("ERR: handoff --driven finds more than one BANKED header; "
+                  "refusing rather than guessing.", file=sys.stderr)
+            return 2
+
+    def _slot_section_idx(slot) -> int | None:
+        if slot is None or isinstance(slot, str):
+            return None
+        return slot[0]
+
+    # Apply transforms per section. A section may hold BOTH the state block
+    # and the `### where it stops` subheader (the sensei-director §5); apply
+    # state-scope first, then stops-scope on the already-rebuilt body.
+    state_i = state_idx[0] if len(state_idx) == 1 else None
+    stops_slot = stops if not isinstance(stops, str) else None
+    banked_slot = banked if not isinstance(banked, str) else None
+    stops_sec = _slot_section_idx(stops_slot)
+    banked_sec = _slot_section_idx(banked_slot)
 
     new_sections: list[tuple[str, str]] = []
-    told = {"§0": False, "§3": False, "§6": False}
-    replacements = {"§0": s0, "§3": s3, "§6": s6}
-    for header, body in sections:
-        tag = _section_tag(header)
-        if tag in replacements:
-            new_sections.append((header, replacements[tag]))
-            told[tag] = True
-        else:
-            new_sections.append((header, body))  # carried verbatim
-    for tag in ("§0", "§3", "§6"):
-        if not told[tag]:
-            new_sections.append((f"## {tag}", replacements[tag]))
+    for i, (header, body) in enumerate(sections):
+        if i == state_i:
+            body = _replace_state_body(body, rows)
+        if stops_slot is not None and stops_sec == i:
+            sub = stops_slot[1]
+            body = _replace_stops_body(body, s3, None if sub == -1 else sub)
+        if banked_slot is not None and banked_sec == i:
+            sub = banked_slot[1]
+            if sub == -1:
+                if s6:
+                    body = s6
+            else:
+                # a `###`-level BANKED: keep the header + what precedes it,
+                # append s6 beneath it, carry everything below the subheader
+                lines = body.splitlines()
+                if sub < len(lines):
+                    head = "\n".join(lines[:sub + 1])
+                    rest = lines[sub + 1:]
+                    trail = [ln for ln in rest if ln.strip()]
+                    body = head
+                    if s6:
+                        body += "\n" + s6
+                    if trail:
+                        body += "\n" + "\n".join(rest)
+        new_sections.append((header, body))
+
+    # Fresh compose: a card that did not exist gets all three slots appended
+    # (the PRIME layout). A card that EXISTS is driven in place.
+    if not card_existed:
+        new_sections = [
+            (_state_header(seat, facts), _render_state_body("list", rows)),
+            ("## §3", s3),
+            ("## §6", s6 or ""),
+        ]
 
     full = _render_card(preamble, new_sections)
     line_count = full.count("\n")
@@ -3260,11 +3546,14 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
               f"section ({biggest}).", file=sys.stderr)
         return 2
 
+    if dry_run:
+        print(full)
+        return 0
+
     card_path.parent.mkdir(parents=True, exist_ok=True)
     card_path.write_text(full, encoding="utf-8")
     print(f"wrote driven handoff card {card_path} (§0 built; §3/§6 "
-          f"filled; {len(sections) - sum(told.values())} section(s) carried "
-          f"verbatim).")
+          f"filled; {len(sections)} section(s) handled).")
     return 0
 
 
@@ -5956,10 +6245,10 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     # shared MAIN checkout, whose copy only moves at merge-up — measured at
     # gen I's rotation: the live check read MAIN's stale copy and blocked a
     # clean rotate-self (director fix-up at the SL1.02 harvest).
-    _own = [Path(root) / "sessions" / "quorum" / f"{seat}.md",          # root = graph root (<tree>/.agi)
-            Path(root) / ".agi" / "sessions" / "quorum" / f"{seat}.md"]  # root = the tree
-    card = next((c for c in _own if c.exists()),
-                _sessions_dir(root) / "quorum" / f"{seat}.md")
+    # `_own_card_path` is the ONE resolver both this check and the driven
+    # handoff writer use (hypothesis:l4-the-driven-handoff-writer-keys-on-
+    # declared-titles-and-writes-the-seats-own-card).
+    card = _own_card_path(root, seat)
     last_ts = _git_count_maybe(root, "log", "-1", "--format=%ct")
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
@@ -7973,6 +8262,10 @@ def main(argv: list[str] | None = None) -> int:
     p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
                      help="field value source; FIELD is s3 or s6, SRC is a "
                           "filename or `-` for stdin (repeatable)")
+    p_h.add_argument("--dry-run", dest="dry_run", action="store_true",
+                     help="compose the card and print it to stdout but write "
+                          "nothing, so the director judges before the real "
+                          "write")
     p_h.set_defaults(func=cmd_handoff)
 
     # prepare: the captive rotate-out checklist (goal:g15.14 STEP 2).
