@@ -1675,48 +1675,65 @@ def _labels_for_blocks(root: Path, blocks: list[str]) -> list[str]:
 
 
 def _wrap_body(text: str, width: int) -> str:
-    """`fold -s` wrap of a message body: break only at a space, never
-    mid-word; a token longer than `width` stays whole on its own line;
-    existing newlines are kept; `width <= 0` returns the text unchanged.
-    (hypothesis:l4-send-read-and-peek-wrap-message-bodies-at-160-columns-
-    display-only)
+    """`fold -s` wrap that preserves every line's leading whitespace and
+    every blank line EXACTLY (hypothesis:l4-wrap-preserves-leading-
+    whitespace-and-trailing-blank-lines-exactly). Each logical line keeps
+    its indent (the run of leading spaces/tabs) on the first physical line
+    and on every continuation line, and is never folded inside the indent;
+    blank lines (interior and trailing) are kept byte-for-byte; a line that
+    needs no wrap prints byte-identical (indent, internal runs of spaces,
+    trailing spaces all included) because folding touches ONLY lines longer
+    than `width` and breaks only at a single space outside the indent, never
+    inside a node id, sha, path, URL or [VERIFIED|UNSIGNED|FORGED] label (an
+    over-width token stays whole on its own line). `width <= 0` returns the
+    text unchanged.
     """
     if width <= 0:
         return text
-    out: list[str] = []
+    res: list[str] = []
     for para in text.split("\n"):
-        if not para:
-            out.append("")
+        res.append(_wrap_logical_line(para, width))
+    return "\n".join(res)
+
+
+def _wrap_logical_line(para: str, width: int) -> str:
+    """Wrap ONE logical line (the text up to a single newline). If the whole
+    line fits in `width`, return it byte-identical. Otherwise fold only the
+    content after the leading indent, re-emitting that indent in front of
+    every physical line so the indentation survives wrapping.
+    """
+    if len(para) <= width:
+        return para                       # byte-identical: no wrap needed
+    stripped = para.lstrip(" \t")
+    indent = para[: len(para) - len(stripped)]
+    body_txt = stripped
+    if not body_txt:
+        return para                       # whitespace-only line, kept verbatim
+    avail = width - len(indent)
+    if avail <= 0:
+        return para                       # indent alone exceeds width; no fold inside it
+    lines: list[str] = []
+    cur = ""
+    for word in body_txt.split(" "):
+        if not word:
+            continue                      # interior multi-space run: fold at it
+        if len(word) > avail:
+            # an over-long token stays whole on its own line
+            if cur:
+                lines.append(indent + cur)
+                cur = ""
+            lines.append(indent + word)
             continue
-        line = ""
-        pushed = False
-        for tok in para.split(" "):
-            if tok == "":
-                if line:
-                    line += " "
-                continue
-            if len(tok) > width:
-                if line:
-                    out.append(line.rstrip())
-                    line = ""
-                    pushed = True
-                out.append(tok)          # an over-long token stays whole
-                pushed = True
-                continue
-            if not line:
-                line = tok
-            elif len(line) + 1 + len(tok) <= width:
-                line += " " + tok
-            else:
-                out.append(line.rstrip())
-                line = tok
-                pushed = True
-        if line:
-            out.append(line.rstrip())
-            pushed = True
-        if not pushed:
-            out.append(para)             # whitespace-only line, kept as-is
-    return "\n".join(out)
+        if not cur:
+            cur = word
+        elif len(cur) + 1 + len(word) <= avail:
+            cur += " " + word
+        else:
+            lines.append(indent + cur)
+            cur = word
+    if cur or not lines:
+        lines.append(indent + cur)
+    return "\n".join(lines)
 
 
 def _wrap_block(block: str, width: int) -> str:
@@ -1740,8 +1757,10 @@ def _wrap_block(block: str, width: int) -> str:
     body_lines = lines[i + 1:]
     wrapped = _wrap_body("\n".join(body_lines), width)
     rebuilt = "\n".join(header) + "\n\n" + wrapped
-    if b.endswith("\n") and not rebuilt.endswith("\n"):
-        rebuilt += "\n"
+    # restore the block's EXACT trailing newline count (hypothesis:l4-wrap-
+    # preserves-leading-whitespace-and-trailing-blank-lines-exactly clause 2):
+    # a body ending in \n\n prints ending in \n\n, not re-collapsed to one.
+    rebuilt = rebuilt.rstrip("\n") + "\n" * (len(b) - len(b.rstrip("\n")))
     if block.startswith(MSG_SEP) and not rebuilt.startswith(MSG_SEP):
         rebuilt = MSG_SEP + rebuilt
     return rebuilt
