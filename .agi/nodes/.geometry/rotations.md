@@ -32,7 +32,7 @@ templates:
     startup:
       first_turn:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
-        - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:46'", "why": "gen XIV calls 2, 4-10, 22-23, 26-30: 16 wake calls re-deriving facts F1-F4 (owner 2026-09-11 12:4xZ); printed by body range until 0b-b's facts emitter lands"}
+        - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:48'", "why": "gen XIV calls 2, 4-10, 22-23, 26-30: 16 wake calls re-deriving facts F1-F4 (owner 2026-09-11 12:4xZ); printed by body range until 0b-b's facts emitter lands"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "gen X call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "gen X call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
@@ -68,6 +68,7 @@ templates:
     startup:
       first_turn:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
+        - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:48'", "why": "belam gen IX calls 5-9, 10-12, 25-26 (ack grammar from source, record polled 18x, lock path grepped) + gen XIV's F1-F5; master-sensei gen I wake audit 13:1xZ; printed by body range until 0b-b's facts emitter lands"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "gen X call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "gen X call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
@@ -75,6 +76,7 @@ templates:
         - {"label": "write-verbs", "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p", "why": "gen X calls 10-15: six calls spent learning write.py's verbs from source"}
         - {"label": "verify", "cmd": "python3 extensions/agi/bin/commands.py run verify", "why": "the prime's first duty is the tree's health; 26 s, no suite"}
         - {"label": "account", "cmd": "curl -s -m 20 https://openrouter.ai/api/v1/credits -H \"Authorization: Bearer $OPENROUTER_PROVISIONING_KEY\"", "why": "spend read from the ACCOUNT, never the .env key"}
+        - {"label": "since-last-rotation", "cmd": "git diff --stat", "why": "belam gen IX calls 13-15: what changed in the tree since the last wake, read by hand (master-sensei gen I draft, judged None; the inbox half was already the inbox entry)"}
       after_join:
         - {"label": "join", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep {succ_name}; ListAgents ref {succ_ref}", "why": "gen X call 4-5: the name<->ref<->@id join, derived by rotate-self at spawn (L4.114)"}
         - {"label": "pin", "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}", "why": "gen X call 5: the pin claim on the successor's own transcript, path derived from ~/.claude/sessions/<pid>.json"}
@@ -131,6 +133,8 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F3 (gen XIV calls 8-10 — 3 calls): the channel to the Prime is `SendMessage` to the ListAgents row whose `[ref]` equals the `belam` row's `session_ref` (printed by `prime-authority` above), or `python3 extensions/agi/bin/send.py send belam "<one line>"` (which also nudges the pane). Only when necessary (owner 2026-09-10 05:0xZ): merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding.
 - F4 (gen XIV calls 22-23 — 2 calls): the note verb is `python3 extensions/agi/bin/write.py <node-id> "note <text>" --actor <seat> --role director` — one note per call, no `&&` inside prose (write the word double-ampersand), backticks only inside a single-quoted script. A partial edit is `"read body N:M"` then `"replace body N:M <file>"`.
 - F5 (gen XIV calls 12-16, 39-40, 48, 52-54, 60, 64 — harvest discovery, ~12 calls over 5 rounds): a round lands on branch `loop/<hypothesis-slug-prefix>-<agent>@s2` in worktree `.agi/worktrees/<agent>/`; diff it against the MERGE-BASE with the seat branch (never against a moved seat tip); its kid experiment nodes are under `.agi/nodes/experiment/` on that branch. Three calls per round is the shape until a `harvest-table` subcommand exists (proposed g15).
+- F6 (belam gen IX calls 5-9 + 10-12 — ack grammar read from source, record hand-polled 18x; master-sensei gen I wake audit, 13:1xZ): the ack is `rotate.py ack --seat <seat> --gen <N> --ref <your ListAgents ref> continue|diff [--text -]` (rotate.py:1345) — `continue` vs `diff` is the successor's ONE decision on wake (a `diff` halts the rotation for inspection: the predecessor's wrapper returns 1 and leaves the window). The docstring's DEPRECATED note (rotate.py:1342-1354, L4.112(E)) is stale wording: the predecessor writes the PENDING ack, the successor's overwrite stays the decision. The record turns `success` ~40-60 s after the ack; ONE status read after that, never a poll loop (`--wait` arrives with `hypothesis:rotate-status-record-latest-gains-wait`).
+- F7 (belam gen IX calls 25-26 — grepped the source for the lock path): the suite lock is `.agi/sessions/verify-suite.lock` under the graph root (verification.py:75 `SUITE_LOCK`); "lock FREE" for a merge-up window = that file absent in main AND in every `.agi/worktrees/seat-*/.agi/sessions/`; the window reply is lock state + tip + baseline in one line.
 
 ## steps
 
