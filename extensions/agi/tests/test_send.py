@@ -1854,6 +1854,131 @@ def test_peek_empty_inbox(project: Path, capsys):
     assert "empty" in captured.out
 
 
+# ── read/peek wrap message bodies at 160 (hypothesis:l4-send-read-and-peek-
+# ── wrap-message-bodies-at-160-columns-display-only) ────────────────────
+
+
+def _long_wrap_body(n: int = 200) -> str:
+    """A single-line message body far over 160 columns."""
+    return " ".join(f"word{i}" for i in range(n))
+
+
+def _capture_peek(project: Path, seat: str, wrap: int) -> str:
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        send_mod.peek(project, seat, wrap)
+    return buf.getvalue()
+
+
+def test_read_peek_wrap_bodies_at_160_display_only(project: Path):
+    """The motivating defect: a long single-line dm overflows one `send.py
+    read`. With the default wrap the printed output has NO line over 160 cols,
+    the header `from:` line still greps, and the inbox file bytes are
+    UNCHANGED by a peek (display-only). `--wrap 0` restores the raw line."""
+    long = _long_wrap_body()
+    assert len(long) > 160
+    send_mod.send(project, "kid-w", long, "parent")
+    inbox = project / ".agi" / "sessions" / "inbox" / "kid-w.md"
+    before = inbox.read_bytes()
+
+    out = _capture_peek(project, "kid-w", 160)
+    for ln in out.splitlines():
+        assert len(ln) <= 160, f"default read printed a {len(ln)}-col line: {ln!r}"
+    assert "from: parent" in out          # header lines byte-identical + greppable
+
+    # peek marks nothing; default wrap left the inbox bytes untouched
+    assert inbox.read_bytes() == before, "a read that wraps changed the inbox file"
+
+    # --wrap 0 = today's raw single long line
+    raw = _capture_peek(project, "kid-w", 0)
+    assert any(len(l) > 160 for l in raw.splitlines()), \
+        "--wrap 0 must print the original un-wrapped line"
+    assert "word0 word1" in raw and " word199" in raw
+    assert inbox.read_bytes() == before, "peek --wrap 0 changed the inbox file"
+
+
+def test_read_wrap_marks_read_exactly_as_before(project: Path, capsys):
+    """A wrapped read still marks the same blocks read (the marker advances),
+    and the read marker is untouched by wrapping."""
+    send_mod.send(project, "kid-w", _long_wrap_body(), "parent")
+    send_mod.send(project, "kid-w", "short second", "parent")
+    inbox = project / ".agi" / "sessions" / "inbox" / "kid-w.md"
+    before = inbox.read_bytes()
+
+    send_mod.read(project, "kid-w", None)      # default wrap 160, marks read
+    text = inbox.read_text()
+    # the READ marker was inserted (the mark side-effect still happens), but
+    # the message bytes themselves before the marker are untouched by wrapping
+    assert "read up to here" in text
+    # read again → empty (already read)
+    send_mod.read(project, "kid-w", None)
+    assert "empty" in capsys.readouterr().out
+
+
+def test_overlong_token_stays_whole_and_newlines_kept(project: Path):
+    """fold -s rules: a token longer than width stays whole on its own line;
+    a body with its own line breaks keeps them."""
+    token = "x" * 200
+    body = f"aa {token} bb\nthen on another line"
+    send_mod.send(project, "kid-w", body, "parent")
+    out = _capture_peek(project, "kid-w", 60)
+    assert token in out, "an over-long token must never be split mid-token"
+    assert "then on another line" in out, "existing newlines must be kept"
+    assert all(len(l) <= 60 or token in l for l in out.splitlines()), \
+        "no line over 60 except the untouched over-long token line"
+
+
+def test_deferred_dm_body_wraps_under_default(project: Path):
+    """A long deferred dm body (shown at a seam via peek) wraps too, without
+    wrapping its `deferred dm from X (ts)` heading."""
+    send_mod.send(project, "kid-d", _long_wrap_body(), "parent")
+    # manufacture a deferred record for kid-d so peek shows it at the seam
+    deferred = {"sender": "parent", "body": _long_wrap_body()}
+    path = send_mod._nudge_deferred_path(project, "kid-d")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    import json as _j
+    path.write_text(_j.dumps(deferred))
+    out = _capture_peek(project, "kid-d", 160)
+    for ln in out.splitlines():
+        assert len(ln) <= 160, f"deferred seams printed a {len(ln)}-col line: {ln!r}"
+    assert "deferred dm from parent" in out  # heading unwrapped
+
+
+def test_room_read_wraps_body_not_transcript_header(comms: Path):
+    """A room read (`--room`) wraps the message bodies and never the
+    transcript's own `**sender** HH:MM — ` header prefix."""
+    long = _long_wrap_body()
+    send_mod.send_room(comms, "council", long, "director")
+    wrapped = send_mod.peek_room(comms, "council", "kid", None, wrap=160)
+    # render_transcript returns ONE element per message, which may carry its
+    # own newlines — check every physical line.
+    for elem in wrapped:
+        for sl in elem.split("\n"):
+            assert len(sl) <= 160, f"a room line exceeded 160 cols: {sl!r}"
+    assert any(l.startswith("**director**") for l in wrapped[0].split("\n")), \
+        "prefix lost"
+    raw = send_mod.peek_room(comms, "council", "kid", None, wrap=0)
+    assert any(len(sl) > 160 for elem in raw for sl in elem.split("\n")), \
+        "--wrap 0 must print a raw room line"
+
+
+def test_wrap_zero_and_short_messages_byte_identical(project: Path):
+    """The existing short-message read/mark tests stay green by construction:
+    wrapping a short body is byte-for-byte identity, and `--wrap 0` never
+    touches the inbox file."""
+    send_mod.send(project, "kid-w", "meeting at noon", "director")
+    inbox = project / ".agi" / "sessions" / "inbox" / "kid-w.md"
+    before = inbox.read_bytes()
+    out_default = _capture_peek(project, "kid-w", 160)
+    out_raw = _capture_peek(project, "kid-w", 0)
+    assert out_default == out_raw, \
+        "a short message must print identically under default wrap and raw"
+    assert inbox.read_bytes() == before
+    assert "meeting at noon" in out_default
+
+
 # ── non-existent inbox file ────────────────────────────────────────────────
 
 
