@@ -7838,22 +7838,34 @@ def _merge_conflict_paths(root: Path, sb: str) -> str:
 
 
 def _perform_season_merge(root: Path, sb: str) -> str | None:
-    """Perform the only-behind merge: `git fetch origin <sb>` then
-    `git merge --no-edit origin/<sb>`. Returns the resulting HEAD sha (short
-    form), or None when the merge did NOT land (git returned non-zero, or an
-    opaque refusal) — a merge git aborted must never be reported as merged.
-    The MERGE returncode is the one thing that gates the success line: a
-    merge that ABORTS still leaves HEAD where it was, so reporting
+    """Perform the only-behind merge: `git merge --no-edit origin/<sb>`.
+    Returns the resulting HEAD sha (short form), or None when the merge did
+    NOT land (git returned non-zero, or an opaque refusal) — a merge git
+    aborted must never be reported as merged. On any non-zero merge rc (a
+    REFUSED merge or a CONFLICT) this ABORTS the merge (`git merge --abort`)
+    so the tree is never left half-merged (P1-a: never a half-merge). The
+    MERGE returncode is the one thing that gates the success line: a merge
+    that ABORTS still leaves HEAD where it was, so reporting
     `merged <sha>` on it is a false ok that lets rotate-self proceed on a
-    stale branch. The tree is left exactly as git left it — a partially
-    applied merge is never rolled back by force. A failed fetch alone need
-    not abort: `origin/<sb>` may already be current, and a merge against it
+    stale branch.
+
+    **This measures and merges ONE ref**: the CALLER (`_prepare_checks`
+    --perform block) fetches first and then runs the conflict-free gate
+    (`_merge_applies_clean`) on the refreshed `origin/<sb>`; there is NO
+    fetch here, because re-fetching could pull a NEWER ref than the one
+    measured clean and turn a measured-clean merge into a different,
+    conflicting one (the divergence P1-a closes). A failed fetch need not
+    abort: `origin/<sb>` may already be current, and a merge against it
     either succeeds or the merge's own rc catches the problem. Callers reach
     this ONLY after the conflict-free gate (`_merge_applies_clean`) agreed
     there are zero conflicts and check 2 (dirty tree) passed."""
-    _git_maybe(root, "fetch", "origin", sb)     # tolerate a failed fetch
     proc = _git_proc(root, "merge", "--no-edit", f"origin/{sb}")
     if proc is None or proc.returncode != 0:
+        # the merge REFUSED or CONFLICTED (non-zero rc — git leaves conflict
+        # markers in the tree on a conflict). Undo any half-merge so the
+        # working tree is never left mid-merge (P1-a). `git merge --abort`
+        # with no merge in progress is a harmless no-op.
+        _git_maybe(root, "merge", "--abort")
         return None                              # refused — never "merged <sha>"
     lines = _git_maybe(root, "rev-parse", "--short", "HEAD")
     if not lines:
@@ -7908,7 +7920,15 @@ def _background_tasks(root: Path, seat: str) -> str:
       * the seat's own Monitor/background-Bash CHILDREN — counted by the
         /proc ppid chain from the config:seats row's `pid` when the row names
         one (`_proc_children`);
-      * a `.claude/tasks` directory's file count, when it exists.
+
+    goal:g15.14 P2-b — the `.claude/tasks` reader is GONE. It counted
+    `Path(root)/.claude/tasks`: a path that NEVER exists under a worktree
+    (the harness writes per-session task state to the GLOBAL
+    `~/.claude/tasks/<uuid>/`, keyed by uuid, with no per-seat stable
+    meaning). A reader that never reads is a lie in the listing, so it was
+    deleted rather than re-pointed — no per-seat stable path exists to point
+    it at, and re-pointing it at a global dir would fabricate a per-seat
+    meaning that is not there.
 
     Returns a short spec naming what was counted, or `unmeasured` when no
     source measured anything. This line is a LISTING, never a blocker — it
@@ -7921,12 +7941,6 @@ def _background_tasks(root: Path, seat: str) -> str:
         try:
             parts.append(f"{_proc_children(int(pid))} proc")
         except (TypeError, ValueError):
-            pass
-    tdir = Path(root) / ".claude" / "tasks"
-    if tdir.is_dir():
-        try:
-            parts.append(f"{len(list(tdir.iterdir()))} tasks-dir")
-        except OSError:
             pass
     return ", ".join(parts) if parts else "unmeasured"
 
@@ -8016,21 +8030,27 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         # and we are measurably behind. PERFORM the merge ONLY if it is
         # mechanical -- zero conflicts. A conflicting merge is exactly the
         # judgement-free-not case: stays a BLOCK naming the paths.
+        # MEASURE AND MERGE THE SAME REF (P1-a): fetch FIRST so the local
+        # `origin/<sb>` is fresh, then measure the conflict-free gate and
+        # merge THAT SAME ref. Measuring against a stale local ref and then
+        # merging the refreshed one was a DIFFERENT merge with no abort path.
+        _git_maybe(root, "fetch", "origin", _sb)
         cf = _merge_applies_clean(root, _sb)
         if cf is True:
             merged = _perform_season_merge(root, _sb)
             if merged is None:
-                # the mechanical merge was attempted and REFUSED by git
-                # (non-zero rc — e.g. the accepted churn exclusion let an
+                # the mechanical merge was attempted and did NOT land (non-
+                # zero rc — e.g. the accepted churn exclusion let an
                 # untracked/modified churn file through check 2, and the
-                # merge wants to overwrite it while git refuses). Report a
-                # BLOCK, never a false ok: rotate-self must not proceed on a
-                # stale branch. The tree is left as git left it (never a
-                # force rollback), and the clear command still names the
-                # manual merge.
+                # merge wants to overwrite it while git refuses, or the
+                # merge CONFLICTED). `_perform_season_merge` ABORTS any
+                # half-merge so the tree is never left mid-merge (P1-a).
+                # Report a BLOCK, never a false ok: rotate-self must not
+                # proceed on a stale branch. The clear command still names
+                # the manual merge.
                 checks.append((True,
                                f"behind origin/{_sb} ({behind}) — merge "
-                               f"attempted, refused by git",
+                               f"attempted, refused by git (aborted)",
                                behind_clear))
             else:
                 checks.append((False,
@@ -8105,17 +8125,26 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # placeholder -- never --seat (which trips the cross-generation read
     # refusal).
     known_transcript = None
+    pin_transcript = None
     if pin is not None:
         written_gen, written_path = _parse_pin_record(pin)
         if written_gen is not None and gen_measured and written_gen != cur_gen:
             stale_pin = True
-        known_transcript = written_path or None
-    if known_transcript is None and root is not None:
+        pin_transcript = written_path or None
+    # goal:g15.14 P1-d — when check 5 BLOCKS (stale_pin) the pin is another
+    # generation's BY DEFINITION, so preferring its written_path would name
+    # the WRONG transcript the clear line must re-point the meter at. Prefer
+    # the config:seats ROW's transcript first (resolved the way the meter
+    # itself resolves it, via transcript_from_registry_dict), and fall back
+    # to the pin's written_path ONLY when the row carries none.
+    if root is not None:
         seat_row = _find_seat(root, seat)
         if seat_row:
             known_transcript = (seat_row.get("transcript_path")
                                 or transcript_from_registry_dict(seat_row))
             known_transcript = known_transcript or None
+    if known_transcript is None:
+        known_transcript = pin_transcript
     clear5 = (f"rotate.py meter --pin {_seat_pin_path(root, seat)} "
               f"--session-log {known_transcript or '<transcript>'}")
     checks.append((stale_pin,
@@ -8152,6 +8181,18 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
     refuse BY NAME before it spawns."""
     seat = getattr(args, "seat", None) or ""
     perform = getattr(args, "perform", False)
+    # goal:g15.14 P1-b — the branch guard runs FIRST, before `_prepare_checks`
+    # and ANY merge. `prepare --perform` merges the only-behind season branch
+    # into the checked-out branch; on master (with season/* branches present)
+    # that would MERGE season INTO master, which the seasons-as-branches
+    # mapping forbids. Refuse BY NAME before any side effect. rotate-self's
+    # own prepare path delegates to THIS function, so one guard here gates
+    # both callers. (Falsifier: a `--prepare --perform` on a fixture master
+    # branch must refuse with the guard text BEFORE the merge lands.)
+    guard = _check_branch_guard(root)
+    if guard:
+        print(guard, file=sys.stderr)
+        return 1
     checks = _prepare_checks(root, seat, perform=perform)
     blocks = [c for c in checks if c[0]]
     for blocker, name, clear in checks:
@@ -8632,11 +8673,27 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         return 1
     # goal:g15.14 STEP 2 -- `rotate-self --prepare` is the same captive
     # checklist the `prepare` subcommand prints, on the SAME 
-    # `_prepare_checks`: one implementation, two spellings. It is READ-ONLY
-    # and therefore runs before the branch guard, so a seat can ask what
-    # blocks it from wherever it stands.
+    # `_prepare_checks`: one implementation, two spellings. Its branch guard
+    # lives in `cmd_prepare` (P1-b): the guard fires there FIRST, before any
+    # merge, so a `--prepare --perform` on master cannot MERGE season INTO
+    # master. A seat on a refusing branch asks the guard, then what blocks it.
     if getattr(args, "prepare", False):
         args.seat = args.name
+        # goal:g15.14 R1 (P1-c one spelling over) — the REGISTRY gate runs in
+        # the `--prepare` path too, BEFORE any merge. `cmd_prepare` (which
+        # this path delegates to) has NO registry check of its own, and
+        # `--prepare` sets `perform = not dry_run` — so without this gate
+        # `rotate-self --prepare --name <unregistered>` on a behind clean
+        # worktree would MERGE a commit before refusing `no seat`. Same rule
+        # as P1-c in the non-prepare path: the seat must exist in
+        # config:seats unless --throwaway (a rehearsal-only registration that
+        # never writes seats.md).
+        if not getattr(args, "throwaway", False):
+            _prow = _find_seat(root, args.seat)
+            if _prow is None:
+                print(f"ERR: no seat {args.seat!r} in the seats registry "
+                      f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+                return 1
         # rotate-self's own gate performs the only-behind merge by DEFAULT
         # (hypothesis:...-prepare-performs-the-only-behind-merge...) -- a
         # clean, zero-conflict season merge is mechanical and costs 2-4 tool
@@ -8659,6 +8716,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print(geom_src, file=sys.stderr)
         return 1
     seat = args.name
+    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
+    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
+    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
+    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
+    # exist in the registry FIRST, and an unregistered name refuses with NO
+    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # override) is a rehearsal-only registration that NEVER writes seats.md:
+    # it skips this registry gate and builds a default row instead (role from
+    # --role, default parent; model/effort/settings resolved from the ladder
+    # inside spawn_window). Without --throwaway the gate holds exactly as
+    # before — an unregistered name errors `no seat`.
+    row = None
+    if not getattr(args, "throwaway", False):
+        row = _find_seat(cfg_root, seat)
+        if row is None:
+            print(f"ERR: no seat {seat!r} in the seats registry "
+                  f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+            return 1
+    else:
+        row = {}  # default row; never consulted against seats.md
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
     # side effect (the started record, the handoff, the own-window rename,
     # the spawn). THIS is the one implementation: `rotate.py prepare` prints
@@ -8690,21 +8767,6 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               "re-run (rotate.py prepare --seat <S> lists them).",
               file=sys.stderr)
         return 3
-    row = None
-    # A THROWAWAY seat (hypothesis:l3-rotate-self-successor-override) is a
-    # rehearsal-only registration that NEVER writes seats.md: it skips the
-    # registry gate the Sanctuary Master owns and builds a default row instead
-    # (role from --role, default parent; model/effort/settings resolved from
-    # the ladder inside spawn_window). Without --throwaway the gate holds
-    # exactly as before — an unregistered name errors `no seat`.
-    if not getattr(args, "throwaway", False):
-        row = _find_seat(cfg_root, seat)
-        if row is None:
-            print(f"ERR: no seat {seat!r} in the seats registry "
-                  f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
-            return 1
-    else:
-        row = {}  # default row; never consulted against seats.md
 
     # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
     # BEFORE any side effect (the started record, the handoff, the own-window
