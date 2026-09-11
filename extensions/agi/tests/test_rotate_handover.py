@@ -692,3 +692,168 @@ def test_chain_seat_keeps_own_window_reaps_oldest_fifo(_fix, tmp_path,
     names = win.read_text(encoding="utf-8")
     assert "@10 belam-S1-L4-I" not in names
     assert "@15 belam-S1-L4-VI" in names
+
+
+def test_belam_cap_record_planned_entry_when_term_interrupted(
+        _fix, tmp_path, monkeypatch):
+    """L4.150 — the belam-cap reap writes its PLANNED entry BEFORE the first
+    TERM (the (e) shape). When `_reap_chain` raises (rotate.py dies between a
+    TERM and the post-reap write — the p4 unevidenced-reap shape), the record
+    still carries the planned belam entry `{planned: True, oldest, window_id,
+    pids, chain}` naming what the cap intended to reap. Falsifier: an
+    interrupted cap reap whose record lacks the belam entry."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text(
+        "@10 belam-S1-L4-I\n@11 belam-S1-L4-II\n@12 belam-S1-L4-III\n"
+        "@13 belam-S1-L4-IV\n@14 belam-S1-L4-V\n@15 belam-S1-L4-VI\n",
+        encoding="utf-8")
+
+    def my_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@16 belam-S1-L4-VII\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "belam", "gen_after": 7,
+                         "answer": "continue"})
+
+    def boom(*a, **k):
+        raise RuntimeError("rotate.py died after the TERM")
+
+    monkeypatch.setattr(rotate, "_reap_chain", boom)
+    p1 = subprocess.Popen(["sleep", "2000"])
+    p2 = subprocess.Popen(["sleep", "2000"])
+    # the interrupted cmd_rotate_self sets SIGHUP/SIGTERM/SIGPIPE to SIG_IGN
+    # (rotate._shield_final_signals) and never restores them on the exception
+    # path (rotate.py:5133 runs on the bare path only). Capture the current
+    # dispositions now and put them back in the finally, so this test does
+    # not poison the shared pytest runtime for later reap tests — a
+    # persistent SIG_IGN makes their sleep children ignore the TERM, get
+    # SIGKILL'd, and linger as un-reaped zombies (reaped comes out False).
+    _shield_old = {s: signal.getsignal(s) for s in
+                   (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE)}
+    try:
+        args = _rotate_self_args(
+            tmp_path, name="belam", role="prime_director",
+            window_path=str(win), timeout=5, session_ref="ref1",
+            belam_pids=[p1.pid, p2.pid])
+        # the reap dies mid-flight; the rotation may still be recorded (the
+        # reap, not the bookkeeping, is load-bearing) — we only assert on the
+        # record's PLANNED entry, not on rc.
+        try:
+            rotate.cmd_rotate_self(args, tmp_path)
+        except Exception:  # noqa: BLE001
+            pass
+    finally:
+        # restore the signal dispositions the interrupted cmd_rotate_self
+        # left as SIG_IGN (same shape as rotate._restore_shield_signals).
+        for _sig, _handler in _shield_old.items():
+            signal.signal(_sig, _handler)
+        for p in (p1, p2):
+            if rotate._pid_alive(p.pid):
+                os.kill(p.pid, signal.SIGKILL)
+    # the record still carries the PLANNED belam-cap entry, written BEFORE
+    # the interrupted TERM.
+    rec = _latest_record(tmp_path, "belam")
+    b = rec.get("s12_self_reap", {}).get("belam_reap")
+    assert b is not None, "record lacks the belam entry under an interrupted reap"
+    assert b.get("planned") is True
+    assert b["oldest"] == "belam-S1-L4-I"
+    assert b["window_id"] == "@10"
+    assert set(b["pids"]) == {p1.pid, p2.pid}
+    assert b["chain"] == [p1.pid, p2.pid]
+
+
+# ── L4.158 — hypothesis:l4-cap-skipped-paths-still-kill-the-oldest-window ──
+# A SKIPPED Belam cap (no pane pid; pane pid but no descendants) still kills
+# the oldESST window BY @id before returning, so the FIFO cap never leaves
+# six windows. Before the fix both skipped paths returned EARLY before
+# `_kill_window`, leaving the oldest @id line in the window file (measured by
+# experiment:a00-edfd2a9d-4b64c4). Tested on the window-file seam: the oldest
+# @id line must be gone and the record must carry window_id/window_killed. A
+# window that is already gone records `already gone`, never an error.
+
+
+def test_belam_cap_skip_no_pane_pid_still_kills_oldest_by_id(
+        _fix, tmp_path, monkeypatch):
+    """(a) — the `SKIPPED: no pane pid` path. The oldest window's @id IS
+    resolved, but no pane pid can be derived; the cap must still kill the
+    oldest window BY @id (oldest line gone from the window file) and record
+    window_id/window_killed. Falsifier: the skipped path returns early and
+    leaves the six-window oldest line in place."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 belam-S1-L4-I\n@10 belam-S1-L4-II\n"
+                   "@11 belam-S1-L4-III\n@12 belam-S1-L4-IV\n"
+                   "@13 belam-S1-L4-V\n@14 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: None)
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "skipped" in out
+    assert "SKIPPED: no pane pid" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is True
+    # the OLDEST window's line is gone — the skip still killed by @id.
+    assert "@9 belam-S1-L4-I" not in win.read_text(encoding="utf-8")
+    # chain no longer exceeds five belam lines.
+    assert sum(1 for ln in win.read_text(encoding="utf-8").splitlines()
+               if ln.strip()) <= 5
+
+
+def test_belam_cap_skip_pane_pid_no_descendants_still_kills_oldest(
+        _fix, tmp_path, monkeypatch):
+    """(b) — the `SKIPPED: no chain under pane pid` path. The pane pid IS
+    resolved but has no descendants; the cap must still kill the oldest
+    window BY its @id ('@9'), record window_id/window_killed, and never
+    raise."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 belam-S1-L4-I\n@10 belam-S1-L4-II\n"
+                   "@11 belam-S1-L4-III\n@12 belam-S1-L4-IV\n"
+                   "@13 belam-S1-L4-V\n@14 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: 4242)
+    monkeypatch.setattr(rotate, "_descendant_chain", lambda pid: [])
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "skipped" in out
+    assert "SKIPPED: no chain under pane pid" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is True
+    assert "@9 belam-S1-L4-I" not in win.read_text(encoding="utf-8")
+    assert sum(1 for ln in win.read_text(encoding="utf-8").splitlines()
+               if ln.strip()) <= 5
+
+
+def test_belam_cap_skip_already_gone_records_not_an_error(
+        _fix, tmp_path, monkeypatch):
+    """(c) — the oldest window is ALREADY gone by kill time. The @id was
+    resolved from live tmux, but the window file (the present-window seam)
+    no longer holds its line; `_kill_window` reports it gone. The cap must
+    record the `already gone` phrase, not raise, and keep window_killed
+    false."""
+    win = tmp_path / "windows.txt"
+    win.write_text("@10 belam-S1-L4-II\n@11 belam-S1-L4-III\n"
+                   "@12 belam-S1-L4-IV\n@13 belam-S1-L4-V\n"
+                   "@14 belam-S1-L4-VI\n", encoding="utf-8")
+    # the @id was resolved from live tmux, but the window no longer exists.
+    monkeypatch.setattr(rotate, "_successor_window_id",
+                        lambda *a, **k: "@9")
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: None)
+
+    out = rotate._reap_belam_oldest(
+        tmux_session="t", oldest="belam-S1-L4-I", window_path=str(win))
+
+    assert "already gone" in out["skipped"]
+    assert out["window_id"] == "@9"
+    assert out["window_killed"] is False
+    # no exception, and nothing was killed (nothing to kill).
+    assert "@9" not in win.read_text(encoding="utf-8")

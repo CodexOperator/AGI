@@ -482,6 +482,138 @@ def _atomic_write_json(path: Path, rec: dict) -> None:
         raise
 
 
+def _pid_ticks(pid: int) -> int:
+    """CPU ticks (utime+stime) consumed by `pid`, or 0 if unreadable."""
+    try:
+        with open(f"/proc/{pid}/stat") as fh:
+            # comm (field 2) can contain spaces/parens; fields after `) ` are
+            # 1-indexed with utime=14, stime=15.
+            parts = fh.read().rsplit(") ", 1)[1].split()
+            return int(parts[12]) + int(parts[13])
+    except (OSError, IndexError, ValueError):
+        return 0
+
+
+def _pid_established_sockets(pid: int) -> int:
+    """Established (state 01) sockets owned by `pid`.
+
+    Reads the process fd table for `socket:[inode]` entries, then counts how
+    many of those inodes appear in /proc/net/tcp|tcp6 with state 01. Cheap
+    enough for a status probe; 0 for any unreadable edge.
+    """
+    try:
+        fds = Path(f"/proc/{pid}/fd").iterdir()
+    except OSError:
+        return 0
+    inodes = set()
+    for fd in fds:
+        try:
+            target = str(fd.readlink())
+        except OSError:
+            continue
+        if target.startswith("socket:[") and target.endswith("]"):
+            inodes.add(target[len("socket:["):-1])
+    if not inodes:
+        return 0
+    established = set()
+    for path in ("/proc/net/tcp", "/proc/net/tcp6"):
+        try:
+            lines = Path(path).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            cols = line.split()
+            if len(cols) < 4 or cols[3] != "01":
+                continue
+            # local_address column is hex:HEX; the inode is the 10th column.
+            if len(cols) >= 10:
+                established.add(cols[9])
+    return len(inodes & established)
+
+
+def _iter_num(iter_str: str) -> int | None:
+    """Normalise `--iter L4.140` or `--iter 140` to the int the lease stores."""
+    s = iter_str.strip()
+    if "." in s:
+        s = s.rsplit(".", 1)[1]
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+
+def _agent_status(root: Path, agent_id: str, iter_val) -> str:
+    """The agent.json `status` for this agent, if a record exists.
+
+    `iter_val` is the lease's own `iter` field, which is the round's genuine
+    id string (`L4.167`) — never `f"iter-L{int}"`. The real sessions dir is
+    `iter-L4.167`, so building it from an int alone (`iter-L167`) misses every
+    live round. `locations.iteration_dirname` turns the lease value into the
+    exact dir name for both schemes: `L4.167` -> `iter-L4.167`, `140` ->
+    `iter-140`.
+    """
+    # budget_dir is <graph>/sessions/.spawn-budget, so its PARENT is the
+    # sessions dir that holds iter-L.NNN/<agent_id>/agent.json.
+    try:
+        dirname = locations.iteration_dirname(iter_val)
+    except ValueError:
+        return "(no agent.json)"
+    p = (budget_dir(root).parent / dirname / agent_id / "agent.json")
+    try:
+        rec = json.loads(p.read_text())
+    except (OSError, json.JSONDecodeError):
+        return "(no agent.json)"
+    return rec.get("status") or "(no status)"
+
+
+def _round_status(root: Path, iter_str: str) -> int:
+    """`status --iter NNN`: the whole round's live rows + one verdict line."""
+    nnn = _iter_num(iter_str)
+    if nnn is None:
+        print(f"spawn_budget: unknown iteration {iter_str!r} "
+              f"(expected L4.NNN or NNN)", file=sys.stderr)
+        return 1
+    rows = [rec for _, rec in _read_leases(root)
+            if _lease_is_live(rec)
+            and _iter_num(str(rec.get("iter"))) == nnn]
+    if not rows:
+        print(f"spawn_budget: no live agents in iteration L{nnn} "
+              f"(dir={budget_dir(root)})", file=sys.stderr)
+        return 1
+    kids = 0
+    total_ticks = 0
+    total_socks = 0
+    done = False
+    for rec in rows:
+        pid = int(rec.get("agent_pid") or rec.get("holder_pid") or 0)
+        tier = rec.get("tier") or "?"
+        started = int(rec.get("spawned_at") or rec.get("reserved_at") or time.time())
+        elapsed = max(0, int(time.time()) - started)
+        t0 = _pid_ticks(pid)
+        time.sleep(2)
+        ticks = max(0, _pid_ticks(pid) - t0)
+        socks = _pid_established_sockets(pid)
+        status = _agent_status(root, rec.get("agent_id", "?"), rec.get("iter"))
+        total_ticks += ticks
+        total_socks += socks
+        if tier == "kid":
+            kids += 1
+        if status in TERMINAL:
+            done = True
+        print(f"  {rec.get('agent_id')} tier={tier} pid={pid} "
+              f"elapsed={elapsed}s ticks={ticks} sockets={socks} "
+              f"agent={status}")
+    if kids >= 1:
+        print(f"round L{nnn}: parent alive, {kids} live kid(s)")
+        return 0
+    if total_ticks == 0 and total_socks == 0 and not done:
+        print(f"STALL-CANDIDATE: parent alive, 0 live kids, 0 ticks, "
+              f"0 sockets, no done:")
+        return 0
+    print(f"round L{nnn}: parent alive, 0 live kids (active)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """`spawn_budget.py [--root R] status|sweep|pause|resume`.
 
@@ -503,6 +635,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default=".", help="Any path inside the project")
     ap.add_argument("--reason", default="", help="with pause: why (recorded, shown on every refusal)")
     ap.add_argument("--actor", default="", help="with pause: who paused it")
+    ap.add_argument("--iter", default="",
+                    help="status: restrict to one iteration (L4.NNN or NNN) "
+                         "and emit the round verdict")
     args = ap.parse_args(argv)
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -528,6 +663,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg_path = locations.config_path(root)
+    if args.iter:
+        return _round_status(root, args.iter)
+
     cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     cap = max_live(cfg)
     live = live_agents(root)

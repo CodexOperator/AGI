@@ -238,6 +238,50 @@ def test_i_legit_pipeline_and_sequential_still_run_no_shell(tmp_path):
     assert "1" in seq[0]["output"] and "2" in seq[0]["output"]
 
 
+def test_i2_pipeline_filter_actually_truncates_stage_stdout(tmp_path):
+    # hypothesis:l4-first-turn-filters-truncate — per `|` pipeline only the
+    # LAST stage's stdout is appended, so a `| head -N` stdio filter really
+    # truncates. A 100-line producer piped to `head -3` must yield exactly the
+    # 3 filtered lines, NOT the producer's full 100 lines concatenated ahead of
+    # the filter (the old behavior appended every stage's stdout).
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    (bin_dir / "producer.py").write_text(
+        "\n".join(f"print({i})" for i in range(100)), encoding="utf-8")
+    p = str(bin_dir / "producer.py")
+
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "filt",
+                          "cmd": f"python3 {p} | head -3"}]}, VALUES)
+    assert res[0]["rc"] == 0, res
+    lines = res[0]["output"].splitlines()
+    assert lines == ["0", "1", "2"], res
+    assert len(lines) == 3, res  # the filter truncated; no 100 producer lines
+
+def test_i3_pipeline_failing_middle_stage_stderr_still_present(tmp_path):
+    # Every stage's stderr is still merged in order — a failing middle stage
+    # must stay visible even though its stdout is consumed by the next stage
+    # and never echoed past the filter.
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    (bin_dir / "boom.py").write_text(
+        "import sys\nprint('boom-err', file=sys.stderr)\nsys.exit(3)\n",
+        encoding="utf-8")
+    (bin_dir / "ident.py").write_text(
+        "import sys\nprint('IDENT')\n", encoding="utf-8")
+    boom = str(bin_dir / "boom.py")
+    ident = str(bin_dir / "ident.py")
+
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "mid",
+                          "cmd": f"python3 {boom} | python3 {ident}"}]}, VALUES)
+    # last stage exit code (ident normally 0) — but boom's stderr must be present
+    assert res[0]["rc"] == 0, res
+    assert "boom-err" in res[0]["output"], res
+    assert "IDENT" in res[0]["output"], res
+    assert res[0]["output"].index("boom-err") < res[0]["output"].index("IDENT"), res
+
+
 def test_k_env_assignment_prefix_applied_and_stage_scoped(tmp_path):
     # fix (a): a leading `VAR=value` prefix is APPLIED to its stage's env (not
     # parsed-and-dropped), and it belongs to ONE stage — a `;`-sibling stage
@@ -249,8 +293,9 @@ def test_k_env_assignment_prefix_applied_and_stage_scoped(tmp_path):
         "import os\nprint('V=' + os.environ.get('MYPROBE','<unset>'))\n",
         encoding="utf-8")
     cmd = f"MYPROBE=hello python3 {script}"
-    res = rotate._run_first_turn_commands(
-        {"first_turn": [{"label": "k", "cmd": cmd}]}, VALUES)
+    startup = {"env_allow": ["MYPROBE"],
+               "first_turn": [{"label": "k", "cmd": cmd}]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
     assert res[0]["rc"] == 0, res
     assert "V=hello" in res[0]["output"], res
     assert res[0]["cmd"] == cmd, res  # record keeps the authored text
@@ -258,7 +303,8 @@ def test_k_env_assignment_prefix_applied_and_stage_scoped(tmp_path):
     cmd2 = (f"MYPROBE=hello python3 {script}; "
             f"python3 {script}")
     res2 = rotate._run_first_turn_commands(
-        {"first_turn": [{"label": "k2", "cmd": cmd2}]}, VALUES)
+        {"env_allow": ["MYPROBE"],
+         "first_turn": [{"label": "k2", "cmd": cmd2}]}, VALUES)
     assert res2[0]["rc"] == 0, res2
     assert "V=hello" in res2[0]["output"], res2
     assert "V=<unset>" in res2[0]["output"], res2  # second stage isolated
@@ -366,3 +412,155 @@ def test_o_unparseable_command_refused_not_crash(tmp_path):
     assert marker.exists(), (
         "old shell executor would have run the bypass; rc=%s out=%r"
         % (old.returncode, old.stdout))
+
+
+def test_env_prefix_off_allowlist_refused_and_fake_never_runs(tmp_path):
+    # hypothesis:l4-first-turn-env-prefix-is-judged — a leading `VAR=value`
+    # prefix whose VAR is not on `startup.env_allow` (default EMPTY) is REFUSED
+    # BEFORE execution, the record keeps the literal text, and the executor
+    # never receives the command (a fake `PATH=` python3 never runs).
+    fake_bin = tmp_path / "fakebin"
+    fake_bin.mkdir(parents=True, exist_ok=True)
+    marker = tmp_path / "fake-ran-MARKER"
+    (fake_bin / "python3").write_text(
+        "from pathlib import Path\nPath(%r).write_text('ran')\n"
+        % str(marker), encoding="utf-8")
+    os.chmod(fake_bin / "python3", 0o755)
+    cmd = f"PATH={fake_bin} python3 -c 'print(1)'"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
+    assert res[0]["refused"], res
+    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert res[0]["cmd"] == cmd, res  # literal text kept in the record
+    assert not marker.exists(), "fake python3 under PATH must never run"
+
+
+def test_env_prefix_allowlisted_argv_exploit_is_refused(tmp_path):
+    # hypothesis:l4-first-turn-env-prefix-is-judged — the GENUINE exploit, not
+    # the `python3 -c` case. argv0 (`python3 <...>/extensions/foo.py`) is
+    # ALLOWLIST-ADMISSIBLE: a `.py` script whose path contains `extensions/`, so
+    # the producing judge passes it and pre-fix the only thing steering the
+    # binary lookup toward the FAKE is the env prefix. The raw no-shell executor
+    # really would run the fake (proof of vulnerability); the first-turn gate
+    # refuses the command on the env prefix alone before the executor sees it.
+    fake_bin = tmp_path / "fakebin"
+    fake_bin.mkdir(parents=True, exist_ok=True)
+    marker = tmp_path / "fake-ran-MARKER"
+    # a /bin/sh fake is reliably executable under an overridden PATH (a bare
+    # `python3` here resolves to fakebin/python3 via PATH, not the real exe)
+    (fake_bin / "python3").write_text(
+        "#!/bin/sh\necho ran > '%s'\n" % marker, encoding="utf-8")
+    os.chmod(fake_bin / "python3", 0o755)
+    # a dir literally containing `extensions/` so the allowlist judge (which
+    # only checks the string ends .py and contains `extensions/`) would pass it
+    ext_dir = tmp_path / "extensions"
+    ext_dir.mkdir(parents=True, exist_ok=True)
+    script = ext_dir / "foo.py"
+    script.write_text("print('real')\n", encoding="utf-8")
+    cmd = f"PATH={fake_bin} python3 {script}"
+
+    # counterfactual assertions: the argv alone passes the judge (the prefix is
+    # what must refuse it), and the raw executor would genuinely run the fake
+    assert rotate._producing_refusal(cmd) is None, \
+        "this argv must be ALLOWLIST-ADMISSIBLE or the test doesn't reproduce the bypass"
+    rc, _ = rotate._run_units_no_shell(rotate._command_units(cmd), 60)
+    assert rc == 0, rc
+    assert marker.exists(), \
+        "raw no-shell executor must run the fake for this to be a real exploit"
+    marker.unlink()
+
+    # now the actual first-turn gate: refused on the env prefix, marker absent
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
+    assert res[0]["refused"], res
+    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert res[0]["cmd"] == cmd, res  # literal text kept in the record
+    assert not marker.exists(), "fake python3 under PATH must never run past the gate"
+
+
+def test_env_prefix_off_allowlist_dry_run_names_refusal(tmp_path):
+    # dry-run reports the SAME env-prefix refusal (named) and runs nothing —
+    # the gate fires before run, so dry wouldn't even reach a real python3.
+    cmd = "LD_PRELOAD=/tmp/x.so python3 -c 'print(1)'"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "lp", "cmd": cmd}]},
+        VALUES, dry_run=True)
+    assert "refused" in res[0], res
+    assert "env prefix LD_PRELOAD not on startup.env_allow" in res[0]["refused"], res
+
+
+def test_env_prefix_not_allowed_fires_before_allowlist(tmp_path):
+    # an env prefix on a DISALLOWED var is the named reason even when the argv
+    # would already be off-allowlist (python -c) — the env judge runs first.
+    cmd = "PATH=/tmp/x python3 -c 'print(1)'"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "xp", "cmd": cmd}]}, VALUES)
+    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+
+
+def test_env_prefix_allowed_still_applies(tmp_path):
+    # a fixture template declaring `env_allow: [FOO]` ADMITS `FOO=1 <allowed
+    # cmd>` and the prefix reaches the child env (the executor still applies an
+    # allowed prefix).
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    script = str(bin_dir / "show.py")
+    (bin_dir / "show.py").write_text(
+        "import os\nprint('FOO=' + os.environ.get('FOO', '<unset>'))\n",
+        encoding="utf-8")
+    cmd = f"FOO=1 python3 {script}"
+    startup = {"env_allow": ["FOO"],
+               "first_turn": [{"label": "allowed", "cmd": cmd}]}
+    res = rotate._run_first_turn_commands(startup, VALUES)
+    assert "refused" not in res[0], res
+    assert res[0]["rc"] == 0, res
+    assert "FOO=1" in res[0]["output"], res
+
+
+def test_r_placeholder_injection_refused_no_marker(tmp_path):
+    # hypothesis:l4-the-judge-runs-on-the-substituted-command — a placeholder
+    # VALUE carries `; touch <marker>`. The template judge sees the un-resolved
+    # `{seat}` and passes; the injected `touch` stage is only visible AFTER
+    # placeholder substitution. The re-judge of exec_cmd refuses it, the marker
+    # never appears, and the record holds the literal placeholder-expanded form.
+    marker = tmp_path / "pwned-MARKER"
+    vals = dict(VALUES, seat=f"seatA; touch {marker}")
+    template = "python3 {worktree}/extensions/list.py {seat}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "inj", "cmd": template}]}, vals)
+    assert "refused" in res[0], res
+    assert "not on startup.allow" in res[0]["refused"], res
+    assert "touch" in res[0]["refused"], res
+    assert not marker.exists(), res
+    assert res[0]["cmd"] == (
+        f"python3 /wt/extensions/list.py seatA; touch {marker}"), res
+
+
+def test_s_env_var_injection_refused_no_marker(monkeypatch, tmp_path):
+    # an env var VALUE carries `| touch <marker>`. The record keeps `$SEAT`
+    # literal (fix b), while exec_cmd expands it for execution; the re-judge of
+    # the substituted command refuses the injected `touch` stage before it runs.
+    marker = tmp_path / "pwned2-MARKER"
+    monkeypatch.setenv("SEAT", f"seatA | touch {marker}")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    assert "touch" in res[0]["refused"], res
+    assert not marker.exists(), res
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_q_clean_substitution_still_runs(tmp_path):
+    # a benign placeholder substitution still RUNS after the exec re-judge is
+    # added — the new gate must not refuse the legitimate happy path.
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    script = str(bin_dir / "ok.py")
+    (bin_dir / "ok.py").write_text("print('ok')\n", encoding="utf-8")
+    template = f"python3 {script} {{seat}}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "clean", "cmd": template}]}, VALUES)
+    assert "refused" not in res[0], res
+    assert res[0]["rc"] == 0, res
+    assert "ok" in res[0]["output"], res

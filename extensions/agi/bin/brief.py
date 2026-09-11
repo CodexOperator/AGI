@@ -1258,10 +1258,19 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "have uncommitted work in this tree, and it WILL be swept into your "
         "commit. If you see unexpected files, report them in one line and "
         "leave them exactly where they are.",
+        "A g15 CLAIM IS BEHAVIOUR TO BUILD, not a hypothesis to measure: "
+        "measure the pre-fix state, IMPLEMENT the claim, then prove it on the "
+        "built bytes. A node that only reproduces the defect and reports "
+        "`disproved` has not done the round (hypothesis:l4-a-g15-claim-is-a-"
+        "build-order-not-a-measurement: four kids measured instead of building).",
         "RUN THE REPO TEST SUITE before you report, if you changed any code: "
-        "`python3 -m pytest extensions/agi/tests/ -q`. Your own scratch test "
-        "passing is not the same claim. A failing assertion you did not expect "
-        "is usually the assertion working.",
+        "`python3 -m pytest <the test files you changed or that cover your "
+        "files> -q` -- name the files, NEVER the bare `extensions/agi/tests/` "
+        "directory. The kid-tier gate (conftest.py) refuses a bare directory "
+        "run, and it now derives the tier from the running agent record, so "
+        "`env -u AGI_TIER` does not clear it. Your own scratch test passing is "
+        "not the same claim. A failing assertion you did not expect is usually "
+        "the assertion working.",
         # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
         # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
         # and `verdict` as the slug and the call dies on the extra positional

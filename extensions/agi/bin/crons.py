@@ -459,14 +459,26 @@ def _systemd_bus_env() -> dict[str, str] | None:
 
 
 def _apply_systemctl(args: list[str], *, dry_run: bool,
-                     env: dict[str, str] | None = None) -> str:
+                     env: dict[str, str] | None = None,
+                     read_only: bool = False) -> str:
     """Actually run `systemctl --user <args>` via PATH — a FAKE systemctl in
     tests (residue b: tests prove the exact argv and never touch the real
     user manager or ~/.config/systemd). The real user manager is only ever
     reached when a services table has landed and grid_sync self-reapplies
     with `--unit-dir`. Under `--dry-run` the intent is recorded and nothing
-    runs. A failed systemctl becomes a visible action string, never an
-    exception — a crontab apply must not die midway because one unit refused.
+    runs (unless `read_only`, see below). A failed systemctl becomes a
+    visible action string, never an exception — a crontab apply must not die
+    midway because one unit refused.
+
+    `read_only` marks a genuinely READ-ONLY probe (`is-enabled` / `is-active`
+    or any byte comparison that mutates nothing) so a `--dry-run` apply can
+    ask the same question the live pass would ask and reach the same branch:
+    with `dry_run and read_only` the subprocess still RUNS (it mutates
+    nothing) and its real `(ok)`/`FAILED (...)` string is returned — a dry
+    run must not answer a question the live pass does not ask (the original
+    bug: every dry run printed seam intent for a unit the live pass marked
+    `(no-op)`). Mutations (daemon-reload, enable/disable --now, writes,
+    removes) keep `read_only=False` and so NEVER run under `--dry-run`.
 
     `env`, when given, is merged over the caller's environment before the
     subprocess runs so a cron-invoked apply can reach the user bus (see
@@ -475,7 +487,7 @@ def _apply_systemctl(args: list[str], *, dry_run: bool,
     (`{}`).
     """
     label = " ".join(["systemctl", "--user", *args])
-    if dry_run:
+    if dry_run and not read_only:
         return f"{label} (dry-run)"
     merged = os.environ.copy()
     if env:
@@ -522,30 +534,57 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
             desired = "\n".join(render_unit_file(name, svc, repo_root)) + "\n"
             up_to_date = (target.is_file()
                           and target.read_text(encoding="utf-8") == desired)
+            # Make systemd SEE and START the unit (idempotent in systemd).
+            # Under cron there is no login session; reach the user bus via
+            # _systemd_bus_env, or record one named skip when no bus exists
+            # (was two FAILED `No medium found` actions every 5 minutes).
+            def seam() -> None:
+                bus_env = _systemd_bus_env()
+                if bus_env is None:
+                    actions.append(
+                        f"unit {target.name} no user bus, skip systemctl")
+                else:
+                    actions.append(_apply_systemctl(["daemon-reload"],
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
+                    actions.append(_apply_systemctl(["enable", "--now",
+                                                     service_arg],
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
+
             if up_to_date:
+                # Bytes are current. Probe whether systemd already sees the
+                # unit enabled AND active (through the same seam, so the bus
+                # env applies). If so, record ONE state line and run neither
+                # daemon-reload nor enable — a :x5 apply stops churning two
+                # `(ok)` actions every pass. Any other state (not enabled,
+                # not active, probe FAILED) runs the real seam so a written-
+                # but-never-enabled unit still converges on the next apply.
                 actions.append(f"unit {target.name} up to date")
+                bus_env = _systemd_bus_env()
+                if bus_env is None:
+                    actions.append(
+                        f"unit {target.name} no user bus, skip systemctl")
+                else:
+                    enabled = _apply_systemctl(["is-enabled", service_arg],
+                                               dry_run=dry_run, env=bus_env,
+                                               read_only=True)
+                    active = _apply_systemctl(["is-active", service_arg],
+                                              dry_run=dry_run, env=bus_env,
+                                              read_only=True)
+                    if enabled.endswith("(ok)") and active.endswith("(ok)"):
+                        actions.append(
+                            f"unit {target.name} enabled+active (no-op)")
+                    else:
+                        seam()
             elif dry_run:
                 actions.append(f"write unit {target.name} (dry-run)")
+                seam()
             else:
                 ud.mkdir(parents=True, exist_ok=True)
                 target.write_text(desired, encoding="utf-8")
                 actions.append(f"write unit {target.name}")
-            # Make systemd SEE and START the unit. Idempotent in systemd, so
-            # it also runs when the file was already current — a file written
-            # by an earlier apply but never enabled converges on the next one.
-            # Under cron there is no login session; reach the user bus via
-            # _systemd_bus_env, or record one named skip when no bus exists
-            # (was two FAILED `No medium found` actions every 5 minutes).
-            bus_env = _systemd_bus_env()
-            if bus_env is None:
-                actions.append(
-                    f"unit {target.name} no user bus, skip systemctl")
-            else:
-                actions.append(_apply_systemctl(["daemon-reload"],
-                                                dry_run=dry_run, env=bus_env))
-                actions.append(_apply_systemctl(["enable", "--now",
-                                                 service_arg],
-                                                dry_run=dry_run, env=bus_env))
+                seam()
         else:
             # crons_live false, or the service disabled: the kill switch
             # STOPS the unit through the real seam (disable --now), removes
@@ -556,15 +595,24 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
                     actions.append(_apply_systemctl(
                         ["disable", "--now", service_arg],
                         dry_run=dry_run, env=bus_env))
-                if not dry_run:
-                    target.unlink()
-                    actions.append(f"remove unit {target.name}")
-                else:
-                    actions.append(f"remove unit {target.name} (dry-run)")
-                if bus_env is not None:
+                    if not dry_run:
+                        target.unlink()
+                        actions.append(f"remove unit {target.name}")
+                    else:
+                        actions.append(f"remove unit {target.name} (dry-run)")
                     actions.append(_apply_systemctl(["daemon-reload"],
-                                                    dry_run=dry_run, env=bus_env))
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
                 else:
+                    # No bus: cannot disable --now, so the unit may STILL be
+                    # running. Do NOT remove the file — dropping it while the
+                    # unit runs leaves a running unit systemd no longer knows
+                    # (an orphan it can then never manage). Record one named
+                    # skip governing the whole kill; a later apply with a bus
+                    # comes back, disables, removes, reloads.
+                    actions.append(
+                        f"unit {target.name} present, no user bus: "
+                        "disable --now SKIPPED (unit may still be running)")
                     actions.append(
                         f"unit {target.name} no user bus, skip daemon-reload")
             else:
