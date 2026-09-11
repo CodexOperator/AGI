@@ -522,30 +522,55 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
             desired = "\n".join(render_unit_file(name, svc, repo_root)) + "\n"
             up_to_date = (target.is_file()
                           and target.read_text(encoding="utf-8") == desired)
+            # Make systemd SEE and START the unit (idempotent in systemd).
+            # Under cron there is no login session; reach the user bus via
+            # _systemd_bus_env, or record one named skip when no bus exists
+            # (was two FAILED `No medium found` actions every 5 minutes).
+            def seam() -> None:
+                bus_env = _systemd_bus_env()
+                if bus_env is None:
+                    actions.append(
+                        f"unit {target.name} no user bus, skip systemctl")
+                else:
+                    actions.append(_apply_systemctl(["daemon-reload"],
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
+                    actions.append(_apply_systemctl(["enable", "--now",
+                                                     service_arg],
+                                                    dry_run=dry_run,
+                                                    env=bus_env))
+
             if up_to_date:
+                # Bytes are current. Probe whether systemd already sees the
+                # unit enabled AND active (through the same seam, so the bus
+                # env applies). If so, record ONE state line and run neither
+                # daemon-reload nor enable — a :x5 apply stops churning two
+                # `(ok)` actions every pass. Any other state (not enabled,
+                # not active, probe FAILED) runs the real seam so a written-
+                # but-never-enabled unit still converges on the next apply.
                 actions.append(f"unit {target.name} up to date")
+                bus_env = _systemd_bus_env()
+                if bus_env is None:
+                    actions.append(
+                        f"unit {target.name} no user bus, skip systemctl")
+                else:
+                    enabled = _apply_systemctl(["is-enabled", service_arg],
+                                               dry_run=dry_run, env=bus_env)
+                    active = _apply_systemctl(["is-active", service_arg],
+                                              dry_run=dry_run, env=bus_env)
+                    if enabled.endswith("(ok)") and active.endswith("(ok)"):
+                        actions.append(
+                            f"unit {target.name} enabled+active (no-op)")
+                    else:
+                        seam()
             elif dry_run:
                 actions.append(f"write unit {target.name} (dry-run)")
+                seam()
             else:
                 ud.mkdir(parents=True, exist_ok=True)
                 target.write_text(desired, encoding="utf-8")
                 actions.append(f"write unit {target.name}")
-            # Make systemd SEE and START the unit. Idempotent in systemd, so
-            # it also runs when the file was already current — a file written
-            # by an earlier apply but never enabled converges on the next one.
-            # Under cron there is no login session; reach the user bus via
-            # _systemd_bus_env, or record one named skip when no bus exists
-            # (was two FAILED `No medium found` actions every 5 minutes).
-            bus_env = _systemd_bus_env()
-            if bus_env is None:
-                actions.append(
-                    f"unit {target.name} no user bus, skip systemctl")
-            else:
-                actions.append(_apply_systemctl(["daemon-reload"],
-                                                dry_run=dry_run, env=bus_env))
-                actions.append(_apply_systemctl(["enable", "--now",
-                                                 service_arg],
-                                                dry_run=dry_run, env=bus_env))
+                seam()
         else:
             # crons_live false, or the service disabled: the kill switch
             # STOPS the unit through the real seam (disable --now), removes
