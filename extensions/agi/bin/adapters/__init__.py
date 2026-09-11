@@ -149,6 +149,71 @@ OPENROUTER_ALIAS_ERR = (
 )
 
 
+# ---------------------------------------------------------------------------
+# ONE SOURCE OF (tier, role, harness) MODEL TRUTH
+# hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is the
+# ONE source of a role's model/effort/settings per harness. dispatch.py,
+# workflow.py and heal.py import these, so a model change is ONE `write.py` on
+# ladder:ladder instead of four cells in three files. `harnesses.<h>.models
+# <role>` and `agent_dispatch.model` stop being inputs: dispatch.py emits ONE
+# stderr warning naming the winning ladder row when a config still carries one.
+# ---------------------------------------------------------------------------
+
+def ladder_role_row(roles, tier, role):
+    """The ladder `roles:` row for (tier, role), or None.
+
+    The single lookup shared by the three spawners. A row matching both keys
+    wins outright; no row answers None and the caller falls back to whatever
+    history requires. `int()` on tier so a row typed `"1"` matches.
+    """
+    for r in (roles or []):
+        try:
+            if int(r.get("tier")) == int(tier) and r.get("role") == role:
+                return r
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def spec_from_ladder_row(row):
+    """Map a ladder `roles:` row to {harness, model, effort, thinking, settings}.
+
+    Blank cells resolve to None (omit the flag). `thinking` is pi's effort
+    analogue (`l3w4-director-kids-on-glm`) and travels with the row.
+    """
+    return {
+        "harness": row.get("harness") or None,
+        "model": (row.get("model") or "").strip() or None,
+        "effort": (row.get("effort") or "").strip() or None,
+        "thinking": (row.get("thinking") or "").strip() or None,
+        "settings": row.get("settings") or None,
+    }
+
+
+def derived_allowed_models(roles, harness_name, harness):
+    """The DERIVED allowlist a harness may spawn from.
+
+    = {every ladder row's model whose `harness` is `harness_name`}
+      U harness.allowed_extra    (the migration-clean census)
+      U harness.allowed_models   (the DEPRECATED key — still unioned for one
+                                 cut-over round so no live spawn fails closed;
+                                 the caller warns once that it is legacy).
+
+    A model no ladder row, no `allowed_extra` and no legacy `allowed_models`
+    names is refused (fail-closed). The point of the derivation: a NEW model
+    written into a ladder row is allowed WITHOUT editing the config's allowlist
+    — the four-cells-in-three-files defect (l4 measure).
+    """
+    extra = {str(m) for m in (harness.get("allowed_extra") or [])
+             if m and str(m).strip()}
+    legacy = {str(m) for m in (harness.get("allowed_models") or [])
+              if m and str(m).strip()}
+    from_rows = {str(r.get("model")).strip() for r in (roles or [])
+                 if r.get("harness") == harness_name
+                 and (r.get("model") or "").strip()}
+    return from_rows | extra | legacy
+
+
 def assert_model_in_provider_namespace(model: str, provider: str) -> None:
     """FAIL CLOSED before any spawn, credential mint or network call.
 

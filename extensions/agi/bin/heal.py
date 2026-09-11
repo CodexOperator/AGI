@@ -39,22 +39,55 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # script; the insert makes it so when it is imported as a module too.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
+import spawn_gate  # noqa: E402
+def _default_role_for_tier(tier):
+    """Mirror dispatch's default (role == tier) for the heal path."""
+    return tier or "kid"
+
+
+def _default_tier_for_role(role):
+    """The canonical ladder tier a role lives at (mirror of dispatch's)."""
+    return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
+        role, 0)
 from dispatch import pi_model_args, scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 
-def _pi_model_args(root: Path) -> list[str]:
-    """`agent_dispatch` model flags for the project at `root`, or none.
+def _pi_model_args(root: Path, tier: str = "kid",
+                   role: str | None = None) -> list[str]:
+    """Model flags for the healer, from the ladder when a row exists
+    (hypothesis:l4-a-model-change-is-one-write), else the legacy config path.
 
-    Never raises: healing runs when something is already broken, so a missing
-    or malformed config must cost the healer its model preference, not its
-    existence.
+    Sits on the same shared resolver (`adapters.ladder_role_row` +
+    `adapters.spec_from_ladder_row`) dispatch.py uses, so a `write.py` on the
+    ladder changes what a healed agent is re-spawned with -- same "one write"
+    contract as a fresh dispatch. Never raises: healing runs when something is
+    already broken, so a missing or malformed config must cost the healer its
+    model preference, not its existence.
     """
     try:
         cfg_path = locations.config_path(root)
         if cfg_path is None:
             return []
-        return pi_model_args(json.loads(cfg_path.read_text()))
+        cfg = json.loads(cfg_path.read_text())
+        roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
+        # `tier` here is the HEALED AGENT's record "tier" — a role-string like
+        # `parent`/`kid` (dispatch writes args.tier), not the ladder's int. Map
+        # the role to its canonical int tier for the lookup.
+        _role = role or _default_role_for_tier(tier)
+        if str(tier).isdigit():
+            _tier_int = int(tier)
+        else:
+            _tier_int = _default_tier_for_role(_role)
+        row = adapters.ladder_role_row(roles, _tier_int, _role)
+        if row is not None and (row.get("model") or "").strip():
+            spec = adapters.spec_from_ladder_row(row)
+            harness = {"adapter": "pi", "models": {_role: spec["model"]}}
+            if spec.get("thinking"):
+                harness["thinking"] = spec["thinking"]
+            return adapters.load("pi").model_args(harness, _role)
+        return pi_model_args(cfg)
     except Exception as exc:  # noqa: BLE001 — see docstring
         print(f"heal: could not read model config ({exc}); using pi defaults",
               file=sys.stderr)
@@ -276,7 +309,7 @@ Stay surgical. Don't refactor unrelated code.
     # is a confusing thing to debug.
     pi_args = [
         pi_bin,
-        *_pi_model_args(root),
+        *_pi_model_args(root, rec.get("tier", "kid"), rec.get("role")),
         # Headless, matching `pi_adapter.build_command`. Note this path ran
         # WITHOUT `-p` and did not hang, which is why the hang that prompted
         # adding it is still unexplained -- see `7b57b5955`.
