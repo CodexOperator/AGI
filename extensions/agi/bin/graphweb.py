@@ -383,11 +383,14 @@ def _pid_alive(pid) -> bool:
 def _tmux_windows() -> set:
     """The set of tmux window refs (``@N`` tokens and names), or empty.
 
-    Reads `tmux list-windows` ONCE. Absent tmux -> empty, never a raise.
+    Reads `tmux list-windows` ONCE, scoped to the agi-rc session (rotate.py
+    DEFAULT_TMUX_SESSION). Absent tmux / absent session -> empty, never a
+    raise.
     """
     try:
         out = subprocess.run(
-            ["tmux", "list-windows"], capture_output=True, text=True,
+            ["tmux", "list-windows", "-t", "agi-rc"],
+            capture_output=True, text=True,
             timeout=10, check=False)
     except Exception:                                             # noqa: BLE001
         return set()
