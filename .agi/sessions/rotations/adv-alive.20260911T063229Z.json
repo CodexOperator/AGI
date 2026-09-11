@@ -1,0 +1,67 @@
+{
+  "rotation": "rotate-self",
+  "seat": "adv-alive",
+  "recorded_at": "2026-09-11T06:32:30.022682Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "adv-alive",
+      "windows": [
+        "adv-alive.gen5",
+        "adv-alive"
+      ],
+      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_throwaway_for0/windows.txt"
+    },
+    "b_generation": {
+      "before": 4,
+      "after": 5
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/adv-alive.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 0,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "adv-alive.gen5",
+      "windows": [
+        "adv-alive.gen5",
+        "adv-alive"
+      ],
+      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_throwaway_for0/windows.txt"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "adv-alive.gen5",
+      "id": null
+    },
+    "successor_window": {
+      "name": "adv-alive",
+      "id": null
+    },
+    "button_down": "grid committed \u2014 record+row on branch loop/hypothesis-l4-basetemp-advice-ex-a00-22d82961@s2",
+    "livestream_repoint": {
+      "session": "view-adv-alive",
+      "target": null,
+      "skipped": "no successor window @id captured to re-point view-adv-alive to"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/adv-alive.bootstrap.json",
+    "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort"
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [],
+    "reap_source": "SKIPPED: no pane pid (source: $TMUX_PANE %273 gave no pane pid; TMUX_PANE absent, no seam); the live predecessor chain is reaped externally by PID (Belam cap / prime)",
+    "skipped": "SKIPPED: no pane pid (source: $TMUX_PANE %273 gave no pane pid; TMUX_PANE absent, no seam); the live predecessor chain is reaped externally by PID (Belam cap / prime)"
+  }
+}
