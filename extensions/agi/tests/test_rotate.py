@@ -2809,3 +2809,105 @@ def test_ack_seat_writes_row_and_matches_numeral_reader(tmp_path, monkeypatch,
     rows = rotate._load_seats(root)
     belam = next(r for r in rows if r.get("name") == "belam")
     assert belam.get("session_ref") == "f52a4c"
+
+
+def test_bootstrap_writes_before_spawn_in_rotate_self():
+    """Owed item (iv) — turn-one proof is a CODE-ORDER falsifier, not a code-
+    position guess. `cmd_rotate_self` must write the bootstrap record BEFORE
+    it spawns the successor window; otherwise the successor's first turn could
+    read a bootstrap that does not exist yet. This reads the LIVE function
+    source and asserts the pre-spawn `_write_bootstrap(` call site precedes
+    the `spawn_window(` call site, so a future reorder that moves the write
+    after the spawn FAILS this test.
+    """
+    import inspect as _inspect
+    import re as _re
+    src = _inspect.getsource(rotate.cmd_rotate_self)
+    write_idx = src.find("_write_bootstrap(")
+    spawn_idx = src.find("spawn_window(")
+    assert write_idx >= 0, "cmd_rotate_self no longer calls _write_bootstrap"
+    assert spawn_idx >= 0, "cmd_rotate_self no longer calls spawn_window"
+    assert write_idx < spawn_idx, (
+        "_write_bootstrap() must run BEFORE spawn_window() in cmd_rotate_self; "
+        "a turnaround-one bootstrap is only valid pre-spawn"
+    )
+
+
+# --- owed item (v): AGI_SEAT export on cmd_spawn / cmd_loop when --seat -----
+# hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
+# fires-at-turn-one (SL1.07). A concrete --seat on spawn/loop must ride
+# AGI_SEAT=<name> out in front of the claude argv so the SessionStart hook
+# copy can fire at turn one; when --seat is ABSENT the launch line must stay
+# byte-identical to a plain spawn/loop.
+
+def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp_path):
+    # Direct drive of the shared launch path, dry-run so nothing launches.
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    base = rotate.spawn_window(
+        name="adv", tier="prime_director", prompt_file=None,
+        settings=None, tmux_session="agi-rc", root=None,
+        dry_run=True, seat=None,
+    )[1]
+    seated = rotate.spawn_window(
+        name="adv", tier="prime_director", prompt_file=None,
+        settings=None, tmux_session="agi-rc", root=None,
+        dry_run=True, seat="sanctuary-director",
+    )[1]
+    assert "AGI_SEAT=" not in base
+    assert f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && " in seated
+    # the ONLY difference is the export: the rest of the launch line is identical
+    export = f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && "
+    assert seated.replace(export, "") == base
+
+
+def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
+    # Proves cmd_spawn and cmd_loop actually FORWARD args.seat into the shared
+    # launch path (the wiring owed item (v) added). With args.seat None the
+    # forwarded value is None, so _shell_cmd emits no AGI_SEAT (byte-identical).
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    called = {}
+
+    def _capture(**kw):
+        called.update(kw)
+        return 0, "claude --remote-control adv"
+
+    monkeypatch.setattr(rotate, "spawn_window", _capture)
+
+    # spawn with --seat
+    code = rotate.cmd_spawn(SimpleNamespace(
+        name="adv", tier="adv_alive", prompt_file=None, model=None,
+        effort=None, settings=None, tmux_session="agi-rc", window_path=None,
+        root=root, dry_run=True, successor_argv=None, seat="sanctuary-director",
+    ), root)
+    assert code == 0 and called.get("seat") == "sanctuary-director"
+    # spawn without --seat (byte-identical: seat forwarded as None)
+    called.clear()
+    code = rotate.cmd_spawn(SimpleNamespace(
+        name="adv", tier="adv_alive", prompt_file=None, model=None,
+        effort=None, settings=None, tmux_session="agi-rc", window_path=None,
+        root=root, dry_run=True, successor_argv=None, seat=None,
+    ), root)
+    assert code == 0 and called.get("seat") is None
+
+    # loop with --seat
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # rotate
+    called.clear()
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="adv_alive", name="adv",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1, seat="sanctuary-director",
+    ), root)
+    assert code == 0 and called.get("seat") == "sanctuary-director"
+    # loop without --seat
+    called.clear()
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="adv_alive", name="adv",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1, seat=None,
+    ), root)
+    assert code == 0 and called.get("seat") is None
