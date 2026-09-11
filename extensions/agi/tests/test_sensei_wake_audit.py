@@ -266,6 +266,18 @@ def _fixture_facts():
         "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n")
 
 
+def _live_rotations_facts():
+    """The LIVE `config:rotations` `## facts` section from this worktree's
+    graph (never a copied list — a test of live config reads the live node).
+    Returns None when the node is not resolvable, so the caller can skip."""
+    root = Path(__file__).resolve().parents[3]  # the worktree root
+    rot = root / ".agi" / "nodes" / ".geometry" / "rotations.md"
+    if not rot.exists():
+        return None
+    text = rot.read_text(encoding="utf-8")
+    return text.split("## facts", 1)[1] if "## facts" in text else text
+
+
 class TestFactRederive:
     def test_f1_cited_shape_is_category_a_with_fact_label(self):
         # facts-only (no first_turn entries) so the FACT wins, proving the
@@ -494,3 +506,203 @@ class TestOptionalGenDefaultsToLatestRecord:
         assert counts == {"a": 0, "b": 0, "c": 0, "d": 1}
         assert calls[0]["cmd"] == "true"
         assert calls[0]["source"].endswith("20260911T100000Z.json")
+
+# ── SL1.08 build-order items (hypothesis:l4-the-audit-classifier-is-derived-
+# ── and-the-window-is-bounded-by-the-record): eight RED-FIRST fixes pinned by
+# ── name here — prescribed facts, whois prefix, docstring, dead copy, greedy
+# ── sed regex, derived hand-read paths, and grep-target protocol learning ────
+
+def _out_record(graph, ts="20260911T150000Z"):
+    """A synthetic OUT rotation record (for _latest_record items)."""
+    rec = {"rotation": "rotate-self", "seat": SEAT,
+           "recorded_at": ts + "Z", "result": "success",
+           "observations": {"b_generation": {"before": 13, "after": 14}}}
+    path = graph / "sessions" / "rotations" / f"{SEAT}.{ts}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+class TestSLO8PrescribedFacts:
+    def test_item1_prescribed_fact_ack_call_is_never_category_a(self):
+        # F8 PRESCRIBES the required wake act (the ack); a call PERFORMING it
+        # is work (b via the covered after_join ack / d), never (a, F8).
+        facts = sensei._parse_facts(
+            "- F8 (your ONE required wake act): `python3 extensions/agi/bin/"
+            "rotate.py ack --seat <seat> --gen <N> --ref <ref> continue`\n")
+        assert facts == [("F8", [])]  # the prescribed shape is dropped
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director "
+            "--gen 14 --ref fbb88c continue", "Bash", SEAT, [], facts)
+        # pin the actual landing: (b) via _is_byhand_read's `rotate.py ack`
+        # clause (the after_join ack the service performs — a hand redo is a
+        # hand read, see test_after_join_ack_done_by_hand_is_category_b). This
+        # is a DOCUMENTED DEVIATION from the brief's "(d) or its own label":
+        # the prescribed fact's shapes are dropped so no (a) is reachable, and
+        # the ack falls through to the covered after_join hand-read (b), which
+        # the repo already pins for ack. Never (a).
+        assert cat != "a"
+        assert cat == "b" and label is None
+
+    def test_item2b_prescribe_re_all_alternatives_fire_without_reserved_words(self):
+        # the escaped `\\s`/`\\w` branches (`your one ... act`,
+        # `one ... decision`) used to be dead regex; each must now mark a fact
+        # prescribed with a sentence that contains NO required/mandatory word.
+        prescribed = [
+            "your one big act is to ack the rotation",  # your one \w+ act
+            "make one final decision here",             # one \w+ decision
+            "you must perform the handoff",             # must perform
+            "minimum wake is a single call",            # minimum wake
+        ]
+        for prose in prescribed:
+            facts = sensei._parse_facts(f"- F8 ({prose}): `python3 x.py run`\n")
+            assert facts == [("F8", [])], prose
+        # a plain measured fact is NOT prescribed: its shape is kept
+        facts = sensei._parse_facts("- F1 (one call proves it): `ps`\n")
+        assert facts == [("F1", ["ps"])]
+
+
+    def test_item1_prescribed_fact_flag_keeps_re_derivable_facts(self):
+        # a MEASURED fact (F1) is still re-derivable (a); only prescribed acts drop
+        facts = sensei._parse_facts(
+            "- F1 (ONE call proves it): `python3 extensions/agi/bin/rotate.py "
+            "status --seat <seat> --record latest`\n"
+            "- F8 (required wake act): `python3 extensions/agi/bin/rotate.py "
+            "ack --seat <seat> --gen <N> --ref <ref> continue`\n")
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/rotate.py status --seat "
+            "sanctuary-director --record latest", "Bash", SEAT, [], facts)
+        assert cat == "a"
+        assert label == "F1"
+
+
+class TestSLO8WhosPrefix:
+    def test_item2_live_f2_whois_rederive_is_category_a_with_live_facts(self):
+        # a test of LIVE config reads the live node, never a copied list: the
+        # LIVE F2 cites the multi-token shape `send.py whois <ref>` WITHOUT the
+        # invocation prefix, and LIVE F15's PROSE `whois` ("`whois` matches by
+        # prefix on it") must not shadow it — so the live whois re-derive lands
+        # on (a, F2), not on (a, F15) (goal:g15.13 / item 2's falsifier).
+        live = _live_rotations_facts()
+        if live is None:
+            pytest.skip("live config:rotations not resolvable from this test")
+        facts = sensei._parse_facts(live)
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/send.py whois 8.8.8.8",
+            "Bash", SEAT, [], facts)
+        assert cat == "a"
+        assert label == "F2"
+
+    def test_item2_bare_verb_fact_shape_matches_a_live_call_carrying_launch_prefix(self):
+        # a fact whose cited shape is the BARE verb (`whois`) must match a live
+        # re-derive that carries the invocation prefix (`python3 …/send.py whois`)
+        facts = sensei._parse_facts("- F2 (by hand): `whois`\n")
+        cat, label = sensei.classify_call(
+            "python3 extensions/agi/bin/send.py whois 8.8.8.8",
+            "Bash", SEAT, [], facts)
+        assert cat == "a"
+        assert label == "F2"
+
+    def test_item2_bare_verb_is_not_a_filter_arg(self):
+        # `grep whois file` is a search OVER output, not a re-derive of the
+        # whois fact — the bare verb must not match as another verb's argument.
+        facts = sensei._parse_facts("- F2: `whois`\n")
+        cat, _ = sensei.classify_call("grep whois /tmp/x", "Bash", SEAT, [], facts)
+        assert cat != "a"
+
+
+class TestSLO8MiscFixes:
+    def test_item3_read_rotations_docstring_matches_behaviour(self):
+        doc = sensei._read_rotations.__doc__ or ""
+        # the stale claim (facts body "used for text mentions only") is gone
+        assert "text mentions only" not in doc
+        # and the docstring now describes the re-derive + prescribed skip
+        assert "prescribed" in doc and "re-derive" in doc
+
+    def test_item4_latest_record_has_no_dead_list_copy(self, tmp_path):
+        # behavioural pin of `_latest_record`: resolves the latest record and
+        # a given gen — the dead `matches = [f for f in files]` copy is gone
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        _write_rotation_record(graph, "20260911T100000Z", gen=13)
+        _write_rotation_record(graph, "20260911T110000Z", gen=14)
+        latest = sensei._latest_record(graph, SEAT)
+        assert latest is not None and latest[0].name.endswith("20260911T110000Z.json")
+        g14 = sensei._latest_record(graph, SEAT, gen=14)
+        assert g14 is not None and g14[0].name.endswith("20260911T110000Z.json")
+        assert sensei._latest_record(graph, SEAT, gen=12) is None
+
+    def test_item5_sed_read_piped_grep_i_is_learning_not_an_inplace_edit(self):
+        # `-i` after the pipe belongs to grep, NOT sed; the read-only sed of a
+        # source file keeps its protocol-learning verdict (c).
+        assert sensei._is_protocol_learning(
+            "sed -n 1,40p extensions/agi/bin/write.py | grep -i '^def '",
+            "Bash") is True
+
+    def test_item5_minus_i_after_pipe_is_not_seds_inplace_flag(self):
+        # sed's OWN -i stays split off: `sed 's/x/y/' f && grep -i foo` has NO
+        # sed in-place flag (sed writes stdout; grep owns the -i), so the
+        # in-place exemption must not swallow it / mislabel it a source edit.
+        assert sensei._is_protocol_learning(
+            "sed 's/x/y/' f && grep -i foo", "Bash") is False
+        # and a genuine sed -i IS a source edit (real work, not learning)
+        assert sensei._is_protocol_learning(
+            "sed -i 's/a/b/' extensions/agi/bin/sensei.py", "Bash") is False
+
+    def test_item8_grep_on_pipeline_output_is_not_protocol_learning(self):
+        # grep feeding on a piped OUTPUT (its own quoted pattern mentions
+        # nothing source-like here; the `.py` is a filter verb, not a path) is
+        # a hand read of the seat's inbox (b), not a source/log grep (c): the
+        # `send.py read` is the inbox first_turn a template already covers.
+        cmd = ("date -u; python3 extensions/agi/bin/send.py read "
+               "sanctuary-director | grep -vE '\\.py$'")
+        cat, _ = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
+        assert cat == "b"
+
+
+
+class TestSLO8DerivedHandReadPaths:
+    def test_item6_hand_read_paths_are_derived_not_literal(self, tmp_path):
+        entries = _ft_entries()
+        facts = sensei._parse_facts(
+            "- F2: the seat registry; `grep \"name\": \"<seat>\" "
+            ".agi/nodes/.geometry/seats.md`\n")
+        signals = sensei._hand_read_paths(entries, facts, SEAT)
+        # a path the CONFIG derives (the registry read cited by F2) is hand-read
+        assert sensei._path_is_hand_read(
+            ".agi/nodes/.geometry/seats.md", signals) is True
+        # a path nothing configures is real work
+        assert sensei._path_is_hand_read("docs/architecture.md", signals) is False
+        # the old literal file list is NOT hard-coded on the function
+        assert not hasattr(sensei, "_PATH_IS_HAND_READ_LIST")
+        # the seat's OWN record / ack / pin / bootstrap paths are DERIVED from
+        # the seat identity + sessions layout — the bare generic substrings are
+        # gone, and a path NOT derivable from this seat/config is real work (d)
+        assert sensei._path_is_hand_read(
+            f"sessions/rotations/{SEAT}.20260911T120000Z.json", signals) is True
+        assert sensei._path_is_hand_read(
+            f"sessions/seats/{SEAT}.ack.json", signals) is True
+        assert sensei._path_is_hand_read(
+            f"sessions/seats/{SEAT}.bootstrap.json", signals) is True
+        assert sensei._path_is_hand_read(
+            f"sessions/{SEAT}.meter", signals) is True
+        # …and another seat's (or a bare, seat-less) file is NOT a by-hand read
+        assert sensei._path_is_hand_read(
+            "sessions/rotations/other-seat.json", signals) is False
+        assert sensei._path_is_hand_read(
+            "sessions/other-seat.meter", signals) is False
+        assert sensei._path_is_hand_read(
+            "seats/other-seat.ack.json", signals) is False
+
+    def test_item6_wake_audit_derives_hand_read_for_nonbash(self, tmp_path):
+        # end-to-end: a Read of the derived registry path is (b); a custom file
+        # that no first_turn/fact/seat path covers is real work (d)
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        block = {"type": "tool_use", "name": "Read",
+                 "input": {"path": ".agi/nodes/.geometry/seats.md"}}
+        tr = graph / "d.jsonl"
+        tr.write_text(_events([block]) + _events(
+            [{"type": "tool_use", "name": "Read",
+              "input": {"path": "docs/architecture.md"}}]), encoding="utf-8")
+        code, calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert [c["cat"] for c in calls] == ["b", "d"]

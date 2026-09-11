@@ -267,3 +267,38 @@ def test_rotate_out_audit_role_without_template_refuses_named(tmp_path):
     seats.write_text(text, encoding="utf-8")
     code, _, _, _ = sensei.rotate_out_audit(graph, "policy-master", GEN, tr)
     assert code == 2
+
+# ── SL1.08 build-order item 7 (hypothesis:l4-the-audit-classifier-is-derived-
+# ── and-the-window-is-bounded-by-the-record): the rotate-out window is bounded
+# ── by the record's `recorded_at`, not the transcript end. A farewell turn
+# ── AFTER the record (belam gen-IX shape: a 15:15Z farewell after a 14:05Z
+# ── record) must not invert the window to zero calls. ──────────────────────
+
+def test_rotate_out_audit_window_bounded_by_recorded_at_excludes_post_record_farewell(tmp_path):
+    # belam gen-IX row: after the record's recorded_at (15:00Z) a real farewell
+    # turn + one tool call arrive. The window must pick the LAST real input AT
+    # OR BEFORE recorded_at (the head), stop at recorded_at, and exclude the
+    # post-record call — not invert to zero calls by starting at the farewell.
+    graph, tr = _write_root(tmp_path, None)
+    lines = tr.read_text(encoding="utf-8").splitlines()
+    farewell = json.dumps({"type": "user",
+        "timestamp": "2026-09-11T15:15:00Z",
+        "message": {"role": "user",
+                    "content": [{"type": "text", "text": "farewell go"}]}})
+    post = json.dumps({"type": "assistant", "timestamp": "2026-09-11T15:16:00Z",
+        "message": {"role": "assistant", "content": [
+            {"type": "tool_use", "name": "Bash", "input": {"command": "true"}}]}})
+    lines.append(farewell)
+    lines.append(post)
+    tr.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    # window starts at the head turn (the last real input <= recorded_at), NOT
+    # the farewell — so it is NOT inverted to zero calls
+    assert window["start_line"] == 0
+    assert window["recorded_at"] == RECORDED_OUT
+    assert len(calls) == 5
+    # the post-record call (cmd `true`) is OUT of the window
+    assert all(c["cat"] != "b" or c["cmd"] != "true" for c in calls)
+    assert all(c["cmd"] != "true" for c in calls)
+    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2}
