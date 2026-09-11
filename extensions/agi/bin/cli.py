@@ -1206,6 +1206,11 @@ def cmd_status(args: argparse.Namespace) -> int:
 # it into the main checkout -- the one place a cold reader or an audit looks.
 # This command IS that step: a SESSION-COMPLETE migration, named and
 # explicitly invoked, never a side effect and never on a timer.
+# ONE sanctioned caller (hyp:l4-a-finished-rounds-session-dir-comes-home-\
+# before-the-sweep-judges-it): the reaper's worktree sweep `_sweep_bring_home`
+# (heal.py) may invoke this for a round that is leaseless + merged + clean +
+# past-grace, so a finished round's session dir comes home before the sweep
+# judges it -- and its OWN completeness guards still decide every migration.
 #
 # The three prime constraints, stated by number, hold together here:
 #   (1) during a round the iter dir STAYS in the worktree that ran it -- this
