@@ -548,7 +548,7 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
 def _sweep_refusal_reason(text: str) -> str:
     for needle, tag in (
         (" is not terminal", "non-terminal"),
-        ("not every agent record is terminal", "non-terminal"),
+        ("no manifest.json in any source", "no manifest"),
         ("target already exists and is not empty", "target exists"),
         ("a live lease is active", "live lease"),
         ("this source's own contribution did not verify", "verify failed"),
