@@ -543,10 +543,63 @@ def test_peek_leaves_the_coalesced_nudge_count(project: Path):
     assert send_mod._announced_digest(project, seat) is None
 
 
+def test_read_preserves_a_bump_made_during_the_read(
+        project: Path, monkeypatch):
+    """L4.294: a dm that coalesces DURING a consuming read is not lost. The
+    clear is compare-and-clear (max(0, current - observed)) -- the read
+    observes the count once before it consumes, then subtracts that value --
+    so a bump made after the observe but before the clear survives instead
+    of being silently zeroed by an unconditional write."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    send_mod._bump_pending(project, seat)   # count 1, observed pre-read
+    assert send_mod._pending_more(project, seat) == 1
+
+    real_print = send_mod._print_blocks_with_labels
+    bumped = []
+
+    def _bump_during_consume(root, blocks, wrap=160):
+        # a send coalesces in the middle of the read's consume step, after
+        # the read already observed the count: bump exactly once.
+        if not bumped:
+            send_mod._bump_pending(project, seat)
+            bumped.append(True)
+        real_print(root, blocks, wrap=wrap)
+
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        _bump_during_consume)
+
+    send_mod.read(project, seat, "prime")
+
+    assert bumped, "the consume-step bump must actually fire"
+    assert send_mod._pending_more(project, seat) == 1, \
+        "a count bumped DURING the read must survive the compare-and-clear"
+
+
+def test_clear_pending_observed_decrements_not_zeroes(project: Path):
+    """_clear_pending with a caller-observed value subtracts it, never
+    rewriting the count to 0 outright; absent observed still clears to 0."""
+    seat = "sanctuary-director"
+    _inbox = send_mod._inbox_dir(project)
+    _inbox.mkdir(parents=True, exist_ok=True)
+    send_mod._bump_pending(project, seat)   # current 1 (observed 1 pre-read)
+    send_mod._bump_pending(project, seat)   # +1 coalesced during the read
+    assert send_mod._pending_more(project, seat) == 2
+
+    send_mod._clear_pending(project, seat, observed=1)
+    assert send_mod._pending_more(project, seat) == 1, \
+        "observed clear decrements by the observed value, not to zero"
+
+    send_mod._clear_pending(project, seat)   # absent observed clears to 0
+    assert send_mod._pending_more(project, seat) == 0
+
+
 def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
                                                        monkeypatch, capsys):
     """Clause (3): when the row window @id is no longer a LISTED window,
-    wake prints `wake repair: <seat> row window <@id> is gone; falling back
+    wake prints `nudge repair: <seat> row window <@id> is gone; falling back
     to name` and THEN uses the by-NAME target (the same `_window_listed` path
     a name-addressed row uses). Test both halves: the line appears AND the
     fallback target is actually the send-keys target."""
@@ -563,7 +616,7 @@ def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
     calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
     assert send_mod.wake(project, "sanctuary-director") is True
     cap = capsys.readouterr()
-    assert "wake repair: sanctuary-director row window @246 is gone; " \
+    assert "nudge repair: sanctuary-director row window @246 is gone; " \
            "falling back to name" in cap.err, cap.err
     typed = _typed(calls)
     assert typed, "the by-name fallback must have typed a token"
@@ -575,7 +628,7 @@ def test_wake_stale_id_is_named_and_falls_back_to_name(project: Path,
 
 def test_wake_live_id_keeps_id_target(project: Path, monkeypatch, capsys):
     """Clause (3) control: a @id that IS still a listed window is used as
-    the target -- no `wake repair:` line, no by-name fallback."""
+    the target -- no `nudge repair:` line, no by-name fallback."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     (project / "nodes" / ".geometry").mkdir(parents=True)
     (project / "nodes" / ".geometry" / "seats.md").write_text(
@@ -591,7 +644,83 @@ def test_wake_live_id_keeps_id_target(project: Path, monkeypatch, capsys):
     assert send_mod.wake(project, "sanctuary-director") is True
     typed = _typed(calls)
     assert typed[0][4] == "agi-rc:@246", typed[0][4]
-    assert "wake repair:" not in capsys.readouterr().err
+    assert "nudge repair:" not in capsys.readouterr().err
+
+
+def test_send_stale_id_repairs_by_name(project: Path, monkeypatch, capsys):
+    """Clause (b): the ORDINARY send path (not wake) never swallows a stale
+    @id -- it prints `nudge repair:` and falls back to the by-NAME target,
+    so the wake still reaches the seat and the inbox message stays intact.
+    Before the fix `send` left the stale @id alone (best-effort) and the
+    wake failed inside tmux send-keys with no line at all."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    pane = _FixturePane()
+    # the fake lists ONLY the seat NAME -- @246 is stale (gone)
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    send_mod.send(project, "sanctuary-director", "hi from this kid", "kid")
+    cap = capsys.readouterr()
+    assert "nudge repair: sanctuary-director row window @246 is gone; " \
+           "falling back to name" in cap.err, cap.err
+    typed = _typed(calls)
+    assert typed, "the by-name fallback must have typed a token"
+    assert typed[0][4] == "agi-rc:sanctuary-director", \
+        f"fallback target must be the seat NAME, not the stale @id: " \
+        f"{typed[0][4]}"
+    inbox = send_mod._inbox_path(project, "sanctuary-director")
+    assert "hi from this kid" in inbox.read_text(), \
+        "the message must still land in the inbox"
+
+
+def test_send_stale_id_no_name_fallback_prints_one_line(
+        project: Path, monkeypatch, capsys):
+    """Clause (b): when the stale @id repair falls back by name AND no
+    window named <seat> is listed either, send prints ONE named line (never
+    silence) and the message STILL lands in the inbox."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    pane = _FixturePane()
+    # the fake lists NEITHER @246 NOR the name -> both lookups fail
+    calls = _fake_tmux_pane(monkeypatch, [], pane, [])
+    send_mod.send(project, "sanctuary-director", "body still written", "kid")
+    cap = capsys.readouterr()
+    assert "nudge repair: sanctuary-director row window @246 is gone; " \
+           "falling back to name" in cap.err, cap.err
+    assert "nudge: sanctuary-director row window @246 is gone and no " \
+           "window named sanctuary-director is listed -- message written, " \
+           "no wake" in cap.err, cap.err
+    assert not _typed(calls), "no window could be typed into"
+    inbox = send_mod._inbox_path(project, "sanctuary-director")
+    assert "body still written" in inbox.read_text()
+
+
+def test_dm_stale_id_repairs_by_name(project: Path, monkeypatch, capsys):
+    """Clause (b): the DM path also repairs a stale @id by name -- never
+    swallowed -- and the dm body lands in the dm file."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    # send_dm resolves its nudge root via find_project_root -> the .agi
+    # graph root; seats must be where THAT reader looks.
+    (project / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (project / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "liaison", "role": "liaison",
+                    "window": "@999", "pid": 424242}]))
+    pane = _FixturePane()
+    # the fake lists ONLY the seat NAME -- @999 is stale
+    calls = _fake_tmux_pane(monkeypatch, ["liaison"], pane, [])
+    path = send_mod.send_dm(project, "lion", "liaison", "rdm body", "lion")
+    cap = capsys.readouterr()
+    assert "nudge repair: liaison row window @999 is gone; " \
+           "falling back to name" in cap.err, cap.err
+    typed = _typed(calls)
+    assert typed, "the by-name fallback must have typed a token"
+    assert typed[0][4] == "agi-rc:liaison", typed[0][4]
+    assert "rdm body" in Path(path).read_text()
 
 
 def test_wake_delivers_deferred_dm_inline(project: Path, monkeypatch,
@@ -1754,8 +1883,8 @@ def _seats_md(rows):
 
 
 def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
-    """Falsifier (3): a row that carries a window @id must be addressed by
-    @id, never by name — a namesake/predecessor window has a different @id.
+    """Falsifier (3): a row that carries a LIVE window @id must be addressed
+    by @id, never by name — a namesake/predecessor window has a different @id.
 
     HERMETIC: the fixture row's pid would stat ~/.claude/sessions/<pid>.json
     on the host, an ambient home-dir read that must not decide this test
@@ -1766,9 +1895,9 @@ def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@246", "pid": 424242}]))
-    # NB the fake lists a window that shares the seat NAME but not its @id;
-    # the @id target must win and the name must never be addressed.
-    calls = _fake_tmux(monkeypatch, ["sanctuary-director"])
+    # NB the fake lists the seat NAME (a namespace window) AND the live @id;
+    # the LIVE @id must win and the name must never be addressed.
+    calls = _fake_tmux(monkeypatch, ["@246", "sanctuary-director"])
     send_mod.send(project, "sanctuary-director", "secret body", "kid")
     nudges = _typed(calls)
     assert nudges, "expected a nudge to the seat's @id window"
@@ -1879,19 +2008,31 @@ def test_row_window_name_is_refused_and_falls_back_to_listing(project: Path,
     assert "not an @id" in capsys.readouterr().err
 
 
-def test_row_at_id_target_used_verbatim_without_listing(project: Path,
-                                                        monkeypatch):
-    """Residue 1b: a row whose `window` cell IS an @id is used verbatim as
-    the target — the name is NEVER looked up — even when no window named like
-    the id is listed."""
+def test_stale_unlisted_at_id_is_not_used_verbatim(project: Path,
+                                                    monkeypatch, capsys):
+    """Residue 1b (inverted by clause (b) of hypothesis:l4-send-py-same-
+    sender-stranded-line-and-the-swallowed-wake): a row whose `window` cell
+    IS an @id that is NOT a listed window is STALE — it is never used
+    verbatim (that was the swallowed-wake defect); it prints the
+    `nudge repair:` line and, the by-name fallback also finding nothing,
+    the ONE named 'no window named …' line -- never silence -- and nothing
+    is typed."""
     (project / "nodes" / ".geometry").mkdir(parents=True)
     (project / "nodes" / ".geometry" / "seats.md").write_text(
         _seats_md([{"name": "sanctuary-director", "role": "director",
                     "window": "@250"}]))
-    calls = _fake_tmux(monkeypatch, ["director"])   # no "@250" in listing
+    calls = _fake_tmux(monkeypatch, ["director"])   # neither @250 nor name
     send_mod.send(project, "sanctuary-director", "body", "kid")
     nudges = _typed(calls)
-    assert nudges and nudges[0][4] == "agi-rc:@250", nudges
+    assert nudges == [], f"a stale @id with no name fallback must not type: {nudges}"
+    err = capsys.readouterr().err
+    assert "nudge repair: sanctuary-director row window @250 is gone; " \
+           "falling back to name" in err, err
+    assert "nudge: sanctuary-director row window @250 is gone and no " \
+           "window named sanctuary-director is listed -- message written, " \
+           "no wake" in err, err
+    inbox = (project / ".agi" / "sessions" / "inbox" / "sanctuary-director.md")
+    assert "body" in inbox.read_text(), "the message still lands in the inbox"
 
 
 def test_submitted_token_echo_in_transcript_does_not_coalesce(project: Path,
@@ -2340,6 +2481,27 @@ def test_sender_env_beats_flag(monkeypatch):
     """AGI_AGENT_ID outranks an explicit --from (l3-send-comms-root)."""
     monkeypatch.setenv("AGI_AGENT_ID", "env-win")
     assert send_mod._detect_sender("flag-loser") == "env-win"
+
+
+def test_sender_seat_used_when_no_agent_id(monkeypatch):
+    """Clause (c): with AGI_SEAT set and AGI_AGENT_ID unset, a spawned /
+    seat-launched path dms under its SEAT name -- never "from: unknown"
+    (rotate-self / spawn / seats-launch / recovery all export AGI_SEAT)."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+    assert send_mod._detect_sender(None) == "sanctuary-director"
+    # AGI_SEAT beats an explicit --from too (env outranks the flag)
+    assert send_mod._detect_sender("flag-loser") == "sanctuary-director"
+
+
+def test_sender_agent_id_beats_seat(monkeypatch):
+    """Clause (c): AGI_AGENT_ID still outranks AGI_SEAT when both are set
+    (the agent's own identity beats its seat name)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "env-agent-007")
+    monkeypatch.setenv("AGI_SEAT", "sanctuary-director")
+    assert send_mod._detect_sender(None) == "env-agent-007"
+    monkeypatch.delenv("AGI_AGENT_ID")
+    assert send_mod._detect_sender(None) == "sanctuary-director"
 
 
 def test_sender_window_name_is_never_an_identity(monkeypatch):

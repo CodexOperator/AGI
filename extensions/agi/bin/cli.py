@@ -1254,26 +1254,30 @@ def cmd_status(args: argparse.Namespace) -> int:
 from spawn_budget import TERMINAL as TERMINAL_STATUSES  # noqa: E402 -- the ONE set
 
 
-def _iteration_agents_complete(iter_dir: Path) -> bool:
-    """Every agent record in `iter_dir`'s manifest is terminal.
+def _manifest_agent_statuses(iter_dir: Path):
+    """The terminal-resolution shared by _iteration_agents_complete and
+    _first_non_terminal -- the SINGLE body of the status-resolution loop, so a
+    fix to one twin can never silently miss the other (hypothesis:l4-the-
+    sweep-names-every-refusal-and-has-one-terminal-body). Reads the manifest's
+    `agents` list, then re-reads each agent's own `agent.json` when present
+    (the reaper writes the authoritative terminal status there first), so a
+    record the manifest shows as `running` but whose `agent.json` is already
+    terminal still counts.
 
-    Reads the manifest's `agents` list, then re-reads each agent's own
-    `agent.json` when present (the reaper writes the authoritative terminal
-    status there first), so a record the manifest shows as `running` but whose
-    `agent.json` is already terminal still counts. A missing or unreadable
-    manifest, or an empty agents list, is NOT complete -- there is nothing to
-    judge, so nothing may move.
+    Returns (kind, states):
+      kind 'missing' | 'unreadable' | 'ok'
+      states a list of (agent_id, status) for every manifest entry (empty
+      when the manifest has no agents).
     """
     mpath = iter_dir / "manifest.json"
     if not mpath.is_file():
-        return False
+        return ("missing", [])
     try:
         manifest = json.loads(mpath.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return False
+        return ("unreadable", [])
     agents = manifest.get("agents") or []
-    if not agents:
-        return False
+    states = []
     for entry in agents:
         status = entry.get("status", "running")
         rec_path = iter_dir / str(entry.get("id", "")) / "agent.json"
@@ -1282,46 +1286,46 @@ def _iteration_agents_complete(iter_dir: Path) -> bool:
             status = rec.get("status", status)
         except (OSError, json.JSONDecodeError, ValueError):
             pass  # no agent.json: trust the manifest entry
-        if status not in TERMINAL_STATUSES:
-            return False
-    return True
+        states.append((entry.get("id", "?"), status))
+    return ("ok", states)
+
+
+def _iteration_agents_complete(iter_dir: Path) -> bool:
+    """Every agent record in `iter_dir`'s manifest is terminal.
+
+    A missing or unreadable manifest, or an empty agents list, is NOT
+    complete -- there is nothing to judge, so nothing may move.
+    """
+    kind, states = _manifest_agent_statuses(iter_dir)
+    if kind != "ok" or not states:
+        return False
+    return all(status in TERMINAL_STATUSES for _aid, status in states)
 
 
 def _first_non_terminal(iter_dir: Path):
     """The first `(agent_id, status)` in `iter_dir`'s manifest that is not
     terminal, or None when every manifest entry is terminal.
 
-    The naming twin of `_iteration_agents_complete` (kept unchanged: heal.py's
-    tier-gate and other readers share the boolean). Re-reads each agent's own
-    `agent.json` when present, exactly as that helper does, so the refusal
-    names the SAME record a reader would see. Called only on a manifest-
-    bearing (authority) source, so the missing/unreadable-manifest branches
-    are defensive; the caller refuses such a source before reaching here.
+    The naming twin of `_iteration_agents_complete`; both now share ONE body
+    in `_manifest_agent_statuses`, so the refusal names the SAME record a
+    reader would see. Called only on a manifest-bearing (authority) source,
+    so the missing/unreadable-manifest branches are defensive; the caller
+    refuses such a source before reaching here.
     """
-    mpath = iter_dir / "manifest.json"
-    if not mpath.is_file():
+    kind, states = _manifest_agent_statuses(iter_dir)
+    if kind == "missing":
         return ("?", "missing manifest")
-    try:
-        manifest = json.loads(mpath.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+    if kind == "unreadable":
         return ("?", "unreadable manifest")
-    agents = manifest.get("agents") or []
-    if not agents:
+    if not states:
         # An empty agents list is NOT complete -- nothing to judge, so nothing
         # may move; the same rule `_iteration_agents_complete` states. Kept
         # here at harvest (L4.255) so an authority with no records fails
         # CLOSED exactly as it did before the partial-source carry.
         return ("?", "no agents in manifest")
-    for entry in agents:
-        status = entry.get("status", "running")
-        rec_path = iter_dir / str(entry.get("id", "")) / "agent.json"
-        try:
-            rec = json.loads(rec_path.read_text(encoding="utf-8"))
-            status = rec.get("status", status)
-        except (OSError, json.JSONDecodeError, ValueError):
-            pass  # no agent.json: trust the manifest entry
+    for aid, status in states:
         if status not in TERMINAL_STATUSES:
-            return (entry.get("id", "?"), status)
+            return (aid, status)
     return None
 
 
@@ -1855,19 +1859,7 @@ def cmd_trimguard(args: argparse.Namespace) -> int:
     HAND = (repo / "HANDOFF.md").read_text().splitlines(True)
     start = next(i for i, l in enumerate(HAND) if l.startswith("## §6 Owner decisions"))
     sec = "".join(HAND[start:])
-    MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
-    # only spans inside a REAL double-quote pair (open + close), straight or curly
-    spans = set()
-    for m in re.finditer(r'["“]([^"“”\n]{25,})["”]', sec):
-        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
-        if len(s) >= 25:
-            spans.add(s)
-    # plus OPEN-ENDED quotes (line truncated by the earlier collapse): take the clean prefix
-    for m in re.finditer(r'["“]([^"“”\n]{25,})$', sec, re.M):
-        s = MARK.sub("", m.group(1)).strip().strip("*").strip()
-        s = " ".join(s.split(" ")[:-1])  # drop the truncated last word
-        if len(s) >= 25:
-            spans.add(s)
+    spans = _collect_owner_spans(sec)
     print(
         f"§6 lines {start + 1}-{len(HAND)}  bytes={len(sec)}  real quoted spans: {len(spans)}"
     )
@@ -1885,6 +1877,48 @@ def cmd_trimguard(args: argparse.Namespace) -> int:
         return 1
     print(f"\nOK: all {len(spans)} owner quotes resolve in .agi/nodes/ — safe to collapse.")
     return 0
+
+
+def _collect_owner_spans(sec: str) -> set:
+    """Extract every owner-quote span from a §6 body under QUOTE PARITY
+    (hypothesis:l4-trimguard-never-reads-a-closing-quote-as-an-open-span).
+
+    A quote opens a span; the next quote closes it; an unterminated span
+    counts only if it runs to end of ITS OWN line. An open-ended span is
+    reported only when it STARTS at a real opening quote -- never at a quote
+    the walk already consumed as the CLOSING quote of a closed span. The
+    pre-fix code ran two independent regexes, and the open-ended one
+    `["“]([^"“”\n]{25,})$` (re.M) matched the CLOSING quote of a closed
+    span whenever that quote was the last on its line with 25+ non-quote
+    chars after it, minting a phantom open span that wrongly ABORTed the
+    trim on a fully-quoted line (HEADOFF §6 item 106).
+    """
+    MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
+    spans = set()
+    for line in sec.splitlines():
+        line = MARK.sub("", line)
+        i, n = 0, len(line)
+        while i < n:
+            if line[i] in '"“”':
+                # a quote: find the far edge of the span it bounds
+                j = i + 1
+                while j < n and line[j] not in '"“”':
+                    j += 1
+                if j < n:
+                    s = line[i + 1:j].strip().strip("*").strip()
+                    if len(s) >= 25:
+                        spans.add(s)
+                    i = j + 1
+                else:
+                    # open-ended: quote runs to end of this line (truncated collapse)
+                    s = line[i + 1:].strip().strip("*").strip()
+                    s = " ".join(s.split(" ")[:-1])  # drop the truncated last word
+                    if len(s) >= 25:
+                        spans.add(s)
+                    i = n
+            else:
+                i += 1
+    return spans
 
 
 def main() -> int:

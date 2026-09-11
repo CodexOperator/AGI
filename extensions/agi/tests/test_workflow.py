@@ -1162,18 +1162,26 @@ def test_generated_script_parses_as_a_workflow_body():
 
 def test_mint_run_key_three_shapes(tmp_path):
     from workflow import _mint_run_key
-    # merge-up review of merge-up 39
+    # merge-up review of merge-up 40 (REAL arg shape: list of dicts, two
+    # rounds both carrying merge_up 40 -> DEDUPED to one token, never 40-40)
+    assert _mint_run_key(tmp_path, "merge-up-review", {"rounds": [
+        {"merge_up": 40, "key": "L4.288"},
+        {"merge_up": 40, "key": "L4.289"}]}) == "mur-40"
+    # SL1#2 merge_up cell -> slugified to sl1-2
     assert _mint_run_key(tmp_path, "merge-up-review",
-                         {"rounds": [39]}) == "mur-39"
-    # SL1#2 -> slugified to sl1-2
+                         {"rounds": [{"merge_up": "SL2#2"}]}) == "mur-sl2-2"
+    # a round with no merge_up cell names itself by its key cell
     assert _mint_run_key(tmp_path, "merge-up-review",
-                         {"rounds": ["SL1#2"]}) == "mur-sl1-2"
+                         {"rounds": [{"key": "L4.288"}]}) == "mur-l4-288"
     # author/validate keep their whole name with no run args
     assert _mint_run_key(tmp_path, "author", {}) == "author"
     assert _mint_run_key(tmp_path, "validate", {}) == "validate"
     # a single-word key keeps its name and joins the slugged scalar arg
     assert _mint_run_key(tmp_path, "review",
                          {"window": "SL1#2"}) == "review-sl1-2"
+    # bare scalar arg cell (legacy `n` shape) stays a scalar
+    assert _mint_run_key(tmp_path, "merge-up-review",
+                         {"n": 39}) == "mur-39"
 
 
 def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
@@ -1182,17 +1190,19 @@ def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
     tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
     try:
         assert _mint_run_key(tmp, "merge-up-review",
-                             {"rounds": [39]}) == "mur-39"
-        # a tracked row already claimed mur-39 -> deterministic -2, -3
+                             {"rounds": [{"merge_up": 40, "key": "L4.288"}]
+                              }) == "mur-40"
+        # a tracked row already claimed mur-40 -> deterministic -2, -3
         wf_dir = tmp / "sessions" / "workflows"
         wf_dir.mkdir(parents=True, exist_ok=True)
         path = wf_dir / "merge-up-review.jsonl"
-        for rk in ("mur-39", "mur-39-2"):
+        for rk in ("mur-40", "mur-40-2"):
             with open(path, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps({"run_key": rk,
                                      "workflow": "merge-up-review"}) + "\n")
         assert _mint_run_key(tmp, "merge-up-review",
-                             {"rounds": [39]}) == "mur-39-3"
+                             {"rounds": [{"merge_up": 40, "key": "L4.288"}]
+                              }) == "mur-40-3"
     finally:
         restore()
 
