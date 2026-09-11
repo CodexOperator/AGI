@@ -67,6 +67,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 
 | ask | goal | brief | round · agent · branch | state |
 |---|---|---|---|---|
+| rotate-self leaves the spawn row UNCOMMITTED → r3b ack gate refuses every worktree wake (Sensei 21:47Z RULE-CHANGING; point 214458Z wake 8 calls; 4 seats hand-committed today) | `goal:g15.24` fix-only #2 | `hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean` | **SL5.01** · a00-d14bd402 · `loop/hypothesis-l4-rotate-self-commit-a00-d14bd402@s2` | RUNNING from 21:50Z (deepseek, small, ≤2 kids). Fix (a): commit seats.md only right after s6.1, gate untouched. Relayed to the Prime 21:51Z with its caveat (F8 wording in config:rotations is the Prime's edit after landing). Harvest: rotate neighbourhood (test_rotate*.py + test_session_start*.py + test_after_join_service.py + test_bin_help_smoke.py) |
 | DESTRUCTIVE meter --pin truncation + prepare clear line + 7 `_read_generation` callers + vacuous fixture (Prime 20:10Z; amended 20:19Z: guard by TARGET SHAPE, lands first) | `goal:g15.14` fix-only #2 | `hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-pin-and-prepare-prints-the-clear-line-that-clears` | SL4.01 · a00-0171fd39 | **LANDED** (SL2#5) |
 | wrap deletes indentation + trailing blank lines (Prime 20:10Z; SL3.06 DEMOTED) | `goal:g15.22` fix-only | `hypothesis:l4-wrap-preserves-leading-whitespace-and-trailing-blank-lines-exactly` | SL4.02 · a00-0d964e2f | **LANDED** (SL2#5) |
 | ack commits its own row + prints +/- lines, --no-commit for diff, wake floor 2 (Sensei 20:09Z; Prime approved 20:19Z: own-row identity cells only, key on `[config].md` self-row carve-out) | `goal:g15.24` | `hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed` | SL4.03 · a00-edfe6010 | **LANDED** (SL2#5); the cmd_ack seam is the point's at 41 (its KEEP BOTH at af3ed584f, 197 rotate tests green) |
@@ -79,7 +80,7 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 ### 🔴 Where it stops — the next command
 
 ```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL4.06"   # parent a00-7a73752f gone = harvest
+python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL4.06|iter=SL5.01"   # a parent gone = harvest that round (SL4.06 a00-7a73752f, SL5.01 a00-d14bd402)
 # harvest checks for SL4.06: (a) grep 'ed25519' outside src/seatsig = none; (b) no reader exits/refuses on a label; (c) --all-live gated to the prime role; (d) canonical form binds exact bytes (a CR body test exists); (e) ONE seatsig import path; (f) verify() asserted on the RFC vectors. Missing (d)-(f) → fix-only round under the same brief BEFORE SL4.07.
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read
 ```
