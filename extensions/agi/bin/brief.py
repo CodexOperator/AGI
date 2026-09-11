@@ -249,7 +249,7 @@ def _resolve_graph_root(project_root: Path | None = None) -> Path:
     and the graph root is <repo>/.agi. Walk up from this file to find .agi.
     """
     if project_root:
-        return project_root
+        return Path(project_root)
     start = Path(__file__).resolve()
     for parent in [start] + list(start.parents):
         candidate = parent / ".agi"
@@ -1455,7 +1455,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             branch_name: str | None = None,
             branch_worktree: str | None = None,
             branch_base: str | None = None,
-            source_root: str | None = None) -> list[str]:
+            source_root: str | None = None,
+            project_root: Path | str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
     The docstring that once stopped at "A loop, not a node" and then listed a
@@ -1667,7 +1668,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "demand\n"
         "   to implement, and do not record it as a finished round\n"
         "   (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement).\n"
-    ) if _is_g15_lineage(_resolve_graph_root(None), target) else ""
+    ) if _is_g15_lineage(_resolve_graph_root(project_root), target) else ""
     return [
         f"You are PARENT agent {agent_id} on iteration {iter_n}. "
         f"You run a loop. You do not write the node yourself.",
@@ -1807,6 +1808,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              source_root: str | Path | None = None,
              kid_ceiling: int | None = None,
              addendum: str | None = None,
+             project_root: str | Path | None = None,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -1904,7 +1906,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_name=os.environ.get("AGI_PARENT_BRANCH"),
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
-                       source_root=str(source_root) if source_root else None)
+                       source_root=str(source_root) if source_root else None,
+                       project_root=project_root)
         segs = [s for s in segs if s is not None]
         return _prepend_head(segs, tier=tier)
 
