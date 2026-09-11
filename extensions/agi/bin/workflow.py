@@ -500,8 +500,7 @@ def status_workflow(root: Path, key: str | None = None,
     rows.sort(key=lambda r: str(r.get("timestamp", "")), reverse=True)
     if key:
         rows = [r for r in rows
-                if key in (str(r.get("run_key") or ""),
-                           str(r.get("workflow") or ""))]
+                if _row_matches_key(r, key)]
     if key and not rows:
         out.write(f"(no runs match key {key!r})\n")
         return 1
@@ -509,10 +508,89 @@ def status_workflow(root: Path, key: str | None = None,
         out.write("(no workflow runs tracked yet)\n")
         return 0
     for r in rows:
+        hid = _row_harness_text(r)
         out.write(f"{r.get('run_key') or r.get('workflow')}  "
                   f"workflow={r.get('workflow')} harness={r.get('harness')} "
+                  f"harness_id={hid} "
                   f"{str(r.get('timestamp') or '')} "
                   f"ok={r.get('ok')} failed={r.get('failed')}\n")
+    return 0
+
+
+def _row_harness_ids(r: dict) -> list:
+    """A tracked row's harness ids as a list (legacy rows may hold a bare
+    string or nothing)."""
+    v = r.get("harness_id")
+    if not v:
+        return []
+    return v if isinstance(v, list) else [v]
+
+
+def _row_harness_text(r: dict) -> str:
+    """The run's harness ids rendered for status --------- `-` until any are
+    noted, else comma-joined."""
+    ids = _row_harness_ids(r)
+    return ",".join(ids) if ids else "-"
+
+
+def _row_matches_key(r: dict, key: str) -> bool:
+    """Does this tracked row answer a `status <key>` query? Matches the run_key
+    (mur-39), the owning workflow key (merge-up-review), or a harness-minted
+    id printed by status (wf_ba530baa-dab) — so `status wf_<id>` resolves a
+    run through the id the harness minted (hypothesis:l4-a-workflow-run-is-
+    named-not-numbered)."""
+    if key in (str(r.get("run_key") or ""), str(r.get("workflow") or "")):
+        return True
+    return any(key == i for i in _row_harness_ids(r))
+
+
+def note_workflow(root: Path, run_key: str, harness_id: str,
+                  out=sys.stdout) -> int:
+    """Record the claude-code harness's `wf_<id>` beside the tracked row a
+    run_key names (hypothesis:l4-a-workflow-run-is-named-not-numbered). On the
+    claude-code harness workflow.py never executes the .js script — the
+    harness mints the wf_ id when IT runs it — so the id cannot be captured at
+    run time; `note` records it afterward. Idempotent: re-noting the SAME id is
+    a no-op; noting a DIFFERENT id appends, never overwrites; an unknown
+    run_key is a named refusal, exit 2."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+    except Exception:
+        sess = root
+    wf_dir = Path(sess) / "sessions" / "workflows"
+    if not wf_dir.is_dir():
+        out.write(f"workflow.py: note: no runs tracked yet to note "
+                  f"{run_key!r} against\n")
+        return 2
+    # newest tracked row whose run_key names this key (the LAST text line that
+    # parses to it, over each file in dir order)
+    target: dict | None = None
+    target_path: Path | None = None
+    target_idx: int | None = None
+    for f in sorted(wf_dir.glob("*.jsonl")):
+        lines = f.read_text(encoding="utf-8").splitlines(keepends=True)
+        for i, line in enumerate(lines):
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("run_key") == run_key:
+                target, target_path, target_idx = row, f, i
+    if target is None:
+        out.write(f"workflow.py: note: no tracked run keyed {run_key!r}\n")
+        return 2
+    ids = _row_harness_ids(target)
+    if harness_id in ids:
+        out.write(f"(harness_id {harness_id} already recorded on "
+                  f"{run_key})\n")
+        return 0
+    target["harness_id"] = ids + [harness_id]
+    lines = target_path.read_text(encoding="utf-8").splitlines(keepends=True)
+    lines[target_idx] = (json.dumps(target, ensure_ascii=False,
+                                    sort_keys=True) + "\n")
+    target_path.write_text("".join(lines), encoding="utf-8")
+    out.write(f"[noted] {run_key} <- harness_id {harness_id} "
+              f"({len(ids) + 1} recorded)\n")
     return 0
 
 
@@ -781,6 +859,12 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             "workflow": key,
             "run_key": run_key,
             "harness": harness,
+            # `harness_id` starts empty: on the claude-code harness workflow.py
+            # never runs the .js script — the harness mints the wf_ id itself —
+            # so a caller records it afterward with `workflow.py note
+            # <run_key> --harness-id wf_<id>` (hypothesis:l4-a-workflow-run-is-
+            # named-not-numbered). Absent/`[]` prints `-` in status.
+            "harness_id": [],
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "stages": {lb: st["status"] for lb, st in view.state.items()},
             "ok": counts.get("ok", 0),
@@ -1440,6 +1524,12 @@ def main(argv: list[str] | None = None) -> int:
     stt = sub.add_parser("status", help="resolve recent workflow runs by descriptive run key")
     stt.add_argument("key", nargs="?", default=None,
                      help="run key or workflow key to filter to (e.g. mur-39)")
+    nt = sub.add_parser("note",
+                        help="record the claude-code harness's wf_ id beside a tracked run key")
+    nt.add_argument("run_key",
+                    help="descriptive run key to note the harness id against (e.g. mur-39)")
+    nt.add_argument("--harness-id", required=True,
+                    help="the harness-minted id to record (e.g. wf_ba530baa-dab)")
     val = sub.add_parser("validate",
                          help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
     args = ap.parse_args(argv)
@@ -1470,6 +1560,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return author_workflow(root, args.name, stages_text,
                                source_note=args.note)
+    if args.cmd == "note":
+        return note_workflow(root, args.run_key, args.harness_id)
     # the harness-resolution node may be absent (pre-prime) or a workflow may
     # declare an undeclared type: refuse LOUDLY naming the node, exit 2 — never
     # a traceback, never a silent literal fallback (hypothesis:
