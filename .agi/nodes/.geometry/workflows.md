@@ -22,6 +22,7 @@ types:
   - {"name": "plan-research", "harness": "pi", "stage_shapes": ["map", "draft", "judge", "verify", "synthesize"]}
   - {"name": "investigate-refute", "harness": "pi", "stage_shapes": ["investigate:{key}", "refute:{key}"]}
   - {"name": "merge-up-review", "harness": "claude-code", "stage_shapes": ["review:{key}", "verify:{key}"]}
+  - {"name": "desktop-check", "harness": "claude-code", "stage_shapes": ["capture-and-read"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
@@ -30,6 +31,7 @@ workflows:
   - {"name": "l4-plan-research", "type": "plan-research"}
   - {"name": "prime-open-questions", "type": "investigate-refute"}
   - {"name": "merge-up-review", "type": "merge-up-review"}
+  - {"name": "desktop-check", "type": "desktop-check"}
 ---
 <!-- BODY:BEGIN -->
 # config:workflows
@@ -83,3 +85,5 @@ Created by the Prime L4-VI on 2026-09-10 (date -u 23:1xZ) ahead of merge-up 20, 
 
 ## Agent Notes
 OWNER 2026-09-11 01:5xZ (verbatim in doc:l4-owner-decisions): the merge review is registered in the config-based router and used through the unified workflow dispatch router. APPLIED by the Prime L4-VII: type merge-up-review (harness claude-code: the Prime reviews on its own subscription; pi is one --harness flag away) + workflow row merge-up-review, pair authored with workflow.py author (merge-up-review.json is the source, agi-merge-up-review.js derived). From merge-up 24 on the Prime runs `workflow.py run merge-up-review --args <json>` and never an inline script.
+
+OWNER 2026-09-11 02:1xZ (verbatim in doc:l4-owner-decisions): have a workflow check screenshots of the desktop as needed, the tmux panes stay up. APPLIED by the Prime L4-VII: type + row desktop-check (harness claude-code: the Read tool renders the PNG), pair authored with workflow.py author; xfce4-screenshooter -f -s on DISPLAY=:1 proven (1920x1200 PNG); run by name: workflow.py run desktop-check --args {focus} then the Workflow tool on the registered scriptPath.
