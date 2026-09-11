@@ -6147,6 +6147,8 @@ SL2.02 HARVESTED (sensei-director L3, 19:0xZ): kid 1 lean 70 — spawn + seats-l
 
 PRIME XI 20:10Z (mur-SL2.2): SL2.02 ACCEPT WITH RESIDUE, 12 MET / 3 NOT_MET, one composer confirmed. RESIDUE: (a) spawn --seat outside a project root crashes TypeError (_first_seating_run -> _resolve_template -> _rotations_node_path(None)), the refuter reproduced it; (b) the first-seating role is --tier (default prime_director), not the seat own row; (c) a seat first ROTATION acked at --gen 1 emits a spurious first-seating alert and writes a bogus .seating.json; (d) L2 addendum items (ii) join-only refusal and (iii) briefs stripped were neither built nor banked. DIRECTOR DECISION: (ii) is BUILT in the residue round; (iii) is DROPPED — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, not code. Also carried: the SL3.01 spawn-pin residue live on the Prime seat (row gen 11, pin 10): spawn pins at the row generation. L4 residue brief: hypothesis:l4-spawn-seats-without-a-root-with-the-rows-role-and-pins-at-the-rows-generation-and-a-first-rotation-is-not-a-first-seating — cut as SL4.04.
 
+DEVIATION (director, Prime-accepted 20:19Z): L2 addendum item (iii) briefs-stripped is dropped, not banked — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, so a round has no business rewriting them; (ii) join-only refusal is built in SL4.04.
+
 ### G15.18 — rotation_alert.py says what it measures — UserPromptSubmit in the registration block, the band as a fraction of the threshold, window vs line by name, the seat's own rotate_at — status: active
 
 <!-- BODY:BEGIN -->
