@@ -527,6 +527,7 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
 # the FIRST match below wins for a refusal whose stdout carries more than one.
 def _sweep_refusal_reason(text: str) -> str:
     for needle, tag in (
+        (" is not terminal", "non-terminal"),
         ("not every agent record is terminal", "non-terminal"),
         ("target already exists and is not empty", "target exists"),
         ("a live lease is active", "live lease"),

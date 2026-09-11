@@ -473,3 +473,152 @@ def test_manifest_lock_dropped_even_across_two_sources(graph, tmp_path):
     target = graph / "sessions" / "iter-L4.99"
     assert not (target / ".manifest.lock").exists()
     assert sorted(_manifest_ids(target)) == ["a00-aaa", "a00-bbb", "a00-ccc"]
+
+
+# ---------------------------------------------------------------------------
+# A manifest-LESS partial source never vetoes a round's bring-home
+# (hypothesis:l4-a-manifest-less-partial-source-never-vetoes-a-rounds-bring-
+# home). An old TWO-worktree round can leave the kid's own tree holding an
+# iter dir that carries NO manifest.json -- only its own agent subdir, or
+# nothing at all -- while the parent tree holds the manifest and every record.
+# Completeness is judged from the manifest-bearing (authority) half only; the
+# manifest-less copy is a CONTRIBUTOR that rides into the merge and never
+# refuses. Only no-authority-anywhere, or a truly non-terminal authority
+# record, refuse.
+# ---------------------------------------------------------------------------
+
+
+def _make_partial_worktree(main_graph: Path, slug: str, iter_n: str,
+                           files: dict) -> Path:
+    """A fake linked worktree whose iter dir has NO manifest.json -- a
+    partial copy of a round (a kid tree that only ever wrote its own agent
+    subdir, or nothing). `files` maps relative paths to text content."""
+    wt = main_graph / "worktrees" / slug
+    sg = wt / ".agi"
+    sg.mkdir(parents=True)
+    (sg / "config.json").write_text("{}")
+    iter_dir = sg / "sessions" / f"iter-{iter_n}"
+    iter_dir.mkdir(parents=True)
+    for rel, content in files.items():
+        p = iter_dir / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content)
+    return wt
+
+
+def test_manifest_less_partial_merges_with_authority_and_never_vetoes(graph,
+                                                                      tmp_path):
+    """(a) A manifest-bearing all-terminal source + a manifest-LESS partial
+    holding a kid's agent subdir: BOTH land in the union, both sources are
+    removed, and the partial's bytes are not lost. This is the exact
+    two-worktree shape that L4.254 measured refusing on the live tree."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-authority", "L4.99", COMPLETE)
+    wp = _make_partial_worktree(graph, "seat-partial", "L4.99", {
+        "a00-kid/agent.json": json.dumps({"id": "a00-kid", "status": "done"}),
+        "a00-kid/scratch.txt": "kid artifact\n",
+    })
+    src_a = wa / ".agi" / "sessions" / "iter-L4.99"
+    src_p = wp / ".agi" / "sessions" / "iter-L4.99"
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0, "the partial must never veto a complete authority round"
+    target = graph / "sessions" / "iter-L4.99"
+    assert (target / "manifest.json").is_file(), "authority's manifest lands"
+    assert (target / "a00-kid" / "agent.json").is_file(), \
+        "the partial's agent record lands in the union"
+    assert (target / "a00-kid" / "scratch.txt").is_file(), \
+        "the partial's scratch artifact is not lost"
+    assert not src_a.exists(), "authority source comes home"
+    assert not src_p.exists(), "partial source comes home after its bytes verify"
+
+
+def test_manifest_less_partial_dryrun_migrates_both_writes_nothing(graph,
+                                                                   tmp_path,
+                                                                   capsys):
+    """(a2) `--dry-run` for the authority+partial shape prints WOULD migrate
+    for BOTH sources, prints no REFUSE, and writes not a byte."""
+    cli = _load_cli()
+    _make_linked_worktree(graph, "seat-authority", "L4.99", COMPLETE)
+    _make_partial_worktree(graph, "seat-partial", "L4.99", {
+        "a00-kid/agent.json": '{"id": "a00-kid", "status": "done"}',
+    })
+
+    before = _snapshot(graph)
+    rc = cli._session_complete(graph, "L4.99", live_iters=set(), dry_run=True)
+    after = _snapshot(graph)
+    assert rc == 0
+    assert after == before, "a dry run must not write a single byte"
+    out = capsys.readouterr().out
+    assert out.count("WOULD migrate") == 2, \
+        "the dry run must name BOTH the authority and the partial source"
+    assert "REFUSE" not in out
+
+
+def test_empty_manifest_less_partial_is_carried_and_removed(graph, tmp_path):
+    """(b) The manifest-less partial is an EMPTY dir (the L4.175 residue):
+    the round still migrates, the empty source is removed, and the target
+    byte-equals the authority's copy."""
+    cli = _load_cli()
+    wa = _make_linked_worktree(graph, "seat-authority", "L4.99", COMPLETE)
+    wp = _make_partial_worktree(graph, "seat-partial", "L4.99", {})
+    before = _snapshot(wa / ".agi" / "sessions" / "iter-L4.99")
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc == 0
+    target = graph / "sessions" / "iter-L4.99"
+    assert not (wp / ".agi" / "sessions" / "iter-L4.99").exists(), \
+        "an empty partial source is removed after it contributes nothing"
+    assert _snapshot(target) == before, \
+        "target equals the authority's bytes when the partial is empty"
+
+
+def test_authority_running_record_still_refuses_naming_agent_and_status(
+        graph, tmp_path, capsys):
+    """(c) The partial never vetoes, but an AUTHORITY carrying a `running`
+    record still refuses the whole round -- and the refusal names the agent
+    id and its status, not a vague 'not every agent record is terminal'."""
+    cli = _load_cli()
+    _make_linked_worktree(graph, "seat-authority", "L4.99", RUNNING)
+    _make_partial_worktree(graph, "seat-partial", "L4.99", {
+        "a00-kid/agent.json": '{"id": "a00-kid", "status": "done"}',
+    })
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc != 0, "a non-terminal authority record must still refuse"
+    out = capsys.readouterr().out
+    assert "a00-ccc" in out and "running" in out, \
+        "the refusal names the offending agent id and its status"
+    assert "not every agent record" not in out, \
+        "the misnaming message is gone"
+    assert not (graph / "sessions" / "iter-L4.99").exists(), \
+        "nothing moves from a round with a non-terminal authority"
+
+
+def test_no_authority_no_manifest_anywhere_refuses(graph, tmp_path, capsys):
+    """(d) Two manifest-LESS sources and NO manifest-bearing authority: the
+    round is refused `no manifest.json in any source`, and nothing moves --
+    the 'nothing to judge' safety is unchanged."""
+    cli = _load_cli()
+    _make_partial_worktree(graph, "seat-p1", "L4.99",
+                           {"x/agent.json": '{"id": "x", "status": "done"}'})
+    _make_partial_worktree(graph, "seat-p2", "L4.99", {})
+
+    rc = cli._session_complete(graph, "L4.99", live_iters=set())
+    assert rc != 0
+    out = capsys.readouterr().out
+    assert "no manifest.json in any source" in out
+    assert not (graph / "sessions" / "iter-L4.99").exists(), \
+        "a round with no manifest anywhere must not move"
+
+
+def test_live_lease_refused_before_partial_carry(graph, tmp_path):
+    """(e) A LIVE spawn-budget lease refuses the iteration even when the only
+    sources are manifest-less partials -- liveness is judged first."""
+    cli = _load_cli()
+    _make_partial_worktree(graph, "seat-partial", "L4.99", {})
+
+    rc = cli._session_complete(graph, "L4.99", live_iters={"L4.99"})
+    assert rc != 0
+    assert not (graph / "sessions" / "iter-L4.99").exists(), \
+        "a live lease must refuse before any partial is carried"
