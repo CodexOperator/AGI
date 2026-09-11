@@ -767,7 +767,12 @@ def _check_sb_status_wrapper(exe: str, stub: Path, problems: list[str]) -> None:
     except OSError as exc:
         problems.append(f"sb-status: cannot read wrapper {exe}: {exc}")
         return
-    lines = text.splitlines()
+    # select the EXECUTING line, not a comment: the wrapper body's own
+    # docstring comment mentions `(bin/hold.sh --status + bin/panic.sh
+    # --status)`, which would satisfy the --status check while the real
+    # invocation `"$stub/bin/hold.sh" --status` was never read (and a
+    # wrapper whose ONLY hold.sh mention is a comment must go RED).
+    lines = [ln for ln in text.splitlines() if not ln.lstrip().startswith("#")]
     hold_line = next((ln for ln in lines if "hold.sh" in ln), None)
     panic_line = next((ln for ln in lines if "panic.sh" in ln), None)
     # hold half
@@ -829,8 +834,14 @@ def test_sb_status_wrapper_resolves_the_configured_stub(tmp_path, monkeypatch):
     (inst_stub / "bin").mkdir(parents=True)
     custom_stub = tmp_path / "p1" / "p2" / "p3"  # depth-3 configured stub
     (custom_stub / "bin").mkdir(parents=True)
+    # each fake half prints ITS OWN stub dir, derived from $0 — NOT a shared
+    # env marker. A shared `$STUB_MARKER` env var is the same no matter which
+    # stub ran, so `assert str(inst_stub) not in out.stdout` was vacuous when
+    # STUB_MARKER pointed at the configured stub. Deriving from $0 makes the
+    # two-stub assertion discriminate: whichever stub actually executed, its
+    # own dir is printed.
     fake = ("#!/usr/bin/env bash\n"
-            "printf 'STUB:%s\\n' \"$STUB_MARKER\"\n")
+            "printf 'STUB:%s\\n' \"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\n")
     for name in ("hold.sh", "panic.sh"):
         for root in (inst_stub, custom_stub):
             p = root / "bin" / name
@@ -865,8 +876,7 @@ def test_sb_status_wrapper_resolves_the_configured_stub(tmp_path, monkeypatch):
 
     # run the installed wrapper from inside that project: it must report the
     # CONFIGURED depth-3 stub, not the install-time one.
-    env2 = dict(env, STUB_MARKER=str(custom_stub))
-    out = subprocess.run(["bash", str(wrapper)], cwd=str(proj), env=env2,
+    out = subprocess.run(["bash", str(wrapper)], cwd=str(proj), env=env,
                          capture_output=True, text=True)
     assert out.returncode == 0, f"wrapper failed: {out.stderr}"
     assert str(custom_stub) in out.stdout, \
@@ -874,6 +884,89 @@ def test_sb_status_wrapper_resolves_the_configured_stub(tmp_path, monkeypatch):
     assert str(inst_stub) not in out.stdout, \
         f"wrapper acted on the install-time stub, not the configured: {out.stdout!r}"
 
+    # (hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine) a RELATIVE
+    # declared value must resolve against the PROJECT ROOT holding the `.agi/`
+    # the walk found — graph-root-relative, NOT $HOME-relative, matching
+    # locations.py — and the walk must STOP at a repo boundary, so a nested
+    # repo below a configured project resolves to the install-time fallback,
+    # never the ancestor project's config.
+    def _add_fakes(root: Path):
+        (root / "bin").mkdir(parents=True)
+        for name in ("hold.sh", "panic.sh"):
+            p = root / "bin" / name
+            p.write_text(fake)
+            p.chmod(0o755)
+
+    def _run_from(cwd: Path) -> str:
+        r = subprocess.run(["bash", str(wrapper)], cwd=str(cwd), env=env,
+                           capture_output=True, text=True)
+        assert r.returncode == 0, f"wrapper failed: {r.stderr}"
+        return r.stdout
+
+    # (1) relative declared value -> PROJECT-ROOT-relative, not $HOME-relative
+    projrel = tmp_path / "projrel"
+    (projrel / ".agi").mkdir(parents=True)
+    rel_stub = projrel / "rel" / "stub"
+    _add_fakes(rel_stub)
+    (projrel / ".agi" / "config.json").write_text(json.dumps(
+        {"locations": {"streamer_stub": "rel/stub"}}))
+    out = _run_from(projrel)
+    assert str(rel_stub) in out, \
+        f"relative stub must resolve against the PROJECT ROOT; got: {out!r}"
+    assert str(inst_stub) not in out, \
+        f"relative stub resolved against install-time stub: {out!r}"
+    assert str(home / "rel" / "stub") not in out, \
+        f"relative stub resolved against $HOME, not project root: {out!r}"
+
+    # (2) nested repo below a configured project -> install-time fallback
+    anc = tmp_path / "anc"
+    (anc / ".agi").mkdir(parents=True)
+    (anc / ".agi" / "config.json").write_text(json.dumps(
+        {"locations": {"streamer_stub": str(custom_stub)}}))
+    nested = anc / "nested"
+    (nested / ".git").mkdir(parents=True, exist_ok=True)
+    out = _run_from(nested)
+    assert str(inst_stub) in out, \
+        f"nested repo must fall back to install-time stub; got: {out!r}"
+    assert str(custom_stub) not in out, \
+        f"walk crossed the .git boundary into the ancestor config: {out!r}"
+
+
+
+@stub_only
+def test_sb_status_guard_rejects_comment_only_mentions(tmp_path):
+    """The guard must not be satisfied by a COMMENT mentioning hold.sh: by
+    construction the generated wrapper's docstring itself says `(bin/hold.sh
+    --status + bin/panic.sh --status)`, so a guard that read the FIRST line
+    mentioning hold.sh would pass while the real invocation was never read.
+    A wrapper whose ONLY hold.sh mention is a comment goes RED."""
+    wrapper = tmp_path / "sb-status"
+    wrapper.write_text(
+        "#!/usr/bin/env bash\n"
+        "# (bin/hold.sh --status + bin/panic.sh --status). Resolves ...\n"
+        "echo no regular invocation\n")
+    stub = tmp_path / "stub"
+    (stub / "bin").mkdir(parents=True)
+    for name in ("hold.sh", "panic.sh"):
+        p = stub / "bin" / name
+        p.write_text("#!/usr/bin/env bash\n")
+        p.chmod(0o755)
+    problems = []
+    _check_sb_status_wrapper(str(wrapper), stub, problems)
+    assert problems, \
+        "guard satisfied by a comment-only hold.sh mention; must go RED"
+
+    # the same guard, with the real EXECUTING lines present, stays green
+    good = tmp_path / "good" / "sb-status"
+    good.parent.mkdir(parents=True)
+    good.write_text(
+        "#!/usr/bin/env bash\n"
+        "# (bin/hold.sh --status + bin/panic.sh --status). doc comment\n"
+        '"$stub/bin/hold.sh" --status\n'
+        '"$stub/bin/panic.sh" --status\n')
+    problems = []
+    _check_sb_status_wrapper(str(good), stub, problems)
+    assert problems == [], f"real invocation flagged red: {problems}"
 
 
 def _stream_fragment_commands():
