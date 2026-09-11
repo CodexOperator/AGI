@@ -1288,13 +1288,21 @@ def _resolve_seat_for_name(root: Path, session_name: str) -> str:
     per-numeral file. A name with no matching row (a THROWAWAY / unregistered
     numeral) falls back to the name itself, so existing plain-seat paths are
     unchanged. P2, fifth fix-only dispatch.
+
+    **L4.122 merge-up 24 residue (S): LONGEST-prefix match, never first.** A
+    seat that is a DASH-PREFIX of another (rows `a` and `a-b`) must resolve
+    `a-b-X` to the `a-b` seat, not the shorter `a` — first-match caused the
+    wrong ack path / row. Collect every matching row and keep the LONGEST
+    name.
     """
+    best = None
     for row in _load_seats(root):
         rname = row.get("name") or ""
         if rname and (session_name == rname
                       or session_name.startswith(rname + "-")):
-            return rname
-    return session_name
+            if best is None or len(rname) > len(best):
+                best = rname
+    return best if best is not None else session_name
 
 
 def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
@@ -2887,19 +2895,29 @@ def _derive_own_chain(pane_pid: int,
     """The predecessor's OWN process chain, derived live, EXCLUDING the
     rotate-self pid and its direct shell parent from the TERM list.
 
-    From `pane_pid` (the pane's controlling pid), climb the `ps -o pid=,ppid=`
-    parent table from the OWN pid (rotate.py) up to the pane pid, then drop
-    the own pid and its direct parent — the chain to TERM is everything
-    between the pane and the shell that runs rotate.py, i.e. the measured
-    [pane bash, claude wrapper, claude] (L4.114: pane 1943505 -> wrapper
-    1943515 -> claude 1943519). The own pid may only appear BELOW the pane
-    pid (rotate.py runs inside that pane); if the climb cannot connect to it,
-    return [] and the caller records SKIPPED rather than guessing.
+    From `pane_pid` (the pane's controlling pid), climb the `ps -e` parent
+    table from the OWN pid (rotate.py) up to the pane pid, then drop the own
+    pid and its direct parent — the chain to TERM is everything between the
+    pane and the shell that runs rotate.py, i.e. the measured [pane bash,
+    claude wrapper, claude] (L4.114: pane 1943505 -> wrapper 1943515 ->
+    claude 1943519).
+
+    **L4.122 criterion 1 (merge-up 23): `ps -e` enumerates ALL processes**,
+    never the default same-tty selection. When rotate.py runs under the
+    Bash tool it has NO controlling terminal, so the bare default `ps -o
+    pid=,ppid=` selects only other no-tty processes — the pane's live chain
+    (on pts/18) is invisible and the climb returned [] on the real gen IX->X
+    rotation even though the pane was right there. `ps -e` sees every pid
+    regardless of tty, so the climb from a Bash-tool shell in the pane
+    returns the three-pid chain [pane bash, wrapper, claude], not []. The
+    own pid may only appear BELOW the pane pid (rotate.py runs inside that
+    pane); if the climb cannot connect to it, return [] and the caller
+    records SKIPPED naming the missing connection rather than guessing.
     """
     own = own_pid if own_pid is not None else os.getpid()
     parent_of: dict[int, int] = {}
     try:
-        out = subprocess.run(["ps", "-o", "pid=,ppid="],
+        out = subprocess.run(["ps", "-e", "-o", "pid=,ppid="],
                              capture_output=True, text=True,
                              timeout=10).stdout
     except Exception:  # noqa: BLE001
@@ -3061,6 +3079,15 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
                 pass
             deadline = time.time() + wait_secs
             while time.time() < deadline and _pid_alive(pid):
+                # L4.122 criterion 2 (merge-up 23): bind `wpid` BEFORE the
+                # `if`. A pid that is NOT our child (an ancestor pane bash /
+                # wrapper / claude that survives SIGTERM) makes `waitpid`
+                # raise ChildProcessError on the FIRST iteration; with `wpid`
+                # unbound, `if wpid == pid` raised UnboundLocalError at
+                # rotate.py:3040 and the whole self-reap died before the
+                # SIGKILL. Bind None first; the ChildProcessError branch keeps
+                # polling the table until the deadline, then SIGKILLs.
+                wpid = None
                 try:
                     wpid, _ = os.waitpid(pid, os.WNOHANG)
                 except ChildProcessError:
@@ -3079,6 +3106,17 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
                 except OSError:
                     pass
                 termd = not _pid_alive(pid)
+                # L4.122: SIGKILL lands, but a REPARENTED process (init / a
+                # subreaper) may take a beat to collect the zombie — the
+                # `os.kill(pid,0)` probe still sees the corpse at that instant,
+                # so gone_after was falsely False right after the kill. Poll
+                # briefly so the recorded gone_after reflects the eventual
+                # state, not the reaping race.
+                if not termd:
+                    deadline_t = time.time() + 1.0
+                    while time.time() < deadline_t and _pid_alive(pid):
+                        time.sleep(0.05)
+                    termd = not _pid_alive(pid)
         gone = termd or not _pid_alive(pid)
         chain.append({"pid": pid, "was_alive": was, "termd": termd,
                       "gone_after": gone, "ps_before": ps_before,
@@ -3193,6 +3231,17 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
                 sess = (data.get("session_id") or data.get("sessionId") or "")
                 transc = (data.get("transcript") or data.get("transcript_path")
                           or "")
+                if not transc and sess and data.get("cwd"):
+                    # L4.122: the registry carries cwd + sessionId, never a
+                    # transcript path — the live gen IX->X join returned
+                    # `transcript: ""` and meter_pin / model_confirm were
+                    # SKIPPED. Derive the Claude Code transcript the way gen X
+                    # pinned it by hand: `~/.claude/projects/<cwd with every
+                    # '/' and '.' replaced by '-'>/<sessionId>.jsonl` (measured
+                    # cwd .../worktree/seat-sanctuary-director ->
+                    # -home-ubuntu-work-agi--agi-worktrees-...).
+                    slug = str(data["cwd"]).replace("/", "-").replace(".", "-")
+                    transc = str(CC_PROJECTS_DIR / slug / f"{sess}.jsonl")
                 nm = data.get("name") or data.get("agent") or seat
                 return {"found": True, "window_id": window_id, "pid": pid,
                         "session_id": str(sess), "transcript": str(transc),
@@ -3496,9 +3545,6 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     _existing_for_chain = _existing_windows(tmux_session, args.window_path)
     is_chain_seat = (role == "prime_director")
     if is_chain_seat:
-        gen_before = _read_generation(root, seat)
-        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
-        _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
         # the predecessor's own (pre-rotation) window is the highest live
         # numeral in the chain (its numeral is the successor's minus one line)
         _chain_live = [w for w in _existing_for_chain
@@ -3506,6 +3552,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         own_chain_name = max(
             _chain_live, key=lambda w: _split_roman_suffix(w)[1],
             default=None)
+        # L4.122 merge-up 24 residue (G): gen_before for a CHAIN seat comes
+        # from the ROW/numeral — the predecessor's own window's line value —
+        # NEVER the handoff counter. The live gen IX->X record announced
+        # `0 -> 8` from a stale `_read_generation` counter; the numeral is
+        # the true generation (P1: generation IS the numeral). Falls back to
+        # the counter only when no chain window is live yet (a fresh prime).
+        gen_before = (_split_roman_suffix(own_chain_name)[1]
+                      if own_chain_name else _read_generation(root, seat))
+        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
+        _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
         new_name = None   # .gen<N> own-window rename is plain-seat only
     else:
         gen_before = _read_generation(root, seat)
@@ -3759,7 +3815,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         try:
             handover["successor_row"] = _successor_row_write(
                 root, actor=seat, seat=seat, role=role,
-                session_ref=succ_session_id, generation=gen, window=spawn_name,
+                session_ref=succ_session_id, generation=gen,
+                # merge-up 24 residue (W): the row's `window` cell is the
+                # WINDOW @id (the successor's tmux @id, so send.py
+                # `_nudge_window` can address it without the name-resolution
+                # hazard of L4.120 claim-3), NOT the window NAME — falling
+                # back to the name only when no @id was captured (the
+                # internal session_ref seam has no @id).
+                window=succ_window_id or spawn_name,
                 pid=succ_pid, session_id=succ_session_id)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
@@ -3813,7 +3876,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     exactly five deep — reap the OLDEST when a sixth would exist.
         if role == "prime_director" or getattr(args, "belam_prefix", None):
             pfx = getattr(args, "belam_prefix", None) or "belam"
-            oldest = _belam_oldest(succ["names"], seat, pfx)
+            # merge-up 24 residue (B): count the SUCCESSOR (spawn_name — the
+            # numeral window that is actually live), not the SEAT base.
+            # Passing `seat` over-counts the chain by one: the bare base name
+            # is treated as a live chain window even when only the numeral
+            # windows exist, inflating the Belam cap. spawn_name == seat for
+            # a plain seat, so plain-seat behaviour is unchanged.
+            oldest = _belam_oldest(succ["names"], spawn_name, pfx)
             handover["belam_cap"] = {
                 "prefix": pfx, "would_exceed_five": oldest is not None,
                 "oldest_to_reap": oldest,
@@ -3897,7 +3966,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _write_rotation_record(root, _rotate_self_record(
             seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
-            refusal=f"predecessor window {new_name!r} gone"), path=rec_path)
+            # merge-up 24 residue (P): the refusal record names pred_name
+            # (the real predecessor window being reaped), never the
+            # constructed new_name (.genN — None on a chain seat).
+            refusal=f"predecessor window {pred_name!r} gone"), path=rec_path)
         print(f"ERR: predecessor window {pred_name!r} is NOT present in tmux "
               f"session {tmux_session!r}; refusing to report rotation "
               f"success (windows: {pred_raw['names']!r}).",
@@ -3976,8 +4048,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         pane_pid = _pane_pid(os.environ.get("TMUX_PANE", ""))
         if pane_pid:
             own_chain = _derive_own_chain(pane_pid)
-            reap_source = (f"derived from $TMUX_PANE pane {pane_pid}: "
-                           f"{own_chain or '(no chain under the pane pid)'}")
+            # L4.122 criterion 3 (merge-up 23): a skip NAMES the missing
+            # input. When the derivation returns [] the pane pid WAS
+            # present but rotate.py's own pid did not connect to it — name
+            # that exact pair, not a bare 'no chain'.
+            if own_chain:
+                reap_source = (f"derived from $TMUX_PANE pane {pane_pid}: "
+                               f"chain {own_chain} (deepest-first)")
+            else:
+                own_chain = []
+                reap_source = (f"SKIPPED: own pid {os.getpid()} not under "
+                               f"pane pid {pane_pid}; no chain to TERM")
         else:
             own_chain = []
             reap_source = ("SKIPPED: TMUX_PANE absent (no seam); the live "
