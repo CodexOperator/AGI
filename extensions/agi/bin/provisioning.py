@@ -548,6 +548,53 @@ def key_name(iter_n: int | str, agent_id: str, tier: str = "kid") -> str:
     return f"{NAME_PREFIX}-iter{iter_n}-{tier}-{agent_id}"
 
 
+# --- pytest mutation guard (hypothesis:l4-mint-refuses-under-pytest-unless- ---
+# --- mocked): a test can never mint/revoke a real key ----------------------
+#
+# Measured on the live tree 2026-09-11: a pytest run with `--basetemp` inside
+# a round worktree let a test's `root=tmp_path` resolve the REAL `.agi` root
+# via `find_project_root`, read the real management key from the envfile and
+# mint for real -- blocking every dispatched cut until the key's TTL expired
+# (`outstanding minted key ... remaining $0.25 is below the configured floor
+# $1.00`). The module's REAL seam functions are captured here so the guard can
+# tell a mocked seam from a live one by identity; monkeypatch / plain
+# assignment changes the module attribute, so `is` against the originals is
+# the honest test.
+_REAL_CALL = _call
+_REAL_READ_PROVISIONING_KEY = _read_provisioning_key
+
+
+def _mutation_guard(op: str) -> None:
+    """Refuse a real provisioning mutation while a test is executing.
+
+    `PYTEST_CURRENT_TEST` is set by pytest only while a test is running. A
+    test may mint/revoke only if it has mocked BOTH load-bearing seams --
+    `_call` (the HTTP seam) and `_read_provisioning_key` (the key seam) --
+    so a live provisioning HTTP call can never originate from inside a test.
+
+    The refusal names the test (from `PYTEST_CURRENT_TEST`) and whichever
+    seam is still real, so a test author reads exactly which seam to mock. A
+    mocked seam is detected by identity against `_REAL_*`. Absence of
+    `PYTEST_CURRENT_TEST` is a no-op: the real engine (dispatch, driver, a
+    manual CLI) runs outside pytest and is untouched.
+    """
+    test = os.environ.get("PYTEST_CURRENT_TEST")
+    if not test:
+        return
+    live = []
+    if _read_provisioning_key is _REAL_READ_PROVISIONING_KEY:
+        live.append("_read_provisioning_key")
+    if _call is _REAL_CALL:
+        live.append("_call")
+    if live:
+        reason = " and ".join(f"`{s}`" for s in live)
+        raise ProvisioningError(
+            f"provisioning.{op} refused under pytest ({test}): a REAL seam "
+            f"({reason}) is still present -- a test that mints/revokes must "
+            f"mock BOTH `_call` and `_read_provisioning_key` first, so no live "
+            f"provisioning HTTP call can ever fire from a test")
+
+
 def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
          limit_usd: float = DEFAULT_LIMIT_USD,
          ttl_minutes: int = DEFAULT_TTL_MINUTES,
@@ -563,6 +610,8 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     prov = _read_provisioning_key(root)
     if prov is None:
         return None
+
+    _mutation_guard("mint")
 
     expires = (datetime.datetime.now(datetime.timezone.utc)
                + datetime.timedelta(minutes=ttl_minutes))
@@ -636,6 +685,7 @@ def revoke(key_hash: str, root: Path | str | None = None) -> bool:
     prov = _read_provisioning_key(root)
     if prov is None or not key_hash:
         return False
+    _mutation_guard("revoke")
     status, _body = _call("DELETE", f"{API_BASE}/{key_hash}", prov)
     return status == 200
 

@@ -51,11 +51,21 @@ def fake_systemctl(tmp_path, monkeypatch):
     bin.mkdir()
     log = tmp_path / "systemctl.calls"
     envlog = tmp_path / "systemctl.env"
+    answers = tmp_path / "systemctl.answers"
     script = bin / "systemctl"
     script.write_text(
         "#!/usr/bin/env bash\n"
         f'echo "$@" >> {log}\n'
         f'echo "XDG_RUNTIME_DIR=${{XDG_RUNTIME_DIR-}}|DBUS_SESSION_BUS_ADDRESS=${{DBUS_SESSION_BUS_ADDRESS-}}" >> {envlog}\n'
+        # Probes (hypothesis:l4-crons-apply-records-one-state-line-...):
+        # `is-enabled` / `is-active` are answered per-test by {answers} — a
+        # line "<probe>: 1" makes that probe exit 1 (not enabled / not
+        # active / probe failed); by default (no answers file, or the probe
+        # not listed) the unit is enabled+active, which drives the no-op path.
+        'case "$2" in\n'
+        '  is-enabled|is-active)\n'
+        f'    if [[ -f \"{answers}\" ]] && grep -qE \"^$2: 1$\" \"{answers}\"; then exit 1; fi;;\n'
+        'esac\n'
         "exit 0\n")
     script.chmod(0o755)
     monkeypatch.setenv(
@@ -806,6 +816,89 @@ def test_services_table_writes_unit_byte_for_byte_idempotent(tmp_path, fake_syst
     assert r2["crons_live"] is True
 
 
+def _write_unit_then_reapply(tmp_path, root, ud, fake_systemctl):
+    """Write the unit once (first apply runs the true write+seam path), then
+    reset the fake's call log so a SECOND apply's calls are isolated for the
+    probe tests below. Returns the second apply's result dict."""
+    crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                    unit_dir=ud)
+    fake_systemctl.write_text("")
+    return crons.cmd_apply(root, crontab_file=tmp_path / "crontab.fixture",
+                           unit_dir=ud)
+
+
+def test_up_to_date_enabled_active_records_one_noop(tmp_path, fake_systemctl):
+    """hypothesis:l4-crons-apply-... File current AND unit enabled AND
+    active: record ONE state line (`enabled+active (no-op)`) and run neither
+    daemon-reload nor enable --now — the :x5 churn of two `(ok)` actions
+    every pass is gone."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    r2 = _write_unit_then_reapply(tmp_path, root, ud, fake_systemctl)
+    assert any("enabled+active (no-op)" in a for a in r2["unit_actions"])
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls, "probes must have run"
+    assert all(c.startswith("--user is-") for c in calls), \
+        "a no-op may only probe — no daemon-reload, no enable --now"
+
+
+def test_up_to_date_not_enabled_still_enables(tmp_path, fake_systemctl):
+    """File current but the unit NOT enabled (probe reports it): the
+    convergence property holds — the real seam still runs so a written-but-
+    never-enabled unit comes up on the next apply."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    (fake_systemctl.parent / "systemctl.answers").write_text(
+        "is-enabled: 1\n")   # probe: not enabled
+    res = _write_unit_then_reapply(tmp_path, root, ud, fake_systemctl)
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0].startswith("--user is-enabled ")
+    assert any("daemon-reload" in c for c in calls)
+    assert any("enable --now" in c for c in calls)
+    assert not any("enabled+active (no-op)" in a
+                   for a in res["unit_actions"])
+
+
+def test_up_to_date_inactive_still_starts(tmp_path, fake_systemctl):
+    """File current but the unit NOT active: the seam still runs (enable
+    --now starts it) — an inactive unit is never left down by a false no-op."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    (fake_systemctl.parent / "systemctl.answers").write_text(
+        "is-active: 1\n")    # probe: not active (is-enabled ok)
+    _write_unit_then_reapply(tmp_path, root, ud, fake_systemctl)
+    calls = fake_systemctl.read_text().splitlines()
+    assert calls[0].startswith("--user is-enabled ")
+    assert calls[1].startswith("--user is-active ")
+    assert any("enable --now" in c for c in calls), \
+        "inactive unit converges via the real seam"
+
+
+def test_probe_failure_never_swallowed_into_noop(tmp_path, fake_systemctl):
+    """FALSIFIER guard: if either probe FAILS (state unconfirmable), the
+    apply must NOT record a no-op — it runs the real seam instead, so a real
+    state change can never be swallowed by the no-op path."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    (fake_systemctl.parent / "systemctl.answers").write_text(
+        "is-enabled: 1\nis-active: 1\n")
+    res = _write_unit_then_reapply(tmp_path, root, ud, fake_systemctl)
+    calls = fake_systemctl.read_text().splitlines()
+    assert any("enable --now" in c for c in calls), \
+        "unconfirmed state falls back to the real seam"
+    assert not any("enabled+active (no-op)" in a
+                   for a in res["unit_actions"]), \
+        "a probe failure must never be swallowed into a false no-op"
+
+
 def test_crons_live_false_removes_unit_and_runs_disable(tmp_path, fake_systemctl):
     root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
     write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
@@ -983,6 +1076,40 @@ def test_kill_switch_with_no_unit_file_records_absent(tmp_path, fake_systemctl):
     assert any("absent, nothing to disable" in a for a in res["unit_actions"])
     assert not fake_systemctl.exists(), \
         "no disable may run on an absent unit"
+
+
+def test_kill_switch_absent_file_stays_when_no_bus(tmp_path, monkeypatch,
+                                        fake_systemctl):
+    """Kill switch + unit present + NO user bus (hypothesis:l4-kill-switch-
+    without-a-bus-is-a-named-skip): cannot stop the running unit, so record a
+    NAMED skip for `disable --now` and KEEP the file (removing it while the
+    unit runs orphans a process systemd no longer manages). No FAILED, no
+    fake systemctl call, no `remove unit` line."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    unit = next(ud.glob("agi-*.service"))
+
+    # Kill the bus: XDG_RUNTIME_DIR points at a dir with no socket.
+    runtime = tmp_path / "nobus"
+    runtime.mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    fake_systemctl.write_text("")
+    write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert unit.exists(), (
+        "file KEPT: removing it while the unit runs orphans a live unit "
+        "systemd no longer knows")
+    assert any("present, no user bus: disable --now SKIPPED" in a
+               for a in res["unit_actions"]), "one named skip line"
+    assert any("no user bus, skip daemon-reload" in a
+               for a in res["unit_actions"]), "daemon-reload named line"
+    assert not any("remove unit" in a for a in res["unit_actions"])
+    assert not fake_systemctl.read_text(), "no systemctl may run without a bus"
 
 
 def test_kill_switch_with_unit_present_runs_disable(tmp_path, fake_systemctl):
