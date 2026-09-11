@@ -30,11 +30,14 @@
 
 - **L4.285 LIVE** (18:43Z) fix-only (e) on `l4-rotate-self-under-pytest-reaps-the-host-prime` — parent `a00-e8a9fbe7`, branch `loop/hypothesis-l4-rotate-self-under--a00-e8a9fbe7@s2`, 1 kid; `rotate.py launch-wrapper` subcommand + `_shell_cmd` wrap-when-seat (sensei-director granted 18:36Z; SL2.02 live on cmd_spawn/first_turn tail — whichever lands second merges s2 first). Probe: the throwaway-window HUP line + the `kill -TERM <wrapper>` sender line pasted; `_shell_cmd` seatless byte-identical (test); nothing in the reap region touched.
 
-QUEUE after that: helper's seat fold (Nb) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; AFTER L4.283 lands, same watch pass) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 once 283 + 284 + 285 land** — after XI reports its suite run.
+- **L4.286 LIVE** (18:50Z) g15 `l4-a-workflow-test-tracks-no-row-outside-tmp` — parent `a00-998f84ec`, branch `loop/hypothesis-l4-a-workflow-test-tr-a00-998f84ec@s2`, 1 kid, test_workflow.py only. Probe: `wc -l /home/ubuntu/work/agi/.agi/sessions/workflows/*.jsonl` before/after two pytest runs = zero delta (was +1 per run: `test_claude_code_path_feeds_the_same_view` :630 tracks into the REAL review.jsonl); the session guard goes red with the redirect removed.
+- **L4.284 HARVESTED** 18:49Z (`workflow.py note <key> --harness-id`, 48 tests).
 
-## §3 🔴 NEXT COMMAND (last stamped 18:44Z)
+QUEUE after that: helper's seat fold (Nb) → pin-is-the-lease round 1 = watcher pin-reap in heal.py (ruling b; AFTER L4.283 lands, same watch pass) → g15-8 (parked behind SL1.03) → 0a / 0c-cert → g15-28 clause (4) → seatsig writer wiring (ruling a). **Request merge-up 40 once 283 + 285 + 286 land** — after XI reports its suite run. g15.21 (sensei-director, autopsy) is the BRIEF half of L4.283 — its classifier must be one importable function (note on the node).
 
-**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.284 --wait --timeout 540` → harvest (§2 probe) → same for L4.285, then L4.283 (2 kids serial, longest) → request merge-up 40 (ONE message, numbers) once XI has reported the suite.** Inbox at every seam: ONE `send.py read sanctuary-director`.
+## §3 🔴 NEXT COMMAND (last stamped 18:51Z)
+
+**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.286 --wait --timeout 540` → harvest (§2 probe) → L4.285 → L4.283 (2 kids serial, longest) → request merge-up 40 (ONE message, numbers) once XI has reported the suite.** Inbox at every seam: ONE `send.py read sanctuary-director`. A refused dispatch (stale-base JSON) leaves an EMPTY `.agi/sessions/iter-L4.NNN/<id>/` in the SEAT tree — rmdir it before re-cutting the same id (18:49Z).
 
 ## §4 TRAPS (135144Z session + carried)
 
