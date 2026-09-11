@@ -5009,6 +5009,330 @@ def cmd_next(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- first-decision: the point's captive harvest-or-cut --------------------
+# hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps, step 4.
+# `harvest-table` (L4.236/245) is NOT in this tree (grep confirms no
+# harvest-table subcommand on the cut this branch was made from), so the
+# pre-filled harvest row + the ONE bounded prompt per round live here as
+# `first-decision`, per the brief's "implement directly, never duplicate".
+#
+# The script PRINTS and NEVER ANSWERS the harvest-or-cut decision: for each
+# OPEN round of the seat's worktree it prints the pre-filled row (branch,
+# parent, kids, verdicts, merge-base, behind) and then exactly ONE bounded
+# prompt — `harvest <round> | cut <next queued node> | hold`. `--answers FILE`
+# replays the LLM's choices into the NAMED next command per row — the git
+# merge line carrying the EXACT branch name from `git branch --list` for a
+# harvest, the dispatch line for a cut — printed, never run. FALSIFIER: a
+# code path that RUNS the merge or the dispatch itself is refused; there is
+# none. The decision stays the LLM's; the script only pre-fills and prints.
+
+
+def _fd_git(cwd: Path, *args: str) -> tuple[int, str, str]:
+    """Run git from `cwd`; return (rc, stdout, stderr). Never raises. A
+    non-zero rc is a MEANINGFUL answer (`merge-base --is-ancestor` rc=1 says
+    "not an ancestor", the open-round test), so the caller owns the rc."""
+    try:
+        r = subprocess.run(["git", "-C", str(cwd), *args],
+                           capture_output=True, text=True, timeout=10)
+        return r.returncode, r.stdout.strip(), r.stderr.strip()
+    except OSError:
+        return 127, "", f"cannot run git from {cwd}"
+
+
+def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
+    """The branch a seat works on, resolved in strict order:
+
+      1. the checked-out HEAD of the seat's worktree, from the config:seats
+         `worktree` field (resolved against the MAIN checkout, so a relative
+         `.agi/worktrees/seat-<S>` resolves like the live rows),
+      2. a local `seat/<seat>@s<s>` branch (convention fallback),
+      3. None.
+
+    A worktree seat works on its own checked-out branch; the seat's open
+    rounds are the `loop/*` branches cut from it (F5, config:rotations).
+    """
+    row = _find_seat(root, seat)
+    wt = (row or {}).get("worktree") or ""
+    if wt:
+        p = Path(wt)
+        cand = p if p.is_absolute() else (main / wt)
+        if cand.is_dir():
+            rc, br, _ = _fd_git(cand, "rev-parse", "--abbrev-ref", "HEAD")
+            if rc == 0 and br and br != "HEAD":
+                return br
+    rc, out, _ = _fd_git(main, "branch", "--list", "seat/*")
+    if rc == 0:
+        for line in out.splitlines():
+            # `git branch --list` prefixes `*` for the current branch and `+`
+            # for a branch checked out in a linked worktree; strip all of it.
+            name = line.strip().lstrip("*+").strip()
+            if name.startswith(f"seat/{seat}@s"):
+                return name
+    return None
+
+
+def _fd_frontmatter(text: str) -> str:
+    """The frontmatter block of a node's text, between the first two `---`
+    lines, or '' when absent (keep the kid node body out of the regex)."""
+    if not text.startswith("---"):
+        return ""
+    rest = text.split("\n", 1)[1] if "\n" in text else ""
+    fm, _, _ = rest.partition("\n---")
+    return fm
+
+
+def _fd_node_kids(main: Path, branch: str, merge_base: str,
+                  nodes_rel: str = ".agi/nodes/experiment") -> list[tuple[str, str]]:
+    """(kid_node_id, verdict) for every experiment `.md` file ADDED on the
+    round branch relative to its merge-base with the seat branch (F5: "its
+    kid experiment nodes are under .agi/nodes/experiment/ on that branch").
+    The node id is `experiment:` + the file stem; the verdict is the node's
+    `verdict:` frontmatter field, or "" when the node carries none.
+
+    `git branch --list` + `git diff --name-only` are the ONLY reads; nothing
+    is written, checked out or merged."""
+    rc, out, _ = _fd_git(main, "diff", "--name-only", merge_base, branch,
+                         "--", nodes_rel)
+    if rc != 0:
+        return []
+    kids = []
+    for path in out.splitlines():
+        if not path.endswith(".md") or not path.startswith(nodes_rel + "/"):
+            continue
+        stem = path.rsplit("/", 1)[-1][:-3]
+        rc2, blob, _ = _fd_git(main, "show", f"{branch}:{path}")
+        verdict = ""
+        if rc2 == 0:
+            fm = _fd_frontmatter(blob)
+            for line in fm.splitlines():
+                if line.startswith("verdict:") and ":" in line:
+                    verdict = line.split(":", 1)[1].strip()
+                    break
+        kids.append((f"experiment:{stem}", verdict))
+    return kids
+
+
+def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
+    """The seat's OWN worktree directory, resolved in strict order:
+
+      1. the config:seats `worktree` field (resolved against the MAIN
+         checkout, so a relative `.agi/worktrees/seat-<S>` resolves like the
+         live rows) when it is a directory,
+      2. the convention `.agi/worktrees/seat-<S>` under the main checkout,
+      3. None.
+
+    Mirrors how `_fd_seat_branch` resolves the worktree; the seat's dispatch
+    wrote ITS iteration manifests inside this worktree, so this is where the
+    owned-agent evidence lives."""
+    row = _find_seat(root, seat)
+    wt = (row or {}).get("worktree") or ""
+    if wt:
+        p = Path(wt)
+        cand = p if p.is_absolute() else (main / wt)
+        if cand.is_dir():
+            return cand
+    conv = main / ".agi" / "worktrees" / f"seat-{seat}"
+    return conv if conv.is_dir() else None
+
+
+def _fd_seat_agent_ids(root: Path, main: Path, seat: str) -> set[str]:
+    """The set of agent ids the seat ITSELF dispatched, parsed from the seat
+    worktree's own iteration manifests — `<wt>/.agi/sessions/iter-*/manifest
+    .json` `agents[].id`. The seat's dispatch READ-BEFORE-WRITE wrote these
+    when it cut each round, so they are EVIDENCE of which rounds are this
+    seat's (the manifest-join discriminator, (b)), not a convention guess.
+    An unreadable / absent manifest or a missing worktree yields an empty
+    set — an under-count (no round credited), never a mis-attribution."""
+    wt = _fd_seat_worktree(root, main, seat)
+    if wt is None:
+        return set()
+    sess = wt / ".agi" / "sessions"
+    if not sess.is_dir():
+        return set()
+    ids: set[str] = set()
+    for manifest in sorted(sess.glob("iter-*/manifest.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for agent in data.get("agents") or []:
+            if isinstance(agent, dict) and agent.get("id"):
+                ids.add(str(agent["id"]))
+    return ids
+
+
+def _fd_agent_from_branch(branch: str) -> str:
+    """The agent id embedded in a round branch name, `loop/<slug>-a00-XXXXXX
+    XX@s<N>` — the `a00-<hex>` run immediately before the `@s<N>` season tag
+    (the dispatch convention, F5). Returns '' when the branch carries none,
+    so a manually-cut branch is unresolvable and never credited."""
+    m = re.search(r"(a00-[0-9a-zA-Z]+)@s\d+$", branch)
+    return m.group(1) if m else ""
+
+
+def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict]:
+    """The seat's OWN OPEN round branches, one dict per round.
+
+    A round is a local `loop/<slug>-<agent>@s<N>` branch (the dispatch
+    convention, F5) in the SAME season as the seat branch, that is NOT yet an
+    ancestor of the seat branch — i.e. it still carries commits the seat has
+    not merged (an open, un-harvested round). A round already merged in
+    (--no-ff makes its tip an ancestor of the seat branch) is closed and
+    skipped.
+
+    The glob alone is NOT enough: `loop/*@s<N>` crosses every district, so a
+    sibseat / parent round forking at the shared season base would be swept
+    in. OWNERSHIP is decided by EVIDENCE, discriminator (b) — the manifest
+    join, NOT ancestry (discriminator (a)): dispatch.py writes each spawned
+    agent's id into the seat worktree's own iteration manifests
+    (`<wt>/.agi/sessions/iter-*/manifest.json` `agents[].id`), so a round
+    `loop/<slug>-a00-XXXXXXXX@s<N>` belongs to THIS seat iff its agent id
+    appears in one of those manifests. A parent/sibseat round's agent id
+    lives in ITS OWN seat's manifests, never this one's, so it is dropped
+    outright — never shown with a parent copied from the seat's HEAD (a lie
+    is worse than a gap). The seat worktree is resolved from config:seats
+    `worktree`, falling back to `.agi/worktrees/seat-<S>`, exactly as
+    `_fd_seat_branch` does for the branch. A round whose agent id is not in
+    the owned set is dropped; one that cannot be resolved at all (no
+    `a00-<hex>` run) is unresolvable and would print `parent: ?` were it
+    surfaced — never a copied constant.
+
+    Measured caveat (discriminator (a)'s), now moot: ancestry dropped a
+    round the moment the seat ADVANCED past its fork point. The manifest
+    join does not — the seat's own dispatch record is stable regardless of
+    later merges.
+
+    Every branch name comes from `git branch --list`, so the exact name
+    printed is exactly what the merge line harvests with."""
+    m = re.search(r"@s(\d+)$", seat_branch)
+    season = m.group(1) if m else "2"
+    rc, out, _ = _fd_git(main, "branch", "--list", f"loop/*@s{season}")
+    if rc != 0:
+        return []
+    own_ids = _fd_seat_agent_ids(root, main, seat)
+    rounds = []
+    for line in out.splitlines():
+        # `git branch --list` prefixes `*` (current) / `+` (checked out in a
+        # linked worktree); strip all of it before the loop/ check.
+        branch = line.strip().lstrip("*+").strip()
+        if not branch or not branch.startswith("loop/"):
+            continue
+        rc_a, _, _ = _fd_git(main, "merge-base", "--is-ancestor",
+                             branch, seat_branch)
+        if rc_a == 0:
+            continue  # already merged into the seat: closed, not open
+        # discriminator (b) — the manifest join: the round is THIS seat's
+        # only if its agent id (parsed from the branch name) appears in the
+        # seat's own iteration manifests. No manifest hit => not this seat's
+        # round — dropped, never mis-credited with the seat's parent.
+        agent = _fd_agent_from_branch(branch)
+        if not agent or agent not in own_ids:
+            continue  # not this seat's round — never misattribute
+        rc_mb, mb, _ = _fd_git(main, "merge-base", seat_branch, branch)
+        merge_base = mb.split("\n", 1)[0] if rc_mb == 0 and mb else ""
+        rc_be, behind, _ = _fd_git(main, "rev-list", "--count",
+                                   f"{branch}..{seat_branch}")
+        behind_n = int(behind) if rc_be == 0 and behind.isdigit() else -1
+        kids = _fd_node_kids(main, branch, merge_base) if merge_base else []
+        rounds.append({
+            # `parent` is the seat branch ONLY for a manifest-verified OWN
+            # round (the branch the seat dispatched it from) — never a
+            # constant copied from the seat's HEAD.
+            "branch": branch,
+            "parent": seat_branch,
+            "merge_base": merge_base[:12] if merge_base else "?",
+            "behind": behind_n,
+            "kids": kids,
+        })
+    return rounds
+
+
+def _fd_short(ref: str) -> str:
+    s = str(ref).strip()
+    return s[:12] if len(s) > 12 else s
+
+
+def _fd_print_table(rows: list[dict]) -> None:
+    """Print the pre-filled harvest rows + the ONE bounded prompt per row.
+    The script never chooses; the LLM reads the prompt and writes --answers."""
+    if not rows:
+        print("first-decision: no open rounds for this seat")
+        return
+    for r in rows:
+        print(f"round: {r['branch']}")
+        print(f"  parent: {r['parent']}")
+        print(f"  merge-base: {r['merge_base']}  behind: {r['behind']}")
+        if r["kids"]:
+            kids = ", ".join(
+                f"{kid}{(' (' + ver + ')') if ver else ''}"
+                for kid, ver in r["kids"])
+            print(f"  kids: {kids}")
+        else:
+            print("  kids: (none)")
+        print(f"  prompt: harvest {r['branch']} | cut <next queued node> | hold")
+
+
+def _fd_next_commands(main: Path, rows: list[dict], answers: list[str]) -> None:
+    """Replay the LLM's choices into the named next command per row.
+
+    `answers` is one choice per open round, in the same order the table
+    printed them: `harvest <branch>` -> the git merge line carrying the EXACT
+    branch (the round-trip proof that the branch came from `git branch
+    --list`), `cut <node-id>` -> the dispatch line for that node, `hold` ->
+    nothing. Every line is PRINTED, never run — the falsifier: a step that
+    runs the merge or the dispatch is refused, and there is no code path
+    that could."""
+    for r, ans in zip(rows, answers):
+        tokens = ans.split()
+        verb = tokens[0] if tokens else ""
+        label = " ".join(tokens[1:]) if len(tokens) > 1 else ""
+        if verb == "harvest":
+            branch = label or r["branch"]
+            print(f"# harvest {r['branch']}")
+            print(f"git merge --no-ff {branch}")
+        elif verb == "cut":
+            node = label
+            print(f"# cut {node} (from round {r['branch']})")
+            print(f"python3 extensions/agi/bin/dispatch.py {main} <iter> "
+                  f"--target {node} --level small --branch")
+        else:  # hold / empty
+            print(f"# hold {r['branch']}")
+
+
+def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
+    """`rotate.py first-decision --seat S [--answers FILE]` — the POINT's
+    captive harvest-or-cut (hypothesis:l4-the-window-reply-and-harvest-or-
+    cut-are-captive-steps, step 4). Pre-fills the harvest row for every OPEN
+    round of the seat's worktree, prints ONE bounded prompt per row, and —
+    with --answers — prints the named next command per chosen row. PRINT
+    ONLY: merges and dispatches are never run."""
+    if root is None:
+        print("ERR: first-decision needs an agi project root.",
+              file=sys.stderr)
+        return 1
+    if getattr(args, "root", None):
+        root = Path(args.root).resolve()
+    seat = args.seat
+    main = locations.git_common_root(root)
+    seat_branch = _fd_seat_branch(root, main, seat)
+    if not seat_branch:
+        print(f"ERR: no worktree branch or seat/{seat}@s* branch resolves "
+              f"for seat {seat!r}.", file=sys.stderr)
+        return 1
+    rows = _fd_rounds(root, main, seat, seat_branch)
+    _fd_print_table(rows)
+    answers = getattr(args, "answers", None)
+    if answers:
+        p = Path(answers).expanduser().resolve()
+        if not p.exists():
+            print(f"ERR: --answers file not found: {p}", file=sys.stderr)
+            return 1
+        lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        print("# next commands (printed, never run):")
+        _fd_next_commands(main, rows, lines)
+    return 0
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -6001,6 +6325,25 @@ def main(argv: list[str] | None = None) -> int:
                         help="project root override (default: resolve from cwd)")
     p_next.set_defaults(func=cmd_next)
 
+    # first-decision --seat S: the point's CAPTIVE harvest-or-cut
+    # (hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps,
+    # step 4). Pre-fills the harvest row for each OPEN round, prints ONE
+    # bounded prompt per row, and (--answers) prints the named next command.
+    # PRINT ONLY — the merge/dispatch are never run.
+    p_fd = sub.add_parser(
+        "first-decision", help="the point's captive harvest-or-cut: print "
+                                "the pre-filled row + ONE bounded prompt per "
+                                "open round; --answers replays the choice "
+                                "into the named next command (never run)")
+    p_fd.add_argument("--seat", required=True, help="seat name")
+    p_fd.add_argument("--answers", default=None,
+                      help="file of choices, one per open round in table "
+                           "order: 'harvest <branch>' | 'cut <node-id>' | "
+                           "'hold'")
+    p_fd.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_fd.set_defaults(func=cmd_first_decision)
+
     # rotate-self --name S: the non-prime self-rotation primitive
     p_rs = sub.add_parser(
         "rotate-self", help="rotate a non-prime seat onto a same-named "
@@ -6157,7 +6500,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
-                    "next", "seats-launch", "seq"):
+                    "next", "seats-launch", "seq", "first-decision"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
