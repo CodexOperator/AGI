@@ -442,3 +442,31 @@ def test_writes_none_gates_nothing(tmp_path):
                             "channel": "dm", "writes": "none"})
     rc, out = _check(tmp_path)
     assert rc == 0, out
+
+def _render(root: Path) -> str:
+    out = subprocess.run(
+        [sys.executable, str(BIN), "render", "--root", str(root)],
+        capture_output=True, text=True)
+    return out.stdout
+
+
+def test_render_town_council_chain(tmp_path):
+    """hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — render
+    draws the reporting chain from the ladder's `towns:` list and the
+    council-role rows in config:seats. With no Core Council seat the Prime
+    plays it; a seated non-core council reports to Core Council; a declared
+    but unseated town renders as `? (unseated)`, never an invented row."""
+    seats = SEATS_FM + ('  - {"name": "council-a", "role": "council", "tier": 2, '
+                        '"town": "townA", "harness": "claude-code", '
+                        '"model": "claude-sonnet-5", "effort": "max", '
+                        '"session_kind": "tty", "pin_ref": "", "rotated_by": '
+                        '"prime", "owning_goal": ""}\n')
+    _write(tmp_path, "nodes/.geometry/seats.md",
+           "---\nid: config:seats\nseats:\n" + seats + "---\n")
+    _write(tmp_path, "nodes/.geometry/ladder.md",
+           "---\nid: ladder:ladder\n" + LADDER_FM
+           + "towns:\n  - core\n  - townA\n  - townB\n---\n")
+    out = _render(tmp_path)
+    assert "| core | Prime (as Core Council) | Prime |" in out
+    assert "| townA | council-a | Core Council |" in out
+    assert "| townB | ? (unseated) | Core Council |" in out

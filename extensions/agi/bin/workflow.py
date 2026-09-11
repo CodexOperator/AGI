@@ -1071,7 +1071,7 @@ def _gen_script(manifest: dict) -> str:
     L += ["  ],", "}", "",
           f"const MODEL = (args && args.model) || {_qs(default_model)}",
           f"const EFFORT = (args && args.effort) || {_qs(default_effort)}", "",
-          "const fill = (t, ctx) => String(t).replace(/\\{([A-Za-z_][A-Za-z0-9_]*)\\}\\/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))", ""]
+          "const fill = (t, ctx) => String(t).replace(/\\{([A-Za-z_][A-Za-z0-9_]*)\\}/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))", ""]
 
     # ---- simple stages: one sequential await per stage -----------------------
     if not repeats:
@@ -1094,8 +1094,11 @@ def _gen_script(manifest: dict) -> str:
             L.append(f"const {rname} = {call}")
             result_names.append((base, rname))
             L.append("")
+        # keys are quoted: a stage label may carry a hyphen (`capture-and-read`),
+        # which is not a bare JS identifier (measured: the first authored
+        # single-stage pair failed to parse at the Workflow tool).
         L.append("return { "
-                 + ", ".join(f"{b}: {r}" for b, r in result_names) + " }")
+                 + ", ".join(f"{_qs(b)}: {r}" for b, r in result_names) + " }")
         return "\n".join(L) + "\n"
 
     # ---- repeated stages: one shared args list -------------------------------

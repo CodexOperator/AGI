@@ -59,9 +59,119 @@ def test_send_prints_inbox_path(project: Path, capsys):
 # ── hypothesis:l3w4-seat-transport: best-effort tmux nudge ───────────────
 
 
-def _fake_tmux(monkeypatch, window_names):
+def _fake_tmux(monkeypatch, window_names, capture_text="", sleeps=None):
     """Fake subprocess.run so send can nudge without a live tmux; records
-    every tmux invocation. `window_names` are returned by list-windows."""
+    every tmux invocation. `window_names` are returned by list-windows (a
+    NAME fallback must see the recipient listed); `capture_text` is what
+    capture-pane returns (empty = idle pane). A fixture pane only, never a
+    live session (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message, 5).
+    `sleeps`, when given, receives every `time.sleep` send.py asks for;
+    whether given or not, sleep is monkeypatched to RECORD and never wait --
+    residue 3: the plain `_fake_tmux` tests must not pay a real 0.3 s each."""
+    calls = []
+    recorded = [] if sleeps is None else sleeps
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout="\n".join(window_names),
+                                               stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout=capture_text,
+                                               stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    monkeypatch.setattr(send_mod.time, "sleep", lambda s: recorded.append(s))
+    return calls
+
+
+def _typed(calls):
+    """The send-keys calls that TYPE the token (`-l`), one per delivered
+    token; the separate Enter calls are counted by `_enters`."""
+    return [c for c in calls if c[:3] == ["tmux", "send-keys", "-l"]]
+
+
+def _enters(calls):
+    return [c for c in calls
+            if c[:2] == ["tmux", "send-keys"] and c[-1] == "Enter"]
+
+
+class _FixturePane:
+    """A model of a Claude Code input box driven by `tmux send-keys`, pinned
+    by the prime on a REAL pane (nudge node 83fe8049c, 2026-09-11) as four
+    probes:
+      (A) short text + Enter in ONE send-keys call  -> delivered;
+      (B) a long chunk + Enter in ONE call          -> STRANDED: the Enter
+          becomes a newline (the paste heuristic), nothing submitted;
+      (C) a later bare `send-keys Enter`            -> submits the stranded
+          text;
+      (D) `send-keys -l <text>`, a pause, then `send-keys Enter` as a
+          SEPARATE call                             -> delivered.
+    The paste threshold is a MODEL (the prime measured a 200-char chunk
+    stranded and short text delivered; the 101-char token of the one-call
+    shape sat stranded on the live sanctuary-director pane at 02:38Z); the
+    SHAPE is the fact under test. `capture()` wraps the input at `width`
+    columns the way the box does, so a wide token shows on two lines.
+    `busy=True` renders the mid-turn spinner line."""
+
+    PASTE_CHARS = 100
+
+    def __init__(self, width: int = 80, busy: bool = False):
+        self.input = ""
+        self.submitted: list = []
+        self.width = width
+        self.busy = busy
+
+    def send_keys(self, argv: list) -> None:
+        """`argv` = everything after `tmux send-keys`."""
+        args = list(argv)
+        literal = False
+        if args and args[0] == "-l":
+            literal = True
+            args = args[1:]
+        assert args[:1] == ["-t"], f"send-keys without -t: {argv}"
+        keys = args[2:]
+        if literal:                       # -l: text only, no key parsing
+            self.input += "".join(keys)
+            return
+        paste = False
+        for k in keys:
+            if k == "Enter":
+                if paste:                 # (B) the Enter is a newline
+                    self.input += "\n"
+                else:                     # (A) / (C) submit
+                    self.submitted.append(self.input)
+                    self.input = ""
+            else:
+                self.input += k
+                paste = len(k) >= self.PASTE_CHARS
+
+    def capture(self) -> str:
+        import textwrap
+        if self.busy:
+            # A BUSY Claude Code pane shows the spinner/`esc to interrupt`
+            # line IN PLACE of the input box (the box is not rendered during
+            # a turn) -- no `\u276f` prompt glyph, so the input region is the
+            # whole capture and busy is read; a mid-turn pane must never be
+            # typed into, whatever sits in `self.input`.
+            return "...\u280b... esc to interrupt\n"
+        lines = []
+        body = []
+        for raw in self.input.split("\n"):
+            body.extend(textwrap.wrap(raw, self.width) or [""])
+        lines.append("\u276f " + (body[0] if body else ""))
+        lines.extend("  " + b for b in body[1:])
+        return "\n".join(lines) + "\n"
+
+
+def _fake_tmux_pane(monkeypatch, window_names, pane: _FixturePane,
+                    sleeps: list | None = None):
+    """Like `_fake_tmux`, but send-keys and capture-pane go through a
+    `_FixturePane`, so the SHAPE of the typing decides delivery. `sleeps`
+    records every `time.sleep` send.py asks for (never actually sleeps)."""
     calls = []
 
     def fake_run(cmd, capture_output, text, timeout):
@@ -70,10 +180,137 @@ def _fake_tmux(monkeypatch, window_names):
             return subprocess.CompletedProcess(cmd, 0,
                                                stdout="\n".join(window_names),
                                                stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout=pane.capture(),
+                                               stderr="")
+        if cmd[:2] == ["tmux", "send-keys"]:
+            pane.send_keys(cmd[2:])
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    if sleeps is not None:
+        monkeypatch.setattr(send_mod.time, "sleep", lambda s: sleeps.append(s))
     return calls
+
+
+#: the one-call token shape as it was before the fix (101 chars for
+#: sanctuary-director) -- the negative control's payload
+_OLD_TOKEN = ("[agi-nudge] unread for sanctuary-director:"
+              " python3 extensions/agi/bin/send.py read sanctuary-director")
+
+
+def test_fixture_pane_reproduces_the_four_probes():
+    """The prime's four probes, on the fixture pane (nudge node 83fe8049c):
+    A delivered, B stranded, C submits the stranded text, D delivered."""
+    long = "x" * 200
+    pane = _FixturePane()
+    pane.send_keys(["-t", "w", "hi", "Enter"])                    # (A)
+    assert pane.submitted == ["hi"] and pane.input == ""
+    pane.send_keys(["-t", "w", long, "Enter"])                    # (B)
+    assert pane.submitted == ["hi"], "a long one-call chunk must strand"
+    assert pane.input == long + "\n", "the Enter became a newline"
+    pane.send_keys(["-t", "w", "Enter"])                          # (C)
+    assert pane.submitted[-1] == long + "\n" and pane.input == ""
+    pane.send_keys(["-l", "-t", "w", long])                       # (D)
+    assert pane.submitted[-1] != long, "-l alone submits nothing"
+    pane.send_keys(["-t", "w", "Enter"])
+    assert pane.submitted[-1] == long and pane.input == ""
+    assert len(_OLD_TOKEN) == 101
+
+
+def test_nudge_types_literal_token_then_separate_enter(project: Path,
+                                                       monkeypatch):
+    """THE FIX (prime, verbatim): `-l` token, then Enter in a SECOND call
+    after >= 0.3 s; token short (< 100 chars); never `text Enter` in one
+    call. Measured on the fixture pane: the token is SUBMITTED."""
+    pane = _FixturePane()
+    sleeps: list = []
+    calls = _fake_tmux_pane(monkeypatch, ["director"], pane, sleeps)
+    send_mod.send(project, "director", "a body of some length " * 8, "kid")
+    typed, enters = _typed(calls), _enters(calls)
+    assert len(typed) == 1 and len(enters) == 1, calls
+    assert typed[0][:5] == ["tmux", "send-keys", "-l", "-t", "agi-rc:director"]
+    token = typed[0][5]
+    assert token == send_mod._build_nudge_token("director")
+    assert len(token) < 100
+    assert "Enter" not in typed[0], "never `text Enter` in one call"
+    assert enters[0] == ["tmux", "send-keys", "-t", "agi-rc:director", "Enter"]
+    assert calls.index(typed[0]) < calls.index(enters[0])
+    assert sleeps and sleeps[0] >= 0.3, sleeps
+    assert pane.submitted == [token], (pane.submitted, pane.input)
+    assert pane.input == ""
+    assert send_mod._last_nudge_age(project, "director") is not None
+
+
+def test_one_call_token_enter_strands_on_the_fixture():
+    """NEGATIVE CONTROL: the shape the round shipped (`send-keys -t T token
+    Enter`, one call, 101-char token) strands on the fixture pane exactly as
+    it did on the live pane -- the fixture would have caught it."""
+    pane = _FixturePane()
+    pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])
+    assert pane.submitted == []
+    assert pane.input == _OLD_TOKEN + "\n"
+    # and the wrapped capture no longer contains the whole token ...
+    cap = pane.capture()
+    assert _OLD_TOKEN not in cap
+    # ... but its HEAD is what send.py's unsubmitted check looks for
+    assert send_mod._nudge_token_head(_OLD_TOKEN) in cap
+
+
+def test_wrapped_stranded_token_is_detected_as_unsubmitted():
+    """The unsubmitted check matches the token HEAD (`[agi-nudge] unread
+    for <seat>:`), so a token the input box wrapped across two lines is
+    still seen; a pane holding unrelated text is not."""
+    token = send_mod._build_nudge_token("sanctuary-director")
+    wrapped = ("\u276f [agi-nudge] unread for sanctuary-director: python3"
+               " extensions/agi/bin/send.py read\n  sanctuary-director\n")
+    assert send_mod._nudge_coalesce_reason(wrapped, token, None) \
+        == "token already unsubmitted"
+    assert send_mod._nudge_coalesce_reason("\u276f hello\n", token, None) is None
+    assert send_mod._nudge_token_head(token) == \
+        "[agi-nudge] unread for sanctuary-director:"
+
+
+def test_stranded_token_is_submitted_by_a_bare_enter(project: Path,
+                                                     monkeypatch, capsys):
+    """Probe (C) as the heal: an IDLE pane already holding the token
+    unsubmitted (the old shape left it there) gets ONE bare Enter -- no
+    second token, no body -- the stranded wake is delivered and the marker
+    stamped. Without it every later send coalesces forever on that pane."""
+    pane = _FixturePane(width=60)
+    pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])      # stranded, wrapped
+    assert pane.submitted == []
+    calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
+    send_mod.send(project, "sanctuary-director", "the body", "kid")
+    assert _typed(calls) == [], "no second token into a pane holding one"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               "agi-rc:sanctuary-director", "Enter"]]
+    assert pane.submitted == [_OLD_TOKEN + "\n"] and pane.input == ""
+    assert "submitted a stranded token" in capsys.readouterr().err
+    assert send_mod._last_nudge_age(project, "sanctuary-director") is not None
+
+
+def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
+                                                     monkeypatch, capsys):
+    """The heal never types into a mid-turn pane: busy wins over stranded."""
+    pane = _FixturePane(busy=True)
+    pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])
+    calls = _fake_tmux_pane(monkeypatch, ["director"], pane, [])
+    send_mod.send(project, "director", "the body", "kid")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
+    assert "nudge: coalesced (pane busy" in capsys.readouterr().err
+
+
+def test_nudge_token_is_short_for_every_seat_name():
+    """< 100 chars for the live seat names and for an absurd one (which
+    falls back to the bare form rather than breaching the cap)."""
+    for seat in ("sanctuary-director", "sanctuary-helper", "belam",
+                 "seat-sanctuary-helper-bd", "x" * 60):
+        token = send_mod._build_nudge_token(seat)
+        assert len(token) < 100, (seat, len(token))
+        assert token.startswith(f"[agi-nudge] unread for {seat}")
+    assert send_mod._build_nudge_token("x" * 60) == \
+        send_mod.NUDGE_TOKEN_BARE_TEMPLATE.format(seat="x" * 60)
 
 
 class _SafeSubprocess:
@@ -120,13 +357,24 @@ def _no_real_tmux(monkeypatch):
 
 
 def test_send_nudges_existing_window(project: Path, monkeypatch):
-    calls = _fake_tmux(monkeypatch, ["director"])
+    sleeps: list = []
+    calls = _fake_tmux(monkeypatch, ["director"], sleeps=sleeps)
     send_mod.send(project, "director", "hello world", "a00-xxxx")
-    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
-    assert nudges, "expected a nudge to the director's tmux window"
-    assert nudges[0][:4] == ["tmux", "send-keys", "-t", "agi-rc:director"]
-    assert nudges[0][4] == "hello world"
-    assert nudges[0][5] == "Enter"
+    nudges = _typed(calls)
+    # residue 3: the plain _fake_tmux tests never pay a real 0.3 s sleep -
+    # the recorded sleep is from the monkeypatched recorder, so the suite
+    # does not wait on the wall clock.
+    assert sleeps == [send_mod._NUDGE_ENTER_DELAY_S], sleeps
+    assert nudges, "expected a wake-token nudge to the director's window"
+    assert nudges[0][:5] == ["tmux", "send-keys", "-l", "-t", "agi-rc:director"]
+    # the typed text is the FIXED wake token, NEVER the message body
+    token = nudges[0][5]
+    assert "hello world" not in token
+    assert token.startswith("[agi-nudge] unread for director:")
+    assert token.endswith("send.py read director")
+    assert "Enter" not in nudges[0], "the Enter is a SEPARATE call"
+    assert _enters(calls) == [["tmux", "send-keys", "-t", "agi-rc:director",
+                               "Enter"]]
     # the inbox contract is unchanged
     assert (project / ".agi" / "sessions" / "inbox" / "director.md").is_file()
 
@@ -134,9 +382,10 @@ def test_send_nudges_existing_window(project: Path, monkeypatch):
 def test_send_dm_nudges_other_party(project: Path, monkeypatch):
     calls = _fake_tmux(monkeypatch, ["adv-alive"])
     send_mod.send_dm(project, "mee", "adv-alive", "psst", "mee")
-    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    nudges = _typed(calls)
     assert nudges
-    assert nudges[0][3] == "agi-rc:adv-alive"
+    assert nudges[0][4] == "agi-rc:adv-alive"
+    assert "psst" not in nudges[0][5]  # token, never the dm body
 
 
 def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
@@ -146,6 +395,203 @@ def test_send_skips_nudge_when_no_window(project: Path, monkeypatch):
     inbox = project / ".agi" / "sessions" / "inbox" / "ephemeral-kid.md"
     assert inbox.is_file()
     assert "fire and forget" in inbox.read_text()
+
+
+def _seats_md(rows):
+    """A config:seats node body for the PARSER `_locally_loaded_rows` uses
+    (the engine's frontmatter loader); rows are YAML mappings, `window` is
+    the tmux @id a seat row carries in production."""
+    import json as _j
+    lines = ["---", "id: config:seats", "type: config", "seats:"]
+    for r in rows:
+        lines.append("  - " + _j.dumps(r))
+    lines.append("---")
+    return "\n".join(lines) + "\n"
+
+
+def test_nudge_addressed_by_row_at_id(project: Path, monkeypatch):
+    """Falsifier (3): a row that carries a window @id must be addressed by
+    @id, never by name — a namesake/predecessor window has a different @id.
+
+    HERMETIC: the fixture row's pid would stat ~/.claude/sessions/<pid>.json
+    on the host, an ambient home-dir read that must not decide this test
+    (fixture-leak). Neutralized: registry status is forced None so the test
+    deterministically falls to the capture-pane fake."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@246", "pid": 424242}]))
+    # NB the fake lists a window that shares the seat NAME but not its @id;
+    # the @id target must win and the name must never be addressed.
+    calls = _fake_tmux(monkeypatch, ["sanctuary-director"])
+    send_mod.send(project, "sanctuary-director", "secret body", "kid")
+    nudges = _typed(calls)
+    assert nudges, "expected a nudge to the seat's @id window"
+    assert nudges[0][4] == "agi-rc:@246", nudges[0][4]
+    assert "sanctuary-director" not in nudges[0][4]
+    assert nudges[0][5].startswith("[agi-nudge]")
+    assert "secret body" not in nudges[0][5]
+    assert _enters(calls)[0][3] == "agi-rc:@246"
+
+
+def test_nudge_coalesces_under_busy_pane(project: Path, monkeypatch):
+    """Falsifier (2): two nudges into a busy pane must yield ZERO typed
+    tokens (no body text, no concatenation) and a `nudge: coalesced` stderr
+    line — a busy Claude Code pane shows `esc to interrupt`."""
+    busy = "...⠋...\nesc to interrupt\n"
+    calls = _fake_tmux(monkeypatch, ["director"], capture_text=busy)
+    send_mod.send(project, "director", "first", "kid")
+    send_mod.send(project, "director", "second", "kid")
+    nudges = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert nudges == [], "busy pane must receive NO typed token"
+    # the wake token is still built but never sent; inbox bytes stay bodies
+    inbox = (project / ".agi" / "sessions" / "inbox" / "director.md")
+    assert "first" in inbox.read_text() and "second" in inbox.read_text()
+
+
+def test_busy_then_idle_fires_token_on_retry(project: Path, monkeypatch,
+                                            capsys):
+    """Falsifier (F1): busy -> idle with NO third send — the idled retry
+    must still fire the wake token once the pane goes idle.
+
+    The pane MUST change state BETWEEN the two sends, so the fake reads a
+    MUTABLE capture source (a list this test rewrites), never a static
+    string — a static capture cannot express the sequence.
+
+    Old behaviour (the defect): the busy send stamped the per-seat marker
+    even though nothing was typed, so the idled retry inside the
+    coalescing window was suppressed by the batch cap — ZERO tokens, the
+    message never woken. Fixed: the marker records only a DELIVERED token,
+    so the idle retry is not suppressed and the token fires.
+
+    HERMETIC: recipient `director` carries no pid, so registry status is
+    None and the capture-pane fake decides busy vs idle deterministically.
+    """
+    # busy pane first, idle (empty capture) on retry
+    captures = ["...⠋...\nesc to interrupt\n", ""]   # busy, then idle
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout="director\n",
+                                               stderr="")
+        if cmd[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(cmd, 0,
+                                               stdout=captures.pop(0),
+                                               stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    send_mod.send(project, "director", "first", "kid")    # pane busy
+    send_mod.send(project, "director", "second", "kid")   # pane now idle
+    nudges = _typed(calls)
+    assert len(nudges) == 1, \
+        f"the idled retry must fire exactly one token, saw {nudges}"
+    assert nudges[0][5].startswith("[agi-nudge]")
+    assert "second" not in nudges[0][5], "token, never the body"
+    err = capsys.readouterr().err
+    assert "nudge: coalesced" in err   # the busy send still reports
+
+
+def test_batch_of_dms_yields_one_token(project: Path, monkeypatch, capsys):
+    """Falsifier (2): at most ONE token per unread batch — two sends in the
+    coalescing window yield a single send-keys, the second absorbed by the
+    per-seat nudge marker."""
+    calls = _fake_tmux(monkeypatch, ["director"])  # idle pane (empty capture)
+    send_mod.send(project, "director", "first", "kid")
+    send_mod.send(project, "director", "second", "kid")
+    nudges = _typed(calls)
+    assert len(nudges) == 1, f"expected exactly one token, saw {nudges}"
+    err = capsys.readouterr().err
+    assert "nudge: coalesced" in err
+
+
+# ── L4.120b residues ──
+
+
+def test_row_window_name_is_refused_and_falls_back_to_listing(project: Path,
+                                                              monkeypatch,
+                                                              capsys):
+    """Residue 1a: a row whose `window` cell is a NAME (not an @id) must be
+    REFUSED as a send-keys target — a name-addressed window the row was
+    supposed to carry as an @id could be a predecessor/namesake — with the
+    reason on stderr and a FALL BACK to the genuinely-listed window NAME.
+    Old bytes used any truthy window cell verbatim and addressed the NAME."""
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "sanctuary-director"}]))   # a NAME, not @id
+    calls = _fake_tmux(monkeypatch, ["sanctuary-director"])
+    send_mod.send(project, "sanctuary-director", "secret body", "kid")
+    nudges = _typed(calls)
+    assert nudges, "the NAME fallback must still nudge the listed window"
+    assert nudges[0][4] == "agi-rc:sanctuary-director", nudges[0][4]
+    assert "not an @id" in capsys.readouterr().err
+
+
+def test_row_at_id_target_used_verbatim_without_listing(project: Path,
+                                                        monkeypatch):
+    """Residue 1b: a row whose `window` cell IS an @id is used verbatim as
+    the target — the name is NEVER looked up — even when no window named like
+    the id is listed."""
+    (project / "nodes" / ".geometry").mkdir(parents=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "sanctuary-director", "role": "director",
+                    "window": "@250"}]))
+    calls = _fake_tmux(monkeypatch, ["director"])   # no "@250" in listing
+    send_mod.send(project, "sanctuary-director", "body", "kid")
+    nudges = _typed(calls)
+    assert nudges and nudges[0][4] == "agi-rc:@250", nudges
+
+
+def test_submitted_token_echo_in_transcript_does_not_coalesce(project: Path,
+                                                              monkeypatch,
+                                                              capsys):
+    """Residue 2a: a SUBMITTED token echoed in the transcript ABOVE the
+    input box must NOT read as stranded — the input line is empty, so the
+    idle nudge fires. Old bytes scanned the WHOLE capture and coalesced
+    forever (false 'token already unsubmitted'); the input-region scan is
+    scoped to the box."""
+    tok = send_mod._build_nudge_token("director")
+    capture = f"\u276f {tok}\n{tok}\n\u276f \n"   # echoed above, empty box
+    calls = _fake_tmux(monkeypatch, ["director"], capture_text=capture)
+    send_mod.send(project, "director", "hello", "kid")
+    nudges = _typed(calls)
+    assert len(nudges) == 1, nudges
+    assert "nudge: coalesced" not in capsys.readouterr().err
+
+
+def test_token_in_input_region_still_reads_unsubmitted():
+    """Residue 2b: the SAME transcript but with the token really in the
+    input box (on/below the last prompt glyph) still reads as 'token already
+    unsubmitted'. Distinguishes the input-region scoping from a naive 'scan
+    nothing' -- the head match returns the reason when (and only when) the
+    token is in the region. (End-to-end, an in-box token takes the probe-(C)
+    heal -- a bare Enter, not a coalesce -- so this is asserted at the unit
+    boundary the residue actually changes.)"""
+    tok = send_mod._build_nudge_token("director")
+    echoed = f"\u276f {tok}\n{tok}\n\u276f \n"      # echoed above, empty
+    inbox = f"\u276f {tok}\n"                         # in-box, unsubmitted
+    assert send_mod._nudge_coalesce_reason(echoed, tok, None) is None
+    assert send_mod._nudge_coalesce_reason(inbox, tok, None) \
+        == "token already unsubmitted"
+
+
+def test_old_spinner_scrolled_up_does_not_read_as_busy(project: Path,
+                                                       monkeypatch, capsys):
+    """Residue 2c: an OLD `esc to interrupt` scrolled UP in the transcript,
+    above an idle input box, must NOT read as busy — the nudge fires. Old
+    bytes scanned the whole capture and coalesced (false 'pane busy
+    (spinner)'); the input-region scan is scoped to the box."""
+    capture = "... older transcript ...\nesc to interrupt\n\u276f \n"
+    calls = _fake_tmux(monkeypatch, ["director"], capture_text=capture)
+    send_mod.send(project, "director", "hello", "kid")
+    nudges = _typed(calls)
+    assert len(nudges) == 1, nudges
+    assert "nudge: coalesced" not in capsys.readouterr().err
 
 
 def test_read_returns_block_once_and_marks_read(project: Path, capsys):

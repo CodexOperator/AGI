@@ -10,7 +10,7 @@ export const meta = {
 const MODEL = (args && args.model) || "sonnet"
 const EFFORT = (args && args.effort) || "medium"
 
-const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}\/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
+const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
 
 const ITEMS = (args && args["questions"]) || []
 

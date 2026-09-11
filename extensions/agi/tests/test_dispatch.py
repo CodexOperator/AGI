@@ -1896,3 +1896,121 @@ def test_stale_base_record_is_structured_with_actions(tmp_path, monkeypatch):
         "synced base, --allow-stale-base <reason>, or an abort")
     assert any("--allow-stale-base" in a.get("cmd", "")
                for a in rec["actions"]), rec
+
+
+# ---------------------------------------------------------------------------
+# Residue 4 — town_branches reader + stale-base guard measured against the
+# round's OWN town integration branch (hypothesis:l4-towns-each-app-is-a-
+# vision-with-its-own-council; owner ruling 01:4xZ).
+# ---------------------------------------------------------------------------
+
+
+def _town_ladder(repo: Path, season: int = 2) -> Path:
+    """Write a ladder with a `town_branches` map into the repo's graph.
+
+    Fixtures write their OWN temp ladder (the live ladder node is READ ONLY).
+    The map value is OPAQUE CONFIG (owner ruling 01:4xZ) — code must never
+    parse the branch name, only compare it by exact equality.
+    """
+    geom = repo / ".agi" / "nodes" / ".geometry"
+    geom.mkdir(parents=True, exist_ok=True)
+    ladder = geom / "ladder.md"
+    ladder.write_text(
+        "---\nid: ladder:ladder\ntype: ladder\n"
+        f"current_season: {season}\n"
+        "town_branches:\n"
+        "  core: season/s2\n"
+        "  streaming-suite: town/streaming-suite@s2\n"
+        "  web-app-suite: town/web-app-suite@s2\n"
+        "---\nbody\n", encoding="utf-8")
+    return ladder
+
+
+def test_town_branch_behind_season_not_stale_against_own_branch(
+        tmp_path):
+    """A town branch behind season/s2 must NOT be reported stale against its
+    OWN integration branch, and the fallback must still measure plain
+    season/s2 exactly as before (residue 4).
+
+    Setup: a repo whose season/s2 is AHEAD of the town branch, so a plain
+    season/s2 measurement reads `behind` while the town's own branch is even
+    with the spawner's HEAD -> `current`. Both facts must hold from ONE repo.
+    """
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    # The town branch is cut from season/s2 TODAY (even).
+    _git(repo, "branch", "town/streaming-suite@s2")
+    # Advance season/s2 past the town branch so plain-s2 reads stale.
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "ahead of town")
+    # A bare origin holding both branches, season/s2 at its NEW tip and the
+    # town branch at the OLD (even) commit, so the stale guard has a real
+    # remote tip to measure against (fetch beats a local ref's last sight).
+    bare = tmp_path / "remote.git"
+    _git(repo, "clone", "--bare", ".", str(bare))
+
+    def _bare(*args):
+        return subprocess.run(["git", "-C", str(bare), *args],
+                              capture_output=True, text=True, check=True)
+
+    # origin/season/s2 = new tip; origin/town/... = the even commit.
+    _bare("branch", "-f", "season/s2", "season/s2")
+    town_tip = _git(repo, "rev-parse", "town/streaming-suite@s2").stdout.strip()
+    _bare("branch", "-f", "town/streaming-suite@s2", town_tip)
+    _bare("symbolic-ref", "HEAD", "refs/heads/season/s2")
+    # Point the local repo's origin at the bare, and fetch both refs locally
+    # so the stale guard's `git fetch origin <ref>` resolves against it.
+    _git(repo, "remote", "add", "origin", str(bare))
+    _git(repo, "fetch", "origin", "season/s2")
+    _git(repo, "fetch", "origin", "town/streaming-suite@s2")
+
+    # Spawner sits on the town branch (its own integration line).
+    _git(repo, "checkout", "town/streaming-suite@s2")
+    assert _git(repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip() \
+        == "town/streaming-suite@s2"
+
+    # Measured against ITS OWN town branch: even -> current, never stale.
+    out = dispatch._stale_base_spawn(repo, season=2,
+                                     town_branch="town/streaming-suite@s2")
+    assert out["status"] == "current", (
+        "a town branch even with its own integration line must not read "
+        f"stale, however far season/s2 has run ahead: {out}")
+
+    # The same HEAD measured against the FALLBACK (no town branch): the plain
+    # season/s2 base is 1 behind -> the plain-s2 behaviour is unchanged.
+    fallback = dispatch._stale_base_spawn(repo, season=2)
+    assert fallback["status"] == "behind", fallback
+    assert fallback["behind"] == 1, fallback
+    rec = dispatch._stale_base_record(fallback, season=2)
+    assert rec["integration"] == "season/s2", rec
+    # The town-path record names the town branch, and its sync target too.
+    trec = dispatch._stale_base_record(out, season=2,
+                                       town_branch="town/streaming-suite@s2")
+    assert trec["integration"] == "town/streaming-suite@s2", trec
+    assert any("town/streaming-suite@s2" in a.get("cmd", "")
+               for a in trec["actions"]), trec
+
+
+def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
+    """The branch -> town reverse lookup and town -> branch resolver never
+    parse the opaque value; only exact string equality maps either way."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+
+    from dispatch import _current_town_branch
+
+    nodes = repo / ".agi" / "nodes"
+    # On the town branch HEAD resolves to the town's integration branch.
+    _git(repo, "branch", "town/streaming-suite@s2")
+    _git(repo, "checkout", "town/streaming-suite@s2")
+    assert _current_town_branch(repo, nodes) == "town/streaming-suite@s2"
+    # On plain season/s2 (core's own branch, per the test ladder) the resolved
+    # town branch IS season/s2 — identical refs to the fallback, so the plain
+    # base behaves exactly as today.
+    _git(repo, "checkout", "season/s2")
+    assert _current_town_branch(repo, nodes) == "season/s2"
+    # A branch listed in NO town's opaque map (a seat/loop branch) maps to
+    # None -> the guard keeps the plain season/s2 base, byte-for-byte.
+    _git(repo, "checkout", "-b", "loop/slug-aaaa@s2")
+    assert _current_town_branch(repo, nodes) is None

@@ -470,6 +470,35 @@ def goals_path(root: Path, config: dict | None = None) -> Path:
     return repo_root(root) / p.name
 
 
+#: Where the streamer stub CLI lives when the project config does not say.
+#: `~/` is expanded at resolve time; a project may override via
+#: `locations.streamer_stub` in its config. Knit from the `sb-status`/`brb`/
+#: `back`/`panic` stream command group (`command:commands`), whose argv is
+#: `<stub>/<subcommand>`.
+DEFAULT_STREAMER_STUB = "~/work/streamer-stub"
+
+
+def streamer_stub(root: Path, config: dict | None = None) -> Path:
+    """The streamer stub's directory, as an absolute path. One definition.
+
+    Read from the graph config's `locations.streamer_stub` (a dot-path inside
+    the `locations` object, `~`/env-expanded), falling back to
+    `~/work/streamer-stub` when unset. Expanded `~` and env vars so a declared
+    path may be spelled `~/work/streamer-stub`; absolute is used as-is,
+    relative resolves against the graph root, matching `source_root`.
+
+    One definition means `commands.py` calls here and nowhere else -- the
+    `<stub>` token in the stream group's argv resolves to exactly one path.
+    """
+    root = Path(root).resolve()
+    cfg = load_config(root) if config is None else config
+    declared = (cfg.get("locations") or {}).get("streamer_stub")
+    if isinstance(declared, str) and declared.strip():
+        p = Path(declared.strip()).expanduser()
+        return p.resolve() if p.is_absolute() else (root / p).resolve()
+    return Path(DEFAULT_STREAMER_STUB).expanduser().resolve()
+
+
 # --- iterations ------------------------------------------------------------
 #
 # `hypothesis:loop-scoped-iteration-ids-cannot-clobber` (goal:g7). Every entry
