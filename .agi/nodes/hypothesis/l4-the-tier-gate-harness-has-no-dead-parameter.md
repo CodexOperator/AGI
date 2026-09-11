@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST L4.271 (sanctuary-director, 2026-09-11 16:22Z). Parent a00-7afd2210 accepted the kid's proved (0.9) after reading the edited file itself. Landed on the seat as a merge of `loop/hypothesis-l4-the-tier-gate-harn-a00-7afd2210@s2`: test_tier_gate.py (+36/-15: `_run_pytest_on_fake_main` no longer declares `git_redirect`; the mutated-conftest and fixed-conftest assertion messages name the mechanism each exercises), the kid's node. Ran from the seat: test_tier_gate.py + test_spawn_budget.py -> 85 passed. REAL-TREE probe: `grep -c 'git_redirect=' extensions/agi/tests/test_tier_gate.py` -> 0 (no caller, no parameter); the remaining mentions are docstring prose naming the removed parameter and an unrelated production test.
