@@ -1518,6 +1518,36 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     if seat is not None:
+        # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
+        # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
+        # seat-and-no-season-literal-remains): the seat row's pid is still
+        # running, or a live tmux window is already up for the seat. The
+        # liveness read is the SAME one the autopsy block uses — the row pid
+        # via `_pid_gone` AND `_successor_window_id` for the live window —
+        # never a second derivation, so the gate and the autopsy agree.
+        _alive_note = None
+        if root is not None:
+            _gpid = (_find_seat(root, seat) or {}).get("pid")
+            if _gpid is not None:
+                # the row names a predecessor pid: the seat is ALIVE iff the
+                # pid is still running, or a live window is up for the seat
+                # (test_rotate.py test_spawn_first_seating... proves a seat
+                # with NO row pid — a genuine first seating — is never gated).
+                try:
+                    if not _pid_gone(int(_gpid)):
+                        _alive_note = f"pid {_gpid}"
+                    else:
+                        _lwid = _successor_window_id(
+                            seat, tmux_session, args.window_path)
+                        if _lwid is not None:
+                            _alive_note = f"window {_lwid}"
+                except (TypeError, ValueError):
+                    _alive_note = None
+        if _alive_note is not None:
+            print(f"ERR: seat {seat!r} is alive ({_alive_note}); refusing "
+                  f"spawn — the seat is already up (goal:g15.21)",
+                  file=sys.stderr)
+            return 1
         if root is None:
             # goal:g15.17 (a): a caller that OWNS a seat but stands OUTSIDE
             # any project root cannot compose a role template (no
@@ -3819,13 +3849,21 @@ def _reaper_lines_for(pid: int, sources: list[tuple[str, Path | None]]) -> list[
     return out
 
 
-def _seating_worktree_lines(root: Path, season: str = "origin/season/s2") -> list[str]:
+def _seating_worktree_lines(root: Path, season: str | None = None) -> list[str]:
     """The three worktree-state facts read for BOTH every `[seating]` block and
     the autopsy — one helper, two callers (cmd_spawn tags the line `[seating]`,
     the autopsy re-tags it `{AUTOPSY_TAG}`). Reads only: `behind N` (rev-list
     count), `unresolved merge: yes|no` (`MERGE_HEAD` present), `dirty: <n>
     paths` (porcelain, cron churn excluded exactly as `_prepare_churn_path`
-    does). Returns a single rendered line carrying all three facts."""
+    does). Returns a single rendered line carrying all three facts. The season
+    is never a literal: the default resolves through `season_branch(root)` at
+    call time and is addressed as the remote ref `origin/{season}` (the same
+    shape every other season reader in rotate.py uses), so a season change is
+    ONLY the ladder's `current_season` (hypothesis:l4-the-prepare-captives-
+    measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam)."""
+    if season is None:
+        season = season_branch(root)
+    season = f"origin/{season}"
     behind = _git_count_maybe(root, "rev-list", "--count", f"HEAD..{season}")
     merge_head = _git_maybe(root, "rev-parse", "-q", "--verify", "MERGE_HEAD")
     unresolved = bool(merge_head)
@@ -3865,11 +3903,14 @@ def _compose_seating_base_block(*, seat: str, source: str, now: str,
 
 
 def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
-                 root: Path, season: str = "origin/season/s2") -> list[str]:
+                 root: Path, season: str | None = None) -> list[str]:
     """Render the full autopsy block for a predecessor `pid` of `seat`. Prints
     FROM FILES ONLY and runs read-only commands only. Returns the `[autopsy]`
     lines (the caller may tag them into the `[seating]` block or print them as
-    `rotate.py autopsy`)."""
+    `rotate.py autopsy`). The worktree season default resolves through
+    `season_branch(root)` — never a hardcoded season literal."""
+    if season is None:
+        season = season_branch(root)
     lines: list[str] = []
     data = _registry_read(registry_dir, pid)
     alive = not _pid_gone(pid)
