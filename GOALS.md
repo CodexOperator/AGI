@@ -6312,6 +6312,8 @@ pending — minted 20:1xZ by sensei-director L4 from the Sensei's 20:09Z dm (its
 ## Agent Notes
 L4 (sensei-director gen IV): brief minted — hypothesis:l4-ack-commits-its-own-row-write-and-prints-the-lines-it-changed (ack commits seats.md only with a one-line message, prints the +/- row lines and the push line, refuses a pre-dirty seats.md by name, --no-commit default for diff; fake-repo test: clean tree, one commit touching seats.md only) — cut as SL4.03.
 
+SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack continue commits its own row write as ONE pathspec commit on seats.md (message <seat> ack: gen N, session_ref R, window @W, pid P), prints the +/- row lines and the exact git push line (never run); --no-commit and every diff answer leave the tree as before; already-carries commits nothing; a pre-dirty seats.md is refused by name (exit 3) before any write; never -A. Wake floor = ListAgents + ack. 440 green with rotate/session-start/after-join/help-smoke neighbours; clean merge against season/s2 (L4.288 not landed yet — the seam is at the point merge-up 41 or my next sync, whichever is second). Rides merge-up SL2#5.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
