@@ -3180,7 +3180,9 @@ def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
 
 def _reap_belam_oldest(*, tmux_session: str, oldest: str,
                        window_path: str | None = None,
-                       pids: list[int] | None = None) -> dict:
+                       pids: list[int] | None = None,
+                       s12_reap: dict | None = None,
+                       record_path: Path | None = None) -> dict:
     """r5 — reap the OLDEST Belam predecessor by PID when the chain would
     exceed FIVE (FIFO per the owner: 'rotation reaps from the wrong end, filo
     not fifo').
@@ -3192,27 +3194,50 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     ITS window is killed BY @id (`_kill_window`). The record carries
     {oldest, window_id, pids, reaped, ps_after}.
 
+    L4.150: the belam-cap record entry is written PLANNED-FIRST —
+    `{planned: True, oldest, window_id, pids, chain}` lands in
+    `s12_self_reap.belam_reap` BEFORE the first TERM, then updated
+    best-effort with `reaped`/`ps_after`/`order` after — the same (e) shape
+    `_record_s12_self_reap` uses for the own chain, so an interrupted cap
+    reap (rotate.py dying between a TERM and the post-reap write) keeps its
+    planned evidence. `s12_reap` + `record_path` are the evidence sink;
+    best-effort, never raises.
+
     ALL of it lives behind THIS ONE function so hypothesis:l4-the-pin-is-the-
     lease can swap in the belam.pred-1..5 pin rule later (do not build the
     lease here). `pids` is the test seam (stand-in pids); production derives
     the chain from the oldest window's pane pid. Never raises; a chain it
     cannot derive records SKIPPED naming the missing input."""
     oldest_id = _successor_window_id(oldest, tmux_session, window_path)
+    _write_belam_planned = (lambda e: (
+        s12_reap.__setitem__("belam_reap", e)
+        if s12_reap is not None else None,
+        _record_s12_self_reap(record_path, s12_reap)
+        if s12_reap is not None else None))
     if not pids:
         pane_pid = _pane_pid(oldest_id) if oldest_id else None
         if not pane_pid:
-            return {"oldest": oldest, "window_id": oldest_id, "pids": [],
-                    "reaped": False, "ps_after": [],
-                    "skipped": ("SKIPPED: no pane pid for the oldest window "
-                                 f"{oldest!r} (@id {oldest_id}); the Belam "
-                                 "FIFO cap could not derive its chain")}
+            e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
+                 "reaped": False, "ps_after": [],
+                 "skipped": ("SKIPPED: no pane pid for the oldest window "
+                              f"{oldest!r} (@id {oldest_id}); the Belam "
+                              "FIFO cap could not derive its chain")}
+            _write_belam_planned(e)
+            return e
         pids = _descendant_chain(pane_pid)
         if not pids:
-            return {"oldest": oldest, "window_id": oldest_id, "pids": [],
-                    "reaped": False, "ps_after": [], "pane_pid": pane_pid,
-                    "skipped": ("SKIPPED: no chain under pane pid "
-                                 f"{pane_pid} for the oldest window "
-                                 f"{oldest!r}; nothing to reap")}
+            e = {"oldest": oldest, "window_id": oldest_id, "pids": [],
+                 "reaped": False, "ps_after": [], "pane_pid": pane_pid,
+                 "skipped": ("SKIPPED: no chain under pane pid "
+                              f"{pane_pid} for the oldest window "
+                              f"{oldest!r}; nothing to reap")}
+            _write_belam_planned(e)
+            return e
+    # (e) the PLANNED belam-cap entry — written BEFORE the first TERM, so an
+    #     interrupted reap keeps its planned evidence.
+    _write_belam_planned({"planned": True, "oldest": oldest,
+                          "window_id": oldest_id, "pids": pids,
+                          "chain": pids})
     observed = _reap_chain(pids)
     reaped = bool(observed["chain"]) and all(
         (not p["was_alive"]) or p["gone_after"]
@@ -3221,10 +3246,16 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     # `belam-S1-L4-I.genN` parses the dot as window.pane and a bare name can
     # resolve to the SUCCESSOR).
     _kill_window(oldest, tmux_session, window_path, window_id=oldest_id)
-    return {"oldest": oldest, "window_id": oldest_id, "pids": pids,
-            "reaped": reaped, "order": observed["order"],
-            "ps_after": [_short_ps(p) for p in pids],
-            "chain": observed["chain"]}
+    entry = {"oldest": oldest, "window_id": oldest_id, "pids": pids,
+             "reaped": reaped, "order": observed["order"],
+             "ps_after": [_short_ps(p) for p in pids],
+             "chain": observed["chain"]}
+    # best-effort update of the planned belam-cap entry with the observations
+    # after (never raises — the reap, not the bookkeeping, is load-bearing).
+    if s12_reap is not None:
+        s12_reap["belam_reap"] = entry
+        _record_s12_self_reap(record_path, s12_reap)
+    return entry
 
 
 # ---- L4.114 THE JOIN: successor identity from the per-session registry ----
@@ -5014,14 +5045,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         belam_reap = _reap_belam_oldest(
             tmux_session=tmux_session, oldest=oldest_to_reap,
             window_path=args.window_path,
-            pids=getattr(args, "belam_pids", None))
-        s12_reap["belam_reap"] = {
-            "oldest": oldest_to_reap,
-            "window_id": belam_reap.get("window_id"),
-            "pids": belam_reap.get("pids"),
-            "chain": belam_reap.get("chain"),
-            "reaped": belam_reap.get("reaped"),
-            "ps_after": belam_reap.get("ps_after")}
+            pids=getattr(args, "belam_pids", None),
+            s12_reap=s12_reap, record_path=record_path)
+        # L4.150: the planned belam-cap entry was already written (inside
+        # _reap_belam_oldest) BEFORE the first TERM; the observed entry is
+        # now folded into s12_reap best-effort as well.
         _record_s12_self_reap(record_path, s12_reap)
 
     if is_chain_seat:
