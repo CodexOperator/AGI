@@ -21,6 +21,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -88,6 +89,13 @@ def _crash_records(graph: Path, seat: str) -> list[Path]:
             if _rotations(graph).exists() else [])
 
 
+def _write_record(graph: Path, seat: str, rec: dict, stamp: str) -> Path:
+    p = _rotations(graph) / f"{seat}.{stamp}.json"
+    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    return p
+
+
+
 def _scan(graph: Path, *, launcher, dead: bool = True,
           window_names=("", ""), windows_file: str | None = None) -> list[dict]:
     """One seat-dead scan with a poked process table, a fake window list and an
@@ -100,8 +108,9 @@ def _scan(graph: Path, *, launcher, dead: bool = True,
 
 
 def _working_launcher(records: list, pid: int = 515151, window: str = "@777"):
-    def launch(root, name, shell_cmd, window_path=None):
-        records.append({"name": name, "pid": pid, "window": window})
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        records.append({"name": name, "pid": pid, "window": window,
+                        "cwd": str(cwd)})
         return pid, window
     return launch
 
@@ -316,24 +325,88 @@ def test_crash_loop_is_named_not_respawned(graph):
 
 def test_chain_seat_successor_is_next_numeral(graph):
     """A prime_director (belam) chain seat is respawned through the Nth-
-    numeral naming rule, never the plain seat name: with no live belam window
-    left (the dead prime took it with it), the successor is `belam-II` and its
-    generation IS the numeral."""
+    numeral naming rule, never the plain seat name. The NUMERAL is driven by
+    the registry row's `generation` (max with the latest record's `gen_after`,
+    +1) -- NEVER inferred from open window names (prime XI 19:38Z: a name is
+    not an address). Row generation 2 with no window and no record left -> the
+    successor is `belam-III` at generation 3 (the dead prime took its own
+    `belam-II` window with it, so the row is the only oracle).
+
+    ``_derive_successor_name``'s OLD window inference, seeing NO open belam
+    window, guessed `belam-II`/gen 2 regardless of the row and would have
+    respawned the successor at gen 2 -- the same generation the row says the
+    seat already died at. That collision is the bug this fixes."""
     _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@50",
                           "role": "prime_director", "generation": 2}])
     launch_recs: list = []
     acted = _scan(graph, launcher=_working_launcher(launch_recs, window="@777"),
                   window_names=("", "@99 other"))
     assert len(acted) == 1 and acted[0]["respawned"] is True
-    assert launch_recs[0]["name"] == "belam-II", \
-        "a chain seat is respawned under the numeral chain, not its plain name"
+    assert launch_recs[0]["name"] == "belam-III", \
+        "the successor numeral is max(row generation)+1, never window-inferred"
     rec = _crash_record(graph, "belam")
     assert rec["result"] == "respawned"
-    assert rec["respawn_outcome"]["name"] == "belam-II"
-    assert rec["respawn_outcome"]["generation"] == 2, \
+    assert rec["respawn_outcome"]["name"] == "belam-III"
+    assert rec["respawn_outcome"]["generation"] == 3, \
         "the chain seat's generation IS its numeral line value"
     row = _row(graph, "belam")
     assert row["window"] == "@777"
+
+
+def test_chain_successor_base_and_numeral_from_latest_record(graph):
+    """A chain seat's successor BASE and NUMERAL both come from the latest
+    rotation/crash-recovery record, not from open windows: a crash-recovery
+    record that already respawned the seat at `belam-S1-L4-V` (gen_after 5)
+    flexes the NEXT successor to `belam-S1-L4-VI` at generation 6 -- the base
+    (`belam-S1-L4`) is carried by the record's successor name so a reaped
+    window name can never corrupt the chain label."""
+    _write_record(graph, "belam", {
+        "rotation": "crash-recovery", "result": "respawned",
+        "succ_name": "belam-S1-L4-V", "gen_after": 5,
+        "recorded_at": "2026-09-11T00:00:00.000000Z"},
+        stamp="20260911T000000Z")
+    _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@50",
+                          "role": "prime_director", "generation": 5}])
+    launch_recs: list = []
+    acted = _scan(graph, launcher=_working_launcher(launch_recs, window="@778"),
+                  window_names=("", "@99 other"))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    assert launch_recs[0]["name"] == "belam-S1-L4-VI"
+    rec = json.loads(_crash_records(graph, "belam")[-1].read_text())
+    assert rec["respawn_outcome"]["generation"] == 6
+
+
+def test_chain_successor_base_from_rotate_self_record_handover(graph):
+    """The chain base can also come from a rotate-self `success` record's
+    `handover.successor_window.name` (no crash-recovery record yet): the
+    generator of the base is the same `_latest_rotate_record` both read.
+    With the row still at gen 1 (a fresh prime that later crashed), the
+    successor is the next numeral on the recorded line base."""
+    _write_record(graph, "belam", {
+        "rotation": "rotate-self", "result": "success", "gen_after": 1,
+        "handover": {"successor_window": {"name": "belam-S1-L4-I",
+                                            "id": "@300"}},
+        "recorded_at": "2026-09-11T00:00:00.000000Z"},
+        stamp="20260911T000100Z")
+    _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@50",
+                          "role": "prime_director", "generation": 1}])
+    launch_recs: list = []
+    acted = _scan(graph, launcher=_working_launcher(launch_recs, window="@779"),
+                  window_names=("", "@99 other"))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    assert launch_recs[0]["name"] == "belam-S1-L4-II"
+
+
+def test_chain_successor_collision_still_refuses_an_open_window(graph):
+    """Open window names are consulted ONLY for the collision refusal: if the
+    (row/record-derived) successor window already exists, the recovery is
+    refused and the seat stays dead rather than double-spawning."""
+    _write_seats(graph, [{"name": "belam", "pid": 424242, "window": "@50",
+                          "role": "prime_director", "generation": 2}])
+    acted = _scan(graph, launcher=_working_launcher([], window="@777"),
+                  window_names=("belam-III", "@99 other"))
+    assert len(acted) == 1 and acted[0]["respawned"] is False
+    assert "already exists" in acted[0]["outcome"]["reason"]
 
 
 def test_chain_corpse_behind_predecessor_window_is_respawned(graph):
@@ -401,3 +474,219 @@ def test_alive_seat_untouched_no_row_no_dm(graph):
     assert _crash_records(graph, "seat-a") == []
     assert _inbox(graph, "p") == "" and _inbox(graph, "master-sensei") == ""
     assert _row(graph, "seat-a").get("generation") == 5, "row untouched"
+
+# --- L4.292 kid 1: the crash-recovery record drives the service's after_join
+#     (1a widening + gen_after/profile keys + dm note)
+
+
+def test_crash_recovery_record_carries_after_join_profile(graph):
+    """The respawned crash-recovery record carries the rotate-self profile
+    keys the after_join template's service reads: `gen_after` (the one
+    `_latest_rotate_record`/`run_after_join_for_seat` bind the generation
+    against), plus the named placeholders `succ_name`, `gen`, `pin_ref`
+    (empty: the pin is service-owed), `tmux_session`, `window_id`,
+    `pred_pids` = the dead pid, and `recorded_at`."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242, "window": "@50",
+                          "role": "director"}])
+    acted = _scan(graph, launcher=_working_launcher([], pid=515151,
+                                                     window="@777"),
+                  window_names=("", "@1 other"))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    rec = _crash_record(graph, "seat-a")
+    assert rec["gen_after"] == rec["gen"], "gen_after present = the successor gen"
+    assert rec["gen_after"] is not None
+    assert rec["succ_name"] == "seat-a"
+    assert rec["pred_pids"] == [424242], "dead pid is the predecessor pid list"
+    assert rec["pin_ref"] == "", "the recovery itself pins nothing (service-owed)"
+    assert rec["tmux_session"], "a real tmux session name"
+    assert rec["window_id"]
+    assert rec["recorded_at"]
+
+
+def test_latest_rotate_record_picks_up_crash_recovery_respawned(graph):
+    """The one-line widening: a `crash-recovery` `result: respawned` record is
+    discoverable by `_latest_rotate_record`, so the service performs the
+    recovered seat's after_join (join -> pin -> pending ack) exactly as for a
+    rotated one. A crash-recovery `result: detected` record is NOT (a spawn
+    did not land -> nothing to bind)."""
+    import rotate as _rotate
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    # respawned -> found
+    p = _rotations(graph) / f"seat-a.{stamp}.json"
+    p.write_text(json.dumps({"rotation": "crash-recovery", "seat": "seat-a",
+                             "result": "respawned", "gen_after": 4}), encoding="utf-8")
+    pair = _rotate._latest_rotate_record(graph, "seat-a")
+    assert pair is not None and pair[0]["result"] == "respawned", \
+        "the widening accepts crash-recovery respawned"
+    # detected -> not found (no spawn landed, nothing to bind)
+    p.write_text(json.dumps({"rotation": "crash-recovery", "seat": "seat-a",
+                             "result": "detected"}), encoding="utf-8")
+    assert _rotate._latest_rotate_record(graph, "seat-a") is None, \
+        "a detected-only crash-recovery record binds nothing"
+
+
+def test_after_join_service_performs_recovered_seats_join_pin_ack(graph):
+    """End to end on the fixture root: a respawned crash-recovery record drives
+    `run_after_join_for_seat` to perform the seat's `after_join` list with the
+    record's `gen_after` as the generation and the record as the #record_path
+    (so join -> pin -> pending ack run and land in the record), exactly as a
+    rotate-self record would."""
+    import rotate as _rotate
+    d = _rotations(graph)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    rec_path = d / f"seat-a.{stamp}.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "crash-recovery", "seat": "seat-a", "result": "respawned",
+        "gen_after": 8,
+        "recorded_at": "2020-01-01T00:00:00Z",
+    }), encoding="utf-8")
+    orig_find = _rotate._find_seat
+    orig_tmpl = _rotate._resolve_template
+    orig_ftv = _rotate._first_turn_values
+    orig_run = _rotate.run_after_join
+    got = {}
+    try:
+        _rotate._find_seat = lambda root, name: {"role": "director"}
+        _rotate._resolve_template = lambda root, role: (
+            {"startup": {"after_join": [
+                {"label": "join", "cmd": "echo join"},
+                {"label": "pin", "cmd": "echo pin"},
+                {"label": "ack", "cmd": "echo ack"}]}}, "director", "test")
+        _rotate._first_turn_values = lambda *a, **k: {
+            "seat": "seat-a", "succ_ref": "", "succ_name": "seat-a",
+            "succ_transcript": "", "pin_ref": "", "gen": "8",
+            "prime_ref": "", "worktree": "", "repo": str(graph),
+            "tmux_session": "agi-rc", "pred_pids": "424242"}
+        def fake_run(*a, **kw):
+            got["startup"] = kw.get("startup")
+            got["gen"] = kw.get("gen")
+            got["record_path"] = kw.get("record_path")
+            got["seat"] = kw.get("seat")
+            return {"appended": True}
+        _rotate.run_after_join = fake_run
+        out = _rotate.run_after_join_for_seat(graph, "seat-a")
+        assert out is not None
+        assert got.get("gen") == 8, "the recovered seat's generation = gen_after"
+        assert str(got["record_path"]) == str(rec_path), \
+            "the after_join writes back into the crash-recovery record"
+        labels = [e.get("label") for e in
+                  (got["startup"].get("after_join") or [])]
+        assert labels == ["join", "pin", "ack"]
+    finally:
+        _rotate._find_seat = orig_find
+        _rotate._resolve_template = orig_tmpl
+        _rotate._first_turn_values = orig_ftv
+        _rotate.run_after_join = orig_run
+
+
+# --- L4.292 kid 2 (3)+(4): the seat tree + ONE writer, verified on a real
+#     linked git worktree ------------------------------------------------
+
+
+def _git(path: Path, *args: str) -> str:
+    res = subprocess.run(["git", *args], cwd=path, capture_output=True,
+                         text=True)
+    if res.returncode != 0:
+        raise RuntimeError(f"git {args}: {res.stderr}")
+    return res.stdout.strip()
+
+
+def _git_init(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    _git(path, "init", "-q", "-b", "master")
+    _git(path, "config", "user.email", "test@example.com")
+    _git(path, "config", "user.name", "test")
+    (path / ".keep").write_text("x")
+    _git(path, "add", ".")
+    _git(path, "commit", "-q", "-m", "init")
+
+
+def _git_repo_with_worktree(tmp_path: Path) -> tuple[Path, Path]:
+    """A real linked git worktree: `main` is the common root, `wt` sits at
+    `<main>/.agi/worktrees/seat-wt` — the exact shape a seat worktree takes
+    (the launch cwd must resolve there through git_common_root, never the
+    graph dir)."""
+    main = tmp_path / "main"
+    _git_init(main)
+    wt_dir = main / ".agi" / "worktrees" / "seat-wt"
+    _git(main, "worktree", "add", "-q", str(wt_dir), "-b", "season/s2")
+    return main, wt_dir
+
+
+def test_seat_tree_dir_worktree_resolves_to_linked_worktree(tmp_path):
+    """`_seat_tree_dir` for a worktree seat = MAIN's repo root joined with the
+    row's `worktree` cell (`.`-prefixed `.agi/worktrees/seat-wt`), resolved
+    through `git_common_root` — the linked worktree's repo root, NEVER the
+    graph dir. Empty cell -> MAIN's repo root itself."""
+    main, wt_dir = _git_repo_with_worktree(tmp_path)
+    graph = main / ".agi"
+    (graph / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    seat_tree = heal._seat_tree_dir(graph, {"worktree": ".agi/worktrees/seat-wt"})
+    assert seat_tree == wt_dir, (f"got {seat_tree}, want the linked worktree "
+                                 f"{wt_dir}")
+    main_tree = heal._seat_tree_dir(graph, {"worktree": ""})
+    assert main_tree == main, "empty worktree cell -> MAIN's repo root"
+
+
+def test_launch_recovered_cds_into_seat_tree(tmp_path, monkeypatch):
+    """The real `_launch_recovered` builds its tmux new-window line with
+    `cd <seat tree> && <shell_cmd>` — the seat tree (never the graph dir)."""
+    main, wt_dir = _git_repo_with_worktree(tmp_path)
+    graph = main / ".agi"
+    captured: list = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(list(cmd))
+        return type("R", (), {"returncode": 0, "stdout": "@123\n",
+                              "stderr": ""})()
+
+    monkeypatch.setattr(heal.subprocess, "run", fake_run)
+    pid, wid = heal._launch_recovered(
+        graph, "seat-wt", "echo successor", cwd=wt_dir)
+    assert wid == "@123"
+    assert len(captured) == 1, "one tmux new-window launch"
+    tmux_rgx = captured[0]
+    assert tmux_rgx[-1].startswith(f"cd {wt_dir} && "), tmux_rgx[-1]
+    assert "cd " + str(graph) + " " not in tmux_rgx[-1], \
+        "the launch never cds into the graph dir"
+
+
+def test_worktree_seat_recovery_launches_in_and_writes_main_only(graph, tmp_path,
+                                                                 monkeypatch):
+    """A fixture MAIN + linked worktree end-to-end: a dead worktree seat is
+    respawned with the fake launcher receiving cwd = the seat's OWN worktree
+    repo root, and the row's identity cells land in MAIN's seats.md — the SAME
+    file `_live_seat_row` reads them from — while the worktree's copy is never
+    written (it still carries the pre-recovery identity)."""
+    main, wt_dir = _git_repo_with_worktree(tmp_path)
+    gdir = main / ".agi"
+    (gdir / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    # MAIN's seats.md: the (dead, superceded) identity.
+    _write_seats(gdir, [{"name": "wt", "pid": 424242, "window": "@50",
+                         "generation": 2,
+                         "worktree": ".agi/worktrees/seat-wt"}])
+    # the worktree's OWN copy: a DIFFERENT (dead) pid so detection reads the
+    # worktree row live-first, and a STALE generation that must NOT be the one
+    # the successor row writes into MAIN.
+    (wt_dir / ".agi" / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (wt_dir / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\nseats:\n"
+        "  - " + json.dumps({"name": "wt", "pid": 987654, "window": "@50",
+                             "generation": 2,
+                             "worktree": ".agi/worktrees/seat-wt"}) + "\n"
+        "---\n")
+    wf = gdir / "windows.txt"
+    wf.write_text("", encoding="utf-8")
+    launch_recs: list = []
+    acted = heal._watch_seats(
+        gdir, pid_alive=(lambda pid: False), window_path=str(wf),
+        launcher=_working_launcher(launch_recs, window="@777"))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    assert launch_recs[0]["cwd"] == str(wt_dir), \
+        "the recovered successor launches inside its own seat worktree"
+    main_row = _row(gdir, "wt")
+    assert main_row["generation"] == 3, "MAIN row generation advanced to 3"
+    assert main_row["window"] == "@777"
+    wt_copy = _row(wt_dir / ".agi", "wt")
+    assert wt_copy["pid"] == 987654 and wt_copy.get("window") == "@50", \
+        "the worktree seats.md copy was never written (still pre-recovery)"

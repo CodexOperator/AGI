@@ -1508,17 +1508,44 @@ def _read_seat_log_tail(root: Path, row: dict, _rotate,
 RECOVER_LAUNCHER_ENV = "AGI_RECOVER_LAUNCHER"
 
 
+def _seat_tree_dir(root: Path, row: dict) -> Path:
+    """The repo root a recovered seat must cd-launch inside: the MAIN
+    checkout's repo root (`locations.git_common_root`, never the graph dir)
+    joined with the row's `worktree` cell -- empty cell => MAIN's repo root
+    itself (hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-
+    human, (3)). A worktree seat's cell is stored relative to MAIN's repo root
+    (e.g. `.agi/worktrees/seat-wt`), so joining them names the seat's OWN
+    worktree repo root; a main-checkout seat launches from MAIN. `root` is the
+    graph root; `locations.git_common_root` rebases a linked-worktree or graph-
+    dir caller onto MAIN (a path with no enclosing repo resolves to itself,
+    which is exactly the fixture's standalone graph)."""
+    base = locations.git_common_root(Path(root))
+    base = base if base is not None else Path(root)
+    wt = (row.get("worktree") or "").strip()
+    if not wt:
+        return base
+    return base / wt
+
+
 def _launch_recovered(root: Path, name: str, shell_cmd: str,
-                      window_path: str | None = None) -> tuple[int | None, str]:
+                      window_path: str | None = None,
+                      cwd: Path | str | None = None) -> tuple[int | None, str]:
     """Real tmux new-window launch of a recovered successor (mirrors
     rotate._launch_window's shape; the PID is not derivable from tmux, so the
     successor ack resolves its own identity/ref). Returns `(pid, window @id)`:
     pid is `None` when launched-but-unknown (row skips pid), `0` when the
     spawn FAILED (the recover records `detected` and the next pass retries).
-    Never raises into the watch pass."""
+    Never raises into the watch pass.
+
+    Launches inside the seat TREE (`cwd`, else `_seat_tree_dir` on an empty
+    row): MAIN's repo root for a main-checkout seat, the seat's own worktree
+    repo root for a worktree seat -- NEVER the graph dir (`cd .agi`), so the
+    successor wakes already standing in the tree it edits (hypothesis:l4-a-
+    dead-seat-is-recovered-by-the-loop-not-by-a-human, (3))."""
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
     tmux_session = _rotate.DEFAULT_TMUX_SESSION
-    launch_cmd = f"cd {shlex.quote(str(root))} && {shell_cmd}"
+    tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
+    launch_cmd = f"cd {shlex.quote(str(tree))} && {shell_cmd}"
     try:
         proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name,
@@ -1584,7 +1611,8 @@ def _dm_crash_recovery(root: Path, row: dict, old_pid: int, cause: str,
     wid = f"@{window_id}" if window_id and not str(window_id).startswith("@") \
         else (str(window_id or "-"))
     body = (f"[crash-recovery] {seat} pid {old_pid} dead at {ts} "
-            f"({cause}); respawned {name} gen {gen} @id {wid}")
+            f"({cause}); respawned {name} gen {gen} @id {wid}; "
+            f"after_join: service-owed")
     try:
         import send as _send  # noqa: PLC0415
     except Exception:  # noqa: BLE001
@@ -1621,8 +1649,33 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
 
     is_chain = (role == "prime_director")
     if is_chain:
-        spawn_name = _rotate._derive_successor_name(existing, prefix=seat)
-        _base, gen = _rotate._split_roman_suffix(spawn_name)
+        # The successor NUMERAL is derived from the registry row's `generation`
+        # and the latest rotation/crash-recovery record's `gen_after` -- max
+        # them, +1 -- NEVER from open window names (prime XI 19:38Z: a name is
+        # not an address; windows get reaped/renamed, so a numeral inferred
+        # from them drifts from the truth). Open window names (`existing`) are
+        # consulted ONLY for the collision refusal below. The chain BASE (e.g.
+        # `belam-S1-L4`) is taken from the latest record's successor name when
+        # one exists (crash-recovery `succ_name`, rotate-self
+        # `handover.successor_window.name`), else the seat name itself.
+        rec_name = ""
+        rec_gen = 0
+        _rec = _rotate._latest_rotate_record(root, seat)
+        if _rec is not None:
+            _r = _rec[0]
+            rec_name = str(
+                _r.get("succ_name")
+                or (_r.get("handover") or {}).get("successor_window", {})
+                   .get("name") or "").strip()
+            try:
+                rec_gen = int(_r.get("gen_after") or 0)
+            except (TypeError, ValueError):
+                rec_gen = 0
+        row_gen = int(row.get("generation", 0) or 0)
+        gen = max(rec_gen, row_gen) + 1
+        base = (_rotate._split_roman_suffix(rec_name)[0] if rec_name
+                else seat)
+        spawn_name = f"{base}-{_rotate._int_to_roman(gen)}"
     else:
         spawn_name = seat
         # generation follows rotate-self's plain-seat rule (`_read_generation`
@@ -1677,7 +1730,16 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 "reason": f"spawn_window refused (rc={rc})", "row": "skipped"}
 
     launcher = launcher if launcher is not None else _launch_recovered
-    pid, window_id = launcher(root, spawn_name, shell_cmd, window_path)
+    tree = _seat_tree_dir(root, row)
+    try:
+        pid, window_id = launcher(root, spawn_name, shell_cmd, window_path,
+                                  cwd=tree)
+    except TypeError:
+        # a launcher seam written against the pre-cwd signature has no
+        # `cwd`; fall back to it launching from its own default. Real
+        # recoveries run `_launch_recovered` (cwd-aware); only old seams land
+        # here.
+        pid, window_id = launcher(root, spawn_name, shell_cmd, window_path)
     if pid == 0:
         # spawn did not land -> the seat stays dead; record `detected` only so
         # the NEXT pass retries (the defect pin).
@@ -1707,12 +1769,32 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
     detected` so the next pass retries). Discoverable by
     `rotate.py status --record latest <seat>` and the Sensei audit glob."""
     res = "respawned" if (outcome and outcome.get("respawned")) else "detected"
+    # The successor generation the after_join service will bind: `gen_after`
+    # is the key `rotate._latest_rotate_record` / `run_after_join_for_seat`
+    # read (the SAME one they read on a rotate-self record), so a recovered
+    # seat's join -> pin -> pending-ack runs at ITS generation, never a guess.
+    gen_after = (outcome.get("generation") if outcome else None)
+    # profile placeholders (L4.292 kid 1 (1a)): the same shape rotate-self's
+    # record carries for the template's after_join list — `seat`, `succ_name`,
+    # `gen`, `pin_ref`, `tmux_session`, `window_id`, `pred_pids` = the dead
+    # pid, `recorded_at`. The meter pin is SERVICE-owed (the service pins
+    # after `after_join_delay_s`, exactly as for a rotated seat), so `pin_ref`
+    # stays empty here — the recovery itself pins nothing.
+    _dpid = int(cells.get("pid") or 0)
+    pred_pids = [_dpid] if _dpid > 0 else []
     rec = {
         "rotation": "crash-recovery",
         "seat": seat,
         "recorded_at": datetime.datetime.utcnow().isoformat() + "Z",
         "result": res,
         "probable_cause": cause,
+        "succ_name": (outcome.get("name") if outcome else None) or seat,
+        "gen": gen_after,
+        "gen_after": gen_after,
+        "pin_ref": "",
+        "tmux_session": _rotate.DEFAULT_TMUX_SESSION,
+        "window_id": (outcome.get("window") if outcome else None) or "",
+        "pred_pids": pred_pids,
         "row": {k: cells.get(k) for k in (
             "name", "role", "model", "pid", "window", "session_id",
             "generation", "worktree")},
@@ -1732,10 +1814,35 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
     return path
 
 
+def _alive_via_pin(pins: dict, sessions: list, seat: str,
+                   pid_alive) -> dict | None:
+    """LIVENESS BEFORE DEATH (L4.292 kid 1 (5)): when this seat's meter pin
+    leases a registry session whose pid is ALIVE, the seat is ALIVE regardless
+    of its row -- the row is STALE, never a corpse (L4.291's ONE writer makes
+    the stale window transient). Reuses the L4.289 tables (IMPORTED, never
+    re-implemented): `pins` maps session_id -> (seat, pin_path, gen); this
+    seat's own leased session_ids are the keys whose seat value matches.
+    Returns the live session dict `{pid, session_id, ...}`, or None when no
+    pin for the seat, or the pinned session's pid is gone / absent."""
+    if not pins:
+        return None
+    mine = {sid for sid, (sseat, _pp, _g) in pins.items()
+            if sseat == seat}
+    if not mine:
+        return None
+    for s in sessions or []:
+        if (s.get("session_id") or "") in mine:
+            p = s.get("pid")
+            if p is not None and pid_alive(int(p)):
+                return s
+    return None
+
+
 def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     _rotate, *, now: float | None = None,
                     pid_alive=None, window_path: str | None = None,
-                    launcher=None) -> dict:
+                    launcher=None, pin_table=None, seat_sessions=None,
+                    registry_dir: str | None = None) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -1769,6 +1876,28 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     id_present, _named = _window_present(row, windows)
     if id_present:
         return {}
+    # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
+    # session is ALIVE regardless of its row's stale pid/@id -- never DEAD,
+    # never respawned. NAMED once per pass as `stale-row` with the row's pid/
+    # @id versus the pinned session, so the transient (until L4.291's ONE
+    # writer flips the row) is visible without a spawn storm.
+    if pin_table is None or seat_sessions is None:
+        _pt, _sk = _pin_table(root, [row])
+        if pin_table is None:
+            pin_table = _pt
+        if seat_sessions is None:
+            seat_sessions = _seat_sessions(registry_dir, windows) if _pt else []
+    live = _alive_via_pin(pin_table, seat_sessions, seat, pid_alive)
+    if live is not None:
+        _pp = live.get("pid") or 0
+        _sid = live.get("session_id") or ""
+        line = (f"stale-row seat {seat}: row pid {pid} "
+                f"window {str(row.get('window') or '-')} vs pinned session "
+                f"{_sid} pid {_pp} alive")
+        print(line, file=sys.stderr)
+        _watch_log(f"watch: {line}")
+        return {"seat": seat, "probable_cause": "stale-row",
+                "recorded": False, "stale_row": True, "alive_pid": _pp}
     # (1d) a rotation in flight is not a crash.
     if _rotation_in_flight(root, seat, _rotate, now):
         return {}
@@ -1799,7 +1928,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
 
 
 def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
-                 window_path: str | None = None, launcher=None) -> list[dict]:
+                 window_path: str | None = None, launcher=None,
+                 registry_dir: str | None = None) -> list[dict]:
     """One dead-seat scan over every configured seat row that carries a pid.
     No-op when rotate cannot be imported or seats are unreadable. Returns the
     list of actions taken (empty = nothing dead) and logs a summary line that
@@ -1816,13 +1946,22 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
         return []
     windows = _all_windows(window_path)
     launcher = _load_launcher(launcher)
+    # LIVENESS tables (L4.292 kid 1 (5)): built ONCE so the dead-scan can tell
+    # a STALE row from a corpse. `_pin_table` reads only tree meter files;
+    # `_seat_sessions` reads a registry dir -- the fixture registry under test,
+    # the LIVE `~/.claude/sessions` (REGISTRY_DEFAULT_DIR) on the real watch.
+    # Guarded: the registry is read ONLY when a pin exists to cross-check, so
+    # a pin-less scan never touches the live registry.
+    pins, _skipped = _pin_table(root, rows)
+    seat_sess = _seat_sessions(registry_dir, windows) if pins else []
     pid_rows = [r for r in rows
                 if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()]
     acted: list[dict] = []
     for row in pid_rows:
         summary = _watch_one_seat(root, row, windows, _rotate,
                                   now=now, pid_alive=pid_alive,
-                                  window_path=window_path, launcher=launcher)
+                                  window_path=window_path, launcher=launcher,
+                                  pin_table=pins, seat_sessions=seat_sess)
         if summary:
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "

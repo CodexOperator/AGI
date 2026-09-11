@@ -83,9 +83,9 @@ def _fake_launcher(records: list, pid: int = 424242,
     """A fake recover launcher seam: records what would be spawned and
     reports the successor landed (a positive pid + a window @id) without ever
     spawning a real model or touching real tmux."""
-    def launch(root, name, shell_cmd, window_path=None):
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
         records.append({"name": name, "cmd": (shell_cmd or "")[:80],
-                        "pid": pid, "window": window})
+                        "pid": pid, "window": window, "cwd": str(cwd)})
         return pid, window
     return launch
 
@@ -319,3 +319,85 @@ def test_worktree_seat_read_live_first(graph):
     assert len(acted) == 1
     rec = json.loads(_crash_records(graph, "wt")[0].read_text())
     assert rec["row"]["pid"] == 987654, "the live-first worktree row won"
+
+# --- L4.292 kid 1 (5): LIVENESS BEFORE DEATH — a pinned live session is ALIVE
+#     regardless of its stale row; the row is named `stale-row`, never respawned.
+
+
+def _write_meter(graph: Path, seat: str, transcript: str,
+                 gen: int = 1) -> None:
+    """A meter pin `<sessions>/<seat>.meter` naming a transcript whose stem is
+    the session_id (the pin table's lease key)."""
+    (graph / "sessions").mkdir(parents=True, exist_ok=True)
+    (graph / "sessions" / f"{seat}.meter").write_text(
+        f"{gen}\t{transcript}\n", encoding="utf-8")
+
+
+def _write_registry_sess(registry: Path, pid: int, sid: str,
+                         wid: str) -> None:
+    """A `<registry>/<pid>.json` carrying sessionId + a tmux @id cell."""
+    (registry / f"{pid}.json").write_text(
+        json.dumps({"sessionId": sid, "session_id": sid,
+                    "tmux": f"agi-rc:@{wid.lstrip('@')}.%{wid.lstrip('@')}"}),
+        encoding="utf-8")
+
+
+def _mk_transcript(graph: Path, sid: str) -> str:
+    d = graph / "transcripts"
+    d.mkdir(parents=True, exist_ok=True)
+    tp = d / f"{sid}.jsonl"
+    tp.write_text("{}", encoding="utf-8")
+    return str(tp)
+
+
+def test_pinned_live_session_makes_stale_row_alive_not_dead(graph, capsys):
+    """Row pid + @id both gone, but the seat's meter pin leases a registry
+    session whose pid is ALIVE -> the seat is ALIVE; the row is named
+    `stale-row` (row pid/@id vs pinned session) and NEVER respawned, NEVER
+    recorded."""
+    registry = graph / "registry"
+    registry.mkdir(parents=True, exist_ok=True)
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3}])
+    sid = "livesid1"
+    _write_meter(graph, "seat-a", _mk_transcript(graph, sid))
+    _write_registry_sess(registry, 434343, sid, "75")
+    wf = graph / "windows.live.txt"
+    wf.write_text("@75 seat-a\n@1 other\n", encoding="utf-8")
+    acted = heal._watch_seats(
+        graph, pid_alive=(lambda pid: pid == 434343),
+        window_path=str(wf), launcher=_fake_launcher([]),
+        registry_dir=str(registry))
+    assert len(acted) == 1, "the stale-row IS reported as an acted summary"
+    assert acted[0]["stale_row"] is True, "named a stale row, not DEAD"
+    assert acted[0].get("respawned") is not True, "never respawned"
+    assert acted[0]["recorded"] is False, "never recorded as a crash"
+    assert _crash_records(graph, "seat-a") == [], "no record, no respawn"
+    err = capsys.readouterr().err
+    assert "stale-row seat seat-a" in err
+    assert "999999" in err and "434343" in err, \
+        "the row pid and the pinned live pid are both named"
+
+
+def test_pinned_session_pid_gone_still_dead_respawns(graph):
+    """The pin leases a session whose pid is GONE (no alive process) -> the
+    liveness override does NOT apply; the seat is genuinely dead and is
+    respawned (the pin names a transcript whose session's process is dead, so
+    the row is not stale — it is a corpse)."""
+    registry = graph / "registry"
+    registry.mkdir(parents=True, exist_ok=True)
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3}])
+    sid = "deadsid2"
+    _write_meter(graph, "seat-a", _mk_transcript(graph, sid))
+    _write_registry_sess(registry, 434344, sid, "75")
+    wf = graph / "windows.live.txt"
+    wf.write_text("@75 other-sess\n@1 other\n", encoding="utf-8")
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: False,   # EVERY pid gone, incl pinned
+        window_path=str(wf), launcher=_fake_launcher(spawns),
+        registry_dir=str(registry))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    assert len(spawns) == 1, "a genuinely dead seat is still respawned"
+    assert _crash_records(graph, "seat-a"), "recorded as respawned"
