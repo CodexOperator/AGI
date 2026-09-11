@@ -57,6 +57,16 @@ def _running_record_tiers(root) -> dict:
     """{pid: int: tier: str} for every agent.json under root/**/agent.json
     that records a LIVE running agent (status == "running", numeric pid,
     string tier). Malformed or non-running records are skipped.
+
+    A record whose pid has no /proc/<pid> entry is skipped too
+    (hypothesis:l4-a-running-record-with-a-dead-pid-is-not-a-running-agent):
+    a SIGKILLed test run skips its `finally`-cleanup and leaves a phantom
+    `status: running` record with a dead pid behind, which every later scan
+    would otherwise count -- a reused pid number on a later run's ancestor
+    chain would inherit that phantom's tier. Liveness is the cheap,
+    Linux-only `os.path.exists(f"/proc/{pid}")` probe, matching the reaper's
+    own /proc-based liveness test: a running record whose pid is gone is not
+    a running agent, whatever its status field says.
     """
     result = {}
     if not root or not os.path.isdir(str(root)):
@@ -71,6 +81,9 @@ def _running_record_tiers(root) -> dict:
         pid = rec.get("pid")
         tier = rec.get("tier")
         if status != "running" or not isinstance(pid, int) or not isinstance(tier, str):
+            continue
+        # A dead-pid running record is a phantom, not an agent: skip it.
+        if not os.path.exists(f"/proc/{pid}"):
             continue
         result[pid] = tier
     return result
