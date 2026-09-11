@@ -7391,14 +7391,151 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
-def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
+def _merge_applies_clean(root: Path, sb: str) -> bool | None:
+    """Whether merging `origin/<sb>` into the current branch APPLIES with zero
+    conflicts, WITHOUT touching the tree (hypothesis:l4-prepare-performs-the-
+    only-behind-merge...). Read-only `git merge-tree --write-tree` (git >=
+    2.38): exit 0 prints the merged tree oid (clean), non-zero prints the
+    conflict list. Returns True (clean), False (conflicts), or None when
+    unmeasurable (no `origin/<sb>`, an opaque git refusal). A merge with any
+    conflict must stay a BLOCK for the LLM to judge — the script PERFORMS
+    only what is mechanical, i.e. applies with zero conflicts."""
+    proc = _git_proc(root, "merge-tree", "--write-tree", "HEAD",
+                     f"origin/{sb}")
+    if proc is None:
+        return None
+    # rc 0 clean, rc != 0 -> conflicts (ref known to exist: behind>0 measured
+    # it upstream of this call). treat opaque/non-zero as a conflict, conserve.
+    return proc.returncode == 0
+
+
+def _merge_conflict_paths(root: Path, sb: str) -> str:
+    """Comma-joined conflicting paths from `git merge-tree --write-tree`, or
+    `<unknown>` when the output names none. Printed in the BLOCK so the LLM
+    sees WHICH files fight before it decides to merge by hand."""
+    proc = _git_proc(root, "merge-tree", "--write-tree", "HEAD",
+                     f"origin/{sb}")
+    if proc is None:
+        return "<unknown>"
+    paths = []
+    for ln in proc.stdout.splitlines():
+        # 'CONFLICT (content): Merge conflict in <path>' — the human line
+        ln = ln.strip()
+        if ln.startswith("CONFLICT") and " in " in ln:
+            paths.append(ln.rsplit(" in ", 1)[-1].strip() or ln)
+    return ", ".join(paths) or "<unknown>"
+
+
+def _perform_season_merge(root: Path, sb: str) -> str | None:
+    """Perform the only-behind merge: `git fetch origin <sb>` then
+    `git merge --no-edit origin/<sb>`. Returns the resulting HEAD sha (short
+    form), or None when the merge did NOT land (git returned non-zero, or an
+    opaque refusal) — a merge git aborted must never be reported as merged.
+    The MERGE returncode is the one thing that gates the success line: a
+    merge that ABORTS still leaves HEAD where it was, so reporting
+    `merged <sha>` on it is a false ok that lets rotate-self proceed on a
+    stale branch. The tree is left exactly as git left it — a partially
+    applied merge is never rolled back by force. A failed fetch alone need
+    not abort: `origin/<sb>` may already be current, and a merge against it
+    either succeeds or the merge's own rc catches the problem. Callers reach
+    this ONLY after the conflict-free gate (`_merge_applies_clean`) agreed
+    there are zero conflicts and check 2 (dirty tree) passed."""
+    _git_maybe(root, "fetch", "origin", sb)     # tolerate a failed fetch
+    proc = _git_proc(root, "merge", "--no-edit", f"origin/{sb}")
+    if proc is None or proc.returncode != 0:
+        return None                              # refused — never "merged <sha>"
+    lines = _git_maybe(root, "rev-parse", "--short", "HEAD")
+    if not lines:
+        return None                              # cannot verify HEAD advanced
+    return lines[0].strip() or None
+
+
+def _git_proc(cwd: Path, *args: str):
+    """Run git in `cwd`, return the CompletedProcess, or None on ANY failure
+    (not a repo, an opaque refusal). `_git_maybe` already covers the stdout-
+    lines reading; THIS is the returncode-bearing seam a conflict check and a
+    merge need (the driven checklist must distinguish 'conflicts' from 'clean'
+    by exit status, not by output parsing alone)."""
+    try:
+        return subprocess.run(["git", "-C", str(cwd), *args],
+                              capture_output=True, text=True)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _proc_children(pid: int) -> int:
+    """Number of live DESCENDANT processes of `pid`, by walking the
+    `/proc/<pid>/task/<tid>/children` file recursively. Returns 0 when /proc
+    is absent or the pid does not exist. NEVER `ps`, NEVER signals anything —
+    this only COUNTS what the OS shows as living under the seat's pid
+    (hypothesis:...-lists-the-seats-live-background-tasks, piece 2)."""
+    if pid <= 0 or not os.path.isdir("/proc"):
+        return 0
+    total = 0
+    seen = {pid}
+    stack = [pid]
+    while stack:
+        cur = stack.pop()
+        for tid in Path(f"/proc/{cur}/task").glob("*"):
+            try:
+                ch = (tid / "children").read_text(encoding="utf-8").split()
+                for c in ch:
+                    c = int(c)
+                    if c not in seen:
+                        seen.add(c)
+                        total += 1
+                        stack.append(c)
+            except (OSError, ValueError):
+                continue
+    return total
+
+
+def _background_tasks(root: Path, seat: str) -> str:
+    """Measure the seat's live background tasks by whatever FILES exist, and
+    print what is measurable by name — never a guess, never a kill:
+
+      * the seat's own Monitor/background-Bash CHILDREN — counted by the
+        /proc ppid chain from the config:seats row's `pid` when the row names
+        one (`_proc_children`);
+      * a `.claude/tasks` directory's file count, when it exists.
+
+    Returns a short spec naming what was counted, or `unmeasured` when no
+    source measured anything. This line is a LISTING, never a blocker — it
+    exists so the rotating seat can SEE what it must remember to leave behind,
+    not to gate the spawn."""
+    parts = []
+    row = _find_seat(root, seat)
+    pid = row.get("pid") if row else None
+    if pid is not None:
+        try:
+            parts.append(f"{_proc_children(int(pid))} proc")
+        except (TypeError, ValueError):
+            pass
+    tdir = Path(root) / ".claude" / "tasks"
+    if tdir.is_dir():
+        try:
+            parts.append(f"{len(list(tdir.iterdir()))} tasks-dir")
+        except OSError:
+            pass
+    return ", ".join(parts) if parts else "unmeasured"
+
+
+def _prepare_checks(root: Path, seat: str, perform: bool = False
+                    ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
     A check whose basis cannot be measured (no git repo, no pin file, no
     ack) reports ok rather than guessing — a captive step names a blocker
-    only when the evidence for the blocker is actually present."""
+    only when the evidence for the blocker is actually present.
+
+    `perform=True` (the `prepare --perform` flag, or rotate-self's own gate
+    which defaults ON) lets check 3 PERFORM the only-behind merge instead of
+    prompting it, but ONLY when it is mechanical: check 2 (dirty tree) passed
+    AND `_merge_applies_clean` reports zero conflicts. A conflicting merge
+    stays a BLOCK naming the paths; an unperformed behind stays a BLOCK with
+    the merge command."""
     checks: list[tuple[bool, str, str]] = []
 
     # 1 unpushed commits on the checked-out branch. When `@{u}` does not
@@ -7453,14 +7590,57 @@ def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
     _sb = season_branch(root)
     behind = _git_count_maybe(root, "rev-list", "--count",
                               f"HEAD..origin/{_sb}")
-    ahead_n = behind or 0
     # The clear command MERGES, never rebases: `never rebase` is a standing
     # rule of this tree (CLAUDE.md, every seat card) and the seat protocol's
     # behind check is `git merge origin/season/sX` into the worktree
     # (director fix-up at the SL1.02 harvest; the kid printed `pull --rebase`).
-    checks.append((ahead_n > 0, f"behind origin/{_sb} ({ahead_n})",
-                   f"git fetch origin {_sb} && git merge --no-edit "
-                   f"origin/{_sb}"))
+    behind_clear = (f"git fetch origin {_sb} && git merge --no-edit "
+                    f"origin/{_sb}")
+    if behind is None:
+        # an unmeasurable behind (no origin ref to count against) stays ok and
+        # says so plainly, never a fabricated number
+        checks.append((False, f"behind origin/{_sb} (unmeasured)", behind_clear))
+    elif perform and not dirty and behind > 0:
+        # `--perform` (rotate-self defaults ON): check 2 passed (tree clean)
+        # and we are measurably behind. PERFORM the merge ONLY if it is
+        # mechanical -- zero conflicts. A conflicting merge is exactly the
+        # judgement-free-not case: stays a BLOCK naming the paths.
+        cf = _merge_applies_clean(root, _sb)
+        if cf is True:
+            merged = _perform_season_merge(root, _sb)
+            if merged is None:
+                # the mechanical merge was attempted and REFUSED by git
+                # (non-zero rc — e.g. the accepted churn exclusion let an
+                # untracked/modified churn file through check 2, and the
+                # merge wants to overwrite it while git refuses). Report a
+                # BLOCK, never a false ok: rotate-self must not proceed on a
+                # stale branch. The tree is left as git left it (never a
+                # force rollback), and the clear command still names the
+                # manual merge.
+                checks.append((True,
+                               f"behind origin/{_sb} ({behind}) — merge "
+                               f"attempted, refused by git",
+                               behind_clear))
+            else:
+                checks.append((False,
+                               f"behind origin/{_sb} ({behind}) — merged "
+                               f"{merged}",
+                               behind_clear))
+        elif cf is False:
+            checks.append((True,
+                           f"behind origin/{_sb} ({behind}) — merge conflicts: "
+                           f"{_merge_conflict_paths(root, _sb)}",
+                           behind_clear))
+        else:
+            # cannot even measure whether the merge is conflict-free -> do NOT
+            # auto-merge blind; block and let the LLM judge
+            checks.append((True, f"behind origin/{_sb} ({behind})",
+                           behind_clear))
+    else:
+        ahead_n = behind or 0
+        # a dirty tree (or an explicit listing baseline) leaves check 3 a BLOCK
+        checks.append((ahead_n > 0, f"behind origin/{_sb} ({ahead_n})",
+                       behind_clear))
 
     # 4 card mtime older than the last commit
     # The card lives in the SEAT'S OWN tree (`<worktree>/.agi/sessions/quorum/
@@ -7542,12 +7722,18 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
     any check names a blocker. `cmd_rotate_self` runs the SAME function to
     refuse BY NAME before it spawns."""
     seat = getattr(args, "seat", None) or ""
-    checks = _prepare_checks(root, seat)
+    perform = getattr(args, "perform", False)
+    checks = _prepare_checks(root, seat, perform=perform)
     blocks = [c for c in checks if c[0]]
     for blocker, name, clear in checks:
         print(f"[{'BLOCK' if blocker else 'ok'}] {name}")
         if blocker:
             print(f"       clear: {clear}")
+    # the LISTING line, never a blocker: the seat's live background tasks as
+    # far as files show them (hypothesis:...-lists-the-seats-live-background-
+    # tasks) -- so the rotating seat SEES what it must remember to leave
+    # behind, before it spawns.
+    print(f"background tasks: {_background_tasks(root, seat)}")
     if blocks:
         print(f"prepare: {len(blocks)} check(s) block the spawn; fix each "
               f"BLOCK line or re-run after clearing.", file=sys.stderr)
@@ -8022,6 +8208,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # blocks it from wherever it stands.
     if getattr(args, "prepare", False):
         args.seat = args.name
+        # rotate-self's own gate performs the only-behind merge by DEFAULT
+        # (hypothesis:...-prepare-performs-the-only-behind-merge...) -- a
+        # clean, zero-conflict season merge is mechanical and costs 2-4 tool
+        # calls if prompted instead. A --dry-run inspection still NEVER merges.
+        args.perform = not bool(getattr(args, "dry_run", False))
         return cmd_prepare(args, root)
     guard = _check_branch_guard(root)
     if guard:
@@ -8053,7 +8244,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (no git -> _git_maybe None; no pin; no ack), so a fixture root passes
     # by the same rule a real one does; a subprocess faked to refuse git
     # degrades to None, never propagates.
-    _blocks = [c for c in _prepare_checks(root, seat) if c[0]]
+    # The gate performs the only-behind merge UNLESS we are dry-running
+    # (--dry-run prints everything and touches nothing: a merge is a touch).
+    _perform_gate = not bool(getattr(args, "dry_run", False))
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
+               if c[0]]
+    # the LISTING line, never a blocker -- the rotating seat sees its live
+    # background tasks BEFORE it spawns, so it knows what to leave behind
+    # (hypothesis:...-lists-the-seats-live-background-tasks)
+    print(f"background tasks: {_background_tasks(root, seat)}",
+          file=sys.stderr)
     if _blocks:
         for _b, _nm, _cl in _blocks:
             print(f"rotate-self blocked: {_nm} — {_cl}", file=sys.stderr)
@@ -9647,6 +9847,13 @@ def main(argv: list[str] | None = None) -> int:
     p_pr.add_argument("--seat", default="",
                       help="seat name (a seat-bound checklist: card path, "
                            "meter pin, ack file)")
+    p_pr.add_argument("--perform", action="store_true",
+                      help="PERFORM check 3 (the only-behind season merge) "
+                           "when it is mechanical: tree clean and the merge "
+                           "applies with zero conflicts. A merge with any "
+                           "conflict stays a BLOCK for the LLM to judge. "
+                           "OFF (listing only) by default for bare `prepare`; "
+                           "rotate-self's own gate defaults it ON.")
     p_pr.set_defaults(func=cmd_prepare)
 
 

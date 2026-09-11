@@ -238,14 +238,17 @@ def test_prepare_names_behind_captive_and_card_stale(prep_root, capsys,
     assert "card older than last commit" in out
 
 
-def _seat_row(prep_root, gen):
+def _seat_row(prep_root, gen, pid=None):
     """Write a config:seats row for adv-alive carrying an explicit
     `generation` — the AUTHORITY the check reads FIRST (the handoff header
-    is only the fallback)."""
+    is only the fallback). `pid` pins a process-id the background-tasks line
+    counts descendants under, when set."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
     row = {"name": "adv-alive", "role": "parent",
            "generation": gen, "worktree": ""}
+    if pid is not None:
+        row["pid"] = pid
     (g / "seats.md").write_text(
         "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
@@ -356,3 +359,192 @@ def test_prepare_season_branch_comes_from_the_ladder(
         in out
     assert rotate._geometry_sync_cmd(prep_root) == \
         "git fetch origin season/s3 && git merge --no-edit origin/season/s3"
+
+# =====================================================================
+# hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-
+# seats-live-background-tasks (SL3.05) — RED FIRST: written before the code.
+# `--perform` PERFORMS check 3 (the only-behind season merge) only when it
+# is mechanical: check 2 (dirty tree) passed AND the merge applies with zero
+# conflicts. A conflicting merge stays a BLOCK naming the paths. The
+# background-tasks line is a LISTING, never a blocker. rotate-self's gate
+# defaults `--perform` ON; bare `prepare` defaults it OFF.
+# =====================================================================
+
+
+def _git_proc_ok(rc=0):
+    """A `_git_proc` seam: every call returns `rc` (0 = success) with empty
+    stdout. The happy-path merge tests make the REAL `_perform_season_merge`'s
+    `merge` call (which routes through `_git_proc`, the returncode-bearing
+    seam) succeed; its other git reads still route through `_git_maybe`."""
+    return lambda *a, **k: SimpleNamespace(returncode=rc, stdout="")
+
+
+def _merge_seam(prep_root, behind_n=2, conflict_free=True, merged="abc1234"):
+    """A clean, measurably-behind fixture with the merge seams injected:
+    `_merge_applies_clean` True (zero conflicts) runs the REAL
+    `_perform_season_merge`, whose every git read is supplied through
+    `_git_maybe` so the merge line reports the injected sha. `conflict_free`
+   =False swaps in the conflict branch without touching the tree."""
+    gm = {("status", "--porcelain"): [],
+          ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): [str(behind_n)],
+          ("fetch", "origin", "season/s2"): [],
+          ("merge", "--no-edit", "origin/season/s2"): [],
+          ("rev-parse", "--short", "HEAD"): [merged],
+          ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+           ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"):
+          ["1000000000"]}
+    return gm
+
+
+def test_prepare_perform_merges_only_behind_clean(prep_root, capsys,
+                                                  monkeypatch):
+    """`prepare --seat S --perform` on a clean tree behind by 2 MERGES the
+    only-behind season branch: the line reads performed with the sha, the
+    check stops blocking, exit 0. A second run (now even) reads ok."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] behind origin/season/s2 (2) — merged abc1234" in out
+    assert "[BLOCK]" not in out
+    # a SECOND run now that HEAD == origin (behind 0) reads plain ok
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map(_merge_seam(prep_root, behind_n=0)))
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] behind origin/season/s2 (0)" in out
+    assert "merged" not in out
+
+
+def test_prepare_perform_merge_refused_blocks_not_merged(
+        prep_root, capsys, monkeypatch):
+    """The success line is gated on the MERGE exit status, not on the pre-
+    merge HEAD sha. A merge that git REFUSES (non-zero rc) must block like a
+    false-ok blocker: `_perform_season_merge` returns None, check 3 prints
+    BLOCK (never `— merged`), exit 3, and the success-sha path is not taken
+    (the `rev-parse --short HEAD` read is never consulted — reaching it
+    would report the stale pre-merge sha)."""
+    gm = _merge_seam(prep_root)
+    # the merge is REFUSED: non-zero rc, so NO further git reads happen. The
+    # `rev-parse --short HEAD` key in gm would report the pre-merge sha if it
+    # were consulted (the false ok); it must never be read on a failed merge.
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok(rc=1))
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] behind origin/season/s2 (2) — merge attempted, "
+            "refused by git") in out
+    assert "git merge --no-edit origin/season/s2" in out   # clear command stays
+    assert "merged" not in out                # never a false ok
+
+
+def test_prepare_perform_conflict_stays_block_names_path(prep_root, capsys,
+                                                         monkeypatch):
+    """A conflicting merge is NOT judgement-free: `--perform` leaves it a
+    BLOCK naming the conflicting path and the merge command, and NEVER issues
+    the merge (`_perform_season_merge` would raise if touched)."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: False)
+    monkeypatch.setattr(rotate, "_merge_conflict_paths",
+                        lambda root, sb: "extensions/agi/bin/rotate.py")
+    def _no_merge(*a, **k):
+        raise AssertionError("merge was performed on a conflicting tree")
+    monkeypatch.setattr(rotate, "_perform_season_merge", _no_merge)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] behind origin/season/s2 (2) — merge conflicts: "
+            "extensions/agi/bin/rotate.py") in out
+    assert "git merge --no-edit origin/season/s2" in out
+    assert "merged" not in out
+
+
+def test_prepare_perform_skips_merge_on_dirty_tree(prep_root, capsys,
+                                                   monkeypatch):
+    """`--perform` NEVER merges over a dirty tree: check 2 blocks first, so
+    check 3 stays a BLOCK and no merge is issued (dirty-first)."""
+    gm = _merge_seam(prep_root)
+    gm[("status", "--porcelain")] = [" M rotate.py"]
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)   # would merge IF consulted
+    def _no_merge(*a, **k):
+        raise AssertionError("merge was performed over a dirty tree")
+    monkeypatch.setattr(rotate, "_perform_season_merge", _no_merge)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree" in out
+    assert "[BLOCK] behind origin/season/s2 (2)" in out
+    assert "merged" not in out
+
+
+def test_prepare_bare_never_merges(prep_root, capsys, monkeypatch):
+    """Bare `prepare` (no --perform) is a LISTING only: it NEVER merges, even
+    when the merge happens to be clean — the line stays a BLOCK."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    def _no_merge(*a, **k):
+        raise AssertionError("bare prepare must not merge")
+    monkeypatch.setattr(rotate, "_perform_season_merge", _no_merge)
+    rc = rotate.cmd_prepare(_args(), prep_root)       # no --perform
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] behind origin/season/s2 (2)" in out
+    assert "merged" not in out
+
+
+def test_prepare_background_tasks_line_counts_row_pid(
+        prep_root, capsys, monkeypatch):
+    """The background-tasks LISTING names what is measurable: a config:seats
+    row carrying a `pid` counts its live descendants (`_proc_children` seam
+    here returns 2) as `2 proc`."""
+    _no_git(monkeypatch)
+    _seat_row(prep_root, 3, pid=314159)   # gen matches the fixture pin
+    monkeypatch.setattr(rotate, "_proc_children", lambda pid: 2)
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "background tasks: 2 proc" in out
+
+
+def test_prepare_background_tasks_unmeasured_without_pid(
+        prep_root, capsys, monkeypatch):
+    """A seat with no row pid (and no .claude/tasks dir) prints the line
+    `unmeasured` — never a fabricated 0, never a guess."""
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(seat="ghost"), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "background tasks: unmeasured" in out
+
+
+def test_rotate_self_perform_merge_during_prepare_gate(
+        prep_root, capsys, monkeypatch):
+    """rotate-self's own `--prepare` is the SAME checklist but with `--perform`
+    DEFAULTED ON (rotate-self's gate performs the only-behind merge). A clean,
+    behind-by-2 tree through the rotate-self path prints the performed line
+    and exit 0 — the mechanical merge costs zero tool calls."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(prepare=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] behind origin/season/s2 (2) — merged abc1234" in out
