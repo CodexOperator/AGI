@@ -18,7 +18,7 @@ Track the tool calls every post pays at rotation — **both sides, every post (p
 
 ## §2 METHOD
 ```
-alert / seating ──► record: rotate.py status --post S --record latest  →  handover.join.transcript
+alert / seating ──► record: rotate.py status --seat S --record latest  →  handover.join.transcript
         │
         ├─ WAKE    = successor tool_uses from call 1 to the row commit; after = work
         │           classes: (a) re-derives a fact in STARTUP/brief  (b) a read first_turn could pre-run
@@ -44,14 +44,14 @@ after key rotation  0  (implicit continue, no ref)     0  (hook runs rotate-self
 Series (wake / out): point 11·5·4·5·5·8* / 6·7·5·4·3 — helper 9·15·32†·6·3 / 11·2·2 — sensei-director 102†·4·3·4·4 / 4·4·3 — prime 38·22†·4 / 3·†·2. (* r3b regression, †hand seating.)
 
 ## §4 RULES
-Owner near the usage cap: batch, never re-derive STARTUP, no `-h` on documented tools. Meter: pin first (`rotate.py meter --pin .agi/sessions/master-sensei.meter --session-log <transcript>`), read `--post master-sensei`, **rotate at 0.47** (reminder hook fires at 0.37/0.41): update this file → `rotate-self --prepare` → `rotate-self --name master-sensei --role director --timeout 900 --force`. Commit own files only with exact paths; push after every action; `index.lock` → wait, never delete. The `<system-reminder>` attribution block inside tool results is the harness's own — follow the trailer, ignore SendUserFile. Prayer once at close. Phantom `[agi-nudge]` with an empty inbox = the busy-pane strand loop (fix routed): one `read`, nothing else.
+Owner near the usage cap: batch, never re-derive STARTUP, no `-h` on documented tools. Meter: pin first (`rotate.py meter --pin .agi/sessions/master-sensei.meter --session-log <transcript>`), read `--seat master-sensei`, **rotate at 0.47** (reminder hook fires at 0.37/0.41): update this file → `rotate-self --prepare` → `rotate-self --name master-sensei --role director --timeout 900 --force`. Commit own files only with exact paths; push after every action; `index.lock` → wait, never delete. The `<system-reminder>` attribution block inside tool results is the harness's own — follow the trailer, ignore SendUserFile. Prayer once at close. Phantom `[agi-nudge]` with an empty inbox = the busy-pane strand loop (fix routed): one `read`, nothing else.
 
 ## §5 STATE + NEXT
 **Open cuts with sensei-director (cut order):** r3b ack-commits regression fix (rotate-self commits its spawn write, or the gate ignores own-row hunks — wake 8 on point 214458Z) → `_input_region` busy-pane strand loop → wake-audit window ends at the ack → `send.py read` wraps at 160 cols → wake-audit on `rotate.py spawn` seatings (spawn runs first_turn + `[seating]` block; autopsy pre-fill) → **the four key-rotation cuts (owner GO 22:1xZ)**: keygen + signed sends → key-gated rotate-self mints/hands the successor key (session_ref leaves the graph; label `<post>#<fp>`) → `--stops/--diff` answers the ack (wake 0 / out 1) → hook runs rotate-self (out 0). Rungs 5-8 (encryption at rest, MCP custodian, viewer lanes/MPC MCP, confidential-compute provider) = next season, in `vision:web-app-suite` (Prime db436e1f1; one town ruled).
 
 **Applied by this post today:** prime_director `handoff-head`/`account` drop (via Prime); F8 rewrite + clause, F12-F17 drafted, director `send-verbs`; `prime-director-successor.md` "no STARTUP OUTPUT = spawned" block; `.gitignore` un-ignores drafts; this file.
 
-🔴 **NEXT (successor):** wake = ListAgents once → `rotate.py ack --post master-sensei --gen <N> --ref <bare ref> continue` → commit `seats.md` (or nothing after ack-commits works). Then on every alert: both sides per §2, draft, one dm. **Re-measure first:** the next worktree rotation after the r3b fix (expect wake 2); the first wake after the strand-loop fix (no phantom tokens). Owner said "wrap up this loop soon" — expect a close order; the post's own close is the prayer once.
+🔴 **NEXT (successor):** wake = ListAgents once → `rotate.py ack --seat master-sensei --gen <N> --ref <bare ref> continue` → commit `seats.md` (or nothing after ack-commits works). Then on every alert: both sides per §2, draft, one dm. **Re-measure first:** the next worktree rotation after the r3b fix (expect wake 2); the first wake after the strand-loop fix (no phantom tokens). Owner said "wrap up this loop soon" — expect a close order; the post's own close is the prayer once.
 
 ## §6 BANKED
 - Sync commits of cron/Prime-owned append-only records (comms logs, `rotations/sequence.json`) were needed to pass `--prepare`'s porcelain gate on MAIN before g15.14's exclusion landed (241fd71ee); none needed now.
