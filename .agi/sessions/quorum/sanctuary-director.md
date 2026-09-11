@@ -23,24 +23,33 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 - **Minted g15-32..36 (`361f1a1b8`)** from the prime's merge-up 31 ruling: `l4-a-filter-stage-is-argument-restricted` (SECURITY, FIRST, rotate.py, serial behind L4.179), `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` (rotate.py, behind g15-32), `l4-ownership-matches-the-rendered-line-and-zero-body-retreats` (send.py — CUT as L4.180), `l4-the-kid-tier-gate-scans-every-root-it-can-reach` (conftest, behind L4.176), `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` (spawn_budget.py, behind L4.177).
 - **L4.170 HARVESTED 09:19Z → `cdd88bcd8`** (g15-29, `find_project_root` bounded at the root's own `.git`; kid 2 proved 0.9, kid 1 timed-out pending). 348 with neighbours on round bytes / 314 on merged; real-tree nested-repo probe pre-fix cross → round None; director note `93ca553f5`. Pushed.
 
-## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch`
+## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; my ids L4.193+; helper L4.200+)
 
-HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32 (2793765c1); L4.176, 177, 180, 181 = MERGE-UP 33 (0cfa40571).
-LIVE (parents `deepseek/deepseek-v4.1-flash`, disjoint scopes):
-- **L4.183** (g15-32 fix-only #2, allowlist) `l4-a-filter-stage-is-argument-restricted` — a00-b8c00aed — rotate.py + test_rotate_startup.py (cut 11:28Z)
+🔴 **OWNER 11:5xZ, verbatim, typed into this session: "Use pi parents again" · "Redispatch under pi" · "ONLY PI PARENTS FROM HERE ON" · "I am about to run out of usage on Claude".** → every parent is `--harness pi` (the ladder's `deepseek/deepseek-v4.1-flash`); the prime's sonnet/claude-code fallback is RETIRED as a parent option. **OWNER 11:5xZ via the prime (doc:l4-owner-decisions 6088716e3): "Added more credits to the openrouter account keep using pi rounds till done"** — $26.52 of $132 at 11:52Z; check the KEY not the account; $1.00 floor unchanged; parallel rounds GO; always prefer dispatch.
 
-**MERGE-UP 33 VERDICT (11:1xZ): all four accepted; residue minted (efb463bab): `l4-the-record-root-has-no-test-seam-either` (conftest, serial with g15-36a), `l4-rendered-line-ownership-tolerates-the-wrap` + `l4-deferred-ownership-uses-the-rendered-count` (send.py, one round). RULING: a security judge is an ALLOWLIST, never a denylist.**
+HARVESTED: L4.170, 174, 175, 178, 179 (+ helper 32b) = MERGE-UP 32 (2793765c1); L4.176, 177, 180, 181 = MERGE-UP 33 (0cfa40571); **L4.182 (partial) + L4.183 (allowlist, lean_proved:85) in the seat for 34.**
 
-**MERGE-UP 32 VERDICT (prime IX, 10:2xZ): all six ACCEPTED WITH RESIDUE; reviewer's ask to halt --branch dispatch REFUSED (32b's ownership gate guards; verb HELD; dispatch continues).** Minted the ruling's seven (order = the prime's priority; NONE cut — balance): `l4-find-root-sh-is-bounded-like-its-python-half` (lib/find-root.sh + test_locations), `l4-the-template-test-reads-the-live-rotations-node` (tests-only), `l4-the-manifest-mirror-is-locked-and-terminal-only` (dispatch.py/cli.py — HELPER's lane), `l4-the-merge-protocol-block-is-gated-on-the-held-state` + `l4-the-must-implement-rule-is-g15-lineage-gated` (brief.py, one round may carry both; the config CELL is the prime's), `l4-sb-status-reads-the-configured-stub` (stub repo's install-cli.sh + test_commands, @stub_only), `l4-a-stamp-never-writes-on-a-drop-or-a-missing-count` (tests-only). Helper mints its own two.
+LIVE (all `--harness pi`, cut 11:58-11:59Z, disjoint lanes):
+- **L4.184** g15-32 fix-only #3 `l4-a-filter-stage-is-argument-restricted` — a00-82e3c5bb — rotate.py `_filter_arg_refusal` ($ in every filter token) + test_rotate_startup.py. **Harvest judge = probe182.py (recreate from the L4.182 note) + `sed 's/x/$SECRET_PROBE/'`/`grep '$SECRET_PROBE'`/`tr abcdef "$SECRET_PROBE"` must be REFUSED.**
+- **L4.185** (vi) `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — a00-f24f1613 — heal.py + brief.py kid-status paragraph.
+- **L4.186** g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` — a00-2cdaa573 — spawn_budget.py.
+- **L4.187** `l4-the-record-root-has-no-test-seam-either` — a00-2c03fbf8 — conftest.py + test_tier_gate.py.
+- **L4.188** `l4-rendered-line-ownership-tolerates-the-wrap` — a00-c97af56e — send.py + test_send.py.
+- **L4.189** `l4-find-root-sh-is-bounded-like-its-python-half` — a00-46d77ded — lib/find-root.sh + test_locations.py.
+- **L4.190** `l4-a-stamp-never-writes-on-a-drop-or-a-missing-count` — a00-3d640212 — test_verification_kept_merge.py (tests-only).
+- **L4.191** `l4-the-template-test-reads-the-live-rotations-node` — a00-876e8be8 — test_rotate_templates.py (tests-only).
 
-SERIAL QUEUES after these land:
-- rotate.py: L4.183 (g15-32 allowlist, LIVE) → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → **g15-28** `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b `l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (≤3 kids; PRIME installs the hook) → g15-8 `l4-config-rotations-facts-have-a-reader` → `l4-the-pin-is-the-lease`.
-- conftest.py: fix-only re-dispatch of (ix) `l4-the-kid-tier-gate-has-no-env-seam` (claim in its note) + g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`. spawn_budget.py (free): g15-36b `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir`.
-- heal.py: **(vi)** `l4-a-timeout-mark-on-a-live-agent-is-not-terminal` — UNBLOCKED (helper p1 landed in merge-up 32). Fresh evidence for its node: 09:42:08Z three `iter=iter-L4.17x agent=<parent> reason=timeout` nudges hit my inbox for the L4.176/177/179 PARENTS, all of which then reviewed and exited normally 09:45-09:56Z (`done:` commits). Second in line after g15-32 for the last dollars.
+QUEUE (cut as lanes free; each is a minted node under goal:g15):
+- rotate.py: after L4.184 → `l4-a-producing-git-stage-is-argument-restricted` → g15-33 `l4-the-refusal-names-the-record-stage-not-the-expanded-tokens` → g15-28 `l4-the-dry-run-chain-line-is-tested-hermetically` → 0b-b → g15-8 → `l4-the-pin-is-the-lease`.
+- brief.py: after L4.185 → `l4-the-merge-protocol-block-is-gated-on-the-held-state` + `l4-the-must-implement-rule-is-g15-lineage-gated` (ONE round; the config CELL is the prime's).
+- conftest.py: after L4.187 → g15-36a `l4-the-kid-tier-gate-scans-every-root-it-can-reach`.
+- send.py: after L4.188 → `l4-deferred-ownership-uses-the-rendered-count`.
+- free now: `l4-sb-status-reads-the-configured-stub` (stub repo + test_commands, @stub_only).
+- HELPER's lane (it resumes, reports to me): its two accepted candidates (`bare-kid-never-commits`, `self-staged-edit-lost-on-commit` amended) + `l4-the-manifest-mirror-is-locked-and-terminal-only`.
 
-## §3 🔴 NEXT COMMAND (last stamped 11:29Z)
+## §3 🔴 NEXT COMMAND (last stamped 12:00Z)
 
-**LIVE: L4.183 = g15-32 fix-only #2, ALLOWLIST shape** (a00-b8c00aed, rotate.py `_filter_arg_refusal` + the post-| non-filter branch; cut 11:28Z at $1.64). L4.182 is MERGED in the seat (partial: 26/36 of the prime's probes refused, parent demoted kids :75/:85). **Harvest judge for L4.183 = `PYTHONPATH=<round>/extensions/agi/bin python3 <scratchpad>/probe182.py`** (the prime's list as an in-process script — recreate it from the L4.182 note on the hypothesis node if the scratchpad is gone: 36 must-refuse (a)-(g) + 8 must-pass; nothing executed). Accept only at ESCAPES=0 OVER_REFUSALS=0; otherwise demote with the printed list and re-dispatch on the same node. Then **merge-up 34** (L4.182 + L4.183 + the three merge-up 33 residue mints efb463bab). After that: `credit_balance` ≥ $1.00 → (vi) on heal.py; else the ruled fallback or stop and report. Rotate at 0.47.
+Harvest each of L4.184-191 as its parent exits (`spawn_budget.py status`; branch = `git branch --list 'loop/*<agent-id>@s2'`): worktree status → kids' experiments + parent THOUGHT → tests with neighbours on the round bytes (from the round worktree) → real-tree probe in a director note (`write.Edit`/`verb_note`/`submit`, text from a `<<'EOF'` file) → `git merge --no-ff <branch> -F <file>` → push → cut the next in that lane's queue. **Merge-up 34** once 3-6 are in: request the window from prime IX `agi-41 [390152]` (one message, numbers + g15 lines), then the Merge-up procedure below in MAIN. If THIS session dies mid-run (owner's Claude usage): a successor acks per §0, reads this file, and continues the same table — nothing is stranded; every seat commit is pushed.
 
 ## §4 TRAPS (gen XIII + carried)
 
