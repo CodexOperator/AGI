@@ -3951,55 +3951,56 @@ _STARTUP_FILTERS = {"head", "tail", "sed", "grep", "egrep", "cat", "echo",
 #: sort (`-o`/`--output` output file), sed (`-i` in-place) and grep/egrep
 #: (`-f`/`--file` pattern file) carry a real file option; every other filter
 #: (head/tail/tr/wc/cat/echo/cut/uniq) is governed ONLY by the path rule.
-_FILTER_FILE_OPTIONS = {
-    "sort": ("-o", "--output"),
-    "sed": ("-i",),
-    "grep": ("-f", "--file"),
-    "egrep": ("-f", "--file"),
+#: The post-`|` stdio-filter judge is an ALLOWLIST PARSER, not a denylist
+#: (hypothesis:l4-a-filter-stage-is-argument-restricted, goal:g17.1 ruling
+#: merge-up 33: a denylist of known-bad options is the WRONG mechanism for a
+#: security judge — it cannot keep up with the option space, and every miss is
+#: a leak). A filter stage is (exe, tokens); SHORT-OPTION CLUSTERS are expanded
+#: character by character (`-ni` = `-n -i`, `-if` = `-i -f`); a value-taking
+#: option consumes exactly its value (attached `-c1-80` or a separate next
+#: token); every option must be in the exe's ALLOWED set; each positional is
+#: governed by COUNT and SHAPE. Anything else — an unlisted short letter, an
+#: unlisted `--long`, an extra/odd positional, a token containing
+#: `$`/`${`/backtick/`~` — is refused as `filter <exe> <token> not on the
+#: allowlist`. awk is refused outright; a pipe-fed exe that is not a modeled
+#: filter is refused as `filter <exe>` (a first_turn pipeline has no reason to
+#: pipe into a producer, closing `| git log -p -- .env` without touching the
+#: git allowlist).
+
+#: {exe: (allowed short FLAGS [no value], allowed VALUE-TAKING short letters)}
+_FILTER_ALLOW = {
+    "head": (frozenset(), frozenset("nc")),
+    "tail": (frozenset(), frozenset("nc")),
+    "grep": (frozenset("civnowxEFh"), frozenset("mABCe")),
+    "egrep": (frozenset("civnowxEFh"), frozenset("mABCe")),
+    "sed": (frozenset("nEr"), frozenset()),
+    "cut": (frozenset("s"), frozenset("cfd")),
+    "sort": (frozenset("nrufs"), frozenset("kt")),
+    "uniq": (frozenset("cudi"), frozenset("w")),
+    "wc": (frozenset("lwcm"), frozenset()),
+    "tr": (frozenset("dsc"), frozenset()),
+    "cat": (frozenset("nAs"), frozenset()),
+    "echo": (frozenset("n"), frozenset()),
 }
 
-#: Tools whose free POSITIONALS are file operands (cat/head/tail/sort/wc/uniq/
-#: cut). The startup run's cwd is MAIN (drive root), so `| head -1 .env` reads
-#: the key file into the committed rotation record AND the successor's STARTUP
-#: OUTPUT — the same file seam the side of the produce side blocks. A free
-#: non-option token (not the attached/separate value of a value-taking option)
-#: is therefore refused as `filter <exe> operand <tok>`.
-_FILTER_FILE_OPERAND_TOOLS = frozenset(
-    {"cat", "head", "tail", "sort", "wc", "uniq", "cut"})
-
-#: Tools that take exactly ONE free positional (grep/egrep the PATTERN, sed the
-#: PROGRAM). A second free positional is a FILE operand and is refused.
-_FILTER_ONE_POSITIONAL = frozenset({"grep", "egrep", "sed"})
+#: max free POSITIONALS per exe (grep/egrep the PATTERN, sed the PROGRAM;
+#: a second on either is a FILE operand). tr allows up to two SETS; echo's
+#: positionals are free (below).
+_FILTER_POS_MAX = {
+    "head": 0, "tail": 0, "grep": 1, "egrep": 1, "sed": 1,
+    "cut": 0, "sort": 0, "uniq": 0, "wc": 0, "cat": 0, "echo": 0,
+}
 
 #: tr takes up to TWO SET positionals (`tr a-z A-Z`); a third is a refusal.
 _FILTER_TR_SETS = 2
 
-#: Per-tool options that take a VALUE (attached `-c1-80` / `-d:` / `-n5`, or
-#: separate `-n 5` / `-f 3`). The value is consumed and allowed — it is NOT a
-#: file operand. A token equal to one of these, when the next token exists and
-#: is not itself an option, consumes that next token as its value.
-_FILTER_VALUE_OPTS = {
-    "head": {"-n", "-c", "--lines", "--bytes"},
-    "tail": {"-n", "-c", "-s", "--lines", "--bytes", "--sleep-interval",
-              "--pid"},
-    "sort": {"-k", "-t", "--key", "--field-separator", "--buffer-size",
-              "--parallel", "--random-source"},
-    "uniq": {"-f", "-s", "-w", "--skip-fields", "--skip-chars",
-              "--check-chars"},
-    "cut": {"-c", "-f", "-d", "--characters", "--fields", "--delimiter"},
-    "grep": {"-e", "--regexp", "-m", "-A", "-B", "-C", "-d",
-              "--max-count", "--include", "--exclude", "--exclude-from",
-              "--context"},
-    "egrep": {"-e", "--regexp", "-m", "-A", "-B", "-C", "-d",
-                "--max-count", "--include", "--exclude", "--exclude-from",
-                "--context"},
-}
+#: Substrings that make an echo positional a leak (it would otherwise print an
+#: env value into the record/output) and are therefore refused outright.
+_FILTER_FORBIDDEN = ("$", "`", "~")
 
-#: sed PROGRAM forms that must NEVER run: long script/file options, and the
-#: short value-taking/script forms `-i` `-f` `-e` (each also accepts an
-#: attached suffix, e.g. `-i.bak`). Any of these is `filter sed program`.
-_SED_SCRIPT_OPTS_LONG = ("--file", "--in-place", "--expression")
-_SED_SCRIPT_OPTS_SHORT = ("-i", "-f", "-e")
+#: head/tail accept a bare numeric option `-N` (`head -5`); the digit-run form
+#: is its own allowlist slot.
+_NUM_OPT_RE = re.compile(r"^-\d+$")
 
 #: sed program GRAMMAR allowlist. A program is split on `;`; every command must
 #: be a substitute `s` (delimiter d, three fields, flags g/I/p/[0-9]) or an
@@ -4038,94 +4039,83 @@ def _sed_program_allowed(program: str) -> bool:
     return True
 
 
-def _sed_refusal(args: list) -> str | None:
-    """sed filter args: `-f`/`-i`/`-e`/`--file`/`--in-place`/`--expression`
-    (each incl. attached suffix) are refused as `filter sed program`; the first
-    free positional is the PROGRAM and must pass the grammar allowlist; a
-    second free positional is a FILE operand and is refused."""
-    pos = 0
-    for a in args:
-        # No `"/" in a` path check here: sed's PROGRAM legitimately uses `/` as
-        # a delimiter (`s/x/y/`, `/re/`); the grammar allowlist below IS the
-        # whole gate for the program positional, and a path-looking single
-        # positional (e.g. `/etc/passwd`) fails the grammar and is refused as
-        # `filter sed program`.
-        if a.startswith("--"):
-            if a.split("=", 1)[0] in _SED_SCRIPT_OPTS_LONG:
-                return "filter sed program"
-            continue  # other long flag (--quiet/--silent/--posix/...)
-        if a.startswith("-"):
-            for crit in _SED_SCRIPT_OPTS_SHORT:
-                if a == crit or a.startswith(crit):
-                    return "filter sed program"
-            continue  # benign short flag (-n/-r/-E/-s/-u or an attached value)
-        pos += 1
-        if pos > 1:
-            return f"filter sed operand {a}"
-        if not _sed_program_allowed(a):
-            return "filter sed program"
-    return None
-
-
 def _filter_arg_refusal(exe: str, args: list) -> str | None:
-    """Return a one-line NAMED refusal (`filter <exe> <arg>`) if a post-`|`
-    filter stage's ARGUMENTS name a path, a file option, a FILE OPERAND, or a
-    refused awk/sed program form, else None. The filter judge used to skip a
-    stage by executable name alone (hypothesis:l4-first-turn-filters-truncate),
-    which let `| sort -o M`, `| head -1 /etc/hostname` and `| awk
-    BEGIN{system(...)}` reach the box. Judging the arguments closes the rest of
-    hypothesis:l4-a-filter-stage-is-argument-restricted: a relative operand
-    (`| head -1 .env`) is the remaining file seam, and a bare sed `e` executes
-    `id` (GNU sed `1e id`)."""
+    """Return a one-line NAMED refusal for a post-`|` stdio filter stage, or
+    None if the stage is on the allowlist. ALLOWLIST PARSER (goal:g17.1
+    ruling, merge-up 33): short-option clusters expand char by char, a
+    value-taking option consumes its value, every option must be in the exe's
+    ALLOWED set, positionals are governed by COUNT and SHAPE. Anything else is
+    refused as `filter <exe> <token> not on the allowlist`; awk outright as
+    `filter awk`; an unmodeled exe as `filter <exe>`.
+    """
     if exe == "awk":
         # a program body can reach system/getline/`>`/`|`; refused outright
         return "filter awk"
-    if exe == "sed":
-        return _sed_refusal(args)
-    file_opts = _FILTER_FILE_OPTIONS.get(exe, ())
-    value_opts = _FILTER_VALUE_OPTS.get(exe, frozenset())
+    if exe not in _FILTER_ALLOW:
+        # a pipe-fed stage that is not a modeled filter — never a producer
+        return f"filter {exe}"
+    flags, valueopts = _FILTER_ALLOW[exe]
+    if exe == "tr":
+        pos_max = _FILTER_TR_SETS
+    else:
+        pos_max = _FILTER_POS_MAX[exe]
     pos = 0
-    tr_sets = 0
-    # grep/egrep: once the PATTERN has been supplied by `-e`/`--regexp` (exact
-    # `-e PAT`/`--regexp PAT`, or attached `-ePAT`/`--regexp=PAT`), the free-
+    # grep/egrep: once the PATTERN has been supplied by `-e`, the free-
     # positional budget drops to ZERO — a further non-option token is a FILE
     # operand (`grep -e x .env` reads .env), not a second pattern.
     pattern_supplied = False
     i = 0
     while i < len(args):
-        a = args[i]
-        if "/" in a:
-            return f"filter {exe} {a}"
-        if not a.startswith("-"):
+        tok = args[i]
+        if not tok.startswith("-"):
+            # a POSITIONAL, governed by count and (echo) shape
+            if exe == "echo":
+                for bad in _FILTER_FORBIDDEN:
+                    if bad in tok:
+                        return f"filter echo {tok} not on the allowlist"
+                i += 1              # echo: positionals are free
+                continue
+            if exe in ("grep", "egrep") and pattern_supplied:
+                return f"filter {exe} {tok} not on the allowlist"
+            if pos >= pos_max:
+                return f"filter {exe} {tok} not on the allowlist"
             pos += 1
-            if exe in _FILTER_FILE_OPERAND_TOOLS:
-                return f"filter {exe} operand {a}"
-            if exe in _FILTER_ONE_POSITIONAL:
-                max_pos = 0 if pattern_supplied else 1
-                if pos > max_pos:
-                    return f"filter {exe} operand {a}"
-            elif exe == "tr":
-                tr_sets += 1
-                if tr_sets > _FILTER_TR_SETS:
-                    return f"filter tr operand {a}"
-            # echo and the one/two-positional cases: this token is allowed
+            if exe == "sed" and not _sed_program_allowed(tok):
+                # the program positional is the whole gate; a bad program is
+                # refused with its grammar name, not the generic allowlist msg
+                return "filter sed program"
             i += 1
             continue
-        key = a.split("=", 1)[0]   # `-ofoo` is the `-o` option, `--x=y` is `--x`
-        for opt in file_opts:
-            # exact (`-f`, `--output=foo`) or attached (`-f3`, `-oM`) forms
-            if key == opt or (len(opt) == 2 and a.startswith(opt)):
-                return f"filter {exe} {opt}"
-        if key in value_opts:
-            if exe in ("grep", "egrep") and key in ("-e", "--regexp"):
-                pattern_supplied = True  # this option IS the pattern
-            if a == key and i + 1 < len(args) and not args[i + 1].startswith("-"):
-                i += 2            # separate value `-n 5` consumed as the value
-                continue
-            i += 1                # attached value `-c1-80` / `--lines=5` / `-n5`
+        if tok.startswith("--"):
+            # no `--long` form is on any filter's ALLOWED set
+            return f"filter {exe} {tok} not on the allowlist"
+        if exe in ("head", "tail") and _NUM_OPT_RE.match(tok):
+            i += 1                  # bare `-N` form (`head -5`)
             continue
-        i += 1                    # benign flag, or an unknown option
+        # SHORT-OPTION CLUSTER: expand char by char; a value-taking letter
+        # consumes the rest of the cluster (attached) or the next token.
+        body = tok[1:]
+        j = 0
+        skip = 1                    # tokens past this one the cluster consumes
+        while j < len(body):
+            ch = body[j]
+            if ch in valueopts:
+                if ch == "e" and exe in ("grep", "egrep"):
+                    pattern_supplied = True    # `-e PAT` IS the pattern
+                if body[j + 1:]:
+                    j = len(body)  # attached value `-c1-80` / `-m3`
+                elif i + 1 < len(args):
+                    skip = 2        # separate value `-n 5` consumed
+                    j = len(body)
+                else:
+                    return f"filter {exe} -{ch} not on the allowlist"
+            elif ch in flags:
+                j += 1
+            else:
+                return f"filter {exe} -{ch} not on the allowlist"
+        i += skip
     return None
+
 
 
 #: Shell operators a first_turn command may NOT contain. `|` and `;` ARE
@@ -4328,50 +4318,61 @@ def _producing_refusal(command: str) -> str | None:
     if op:
         return op
     try:
-        parts = _segment_parts(command)
+        units = _startup_units(command)
     except _StartupParseError as exc:
         # Never raise out of the guard: an unparseable command (unbalanced
         # quote, trailing backslash, ...) is a NAMED refusal, not a crash of
         # rotate-self.
         return "unparseable command: %s" % exc
-    for idx, toks in enumerate(parts):
-        if not toks:
-            continue
-        exe = os.path.basename(toks[0])
-        args = toks[1:]
-        if idx > 0 and exe in _STARTUP_FILTERS:
-            # a post-`|` stdio filter — judged on its ARGUMENTS too, not
-            # skipped by name alone (hypothesis:l4-a-filter-stage-is-
-            # argument-restricted): no path token, no file option, awk/sed
-            # program forms refused.
-            fret = _filter_arg_refusal(exe, args)
-            if fret:
-                return fret
-            continue
-        if exe == "ps":
-            continue
-        if exe in ("python", "python3"):
-            script = args[0] if args else ""
-            if not (script.endswith(".py")
-                    and ("extensions/" in script or "/bin/" in script)):
-                return f"{exe} {script}".strip()
-            continue
-        if exe == "git":
-            sub = next((a for a in args if a in _GIT_READONLY_SUBCMDS), None)
-            if sub is None:
-                return ("git " + " ".join(args)).strip()
-            continue
-        if exe == "tmux":
-            sub = args[0] if args else ""
-            if sub not in _TMUX_READONLY_SUBCMDS:
-                return ("tmux " + " ".join(args)).strip()
-            continue
-        if exe == "curl":
-            joined = " ".join(toks)
-            if "openrouter.ai" in joined and "credits" in joined:
+    for unit in units:
+        for stageno, stage in enumerate(unit):
+            toks = stage[:]
+            i = 0
+            while i < len(toks) and "=" in toks[i] and not toks[i].startswith("-"):
+                i += 1
+            toks = toks[i:]
+            if not toks:
                 continue
-            return ("curl " + " ".join(args)).strip()
-        return (exe + " " + " ".join(args)).strip()
+            exe = os.path.basename(toks[0])
+            args = toks[1:]
+            if stageno > 0:
+                # a PIPE-FED stage: must be a stdio filter, judged on its
+                # ARGUMENTS (hypothesis:l4-a-filter-stage-is-argument-
+                # restricted) — no off-allowlist option, no positionals.
+                if exe in _STARTUP_FILTERS:
+                    fret = _filter_arg_refusal(exe, args)
+                    if fret:
+                        return fret
+                    continue
+                # a pipe-fed PRODUCER (git/python3/ps/...) has no reason to
+                # appear mid-pipeline; refused by name (closes
+                # `| git log -p -- .env` without touching the git allowlist).
+                return f"filter {exe}"
+            # unit-leading PRODUCER, on the strict allowlist
+            if exe == "ps":
+                continue
+            if exe in ("python", "python3"):
+                script = args[0] if args else ""
+                if not (script.endswith(".py")
+                        and ("extensions/" in script or "/bin/" in script)):
+                    return f"{exe} {script}".strip()
+                continue
+            if exe == "git":
+                sub = next((a for a in args if a in _GIT_READONLY_SUBCMDS), None)
+                if sub is None:
+                    return ("git " + " ".join(args)).strip()
+                continue
+            if exe == "tmux":
+                sub = args[0] if args else ""
+                if sub not in _TMUX_READONLY_SUBCMDS:
+                    return ("tmux " + " ".join(args)).strip()
+                continue
+            if exe == "curl":
+                joined = " ".join(toks)
+                if "openrouter.ai" in joined and "credits" in joined:
+                    continue
+                return ("curl " + " ".join(args)).strip()
+            return (exe + " " + " ".join(args)).strip()
     return None
 
 
