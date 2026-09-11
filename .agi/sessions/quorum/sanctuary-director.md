@@ -9,7 +9,8 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 - **Prime: `agi-31 [aca130]`, tmux `agi-rc:@247` (`belam-S1-L4-VI`)** — verified 3 ways at 23:50Z (`whois` IS-AUTHORIZED @ `b49e7c9ec`, ListAgents row, pane). Re-verify before every send.
 - **Helper: gen IV `seat-sanctuary-helper-bd [71b63a]`, tmux `agi-rc:@248`** — on round `113` (seat-model verify-half: verification.py/commands.py; MUST NOT touch rotate.py/dispatch.py). Reports to me; its seat merges up separately.
 - **Tree:** seat = season/s2 `86a7dbfe0` + syncs. Floor **1857 / 194 / 2051**; last MAIN suite 2621 passed / 3 skipped (merge-up 21).
-- 🟢 **LIVE: L4.114** (third fix-only 0a dispatch) — agent `a00-2a2921ea`, pid 2649391, branch `loop/hypothesis-l4-the-predecessor-ha-a00-2a2921ea@s2`, worktree `.agi/worktrees/a00-2a2921ea`, dispatched ~00:1xZ from seat `44dcb7ae0` (background task `bl9rmg8sy`; manifest `.agi/sessions/iter-L4.114/manifest.json`). Budget 1/25. Free ids: **L4.115+**.
+- 🟢 **LIVE: L4.114** (third fix-only 0a dispatch) — agent `a00-2a2921ea`, pid 2649391, branch `loop/hypothesis-l4-the-predecessor-ha-a00-2a2921ea@s2`, worktree `.agi/worktrees/a00-2a2921ea`, dispatched ~00:1xZ from seat `44dcb7ae0` (background task `bl9rmg8sy`; manifest `.agi/sessions/iter-L4.114/manifest.json`). 
+- 🟢 **LIVE: L4.115** (model-change round, dispatch.py lane, PARALLEL — disjoint files, rotate.py/write.py/send.py excluded in its addendum) — agent `a00-b85fe10b`, pid 2855706, dispatched ~00:2xZ from seat `ed42f68d7` (background task `bf4v2m6os`; manifest `.agi/sessions/iter-L4.115/manifest.json`). Budget 3/25 (L4.114 parent + kid `a00-2998923a`, L4.115 parent). Free ids: **L4.116+**. Spend at 00:02Z: $91.94 used on the account capture (~$15 left of ~$107).
 - **Parent model = `deepseek/deepseek-v4.1-flash`** — re-prove with `--dry-run` before every dispatch.
 
 ## §1 PLAN — done / next / blocked
@@ -18,7 +19,7 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 2. ✅ Synced to `86a7dbfe0`: the OWNER ORDER (23:52Z/23:53Z, on the 0a node + doc:l4-owner-decisions) — rotate-self EXECUTES every algorithmic step; conventional names DERIVED (no `--name` in any brief); single criterion = successor brief carries ZERO algorithmic steps; SKIPPED-with-input-named, never success.
 3. 🟢 **L4.114 DISPATCHED** on `hypothesis:l4-the-predecessor-hands-over-authority` — ruling landed (beadcbec2: self_row `[session_ref, session_id, generation, window, pid]`, registry identity at spawn, ref back-filled by the successor's own `ack --ref`, whois by ref OR uuid prefix); addendum = the node's newest note (`44dcb7ae0`), 13 steps s1–s13, proofs a–h, file scope stated.
 4. ⏭ L4.113 live-dm proof rides on L4.114 (first round cut from a tree carrying L4.113): on done, ONE dm must land in `send.py read sanctuary-director`; record on `experiment:a00-30068a81-e81dff`.
-5. ⏭ Then, serial on rotate.py: 0b → 0c → rotate_at round → (a)'s rotate-half. Dispatch.py lane: `hypothesis:l4-a-model-change-is-one-write-and-harness-config-is-ours` (needs its own ruling-(A)-style addendum). Workflow rounds 2/3.
+5. 🟢 Dispatch.py lane: `hypothesis:l4-a-model-change-is-one-write-and-harness-config-is-ours` = **L4.115 LIVE** (addendum `ed42f68d7`: fixture proofs, ladder/config/~/.pi governing → prime's cut-over commit; pi relocates by `HOME`). ⏭ Then, serial on rotate.py: 0b → 0c → rotate_at round → (a)'s rotate-half. Workflow rounds 2/3.
 6. ⛔ L4-final stream round HELD (owner). Suite-lock survey is the prime's.
 
 ## §2 LANDED / FOUND THIS SESSION (one line each)
@@ -30,7 +31,7 @@ You are `sanctuary-director`, **L4 generation X**. Generations RESET at the new 
 
 ## §3 🔴 WHERE I STOPPED / NEXT COMMAND
 
-L4.114 is RUNNING (dispatched ~00:1xZ). Next:
+L4.114 and L4.115 are RUNNING. Harvest each on its background-task notification (L4.114 first if both land). Next:
 1. Watch it: `spawn_budget.py status`; `jq -c '.agents[] | {id,pid,status,branch}' .agi/sessions/iter-L4.114/manifest.json`; kid tree under `.agi/worktrees/a00-2a2921ea/`; stall rule in "Watching a round". (`--dry-run` prints the model UNQUOTED now: grep `-o 'model [^ ]*'`.)
 2. On done: the L4.113 proof — `python3 extensions/agi/bin/send.py read sanctuary-director` must show ONE dm from the round; record yes/no on `experiment:a00-30068a81-e81dff`.
 3. Watch per "Watching a round"; at harvest run `pytest tests/test_rotate*.py tests/test_write*.py tests/test_node_writer.py tests/test_stall_detect.py` TOGETHER; grep new tests for bare `module.attr =` and for `REPO / ".agi"`.
