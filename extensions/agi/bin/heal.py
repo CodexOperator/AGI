@@ -362,9 +362,11 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         # working — which the pi parent reads as a licence to cut a REPLACEMENT
         # kid into the same worktree (L4.155/L4.156: two kids editing one file
         # set). A live agent keeps status `running`, gains `overdue_since` +
-        # `overdue_reason`, gets EXACTLY ONE `overdue` dm (never a second on a
-        # later pass — the `overdue_since` guard), and the parent brief names
-        # `overdue` as still-working so no replacement is cut. The admin heap
+        # `overdue_reason`, gets EXACTLY ONE dm whose body is
+        # `iter=... agent=... reason=overdue` (`[agi-nudge]` is the wake-token
+        # prefix the nudge path adds, not part of the body; the `overdue_since`
+        # guard never admits a second), and the parent brief names `overdue`
+        # as still-working so no replacement is cut. The admin heap
         # path that actually TERMs a hung pid is the one place a `timeout`
         # verdict is legal; the watcher never derives it.
         if rec.get("overdue_since"):
