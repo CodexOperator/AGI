@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -1444,6 +1445,14 @@ def _resolve_conflicted(git_root: Path, branch: str) -> int:
     return 0
 
 
+# hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — the OWNERSHIP
+# gate shape for `cmd_merge_kids`: the parent's round branch
+# (`loop/<slug>-<agent8>@s<N>`, as cut by `dispatch.loop_branch_name`). Only
+# this shape may be the merge-kids target; anything else (season/s<N>, master,
+# a bare feature branch) means the helper is being run from the wrong place.
+_ROUND_BRANCH_RE = re.compile(r"^loop/.+-[0-9a-fA-F]{8}@s\d+$")
+
+
 def cmd_merge_kids(root: Path, args) -> int:
     """`season.py merge-kids <kid-branch> ...` -- merge kid branches --no-ff
     into the CURRENT branch, one at a time, union-resolving node-file
@@ -1472,6 +1481,25 @@ def cmd_merge_kids(root: Path, args) -> int:
     cur = _current_branch(work_root)
     if not cur:
         print("ERR: not on a branch (detached HEAD?)", file=sys.stderr)
+        return 1
+    # hypothesis:l4-merge-kids-stays-in-the-parents-own-worktree — OWNERSHIP
+    # GATE. `merge-kids` is the ONE git operation a branch parent runs, and it
+    # must land the round's kids onto the parent's OWN round branch in its own
+    # worktree — never onto whatever MAIN has checked out. The worktree
+    # resolution above already points every git op at the calling worktree's
+    # top, but a parent that runs the helper from MAIN's checkout (on
+    # season/s<N>, master or a bare feature branch) would still merge its kids
+    # onto a branch that is not its own round branch. So: refuse unless the
+    # checked-out branch is a `loop/<slug>-<agent8>@s<N>` round branch — the
+    # shape dispatch cuts for a branch parent (`dispatch.loop_branch_name`). A
+    # non-round checkout means whoever invoked this is in the wrong place and
+    # has not understood the protocol; refuse before any kid branch is touched.
+    if not _ROUND_BRANCH_RE.match(cur):
+        print(f"REFUSED: current branch {cur!r} is not a parent's round "
+              f"branch (loop/<slug>-<agent8>@s<N>) -- merge-kids merges a "
+              f"round's kids onto the parent's OWN round branch and must run "
+              f"from that branch in its own worktree, never the main "
+              f"checkout", file=sys.stderr)
         return 1
     suite = args.suite or DEFAULT_SUITE
     branches = args.branches
