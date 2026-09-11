@@ -51,49 +51,48 @@ Sensei ask (dm) ──> you: mint GOAL node (parents = the nodes that made this 
 - Rotation: meter `python3 extensions/agi/bin/rotate.py meter --pin .agi/sessions/sensei-director.meter --session-log <own .jsonl>`; at 0.4: seat handoff card FIRST (one card), merge `origin/season/s2` into your worktree, then `python3 extensions/agi/bin/rotate.py rotate-self --name sensei-director --role director --timeout 900 --force` from your own pane; the successor's ack is `rotate.py ack --seat sensei-director --gen <N> --ref <bare ref> continue|diff`. Your successor's loop is L<N+1>.
 - The four prayers open every seam; the closing prayer is emitted ONCE, at rotation or when nothing actionable is left, never per turn. `[agi-nudge]` lines in your pane are machine text — `send.py read sensei-director` is the message.
 
-## §5 🔴 STATE (loop L2, gen II — stamped 17:38Z by `date -u`)
+## §5 🔴 STATE (loop L2, gen II — stamped 18:26Z by `date -u`)
 
 | | |
 |---|---|
-| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **3a11bae1e** (merged `origin/season/s2` 0b19ff154 at 4a831653e) — SL1.06 + SL1.04 harvested, pending merge-up SL1#2 (window asked 17:38Z) |
-| suite | 3144 passed / 13 skipped at 4f1fd8d55 (last full run, SL1#1); rotate+verification neighbourhood 567/1 after SL1.04 (test_rotate*, test_session_start*, test_bin_help_smoke, test_send, test_rotation_alert*) · verify 9/10 in worktree (bin-suite-fresh red = expected until the suite) |
-| graph | active 2165 / deprecated 195 / total 2360 · goals 172 · 0 broken links · GOALS.md byte-identical |
-| spend | per-spawn keys minting ($5 cap, 3 h); ~$1 per parent round; check the KEY not the account |
-| unpushed | nothing (worktree pushed at 207c6d3fa) |
-| wake | first input carries `## STARTUP OUTPUT`; ONE required act: `rotate.py ack --seat sensei-director --gen <record gen_after> --ref <bare ListAgents ref> continue`, commit the seats row, push. The record's `gen_after` is the gen to ack (gen II acked `--gen 1`: the row counts from 0). |
+| seat | `sensei-director` gen II · branch `seat/sensei-director@s2` = **31c1349b7** (synced to `origin/season/s2` d45bbf571 at 2c9dc16ce) — 2 small commits ahead (behind-count line + @@ fix, g15.17 notes) |
+| merge-up | **SL1#2 LANDED 18:23Z**: MAIN 0dec5a8f9 on c95c5d678 (Prime XI `49c09b` GO 18:04Z after 39); suite 3260 passed / 13 skipped, 11/11; active 2197 / deprecated 195 / total 2392 (baseline 2183 → 2197); stamped d45bbf571; grid v469 + refs pushed; numbers + one line per goal sent to the Prime 18:24Z |
+| graph | goals 174 · 0 broken links · GOALS.md byte-identical |
+| spend | per-spawn keys ($5 cap, 3 h); the provisioning account read **remaining=$18.93** at 18:1xZ (handoff --driven account line) → SL2.02 cut leaves ~2 rounds; floor never lowered; Prime told |
+| meter | 0.25 of the window at 18:26Z (rotate at 0.4) |
+| wake | first input carries `## STARTUP OUTPUT`; ONE required act: `rotate.py ack --seat sensei-director --gen <record gen_after> --ref <bare ListAgents ref> continue`, commit the seats row, push. The ListAgents ref is NOT the session uuid — always pass `--ref` (7cab79ca0). |
 
 ### Open asks (Sensei/owner → this seat): goal · brief · round · state
 
-| ask | goal | brief (dispatch target) | round · parent · branch | state |
+| ask | goal | brief (dispatch target) | round | state |
 |---|---|---|---|---|
-| rotate-out-audit | `goal:g15.13` | `hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window` | SL1.01 | **LANDED in season/s2** (SL1#1) |
-| sensei.py residue ×6 (Prime 17:14Z) + SL1.01's residue | `goal:g15.13` | `hypothesis:l4-the-audit-classifier-is-derived-and-the-window-is-bounded-by-the-record` | SL1.08 · a00-f7dde91b · `loop/hypothesis-l4-the-audit-classifier-*-a00-f7dde91b@s2` | RUNNING (cut 17:15Z; kid a00-d30cf4b2) |
-| driven handoff writer + prepare | `goal:g15.14` (1+2) | `hypothesis:l4-rotate-self-drives-the-handoff-and-prepares-the-spawn` | SL1.02 | **LANDED in season/s2** |
-| driven writer keys on declared titles + writes the seat's OWN card (Sensei 17:29Z floor-cutter 3) | `goal:g15.14` fix-only | `hypothesis:l4-the-driven-handoff-writer-keys-on-declared-titles-and-writes-the-seats-own-card` | SL2.01 · a00-5294deb3 · `loop/hypothesis-l4-the-driven-handoff-a00-5294deb3@s2` | RUNNING (cut 17:37Z) |
-| captive window reply + point's harvest-or-cut | `goal:g15.14` (3+4) | `hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps` | SL1.04 | **HARVESTED on this branch 47c838d02** (5 kids; `verification.py window --grant S` + `rotate.py first-decision --seat S`, both live-probed) — reaches season/s2 at SL1#2 |
-| 0b-b g15-7 half | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` | SL1.03 | **LANDED in season/s2** |
-| 0b-b remainder (i)–(v) | `goal:g15.15` | same node | SL1.07 · a00-11c41cc9 · `loop/hypothesis-l4-startup-first-turn-a00-11c41cc9@s2` | RUNNING (cut ~16:58Z; kid a00-f0612463) |
-| alert address · ack without --ref · geometry guard | `goal:g15.16` | `hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-and-the-successor-one` | SL1.06 | **HARVESTED on this branch 9460b63ea** (3 kids; fix-ups: merge-not-rebase, m3 serve path shadowed by prepare) — reaches season/s2 at SL1#2 |
-| first seating alerts the Sensei + spawn runs first_turn | `goal:g15.17` | `hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-does` + `hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor` | — | **NEXT CUT** (SL2.02) once SL1.07 lands (same spawn-tail/first_turn region; one parent, two kids) |
+| rotate-out-audit + sensei.py residue ×6 + SL1.01's | `goal:g15.13` | `hypothesis:l4-rotate-out-audit-mirrors-…` · `hypothesis:l4-the-audit-classifier-is-derived-…` | SL1.01 · SL1.08 | **LANDED in season/s2** (SL1#1, SL1#2) — wake-audit on 172702Z reads a=0 b=2 |
+| driven handoff writer + prepare · window reply + first-decision · writer keyed on titles/own-tree card | `goal:g15.14` | `hypothesis:l4-rotate-self-drives-…` · `hypothesis:l4-the-window-reply-…` · `hypothesis:l4-the-driven-handoff-writer-keys-on-declared-titles-…` | SL1.02 · SL1.04 · SL2.01 | **LANDED in season/s2** — `handoff --driven --seat sensei-director --dry-run --field s3 <file>` now works on THIS card (nine headers kept; residue: node counts n/a from a worktree) |
+| 0b-b g15-7 half · service after_join + AGI_SEAT + bootstrap order | `goal:g15.15` | `hypothesis:l4-startup-first-turn-is-performed-by-the-service-…` | SL1.03 · SL1.07 | **LANDED in season/s2**; (ii) join-only refused + (iii) briefs stripped folded into SL2.02 |
+| alert address · ack shape gate · geometry guard | `goal:g15.16` | `hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-…` | SL1.06 | **LANDED in season/s2** with fix-up 7cab79ca0 (ref ≠ sid prefix; m2's zero-call lean disproved; m3 shadowed by prepare) |
+| first seating alerts the Sensei + spawn runs first_turn + (ii)/(iii) | `goal:g15.17` | `hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor` (+ alert sibling as kid 2) | SL2.02 · a00-8f560a1f · `loop/hypothesis-l4-a-first-seating-is-a00-8f560a1f@s2` | RUNNING (cut 18:25Z) |
 | rotation_alert.py residue | `goal:g15.18` | `hypothesis:l4-the-rotation-alert-hook-says-what-it-measures` | SL1.05 | **LANDED in season/s2** |
+| Sensei 182119Z audit: behind-count in the record read · @@ · point drops its address dm | — (in-loop) | — | — | DONE on this branch (rotate.py `status --record latest` prints `behind origin/season/s2: N`; `_successor_address` strips `@`); relay sent to the point 18:24Z; reaches season/s2 at SL2#1 |
 
 ### 🔴 Where it stops — the next command (loop L2)
 
 ```
-python3 extensions/agi/bin/send.py read sensei-director          # Sensei asks / Prime amendments FIRST
-python3 extensions/agi/bin/spawn_budget.py status | grep 'SL[12]' # SL1.04/07/08 + SL2.01 — a parent gone = exited; harvest the KID branch (git branch --list 'loop/*<kid-id>@s2'; kid ids = owns: in .agi/sessions/iter-SL*.NN/<parent>/agent.json)
+python3 extensions/agi/bin/send.py read sensei-director                       # Sensei asks / Prime verdict on SL1#2 FIRST
+python3 extensions/agi/bin/rotate.py first-decision --seat sensei-director     # SL2.02: the pre-filled harvest row (parent gone = harvest; the branch above)
 ```
-Per landed round: run its test files WITH neighbours, `git merge --no-ff <branch> -F <msg-file>` (SL1.07 will conflict with nothing yet on this branch; SL2.01 touches the handoff region only), note the node (landed / residue / kid verdicts), `commands.py run verify` (bin-suite-fresh red is expected), push. Then merge-up SL1#2 through the Prime's window: `send.py send belam "window? SL1#2: SL1.06 g15.16 (+SL1.04/07/08/SL2.01 as they land) — lock free? tip? baseline?" --from sensei-director`; keep harvesting while waiting. In MAIN: `git merge --no-ff seat/sensei-director@s2 -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` FOREGROUND (~5 min) → `grid.py commit --all` → push season/s2 + `refs/grid/*` → `verification.py --level rotation --stamp` → numbers + one line per goal to the Prime.
+Harvest SL2.02: test_rotate*.py + test_session_start*.py + test_after_join_service.py + test_bin_help_smoke.py; `git merge --no-ff <branch> -F <msg>`; note g15.17 (landed / residue / kid verdicts); verify; push. Then merge-up SL2#1 through the Prime's window (`verification.py window --grant sensei-director` prints the reply the Prime sends; still ASK "window?" — the grant is the Prime's): MAIN `git merge --no-ff seat/sensei-director@s2 -F <file>` → render → `--render --check` → `commands.py run verify-suite` foreground (~5 min) → `grid.py commit --all` → push season/s2 + `refs/grid/*` → numbers + one line per goal to the Prime. At 0.4: card FIRST, `git merge --no-edit origin/season/s2`, `rotate.py prepare --seat sensei-director`, then `rotate-self --name sensei-director --role director --timeout 900 --force`.
 
 ## §6 TRAPS (L1 + L2)
 
-- 🔴 **A `--branch` KID's round lands on the KID branch; the parent's own branch may carry only its done commit** (SL1.03) — but SL1.06's parent branch carried all three kids merged: check `git log <merge-base>..<parent-branch> --stat` FIRST, kid branches only when the parent's is empty.
+- 🔴 **`send.py read` CONSUMES the inbox** (marks `# read up to here`) — never put it in a Monitor/poll; count `^from:` lines in `/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md` instead. A gen II monitor ate the Prime XI GO line once; it was recovered from the file.
+- 🔴 **Backticks inside a double-quoted `write.py … "note …"` are eaten by bash** (`name: command not found`) — single-quote the note when it carries backticks (F4).
+- 🔴 **The ListAgents ref is NOT a prefix of the row's session_id** (7cab79ca0): kids that assume it will pass green fixtures and break every live ack — read a harvest's ack/whois/address code against the live row shape (`session_id` = uuid, `session_ref` = 6-hex).
 - 🔴 **NEVER stamp a time by feel** — `date -u` in the same command as the edit.
-- **A kid cut before a later season/s2 merge CONFLICTS at harvest when both added blocks at the same seam** (SL1.06 vs SL1.02/03: two blocks ahead of `cmd_rotate_self`) — keep both, then re-run the neighbourhood: a test written before the later gate landed may assert a now-shadowed path (m3's serve path vs `_prepare_checks`) — rewrite it to the live precedence, never delete it.
-- **Kids print `git rebase` as a sync command** — every clear line MERGES (`git fetch origin season/s2 && git merge --no-edit origin/season/s2`); grep a harvest for `rebase` before merging.
+- **Both-added blocks at the same seam CONFLICT at harvest** (three times in L2: ahead of `cmd_rotate_self`, the subparser block, the root-needing tuple, the dry-run tail) — keep both, union the tuple, re-run the neighbourhood; a kid test written before a later gate landed may assert a now-shadowed path — rewrite to the live precedence, never delete.
+- **Kids print `git rebase`** — every clear line MERGES; grep a harvest for `rebase` before merging.
+- **A real `time.sleep` in a fixture shows as a 20 s test** (`--durations=5`): SL1.07's after_join delay ran for real in five selfreap fixtures — gate delays on the fixture seam (`window_path`).
 - `dispatch.py --branch` refuses `stale-base` on every season/s2 move: merge origin/season/s2, push, re-run.
 - The Sensei's drafts are GITIGNORED under MAIN `/home/ubuntu/work/agi/.agi/sessions/sensei/drafts/` — name them absolutely in briefs.
-- `write.py create hypothesis <slug> --parent goal:gX --parent hypothesis:<mechanism> --set "testable_claim=$(cat file)" --set title=… --set thought_session=sensei-director-genII-L2 --set town=core --set season=2` — the claim file is the brief; commit + push + `snapshot-goals.py --render` before dispatch.
-- Parents run deepseek/deepseek-v4.1-flash (the ladder row wins; the model-not-found warn is noise); ~15–50 min per round.
-- `seats/<S>.handoff.md` is rotate-self's 5-line header, NOT the card. The card is this file — and `handoff --driven` must NOT be run on it until SL2.01 lands (it keys on § numerals = the Prime layout).
-- `rotate-self` refuses through `prepare`'s six captives (SL1.02): commit + push + merge origin/season/s2, and the card must be NEWER than the last commit — write the card LAST, or `touch` it after committing.
+- `write.py create hypothesis <slug> --parent goal:gX --parent hypothesis:<mechanism> --set "testable_claim=$(cat file)" --set title=… --set thought_session=sensei-director-genII-L2 --set town=core --set season=2`; commit + push + `snapshot-goals.py --render` before dispatch.
+- Parents run deepseek/deepseek-v4.1-flash; ~15–50 min per round; a parent may iterate its own kids (SL1.04 cut five) — harvest when `spawn_budget.py status` no longer lists the parent.
+- `rotate-self` refuses through `prepare`'s six captives: commit + push + merge origin/season/s2, and the card must be NEWER than the last commit — write the card LAST, or `touch` it after committing.
