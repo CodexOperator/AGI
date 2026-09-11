@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi
+mint_id: 637c95b53b0f49c180c99a36857eb1d6
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: b68ce8c927600624
+season: 2
+testable_claim: "OWNER 2026-09-11 05:1xZ: bugfix/optimization findings are g15 hypothesis nodes fixed in-loop. Found by the prime (belam-S1-L4-IX) ruling merge-up 36 BY NAME (wf_ad998696-022; goal:g17.1 at e385f3f47), ACCEPTED there as residue line 4 on L4.224 (brief.py g15 build-order rule); minted by sanctuary-director gen XV 14:1xZ after re-measuring on the seat's bytes (tip past 4764f6070; brief.py:1668 on the prime's bytes is :1669 here after L4.232's +2). MEASURED: brief.py:1669 `if _is_g15_lineage(_resolve_graph_root(None), target)` passes None, and `_resolve_graph_root(None)` (:244-258) walks up from `Path(__file__)` -- brief.py's OWN location -- to the first `.agi`, i.e. the ENGINE's graph, with a `Path.cwd()/.agi` fallback; every other reader in the module takes the caller's `project_root` (:74, :530, :584, :638, :693, :974, :1003, :1065, :1442). `assemble()` (:1801-1809) has NO `project_root` parameter at all -- only `source_root` (the engine source tree, what dispatch.py:966 passes) -- so a project that clones the engine in (`fantasia/agi/`, CLAUDE.md layout) and dispatches a g15-lineage round of ITS OWN graph gets the build-order rule decided against the engine's `goal:g15`, and a target that is g15 lineage in the project but not in the engine loses the rule (silently: no rule text, the kid measures instead of building). On THIS repo the two graphs coincide (`agi/.agi` is both), which is why nothing failed here -- the defect is the boundary CLAUDE.md names (\"nearest enclosing .agi wins\", goal:g8.2). CLAIM: `assemble()` gains `project_root: Path | str | None` (the nearest-.agi root the dispatcher resolved; dispatch.py passes `locations.find_project_root(...)`'s result -- dispatch already has it as its own root), threads it to `_parent` (and any other segment builder that reads the graph), and the g15 lineage check reads `_resolve_graph_root(project_root)`; when the caller passes nothing the current walk-up stays as the fallback so every existing caller is unchanged. TESTS (test_brief.py, two tmp graphs, never the live one): a tmp PROJECT graph whose `hypothesis:x` descends from ITS `goal:g15` plus a tmp ENGINE-shaped graph where the same id is absent -> `assemble(tier='parent', target='hypothesis:x', project_root=<project .agi>)` renders the build-order rule, and the same call with `project_root=<engine .agi>` does not; `assemble(...)` with no project_root still renders exactly what it renders today for a real g15 node of this repo (byte-identical segment); dispatch.py's call site passes the root (assert via a monkeypatched `_brief.assemble` capturing kwargs in test_dispatch, or a grep-level test if dispatch's surface is too heavy to invoke -- kid's call, recorded). FALSIFIER: a g15-lineage target of a project graph rendered without the rule when brief.py lives in a cloned engine, or an existing caller whose rendered brief changes. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/brief.py (`assemble` signature, `_parent` signature, the :1669 call) + extensions/agi/bin/dispatch.py (the ONE kwarg at the :962 call site) + extensions/agi/tests/test_brief.py (+ test_dispatch.py only for the kwarg assertion). SERIAL on brief.py behind hypothesis:l4-a-test-of-live-config-reads-the-live-node (L4.237); dispatch.py has no live round."
+title: brief.py resolves g15 lineage from the nearest .agi the dispatcher passes, not the graph enclosing brief.py
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-brief-resolves-g15-lineage-from-the-nearest-agi
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
