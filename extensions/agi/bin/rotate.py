@@ -5694,6 +5694,35 @@ def transcript_from_registry(registry_json: Path) -> Path | None:
     return Path(transc) if transc else None
 
 
+def _json_scalars(data):
+    """Yield every scalar (string/number/bool) under a parsed registry dict."""
+    if isinstance(data, dict):
+        for v in data.values():
+            yield from _json_scalars(v)
+    elif isinstance(data, (list, tuple)):
+        for v in data:
+            yield from _json_scalars(v)
+    else:
+        yield data
+
+
+def _registry_matches_window_id(data: dict, window_id: str) -> bool:
+    """True when the parsed registry JSON carries `window_id` as a DELIMITED
+    @<digits> token (l4-a-join-matches-the-delimited-window-token-and-keep-
+    both-is-tested). NEVER a bare substring: `@30` matches the value
+    `view:@30.%0` but NOT `view:@302.%0` (a wrong join would write a foreign
+    session's identity into the seat's row behind the L4.288 back-fill). tmux
+    stores the window as `@<id>.%<pane>`, so @<digits> must be followed by a
+    NON-id character (`.`, quote, comma, brace, whitespace, or the end of the
+    value) — id characters are digits/letters/underscore. When the window id
+    is not a plain number it falls back to a whole-cell equality match."""
+    digits = window_id.lstrip("@")
+    if not digits.isdigit():
+        return any(str(v) == window_id for v in _json_scalars(data))
+    pat = re.compile(r"@%s(?![0-9A-Za-z_])" % re.escape(digits))
+    return any(pat.search(str(v)) for v in _json_scalars(data))
+
+
 def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     registry_dir: str | None = None,
                     poll_secs: int | None = None) -> dict:
@@ -5719,14 +5748,18 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     raw = fp.read_text(encoding="utf-8", errors="replace")
                 except OSError:
                     continue
-                if token not in raw:
-                    continue
                 try:
                     data = json.loads(raw)
                 except ValueError:
                     data = {}
                 if not isinstance(data, dict):
                     data = {}
+                # CLAUSE A (l4-a-join-matches-the-delimited-window-token-and-
+                # keep-both-is-tested): match the window @id as a DELIMITED
+                # token over the PARSED JSON, never a bare substring over the
+                # raw text — @30 must NOT join the registry file of @302/@308.
+                if not _registry_matches_window_id(data, token):
+                    continue
                 try:
                     pid = int(fp.stem)
                 except ValueError:
