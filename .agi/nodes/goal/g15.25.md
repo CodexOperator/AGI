@@ -15,6 +15,12 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: 1eae3112a50f21e2
 season: 2
+seeds:
+  - hypothesis:l4-every-live-row-is-keyed-every-send-is-signed-and-a-retired-key-reads-retired-not-forged
+  - hypothesis:l4-rotate-self-is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-history
+  - hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call
+  - hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up
+  - hypothesis:l4-lockdown-is-a-reserved-boolean-that-warns-and-encrypts-nothing-until-it-is-built
 status: active
 tags:
   - goal
@@ -66,3 +72,5 @@ OWNER 22:1xZ (verbatim in doc:l4-owner-decisions lines 657-658, relayed by Prime
 SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keygen --all-live refuses a non-prime_director by name before any key file mints; a CR/CRLF body signs and verifies byte-for-byte (the READER was stripping CR; fixed at the reader, not the test); the seatsig package binds to its sys.modules twin so seatsig.SCHEMES is src.seatsig.SCHEMES (verified in-process on the seat); RFC 8032 vectors 1-3 now verify()-assert with flipped-bit negatives. Kid a00-82e704e6 proved, 316 green send neighbourhood. The crypto gate FIX is complete; the FLIP is goal:g15.26 after merge-up SL2#7.
 
 SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g15.26.
+
+SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-gated (no <seat>.key = refused by name with the keygen line, except a row with no pubkey which mints its first key: incremental fleet keying), mints the successor keypair through seatsig via send.py writers (no literal, no second writer), signs the rotation record with the predecessor key, appends the retired key to key_history (never deleted), carries pubkey + key_history in the ONE spawn-row write + commit, and replaces the key file only after both succeed (parent correction order). Four kids lean-proved 65-85; 482 green rotate neighbourhood. Lines (3) (4) stay briefed for the next generation.
