@@ -29,7 +29,7 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE (gen V, ref `588897`, window @306; stamp 22:22Z)
+## §3 🔴 STATE (gen V, ref `588897`, window @306; stamp 22:28Z; was 22:22Z)
 
 | | |
 |---|---|
@@ -44,20 +44,20 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ask | goal | brief | round · agent | state |
 |---|---|---|---|---|
 | LANDED this loop (SL2#6) | g15.25 line (1) SL4.06 · g15.24 fix (a) SL5.01 | — | — | on season/s2 |
-| mur-39's four open orders on line (1): (c) `--all-live` mints key files for a non-prime; (d) no CR-body test; (e) `seatsig` vs `src.seatsig` = two registries (verified); (f) RFC vectors never `verify()`-asserted | `goal:g15.25` | same brief as SL4.06 — `hypothesis:l4-every-live-row-is-keyed-every-send-is-signed-and-a-retired-key-reads-retired-not-forged` (fix-only orders noted, line-numbered at f53cad72e) | **SL5.02** · a00-821727e6 · `loop/hypothesis-l4-every-live-row-is--a00-821727e6@s2` | RUNNING from 21:58Z (overdue mark 22:18Z = still working). Harvest: send neighbourhood + re-run the §5 greps for (c)-(f) |
+| mur-39's four orders on line (1) | `goal:g15.25` | same brief as SL4.06 (fix-only orders noted at f53cad72e) | **SL5.02** · a00-821727e6 | **HARVESTED 22:28Z** into the seat (kid proved; prime gate before minting, CR reader defect fixed, one registry verified in-process, RFC verify asserted; 316 green). In merge-up SL2#7 |
 | OWNER 22:1xZ (doc:l4-owner-decisions:657-658): reserve a `lockdown` BOOLEAN + seam now, build next season | `goal:g15.25` | `hypothesis:l4-lockdown-is-a-reserved-boolean-that-warns-and-encrypts-nothing-until-it-is-built` (`comms` block in .agi/config.json: `lockdown: false`, `verify: "informational"`; one `_comms_config` helper; true = one warning per send/read, no cipher) | **SL5.03** · a00-5fa9dd23 · `loop/hypothesis-l4-lockdown-is-a-rese-a00-5fa9dd23@s2` | RUNNING from 22:21Z, parallel with SL5.02 (disjoint seams by brief). Harvest: send neighbourhood |
 | OWNER GO 'fix and flip': readers refuse a FORGED block under enforcing; reviewed by name before any reader refuses | `goal:g15.26` (reported 22:2xZ with caveats) | `hypothesis:l4-a-reader-refuses-a-forged-block-under-enforcing-and-the-value-flips-after-a-named-review` | → **SL5.04** | NOT CUT: serial after SL5.02 + SL5.03 land + merge-up SL2#7 (needs the fix bytes + `_comms_config`). The VALUE stays informational on season/s2; the Prime flips it after the review |
-| g15.25 line (2) key-gated rotate-self minting the successor key (IN this loop per Prime 22:14Z) | `goal:g15.25` | `hypothesis:l4-rotate-self-is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-history` | → **SL5.05** | NOT CUT: cut together with SL5.04 after SL2#7 (rotate.py vs send.py — disjoint) |
+| g15.25 line (2) key-gated rotate-self minting the successor key (IN this loop per Prime 22:14Z) | `goal:g15.25` | `hypothesis:l4-rotate-self-is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-history` | **SL5.05** · a00-277de473 · `loop/hypothesis-l4-rotate-self-is-key-a00-277de473@s2` | RUNNING from 22:31Z, parallel with SL5.03 (rotate.py vs send.py). Harvest: rotate neighbourhood + test_write_self_row.py; expect the spawn-row commit to carry pubkey + key_history in ONE commit |
 | lines (3) (4) — hand to the next generation | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | — | briefed, not cut this loop (owner: wrap up soon) |
 | owed by the Prime to me | mur-SL2.3/4/5 (review workflow running 22:08Z) | — | — | findings become fix-only briefs; measure its line numbers on the merge-up commit it names |
 
 ### 🔴 Where it stops — the next command
 
 ```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL5.0[23]"   # a parent gone = harvest that round (SL5.02 a00-821727e6 send/seatsig; SL5.03 a00-5fa9dd23 send/config.json)
+python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL5.0[35]"   # a parent gone = harvest that round (SL5.03 a00-5fa9dd23 send/config.json; SL5.05 a00-277de473 rotate.py)
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read
 ```
-Then merge-up SL2#7 (window? → grant → §1 shape; SL2#6 took one suite run). Then cut SL5.04 (flip) + SL5.05 (line 2) together; harvest; merge-up SL2#8; card; rotate at 0.4.
+**Merge-up SL2#7 as soon as SL5.03 is harvested** (carries SL5.02 + SL5.03; window? → grant → §1 shape). Then cut SL5.04 (flip, needs `_comms_config` from SL5.03 on the base). Harvest SL5.05; merge-up SL2#8 (SL5.04 + SL5.05); card; rotate at 0.4.
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 
