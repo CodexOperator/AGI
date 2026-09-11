@@ -7,6 +7,7 @@ derived_from: authored-2026-08-29 for G10.2 -- no prior corpus to survey; this
 fields:
   crons_live: {type: bool}   # master switch; false means every managed line is removed
   cadences: {type: dict}     # job name -> {every_mins: int, schedule: str, enabled: bool}
+  services: {type: dict}     # OPTIONAL: service name -> systemd unit settings; absent = no units
 validation:
   required: [crons_live, cadences]
   types:
@@ -60,6 +61,14 @@ scheduling, it is the input the applier resolves against.
 - `enabled` — per-job, independent of `crons_live`. A job can be declared
   and turned off without deleting its cadence, the same way a node is
   retired by status change rather than removal.
+- `services` — **optional**, a map of systemd unit name to its settings
+  (`exec_start`, `restart`, `working_directory`, `environment`, `enabled`),
+  rendered into unit files by `crons.py apply --unit-dir …` the way
+  `cadences` are rendered into a crontab. Absent `services:` means no units,
+  a byte-for-byte no-op on the unit directory. Not in `required` and not in
+  `types`: the live node predates it and must stay legal, so this field is
+  documented here and parsed defensively by the applier, never enforced
+  absent.
 
 ## Why a declaration beats an unread schedule
 
