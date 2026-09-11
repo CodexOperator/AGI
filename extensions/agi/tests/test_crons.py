@@ -1078,6 +1078,40 @@ def test_kill_switch_with_no_unit_file_records_absent(tmp_path, fake_systemctl):
         "no disable may run on an absent unit"
 
 
+def test_kill_switch_absent_file_stays_when_no_bus(tmp_path, monkeypatch,
+                                        fake_systemctl):
+    """Kill switch + unit present + NO user bus (hypothesis:l4-kill-switch-
+    without-a-bus-is-a-named-skip): cannot stop the running unit, so record a
+    NAMED skip for `disable --now` and KEEP the file (removing it while the
+    unit runs orphans a process systemd no longer manages). No FAILED, no
+    fake systemctl call, no `remove unit` line."""
+    root = make_project(tmp_path, cadences=dict(DEFAULT_CADENCES))
+    write_crons_node(root, crons_live=True, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    unit = next(ud.glob("agi-*.service"))
+
+    # Kill the bus: XDG_RUNTIME_DIR points at a dir with no socket.
+    runtime = tmp_path / "nobus"
+    runtime.mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime))
+    fake_systemctl.write_text("")
+    write_crons_node(root, crons_live=False, cadences=DEFAULT_CADENCES,
+                     services=SER_REAPER)
+    res = crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert unit.exists(), (
+        "file KEPT: removing it while the unit runs orphans a live unit "
+        "systemd no longer knows")
+    assert any("present, no user bus: disable --now SKIPPED" in a
+               for a in res["unit_actions"]), "one named skip line"
+    assert any("no user bus, skip daemon-reload" in a
+               for a in res["unit_actions"]), "daemon-reload named line"
+    assert not any("remove unit" in a for a in res["unit_actions"])
+    assert not fake_systemctl.read_text(), "no systemctl may run without a bus"
+
+
 def test_kill_switch_with_unit_present_runs_disable(tmp_path, fake_systemctl):
     """The kill switch stays REAL when the unit file exists: disable --now,
     remove, daemon-reload all run through the seam."""
