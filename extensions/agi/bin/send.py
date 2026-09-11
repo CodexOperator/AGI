@@ -701,6 +701,39 @@ def _input_region(pane: str | None) -> str:
     return pane or ""
 
 
+def _region_join_wrap(region: str) -> str:
+    """The input region with any tmux SOFT-WRAP collapsed. The box splits a
+    line wider than the pane across display rows (the measured
+    sanctuary-director pane is 104 columns; the test fixture pane is 80), so a
+    `own_line in region` membership test reads OUR OWN wrapped stranded line
+    as FOREIGN -- the `\n` tmux inserts at the wrap column breaks the
+    substring mid-line and the own line is re-deferred forever
+    (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap). Collapse the
+    display rows back toward one logical line: strip each row's trailing
+    whitespace, strip the first row's prompt glyph and leading whitespace,
+    strip every other row's leading box/continuation whitespace, and join
+    with a SINGLE space -- restoring the one whitespace the box consumed at
+    the wrap point, so a line that wrapped at a word boundary reconstructs
+    verbatim and a line that did NOT wrap is returned effectively unchanged
+    (the prompt glyph aside). A multi-logical-line region is joined too;
+    acceptable, because ownership only asks whether our rendered line's
+    characters, in order, sit in the box, and the rendered line carries the
+    `[nudge: <sender>]:` head that discriminates one sender's line from
+    another's (clause (a) still holds: a DIFFERENT body's line does not
+    share our body's characters)."""
+    rows: list = []
+    for i, raw in enumerate((region or "").splitlines()):
+        ln = raw.rstrip()
+        if i == 0:
+            # the prompt glyph heads the first row of the input box
+            ln = ln.lstrip().lstrip("\u276f").lstrip()
+        else:
+            ln = ln.strip()
+        if ln:
+            rows.append(ln)
+    return " ".join(rows)
+
+
 def _nudge_coalesce_reason(pane: str | None, token: str,
                            registry: str | None) -> str | None:
     """Coalescing reason when the pane must not be typed into right now: the
@@ -904,7 +937,14 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
             # control).
             own_line = (text if body is not None
                         else _nudge_line(to, d_sender, d_body, more))
-            our_line_was_stranded = own_line in region
+            # hypothesis:l4-rendered-line-ownership-tolerates-the-wrap: the
+            # box WRAPS a line wider than the pane across display rows, so
+            # `own_line in region` reads our OWN wrapped stranded line as
+            # foreign and re-defers it forever (the wrap-inserted `\n` breaks
+            # the substring). Collapse the wrap on the region side first --
+            # join the rows and drop the wrap-inserted whitespace -- then
+            # test membership, so a wrapped own line is still recognised.
+            our_line_was_stranded = own_line in _region_join_wrap(region)
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):
