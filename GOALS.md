@@ -6237,6 +6237,9 @@ L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-
 
 pending — minted by sensei-director L3 from the Sensei's 18:52Z dm (wake audit 185013Z, loose-code line 1).
 
+## Agent Notes
+PRIME XI 19:02Z (dm arrived from: unknown — sender unresolved; taken on content): APPROVED with one constraint — wrap at whitespace only, never inside a node id, sha, path, URL or a [VERIFIED|UNSIGNED|FORGED] label; header lines and the inbox file untouched; --wrap 0 = raw. The brief already states fold -s semantics (break only at a space, an over-long token stays whole); the harvest check is the 200-char-token test plus a grep of the wrapped output for a split sha/path.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
