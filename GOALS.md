@@ -6322,6 +6322,8 @@ SL4.03 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.9 — ack contin
 
 fix-only #2 cut as SL5.01 (Sensei 21:47Z, RULE-CHANGING): rotate-self step s6.1 leaves the successor spawn row uncommitted in the seat worktree (button-down is the grid commit, skipped off season/s2), so the r3b ack gate refuses every worktree wake by construction — point 214458Z wake 8 calls, four seats hand-committed the same write today. Fix (a): rotate-self commits its own spawn write (seats.md only, one line) right after s6.1; the gate is not lowered. Brief: hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack-finds-seats-clean.
 
+SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spawn-row write (_commit_spawn_row, seats.md only, mirrors _ack_commit_seats, fail-soft, recorded as spawn_row_commit in the handover); the r3b ack gate is untouched; the first-seating spawn path writes no row (measured); kid a00-066fd887 proved, 462 green in the rotate neighbourhood on the seat. Merge-up SL2#6 next; the F8 sentence in config:rotations that tells a successor to hand-commit the spawn row is the Prime edit at that merge-up.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
