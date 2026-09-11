@@ -657,9 +657,15 @@ def _capture_pane(tmux_session: str, target: str) -> str | None:
     Read-only on purpose: the busy/idle measurement never mutates the pane,
     and a test that reaches a real pane is the falsifier — the suite's tmux
     guard routes every tmux call to a fake.
+
+    `-J` (tmux 3.1+): JOIN soft-wrapped lines, so a line the box wrapped
+    across display rows comes back as ONE row and the ownership region
+    carries no soft-wrap at all (hypothesis:l4-rendered-line-ownership-
+    tolerates-the-wrap). `_region_join_wrap` stays the fallback for a
+    region captured WITHOUT `-J`.
     """
     try:
-        cp = subprocess.run(["tmux", "capture-pane", "-p", "-t", target],
+        cp = subprocess.run(["tmux", "capture-pane", "-p", "-J", "-t", target],
                             capture_output=True, text=True, timeout=5)
         if cp.returncode != 0:
             return None
@@ -701,26 +707,32 @@ def _input_region(pane: str | None) -> str:
     return pane or ""
 
 
-def _region_join_wrap(region: str) -> str:
-    """The input region with any tmux SOFT-WRAP collapsed. The box splits a
-    line wider than the pane across display rows (the measured
-    sanctuary-director pane is 104 columns; the test fixture pane is 80), so a
-    `own_line in region` membership test reads OUR OWN wrapped stranded line
-    as FOREIGN -- the `\n` tmux inserts at the wrap column breaks the
-    substring mid-line and the own line is re-deferred forever
-    (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap). Collapse the
-    display rows back toward one logical line: strip each row's trailing
-    whitespace, strip the first row's prompt glyph and leading whitespace,
-    strip every other row's leading box/continuation whitespace, and join
-    with a SINGLE space -- restoring the one whitespace the box consumed at
-    the wrap point, so a line that wrapped at a word boundary reconstructs
-    verbatim and a line that did NOT wrap is returned effectively unchanged
-    (the prompt glyph aside). A multi-logical-line region is joined too;
-    acceptable, because ownership only asks whether our rendered line's
-    characters, in order, sit in the box, and the rendered line carries the
-    `[nudge: <sender>]:` head that discriminates one sender's line from
-    another's (clause (a) still holds: a DIFFERENT body's line does not
-    share our body's characters)."""
+def _region_join_wrap(region: str) -> list[str]:
+    """Two candidate reconstructions of the input region with any tmux
+    SOFT-WRAP collapsed. The box splits a line wider than the pane across
+    display rows (the measured sanctuary-director pane is 104 columns; the
+    test fixture pane is 80), so a `own_line in region` membership test reads
+    OUR OWN wrapped stranded line as FOREIGN -- the `\n` tmux inserts at the
+    wrap column breaks the substring mid-line and the own line is re-deferred
+    forever (hypothesis:l4-rendered-line-ownership-tolerates-the-wrap).
+    Collapse the display rows back toward one logical line: strip each row's
+    trailing whitespace, strip the first row's prompt glyph and leading
+    whitespace, strip every other row's leading box/continuation whitespace.
+    The box DROPS the whitespace at a WORD-boundary wrap (the break's space
+    is consumed), so a word-wrapped line reconstructs by joining the rows
+    with ONE SPACE; a CELL wrap in the MIDDLE of a word leaves no whitespace
+    at the break, so it reconstructs only by joining with NOTHING. Try BOTH
+    joins and return both reconstructions (deduplicated); a membership test
+    accepts the line if it sits in EITHER, so both a word wrap and a real
+    tmux cell wrap are recognised. A line that did not wrap yields the same
+    row for both (the prompt glyph aside). This is the fallback for a region
+    captured WITHOUT `-J`; the live capture passes `-J` and carries no
+    soft-wrap at all. A multi-logical-line region is joined too; acceptable,
+    because ownership only asks whether our rendered line's characters, in
+    order, sit in the box, and the rendered line carries the `[nudge:
+    <sender>]:` head that discriminates one sender's line from another's
+    (clause (a) still holds: a DIFFERENT body's line does not share our
+    body's characters)."""
     rows: list = []
     for i, raw in enumerate((region or "").splitlines()):
         ln = raw.rstrip()
@@ -731,7 +743,12 @@ def _region_join_wrap(region: str) -> str:
             ln = ln.strip()
         if ln:
             rows.append(ln)
-    return " ".join(rows)
+    candidates: list = []
+    for join in (" ", ""):
+        joined = join.join(rows)
+        if joined not in candidates:
+            candidates.append(joined)
+    return candidates
 
 
 def _nudge_coalesce_reason(pane: str | None, token: str,
@@ -941,10 +958,14 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
             # box WRAPS a line wider than the pane across display rows, so
             # `own_line in region` reads our OWN wrapped stranded line as
             # foreign and re-defers it forever (the wrap-inserted `\n` breaks
-            # the substring). Collapse the wrap on the region side first --
-            # join the rows and drop the wrap-inserted whitespace -- then
-            # test membership, so a wrapped own line is still recognised.
-            our_line_was_stranded = own_line in _region_join_wrap(region)
+            # the substring). The live capture passes `-J` so a real region
+            # carries no soft-wrap; for a region captured WITHOUT `-J` the
+            # wrap is collapsed first (join the rows, drop the wrap-inserted
+            # whitespace, trying BOTH a word-boundary join and a mid-word
+            # cell join) -- then test membership, so a wrapped own line is
+            # still recognised.
+            our_line_was_stranded = any(
+                own_line in r for r in _region_join_wrap(region))
         else:
             our_line_was_stranded = _nudge_token_head(text) in region
         if not _send_keys(target, "Enter"):

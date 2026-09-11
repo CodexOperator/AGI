@@ -128,11 +128,13 @@ class _FixturePane:
 
     PASTE_CHARS = 100
 
-    def __init__(self, width: int = 80, busy: bool = False):
+    def __init__(self, width: int = 80, busy: bool = False,
+                 cell: bool = False):
         self.input = ""
         self.submitted: list = []
         self.width = width
         self.busy = busy
+        self.cell = cell
 
     def send_keys(self, argv: list) -> None:
         """`argv` = everything after `tmux send-keys`."""
@@ -173,8 +175,18 @@ class _FixturePane:
             return _fixture_text("claude_pane_busy.txt")
         lines = []
         body = []
-        for raw in self.input.split("\n"):
-            body.extend(textwrap.wrap(raw, self.width) or [""])
+        if self.cell:
+            # CELL wrap (real tmux): the box splits at the pane width even in
+            # the MIDDLE of a word -- no whitespace at the boundary, unlike the
+            # word-boundary `textwrap` below. Chunk at `width` chars so the
+            # split is mid-word for a line longer than the width.
+            for raw in self.input.split("\n"):
+                chunked = [raw[i:i + self.width]
+                           for i in range(0, len(raw), self.width)] or [""]
+                body.extend(chunked)
+        else:
+            for raw in self.input.split("\n"):
+                body.extend(textwrap.wrap(raw, self.width) or [""])
         lines.append("\u276f " + (body[0] if body else ""))
         lines.extend("  " + b for b in body[1:])
         return "\n".join(lines) + "\n"
@@ -892,6 +904,83 @@ def test_wrapped_own_line_recognised_at_measured_104(
         "an own line is a real delivery -- nothing deferred"
     assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
     assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_wrapped_own_line_cell_wrapped_recognised_at_80(
+        project: Path, monkeypatch, capsys):
+    """Fix-only #2 FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the earlier fix joined the wrapped rows with ONE SPACE, which
+    recognises a WORD-boundary wrap but not the CELL wrap a real tmux pane
+    performs -- a line split in the MIDDLE of a word has no whitespace at the
+    break, so a space-join inserts a spurious space and the own line still
+    never matches. This fixture CELL-wraps (mid-word) at width 80: the
+    reconstructed region must be owned under BOTH joins, so the own stranded
+    line is recognised and submitted with Enter only."""
+    root = project / ".agi"
+    seat, sender = "adv-alive", "mee"
+    body = ("the rotation merged five seats and repointed every pin "
+            "from the sanctuary home")
+    line = send_mod._nudge_line(seat, sender, body)
+    assert len(line) > 80, f"line {len(line)}"
+    pane = _FixturePane(width=80, cell=True)   # mid-word cell wrap
+    pane.send_keys(["-l", "-t", "w", line])
+    assert pane.submitted == []
+    assert len(pane.capture().splitlines()) > 1, "the pane cell-wraps the line"
+    # the cell wrap must actually split MID-WORD, else the space-join would
+    # already reconstruct it and this would not be a cell-wrap falsifier
+    region = pane.capture()
+    first, second = region.splitlines()[0], region.splitlines()[1]
+    tail = first.lstrip().lstrip("\u276f").lstrip()[-1]
+    head = second.strip()[0]
+    assert tail != " " and head != " " and tail != head, \
+        f"boundary {tail!r}/{head!r} is not a mid-word cell split"
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send_dm(project, sender, seat, body, sender)
+    # recognised as ours under the cell (empty) join: Enter only, nothing typed
+    assert _typed(calls) == [], "nothing new typed after the own stranded line"
+    assert _enters(calls) == [["tmux", "send-keys", "-t",
+                               f"agi-rc:{seat}", "Enter"]]
+    assert pane.submitted == [line], pane.submitted
+    assert send_mod._read_deferred(root, seat) is None, \
+        "an own line is a real delivery -- nothing deferred"
+    assert send_mod._last_nudge_age(project, seat) is not None, "marker stamped"
+    assert "submitted a stranded token" in capsys.readouterr().err
+
+
+def test_region_join_wrap_cell_wrapped_at_measured_104():
+    """Fix-only #2 FALSIFIER (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the `_region_join_wrap` FALLBACK (a region captured WITHOUT
+    `-J`) must also reconstruct an own line that tmux CELL-wrapped mid-word at
+    the MEASURED pane width (104 columns). A word-boundary (space) join cannot
+    restore a mid-word break -- only the no-space (cell) join can -- so the
+    helper must offer BOTH and ownership must accept either."""
+    body = "abcdefghij" * 20                 # >104 chars, no spaces -> mid-word
+    line = "[nudge: adv-alive]: " + body
+    assert len(line) > 104, f"line {len(line)}"
+    # cell-wrap it at 104 the way a real pane would (no space at the break)
+    wrapped = line[:104] + "\n" + line[104:]
+    assert wrapped[103] != " " and wrapped[104] != " "  # mid-word boundary
+    region = "\u276f " + wrapped
+    space, empty = send_mod._region_join_wrap(region)
+    assert line not in space, \
+        "a word-boundary (space) join cannot reconstruct a mid-word cell wrap"
+    assert line in empty, "the no-space (cell) join restores a mid-word wrap"
+    assert any(line in c for c in (space, empty)), "ownership accepts either"
+
+
+def test_capture_pane_uses_join_flag(project, monkeypatch):
+    """Fix-only #2 CLAIM (hypothesis:l4-rendered-line-ownership-tolerates-
+    the-wrap): the ownership capture passes `-J` (`tmux capture-pane -p -J`) so
+    a REAL capture joins soft-wrapped lines and carries no soft-wrap at all;
+    `_region_join_wrap` remains the fallback for a region without `-J`. The
+    argv of every capture-pane call a send makes must contain `-J`."""
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, ["adv-alive"], pane, [])
+    send_mod.send_dm(project, "mee", "adv-alive", "hello world", "mee")
+    caps = [c for c in calls if c[:2] == ["tmux", "capture-pane"]]
+    assert caps, "a dm send must capture the pane for the ownership check"
+    for c in caps:
+        assert "-J" in c, f"capture-pane argv must carry -J: {c}"
 
 
 def test_deferred_delivery_names_the_unread_inbox(project: Path,
