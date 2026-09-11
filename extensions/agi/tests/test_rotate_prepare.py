@@ -112,6 +112,75 @@ def test_prepare_lists_dirty_unpushed_stale_pin_exits_3(
     assert "seat_pin-stale" in err.out
 
 
+def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
+                                                monkeypatch):
+    """Sensei 18:26Z (measured on a MAIN-checkout seat): the dirty-tree
+    captive blocked on `.agi/comms/season-2/dm/*.md` (send.py writes them as
+    dms flow) and `.agi/sessions/rotations/sequence.json` -- cron-owned churn
+    grid_sync commits, never the seat's dirt. Those paths alone -> [ok];
+    a real change beside them still blocks."""
+    churn = [" M .agi/comms/season-2/dm/master-sensei--belam.md",
+             "?? .agi/comms/season-2/dm/a00-1234--sensei-director.md",
+             " M .agi/sessions/rotations/sequence.json",
+             # Sensei 18:29Z: UNTRACKED rotation records blocked a rotate-self
+             # with 0 modified files
+             "?? .agi/sessions/rotations/master-sensei.20260911T182900Z.json",
+             "?? .agi/sessions/rotations/belam.20260911T175100Z.json"]
+    ok = {("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"): churn, **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] dirty tree" in out
+    # a genuine edit -- or an UNTRACKED new file outside the churn paths (a
+    # test never `git add`-ed) -- beside the churn still blocks
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"):
+                                  churn + ["?? extensions/agi/tests/test_x.py"],
+                                  **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3
+    assert "[BLOCK] dirty tree" in out
+
+
+def test_prepare_card_check_reads_the_last_work_commit_only(
+        prep_root, capsys, monkeypatch):
+    """Sensei 18:29Z: two porcelain sync commits aged the card and blocked
+    the rotation. The card check now reads the last NON-MERGE commit that
+    touched something other than cron-owned churn (.agi/comms, the rotation
+    records) or the card itself — that spec, and no bare `log -1`. A stale
+    card against THAT commit still blocks."""
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# card\n", encoding="utf-8")
+    import os
+    os.utime(card, (1000000000, 1000000000))   # long before any commit
+    spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
+            ":(exclude)sessions/quorum/adv-alive.md")
+    ok = {("status", "--porcelain"): [],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    # the bare `log -1` answer is NOT consulted any more
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**ok, ("log", "-1", "--format=%ct"):
+                                  ["9999999999"]}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] card older than last commit" in out
+    # the work-commit spec IS, and a card older than it blocks
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**ok, spec: ["9999999999"]}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] card older than last commit" in out
+
+
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
     """No blocker named: every check reports ok and the checklist exits 0 —
     safe to rotate."""

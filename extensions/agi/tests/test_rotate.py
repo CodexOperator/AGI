@@ -2046,6 +2046,16 @@ def test_compose_announcement_carries_successor_address_after_join():
     assert "pre-join" not in body
 
 
+def test_successor_address_never_doubles_the_window_at():
+    """Sensei 182119Z audit: the live alert read `@@291` because the JOIN's
+    window id already carries its `@`. One `@`, whichever form arrives."""
+    assert rotate._successor_address("belam-III", "f52a4c", "@291") \
+        == "belam-III [f52a4c] @291"
+    assert rotate._successor_address("belam-III", "f52a4c", "291") \
+        == "belam-III [f52a4c] @291"
+    assert "@@" not in rotate._successor_address("belam-III", "", "@291")
+
+
 def test_compose_announcement_pre_join_names_identity_unresolved():
     """mechanism 1 — a pre-join alert (no ref acked / JOIN found nothing)
     NAMES that it is pre-join instead of silently dropping the identity a
