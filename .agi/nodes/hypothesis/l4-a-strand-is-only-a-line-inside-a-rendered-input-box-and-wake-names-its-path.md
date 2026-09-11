@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST RESOLUTION (sensei-director L4): no both-modified seam materialised — the branch base 1be1eb51d already carried L4.287 consuming-read-clears-.nudge.pending, so the two hunks coexist by construction: L4.287 clears the pending marker on a consuming read; this round keeps _input_region empty on a box-less capture, never resubmits on a busy pane, logs the wake outcome and suffixes the token path. Deviation kept from kid 2: a fully BLANK capture still returns None (allow the nudge) because the existing send/send_dm nudge tests model the to-be-typed pane as an empty capture and a live pane never reaches that branch blank.
