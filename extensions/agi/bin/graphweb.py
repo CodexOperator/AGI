@@ -53,6 +53,7 @@ every angle.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -222,12 +223,68 @@ def _bare(v: str):
 
 
 def _file_id(path: Path) -> str | None:
+    rec = _read_node_file(path)
+    return rec["id"] if rec else None
+
+
+#: Module-level per-file parse cache: {str(path): (mtime_ns, size, record)}.
+#: One server process serves one graph root, so a per-file registry is exactly
+#: the right size. Because `load_nodes` / `graph_version` re-parse ONLY files
+#: whose (mtime, size) changed, a single body touch costs one re-parse (~ms)
+#: instead of a full re-read of every node file (~2.5 s on the real tree).
+#: This is defect B4 of the parent's amended build order — without it the
+#: id/edge key could not be recomputed cheaply enough for the < 2 s proof.
+_PARSE_CACHE: dict = {}
+
+
+def _read_node_file(path: Path) -> dict | None:
+    """Parse one node file with the stat cache. Returns
+    {id,type,title,parents:[...],status} or None when the file has no usable
+    id. Re-parses only when (mtime_ns, size) changed."""
+    try:
+        st = path.stat()
+    except OSError:
+        return None
+    key = str(path)
+    hit = _PARSE_CACHE.get(key)
+    if hit is not None and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
+        return hit[2]
     try:
         fm = parse_frontmatter(path.read_text(encoding="utf-8"))
     except Exception:                                             # noqa: BLE001
         return None
     nid = fm.get("id")
-    return nid if isinstance(nid, str) and nid else None
+    if not isinstance(nid, str) or not nid:
+        return None
+    parents = fm.get("parents") or []
+    if not isinstance(parents, list):
+        parents = []
+    rec = {
+        "id": nid,
+        "type": str(fm.get("type") or "node"),
+        "title": str(fm.get("title") or nid),
+        "parents": [str(x) for x in parents if x],
+        "status": str(fm.get("status") or ""),
+    }
+    _PARSE_CACHE[key] = (st.st_mtime_ns, st.st_size, rec)
+    return rec
+
+
+def _iter_active_node_files(graph_root: Path):
+    """Yield node .md files that are ACTIVE by PATH (not under
+    `nodes/deprecated/` and not under `nodes/.geometry/`). Status-level
+    filtering (deprecated) happens per record via the parse cache."""
+    nodes_dir = Path(graph_root) / "nodes"
+    if not nodes_dir.is_dir():
+        return
+    for p in nodes_dir.rglob("*.md"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(nodes_dir)
+        parts = rel.parts
+        if parts and (parts[0] == "deprecated" or parts[0] == ".geometry"):
+            continue
+        yield p
 
 
 def load_nodes(graph_root: Path) -> dict:
@@ -237,38 +294,44 @@ def load_nodes(graph_root: Path) -> dict:
     `status` != 'deprecated'. `.geometry` carries housekeeping config (e.g.
     config:seats) that is not part of the goal tree; it is represented
     separately via the synthetic `seat:<name>` nodes.
+
+    Reads go through the module-level per-file parse cache (`_PARSE_CACHE`),
+    so a body edit that changes no id and no edge re-parses only the touched
+    file (~ms) — the whole point is that a single-node edit must not cost a
+    full re-read of every node file on the next /graph.json request.
     """
-    nodes_dir = Path(graph_root) / "nodes"
     out: dict = {}
-    if not nodes_dir.is_dir():
-        return out
-    for p in sorted(nodes_dir.rglob("*")):
-        if not p.is_file() or p.suffix.lower() != ".md":
+    for p in _iter_active_node_files(graph_root):
+        rec = _read_node_file(p)
+        if rec is None or rec["status"] == "deprecated":
             continue
-        rel = p.relative_to(nodes_dir)
-        parts = rel.parts
-        if parts and (parts[0] == "deprecated" or parts[0] == ".geometry"):
-            continue
-        try:
-            fm = parse_frontmatter(p.read_text(encoding="utf-8"))
-        except Exception:                                         # noqa: BLE001
-            continue
-        if fm.get("status") == "deprecated":
-            continue
-        nid = fm.get("id")
-        if not isinstance(nid, str) or not nid:
-            continue
-        parents = fm.get("parents") or []
-        if not isinstance(parents, list):
-            parents = []
-        parents = [str(x) for x in parents if x]
-        out[nid] = {
-            "id": nid,
-            "type": str(fm.get("type") or "node"),
-            "title": str(fm.get("title") or nid),
-            "parents": parents,
+        out[rec["id"]] = {
+            "id": rec["id"], "type": rec["type"],
+            "title": rec["title"], "parents": rec["parents"],
         }
     return out
+
+
+def graph_version(graph_root: Path) -> str:
+    """A stable hash of the sorted ACTIVE id set (B5).
+
+    Cheap — a stat sweep over the parse cache, ~0.03 s on the real tree — so
+    kid 3 of this round can put it in `/live.json` and the page can poll it
+    every 5 s without burning a core. It changes iff an id is added, removed
+    or retired; it does NOT change on a body edit (so a body edit reuses the
+    persisted layout byte-identically while graph_version stays put).
+    """
+    ids: set = set()
+    for p in _iter_active_node_files(graph_root):
+        rec = _read_node_file(p)
+        if rec is None or rec["status"] == "deprecated":
+            continue
+        ids.add(rec["id"])
+    digest = hashlib.sha256()
+    for nid in sorted(ids):
+        digest.update(nid.encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()[:12]
 
 
 # --------------------------------------------------------------------------- #
@@ -339,20 +402,55 @@ def _tmux_windows() -> set:
     return wins
 
 
+def _resolve_worktree(worktree: str | None, graph_root: Path) -> Path | None:
+    """Resolve a (possibly relative) worktree path, or None when it does not
+    exist on disk.
+
+    A RELATIVE worktree is resolved against the candidates, in order
+    (hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers):
+        [git_common_root(graph_root), graph_root.parent]
+    deduped. The first `<base>/<worktree>` that is a directory wins; none
+    does -> None. `git_common_root` returns the MAIN CHECKOUT ROOT (the repo
+    root owning `.agi/worktrees/`), so a seat row carrying the real shape
+    `.agi/worktrees/seat-<name>` resolves correctly — the old resolver joined
+    relative paths under `graph_root` itself (i.e. `.agi/worktrees/...` under
+    `.agi/`), which silently yielded [] for every relative seat row (the
+    claim's own falsifier). In a repo-less fixture `git_common_root` returns
+    `graph_root` unchanged, and `graph_root.parent` is the fallback that
+    catches the fixture (tmp) layout.
+    """
+    if not worktree:
+        return None
+    wt = Path(worktree).expanduser()
+    if wt.is_absolute():
+        return wt if wt.is_dir() else None
+    try:
+        import locations as _loc
+        base0 = Path(_loc.git_common_root(graph_root))
+    except Exception:                                             # noqa: BLE001
+        base0 = Path(graph_root)
+    bases: list = []
+    for b in (base0, Path(graph_root).parent):
+        if b not in bases:
+            bases.append(b)
+    for b in bases:
+        cand = b / wt
+        if cand.is_dir():
+            return cand
+    return None
+
+
 def _worktree_modified_ids(worktree: str | None, graph_root: Path) -> list:
     """Node ids whose files are MODIFIED in `worktree`, or [].
 
-    Resolves `worktree` relative to `graph_root` when not absolute, runs
+    Resolves `worktree` when not absolute via `_resolve_worktree` (against
+    the checkout root, not `graph_root`), runs
     `git -C <wt> status --porcelain -- .agi/nodes` once, maps each changed
     path to its node id. A dead/missing worktree or an absent git yields []
     (never a traceback).
     """
-    if not worktree:
-        return []
-    wt = Path(worktree).expanduser()
-    if not wt.is_absolute():
-        wt = Path(graph_root) / worktree
-    if not wt.is_dir():
+    wt = _resolve_worktree(worktree, graph_root)
+    if wt is None:
         return []
     try:
         out = subprocess.run(
@@ -380,6 +478,140 @@ def _worktree_modified_ids(worktree: str | None, graph_root: Path) -> list:
             seen.add(nid)
             ids.append(nid)
     return ids
+
+
+def _worktree_for_agent(rec: dict, all_recs: list) -> str | None:
+    """The worktree whose `git status` reflects a live agent's writes.
+
+    A PARENT-tier (or director/prime) lease carries its OWN `worktree`, and
+    its in-progress node files live there. A KID has NO worktree of its own
+    — it writes its node INTO ITS PARENT'S worktree (`.agi/worktrees/<parent>`)
+    — so for a kid this returns the parent-tier lease (SAME `iter`) worktree.
+    None when no such worktree is on the lease(s).
+    """
+    own = rec.get("worktree")
+    if own:
+        return own
+    if rec.get("tier") == "kid":
+        for r2 in all_recs:
+            if (r2.get("iter") == rec.get("iter")
+                    and r2.get("tier") != "kid" and r2.get("worktree")):
+                return r2["worktree"]
+    return None
+
+
+def _agent_parent_id(rec: dict, all_recs: list) -> str | None:
+    """The parent agent id for a KID lease (the parent-tier lease with the
+    same `iter`), else None for a parent/director/prime."""
+    if rec.get("tier") != "kid":
+        return None
+    for r2 in all_recs:
+        if r2.get("iter") == rec.get("iter") and r2.get("tier") != "kid":
+            return r2.get("agent_id")
+    return None
+
+
+_MANIFEST_NAME = "manifest.json"
+
+
+def _agent_target(rec: dict, all_recs: list, graph_root: Path) -> str:
+    """A live agent's target node id from its iteration manifest, "" when
+    the manifest or its entry is unreadable.
+
+    The target is the node the agent is building — recorded in the dispatch
+    manifest `agents[].target`. For a PARENT the manifest lives in its own
+    worktree (`<worktree>/.agi/sessions/iter-<iter>/manifest.json`); for a
+    KID the manifest lives in its PARENT's worktree (same `iter`). Every read
+    is wrapped: an absent manifest, a corrupt file, or a missing entry all
+    yield "" and never a traceback (hypothesis:l4-the-graph-as-a-golden-3d-
+    web-in-two-layers, the owner's ghost-node order).
+    """
+    rec_iter = rec.get("iter")
+    if not rec_iter:
+        return ""
+    wt = _worktree_for_agent(rec, all_recs)
+    candidates: list = []
+    if wt:
+        candidates.append(Path(wt).expanduser() / ".agi" / "sessions"
+                          / f"iter-{rec_iter}" / _MANIFEST_NAME)
+    for mpath in candidates:
+        try:
+            data = json.loads(mpath.read_text(encoding="utf-8"))
+        except Exception:                                             # noqa: BLE001
+            continue
+        if not isinstance(data, dict):
+            continue
+        agents = data.get("agents")
+        if not isinstance(agents, list):
+            continue
+        aid = rec.get("agent_id")
+        for entry in agents:
+            if isinstance(entry, dict) and entry.get("id") == aid:
+                t = entry.get("target")
+                if isinstance(t, str) and t:
+                    return t
+        # fallback: any entry's target (all kids of one iteration usually
+        # share the iteration target).
+        for entry in agents:
+            if isinstance(entry, dict):
+                t = entry.get("target")
+                if isinstance(t, str) and t:
+                    return t
+    return ""
+
+
+def _new_node_records(worktree: str | None, graph_root: Path,
+                      agent_id: str | None = None) -> list:
+    """{id,type,title,parents} for every NEW (`??` untracked or `A` added)
+    node file in `worktree`'s `git status --porcelain -- .agi/nodes`.
+
+    Used for ghost nodes: an agent whose node file is not yet committed (a
+    kid's file is untracked in its parent's worktree) should render as a
+    semi-transparent circle that SNAPS to the real frontmatter once the file
+    exists — so the page can show real details BEFORE the node reaches the
+    served `/graph.json`. When `agent_id` is given (kids), only ids that
+    CONTAIN it are kept (a kid's own in-progress node id embeds its agent
+    id). Every read wrapped; absent worktree / git / unparseable files
+    yield [] and never a traceback.
+    """
+    wt = _resolve_worktree(worktree, graph_root)
+    if wt is None:
+        return []
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(wt), "status", "--porcelain", "--", ".agi/nodes"],
+            capture_output=True, text=True, timeout=20, check=False)
+    except Exception:                                             # noqa: BLE001
+        return []
+    if out.returncode != 0:
+        return []
+    recs: list = []
+    seen: set = set()
+    for cl in out.stdout.splitlines():
+        line = cl.rstrip("\n")
+        if not line:
+            continue
+        if line[:2].strip() not in ("??", "A"):
+            continue  # only NEW files carry the future node's real details
+        if "->" in line:
+            path = line.split("->")[-1].strip()
+        else:
+            path = line[3:].strip()
+        if not path:
+            continue
+        node_path = wt / path
+        rec = _read_node_file(node_path)
+        if rec is None:
+            continue
+        nid = rec["id"]
+        if agent_id and agent_id not in nid:
+            continue
+        if nid in seen:
+            continue
+        seen.add(nid)
+        recs.append({"id": nid, "type": rec["type"],
+                     "title": rec["title"], "parents": rec["parents"]})
+    return recs
 
 
 def _dispatched_by(rec: dict) -> str:
@@ -443,19 +675,29 @@ def live_view(graph_root: Path) -> dict:
             "window": row.get("window"),
             "working_on": _worktree_modified_ids(row.get("worktree"), graph_root),
         })
+    all_recs = live_agents(graph_root)
     agents: list = []
-    for rec in live_agents(graph_root):
+    for rec in all_recs:
         agent = rec.get("agent_id")
         if not agent:
             continue
+        # For a KID the worktree is its PARENT's (kids write into the parent
+        # worktree), so working_on / new_nodes below read the same place.
+        wt = _worktree_for_agent(rec, all_recs)
+        tier = rec.get("tier")
         agents.append({
             "agent": agent,
             "iter": rec.get("iter"),
-            "tier": rec.get("tier"),
+            "tier": tier,
             "dispatched_by": _dispatched_by(rec),
-            "working_on": _worktree_modified_ids(rec.get("worktree"), graph_root),
+            "working_on": _worktree_modified_ids(wt, graph_root),
+            "target": _agent_target(rec, all_recs, graph_root),
+            "parent": _agent_parent_id(rec, all_recs),
+            "new_nodes": _new_node_records(
+                wt, graph_root, agent if tier == "kid" else None),
         })
-    return {"seats": seat_rows, "agents": agents}
+    return {"seats": seat_rows, "agents": agents,
+            "graph_version": graph_version(graph_root)}
 
 
 # --------------------------------------------------------------------------- #
@@ -594,48 +836,149 @@ def sanctuary_subtree(nodes: dict, root: str = ROOT) -> set:
     return seen
 
 
-#: Module-level layout cache. The force layout is ~O(n^2)*180 iterations
-#: (measured 170 s on the real 2115-node graph) — recomputing it on EVERY
-#: /graph.json request is how a page load becomes a ~3-minute wait. We cache
-#: the built payload keyed by graph root + the mtimes of the node files + the
-#: palette source, and invalidate only when those change. One server process
-#: serves one graph root, so a single-slot registry is exactly the right size.
-_LAYOUT_CACHE: dict = {}  # {signature: payload}
+#: Where the persisted layout lives, under the graph root. gitignored by the
+#: repo (`extensions/agi/.gitignore`-chain: `.agi/sessions/*`).
+LAYOUT_FILE_RELPATH = Path("sessions") / "graphweb-layout.json"
+
+#: In-process memo for the identical-signature fast path, so a warm
+#: /graph.json request does not even re-read the persisted file. One server
+#: process serves one graph root and only a handful of id-set generations
+#: accumulate over a loop, so a small bounded registry is the right size.
+#: Keyed by (graph_root, signature) -> {0: pos0, 1: pos1}.
+_POS_MEMO: dict = {}
 
 
-def _layout_cache_key(graph_root: Path) -> str:
-    """A signature over everything build_graph reads: node file mtimes, the
-    seats/config registries. Any change busts the cache."""
-    parts = [str(Path(graph_root).resolve())]
-    nodes_dir = Path(graph_root) / "nodes"
-    if nodes_dir.is_dir():
-        mtimes = []
-        for p in nodes_dir.rglob("*.md"):
-            try:
-                mtimes.append((str(p), int(p.stat().st_mtime_ns)))
-            except OSError:
-                pass
-        mtimes.sort()
-        parts.append(repr(mtimes))
-    for extra in (Path(graph_root) / "nodes" / ".geometry" / "seats.md",
-                  Path(graph_root) / "config.json"):
-        try:
-            parts.append(f"{extra}@{int(extra.stat().st_mtime_ns)}")
-        except OSError:
-            parts.append(f"{extra}@missing")
-    return str(hash(tuple(parts)))
+def _layout_key(layer_ids0, layer_ids1, edges0, edges1) -> str:
+    """Stable signature over each layer's NODE-ID SET + EDGE SET (NOT node
+    file mtimes). An edit that changes no id and no edge yields the same key
+    and therefore reuses every position byte-identically (B1)."""
+    def sig(ids, edges):
+        parts = list(ids)
+        parts += sorted(f"{e.get('from')}\x00{e.get('to')}" for e in edges)
+        return "|".join(sorted(parts))
+    return f"{sig(layer_ids0, edges0)};;;{sig(layer_ids1, edges1)}"
+
+
+def _load_persisted_layout(graph_root: Path) -> dict | None:
+    """{signature, layer0:{id:[x,y]}, layer1:{...}} or None. Treats a
+    missing/corrupt/wrong-shape file as absent (B1)."""
+    p = Path(graph_root) / LAYOUT_FILE_RELPATH
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:                                             # noqa: BLE001
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("signature"), str):
+        return None
+    for layer in ("layer0", "layer1"):
+        pos = data.get(layer)
+        if not isinstance(pos, dict):
+            return None
+        clean = {}
+        for k, v in pos.items():
+            if isinstance(v, (list, tuple)) and len(v) == 2:
+                try:
+                    clean[str(k)] = [float(v[0]), float(v[1])]
+                except (TypeError, ValueError):
+                    pass
+        data[layer] = clean
+    return data
+
+
+def _save_persisted_layout(graph_root: Path, signature: str,
+                           pos0: dict, pos1: dict) -> None:
+    """Atomic write (tmp file + os.replace) of the layout keyed by the
+    id+edge signature. A crash mid-write leaves only a `.tmp` file, which is
+    never read — os.replace swaps the whole file in one atomic step (B1)."""
+    data = {
+        "kind": "graphweb-layout",
+        "version": 1,
+        "signature": signature,
+        "layer0": {str(k): v for k, v in pos0.items()},
+        "layer1": {str(k): v for k, v in pos1.items()},
+    }
+    p = Path(graph_root) / LAYOUT_FILE_RELPATH
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_name(p.name + ".tmp")
+    try:
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        os.replace(tmp, p)
+    except Exception:                                             # noqa: BLE001
+        # Never let a persistence failure break the serve path; the layout
+        # is still fully valid in-memory for this process.
+        pass
+
+
+def _centroid(coord: dict) -> list:
+    if not coord:
+        return [0.0, 0.0]
+    n = len(coord)
+    return [sum(v[0] for v in coord.values()) / n,
+            sum(v[1] for v in coord.values()) / n]
+
+
+def resolve_positions(graph_root: Path, layer0: set, layer1: set,
+                      edges0: list, edges1: list,
+                      seed: int = LAYOUT_SEED):
+    """Positions {0: pos0, 1: pos1} for the two layers (B1/B2/B3).
+
+    - persisted layout with the SAME signature -> reuse every position
+      byte-identically (a body edit changes no id and no edge, so it lands
+      here).
+    - a persisted layout with OVERLAPPING ids -> incremental: survivors keep
+      their exact positions, new ids are seeded at their first parent + a
+      small seeded jitter, and only the new nodes relax (short, <= 6 iters);
+      removed ids are dropped.
+    - no persisted layout at all -> the bounded full cold build.
+
+    The result is persisted atomically (B1), so a server restart reuses it
+    rather than re-paying the cold build.
+    """
+    sig = _layout_key(layer0, layer1, edges0, edges1)
+    memo_key = (str(Path(graph_root).resolve()), sig)
+    hit = _POS_MEMO.get(memo_key)
+    if hit is not None:
+        return hit
+    prev = _load_persisted_layout(graph_root)
+    if prev is not None and prev.get("signature") == sig:
+        # byte-identical reuse — positions loaded as-is, no re-layout.
+        pos0, pos1 = prev["layer0"], prev["layer1"]
+    else:
+        surv0 = prev["layer0"] if prev is not None else {}
+        surv1 = prev["layer1"] if prev is not None else {}
+        pos0 = _positions_of_layer(layer0, edges0, surv0, seed)
+        pos1 = _positions_of_layer(layer1, edges1, surv1, seed)
+        _save_persisted_layout(graph_root, sig, pos0, pos1)
+    out = {0: pos0, 1: pos1}
+    _POS_MEMO[memo_key] = out
+    if len(_POS_MEMO) > 16:
+        for old in list(_POS_MEMO)[:-8]:
+            _POS_MEMO.pop(old, None)
+    return out
+
+
+def _positions_of_layer(ids: set, edges: list, surviving: dict,
+                        seed: int) -> dict:
+    """Positions for one layer: incremental when a previous layout left
+    intact positions for still-present ids, else the bounded full cold
+    layout."""
+    if not ids:
+        return {}
+    if not surviving:
+        return _force_layout(ids, edges, seed=seed)
+    return _incremental_layout(surviving, ids, edges, seed=seed)
 
 
 def cached_build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
-    """build_graph memoized per graph shape; the cold first build still runs
-    in full (and may take minutes), every warm request hits the cache."""
-    key = _layout_cache_key(graph_root)
-    hit = _LAYOUT_CACHE.get(key)
-    if hit is not None:
-        return hit
-    payload = build_graph(graph_root, seed=seed)
-    _LAYOUT_CACHE[key] = payload
-    return payload
+    """build_graph, with the layout already persisted+memoized so a warm (or
+    body-edit) request reuses every position byte-identically instead of
+    re-paying the cold build. The old mtime-keyed cache is GONE: it busted on
+    every node edit, which is exactly the defect B fixes.
+
+    Keep the memo AND the persisted file in front: the memo is the fast path
+    for the identical signature across requests, the file is what survives a
+    server restart and what seeds the incremental path on an id change.
+    """
+    return build_graph(graph_root, seed=seed)
 
 
 def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
@@ -688,8 +1031,9 @@ def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
         edges1.append({"from": sid, "to": ROOT, "kind": "seat"})
 
     # --- force layout, one plane per layer --------------------------------- #
-    pos0 = _force_layout(layer0, edges0, seed=seed)
-    pos1 = _force_layout(layer1, edges1, seed=seed)
+    pos = resolve_positions(graph_root, layer0, layer1, edges0, edges1,
+                            seed=seed)
+    pos0, pos1 = pos[0], pos[1]
 
     def nodes_out(ids: set, pos: dict, layer: int) -> list:
         out = []
@@ -721,40 +1065,85 @@ def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
     }
 
 
-def _force_layout(ids: set, edges: list, seed: int, iters: int = 180) -> dict:
-    """Seeded Fruchterman–Reingold in-plane layout. Returns {id:(x,y)}."""
+def _force_layout(ids: set, edges: list, seed: int, iters: int = 30) -> dict:
+    """Seeded Fruchterman-Reingold in-plane layout, BOUNDED (B3).
+
+    The cold build must finish in well under 20 s on a ~2100-node graph. The
+    old code was O(n^2) x 180 iterations in pure Python (~170 s). Two changes
+    bound it:
+      * repulsion is binned on a grid (cells of the layout span / 8, minimum
+        one ideal-distance wide); each node repulses only within its own and
+        its 8 neighbouring cells, reducinng pairs from O(n^2) to O(n * local
+        density) per iteration.
+      * the seed is spread across the whole plane (not the old tight
+        uniform[-1,1] cluster), so the grid is sparse from iteration 1 — a
+        tight seed would pile every node into one cell and reintroduce O(n^2)
+        for the early iterations.
+    Returns {id:(x,y)} rounded to 3 places (byte-stable).
+    """
     ids = list(ids)
     n = len(ids)
-    pos = {i: 0.0 for i in ids}
-    rng = random.Random(seed)
     if n == 0:
         return {}
     if n == 1:
-        return {ids[0]: (0.0, 0.0)}
-    coord = {i: [rng.uniform(-1.0, 1.0), rng.uniform(-1.0, 1.0)] for i in ids}
-    idx = {i: k for k, i in enumerate(ids)}
+        return {ids[0]: [0.0, 0.0]}
+    rng = random.Random(seed)
     W = H = 1000.0
     k = math.sqrt((W * H) / n)
-    elist = [(idx[a], idx[b]) for a, b in
-             ((e["from"], e["to"]) for e in edges) if a in idx and b in idx]
+    coord = {i: [rng.uniform(0.0, W), rng.uniform(0.0, H)] for i in ids}
+    idx = {i: j for j, i in enumerate(ids)}
+    elist = [(idx[e["from"]], idx[e["to"]]) for e in edges
+             if e["from"] in idx and e["to"] in idx]
     temp = W / 10.0
     for _ in range(iters):
-        disp = [[0.0, 0.0] for _ in range(n)]
-        for i in range(n):
-            for j in range(i + 1, n):
-                dx = coord[ids[i]][0] - coord[ids[j]][0]
-                dy = coord[ids[i]][1] - coord[ids[j]][1]
+        disp = {i: [0.0, 0.0] for i in ids}
+        xs = [coord[i][0] for i in ids]
+        ys = [coord[i][1] for i in ids]
+        span = max(max(xs) - min(xs), max(ys) - min(ys))
+        cellsz = max(span / 8.0, k)
+        minx, miny = min(xs), min(ys)
+        grid: dict = {}
+        for i in ids:
+            cx = int((coord[i][0] - minx) / cellsz)
+            cy = int((coord[i][1] - miny) / cellsz)
+            grid.setdefault((cx, cy), []).append(i)
+
+        def repulse(a, b):
+            dx = coord[a][0] - coord[b][0]
+            dy = coord[a][1] - coord[b][1]
+            d2 = dx * dx + dy * dy
+            if d2 < 0.0001:
+                dx = rng.uniform(-0.01, 0.01)
+                dy = rng.uniform(-0.01, 0.01)
                 d2 = dx * dx + dy * dy
-                if d2 < 0.0001:
-                    dx, dy = rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01)
-                    d2 = dx * dx + dy * dy
-                d = math.sqrt(d2)
-                fr = (k * k) / d
-                ux, uy = dx / d, dy / d
-                disp[i][0] += ux * fr
-                disp[i][1] += uy * fr
-                disp[j][0] -= ux * fr
-                disp[j][1] -= uy * fr
+            d = math.sqrt(d2)
+            fr = (k * k) / d
+            ux, uy = dx / d, dy / d
+            disp[a][0] += ux * fr
+            disp[a][1] += uy * fr
+            disp[b][0] -= ux * fr
+            disp[b][1] -= uy * fr
+
+        for (cx, cy), members in grid.items():
+            m = members
+            for ia in range(len(m)):
+                za = m[ia]
+                for ib in range(ia + 1, len(m)):
+                    repulse(za, m[ib])
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    if dx == 0 and dy == 0:
+                        continue
+                    nkey = (cx + dx, cy + dy)
+                    if nkey < (cx, cy):
+                        continue  # count each cell-pair once
+                    nb = grid.get(nkey)
+                    if not nb:
+                        continue
+                    for za in m:
+                        for zb in nb:
+                            repulse(za, zb)
+        # spring forces (cheap: O(E))
         for a, b in elist:
             dx = coord[ids[b]][0] - coord[ids[a]][0]
             dy = coord[ids[b]][1] - coord[ids[a]][1]
@@ -764,21 +1153,20 @@ def _force_layout(ids: set, edges: list, seed: int, iters: int = 180) -> dict:
             d = math.sqrt(d2)
             fa = (d * d) / k
             ux, uy = dx / d, dy / d
-            disp[a][0] += ux * fa
-            disp[a][1] += uy * fa
-            disp[b][0] -= ux * fa
-            disp[b][1] -= uy * fa
-        for i in range(n):
-            x, y = coord[ids[i]]
+            disp[ids[a]][0] += ux * fa
+            disp[ids[a]][1] += uy * fa
+            disp[ids[b]][0] -= ux * fa
+            disp[ids[b]][1] -= uy * fa
+        for i in ids:
+            x, y = coord[i]
             dx, dy = disp[i]
             mv = min(math.hypot(dx, dy), temp)
             scale = mv / math.hypot(dx, dy) if (dx or dy) else 0.0
             x += dx * scale
             y += dy * scale
-            # gentle centering pull
             x += (-x) * 0.005
             y += (-y) * 0.005
-            coord[ids[i]] = [x, y]
+            coord[i] = [x, y]
         temp *= 0.98
     # normalize to a tidy extent
     xs = [coord[i][0] for i in ids]
@@ -786,10 +1174,102 @@ def _force_layout(ids: set, edges: list, seed: int, iters: int = 180) -> dict:
     cx, cy = (max(xs) + min(xs)) / 2.0, (max(ys) + min(ys)) / 2.0
     span = max(max(xs) - min(xs), max(ys) - min(ys), 1e-6)
     target = 350.0
+    pos = {}
     for i in ids:
         x = (coord[i][0] - cx) / (span) * target
         y = (coord[i][1] - cy) / (span) * target
-        pos[i] = (round(x, 3), round(y, 3))
+        pos[i] = [round(x, 3), round(y, 3)]
+    return pos
+
+
+def _incremental_layout(surviving: dict, ids: set, edges: list,
+                        seed: int, iters: int = 6) -> dict:
+    """Short incremental relaxation (B2): ids present in `surviving` KEEP
+    their exact positions (PINNED — byte-identical), ids new to this layer
+    are seeded at their first parent's position + a small seeded jitter
+    (<= 1.5 units) and relax for at most `iters` iterations. Removed ids are
+    dropped simply by not appearing in the result. NEVER the full cold pass.
+
+    A strong snap-back toward the parent keeps a lone new node hugging its
+    parent's position, which is what the "new node within 2 units of its
+    parent" fixture assertion checks.
+    """
+    ids = set(ids)
+    coord = {nid: [float(v[0]), float(v[1])]
+             for nid, v in surviving.items() if nid in ids}
+    pinned = set(coord)
+    new_ids = sorted(ids - pinned)
+    if not new_ids:
+        return coord
+    rng = random.Random(seed)
+    centroid = _centroid(coord) if coord else [0.0, 0.0]
+    parent_pos: dict = {}
+    for e in edges:
+        child = e.get("from")
+        par = e.get("to")
+        if child in new_ids and par in coord:
+            parent_pos.setdefault(child, coord[par])
+    for nid in new_ids:
+        base = parent_pos.get(nid, centroid)
+        coord[nid] = [base[0] + rng.uniform(-1.5, 1.5),
+                      base[1] + rng.uniform(-1.5, 1.5)]
+    elist = [(e["from"], e["to"]) for e in edges
+             if e["from"] in ids and e["to"] in ids]
+    temp = 0.6
+    k = math.sqrt((1000.0 * 1000.0) / max(1, len(ids)))
+    for _ in range(iters):
+        disp = {nid: [0.0, 0.0] for nid in new_ids}
+        # repulsion felt by movers against ALL nodes (few movers -> cheap)
+        for a in new_ids:
+            for b in coord:
+                if a == b:
+                    continue
+                dx = coord[a][0] - coord[b][0]
+                dy = coord[a][1] - coord[b][1]
+                d2 = dx * dx + dy * dy
+                if d2 < 0.0001:
+                    dx = rng.uniform(-0.01, 0.01)
+                    dy = rng.uniform(-0.01, 0.01)
+                    d2 = dx * dx + dy * dy
+                d = math.sqrt(d2)
+                fr = (k * k) / d
+                ux, uy = dx / d, dy / d
+                disp[a][0] += ux * fr
+                disp[a][1] += uy * fr
+        # springs on edges touching movers
+        for a, b in elist:
+            in_a = a in coord
+            in_b = b in coord
+            if not ((a in new_ids and in_a) or (b in new_ids and in_b)):
+                continue
+            dx = coord[b][0] - coord[a][0]
+            dy = coord[b][1] - coord[a][1]
+            d2 = dx * dx + dy * dy
+            if d2 < 0.0001:
+                continue
+            d = math.sqrt(d2)
+            fa = (d * d) / k
+            ux, uy = dx / d, dy / d
+            if a in new_ids:
+                disp[a][0] += ux * fa
+                disp[a][1] += uy * fa
+            if b in new_ids:
+                disp[b][0] -= ux * fa
+                disp[b][1] -= uy * fa
+        for nid in new_ids:
+            dx, dy = disp[nid]
+            mv = min(math.hypot(dx, dy), temp)
+            scale = mv / math.hypot(dx, dy) if (dx or dy) else 0.0
+            coord[nid][0] += dx * scale
+            coord[nid][1] += dy * scale
+            base = parent_pos.get(nid, centroid)
+            coord[nid][0] += (base[0] - coord[nid][0]) * 0.35
+            coord[nid][1] += (base[1] - coord[nid][1]) * 0.35
+        temp *= 0.7
+    pos: dict = {}
+    for nid in sorted(ids):
+        x, y = coord[nid]
+        pos[nid] = [round(x, 3), round(y, 3)]
     return pos
 
 
