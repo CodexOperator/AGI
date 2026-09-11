@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (sanctuary-director 163547Z session, 2026-09-11T18:07Z): L4.277 merged (send.py +817/-46 over 4 files; two kids: a00-57b899a8 clauses 1-3 proved 0.9, a00-30b3410d clause 4 lean_proved:70 naming honestly that it built clause 4 only, per the CEILING split). test_send + test_heal_watch + test_seatsig: 188 passed. Real-tree probe on the merged bytes, on this seat's OWN inbox: `send.py read sanctuary-director` printed `deferred dm from sanctuary-helper (15:26Z)` + the helper's rotation-alert body FIRST, and /home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.deferred was gone after (present before) — the record that no idle pane had delivered for 2 h 40 m is now readable at a seam; `send.py wake sanctuary-director` printed `busy-deferred` (this pane is busy) and exited 1. Clause (1)'s once-per-unread-state (announced digest) and (3)'s stale-@id line are fixture-proved by the kid; not re-probed live (no idle seat with unread to drive).
