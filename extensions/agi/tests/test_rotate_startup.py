@@ -543,15 +543,73 @@ def test_s_env_var_injection_refused_no_marker(monkeypatch, tmp_path):
     # an env var VALUE carries `| touch <marker>`. The record keeps `$SEAT`
     # literal (fix b), while exec_cmd expands it for execution; the re-judge of
     # the substituted command refuses the injected `touch` stage before it runs.
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # the refusal is NAMED from the record's literal `$SEAT`, NEVER from the
+    # expanded tokens, so the secret-shaped value fragment (`touch <marker>`)
+    # never survives into the refusal / record / successor STARTUP OUTPUT.
     marker = tmp_path / "pwned2-MARKER"
     monkeypatch.setenv("SEAT", f"seatA | touch {marker}")
     cmd = "python3 {worktree}/extensions/list.py $SEAT"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
     assert "refused" in res[0], res
-    assert "touch" in res[0]["refused"], res
+    assert "$SEAT" in res[0]["refused"], res
+    assert "touch" not in res[0]["refused"], res
+    assert str(marker) not in res[0]["refused"], res
     assert not marker.exists(), res
     assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s2_env_injected_stage_refusal_redacted(monkeypatch):
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # an env var VALUE that injects a whole off-allowlist stage (`;`-separated)
+    # is refused with the expanded value fragment scrubbed to
+    # `<expanded value redacted>` and the record's literal `$VAR` named — the
+    # value itself never appears in the refusal (FALSIFIER: no substring of an
+    # env value that is not in record_cmd).
+    monkeypatch.setenv("SEAT", "x; cat /etc/hostname")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    ref = res[0]["refused"]
+    assert "$SEAT" in ref, ref
+    assert "<expanded value redacted>" in ref, ref
+    assert "/etc/hostname" not in ref, ref
+    assert "cat" not in ref or "redacted" in ref, ref
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s3_env_value_never_in_any_result_field(monkeypatch, tmp_path):
+    # an env value injected via `$VAR` must not surface in the refusal OR the
+    # rendered STARTUP OUTPUT block — the value is the secret-shaped payload.
+    secret = "tkn-yz-9f00ba"
+    monkeypatch.setenv("SEAT", f"x; cat {secret}")
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    assert secret not in str(res), res
+    block = rotate._compose_startup_output(res)
+    assert secret not in block, block
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+
+
+def test_s4_placeholder_injection_still_refuses(tmp_path):
+    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
+    # the PLACEHOLDER injection path is untouched by the env-value scrub — a
+    # `{seat}` value that injects an off-allowlist `cat` stage is still refused
+    # by name, the marker never runs, and the record keeps the placeholder's
+    # (already-substituted) value, exactly as test_r pins. Only ENV vars stay
+    # literal; placeholder VALUES are record content by design (fix b).
+    vals = dict(VALUES, seat="a | cat /etc/hostname")
+    cmd = "python3 {worktree}/extensions/list.py {seat}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "ph", "cmd": cmd}]}, vals)
+    assert "refused" in res[0], res
+    assert "cat" in res[0]["refused"], res
+    assert "not on startup.allow" in res[0]["refused"], res
+
 
 
 def test_q_clean_substitution_still_runs(tmp_path):
