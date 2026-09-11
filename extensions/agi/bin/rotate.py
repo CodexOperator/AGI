@@ -1544,6 +1544,36 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
+def _record_is_terminal(path) -> bool:
+    """True when the rotation record has a present s12_self_reap section —
+    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
+    that does not parse is not terminal."""
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    return isinstance(doc.get("s12_self_reap"), dict)
+
+
+def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+    """Poll `path` at a <=2s interval until its s12_self_reap section is
+    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
+    When the record is already terminal on the first read it returns True
+    immediately — never sleeps past an already-terminal record."""
+    deadline = time.monotonic() + max(0, wait)
+    last = ""
+    while True:
+        try:
+            last = Path(path).read_text(encoding="utf-8")
+        except OSError:
+            last = ""
+        if _record_is_terminal(path):
+            return True, last
+        if time.monotonic() >= deadline:
+            return False, last
+        time.sleep(min(2.0, max(0.05, deadline - time.monotonic())))
+
+
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in sessions whose name starts with agi-master or
     belam; with `--seats`, list the registry seats instead — one line per
@@ -1571,8 +1601,21 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         if not files:
             print(f"(no rotation record for {seat})")
         else:
+            latest = files[-1]
+            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
+            # `--wait N` re-reads the latest record until its s12_self_reap
+            # section is terminal, or N seconds elapse. A caller that needs
+            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
+            wait = int(getattr(args, "wait", 0) or 0)
+            if wait > 0:
+                terminal, last_txt = _poll_record_terminal(latest, wait)
+                if not terminal:
+                    print(f"# latest rotation record: {latest.name}")
+                    print(last_txt, end="")
+                    print(f"ERR: still not terminal after {wait}s",
+                          file=sys.stderr)
+                    return 2
             try:
-                latest = files[-1]
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
             except OSError as exc:
@@ -5888,6 +5931,13 @@ def main(argv: list[str] | None = None) -> int:
                           help="print the LATEST durable rotation record for "
                                "--seat, plus the current sequence and the "
                                "seat's own row (read-only)")
+    p_status.add_argument("--wait", type=int, default=0,
+                          help="with --record latest: re-read the latest "
+                               "record at a <=2s interval until its "
+                               "s12_self_reap section is present (terminal) "
+                               "or N seconds elapse. On success print the "
+                               "normal output; on timeout print the last-seen "
+                               "record, ERR and exit 2.")
     p_status.set_defaults(func=cmd_status)
 
     # seq: print the current rotation-alert sequence number (one read)
