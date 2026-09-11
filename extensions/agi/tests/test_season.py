@@ -1608,6 +1608,116 @@ Test town-scoped ladder node.
             nodes_dir, "core", counts=per_town) == 1
 
 
+class TestRolloverCountsVisionsAfterBump:
+    """hypothesis:l4-rollover-counts-visions-after-the-ladder-bump.
+
+    cmd_rollover lives here: the per-town vision count that admits rollover
+    visions is scoped to the season it is ENTERING (new_season), not the
+    ladder's still-current season. A town that is full (cap 3) in season 2 but
+    empty in season 3 must mint its new vision; the cap must still bite within
+    the new season. Regression: a count read against the old season's ladder
+    saw a full s2 town at cap and REFUSEd every source vision.
+    """
+
+    LADDER = """---
+id: ladder:ladder
+type: ladder
+current_season: 2
+caps_apply_from_season: 2
+caps_vision_scope: town
+caps:
+  moral: 5
+  vision: 3
+towns:
+  - core
+  - streaming-suite
+  - web-app-suite
+tiers:
+  - tier: 2
+    plan_types: [vision]
+    report_type: overview
+    judged_against: its vision
+    lens: the morals above
+    cadence: season rollover (quarterly)
+---
+# ladder:ladder
+Test ladder node.
+"""
+
+    @pytest.fixture
+    def roll_graph(self, tmp_path, engine_on_path):
+        """s2 town-scoped ladder; streaming-suite holds 3 season-2 visions."""
+        ladder_dir = tmp_path / ".agi" / "nodes" / ".geometry"
+        ladder_dir.mkdir(parents=True)
+        (ladder_dir / "ladder.md").write_text(self.LADDER)
+        cfg_dir = tmp_path / ".agi"
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+        (cfg_dir / "config.json").write_text('{"project": "test"}')
+        visions_dir = tmp_path / ".agi" / "nodes" / "vision"
+        visions_dir.mkdir(parents=True)
+        for slug in ["vs1", "vs2", "vs3"]:
+            body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                    f"town: streaming-suite\nseason: 2\n---\n# vision {slug}\nbody\n")
+            (visions_dir / f"{slug}.md").write_text(body)
+        return tmp_path
+
+    def _write_source(self, tmp_path, slug="new-vision", town="streaming-suite"):
+        d = tmp_path / "visions"
+        d.mkdir(exist_ok=True)
+        (d / f"{slug}.md").write_text(
+            f"---\ntown: {town}\n---\n# {slug}\n\nOwner text, verbatim.\n")
+        return d
+
+    def _run(self, season_py, root, *args):
+        return subprocess.run(
+            [sys.executable, str(season_py), "--root", str(root),
+             "rollover", *args],
+            capture_output=True, text=True)
+
+    def test_dry_run_counts_new_season_not_current(self, season_py, roll_graph,
+                                                   tmp_path):
+        """A town full in s2 reads 0 / OK in the s3 dry-run; the source MINTs."""
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--dry-run",
+                           "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "streaming-suite: 0 (OK)" in result.stdout, result.stdout
+        assert "MINT vision:new-vision" in result.stdout, result.stdout
+        assert "AT CAP" not in result.stdout, result.stdout
+
+    def test_real_run_mints_when_old_season_full(self, season_py, roll_graph,
+                                                 tmp_path):
+        """The real run MINTs (not refuses) into a town full in s2."""
+        import locations
+        from graph_core.persistence import frontmatter
+        root = locations.find_project_root(roll_graph)
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "minted vision:new-vision" in result.stdout, result.stdout
+        assert "REFUSE" not in result.stdout, result.stdout
+        vision = frontmatter.load_node_file(
+            root / "nodes" / "vision" / "new-vision.md")
+        assert vision.frontmatter.get("season") == 3
+        assert vision.frontmatter.get("town") == "streaming-suite"
+
+    def test_cap_still_refuses_within_new_season(self, season_py, roll_graph,
+                                                 tmp_path):
+        """A town already at 3 visions OF the new season still refuses a 4th."""
+        import locations
+        root = locations.find_project_root(roll_graph)
+        visions_dir = root / "nodes" / "vision"
+        for slug in ["va1", "va2", "va3"]:
+            body = (f"---\nid: vision:{slug}\ntype: vision\n"
+                    f"town: streaming-suite\nseason: 3\n---\n# vision {slug}\nbody\n")
+            (visions_dir / f"{slug}.md").write_text(body)
+        vdir = self._write_source(tmp_path)
+        result = self._run(season_py, roll_graph, "--visions-from", str(vdir))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert "REFUSE vision:new-vision" in result.stdout, result.stdout
+        assert "minted vision:new-vision" not in result.stdout, result.stdout
+
+
 class TestNearestVisionHonoursOwnTownCell:
     """Residue 1 — nearest_vision reads a visited node's OWN town:/vision_ref
     before climbing parents. A non-core round stamped with its own town at

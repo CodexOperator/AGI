@@ -273,7 +273,7 @@ def _shell_out_write(root: Path, node_id: str,
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(root))
     if result.returncode != 0:
         print(f"ERR: write.py failed for {node_id}: {result.stderr.strip()}",
-              )
+              file=sys.stderr)
     return result.returncode
 
 
@@ -416,7 +416,7 @@ def cmd_judge(root: Path, args) -> int:
     if report_type not in report_types:
         print(f"ERR: {report_id} has type {report_type!r}, not a report type "
               f"(known: {', '.join(sorted(report_types))}). Refusing to judge.",
-              )
+              file=sys.stderr)
         return 1
 
     tier_num = tier_map.get(report_type, -1)
@@ -455,7 +455,7 @@ def cmd_judge(root: Path, args) -> int:
 
     if not final_against:
         print(f"ERR: no plan parent found for {report_id} (and --against not given)",
-              )
+              file=sys.stderr)
         return 1
 
     # Load the plan node to derive the lens
@@ -542,7 +542,7 @@ def cmd_judge(root: Path, args) -> int:
             if res.returncode != 0:
                 print(f"ERR: audience prime failed: "
                       f"{res.stderr.strip() or res.stdout.strip()}",
-                      )
+                      file=sys.stderr)
                 return 1
             if res.stdout.strip():
                 print(res.stdout.strip())
@@ -612,7 +612,7 @@ def cmd_judge(root: Path, args) -> int:
 
     if not lens_id:
         print(f"WARN: lens not derived — plan node {final_against} has no goal/vision parent",
-              )
+              file=sys.stderr)
 
     return 0
 
@@ -915,7 +915,7 @@ def cmd_rollover(root: Path, args) -> int:
         sources = _load_vision_sources(visions_from)
         if not sources:
             print("ERR: no vision source files read from --visions-from",
-                  )
+                  file=sys.stderr)
             return 1
         for s in sources:
             nid = f"vision:{s['slug']}"
@@ -952,13 +952,23 @@ def cmd_rollover(root: Path, args) -> int:
     # caps.vision; the mint refuses a town already at its cap.
     nodes_dir = Path(root) / "nodes"
     if spawn_vision_scope(nodes_dir) == "town":
-        per_town = count_visions_per_town(nodes_dir)
+        # hypothesis:l4-rollover-counts-visions-after-the-ladder-bump -- the
+        # count must reflect the season being ENTERED (new_season), not the
+        # ladder's still-current season. The ladder is not bumped until later;
+        # a count scoped to current_season would read a full old season's 3
+        # visions and REFUSE every new vision at the gate below.
+        per_town = count_visions_per_town(nodes_dir, season=new_season)
         cap = spawn_vision_cap(nodes_dir)
-        print(f"  per-town cap: {cap}/town (scope town)")
-        for town in sorted(per_town):
+        print(f"  per-town cap: {cap}/town (scope town, season {new_season})")
+        # Show every declared town (plus any with scoped visions), so a town
+        # sitting full in the OLD season but empty in the NEW prints a 0 and
+        # remains OK rather than vanishing from the rehearsal.
+        declared = ladder_fm.get("towns") or []
+        shown = [t for t in declared if isinstance(t, str)] or list(per_town)
+        for town in sorted(set(shown) | set(per_town)):
             rem = vision_remaining_for_town(nodes_dir, town, counts=per_town)
             flag = "OK" if rem > 0 else "AT CAP — mint refused"
-            print(f"    {town}: {per_town[town]} ({flag})")
+            print(f"    {town}: {per_town.get(town, 0)} ({flag})")
     print()
 
     # ---- Ladder fields (through write.py).
@@ -989,7 +999,8 @@ def cmd_rollover(root: Path, args) -> int:
             sources = _load_vision_sources(visions_from)
             nodes_dir = Path(root) / "nodes"
             town_mode = spawn_vision_scope(nodes_dir) == "town"
-            per_town = count_visions_per_town(nodes_dir) if town_mode else {}
+            per_town = (count_visions_per_town(nodes_dir, season=new_season)
+                        if town_mode else {})
             minted = 0
             refused = 0
             for s in sources:
@@ -1015,7 +1026,7 @@ def cmd_rollover(root: Path, args) -> int:
                         per_town[town] = per_town.get(town, 0) + 1
                 else:
                     print(f"ERR: {nid} not minted ({res.status}: {res.reason})",
-                          )
+                          file=sys.stderr)
             if not minted and not refused:
                 print("no new visions minted (all already exist or files missing)")
     finally:
@@ -1050,7 +1061,7 @@ def cmd_rollover(root: Path, args) -> int:
             capture_output=True, text=True)
         if brc.returncode != 0:
             print(f"ERR git checkout -b {branch_name}: {brc.stderr.strip()}",
-                  )
+                  file=sys.stderr)
             return 1
         print(f"opened branch {branch_name}")
 
@@ -1298,7 +1309,7 @@ def cmd_merge_up(root: Path, args) -> int:
     mg = _git(git_root, "merge", "--no-ff", "--no-commit", branch)
     if mg.returncode != 0:
         print(f"ERR merge --no-ff {branch}: {mg.stderr.strip()}",
-              )
+              file=sys.stderr)
         return 1
     # Never claim the merge before its commit exists -- a pretence of green is
     # indistinguishable from a real green, which is why the old success line
@@ -1314,7 +1325,7 @@ def cmd_merge_up(root: Path, args) -> int:
               f"merge aborted, branch {branch} left in place")
         if ab.returncode != 0:
             print(f"  (warn: git merge --abort failed: {ab.stderr.strip()})",
-                  )
+                  file=sys.stderr)
         return 1
 
     # Green: finalize the merge commit (default merge message, two parents).
@@ -1331,7 +1342,7 @@ def cmd_merge_up(root: Path, args) -> int:
         if still_merging:
             print(f"ERR finalize merge commit: "
                   f"{cmt.stderr.strip() or '(no stderr from git)'}",
-                  )
+                  file=sys.stderr)
             return 1
         # The merge actually landed; git merely mis-reported. Say so rather
         # than cry wolf and strand the worktree on a success.
