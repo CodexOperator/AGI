@@ -4512,6 +4512,48 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
     return None
 
 
+_REFUSAL_REDACT = "<expanded value redacted>"
+
+
+def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
+    """Rebuild a RE-JUDGE refusal message so no fragment of an env VALUE
+    survives into it. The re-judge (`_producing_refusal` / `_env_prefix_refusal`
+    on the env-EXPANDED `exec_cmd`) must run on the expanded form to SEE an
+    injected stage, but the record keeps every `$VAR` literal (fix b), so a
+    word of `message` that (a) is a substring of some expanded env value and
+    (b) is absent verbatim from the literal `record_cmd` is an ENV-INJECTED
+    fragment — a secret-shaped word the value carried. It is dropped and the
+    record's literal `$VAR` names are appended, so the refusal names its
+    source without ever echoing the value. A word present in `record_cmd`
+    (template text, boilerplate, a genuinely-spelled stage) is kept; a message
+    naming no env value at all is returned unchanged (placeholder-injected
+    content already lives in `record_cmd` by design — only ENV vars stay
+    literal). This is the FALSIFIER guard of hypothesis:l4-the-refusal-names-
+    the-record-stage-not-the-expanded-tokens: a refusal never contains a
+    substring of an env value that is not in record_cmd."""
+    sources = []
+    for m in _SHELL_VAR_RE.finditer(record_cmd):
+        name = m.group(1) or m.group(2)
+        val = os.environ.get(name)
+        if val is None:
+            continue
+        sources.append((name, val))
+    if not sources:
+        return message
+    kept, redacted_any = [], False
+    for tok in message.split():
+        if any(tok in val for _, val in sources) and tok not in record_cmd:
+            redacted_any = True      # an injected value fragment: drop it
+            continue
+        kept.append(tok)
+    if not redacted_any:
+        return message
+    names = ", ".join("$" + n for n, _ in sources)
+    label = " ".join(kept).strip()
+    trailer = f"{_REFUSAL_REDACT} (expanded from {names})"
+    return f"{label} {trailer}" if label else trailer
+
+
 def _resolve_startup_placeholders(command: str, values: dict, *,
                                   refuse_empty: bool = False) -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
@@ -4601,12 +4643,15 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
         if exec_env_refusal:
             results.append({"label": label, "cmd": record_cmd,
-                            "refused": exec_env_refusal})
+                            "refused": _scrub_injected_refusal(
+                                exec_env_refusal, record_cmd)})
             continue
         exec_refusal = _producing_refusal(exec_cmd)
         if exec_refusal:
             results.append({"label": label, "cmd": record_cmd,
-                            "refused": f"not on startup.allow: {exec_refusal}"})
+                            "refused": "not on startup.allow: "
+                                       + _scrub_injected_refusal(
+                                           exec_refusal, record_cmd)})
             continue
         # Unmodeled-operator check stays: an operator `_producing_refusal`
         # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
