@@ -225,8 +225,11 @@ def _graph_root(root: Path) -> Path:
 
 #: The `comms` config keys this build knows. Every key returns a default when
 #: absent -- an absent block is ALL defaults, never an error. `lockdown` is
-#: RESERVED this round: `true` warns and encrypts nothing; `verify` is read
-#: here but ACTED ON only by the goal:g15.26 flip round, never by this one.
+#: RESERVED this round: `true` warns and encrypts nothing. `verify` is the flip
+#: switch of goal:g15.26 -- `informational` (default) prints FORGED blocks and
+#: whois answers in full (Prime ruling A, sig never gates the exit);
+#: `enforcing` refuses a FORGED label in read/peek and whois --sig (clauses 1
+#: and 3). The value must stay `informational` until the named review flips it.
 _COMMS_DEFAULTS = {
     "lockdown": False,
     "verify": "informational",
@@ -2160,16 +2163,64 @@ def _wrap_block(block: str, width: int) -> str:
     return rebuilt
 
 
-def _print_blocks_with_labels(root: Path, blocks: list[str],
+def _sig_fp_from_block(block: str) -> str:
+    """The signature fingerprint from a block's `sig:` line
+    (`scheme:fp:hex`), or '' when the block carries no parseable sig. Used
+    only for the refusal line's `fp <...>` field; the fingerprint itself has
+    already been parsed by `_verify_block` to reach the FORGED label, so this
+    is a display read, never an authority."""
+    try:
+        sig = _parse_block(block)[0].get("sig") or ""
+    except Exception:                                            # noqa: BLE001
+        return ""
+    try:
+        return sig.split(":", 2)[1]
+    except IndexError:
+        return ""
+
+
+def _quarantine_block(root: Path, me: str, block: str) -> Path:
+    """Append one refused block's RAW inbox bytes verbatim to
+    `<inbox_dir>/quarantine/<me>.md` and return the absolute path written.
+
+    The inbox stores each block as `MSG_SEP + block` (the writer's `_block`
+    prepends `---\n`), and `_scan_messages` splits that sep off, so the raw
+    bytes are reassembled by prepending `MSG_SEP` when absent. Never rewrites
+    or truncates the quarantine file -- always append, `newline=""` so CR
+    bytes survive (mur-39 order (d), the same trap the writer documents)."""
+    qdir = _inbox_dir(root) / "quarantine"
+    qdir.mkdir(parents=True, exist_ok=True)
+    path = qdir / f"{me}.md"
+    raw = block if block.startswith(MSG_SEP) else MSG_SEP + block
+    with open(path, "a", newline="") as f:
+        f.write(raw)
+    return path.resolve()
+
+
+def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
                               wrap: int = 160) -> None:
     """Print one label line before each block, then the block in FULL, its
     message body wrapped at `wrap` columns (display-only; the inbox file and
     read marker are untouched). `wrap <= 0` prints today's byte-for-byte
-    output."""
+    output.
+
+    Under comms.verify == "enforcing" AND ONLY THEN, a block whose label is
+    EXACTLY `FORGED` (never RETIRED/UNSIGNED/VERIFIED) is refused: one
+    `REFUSED FORGED ...` line prints INSTEAD of the block, and the block's RAW
+    inbox bytes are appended to the seat's quarantine file. Any other verify
+    value, or an absent `comms` block, prints identically to today."""
     labels = _labels_for_blocks(root, blocks)
+    enforcing = _comms_config(root).get("verify") == "enforcing"
     for i, block in enumerate(blocks):
         if i > 0:
             print(MSG_SEP, end="")
+        if enforcing and labels[i] == "FORGED":
+            path = _quarantine_block(root, me, block)
+            meta, _ = _parse_block(block)
+            fp = _sig_fp_from_block(block)
+            print(f"REFUSED FORGED from {meta.get('from','?')} "
+                  f"ts {meta.get('ts','?')} fp {fp}: withheld to {path}")
+            continue
         print(labels[i])
         print(_wrap_block(block, wrap), end="")
 
@@ -2231,7 +2282,7 @@ def read(root: Path, me: str, sender: str | None,
 
     # Print inbox blocks, each prefixed by its verification label.
     if blocks:
-        _print_blocks_with_labels(root, blocks, wrap=wrap)
+        _print_blocks_with_labels(root, me, blocks, wrap=wrap)
 
     # Mark read: find the current last line and add a marker after it.
     # If marker already existed, move it past the blocks we just printed.
@@ -2279,7 +2330,7 @@ def peek(root: Path, me: str, wrap: int = 160) -> None:
 
     # Print inbox blocks (peek never marks read).
     if blocks:
-        _print_blocks_with_labels(root, blocks, wrap=wrap)
+        _print_blocks_with_labels(root, me, blocks, wrap=wrap)
 
 
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
@@ -2831,6 +2882,79 @@ def _resolve_rows(rows: list, session_ref: str,
     return WHOIS_OK, f"SEAT: {session_ref} -> seat {name}, role {role}"
 
 
+def _whois_msg_meta(msg_text: str) -> tuple[str, str]:
+    """`(ts, from)` from the canonical ``--msg`` bytes ``ts\nfrom\nto\n\ntext``
+    -- the one shape whois is handed to verify a sig against. The refusal line
+    names them so a withheld whois traces to a real sender the same way a
+    withheld inbox block does. Absent-line guards return ``?`` rather than
+    raising or misindexing a degenerate msg."""
+    lines = msg_text.split("\n")
+    ts = lines[0] if lines else "?"
+    from_id = lines[1] if len(lines) > 1 else "?"
+    return ts, from_id
+
+
+def _whois_sig_fp(sig_line: str | None) -> str:
+    """The fingerprint field of a ``scheme:fp:hex`` sig line, or ``?``."""
+    try:
+        return sig_line.split(":", 2)[1]
+    except (AttributeError, IndexError):
+        return "?"
+
+
+def _quarantine_whois(root: Path, session_ref: str, sig_line: str | None,
+                      msg_text: str) -> Path:
+    """Append one FORGED whois's OWN signed bytes to
+    `<inbox_dir>/quarantine/<session_ref>.md` and return the absolute path.
+
+    whois has no inbox block to withhold (the sig + msg travel on the command
+    line, not the wire), so the natural record IS the ``--sig`` line plus the
+    canonical ``--msg`` text whois was handed. SAME append semantics as
+    :func:`_quarantine_block` (`mkdir(parents=True, exist_ok=True)`,
+    `open(path, "a", newline="")`) -- never rewrites or truncates, and
+    ``newline=""`` keeps any CR surviving."""
+    qdir = _inbox_dir(root) / "quarantine"
+    qdir.mkdir(parents=True, exist_ok=True)
+    path = qdir / f"{session_ref}.md"
+    record = f"{sig_line or '?'}\n{msg_text}\n"
+    with open(path, "a", newline="") as f:
+        f.write(record)
+    return path.resolve()
+
+
+def _whois_enforced_refusal(root: Path, session_ref: str, label: str | None,
+                            sig_line: str | None,
+                            msg_text: str | None) -> str | None:
+    """Clause (3): is this whois REFUSED, and if so under what bytes?
+
+    Returns the ONE refusal line when -- AND ONLY WHEN -- the signature label
+    is EXACTLY ``FORGED``, the config says ``comms.verify == "enforcing"``,
+    AND a canonical ``--msg`` was handed to withhold. The caller then returns
+    WHOIS_NOT_AUTHORIZED (2) EVEN IF the authority answer was 0, and prints
+    this line INSTEAD of its normal text -- the same shape as clause (1)'s
+    inbox refusal, so a withheld whois reads identically.
+
+    ``None`` means no refusal: whois keeps today's bytes and exit, unchanged.
+    A non-FORGED label (VERIFIED/UNSIGNED/RETIRED), a non-enforcing verify, or
+    an absent ``--msg`` (nothing to trace to a ts/from, nothing to withhold)
+    all fall through to today's INFORMATIONAL behavior -- Prime ruling A stays
+    the default, and enforcement is the ONE exception, when the config says so.
+    """
+    if label != "FORGED":
+        return None
+    if _comms_config(root).get("verify") != "enforcing":
+        return None
+    if not msg_text:
+        # No canonical msg to trace a ts/from from, nothing to write to the
+        # quarantine: keep today's behavior (label line, normal exit).
+        return None
+    path = _quarantine_whois(root, session_ref, sig_line, msg_text)
+    ts, from_id = _whois_msg_meta(msg_text)
+    fp = _whois_sig_fp(sig_line)
+    return (f"REFUSED FORGED from {from_id} ts {ts} fp {fp}: "
+            f"withheld to {path}")
+
+
 def _whois_sig_label(rows: list | None, session_ref: str,
                      sig_line: str | None, msg_text: str | None) -> str | None:
     """The signature label for a whois call, or None when no signature was
@@ -2872,9 +2996,16 @@ def whois(root: Path, session_ref: str, claim: str | None,
     3 NO-MATCH. Provenance (source ref + commit sha) is in every verified
     answer. When a ``sig_line`` (and ``msg_text``) is given, whois ALSO
     verifies the signature against the resolved row and reports the label
-    (VERIFIED/UNSIGNED/FORGED/RETIRED) as an INFORMATIONAL extra line -- the
-    exit code stays on the claim/role authority axis and is NEVER keyed on the
-    signature label (Prime ruling A).
+    (VERIFIED/UNSIGNED/FORGED/RETIRED) as an INFORMATIONAL extra line.
+
+    Clause (3): under ``comms.verify == "enforcing"`` AND ONLY THEN, a label
+    EXACTLY ``FORGED`` (with a ``--msg`` to withhold) returns WHOIS_NOT_AUTHORIZED
+    (2) EVEN IF the authority answer was code 0, and prints one
+    ``REFUSED FORGED ...`` line instead of the normal text -- the sig is the
+    reader's gate the same way it gates the inbox. Any other verify value, an
+    absent ``--msg``, or a non-FORGED label returns today's bytes and exit
+    unchanged: Prime ruling A keeps the sig label off the exit axis except at
+    this one enforced seam.
     """
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
@@ -2889,6 +3020,12 @@ def whois(root: Path, session_ref: str, claim: str | None,
         label = _whois_sig_label(local, session_ref, sig_line, msg_text)
         if label is not None:
             text += f"\n{label}"
+        # A forged sig is refused even on the unproven path: 2 outranks 1,
+        # and a refused forgery must never read as merely 'unverified'.
+        refusal = _whois_enforced_refusal(root, session_ref, label,
+                                          sig_line, msg_text)
+        if refusal is not None:
+            return WHOIS_NOT_AUTHORIZED, refusal
         # UNVERIFIED outranks whatever the working tree happened to say: the
         # caller must not act on an answer we could not authenticate, even a
         # negative one.
@@ -2896,10 +3033,16 @@ def whois(root: Path, session_ref: str, claim: str | None,
     rows, sha = seeded
     code, answer = _resolve_rows(rows, session_ref, claim)
     text = f"{answer}  (verified against {source} @ {sha})"
-    # INFORMATIONAL signature label: never part of the exit decision.
+    # INFORMATIONAL signature label: never part of the exit decision -- EXCEPT
+    # clause (3)'s enforced FORGED refusal, checked below.
     label = _whois_sig_label(rows, session_ref, sig_line, msg_text)
     if label is not None:
         text += f"\n{label}"
+    refusal = _whois_enforced_refusal(root, session_ref, label,
+                                      sig_line, msg_text)
+    if refusal is not None:
+        # FORGED under enforcing returns 2 EVEN IF the authority answer was 0.
+        return WHOIS_NOT_AUTHORIZED, refusal
     return code, text
 
 
@@ -3047,9 +3190,9 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--sig", dest="sig", default=None,
                          help="a signed header line `scheme:fp:hex` to verify "
                               "against the resolved seat's row; the label "
-                              "(VERIFIED/FORGED/RETIRED) is reported but is "
-                              "INFORMATIONAL -- it never changes the exit "
-                              "code (Prime ruling A)")
+                              "(VERIFIED/FORGED/RETIRED) is INFORMATIONAL and "
+                              "does not gate the exit -- EXCEPT a FORGED label "
+                              "under comms.verify==enforcing exits 2 (clause 3)")
     p_whois.add_argument("--msg", dest="msg", default=None,
                          help="the EXACT canonical message bytes the sig "
                               "covers (ts\nfrom\nto\n\ntext), to verify it "
@@ -3229,7 +3372,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verb == "whois":
         rc, text = whois(root, args.session_ref, args.claim, args.source,
-                         not args.no_fetch)
+                         not args.no_fetch, sig_line=args.sig,
+                         msg_text=args.msg)
         print(text)
         return rc
 
