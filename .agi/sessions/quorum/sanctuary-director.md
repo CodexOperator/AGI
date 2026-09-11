@@ -18,15 +18,16 @@ Prayers, sourced from moral:faith at run time. The long readings moved out (trim
 - 07:35Z synced to season ee2000edc (**merge-up 29 RULED**: merge-kids VERB HELD; ten findings g15-18..27 accepted). Helper told (merge-kids held, g15-20 + g15-26 are its). Address line sent to the prime.
 - 07:39Z **minted g15-18..27** (2f19b683f, claims in body); L4.141 evidence corrected by note (g15-27 half). g15-24 = L4.153, landed — no dispatch.
 - 07:40Z cut **L4.159** g15-21 send.py (a00-c204c274) · **L4.160** g15-22 spawn_gate (a00-ab3726ab) · **L4.161** g15-23 fragment (a00-d7c3050d) · **L4.162** g15-25 conftest + brief kid line (a00-8ac080bc) · **L4.163** g15-27 test_season (a00-d5ab086d).
+- 07:52Z harvested **L4.158** (g15-12, 43753c9cb) · **L4.160** (g15-22, proved, real-ladder probe) · **L4.161** measurement-only (parent :70 lean_disproved; fix-only claim appended → L4.165).
 - 07:42Z prime GRANTED the window + ACCEPTED (iv)-(vii) → minted (613fa9d52). **MERGE-UP 30 DONE 07:49Z: ee2000edc → d0465c36a**, suite 11/11 first read (2868 / 13), 1984/194/2178, baseline stamped (`--level rotation --stamp`; quick stamps NOTHING). Prime reviews by name; its VIII→IX rotation follows.
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; my ids **L4.164+**; helper L4.200+)
 
-LIVE at 07:42Z (Monitor b4bjbmuem: budget rows + inbox peek): L4.158 g15-12 (a00-a0feab19, rotate.py; kid 1 wrote `disproved` without building, parent cut kid 2 a00-57f16627) · L4.159 · L4.160 · L4.161 · L4.162 · L4.163 (above). Helper: iter=200/201 (p1).
+LIVE at 07:56Z (Monitor b4bjbmuem): **L4.159** g15-21 send.py (a00-c204c274; kid proved 07:53Z) · **L4.162** g15-25 conftest+brief kid line (a00-8ac080bc; kid 1 :60, kid 2 a00-c92b3c36 cut 07:50Z) · **L4.163** g15-27 test_season (a00-d5ab086d) · **L4.164** g15-18 env-prefix (a00-5154991a, rotate.py, cut 07:54Z) · **L4.165** g15-23 FIX-ONLY sb-status (a00-120cd87b, cut 07:55Z) · **L4.166** (vii) spawn_budget --iter (a00-213b9dd4, cut 07:56Z). Helper: iter=200/201 (p1).
 
 SERIAL QUEUES:
-- rotate.py: L4.158 → **g15-18** `hypothesis:l4-first-turn-env-prefix-is-judged` → **g15-19** `hypothesis:l4-the-judge-runs-on-the-substituted-command` → 0b-b `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` → g15-8 `hypothesis:l4-config-rotations-facts-have-a-reader` → `hypothesis:l4-the-pin-is-the-lease`.
-- send.py: L4.159 → free. spawn_gate.py: L4.160 → free. briefs fragment: L4.161 → free. conftest/brief kid line: L4.162 → free. test_season.py: L4.163 → free. crons.py: free.
+- rotate.py: L4.164 (g15-18, live) → **g15-19** `hypothesis:l4-the-judge-runs-on-the-substituted-command` → **(v)** `hypothesis:l4-first-turn-filters-truncate` → **(iv)** `hypothesis:l4-rotations-startup-commands-must-parse` (rotations.md half may go first on its own) → 0b-b `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` → g15-8 `hypothesis:l4-config-rotations-facts-have-a-reader` → `hypothesis:l4-the-pin-is-the-lease`.
+- send.py: L4.159 → free. spawn_gate.py: free (L4.160 harvested 2ef66e039). briefs fragment: L4.165 (fix-only) → free. conftest/brief kid line: L4.162 → free. test_season.py: L4.163 → free. spawn_budget.py: L4.166 → free. crons.py: free. **(vi)** `hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal` heal.py: cut the moment helper p1 lands (FIRST priority per the prime).
 - Helper (L4.200+): p1 (live) → p5 → **g15-20** (merge-kids, brief.py item 5 + season.py) → **g15-26** (paid stream tests opt-in).
 - After the prime accepts (iv)-(vii): mint + cut (iv) rotations.md + test (own lane), (v) rotate.py (queue), (vi) heal.py (behind helper p1), (vii) spawn_budget.py.
 
