@@ -52,7 +52,9 @@ import yaml
 _THIS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_THIS))
 
-import adapters  # noqa: E402  -- owns the model/provider namespace guard
+import adapters  # noqa: E402  -- owns the model/provider namespace guard,
+# and the shared (tier, role, harness) ladder resolver (l4-one-write)
+import spawn_gate  # noqa: E402  -- reads ladder roles for the same resolver
 import locations as _loc  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
@@ -552,10 +554,12 @@ def _assert_model_in_provider_namespace(model: str, provider: str) -> None:
         raise ValueError(str(exc)) from exc
 
 
-def _resolve_pi_model(cfg: dict, stage: dict, args: dict) -> str:
-    """The pi harness's model comes from `harnesses.pi.models`, keyed by the
-    stage's role (falling back to the 'kid' entry for a role the block does
-    not name, e.g. 'global'/'reviewer') — NEVER from the harness-agnostic
+def _resolve_pi_model(cfg: dict, stage: dict, args: dict,
+                      roles=None) -> str:
+    """The pi harness's model, from the ladder row when one exists for the
+    stage's (tier, role) (hypothesis:l4-a-model-change-is-one-write), else
+    `harnesses.pi.models` keyed by role (falling back to 'kid' for a role the
+    block does not name) — NEVER from the harness-agnostic
     `workflows.NAME.model`, which is shared with claude-code and whose
     namespace (subscription aliases) is disjoint from OpenRouter's (`provider
     /name` slugs). `--args model` still wins, since that is how a human
@@ -563,13 +567,26 @@ def _resolve_pi_model(cfg: dict, stage: dict, args: dict) -> str:
     if args.get("model"):
         return args["model"]
     role = stage.get("role") or "kid"
+    tier = stage.get("tier") or _tier_for_role(role)
+    row = adapters.ladder_role_row(roles, tier, role)
+    if row is not None and (row.get("model") or "").strip():
+        # the ladder row IS the one source: a write.py on the ladder changes
+        # this stage's model without touching harnesses.pi.models.
+        return row["model"].strip()
     pi_models = ((cfg.get("harnesses") or {}).get("pi") or {}).get("models") or {}
     model = pi_models.get(role) or pi_models.get("kid")
     if not model:
         raise ValueError(
-            f"stage {stage.get('label')!r}: no harnesses.pi.models entry for "
-            f"role {role!r} (or 'kid') and no --args model override")
+            f"stage {stage.get('label')!r}: no ladder row and no "
+            f"harnesses.pi.models entry for role {role!r} (or 'kid') and no "
+            f"--args model override")
     return model
+
+
+def _tier_for_role(role: str) -> int:
+    """The canonical home tier for a role (mirror of dispatch's default)."""
+    return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
+        role, 0)
 
 
 def validate_return(schema: dict | None, value) -> list[str]:
@@ -916,8 +933,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # dry-run print or spawn — the config row's model is claude-code's,
         # not pi's (hypothesis:l3-workflow-model-crosses-harness-namespace).
         hc = _pi_harness_cfg(cfg)
+        # hypothesis:l4-a-model-change-is-one-write — the ladder is the ONE
+        # source when it declares the stage's (tier, role); fallback left for
+        # a project with no ladder file.
+        _roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
         for st in stages:
-            model = _resolve_pi_model(cfg, st, args)
+            model = _resolve_pi_model(cfg, st, args, _roles)
             _assert_model_in_provider_namespace(model, hc["provider"])
             knobs[st["label"]]["model"] = model
 

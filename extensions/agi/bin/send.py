@@ -988,16 +988,40 @@ WHOIS_UNVERIFIED = 1        #: pushed authority unreachable -- unproven
 WHOIS_NOT_AUTHORIZED = 2    #: ref is real but is NOT the claimed seat/role
 WHOIS_NO_MATCH = 3          #: ref belongs to no seat row at all
 
+#: L4.114 (r3): whois authorizes by a 6-hex ref OR by a PREFIX of a row's
+#: `session_id` uuid. A prefix shorter than this is REFUSED (never a guess).
+WHOIS_MIN_SESSION_ID_PREFIX = 6
+
 
 def _resolve_rows(rows: list, session_ref: str,
                   claim: str | None) -> tuple[int, str]:
     """Answer the is-this-who-they-say question for one ref. Two directions:
     with no --claim, name the seat + role the ref belongs to; with
     --claim NAME, answer whether this ref IS that row (a ref present in the
-    table but under a DIFFERENT name/role answers NO — the impersonation case)."""
+    table but under a DIFFERENT name/role answers NO — the impersonation case).
+
+    L4.114 (r3): a ref that is not an exact `session_ref` match is still
+    authorized when it is a PREFIX of a row's `session_id` uuid, at least
+    WHOIS_MIN_SESSION_ID_PREFIX chars — a shorter prefix is refused (never
+    treated as a match)."""
     hits = [r for r in rows if r.get("session_ref") == session_ref]
     if not hits:
-        return WHOIS_NO_MATCH, f"NO-MATCH: {session_ref} belongs to no seat row"
+        # r3: prefix-match a row's session_id uuid (state min length; refuse
+        # shorter as NO-MATCH rather than guessing on a too-small prefix).
+        if len(session_ref) >= WHOIS_MIN_SESSION_ID_PREFIX:
+            hits = [r for r in rows
+                    if (r.get("session_id") or "").startswith(session_ref)]
+            if not hits:
+                return (WHOIS_NO_MATCH,
+                        f"NO-MATCH: {session_ref!r} belongs to no seat row "
+                        "by session_ref or session_id prefix "
+                        f"(min prefix {WHOIS_MIN_SESSION_ID_PREFIX})")
+        else:
+            return (WHOIS_NO_MATCH,
+                    f"NO-MATCH: {session_ref!r} (< "
+                    f"{WHOIS_MIN_SESSION_ID_PREFIX} chars) is too short to "
+                    "authorize by session_id prefix and matches no "
+                    "session_ref")
     who = hits[0]
     name = who.get("name", "?")
     role = who.get("role", "?")
