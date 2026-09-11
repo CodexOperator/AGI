@@ -118,16 +118,56 @@ def _seat_rows(root: Path) -> list:
     return rows
 
 
+def _main_root(root: Path) -> Path:
+    """The integration tree (MAIN checkout) graph root, or `root` unchanged.
+
+    A seat's OWN worktree `root` carries a possibly-STALE `config:seats`: its
+    row is merged from `origin/season/s2` only at the seat's next merge, while
+    the Prime edits `rotate_at` on the main checkout — so a line the Prime
+    lowers on main does not reach a working seat for an entire generation.
+    The main checkout is one call away — `locations.git_common_root`, which is
+    already importable (the hook inserts `<hooks>/../bin` on sys.path).
+
+    `git_common_root` returns the REPO root, not the graph root, so the graph
+    root is re-derived there with `find_project_root` — the same two-step
+    `shared_project_root` uses, and it returns the INPUT graph root (identity)
+    when the two coincide, which is exactly the "running in the main checkout"
+    signal the caller needs.
+
+    Never a hard dependency: when the dir is not inside a git worktree or git
+    fails, this returns `root` unchanged and we keep reading the worktree row
+    (P7 — the hook runs on every session and must never break one).
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import locations  # noqa: PLC0415 — lazy, like _canonical_pin
+        main = Path(locations.git_common_root(root))
+        if main == root:
+            return root
+        main_graph = locations.find_project_root(main)
+        return Path(main_graph).resolve() if main_graph else root
+    except Exception:
+        return root
+
+
 def _seat_line(root: Path, cwd: str, ladder_default: float):
     """(seat, threshold, source_label) — the line a seat is measured against.
 
-    Item 4 of this round: a seat rotates at its OWN `rotate_at` from its
-    `config:seats` row, not at the ladder's `director_rotate_at`. The seat is
-    identified by `AGI_SEAT` when present, else by the cwd sitting under a
-    row's `worktree` (derived from the `seat-<name>` directory). A row that
-    declares `rotate_at` wins over the ladder default — and the caller says
-    which source won in the emitted message. Threshold is int/float-typed from
-    the row; a row that fails to parse falls through to the default.
+    A seat rotates at its OWN `rotate_at` from its `config:seats` row, not at
+    the ladder's `director_rotate_at`. The seat is identified by `AGI_SEAT`
+    when present, else by the cwd (the `seat-<name>` convention, with a
+    path-match fallback on a row's OWN `worktree` for a seat outside that
+    convention — KEPT on evidence below: the schema allows a worktree string
+    outside the convention and a red-first test reaches that branch).
+
+    The `rotate_at` VALUE is read MAIN-CHECKOUT-first: the integration tree
+    (locations.git_common_root) may carry a newer `rotate_at` than this
+    worktree's stale row. The worktree row wins only when the main checkout
+    has no row for the seat. The emitted source string NAMES which tree won:
+    `config:seats <seat>.rotate_at (main checkout)` vs `(worktree)`. A
+    rotate_at that is missing, unparseable or NON-POSITIVE falls through to
+    the ladder default — the guard is intact (0 must never become a 0.0
+    threshold, or `fraction/threshold` in `_emit` divides by zero).
     """
     seat = os.environ.get("AGI_SEAT")
     if seat is None:
@@ -137,6 +177,11 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
             # worktree": a row may name a worktree that does not follow the
             # `seat-<name>` convention, so a path-match on the row's OWN
             # `worktree` field beats the convention parse when it exists.
+            # KEPT (not deleted): the seats schema allows an arbitrary
+            # worktree string, and test_h reaches this branch with a row whose
+            # worktree is outside the convention — see that test's docstring
+            # for the evidence. It is dead in the REAL registry only by
+            # convention (every perpetual seat uses `seat-<name>`).
             cwd_res = Path(cwd).resolve()
             for row in _seat_rows(root):
                 wt = row.get("worktree")
@@ -149,25 +194,43 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
                     if cwd_res.is_relative_to(wt_res) or cwd_res == wt_res:
                         seat = row.get("name")
                         break
-    if seat:
-        for row in _seat_rows(root):
-            if row.get("name") == seat and "rotate_at" in row:
-                try:
-                    rt = float(row["rotate_at"])
-                except (TypeError, ValueError):
-                    break
-                # 🔴 NON-POSITIVE is the same as MISSING. A rotate_at of 0 (or
-                # negative) must fall through to the ladder default, never
-                # become threshold 0.0: `over_line = fraction >= 0.0` is then
-                # ALWAYS True and `_emit` computes `fraction / threshold` →
-                # **ZeroDivisionError**, a traceback on every prompt for that
-                # seat (P6: fail closed, never emit a confident wrong fraction
-                # — and a crash is the loud wrong way). Threshold must never
-                # reach the emit path as <= 0.
-                if rt > 0:
-                    return (seat, rt,
-                            f"config:seats {seat}.rotate_at")
-                break
+    if not seat:
+        return seat, ladder_default, "ladder.director_rotate_at"
+
+    # MAIN-CHECKOUT ROW WINS. Read rotate_at from the integration tree first;
+    # fall back to the worktree row ONLY when the main checkout has no row for
+    # the seat (a main row that is present but non-positive/unparseable goes
+    # to the LADDER, never to the worktree — see the guard below).
+    main_root = _main_root(root)
+    if main_root == root:
+        # In the main checkout: one tree, and it IS the main checkout.
+        candidates = [(root, "main checkout")]
+    else:
+        candidates = [(main_root, "main checkout"), (root, "worktree")]
+    for cand_root, tree_label in candidates:
+        for row in _seat_rows(cand_root):
+            if row.get("name") != seat:
+                continue
+            if "rotate_at" not in row:
+                continue
+            try:
+                rt = float(row["rotate_at"])
+            except (TypeError, ValueError):
+                # a row that declares rotate_at but cannot be parsed = missing.
+                return seat, ladder_default, "ladder.director_rotate_at"
+            # 🔴 NON-POSITIVE is the same as MISSING. A rotate_at of 0 (or
+            # negative) must fall through to the ladder default, never become
+            # threshold 0.0: `over_line = fraction >= 0.0` is then ALWAYS True
+            # and `_emit` computes `fraction / threshold` → **ZeroDivisionError**
+            # (P6: fail closed, never emit a confident wrong fraction — and a
+            # crash is the loud wrong way). It goes to the LADDER, not to the
+            # other tree, because the seat's own row is authoritative when it
+            # exists; only a genuinely absent row falls through to the next
+            # tree.
+            if rt > 0:
+                return (seat, rt,
+                        f"config:seats {seat}.rotate_at ({tree_label})")
+            return seat, ladder_default, "ladder.director_rotate_at"
     return seat, ladder_default, "ladder.director_rotate_at"
 
 
