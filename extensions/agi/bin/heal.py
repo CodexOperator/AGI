@@ -19,6 +19,8 @@ Returns 0 when ALL agents are in terminal status (done/pending/hung-then-healed/
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import re
@@ -518,6 +520,76 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     return dirty
 
 
+# session-complete refusal markers we reduce to short named reasons in the
+# `[sweep] refused ... session dir not home (<reason>)` line. Order matters:
+# the FIRST match below wins for a refusal whose stdout carries more than one.
+def _sweep_refusal_reason(text: str) -> str:
+    for needle, tag in (
+        ("not every agent record is terminal", "non-terminal"),
+        ("target already exists and is not empty", "target exists"),
+        ("a live lease is active", "live lease"),
+        ("this source's own contribution did not verify", "verify failed"),
+    ):
+        if needle in text:
+            return tag
+    return "home failed"
+
+
+def _sweep_bring_home(root: Path, main_sessions: Path, iter_name: str,
+                      dry_run: bool, homed: dict) -> str | None:
+    """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
+sweep-judges-it.
+
+    Bring a NOT-home round's session dir home via `cli._session_complete`, the
+    one sanctioned caller of that normally-manual command. Resolves `root`
+    (the main graph root the sweep already holds), calls it ONCE PER
+    ITERATION per pass (the `homed` memo guards a `--branch` round whose
+    iter dir sits in TWO worktrees -- `worktree=None` lets the one call
+    merge every source into one target). session-complete's OWN guards stay
+    the authority and are neither duplicated nor bypassed: no live lease for
+    the iteration, every agent record terminal, target not already
+    non-empty, copy-then-verify-then-remove-each-source-by-its-own-
+    contribution. Returns None when the iter dir came home (or would, in a
+    dry run); else a short refusal reason for the `session dir not home` log.
+    Never writes anything itself -- the migrate is session-complete's, this
+    only decides by its captured stdout (dry-run) or the on-disk target.
+    """
+    if iter_name in homed:
+        # already attempted this pass; the memoized outcome holds, but the
+        # on-disk target is always re-read because a sibling may have landed it
+        return None if (main_sessions / iter_name).is_dir() else homed[iter_name]
+    try:
+        import cli as _cli  # noqa: E402 — cli imports evidence_gate/locations/
+        # spawn_budget, so heal must NOT load it at module import time
+    except Exception as exc:  # noqa: BLE001
+        homed[iter_name] = f"cli import failed ({exc})"
+        return homed[iter_name]
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            _cli._session_complete(
+                root, locations.iteration_id(iter_name),
+                worktree=None, dry_run=dry_run)
+        text = buf.getvalue()
+    except Exception as exc:  # noqa: BLE001 — session-complete raised
+        homed[iter_name] = f"home failed (raised: {exc})"
+        return homed[iter_name]
+    if dry_run:
+        # a dry-run session-complete returns 0 for would-migrate, REFUSE and
+        # no-candidate alike -- decide by the CAPTURED stdout, never the rc.
+        if "WOULD migrate" in text and "REFUSE" not in text:
+            homed[iter_name] = ""
+            return None
+        homed[iter_name] = _sweep_refusal_reason(text)
+        return homed[iter_name]
+    # LIVE: only the on-disk target is the proof, never a return code.
+    if (main_sessions / iter_name).is_dir():
+        homed[iter_name] = ""
+        return None
+    homed[iter_name] = _sweep_refusal_reason(text)
+    return homed[iter_name]
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -568,7 +640,22 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] skipped: budget unreadable ({exc})")
         return (0, 0, 0)
     main_sessions = locations.sessions_dir(root)
+    homed: dict[str, str] = {}  # iter dirname -> "" (home) | refusal reason,
+    # memoized per pass so a `--branch` round's TWO trees home its iter dir ONCE
     now = time.time()
+    # Pre-resolve each worktree's BASE (the branch it was cut from) READ-ONLY
+    # BEFORE any bring-home runs. A `--branch` round's single merge-home
+    # (session-complete, worktree=None) removes the iter dir from EVERY tree it
+    # was found in, so a second tree's records would be gone by its turn in the
+    # loop -- pre-resolving here (hyp:l4-a-finished-rounds-session-dir-comes-
+    # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
+    base_pre: dict[str, str] = {}
+    for wt_p in sorted(wt_base.glob("a00-*")):
+        if not wt_p.is_dir():
+            continue
+        b0, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt_p)
+        base_pre[wt_p.name] = _sweep_worktree_base(
+            root, wt_p, _sweep_season(b0[0] if b0 else ""))
     for wt in sorted(wt_base.glob("a00-*")):
         if not wt.is_dir():
             continue
@@ -581,7 +668,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         branch_lines, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt)
         branch = branch_lines[0] if branch_lines else ""
         season = _sweep_season(branch)
-        base = _sweep_worktree_base(root, wt, season)
+        base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
         if not base:
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
@@ -607,17 +694,12 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] refused {agent_id}: dirty "
                        f"({len(dirty)} paths)")
             continue
-        # (4) the round's session dir must have come home (or there is none).
-        wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
-        if wt_iters:
-            not_home = [d.name for d in wt_iters
-                        if not (main_sessions / d.name).is_dir()]
-            if not_home:
-                refused += 1
-                _watch_log(f"[sweep] refused {agent_id}: session dir not home "
-                           f"({','.join(not_home)})")
-                continue
-        # (5) grace: never reap a worktree younger than the configured grace.
+        # (4)/(5) A finished round's session dir comes home before the sweep
+        # judges condition (4): for a leaseless+merged+clean round, the GRACE
+        # check moves AHEAD of the bring-home step, so a director's hand
+        # harvest inside the 30-minute window is never raced by the reaper --
+        # only a past-grace round is ever homed (or reaped) by the sweep.
+        # The worktree directory must be older than the configured grace.
         try:
             age_min = (now - wt.stat().st_mtime) / 60.0
         except OSError:
@@ -627,6 +709,33 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] kept {agent_id}: grace "
                        f"({age_min:.0f}m < {grace_min}m)")
             continue
+        # (4) the round's session dir must have come home (or there is none).
+        wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
+        if wt_iters:
+            not_home = [d.name for d in wt_iters
+                        if not (main_sessions / d.name).is_dir()]
+            if not_home:
+                rejected: list[str] = []
+                homed_now: set[str] = set()
+                for dn in not_home:
+                    reason = _sweep_bring_home(root, main_sessions, dn,
+                                               dry_run, homed)
+                    if reason is None:
+                        homed_now.add(dn)
+                        _watch_log(f"[sweep] homed {agent_id} iter={dn}")
+                    else:
+                        rejected.append(f"{dn}:{reason}")
+                # condition (4) is re-read from DISK for a LIVE pass; a
+                # dry-run wrote nothing, so a would-home (helper returned
+                # None) counts as home for the removal decision here.
+                remaining = [d.name for d in wt_iters
+                             if not (main_sessions / d.name).is_dir()
+                             and d.name not in homed_now]
+                if remaining:
+                    refused += 1
+                    _watch_log(f"[sweep] refused {agent_id}: session dir not "
+                               f"home ({','.join(rejected)})")
+                    continue
         iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
