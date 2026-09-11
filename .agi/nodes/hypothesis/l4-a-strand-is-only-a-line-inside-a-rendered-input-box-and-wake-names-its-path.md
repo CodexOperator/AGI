@@ -1,0 +1,22 @@
+---
+id: hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box-and-wake-names-its-path
+mint_id: cad6fd9f42cb4da2b848472615469643
+type: hypothesis
+parents:
+  - goal:g15.23
+  - hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: f1ee766d03602cff
+season: 2
+testable_claim: "goal:g15.23 build order (Sensei 19:34Z dm, in-process diagnosis; + its 19:29Z outcome-log ask). MEASURED in extensions/agi/bin/send.py: `_input_region` (840-853) returns the capture from the LAST `❯` line to the end, and the WHOLE capture when no glyph is found ('conservative'); a BUSY pane renders the spinner in place of the input box, so the last glyph line is the ECHOED, already-submitted `[agi-nudge] unread for <seat>` in the transcript; `_stranded_in_region` (645-657) matches any `_NUDGE_PREFIXES` line in that region; `wake` (1405) then takes the resubmitted-strand branch — which bypasses the pending gate (`_seat_has_pending`) and writes the `.nudge` marker — and re-types the token, which starts the seat's next turn, which is busy again → six phantom tokens 19:17-19:33Z on master-sensei with an empty inbox, marker moved AFTER an empty read. BUILD: (1) a strand is only a line INSIDE a rendered input box: `_input_region` returns the region ONLY when the glyph line is followed (within the box's height) by the box's bottom rule / status line — measure the exact box shape on a live capture of an idle pane (`tmux capture-pane -p -t <own window>`; the rule line and the `? for shortcuts` / status row are the anchors; read them, do not guess) — and returns `''` for a capture with no rendered box (busy: spinner, `esc to interrupt`), never the whole pane; (2) `wake` never resubmits on a busy pane: with `_input_region` empty the strand check is skipped and the outcome is `busy-deferred` (or `nothing-pending`), typing nothing; a real stranded line inside a rendered box is still resubmitted exactly as today (hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter unchanged); (3) `wake` logs ONE per-seat outcome line — `wake <seat>: <path> <delivered|deferred|nothing-pending> @<id>` — through the SAME log resolver heal.py's `_watch_log` uses (AGI_REAPER_LOG env, else the crons/reaper log under ~/logs; import it or lift it to a shared helper, never a second path), and the typed token names its path: `[agi-nudge] unread for <seat> (wake:<idle|strand>)` — the token's PREFIX is unchanged so every `_NUDGE_PREFIXES` match and every reader's `unread for` grep keep working; (4) the `.nudge` marker is written only on a real delivery, never on the busy path. RED-FIRST TESTS in test_send.py (fake tmux capture fixtures): a busy-pane capture whose last glyph line is an echoed token → `_input_region` == '' and `wake` prints busy-deferred/nothing-pending, types nothing, marker untouched; an idle capture with a rendered box holding a stranded token → resubmitted by typing as today; an idle capture with an empty box → no strand; the outcome log line present with the path name; the token carries `(wake:idle)` and still matches `_NUDGE_PREFIXES`. NEIGHBOURS: test_send.py whole, test_heal.py, test_bin_help_smoke.py, test_sensei.py. FALSIFIERS: the busy fixture on which wake types anything; a real strand in a rendered box no longer resubmitted; a second log path. FILE SCOPE: extensions/agi/bin/send.py (`_input_region`, the wake strand branch, the outcome log + token suffix), extensions/agi/tests/test_send.py; heal.py ONLY if the log resolver is lifted (a move, not a change). EXCLUDED: the read/peek wrap (g15.22, landed), the nudge digest / `.nudge.pending` clearing (the point's hypothesis:l4-a-read-clears-the-coalesced-nudge-count — a different defect on the same file; keep the hunks apart), rotate.py, config:*. CEILING: 1 parent, up to 2 kids (region + busy path / outcome log + token path). Report: the live idle-pane capture the box shape was measured on (glyph line, rule line, status line quoted), and a `send.py wake master-sensei` dry run from the parent worktree printing the outcome line while that pane is busy."
+thought_session: sensei-director-genIII-L3
+title: "a strand is only a line inside a rendered input box: a busy pane's echoed token never re-fires the nudge, wake logs its per-seat outcome and the token names its path"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box-and-wake-names-its-path
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
