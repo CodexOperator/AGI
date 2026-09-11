@@ -294,6 +294,25 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                        f"DEAD ({rec.get('fail_reason') or 'pid died'}; "
                        f"dispatched_by={rec.get('dispatched_by') or '-'})")
 
+    # hypothesis:l4-the-manifest-mirrors-terminal-agent-status — the CLEAN
+    # terminal mirror. `_reap_pass` copied a terminal agent.json (done/failed/
+    # timeout) onto a manifest entry that still read `running` and returned the
+    # ids under `mirrored`. Here we log ONE line per reconciled entry and send
+    # NO dm: a clean `done` is not an alarm. The manifest was already rewritten
+    # by `_reap_pass`; this loop only reports it. Keeping it separate from the
+    # death block (heal.py:316-338) means a mirror never re-derives a death or
+    # timeout — it only heals the divergence between the two files.
+    for agent_id in outcome.get("mirrored", []):
+        rec_path = iter_dir / agent_id / "agent.json"
+        try:
+            rec = json.loads(rec_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        status = rec.get("status", "done")
+        _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} manifest "
+                   f"MIRRORED to agent.json status={status} "
+                   f"(dispatched_by={rec.get('dispatched_by') or '-'})")
+
     for agent_id in outcome["still"]:
         rec_path = iter_dir / agent_id / "agent.json"
         try:

@@ -2083,3 +2083,36 @@ def test_parent_kid_ceiling_gate_fails_open_without_agent_id(monkeypatch):
 def test_parent_kid_ceiling_gate_passes_with_no_manifest_agents(monkeypatch):
     monkeypatch.setenv("AGI_AGENT_ID", "P")
     assert dispatch._parent_kid_ceiling_gate({"agents": []}, _kid_cfg(5), 1) is None
+
+
+def test_reap_pass_mirrors_terminal_record_in_inline_lane(tmp_path, monkeypatch):
+    """hyp:l4-the-manifest-mirrors-terminal-agent-status — inline-lane
+    (restart_ok=True) parity. `_reap_pass` copies a TERMINAL (done) agent.json
+    onto a manifest entry that still reads `running`, returns it under the NEW
+    `mirrored` key, does NOT put it in marked/still/died, and stays lane-
+    independent (same mirror under restart_ok=True). No restart is attempted
+    for a terminal record."""
+    import json
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-mir"
+    (iter_dir / "a00-mir").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-mir", "status": "running"}]}))
+    (iter_dir / "a00-mir" / "agent.json").write_text(json.dumps(
+        {"id": "a00-mir", "status": "done", "finished_at": 7,
+         "fail_reason": "completed"}))
+    adapter = _FakeAdapter(pid=4242)
+    monkeypatch.setattr(d, "stall_detect",
+                        type("NS", (), {"record_stalled_in_iteration":
+                                        lambda *a, **k: None})())
+
+    out = d._reap_pass(graph, iter_dir, adapter, cap=1, cfg={},
+                       restart_ok=True)
+
+    assert out["mirrored"] == ["a00-mir"], out
+    assert out["marked"] == [] and out["still"] == [] and out["died"] == [], out
+    m = json.loads((iter_dir / "manifest.json").read_text())
+    e = m["agents"][0]
+    assert e["status"] == "done" and e["finished_at"] == 7, e
+    assert adapter.calls == [], "a terminal record must never be restarted"
