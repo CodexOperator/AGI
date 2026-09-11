@@ -526,3 +526,121 @@ def test_a_wrapper_flag_after_the_name_still_binds_to_the_wrapper():
     choice cannot be quietly reversed later.
     """
     assert commands.main(["run", "links", "--root", "/tmp"]) == 1
+
+
+# --- `<stub>` substitution and the owner-only gate (residue 6) ------------
+#
+# The stream command group (`command:commands`) declares its argv as
+# `<stub>/<subcommand>`; `<stub>` must resolve from `locations.streamer_stub`
+# at run time exactly the way `<root>`/`<engine>` do, and `panic` must be
+# refused for every actor but the owner BEFORE any subprocess call. The stream
+# is LIVE — these tests never execute the stub; the owner-path test
+# monkeypatches `subprocess.call` and would fail if the real one were reached.
+
+STREAM_NODE = """---
+commands:
+  sb-status:
+    argv: ["<stub>", "sb-status"]
+    about: "read-only stream status"
+  panic:
+    argv: ["<stub>", "panic"]
+    about: "OWNER-ONLY emergency stop"
+    owner_only: true
+id: "command:commands"
+mint_id: aaacccc11112222
+type: command
+title: "stream command group"
+---
+
+body
+"""
+
+
+@pytest.fixture()
+def stream_project(tmp_path: Path) -> Path:
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(STREAM_NODE)
+    return graph
+
+
+def test_stub_is_substituted_at_resolve_time_not_left_literal(stream_project):
+    """`<stub>` must resolve to the streamer stub's real directory the way
+    `<root>`/`<engine>` do, so a declared command actually runs. The rendered
+    docs keep the placeholder (goal:g8.2)."""
+    cmd = commands.get(stream_project, "sb-status")
+    assert cmd.argv[0] != "<stub>"
+    assert cmd.argv[0] == str(locations.streamer_stub(stream_project))
+    assert cmd.argv[0].endswith("streamer-stub")
+    assert cmd.argv[1] == "sb-status"
+    # The rendered form keeps the raw token so docs stay machine-agnostic
+    # (the resolved path must never leak into docs, goal:g8.2).
+    assert "<stub>" in cmd.shell(placeholders=True)
+    assert cmd.shell() != cmd.shell(placeholders=True)
+
+
+def test_stub_is_configurable_from_locations_streamer_stub(stream_project, monkeypatch):
+    """`locations.streamer_stub` in the config overrides the default."""
+    custom = stream_project.parent / "my-stub"
+    custom.mkdir()
+    cfg = locations.load_config(stream_project)
+    cfg.setdefault("locations", {})["streamer_stub"] = str(custom)
+    monkeypatch.setattr(
+        locations, "load_config",
+        lambda root: cfg if str(Path(root).resolve()) == str(
+            stream_project.resolve()) else {},
+    )
+    stub = locations.streamer_stub(stream_project)
+    assert str(stub) == str(custom.resolve())
+    assert commands.get(stream_project, "sb-status").argv[0] == str(custom.resolve())
+
+
+def test_panic_is_refused_for_a_non_owner_without_any_subprocess(
+        stream_project, monkeypatch, capsys):
+    """A non-owner asking for `panic` is refused loudly with a non-zero exit
+    and NOTHING is executed — the stream stays live. subprocess.call is
+    monkeypatched to fail the test if it is ever reached."""
+
+    def _never(*_a, **_k):
+        raise AssertionError(
+            "panic must be refused before any subprocess call") 
+
+    monkeypatch.setenv("AGI_ACTOR", "some-agent")
+    monkeypatch.delenv("USER", raising=False)
+    monkeypatch.setattr(commands.subprocess, "call", _never)
+
+    code = commands.run(stream_project, "panic")
+    assert code == 3
+    err = capsys.readouterr().err
+    assert "REFUSED" in err
+    assert "owner_only" in err
+    assert "some-agent" in err
+
+
+def test_panic_passes_for_the_owner_without_spawning_the_stub(
+        stream_project, monkeypatch, capsys):
+    """Actor `owner` clears the gate — but the test still must not spawn the
+    stub (the stream is LIVE), so subprocess.call is monkeypatched and the
+    received argv inspected instead of executed."""
+    seen = {}
+
+    def _fake_call(argv, cwd=None):
+        seen["argv"] = list(argv)
+        seen["cwd"] = cwd
+        return 0
+
+    monkeypatch.setenv("AGI_ACTOR", "owner")
+    monkeypatch.delenv("USER", raising=False)
+    monkeypatch.setattr(commands.subprocess, "call", _fake_call)
+
+    assert commands.run(stream_project, "panic") == 0
+    assert seen["argv"][0] == str(locations.streamer_stub(stream_project))
+    assert seen["argv"][1] == "panic"
+
+
+def test_owner_only_defaults_to_false(stream_project):
+    """A command with no `owner_only` cell runs for anyone — the field must
+    default to False, not reject everything."""
+    assert commands.get(stream_project, "sb-status").owner_only is False
+    assert commands.get(stream_project, "panic").owner_only is True
