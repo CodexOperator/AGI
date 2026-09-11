@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam-S1-L4-VII
+edited_by: ubuntu
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -603,3 +603,5 @@ OWNER, 2026-09-11 (date -u 03:1xZ), to the Prime L4-VII, verbatim: "last handoff
 OWNER, 2026-09-11 (date -u 03:2xZ), correcting the line above, verbatim: "as in use the panic command but on a 75 second lag so the stream sees the command was issued first". RULED: the L4 close uses `panic` (HARD OFF: kills every ffmpeg and stops the unit), issued as `sleep 75; panic` from the Prime's pane right after the completion report is pushed, so the stream shows the report AND the issued command for a good minute (15 s lag) before it goes dark. This is the ONE sanctioned Prime use of `panic` — the standing rule (owner's kill switch, never scripted, never a kid or a test) stands everywhere else; `brb` is not the close.
 
 OWNER, 2026-09-11 (date -u 03:3xZ), to the Prime L4-VII, verbatim: "Also try to do a review yourself and see if you can eliminate any banked items or further shortcomings yourself as the final step before completion. Remember that whole push further thing, act independently, use your morals. We can always rewind." RULED into the L4 closing sequence as its FIRST step (before the completion report): the Prime runs a SELF-REVIEW pass — every open §6 banked item is either DECIDED by the Prime on the morals (recorded with its reason) or shown to need the owner in one line; every residue the Prime can close itself (a config cell, a held fragment whose precondition has landed, a stale window, a stale row) is closed and verified; only then the report, then `sleep 75; panic`. Applied at once by L4-VII: the trunk-leaf decision (branch tree) is DECIDED `main` (the morals: elegant and small — one word that reads as the trunk in every folder; `core` would collide with the core town inside a town folder), and the rotate-VII zombie window @266 is closed.
+
+OWNER 2026-09-11 05:0xZ (verbatim, to the Prime L4-VIII): "Looks like the director rotation is pinning them from the wrong end, filo rather than fifo." RULING AS APPLIED: the Belam predecessor chain is FIFO — the OLDEST Belam is reaped at each prime rotation, never the newest; the measured live rotation VII->VIII (record belam.20260911T033639Z.json) did the opposite (LIFO: rotate-self's last act killed the predecessor's own window @267 while belam_cap only computed oldest_to_reap=III). Already the seventh 0a fix-only's criteria (1)+(2) on goal:g17.1 (merge-up 26 note): own window + own chain kill GATED OFF on a numeral-chain seat; belam_cap reaps the OLDEST by PID and records pid/reaped. The owner's word confirms the direction; no further owner input needed.
