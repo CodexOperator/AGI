@@ -966,25 +966,18 @@ def test_git_off_allowlist_token_names_itself():
     assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
 
 
-def _live_first_turn_cmds() -> list:
-    """Every startup.first_turn cmd from BOTH templates, read from the LIVE
-    checked-in .agi/nodes/.geometry/rotations.md -- never a hand-copied mirror
-    (hypothesis:l4-a-test-of-live-config-reads-the-live-node). The rotations
-    node is `type: config`, owned by the owner/prime; a test reads it and
-    never writes it."""
-    from graph_core.persistence import frontmatter as _fm  # noqa: E402
-    rot = (Path(__file__).resolve().parents[3]
-           / ".agi" / "nodes" / ".geometry" / "rotations.md")
-    assert rot.exists(), f"live rotations.md missing: {rot}"
-    nf = _fm.load_node_file(rot)
-    templates = nf.frontmatter.get("templates") or {}
+def _shared_live_first_turn_cmds(path=None) -> list:
+    """Every startup.first_turn cmd from BOTH templates, flattening the SHARED
+    reader (`test_rotate_templates._live_first_turn`, which has the `path=`
+    seam). There is exactly ONE copy of the rotations.md loader — the shared
+    `_live_first_turn` in test_rotate_templates.py — and this module consumes
+    it, never re-reads the node (hypothesis:l4-the-drifted-node-test-is-in-
+    the-suite: the two near-identical live readers are consolidated).
+    It never writes the node."""
+    from tests.test_rotate_templates import _live_first_turn  # shared loader
     cmds = []
-    for name, ent in templates.items():
-        if not isinstance(ent, dict):
-            continue
-        startup = ent.get("startup") or {}
-        ft = startup.get("first_turn") or []
-        for e in ft:
+    for entries in _live_first_turn(path).values():
+        for e in entries:
             if isinstance(e, dict) and e.get("cmd"):
                 cmds.append(e["cmd"])
     return cmds
@@ -995,9 +988,10 @@ def test_git_live_template_commands_still_pass():
     # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist -- read
     # from the node, never a hand-copied list (hypothesis:l4-a-test-of-live-
     # config-reads-the-live-node). A NEW off-allowlist git line added to the
-    # live node must turn this test red.
+    # live node must turn this test red. The DRIFTED-COPY falsifier below is
+    # the /tmp half of this pair; this is the LIVE half and stays.
     import tempfile
-    git_cmds = [c for c in _live_first_turn_cmds() if "git" in c]
+    git_cmds = [c for c in _shared_live_first_turn_cmds() if "git" in c]
     assert git_cmds, "no git commands in the live rotations.md first_turn lists"
     with tempfile.TemporaryDirectory() as d:
         wt, ro = d + "/worktree", d + "/repo"
@@ -1005,6 +999,51 @@ def test_git_live_template_commands_still_pass():
             rendered = (cmd.replace("{worktree}", wt)
                         .replace("{repo}", ro))
             assert rotate._producing_refusal(rendered) is None, rendered
+
+
+def test_git_drifted_copy_goes_red_through_the_shared_reader(tmp_path):
+    # hypothesis:l4-the-drifted-node-test-is-in-the-suite: the LIVE half above
+    # reads the live node and CANNOT be pointed at a copy, so a DRIFTED
+    # rotations.md that appends an off-allowlist first_turn line ships without
+    # a red test. This falsifier copies the LIVE node to tmp, appends a
+    # `git log -p -- .env` first_turn entry to the COPY, points the SHARED
+    # reader (`_live_first_turn`, via `path=`) at the copy, and asserts the
+    # SAME live-config judgement (rotate._producing_refusal on the rendered
+    # cmd) that the LIVE half uses REFUSES it. If this test ever pointed the
+    # reader at a different code path than the live test, the drift would be a
+    # near miss — that is what this asserts against.
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    from tests.test_rotate_templates import _live_first_turn  # shared loader
+    live = (Path(__file__).resolve().parents[3]
+            / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert live.exists(), f"live rotations.md missing: {live}"
+    nf = _fm.load_node_file(live)
+    # append a DRIFTED entry to the director template's first_turn, in memory
+    drifted = {"label": "drift", "cmd": "git log -p -- .env",
+               "why": "deliberate drift inserted by the falsifier"}
+    templates = nf.frontmatter.get("templates") or {}
+    dir_ft = ((templates.get("director") or {}).get("startup") or {})
+    dir_ft.setdefault("first_turn", []).append(drifted)
+    copy = tmp_path / "rotations.md"
+    _fm.save_node_file(copy, nf)  # writes the COPY, never the live node
+    # the shared reader parses the copy and yields the drifted cmd
+    cmds = [e.get("cmd") for e in _live_first_turn(copy)["director"]]
+    assert "git log -p -- .env" in cmds, "drift did not reach the copy"
+    # the drift stays in the COPY, never the live node
+    live_after = _fm.load_node_file(live).frontmatter.get("templates")
+    live_cmds = [e.get("cmd")
+                 for e in (live_after.get("director") or {}).get(
+                     "startup").get("first_turn")]
+    assert "git log -p -- .env" not in live_cmds, "drift leaked into live node"
+    # the SAME judgement as the live half: _producing_refusal on the rendered
+    # cmd must REFUSE the drifted copy (go red), meaning a drifted live node
+    # would now ship with a red suite test instead of a silent green.
+    refusal = rotate._producing_refusal("git log -p -- .env")
+    assert refusal is not None, "drifted copy passed the allowlist (near miss)"
+    assert refusal.startswith("producer git "), refusal
+    # and the copy genuinely exercises the shared loader, not a shadow: the
+    # live half and this drift read through the SAME `_live_first_turn`
+    assert callable(_live_first_turn) and callable(rotate._producing_refusal)
 
 
 def test_git_benign_set_still_passes():
