@@ -564,3 +564,53 @@ def test_q_clean_substitution_still_runs(tmp_path):
     assert "refused" not in res[0], res
     assert res[0]["rc"] == 0, res
     assert "ok" in res[0]["output"], res
+
+
+def test_r_empty_first_turn_placeholder_refused_named_no_marker(tmp_path):
+    # hypothesis:l4-rotations-startup-commands-must-parse (kid 2, the named-
+    # refusal half): a first_turn entry using `{succ_ref}` whose value is EMPTY
+    # is REFUSED (placeholder named, "empty at spawn") and the executor NEVER
+    # runs it — no marker file, instead of a usage-dump command on an empty slot.
+    marker_dir = tmp_path / "bin"
+    marker_dir.mkdir(parents=True, exist_ok=True)
+    marker = tmp_path / "ran-MARKER"
+    script = str(marker_dir / "probe.py")
+    (marker_dir / "probe.py").write_text(
+        "from pathlib import Path\nPath(%r).write_text('hi')\n" % str(marker),
+        encoding="utf-8")
+    cmd = f"python3 {script} {{succ_ref}}"
+    vals = dict(VALUES, succ_ref="")
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "seat-row", "cmd": cmd}]}, vals)
+    assert "refused" in res[0], res
+    assert "succ_ref" in res[0]["refused"], res
+    assert "empty at spawn" in res[0]["refused"], res[0]["refused"]
+    assert not marker.exists(), "executor must never run a refused entry"
+
+
+def test_s_nonempty_first_turn_placeholder_still_runs(tmp_path):
+    # the happy path is untouched: with `succ_ref` filled, the same command RUNS.
+    marker_dir = tmp_path / "bin"
+    marker_dir.mkdir(parents=True, exist_ok=True)
+    marker = tmp_path / "ran-ok-MARKER"
+    script = str(marker_dir / "ok.py")
+    (marker_dir / "ok.py").write_text(
+        "from pathlib import Path\nPath(%r).write_text('hi')\n" % str(marker),
+        encoding="utf-8")
+    cmd = f"python3 {script} {{succ_ref}}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "seat-row", "cmd": cmd}]}, VALUES)
+    assert "refused" not in res[0], res
+    assert res[0]["rc"] == 0, res
+    assert marker.exists(), res
+
+
+def test_t_other_callers_resolve_empty_happily():
+    # the HAZARD: `_resolve_startup_placeholders` has OTHER callers (the driven
+    # `next` walk, bootstrap) where an empty placeholder is legitimate. The
+    # refusal is opt-in on the first_turn path ONLY — the shared helper still
+    # substitutes an empty placeholder to "" unless refuse_empty=True.
+    resolved = rotate._resolve_startup_placeholders(
+        "python3 extensions/agi/bin/send.py whois {succ_ref}", {"succ_ref": ""})
+    assert resolved == "python3 extensions/agi/bin/send.py whois "
+    assert "{" not in resolved
