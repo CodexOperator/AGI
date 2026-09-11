@@ -18,6 +18,8 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
+
 BIN = Path(__file__).resolve().parents[1] / "bin"
 REPO = Path(__file__).resolve().parents[3]  # .../tests/.. = repo root
 sys.path.insert(0, str(BIN))
@@ -624,19 +626,36 @@ def test_pi_live_run_renders_tree_through_view():
     assert "[claude-code]" not in text and "[ok]" not in text
 
 
-def test_claude_code_path_feeds_the_same_view():
+def test_claude_code_path_feeds_the_same_view(tmp_path_factory):
+    # This test predated the tmp-path tracking seam its neighbours use and
+    # ran a NON-dry claude-code workflow against the REAL project root, so
+    # `_track_run` appended one phantom row to the production
+    # `.agi/sessions/workflows/review.jsonl` on EVERY suite run
+    # (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp). Redirect
+    # the SESSIONS resolver through the same `_tmp_session_root` seam the
+    # tracking tests below use -- never the real path.
+    import workflow as _wf
     from workflow import run_workflow
-    buf = io.StringIO()
-    rc = run_workflow(REPO / ".agi", "review", "claude-code",
-                      {"targets": [{"window": "t1"}]}, False, out=buf)
-    assert rc == 0
-    text = buf.getvalue()
-    assert "workflow review (harness=claude-code)" in text
-    assert "[·] global-checks" in text          # resolved, not executed here
-    tail = [l for l in text.splitlines()
-            if l.startswith(("[stage]", "[summary]"))]
-    assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
-    assert all("claude-code" not in l for l in tail), tail
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        text = buf.getvalue()
+        assert "workflow review (harness=claude-code)" in text
+        assert "[·] global-checks" in text      # resolved, not executed here
+        tail = [l for l in text.splitlines()
+                if l.startswith(("[stage]", "[summary]"))]
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
+        assert all("claude-code" not in l for l in tail), tail
+        # Tracking still happens, but ONLY into the throwaway seam -- one
+        # row under tmp, never the real `.agi/sessions/workflows/`.
+        lines = (tmp / "sessions" / "workflows" / "review.jsonl")\
+            .read_text(encoding="utf-8").splitlines()
+        assert len(lines) == 1, lines
+    finally:
+        restore()
 
 
 # ---------- run tracking: one row/real run, none on dry-run, never fatal ----
@@ -724,6 +743,53 @@ def test_dry_run_writes_no_row(tmp_path_factory):
             "dry-run must not create a sessions dir"
     finally:
         restore()
+
+
+# ---------- suite-wide leak guard: no row may reach the REAL sessions dir  --
+# The class of defect :630 used to be: a workflow test that runs a NON-dry
+# workflow against the real project root appends a phantom row to the
+# production `.agi/sessions/workflows/<key>.jsonl` on every suite run. The
+# per-test tmp seam fixes the known instance; this session fixture pins the
+# OUTCOME so any FUTURE test that leaks a row -- by using the wrong root, by
+# forgetting the seam, or by a new non-dry path -- is red at session end
+# (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp).
+
+
+def _real_workflow_jsonl_counts():
+    """{path: line_count} for every *.jsonl under the REAL (main-checkout)
+    sessions/workflows dir, resolving through the same tracker seam a live
+    run uses, or {} when no dir exists yet."""
+    import workflow as _wf
+    try:
+        sess = _wf._loc.shared_project_root(REPO) or REPO
+    except Exception:  # resolver blown up mid-fix: fall back, stay strict
+        sess = REPO
+    wf_dir = Path(sess) / "sessions" / "workflows"
+    if not wf_dir.is_dir():
+        return {}
+    return {str(p): len(p.read_text(encoding="utf-8").splitlines())
+            for p in sorted(wf_dir.glob("*.jsonl"))}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _no_workflow_row_leaks_to_real_sessions():
+    """Assert the real `.agi/sessions/workflows/*.jsonl` line counts are
+    IDENTICAL at session end to what they were at session start -- i.e. no
+    test in this file appended a phantom row to production state. The counts
+    are taken fresh (not cached), and every per-test tmp redirect is restored
+    by a `finally` long before this session-scoped teardown fires, so the
+    real resolver is what we measure."""
+    before = _real_workflow_jsonl_counts()
+    yield
+    after = _real_workflow_jsonl_counts()
+    changed = {p for p, c in before.items() if after.get(p) != c}
+    changed |= {p for p in after if p not in before}
+    assert not changed, (
+        "workflow tests leaked rows into the real sessions dir "
+        f"(changed/added: {sorted(changed)}); a non-dry workflow run test "
+        "must redirect tracking to a tmp root via _tmp_session_root, never "
+        "run against the real project root."
+    )
 
 
 def test_tracking_failure_does_not_fail_workflow(tmp_path_factory, capsys):
