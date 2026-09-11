@@ -54,7 +54,7 @@
         "kid": "~deepseek/deepseek-v4-flash-latest",
         "parent": "deepseek/deepseek-v4.1-flash"
       },
-      "allowed_models": [
+      "allowed_extra": [
         "~deepseek/deepseek-v4-flash-latest",
         "~z-ai/glm-flash-latest",
         "deepseek/deepseek-v4.1-flash"
@@ -113,7 +113,9 @@
   },
   "goal_body_cap": 0,
   "locations": {
-    "comms_root": "comms/season-2"
+    "comms_root": "comms/season-2",
+    "pi_home": "/home/ubuntu/.pi/agent",
+    "claude_home": "/home/ubuntu/.claude"
   },
   "workflows": {
     "review": {

@@ -688,27 +688,16 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
     `harnesses.<h>.models[role]`, `effort` from `harnesses.<h>.effort[role]`.
     `from_ladder` distinguishes the source so callers can report it.
     """
-    row = None
-    for r in (roles or []):
-        try:
-            if int(r.get("tier")) == int(tier) and r.get("role") == role:
-                row = r
-                break
-        except (TypeError, ValueError):
-            continue
+    # hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is
+    # the ONE source of a role's model/effort/settings. The row lookup and the
+    # blank-cell -> None mapping live in adapters/ (the shared resolver
+    # dispatch.py, workflow.py and heal.py import), so one write.py on the
+    # ladder IS the model write.
+    row = adapters.ladder_role_row(roles, tier, role)
     if row is not None:
-        return {
-            "harness": row.get("harness") or None,
-            "model": (row.get("model") or "").strip() or None,
-            "effort": (row.get("effort") or "").strip() or None,
-            # hypothesis:l3w4-director-kids-on-glm — the `thinking` cell is
-            # pi's analogue of `effort`: a model name alone does not say how
-            # hard to think (pi_adapter threads it as `--thinking`). Row owns
-            # it; blank omits the flag.
-            "thinking": (row.get("thinking") or "").strip() or None,
-            "settings": row.get("settings") or None,
-            "from_ladder": True,
-        }
+        _spec = adapters.spec_from_ladder_row(row)
+        _spec["from_ladder"] = True
+        return _spec
     _name, harness = adapters.resolve(cfg)
     models = harness.get("models") or {}
     model = models.get(role) if isinstance(models, dict) else None
@@ -1262,6 +1251,23 @@ def main() -> int:
                   f"effort={_spec['effort'] or '-'}/"
                   f"thinking={_spec['thinking'] or '-'}/"
                   f"settings={_spec['settings'] or '-'}")
+            # hypothesis:l4-a-model-change-is-one-write — when a ladder row
+            # wins the model, a config that still carries the legacy inputs is
+            # a NON-INPUT: ONE stderr warning naming the winning row, never a
+            # silent read. The stale cells are read nowhere after this line.
+            _legacy_model_srcs = []
+            _h = (cfg.get("harnesses") or {}).get(harness_name) or {}
+            if _h.get("models"):
+                _legacy_model_srcs.append(f"harnesses.{harness_name}.models")
+            if (cfg.get("agent_dispatch") or {}).get("model"):
+                _legacy_model_srcs.append("agent_dispatch.model")
+            if _legacy_model_srcs:
+                print(f"warn: {' and '.join(_legacy_model_srcs)} is/are "
+                      f"NON-INPUTS (hypothesis:l4-a-model-change-is-one-write); "
+                      f"ladder row (tier={tier_eff}, role={args.role}, "
+                      f"harness={_spec.get('harness')}) wins -> "
+                      f"model={_spec.get('model') or '-'}",
+                      file=sys.stderr)
         # hypothesis:l3-workflow-model-crosses-harness-namespace — the guard
         # workflow.py has carried since the incident, now on the spawn path
         # too. Every source of a model (ladder row, seat row, config fallback)
@@ -1282,7 +1288,26 @@ def main() -> int:
         # override is not an exemption: its model is in this same dict by
         # this line and gets the same check. No AGI_MODEL resolves for a tier
         # with no model, so there is nothing to refuse there.
-        _assert_allowed_model(harness_name, dispatch_harness, _eff_model)
+        # hypothesis:l4-a-model-change-is-one-write -- the allowlist gate is
+        # the SAME fail-closed gate as before, but the ALLOWED set is now
+        # DERIVED: {every ladder row's model for this harness} U
+        # harnesses.<h>.allowed_extra (legacy `allowed_models` still unions in
+        # for one cut-over round and is warned once). A NEW model written into
+        # a ladder row is allowed WITHOUT an `allowed_models` edit -- the
+        # four-cells-in-three-files defect the hypothesis measures. A model no
+        # row, no extra and no legacy entry names is still refused.
+        _derived_allowed = adapters.derived_allowed_models(
+            ladder_roles, harness_name, dispatch_harness)
+        if dispatch_harness.get("allowed_models"):
+            print(f"warn: config harnesses.{harness_name}.allowed_models is "
+                  f"legacy; allowed models are now DERIVED from ladder rows + "
+                  f"harnesses.{harness_name}.allowed_extra "
+                  f"(hypothesis:l4-a-model-change-is-one-write)",
+                  file=sys.stderr)
+        _assert_allowed_model(harness_name,
+                              {**dispatch_harness,
+                               "allowed_models": sorted(_derived_allowed)},
+                              _eff_model)
         adapter = adapters.load(dispatch_harness["adapter"])
     except adapters.AdapterError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
@@ -1825,6 +1850,14 @@ def main() -> int:
             "harness": harness_name,
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
+            # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
+            # WHO must be alarmed when this round finishes, stamped at spawn
+            # with NO flag. The dispatcher is the resolved seat (-x-exported
+            # AGI_SEAT, else an inherited one); absent both, the key is
+            # present-but-null and the completion/dm path prints ONE stderr
+            # line naming the gap rather than guessing a pane identity. Never
+            # inferred from a tmux window name or $USER (identity supplied).
+            "dispatched_by": _resolved_seat(args.seat),
         }
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
@@ -1930,7 +1963,30 @@ def main() -> int:
         # With --detach, the caller (e.g. a parent) owns polling via cli.py
         # status; they get the kid's agent id back in seconds rather than
         # waiting for the full lifecycle.
-        _reaper_phase(
+        #
+        # hypothesis:l4-the-reaper-is-one-persistent-service part 3 — the
+        # inline reaper is OPTIONAL and OFF by default once the persistent
+        # service is live. The switch is read from config
+        # `agent_dispatch.inline_reaper`, NOT the service's stamp in the
+        # manifest: the decision to arm an inline reaper happens at dispatch
+        # time, BEFORE the service has any chance to claim this round, so a
+        # manifest stamp would be a chicken-and-egg read (nothing has stamped
+        # the round yet the instant we must decide). A config key is a
+        # one-edit static decision made in the same place the service toggle
+        # lands, and defaults to True so current behaviour is unchanged until
+        # the prime disables it at the service merge-up.
+        _inline_reaper = True
+        try:
+            _ad_cfg = cfg.get("agent_dispatch") or {}
+        except AttributeError:
+            _ad_cfg = {}
+        if _ad_cfg.get("inline_reaper") is False:
+            _inline_reaper = False
+        if not _inline_reaper:
+            print("reaper: inline reaper off (agent_dispatch.inline_reaper=false); "
+                  "persistent service owns reaping", file=sys.stderr)
+        else:
+            _reaper_phase(
             root=root,
             iter_dir=iter_dir,
             adapter=adapter,
@@ -1984,93 +2040,164 @@ def _reaper_phase(
        from.
 
     Still simpler than heal.py: no healer subagent, no SIGKILL cascade.
+
+    hypothesis:l4-the-reaper-is-one-persistent-service — this is the LOOP;
+    the per-round work moved to `_reap_pass` so the SAME pass also runs in
+    the persistent service (`heal.py watch`). The loop owns the deadline and
+    the give-up alarm; a pass has neither. The inline reaper is optional and
+    off by default once the service is live — see main() for the switch.
     """
-    import json
     import time
 
-    # `TERMINAL` is imported from `spawn_budget` (the ONE definition). The
-    # second guard below (`if status != "running": continue`) is KEPT ON
-    # PURPOSE -- it catches any status nobody has thought of yet, which is
-    # exactly the tolerance that kept this reaper working while the set was
-    # wrong. Do not "simplify" it away.
     deadline = time.time() + max_wait_s
-
     while time.time() < deadline:
-        manifest_path = iter_dir / "manifest.json"
-        if not manifest_path.exists():
-            break
-        try:
-            manifest = json.loads(manifest_path.read_text())
-        except (json.JSONDecodeError, OSError):
-            break
-
-        # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
-        # The reaper already reads every live `agent.json`; this is where a
-        # parent whose kids are all terminal but whose own record still reads
-        # `running` (mtime untouched, worktree dirty, past T) becomes a
-        # first-class RECORDED `stalled` state. `stall_detect` stamps that
-        # state and neither kills, restarts, nor commits — a stalled parent
-        # is still alive and still holds its lease, so it never joins
-        # `spawn_budget.TERMINAL`. The reap guard below (`if status != "running"`)
-        # then skips it on the next pass exactly as designed, so wiring this
-        # in changes none of the reaper's commit-based completion logic.
-        stall_detect.record_stalled_in_iteration(iter_dir)
-        all_terminal = True
-        updated = False
-        for entry in manifest.get("agents", []):
-            agent_id = entry.get("id", "")
-            agent_json_path = iter_dir / agent_id / "agent.json"
-            if not agent_json_path.exists():
-                continue
-            try:
-                rec = json.loads(agent_json_path.read_text())
-            except (json.JSONDecodeError, OSError):
-                continue
-            status = rec.get("status", "running")
-            if status in TERMINAL:
-                continue
-            if status != "running":
-                continue
-            all_terminal = False
-
-            pid = int(rec.get("pid", 0))
-            if pid > 0 and not adapter.is_alive(pid):
-                outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
-                                    cap=cap, cfg=cfg)
-                rec.update(outcome["record"])
-                agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
-                entry["status"] = rec["status"]
-                # hypothesis:l3w4-branch-visibility — the commit count is on
-                # the record and must reach the manifest too, so the round
-                # file and the manifest agree on how far the branch climbed.
-                if "commits_ahead" in rec:
-                    entry["commits_ahead"] = rec["commits_ahead"]
-                if rec.get("pid"):
-                    entry["pid"] = rec["pid"]
-                # A RESTART MUST BE VISIBLE WHERE THE ROUND IS READ (prime's
-                # ruling, 2026-09-10). This copy was a three-key whitelist —
-                # status, commits_ahead, pid — so a restart wrote its
-                # bookkeeping into the session `agent.json` and none of it
-                # reached the manifest: the manifest showed `status: running`
-                # with a silently swapped pid and no trace that anything had
-                # been restarted, while `spawn_budget` leased the same process
-                # as `<id>-r1`. Two identities for one process, and the only
-                # way to notice was that the two disagreed. Measured on
-                # iter-L4.57 and iter-L4.58 before this line existed.
-                for k in ("restart_count", "restart_of", "restarted_at",
-                          "fail_reason", "finished_at"):
-                    if k in rec:
-                        entry[k] = rec[k]
-                updated = True
-                print(f"reaper: {outcome['message']}")
-
-        if updated:
-            manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
-        if all_terminal:
+        outcome = _reap_pass(root, iter_dir, adapter, cap=cap, cfg=cfg)
+        if outcome["terminal"]:
             break
         time.sleep(5)
 
+    _reaper_give_up(root, iter_dir)
     print("reaper: finished")
+
+
+def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None) -> dict:
+    """ONE reaper pass over one round's manifest. NO deadline inside.
+
+    hypothesis:l4-the-reaper-is-one-persistent-service — the per-round pass
+    extracted from `_reaper_phase`'s loop so the SAME code path runs in
+    dispatch.py's inline loop and the persistent service (`heal.py watch`,
+    one call per discovered round). A pass reads the manifest, records
+    stalls, reaps any agent whose pid is dead, and writes terminal states
+    back to the manifest it read. Returns:
+
+        `{"marked": [agent ids reaped this pass],
+          "still":  [agent ids still `running`],
+          "terminal": bool}`
+
+    Callers own the deadline (the loop), the timeout-vs-orphaned marks and
+    the dm (the watcher), never this function. The `if status != "running"`
+    guard is KEPT ON PURPOSE — it catches any status nobody has thought of
+    yet, which is exactly the tolerance that kept the old loop working while
+    the status set was wrong. Do not "simplify" it away.
+    """
+    import json
+
+    manifest_path = iter_dir / "manifest.json"
+    if not manifest_path.exists():
+        return {"marked": [], "still": [], "terminal": True}
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {"marked": [], "still": [], "terminal": True}
+
+    # hyp:l4-stalled-is-a-state-the-harness-can-see — record, don't repair.
+    # The reaper already reads every live `agent.json`; this is where a
+    # parent whose kids are all terminal but whose own record still reads
+    # `running` (mtime untouched, worktree dirty, past T) becomes a
+    # first-class RECORDED `stalled` state. `stall_detect` stamps that
+    # state and neither kills, restarts, nor commits — a stalled parent
+    # is still alive and still holds its lease, so it never joins
+    # `spawn_budget.TERMINAL`. The reap guard below (`if status != "running"`)
+    # then skips it on the next pass exactly as designed, so wiring this
+    # in changes none of the reaper's commit-based completion logic.
+    stall_detect.record_stalled_in_iteration(iter_dir)
+    all_terminal = True
+    updated = False
+    marked: list[str] = []
+    still: list[str] = []
+    for entry in manifest.get("agents", []):
+        agent_id = entry.get("id", "")
+        agent_json_path = iter_dir / agent_id / "agent.json"
+        if not agent_json_path.exists():
+            continue
+        try:
+            rec = json.loads(agent_json_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+        status = rec.get("status", "running")
+        if status in TERMINAL:
+            continue
+        if status != "running":
+            continue
+        all_terminal = False
+        still.append(agent_id)
+
+        pid = int(rec.get("pid", 0))
+        if pid > 0 and not adapter.is_alive(pid):
+            outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
+                                cap=cap, cfg=cfg)
+            rec.update(outcome["record"])
+            agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
+            entry["status"] = rec["status"]
+            # hypothesis:l3w4-branch-visibility — the commit count is on
+            # the record and must reach the manifest too, so the round
+            # file and the manifest agree on how far the branch climbed.
+            if "commits_ahead" in rec:
+                entry["commits_ahead"] = rec["commits_ahead"]
+            if rec.get("pid"):
+                entry["pid"] = rec["pid"]
+            # A RESTART MUST BE VISIBLE WHERE THE ROUND IS READ (prime's
+            # ruling, 2026-09-10). This copy was a three-key whitelist —
+            # status, commits_ahead, pid — so a restart wrote its
+            # bookkeeping into the session `agent.json` and none of it
+            # reached the manifest: the manifest showed `status: running`
+            # with a silently swapped pid and no trace that anything had
+            # been restarted, while `spawn_budget` leased the same process
+            # as `<id>-r1`. Two identities for one process, and the only
+            # way to notice was that the two disagreed. Measured on
+            # iter-L4.57 and iter-L4.58 before this line existed.
+            for k in ("restart_count", "restart_of", "restarted_at",
+                      "fail_reason", "finished_at"):
+                if k in rec:
+                    entry[k] = rec[k]
+            updated = True
+            marked.append(agent_id)
+            print(f"reaper: {outcome['message']}")
+
+    if updated:
+        manifest_path.write_text(json.dumps(manifest, indent=2))  # session artefact: manifest.json
+
+    return {"marked": marked, "still": still, "terminal": all_terminal}
+
+
+def _reaper_give_up(root, iter_dir):
+    """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the reaper's
+    GIVE-UP. `finished:` with agents still running is a terminal event for
+    this round: every still-running agent's dispatcher gets exactly ONE dm
+    naming which agents were still running. No flag; no crash if a dm is
+    undeliverable or a stamp absent. A still-running agent is one the
+    manifest does NOT list as terminal (the reaper's own guard: `if status
+    not in TERMINAL`).
+    """
+    import json
+
+    manifest_path = iter_dir / "manifest.json"
+    still: list[str] = []
+    try:
+        rows = json.loads(manifest_path.read_text()).get("agents", [])
+    except (json.JSONDecodeError, OSError):
+        rows = []
+    for a in rows:
+        if (a.get("status") or "running") not in TERMINAL and a.get("id"):
+            still.append(a.get("id"))
+    if still:
+        for a in rows:
+            if not a.get("id") or a.get("id") not in still:
+                continue
+            dispatcher = a.get("dispatched_by")
+            if not dispatcher:
+                print(f"warn: no dispatcher stamp for {a.get('id')}; no "
+                      "give-up dm (l4-a-round-alarms-its-dispatcher-)",
+                      file=sys.stderr)
+                continue
+            try:
+                import send as _send
+                _send.send(root, dispatcher,
+                           f"iter={iter_dir.name} still-running={','.join(still)}",
+                           a.get("id"))
+            except Exception as exc:
+                print(f"warn: give-up dm to {dispatcher} failed: {exc}",
+                      file=sys.stderr)
 
 
 def _commits_ahead(root, rec):

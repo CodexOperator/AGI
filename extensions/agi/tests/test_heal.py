@@ -127,3 +127,48 @@ def test_healer_spawn_sets_cwd_from_worktree_record(tmp_path):
     assert "cwd=str(heal_root)" in source, (
         "healer Popen must use the worktree-aware heal_root")
     assert "_heal_cwd(root, rec)" in source
+
+
+# --- ladder is the ONE source (hypothesis:l4-a-model-change-is-one-write) ---
+
+def _make_ladder_project(repo: Path, parent_model: str) -> Path:
+    graph = repo / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text(json.dumps({
+        "harnesses": {"pi": {
+            "adapter": "pi", "provider": "openrouter",
+            "models": {"kid": "~deepseek/deepseek-v4-flash-latest",
+                       "parent": "~z-ai/glm-flash-latest"},
+            "allowed_extra": ["~z-ai/glm-flash-latest"]}},
+        "agent_dispatch": {"model": "~z-ai/glm-flash-latest"}}))
+    ladder = (graph / "nodes" / ".geometry" / "ladder.md")
+    ladder.write_text(f"""---
+current_season: 2
+roles:
+  - {{"tier": 0, "role": "kid", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""}}
+  - {{"tier": 1, "role": "parent", "harness": "pi", "model": "{parent_model}", "effort": "", "settings": ""}}
+---
+
+fixture
+""")
+    return graph
+
+
+def test_heal_resolves_the_ladder_row_model_for_the_healed_role(tmp_path):
+    """A healed parent re-spawns with the LADDER row's model (the one source),
+    not the config's allowed/legacy values — so the same one write on the
+    ladder that changed the live spawn changes what a re-spawn uses."""
+    graph = _make_ladder_project(tmp_path, "deepseek/deepseek-v4.1-flash")
+    args = heal._pi_model_args(graph, "parent", "parent")
+    assert "--model" in args
+    assert args[args.index("--model") + 1] == "deepseek/deepseek-v4.1-flash"
+
+
+def test_heal_without_a_ladder_still_uses_config(tmp_path):
+    """No ladder file -> the historical config path still answers (missing
+    ladder never blocks)."""
+    graph = make_project(tmp_path, provider="openrouter",
+                         model="z-ai/glm-5.3-flash")
+    args = heal._pi_model_args(graph, "parent", "parent")
+    assert "--model" in args
+    assert args[args.index("--model") + 1] == "z-ai/glm-5.3-flash"

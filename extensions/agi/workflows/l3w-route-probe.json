@@ -1,5 +1,6 @@
 {
   "name": "l3w-route-probe",
+  "type": "route-probe",
   "script": "agi-l3w-route-probe.js",
   "description": "Registered from inline script l3w-route-probe.js (originally run from .agi/sessions/iter-L3.40/a00-f48956c1/scratch) \u2014 stages derived from the script, prompts TODO",
   "stages": [

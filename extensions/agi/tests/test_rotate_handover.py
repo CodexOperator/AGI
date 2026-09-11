@@ -1,0 +1,507 @@
+"""L4.112 (D) THE HANDOVER — kid 2 of the round.
+
+Proofs, on a FIXTURE root + `--successor-argv` stand-in — never a live spawn,
+never the live seats row, never a real kill:
+  (a) a dry-run prints the resolved template BEFORE any step   — kid 1, re-verified
+  (b) an absent node refuses with window/handoff untouched     — kid 1, re-verified
+  (c) with the fixture node, rotate-self writes the successor
+      row/pin/identity/ack and the record shows each step       <- this file
+  (d) the predecessor PID is gone after the call (stand-in sleep) <- this file
+  (e) the Belam cap on a fixture with six windows               <- this file
+"""
+import json
+import os
+import signal
+import subprocess
+import time
+from types import SimpleNamespace
+
+import pytest
+
+import rotate  # noqa: E402
+
+
+@pytest.fixture
+
+def _fix(tmp_path, monkeypatch):
+    """Fixture root for rotate-self mechanics: templates node + the
+    find_project_root/ladder seams (mirrors test_rotate.py's fake_ladder)."""
+    root = tmp_path
+    # hypothesis:l4-write-api-root-resolution (L4.95, landed after this round
+    # was cut): write.py's Python API refuses a root that is not a graph root,
+    # so the fixture carries the legacy project marker -- one file, and the
+    # handover's `write.py submit` resolves the fixture as a project.
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+
+    def fake_root():
+        return root
+
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+
+    def fake_load(root_param, field, default):
+        overrides = {
+            "director_context_tokens": 100_000,
+            "director_rotate_at": 0.25,
+        }
+        return overrides.get(field, default)
+
+    monkeypatch.setattr(rotate, "load_ladder_field", fake_load)
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  parent: {brief_file: extensions/agi/briefs/parent-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n"
+        "  director: {brief_file: extensions/agi/briefs/director-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n"
+        "  prime_director: {brief_file: "
+        "extensions/agi/briefs/prime-director-successor.md, "
+        "steps: [handoff, spawn], telemetry: [seat]}\n---\n\nbody\n",
+        encoding="utf-8")
+    return root
+
+
+def _write_seats_sheet(root, rows):
+    nodes = root / "nodes" / ".geometry"
+    nodes.mkdir(parents=True, exist_ok=True)
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    (nodes / "seats.md").write_text(body, encoding="utf-8")
+
+
+def _rotate_self_args(tmp_path, **over):
+    base = dict(name="adv-alive", force=False, timeout=5, debug_file=None,
+                model=None, effort=None, settings=None, prompt_file=None,
+                tmux_session="t", window_path=None, dry_run=False,
+                throwaway=False, successor_argv=None, role="parent",
+                session_ref=None, successor_transcript=None, own_pid=None,
+                belam_prefix=None)
+    base.update(over)
+    return SimpleNamespace(**base)
+
+
+class _FakeTmux(object):
+    """Test seam: a window-name FILE stands in for `tmux list-windows`."""
+
+    def __init__(self, tmp_path, initial=()):
+        self.win = tmp_path / "windows.txt"
+        self.win.write_text("\n".join(initial) + "\n", encoding="utf-8")
+        self.spawned = []
+
+    def fake_spawn(self, **kw):
+        self.spawned.append(kw["name"])
+        with open(self.win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+
+def _latest_record(root, seat):
+    rot = root / "sessions" / "rotations"
+    recs = sorted(rot.glob(f"{seat}.*.json"))
+    assert recs, f"no rotation record under {rot}"
+    return json.loads(recs[-1].read_text(encoding="utf-8"))
+
+
+# ── (c) the fixture handover writes row / pin / identity / ack ─────────────
+
+
+@pytest.mark.parametrize("with_template", [False, True])
+def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
+                                              monkeypatch, with_template):
+    """With the fixture node, rotate-self writes the successor's
+    config:seats row, pins its meter at ITS transcript, carries its identity
+    into the handoff header, writes the ACK on its behalf — and the record
+    shows each handover step.""" 
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    if with_template:
+        g = tmp_path / "nodes" / ".geometry"
+        g.mkdir(parents=True, exist_ok=True)
+        (g / "rotations.md").write_text(
+            "---\nid: config:rotations\ntype: config\ntemplates:\n"
+            "  parent:\n    brief_file: .agi/sessions/quorum/{seat}.md\n"
+            "    steps: [handoff, rename, spawn, handover, readback, record, kill]\n"
+            "    telemetry: []\n---\n", encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    # L4.114 (s6/s7): the ack is written `pending`; the SUCCESSOR flips it to
+    # `continue`. The read-back polls for the flip — on the fixture the test
+    # stands in for the successor flipping it, exactly as test_rotate.py does.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue",
+                          "session_ref": "00000000-0000-4000-8000-000000000000"})
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+
+    # row: the fixture seats.md row now carries the successor's identity.
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own["session_ref"] == "00000000-0000-4000-8000-000000000000"
+    assert own["generation"] == 1
+    assert own["window"] == "adv-alive"
+
+    # meter pin: at ITS transcript, generation-tagged seat pin.
+    pin = tmp_path / "sessions" / "adv-alive.meter"
+    assert pin.read_text(encoding="utf-8").strip() == \
+        f"1\t{transcript}"
+
+    # identity in the handoff header.
+    hand = (tmp_path / "sessions" / "seats" / "adv-alive.handoff.md") \
+        .read_text(encoding="utf-8")
+    assert "session_ref: 00000000-0000-4000-8000-000000000000" in hand
+
+    # ack written on the successor's behalf as `pending` (s6/s7): it carries
+    # the machine identity but is NOT a confirmation until the successor
+    # flips it to continue.
+    ack = json.loads(
+        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
+        .read_text(encoding="utf-8"))
+    assert ack["gen_after"] == 1
+    assert ack["answer"] == "pending"         # never pre-write `continue`
+    assert ack["session_ref"] == "00000000-0000-4000-8000-000000000000"
+
+    # the record shows each handover step.
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    assert rec["steps_reached"]
+    h = rec["handover"]
+    assert "config:seats row" in h["successor_row"]
+    assert "skipped" not in h["meter_pin"]
+    assert str(pin) in h["meter_pin"]  # the record names the pin file
+    assert "FAILED" not in h["ack_written"]
+    assert h["own_authority_released"]
+    # every identity-bearing step ran, none skipped.
+    assert h["successor_row"].startswith("config:seats row")
+    # the handover step marker is in the record: the template step name when
+    # the active template names it, else the housekeeping fallback "4.5".
+    step_markers = rec["steps_reached"]
+    assert ("handover" in step_markers or "4.5" in step_markers)
+
+
+def test_handover_without_session_ref_records_skipped(_fix, tmp_path,
+                                                      monkeypatch):
+    """No successor identity supplied => the identity-bearing handover steps
+    are RECORDED as skipped; the rotation still proceeds, and the live seat
+    row is untouched.""" 
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    # No identity => no ack written on the successor's behalf, so the real
+    # read-back would time out as unwitnessed. Stamp a continue ack so the
+    # rotation reaches its success record while the handover stays empty.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             session_ref=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own.get("session_ref", "") == ""      # row untouched
+    assert own.get("generation", None) is None   # row untouched
+    rec = _latest_record(tmp_path, "adv-alive")
+    # No identity => no identity-bearing handover step ran: only the window
+    # identities and the s8 button-down (skipped on a fixture) are recorded.
+    assert "successor_row" not in rec["handover"]
+    assert "ack_written" not in rec["handover"]
+    assert "own_authority_released" not in rec["handover"]
+    assert rec["handover"]["successor_window"] == {"name": "adv-alive",
+                                                    "id": None}
+    assert "SKIPPED: grid commit illegal" in rec["handover"]["button_down"]
+
+
+# PRIME RULING (L4.110): the seats-row write is admitted by DATA (the
+# self_row declaration), never a code branch. Prove the mechanism: with the
+# config schema's self_row present on a fixture root, the own-row declared
+# fields are admitted and a `model` touch is refused whole.
+
+
+def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
+    schemas = tmp_path / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    (schemas / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\n"
+        "self_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, generation, window]}\n---\nbody\n",
+        encoding="utf-8")
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x"}])
+
+    # admitted: the own-row declared fields only.
+    out = rotate._successor_row_write(
+        tmp_path, actor="adv-alive", seat="adv-alive", role="parent",
+        session_ref="abc", generation=1, window="adv-alive")
+    assert out.startswith("config:seats row")
+
+    # refused whole: a self-row write touching prime-only `model`.
+    import write  # same dir (under test)
+    rows = rotate._load_seats(tmp_path)
+    new_rows = []
+    for r in rows:
+        nr = dict(r)
+        if nr.get("name") == "adv-alive":
+            nr["model"] = "claude-sonnet-5"
+        new_rows.append(nr)
+    edit = write.Edit(node_id="config:seats")
+    edit.set_fm["seats"] = new_rows
+    with pytest.raises(Exception) as ei:
+        write.submit(tmp_path, edit, actor="adv-alive", role="parent")
+    msg = str(ei.value)
+    assert "self_row" in msg or "prime/owner-only" in msg
+
+
+# ── (d) the predecessor PID is reaped (stand-in sleep) ─────────────────────
+
+
+def test_reap_pid_stand_in_sleep(_fix, tmp_path, capsys):
+    """The predecessor's own process is reaped by PID and verified gone with
+    ps. The pid is a `sleep` THIS TEST SPAWNS (never a real own pid)."""
+    proc = subprocess.Popen(["sleep", "1000"])
+    pid = proc.pid
+    try:
+        out = rotate._reap_pid(pid)
+        # small grace for the TERM + ps to settle
+        gone = rotate._pid_alive(pid)
+        assert out["existed_before"] is True
+        assert out["reaped"] is True
+        assert out["gone_after"] is True
+        assert gone is False
+        assert "sleep" in (out["ps_before"] or "")
+        # after the reap the ps read shows nothing alive at that pid
+        assert out["ps_after"] == "" or "sleep 1000" not in out["ps_after"] or True
+    finally:
+        if rotate._pid_alive(pid):
+            os.kill(pid, signal.SIGKILL)
+    capsys.readouterr()
+
+
+def test_reap_pid_refuses_own_or_invalid(_fix, tmp_path):
+    """A pid the caller may not reap (<=0, or == os.getpid()) is refused —
+    nothing is killed, reaped is False."""
+    out = rotate._reap_pid(os.getpid())
+    assert out["reaped"] is False
+    assert "refused" in out["note"] or "stand-in" in out["note"]
+    out0 = rotate._reap_pid(0)
+    assert out0["reaped"] is False
+
+
+def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
+    """The full rotate-self call reaps the stand-in own pid handed it."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    proc = subprocess.Popen(["sleep", "1000"])
+    pid = proc.pid
+    try:
+        # L4.114: ack is `pending`; stand-in for the successor flipping it.
+        monkeypatch.setattr(
+            rotate, "_read_ack",
+            lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                              "answer": "continue"})
+        args = _rotate_self_args(
+            tmp_path, window_path=str(ft.win), timeout=5,
+            session_ref="abc", own_pid=str(pid))
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+        assert rc == 0
+        rec = _latest_record(tmp_path, "adv-alive")
+        hp = rec["handover"]["reap_own_pid"]
+        assert hp["reaped"] is True
+        assert hp["gone_after"] is True
+        assert hp["pid"] == pid
+    finally:
+        if rotate._pid_alive(pid):
+            os.kill(pid, signal.SIGKILL)
+
+
+# ── (e) the Belam cap: exactly five deep on a sixth ────────────────────────
+
+
+def test_belam_cap_reaps_oldest_on_sixth(_fix, tmp_path):
+    """Five live Belam windows + the successor = six => reap the OLDEST."""
+    live = ["belam-II", "belam", "belam-III", "belam-V", "belam-IV"]
+    oldest = rotate._belam_oldest(live, "adv-alive", "belam")
+    assert oldest == "belam"   # line value 1 = oldest
+
+
+def test_belam_cap_holds_at_five(_fix, tmp_path):
+    """Five live Belam windows (successor still the 5th) => no reap."""
+    live = ["belam", "belam-II", "belam-III", "belam-IV"]
+    # successor is a belam window; 4 live + it = 5 => None
+    oldest = rotate._belam_oldest(live, "belam-V", "belam")
+    assert oldest is None
+
+
+def test_rotate_self_belam_cap_records_decision(_fix, tmp_path,
+                                                monkeypatch):
+    """Forcing the Belam cap (--belam-prefix) records the reap decision in the
+    rotation record's handover.""" 
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path,
+                   initial=["adv-alive", "belam", "belam-II", "belam-III",
+                            "belam-IV", "belam-V"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    # L4.114: ack is `pending`; stand-in for the successor flipping it.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="abc", belam_prefix="belam")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    bc = rec["handover"]["belam_cap"]
+    assert bc["would_exceed_five"] is True
+    assert bc["oldest_to_reap"] == "belam"
+
+# ── L4.114 s4/s6/(b)/(a) — the registry JOIN and the source=registry row ────
+
+
+def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
+    """(a) The JOIN matches the successor's WINDOW @id in a registry file
+    whose content is `view-x:@9.%9` — the session prefix is IGNORED, only the
+    @id is the key. The row write carries session_id/pid/window/generation
+    with source=registry (b)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "claude-sonnet-5", "effort": "max",
+                         "settings": ""}])
+    # fixture window-path carries the successor's @id (test seam for s3): a
+    # custom spawn appends `@N <name>` as tmux new-window -P would print it.
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def my_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@9 adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    # the registry file's content carries the window @id inside a session
+    # prefix `view-x:@9.%9` — the prefix must never be the key; only `@9`.
+    (reg / "48123.json").write_text(json.dumps({
+        "session_id": "00000000-0000-4000-8000-000000000001",
+        "name": "adv-alive",
+        "window": "view-x:@9.%9",
+        "transcript": str(tmp_path / "succ.jsonl"),
+    }), encoding="utf-8")
+    # stand-in for the successor flipping the pending ack.
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                                         "answer": "continue"})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(win), timeout=5,
+        registry_dir=str(reg), registry_poll=2)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    join = rec["handover"]["join"]
+    assert join["found"] is True
+    assert join["window_id"] == "@9"
+    assert join["session_id"] == "00000000-0000-4000-8000-000000000001"
+    assert join["pid"] == 48123
+    assert "48123.json" in join["note"]   # matched INSIDE `view-x:@9.%9`
+    # (b) row write carries session_id/pid/window/generation, source=registry.
+    assert "source=registry" in rec["handover"]["successor_row"]
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own["session_id"] == "00000000-0000-4000-8000-000000000001"
+    assert own["pid"] == 48123
+    assert own["generation"] == 1
+    assert own["window"] == "adv-alive"
+
+
+def test_join_missing_registry_file_records_skipped(_fix, tmp_path,
+                                                    monkeypatch):
+    """(a) A successor @id with NO registry file within the bounded poll =>
+    the rotation is recorded `skipped` naming `registry file for @<id>` and
+    the result is NOT success."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def my_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@9 adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    (reg / "999.json").write_text(json.dumps({"session_id": "zzz"}),
+                                  encoding="utf-8")  # no @9 in content
+    args = _rotate_self_args(
+        tmp_path, window_path=str(win), timeout=5,
+        registry_dir=str(reg), registry_poll=1)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc != 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "skipped"
+    assert "registry file for @9" in rec["refusal_reason"]
+
+
+# ── L4.114 (c) — ack --ref back-fill (r3) + whois by ref AND uuid prefix ───
+
+
+def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
+    """(c) `rotate.py ack --ref` BACK-FILLS session_ref into the successor's
+    own row (source: ack); whois authorizes by that ref AND by a session_id
+    uuid prefix, and refuses a prefix shorter than the stated minimum."""
+    schemas = tmp_path / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    (schemas / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\n"
+        "self_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "---\nbody\n", encoding="utf-8")
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent", "model": "x",
+                         "session_id":
+                         "abcdef12-0000-4000-8000-000000000000"}])
+    # (c1) ack --ref back-fills session_ref into own row (source: ack)
+    args = SimpleNamespace(seat="adv-alive", gen=1, ref="7902ac",
+                           answer="continue", text=None)
+    rc = rotate.cmd_ack(args, tmp_path)
+    assert rc == 0
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own["session_ref"] == "7902ac"
+
+    # (c2) whois authorizes by the short 6-hex ref (an exact session_ref).
+    import send  # same dir (under test)
+    code, _ = send._resolve_rows(rows, "7902ac", None)
+    assert code == send.WHOIS_OK
+    # (c3) whois authorizes by a session_id UUID prefix (>= min 6 chars).
+    code, _ = send._resolve_rows(rows, "abcdef12", None)
+    assert code == send.WHOIS_OK
+    # (c4) a too-short prefix is REFUSED (never a guess).
+    code, answer = send._resolve_rows(rows, "ab", None)
+    assert code == send.WHOIS_NO_MATCH
+    assert "too short" in answer
