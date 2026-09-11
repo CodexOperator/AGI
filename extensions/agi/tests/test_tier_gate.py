@@ -163,11 +163,16 @@ def _plant_in_tree(tier, status="running"):
 
     hypothesis:l4-a-running-record-with-a-dead-pid-is-not-a-running-agent:
     the marker ALSO self-cleans via `atexit` (``shutil.rmtree(marker, True)``)
-    on top of the caller's `finally`. A normal interrupt (SIGINT/SIGTERM)
-    still runs Python's atexit stack even when a `finally` is abandoned, so a
-    killed run cannot leave a phantom under the REAL tree. A SIGKILL skips
-    both -- but the liveness gate in conftest._running_record_tiers then
-    ignores the leftover dead-pid record anyway.
+    on top of the caller's `finally`, so a normal exit or a `finally` that is
+    abandoned cannot leave a phantom under the REAL tree. Python's atexit
+    stack runs on normal exit and on SIGINT (which the interpreter converts
+    into a KeyboardInterrupt); it does NOT run on SIGTERM (whose default
+    disposition terminates without unwinding -- measured: SIGTERM exits with
+    rc=-15 and the atexit handler never fires) and cannot run on SIGKILL.
+    So a SIGTERM/SIGKILL kill may leave the marker behind. That leftover is
+    harmless -- the liveness gate in conftest._running_record_tiers ignores a
+    dead-pid record -- and hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named
+    (L4.238) is what names that phantom instead of this self-clean path.
     """
     tree_root = gate._default_record_root()
     assert tree_root, "tree-derived record root must resolve"
