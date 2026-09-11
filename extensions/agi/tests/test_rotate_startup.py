@@ -539,56 +539,69 @@ def test_r_placeholder_injection_refused_no_marker(tmp_path):
         f"python3 /wt/extensions/list.py seatA; touch {marker}"), res
 
 
-def test_s_env_var_injection_refused_no_marker(monkeypatch, tmp_path):
-    # an env var VALUE carries `| touch <marker>`. The record keeps `$SEAT`
-    # literal (fix b), while exec_cmd expands it for execution; the re-judge of
-    # the substituted command refuses the injected `touch` stage before it runs.
-    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
-    # the refusal is NAMED from the record's literal `$SEAT`, NEVER from the
-    # expanded tokens, so the secret-shaped value fragment (`touch <marker>`)
-    # never survives into the refusal / record / successor STARTUP OUTPUT.
+def test_s_env_value_stays_one_argv_token_no_stage(monkeypatch, tmp_path):
+    # hypothesis:l4-an-env-value-cannot-break-a-quoted-argument: an env value
+    # carrying `| touch <marker>` is NO LONGER re-parsed as a stage. Env
+    # expansion now happens PER argv TOKEN, after shlex tokenization, so the
+    # value stays INSIDE the single `$SEAT` argument — the executor receives
+    # argv[3] == exactly the value, nothing else executes, and the record keeps
+    # `$SEAT` LITERAL (fix b). The security invariant is unchanged (no marker),
+    # achieved now by the value being inert DATA rather than by refusing the
+    # command.
     marker = tmp_path / "pwned2-MARKER"
     monkeypatch.setenv("SEAT", f"seatA | touch {marker}")
+    captured = {}
+    def _run(cmd, **kwargs):
+        captured["argv"] = list(cmd)
+        return _Proc(rc=0)
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
     cmd = "python3 {worktree}/extensions/list.py $SEAT"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
-    assert "refused" in res[0], res
-    assert "$SEAT" in res[0]["refused"], res
-    assert "touch" not in res[0]["refused"], res
-    assert str(marker) not in res[0]["refused"], res
-    assert not marker.exists(), res
+    assert "refused" not in res[0], res
+    assert res[0]["rc"] == 0, res
+    # ONE argv element holds the whole value — pipe and all, no extra stage
+    assert captured["argv"] == [
+        "python3", "/wt/extensions/list.py", f"seatA | touch {marker}"], \
+        captured
+    assert str(captured["argv"]) == ("['python3', '/wt/extensions/list.py', "
+                                     "'seatA | touch %s']" % marker), captured
+    assert not marker.exists(), res          # nothing actually executed
     assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
 
 
-def test_s2_env_injected_stage_refusal_redacted(monkeypatch):
-    # hypothesis:l4-the-refusal-names-the-record-stage-not-the-expanded-tokens:
-    # an env var VALUE that injects a whole off-allowlist stage (`;`-separated)
-    # is refused with the expanded value fragment scrubbed to
-    # `<expanded value redacted>` and the record's literal `$VAR` named — the
-    # value itself never appears in the refusal (FALSIFIER: no substring of an
-    # env value that is not in record_cmd).
-    monkeypatch.setenv("SEAT", "x; cat /etc/hostname")
-    cmd = "python3 {worktree}/extensions/list.py $SEAT"
-    res = rotate._run_first_turn_commands(
-        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
-    assert "refused" in res[0], res
-    ref = res[0]["refused"]
-    assert "$SEAT" in ref, ref
-    assert "<expanded value redacted>" in ref, ref
-    assert "/etc/hostname" not in ref, ref
-    assert "cat" not in ref or "redacted" in ref, ref
-    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
-
-
-def test_s3_env_value_never_in_any_result_field(monkeypatch, tmp_path):
-    # an env value injected via `$VAR` must not surface in the refusal OR the
-    # rendered STARTUP OUTPUT block — the value is the secret-shaped payload.
+def test_s2_env_value_semicolon_stays_one_token(monkeypatch, tmp_path):
+    # the `;`-arm of the same claim: a value carrying `; cat ...` is a single
+    # argv element, not a sequential-unit boundary — `cat` never runs, the
+    # record keeps the literal `$SEAT`, and no secret-shaped fragment surfaces.
     secret = "tkn-yz-9f00ba"
     monkeypatch.setenv("SEAT", f"x; cat {secret}")
+    captured = {}
+    def _run(cmd, **kwargs):
+        captured["argv"] = list(cmd)
+        return _Proc(rc=0)
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
     cmd = "python3 {worktree}/extensions/list.py $SEAT"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
-    assert "refused" in res[0], res
+    assert "refused" not in res[0], res
+    assert captured["argv"][-1] == f"x; cat {secret}", captured
+    assert res[0]["cmd"] == "python3 /wt/extensions/list.py $SEAT", res
+    assert secret not in res[0]["cmd"], res
+
+
+def test_s3_env_value_never_in_record_or_output(monkeypatch, tmp_path):
+    # the VALUE (the secret-shaped payload) stays out of the record and the
+    # rendered STARTUP OUTPUT block — it only ever lived in the exec argv, which
+    # the record/report never echoes (fix b: record keeps `$VAR` literal).
+    secret = "tkn-yz-9f00ba"
+    monkeypatch.setenv("SEAT", f"x; cat {secret}")
+    def _run(cmd, **kwargs):
+        return _Proc(rc=0)
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "env", "cmd": cmd}]}, VALUES)
     assert secret not in str(res), res
     block = rotate._compose_startup_output(res)
     assert secret not in block, block
@@ -609,6 +622,121 @@ def test_s4_placeholder_injection_still_refuses(tmp_path):
     assert "refused" in res[0], res
     assert "cat" in res[0]["refused"], res
     assert "not on startup.allow" in res[0]["refused"], res
+
+
+def test_env_value_cannot_add_argv_element(monkeypatch):
+    # hypothesis:l4-an-env-value-cannot-break-a-quoted-argument, claim (a), on
+    # an actually-allowable producer: `python3 <ok.py> $SEAT` (the engine-ya
+    # producer whose allowlist does not reject `$`) with SEAT carrying a double
+    # quote + space must stay inside the ONE `$SEAT` element — no extra
+    # `--no-such-flag` argv token is split out by a re-parse. (git's own
+    # `-C "$WT"` form is separately refused at TEMPLATE time by the git
+    # `$`-in-`-C`-path guard — pinned by test_git_dollar_c_path_is_blocked
+    # _at_template_time below."""
+    monkeypatch.setenv("SEAT", 'x" --no-such-flag "y')
+    captured = {}
+    def _run(cmd, **kwargs):
+        captured["argv"] = list(cmd)
+        return _Proc(rc=0)
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "p", "cmd": cmd}]}, VALUES)
+    assert "refused" not in res[0], res
+    assert captured["argv"] == ["python3", "/wt/extensions/list.py",
+                                'x" --no-such-flag "y'], captured
+    assert "--no-such-flag" not in captured["argv"][2:], captured
+
+
+def test_env_value_pipe_stays_in_one_arg_no_operator_refusal(monkeypatch):
+    # hypothesis:l4-an-env-value-cannot-break-a-quoted-argument, claim (b): a
+    # value carrying `| sh` is ONE argv token — no second stage, and the
+    # operator/allowlist refusal does NOT fire on it (it is data now). The
+    # single producer runs; a mocked rc proves nothing extra executed.
+    monkeypatch.setenv("SEAT", "x | sh")
+    captured = {}
+    def _run(cmd, **kwargs):
+        captured["argv"] = list(cmd)
+        return _Proc(rc=2)
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
+    cmd = "python3 {worktree}/extensions/list.py $SEAT"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "p", "cmd": cmd}]}, VALUES)
+    assert "refused" not in res[0], res
+    assert captured["argv"] == ["python3", "/wt/extensions/list.py",
+                                "x | sh"], captured
+    assert res[0]["rc"] == 2, res
+
+
+def test_git_dollar_c_path_is_blocked_at_template_time(monkeypatch):
+    # the claim's OWN example template `git -C "$WT" status -sb` cannot even
+    # reach the re-judge: the git `-C` ARG allowlist (hypothesis:l4-a-
+    # producing-git-stage-is-argument-restricted) refuses a `$` (backtick, `~`)
+    # in the `-C` path value AT TEMPLATE TIME, so a literal `$WT` as the path
+    # is refused before env expansion. That is the tightest git defence-in-
+    # depth; the per-token fix keeps every other producer (python3/ps/...) from
+    # re-parsing an env value, and this test pins that git stays closed even if
+    # the `-C` guard were ever loosened.
+    monkeypatch.setenv("WT", 'x" --no-such-flag "y')
+    cmd = 'git -C "$WT" status -sb'
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "git", "cmd": cmd}]}, VALUES)
+    assert "refused" in res[0], res
+    ref = res[0]["refused"]
+    assert "producer git" in ref, ref
+    assert "status" in ref or "allowlist" in ref, ref
+    assert res[0]["cmd"] == cmd, res  # record keeps the literal template
+
+
+def test_scrub_keeps_short_innocent_words_byte_identical(monkeypatch):
+    # claim (c): the scrub drops a message word only when it is >= 4 chars, so
+    # short innocent words that are substrings of some env VALUE (`on`,`the`,
+    # `me`,`in`) survive — the message does not collapse to the bare trailer.
+    monkeypatch.setenv("WT", "me on the in producer")
+    msg = "not on the allowlist: producer git me on the in"
+    out = rotate._scrub_injected_refusal(msg, "echo $WT")
+    assert out == msg, out  # no word (<4 or template) was dropped
+
+
+def test_scrub_redacts_long_env_fragment_still(monkeypatch):
+    # claim (d): a 12-char fragment of $HOME (>= 4 chars, a substring of the
+    # VALUE, not record text) is STILL dropped and redacted to the trailer —
+    # the longer-fragment redaction is unchanged.
+    monkeypatch.setenv("HOME", "/home/ubuntu-probe")
+    msg = "producer /home/ubuntu-probe not on the allowlist"
+    out = rotate._scrub_injected_refusal(msg, "echo $HOME")
+    assert "/home/ubuntu-probe" not in out, out
+    assert "<expanded value redacted>" in out, out
+    assert "$HOME" in out, out
+
+
+def test_scrub_keeps_template_word_that_coincides_with_env_fragment(monkeypatch):
+    # the "not a word of the message template" gate: a template prose word
+    # (`producer`) that happens to be a substring of an env VALUE is NOT
+    # treated as an injection — it survives, even when >= 4 chars.
+    monkeypatch.setenv("WT", "cheeseproducer")
+    msg = "producer git x not on the allowlist"
+    out = rotate._scrub_injected_refusal(msg, "echo $WT")
+    assert "producer" in out, out
+    assert "not on the allowlist" in out, out
+
+
+def test_placeholder_injection_still_refuses_with_per_token_env(monkeypatch,
+                                                                tmp_path):
+    # hypothesis:l4-the-judge-runs-on-the-substituted-command — the PLACEHOLDER
+    # injection path is UNCHANGED by per-token env expansion: `{seat}` inserts
+    # a real `|` INTO the string BEFORE tokenization, so the injected `touch`
+    # stage is still a genuine stage and still REFUSED, even while an env var
+    # carrying similar text is data. The marker never runs.
+    marker = tmp_path / "pwned3-MARKER"
+    monkeypatch.setenv("SEAT", "a | touch placeholder")
+    vals = dict(VALUES, seat=f"a | touch {marker}")
+    cmd = "python3 {worktree}/extensions/list.py {seat}"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "ph", "cmd": cmd}]}, vals)
+    assert "refused" in res[0], res
+    assert "not on startup.allow" in res[0]["refused"], res
+    assert not marker.exists(), res
 
 
 
@@ -838,25 +966,18 @@ def test_git_off_allowlist_token_names_itself():
     assert "-c" in rotate._producing_refusal("git -c core.pager=less log")
 
 
-def _live_first_turn_cmds() -> list:
-    """Every startup.first_turn cmd from BOTH templates, read from the LIVE
-    checked-in .agi/nodes/.geometry/rotations.md -- never a hand-copied mirror
-    (hypothesis:l4-a-test-of-live-config-reads-the-live-node). The rotations
-    node is `type: config`, owned by the owner/prime; a test reads it and
-    never writes it."""
-    from graph_core.persistence import frontmatter as _fm  # noqa: E402
-    rot = (Path(__file__).resolve().parents[3]
-           / ".agi" / "nodes" / ".geometry" / "rotations.md")
-    assert rot.exists(), f"live rotations.md missing: {rot}"
-    nf = _fm.load_node_file(rot)
-    templates = nf.frontmatter.get("templates") or {}
+def _shared_live_first_turn_cmds(path=None) -> list:
+    """Every startup.first_turn cmd from BOTH templates, flattening the SHARED
+    reader (`test_rotate_templates._live_first_turn`, which has the `path=`
+    seam). There is exactly ONE copy of the rotations.md loader — the shared
+    `_live_first_turn` in test_rotate_templates.py — and this module consumes
+    it, never re-reads the node (hypothesis:l4-the-drifted-node-test-is-in-
+    the-suite: the two near-identical live readers are consolidated).
+    It never writes the node."""
+    from tests.test_rotate_templates import _live_first_turn  # shared loader
     cmds = []
-    for name, ent in templates.items():
-        if not isinstance(ent, dict):
-            continue
-        startup = ent.get("startup") or {}
-        ft = startup.get("first_turn") or []
-        for e in ft:
+    for entries in _live_first_turn(path).values():
+        for e in entries:
             if isinstance(e, dict) and e.get("cmd"):
                 cmds.append(e["cmd"])
     return cmds
@@ -867,9 +988,10 @@ def test_git_live_template_commands_still_pass():
     # (.agi/nodes/.geometry/rotations.md) keeps passing the allowlist -- read
     # from the node, never a hand-copied list (hypothesis:l4-a-test-of-live-
     # config-reads-the-live-node). A NEW off-allowlist git line added to the
-    # live node must turn this test red.
+    # live node must turn this test red. The DRIFTED-COPY falsifier below is
+    # the /tmp half of this pair; this is the LIVE half and stays.
     import tempfile
-    git_cmds = [c for c in _live_first_turn_cmds() if "git" in c]
+    git_cmds = [c for c in _shared_live_first_turn_cmds() if "git" in c]
     assert git_cmds, "no git commands in the live rotations.md first_turn lists"
     with tempfile.TemporaryDirectory() as d:
         wt, ro = d + "/worktree", d + "/repo"
@@ -877,6 +999,51 @@ def test_git_live_template_commands_still_pass():
             rendered = (cmd.replace("{worktree}", wt)
                         .replace("{repo}", ro))
             assert rotate._producing_refusal(rendered) is None, rendered
+
+
+def test_git_drifted_copy_goes_red_through_the_shared_reader(tmp_path):
+    # hypothesis:l4-the-drifted-node-test-is-in-the-suite: the LIVE half above
+    # reads the live node and CANNOT be pointed at a copy, so a DRIFTED
+    # rotations.md that appends an off-allowlist first_turn line ships without
+    # a red test. This falsifier copies the LIVE node to tmp, appends a
+    # `git log -p -- .env` first_turn entry to the COPY, points the SHARED
+    # reader (`_live_first_turn`, via `path=`) at the copy, and asserts the
+    # SAME live-config judgement (rotate._producing_refusal on the rendered
+    # cmd) that the LIVE half uses REFUSES it. If this test ever pointed the
+    # reader at a different code path than the live test, the drift would be a
+    # near miss — that is what this asserts against.
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    from tests.test_rotate_templates import _live_first_turn  # shared loader
+    live = (Path(__file__).resolve().parents[3]
+            / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert live.exists(), f"live rotations.md missing: {live}"
+    nf = _fm.load_node_file(live)
+    # append a DRIFTED entry to the director template's first_turn, in memory
+    drifted = {"label": "drift", "cmd": "git log -p -- .env",
+               "why": "deliberate drift inserted by the falsifier"}
+    templates = nf.frontmatter.get("templates") or {}
+    dir_ft = ((templates.get("director") or {}).get("startup") or {})
+    dir_ft.setdefault("first_turn", []).append(drifted)
+    copy = tmp_path / "rotations.md"
+    _fm.save_node_file(copy, nf)  # writes the COPY, never the live node
+    # the shared reader parses the copy and yields the drifted cmd
+    cmds = [e.get("cmd") for e in _live_first_turn(copy)["director"]]
+    assert "git log -p -- .env" in cmds, "drift did not reach the copy"
+    # the drift stays in the COPY, never the live node
+    live_after = _fm.load_node_file(live).frontmatter.get("templates")
+    live_cmds = [e.get("cmd")
+                 for e in (live_after.get("director") or {}).get(
+                     "startup").get("first_turn")]
+    assert "git log -p -- .env" not in live_cmds, "drift leaked into live node"
+    # the SAME judgement as the live half: _producing_refusal on the rendered
+    # cmd must REFUSE the drifted copy (go red), meaning a drifted live node
+    # would now ship with a red suite test instead of a silent green.
+    refusal = rotate._producing_refusal("git log -p -- .env")
+    assert refusal is not None, "drifted copy passed the allowlist (near miss)"
+    assert refusal.startswith("producer git "), refusal
+    # and the copy genuinely exercises the shared loader, not a shadow: the
+    # live half and this drift read through the SAME `_live_first_turn`
+    assert callable(_live_first_turn) and callable(rotate._producing_refusal)
 
 
 def test_git_benign_set_still_passes():
@@ -1140,3 +1307,86 @@ def test_git_readonly_subcmds_deleted():
     # `fetch`-inclusion kept implying a bare fetch was a safe read. It is
     # deleted with no remaining reference (its name no longer binds).
     assert not hasattr(rotate, "_GIT_READONLY_SUBCMDS")
+
+
+def test_probe_bare_separator_value_stays_one_stage(monkeypatch, tmp_path):
+    # hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage: an env
+    # VALUE that is EXACTLY a shlex punctuation char (`|` / `;`) must ride as
+    # ONE argv element through the stage split — it is DATA, not a separator.
+    # The OLD resolver round-tripped the resolved command through shlex.join
+    # then re-tokenized, which turned the value `'|'` back into a bare `|` and
+    # SPLIT one stage into two (`echo x` | `cat ...`). The structural resolver
+    # never re-parses: the boundary is fixed at tokenize time, so the value
+    # cannot inject a stage. Judge and executor must agree on ONE unit / ONE
+    # stage, and the executed argv must carry the char whole.
+    monkeypatch.setenv("PROBE", "|")
+    toks = rotate._resolve_shell_vars_per_token(
+        "echo x $PROBE cat /etc/hostname")
+    assert toks == [("arg", "echo"), ("arg", "x"), ("arg", "|"),
+                    ("arg", "cat"), ("arg", "/etc/hostname")], toks
+    # ONE unit, ONE stage; the `|` sits INSIDE the argv, not between stages
+    assert rotate._startup_units(toks) == \
+        [[["echo", "x", "|", "cat", "/etc/hostname"]]], \
+        rotate._startup_units(toks)
+    assert rotate._command_units(toks) == \
+        [[(["echo", "x", "|", "cat", "/etc/hostname"], {})]], \
+        rotate._command_units(toks)
+
+    monkeypatch.setenv("PROBE", ";")
+    toks = rotate._resolve_shell_vars_per_token(
+        "echo x $PROBE touch /tmp/pwn")
+    assert rotate._startup_units(toks) == \
+        [[["echo", "x", ";", "touch", "/tmp/pwn"]]], \
+        rotate._startup_units(toks)
+    assert rotate._command_units(toks) == \
+        [[(["echo", "x", ";", "touch", "/tmp/pwn"], {})]], \
+        rotate._command_units(toks)
+
+
+def test_probe_bare_separator_full_runner_one_argv(monkeypatch, tmp_path):
+    # End-to-end, through _run_first_turn_commands with a real allowlisted
+    # producer: the value exactly `|` (then `;`) is the WHOLE argv element. No
+    # second stage is split out, the judge sees ONE allowed stage (no refusal),
+    # and the mocked subprocess receives the char whole — nothing else runs.
+    marker = tmp_path / "probe-MARKER"
+    for val in ("|", ";"):
+        monkeypatch.setenv("PROBE", val)
+        captured = {}
+        def _run(cmd, **kwargs):
+            captured["argv"] = list(cmd)
+            return _Proc(rc=0)
+        monkeypatch.setattr(rotate.subprocess, "run", _run)
+        cmd = "python3 {worktree}/extensions/list.py $PROBE"
+        res = rotate._run_first_turn_commands(
+            {"first_turn": [{"label": "probe", "cmd": cmd}]}, VALUES)
+        assert "refused" not in res[0], (val, res)
+        assert res[0]["rc"] == 0, (val, res)
+        # ONE argv element holds the bare char; nothing injected
+        assert captured["argv"] == ["python3", "/wt/extensions/list.py",
+                                    val], (val, captured)
+        assert not marker.exists(), (val, res)
+
+
+def test_probe_judge_sees_one_stage_on_allowlisted_producer(monkeypatch):
+    # the JUDGE on the resolved structure must see ONE stage — the whole point:
+    # `_producing_refusal` consumed a two-stage split before, so `cat` was
+    # judged as a pipe-fed stage; now the `|` is one element of one allowed
+    # producer stage and the judge refuses nothing.
+    monkeypatch.setenv("PROBE", "|")
+    toks = rotate._resolve_shell_vars_per_token(
+        "python3 {worktree}/extensions/list.py x $PROBE y")
+    assert rotate._producing_refusal(toks) is None, \
+        rotate._producing_refusal(toks)
+    monkeypatch.setenv("PROBE", ";")
+    toks = rotate._resolve_shell_vars_per_token(
+        "python3 {worktree}/extensions/list.py x $PROBE y")
+    assert rotate._producing_refusal(toks) is None, \
+        rotate._producing_refusal(toks)
+
+
+def test_resolve_shell_vars_whole_string_gone():
+    # hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage,
+    # requirement 2: the whole-string `_resolve_shell_vars` had ZERO callers
+    # and was DELETE-d; its name no longer binds in the module, so a future
+    # reader cannot reintroduce a whole-string env round-trip.
+    assert not hasattr(rotate, "_resolve_shell_vars")

@@ -579,7 +579,7 @@ def _iter_num(iter_str: str) -> int | None:
         return None
 
 
-def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, object]:
+def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[str, str | None, int | None]:
     """The agent.json `status` for this agent, if a record exists, plus which
     sessions root answered (`"main"`, `"seat:<name>"`, `"wt:<parent-id>"`, or
     None for none), plus the record's `overdue_since` value (epoch int, or
@@ -626,7 +626,7 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
     try:
         dirname = locations.iteration_dirname(iter_val)
     except ValueError:
-        return "(no agent.json)", None
+        return "(no agent.json)", None, None
 
     graph = locations.find_project_root(root) or root
     main = locations.git_common_root(graph)
@@ -884,17 +884,26 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--iter", default="",
                     help="status: restrict to one iteration (L4.NNN or NNN) "
                          "and emit the round verdict")
-    ap.add_argument("--wait", action="store_true",
-                    help="status --iter: block until the round's PARENT lease "
-                         "is gone (the parent exited, whatever the kids did)")
-    ap.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
-                    help="with --wait: give up after S seconds "
-                         f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
+    wait = ap.add_argument_group(
+        "status --wait",
+        "--wait blocks until the round's PARENT lease is gone (the parent "
+        "exited, whatever the kids did). It is only meaningful with --iter: "
+        "--wait requires --iter.")
+    wait.add_argument("--wait", action="store_true",
+                      help="with --iter: block until the round's PARENT lease "
+                           "is gone (the parent exited, whatever the kids did)")
+    wait.add_argument("--timeout", type=float, default=_WAIT_TIMEOUT_SECONDS,
+                      help="with --wait: give up after S seconds "
+                           f"(default {_WAIT_TIMEOUT_SECONDS:.0f})")
     args = ap.parse_args(argv)
 
     if args.wait and not args.iter:
-        print("spawn_budget: --wait requires --iter", file=sys.stderr)
-        return 2
+        # The cross-argument pairing is enforced HERE, at the parser, so the
+        # refusal is argparse's own: usage line printed, `error:` prefix,
+        # exit 2 via SystemExit — not a bare print+return.
+        # (hypothesis:l4-spawn-budget-wait-is-declared-and-its-tests-spawn-
+        # nothing)
+        ap.error("--wait requires --iter")
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
