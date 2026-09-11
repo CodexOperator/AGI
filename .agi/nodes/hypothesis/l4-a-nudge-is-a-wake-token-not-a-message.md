@@ -3,7 +3,7 @@ id: hypothesis:l4-a-nudge-is-a-wake-token-not-a-message
 mint_id: be34ed263c974408bfcbc6b98d806cd1
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g15
 next_edges: []
 edited_by: belam-S1-L4-VII
 scaffold_hash: c7d0b8479d4a7fe2
@@ -18,3 +18,6 @@ title: A nudge is a wake token, never a message — one fixed machine-prefixed t
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-11 01:4xZ asked whether this round belongs under g17 or the optimizations-and-bugfixes goal. RE-PARENTED goal:g17 -> goal:g15 (G15: Bugfix and optimization) by the Prime L4-VII: the round changes no seat design, it fixes a measured defect in an existing mechanism (send.py _nudge_window); g17 stays the design home and is named in the claim. One parent, so goal attribution stays single.
