@@ -673,6 +673,15 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     names = list(LEVELS[level])
     if suite:
         names.append(SUITE_CMD)
+    if stamp and "smoke" not in names:
+        # --stamp forces the smoke round at ANY level: the fresh count is the
+        # price of a stamp (hypothesis:l4-a-stamp-forces-the-smoke-count). A
+        # stamp that re-used the PRIOR baseline would record success on
+        # nothing — a kept merge that added nodes leaves the never-lower
+        # floor where it was. So `--level quick --stamp` runs smoke too, and
+        # the node-count check stamps the FRESH numbers with the sha; under an
+        # explicit --stamp the recorded baseline is never re-stamped.
+        names.append("smoke")
     results = [run_check(groot, n, verbose) for n in names]
     if level in ("rotation", "full"):
         # A fresh bin/*.py needs the suite, and needs it seen at rotation, not
@@ -699,26 +708,12 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
         results.append(check_seat_model(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
-    if current is None and stamp:
-        # --stamp must never go SILENT on a level that has no smoke (quick is
-        # links/goals-check/write-guard): a quiet no-op would print no stamp
-        # line and stamp nothing, which is the falsifier. With no smoke there
-        # are no fresh counts to record, so re-stamp the already-recorded
-        # baseline onto the now-kept bytes (the merge-up step's intent), or,
-        # with no prior baseline at all, print the refusal out loud.
-        prior = _read_state(groot)
-        if prior:
-            current = {k: (prior[k] if k in prior else -1)
-                       for k in ("active", "deprecated", "total")}
-        else:
-            results.append(CheckResult(
-                "node-count", "SKIP", 0.0, None,
-                note="--stamp: no smoke count and no prior baseline to re-stamp"))
-            return results
-    # A level WITH a smoke round closes on node-count even when smoke reported
-    # no number (compare_count SKIPs); a --stamp round closes on it always —
-    # the stamp must never be a silent no-op. Only a bare quick with no stamp
-    # stays without a node-count result.
+    # --stamp FORCED smoke above, so `current` is this run's fresh count and a
+    # prior baseline is never re-used (hypothesis:l4-a-stamp-forces-the-smoke-
+    # count). compare_count closes on node-count whenever a smoke round ran
+    # (SKIPing if it reported no number) or --stamp was passed — the stamp is
+    # never a silent no-op. Only a bare quick with no stamp stays without a
+    # node-count result.
     if smoke is not None or stamp:
         results.append(compare_count(groot, current, stamp=stamp))
     return results

@@ -823,8 +823,13 @@ def test_stream_fragment_argv_resolves_to_executable_files():
 
     problems = []
     for name, spec in commands_decl.items():
-        exe = str(spec["argv"][0]).replace("<stub>", str(stub))
-        tail = [str(a).replace("<stub>", str(stub)) for a in spec["argv"][1:]]
+        exe = str(spec["argv"][0]).replace("<stub>", str(stub)).replace(
+            "<home>", str(Path.home()))
+        tail = [
+            str(a).replace("<stub>", str(stub)).replace("<home>",
+                                                          str(Path.home()))
+            for a in spec["argv"][1:]
+        ]
         if not os.path.isfile(exe):
             problems.append(f"{name}: argv[0] is not a file: {exe}")
             continue
@@ -913,6 +918,64 @@ def test_real_fragment_resolves_through_commands_py_and_owner_gate(
     err = capsys.readouterr().err
     assert "REFUSED" in err and "owner_only" in err
     assert "some-agent" in err
+
+
+@stub_only
+def test_real_fragment_sb_status_resolves_from_home_not_stub_depth(
+        tmp_path):
+    """DEPTH-INDEPENDENCE (hypothesis:l4-sb-status-resolves-from-home-not-
+    from-stub-depth). The real fragment's `sb-status` argv[0] is now spelled
+    `<home>/bin/sb-status`, expanded by `_substitute` to `~/bin/sb-status`
+    REGARDLESS of how deep `locations.streamer_stub` sits under home. The
+    old `<stub>/../../bin/sb-status` spelling only resolved to the wrapper
+    while the stub sat exactly two levels under home (the code default
+    `~/work/streamer-stub`); a project configuring the stub at any OTHER
+    depth resolved to a MISSING path — a command that fails the first time
+    an operator trusts it. This test pins the stub THREE levels deep and
+    asserts the resolved argv[0] is still the real `~/bin/sb-status`
+    executable; under the old spelling it resolves to a missing path and this
+    assertion goes RED (kept that behaviour on purpose).
+    """
+    import yaml
+    decl = _stream_fragment_commands()
+    node = ("---\n" + yaml.safe_dump({"commands": decl}, sort_keys=False)
+            + "---\nbody\n")
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    # a stub THREE levels deep, i.e. NOT two levels under home — exactly where
+    # the old `<stub>/../../bin/sb-status` spelling broke.
+    deep_stub = tmp_path / "a" / "b" / "stub"
+    deep_stub.mkdir(parents=True)
+    (graph / "config.json").write_text(
+        "{\"locations\": {\"streamer_stub\": \"%s\"}}" % deep_stub)
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(node)
+
+    assert locations.streamer_stub(graph) == deep_stub.resolve()
+    cmd = commands.get(graph, "sb-status")
+    want = os.path.join(str(Path.home()), "bin", "sb-status")
+    # the crux: argv[0] must resolve from HOME, not from the stub's depth.
+    assert cmd.argv[0] == want, (
+        f"sb-status: argv[0] should resolve from home to {want} "
+        f"(stub is {deep_stub}, THREE levels deep), got {cmd.argv[0]}")
+    assert os.path.isfile(cmd.argv[0]), (
+        f"sb-status: resolved wrapper is not a file: {cmd.argv[0]}")
+    assert os.access(cmd.argv[0], os.X_OK), (
+        f"sb-status: resolved wrapper not executable: {cmd.argv[0]}")
+    # the two-half wrapper still holds: its body invokes BOTH the real stub's
+    # hold.sh --status AND panic.sh --status, each executable.
+    problems = []
+    _check_sb_status_wrapper(cmd.argv[0], locations.streamer_stub(REAL_ROOT),
+                             problems)
+    assert problems == [], "\n".join(problems)
+    # the other three commands must be unchanged: `<stub>` off the declared
+    # (depth-3) stub root, resolving to `<stub-relative>` paths (not asserted
+    # as files here — the depth-3 stub is deliberately empty).
+    for name in ("brb", "back", "panic"):
+        cmd2 = commands.get(graph, name)
+        assert "<home>" not in cmd2.shell()
+        assert str(deep_stub.resolve()) in cmd2.argv[0], (
+            f"{name}: argv[0] off the configured stub root")
+
 
 
 @real_only
