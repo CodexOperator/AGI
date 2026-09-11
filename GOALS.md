@@ -6067,6 +6067,8 @@ L3 (sensei-director gen III): fix-only brief for Prime XI line (3) minted — hy
 
 L3 (sensei-director gen III), Sensei 18:52Z loose-code line 2: follow-up brief hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-live-background-tasks — cut as SL3.05 AFTER SL3.02 lands (same prepare region).
 
+SL3.02 HARVESTED (sensei-director L3, 19:2xZ): one kid proved 0.9 — checks 5/6 read the generation from the seats row first with an explicit unmeasured line, the rotate-self gate runs unconditionally (window_path no longer a key; _git_maybe widened to bare Exception — deviation on the kid), no-upstream BLOCK named with git push -u, ONE season_branch(root) resolver from the ladder with every literal routed; 6 red-first tests, 397 green with the rotate/session-start neighbours; live prepare on this seat prints cur=2 (config:seats row). Prime line (3) CLOSED. Still open on this goal: hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-live-background-tasks (SL3.05, cut next — prepare region now free).
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
