@@ -430,7 +430,7 @@ def test_env_prefix_off_allowlist_refused_and_fake_never_runs(tmp_path):
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
     assert res[0]["refused"], res
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
     assert res[0]["cmd"] == cmd, res  # literal text kept in the record
     assert not marker.exists(), "fake python3 under PATH must never run"
 
@@ -473,7 +473,7 @@ def test_env_prefix_allowlisted_argv_exploit_is_refused(tmp_path):
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "ev", "cmd": cmd}]}, VALUES)
     assert res[0]["refused"], res
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
     assert res[0]["cmd"] == cmd, res  # literal text kept in the record
     assert not marker.exists(), "fake python3 under PATH must never run past the gate"
 
@@ -486,7 +486,7 @@ def test_env_prefix_off_allowlist_dry_run_names_refusal(tmp_path):
         {"first_turn": [{"label": "lp", "cmd": cmd}]},
         VALUES, dry_run=True)
     assert "refused" in res[0], res
-    assert "env prefix LD_PRELOAD not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix LD_PRELOAD refused unconditionally" in res[0]["refused"], res
 
 
 def test_env_prefix_not_allowed_fires_before_allowlist(tmp_path):
@@ -495,7 +495,7 @@ def test_env_prefix_not_allowed_fires_before_allowlist(tmp_path):
     cmd = "PATH=/tmp/x python3 -c 'print(1)'"
     res = rotate._run_first_turn_commands(
         {"first_turn": [{"label": "xp", "cmd": cmd}]}, VALUES)
-    assert "env prefix PATH not on startup.env_allow" in res[0]["refused"], res
+    assert "env prefix PATH refused unconditionally" in res[0]["refused"], res
 
 
 def test_env_prefix_allowed_still_applies(tmp_path):
@@ -614,3 +614,114 @@ def test_t_other_callers_resolve_empty_happily():
         "python3 extensions/agi/bin/send.py whois {succ_ref}", {"succ_ref": ""})
     assert resolved == "python3 extensions/agi/bin/send.py whois "
     assert "{" not in resolved
+
+
+def test_filter_arg_path_read_is_refused(tmp_path):
+    # hypothesis:l4-a-filter-stage-is-argument-restricted — the prime's four
+    # probes. A post-`|` filter was skipped by NAME alone, so `| head -1
+    # /etc/hostname` and `| cat /etc/hostname` read a PATH into the startup
+    # output. Now a filter argument naming a path (any token containing `/`)
+    # is a NAMED refusal before anything runs.
+    for cmd, name in [
+        ("python3 extensions/agi/bin/foo.py | head -1 /etc/hostname", "filter head /etc/hostname"),
+        ("python3 extensions/agi/bin/foo.py | cat /etc/hostname", "filter cat /etc/hostname"),
+        ("python3 extensions/agi/bin/foo.py | tail -n 5 /var/log/syslog", "filter tail /var/log/syslog"),
+        ("python3 extensions/agi/bin/foo.py | grep -f /tmp/pat.txt", "filter grep -f"),
+    ]:
+        ref = rotate._producing_refusal(cmd)
+        assert ref == name, (cmd, ref)
+
+
+def test_filter_arg_file_write_option_is_refused(tmp_path):
+    # File/execute options are refused PER-TOOL, not blanket: sort `-o`/
+    # `--output` (writes a file), sed `-i` (in-place), grep/egrep `-f`/`--file`
+    # (reads a pattern file) — in exact (`-o`, `-i`, `-f`) and attached
+    # (`-oM`, `-f3`) forms, and `--output=foo`.
+    for exe, arg, opt in [("sort", "-o", "-o"), ("sort", "-oM", "-o"),
+                          ("sort", "--output", "--output"),
+                          ("sed", "-i", "-i"),
+                          ("grep", "-f3", "-f"), ("grep", "-f", "-f"),
+                          ("egrep", "-f", "-f")]:
+        cmd = f"python3 extensions/agi/bin/foo.py | {exe} {arg}"
+        ref = rotate._producing_refusal(cmd)
+        assert ref == f"filter {exe} {opt}", (cmd, ref)
+    # an attached form with `=`: `--output=foo`
+    ref = rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sort --output=foo")
+    assert ref == "filter sort --output", ref
+    # a file-option ONLY names a file where the per-tool table says so: a
+    # benign flag reused across tools must NOT trip a non-owning tool's gate.
+    for exe, arg in [("uniq", "-w"), ("cut", "-f3"), ("head", "--output"),
+                     ("grep", "-i"), ("grep", "-o"), ("grep", "-w"),
+                     ("sort", "-f"), ("cut", "-f1"), ("cut", "-d: -f1"),
+                     ("uniq", "-w 3")]:
+        cmd = f"python3 extensions/agi/bin/foo.py | {exe} {arg}"
+        ref = rotate._producing_refusal(cmd)
+        assert ref is None, (cmd, ref)
+
+
+def test_awk_filter_refused_outright(tmp_path):
+    # `| awk BEGIN{system(...)}` executes a command through awk's program body;
+    # awk is refused outright (its program can reach system/getline/`>`/`|`).
+    cmd = "python3 extensions/agi/bin/foo.py | awk 'BEGIN{system(\"touch /tmp/x\")}'"
+    assert rotate._producing_refusal(cmd) == "filter awk"
+
+
+def test_sed_exec_and_inplace_program_refused(tmp_path):
+    # sed's `-i` (in-place write, already a file option) and its bare `e`
+    # (execute a shell command from the program) forms are refused.
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed -i s/a/b/") == "filter sed -i"
+    assert rotate._producing_refusal("python3 extensions/agi/bin/foo.py | sed e 'touch /tmp/y'") == "filter sed e"
+
+
+def test_benign_stdio_filters_still_run(tmp_path):
+    # The allowed stdio-filter set from the hypothesis still passes: no paths,
+    # no per-tool file options. Each of these must NOT be refused.
+    benign = [
+        "python3 extensions/agi/bin/foo.py | head -5",
+        "python3 extensions/agi/bin/foo.py | grep -c x",
+        "python3 extensions/agi/bin/foo.py | grep -i x",
+        "python3 extensions/agi/bin/foo.py | grep -o abc",
+        "python3 extensions/agi/bin/foo.py | grep -w x",
+        "python3 extensions/agi/bin/foo.py | sort",
+        "python3 extensions/agi/bin/foo.py | sort -f",
+        "python3 extensions/agi/bin/foo.py | cut -c1-80",
+        "python3 extensions/agi/bin/foo.py | cut -f1",
+        "python3 extensions/agi/bin/foo.py | cut -d: -f1",
+        "python3 extensions/agi/bin/foo.py | tr a-z A-Z",
+        "python3 extensions/agi/bin/foo.py | wc -l",
+        "python3 extensions/agi/bin/foo.py | sed -n 1,40p",
+        "python3 extensions/agi/bin/foo.py | uniq",
+        "python3 extensions/agi/bin/foo.py | uniq -w 3",
+    ]
+    for cmd in benign:
+        assert rotate._producing_refusal(cmd) is None, cmd
+
+
+def test_filter_refusal_named_before_run(tmp_path):
+    # the NAMED refusal surfaces on the actual run path too — the startup
+    # output names the filter, nothing runs, no marker.
+    marker = tmp_path / "pwned-MARKER"
+    cmd = f"python3 extensions/agi/bin/foo.py | awk 'BEGIN{{system(\"touch {marker}\")}}'"
+    res = rotate._run_first_turn_commands(
+        {"first_turn": [{"label": "badfilt", "cmd": cmd}]}, VALUES)
+    assert res[0]["refused"], res
+    assert "filter awk" in res[0]["refused"], res
+    assert "not on startup.allow" in res[0]["refused"], res
+    assert not marker.exists(), res
+    block = rotate._compose_startup_output(res)
+    assert "[badfilt] REFUSED" in block
+
+
+def test_fold_env_path_refused_even_when_allowlisted(tmp_path):
+    # hypothesis FOLD: PATH/PYTHONPATH/LD_* are refused UNCONDITIONALLY, even
+    # when a template puts them on startup.env_allow — a template author cannot
+    # redirect binary lookup out of convenience.
+    for cmd, name in [("PATH=/x python3 /wt/a.py", "PATH"),
+                      ("PYTHONPATH=/x python3 /wt/a.py", "PYTHONPATH"),
+                      ("LD_PRELOAD=/x.so python3 /wt/a.py", "LD_PRELOAD")]:
+        startup = {"env_allow": ["PATH", "PYTHONPATH", "LD_PRELOAD"],
+                   "first_turn": [{"label": "fold", "cmd": cmd}]}
+        res = rotate._run_first_turn_commands(startup, VALUES)
+        assert res[0]["refused"], res
+        assert f"env prefix {name} refused unconditionally" in res[0]["refused"], \
+            (cmd, res)
