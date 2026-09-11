@@ -1157,14 +1157,30 @@ def check_spawn(
     #     the gate is skipped, not approved-by-default-where-it-could-count.
     if ntype == "vision" and nodes_dir is not None \
             and vision_scope(nodes_dir) == "town":
-        town = nearest_vision_town(nodes_dir, plist)
+        # hypothesis:l4-write-path-vision-cap-reads-the-visions-own-town. The
+        # write-path cap reads the NEW vision's OWN `town:` cell first; only
+        # when it is absent does it fall back to the parents' nearest vision
+        # town. Without this, a vision that declares its own town (e.g. via
+        # `--set town=web-app-suite`) is still counted against its PARENTS'
+        # town and refused even when its own advertised town has room.
+        if isinstance(fm, dict):
+            own = fm.get("town")
+            own = own.strip() if isinstance(own, str) else ""
+        else:
+            own = ""
+        if own:
+            town, town_source = own, "own cell"
+        else:
+            town, town_source = \
+                nearest_vision_town(nodes_dir, plist), "parents"
         cap = vision_cap(nodes_dir)
         remaining = vision_remaining_for_town(nodes_dir, town)
         if remaining <= 0:
             res.status = REJECTED
             res.reason = (
-                f"rule 'town vision cap' from ladder: a vision parented into "
-                f"town '{town}' would exceed caps.vision ({cap}/town)"
+                f"rule 'town vision cap' from ladder: a vision written into "
+                f"town '{town}' (from {town_source}) would exceed "
+                f"caps.vision ({cap}/town)"
             )
             res.fix = (
                 f"the '{town}' town already has {cap} vision(s) this season "
