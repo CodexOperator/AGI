@@ -212,7 +212,45 @@ def load_crons_node(root: Path) -> dict:
             )
         jobs[name] = {"enabled": enabled, "every_mins": every_mins, "schedule": schedule}
 
-    return {"crons_live": crons_live, "jobs": jobs}
+    # Optional `services:` table — systemd unit files rendered from the graph
+    # the way the crontab is (hypothesis:l4-the-reaper-is-one-persistent-
+    # service). ABSENT (the live state until the prime lands the table) is a
+    # byte-for-byte no-op on units, and `crons_live: false` removes them.
+    # Units are only ever touched through the `--unit-dir` seam; a plain
+    # `crons.py apply` (the grid_sync self-reapply line included) manages
+    # nothing but the crontab.
+    services: dict = {}
+    svc_raw = fm.get("services") or {}
+    if not isinstance(svc_raw, dict):
+        raise CronsError(f"{path}: `services` must be a mapping of service -> settings")
+    for name, svc in svc_raw.items():
+        if not isinstance(name, str) or not name.strip():
+            raise CronsError(f"{path}: `services` keys must be non-empty names")
+        if not isinstance(svc, dict):
+            raise CronsError(f"{path}: services.{name} must be a mapping")
+        enabled = svc.get("enabled", True)
+        if not isinstance(enabled, bool):
+            raise CronsError(f"{path}: services.{name}.enabled must be true/false")
+        exec_start = svc.get("exec_start")
+        if enabled and not (isinstance(exec_start, str) and exec_start.strip()):
+            raise CronsError(
+                f"{path}: services.{name} is enabled but declares no `exec_start`"
+            )
+        env = svc.get("environment") or {}
+        if not isinstance(env, dict):
+            raise CronsError(f"{path}: services.{name}.environment must be a mapping")
+        restart = svc.get("restart", "on-failure")
+        if not isinstance(restart, str) or not restart.strip():
+            raise CronsError(f"{path}: services.{name}.restart must be a non-empty string")
+        services[name] = {
+            "enabled": enabled,
+            "exec_start": exec_start,
+            "restart": restart,
+            "working_directory": svc.get("working_directory"),
+            "environment": env,
+        }
+
+    return {"crons_live": crons_live, "jobs": jobs, "services": services}
 
 
 def _schedule_expr(job: dict) -> str:
@@ -358,6 +396,88 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
     return lines
 
 
+# --- systemd unit rendering (opt-in via the --unit-dir seam) ------------
+
+
+def unit_filename(repo_root: Path, name: str, unit_dir: Path) -> Path:
+    """One unit file per service, hashed per checkout like the crontab block
+    so a second project's units never collide and C4.4's naming stays
+    deterministic."""
+    return Path(unit_dir) / f"agi-{name}-{project_hash(repo_root)[:8]}.service"
+
+
+def render_unit_file(name: str, svc: dict, repo_root: Path) -> list[str]:
+    """The systemd unit lines for one service, in a fixed order so a second
+    apply is byte-identical. No credentials ever go in `Environment=` — the
+    claim's hard rule ("it never reads a credential") is enforced here by
+    never templating a secrets source; callers bring only plain key=value
+    settings."""
+    log = _log_path(repo_root)
+    wd = svc["working_directory"] or str(repo_root)
+    lines = ["[Unit]", f"Description=agi {name} (project {Path(repo_root).name})",
+             "After=network.target", "Wants=network.target", "", "[Service]",
+             "Type=simple", f"ExecStart={svc['exec_start']}",
+             f"WorkingDirectory={wd}", f"Restart={svc['restart']}"]
+    for k, v in svc["environment"].items():
+        lines.append(f"Environment={k}={v}")
+    lines.append(f"StandardOutput=append:{log}")
+    lines.append(f"StandardError=append:{log}")
+    lines += ["", "[Install]", "WantedBy=default.target"]
+    return lines
+
+
+def reconcile_units(root: Path, repo_root: Path, node: dict,
+                    unit_dir: Path | None, dry_run: bool) -> list[str]:
+    """Reconcile the node's `services:` table against `unit_dir`.
+
+    Returns a list of action strings (what happened, or would happen in
+    `--dry-run`). Never called against the real user-manager directory from
+    here: it only ever writes/removes files under `unit_dir`, and the
+    `disable --now` intent is *recorded*, never executed — the live install
+    is the prime's step at merge-up, and `systemctl` is never a test
+    dependency.
+
+    No `services` table at all -> byte-for-byte no-op on units (the live
+    state until the prime lands the table).
+    """
+    if unit_dir is None:
+        return []  # unit management is opt-in; plain apply never touches units
+    ud = Path(unit_dir)
+    actions: list[str] = []
+    if not node["services"]:
+        return actions
+    for name, svc in node["services"].items():
+        target = unit_filename(repo_root, name, ud)
+        wanted = node["crons_live"] and svc["enabled"]
+        if wanted:
+            desired = "\n".join(render_unit_file(name, svc, repo_root)) + "\n"
+            if target.is_file() and target.read_text(encoding="utf-8") == desired:
+                actions.append(f"unit {target.name} up to date")
+                continue
+            if dry_run:
+                actions.append(f"write unit {target.name} (dry-run)")
+                continue
+            ud.mkdir(parents=True, exist_ok=True)
+            target.write_text(desired, encoding="utf-8")
+            actions.append(f"write unit {target.name}")
+            actions.append(f"systemctl --user daemon-reload (recorded, not run)")
+        else:
+            # crons_live false, or the service disabled: kill-switch removes
+            # it, and the disable intent is recorded through the seam, never
+            # executed against the real user manager.
+            if target.exists():
+                if not dry_run:
+                    target.unlink()
+                    actions.append(f"remove unit {target.name}")
+                else:
+                    actions.append(f"remove unit {target.name} (dry-run)")
+            else:
+                actions.append(f"unit {target.name} absent")
+            actions.append(f"systemctl --user disable --now {target.name} "
+                           f"(recorded, not run)")
+    return actions
+
+
 # --- crontab I/O: dependency-injected, never writes the real one uninvited --
 
 
@@ -457,11 +577,16 @@ def require_common_root(root: Path, repo_root: Path) -> None:
         )
 
 
-def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False) -> dict:
+def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False,
+              unit_dir: Path | str | None = None) -> dict:
     """Render the node and reconcile the crontab. Idempotent by construction:
     the managed block replaces itself in place (or is appended once, on first
     install), so a second `apply` with nothing changed produces byte-identical
     output — proven in `test_crons.py::test_apply_twice_is_byte_identical`.
+
+    When `unit_dir` is given (the fixture seam), also reconcile the node's
+    `services:` table against that directory; without it, units are never
+    touched.
     """
     root, cfg, repo_root, engine_root, node = _resolve(root)
     require_common_root(root, repo_root)
@@ -482,11 +607,14 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     if not dry_run:
         write_crontab(new_lines, crontab_file)
 
+    unit_actions = reconcile_units(root, repo_root, node, unit_dir, dry_run)
+
     return {
         "root": root, "repo_root": repo_root, "engine_root": engine_root,
         "crontab_lines": new_lines, "managed_lines": managed,
         "previous_managed_lines": existing, "changed": changed,
         "crons_live": node["crons_live"],
+        "unit_actions": unit_actions, "unit_dir": unit_dir,
     }
 
 
@@ -543,6 +671,11 @@ def main(argv: list[str] | None = None) -> int:
     common.add_argument("--crontab-file", default=None,
                         help="read/write this file instead of the real crontab "
                              "(testing/dry-run; production omits this)")
+    common.add_argument("--unit-dir", default=None,
+                        help="reconcile systemd unit files (services table) "
+                             "under this directory instead of the real user "
+                             "manager (testing/dry-run; the live install is "
+                             "the prime's step at merge-up)")
 
     sub = ap.add_subparsers(dest="cmd", required=True)
     ap_apply = sub.add_parser("apply", parents=[common],
@@ -567,7 +700,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.cmd == "apply":
-            result = cmd_apply(root, args.crontab_file, dry_run=args.dry_run)
+            result = cmd_apply(root, args.crontab_file, dry_run=args.dry_run,
+                               unit_dir=args.unit_dir)
             verb = "would install" if args.dry_run else "installed"
             if not result["crons_live"]:
                 print(f"crons: crons_live is false — {verb} 0 line(s) "
@@ -580,6 +714,10 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"  {line}")
             if not result["changed"]:
                 print("crons: crontab already matched (no-op)")
+            if result.get("unit_actions"):
+                print(f"crons: units ({result['unit_dir']}):")
+                for a in result["unit_actions"]:
+                    print(f"  {a}")
         elif args.cmd == "show":
             print(cmd_show(root, args.crontab_file))
         elif args.cmd == "remove":
