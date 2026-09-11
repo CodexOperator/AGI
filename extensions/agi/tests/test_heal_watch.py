@@ -2,14 +2,17 @@
 
 The persistent watcher (`heal.py watch`) discovers every live round under a
 main checkout, runs the SAME `_reap_pass` dispatch.py's inline reaper uses,
-and — for any agent still `running` past its manifest `timeout_seconds` —
-marks it `timeout` in BOTH the agent record and the manifest it was found in,
-plus exactly ONE dm to the stamped `dispatched_by` through the L4.113 path.
+and — for any agent still `running` past its manifest `timeout_seconds`
+whose pid is genuinely DEAD — records the death (`failed`). A LIVE pid past
+its deadline is never written a terminal word: it is marked `overdue`
+(hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal) — status stays
+`running`, `overdue_since`/`overdue_reason` set, EXACTLY ONE `overdue` dm
+through the L4.113 path, never a second dm on a later pass.
 
 The claim fixture (in the hypothesis): a main checkout with TWO rounds whose
-parents outlive their nominal timeout -> BOTH marked `timeout`, BOTH
-dispatchers get exactly ONE dm, the watcher process pid unchanged across
-both, and `heal.py watch --once` runs one pass and exits.
+parents outlive their nominal timeout -> BOTH marked `overdue` (status still
+`running`), BOTH dispatchers get exactly ONE dm, the watcher process pid
+unchanged across both, and `heal.py watch --once` runs one pass and exits.
 
 Test-side safety, matching the merge-up traps: `AGI_REAPER_LOG` is pointed at
 a tmp file so no test ever touches ~/logs; a second `--once` pass is proven
@@ -85,9 +88,9 @@ def _manifest_status(graph: Path, name: str, agent_id: str) -> str:
 
 def test_watch_once_marks_two_timeouts_two_dms_one_log_event_each(
         graph_project, monkeypatch):
-    """Two rounds whose owners outlived the deadline: both marked `timeout`,
-    both dispatchers get exactly ONE dm, one log line per event, and the
-    watcher's pid is unchanged across both rounds."""
+    """Two rounds whose owners outlived the deadline: BOTH marked `overdue`
+    (status stays `running`), both dispatchers get exactly ONE dm, one log
+    line per event, and the watcher's pid is unchanged across both rounds."""
     log = graph_project / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     _round(graph_project, "A", "kid-a", 1)
@@ -101,20 +104,27 @@ def test_watch_once_marks_two_timeouts_two_dms_one_log_event_each(
     assert rc == 0  # --once runs one pass and exits
     assert os.getpid() == pid_before  # the SAME watcher did both rounds
 
-    assert _manifest_status(graph_project, "A", "kid-a") == "timeout"
-    assert _manifest_status(graph_project, "B", "kid-b") == "timeout"
+    assert _manifest_status(graph_project, "A", "kid-a") == "running"
+    assert _manifest_status(graph_project, "B", "kid-b") == "running"
+
+    # each agent gained the overdue mark, never a terminal word.
+    for nm, aid in (("A", "kid-a"), ("B", "kid-b")):
+        rec = json.loads((graph_project / "sessions" / f"iter-{nm}" / aid
+                          / "agent.json").read_text())
+        assert rec["status"] == "running", rec["status"]
+        assert rec.get("overdue_since"), "overdue_since must be set"
 
     inbox_a = _inbox(graph_project, "director")
     text = inbox_a.read_text()
     # ONE dm per round, both to the same stamped dispatcher, in ONE inbox.
-    assert text.count("from:") == 2, "exactly one dm per terminal round"
-    assert text.count("reason=timeout") == 2
+    assert text.count("from:") == 2, "exactly one dm per overdue round"
+    assert text.count("reason=overdue") == 2
     assert "iter=iter-A agent=kid-a" in text
     assert "iter=iter-B agent=kid-b" in text
 
     log_text = log.read_text()
-    assert "marked timeout" in log_text
-    assert log_text.count("marked timeout") == 2  # ONE log line per event
+    assert "marked OVERDUE" in log_text
+    assert log_text.count("marked OVERDUE") == 2  # ONE log line per event
     assert "iter-iter-A" in log_text or "iter-A" in log_text
 
 
@@ -137,8 +147,9 @@ def test_watch_second_pass_is_idempotent_no_double_dm(graph_project, monkeypatch
 
 def test_watch_round_with_no_dispatcher_still_marks_and_logs(
         graph_project, monkeypatch, capsys):
-    """A round with NO `dispatched_by` stamp is marked `timeout` and logs the
-    mark; the dm is skipped but there is never silence."""
+    """A round with NO `dispatched_by` stamp that is past deadline and has a
+    live (unknown — pid 0) pid is marked OVERDUE and logs the mark; the dm is
+    skipped but there is never silence."""
     it = graph_project / "sessions" / "iter-D"
     it.mkdir(parents=True, exist_ok=True)
     (it / "manifest.json").write_text(json.dumps({
@@ -158,7 +169,11 @@ def test_watch_round_with_no_dispatcher_still_marks_and_logs(
                          "--once"])
     assert heal.main() == 0
 
-    assert _manifest_status(graph_project, "D", "kid-d") == "timeout"
+    rec = json.loads((graph_project / "sessions" / "iter-D" / "kid-d"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running"
+    assert rec.get("overdue_since"), "overdue mark set without a stamp"
+    assert _manifest_status(graph_project, "D", "kid-d") == "running"
     # dm goes nowhere (no stamp) but a warn line is emitted — never silence
     assert "no dispatcher stamp" in capsys.readouterr().err
 
@@ -366,11 +381,13 @@ class _AlwaysAliveAdapter:
         return True
 
 
-def test_watch_alive_past_deadline_still_timeout_not_death(graph_project,
-                                                           monkeypatch):
-    """Sibling path (untouched): pid alive at BOTH checks still records the
-    TIMEOUT, never a death — the death branch must not fire when is_alive is
-    true."""
+def test_watch_alive_past_deadline_is_overdue_not_timeout_not_death(
+        graph_project, monkeypatch):
+    """Sibling path: pid alive at BOTH checks records an OVERDUE, never a
+    death and never a terminal timeout — status stays running, overdue_since
+    is set, exactly one overdue dm. The death branch must not fire when
+    is_alive is true (hypothesis:l4-a-timeout-mark-on-a-live-agent-is-
+    not-terminal)."""
     log = graph_project / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
@@ -381,15 +398,20 @@ def test_watch_alive_past_deadline_still_timeout_not_death(graph_project,
                          "--once"])
     assert heal.main() == 0
 
-    assert _manifest_status(graph_project, "J", "kid-j") == "timeout"
+    assert _manifest_status(graph_project, "J", "kid-j") == "running"
     rec = json.loads((graph_project / "sessions" / "iter-J" / "kid-j"
                       / "agent.json").read_text())
-    assert rec["status"] == "timeout", rec["status"]
-    assert rec.get("fail_reason") != "pid 424244 died (detected by reaper"
-    assert "timeout_reason" in rec, "timeout sets timeout_reason, not a death"
+    assert rec["status"] == "running", rec["status"]
+    assert rec.get("overdue_since"), "overdue_since must be set for a live pid"
+    assert rec.get("overdue_reason"), "overdue_reason must be set"
+    assert "timeout_reason" not in rec, "never a terminal timeout for a live pid"
+    assert "overdue_since" in _entry(graph_project, "J", "kid-j"), \
+        "manifest entry carries the overdue mark"
     text = _inbox(graph_project, "director").read_text()
-    assert "reason=timeout" in text
+    assert "reason=overdue" in text
     assert "reason=death" not in text
+    assert "reason=timeout" not in text
+    assert "marked OVERDUE" in log.read_text()
 
 
 # --- hypothesis:l4-the-manifest-mirrors-terminal-agent-status --------------

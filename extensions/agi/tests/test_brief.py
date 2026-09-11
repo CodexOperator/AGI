@@ -212,6 +212,16 @@ def test_parent_brief_names_the_carry_forward_lever():
 
 
 
+def test_parent_brief_names_overdue_as_still_working():
+    """hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal — the
+    parent's kid-status paragraph must name `overdue` as a still-working
+    state so a live pid past its deadline is never cut a replacement kid."""
+    parent = _text("parent", dispatch_py="/x/dispatch.py",
+                   target="hypothesis:y", max_live=25, kid_ceiling=3)
+    assert "`overdue` is STILL WORKING" in parent
+    assert "never cut a replacement" in parent
+
+
 def test_parent_brief_forbids_committing_and_bypassing():
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "--no-evidence-gate" in parent
