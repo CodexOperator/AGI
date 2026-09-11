@@ -3918,7 +3918,33 @@ DEFAULT_STARTUP_BYTE_CAP = 4000
 #: against _STARTUP_FILTERS below.
 DEFAULT_STARTUP_ALLOW = {"python", "python3", "git", "tmux", "ps", "curl"}
 
-_GIT_READONLY_SUBCMDS = {"status", "log", "diff"}
+_GIT_READONLY_SUBCMDS = {"status", "log", "rev-parse", "branch", "fetch", "diff"}
+
+#: Per-subcommand ALLOWLIST over the git producing judge's arguments
+#: (hypothesis:l4-a-producing-git-stage-is-argument-restricted). A git first
+#: stage used to be accepted on the READONLY SUBCMD name alone, so its
+#: ARGUMENTS never reached the judge: `git log -p -- .env` printed a tracked
+#: file's contents into the rotation record and the successor's STARTUP
+#: OUTPUT, `git log --output=FILE` (or `git diff --output=FILE`) wrote a file,
+#: and `git -c core.pager=<cmd> log` / `--exec-path` ran a program. Now a git
+#: stage is an ALLOWLIST PARSER over subcommand AND arguments, in the same
+#: spirit as _filter_arg_refusal: `-C <path>` is the one value-taking global
+#: option (consumed before the subcommand), then every token is judged against
+#: the subcommand's sets below. Each entry is (allowed short-FLAG letters,
+#: allowed `--long` forms, allow-bare-`-N`), where the bare `-N` slot is the
+#: log count (`git log --oneline -5`). Nothing else — `-p`/`--patch` (dumps
+#: file contents), `--output` (writes a file), `-c`/`--exec-path` (runs a
+#: program), `-- <pathspec>` (reads a named path), or any token containing
+#: `$`/backtick/`~` — is ever on a set, so each falls through to the NAMED
+#: refusal `producer git <token> not on the allowlist`.
+_GIT_ALLOW = {
+    "status":    (frozenset("sb"), frozenset(), False),
+    "log":       (frozenset(), frozenset(("--oneline", "--stat")), True),
+    "diff":      (frozenset(), frozenset(("--stat",)), False),
+    "rev-parse": (frozenset(), frozenset(("--abbrev-ref",)), False),
+    "branch":    (frozenset(), frozenset(("--show-current",)), False),
+    "fetch":     (frozenset(), frozenset(), False),
+}
 _TMUX_READONLY_SUBCMDS = {"list-windows", "list-sessions", "list-panes",
                           "display-message"}
 
@@ -4325,6 +4351,64 @@ def _segment_parts(command: str) -> list:
     return parts
 
 
+def _git_arg_refusal(args: list) -> str | None:
+    """Return a one-line NAMED refusal for a unit-leading git stage, or None
+    if (subcommand, args) is on the allowlist (hypothesis:l4-a-producing-git-
+    stage-is-argument-restricted). ALLOWLIST PARSER, same spirit as
+    _filter_arg_refusal: `-C <path>` (git's global workdir option) is the one
+    value-taking option, consumed before the subcommand; then every token is
+    judged against the subcommand's allowed short-FLAG letters, `--long`
+    forms, and (for log) the bare `-N` count. A `--` pathspec separator, a
+    `$`/backtick/`~` anywhere, and any off-allowlist option fall through to
+    the same NAMED `producer git <token> not on the allowlist` refusal.
+    """
+    i = 0
+    while i + 1 < len(args) and args[i] == "-C":
+        val = args[i + 1]
+        for bad in ("$", "`", "~"):
+            if bad in val:
+                return f"producer git {val} not on the allowlist"
+        i += 2                      # consume git's global `-C <path>`
+    if i >= len(args):
+        return "producer git"
+    sub = args[i]
+    allow = _GIT_ALLOW.get(sub)
+    if allow is None:
+        return ("producer git " + " ".join(args)).strip()
+    flags, longs, numeric = allow
+    i += 1
+    pos = 0
+    while i < len(args):
+        tok = args[i]
+        for bad in ("$", "`", "~"):
+            if bad in tok:
+                return f"producer git {tok} not on the allowlist"
+        if tok == "--":
+            return f"producer git {tok} not on the allowlist"
+        if not tok.startswith("-"):
+            # a positional; only rev-parse takes HEAD (and once)
+            if sub == "rev-parse" and pos == 0 and tok == "HEAD":
+                pos += 1
+                i += 1
+                continue
+            return f"producer git {tok} not on the allowlist"
+        if tok.startswith("--"):
+            base = tok.split("=", 1)[0]
+            if base not in longs:
+                return f"producer git {base} not on the allowlist"
+            i += 1
+            continue
+        if numeric and _NUM_OPT_RE.match(tok):
+            i += 1                  # log's bare `-N` count
+            continue
+        # short-option cluster; every letter must be an allowed flag
+        for ch in tok[1:]:
+            if ch not in flags:
+                return f"producer git {tok} not on the allowlist"
+        i += 1
+    return None
+
+
 def _producing_refusal(command: str) -> str | None:
     """Return a one-line refusal (naming the executable/verb) if ANY producing
     pipeline part of `command` is not on the startup allowlist, else None.
@@ -4379,9 +4463,9 @@ def _producing_refusal(command: str) -> str | None:
                     return f"{exe} {script}".strip()
                 continue
             if exe == "git":
-                sub = next((a for a in args if a in _GIT_READONLY_SUBCMDS), None)
-                if sub is None:
-                    return ("git " + " ".join(args)).strip()
+                gref = _git_arg_refusal(args)
+                if gref:
+                    return gref
                 continue
             if exe == "tmux":
                 sub = args[0] if args else ""
