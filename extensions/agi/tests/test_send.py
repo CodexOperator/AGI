@@ -560,13 +560,13 @@ def test_read_preserves_a_bump_made_during_the_read(
     real_print = send_mod._print_blocks_with_labels
     bumped = []
 
-    def _bump_during_consume(root, blocks, wrap=160):
+    def _bump_during_consume(root, me, blocks, wrap=160):  # SL2#8 seam: SL5.04 added `me` (quarantine path)
         # a send coalesces in the middle of the read's consume step, after
         # the read already observed the count: bump exactly once.
         if not bumped:
             send_mod._bump_pending(project, seat)
             bumped.append(True)
-        real_print(root, blocks, wrap=wrap)
+        real_print(root, me, blocks, wrap=wrap)
 
     monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
                         _bump_during_consume)
