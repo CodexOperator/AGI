@@ -619,6 +619,55 @@ def test_ack_row_without_window_leaves_pid_sid_untouched(_fix, tmp_path,
     assert "back-filled session_ref=r1 into own row (source: ack)" in out
 
 
+def test_ack_keep_both_ref_equal_identity_differs_writes_pid(
+        _fix, tmp_path, monkeypatch, capsys):
+    """Clause B (l4-a-join-matches-the-delimited-window-token-and-keep-both-
+    is-tested): the KEEP-BOTH branch in cmd_ack fires when the ack ref EQUALS
+    the row's session_ref but an identity cell (pid) DIFFERS — `already` must
+    be FALSE and the write must still happen (pid rewritten, the +/- lines of
+    the row rewrite print), and a SECOND identical ack (nothing differs)
+    prints the `already` short-circuit. Temp fixture, never the live seats row."""
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "cc" / "projects")
+    # a real git repo so the +/- row-rewrite lines print, with a seats row
+    # that ALREADY carries session_ref r1 but holds a STALE pid 999999 and a
+    # blanked session_id (a recovered/wrong-join shape), plus a registry whose
+    # CONTENT matches window @77 with the LIVE pid 4242.
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _recovered_root(tmp_path, pid=999999, session_id="",
+                           session_ref="r1")
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "seats seed"], check=True)
+    reg = tmp_path / "registry"
+    _reg_file(reg, 4242, "abc-def-123", "/home/usr/foo/.bar", "@77")
+    # FIRST ack: ref r1 EQUALS the row's session_ref, but the join resolves a
+    # LIVE pid 4242 that differs from the row's stale 999999 -> KEEP-BOTH:
+    # already=FALSE, the differing cell is still written.
+    code = rotate.cmd_ack(_ack_args(ref="r1", reg=reg), root)
+    assert code == 0
+    own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
+    assert own["pid"] == 4242                 # the differing cell WAS rewritten
+    assert own["session_ref"] == "r1"         # ref was already equal, kept
+    out = capsys.readouterr().out
+    assert "row already carries session_ref=r1" not in out   # NOT already
+    assert "back-filled session_ref=r1" in out
+    assert "pid=4242" in out                   # the differing cell was written
+    assert any(ln.startswith("+") for ln in out.splitlines())   # +/- lines
+    assert any(ln.startswith("-") for ln in out.splitlines())
+    # SECOND identical ack: nothing differs -> `already` short-circuit fires.
+    code2 = rotate.cmd_ack(_ack_args(ref="r1", reg=reg), root)
+    assert code2 == 0
+    out2 = capsys.readouterr().out
+    assert "row already carries session_ref=r1" in out2
+    assert "nothing to back-fill or commit" in out2
+    assert "ack: committed own row write" not in out2
+
 # ── L4.114 (c) — ack --ref back-fill (r3) + whois by ref AND uuid prefix ───
 
 
@@ -692,6 +741,39 @@ def test_join_derives_transcript_from_cwd_session_id(_fix, tmp_path,
     assert "-home-usr-foo--bar-proj" in str(p)
     assert str(p).startswith(str(rotate.CC_PROJECTS_DIR))
 
+
+def test_join_matches_window_id_as_delimited_token(_fix, tmp_path):
+    """Clause A (l4-a-join-matches-the-delimited-window-token-and-keep-both-
+    is-tested): `_join_successor` matches the window @id as a DELIMITED token,
+    never a bare substring — @30 joins ONLY the @30 registry file, never the
+    @302/@308 one (a wrong join would back-fill a foreign session's identity
+    behind the L4.288 ack write). An @id that matches NO file joins nothing
+    and the miss is NAMED (proof a)."""
+    reg = tmp_path / "registry"
+    _reg_file(reg, 10001, "sid-thirty", "/home/u/one", "@30")
+    _reg_file(reg, 10002, "sid-threeoh-two", "/home/u/two", "@302")
+    # @30 joins ONLY the @30 file (pid 10001), never the @302 file.
+    j30 = rotate._join_successor(root=tmp_path, seat="adv-alive",
+                                 window_id="@30", registry_dir=str(reg),
+                                 poll_secs=2)
+    assert j30["found"] is True
+    assert j30["pid"] == 10001
+    assert "10001.json" in j30["path"]
+    assert j30["session_id"] == "sid-thirty"
+    # @302 joins ONLY the @302 file (pid 10002), never the @30 file.
+    j302 = rotate._join_successor(root=tmp_path, seat="adv-alive",
+                                  window_id="@302", registry_dir=str(reg),
+                                  poll_secs=2)
+    assert j302["found"] is True
+    assert j302["pid"] == 10002
+    assert "10002.json" in j302["path"]
+    assert j302["session_id"] == "sid-threeoh-two"
+    # an @id that matches NO file joins nothing and names the miss.
+    jmiss = rotate._join_successor(root=tmp_path, seat="adv-alive",
+                                   window_id="@999", registry_dir=str(reg),
+                                   poll_secs=2)
+    assert jmiss["found"] is False
+    assert "registry file for @999" in jmiss["note"]
 
 def test_join_still_prefers_explicit_transcript(_fix, tmp_path):
     """A registry file that carries an explicit `transcript` field keeps it
