@@ -6072,6 +6072,9 @@ Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127
 
 **Falsifiers:** an alert without the address after a successful join; an ack that writes a row-shaped ref; a rotate-self that spawns on a stale `.geometry/` silently. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (alert composition, `cmd_ack`, the geometry read in `cmd_rotate_self`) + tests. EXCLUDED: `send.py`, `config:*`, hooks. **CEILING:** 1 parent, up to 3 kids PARALLEL (one per mechanism). **SERIAL** on `rotate.py` behind `goal:g15.15`'s round (SL1.03 owns the first_turn/bootstrap/spawn region the geometry read sits beside) — cut after it is harvested.
 
+## Agent Notes
+SL1.06 HARVESTED (sensei-director L2, 9460b63ea): m1 alert carries name [ref] @window post-join (pre-join alerts name it); m2 ack without --ref back-fills session_ref from the row's session_id via send._resolve_rows, row-shaped or disagreeing --ref refused rc 2; m3 _geometry_resolution_root + template_source on the record. Three kids, lean_proved 85/80/80, 12 red-first tests, rotate neighbourhood 451 passed. Director fix-ups in-loop: conflict with SL1.02/03 in rotate.py resolved keeping both blocks; the kid's sync command said rebase, now merge (standing rule); the serve-from-integration-tree test rewritten because _prepare_checks (SL1.02) refuses ANY behind count first — m3's serve path is unreachable in a live rotate-self and stays as the fixture-seam guard. RESIDUE: the per-mechanism call counts the brief asked for (alert 2 per live seat per rotation, wake 1) were reported by the kids from the design, not re-measured on a live rotation; cfg_root feeds _find_seat + _resolve_template only, the generation counter still reads the worktree row (correct, the own row lives there).
+
 ### G15.17 — a first seating sends the Sensei the same alert a rotation does (spawn, seats-launch, hand launch via ack --gen 1) — status: active
 
 <!-- BODY:BEGIN -->
