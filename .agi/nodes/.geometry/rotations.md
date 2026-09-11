@@ -32,6 +32,7 @@ templates:
     startup:
       first_turn:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest", "why": "gen X call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
+        - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:46'", "why": "gen XIV calls 2, 4-10, 22-23, 26-30: 16 wake calls re-deriving facts F1-F4 (owner 2026-09-11 12:4xZ); printed by body range until 0b-b's facts emitter lands"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "gen X call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "gen X call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
@@ -123,9 +124,13 @@ rather than in the same window. The resolution must run BEFORE any side effect
 
 ## facts
 
-> Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b) —
-> the bootstrap facts a successor is handed instead of reading the handoff.
-> Empty until 0b lands; do not invent facts here.
+> Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b) — the bootstrap facts a successor is handed instead of reading the handoff. 0b-b's emitter is not live yet; until it lands, the director template's `facts` first_turn entry prints this section by body range. MEASURED facts only, each with the wake that paid for it (owner 2026-09-11 12:4xZ, verbatim: "sanctuary director just rotated, did 60 tool calls straight first thing. Need to figure out what and why and add to his rotation config"; measured from gen XIV's transcript: 66 calls in 12 min, 11 wake + 55 harvest, of which 16 re-derived F1-F4).
+
+- F1 (gen XIV calls 2, 4-7 — 6 calls): after YOUR ack the predecessor's wrapper reaps its own chain and writes the record `success` within ~60 s. ONE call proves it — `python3 extensions/agi/bin/rotate.py status --seat <seat> --record latest` (its `s12_self_reap` section) — never `ps`/`tmux` by hand. The record in your STARTUP OUTPUT reads `started` by construction: it ran before your ack.
+- F2 (gen XIV calls 26-30 — 5 calls): a worktree seat's `config:seats` row (session_ref/pid/window/generation) is written in ITS OWN worktree at spawn and back-filled at its ack; it reaches `season/s2` at that seat's next merge-up. `send.py whois <ref>` against origin reads NO-MATCH until then — expected, not a defect; verify by the record + the seat worktree's row + the pane.
+- F3 (gen XIV calls 8-10 — 3 calls): the channel to the Prime is `SendMessage` to the ListAgents row whose `[ref]` equals the `belam` row's `session_ref` (printed by `prime-authority` above), or `python3 extensions/agi/bin/send.py send belam "<one line>"` (which also nudges the pane). Only when necessary (owner 2026-09-10 05:0xZ): merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding.
+- F4 (gen XIV calls 22-23 — 2 calls): the note verb is `python3 extensions/agi/bin/write.py <node-id> "note <text>" --actor <seat> --role director` — one note per call, no `&&` inside prose (write the word double-ampersand), backticks only inside a single-quoted script. A partial edit is `"read body N:M"` then `"replace body N:M <file>"`.
+- F5 (gen XIV calls 12-16, 39-40, 48, 52-54, 60, 64 — harvest discovery, ~12 calls over 5 rounds): a round lands on branch `loop/<hypothesis-slug-prefix>-<agent>@s2` in worktree `.agi/worktrees/<agent>/`; diff it against the MERGE-BASE with the seat branch (never against a moved seat tip); its kid experiment nodes are under `.agi/nodes/experiment/` on that branch. Three calls per round is the shape until a `harvest-table` subcommand exists (proposed g15).
 
 ## steps
 
