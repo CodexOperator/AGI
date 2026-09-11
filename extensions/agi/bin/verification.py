@@ -171,6 +171,23 @@ def _state_path(groot: Path) -> Path:
     return Path(groot) / "sessions" / STATE_FILE
 
 
+def _shared_state_path(groot: Path) -> Path:
+    """The baseline's path, resolved to the SHARED sessions dir.
+
+    The SAME rule `_suite_ts_path` applies to the suite stamp (item 3 of
+    hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking): the
+    never-lower baseline is STAMPED in MAIN on the integration branch, so the
+    merge-up `window` reply running from a seat WORKTREE must read MAIN's
+    stamped baseline, not the caller's freshly-absent per-worktree
+    `<groot>/sessions/verify-count.json`. Routes through
+    `rotate._sessions_dir` (the ONE resolver the pins share) ->
+    `locations.shared_sessions_dir` -> `git_common_root`. A plain non-git
+    root returns the identity, so fixtures and the main checkout read byte-
+    for-byte as before.
+    """
+    return rotate._sessions_dir(groot) / STATE_FILE
+
+
 def _git(groot: Path, args: list[str]) -> str | None:
     """A git probe from `groot`'s tree. Returns stdout stripped, or None when
     git cannot answer (not a tree, absent binary, non-zero exit)."""
@@ -620,6 +637,87 @@ def check_seat_model(groot: Path) -> CheckResult:
         note=note)
 
 
+# --- the merge-up window reply (step 3: print-only, never send) -----------
+# hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps. The
+# point holds for a merge-up window (sanctuary-director.md §Merge-up step 2:
+# "lock state + tip + baseline") before it merges. This command PRINTS that
+# reply in paste-ready shape. The DECISION to grant stays the Prime's — this
+# path never sends, writes, or grants anything (the node's falsifier: a step
+# that SENDS the reply is refused, not landed).
+
+
+def render_window(groot: Path, grant: str | None = None) -> str:
+    """The merge-up window reply: lock state + tip + baseline.
+
+    - lock = `free`, or `held by <pid> since <ts>` when a LIVE pid owns the
+      suite/window lock under `<groot>/sessions/` (the SAME file
+      `acquire_suite_lock` writes, so a window and a suite runner contend for
+      one lock). A dead pid reads as a stale lock and shows `free`, exactly
+      as the acquirer would break it.
+    - tip = the integration branch sha read from `origin/<branch>` (never
+      guessed — read from the local copy of origin's refs the automation
+      keeps fresh) plus whether MAIN's HEAD equals it.
+    - baseline = the never-lower counts and their stamping sha/reason from
+      the lookup STATE_FILE.
+    """
+    lines: list[str] = []
+    # lock
+    lock_path = Path(groot) / "sessions" / SUITE_LOCK
+    holder: int | None = None
+    try:
+        holder = int(lock_path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        holder = None
+    if holder is not None and _pid_alive(holder) and holder != os.getpid():
+        try:
+            since = time.strftime("%H:%M:%SZ",
+                                  time.gmtime(lock_path.stat().st_mtime))
+        except OSError:
+            since = "?"
+        lines.append(f"lock: held by {holder} since {since}")
+    else:
+        lines.append("lock: free")
+    # tip
+    branch = _integration_branch(groot)
+    tip = _git(groot, ["rev-parse", f"origin/{branch}"]) if branch else None
+    # MAIN's real HEAD, resolved through `git_common_root`. The tip line labels
+    # the head "MAIN HEAD", so it must BE main's HEAD -- a seat WORKTREE's own
+    # HEAD is a different commit and must never wear that label. When root IS
+    # main (or a non-git fixture), `git_common_root` is the identity and this
+    # prints exactly what it did before.
+    main_repo = locations.git_common_root(groot) or groot
+    main_head = _git(main_repo, ["rev-parse", "HEAD"])
+    if branch is None or tip is None:
+        lines.append("tip: (no integration branch declared / origin "
+                     "unresolved — read the ladder or sync first)")
+    else:
+        eq = "yes" if main_head == tip else "no"
+        lines.append(f"tip: {branch} = {tip} (MAIN HEAD "
+                     f"{main_head or '?'} {'==' if main_head == tip else '!='} "
+                     f"tip → {eq})")
+    # baseline -- the never-lower counts and their stamping sha/reason. Read
+    # from the SHARED sessions dir (where the stamp lives in MAIN), never the
+    # caller's per-worktree one (the parent's measured SL1.04 defect).
+    state_file = _shared_state_path(groot)
+    try:
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        state = None
+    if state is None:
+        lines.append("baseline: none recorded (verify-count.json absent)")
+    else:
+        lines.append(
+            f"baseline: active={state.get('active', '?')} "
+            f"deprecated={state.get('deprecated', '?')} "
+            f"total={state.get('total', '?')} "
+            f"stamped sha={state.get('sha', '?')} "
+            f"reason={state.get('reason', '?')}")
+    reply = "\n".join(lines)
+    if grant:
+        reply = f"GRANT {grant} — merge-up window open\n" + reply
+    return reply
+
+
 # --- the runner ------------------------------------------------------------
 
 
@@ -784,6 +882,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="emit only a JSON object of the same facts")
     ap.add_argument("--seat-model", action="store_true",
                     help="run only the seat-model check (config:seats drift)")
+    ap.add_argument("subcommand", nargs="?", choices=["window"], default=None,
+                    help="window: print the merge-up window reply "
+                         "(lock + tip + baseline); PRINTS only, never sends")
+    ap.add_argument("--grant", default=None, metavar="SEAT",
+                    help="with `window`: name the seat to grant so the line is "
+                         "paste-ready (the grant decision stays the Prime's)")
     ap.add_argument("--stamp", action="store_true",
                     help="force-stamp the never-lower baseline (merge-up step, AFTER its push)")
     ap.add_argument("--verbose", "-v", action="store_true",
@@ -802,6 +906,13 @@ def main(argv: list[str] | None = None) -> int:
     # and graph line must appear even when they agree (it is provenance, not
     # a diff).
     engine_root = commands.engine_for(groot)
+
+    # The merge-up window reply — step 3 of the node. Prints the lock state +
+    # tip + baseline the point holds for before merging; never sends, writes or
+    # grants (the falsifier: a step that SENDS the reply is refused).
+    if args.subcommand == "window":
+        print(render_window(groot, args.grant))
+        return 0
 
     # Standalone seat-model round — proof (d) of hypothesis:l4-...-measured-
     # not-assumed, and the operator shorthand. Runs only this check; `verify`
