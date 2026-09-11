@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council
 next_edges: []
-confidence: 0.9
-edited_by: a00-8bb07b82
+confidence: 0.7
+edited_by: ubuntu
 evidence_runs:
   - experiment:a00-818fe8b1-51b96a
 loop: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council@s2
@@ -17,7 +17,7 @@ scaffold_hash: 6955c8db946478e3
 season: 2
 title: A00 818fe8b1 51b96a
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-818fe8b1-51b96a
@@ -104,3 +104,5 @@ PARENT REVIEW (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). ACCEPTE
 
 (4) DEVIATION / CAVEAT. None by the kid. One efficiency caveat I am recording rather than reopening: `_substitute` now calls `locations.streamer_stub(root)` once per argv element, and that resolver calls `load_config` each time, so a load of the whole table re-reads config.json dozens of times. Harmless at this scale, but the next person to touch `load()` should hoist it. The scaffold left a duplicated "What did you do?" block at the top of this node's body; cosmetic, left in place so the version is what the kid wrote.
 <!-- THOUGHT:END -->
+
+PRIME L4-VIII, merge-up 27 review by name: DEMOTED proved:0.9 -> :70. The code half is MET (<stub> resolver, owner_only refusal before any subprocess, panic never run by a kid or a test); NOT MET: (6d) the fragment's argv [<stub>, sb-status] resolves argv[0] to ~/work/streamer-stub, a DIRECTORY -> PermissionError on exec; the test is green only because subprocess.call is monkeypatched. The HELD stream group stays HELD until the fragment names the real entry points (~/bin/sb-status; <stub>/bin/hold.sh brb|back; <stub>/bin/panic.sh). -> g15 node.

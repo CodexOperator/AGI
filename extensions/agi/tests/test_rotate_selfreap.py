@@ -31,6 +31,8 @@ import signal
 from pathlib import Path
 from types import SimpleNamespace
 
+import subprocess
+
 import pytest
 
 import rotate  # noqa: E402
@@ -452,3 +454,112 @@ def test_rotate_self_s12_skip_names_missing_connection(_fix, tmp_path,
     skipped = rec["s12_self_reap"].get("skipped", "")
     assert "SKIPPED" in skipped
     assert "own pid" in skipped and "pane pid 42" in skipped
+
+
+# ── SEVENTH dispatch F2 / F3 — plain-seat planned-then-observations + dry-run ──
+
+
+def test_plain_seat_own_chain_reap_planned_then_observations(_fix, tmp_path,
+                                                             monkeypatch):
+    """F2 — a plain-seat rotation proves (a) the OLD behaviour is unchanged
+    (the own-chain reap + own-window kill still run on a plain-named seat)
+    and (b) the PLANNED s12 evidence is written BEFORE the first TERM, then
+    overwritten by the real observations (e): the record ends carrying a real
+    chain's gone_after, rc==0, and the own window line is dropped."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    monkeypatch.setenv("TMUX_PANE", "")
+    p1 = subprocess.Popen(["sleep", "2000"])
+    try:
+        def fake_spawn(**kw):            # successor under the plain name
+            with open(win, "a", encoding="utf-8") as fh:
+                fh.write("adv-alive\n")
+            return 0, "echo hi"
+
+        monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+        monkeypatch.setattr(rotate, "_read_ack",
+                            lambda *a, **k: {"seat": "adv-alive",
+                                             "gen_after": 1,
+                                             "answer": "continue"})
+        old_handlers = {s: signal.getsignal(s)
+                        for s in (signal.SIGHUP, signal.SIGTERM,
+                                  signal.SIGPIPE)}
+        args = SimpleNamespace(
+            name="adv-alive", force=False, timeout=5, debug_file=None,
+            model=None, effort=None, settings=None, prompt_file=None,
+            tmux_session="t", window_path=str(win), dry_run=False,
+            throwaway=False, successor_argv=None, role="parent",
+            session_ref=None, successor_transcript=None, own_pid=None,
+            belam_prefix=None, own_chain=[p1.pid], registry_dir=None,
+            registry_poll=None, view_path=None, verification_argv=None,
+            grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+            trigger="rotate-self", in_flight=None)
+        try:
+            rc = rotate.cmd_rotate_self(args, tmp_path)
+        finally:
+            for s, h in old_handlers.items():
+                try:
+                    signal.signal(s, h)
+                except (ValueError, OSError):
+                    pass
+    finally:
+        if rotate._pid_alive(p1.pid):
+            os.kill(p1.pid, signal.SIGKILL)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    s12 = rec["s12_self_reap"]
+    # (e) planned entry carried; observations overwrite it with the real chain
+    assert s12.get("planned") is True
+    assert s12["chain"][0]["gone_after"] is True
+    assert p1.pid in {c["pid"] for c in s12["chain"]}
+    # old plain-seat behaviour unchanged: the OWN window is killed by @id
+    assert "@5 adv-alive.gen1" not in win.read_text(encoding="utf-8")
+
+
+def test_chain_seat_dry_run_prints_fifo_plan_touches_nothing(_fix, tmp_path,
+                                                             monkeypatch,
+                                                             capsys):
+    """F3 — --dry-run on the prime-shaped fixture prints the successor numeral
+    name, the s12 GATING and the Belam FIFO plan (ps -e) and touches NOTHING:
+    no window-file write, no reap, no rotation record."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    # the _fix fixture's rotations.md names only the parent template; give
+    # the chain-seat dry-run its prime_director template so it resolves.
+    g = tmp_path / "nodes" / ".geometry"
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  prime_director:\n    brief_file: "
+        "extensions/agi/briefs/prime-director-successor.md\n"
+        "    steps: [handoff, spawn]\n    telemetry: [seed, model, ack]\n"
+        "---\n\nbody\n", encoding="utf-8")
+    win = tmp_path / "windows.txt"
+    win.write_text("@10 belam-S1-L4-I\n@11 belam-S1-L4-II\n"
+                   "@12 belam-S1-L4-III\n@13 belam-S1-L4-IV\n"
+                   "@14 belam-S1-L4-V\n@15 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    before = win.read_text()
+    args = SimpleNamespace(
+        name="belam", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=False, successor_argv=None, role="prime_director",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "belam-S1-L4-VII" in out        # the successor numeral name derived
+    assert "GATES this off" in out         # s12 gating for a numeral-chain seat
+    assert "ps -e" in out                  # (w) the dry-run says ps -e
+    assert win.read_text() == before       # touched nothing
+    rot = tmp_path / "sessions" / "rotations"
+    assert not rot.exists() or not list(rot.glob("belam.*.json"))

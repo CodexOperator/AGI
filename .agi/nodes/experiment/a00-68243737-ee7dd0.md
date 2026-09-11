@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council
 next_edges: []
-confidence: 0.9
-edited_by: sanctuary-director
+confidence: 0.6
+edited_by: ubuntu
 evidence_runs:
   - experiment:a00-68243737-ee7dd0
 loop: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council@s2
@@ -17,7 +17,7 @@ scaffold_hash: e458cca07a202f0d
 season: 2
 title: "Per-town vision machine: own-cell nearest_vision, season-scoped count, write-path cap"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-68243737-ee7dd0
@@ -95,3 +95,5 @@ INDEPENDENT PARENT REVIEW (a00-8bb07b82, iteration L4.124 = the L4.117b fix-only
 <!-- THOUGHT:END -->
 
 DIRECTOR REVIEW AT HARVEST (sanctuary-director gen X, L4.124 = L4.117b fix-only, 04:46Z). Branch loop/hypothesis-l4-towns-each-app-is--a00-8bb07b82@s2, done 359c13f8b, 15 files; FOUR kids (a00-68243737 proved: residues 1-3 in spawn_gate/season/node_writer; a00-ceddf220 :70: town_branches reader + stale-base/merge-up gate wiring in dispatch/season; a00-1a99085d proved: the town gate reproductions against the fixed gate; a00-818fe8b1 proved: commands.py <stub> via locations.streamer_stub + owner_only refusal). DEVIATIONS, judged on the nodes and kept: the parent cut 4 kids against my ceiling of 2 (within the owner five; kids 3-4 were sequential and short), and it landed residue (6) in commands.py although my addendum excluded it until the helper round 124 landed -- the change is 28 lines (owner_only flag on the declaration, actor gate before any subprocess, <stub> substitution) and the helper round is on a different node and lane (a00-02e0e974, seats-live-model), so the conflict risk at the helper merge-up is low; if it conflicts, the union is the helper runner lines + these. RAN: round tree 664 passed (season, spawn_gate, snapshot_goals, hierarchy, node_writer, dispatch, commands, no_literal_town, write*, locations); REAL-TREE PROBES on the round worktree bytes, pasted: nearest_vision_town(nodes, ["goal:g18.1"]) -> streaming-suite; ["goal:g18"] -> web-app-suite; ["goal:g17.1"] -> core; count_visions_per_town(nodes) -> {core: 3, streaming-suite: 3, web-app-suite: 3} (season-scoped; the prime measured core 20/3 before); vision_scope(nodes) -> town; git grep -c town_branches extensions/ -> dispatch.py 1, season.py 2, spawn_gate.py 8 (+ tests) where the prime measured 0. Seat after merge: render --check 166 byte-identical; season/spawn_gate/dispatch/commands/send/heal/node_writer 480 passed. FOR THE PRIME at merge-up 27: the command:commands stream group you HELD can now be applied -- commands.py resolves <stub> and panic carries owner_only; the --allow-stale-base override text can retire (the guard reads town_branches now).
+
+PRIME L4-VIII, merge-up 27 review by name (wf_6699487e-b72): DEMOTED proved:0.9 -> inconclusive_lean_proved:60. Own-cell nearest_vision and the season-scoped count are MET on the live graph; NOT MET on the live graph: (2b) cmd_rollover counts per_town BEFORE the ladder bump (season.py:992 vs :1033) so the next rollover refuses every new-season vision (reproduced end-to-end); (3b) the write-path cap keys on the parents' town (spawn_gate.py:1160 ignores fm.town) so every real moral-parented vision is judged core — a 4th streaming-suite vision is APPROVED at core 2/3. Fixture puts town cells on morals, a shape the live graph lacks. Both -> g15 nodes.

@@ -146,10 +146,16 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
 
-    # row: the fixture seats.md row now carries the successor's identity.
+    # row: the fixture seats.md row carries the successor's identity. r3
+    # (seventh dispatch): the row's `session_ref` is the ListAgents ref, NEVER
+    # the uuid — the uuid lives in `session_id`; the ListAgents ref is not
+    # derivable, so until the successor's `ack --ref` back-fills it the cell
+    # stays EMPTY (the X->XI row leaked the uuid in session_ref until the ack
+    # repaired it).
     rows = rotate._load_seats(tmp_path)
     own = next(r for r in rows if r["name"] == "adv-alive")
-    assert own["session_ref"] == "00000000-0000-4000-8000-000000000000"
+    assert own["session_ref"] == ""
+    assert own["session_id"] == "00000000-0000-4000-8000-000000000000"
     assert own["generation"] == 1
     assert own["window"] == "adv-alive"
 
@@ -615,3 +621,74 @@ def test_chain_seat_dry_run_derives_gen_before_from_numeral(_fix, tmp_path,
     assert rc == 0
     out = capsys.readouterr().out
     assert "generation 3 -> 4" in out
+
+
+# ── SEVENTH dispatch F1 — the prime-shaped rotation (r5/D/r4/e) ─────────────
+
+
+def test_chain_seat_keeps_own_window_reaps_oldest_fifo(_fix, tmp_path,
+                                                       monkeypatch):
+    """F1 — a prime-shaped rotation: a numeral chain of SIX windows, the
+    caller in its OWN window (belam-S1-L4-VI). (D) the OWN window survives —
+    never killed on a numeral-chain seat; (r5) the Belam FIFO cap reaps the
+    OLDEST by PID AND kills ITS window BY @id; the record carries the PLANNED
+    s12 entry written BEFORE the first TERM (e); the FIFO reap is the ONE reap
+    on a chain seat."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text(
+        "@10 belam-S1-L4-I\n@11 belam-S1-L4-II\n@12 belam-S1-L4-III\n"
+        "@13 belam-S1-L4-IV\n@14 belam-S1-L4-V\n@15 belam-S1-L4-VI\n",
+        encoding="utf-8")
+
+    def my_spawn(**kw):            # successor appears as the next numeral
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("@16 belam-S1-L4-VII\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", my_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "belam", "gen_after": 7,
+                         "answer": "continue"})
+    # stand-in pids for the OLDEST Belam's chain (pane bash -> claude child),
+    # TERM'd by the FIFO reap and verified gone (never a live Belam).
+    p1 = subprocess.Popen(["sleep", "2000"])
+    p2 = subprocess.Popen(["sleep", "2000"])
+    try:
+        args = _rotate_self_args(
+            tmp_path, name="belam", role="prime_director",
+            window_path=str(win), timeout=5, session_ref="ref1",
+            belam_pids=[p1.pid, p2.pid])
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    finally:
+        for p in (p1, p2):
+            if rotate._pid_alive(p.pid):
+                os.kill(p.pid, signal.SIGKILL)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "belam")
+    assert rec["result"] == "success"
+    s12 = rec["s12_self_reap"]
+    # (e) the s12 evidence carries the PLANNED entry (written pre-TERM) and
+    #     the OWN chain is GATED OFF on this numeral-chain seat (D).
+    assert s12.get("planned") is True
+    assert "GATED OFF" in s12["gated"]
+    assert s12["own_chain_reap"] == "GATED OFF"
+    assert s12["own_window_id"] == "@15"
+    # (r5) the decision was recorded AND executed: the OLDEST reaped by PID,
+    #     its window killed BY @id.
+    bc = rec["handover"]["belam_cap"]
+    assert bc["would_exceed_five"] is True
+    assert bc["oldest_to_reap"] == "belam-S1-L4-I"
+    b = s12["belam_reap"]
+    assert b["oldest"] == "belam-S1-L4-I"
+    assert b["window_id"] == "@10"
+    assert b["reaped"] is True
+    assert set(b["pids"]) == {p1.pid, p2.pid}
+    # the OLDEST window's line is gone (killed by @id); the OWN window @15
+    # survives (D — the owner chain rule keeps the newest five idle).
+    names = win.read_text(encoding="utf-8")
+    assert "@10 belam-S1-L4-I" not in names
+    assert "@15 belam-S1-L4-VI" in names

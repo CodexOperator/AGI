@@ -72,6 +72,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import hashlib
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -433,7 +434,32 @@ def render_unit_file(name: str, svc: dict, repo_root: Path) -> list[str]:
     return lines
 
 
-def _apply_systemctl(args: list[str], *, dry_run: bool) -> str:
+def _systemd_bus_env() -> dict[str, str] | None:
+    """Env additions so `systemctl --user` can reach the user bus, or None
+    when no bus is reachable and the call would necessarily fail.
+
+    - Caller already has DBUS_SESSION_BUS_ADDRESS (an interactive shell has
+      it and XDG_RUNTIME_DIR): reachable, adds nothing — the inherited env
+      already carries the bus.
+    - No caller bus but the XDG_RUNTIME_DIR bus socket exists (the CRON case:
+      cron runs with neither var, the socket is there, give the call the
+      address): returns XDG_RUNTIME_DIR + DBUS_SESSION_BUS_ADDRESS.
+    - Socket absent too: None — any `systemctl --user` call is doomed (logs
+      `No medium found`). The caller records ONE named skip instead of two
+      FAILED actions, because a healing step that only runs when the bus is
+      up and then FAILs is not a healing step (CLAUDE.md).
+    """
+    if os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+        return {}
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    if os.path.exists(f"{runtime}/bus"):
+        return {"XDG_RUNTIME_DIR": runtime,
+                "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime}/bus"}
+    return None
+
+
+def _apply_systemctl(args: list[str], *, dry_run: bool,
+                     env: dict[str, str] | None = None) -> str:
     """Actually run `systemctl --user <args>` via PATH — a FAKE systemctl in
     tests (residue b: tests prove the exact argv and never touch the real
     user manager or ~/.config/systemd). The real user manager is only ever
@@ -441,13 +467,23 @@ def _apply_systemctl(args: list[str], *, dry_run: bool) -> str:
     with `--unit-dir`. Under `--dry-run` the intent is recorded and nothing
     runs. A failed systemctl becomes a visible action string, never an
     exception — a crontab apply must not die midway because one unit refused.
+
+    `env`, when given, is merged over the caller's environment before the
+    subprocess runs so a cron-invoked apply can reach the user bus (see
+    `_systemd_bus_env`). The env never changes the argv the FAKE records, so
+    tests assert argv exactly as before with the caller's bus already set
+    (`{}`).
     """
     label = " ".join(["systemctl", "--user", *args])
     if dry_run:
         return f"{label} (dry-run)"
+    merged = os.environ.copy()
+    if env:
+        merged.update(env)
     try:
         res = subprocess.run(["systemctl", "--user", *args],
-                             capture_output=True, text=True, timeout=60)
+                             capture_output=True, text=True, timeout=60,
+                             env=merged)
     except (subprocess.TimeoutExpired, OSError) as exc:
         return f"{label} FAILED ({exc})"
     if res.returncode != 0:
@@ -497,24 +533,46 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
             # Make systemd SEE and START the unit. Idempotent in systemd, so
             # it also runs when the file was already current — a file written
             # by an earlier apply but never enabled converges on the next one.
-            actions.append(_apply_systemctl(["daemon-reload"], dry_run=dry_run))
-            actions.append(_apply_systemctl(["enable", "--now", service_arg],
-                                            dry_run=dry_run))
+            # Under cron there is no login session; reach the user bus via
+            # _systemd_bus_env, or record one named skip when no bus exists
+            # (was two FAILED `No medium found` actions every 5 minutes).
+            bus_env = _systemd_bus_env()
+            if bus_env is None:
+                actions.append(
+                    f"unit {target.name} no user bus, skip systemctl")
+            else:
+                actions.append(_apply_systemctl(["daemon-reload"],
+                                                dry_run=dry_run, env=bus_env))
+                actions.append(_apply_systemctl(["enable", "--now",
+                                                 service_arg],
+                                                dry_run=dry_run, env=bus_env))
         else:
             # crons_live false, or the service disabled: the kill switch
             # STOPS the unit through the real seam (disable --now), removes
             # the file, and reloads so the removal is seen by systemd.
-            actions.append(_apply_systemctl(["disable", "--now", service_arg],
-                                            dry_run=dry_run))
             if target.exists():
+                bus_env = _systemd_bus_env()
+                if bus_env is not None:
+                    actions.append(_apply_systemctl(
+                        ["disable", "--now", service_arg],
+                        dry_run=dry_run, env=bus_env))
                 if not dry_run:
                     target.unlink()
                     actions.append(f"remove unit {target.name}")
                 else:
                     actions.append(f"remove unit {target.name} (dry-run)")
+                if bus_env is not None:
+                    actions.append(_apply_systemctl(["daemon-reload"],
+                                                    dry_run=dry_run, env=bus_env))
+                else:
+                    actions.append(
+                        f"unit {target.name} no user bus, skip daemon-reload")
             else:
-                actions.append(f"unit {target.name} absent")
-            actions.append(_apply_systemctl(["daemon-reload"], dry_run=dry_run))
+                # Unit already gone (crons_live flipped after a manual remove,
+                # or never landed): not loaded, so nothing to disable. Record
+                # the state in one line — was `disable --now` on an absent
+                # unit logging FAILED every 5 minutes.
+                actions.append(f"unit {target.name} absent, nothing to disable")
     return actions
 
 
