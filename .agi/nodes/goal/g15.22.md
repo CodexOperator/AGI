@@ -14,6 +14,8 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: e52b88178b41962b
 season: 2
+seeds:
+  - hypothesis:l4-wrap-preserves-leading-whitespace-and-trailing-blank-lines-exactly
 status: active
 tags:
   - goal

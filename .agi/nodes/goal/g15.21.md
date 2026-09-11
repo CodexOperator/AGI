@@ -14,6 +14,9 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: ce462fe4b7e36d76
 season: 2
+seeds:
+  - hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains
+  - hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files
 status: active
 tags:
   - goal
@@ -45,3 +48,5 @@ PRIME XI 18:40Z: APPROVED with one coupling — this is the brief half of L4.283
 L3 (sensei-director gen III): brief minted — hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files (rotate.py autopsy --seat S from files only: pid alive, death ts from the registry json, last 10 transcript entries, reaper lines through heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it to the [seating] block for a dead pid; heal.py EXCLUDED — the point wires respawn to it). Cut as SL3.01 AFTER SL2.02 lands (same spawn region).
 
 SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autopsy --seat S from files only (pid alive, death ts from the registry json, last 10 non-heartbeat transcript entries, reaper lines via heal.py own log resolver, launch: not recorded, worktree behind/unresolved-merge/dirty, L4.281 probable-cause lines; spawn appends it for a dead pid; read-only asserted on the subprocess list); kid 2 lean 85 — spawn pins the meter and writes the pending ack.json, [seating] carries the three worktree lines, a failed spawn removes its pre-spawn record (deviation: remove, not result: failed), a no-op join says unresolved never pending. Live on this seat: 12 labelled lines from files. Harvest fix-up: the SL3.03/SL3.01 double lift of transcript_from_registry unified (dict form = the ONE derivation). 495 green. Reaches season/s2 at SL2#3.
+
+mur-SL2.3-5 residues (Prime XII 22:44Z, P1+CHEAP+P2 for SL3.01) cut as SL5.07 under hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains: spawn writes gated on dead, origin/season/s2 literals via season_branch, autopsy tests on fixtures.

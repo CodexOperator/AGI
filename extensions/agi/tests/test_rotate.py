@@ -13,6 +13,303 @@ from agi.bin import rotate
 from agi.bin import brief
 
 
+def _mk_seat_key(tmp_path, seat, scheme="ed25519"):
+    from agi.bin import send
+    kr = send._seats_dir(tmp_path)
+    kr.mkdir(parents=True, exist_ok=True)
+    scheme_obj = send.seatsig.get(scheme)
+    _priv, pub = scheme_obj.keygen()
+    key_path = kr / f"{seat}.key"
+    key_path.write_text(
+        '{"scheme": "ed25519", "priv_hex": "%s"}' % _priv.hex())
+    import os
+    os.chmod(key_path, 0o600)
+    return key_path, pub
+
+
+def test_rotate_key_gate_refuses_keyed_seat_without_key(tmp_path):
+    # KEY-GATED: a KEYED row (names a pubkey) but no key file refuses by name.
+    err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": "deadbeef"})
+    assert err is not None
+    assert "s1" in err
+    assert "keygen s1" in err
+
+
+def test_rotate_key_gate_passes_when_key_present(tmp_path):
+    # row keyed AND the key file exists -> gate passes.
+    key_path, pub = _mk_seat_key(tmp_path, "s1")
+    err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": pub.hex()})
+    assert err is None
+
+
+def test_rotate_key_gate_passes_unkeyed_and_throwaway(tmp_path):
+    # no pubkey in the row (incremental fleet keying) and a throwaway row
+    # (empty dict) are NEVER refused here -- the minting half is other work.
+    assert rotate._rotate_key_gate(tmp_path, "s1", {"role": "parent"}) is None
+    assert rotate._rotate_key_gate(tmp_path, "s1", {}) is None
+    assert rotate._rotate_key_gate(tmp_path, "s1", None) is None
+
+
+def test_rotate_first_key_mints_unkeyed_row(tmp_path):
+    # line (1) minting half: an UNKEYED real row mints its first key IN THE
+    # SAME rotate-self step (incremental fleet keying) -- a 0600 key file
+    # appears at <sessions>/seats/<seat>.key and a note is returned.
+    from agi.bin import send
+    note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"role": "parent"})
+    assert note
+    assert "minted its first key" in note
+    key_path = send._seat_key_path(tmp_path, "s1")
+    assert key_path.is_file()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(key_path.read_text())
+    assert obj.get("scheme")
+    # no cfg/graph here, so there are no rows to write -- the key file is
+    # the minted half; the pubkey cell row-write is best-effort and absent.
+    assert send._seats_rows(tmp_path) == []
+
+
+def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
+    # the mint MUST go through send._mint_seat_key (no second key writer, no
+    # ed25519 literal in rotate.py). rotate.py imports `send` as a TOP-LEVEL
+    # module (it pushes bin/ onto sys.path at import), which is a DIFFERENT
+    # module object from `agi.bin.send` -- so patch the one rotate binds.
+    import send as bin_send
+    orig = bin_send._mint_seat_key
+    seen = {}
+
+    def spy(r, s, sc):
+        seen["call"] = (r, s, sc)
+        return orig(r, s, sc)
+
+    monkeypatch.setattr(bin_send, "_mint_seat_key", spy)
+    rotate._rotate_first_key(tmp_path, tmp_path, "s2", {"role": "helper"})
+    assert seen.get("call") == (tmp_path, "s2",
+                                 bin_send.seatsig.DEFAULT_SCHEME)
+    from agi.bin import send as send_pkg
+    assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
+
+
+def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path):
+    # already-keyed row, a throwaway (empty) row, and an idempotent re-rotate
+    # (key file already exists) all mint nothing -> ''.
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"pubkey": "deadbeef", "role": "parent"}) == ""
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
+    from agi.bin import send
+    _mk_seat_key(tmp_path, "s3")
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s3",
+                                    {"role": "parent"}) == ""
+
+
+# ---- goal:g15.25 line (2) SUCCESSOR half (SL5.05 ORDER 2) ----------------
+
+def test_rotate_first_key_dry_run_leaves_no_key_and_no_row(tmp_path):
+    """ORDER 1 (SL5.05): --dry-run on an unkeyed real row mints NOTHING and
+    writes NO row cell; it still reports the mint it would perform."""
+    from agi.bin import send
+    note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"role": "parent"}, dry_run=True)
+    assert note
+    assert "(dry-run)" in note
+    assert not send._seat_key_path(tmp_path, "s1").exists()
+    assert send._seats_rows(tmp_path) == []
+
+
+def test_rotate_successor_key_mints_and_replaces(tmp_path):
+    """SL5.05 handover-order fix: the mint + retirement SIGN happen early and
+    return the successor key in ``pending_key``, but <seat>.key is NOT
+    flipped by `_rotate_successor_key` alone -- it stays byte-identical with
+    the PREDECESSOR key until `_apply_successor_key_pending` runs (which the
+    caller gates on the row write + commit succeeding). After apply the
+    successor key is atomically in place (0600, valid JSON)."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "parent",
+           "sig_scheme": "ed25519"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2)
+    assert out is not None
+    # DEFERRED: the file is NOT yet touched -- still the predecessor key,
+    # byte-identical (a failed spawn/row-write/commit would leave it so).
+    assert key_path.read_text() == before
+    pk = out.get("pending_key")
+    assert pk is not None and pk["path"] == str(key_path)
+    # only the gated apply flips the file.
+    applied = rotate._apply_successor_key_pending(pk)
+    assert "key_replace" in applied and str(key_path) in applied
+    assert key_path.is_file()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(key_path.read_text())
+    assert obj.get("scheme") == "ed25519"
+    sch = send.seatsig.get("ed25519")
+    live_pub = sch.public_from_secret(bytes.fromhex(obj["priv_hex"]))
+    assert live_pub.hex() == out["successor_pub"]
+    assert out["successor_pub"] != pred_pub.hex()  # a NEW key, not the old
+    ret = out["retired"]
+    assert ret["pub"] == pred_pub.hex()  # retired = the predecessor pub
+    assert ret["fp"] == send.seatsig.fingerprint(pred_pub)
+    assert ret["from"] == 1 and ret["to"] == 2
+    assert "rotated_by_sig" in ret
+
+
+def test_rotate_successor_key_gate_leaves_pred_key_on_failed_row_write(tmp_path):
+    """SL5.05 handover-order fix, proving the DEFECT is closed: when the
+    successor spawn-row write (or its one commit) FAILS, the predecessor
+    <seat>.key is left BYTE-IDENTICAL and NO successor key is ever written --
+    `_apply_successor_key_gated` records the refusal and does not flip the
+    file. The failure seam is the existing try/except that records
+    ``successor_row`` / ``spawn_row_commit`` as ``FAILED: ...`` lines."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    pred_priv = json.loads(before)["priv_hex"]
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2)
+    assert out is not None and "pending_key" in out
+
+    # (a) row write FAILED (the existing seam: _successor_row_write raised,
+    #     caught as 'FAILED: ...'); no commit ran (absent).
+    r1 = rotate._apply_successor_key_gated(
+        out, "FAILED: write.submit boom", "")
+    assert "NOT applied" in r1
+    assert key_path.read_text() == before  # byte-identical
+    assert json.loads(key_path.read_text())["priv_hex"] == pred_priv
+
+    # (b) row write ok but the ONE commit FAILED.
+    r2 = rotate._apply_successor_key_gated(
+        out, "config:seats row s1: ...", "spawn_row_commit: FAILED -- git add")
+    assert "NOT applied" in r2
+    assert key_path.read_text() == before  # still the predecessor key
+
+    # (c) row write ok + commit ok -> the successor key IS written.
+    r3 = rotate._apply_successor_key_gated(
+        out, "config:seats row s1: ...",
+        "spawn_row_commit: committed (sha abc1234)")
+    assert "key_replace: wrote" in r3
+    assert key_path.read_text() != before
+    assert (json.loads(key_path.read_text())["priv_hex"]
+            == out["pending_key"]["priv_hex"])
+
+    # (d) commit SKIPPED (gitless / already-clean) is NOT a failure -- the
+    #     rotation still succeeds and the key flips (the row WAS written;
+    #     only the durability commit was skipped, by design never fatal).
+    key_path2, pred_pub2 = _mk_seat_key(tmp_path, "s2")
+    row2 = {"pubkey": pred_pub2.hex(), "role": "helper"}
+    out2 = rotate._rotate_successor_key(tmp_path, "s2", row2,
+                                        gen_before=1, gen_after=2)
+    r4 = rotate._apply_successor_key_gated(
+        out2, "config:seats row s1: ...",
+        "spawn_row_commit: SKIPPED -- no git repo; ...")
+    assert "key_replace: wrote" in r4
+    assert (json.loads(key_path2.read_text())["priv_hex"]
+            == out2["pending_key"]["priv_hex"])
+
+    # (e) NO-OP: no pending_key (unkeyed row, dry-run, None) -> ''
+    assert rotate._apply_successor_key_gated(None, "x", "y") == ""
+
+
+def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
+    """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
+    must fail under a corrupted record (the signature is specific)."""
+    from agi.bin import send
+    _key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=3, gen_after=4)
+    ret = out["retired"]
+    sch = send.seatsig.get("ed25519")
+    good = f"s1\nretire\n3\n4\n{out['successor_pub']}"
+    assert sch.verify(bytes.fromhex(ret["pub"]), good.encode(),
+                      bytes.fromhex(ret["rotated_by_sig"]))
+    bad = f"s1\nretire\n3\n5\n{out['successor_pub']}"
+    assert not sch.verify(bytes.fromhex(ret["pub"]), bad.encode(),
+                          bytes.fromhex(ret["rotated_by_sig"]))
+
+
+def test_rotate_successor_key_leaves_unkeyed_and_throwaway_alone(tmp_path):
+    """Unkeyed row, THROWAWAY/empty row, None, and a keyed row with no key
+    file (the gate refused it earlier) all retire nothing -> None."""
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", {"role": "parent"}, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", {}, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", None, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s2", {"pubkey": "deadbeef"},
+        gen_before=1, gen_after=2) is None
+
+
+def test_rotate_successor_key_dry_run_touches_nothing(tmp_path):
+    """ORDER 1: --dry-run on a keyed row mints nothing, replaces nothing,
+    and still reports the retirement it would perform."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2, dry_run=True)
+    assert out is not None and out.get("dry_run") is True
+    assert "(dry-run)" in out["note"]
+    assert key_path.read_text() == before  # byte-identical: nothing replaced
+
+
+def _seed_key_history_graph(root, rows):
+    """A minimal graph root (project/.agi) whose config:seats admits the
+    self_row fields, so `_successor_row_write`'s write.submit admission runs.
+    Mirrors test_write_self_row's project fixture; never touches live config."""
+    graph = root / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sd = graph / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    live = (Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas" /
+            "[config].md")
+    if live.exists():
+        (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
+    d = graph / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f"  - {r!r}" for r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\n"
+        "mint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nseats:\n" + body + "\n---\n\nfixture\n",
+        encoding="utf-8")
+    return graph
+
+
+def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
+    """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
+    spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
+    entry and never shrinking existing history."""
+    from agi.bin import send
+    existing_hist = [{"pub": "00" * 32, "fp": "deadbeef12345678",
+                      "from": 0, "to": 1, "rotated_by_sig": "feed"}]
+    rows = [{"name": "s1", "role": "director",
+             "session_ref": "x", "generation": 1, "window": "",
+             "key_history": list(existing_hist)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    _key_path, pred_pub = _mk_seat_key(graph, "s1")
+    row = {"pubkey": pred_pub.hex(), "role": "director"}
+    kr = rotate._rotate_successor_key(graph, "s1", row,
+                                      gen_before=1, gen_after=2)
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=2, window="",
+        key_rotation=kr)
+    assert "config:seats row" in out and "s1" in out
+    import write as w
+    rows_after = w._load_seats(graph)
+    own = next(r for r in rows_after if r.get("name") == "s1")
+    assert own["pubkey"] == kr["successor_pub"]
+    assert own["key_history"] == existing_hist + [kr["retired"]]
+    assert own["key_history"][-1]["pub"] == pred_pub.hex()
+
+
 @pytest.fixture
 def fake_ladder(tmp_path, monkeypatch):
     root = tmp_path
