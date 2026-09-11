@@ -34,6 +34,11 @@ _spec.loader.exec_module(gate)
 
 TEST_SRC = 'def test_ok():\n    assert True\n'
 
+#: Sentinel for _run_pytest.agent_root: an EMPTY throwaway sessions dir, so
+#: no running record is an ancestor and the env fallback decides — without
+#: depending on whatever the live tree holds.
+_EMPTY = object()
+
 
 class _Opt:
     def __init__(self, keyword=""):
@@ -64,16 +69,30 @@ def test_decision_k_filter_passes_even_on_directory():
     ) is False
 
 
-def _run_pytest(path_args, env_extra, named_file=False, agent_root=None):
+def _run_pytest(path_args, env_extra, named_file=False, agent_root=_EMPTY,
+                outer_pytest=True, env_seam=None, extra_argv=()):
     """Run pytest against a throwaway dir that symlinks the real conftest.
 
-    `agent_root`: the sessions root handed to the gate via
-    AGI_AGENT_SESSIONS_ROOT. Default None -> an EMPTY (never created) dir, so
-    no running agent record is an ancestor and the gate exercises its env
-    fallback deterministically -- without the HOST's own real agent.json
-    (always an ancestor of any pytest it spawns) injecting an unbreakable
-    tier. Pass a fixture tree full of agent.json records to drive the
-    record-derived branch instead.
+    `agent_root`: the sessions root handed to the gate via the TEST-ONLY
+    `--agent-records-root` option.
+      * `_EMPTY` (default) -> a fresh EMPTY throwaway sessions dir, so no
+        running record is an ancestor and the env/record fallback decides
+        deterministically (independent of whatever the live tree holds).
+      * a path -> passed as `--agent-records-root=<path>` to exercise the
+        record-derived branch.
+      * `None` -> NO option and no env seam: the tree-derived root is used
+        (exercises the bare-shell production path).
+
+    `outer_pytest=True` (the default, a nested run under this suite) leaves
+    PYTEST_CURRENT_TEST in the env, so the option is honored.
+    `outer_pytest=False` simulates a BARE SHELL kid: PYTEST_CURRENT_TEST is
+    stripped, so the option (and any env-seam) is ignored and the root is
+    always the tree.
+
+    `env_seam`: if not None, sets the OLD dead env var AGI_AGENT_SESSIONS_ROOT
+    in the child env, to prove the gate ignores it (the env-seam falsifier).
+    Normally the env var is simply popped, so a leftover value in the host
+    environment cannot leak into a nested scan.
     """
     import tempfile
 
@@ -84,19 +103,24 @@ def _run_pytest(path_args, env_extra, named_file=False, agent_root=None):
             f.write(TEST_SRC)
         target = os.path.join(d, "test_a.py") if named_file else d
         env = dict(os.environ)
-        if env_extra is None:
-            env.pop("AGI_TIER", None)
-        else:
+        env.pop("AGI_TIER", None)
+        if env_extra is not None:
             env["AGI_TIER"] = env_extra
-        if agent_root is None:
-            # Empty sessions root -> no record matches -> env fallback.
-            env[gate.AGENT_RECORDS_ROOT_ENV] = os.path.join(d, "sessions")
-        else:
-            env[gate.AGENT_RECORDS_ROOT_ENV] = str(agent_root)
-        proc = subprocess.run(
-            [sys.executable, "-m", "pytest", target, "-q"],
-            capture_output=True, text=True, env=env,
-        )
+        # The env seam is dead (hypothesis:l4-the-kid-tier-gate-has-no-env-
+        # seam): never carry it into the child; the only root is tree- or
+        # option-derived. `env_seam` is an explicit re-add for the falsifier.
+        env.pop(gate.AGENT_RECORDS_ROOT_ENV, None)
+        if env_seam is not None:
+            env[gate.AGENT_RECORDS_ROOT_ENV] = str(env_seam)
+        if not outer_pytest:
+            env.pop("PYTEST_CURRENT_TEST", None)
+        argv = [sys.executable, "-m", "pytest", target, "-q"]
+        if agent_root is _EMPTY:
+            argv.append("--agent-records-root=" + os.path.join(d, "sessions"))
+        elif agent_root is not None:
+            argv.append(f"--agent-records-root={agent_root}")
+        argv.extend(extra_argv)
+        proc = subprocess.run(argv, capture_output=True, text=True, env=env)
         return proc.returncode, proc.stderr
     finally:
         import shutil
@@ -251,3 +275,98 @@ def test_module_collects_with_cwd_outside_the_repo_root(tmp_path):
         f"import again:\n{proc.stdout[-2000:]}\n{proc.stderr[-2000:]}")
     assert "ModuleNotFoundError" not in (proc.stdout + proc.stderr)
     assert os.path.isfile(os.path.join(here, "conftest.py"))
+
+
+# --- fix: the gate has NO env seam (hypothesis:l4-the-kid-tier-gate-has-  ---
+# --- no-env-seam). The production root is ALWAYS tree-derived; the only  ---
+# --- re-root is the TEST-ONLY --agent-records-root option, guarded by an ---
+# --- outer PYTEST_CURRENT_TEST. A kid can neither set an env var nor (in ---
+# --- bare shell) pass the flag to point the scan at a non-kid root.     ---
+
+
+def test_falsifier_env_seam_dead_kid_still_refuses():
+    """FALSIFIER. AGI_TIER UNSET and the OLD dead env var
+    AGI_AGENT_SESSIONS_ROOT pointed at an EMPTY throwaway dir: the record
+    root must be tree/option derived, NOT the env var, so a planted kid
+    record (ancestor pid) still refuses a bare-directory run. Before this
+    fix, setting the var to an empty root scanned nothing and the bare dir
+    run exited 0.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    empty = tempfile.mkdtemp()  # the throwaway dir the env seam would point at
+    try:
+        _write_agent_record(root, "kid1", os.getpid(), "kid", status="running")
+        code, err = _run_pytest([], None, agent_root=root, env_seam=empty)
+        assert code == 4, f"expected refusal, got {code}: {err}"
+        assert "AGI_TIER=kid" in err
+        assert "specific test file or a -k filter" in err
+    finally:
+        import shutil
+        shutil.rmtree(root)
+        shutil.rmtree(empty)
+
+
+def test_falsifier_kid_record_wins_over_env_tier_and_seam_root():
+    """Even AGI_TIER=parent (the old env fallback) cannot clear a kid whose
+    record is on the ancestor chain, and the dead env seam pointing at an
+    empty root changes nothing either: the record wins over both.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    empty = tempfile.mkdtemp()
+    try:
+        _write_agent_record(root, "kid1", os.getpid(), "kid", status="running")
+        code, err = _run_pytest([], "parent", agent_root=root, env_seam=empty)
+        assert code == 4, f"expected refusal, got {code}: {err}"
+        assert "AGI_TIER=kid" in err
+    finally:
+        import shutil
+        shutil.rmtree(root)
+        shutil.rmtree(empty)
+
+
+def test_falsifier_recorded_kid_named_file_still_passes():
+    """The record-derived kid must still run a NAMED file through the
+    test-only seam -- only the bare directory is refused.
+    """
+    import tempfile
+    root = tempfile.mkdtemp()
+    try:
+        _write_agent_record(root, "kid1", os.getpid(), "kid", status="running")
+        code, err = _run_pytest([], None, named_file=True, agent_root=root)
+        assert code == 0, f"named-file run should pass, got {code}: {err}"
+    finally:
+        import shutil
+        shutil.rmtree(root)
+
+
+def test_falsifier_no_record_tier_unset_passes_unchanged():
+    """A plain run with no planted record and AGI_TIER unset still passes."""
+    code, _ = _run_pytest([], None)  # _EMPTY root -> no record -> fallback
+    assert code == 0
+
+
+def test_bare_shell_kid_cannot_clear_gate_with_the_flag():
+    """FALSIFIER (bare shell). With PYTEST_CURRENT_TEST absent the
+    --agent-records-root option is IGNORED: the root is tree-derived, so a
+    planted kid record in the REAL tree refuses the bare-directory run even
+    when the kid points the flag at an empty throwaway dir.
+    """
+    import tempfile
+    tree_root = gate._default_record_root()
+    assert tree_root, "tree-derived root must resolve"
+    marker = Path(tree_root) / "iter-envseam-test"
+    empty = tempfile.mkdtemp()
+    try:
+        _write_agent_record(marker, "kidshell", os.getpid(), "kid",
+                            status="running")
+        code, err = _run_pytest(
+            [], None, agent_root=empty, outer_pytest=False)
+        assert code == 4, f"expected refusal, got {code}: {err}"
+        assert "AGI_TIER=kid" in err
+    finally:
+        import shutil
+        shutil.rmtree(empty)
+        if marker.exists():
+            shutil.rmtree(marker)

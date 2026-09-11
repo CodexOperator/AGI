@@ -37,16 +37,24 @@ REFUSAL_REASON = (
     "run a specific test file or a -k filter instead."
 )
 
-#: TEST-ONLY seam (hypothesis:l4-the-kid-tier-gate-is-not-clearable-from-
-#: inside-a-kid). Re-roots where the gate hunts for running agent records.
-#: Default None -> rescan the resolved project root's `.agi/sessions`. A test
-#: sets it to a throwaway fixture tree so it can exercise the record-derived
-#: branch deterministically without the HOST's own real agent.json (always an
-#: ancestor of any pytest it spawns) interfering. It is a deliberate, active
-#: env write, not the invited one-unset workaround the fix closes: a kid that
-#: goes out of its way to spoof a non-kid sessions root is outside the threat
-#: model (the documented bypass was merely obeying the brief's bare-dir line).
+#: TEST-ONLY seam (hypothesis:l4-the-kid-tier-gate-has-no-env-seam). Where
+#: the gate hunts for running agent records. The PRODUCTION root is always the
+#: resolved project tree's `.agi/sessions` (see `_default_record_root`) with NO
+#: env override -- a production env var a kid can set must not point it
+#: elsewhere. The only re-root is this module global, fed by the pytest
+#: option `--agent-records-root`, which is HONORED ONLY when the run is a
+#: NESTED pytest under an outer one (`PYTEST_CURRENT_TEST` in os.environ,
+#: inherited by the nested subprocess from the test that launched it). A bare
+#: shell invocation from a kid has no `PYTEST_CURRENT_TEST`, so the option is
+#: ignored and the root is the tree -- an unguarded argv option would just be
+#: the env seam wearing a hat. Keep this name as the DEAD env var so old
+#: commands that set it are ignored, not erroring.
 AGENT_RECORDS_ROOT_ENV = "AGI_AGENT_SESSIONS_ROOT"
+
+#: Test-only re-root. Fed from --agent-records-root, and only when
+#: PYTEST_CURRENT_TEST is present. Both `pytest_configure` and (authoritative,
+#: at the decision point) `pytest_cmdline_main` set it. None -> tree-derived.
+_TEST_AGENT_RECORDS_ROOT = None
 
 
 def _named_paths(args):
@@ -78,12 +86,15 @@ def _running_record_tiers(root) -> dict:
 
 
 def _default_record_root():
-    """The sessions root to scan when AGENT_RECORDS_ROOT_ENV is unset. The
-    agent.json dispatch writes per run lives under the graph's sessions dir:
+    """The ONE production root, always tree-derived. The agent.json dispatch
+    writes per run lives under the graph's sessions dir:
     `<graph>/.agi/sessions/iter-*/<agent>/agent.json`. locations.
     find_project_root resolves the `.agi` DIRECTORY itself (the one holding
     config.json), so the sessions dir is `root / "sessions"` -- NOT
     `root /.agi / sessions`, which doubles the dotdir and scans nothing.
+    There is deliberately NO env override (hypothesis:l4-the-kid-tier-gate-
+    has-no-env-seam): a production env var a kid can set must not point the
+    scan elsewhere.
     """
     root = locations.find_project_root(Path(__file__).resolve())
     if root is None:
@@ -92,7 +103,38 @@ def _default_record_root():
 
 
 def _record_root():
-    return os.environ.get(AGENT_RECORDS_ROOT_ENV) or _default_record_root()
+    """The root this invocation scans. Tree-derived by default; re-rooted only
+    by the test-only `--agent-records-root` option, copied into
+    `_TEST_AGENT_RECORDS_ROOT` (by `pytest_cmdline_main`, and symmetrically by
+    `pytest_configure`) ONLY when a nested outer pytest is present (see the
+    module comment). A bare kid shell can neither set the option (ignored) nor
+    any env var (dead) to move the scan.
+    """
+    return _TEST_AGENT_RECORDS_ROOT or _default_record_root()
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--agent-records-root", action="store", default=None,
+        dest="agent_records_root",
+        help=("TEST-ONLY: re-root the agent-record scan for the tier gate. "
+              "Honored ONLY under a nested outer pytest (PYTEST_CURRENT_TEST "
+              "in the environment); ignored for a bare shell invocation, so "
+              "a kid cannot use it to clear the gate."),
+    )
+
+
+def pytest_configure(config):
+    """Feed the test-only re-root into the module global, guarded by an outer
+    pytest. A bare `pytest --agent-records-root=...` from a kid shell has `-
+    PYTEST_CURRENT_TEST` unset, so the option is ignored and the root stays
+    the tree -- the production seam stays sealed by construction.
+    """
+    global _TEST_AGENT_RECORDS_ROOT
+    _TEST_AGENT_RECORDS_ROOT = None
+    val = config.getoption("agent_records_root", None)
+    if val and "PYTEST_CURRENT_TEST" in os.environ:
+        _TEST_AGENT_RECORDS_ROOT = val
 
 
 def _ppid_of(pid):
@@ -165,6 +207,22 @@ def _is_bare_directory_run(config) -> bool:
 
 
 def pytest_cmdline_main(config):
+    # Seam belt-and-suspenders: even though nothing reads it any more, drop
+    # the old env var before the tier is derived so nothing below can be
+    # re-armed by an environment that still carries it.
+    os.environ.pop(AGENT_RECORDS_ROOT_ENV, None)
+    # Apply the test-only re-root HERE, at the decision point. pytest_configure
+    # is a HISTORIC hook that is not reliably replayed to a conftest symlinked
+    # into an external run dir on this pytest, but `pytest_cmdline_main`
+    # definitely carries the parsed option and runs before the tier decision.
+    # The PYTEST_CURRENT_TEST guard is what keeps a bare kid shell from using
+    # the option: a shell run has no outer pytest marker, so the global stays
+    # None and the root is the tree.
+    global _TEST_AGENT_RECORDS_ROOT
+    _TEST_AGENT_RECORDS_ROOT = None
+    _opt = config.getoption("agent_records_root", None)
+    if _opt and "PYTEST_CURRENT_TEST" in os.environ:
+        _TEST_AGENT_RECORDS_ROOT = _opt
     if _effective_tier() != GATE_TIER:
         # Invisible at every tier other than kid (record-derived), and when
         # the tier is unset AND no running agent record matches an ancestor.
