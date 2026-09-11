@@ -308,6 +308,69 @@ kidline-added
     assert ">>>>>>>" not in resolved
 
 
+# hypothesis:l4-merge-kids-resolves-the-parents-own-worktree — the REGRESSION
+# the bare-temp-repo fixtures above cannot see: a linked git worktree differs
+# from the main checkout's git root, so `git_common_root` there resolves to
+# MAIN and `_current_branch` returns MAIN's checked-out branch. A parent's
+# merge-kids run from its OWN worktree must resolve the round branch from
+# that worktree (loop/<slug>-<agent>@s<N>), never main. This uses a REAL
+# `git worktree add` in a throwaway temp repo, never this repo.
+
+
+def _parent_worktree(repo: Path):
+    wt = repo / "wt"
+    _git(repo, "worktree", "add", "-q", "-b", "loop/parent@s2",
+         str(wt), "round").check_returncode()
+    return wt
+
+
+def _run_merge_kids_in(work_root: Path, *branches: str,
+                       suite: str = GREEN_SUITE):
+    """Run merge-kids with a sanitised env: the commit guard's tier vars
+    (AGI_TIER / AGI_PROJECT_ROOT) are stripped so a `loop/*` round-branch
+    merge is tested as pure git mechanics, independent of whatever tier the
+    test process inherited."""
+    import os
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_TIER", "AGI_PROJECT_ROOT")}
+    return subprocess.run(
+        [sys_executable(), SEASON_PY, "--root", str(work_root),
+         "merge-kids", *branches, "--suite", suite],
+        capture_output=True, text=True, env=env)
+
+
+def test_merge_kids_from_linked_worktree_never_touches_main(repo):
+    """The load-bearing regression: a parent's merge-kids called from its
+    linked worktree on loop/parent@s2 must merge kids into THAT round branch
+    and leave the main checkout's checked-out branch (round) untouched.
+    Before the fix, `git_common_root` resolved to main and the merge landed
+    on main's branch instead."""
+    wt = _parent_worktree(repo)
+    # kid branch cut from base with one commit
+    _splitbranch(repo, "round", "kid-wt")
+    (repo / "src.py").write_text(
+        (repo / "src.py").read_text() + "WTKID = True\n")
+    _commit_all(repo, "kid wt")
+
+    main_head = _git(repo, "rev-parse", "round").stdout.strip()
+
+    r = _run_merge_kids_in(wt, "kid-wt")
+    assert r.returncode == 0, r.stderr
+    assert "merged kid-wt --no-ff into loop/parent@s2" in r.stdout
+
+    # the MAIN checkout's branch (round) is completely untouched
+    assert _git(repo, "rev-parse", "round").stdout.strip() == main_head, \
+        "merge-kids from a linked worktree must never touch main's branch"
+    # and the main branch's TREE carries none of the kid's merged bytes
+    assert "WTKID" not in _git(repo, "show", "round:src.py").stdout, \
+        "main's branch must not receive the kid's merged bytes"
+
+    # the parent's OWN round branch carries the merge and the bytes
+    wtlog = _git(repo, "log", "--oneline", "-3", "loop/parent@s2").stdout
+    assert "kid wt" in wtlog
+    assert "WTKID = True" in (wt / "src.py").read_text()
+
+
 def test_merge_kids_is_a_registered_subcommand():
     """Regression for the brief->verb wiring (kid 3 of the merge hypothesis):
     the branch-parent brief names `season.py merge-kids <kid-branch> ...` as

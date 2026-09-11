@@ -2,10 +2,12 @@
 id: verdict:a00-a88ed9fb-e6efc9
 mint_id: fc8ebc68c4244991a8f2335e9841fb79
 type: verdict
-parents: experiment:a00-8887036d-fab52e experiment:a00-0716654e-c249cc
+parents:
+  - experiment:a00-8887036d-fab52e
+  - experiment:a00-0716654e-c249cc
 next_edges: []
 confidence: 0.9
-edited_by: a00-ffc1756d
+edited_by: sanctuary-helper
 evidence_runs:
   - experiment:a00-8887036d-fab52e
   - experiment:a00-0716654e-c249cc
@@ -15,6 +17,7 @@ profile: balanced
 role: kid
 scaffold_hash: 2b4641c41009e0c8
 season: 2
+thought_session: sanctuary-helper-gen4
 title: A00 a88ed9fb e6efc9
 town: core
 verdict: proved
@@ -92,3 +95,5 @@ that test's "frozen" evidence, not caused by either experiment.
 VERDICT proved 0.9: BOTH writers mirror terminal manifest. Writer1 cli.py cmd_done + Writer2 heal.py/dispatch.py reap both fixture-proved; PLUS real-data copy pass (iter-1006, 37 agents) drove falsifier 34 stale -> 0, 36 MIRRORED lines, no dm, manifest==agent.json. Live backlog untouched (node forbids watcher on live sessions); heals on next pass. Reconciler frozen-artifact 2 fails = pre-existing shared-tree contam.
 
 REVIEW (parent a00-ffc1756d): accepted, proved at confidence 0.9. Checked the frontmatter, not the report: parents resolve to BOTH experiments, evidence_runs is a real 2-id list (no bare count), verdict is in the taxonomy. INDEPENDENTLY REPRODUCED the real-data claim myself, not taken on faith: copied the live .agi/sessions/iter-1006 into a throwaway tmp project root, counted 34 stale (terminal agent.json, manifest running), ran ONE heal._watch_round pass over the COPY, counted 0 stale, 36 MIRRORED log lines, final manifest statuses = {done:34, done-unreported:2, failed:1} — the same numbers the kid reported. Clean tree untouched; the copy was deleted. ALSO a live corroboration: the iter-200 manifest on this tree shows a00-0716654e=done and a00-a88ed9fb=done, both written by cmd_done _mirror_terminal_into_manifest — the source half working on a real round, not a fixture. And a live instance of the residual the verdict names: a00-8887036d agent.json=done (finished_at 1789110486) while its manifest entry still reads timeout (finished_at 1789110337) — kid 1 signalled done at 03:09, before kid 2 landed the source-half fix at ~03:20, so nothing mirrored it; the reaper half heals it on the next pass. Residual not covered here: a timeout mark written by heal.py:340-355 can land on an agent that then completes normally, and only the next pass reconciles it — candidate follow-up, out of scope.
+
+DIRECTOR FIX (sanctuary-helper): parents frontmatter was a single space-joined string ('experiment:a00-8887036d-fab52e experiment:a00-0716654e-c249cc') instead of a YAML list, caught by links.py's integrity check as an unresolvable parent reference. Corrected to a proper 2-item list, same two ids, no content change.
