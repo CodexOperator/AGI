@@ -373,11 +373,14 @@ def test_send_wake_verb_busy_pane_coalesces(project: Path, monkeypatch,
 
 
 def test_send_wake_verb_idle_nothing_is_a_silent_noop(project: Path,
-                                                      monkeypatch, capsys):
+                                                      monkeypatch, capsys,
+                                                      tmp_path):
     """No stranded line and nothing pending -> `wake` types nothing and
     prints the ONE `nothing-pending` outcome (exit 1); an ungated bare token
     would retype once the coalesce window lapses (the heal polls every seat).
-    """
+    The outcome also writes its ONE reaper log line (clause (3))."""
+    logf = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logf))
     pane = _FixturePane()
     calls = _fake_tmux_pane(monkeypatch, ["sanctuary-director"], pane, [])
     assert send_mod.wake(project, "sanctuary-director") is False
@@ -385,6 +388,8 @@ def test_send_wake_verb_idle_nothing_is_a_silent_noop(project: Path,
     cap = capsys.readouterr()
     assert cap.out.strip() == "nothing-pending"
     assert cap.err == ""
+    lines = logf.read_text().splitlines()
+    assert len(lines) == 1 and "nothing-pending" in lines[0], lines
 
 
 # hypoth:l4-wake-repair-is-quiet-honest-and-readable -- clauses (1)-(3) ─────
@@ -560,6 +565,197 @@ def test_wake_no_target_outcome(project: Path, monkeypatch, capsys):
     calls = _fake_tmux_pane(monkeypatch, [], _FixturePane(), [])
     assert send_mod.wake(project, "ghost-seat") is False
     assert capsys.readouterr().out.strip() == "no-target"
+
+
+# ── hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box ───
+# clause (1): `_input_region` is the box, or '' -- never the whole pane
+
+
+def test_input_region_is_empty_when_no_rendered_box():
+    """Clause (1): a capture with NO `\u276f` box -- the just-submitted
+    `[agi-nudge] unread for <seat>` token echoed in the TRANSCRIPT above where
+    the box would be (SHAPE A: a busy pane rendered the spinner in place of the
+    box) -- yields an EMPTY input region, never the whole pane. The whole pane
+    (old 'conservative' branch) read the echoed token as a stranded line and
+    wake RE-TYPED it: the six phantom tokens 19:17-19:33Z on master-sensei
+    with an empty inbox. MEASURED shape in this session: a real busy pane
+    (@291 sanctuary-director, captured live) is the OTHER shape -- it KEEPS the
+    box and puts `esc to interrupt` in the footer; this function must be safe
+    for both, and this no-box branch is the SHAPE A half."""
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n"
+               "  \u23f5\u23f5 ... esc to interrupt ...\n")
+    assert "\u276f" not in capture
+    assert send_mod._input_region(capture) == ""
+
+
+# clause (2): wake never resubmits on a busy pane -- SHAPE A (box hidden)
+
+
+def test_busy_no_box_echoed_token_never_retyped(project: Path, monkeypatch,
+                                                capsys):
+    """SHAPE A fake: a busy pane rendered WITHOUT its box -- the echoed
+    `[agi-nudge] unread for <seat>` token and the busy footer in the capture, no
+    `\u276f` anywhere. clause (2): wake must NOT take the resubmitted-strand
+    branch (it would RE-TYPE the echoed token into the empty-inbox pane), must
+    type nothing, and must leave the `.nudge` marker untouched (clause (4)).
+    The busy footer is read off the WHOLE capture because there is no box to
+    scope the region to."""
+    seat = "sanctuary-director"
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n"
+               "  \u23f5\u23f5 esc to interrupt \u00b7 \u2190 for agents\n")
+    assert "\u276f" not in capture
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    marker = send_mod._nudge_marker_path(project, seat)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=capture)
+    assert send_mod.wake(project, seat) is False
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
+    assert marker.read_text() == "2020-01-01T00:00:00+00:00\n", \
+        "busy/no-box path must not stamp the marker (clause 4)"
+    assert capsys.readouterr().out.strip() == "busy-deferred"
+
+
+# SHAPE A, but idle/unknown: no box, no busy footer -> no strand, no typing
+
+
+def test_no_box_idle_capture_reads_no_strand(project: Path, monkeypatch,
+                                             capsys):
+    """clause (i)/(iii): a capture with no `\u276f` box AND no busy footer (a
+    pane scrolled above its box) must never read a transcript-echoed token as a
+    stranded in-box line. wake types nothing and, with nothing pending,
+    reports nothing-pending."""
+    seat = "sanctuary-director"
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n")
+    assert "\u276f" not in capture and "esc to interrupt" not in capture
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=capture)
+    assert send_mod.wake(project, seat) is False
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
+    cap = capsys.readouterr()
+    assert cap.out.strip() in ("nothing-pending", "busy-deferred"), cap.out
+    assert "nudge: " not in cap.err
+
+
+# clause (2): a box-less, footer-less capture on a seat WITH pending never
+# gets typed into -> the ONE `nothing-pending`, marker untouched.
+
+def test_wake_no_box_pending_is_nothing_pending(project: Path, monkeypatch,
+                                                capsys, tmp_path):
+    """Clause (2) of hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-
+    input-box-and-wake-names-its-path: a NON-BLANK capture with NO rendered
+    `\u276f` box AND NO busy footer is never a confirmed idle box, so a seat
+    WITH pending unread state must NOT be typed into. `wake` types nothing,
+    leaves the `.nudge` marker untouched (nothing announced), reports the ONE
+    `nothing-pending` outcome, and writes the reaper log line
+    `idle nothing-pending`. Pre-fix: `_nudge_coalesce_reason` returned None
+    here, so `wake` fell through to the ordinary type path and typed a token
+    into a capture that cannot be a box."""
+    seat = "sanctuary-director"
+    logf = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logf))
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n"
+               "some transcript body scrolled above the box\n")
+    assert "\u276f" not in capture and "esc to interrupt" not in capture
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    marker = send_mod._nudge_marker_path(project, seat)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=capture)
+    assert send_mod.wake(project, seat) is False
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
+    assert marker.read_text() == "2020-01-01T00:00:00+00:00\n", \
+        "a no-box pending wake must not stamp the marker"
+    assert capsys.readouterr().out.strip() == "nothing-pending"
+    lines = logf.read_text().splitlines()
+    assert len(lines) == 1 and "idle nothing-pending" in lines[0], lines
+
+
+# clause (3): the typed token names its path, prefix stays byte-identical
+
+
+def test_wake_typed_token_names_its_path(project: Path, monkeypatch, capsys):
+    """Clause (3): the typed wake token names its path `(wake:idle)` while its
+    PREFIX stays byte-identical (`[agi-nudge] unread for <seat>`), so every
+    `_NUDGE_PREFIXES` match and every reader's `unread for` grep keeps working,
+    and the token still stays under the length cap."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is True
+    texts = _typed_text(calls)
+    assert texts and "(wake:idle)" in texts[0], texts
+    assert texts[0].startswith("[agi-nudge] unread for " + seat), texts[0]
+    assert len(texts[0]) < 100, len(texts[0])
+    # still a nudge shape: a stranded one of this shape is still detected
+    assert send_mod._stranded_in_region(
+        "[agi-nudge] unread for " + seat + " (wake:idle)") is not None
+    assert send_mod._build_nudge_token(seat, "strand").endswith("(wake:strand)")
+
+
+# clause (3): ONE per-seat outcome line through the SAME resolver heal uses
+
+
+def test_wake_logs_one_outcome_line_via_reaper_resolver(
+        project: Path, monkeypatch, capsys, tmp_path):
+    """Clause (3): `wake` writes ONE per-seat outcome line through the SAME
+    resolver heal.py's `_watch_log` uses (AGI_REAPER_LOG env else stderr) --
+    never a second log path. Shape: `wake <seat>: <path> <state> @<id>`."""
+    import reaper_log as rl
+    assert send_mod.reaper_log is rl, \
+        "send.py must log through the shared reaper_log resolver"
+    logf = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logf))
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: sanctuary-director\nfrom: prime\n\n---\n hi\n")
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is True
+    lines = logf.read_text().splitlines()
+    assert len(lines) == 1, lines
+    # exactly one field set: `wake <seat>: <path> <state> <window>`; the
+    # window id carries a SINGLE leading @ (never `@@`)
+    assert lines[0] == f"wake {seat}: idle delivered sanctuary-director" or \
+        lines[0] == f"wake {seat}: idle delivered", lines[0]
+
+
+def test_wake_busy_logs_deferred_outcome_line(
+        project: Path, monkeypatch, capsys, tmp_path):
+    """Clause (3): the busy/deferred wake also logs its ONE line, state
+    `deferred` (marker untouched -- the deferral is not a delivery)."""
+    logf = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logf))
+    seat = "director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: director\nfrom: prime\n\n---\n hi\n")
+    marker = send_mod._nudge_marker_path(project, seat)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    pane = _FixturePane(busy=True)
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is False
+    lines = logf.read_text().splitlines()
+    assert len(lines) == 1, lines
+    assert "deferred" in lines[0], lines[0]
+    assert marker.read_text() == "2020-01-01T00:00:00+00:00\n"
+
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
 
 

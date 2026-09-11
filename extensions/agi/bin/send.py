@@ -59,6 +59,7 @@ sys.path.insert(0, str(_BIN.parent / "src"))
 import locations  # noqa: E402
 import spawn_gate  # noqa: E402
 import seatsig  # noqa: E402
+import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -514,13 +515,25 @@ _NUDGE_ENTER_DELAY_S = 0.3
 _NUDGE_COALESCE_WINDOW_S = 30.0
 
 
-def _build_nudge_token(seat: str) -> str:
+def _build_nudge_token(seat: str, path: str | None = None) -> str:
     """ONE fixed machine-prefixed wake token for one recipient seat, always
     shorter than `_NUDGE_TOKEN_MAX` (the bare form when the seat name is
-    long enough to threaten the cap)."""
-    token = NUDGE_TOKEN_TEMPLATE.format(seat=seat)
+    long enough to threaten the cap).
+
+    `path` names the wake path that typed it (clause (3) of hypothesis:l4-a-
+    strand-is-only-a-line-inside-a-rendered-input-box-and-wake-names-its-path):
+    `(wake:idle)` for an idle delivery, `(wake:strand)` for a stranded-line
+    context. The NAMED token always leaves the PREFIX byte-identical --
+    `[agi-nudge] unread for {seat}` -- so every `_NUDGE_PREFIXES` match and
+    every reader's `unread for` grep keeps working; the suffix is only the
+    tail. A bare `path=None` (a fire-and-forget `send()` nudge, never a
+    `wake` verb) keeps the legacy token with no suffix."""
+    suffix = f" (wake:{path})" if path else ""
+    token = NUDGE_TOKEN_TEMPLATE.format(seat=seat) + suffix
     if len(token) > _NUDGE_TOKEN_MAX:
-        token = NUDGE_TOKEN_BARE_TEMPLATE.format(seat=seat)
+        token = NUDGE_TOKEN_BARE_TEMPLATE.format(seat=seat) + suffix
+        if len(token) > _NUDGE_TOKEN_MAX:
+            token = NUDGE_TOKEN_BARE_TEMPLATE.format(seat=seat)
     return token
 
 
@@ -843,14 +856,24 @@ def _input_region(pane: str | None) -> str:
     end, inclusive. Everything ABOVE the box -- a SUBMITTED token echoed in
     the transcript, an old `esc to interrupt` scrolled up -- is transcript
     and must not read as stranded/busy (hypothesis:l4-a-nudge-is-a-wake-
-    token-not-a-message, residue 2). When no prompt glyph is found (a busy
-    pane renders the spinner in place of the box) the whole capture IS the
-    region -- conservative."""
+    token-not-a-message, residue 2).
+
+    Clause (1) (hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-
+    input-box-and-wake-names-its-path): when NO prompt glyph is found -- a
+    busy pane rendered the spinner in place of the box, or the capture is
+    scrolled entirely above the box -- the region is EMPTY (''), NEVER the
+    whole pane. The whole pane was the phantom-echo bug: a just-submitted
+    `[agi-nudge] unread for <seat>` token echoed in the TRANSCRIPT read as a
+    stranded in-box line, and wake RE-TYPED it (six phantom tokens
+    19:17-19:33Z on master-sensei with an empty inbox). The MEASURED live
+    busy shape KEEPS the box (SHAPE B, see _nudge_coalesce_reason), so this
+    '' branch is the SHAPE A (box absent) safety half; an empty region is the
+    safe 'no rendered box -> do not type into it' answer in either case."""
     lines = (pane or "").splitlines()
     for i in range(len(lines) - 1, -1, -1):
         if "\u276f" in lines[i]:
             return "\n".join(lines[i:])
-    return pane or ""
+    return ""
 
 
 def _region_join_wrap(region: str) -> list[str]:
@@ -908,11 +931,62 @@ def _nudge_coalesce_reason(pane: str | None, token: str,
     Both checks are scoped to the INPUT REGION (`_input_region`), never the
     whole capture -- a submitted token echoed in the transcript, or an old
     `esc to interrupt` scrolled up, must not read as stranded/busy and cost
-    a wake until it scrolls off."""
+    a wake until it scrolls off. Except: when there is NO rendered box
+    (region == '' -- SHAPE A: the box hidden, or the capture scrolled above
+    it), there is nothing to scope the busy check to, so the WHOLE capture is
+    scanned for the busy footer, and in every case the answer blocks typing
+    (a no-box capture is never a confirmed idle empty box; a transcript echo
+    must never read as a stranded in-box line -- clauses (1)-(2) of
+    hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box-and-
+    wake-names-its-path). One exception: a BLANK capture (empty string) is
+    the test/greenfield stand-in for an idle pane whose box renders empty,
+    and a live pane never reaches this branch blank (a real capture always
+    carries its `\u276f` box), so a blank capture keeps the legacy idle-nudge
+    behaviour (returns None). A NON-BLANK, box-less, footer-less capture
+    instead returns `"no rendered box"`; `wake` maps that to `nothing-pending`
+    (nothing typed, marker untouched) -- the clause-(2) fix for a pending
+    seat whose capture cannot be a box.
+
+    The MEASURED live busy shape is SHAPE B: the pane KEEPS its `\u276f` box
+    and `esc to interrupt` sits in the FOOTER below the box's separator, still
+    INSIDE the region (a real `tmux capture-pane -p` of @291 in this session
+    -- not the box-less spinner the premise guessed). The committed fixture
+    fixtures/claude_pane_busy.txt matches it."""
     if registry == "busy":
         return "pane busy (registry)"
     if pane is not None:
         region = _input_region(pane)
+        if region == "":
+            # No rendered input box (SHAPE A: the box hidden under a busy
+            # spinner / the capture scrolled above it, OR an empty mock
+            # capture standing in for an idle pane). There is no box to
+            # scope the busy footer to, so the WHOLE capture is scanned for it
+            # (a box-less busy pane must still read busy). The STRAND scan is
+            # never run on an empty region -- a just-submitted
+            # `[agi-nudge] unread for <seat>` token echoed in the TRANSCRIPT
+            # above where the box would be is NOT stranded (the phantom
+            # retype, clauses (1)-(2)). A busy footer blocks; otherwise a
+            # NON-BLANK, box-less, footer-less capture is the SHAPE A hazard
+            # (a pane scrolled above its box, or a transcript echo of where a
+            # box would be) and is NEVER a confirmed idle box -- clause (2)
+            # of hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-
+            # input-box-and-wake-names-its-path -- so wake maps it to
+            # `nothing-pending` (nothing typed, marker untouched) and send's
+            # nudge coalesces to `(no rendered box)`, never a blind site to
+            # type into.
+            if "esc to interrupt" in pane.lower():
+                return "pane busy (spinner)"
+            if (pane or "").strip():
+                # Non-blank capture with no rendered box and no busy footer:
+                # never a confirmed idle box -> do not type into it.
+                return "no rendered box"
+            # A BLANK capture is the test/greenfield stand-in for an idle
+            # pane whose box renders as an empty string. A live pane never
+            # reaches here as blank -- `_capture_pane` of a real pane always
+            # carries its `\u276f` box -- so the empty-string mock keeps the
+            # legacy idle-nudge behaviour (send's `_nudge_window` tests model
+            # the to-be-typed pane as an empty capture).
+            return None
         if "esc to interrupt" in region.lower():
             return "pane busy (spinner)"
         # RESIDUE A (L4.140): ANY stranded nudge-shaped line in the box
@@ -1033,7 +1107,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                  sender: str | None = None,
                  body: str | None = None,
                  repair_stale_id: bool = False,
-                 resolved: tuple | None = None) -> bool:
+                 resolved: tuple | None = None,
+                 path: str | None = None) -> bool:
     """Fire ONE fixed wake token (never the message body) at a perpetual
     seat's tmux window (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
 
@@ -1093,7 +1168,7 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # rendered-count, residue: a render that does not type must not
         # overwrite the stored count).
     else:
-        text = _build_nudge_token(to)
+        text = _build_nudge_token(to, path)
     if text is None:
         # `_nudge_line` found no tail leaving room for a single body
         # character (a pathological sender/seat whose prefix eats the whole
@@ -1391,14 +1466,37 @@ def _unread_digest(root: Path, seat: str) -> str:
     return hashlib.sha256(blob.encode("utf-8", "replace")).hexdigest()
 
 
-def _wake_outcome(outcome: str, delivered: bool) -> bool:
+def _wake_outcome(outcome: str, delivered: bool, seat: str,
+                  window_id: str | None = None) -> bool:
     """Print the ONE outcome line for the `wake` verb and return the delivery
     truth (True = a token/strand/deferred actually reached the pane, so the
     exit code is 0; False = nothing delivered, exit 1). The line is exactly one
     of: typed-token | resubmitted-strand | delivered-deferred | busy-deferred
     | nothing-pending | no-target (clause (2) of hypothesis:l4-wake-repair-is-
-    quiet-honest-and-readable)."""
+    quiet-honest-and-readable).
+
+    Clause (3) (hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-
+    box-and-wake-names-its-path): ALSO writes ONE per-seat line through the
+    SAME resolver heal.py's `_watch_log` uses (`reaper_log.log`, lifted to a
+    shared helper -- never a second log path):
+
+        wake <seat>: <path> <state> [@<window_id>]
+
+    `<state>` is one of delivered | deferred | nothing-pending | no-target;
+    `<path>` is idle | strand, the path the wake travelled (strand for a
+    resubmitted stranded line). """
     print(outcome)
+    state = {
+        "no-target": "no-target",
+        "resubmitted-strand": "delivered" if delivered else "deferred",
+        "nothing-pending": "nothing-pending",
+        "busy-deferred": "deferred",
+        "typed-token": "delivered",
+        "delivered-deferred": "delivered",
+    }.get(outcome, "deferred")
+    path = "strand" if outcome == "resubmitted-strand" else "idle"
+    wid = f" {window_id}" if window_id else ""
+    reaper_log.log(f"wake {seat}: {path} {state}{wid}")
     return delivered
 
 
@@ -1436,22 +1534,44 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     """
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
-        return _wake_outcome("no-target", delivered=False)
+        return _wake_outcome("no-target", delivered=False, seat=to)
     target, pid, tms = resolved
+    window_id = target.split(":", 1)[1] if ":" in target else None
     pane = _capture_pane(tms, target)
-    reason = _nudge_coalesce_reason(pane, _build_nudge_token(to),
+    reason = _nudge_coalesce_reason(pane, _build_nudge_token(to, "idle"),
                                     _registry_status(pid))
 
     # A stranded nudge-shaped line in the pane is delivered (resubmitted by
-    # TYPING) regardless of pending -- the resubmit itself IS the wake.
+    # TYPING) regardless of pending -- the resubmit itself IS the wake. The
+    # strand branch never fires on a busy / no-box pane (clause (2): a busy
+    # pane's echoed or stranded token never causes wake to re-type a phantom
+    # token -- _nudge_coalesce_reason returns a busy or no-box reason first,
+    # never 'token already unsubmitted').
     if reason == "token already unsubmitted":
-        ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
-        return _wake_outcome("resubmitted-strand", delivered=ok)
+        ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True,
+                           resolved=resolved, path="strand")
+        return _wake_outcome("resubmitted-strand", delivered=ok, seat=to,
+                             window_id=window_id)
+
+    if reason == "no rendered box":
+        # Clause (2) (hypothesis:l4-a-strand-is-only-a-line-inside-a-
+        # rendered-input-box-and-wake-names-its-path): an EMPTY input region
+        # (no rendered `\u276f` box AND no busy footer) is never a confirmed
+        # idle box -- the measured idle pane always renders its box -- so a
+        # pending seat whose capture cannot be a box is NOT typed into.
+        # Nothing typed, marker untouched (nothing announced), and the ONE
+        # reaper log line carries `idle nothing-pending`. Deliberately NOT
+        # the strand branch and NOT the ordinary type path (which is what
+        # the pre-fix `None` allowed: a pending seat with a box-less capture
+        # was still typed into).
+        return _wake_outcome("nothing-pending", delivered=False, seat=to,
+                             window_id=window_id)
 
     if not _seat_has_pending(root, to):
         # nothing stranded and nothing pending: never type a bare wake token
         # into a seat with nothing to announce (the heal polls every seat).
-        return _wake_outcome("nothing-pending", delivered=False)
+        return _wake_outcome("nothing-pending", delivered=False, seat=to,
+                             window_id=window_id)
 
     # Clause (1): never retype a token for an unread state we already
     # announced. The 30s `_NUDGE_COALESCE_WINDOW_S` alone would let an
@@ -1459,27 +1579,33 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # polling; the digest gate stops that for as long as the state is unchanged.
     digest = _unread_digest(root, to)
     if _announced_digest(root, to) == digest:
-        return _wake_outcome("nothing-pending", delivered=False)
+        return _wake_outcome("nothing-pending", delivered=False, seat=to,
+                             window_id=window_id)
 
     if reason is not None:
         # Pane busy / spinner with something pending: nothing typed. The
         # deferred record is already written; `_nudge_window` prints its own
         # coalesced line, this wake prints its ONE outcome.
-        _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
-        return _wake_outcome("busy-deferred", delivered=False)
+        _nudge_window(root, to, tmux_session=tms, repair_stale_id=True,
+                      resolved=resolved)
+        return _wake_outcome("busy-deferred", delivered=False, seat=to,
+                             window_id=window_id)
 
     # Pane IDLE with a NEW unread state: type the wake token, or deliver the
     # stored deferred dm INLINE when one waits (read before `_nudge_window`
     # clears it).
     delivering_deferred = _read_deferred(root, to) is not None
-    ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True, resolved=resolved)
+    ok = _nudge_window(root, to, tmux_session=tms, repair_stale_id=True,
+                       resolved=resolved, path="idle")
     if ok:
         _record_announced(root, to, digest)
         return _wake_outcome("delivered-deferred" if delivering_deferred
-                             else "typed-token", delivered=True)
+                             else "typed-token", delivered=True, seat=to,
+                             window_id=window_id)
     # A delivery was attempted but nothing reached the pane (e.g. the 30s
     # window caught it); `_nudge_window` already printed its own line.
-    return _wake_outcome("nothing-pending", delivered=False)
+    return _wake_outcome("nothing-pending", delivered=False, seat=to,
+                         window_id=window_id)
 
 
 def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
