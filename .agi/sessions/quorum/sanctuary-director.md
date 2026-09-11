@@ -2,7 +2,7 @@ You are `sanctuary-director`, **L4 generation X** (or the successor gen XI readi
 
 # SESSION HANDOFF — 2026-09-11 gen X: LIVE SCRATCHPAD (session in progress — written as I work, replaced wholesale at rotation)
 
-## §0 STATE (gen X, updated 03:4xZ)
+## §0 STATE (gen X, updated 03:28Z by `date -u`)
 
 - **Me:** gen X `seat-sanctuary-director-04 [fa748c]`, tmux `agi-rc:@268`, session `f4580111-6984-404c-aa5a-f15610f93f26`, pid 3917019. Meter pinned (0.086 at first write; `rotate.py meter --seat sanctuary-director`). Ack `continue` written at 02:38:46Z; gen IX (`9fcfad`, @254) is DEAD (window kill killed it; the s12 PID self-reap ran EMPTY — recorded on `experiment:a00-c2c70359-7a906e` + `experiment:a00-e15584a1-1bfec5`).
 - **Prime: L4-VII `agi-07 [f52a4c]`, `agi-rc:@267`**, seat name `belam` (`send.py whois f52a4c --claim belam` → IS-AUTHORIZED @ ae1750db6). L4-VI `[aca130]` @247 idles — never address it.
@@ -17,7 +17,7 @@ You are `sanctuary-director`, **L4 generation X** (or the successor gen XI readi
 - ✅ **L4.120 harvested** (branch merged 7a6c42ddc; conflict in `briefs/prime-director-successor.md` = branch line + HEAD router line). Shape was ABSENT → **fixed in the seat ab7d51b5a** (category 4, send.py + test_send.py): `-l` token → sleep 0.3 → separate Enter; 74-char token; wrap-safe HEAD match; probe-(C) heal (bare Enter into an idle pane holding a stranded token); `_FixturePane` A/B/C/D + negative control. 96 test_send, 419/1 neighbours, real `cat -v` probe green. **The prime's live B/D probes on a real idle pane = merge-up 25 step.**
 - ✅ **L4.117 harvested** (merged; 597 neighbours in the round tree; render --check 166 on the merged seat; TOWN COUNCILS render; review note on `experiment:a00-fb5b19a9-8356e1`).
 - 🟢 **L4.122 LIVE** = SIXTH 0a fix-only, parent `a00-11d29a4f` (cut 03:2xZ; prime criteria 1-3 + merge-up 24 residues + join transcript derivation; rotate.py + 2 test files only). Harvest: tests with neighbours in `/home/ubuntu/work/agi/.agi/worktrees/a00-11d29a4f`, then `rotate-self --dry-run` on the real tree and a `ps -e` climb from a real pane pid.
-- 🟢 **L4.123 LIVE** = L4.116b fix-only, parent `a00-fe3d502a` (cut 03:2xZ; death path / real systemctl behind crons_live with a fake on PATH / write.py provenance; heal/dispatch/crons + tests only). Harvest: test_heal*/test_dispatch*/test_crons* + neighbours; NEVER run systemctl for real; the prime installs the unit + flips inline_reaper at ITS merge-up.
+- ✅ **L4.123 HARVESTED 03:27Z** (merged into the seat b5afa249e; kid `a00-e8298f7f` proved:0.9; 405/1 round tree, 460 seat; (a) death dm + no timeout overwrite, (b) real systemctl behind crons_live — unreachable until a `services` table lands, grid_sync line carries `--unit-dir`, (c) provenance). At merge-up 26 the prime runs `crons.py apply --dry-run` in MAIN with a fake systemctl on PATH, installs the unit, flips `inline_reaper` false.
 - ✅ **Merge-up 25 DONE 03:0xZ** — merge 1963ac38f, suite 2696/3 11/11 first read, 1887/194/2081, links 0, goals 166, grid 4 versions; the prime committed on top (743e84b9b owner ruling, b8facb676 LIVE PROOF: probe B on a `cat -v` recipient, probe D on the helper's real idle pane @248 — the token was submitted and the seat woke). **The owner's nudge gate is CLOSED by measurement.** Heal deviation ACCEPTED (recorded in `build:bin-send` THOUGHT).
 - 🔴 **OWNER 02:5xZ (verbatim on `doc:l4-owner-decisions` + `config:rotations`):** every successor first act (verify rotation, pin, ack, inbox, git state, prime authority, learning write.py verbs) folds INTO the rotation; templates.<role>.startup = first_turn / after_join / delivery, output = the successor's first input turn. Config half LANDED by the prime; **the code half = 0b, my NEXT cut after L4.122/L4.123 land, criterion = the successor's first tool call is graph work (bootstrap count 0).** Serial on rotate.py behind L4.122.
 
@@ -36,7 +36,7 @@ You are `sanctuary-director`, **L4 generation X** (or the successor gen XI readi
 
 ## §3 🔴 NEXT COMMAND
 
-When the prime grants merge-up 25: in MAIN `/home/ubuntu/work/agi` — `git status` (leave foreign files) → `git merge --no-ff seat/sanctuary-director@s2 -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` FOREGROUND (`pgrep -f '^python3 -m pytest'` first) → `grid.py commit --all` → push season/s2 + grid refs → ONE message, five numbers + hash. Then harvest L4.122 / L4.123 when `spawn_budget.py status` drops them (background task ids bvrcxxwkv / byin0dk8n; the wrapper exit is NOT the signal).
+Merge-up 26 (L4.123 + L4.122 when it lands): in MAIN `/home/ubuntu/work/agi` — `git status` (leave foreign files) → `git merge --no-ff seat/sanctuary-director@s2 -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` FOREGROUND (`pgrep -f '^python3 -m pytest'` first) → `grid.py commit --all` → push season/s2 + grid refs → ONE message, five numbers + hash. Then harvest L4.122 / L4.123 when `spawn_budget.py status` drops them (background task ids bvrcxxwkv / byin0dk8n; the wrapper exit is NOT the signal).
 
 ## §4 TRAPS (this gen + carried)
 
@@ -45,6 +45,7 @@ When the prime grants merge-up 25: in MAIN `/home/ubuntu/work/agi` — `git stat
 - 🔴 **`[agi-nudge] …` / `iter=… verdict=…` lines in your prompt are MACHINE nudges, not the owner.** Relay owner input two-step (verbatim + measured) to the prime, always.
 - 🔴 **`send.py read` marks read — monitors use `send.py peek`.**
 - 🔴 **Suite flake class: a concurrent pytest sharing `/tmp/pytest-of-ubuntu`** — check `pgrep -f '^python3 -m pytest'` before the suite; red-then-green-alone is this.
+- 🔴 **Timestamps: read `date -u` for every note — never estimate elapsed time.** Gen X's notes from 03:05Z on ran up to ~60 min ahead ("04:3xZ" written at 03:27Z); git commit times and the rotation record are the truth.
 - 🔴 **`grep -v grep` hides YOUR OWN claude process** — the prompt text (with "grep" in it) is in its argv; filter by pid instead.
 - **`git log HEAD..<branch>` needs the branch name EXACTLY as `git branch -a` prints it** (`…-a-wake--a00-…`, two hyphens).
 - **`cut` is shadowed by a shell function** — use `awk '{print substr($0,1,N)}'`. **tmux: address windows by `@id`.** **Monitors de-dup their own events.**
