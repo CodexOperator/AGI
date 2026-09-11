@@ -121,7 +121,11 @@ def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
     a real change beside them still blocks."""
     churn = [" M .agi/comms/season-2/dm/master-sensei--belam.md",
              "?? .agi/comms/season-2/dm/a00-1234--sensei-director.md",
-             " M .agi/sessions/rotations/sequence.json"]
+             " M .agi/sessions/rotations/sequence.json",
+             # Sensei 18:29Z: UNTRACKED rotation records blocked a rotate-self
+             # with 0 modified files
+             "?? .agi/sessions/rotations/master-sensei.20260911T182900Z.json",
+             "?? .agi/sessions/rotations/belam.20260911T175100Z.json"]
     ok = {("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe",
@@ -130,10 +134,11 @@ def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
     out = capsys.readouterr().out
     assert rc == 0, out
     assert "[ok] dirty tree" in out
-    # a genuine edit beside the churn still blocks
+    # a genuine edit -- or an UNTRACKED new file outside the churn paths (a
+    # test never `git add`-ed) -- beside the churn still blocks
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({("status", "--porcelain"):
-                                  churn + [" M extensions/agi/bin/rotate.py"],
+                                  churn + ["?? extensions/agi/tests/test_x.py"],
                                   **ok}))
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out

@@ -6280,20 +6280,27 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
 #: the comms layer and the rotation sequence as a side effect of every dm and
 #: every rotation, committed by grid_sync (not by any seat).
 PREPARE_CHURN_PREFIXES = (".agi/comms/",)
-PREPARE_CHURN_SUFFIXES = ("sessions/rotations/sequence.json",)
+#: the rotation records + sequence.json: written by rotate-self / the loop
+#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
+#: five uncommitted records blocked a rotate-self with 0 modified files).
+PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
 
 
 def _prepare_churn_path(porcelain_line: str) -> bool:
-    """True when a `git status --porcelain` line names cron-owned churn
-    (`.agi/comms/**`, `.agi/sessions/rotations/sequence.json`) rather than
-    a file the seat changed. Renames (`R old -> new`) are judged on the new
-    path."""
+    """True when a `git status --porcelain` line -- modified OR untracked --
+    names cron-owned churn rather than a file the seat changed:
+    `.agi/comms/**` (send.py writes a dm file per pair as dms flow) and
+    `.agi/sessions/rotations/*.json` (the records + sequence.json). Untracked
+    files elsewhere still count: a new test file never `git add`-ed is
+    exactly the stranded work the captive exists to name. Renames
+    (`R old -> new`) are judged on the new path."""
     path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
     if " -> " in path:
         path = path.split(" -> ", 1)[1]
     path = path.strip().strip('"')
-    return (path.startswith(PREPARE_CHURN_PREFIXES)
-            or path.endswith(PREPARE_CHURN_SUFFIXES))
+    if path.startswith(PREPARE_CHURN_PREFIXES):
+        return True
+    return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
 def _prepare_checks(root: Path, seat: str) -> list[tuple[bool, str, str]]:
