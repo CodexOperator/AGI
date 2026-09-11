@@ -1,0 +1,133 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-helper",
+  "recorded_at": "2026-09-11T15:26:27.020589Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-helper",
+      "windows": [
+        "sanctuary-helper.gen4",
+        "belam-S1-L4-X",
+        "belam-S1-L4-V",
+        "master-sensei",
+        "belam-S1-L4-IX",
+        "sanctuary-director",
+        "belam-S1-L4-VIII",
+        "sanctuary-helper",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 3,
+      "after": 4
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1594151,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-helper.gen4",
+      "windows": [
+        "sanctuary-helper.gen4",
+        "belam-S1-L4-X",
+        "belam-S1-L4-V",
+        "master-sensei",
+        "belam-S1-L4-IX",
+        "sanctuary-director",
+        "belam-S1-L4-VIII",
+        "sanctuary-helper",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-helper.gen4",
+      "id": "@248"
+    },
+    "successor_window": {
+      "name": "sanctuary-helper",
+      "id": "@284"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@284",
+      "pid": 3856277,
+      "session_id": "ec486517-f378-4dbb-95f2-d0e0c6210f05",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-helper/ec486517-f378-4dbb-95f2-d0e0c6210f05.jsonl",
+      "name": "seat-sanctuary-helper-a7",
+      "path": "/home/ubuntu/.claude/sessions/3856277.json",
+      "note": "joined by @284 in registry file 3856277.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_id=ec486517-f378-4dbb-95f2-d0e0c6210f05 pid=3856277 generation=4 window='@284' source=registry",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json",
+    "own_authority_released": "generation 3 of seat 'sanctuary-helper' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "reap_own_pid": {
+      "pid": null,
+      "reaped": false,
+      "note": "no own-pid stand-in supplied; the predecessor's process is NOT reaped by this run"
+    },
+    "button_down": "grid committed \u2014 record+row on branch seat/sanctuary-helper@s2",
+    "livestream_repoint": {
+      "session": "view-sanctuary-helper",
+      "target": "@284",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-sanctuary-helper:@284"
+      ],
+      "active_windows": [
+        "@248 0",
+        "@281 0",
+        "@244 0",
+        "@279 0",
+        "@277 0",
+        "@280 0",
+        "@272 0",
+        "@284 1",
+        "@247 0"
+      ]
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-opus-5"
+      },
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "mismatch"
+    }
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      2920337,
+      2920347,
+      2920350
+    ],
+    "reap_source": "derived from own window @id @248 pane 2920337: chain [2920337, 2920347, 2920350] (deepest-first)"
+  }
+}
