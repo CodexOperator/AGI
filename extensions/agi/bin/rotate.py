@@ -1618,30 +1618,31 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
 # --- status subcommand ----------------------------------------------------
 
 
-def _record_is_terminal(path) -> bool:
-    """True when the rotation record has a present s12_self_reap section —
-    the terminal sentinel `--wait` polls for (L4.233). Best-effort: a record
-    that does not parse is not terminal."""
+def _record_is_terminal_text(text: str) -> bool:
+    """True when the rotation record bytes have a present s12_self_reap
+    section — the terminal sentinel `--wait` polls for (L4.233).
+    Best-effort: text that does not parse is not terminal."""
     try:
-        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+        doc = json.loads(text)
     except Exception:  # noqa: BLE001
         return False
     return isinstance(doc.get("s12_self_reap"), dict)
 
 
-def _poll_record_terminal(path, wait: int) -> tuple[bool, str]:
+def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
     """Poll `path` at a <=2s interval until its s12_self_reap section is
-    present, or `wait` seconds elapse. Returns (terminal, last_seen_text).
-    When the record is already terminal on the first read it returns True
-    immediately — never sleeps past an already-terminal record."""
-    deadline = time.monotonic() + max(0, wait)
+    present, or `deadline` (a monotonic instant) passes. Returns
+    (terminal, last_seen_text). One read per tick: the text this function
+    reads is the text it parses. When the record is already terminal on the
+    first read it returns True immediately — never sleeps past an
+    already-terminal record."""
     last = ""
     while True:
         try:
             last = Path(path).read_text(encoding="utf-8")
         except OSError:
             last = ""
-        if _record_is_terminal(path):
+        if _record_is_terminal_text(last):
             return True, last
         if time.monotonic() >= deadline:
             return False, last
@@ -1672,23 +1673,36 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         rot_dir = _rotations_dir(root)
         files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
-        if not files:
-            print(f"(no rotation record for {seat})")
-        else:
-            latest = files[-1]
-            # hypothesis:rotate-status-record-latest-gains-wait (L4.233) —
-            # `--wait N` re-reads the latest record until its s12_self_reap
-            # section is terminal, or N seconds elapse. A caller that needs
-            # the terminal result no longer hand-rolls a sleep+reinvoke loop.
-            wait = int(getattr(args, "wait", 0) or 0)
-            if wait > 0:
-                terminal, last_txt = _poll_record_terminal(latest, wait)
-                if not terminal:
-                    print(f"# latest rotation record: {latest.name}")
-                    print(last_txt, end="")
-                    print(f"ERR: still not terminal after {wait}s",
-                          file=sys.stderr)
-                    return 2
+        latest = files[-1] if files else None
+        wait = int(getattr(args, "wait", 0) or 0)
+        if wait > 0:
+            # hypothesis:l4-status-wait-waits-for-the-record-to-appear —
+            # the wait deadline covers BOTH phases: the record appearing
+            # (a successor's first seconds may run before the predecessor
+            # writes it) and that record reaching its terminal section.
+            deadline = time.monotonic() + max(0, wait)
+            if latest is None:
+                # wait for a record to APPEAR within the same deadline
+                while True:
+                    files = (sorted(rot_dir.glob(f"{seat}.*.json"))
+                             if rot_dir.exists() else [])
+                    if files:
+                        latest = files[-1]
+                        break
+                    if time.monotonic() >= deadline:
+                        print(f"ERR: no rotation record for {seat} "
+                              f"after {wait}s", file=sys.stderr)
+                        return 2
+                    time.sleep(min(2.0, max(0.05,
+                                            deadline - time.monotonic())))
+            terminal, last_txt = _poll_record_terminal(latest, deadline)
+            if not terminal:
+                print(f"# latest rotation record: {latest.name}")
+                print(last_txt, end="")
+                print(f"ERR: still not terminal after {wait}s",
+                      file=sys.stderr)
+                return 2
+        if latest is not None:
             try:
                 print(f"# latest rotation record: {latest.name}")
                 print(latest.read_text(encoding="utf-8").rstrip())
@@ -1696,6 +1710,8 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                 print(f"ERR: could not read latest record: {exc}",
                       file=sys.stderr)
                 return 1
+        else:
+            print(f"(no rotation record for {seat})")
         print(f"sequence={_current_sequence(root)}")
         row = _find_seat(root, seat)
         if row is None:
@@ -4971,7 +4987,8 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
         tok = args[i]
         # EVERY token of EVERY filter stage — options, option values and
         # positionals alike. A `$`, backtick or `~` anywhere is refused:
-        # `_resolve_shell_vars` expands `$VAR` from the whole environment at
+        # `_resolve_shell_vars_per_token` expands `$VAR` from the whole
+        # environment at
         # exec time even inside single quotes, so `sed 's/x/$SECRET/'`,
         # `grep '$SECRET'` (a match oracle) and `tr abcdef "$SECRET"` (a
         # mapping) would otherwise leak or map an env value into the record
@@ -5049,20 +5066,28 @@ def _filter_arg_refusal(exe: str, args: list) -> str | None:
 #: not model it. A refusal now is the explicit floor: if a future change
 #: reintroduces `shell=True`, this named gate still stops the bypass. A bare
 #: `$VAR`/`${VAR}` is NOT here — it is resolved safely from os.environ (see
-#: _resolve_shell_vars), never handed to a shell.
+#: _resolve_shell_vars_per_token), never handed to a shell.
 _STARTUP_SHELL_OPS = ("&&", "||", "$(", "`", "<<", ">>", ">",
                      "<", "&", "\n")
 
 
-def _operator_refusal(command: str) -> str | None:
+def _operator_refusal(command_or_tokens) -> str | None:
     """Return a one-line named refusal if `command` contains an unmodeled
     shell operator (`&&` `||` `$(...`  backtick `<` `>` `<<` `>>` `&` newline),
     else None. `|` and `;` are modeled separators (the no-shell executor wires
     them explicitly) and `$VAR`/`${VAR}` expands from env, so none of those
     trip this gate. Checked at allowlist time AND again on the resolved command
-    before it runs (belt over the no-shell executor)."""
+    before it runs (belt over the no-shell executor). Accepts a command string
+    or a resolved structural token list."""
+    if isinstance(command_or_tokens, str):
+        text = command_or_tokens
+    else:
+        # structural form: any operator text carried in a token (an env VALUE
+        # holding `&&`, or a placeholder-injected one) is still refused — the
+        # separator chars are model edges, the rest is data and checked here.
+        text = "".join(t for _, t in command_or_tokens)
     for op in _STARTUP_SHELL_OPS:
-        if op in command:
+        if op in text:
             name = "newline" if op == "\n" else op
             return f"unmodeled shell operator {name!r} in first_turn command"
     return None
@@ -5072,11 +5097,11 @@ _SHELL_VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0
 
 def _resolve_shell_var(m: "re.Match") -> str:
     """Return the env value for one `$VAR`/`${VAR}` match, or REFUSE (raise
-    ValueError, naming the var) if it is unset. Shared by the whole-string
-    (_resolve_shell_vars) and per-token (_resolve_shell_vars_per_token)
-    resolvers. Both are NO-SHELL: the value is substituted AS A LITERAL and
-    never handed to a shell. Only this bare env form is modeled; `$(` command
-    substitution is refused by _operator_refusal before either is reached."""
+    ValueError, naming the var) if it is unset. Used by the per-token resolver
+    (_resolve_shell_vars_per_token). It is NO-SHELL: the value is substituted
+    AS A LITERAL and never handed to a shell. Only this bare env form is
+    modeled; `$(` command substitution is refused by _operator_refusal before
+    it is reached."""
     name = m.group(1) or m.group(2)
     val = os.environ.get(name)
     if val is None:
@@ -5084,32 +5109,59 @@ def _resolve_shell_var(m: "re.Match") -> str:
     return val
 
 
-def _resolve_shell_vars(command: str) -> str:
-    """Whole-STRING env expansion, kept for the (now unused by first_turn)
-    callers that expand a full command before tokenizing. The first_turn
-    executor does NOT use this form — it uses _resolve_shell_vars_per_token,
-    so an env VALUE can never re-introduce shell syntax
-    (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument)."""
-    return _SHELL_VAR_RE.sub(_resolve_shell_var, command)
+def _tokenize_struct(command: str) -> list:
+    """Tokenize `command` into the STRUCTURAL form the stage grammar consumes:
+    a list of ("sep", punct) elements for each genuine BARE `|`/`;` separator
+    and ("arg", value) elements for every literal argv token. The punctuation-
+    vs-boundary decision is made HERE, at tokenize time, so a token that is not
+    itself a bare `|`/`;` (a normal argv element, or an env `$VAR` reference)
+    is tagged "arg" and no later substitution can turn it into a boundary.
+    A QUOTED punctuation char such as `'|'` in the template is emitted, as
+    before, as a bare `|` token (token text loses the quote): it was already
+    an unquoted-stage edge in _startup_units and stays one. Raises
+    _StartupParseError on an unparseable command."""
+    out = []
+    for t in _tokenize_startup(command):
+        if t == "|" or t == ";":
+            out.append(("sep", t))
+        else:
+            out.append(("arg", t))
+    return out
 
 
-def _resolve_shell_vars_per_token(command: str) -> str:
-    """Expand `$VAR`/`${VAR}` AFTER quote-aware tokenization, PER TOKEN, then
-    rejoin with shlex.join — the ONE env resolver the first_turn executor uses
-    (hypothesis:l4-an-env-value-cannot-break-a-quoted-argument).
-    `_tokenize_startup` splits the command into argv elements FIRST; each
-    element then has its `$VAR`/`${VAR}` references replaced by the value as
-    ONE literal token (never word-split), and the elements are rejoined so the
-    allowlist re-judge and the no-shell executor re-parse them identically (a
-    `shlex.join` round-trip is exact for this grammar, punctuation_chars
-    included). A value carrying a double quote, a space, or a `|`/`;` therefore
-    stays INSIDE that single argv element — it cannot add an argv element and
-    cannot inject a stage; what the re-judge sees is exactly what will execute.
-    Raises _StartupParseError (unparseable command, named) or ValueError (an
-    unset `$VAR`, named); never returns an unexpanded `$VAR`."""
-    expanded = [_SHELL_VAR_RE.sub(_resolve_shell_var, t)
-                for t in _tokenize_startup(command)]
-    return shlex.join(expanded)
+def _as_tokens(command_or_tokens):
+    """Accept either a command STRING or a resolved structural token list
+    (from _resolve_shell_vars_per_token) and return a structural token list.
+    Lets the one stage grammar serve both the allowlist judge (a literal
+    string, env UNEXPANDED — so `$HOME` stays literal, as before) and the
+    first_turn executor (which passes its already-env-resolved structure)."""
+    if isinstance(command_or_tokens, str):
+        return _tokenize_struct(command_or_tokens)
+    return command_or_tokens
+
+
+def _resolve_shell_vars_per_token(command: str) -> list:
+    """Expand `$VAR`/`${VAR}` PER ARGV ELEMENT and return the STRUCTURAL token
+    list (not a re-serialised string): ("sep", punct) for each bare `|`/`;`
+    separator, ("arg", value) for each literal argv element with its `$VAR`
+    references replaced by the env value as ONE whole element.
+
+    This never re-parses: the boundary decision is fixed by _tokenize_struct
+    BEFORE substitution, so an env VALUE that is exactly a shlex punctuation
+    char (`|`, `;`, ...) stays a single ("arg", "|") element and cannot inject
+    a stage — the thing a string round-trip through shlex.join could not do
+    (hypothesis:l4-a-bare-separator-env-value-cannot-inject-a-stage). A value
+    carrying a double quote, a space, or a `|`/`;` cannot add an argv element
+    or a boundary; what the judge and executor see is exactly the argv that
+    will run. Raises _StartupParseError (unparseable command, named) or
+    ValueError (an unset `$VAR`, named); never returns an unexpanded `$VAR`."""
+    out = []
+    for kind, t in _tokenize_struct(command):
+        if kind == "arg":
+            out.append(("arg", _SHELL_VAR_RE.sub(_resolve_shell_var, t)))
+        else:
+            out.append((kind, t))
+    return out
 
 
 class _StartupParseError(ValueError):
@@ -5138,22 +5190,22 @@ def _tokenize_startup(command: str) -> list:
             "unparseable first_turn command: %s" % exc) from exc
 
 
-def _startup_units(command: str) -> list:
-    """Quote-aware split of a tokenized command into `;`-units of `|`-stages.
-    Returns a list of units, each a list of stages, each a list of tokens, with
-    the unquoted `|`/`;` separators removed (they became single tokens in
-    _tokenize_startup and are consumed here as boundaries). An unquoted `|`
-    closes the current stage; an unquoted `;` closes the current unit. Runs
-    NOTHING. Both the allowlist judge and the no-shell executor derive their
-    groups from this one function."""
-    toks = _tokenize_startup(command)
+def _startup_units(command_or_tokens) -> list:
+    """Quote-aware split of a command into `;`-units of `|`-stages, from its
+    STRUCTURAL token list (a string is tokenized first by _as_tokens). Returns
+    a list of units, each a list of stages, each a list of argv tokens, with
+    the bare `|`/`;` separator elements consumed as boundaries and every "arg"
+    element (an env value included WHOLE) retained. A bare `|` closes the
+    current stage; a bare `;` closes the current unit. Runs NOTHING. Both the
+    allowlist judge and the no-shell executor derive their groups from this
+    one function."""
     units, stages, cur = [], [], []
-    for t in toks:
-        if t == "|":
+    for kind, t in _as_tokens(command_or_tokens):
+        if kind == "sep" and t == "|":
             if cur:
                 stages.append(cur)
                 cur = []
-        elif t == ";":
+        elif kind == "sep" and t == ";":
             if cur:
                 stages.append(cur)
                 cur = []
@@ -5169,17 +5221,18 @@ def _startup_units(command: str) -> list:
     return units
 
 
-def _command_units(command: str) -> list:
+def _command_units(command_or_tokens) -> list:
     """Parse a (fully resolved) first_turn command into sequential `;`-units,
     each a list of `|`-stage (argv, env_prefix) pairs. A leading `VAR=value`
     prefix token of a stage is retained and applied as THAT ONE stage's
     environment (never the whole command); it is stripped from the argv. Runs
     NOTHING. Same grammar as the allowlist judge (_segment_parts): both derive
-    from _tokenize_startup / _startup_units, so the separators are identical
+    from _tokenize_struct / _startup_units, so the separators are identical
     (unquoted `|`/`;` only) and nothing outside these tokens can reach the box.
+    Accepts a command string or a resolved structural token list.
     Raises _StartupParseError on an unparseable command."""
     units = []
-    for stage_list in _startup_units(command):
+    for stage_list in _startup_units(command_or_tokens):
         parsed = []
         for stage in stage_list:
             toks = stage[:]
@@ -5233,17 +5286,18 @@ def _run_units_no_shell(units: list, timeout_s: int):
     return last_rc, "\n".join(c for c in chunks if c)
 
 
-def _segment_parts(command: str) -> list:
+def _segment_parts(command_or_tokens) -> list:
     """Split a first_turn command into producing pipeline parts, quote-aware
     (a `|`/`;` inside quotes stays inside its argument). Returns one token-
     list per `|`-/`;`-part, a leading env assignment skipped per part. THE SAME
     grammar as the no-shell executor (_command_units): both derive from
-    _tokenize_startup / _startup_units, so the judge and the executor split on
-    identical separators (unquoted `|`/`;` only) and cannot diverge. Raises
+    _tokenize_struct / _startup_units, so the judge and the executor split on
+    identical separators (unquoted `|`/`;` only) and cannot diverge. Accepts a
+    command string or a resolved structural token list. Raises
     _StartupParseError on an unparseable command; the allowlist guard turns
     that into a refusal, never a crash."""
     parts = []
-    for stage_list in _startup_units(command):
+    for stage_list in _startup_units(command_or_tokens):
         for stage in stage_list:
             toks = stage[:]
             i = 0
@@ -5318,7 +5372,7 @@ def _git_arg_refusal(args: list) -> str | None:
     return None
 
 
-def _producing_refusal(command: str) -> str | None:
+def _producing_refusal(command_or_tokens) -> str | None:
     """Return a one-line refusal (naming the executable/verb) if ANY producing
     pipeline part of `command` is not on the startup allowlist, else None.
 
@@ -5327,12 +5381,12 @@ def _producing_refusal(command: str) -> str | None:
     An unmodeled shell operator (`&&` `||` `&` `$(...)` backtick `<` `>`
     `>>` newline) is refused first with its name — the floor that keeps the
     grammar closed even if a future executor reintroduces a shell.
-    """
-    op = _operator_refusal(command)
+    Accepts a command string or a resolved structural token list."""
+    op = _operator_refusal(command_or_tokens)
     if op:
         return op
     try:
-        units = _startup_units(command)
+        units = _startup_units(command_or_tokens)
     except _StartupParseError as exc:
         # Never raise out of the guard: an unparseable command (unbalanced
         # quote, trailing backslash, ...) is a NAMED refusal, not a crash of
@@ -5399,7 +5453,7 @@ def _producing_refusal(command: str) -> str | None:
     return None
 
 
-def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
+def _env_prefix_refusal(command_or_tokens, allow: frozenset) -> str | None:
     """Return a one-line refusal (naming the VAR and the allowlist) if ANY
     leading `VAR=value` env prefix in `command` names a VAR not on the startup
     env allowlist, else None. A leading `VAR=value` is APPLIED to that stage's
@@ -5411,9 +5465,10 @@ def _env_prefix_refusal(command: str, allow: frozenset) -> str | None:
     before the executor ever sees the command. An unparseable command yields
     None — the producing judge (_producing_refusal) names that separately.
     Only the leading `VAR=value` run per stage is checked, matching exactly how
-    the executor collects prefixes."""
+    the executor collects prefixes. Accepts a command string or a resolved
+    structural token list."""
     try:
-        units = _startup_units(command)
+        units = _startup_units(command_or_tokens)
     except _StartupParseError:
         return None
     for stage_list in units:
@@ -5574,14 +5629,18 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             continue
         # Two forms (fix b): `record_cmd` keeps `$VAR` LITERAL — what the result
         # dict's `cmd` and dry-run report, byte-identical to the pre-expansion
-        # text so a secret never lands in the record. `exec_cmd` env-expands it
-        # PER TOKEN (never on the whole string) and is used ONLY to build the
-        # no-shell argv; execution needs the value, the record must not hold it.
-        # A value carrying a double quote, a space, or a `|`/`;` stays inside
-        # ONE argv element and is never re-parsed (hypothesis:l4-an-env-value-
-        # cannot-break-a-quoted-argument).
+        # text so a secret never lands in the record. `exec_tokens` env-expands
+        # the STRUCTURAL token list PER ARGV ELEMENT (never a whole-string
+        # re-serialisation) and is used ONLY to build the no-shell argv;
+        # execution needs the value, the record must not hold it. A value
+        # carrying a double quote, a space, or a `|`/`;` stays inside ONE argv
+        # element and is never re-parsed — the boundary decision is fixed at
+        # tokenize time, so even a value that IS exactly a punctuation char
+        # cannot inject a stage (hypothesis:l4-an-env-value-cannot-break-a-
+        # quoted-argument, hypothesis:l4-a-bare-separator-env-value-cannot-
+        # inject-a-stage).
         try:
-            exec_cmd = _resolve_shell_vars_per_token(record_cmd)
+            exec_tokens = _resolve_shell_vars_per_token(record_cmd)
         except _StartupParseError as exc:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": "unparseable command: %s" % exc})
@@ -5594,20 +5653,20 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         # A PLACEHOLDER value can inject a whole new stage wrapped in `;` or `|`
         # (both MODELED separators); placeholders substitute into the string
         # BEFORE tokenization, so the injected stage is here and the template
-        # judge never saw it. An ENV value cannot inject one (per-token
-        # expansion keeps it inside one element), but the re-judge still runs on
-        # exec_cmd so what is judged is what is executed. Re-run the env
+        # judge never saw it. An ENV value cannot inject one (expansion keeps
+        # it inside one element), but the re-judge still runs on exec_tokens so
+        # what is judged is what is executed. Re-run the env
         # allowlist and the producing allowlist BEFORE _command_units splits it,
         # so an injected `touch`-style stage is refused, not run, and its
         # `$VAR` stays literal in the record (hypothesis:l4-the-judge-runs-on-
         # the-substituted-command).
-        exec_env_refusal = _env_prefix_refusal(exec_cmd, env_allow)
+        exec_env_refusal = _env_prefix_refusal(exec_tokens, env_allow)
         if exec_env_refusal:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": _scrub_injected_refusal(
                                 exec_env_refusal, record_cmd)})
             continue
-        exec_refusal = _producing_refusal(exec_cmd)
+        exec_refusal = _producing_refusal(exec_tokens)
         if exec_refusal:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": "not on startup.allow: "
@@ -5617,7 +5676,7 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         # Unmodeled-operator check stays: an operator `_producing_refusal`
         # deliberately does not model (e.g. `&&`) is caught here. `$VAR` is
         # expanded for execution only; the record keeps the literal `$VAR`.
-        op = _operator_refusal(exec_cmd)
+        op = _operator_refusal(exec_tokens)
         if op:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": op})
@@ -5626,7 +5685,7 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
             results.append({"label": label, "cmd": record_cmd, "dry": True})
             continue
         try:
-            units = _command_units(exec_cmd)
+            units = _command_units(exec_tokens)
         except _StartupParseError as exc:
             results.append({"label": label, "cmd": record_cmd,
                             "refused": "unparseable command: %s" % exc})
@@ -7111,47 +7170,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print("    successor @id capture: tmux new-window -P -F '#{window_id}' "
               f"under the {'numeral-chain' if is_chain_seat else 'plain'} name "
               f"{spawn_name!r}")
+        _belam_gate = (role == "prime_director"
+                       or getattr(args, "belam_prefix", None))
         if is_chain_seat:
             print(f"(dry-run) numeral-chain seat: successor name "
                   f"{spawn_name!r}, generation = numeral {gen}, own window "
                   "@id = tmux display-message -p '#{window_id}' "
                   "(knowable only live), ack path "
                   f"{_ack_path(root, seat)}")
-            # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-
-            #     chain seat runs. NAMED live-derived, read-only: the
-            #     OLDEST predecessor window when the chain would exceed
-            #     FIVE, its @id, its pane pid and the ps -e chain it would
-            #     TERM deepest-first. Touches nothing. Same call path the
-            #     live r5 uses (`_belam_oldest` over the live windows + the
-            #     spawn_name successor; `_pane_pid(@id)` -> `_descendant_chain`).
-            pfx = getattr(args, "belam_prefix", None) or "belam"
-            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
-            if oldest is None:
-                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
-                      f"live {pfx!r} windows -> no reap (the own-window "
-                      f"reap is GATED OFF on a numeral-chain seat)")
-            else:
-                oldest_id = _successor_window_id(
-                    oldest, tmux_session, args.window_path)
-                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
-                      f"predecessor {oldest!r} (@id {oldest_id})")
-                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
-                if not pane_pid:
-                    print(f"        SKIPPED: no pane pid for window "
-                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
-                          f"cap could not derive its chain (a live tmux "
-                          f"run reads `tmux display-message -p -t @id "
-                          f"#{{pane_pid}}` -> `ps -e` climb)")
-                else:
-                    chain = _descendant_chain(pane_pid)
-                    if not chain:
-                        print(f"        SKIPPED: no ps -e chain under pane "
-                              f"pid {pane_pid} for {oldest!r}; nothing to "
-                              f"reap")
-                    else:
-                        print(f"        pane pid {pane_pid} -> ps -e chain "
-                              f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                              f"window killed by @id")
         else:
             print("(dry-run) ends on the PLAIN seat name; "
                   f"generation: {gen} (never a Roman numeral)")
@@ -7182,8 +7208,53 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                           f"{pane_pid} for {seat!r}; nothing to reap")
                 else:
                     print(f"        pane pid {pane_pid} -> ps -e chain "
-                          f"{chain!r}, TERM'd DEEPEST-FIRST, then the "
-                          f"window killed by @id")
+                          f"{list(reversed(chain))!r}, TERM'd "
+                          f"DEEPEST-FIRST, then the window killed by @id")
+        # (r5 dry-run) the Belam FIFO cap -- the ONE reap a numeral-chain
+        #     seat runs, and the cap reap for ANY `--belam-prefix` seat.
+        #     GATED on the LIVE seam (role == "prime_director" OR
+        #     --belam-prefix, the same condition s6.6 at the LIVE cap uses),
+        #     NEVER on `is_chain_seat` alone: a plain seat GIVEN
+        #     --belam-prefix reaps live but its dry-run used to print no r5
+        #     plan at all. NAMED live-derived, read-only: the OLDEST
+        #     predecessor window when the chain would exceed FIVE, its @id,
+        #     its pane pid and the ps -e chain it would TERM deepest-first.
+        #     Touches nothing. Same call path the live r5 uses
+        #     (`_belam_oldest` over the live windows + the spawn_name
+        #     successor; `_pane_pid(@id)` -> `_descendant_chain`).
+        if _belam_gate:
+            pfx = getattr(args, "belam_prefix", None) or "belam"
+            oldest = _belam_oldest(_existing_for_chain, spawn_name, pfx)
+            if oldest is None:
+                _gated_own = ("the own-window reap is GATED OFF on a "
+                              "numeral-chain seat" if is_chain_seat else
+                              "the own-window reap (r4/s12) above still "
+                              "runs")
+                print(f"    (r5) Belam FIFO cap: chain stays at/below FIVE "
+                      f"live {pfx!r} windows -> no Belam cap reap "
+                      f"({_gated_own})")
+            else:
+                oldest_id = _successor_window_id(
+                    oldest, tmux_session, args.window_path)
+                print(f"    (r5) Belam FIFO cap WOULD reap the OLDEST "
+                      f"predecessor {oldest!r} (@id {oldest_id})")
+                pane_pid = (_pane_pid(oldest_id) if oldest_id else None)
+                if not pane_pid:
+                    print(f"        SKIPPED: no pane pid for window "
+                          f"{oldest!r} (@id {oldest_id}); the Belam FIFO "
+                          f"cap could not derive its chain (a live tmux "
+                          f"run reads `tmux display-message -p -t @id "
+                          f"#{{pane_pid}}` -> `ps -e` climb)")
+                else:
+                    chain = _descendant_chain(pane_pid)
+                    if not chain:
+                        print(f"        SKIPPED: no ps -e chain under pane "
+                              f"pid {pane_pid} for {oldest!r}; nothing to "
+                              f"reap")
+                    else:
+                        print(f"        pane pid {pane_pid} -> ps -e chain "
+                              f"{list(reversed(chain))!r}, TERM'd "
+                              f"DEEPEST-FIRST, then the window killed by @id")
         # (0b-b owed (i)) after_join dry-run: the template's `after_join` list
         # is ENUMERATED (resolved, NOTHING run, no delay, no record write, no
         # dm) so a caller sees exactly what the service/rotate-self will run

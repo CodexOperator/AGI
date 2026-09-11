@@ -177,17 +177,23 @@ STARTUP_VALUES = {
 # this replaced only MIRRORED the node, so a live node that regressed to
 # `rotate.py whois` would keep them green; reading the bytes the suite ships is
 # the only claim that holds the templates to what rotates the seats.
-def _live_first_turn() -> dict:
+def _live_first_turn(path: "str | Path | None" = None) -> dict:
     """Templates.<role>.startup.first_turn for EVERY role, read from the
-    checked-in .agi/nodes/.geometry/rotations.md (not a fixture copy). The
-    rotations node is `type: config`, owned by the owner/prime — a kid reads it
-    (and the fixed templates it already carries under
-    hypothesis:l4-rotations-startup-commands-must-parse) and never writes it.
+    checked-in .agi/nodes/.geometry/rotations.md by default (not a fixture
+    copy) — or from an explicit `path=` copy, so a drift test can point the
+    SHARED reader at a /tmp copy and show the live-config judgement go red
+    without touching the live node (hypothesis:l4-the-drifted-node-test-is-
+    in-the-suite). The rotations node is `type: config`, owned by the
+    owner/prime — a kid reads it (and the fixed templates it already carries
+    under hypothesis:l4-rotations-startup-commands-must-parse) and never
+    writes it.
     """
     from graph_core.persistence import frontmatter as _fm  # noqa: E402
-    rot = (Path(__file__).resolve().parents[3]
-           / ".agi" / "nodes" / ".geometry" / "rotations.md")
-    assert rot.exists(), f"live rotations.md missing: {rot}"
+    if path is None:
+        path = (Path(__file__).resolve().parents[3]
+                / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    rot = Path(path)
+    assert rot.exists(), f"rotations.md missing: {rot}"
     nf = _fm.load_node_file(rot)
     templates = nf.frontmatter.get("templates") or {}
     out = {}
@@ -377,7 +383,14 @@ def test_wait_times_out_when_record_never_terminal(
     def fake_root():
         return root
     monkeypatch.setattr(rotate, "find_project_root", fake_root)
-    monkeypatch.setattr(rotate.time, "sleep", lambda *a, **k: None)
+
+    # drive the poll entirely on a fake clock + advancing sleep so the
+    # suite spends no wall time (hypothesis:l4-status-wait-waits-for-the-
+    # record-to-appear).
+    clock = {"now": 1000.0}
+    monkeypatch.setattr(rotate.time, "monotonic", lambda: clock["now"])
+    monkeypatch.setattr(rotate.time, "sleep",
+                        lambda s: clock.update(now=clock["now"] + s))
 
     rc = rotate.main(["status", "--seat", "sanctuary-director",
                       "--record", "latest", "--wait", "3"])
@@ -386,6 +399,75 @@ def test_wait_times_out_when_record_never_terminal(
     assert "ERR: still not terminal after 3s" in cap.err
     assert "latest rotation record" in cap.out
     assert "success" in cap.out
+
+
+def test_wait_waits_for_record_to_appear_then_terminal(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-status-wait-waits-for-the-record-to-appear happy path:
+    with NO record yet, `--wait N` must wait for the record to APPEAR and
+    then for its s12_self_reap, within one deadline — exiting 0 with the
+    terminal record printed. Previously the no-record path returned 0 at
+    once with `(no rotation record for <seat>)`, never waiting at all."""
+    import datetime
+    root = tmp_path / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+
+    clock = {"now": 1000.0}
+    created = {"done": False}
+
+    def fake_root():
+        return root
+    monkeypatch.setattr(rotate, "find_project_root", fake_root)
+    monkeypatch.setattr(rotate.time, "monotonic", lambda: clock["now"])
+
+    def fake_sleep(secs):
+        # the record lands partway through the wait, inside the deadline
+        if not created["done"]:
+            created["done"] = True
+            stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+            (rot / f"sanctuary-director.{stamp}.json").write_text(json.dumps({
+                "rotation": "rotate-self",
+                "seat": "sanctuary-director",
+                "result": "success",
+                "s12_self_reap": {"pane_pid": 555}}))
+        clock["now"] += secs
+    monkeypatch.setattr(rotate.time, "sleep", fake_sleep)
+
+    rc = rotate.main(["status", "--seat", "sanctuary-director",
+                      "--record", "latest", "--wait", "30"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "(no rotation record" not in out
+    assert "s12_self_reap" in out and "555" in out
+    assert "sequence=" in out
+
+
+def test_wait_for_missing_record_times_out(tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-status-wait-waits-for-the-record-to-appear FALSIFIER:
+    a `--wait N` whose record never APPEARS must time out in one deadline
+    and exit 2 with `ERR: no rotation record for <seat> after Ns` — not the
+    old silent `(no rotation record for <seat>)` return 0. Wall-time-free."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(SEATS_BODY)
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+
+    clock = {"now": 1000.0}
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate.time, "monotonic", lambda: clock["now"])
+    monkeypatch.setattr(rotate.time, "sleep",
+                        lambda s: clock.update(now=clock["now"] + s))
+
+    rc = rotate.main(["status", "--seat", "sanctuary-director",
+                      "--record", "latest", "--wait", "3"])
+    cap = capsys.readouterr()
+    assert rc == 2
+    assert "ERR: no rotation record for sanctuary-director after 3s" in cap.err
+    assert "(no rotation record" not in cap.out
 
 
 def test_wait_returns_zero_when_record_becomes_terminal_mid_wait(

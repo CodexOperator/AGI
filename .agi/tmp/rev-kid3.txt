@@ -1,0 +1,9 @@
+PARENT REVIEW L4.278 (a00-9e0d38c6), accepted as proved.
+
+(1) INSTRUCTION SAID: "the SIGTERM-ignoring sleeper fixture is removed."
+
+(2) WHAT THE MACHINE DOES, on the merged round tree: `_sleeping()` now spawns `python3 -c "import time; time.sleep(120)"` -- no `signal.signal(SIGTERM, SIG_IGN)`. Re-measured: `grep -n SIG_IGN test_spawn_budget.py` matches only this node's own docstring prose, no code; `pytest test_spawn_budget.py -q` -> 46 passed.
+
+(3) NEAR MISS: deleting `_sleeping()` outright because "the fixture is removed" would satisfy the sentence and break the stall-candidate and --wait sections that legitimately need a real pid; stripping only the SIG_IGN closes the actual harm (a SIGTERM-killed suite no longer strands 120 s sleepers) and keeps them green. Note the harm is narrower than it sounds: Ctrl-C already sends SIGINT to the process group, so SIG_IGN was only ever shielding against a SIGTERM kill.
+
+(4) DEVIATION: this edit lies outside the node's literal "that section ONLY" file scope. Authorised here because the node's own CLAIM demands the fixture be removed, which is impossible inside a section that no longer calls it; resolved in favour of the claim, minimally, parent-ruled.

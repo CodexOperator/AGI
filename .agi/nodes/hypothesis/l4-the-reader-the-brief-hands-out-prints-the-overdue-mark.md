@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR HARVEST (sanctuary-director 163547Z session, 2026-09-11T16:40Z): L4.270 merged (branch loop/hypothesis-l4-the-reader-the-bri-a00-25b3c7ba@s2, 6 files, +168/-6, deletions in scope). Neighbours test_cli + test_brief + test_spawn_budget + test_heal: 201 passed. Real-tree probe on the merged bytes: (neg) the seat tree's own record iter-L4.193/a00-06c44930 is `done` WITH overdue_since set (past timeout at 1219s) -> `cli.py status L4.193` prints `status=done` with NO (overdue) mark, the guard the parent named as the near miss, on a real corpse; (pos) the same record copied to a scratch project under /tmp with status flipped to running -> `status=running(overdue) verdict=pending`. No live running-overdue record existed at harvest (all four overdue_since records on the box are done). Residue carried from the parent review, not repaired: cmd_status resolves records via _legacy_fallback (local -> main), not the sibling-worktree glob, so a record living only in a sibling worktree still prints (no agent.json).

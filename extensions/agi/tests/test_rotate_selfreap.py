@@ -623,6 +623,153 @@ def test_chain_seat_dry_run_prints_fifo_plan_touches_nothing(_fix, tmp_path,
     rot = tmp_path / "sessions" / "rotations"
     assert not rot.exists() or not list(rot.glob("belam.*.json"))
 
+# ── L4.274 — the dry-run pids/chain LINE is hermetic and deepest-first ──
+# hypothesis:l4-the-dry-run-chain-line-is-tested-hermetically. Three extra
+# hermetic tests (same `_ps_table` / `_pane_pid` / windows.txt seams): (1)
+# the PLAIN-seat r4/s12 line asserts its EXACT own @id + pane pid + derived
+# chain, (2) the CHAIN-seat r5 line asserts its EXACT oldest + @id + chain,
+# and (3) a PLAIN seat with --belam-prefix prints the (r5) Belam cap-reap
+# plan it WOULD run (the live gate, not is_chain_seat), touches nothing.
+# Both chain lines are asserted in the DEEPEST-FIRST order the live reap
+# TERMs (`_reap_chain` reversed) — the falsifier is `_descendant_chain`
+# patched to return the chain reversed, which must turn the assertion red.
+
+
+# BFS fixture: pane 500 -> 510 -> 520 (520 deepest). `_descendant_chain`
+# returns [510, 520] (shallow->deep); the dry-run must PRINT [520, 510].
+_PANE_TREE = [(500, 1), (510, 500), (520, 510)]
+_PANE_PID = 500
+
+
+def test_plain_seat_dry_run_chain_line_deepest_first(_fix, tmp_path,
+                                                     monkeypatch, capsys):
+    """(1) the PLAIN-seat r4/s12 dry-run line carries the exact own @id
+    (resolved from the CURRENT <seat> window), the pane pid and the derived
+    chain, printed DEEPEST-FIRST under the 'DEEPEST-FIRST' label. HERMETIC:
+    no tmux, no kill — `_ps_table` + `_pane_pid` seam + windows.txt seams.
+    Falsifier: a `_descendant_chain` returning the chain reversed makes the
+    order assertion fail."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 adv-alive\n", encoding="utf-8")
+    before = win.read_text()
+    _ps_table(monkeypatch, _PANE_TREE)
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: _PANE_PID)
+    args = SimpleNamespace(
+        name="adv-alive", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=False, successor_argv=None, role="parent",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "own-window reap WOULD kill 'adv-alive.gen1' (@id @9)" in out
+    # the exact chain line: pane pid + derived chain printed DEEPEST-FIRST.
+    assert ("pane pid 500 -> ps -e chain [520, 510], TERM'd DEEPEST-FIRST"
+            in out)
+    assert win.read_text() == before          # touched nothing
+    rot = tmp_path / "sessions" / "rotations"
+    assert not rot.exists() or not list(rot.glob("adv-alive.*.json"))
+
+
+def test_chain_seat_dry_run_chain_line_deepest_first(_fix, tmp_path,
+                                                     monkeypatch, capsys):
+    """(2) the CHAIN-seat r5 dry-run line carries the exact OLDEST
+    predecessor + its @id + the derived chain, printed DEEPEST-FIRST.
+    HERMETIC: `_ps_table` + `_pane_pid` seam + windows.txt seam."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "belam", "role": "prime_director",
+                         "model": "x", "effort": "max", "settings": ""}])
+    g = tmp_path / "nodes" / ".geometry"
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  prime_director:\n    brief_file: "
+        "extensions/agi/briefs/prime-director-successor.md\n"
+        "    steps: [handoff, spawn]\n    telemetry: [seed, model, ack]\n"
+        "---\n\nbody\n", encoding="utf-8")
+    win = tmp_path / "windows.txt"
+    win.write_text("@10 belam-S1-L4-I\n@11 belam-S1-L4-II\n"
+                   "@12 belam-S1-L4-III\n@13 belam-S1-L4-IV\n"
+                   "@14 belam-S1-L4-V\n@15 belam-S1-L4-VI\n",
+                   encoding="utf-8")
+    before = win.read_text()
+    _ps_table(monkeypatch, _PANE_TREE)
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: _PANE_PID)
+    args = SimpleNamespace(
+        name="belam", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=False, successor_argv=None, role="prime_director",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix=None, own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "belam-S1-L4-I" in out              # the OLDEST predecessor
+    assert "(@id @10)" in out                  # its window @id
+    assert ("pane pid 500 -> ps -e chain [520, 510], TERM'd DEEPEST-FIRST"
+            in out)
+    assert win.read_text() == before          # touched nothing
+    rot = tmp_path / "sessions" / "rotations"
+    assert not rot.exists() or not list(rot.glob("belam.*.json"))
+
+
+def test_plain_seat_belam_prefix_dry_run_prints_r5_plan(_fix, tmp_path,
+                                                        monkeypatch,
+                                                        capsys):
+    """(3) a PLAIN seat GIVEN --belam-prefix prints the (r5) Belam cap-reap
+    plan it WOULD run (the LIVE gate role==prime_director OR --belam-prefix,
+    NEVER is_chain_seat), read-only, alongside its own r4/s12 chain plan.
+    Regression for the defect: the r5 plan lived INSIDE `if is_chain_seat:`
+    so a plain-seat --belam-prefix dry-run printed no r5 plan at all while
+    the live path reaped."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    win = tmp_path / "windows.txt"
+    win.write_text("@9 adv-alive\n@10 belam-I\n@11 belam-II\n"
+                   "@12 belam-III\n@13 belam-IV\n@14 belam-V\n"
+                   "@15 belam-VI\n", encoding="utf-8")
+    before = win.read_text()
+    _ps_table(monkeypatch, _PANE_TREE)
+    monkeypatch.setattr(rotate, "_pane_pid", lambda pane: _PANE_PID)
+    args = SimpleNamespace(
+        name="adv-alive", force=False, timeout=5, debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        tmux_session="t", window_path=str(win), dry_run=True,
+        throwaway=False, successor_argv=None, role="parent",
+        session_ref=None, successor_transcript=None, own_pid=None,
+        belam_prefix="belam", own_chain=None, registry_dir=None,
+        registry_poll=None, view_path=None, verification_argv=None,
+        grid_commit_legal=True, grid_commit_branch=None, comms_root=None,
+        trigger="rotate-self", in_flight=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    # the r5 cap-reap plan a PLAIN seat with --belam-prefix WOULD run:
+    assert "(r5) Belam FIFO cap WOULD reap the OLDEST predecessor 'belam-I' " \
+           "(@id @10)" in out
+    assert ("pane pid 500 -> ps -e chain [520, 510], TERM'd DEEPEST-FIRST"
+            in out)
+    # and its OWN r4/s12 plan still prints (the plain seat runs BOTH):
+    assert "own-window reap WOULD kill 'adv-alive.gen1' (@id @9)" in out
+    # the r5 plan line is the proof of a REAL chain (the named skip would
+    # print 'SKIPPED: no ps -e chain' instead of the chain line):
+    assert '[520, 510]' in out and '@10' in out
+    assert win.read_text() == before          # touched nothing
+    rot = tmp_path / "sessions" / "rotations"
+    assert not rot.exists() or not list(rot.glob("adv-alive.*.json"))
+
 
 # ── EIGHTH dispatch — hypothesis:l4-reap-helpers-have-other-tty-and-       ──
 # ── non-child-fixtures: REAL non-child / other-tty trees, not fake tables ──
