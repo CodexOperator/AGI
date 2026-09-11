@@ -1296,10 +1296,59 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         extra=startup_block,
     )
     if rc != 0:
+        # A FAILED spawn removes the pre-window first-seating bootstrap record
+        # `_first_seating_run` wrote before the window came up (Prime XI line
+        # (7), second half): a seat that never came up must leave NO 'started'
+        # record behind, so `cmd_status --record latest` stays truthful.
+        # Removed rather than marked `result: failed` -- the bootstrap record
+        # has no `result` field by shape, and a stale `pending: resolved after
+        # join` pointing at a seating that never happened is worse than an
+        # absent file.
+        if seat is not None:
+            _remove_first_seating_record(root, seat)
         return rc
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         print(f"  watch at: https://claude.ai/chat (remote-control mode)")
+        # A recovery seating gets its predecessor autopsy pre-filled from
+        # files (hypothesis:l4-a-recovery-seating-gets-its-predecessor-
+        # autopsy-pre-filled-from-files): every first seating PRINTS a
+        # `[seating]` block — spawned-by, predecessor pid + death ts, record /
+        # wrapper, and the three worktree-state lines (behind N, unresolved
+        # merge, dirty paths) — and, when the seat row names a pid that is
+        # gone, appends the predecessor AUTOPSY as its LAST block so the
+        # recovery successor does not reconstruct X's death by hand. `--no-
+        # -autopsy` skips only the autopsy, never the block. Reads only.
+        now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        seq = _current_sequence(root) if root is not None else 0
+        pred_pid = getattr(args, "pid", None)
+        if pred_pid is None and root is not None:
+            pred_pid = (_find_seat(root, seat) or {}).get("pid") if seat else None
+        pred_death = "-"
+        dead = False
+        if pred_pid is not None:
+            pred_pid = int(pred_pid)
+            dead = _pid_gone(pred_pid)
+            _data = _registry_read(getattr(args, "registry_dir", None), pred_pid)
+            _tp = Path((_data.get("transcript") or transcript_from_registry_dict(_data)
+                        or "")).expanduser() if (_data.get("transcript")
+                        or transcript_from_registry_dict(_data)) else None
+            pred_death = _death_timestamp(_data, _tp)
+        for ln in _compose_seating_base_block(
+                seat=seat, source="cmd_spawn", now=now,
+                pred_pid=pred_pid, pred_death=pred_death, seq=seq,
+                root=root):
+            print(ln)
+        if root is not None:
+            # capture worktree state BEFORE the announce/record writes churn
+            for ln in _seating_worktree_lines(root):
+                print(ln)
+        if dead and not getattr(args, "no_autopsy", False) and root is not None:
+            print(f"[seating] previous seat died — predecessor autopsy:")
+            for ln in _run_autopsy(seat=seat, pid=pred_pid,
+                                   registry_dir=getattr(args, "registry_dir", None),
+                                   root=root):
+                print(ln)
         # A first seating sends the Sensei the same alert a rotation does
         # (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-
         # rotation-does): after the window is up, emit the trigger: first-
@@ -1316,6 +1365,24 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     registry_dir=getattr(args, "registry_dir", None))
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
+                      file=sys.stderr)
+        # rotate-self step 2's TWO writes land on the spawn too (hypothesis:
+        # l4-a-first-seating-is-a-rotation-without-a-predecessor): pin the
+        # seat's meter at gen 1 and write seats/<S>.ack.json with `answer:
+        # pending` (F8's contract). The SAME writers rotate-self uses
+        # (`_pin_successor_meter` / `_write_ack`) -- never a second pin or ack
+        # format. These are the SPAWN's writes, kept separate from the READ-
+        # ONLY autopsy block above (which runs no non-read command). A fresh
+        # first seating has no successor transcript yet, so the pin is `1\t`
+        # (empty target -- rotate-self repoints it when a successor joins at
+        # gen 2); an empty-target pin is safe (`_read_pin_target` returns
+        # None). Non-fatal: a pin/ack failure never fails the seating.
+        if seat is not None:
+            try:
+                _first_seating_spawn_writes(
+                    root=root, seat=seat, generation=FIRST_SEATING_GEN)
+            except Exception as exc:                        # noqa: BLE001
+                print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
     return 0
 
@@ -3118,6 +3185,385 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         seating=seating)
 
 
+def _first_seating_spawn_writes(*, root: Path, seat: str,
+                                generation: int = FIRST_SEATING_GEN,
+                                transcript: str = "") -> dict:
+    """A spawn's rotate-self-step-2 TWO writes, for a FIRST seating
+    (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor): pin
+    the seat's meter at ITS generation (the SAME `_pin_successor_meter`
+    rotate-self uses, never a second pin format) and write
+    seats/<seat>.ack.json with `answer: pending` (F8's contract, the same
+    `_write_ack`). These are the SPAWN's writes -- rotate-self step 2's -- NOT
+    the autopsy's (which runs read-only only); they are the spawn occupying
+    its own meter and opening its ack channel.
+
+    The transcript is the caller's known one -- EMPTY for a fresh first
+    seating (there is no successor transcript from a JOIN yet); rotate-self
+    repoints the pin at the successor's transcript when a rotation joins at
+    gen 2. An empty-target pin is safe: `find_pin_log` still resolves it and
+    `_read_pin_target` returns None until a transcript lands. Returns
+    {meter_pin, ack_path}."""
+    mp = _pin_successor_meter(root, seat=seat, generation=generation,
+                              transcript=transcript)
+    ap = _write_ack(root=root, seat=seat, gen_after=generation,
+                    session_ref="", answer="pending")
+    return {"meter_pin": mp, "ack_path": str(ap)}
+
+
+def _remove_first_seating_record(root: Path, seat: str) -> bool:
+    """Remove the pre-window first-seating bootstrap record for `seat`.
+
+    The gen-1 bootstrap record is written by `_first_seating_run` (via
+    `_write_bootstrap`) BEFORE the window spawn. If the spawn then FAILS, that
+    record is a promise the seat never kept -- so `cmd_spawn` removes it on a
+    non-zero spawn rc, leaving NO 'started' record behind and keeping
+    `cmd_status --record latest` truthful (Prime XI line (7), second half).
+    Removed rather than marked `result: failed` because the bootstrap record
+    has no `result` field by shape, and a stale `pending: resolved after join`
+    pointing at a seating that never came up is worse than an absent file.
+    Best-effort, never raises. Returns True when a record was removed."""
+    p = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
+    try:
+        if p.exists():
+            p.unlink()
+            return True
+    except OSError:
+        pass
+    return False
+
+
+# --- recovery seating: predecessor autopsy (hypothesis:l4-a-recovery-seating-
+#      gets-its-predecessor-autopsy-pre-filled-from-files) --------------------
+# The recovery successor otherwise reconstructs X's death by hand (Sensei's
+# spawn-seating audit 175816Z: belam spent calls 3-9 + 14 on X's death, the
+# helper 181834Z repaired an unresolved merge the spawn never named). Every
+# one of those facts is on disk. This region prints them FROM FILES ONLY,
+# read-only — the LLM still decides continue|diff.
+
+#: the tag every autopsy line carries, so a reader can slice the block out.
+AUTOPSY_TAG = "[autopsy]"
+#: how many pre-death transcript entries to print for the predecessor.
+AUTOPSY_LAST_ENTRIES = 10
+
+
+def transcript_from_registry_dict(data: dict) -> str:
+    """The Claude Code transcript path for a per-session registry dict.
+
+    The ONE derivation, lifted out of `_join_successor` (was inline at
+    rotate.py ~4606-4610): an explicit `transcript`/`transcript_path` wins;
+    else `cwd` + `sessionId` derive `~/.claude/projects/<slug>/<sessionId>\n"
+    `.jsonl` where slug = every '/' and '.' in cwd replaced by '-'. The
+    autopsy and the join call this SAME helper — never a copy."""
+    transc = str(data.get("transcript") or data.get("transcript_path") or "")
+    sess = data.get("session_id") or data.get("sessionId") or ""
+    if not transc and sess and data.get("cwd"):
+        slug = str(data["cwd"]).replace("/", "-").replace(".", "-")
+        transc = str(CC_PROJECTS_DIR / slug / f"{sess}.jsonl")
+    return transc
+
+
+def _registry_file_path(registry_dir: str | None, pid: int) -> Path | None:
+    """`<registry_dir>/<pid>.json` (default `~/.claude/sessions`), or None."""
+    p = Path(registry_dir or REGISTRY_DEFAULT_DIR).expanduser() / f"{pid}.json"
+    return p if p.exists() else None
+
+
+def _registry_read(registry_dir: str | None, pid: int) -> dict:
+    """The parsed `<pid>.json` registry dict, or {} when absent/unreadable."""
+    fp = _registry_file_path(registry_dir, pid)
+    if fp is None:
+        return {}
+    try:
+        data = json.loads(fp.read_text(encoding="utf-8", errors="replace"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _pid_gone(pid: int) -> bool:
+    """True when no live process owns `pid` — `/proc/<pid>` is the one
+    liveness read the autopsy performs (read-only, never a signal)."""
+    return not Path(f"/proc/{int(pid)}").exists()
+
+
+def _death_timestamp(data: dict, transcript_path: Path | None) -> str:
+    """The predecessor's death timestamp, from FILES ONLY: the registry json's
+    `statusUpdatedAt`/`updatedAt` (ms epoch) else the transcript's mtime, else
+    `-`. Source is named on the line so the reader can distinguish a measured
+    death from a guess."""
+    for key in ("statusUpdatedAt", "updatedAt"):
+        v = data.get(key)
+        if v not in (None, ""):
+            try:
+                ms = int(v)
+                return datetime.utcfromtimestamp(ms / 1000.0).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ")
+            except (ValueError, TypeError, OSError):
+                return str(v)
+    if transcript_path is not None and transcript_path.exists():
+        return datetime.utcfromtimestamp(transcript_path.stat().st_mtime)\
+            .strftime("%Y-%m-%dT%H:%M:%SZ")
+    return "-"
+
+
+def _iter_assistant_entries(path: Path, until_ts: str | None = None):
+    """Yield `(ts, summary)` for every assistant text/tool_use content block in
+    a CC JSONL transcript, in file order, optionally bounded at or before
+    `until_ts`. A heartbeat line is neither assistant text nor tool_use and is
+    skipped by construction. `_summarize_tool_input`-shaped summaries (imported,
+    never copied)."""
+    try:
+        import sensei
+    except Exception:  # pragma: no cover - sibling import, degrade silently
+        sensei = None
+    from datetime import datetime as _dt
+
+    def _norm(ts):
+        if not ts:
+            return None
+        s = str(ts)
+        try:
+            s = s.replace("Z", "+00:00").replace(" ", "T")
+            if "+" not in s and "-" not in s[10:]:
+                s += "+00:00"
+            return _dt.fromisoformat(s)
+        except ValueError:
+            return None
+
+    bound = _norm(until_ts)
+    try:
+        fh = open(path, encoding="utf-8", errors="replace")
+    except OSError:
+        return
+    with fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if ev.get("type") != "assistant":
+                continue
+            content = ev.get("message", {}).get("content")
+            if not isinstance(content, list):
+                continue
+            ts = ev.get("timestamp") or (ev.get("message") or {}).get("timestamp")
+            ts = str(ts) if ts else None
+            if bound is not None and ts is not None:
+                nts = _norm(ts)
+                if nts is not None and nts > bound:
+                    continue
+            for b in content:
+                if not isinstance(b, dict):
+                    continue
+                if b.get("type") == "text" and b.get("text"):
+                    summ = " ".join(str(b["text"]).split())
+                    summ = summ[:110] + ("…" if len(summ) > 110 else "")
+                    yield ts, f"text: {summ}"
+                elif b.get("type") == "tool_use":
+                    inp = b.get("input") or {}
+                    summ = (sensei._summarize_tool_input(inp) if sensei
+                            else str(inp)[:110])
+                    yield ts, f"tool_use {b.get('name', '?')}: {summ}"
+
+
+def _latest_service_output_log(root: Path) -> Path | None:
+    """The persistent healer/service `output.log` (heal.py `healer_dir /
+    "output.log"`): the newest `*/output.log` under the sessions dir."""
+    sess = _sessions_dir(root)
+    if not sess.is_dir():
+        return None
+    cands = sorted(sess.rglob("output.log"), key=lambda p: p.stat().st_mtime)
+    return cands[-1] if cands else None
+
+
+def _reaper_log_path(root: Path) -> Path | None:
+    """Resolve the reaper log: `AGI_REAPER_LOG` env first, else the
+    `config:crons` node's `services.agi-reaper.environment.AGI_REAPER_LOG`,
+    else `~/logs/agi-reaper-<hash>.log` — the hash is NEVER hardcoded here."""
+    env = os.environ.get("AGI_REAPER_LOG")
+    if env:
+        return Path(env)
+    node = Path(root) / "nodes" / ".geometry" / "crons.md"
+    if node.exists():
+        text = node.read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(r"AGI_REAPER_LOG:\s*(\S+)", text):
+            return Path(m.group(1))
+    expanded = Path.home() / "logs"
+    if expanded.is_dir():
+        cands = sorted(expanded.glob("agi-reaper-*.log"),
+                       key=lambda p: p.stat().st_mtime)
+        if cands:
+            return cands[-1]
+    return None
+
+
+def _reaper_lines_for(pid: int, sources: list[tuple[str, Path | None]]) -> list[tuple[str, str]]:
+    """Every line (labelled by source) naming `pid` in the reaper/service logs."""
+    out: list[tuple[str, str]] = []
+    for label, path in sources:
+        if path is None or not path.exists():
+            continue
+        try:
+            for ln in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                if str(pid) in ln:
+                    out.append((label, ln.strip()))
+        except OSError:
+            continue
+    return out
+
+
+def _seating_worktree_lines(root: Path, season: str = "origin/season/s2") -> list[str]:
+    """The three worktree-state facts read for BOTH every `[seating]` block and
+    the autopsy — one helper, two callers (cmd_spawn tags the line `[seating]`,
+    the autopsy re-tags it `{AUTOPSY_TAG}`). Reads only: `behind N` (rev-list
+    count), `unresolved merge: yes|no` (`MERGE_HEAD` present), `dirty: <n>
+    paths` (porcelain, cron churn excluded exactly as `_prepare_churn_path`
+    does). Returns a single rendered line carrying all three facts."""
+    behind = _git_count_maybe(root, "rev-list", "--count", f"HEAD..{season}")
+    merge_head = _git_maybe(root, "rev-parse", "-q", "--verify", "MERGE_HEAD")
+    unresolved = bool(merge_head)
+    porcelain = _git_maybe(root, "status", "--porcelain") or []
+    dirty = sum(1 for ln in porcelain if not _prepare_churn_path(ln))
+    return [
+        f"[seating] worktree: behind {season} "
+        + (str(behind) if behind is not None else "n/a")
+        + f" | unresolved merge: {'yes' if unresolved else 'no'}"
+        + f" | dirty: {dirty} paths",
+    ]
+
+
+def _compose_seating_base_block(*, seat: str, source: str, now: str,
+                                pred_pid, pred_death: str, seq: int,
+                                root: Path | None = None) -> list[str]:
+    """The first `[seating]` line every seating prints (spawned-by, predecessor
+    pid + death ts, record / wrapper) — the fact block a recovery successor
+    otherwise reconstructs by hand (Sensei 175816Z calls 3-9).
+
+    The `record:` line says the FILE STATE, never a hardcoded `none`: a first
+    seating announces (and WRITES) a gen-1 seating record moments after this
+    line prints, so an unconditional `record: none` would read false to anyone
+    who then finds the record on disk. With `root` given, `_seating_record_
+    exists` decides `present` vs `none yet (this seating writes one)`; without
+    `root`, the honest pre-announce wording is used."""
+    if root is not None and _seating_record_exists(root, seat):
+        rec = "record: present"
+    else:
+        rec = "record: none yet (this seating writes one)"
+    pid_s = str(pred_pid) if pred_pid is not None else "none"
+    return [
+        f"[seating] spawned-by: {source} at {now} | "
+        f"predecessor pid: {pid_s} died {pred_death} | "
+        f"{rec} | wrapper: none | seq: {seq}",
+    ]
+
+
+def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
+                 root: Path, season: str = "origin/season/s2") -> list[str]:
+    """Render the full autopsy block for a predecessor `pid` of `seat`. Prints
+    FROM FILES ONLY and runs read-only commands only. Returns the `[autopsy]`
+    lines (the caller may tag them into the `[seating]` block or print them as
+    `rotate.py autopsy`)."""
+    lines: list[str] = []
+    data = _registry_read(registry_dir, pid)
+    alive = not _pid_gone(pid)
+    lines.append(f"{AUTOPSY_TAG} seat: {seat}")
+    lines.append(f"{AUTOPSY_TAG} predecessor pid: {pid} "
+                 + (f"alive: yes" if alive else f"alive: no (gone)"))
+    transc = data.get("transcript") or transcript_from_registry_dict(data) or ""
+    transc_path = Path(transc).expanduser() if transc else None
+    death = _death_timestamp(data, transc_path)
+    if data.get("statusUpdatedAt") or data.get("updatedAt"):
+        src = "registry updatedAt"
+    elif transc_path is not None:
+        src = "transcript mtime"
+    else:
+        src = "unmeasured"
+    lines.append(f"{AUTOPSY_TAG} death time: {death} (source: {src})")
+    lines.append(f"{AUTOPSY_TAG} transcript: {transc_path or '-'}")
+    # last 10 non-heartbeat entries before death
+    lines.append(f"{AUTOPSY_TAG} last {AUTOPSY_LAST_ENTRIES} non-heartbeat entries before death:")
+    if transc_path is not None and transc_path.exists():
+        entries = list(_iter_assistant_entries(transc_path, until_ts=death if death != "-" else None))
+        for ts, summ in entries[-AUTOPSY_LAST_ENTRIES:]:
+            lines.append(f"{AUTOPSY_TAG}   {ts or '-'} {summ}")
+        if not entries:
+            lines.append(f"{AUTOPSY_TAG}   (no assistant text/tool_use entries in transcript)")
+    else:
+        lines.append(f"{AUTOPSY_TAG}   (no transcript on disk)")
+    # reaper + persistent service log lines naming the pid
+    rlog = _reaper_log_path(root)
+    slog = _latest_service_output_log(root)
+    reaper = _reaper_lines_for(pid, [("reaper", rlog), ("service", slog)])
+    lines.append(f"{AUTOPSY_TAG} reaper log: {rlog or 'unresolved'}")
+    if slog:
+        lines.append(f"{AUTOPSY_TAG} service output.log: {slog}")
+    if reaper:
+        for label, ln in reaper[-10:]:
+            lines.append(f"{AUTOPSY_TAG}   reaper({label}): {ln}")
+    else:
+        lines.append(f"{AUTOPSY_TAG}   (no reaper/service line names pid {pid})")
+    # launch: the seat's latest rotation record, or record: none
+    rec = _latest_rotation_record(root, seat)
+    if rec:
+        ow = rec.get("handover", {}).get("own_window") or rec.get("own_window")
+        sw = rec.get("handover", {}).get("successor_window") or rec.get("successor_window")
+        lines.append(
+            f"{AUTOPSY_TAG} launch: record <{seat}> "
+            + f"own_window {ow or '-'} | successor_window {sw or '-'} | "
+            + f"result {rec.get('result') or rec.get('trigger') or '-'}")
+    else:
+        lines.append(f"{AUTOPSY_TAG} launch: not recorded (record: none)")
+    # worktree state
+    lines.append(_seating_worktree_lines(root, season=season)[0].replace("[seating]", AUTOPSY_TAG))
+    # probable cause: L4.281 signatures (a pane-local probe, or an external
+    # TERM/HUP on an idle seat) — the LLM still decides continue|diff.
+    cause = _probable_cause(reaper, transc_path, _iter_assistant_entries)
+    if cause:
+        sig, ev = cause
+        lines.append(f"{AUTOPSY_TAG} probable cause: {sig} (evidence: {ev})")
+    return lines
+
+
+def _probable_cause(reaper: list[tuple[str, str]], transc_path: Path | None,
+                    iter_entries) -> tuple[str, str] | None:
+    """The L4.281 probable-cause signatures: an external TERM/HUP on an idle
+    seat (a reaper/service line naming SIGTERM/SIGHUP for the pid) or a pane-
+    local probe (the predecessor's own tmux/ps line in its last calls).
+    Returns (signature, evidence line) or None when nothing matches."""
+    for label, ln in reaper:
+        if "SIGTERM" in ln or "SIGHUP" in ln or "terminated" in ln.lower():
+            return "external TERM/HUP on idle seat", ln
+    if transc_path is not None and transc_path.exists():
+        for ts, summ in (iter_entries(transc_path) or []):
+            low = summ.lower()
+            if (" tmux " in low or low.startswith("tool_use tmux")) and "list-windows" in low:
+                return "pane-local probe", summ
+    return None
+
+
+def cmd_autopsy(args: argparse.Namespace, root: Path | None) -> int:
+    """`rotate.py autopsy --seat S [--pid P] [--registry-dir D]` — print the
+    predecessor's death facts FROM FILES ONLY (read-only). Prints the full
+    block and exits 0; never decides, kills, edits or merges."""
+    seat = args.seat
+    pid = args.pid
+    registry_dir = getattr(args, "registry_dir", None)
+    if pid is None:
+        row = _find_seat(root, seat) if root is not None else None
+        pid = (row or {}).get("pid")
+    if pid is None:
+        print(f"{AUTOPSY_TAG} seat: {seat}")
+        print(f"{AUTOPSY_TAG} predecessor pid: unknown (no --pid and the seat row carries none)")
+        return 0
+    for ln in _run_autopsy(seat=seat, pid=int(pid), registry_dir=registry_dir,
+                           root=root):
+        print(ln)
+    return 0
+
+
 def cmd_sequence(args: argparse.Namespace, root: Path) -> int:
     """Print the current rotation-alert sequence number.
 
@@ -4638,12 +5084,13 @@ def transcript_from_registry(registry_json: Path) -> Path | None:
         return None
     if not isinstance(data, dict):
         return None
-    cwd = data.get("cwd")
-    sess = data.get("session_id") or data.get("sessionId")
-    if not cwd or not sess:
-        return None
-    slug = str(cwd).replace("/", "-").replace(".", "-")
-    return CC_PROJECTS_DIR / slug / f"{sess}.jsonl"
+    # ONE derivation: the dict form (`transcript_from_registry_dict`, the
+    # SL3.01 lift the autopsy and the join call) — this Path form only adds
+    # the file read and the None-on-absent contract sensei.py relies on
+    # (director fix-up at the SL3.01 harvest: SL3.03 and SL3.01 each lifted
+    # the same derivation under the same name with different signatures).
+    transc = transcript_from_registry_dict(data)
+    return Path(transc) if transc else None
 
 
 def _join_successor(*, root: Path, seat: str, window_id: str | None,
@@ -4684,17 +5131,11 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
                 except ValueError:
                     pid = None
                 sess = (data.get("session_id") or data.get("sessionId") or "")
-                transc = (data.get("transcript") or data.get("transcript_path")
-                          or "")
-                if not transc:
-                    # L4.122: the registry carries cwd + sessionId, never a
-                    # transcript path — the live gen IX->X join returned
-                    # `transcript: ""` and meter_pin / model_confirm were
-                    # SKIPPED. Derive the Claude Code transcript the way gen X
-                    # pinned it by hand (see transcript_from_registry).
-                    _derived = transcript_from_registry(fp)
-                    if _derived is not None:
-                        transc = str(_derived)
+                # Transcript path via the ONE shared derivation (L4.122: the
+                # registry carries cwd + sessionId, never a transcript path —
+                # derive `~/.claude/projects/<slug>/<sessionId>.jsonl`). Same
+                # helper the recovery autopsy calls — never a copy.
+                transc = transcript_from_registry_dict(data)
                 nm = data.get("name") or data.get("agent") or seat
                 return {"found": True, "window_id": window_id, "pid": pid,
                         "session_id": str(sess), "transcript": str(transc),
@@ -4918,7 +5359,8 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      telemetry, verification: dict | None,
                      commit: str | None = None,
                      join_pending: set | None = None,
-                     overrides: dict | None = None) -> str:
+                     overrides: dict | None = None,
+                     join_poll_secs: int | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -4941,6 +5383,14 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     Default ({} / {}) writes every fact through `_derive_bootstrap_fact`
     exactly as before — the post-join call passes the joined facts as
     overrides, so the same record is UPDATED in place, not re-minted.
+
+    `join_poll_secs` is what makes a POST-join record truthful: when a join
+    WAS attempted (the caller passes the effective bounded poll, seconds) but
+    left a `join_pending` key still unresolved, that key is written
+    `unresolved: join found nothing within <N>s` — never the PRE-join
+    `pending: resolved after join`, which would lie that a future join will
+    fix it. None (the pre-join first-seating write) keeps `pending: resolved
+    after join`.
     """
     if commit is None:
         commit = _git_head(root)
@@ -4966,7 +5416,11 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                 measured_at[key] = commit
             continue
         if key in join_pending:
-            tele[key] = "pending: resolved after join"
+            if join_poll_secs is None:
+                tele[key] = "pending: resolved after join"
+            else:
+                tele[key] = (f"unresolved: join found nothing within "
+                             f"{join_poll_secs}s")
             continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit)
@@ -7897,10 +8351,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     succ_pid = None
     succ_transcript = getattr(args, "successor_transcript", None)
     joined = None
+    # the effective bounded join poll (seconds), None when NO join ran — a
+    # post-join bootstrap must not promise `pending: resolved after join` for
+    # facts the join left unresolved (Prime XI line (7), second half).
+    join_poll_eff = None
     if session_ref:
         # internal seam: identity supplied directly; no registry JOIN.
         succ_session_id = session_ref
     elif succ_window_id:
+        join_poll_eff = (getattr(args, "registry_poll", None)
+                         or REGISTRY_JOIN_TIMEOUT_S)
         joined = _join_successor(
             root=root, seat=seat, window_id=succ_window_id,
             registry_dir=getattr(args, "registry_dir", None),
@@ -8137,7 +8597,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         root, seat=seat, generation=gen,
         telemetry=tmpl.get("telemetry"), verification=verification,
         join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)),
-        overrides=overrides)
+        overrides=overrides,
+        join_poll_secs=join_poll_eff)
 
     # (6) the record is the deliverable — write it, durably, BEFORE the own
     #     window is killed, so it survives regardless of what the kill does.
@@ -8719,9 +9180,34 @@ def main(argv: list[str] | None = None) -> int:
     p_spawn.add_argument("--window-path", default=None,
                         help="read existing tmux window names from this file "
                              "instead of calling tmux (tests)")
+    p_spawn.add_argument("--pid", type=int, default=None,
+                        help="predecessor pid for the recovery autopsy (else "
+                             "the seat row's pid)")
+    p_spawn.add_argument("--no-autopsy", action="store_true",
+                        help="skip the predecessor-autopsy block a recovery "
+                             "seating otherwise appends to `[seating]` "
+                             "(hypothesis:l4-a-recovery-seating-gets-its-"
+                             "predecessor-autopsy-pre-filled-from-files)")
     p_spawn.add_argument("--dry-run", action="store_true",
                         help="print the command instead of running it")
     p_spawn.set_defaults(func=cmd_spawn)
+
+    # autopsy: the recovery seating's predecessor-death forensics, from FILES
+    # ONLY, read-only. Prints the fact block the successor otherwise rebuilds
+    # by hand (Sensei 175816Z calls 3-9+14); the LLM still decides continue|diff.
+    p_ap = sub.add_parser(
+        "autopsy",
+        help="print a predecessor seat's death forensics from files only "
+             "(read-only; never decides/kills/merges)")
+    p_ap.add_argument("--seat", required=True, help="seat name")
+    p_ap.add_argument("--pid", type=int, default=None,
+                      help="predecessor pid (default: the seat row's pid)")
+    p_ap.add_argument("--registry-dir", default=None,
+                      help="per-session registry dir to read the predecessor's "
+                           "<pid>.json from (default: ~/.claude/sessions) — tests")
+    p_ap.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_ap.set_defaults(func=cmd_autopsy)
 
     # loop
     p_loop = sub.add_parser("loop", help="super-ralph rotation: meter, rotate "
@@ -9103,7 +9589,7 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision"):
+                    "first-decision", "autopsy"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
