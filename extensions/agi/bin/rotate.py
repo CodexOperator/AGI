@@ -5799,6 +5799,235 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- harvest-table (hypothesis:harvest-table-subcommand) ------------------
+
+
+def _git_out(cwd: Path, *args: str) -> str:
+    """`git` stdout as one string, tolerant: "" on any failure.
+
+    harvest-table is a reporting tool: a missing branch, worktree or manifest
+    is a row beat, never a crash. Callers that need failure loudly use the
+    existing `_git_lines`/subprocess.run forms instead.
+    """
+    try:
+        out = subprocess.run(["git", "-C", str(cwd), *args],
+                             capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if out.returncode != 0:
+        return ""
+    return out.stdout
+
+
+def _frontmatter_scalars(text: str) -> dict[str, str]:
+    """Pull scalar `key: value` fields out of a node's frontmatter block.
+
+    We only need id/verdict/confidence, so a tolerant scan beats pulling in a
+    YAML dependency. Non-scalar fields (lists) are ignored.
+    """
+    outdict: dict[str, str] = {}
+    if not text.startswith("---"):
+        return outdict
+    rest = text.split("\n", 1)[1] if "\n" in text else ""
+    block, _, _after = rest.partition("\n---")
+    for ln in block.splitlines():
+        m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*?)\s*$", ln)
+        if m and m.group(2):
+            outdict[m.group(1)] = m.group(2).strip("\"'")
+    return outdict
+
+
+def _harvest_round_dirs(main: Path) -> list[Path]:
+    """Every `iter-*` session dir holding a manifest.json.
+
+    Finished rounds have their iter dir harvested into main's `.agi/sessions/`
+    (`rotate.py complete`); live rounds still hold theirs inside their own
+    worktree at `.agi/worktrees/<agent>/.agi/sessions/`. A manifest found in
+    BOTH resolves to main's copy, so a harvested round is never double-read
+    from a stale worktree.
+    """
+    found: dict[str, Path] = {}
+    main_sess = main / ".agi" / "sessions"
+    if main_sess.is_dir():
+        for d in sorted(main_sess.iterdir()):
+            if (d.is_dir() and d.name.startswith("iter-")
+                    and (d / "manifest.json").is_file()):
+                found.setdefault(d.name, d)
+    wt_root = main / ".agi" / "worktrees"
+    if wt_root.is_dir():
+        for agent_dir in sorted(wt_root.iterdir()):
+            s = agent_dir / ".agi" / "sessions"
+            if not s.is_dir():
+                continue
+            for d in sorted(s.iterdir()):
+                if (d.is_dir() and d.name.startswith("iter-")
+                        and (d / "manifest.json").is_file()):
+                    found.setdefault(d.name, d)  # main's copy wins
+    return sorted(found.values(), key=lambda p: p.name)
+
+
+def _harvest_loop_branches(main: Path) -> dict[str, tuple[str, int]]:
+    """agent_id -> (branch, season) for every `loop/<slug>-<agent>@s<N>`.
+
+    Derived from `git for-each-ref` because the branch name is the durable
+    fact (hypothesis:harvest-table-subcommand): it survives the worktree being
+    removed once the round is brought home, and it never has to be rebuilt
+    from a slug convention that may have drifted. First branch per agent wins
+    (the earliest cut).
+    """
+    mapping: dict[str, tuple[str, int]] = {}
+    out = _git_out(main, "for-each-ref", "--format=%(refname:short)",
+                   "refs/heads/loop")
+    for ln in out.splitlines():
+        m = re.match(r"^(.*)-(a00-[0-9a-f]{8})@s(\d+)$", ln.strip())
+        if not m:
+            continue
+        mapping.setdefault(m.group(2), (ln.strip(), int(m.group(3))))
+    return mapping
+
+
+def _harvest_read_node_fields(main: Path, branch: str, rel: str) -> dict:
+    """id/verdict/confidence of the experiment node `rel` at the branch tip.
+
+    Prefers on-disk (the worktree, else main), because the file is already
+    there for a live round and reading it costs nothing; falls back to
+    `git show branch:path` so a finished round whose worktree is gone still
+    reports its kids.
+    """
+    for base in (main / ".agi" / "worktrees", main):
+        p = base / rel
+        if p.is_file():
+            try:
+                return _frontmatter_scalars(p.read_text(encoding="utf-8"))
+            except OSError:
+                return {}
+    return _frontmatter_scalars(_git_out(main, "show", f"{branch}:{rel}"))
+
+
+def _harvest_diffstat(main: Path, parent_branch: str,
+                      round_branch: str) -> tuple[str, list[str]]:
+    """(diffstat text, kid experiment node relpaths) for the round.
+
+    Both are diffed from `merge-base(parent_branch, round_branch)` to the
+    round branch tip, so a moved parent tip never shifts the base and the
+    stat shows exactly what the round added — the round's own nodes, never
+    content merged into the parent after the cut.
+    """
+    mb = _git_out(main, "merge-base", parent_branch, round_branch).strip()
+    if not mb:
+        return "-", []
+    stat = _git_out(main, "diff", "--stat", f"{mb}..{round_branch}").strip()
+    stat_s = stat.replace("\n", " | ") or "-"
+    names = _git_out(main, "diff", "--name-only",
+                     f"{mb}..{round_branch}").splitlines()
+    kids = [n for n in names
+            if n.startswith(".agi/nodes/experiment/")
+            and n.endswith(".md")]
+    return stat_s, kids
+
+
+def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
+    """`harvest-table --seat S [--round N | --all-live] [--root R]`.
+
+    Prints one row per (round, kid agent) deriving the five facts the director
+    discovers by hand today (hypothesis:harvest-table-subcommand): the round's
+    branch, worktree path, a diffstat against the merge-base with the parent
+    branch, the round's kid experiment node ids, and each kid's verdict.
+    Every fact is derived from git + the session manifests, so a finished
+    round whose worktree is gone still reports branch/diffstat/kids from git
+    alone. Exit 0 even when a filter matches zero rounds (the message names
+    what was searched).
+    """
+    main = None
+    if getattr(args, "root", None):
+        main = locations.git_common_root(Path(args.root).resolve())
+    elif root:
+        main = locations.git_common_root(root)
+    else:
+        main = locations.find_project_root()
+    if main is None or not (main / ".git").exists():
+        print("ERR harvest-table: no git project resolvable as the main "
+              "checkout", file=sys.stderr)
+        return 1
+
+    want_seat = (args.seat or "").strip() or None
+    want_round = (args.round or "").strip() or None
+    if want_round and not want_round.startswith("iter-"):
+        want_round = "iter-" + want_round
+
+    branches = _harvest_loop_branches(main)
+    parent = _git_out(main, "branch", "--show-current").strip()
+
+    header = ("round | agent | branch | worktree | diffstat-vs-merge-base | "
+              "kids | verdicts")
+    rows: list[str] = []
+    for rd in _harvest_round_dirs(main):
+        try:
+            mf = json.loads((rd / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        agents = mf.get("agents") or []
+        if not agents:
+            continue
+        if want_seat and not any(a.get("dispatched_by") == want_seat
+                                 for a in agents):
+            continue
+        if want_round and rd.name != want_round:
+            continue
+        if args.all_live and not any(a.get("status") == "running"
+                                     for a in agents):
+            continue
+        iter_name = rd.name
+        for a in agents:
+            agent = (a.get("id") or "").strip()
+            if not agent or not re.match(r"^a00-[0-9a-f]{8}$", agent):
+                continue
+            branch = branches.get(agent, (None,))[0] or "-"
+            wt = main / ".agi" / "worktrees" / agent
+            wt_s = str(wt) if wt.is_dir() else "-"
+            rows_kid: list[tuple[str, str]] = []  # (kid_node_id, verdict)
+            diff_s = "-"
+            if branch != "-" and parent:
+                diff_s, rels = _harvest_diffstat(main, parent, branch)
+                for rel in rels:
+                    f = _harvest_read_node_fields(main, branch, rel)
+                    rows_kid.append((f.get('id', rel), f.get('verdict', '-')))
+            if not rows_kid and wt.is_dir():
+                # git showed nothing but a live worktree holds the round;
+                # fall back to on-disk experiment nodes naming the target.
+                target = (a.get("target") or "")
+                exp = wt / ".agi" / "nodes" / "experiment"
+                if exp.is_dir():
+                    for nf in sorted(exp.glob("*.md")):
+                        t = nf.read_text(encoding="utf-8")
+                        if target and target.replace(":", "-") in t:
+                            f = _frontmatter_scalars(t)
+                            rows_kid.append((f.get('id', nf.stem),
+                                             f.get('verdict', '-')))
+                    if rows_kid:
+                        diff_s = "(worktree disk; no git diff)"
+            kid_ids = ",".join(kid for kid, _ in rows_kid) or "-"
+            verdicts = ",".join(v for _, v in rows_kid) or "-"
+            rows.append(f"{iter_name} | {agent} | {branch} | {wt_s} | "
+                        f"{diff_s} | {kid_ids} | {verdicts}")
+
+    if not rows:
+        note = ""
+        if want_seat:
+            note = f" seat={want_seat}"
+        if want_round:
+            note += f" round={want_round}"
+        if args.all_live:
+            note += " live=only"
+        print(f"harvest-table: 0 rows (no manifest/iter dirs matching{note})",
+              file=sys.stderr)
+        return 0
+    print(header)
+    for r in rows:
+        print(r)
+    return 0
+
+
 # --- main ------------------------------------------------------------------
 
 
@@ -5939,6 +6168,23 @@ def main(argv: list[str] | None = None) -> int:
                                "normal output; on timeout print the last-seen "
                                "record, ERR and exit 2.")
     p_status.set_defaults(func=cmd_status)
+
+    # harvest-table: one row per (round, kid agent) giving the five facts the
+    # director still discovers by hand (hypothesis:harvest-table-subcommand)
+    p_ht = sub.add_parser(
+        "harvest-table",
+        help="report each round's branch/worktree/diffstat-vs-merge-base/"
+             "kid-experiment-ids/verdicts, from git + session manifests")
+    p_ht.add_argument("--seat", default=None,
+                      help="only rounds dispatched_by this seat")
+    p_ht.add_argument("--round", default=None,
+                      help="only the named iter (accepts 'L4.236' or "
+                           "'iter-L4.236')")
+    p_ht.add_argument("--all-live", action="store_true",
+                      help="only rounds with at least one running agent")
+    p_ht.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_ht.set_defaults(func=cmd_harvest_table)
 
     # seq: print the current rotation-alert sequence number (one read)
     p_seq = sub.add_parser(
@@ -6174,6 +6420,10 @@ def main(argv: list[str] | None = None) -> int:
 
     # status needs the root only for --seats; the tmux half runs without it
     if args.cmd == "status":
+        return args.func(args, find_project_root())
+
+    # harvest-table needs the main checkout root (worktrees/sessions/branches)
+    if args.cmd == "harvest-table":
         return args.func(args, find_project_root())
 
     return args.func(args)
