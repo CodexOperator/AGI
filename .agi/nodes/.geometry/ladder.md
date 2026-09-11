@@ -7,9 +7,10 @@ parents:
 budget_usd_week: 30
 caps:
   moral: 5
-  vision: 5
+  vision: 3
   director_kids: 3
 caps_apply_from_season: 2
+caps_vision_scope: town
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
@@ -55,6 +56,10 @@ tiers:
   - {"tier": 2, "plan_types": ["vision"], "report_type": "overview", "judged_against": "its vision", "lens": "the morals above", "cadence": "season rollover (quarterly)"}
   - {"tier": 3, "plan_types": ["moral"], "report_type": null, "judged_against": "\u2014", "lens": "\u2014", "cadence": "never by machine; hand only"}
 title: Season ladder declaration
+towns:
+  - core
+  - streaming-suite
+  - web-app-suite
 zoom: numeric
 ---
 # ladder:ladder
@@ -135,7 +140,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-11 00:4xZ (verbatim in doc:l4-owner-decisions): the streaming suite and the web app suite are whole shippable apps, each with its own vision, sharing the morals. caps.vision 3 -> 5 so the two town visions sit beside the three season-2 visions; moral and director_kids unchanged. Applied by the Prime as the owner ruling.
+OWNER 2026-09-11 01:0xZ (verbatim in doc:l4-owner-decisions): each town has its own 3 visions. So caps.vision is 3 PER TOWN, not 5 global: restored to 3 with caps_vision_scope town and the towns list declared here (core = the three season-2 visions; streaming-suite and web-app-suite each hold their charter vision now and two slots the OWNER names - visions are owner-authored). The per-town counting in season.py status is the towns round code half; this is the config half, first.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
