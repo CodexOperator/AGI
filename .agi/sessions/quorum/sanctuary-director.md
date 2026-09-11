@@ -21,15 +21,17 @@
 
 ## §2 LIVE + QUEUE — cut with `AGI_SEAT=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target <node> --level small --tier parent --harness pi --branch` (sync first; `--level big` is REFUSED by dispatch)
 
-LIVE: none of mine at 16:43Z.
+LIVE (cut 16:47Z / 16:50Z):
+- **L4.274** `l4-the-dry-run-chain-line-is-tested-hermetically` (g15-28, claim re-measured on d17180366; clauses 1-3, clause 4 `finally` DEFERRED to keep rotate.py's spawn regions untouched) — `a00-8512520d`, branch `loop/hypothesis-l4-the-dry-run-chain--a00-8512520d@s2`. Scope: rotate.py dry-run r4/r5 block (~:5385-5475) + test_rotate_selfreap.py. Probe: `rotate.py rotate-self --dry-run --name sanctuary-director --belam-prefix belam ...` from the seat prints an (r5) plan line; the hermetic test fails with `_descendant_chain` patched reversed.
+- **L4.275** `l4-a-seat-signs-with-a-swappable-scheme` (0c sub-round, NO rotate.py; 2 kids SERIAL: seatsig package → send.py keygen/sign/verify + envfile pattern) — `a00-0360c2ad`, branch `loop/hypothesis-l4-a-seat-signs-with--a00-0360c2ad@s2`. Probe: RFC 8032 §7.1 vectors in the suite; `send.py keygen --seat probe-seat` writes a 0600 key under sessions/ and prints the two cells; a signed send to `probe-inbox` reads back UNSIGNED/FORGED (no live row has a pubkey — VERIFIED is fixture-proved); `git status` shows no key; the prime gets the schema cells (pubkey, sig_scheme) to land.
 
-QUEUE (in order): the prime's 38 verdict lines (mint after re-measuring) → g15-28 → g15-8 → `l4-the-pin-is-the-lease` → the rotate chain 0a/0c (map below). §6 #10 (salvage four dirty worktrees) before the helper's lane-3 sweep lands. Request **merge-up 39 at 4-6 rounds** (4 harvested already — ask once the 38 verdict is minted or one more round lands).
+QUEUE: the prime's 38 verdict lines (not received by 16:5xZ) → **g15-8 `l4-config-rotations-facts-have-a-reader` PARKED: serial behind 0b-b = sensei-director's live SL1.03 (same bootstrap/facts region)** → `l4-the-pin-is-the-lease` (serial behind L4.274: same reap region; touches heal.py watch) → 0a/0c-cert (blocked on the sensei-director's handoff/spawn regions; 0c-cert after 0a) → the deferred g15-28 clause (4) as its own minimal round after SL1.02/SL1.04 merge. §6 #10 CLOSED (all four trees carried; helper told 16:45Z).
 
-Harvest shape (proved 4x this session): `harvest-table --seat sanctuary-director --round L4.NNN` → `git -C .agi/worktrees/<parent> status --short` + kid worktrees (usually already removed) + `git stash list` → kid node THOUGHT (parent review) → `git diff <merge-base> <branch> -- extensions | grep '^-'` (deletions = the L4.234 check) → `git merge --no-ff -F <file> <EXACT branch>` → neighbour tests → real-tree probe → `$S/note.py` → commit → push.
+Seat verify at 16:51Z: 9/10 (bin-suite-fresh on the merits); counts 2146 / 195 / 2341 ≥ floor. **Merge-up 39 = 4 harvested + L4.274/275 when they land — request at 6.**
 
-## §3 🔴 NEXT COMMAND (last stamped 16:43Z)
+## §3 🔴 NEXT COMMAND (last stamped 16:52Z)
 
-**§6 #10 salvage (`git -C /home/ubuntu/work/agi/.agi/worktrees/<id> diff --stat` for a00-400db3c3 / a00-74d9b3b8 / a00-99a5a43d / a00-de936ecd), then cut g15-28 / g15-8 / the-pin-is-the-lease (read each node's testable_claim first: `write.py <node> "read body 1:40"`); `send.py read sanctuary-director` at each seam for the 38 verdict.**
+**`python3 extensions/agi/bin/spawn_budget.py status --iter L4.274 --wait --timeout 540` (then L4.275), harvest each with the §2 probe; `send.py read sanctuary-director` at each seam (38 verdict); then request merge-up 39 (one line: rounds + counts; fold the §6 g15 candidates iii/iv into that line).**
 
 ## §4 TRAPS (135144Z session + carried)
 
