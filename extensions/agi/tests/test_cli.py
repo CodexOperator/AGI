@@ -493,3 +493,99 @@ def test_done_loudly_warns_but_never_invents_when_the_prompt_stays(tmp_path,
     assert "SCHEMA-WARNING" in err
     assert "testable_claim" in err
     assert "testable_claim:" not in hy_md.read_text()
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-manifest-mirrors-terminal-agent-status (source half)
+# --------------------------------------------------------------------------
+
+def test_done_mirrors_terminal_status_into_iteration_manifest(tmp_path, monkeypatch):
+    """A clean `cli.py done` mirrors the agent record's terminal fields onto
+    the iteration manifest entry that sits beside it, so the round's own exit
+    leaves both files agreeing -- no stale `running` until a later reaper pass.
+    The record and manifest both live in the fixture's iter-001 dir."""
+    cli = _load_cli()
+    import json as _json
+    graph, args = _cmd_done_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    mpath = graph / "sessions" / "iter-001" / "manifest.json"
+    mpath.write_text(_json.dumps({
+        "agents": [{"id": "a00-x", "status": "running", "dispatched_by": "seat"}],
+    }))
+
+    assert cli.cmd_done(args) == 0
+
+    agent = _json.loads(
+        (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").read_text())
+    manifest = _json.loads(mpath.read_text())
+    entry = manifest["agents"][0]
+    assert agent["status"] == "done"
+    assert entry["status"] == "done"
+    assert entry["finished_at"] == agent["finished_at"]
+    # unrelated manifest fields survive the mirror
+    assert entry["dispatched_by"] == "seat"
+
+
+def test_done_does_not_downgrade_a_more_authoritative_manifest_entry(tmp_path):
+    """The manifest is a document with its own status ranking: a record whose
+    status ranks BELOW the entry (a `running` record vs an entry already
+    `done`) must not downgrade it. Exercised on the guard directly since
+    cmd_done itself always writes the top-ranked `done`."""
+    cli = _load_cli()
+    import json as _json
+    mparent = tmp_path / "a00-x"
+    mparent.mkdir(parents=True)
+    ap = mparent / "agent.json"
+    ap.write_text('{"id": "a00-x", "status": "running"}')
+    mpath = tmp_path / "manifest.json"
+    mpath.write_text(_json.dumps({"agents": [{"id": "a00-x", "status": "done"}]}))
+
+    cli._mirror_terminal_into_manifest(ap, {"id": "a00-x", "status": "running"},
+                                       "a00-x")
+
+    manifest = _json.loads(mpath.read_text())
+    # not downgraded to running; `done` (rank 5) beat the record's rank 0
+    assert manifest["agents"][0]["status"] == "done"
+
+
+def test_done_succeeds_with_missing_or_corrupt_manifest(tmp_path, monkeypatch):
+    """A missing or corrupt manifest must not change cmd_done's exit code or
+    drop the agent record -- the round still ends, still writes the record."""
+    cli = _load_cli()
+    import json as _json
+
+    # missing manifest
+    graph, args = _cmd_done_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    assert cli.cmd_done(args) == 0
+    agent = _json.loads(
+        (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").read_text())
+    assert agent["status"] == "done"
+
+    # corrupt manifest, same fixture shape in a fresh dir
+    graph2, args2 = _cmd_done_project(tmp_path / "corrupt")
+    mpath = graph2 / "sessions" / "iter-001" / "manifest.json"
+    mpath.write_text("not json {{{")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph2)
+    assert cli.cmd_done(args2) == 0
+    agent2 = _json.loads(
+        (graph2 / "sessions" / "iter-001" / "a00-x" / "agent.json").read_text())
+    assert agent2["status"] == "done"
+
+
+def test_done_leaves_a_non_matching_manifest_entry_alone(tmp_path, monkeypatch):
+    """An entry whose id does not match the finishing agent is left untouched."""
+    cli = _load_cli()
+    import json as _json
+    graph, args = _cmd_done_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    mpath = graph / "sessions" / "iter-001" / "manifest.json"
+    mpath.write_text(_json.dumps({
+        "agents": [{"id": "a00-OTHER", "status": "running"}],
+    }))
+
+    assert cli.cmd_done(args) == 0
+
+    manifest = _json.loads(mpath.read_text())
+    assert manifest["agents"][0]["id"] == "a00-OTHER"
+    assert manifest["agents"][0]["status"] == "running"
