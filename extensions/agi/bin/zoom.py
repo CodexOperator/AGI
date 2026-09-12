@@ -442,6 +442,17 @@ def main() -> int:
              "push_further text above 'Extend or fork from' so a continuation "
              "kid composes from the prior run's instruction.",
     )
+    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
+    # SL7.109 has NOT landed on this base (no --tier exists in zoom.py's argparse
+    # today), so this is the MINIMAL tier keying: a `--tier parent` spawn renders
+    # the parent PARENT section in the small composer's "Your Task"; any other
+    # value (or absence) renders the historical kid text byte-identical.
+    ap.add_argument(
+        "--tier",
+        default=None,
+        help="spawn tier. 'parent' swaps the small-level 'Your Task' body for the "
+             "PARENT review section; absent or any other value keeps the kid text.",
+    )
     args = ap.parse_args()
 
     # goal:g11.1 — resolve the given path the same way every other entry point
@@ -660,6 +671,36 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
+    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
+    # TIER-KEYED PARENT section: only a `--tier parent` spawn gets it. The parent
+    # runs a loop and reviews kids, so its "Your Task" carries the DIFF/probe
+    # duty instead of the kid's spawn-one-node contract. All six counted words
+    # (bytes, probe, refute, adversarial, harvest, re-run) are authored here.
+    if getattr(args, "tier", None) == "parent":
+        lines.extend([
+            "",
+            "PARENT — you review kids, you do not write the node:",
+            "- A kid's tests are its CLAIM, not your evidence. Your job is to",
+            "  refute them with adversarial eyes, never to trust the result file",
+            "  a kid hands you as if it were finding.",
+            "- You are handed each kid's DIFF (git diff merge-base..kid-branch —",
+            "  the changed BYTES), never its result file. Read the bytes that",
+            "  moved, not the summary that describes them.",
+            "- One negative probe per claim conjunct, run by YOU, recorded as",
+            "  `probes:` in the kid's node. Three probe classes, one example each:",
+            "    - absent-input — invoke the command with NO input where the",
+            "      claim needs one.",
+            "    - wrong-input-type — hand the probe a type the claim never",
+            "      names (a path where a number belongs).",
+            "    - boundary — push the input to its extreme edge, past where the",
+            "      claim says it works.",
+            "- A kid that passes its own tests and fails your probe is",
+            "  `lean_disproved`, with the probe NAMED — the falsifying case you",
+            "  ran, not its own passing suite.",
+            "- You do not re-run a kid's suite as evidence, and you do not let a",
+            "  surfaced edge case ride until a later harvest: your probe either",
+            "  holds or the kid is lean_disproved now.",
+        ])
     if getattr(args, "push_further", False):
         pf = _push_further_text(root, target)
         if pf:

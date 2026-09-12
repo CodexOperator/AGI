@@ -430,3 +430,54 @@ def test_path_hint_is_best_effort_not_a_hard_failure(tmp_path):
     the hint, never by raising."""
     (tmp_path / "nodes").mkdir()
     assert zoom._node_path_hint(tmp_path, "goal:does-not-exist") is None
+
+
+# ---- hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim ---
+# The small composer's "Your Task" is tier-keyed: `--tier parent` renders the
+# PARENT review section; absent/kid renders the historical text byte-identical.
+
+
+def _task_body(text: str) -> str:
+    """The small composer's authored 'Your Task' slice (stops at the report)."""
+    head, _sep, body = text.partition("## Your Task")
+    return "## Your Task" + body.partition("When done, report exactly")[0]
+
+
+# Captured from the SL7.111 pre-fix tree on 2026-09-12 (zoom.py, --level small
+# --target goal:g1). The kid text must stay byte-identical to this.
+_PREFIX_KID_TASK = (
+    "## Your Task\n"
+    "Extend or fork from `{target}`. Stay tight — don't wander to other chains.\n"
+    "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).\n"
+)
+
+
+def test_kid_tier_keeps_pre_fix_your_task_byte_identical(project):
+    """Golden: no tier and --tier kid both render the historical kid text
+    byte-for-byte. Proves the parent section is tier-keyed and cannot regress
+    the kid's context."""
+    for tier in (None, "kid"):
+        extra = ["--level", "small", "--target", "goal:g1"]
+        if tier:
+            extra += ["--tier", tier]
+        proc = run(project, 1, "kid-gold", *extra)
+        assert proc.returncode == 0, proc.stderr
+        text = _ctx_path(proc).read_text()
+        assert _task_body(text) == _PREFIX_KID_TASK.format(target="goal:g1"), \
+            f"--tier {tier!r} mutated the kid 'Your Task'"
+
+
+def test_parent_tier_your_task_authors_all_six_probe_words(project):
+    """The parent 'Your Task' slice must author each of the six words the Sensei
+    counted at 0 (bytes, probe, refute, adversarial, harvest, re-run). This
+    assertion FAILS on the pre-fix kid text, so it certifies the fix."""
+    proc = run(project, 1, "par", "--level", "small", "--target", "goal:g1",
+               "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    body = _task_body(_ctx_path(proc).read_text())
+    assert "PARENT — you review kids" in body
+    for w in ["bytes", "probe", "refute", "adversarial", "harvest", "re-run"]:
+        assert w in body, f"parent 'Your Task' must author the word {w!r}"
+    # the falsifier the hypothesis names verbatim is present
+    assert "lean_disproved" in body
+    assert "git diff merge-base" in body
