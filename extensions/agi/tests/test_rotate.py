@@ -4691,7 +4691,11 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         dry_run=True, seat="sanctuary-director",
     )[1]
     assert "AGI_SEAT=" not in base
-    assert f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && " in seated
+    # a seat exports BOTH AGI_POST (primary) and AGI_SEAT (deprecated alias)
+    # so either spelling resolves downstream (hypothesis:l4-a-seat-is-a-post-
+    # everywhere).
+    _q = rotate.shlex.quote('sanctuary-director')
+    assert f"export AGI_POST={_q} AGI_SEAT={_q} && " in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
     # vs base is the `export AGI_SEAT=... &&` prefix plus the wrapper inserted
@@ -4822,6 +4826,53 @@ def test_status_record_latest_skips_detected_record(tmp_path, capsys):
     assert detected.name not in out, \
         f"status must not surface the detected record: {out}"
     assert "crash-recovery" not in out, out
+
+
+# --- hypothesis:l4-branches-follow-the-season-grammar clause (5) ---
+# The `prepare` merge target (`_prepare_merge_target`) must resolve a seat's
+# post/loop branch through the grammar module's `merge_target`, so a town
+# seat merges its OWN town main, never a literal core main.
+
+
+def _repo_on_branch(tmp_path: Path, branch: str) -> Path:
+    """git-init a throwaway repo checked out on `branch` with one commit, so
+    `rev-parse --abbrev-ref HEAD` names the real branch (an unborn HEAD reads
+    as HEAD/error)."""
+    repo = tmp_path / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
+
+
+def test_prepare_merge_target_town_loop_targets_town_main(tmp_path):
+    # A seat on a canonical town loop branch merges that TOWN's main, not the
+    # core season main the old `season_branch` fallback would have named.
+    repo = _repo_on_branch(tmp_path,
+                           "season2/web-app-suite/season1/loops/xx-yy")
+    assert rotate._prepare_merge_target(repo) == \
+        "season2/web-app-suite/season1/main"
+
+
+def test_prepare_merge_target_town_post_targets_town_main(tmp_path):
+    repo = _repo_on_branch(tmp_path,
+                           "season2/streaming-suite/season1/posts/foo")
+    assert rotate._prepare_merge_target(repo) == \
+        "season2/streaming-suite/season1/main"
+
+
+def test_prepare_merge_target_season_loop_targets_season_main(tmp_path):
+    # A loop directly under season<N>/main resolves to the core season main.
+    repo = _repo_on_branch(tmp_path, "season2/loops/xx-yy")
+    assert rotate._prepare_merge_target(repo) == "season2/main"
 
 
 # ════════════════════════════════════════════════════════════════════════════

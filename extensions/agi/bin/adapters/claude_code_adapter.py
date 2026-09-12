@@ -224,8 +224,9 @@ def record_session_pin(*, sess_dir, agent_id: str, cwd: str,
     # hypothesis:l3w4-seat-registry — when the seat key is set, pin under the
     # seat's STABLE name rather than the per-process agent id, so the seat's
     # meter finds its own pin even across rotations that change the agent id.
-    # No graph write, no race on seats.md: the seat name rides the env.
-    seat = os.environ.get("AGI_SEAT")
+    # No graph write, no race: the seat name rides the env. AGI_POST wins over
+    # the deprecated AGI_SEAT alias (hypothesis:l4-a-seat-is-a-post-everywhere).
+    seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     pin_id = seat if seat else agent_id
     pin = seg / f"{pin_id}{METER_PIN_EXT}"
     pin.write_text(str(transcript) + "\n", encoding="utf-8")

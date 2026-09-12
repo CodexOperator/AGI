@@ -32,12 +32,13 @@ import sys
 from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
-    from . import locations, node_writer, rotate, send as _send
+    from . import locations, node_writer, rotate, send as _send, geometry_config
 except ImportError:  # runs as a plain script from a checkout
     import locations  # type: ignore
     import node_writer  # type: ignore
     import rotate  # type: ignore
     import send as _send  # type: ignore
+    import geometry_config  # type: ignore
 
 SENSEI = "master-sensei"
 ROOM_QUORUM = "tier3-quorum"  # the one room that reaches the prime's seat
@@ -55,25 +56,26 @@ PROTECTED_ROLES = {"prime_director", "parent"}
 
 
 def load_seats(root: Path) -> list[dict]:
-    """Parse the `seats:` list out of config:seats's frontmatter.
+    """Parse the `posts:` list out of config:posts's frontmatter (`config:seats`
+    / `seats:` is the one-season alias).
 
-    Uses node_writer.find_node_file so the row file is located exactly the
-    way every other reader locates it, then a minimal YAML list parse (the
-    seats schema is flat JSON objects on lines, so a document split of the
-    `seats:` block is enough).
+    Resolves the row file through `geometry_config.resolve` so a migrated
+    tree reads posts.md, then a minimal YAML list parse (the rows schema is
+    flat JSON objects on lines, so a document split of the list block is
+    enough).
     """
-    nf = node_writer.find_node_file(root, "config:seats")
-    if nf is None:
+    path, list_key = geometry_config.resolve(root)
+    if path is None or not Path(path).exists():
         return []
-    text = nf.read_text(encoding="utf-8")
+    text = Path(path).read_text(encoding="utf-8")
     fm = text.split("---", 2)[1] if text.startswith("---") else ""
-    in_seats = False
+    in_list = False
     rows: list[dict] = []
     for line in fm.splitlines():
-        if line.strip().startswith("seats:"):
-            in_seats = True
+        if line.strip().startswith(f"{list_key}:"):
+            in_list = True
             continue
-        if in_seats:
+        if in_list:
             if line.strip().startswith("-"):
                 import json as _json
 

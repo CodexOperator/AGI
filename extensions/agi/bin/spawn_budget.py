@@ -633,9 +633,12 @@ def _agent_status(root: Path, agent_id: str, iter_val, worktree=None) -> tuple[s
     main_graph = locations.find_project_root(main) if main else None
 
     def wt_label(wt_root: Path) -> str:
-        """`seat-sanctuary-director` -> `seat:sanctuary-director`; any other
-        worktree root (`a00-06c44930`) -> `wt:<parent-id>`."""
+        """`post-<name>` -> `post:<name>`; `seat-<name>` -> `seat:<name>`
+        (deprecated alias); any other worktree root (`a00-06c44930`) ->
+        `wt:<parent-id>` (hypothesis:l4-a-seat-is-a-post-everywhere)."""
         name = wt_root.name
+        if name.startswith("post-"):
+            return f"post:{name[5:]}"
         if name.startswith("seat-"):
             return f"seat:{name[5:]}"
         return f"wt:{name}"

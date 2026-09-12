@@ -549,6 +549,44 @@ def test_spawn_dead_seat_still_writes_pin_and_ack(tmp_path, monkeypatch, capsys)
     assert json.loads(ack.read_text(encoding="utf-8"))["answer"] == "pending"
 
 
+def _mk_ladder(root: Path, season: int) -> None:
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "ladder.md").write_text(
+        f"---\ntype: config\ncurrent_season: {season}\n---\n",
+        encoding="utf-8")
+
+
+def test_season_branch_emits_canonical_only_when_on_origin(tmp_path, monkeypatch):
+    """hypothesis:l4-branches-follow-the-season-grammar — `season_branch`
+    accepts BOTH spellings and emits the canonical name (`season3/main`)
+    ONLY when the ref exists on origin; on a pre-migration tree (canonical
+    absent, legacy `season/s3` present) it emits the LEGACY spelling and
+    never a canonical name that resolves nowhere. The origin probe is
+    monkeypatched so the test is hermetic and pins the ORDER both ways."""
+    root = tmp_path
+    _mk_ladder(root, 3)
+
+    # pre-migration tree: canonical absent, legacy present -> legacy emitted
+    monkeypatch.setattr(
+        rotate, "_season_ref_on_origin",
+        lambda r, ref: ref == "season/s3")
+    assert rotate.season_branch(root) == "season/s3"
+    # canonical first, legacy fallback: the canonical would have won had it
+    # existed, so pin that ref_candidates order is consulted canon-first
+    monkeypatch.setattr(
+        rotate, "_season_ref_on_origin",
+        lambda r, ref: ref in ("season3/main", "season/s3"))
+    assert rotate.season_branch(root) == "season3/main"
+    # neither candidate resolves -> the ladder spelling unchanged, never a
+    # fabricated canonical
+    monkeypatch.setattr(rotate, "_season_ref_on_origin", lambda r, ref: False)
+    assert rotate.season_branch(root) == "season/s3"
+
+    # root is None (no git) -> origin probe skipped, ladder spelling direct
+    assert rotate.season_branch(None) == "season/s2"
+
+
 def test_seating_season_resolves_through_season_branch(tmp_path, monkeypatch):
     """CHEAP — the `origin/season/s2` literal is gone from the defaults:
     `_seating_worktree_lines` and `_run_autopsy` resolve the season through
