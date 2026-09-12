@@ -17,13 +17,14 @@ the v3 TOWN-FIRST names is a later Prime-only pass (the live tree is HELD by
 the owner), so this test pins them as the debt to burn down. verification.py
 (and branches.py) are the ONLY files allowed to resolve this round, and
 verification already routes through `branches.ref_candidates`; its one hit
-here is a docstring, not a resolver. The test asserts the exact (file, line)
-set so drift — a new hand-spelled shape OR a silently-deleted debt line — is
+here is a docstring, not a resolver. The test asserts the exact (file, matched-text)
+multiset so drift — a new hand-spelled shape OR a silently-deleted debt line — is
 caught, never silently agreed with.
 
 The FULL inventory (file:line: literal) is in the L4.332 experiment node
-(experiment:a00-1997ae21-247395) — this test only pins the (file, line)
-signature of it.
+(experiment:a00-1997ae21-247395) — this test pins the (file, matched text)
+signature of it -- text, not line numbers, so an unrelated edit that moves
+lines cannot turn it red.
 """
 
 import pathlib
@@ -49,27 +50,100 @@ _SPELLINGS = [
     re.compile(r"loop/[^\s\"',:]*@s[0-9]+"),
 ]
 
-# The triaged inventory: {filename: [lineno, ...]} of every spelling-shaped
-# hit OUTSIDE branches.py on the L4.332 tree. Adding a NEW hand-spelled shape
-# — even in a comment or an f-string — makes this test fail.
+# The triaged inventory: {filename: sorted [matched spelling text, ...]} of
+# every spelling-shaped hit OUTSIDE branches.py. Pinned by the MATCHED TEXT,
+# never by line number (director fix at the L4.332 harvest: the round pinned
+# (file, line) pairs, which went red the first time an unrelated sync moved
+# rotate.py/heal.py by a few lines -- brittle by construction, and a
+# false "drift" every hour). Adding a NEW hand-spelled shape -- even in a
+# comment or an f-string -- or silently deleting a debt line still fails.
 PINNED = {
-    "cli.py": [
-        2018, 2046, 2098, 2100, 2321, 2359, 2360, 2383, 2574, 2575, 3241, 3451,
+    'cli.py': [
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/<name>@s2',
+        'post/a@s2',
+        'post/a@s2',
+        'season/s2',
+        'season1/m',
+        'season2/m',
     ],
-    "dispatch.py": [
-        227, 229, 253, 257, 290, 292, 298, 374, 376, 396, 429, 434, 435, 451,
-        454, 1309, 2694,
+    'dispatch.py': [
+        'loop/…-<agent_id>@s2',
+        'season/s<',
+        'season/s<N',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season1/l',
+        'season1/m',
+        'town/<',
+        'town/<',
+        'town/<',
+        'town/<',
+        'town/{',
     ],
-    "graphweb.py": [627],
-    "grid.py": [861],
-    "heal.py": [497, 527],
-    "rotate.py": [
-        42, 225, 231, 233, 241, 249, 251, 571, 600, 10648, 10649,
+    'graphweb.py': [
+        'post/<name>@s2',
     ],
-    "season.py": [1455, 1497, 1522, 1620],
-    "send.py": [3586],
-    "spawn_gate.py": [637, 678],
-    "verification.py": [231],
+    'grid.py': [
+        'season/s<N',
+    ],
+    'heal.py': [
+        'season/s<N',
+        'season/s<N',
+    ],
+    'rotate.py': [
+        'season/s2',
+        'season/s2',
+        'season/s2',
+        'season/s2',
+        'season/s2',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/sN',
+        'season/s{',
+        'season/s{s',
+        'season1/l',
+        'season1/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+        'season2/m',
+    ],
+    'season.py': [
+        'season/s<N',
+        'season/s<N',
+        'season/s<N',
+        'town/s',
+    ],
+    'send.py': [
+        'season/s<N',
+    ],
+    'spawn_gate.py': [
+        'season/sN',
+        'season/sN',
+    ],
+    'verification.py': [
+        'season/s<N',
+    ],
 }
 
 
@@ -78,11 +152,11 @@ def _scan() -> dict:
     for f in sorted(_BIN.glob("*.py")):
         if f.name == "branches.py":
             continue  # the grammar module owns the shapes; not a reader
-        lines = f.read_text(encoding="utf-8").splitlines()
-        for ln, line in enumerate(lines, 1):
-            if any(p.search(line) for p in _SPELLINGS):
-                found.setdefault(f.name, []).append(ln)
-    return found
+        for line in f.read_text(encoding="utf-8").splitlines():
+            hits = [m.group(0) for p in _SPELLINGS for m in [p.search(line)] if m]
+            if hits:
+                found.setdefault(f.name, []).extend(hits)
+    return {k: sorted(v) for k, v in found.items()}
 
 
 def test_no_new_hand_spelled_branch_spelling():
@@ -115,4 +189,6 @@ def test_pinned_inventory_documents_resolver_files_expected_to_route_through_bra
     import verification  # noqa: F401 -- import side effect: module resolves
     assert branches.ref_candidates
     from verification import _integration_branch_candidates  # noqa: F401
-    assert 231 in PINNED["verification.py"]
+    # its ONE hit is the `season/s<N>` metavariable in a docstring, not a
+    # hardcoded branch -- pinned by text, so a line shift cannot break this.
+    assert PINNED["verification.py"] == ["season/s<N"]

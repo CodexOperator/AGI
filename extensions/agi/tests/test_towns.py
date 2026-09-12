@@ -113,22 +113,26 @@ def test_three_create_lines_load_and_tuples(tmp_path):
 
 def test_derive_names_equal_ruling_table():
     # The ruling's literal table for core: the derived names fall out of the
-    # cells (season 2, post name, round/agent). Prefer branches.derive_names
-    # when the parallel I-3a round lands it; else the town's own loader half.
-    try:
-        from branches import derive_names as _branches_derive  # type: ignore
-    except (ImportError, AttributeError):
-        _branches_derive = None
-    derive = _branches_derive if _branches_derive is not None else towns.derive_names
-    got = derive("core", 2, post="belam", loop_round="R7", agent="a00-1234")
-    assert got == [
+    # cells (season 2, post name, round/agent). branches.derive_names (I-3a)
+    # is the ONE derivation and returns the dict {town_main, town_season_main,
+    # post_main, loop}; towns.derive_names delegates to it and flattens the
+    # same table in order (director fix at the L4.332 harvest: the two rounds
+    # had shipped a dict and a list that this test could not compare).
+    import branches
+    table = [
         "core/main",
         "core/season2/main",
         "core/season2/posts/belam/main",
         "core/season2/posts/belam/loops/R7/a00-1234",
     ]
+    d = branches.derive_names("core", 2, post="belam", round="R7", agent="a00-1234")
+    assert [d["town_main"], d["town_season_main"], d["post_main"], d["loop"]] == table
+    assert towns.derive_names("core", 2, post="belam", loop_round="R7",
+                              agent="a00-1234") == table
     # A town's own Council main (no post/loop layers) — the base pair.
     assert towns.derive_names("core", 2) == ["core/main", "core/season2/main"]
+    assert branches.derive_names("core", 2) == {
+        "town_main": "core/main", "town_season_main": "core/season2/main"}
 
 
 def test_refusal_no_visions(tmp_path):
