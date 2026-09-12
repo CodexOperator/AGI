@@ -85,7 +85,7 @@ def test_parse_garbage_raises():
 @pytest.mark.parametrize("old,canonical", [
     ("master", "season1/main"),
     ("season/s2", "season2/main"),
-    ("seat/streaming-suite@s2", "season2/streaming-suite"),
+    ("seat/streaming-suite@s2", "season2/posts/streaming-suite"),
     ("town/streaming-suite/season/s1", "season2/streaming-suite/season1/main"),
     ("town/web-app-suite@s2", "season2/web-app-suite/season1/main"),
 ])
@@ -107,10 +107,10 @@ def test_alias_warns_once_per_process(monkeypatch):
 
 
 def test_alias_seat_never_raises():
-    # season2/streaming-suite is a town node, not a leaf; alias still resolves.
+    # A `seat/<name>@s<N>` resolves to a POST branch; it never refuses.
     d = b.parse("seat/streaming-suite@s2")
     assert d["kind"] == "alias"
-    assert d["canonical"] == "season2/streaming-suite"
+    assert d["canonical"] == "season2/posts/streaming-suite"
 
 
 # --- merge_target ---
@@ -157,9 +157,26 @@ def test_ref_candidates_accepts_old_input_canonical_first():
     assert b.ref_candidates("season/s2") == ["season2/main", "season/s2"]
 
 
-def test_ref_candidates_post_no_legacy():
-    # posts had no legacy spelling -> canonical alone
-    assert b.ref_candidates("season2/posts/foo") == ["season2/posts/foo"]
+def test_ref_candidates_post_keeps_legacy_seat_alias():
+    # A POST's legacy spelling IS seat/<name>@s<n> (hypothesis:
+    # l4-branches-follow-the-season-grammar a1) — canonical first, old name
+    # kept as the one-season fallback, mirroring the loop branch case.
+    assert b.ref_candidates("season2/posts/foo") == [
+        "season2/posts/foo", "seat/foo@s2"
+    ]
+
+
+def test_ref_candidates_seat_alias_canonical_first():
+    # Real seat branch name on this box (harvest-pinned): canonical first,
+    # old `seat/...@s<n>` spelling kept. A reader handed the canonical POST
+    # name on a pre-migration tree falls back to the live seat ref.
+    name = "seat/sanctuary-director@s2"
+    cands = b.ref_candidates(name)
+    assert cands == ["season2/posts/sanctuary-director", name]
+    # and the canonical-first direction resolves to the same pair
+    assert b.ref_candidates("season2/posts/sanctuary-director") == [
+        "season2/posts/sanctuary-director", name
+    ]
 
 
 class _Sink:
@@ -168,3 +185,39 @@ class _Sink:
 
     def write(self, s):
         self.target.append(s)
+
+
+# --- g15 round I residue (a1): real old names pinned on this box ---
+# A `seat/<name>@s<N>` is a POST under that season's main; a
+# `loop/<slug>-<agent>@s<N>` is a LOOP under it. Both are accepted as a
+# DEPRECATED alias and canonicalise to the two-season spelling.
+
+def test_seat_alias_canonicalises_to_post():
+    d = b.parse("seat/post-name@s2")
+    assert d["kind"] == "alias"
+    assert d["season"] == 2
+    assert d["canonical"] == "season2/posts/post-name"
+
+
+def test_real_loop_alias_parses():
+    # Real loop branch name on this box (harvest-pinned).
+    name = "loop/hypothesis-harvest-table-subcomm-a00-26e81f42@s2"
+    d = b.parse(name)
+    assert d["kind"] == "alias"
+    assert d["season"] == 2
+    assert d["canonical"] == "season2/loops/hypothesis-harvest-table-subcomm-a00-26e81f42"
+
+
+def test_loop_alias_ref_candidates_canonical_first():
+    name = "loop/hypothesis-l4-branches-follow-th-a00-0b43f895@s2"
+    cands = b.ref_candidates(name)
+    assert cands[0] == "season2/loops/hypothesis-l4-branches-follow-th-a00-0b43f895"
+    assert name in cands  # old name kept as the one-season fallback
+
+
+def test_seat_merge_target_is_season_main():
+    assert b.merge_target("seat/post-name@s2") == "season2/main"
+
+
+def test_loop_alias_merge_target_is_season_main():
+    assert b.merge_target("loop/opt-auth-a1@s2") == "season2/main"

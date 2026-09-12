@@ -52,14 +52,22 @@ if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
     exit 0
 fi
 # The ONE authorised commit: a --branch PARENT committing onto its own
-# loop/* branch. hypothesis:l3-parent-brief-forbids-the-only-commit — the
+# loop branch. hypothesis:l3-parent-brief-forbids-the-only-commit — the
 # loop branch is the only route a parent's kids' work has to the season
 # branch, and dispatch authorises exactly that single gamble of a commit.
 # No other parent commit, and NO kid commit ever, in the project repo.
+#
+# Two spellings, because dispatch.py now EMITS the canonical season name
+# through branches.loop_branch() (season<n>/loops/<slug>-<agent>) while a
+# live tree may still carry the legacy loop/<slug>-<agent>@s<n> name
+# (hypothesis:l4-branches-follow-the-season-grammar). This case pattern is a
+# MIRROR of branches.py's loop grammar, not the source of truth — the
+# grammar module (extensions/agi/bin/branches.py) is the sole owner of
+# branch names; keep this mirror in lockstep with it.
 if [ "${AGI_TIER}" = "parent" ]; then
     CUR_BRANCH=$(git branch --show-current 2>/dev/null)
     case "$CUR_BRANCH" in
-        loop/*) exit 0 ;;
+        season*/loops/*|loop/*) exit 0 ;;
     esac
 fi
 echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2

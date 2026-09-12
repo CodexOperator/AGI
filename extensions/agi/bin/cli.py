@@ -2278,6 +2278,257 @@ def _post_rename_rewrite(text: str, names: list) -> str:
     return "".join(out)
 
 
+# --------------------------------------------------------------------------
+# hypothesis:l4-branches-follow-the-season-grammar — `branch-reshuffle`.
+# clause 3: ONE migration script renames local + remote branches from the
+# legacy season spellings to the canonical season grammar, re-points every
+# post worktree onto the new name, and PROPOSES (never writes) the ladder
+# cells + the config:rotations F14 fact re-spellings — those two files are
+# the Prime's cells. `--apply` is exercised ONLY against a --root fixture,
+# never the live tree unless --root is omitted (the Prime's job).
+# ---------------------------------------------------------------------------
+
+_RS_SEASON_RE = re.compile(r"^season/s(\d+)$")
+_RS_TOWN_RE = re.compile(r"^town/(.+?)/season/s(\d+)$")
+_RS_LOOP_RE = re.compile(r"^loop/(.+?)@s(\d+)$")
+_RS_SEAT_RE = re.compile(r"^seat/(.+?)@s(\d+)$")
+_RS_LEGACY_RE = re.compile(r"\b(season/s\d+|town/[^\s\"',:]+/season/s\d+|loop/[^\s\"',:]+@s\d+|seat/[^\s\"',:]+@s\d+)\b")
+
+# Cell files whose legacy branch spellings the migration PROPOSES to rewrite
+# but must never edit directly (Prime-owned graph cells).
+_RS_CELL_FILES = [
+    "nodes/.geometry/ladder.md",
+    "nodes/.geometry/rotations.md",
+]
+
+
+def _reshuffle_canonical(branch: str, season: int) -> str | None:
+    """Canonical season-grammar name for a legacy `branch`, or None when it is
+    already canonical / not legacy. Each mapping is the inverse of
+    branches.py `_canonical_to_old`:
+      season/s<N>          -> season<N>/main
+      town/<t>/season/s<N> -> season<S>/<t>/season<N>/main   (S = root season)
+      loop/<slug>@s<N>     -> season<N>/loops/<slug>
+      seat/<name>@s<N>     -> season<N>/posts/<name>
+    None leaves a feature branch or an already-canonical name alone."""
+    m = _RS_SEASON_RE.match(branch)
+    if m:
+        return f"season{m.group(1)}/main"
+    m = _RS_TOWN_RE.match(branch)
+    if m:
+        return f"season{season}/{m.group(1)}/season{m.group(2)}/main"
+    m = _RS_LOOP_RE.match(branch)
+    if m:
+        return f"season{m.group(2)}/loops/{m.group(1)}"
+    m = _RS_SEAT_RE.match(branch)
+    if m:
+        return f"season{m.group(2)}/posts/{m.group(1)}"
+    return None
+
+
+def _reshuffle_season(root: Path, arg_season: int | None) -> int:
+    """The root season to build town main names from: the ladder's
+    `current_season` frontmatter unless --season overrides it."""
+    if arg_season is not None:
+        return arg_season
+    try:
+        import yaml
+        text = (root / "nodes/.geometry/ladder.md").read_text(encoding="utf-8")
+        if text.startswith("---"):
+            fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+            return int(fm.get("current_season", 2))
+    except Exception:  # noqa: BLE001 (missing/garbled ladder never blocks)
+        pass
+    return 2
+
+
+def _reshuffle_branches(repo: Path) -> list[str]:
+    """Every local + origin-tracking branch short name at `repo`."""
+    out: list[str] = []
+    r = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname:short)", "refs/heads"],
+        cwd=repo, capture_output=True, text=True)
+    out += [b for b in r.stdout.split() if b]
+    r = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname:short)", "refs/remotes"],
+        cwd=repo, capture_output=True, text=True)
+    for b in r.stdout.split():
+        if b.startswith("origin/") and len(b) > len("origin/"):
+            out.append(b[len("origin/"):])
+    # dedupe, keep order
+    seen: set[str] = set()
+    uniq = []
+    for b in out:
+        if b not in seen:
+            seen.add(b)
+            uniq.append(b)
+    return uniq
+
+
+def _reshuffle_jobs(repo: Path, season: int) -> list[dict]:
+    """[{old,new}] branch renames, old name first, for every legacy branch at
+    `repo`. Never runs a mutation, only for-each-ref reads."""
+    jobs: dict[str, str] = {}
+    for b in _reshuffle_branches(repo):
+        new = _reshuffle_canonical(b, season)
+        if new and new != b:
+            jobs[b] = new
+    return [{"old": k, "new": v} for k, v in sorted(jobs.items())]
+
+
+def _reshuffle_worktrees(repo: Path) -> list[dict]:
+    """[{path, branch}] worktrees on a legacy branch, from `git worktree list
+    --porcelain`. Never mutates."""
+    r = subprocess.run(["git", "worktree", "list", "--porcelain"],
+                       cwd=repo, capture_output=True, text=True)
+    wts: list[dict] = []
+    for block in r.stdout.split("\n\n"):
+        path = branch = None
+        for line in block.splitlines():
+            if line.startswith("worktree "):
+                path = line[len("worktree "):]
+            elif line.startswith("branch refs/heads/"):
+                branch = line[len("branch refs/heads/"):]
+        if path and branch and _reshuffle_canonical(branch, 1):
+            wts.append({"path": path, "branch": branch})
+    return wts
+
+
+def _reshuffle_cell_edits(root: Path, season: int, jobs: list[dict]) -> list[str]:
+    """Proposed (never applied) cell re-spellings for the Prime-owned cells.
+    Each legacy spelling in the ladder/rotations cells is mapped through the
+    same grammar as the branches, so a `core: season/s2` ladder cell reads as
+    a `core: season2/main` proposal. Returns printable lines only; the caller
+    prints them and writes nothing."""
+    edits: list[str] = []
+    for rel in _RS_CELL_FILES:
+        p = root / rel
+        if not p.exists():
+            continue
+        for ln, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            for tok in _RS_LEGACY_RE.findall(line):
+                new = _reshuffle_canonical(tok, season)
+                if new and new != tok:
+                    edits.append(f"  {rel}:{ln}: {tok} -> {new}")
+    return edits
+
+
+def _reshuffle_refs_grid(repo: Path) -> str:
+    """Byte source of truth for the refs/grid namespace: refname + object name
+    per ref, one per line, refs sorted. Compare before/after for identity."""
+    r = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid"],
+        cwd=repo, capture_output=True, text=True)
+    return "\n".join(sorted(r.stdout.splitlines())) + "\n"
+
+
+def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
+    """hypothesis:l4-branches-follow-the-season-grammar clause 3 — the one
+    migration script. --dry-run prints exactly what it WOULD do and touches
+    nothing (the default when neither --apply nor --delete-old is given).
+    --apply performs the local renames, pushes the new remote branch, and
+    re-points every post worktree; it NEVER implies the remote delete. The
+    remote delete is the separate --delete-old step, which refuses unless a
+    green suite stamp exists. The ladder/rotations cell re-spellings are
+    printed as proposals, never written. All git runs are cwd at `repo`
+    derived from --root, so an --apply against a fixture is hermetic."""
+    root = Path(args.root).resolve() if args.root else _find_root()
+    repo = root.parent if root.name == ".agi" else root
+    season = _reshuffle_season(root, args.season)
+    apply = bool(args.apply)
+    delete_old = bool(args.delete_old)
+    if apply and delete_old:
+        print("ERR: --apply and --delete-old are mutually exclusive; "
+              "--delete-old is the separate final step", file=sys.stderr)
+        return 1
+
+    jobs = _reshuffle_jobs(repo, season)
+    if not jobs:
+        print("branch-reshuffle: no legacy branches to reshuffle")
+        print("dry-run: nothing changed" if not (apply or delete_old) else "")
+        return 0
+
+    grid_before = _reshuffle_refs_grid(repo)
+
+    # worktree re-points (post worktrees on a renamed branch)
+    wts = _reshuffle_worktrees(repo)
+    rename = {j["old"]: j["new"] for j in jobs}
+    # ---- step 1: local rename + push new + worktree re-points
+    print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)")
+    for j in jobs:
+        _post_rename_print("branch rename (local)", f"git branch -m {j['old']} {j['new']}", apply)
+        _post_rename_print("branch push (new)", f"git push origin {j['new']}", apply)
+    for wt in wts:
+        new = rename.get(wt["branch"])
+        if new:
+            _post_rename_print("worktree re-point",
+                               f"git -C {wt['path']} checkout {new}", apply)
+
+    # ---- ladder + rotations cell proposals (Prime-owned: print, never write)
+    print("  cell re-spellings (PRINTED ONLY, Prime applies them):")
+    for e in _reshuffle_cell_edits(root, season, jobs):
+        print(e)
+    if not _reshuffle_cell_edits(root, season, jobs):
+        print("  (no legacy spellings found in ladder/rotations cells)")
+
+    # ---- the remote delete is a SEPARATE step, never implied by --apply
+    print("  NOTE: remote delete is NOT implied by --apply; run --delete-old "
+          "separately, and only after the suite is green.")
+
+    if delete_old:
+        # root is the graph dir (.agi), so the stamp is under sessions/ there.
+        stamp = root / "sessions/verified.stamp"
+        if not stamp.exists():
+            print(f"ERR: --delete-old refuses: no green suite stamp at {stamp}",
+                  file=sys.stderr)
+            return 3
+        for j in jobs:
+            _post_rename_print("branch delete (remote)",
+                               f"git push origin --delete {j['old']}", True)
+        print("delete-old: remote legacy branches removed")
+        return 0
+
+    if apply:
+        # perform the local renames
+        for j in jobs:
+            r = subprocess.run(["git", "branch", "-m", j["old"], j["new"]],
+                               cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git branch -m {j['old']} failed: {r.stderr.strip()}",
+                      file=sys.stderr)
+                return 1
+            # push the new branch to origin if origin exists
+            rem = subprocess.run(["git", "remote"], cwd=repo,
+                                 capture_output=True, text=True)
+            if "origin" in rem.stdout.split():
+                pr = subprocess.run(["git", "push", "origin", j["new"]],
+                                    cwd=repo, capture_output=True, text=True)
+                if pr.returncode != 0:
+                    print(f"ERR: git push origin {j['new']} failed: "
+                          f"{pr.stderr.strip()}", file=sys.stderr)
+                    return 1
+        # re-point worktrees
+        for wt in wts:
+            new = rename.get(wt["branch"])
+            if not new:
+                continue
+            r = subprocess.run(["git", "-C", wt["path"], "checkout", new],
+                               cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git -C {wt['path']} checkout {new} failed: "
+                      f"{r.stderr.strip()}", file=sys.stderr)
+                return 1
+        grid_after = _reshuffle_refs_grid(repo)
+        same = "IDENTICAL" if grid_after == grid_before else "CHANGED"
+        print(f"refs/grid: {same} before/after --apply (expected IDENTICAL)")
+        print("apply: local renames + worktree re-points done; remote legacy "
+              "branches NOT deleted (see --delete-old)")
+        return 0
+
+    print("dry-run: nothing changed")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -2416,6 +2667,40 @@ def main() -> int:
         help="the graph root (.agi dir) to act on — required to run against a "
              "fixture repo; default resolves the live tree normally.")
     p_pr.set_defaults(func=cmd_post_rename)
+
+    p_rs = sub.add_parser(
+        "branch-reshuffle",
+        help="hypothesis:l4-branches-follow-the-season-grammar — migration "
+             "script: rename local + remote branches from legacy season "
+             "spellings to the canonical grammar, re-point post worktrees, "
+             "and PROPOSE (never write) the ladder/rotations cell "
+             "re-spellings. --dry-run prints; --apply performs against "
+             "--root; --delete-old is the separate final step that refuses "
+             "without a green suite stamp.",
+    )
+    p_rs.add_argument(
+        "--dry-run", action="store_true",
+        help="print exactly what it WOULD do and change NOTHING — the "
+             "default testing posture and the only allowed mode on this tree "
+             "without --root.")
+    p_rs.add_argument(
+        "--apply", action="store_true",
+        help="perform the local renames, push new remotes, and re-point "
+             "worktrees. NEVER implies the remote delete. Against the live "
+             "tree only when --root is omitted — the Prime's job.")
+    p_rs.add_argument(
+        "--delete-old", action="store_true",
+        help="SEPARATE final step: git push origin --delete <old> for each "
+             "reshuffled branch. REFUSES unless the green suite stamp exists.")
+    p_rs.add_argument(
+        "--root", default=None,
+        help="the graph root (.agi dir) to act on — required to run --apply "
+             "against a fixture repo; default resolves the live tree normally.")
+    p_rs.add_argument(
+        "--season", type=int, default=None,
+        help="root season for town-main renames (default: ladder "
+             "current_season).")
+    p_rs.set_defaults(func=cmd_branch_reshuffle)
 
     args = ap.parse_args()
     return args.func(args)

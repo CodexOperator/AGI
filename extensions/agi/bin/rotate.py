@@ -65,6 +65,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import geometry_config  # noqa: E402
+import branches  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -199,20 +200,61 @@ def load_ladder_field(root: Path, field: str, default):
         return default
 
 
+def _season_ref_on_origin(root: Path, ref: str) -> bool:
+    """Whether `ref` exists on the remote `origin` for `root` (a git tree).
+
+    Reads the LOCAL remote-tracking ref via `rev-parse --verify` on
+    `refs/remotes/origin/<ref>` — a read-only, no-network probe that returns
+    True exactly when `origin/<ref>` is known present (True) vs absent
+    (False). A local tracking ref is the same answer `git ls-remote
+    --exit-code origin <ref>` gives for the refs this tree has ever seen,
+    but it stays on the autopsy's read-only git whitelist (hypothesis:l4-a-
+    recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files:
+    autopsy runs only rev-list / rev-parse / status / log / show — no
+    network, no writes). An absent ref degrades to False, which falls
+    through to the LEGACY season spelling — the SAFE direction: a canonical
+    name is only ever emitted when its origin ref is verifiably present
+    (hypothesis:l4-branches-follow-the-season-grammar). Never raises."""
+    return bool(_git_maybe(root, "rev-parse", "-q", "--verify",
+                            f"refs/remotes/origin/{ref}"))
+
+
 def season_branch(root: Path | None) -> str:
-    """THE ONE resolver for the season branch name:
-    `season/s{current_season}` from the ladder, `season/s2` only as the
-    fallback when the ladder is unreadable (load_ladder_field already	warns).
+    """THE ONE resolver for the season branch name.
+
+    Starts from `season/s{current_season}` in the ladder (`season/s2` only
+    when the ladder is unreadable — load_ladder_field already warns), then
+    accepts BOTH spellings and emits the canonical name ONLY when it exists
+    on origin (hypothesis:l4-branches-follow-the-season-grammar).
+
+    `branches.ref_candidates(branch)` returns the canonical first (`season
+    N/main`) then the legacy alias (`season/sN`) as the one-season deprecated
+    fallback; the first candidate that resolves on origin is returned, so on
+    a pre-migration tree — where only `origin/season/sN` exists and
+    `origin/season<N>/main` does NOT — the legacy spelling is emitted and a
+    canonical name that would resolve nowhere is never printed. A tree where
+    NO candidate resolves falls back to the input branch unchanged (never a
+    name that does not exist; readers address it as `origin/{season}`). With
+    `root is None` (no git) the origin probe is skipped and the ladder
+    spelling is returned directly.
+
     Every literal `season/s2` site in rotate.py routes through this so a
-    season change is ONL Y the ladder's `current_season` (hypothesis l4-the-
+    season change is ONLY the ladder's `current_season` (hypothesis l4-the-
     prepare-captives-measure-generation-upstream-and-season-and-the-gate-
     is-not-a-test-seam, piece 4: printed lines change text only by the
     season number)."""
     s = load_ladder_field(root, "current_season", None) if root is not None \
         else None
     if s is None:
-        return "season/s2"
-    return f"season/s{s}"
+        branch = "season/s2"
+    else:
+        branch = f"season/s{s}"
+    if root is None:
+        return branch
+    for cand in branches.ref_candidates(branch):
+        if _season_ref_on_origin(root, cand):
+            return cand
+    return branch
 
 
 def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
