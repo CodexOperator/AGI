@@ -6578,6 +6578,10 @@ SL7.75 harvested 16:32Z (Prime line (3)): the service after_join dm is sent by a
 
 SL7.73 harvested 16:37Z (Prime line (1) / Sensei line (2)): an after_join entry using a placeholder that resolves EMPTY is refused by name with a per-placeholder reason (pred_pids: no predecessor chain; succ_ref: row session_ref empty; gen: no generation resolved) and never executed — reap-proof on a MAIN post with no chain records the refusal, no grep -E '' over the process table; fallback precedence as first_turn; generic to every entry (kid a00-e95c7ff6-23ee98 0.9); residue: the dry-run branch still resolves empties to '' (executes nothing); seat fix-up: the never-run thrower guards _run_units_no_shell; nbhd 554/3
 
+SL7.72 harvested 16:43Z (Sensei 15:56Z (2)): after_join is PERFORMED LIVE — heal's watch writes a heartbeat (reaper.watch.json in the SHARED room) each pass; _watch_alive = present + pid live + within 120 s; the performer arms only on an alive watch; rotate-self's tail performs run_after_join itself when no watcher is alive and skips when the watch already won; the record's after_join key carries performer: watch|tail and results: [] — never absent, never {} (kids 0.9/0.9/0.92)
+
+SL7.76 harvested 16:43Z (Prime (4) / Sensei (3)): the catch-up performs only for a seat with a live session (join found, alive pid, or session/window); a dead seat is skipped with one log line, no append, no dm, and past after_join_max_age_s (300) marked skipped once; a live late seat is performed once tagged late + age_s; delay_s is the template's promise and performed_after_s the measured age (kid a00-3f768c77-3f7c03 0.86); two test-only merge interactions with SL7.72 fixed on the seat; nbhd 600/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
