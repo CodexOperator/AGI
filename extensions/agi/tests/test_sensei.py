@@ -203,3 +203,81 @@ def test_apply_unprotected_target_writes_note_exactly_once(tmp_path,
     assert len(calls) == 1
     assert calls[0][:2] == (root, "build:dir-g1")
     assert "try opus" in calls[0][2]  # the change text rides along
+
+# ── sensei.py calls — hypothesis:l4-sensei-py-calls-lists-a-transcripts- ──
+# tool-calls-so-no-post-copies-a-scratchpad-script-at-spawn
+def _write_transcript(path: Path, lines):
+    """Write a CC JSONL transcript from a list of json strings."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _asst_line(ts, tool, cmd=None):
+    content = [{"type": "tool_use", "name": tool,
+                "input": {"command": cmd} if cmd is not None else {}}]
+    return json.dumps({"type": "assistant", "timestamp": ts,
+                       "message": {"role": "assistant", "content": content}})
+
+
+def _user_line(ts, text):
+    return json.dumps({"type": "user", "timestamp": ts,
+                       "message": {"role": "user",
+                                   "content": [{"type": "text", "text": text}]}})
+
+
+def _tool_result_line(ts, text="ok"):
+    return json.dumps({"type": "user", "timestamp": ts,
+                       "message": {"role": "user",
+                                   "content": [{"type": "tool_result",
+                                                "content": text}]}})
+
+
+def test_calls_lists_tool_uses_in_file_order_with_user_boundaries(tmp_path,
+                                                                  capsys):
+    p = tmp_path / "t.jsonl"
+    lines = [
+        _asst_line("2026-09-12T00:00:01Z", "Bash", "ls -la"),
+        _tool_result_line("2026-09-12T00:00:02Z"),
+        _user_line("2026-09-12T00:00:03Z", "now audit"),
+        _asst_line("2026-09-12T00:00:04Z", "Grep", "grep -n todo"),
+        _asst_line("2026-09-12T00:00:05Z", "Read", "read.py"),
+    ]
+    _write_transcript(p, lines)
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    # 3 call lines, one user-turn boundary, no tool_result boundary
+    assert len(out) == 4
+    assert out[0] == "1 · 2026-09-12T00:00:01Z · Bash · ls -la"
+    assert out[1] == "── user turn 1 ──"
+    # a user turn appears between call 1 and call 2 (tool_result is NOT a turn)
+    assert "Grep" in out[2] and "grep -n todo" in out[2]
+    assert "Read" in out[3] and "read.py" in out[3]
+
+
+def test_calls_from_to_and_width_truncate(tmp_path, capsys):
+    p = tmp_path / "t.jsonl"
+    long = "echo " + "x" * 200
+    lines = [
+        _asst_line("2026-09-12T00:00:01Z", "Bash", "ls"),
+        _asst_line("2026-09-12T00:00:02Z", "Bash", long),
+        _asst_line("2026-09-12T00:00:03Z", "Bash", "pwd"),
+    ]
+    _write_transcript(p, lines)
+    args = _Args(transcript=str(p), from_=2, to=2, width=20)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert len(out) == 1
+    assert out[0].startswith("2 · ")
+    assert out[0].endswith("…")          # truncated at width 20
+    assert "Bash" in out[0]
+
+
+def test_calls_empty_transcript_prints_zero_lines_exits_zero(tmp_path,
+                                                             capsys):
+    p = tmp_path / "t.jsonl"
+    _write_transcript(p, [_user_line("2026-09-12T00:00:00Z", "hi only")])
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out
+    assert out == ""  # no tool calls → no listing lines at all
