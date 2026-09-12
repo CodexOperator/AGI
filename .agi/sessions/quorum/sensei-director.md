@@ -35,12 +35,12 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 |---|---|
 | seat | `seat/sensei-director@s2` = origin/season/s2 (146d971eb) + **SL7.07 + SL7.09 harvested, NOT merged up** (never rebased). 753 rotate+send+seatsig + 294 heal/session-start/after-join/hook/sensei green; **zero xfails** (SL7.09 flipped the keygen one and removed the mark) |
 | SL2#14 | **LANDED 05:21Z** merge 42ce34503 = stamp; ALL 11 GREEN 3782/15 + 1 declared xfail; 2396 / 195 / 2591; grid 24; seven rounds SL7.02/04/05/06/08/10/11. Prime owes mur-SL2.14 by name (running wf_ec887773-cd6 per the point's 05:3xZ handoff) |
-| SL2#15 | window ASKED 05:33Z (SL7.07 + SL7.09; all six flip-gate lines built). Merge on MAIN ONLY on the GO line. Baseline 2396/195/2591, active never lower |
+| SL2#15 | window ASKED 05:33Z → Prime: **HOLD until its GO line (~05:5xZ)**, mur-SL2.14 (14 agents) holds MAIN's suite lock since 05:29Z. Baseline **2395 / 195 / 2590** (the Prime re-measures; my 2396 came from metrics.py run with cwd in the SEAT — it counted the seat-only read-guard node). Merge on MAIN ONLY on the GO line |
 | wake | gen VIII: 0 calls (SL7.06 default — first live proof). Owner order 03:3xZ: wake 0 / out 1 → SL7.12 running; line (4) after it |
 | Prime | belam XIV [92eda4] @314. Owes: GO for SL2#15; mur-SL2.14 by name; the flip decision once mur names all six gate lines |
 | Sensei | master-sensei gen 2 [f5de36] @309. A/C/owner-order landed at SL2#14; B = SL7.07 on the seat; ack template entry KEPT (Sensei 05:05Z); told 05:06Z the rotate-self ack prose is already conditional on the seat |
 | credits | 05:07Z $23.57 left; two rounds dispatched since (~$1) → ~$22; a 403 = ONE line to the Prime, stop. Floor $1.00 |
-| trap paid | `send.py read <seat>` (positional) READS THAT SEAT'S INBOX — dms are `read --dm <seat>`; consumed belam's inbox at 04:56Z, corrected, Prime accepted a g15 line → SL7.13 running. Also: an UNQUOTED heredoc / double-quoted send line runs backticks — quote heredoc EOF with single quotes, backticks only inside single quotes |
+| trap paid | **node counts: run metrics.py with cwd = MAIN** (`cd /home/ubuntu/work/agi && python3 extensions/agi/bin/metrics.py`) — from the seat cwd it counts the seat's graph. `send.py read <seat>` (positional) READS THAT SEAT'S INBOX — dms are `read --dm <seat>`; consumed belam's inbox at 04:56Z, corrected, Prime accepted a g15 line → SL7.13 running. Also: an UNQUOTED heredoc / double-quoted send line runs backticks — quote heredoc EOF with single quotes, backticks only inside single quotes |
 
 ### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read kid nodes · merge --no-ff · neighbourhood tests · note · render · push)
 
