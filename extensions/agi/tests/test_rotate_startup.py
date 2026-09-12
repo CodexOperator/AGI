@@ -1753,6 +1753,27 @@ def _fs_bootstrap(root, seat):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def _fs_stub_successor_window(monkeypatch, window_id="@3"):
+    """Stub the tmux `list-windows` seam so the first-seating suite NEVER
+    shells out to a real `tmux list-windows` (the test box may lack tmux, or
+    hold a foreign session that changes the result) — hypothesis:l4-first-
+    seating-tests-stub-the-real-tmux-list-windows-and-the-seating-base-block-
+    and-alert-read-one-resolved-generation claim (a). Returns a list that
+    records each consultation so a test can assert the stub was called. A
+    fixed @id would otherwise trigger a real bounded join poll into
+    `~/.claude/sessions`, so `_join_successor` is stubbed too to keep the
+    suite deterministic and fast."""
+    calls = []
+    monkeypatch.setattr(
+        rotate, "_successor_window_id",
+        lambda *a, **k: (calls.append((a, k)) or window_id))
+    monkeypatch.setattr(
+        rotate, "_join_successor",
+        lambda **k: {"found": False, "window_id": window_id,
+                     "note": "stubbed in first-seating test"})
+    return calls
+
+
 def test_first_seating_on_existing_seat_reports_row_gen_not_1(
         monkeypatch, tmp_path):
     """A RE-spawn onto a config:seats row that already carries
@@ -1865,9 +1886,13 @@ def test_first_seating_respawn_record_and_alert_carry_row_gen(
     monkeypatch.setattr(
         rotate, "_announce_rotation",
         lambda *a, **kw: captured.update(kw) or [])
+    # claim (a): never a real tmux subprocess — stub the successor-window seam.
+    _win_calls = _fs_stub_successor_window(monkeypatch)
     rotate._first_seating_announce(
         tmp_path, None, seat="re-seated", role="director", source="test",
         tmux_session="t", live_names=[])
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
     seating = captured["seating"]
     # the ONE record the alert shares reports gen_after 4, never a hard-coded 1.
     assert seating["gen_after"] == 4, \
@@ -1910,9 +1935,13 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
     monkeypatch.setattr(
         rotate, "_announce_rotation",
         lambda *a, **kw: captured.update(kw) or [])
+    # claim (a): never a real tmux subprocess — stub the successor-window seam.
+    _win_calls = _fs_stub_successor_window(monkeypatch)
     rotate._first_seating_announce(
         tmp_path, None, seat="zero-seat", role="director", source="test",
         tmux_session="t", live_names=[])
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
     assert captured["seating"]["gen_after"] == 0, \
         f"seating record must keep a row gen 0, got {captured['seating']['gen_after']}"
     assert captured["gen_after"] == 0
@@ -1922,6 +1951,91 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
     assert "generation 0 -> 0" in text, \
         f"alert dm must name generation 0 -> 0:\n{text}"
     assert "generation 0 -> 1" not in text
+
+
+def test_seating_base_block_checks_record_at_resolved_row_gen(
+        monkeypatch, tmp_path):
+    """Claim (b): the `[seating]` base block checks `_seating_record_exists`
+    at the seat's OWN resolved generation, never only gen 1 — a RE-seated
+    seat at gen N with a gen-N record on disk must read `record: present`,
+    never 'none yet (never seated)' merely because a GEN-1 record is absent
+    (the falsifier: the pre-fix base block only looked at gen 1). And the
+    block reads THE ROW, not a stray gen-1 record: row gen 3 with only a
+    gen-1 record on disk must still read 'none yet' (this seating's gen-3
+    record has not been written yet)."""
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 3},
+    ])
+    rec = rotate._seating_record(
+        seat="re-seated", role="director", source="test",
+        window_id="@3", ref="", pid=None, session_id="",
+        transcript_path="", first_turn=None, generation=3)
+    rotate._write_seating_record(tmp_path, rec)
+    now = "2026-01-01T00:00:00Z"
+    block = rotate._compose_seating_base_block(
+        seat="re-seated", source="cmd_spawn", now=now,
+        pred_pid=None, pred_death="-", seq=1, root=tmp_path)
+    assert "record: present" in block[0], \
+        f"gen-3 re-seating with a gen-3 record must read present:\n{block[0]}"
+    # complementary: a STRAY gen-1 record must NOT mask an absent gen-3 one.
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 3},
+    ])
+    (tmp_path / "sessions" / "rotations").mkdir(parents=True, exist_ok=True)
+    for p in (tmp_path / "sessions" / "rotations").glob("*.seating.json"):
+        p.unlink()
+    gen1 = rotate._seating_record(
+        seat="re-seated", role="director", source="test",
+        window_id="@3", ref="", pid=None, session_id="",
+        transcript_path="", first_turn=None, generation=1)
+    rotate._write_seating_record(tmp_path, gen1)
+    block1 = rotate._compose_seating_base_block(
+        seat="re-seated", source="cmd_spawn", now=now,
+        pred_pid=None, pred_death="-", seq=1, root=tmp_path)
+    assert "record: none yet" in block1[0], \
+        f"a stray gen-1 record must not stand in for the missing gen-3:\n{block1[0]}"
+
+
+def test_first_seating_announce_reads_row_gen_zero_when_passed(
+        monkeypatch, tmp_path):
+    """Claim (c) — the ONE-READ ceiling: `_first_seating_announce` must NOT
+    re-read the seat row generation when a caller (the production `cmd_spawn`,
+    which already resolved `_rowgen` once at the same path) passes it
+    explicitly. A counting fake `_seat_row_generation` (returns 4) proves: a
+    call WITH `generation=4` performs ZERO row-generation reads, while a call
+    with generation omitted performs EXACTLY ONE (the None fallback stays a
+    fallback, never re-entered from a caller that passed the value)."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 4},
+    ])
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    reads = []
+    monkeypatch.setattr(
+        rotate, "_seat_row_generation",
+        lambda root, name: (reads.append(name) or 4))
+    _win_calls = _fs_stub_successor_window(monkeypatch)
+    captured = []
+    monkeypatch.setattr(
+        rotate, "_announce_rotation",
+        lambda *a, **kw: (captured.append(kw) or []))
+    # (i) generation passed explicitly -> ZERO reads.
+    rotate._first_seating_announce(
+        tmp_path, None, seat="re-seated", role="director", source="test",
+        tmux_session="t", live_names=[], generation=4)
+    assert reads == [], \
+        f"explicit generation=4 must cause ZERO _seat_row_generation reads, got {reads}"
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
+    assert captured and captured[0]["gen_after"] == 4, \
+        "the seating announce must thread the passed generation (4)"
+    # (ii) generation omitted -> the None fallback reads EXACTLY once.
+    reads.clear()
+    rotate._first_seating_announce(
+        tmp_path, None, seat="re-seated", role="director", source="test",
+        tmux_session="t", live_names=[], generation=None)
+    assert reads == ["re-seated"], \
+        f"omitted generation must fall back to exactly ONE read, got {reads}"
 
 
 def _run_real_announce(monkeypatch, tmp_path, seat, gen_after):
