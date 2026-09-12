@@ -303,6 +303,12 @@ def _v3_repo(tmp_path: Path, with_town_nodes: bool) -> Path:
            "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
            "web-app-suite]\n---\n")
     if with_town_nodes:
+        # L4.338: the loader refuses a dangling vision id by name, so the
+        # fixture's towns need their vision NODES or the town set silently
+        # falls back to the ladder (director fix at the L4.339 harvest).
+        for town, _ts in _FALLBACK_TOWNS:
+            _write(r, f".agi/nodes/vision/{town}.md",
+                   f"---\nid: vision:{town}\ntype: vision\ntitle: {town}\n---\n")
         _write(r, ".agi/nodes/.geometry/posts.md",
                "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
                "  - name: web-app-suite\n---\n")
