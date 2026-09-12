@@ -11294,10 +11294,20 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                            results: list, *,
                            dm_byte_cap: int | None = None,
                            record_path: str | None = None) -> str:
-    """The successor's SECOND input — one captioned block naming the service
-    as the performer, every after_join command's label+output, and the ONE
-    CAPTIVE copy-paste line for the single remaining decision (`diff` against
-    the handoff). Pure formatting; runs and sends nothing.
+    """The successor's SECOND input — ONE LINE PER ENTRY (label + outcome),
+    detail only where a reader must see it, and the ONE CAPTIVE copy-paste
+    line for the single remaining decision (`diff` against the handoff). Pure
+    formatting; runs and sends nothing.
+
+    ONE LINE PER ENTRY (goal:g15.25 SM.01): an entry that exits 0 is EXACTLY
+    `[label] exit 0` — no `$ cmd`, no output (wordy redundancy is itself a
+    cost, owner 22:3xZ). A refusal is `[label] REFUSED — <reason>` (the reason
+    is never dropped). Non-zero or TIMEOUT keeps `[label] exit N|TIMEOUT
+    (>Ns)` plus `$ cmd` and the output (per-command cap) — the detail cost is
+    borne only where a reader must see it. The tail names the record by its
+    GRAPH ADDRESS (`rotate.py status --post <seat> --record latest`) — a
+    filesystem path is NEVER printed; the `record_path` param stays ACCEPTED
+    for the call site but is never emitted.
 
     (goal:g15.25 SL7.74) the captive line uses `--post` (the live grammar, F6)
     and the RESOLVED gen — never `--seat`, and never a blank `--gen`. When gen
@@ -11315,77 +11325,77 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
     (`dm_byte_cap`, default `startup.dm_byte_cap` /
     DEFAULT_AFTER_JOIN_DM_BYTE_CAP), counted in UTF-8 BYTES (a body of 1000
     two-byte characters is over a 1500-byte cap, even though it is 1000 code
-    points). A post over budget keeps the HEAD + ONE status line per entry +
-    the CAPTIVE ack line (pinned), trimming the MIDDLE with ONE marker line
+    points). A post over budget keeps the HEAD + the rule 1-4 entry lines
+    (per-command OUTPUT dropped) + the CAPTIVE ack line (pinned) + the
+    graph-address tail, trimming the MIDDLE with ONE marker line
     `… [trimmed N bytes] …`; the record keeps the full per-command-capped
     results, so cutting the dm never loses the bytes (F10 class)."""
     cap = (dm_byte_cap if dm_byte_cap is not None
            else DEFAULT_AFTER_JOIN_DM_BYTE_CAP)
-    lines = [
+    graph_addr = ("python3 extensions/agi/bin/rotate.py "
+                  f"status --post {seat} --record latest")
+    head = [
         "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for "
         "you; you ran nothing)",
         "This is your SECOND input, delivered `after_join_delay_s` after spawn.",
     ]
-    for r in results:
-        lines.append("")
+    ack = []
+    if gen not in (None, ""):
+        ack = [
+            "Where a decision remains (only a `diff` against the "
+            "handoff), emit EXACTLY this copy-paste line:",
+            "python3 extensions/agi/bin/rotate.py "
+            f"ack --post {seat} --gen {gen} "
+            f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -",
+        ]
+
+    def _entry_lines(r: dict, *, with_output: bool) -> list:
+        """The rule 1-4 LINES for ONE entry. with_output=False (over-budget)
+        drops the per-command output but keeps the status + `$ cmd` for any
+        entry a reader must act on (and the refusal reason)."""
+        label = r.get("label", "")
         if r.get("refused"):
-            status = "REFUSED"
-        elif r.get("timed_out_after_s"):
-            status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
-        else:
-            status = f"exit {r.get('rc')}"
-        lines.append(f"[{r.get('label', '')}] {status}")
-        lines.append(f"$ {r.get('cmd', '')}")
-        if r.get("refused"):
-            lines.append(f"    refused — {r['refused']}")
-        elif r.get("timed_out_after_s"):
-            lines.append(f"    timed out after {r['timed_out_after_s']}s")
-        else:
+            return [f"[{label}] REFUSED — {r['refused']}"]
+        if r.get("timed_out_after_s"):
+            to = r["timed_out_after_s"]
+            lines = [f"[{label}] exit TIMEOUT (>{to}s)", f"$ {r.get('cmd', '')}"]
+            if with_output:
+                lines.append(f"    timed out after {to}s")
+            return lines
+        rc = r.get("rc")
+        if rc == 0:
+            return [f"[{label}] exit 0"]
+        lines = [f"[{label}] exit {rc}", f"$ {r.get('cmd', '')}"]
+        if with_output:
             if r.get("truncated"):
                 lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
             out = (r.get("output") or "").strip()
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
-    if gen not in (None, ""):
-        lines.append("")
-        lines.append("Where a decision remains (only a `diff` against the "
-                     "handoff), emit EXACTLY this copy-paste line:")
-        lines.append("python3 extensions/agi/bin/rotate.py "
-                     f"ack --post {seat} --gen {gen} "
-                     f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
-    full = "\n".join(lines)
-    if cap and len(full.encode("utf-8")) > cap and record_path:
-        # over budget: keep HEAD + one status line per entry + the CAPTIVE ack
-        # line (pinned); trim the MIDDLE with ONE marker line. Byte-counted.
-        kept = [
-            "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join "
-            "for you; you ran nothing)",
-            "This is your SECOND input, delivered `after_join_delay_s` after "
-            "spawn. The full output is in the rotation record.",
-            "",
-        ]
-        for r in results:
-            if r.get("refused"):
-                status = "REFUSED"
-            elif r.get("timed_out_after_s"):
-                status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
-            else:
-                status = f"exit {r.get('rc')}"
-            kept.append(f"[{r.get('label', '')}] {status}")
+        return lines
+
+    body = []
+    for r in results:
+        body.extend(_entry_lines(r, with_output=True))
+    tail = [
+        "The full output of every entry is in the rotation record:",
+        graph_addr,
+    ]
+    full = "\n".join(head + [""] + body + [""] + tail + [""] + ack)
+    if cap and len(full.encode("utf-8")) > cap:
+        # over budget: keep HEAD + the rule 1-4 entry lines (per-command OUTPUT
+        # dropped) + the CAPTIVE ack + the graph-address tail; ONE marker line
+        # names what was cut; the record keeps the bytes (F10 class).
+        kept = list(head)
         kept.append("")
-        kept.append(f"full output: {record_path}")
-        ack = []
-        if gen not in (None, ""):
-            ack = [
-                "Where a decision remains (only a `diff` against the "
-                "handoff), emit EXACTLY this copy-paste line:",
-                "python3 extensions/agi/bin/rotate.py "
-                f"ack --post {seat} --gen {gen} "
-                f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -",
-            ]
+        for r in results:
+            kept.extend(_entry_lines(r, with_output=False))
+        kept.append("")
         n = len(full.encode("utf-8")) - len(
-            "\n".join(kept + ack).encode("utf-8"))
-        return "\n".join(kept + [f"… [trimmed {n} bytes] …"] + ack)
+            "\n".join(kept + [""] + ack + [""] + tail).encode("utf-8"))
+        return "\n".join(kept
+                          + [f"… [trimmed {n} bytes] …"]
+                          + [""] + ack + [""] + tail)
     return full
 
 
