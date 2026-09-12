@@ -7449,3 +7449,140 @@ def _empty_row_git_root(tmp_path, names):
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "rows"], check=True, capture_output=True)
     return root, tmp_path
+
+
+def test_ack_continue_refused_on_diff_requested_pending(tmp_path,
+                                                        monkeypatch, capsys):
+    """CLAIM (hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-with-
+    the-exact-diff-line): a predecessor that rotated with `--ask-diff` leaves
+    the pending ack carrying `answer: diff-requested, source: predecessor`
+    and the exact `rotate.py ack ... diff --text -` line in its STARTUP.
+    FALSIFIER 1 was MEASURED on the pre-fix seat tip: a successor answering
+    `continue` on that pending file was ACCEPTED (exit 0), overwrote the ack,
+    back-filled session_ref and printed the committed\n
+    row — the handoff never inspected. After the fix: `ack continue` exits 3,
+    prints ONE stderr line carrying the REAL seat/gen/ref and the exact diff
+    command, and writes NOTHING (no ack overwrite, no back-fill, no commit)."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    # the predecessor rotated with --ask-diff: write the exact pending ack
+    # rotate-self --ask-diff leaves (rotate.py _answer = "diff-requested").
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "diff-requested", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    before_head = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 3, capsys.readouterr().err
+    err = capsys.readouterr().err
+    # ONE stderr line, exact command, real values filled.
+    assert "REFUSED: the predecessor asked for a diff" in err
+    assert ("python3 extensions/agi/bin/rotate.py ack --seat belam "
+            "--gen 7 --ref f52a4c diff --text -") in err
+    assert err.count("REFUSED") == 1
+    # NOTHING written: ack file untouched (still diff-requested),
+    # row not back-filled, no commit.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] \
+        == "diff-requested"
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    assert _git_head(top) == before_head
+    out = capsys.readouterr().out
+    assert out.strip() == "", "refusal must not write anything to stdout"
+
+
+def test_ack_continue_refused_when_diff_requested_is_from_seating(tmp_path,
+                                                                  monkeypatch,
+                                                                  capsys):
+    """CLAIM (hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-
+    with-the-exact-diff-line): the FIRST-SEATING --ask-diff writer
+    (rotate.py:4049 `_answer = "diff-requested" ... ask_diff else`,
+    passed with source="seating" at :4051) leaves the IDENTICAL pending
+    state the predecessor rotation does — same `answer: diff-requested`, same
+    one-line `rotate.py ack ... diff --text -` command in the STARTUP alert.
+    The gate must NOT be source-qualified: a hand-seated successor that
+    skims past that line and answers `continue` must be refused exactly like
+    the predecessor case, or the diff is never inspected. FALSIFIER 1 was
+    MEASURED on the source-qualified (predecessor-only) gate: seeding
+    `source: seating` and answering continue returned EXIT 0, overwrote the
+    ack, back-filled the row and printed "announced first seating". After
+    the source-agnostic fix: exit 3, ONE stderr line, nothing written."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 1, "session_ref": "",
+        "answer": "diff-requested", "source": "seating",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    before_head = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=1, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 3, capsys.readouterr().err
+    err = capsys.readouterr().err
+    # ONE stderr line, exact command, real values filled, same as predecessor.
+    assert "REFUSED: the predecessor asked for a diff" in err
+    assert ("python3 extensions/agi/bin/rotate.py ack --seat belam "
+            "--gen 1 --ref f52a4c diff --text -") in err
+    assert err.count("REFUSED") == 1
+    # NOTHING written: ack file untouched, row not back-filled, no commit.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] \
+        == "diff-requested"
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    assert _git_head(top) == before_head
+    out = capsys.readouterr().out
+    assert out.strip() == "", "refusal must not write anything to stdout"
+
+
+def test_ack_continue_accepted_on_pending_continue(tmp_path,
+                                                   monkeypatch, capsys):
+    """CLAIM falsifier guard: a predecessor that rotated with the DEFAULT
+    (no --ask-diff) leaves `answer: continue` — the successor's `ack continue`
+    is the existing one-line NO-OP (nothing to run, exit 0) UNCHANGED; the
+    new refusal must never fire on the default-continue path."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "continue", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 0, capsys.readouterr().err
+    assert "already answered continue by your predecessor" in \
+        capsys.readouterr().out
+    assert capsys.readouterr().err == ""
+
+
+def test_ack_diff_accepted_on_diff_requested_pending(tmp_path,
+                                                     monkeypatch, capsys):
+    """CLAIM: a predecessor diff-request pending is the SUCCESSOR'S call to
+    answer with `diff --text -` — the diff (empty or with text) proceeds
+    exactly as today and is NEVER refused by the new gate."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "diff-requested", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="diff",
+        text="the successor needs a change"),
+        root)
+    assert code == 0, capsys.readouterr().err
+    assert "REFUSED" not in capsys.readouterr().err
+    # the successor's diff overwrote the pending ack with answer diff.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] == "diff"
