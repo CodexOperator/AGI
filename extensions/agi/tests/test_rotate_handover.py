@@ -750,23 +750,28 @@ def test_join_matches_window_id_as_delimited_token(_fix, tmp_path):
     behind the L4.288 ack write). An @id that matches NO file joins nothing
     and the miss is NAMED (proof a)."""
     reg = tmp_path / "registry"
-    _reg_file(reg, 10001, "sid-thirty", "/home/u/one", "@30")
-    _reg_file(reg, 10002, "sid-threeoh-two", "/home/u/two", "@302")
-    # @30 joins ONLY the @30 file (pid 10001), never the @302 file.
+    # BOTH raw files carry the substring `@30` (within `@302` and as `@30`),
+    # and the @302 file sorts FIRST (pid 10001 < 10002): a bare-substring
+    # matcher would join `@30` onto the @302 file by ordering accident. The
+    # DELIMITED match must skip it and land on the real @30 file (pid 10002).
+    _reg_file(reg, 10001, "sid-threeoh-two", "/home/u/two", "@302")
+    _reg_file(reg, 10002, "sid-thirty", "/home/u/one", "@30")
+    # @30 joins ONLY the @30 file (pid 10002), NEVER the @302 file (10001)
+    # that sorts first and whose raw text also contains the substring `@30`.
     j30 = rotate._join_successor(root=tmp_path, seat="adv-alive",
                                  window_id="@30", registry_dir=str(reg),
                                  poll_secs=2)
     assert j30["found"] is True
-    assert j30["pid"] == 10001
-    assert "10001.json" in j30["path"]
+    assert j30["pid"] == 10002
+    assert "10002.json" in j30["path"]
     assert j30["session_id"] == "sid-thirty"
-    # @302 joins ONLY the @302 file (pid 10002), never the @30 file.
+    # @302 joins ONLY the @302 file (pid 10001).
     j302 = rotate._join_successor(root=tmp_path, seat="adv-alive",
                                   window_id="@302", registry_dir=str(reg),
                                   poll_secs=2)
     assert j302["found"] is True
-    assert j302["pid"] == 10002
-    assert "10002.json" in j302["path"]
+    assert j302["pid"] == 10001
+    assert "10001.json" in j302["path"]
     assert j302["session_id"] == "sid-threeoh-two"
     # an @id that matches NO file joins nothing and names the miss.
     jmiss = rotate._join_successor(root=tmp_path, seat="adv-alive",
