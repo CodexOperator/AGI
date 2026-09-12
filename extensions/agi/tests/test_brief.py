@@ -1862,3 +1862,22 @@ def test_parent_brief_names_the_poll_reader_and_the_real_dm_body():
     assert "iter=... agent=... reason=overdue" in parent
     # the wake prefix is named only as a prefix, never glued onto the body
     assert "[agi-nudge] reason=overdue" not in parent
+
+
+def test_parent_brief_hands_the_diff_and_probe_duty_not_the_kid():
+    """hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-
+
+    The parent's review instructions must point its review at each kid's DIFF
+    bytes and name the negative-probe duty -- and the kid brief must NOT gain
+    them, else the two tiers are handed the same job text (the very defect
+    `goal:g1.9` exists to prevent).
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "git diff merge-base" in parent, "parent brief must name the DIFF command"
+    assert "never the result file" in parent, "parent brief must reject the result file"
+    assert "one negative probe per claim conjunct" in parent, "parent brief must name the probe duty"
+    assert "lean_disproved" in parent
+    # the kid brief must NOT acquire any of them
+    assert "git diff merge-base" not in kid
+    assert "one negative probe per claim conjunct" not in kid

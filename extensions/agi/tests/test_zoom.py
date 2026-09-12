@@ -430,3 +430,189 @@ def test_path_hint_is_best_effort_not_a_hard_failure(tmp_path):
     the hint, never by raising."""
     (tmp_path / "nodes").mkdir()
     assert zoom._node_path_hint(tmp_path, "goal:does-not-exist") is None
+
+
+# ---- hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim ---
+# The small composer's "Your Task" is tier-keyed: `--tier parent` renders the
+# PARENT review section; absent/kid renders the historical text byte-identical.
+
+
+def _task_body(text: str) -> str:
+    """The small composer's authored 'Your Task' slice (stops at the report)."""
+    head, _sep, body = text.partition("## Your Task")
+    return "## Your Task" + body.partition("When done, report exactly")[0]
+
+
+# Captured from the SL7.111 pre-fix tree on 2026-09-12 (zoom.py, --level small
+# --target goal:g1). The kid text must stay byte-identical to this.
+_PREFIX_KID_TASK = (
+    "## Your Task\n"
+    "Extend or fork from `{target}`. Stay tight — don't wander to other chains.\n"
+    "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).\n"
+)
+
+
+def test_kid_tier_keeps_pre_fix_your_task_byte_identical(project):
+    """Golden: no tier and --tier kid both render the historical kid text
+    byte-for-byte. Proves the parent section is tier-keyed and cannot regress
+    the kid's context."""
+    for tier in (None, "kid"):
+        extra = ["--level", "small", "--target", "goal:g1"]
+        if tier:
+            extra += ["--tier", tier]
+        proc = run(project, 1, "kid-gold", *extra)
+        assert proc.returncode == 0, proc.stderr
+        text = _ctx_path(proc).read_text()
+        assert _task_body(text) == _PREFIX_KID_TASK.format(target="goal:g1"), \
+            f"--tier {tier!r} mutated the kid 'Your Task'"
+
+
+def test_parent_tier_your_task_authors_all_six_probe_words(project):
+    """The parent 'Your Task' slice must author each of the six words the Sensei
+    counted at 0 (bytes, probe, refute, adversarial, harvest, re-run). This
+    assertion FAILS on the pre-fix kid text, so it certifies the fix."""
+    proc = run(project, 1, "par", "--level", "small", "--target", "goal:g1",
+               "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    body = _task_body(_ctx_path(proc).read_text())
+    assert "PARENT — you review kids" in body
+    for w in ["bytes", "probe", "refute", "adversarial", "harvest", "re-run"]:
+        assert w in body, f"parent 'Your Task' must author the word {w!r}"
+    # the falsifier the hypothesis names verbatim is present
+    assert "lean_disproved" in body
+    assert "git diff merge-base" in body
+# ------------------- per-tier zoom shape (hypothesis:l4-a-parents-zoom-...) -----
+
+
+def _parent_fixture(tmp_path: Path) -> Path:
+    """A goal with one target hypothesis + two siblings + one kid child."""
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text('{"metric_primary": "outcome_coverage"}')
+    (root / "context").mkdir()
+    (root / "context" / "INJECTION.md").write_text("# injection\nINJECTION\n")
+    _node(root, "goal", "g1", fm_extra="status: active")
+    _node(root, "goal", "g1.1", parents=["goal:g1"])
+    _node(
+        root,
+        "hypothesis",
+        "target-hyp",
+        parents=["goal:g1"],
+        fm_extra='testable_claim: "CLAIM: (1) first conjunct (2) second conjunct (3) third conjunct"',
+    )
+    _node(root, "hypothesis", "sibling-1", parents=["goal:g1"], fm_extra="testable_claim: x")
+    _node(root, "hypothesis", "sibling-2", parents=["goal:g1"], fm_extra="testable_claim: y")
+    _node(
+        root, "experiment", "exp-1", parents=["hypothesis:target-hyp"],
+        fm_extra="testable_claim: zzz", body="SECRET-EXP-BODY",
+    )
+    return root
+
+
+def test_parent_tier_renders_target_claim_and_goal_chain_not_siblings(tmp_path):
+    root = _parent_fixture(tmp_path)
+    proc = run(root, 5, "par", "--level", "small",
+               "--target", "hypothesis:target-hyp", "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    text = _ctx_path(proc).read_text()
+    # the target is presented full (title + claim), its goal chain up one level
+    assert "hypothesis target-hyp title" in text
+    assert "first conjunct" in text
+    assert "goal g1 title" in text
+    assert "## Goal chain" in text
+    # the numbered enumeration surfaces the conjuncts as a list
+    assert "1. first conjunct" in text
+    assert "2. second conjunct" in text
+    assert "3. third conjunct" in text
+    # NO sibling hypotheses anywhere in a parent render
+    assert "sibling-1" not in text
+    assert "sibling-2" not in text
+
+
+def test_parent_tier_stays_under_the_size_bound(tmp_path):
+    root = _parent_fixture(tmp_path)
+    proc = run(root, 5, "par2", "--level", "small",
+               "--target", "hypothesis:target-hyp", "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    text = _ctx_path(proc).read_text()
+    assert len(text.encode("utf-8")) < 12 * 1024, f"parent render too big: {len(text)}"
+
+
+def test_parent_tier_lists_only_own_kids_with_titles_not_bodies(tmp_path):
+    root = _parent_fixture(tmp_path)
+    proc = run(root, 5, "par3", "--level", "small",
+               "--target", "hypothesis:target-hyp", "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    text = _ctx_path(proc).read_text()
+    assert "experiment:exp-1" in text           # own child present by id
+    assert "experiment exp-1 title" in text     # its one-line title
+    assert "zzz" not in text                    # no kid claim leaked
+    assert "SECRET-EXP-BODY" not in text        # a kid's body never leaks into the parent shape
+
+
+def test_kid_and_director_tiers_byte_identical_to_default(tmp_path):
+    root = _parent_fixture(tmp_path)
+    args = ["--level", "small", "--target", "hypothesis:target-hyp", "--runtime", "pi"]
+    base_p = run(root, 5, "agt", *args)
+    base = _ctx_path(base_p).read_text()
+    kid_p = run(root, 5, "agt", *args, "--tier", "kid")
+    kid = _ctx_path(kid_p).read_text()
+    diri_p = run(root, 5, "agt", *args, "--tier", "director")
+    diri = _ctx_path(diri_p).read_text()
+    assert base_p.returncode == kid_p.returncode == diri_p.returncode == 0
+    assert kid == base, "kid tier changed the default render"
+    assert diri == base, "director tier changed the default render"
+    # a kid render keeps the old sibling dump (siblings are expected there)
+    assert "sibling-1" in kid
+
+
+# -- hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+#    and-own-kids-never-the-sibling-hypothesis-dump (SL7.109 round 2)
+# ------------------------------------------------------------------------
+# The tier flag is a SMALL-zoom shape. On any other level `--tier parent` has
+# no shape; it must refuse by name (and write no context) rather than silently
+# serve the numeric-level view under a parent label. Defect 1 of SL7.109.
+
+
+def test_parent_tier_refuses_by_name_off_the_small_path(tmp_path):
+    root = _parent_fixture(tmp_path)
+    # level 3, big, and level 1 have no parent shape — all must refuse.
+    for lvl in ("3", "big", "1"):
+        proc = run(root, 5, "ref", "--level", lvl,
+                   "--target", "hypothesis:target-hyp", "--tier", "parent")
+        assert proc.returncode != 0, f"level {lvl} did not refuse"
+        assert "parent" in proc.stderr and lvl in proc.stderr, (
+            f"level {lvl} refusal must name tier and level: {proc.stderr!r}"
+        )
+        # no context written
+        assert proc.stdout.strip() == "", f"level {lvl} wrote a context path"
+
+
+def test_small_path_parent_shape_still_renders_after_guard(tmp_path):
+    root = _parent_fixture(tmp_path)
+    proc = run(root, 5, "par4", "--level", "small",
+               "--target", "hypothesis:target-hyp", "--tier", "parent")
+    assert proc.returncode == 0, proc.stderr
+    text = _ctx_path(proc).read_text()
+    # the round-1 parent shape is intact: target full, conjuncts, goal chain,
+    # own kids, no siblings.
+    assert "## TIER PARENT" in text and "first conjunct" in text
+    assert "goal g1 title" in text and "experiment:exp-1" in text
+    assert "sibling-1" not in text
+
+
+def test_no_source_comment_cites_an_unresolvable_tier_node_id(tmp_path):
+    """Defect 2 — the invented shorthand id must be gone from both comments.
+
+    `zoom.py` and `dispatch.py` cited `hypothesis:l4-a-parents-zoom-is-a-`
+    `per-tier-shape`, which does not resolve. The real id must now be what the
+    comments carry, and the invented one must not appear at all.
+    """
+    real_prefix = "l4-a-parents-zoom-is-its-target-goal-chain"
+    real_tail = "never-the-sibling-hypothesis-dump"
+    for src in (BIN / "zoom.py", BIN / "dispatch.py"):
+        text = src.read_text(encoding="utf-8")
+        assert "a-parents-zoom-is-a-per-tier-shape" not in text, (
+            f"invented id still cited in {src.name}"
+        )
+        assert real_prefix in text, f"corrected id missing from {src.name} comment"
+        assert real_tail in text, f"corrected id truncated in {src.name} comment"
