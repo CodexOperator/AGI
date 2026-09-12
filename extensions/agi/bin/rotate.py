@@ -5978,6 +5978,23 @@ WORKTREE_POST_CLOSEOUT_STEPS = [
     "numbers",       # the numbers line
 ]
 
+#: MAIN-POST closeout list (hypothesis:l4-closeout-step-list-is-chosen-by-
+#: seat-kind-...): a seat row whose worktree cell is EMPTY (a MAIN checkout)
+#: owns only its own card + row, so it pathspec-commits its stop and pushes;
+#: it NEVER merges MAIN into MAIN / asks itself for a grant / runs the suite.
+MAIN_POST_CLOSEOUT_STEPS = [
+    "pathspec_commit",  # the card + the seat's OWN seats.md row, no -A
+    "push",             # push origin the seat branch (the ONE _stops_push)
+]
+
+#: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
+#: it lands its g17.1 note, renders the goals, and pushes.
+PRIME_CLOSEOUT_STEPS = [
+    "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
+    "render",      # snapshot-goals.py --render
+    "push",        # push origin the checked-out branch
+]
+
 #: Grant-wait policy: a line from the Prime's own inbox whose `from:` is the
 #: prime, that carries a `sig:` header (signed), whose body matches
 #: GRANT|GO. Bounded by _CLOSEOUT_GRANT_TIMEOUT seconds. A wait that times
@@ -5987,16 +6004,36 @@ _CLOSEOUT_GRANT_TIMEOUT = 300.0
 _CLOSEOUT_GRANT_POLL = 2.0
 
 
-def _closeout_step_list(role: str, template: dict | None) -> list[str]:
-    """The captive step list for `role`: the template's `closeout.steps`
-    block when present, else the coded worktree-post DEFAULT. (Only the
-    worktree-post list is implemented this round; the MAIN-post and Prime
-    lists are named to be added, not silently served the worktree list.)
+def _closeout_step_list(role: str, template: dict | None, *,
+                        worktree: str | None = None) -> list[str]:
+    """The captive step list for `role` on the seat described by `worktree`
+    (the seat row's worktree cell; "" for a MAIN checkout, None when the
+    caller does not know the seat kind). The template's `closeout.steps`
+    block wins when present (a role's card may override the coded default).
+    Otherwise the list is chosen by SEAT KIND:
+      - role in {"prime", "prime_director"} -> PRIME_CLOSEOUT_STEPS
+      - an EXPLICIT EMPTY worktree cell ("" -- a MAIN post) ->
+        MAIN_POST_CLOSEOUT_STEPS
+      - otherwise -> WORKTREE_POST_CLOSEOUT_STEPS (a worktree row, or a
+        caller that did not name a kind -- the pre-fix worktree default,
+        which the pre-fix driver tests still pin).
+    A role is NEVER served another kind's list: a Prime is not asked for a
+    grant, a MAIN post never merges MAIN into MAIN, a worktree row keeps the
+    full merge/suite/post list it lands on main with. Explicit seat kind
+    (``cells) is what makes the distinction: "" is the MAIN-post sentinel
+    passed by cmd_rotate_self from the row's worktree cell; None leaves the
+    legacy default for callers that predate seat-kind. `role` is kept in the
+    signature (the call sites and tests pass it) so a template-less PRIME
+    with a worktree cell still resolves by ROLE first.
     """
     if template and isinstance(template.get("closeout"), dict):
         steps = template["closeout"].get("steps")
         if isinstance(steps, list) and steps:
             return [str(s) for s in steps]
+    if str(role) in ("prime", "prime_director"):
+        return list(PRIME_CLOSEOUT_STEPS)
+    if worktree is not None and not str(worktree).strip():
+        return list(MAIN_POST_CLOSEOUT_STEPS)
     return list(WORKTREE_POST_CLOSEOUT_STEPS)
 
 
@@ -6089,7 +6126,7 @@ def _numbers_line(record: dict) -> str:
     return " | ".join(parts)
 
 
-def _make_closeout_seams(root: Path, record: dict) -> dict:
+def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
     """The REAL seam table -- the default the driver uses when a caller
     passes no seams. Each callable is a thin wrapper over an EXISTING
     function/script (REUSE). The tests inject fakes here so a test never
@@ -6099,6 +6136,8 @@ def _make_closeout_seams(root: Path, record: dict) -> dict:
       unsigned grant timeout) -- the driver STOPS and names the step.
       ok True with result "skip" is a soft ok (a verify with no graph), for
       the steps the claim allows to be skipped.
+    `seat` names the rotating seat (the MAIN-post pathspec_commit runner
+    commits the seat's OWN card + row through `_commit_stops_row`).
     """
     import send  # local: same dir
 
@@ -6209,6 +6248,57 @@ def _make_closeout_seams(root: Path, record: dict) -> dict:
         line = _numbers_line(record)
         return (True, "ok", line)
 
+    def _pathspec_commit():
+        # The MAIN-post closeout commit: the seat's OWN card + records row
+        # as ONE pathspec commit, through the EXISTING stops-commit helper
+        # (REUSE -- never a second commit implementation, never `git add -A`
+        # -- which stages card + own seats.md row by blob/own-row content,
+        # so a foreign dirty path never rides). A seat with NO card falls
+        # back to the rotation-record commit helper.
+        card = _own_card_path(root, seat)
+        if card.exists():
+            msg = (f"{seat} closeout: card + own row "
+                   f"(rotate-out closeout pathspec commit)")
+            out = _commit_stops_row(root, seat, card, msg)
+        else:
+            _gen_b = int(record.get("gen_before") or 0)
+            _gen_a = int(record.get("gen_after") or (_gen_b + 1))
+            out = _commit_rotation_record(
+                root, seat=seat, gen_before=_gen_b, gen_after=_gen_a)
+        if (out.startswith("stop_commit: committed")
+                or out.startswith("rotation_record_commit: ")
+                and "SKIPPED" not in out):
+            return (True, "committed", out)
+        return (False, "refused", out)
+
+    def _g17_1_note():
+        # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
+        # numbers line / the where-it-stops>, via subprocess (REUSE: the
+        # existing write.py executable, no second note writer). Refuses by
+        # name on a non-zero exit.
+        binp = Path(__file__).with_name("write.py")
+        text = _numbers_line(record)
+        try:
+            out = subprocess.run(
+                [sys.executable, str(binp), "goal:g17.1", "note", text],
+                capture_output=True, text=True, timeout=120)
+        except Exception as exc:  # noqa: BLE001
+            return (False, "refused", f"g17_1_note could not run: {exc}")
+        if out.returncode == 0:
+            return (True, "ok", "g17.1 note written (closeout numbers)")
+        return (False, "refused",
+                f"g17_1_note refused: "
+                f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
+
+    def _render():
+        binp = Path(__file__).with_name("snapshot-goals.py")
+        res = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render"])
+        if res["ok"]:
+            return (True, "ok", "snapshot-goals.py --render")
+        return (False, "refused",
+                f"render refused: {res.get('detail') or res}")
+
     return {
         "post_verify": _verify,
         "merge_up_ask": _ask,
@@ -6220,13 +6310,17 @@ def _make_closeout_seams(root: Path, record: dict) -> dict:
         "push": _push,
         "verify_stamp": _verify_stamp,
         "numbers": _numbers,
+        "pathspec_commit": _pathspec_commit,
+        "g17_1_note": _g17_1_note,
+        "render": _render,
     }
 
 
 def _closeout_run_steps(root: Path, seat: str, role: str = "parent",
                         *, template: dict | None = None,
                         record: dict | None = None,
-                        seams: dict | None = None):
+                        seams: dict | None = None,
+                        worktree: str | None = None):
     """Run the role's captive closeout steps IN ORDER, logging each as
     `{step, result, detail}`. Returns `(entries, error)`: `entries` is the
     full `closeout:` list (every step that RAN, in order); on a refused step
@@ -6235,10 +6329,14 @@ def _closeout_run_steps(root: Path, seat: str, role: str = "parent",
     nothing after it runs). A step that returns `(False, ...)` -- or one that
     is unknown to the runner table -- is a REFUSED step and stops the call.
     Never raises: every failure is a named `(entries, error)` return.
+    `worktree` is the seat row's worktree cell ("" for a MAIN checkout,
+    None when the caller does not know the seat kind); it is passed through
+    to `_closeout_step_list` so the captive list is chosen by SEAT KIND, not
+    served the worktree default for every role.
     """
-    steps = _closeout_step_list(role, template)
+    steps = _closeout_step_list(role, template, worktree=worktree)
     if seams is None:
-        seams = _make_closeout_seams(root, record or {})
+        seams = _make_closeout_seams(root, record or {}, seat=seat)
     entries: list[dict] = []
     seen: set[str] = set()
     for step in steps:
@@ -6267,12 +6365,13 @@ def _closeout_cli_seams(root: Path, seams_json: str | None):
     --closeout`). Absent -> None, and `_closeout_run_steps` builds the REAL
     seam table (a live close-out runs the actual merge / suite / push).
     Given a JSON object `{"refuse": [step, ...]}`, return a fake seam table
-    over the worktree-post step list where every step returns ok except the
-    named refusers (which return `(False, "refused", ...)` and STOP the
-    call) -- the injectable seam that lets a test drive phase 3 THROUGH the
-    CLI path without spawning, merging, or touching the network. A step list
-    that extends past the coded default has no runner and is refused by name
-    here too (the driver's own rule)."""
+    over the UNION of all three coded closeout lists (worktree-post,
+    MAIN-post, Prime) where every step returns ok except the named refusers
+    (which return `(False, "refused", ...)` and STOP the call) -- the
+    injectable seam that lets a test drive phase 3 THROUGH the CLI path
+    without spawning, merging, or touching the network. A step list that
+    extends past the coded union has no runner and is refused by name here
+    too (the driver's own rule)."""
     del root  # kept for signature symmetry (the real table bounds on root)
     if not seams_json:
         return None
@@ -6289,7 +6388,16 @@ def _closeout_cli_seams(root: Path, seams_json: str | None):
             return (True, "ok", f"fake {step} ran (seam)")
         return run
 
-    return {step: make(step) for step in WORKTREE_POST_CLOSEOUT_STEPS}
+    # The fake table spans the UNION of all three coded closeout lists, so a
+    # MAIN-post or Prime fixture is driven through the CLI seam exactly like
+    # the worktree one (a step of ANY coded list with no runner here would
+    # be refused by name -- the driver's own rule).
+    _union = {}
+    for _l in (WORKTREE_POST_CLOSEOUT_STEPS,
+               MAIN_POST_CLOSEOUT_STEPS, PRIME_CLOSEOUT_STEPS):
+        for _s in _l:
+            _union.setdefault(_s, make(_s))
+    return _union
 
 
 def _record_closeout(record_path: Path | None, entries: list[dict]) -> None:
@@ -13742,7 +13850,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             # dry-run never executes side-effecting captive steps (a merge /
             # suite / push is a touch dry-run must not perform): report the
             # planned order, run nothing.
-            _co_plan = _closeout_step_list(_co_role, _co_tmpl)
+            _co_plan = _closeout_step_list(
+                _co_role, _co_tmpl, worktree=row.get("worktree"))
             _co_entries = [{"step": s, "result": "dry",
                             "detail": "dry-run, not run"} for s in _co_plan]
             _co_err = None
@@ -13754,7 +13863,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     template_source=geom_src)
             _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
             _co_entries, _co_err = _closeout_run_steps(
-                cfg_root, seat, _co_role, template=_co_tmpl, seams=_co_seams)
+                cfg_root, seat, _co_role, template=_co_tmpl, seams=_co_seams,
+                worktree=row.get("worktree"))
             if not args.dry_run and rec_path is not None:
                 _record_closeout(rec_path, _co_entries)
         print("(2.6) closeout captive steps: " + ", ".join(
