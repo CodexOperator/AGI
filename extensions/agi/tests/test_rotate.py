@@ -3123,6 +3123,90 @@ def test_split_card_sections_unfenced_hash_heading_still_splits():
     assert [b for _, b in secs] == ["a\n\n", "b\n\n", "c\n"]
 
 
+def test_fence_items_shared_walker_agrees_across_readers():
+    """goal:g15.25 SL7.80 (a) — ONE fence-run walker serves the three card
+    readers. `_fence_items` yields the (line, in_fence) flags run-length
+    aware (the OUTER fence wins; an inner shorter fence is content), and
+    the splitter/subheader both read through it, so the fixtures the SL7.62
+    splitter and the SL7.48 stops scan already pin are unchanged by the
+    refactor to the shared walker."""
+    from agi.bin import rotate as _r
+    F3, F4 = "```", "````"
+    flags = [f for _, f in _r._fence_items(
+        ["a", F4, F3, "## fake", F4, "b", "### real", F3])]
+    # a | F4 opener | F3 inner (shorter=content) | ##fake | F4 closer | b
+    # | ###real | F3 opener
+    assert flags == [False, True, True, True, False, False, False, True]
+    # the SL7.62 fixture still rounds trip byte-identical through the
+    # shared-walker splitter
+    card = ("# title\n\n## Real A\nbefore\n\n" + F4 + "\n"
+            "## not a heading\ninside four-backtick fence\n" + F4 +
+            "\n\n## Real B\nafter\n")
+    preamble, secs = _r._split_card_sections(card)
+    assert [h for h, _ in secs] == ["## Real A", "## Real B"]
+    assert _r._render_card(preamble, secs) == card
+
+
+def test_subheader_in_body_ignores_fenced_heading():
+    """goal:g15.25 SL7.80 (b) FALSIFIER — `_subheader_in_body` is fence-run
+    aware: a `## ` heading QUOTED inside a code fence (a stops block quotes
+    headings verbatim) is content, never a subheader. On the pre-fix bytes
+    this returned the fenced `## fake where it stops` line's index (1); now
+    it skips the fence and finds the REAL subheader below it."""
+    from agi.bin import rotate as _r
+    body = ("````\n"
+            "## fake where it stops\n"
+            "quoted heading inside four-backtick fence\n"
+            "````\n"
+            "### the real where it stops\n"
+            "end\n")
+    idx = _r._subheader_in_body(body, "where it stops")
+    assert idx == 4                      # the REAL subheader, after the fence
+    assert "fake" not in body.splitlines()[idx]
+    assert _r._subheader_in_body(body, "no-such-token") is None
+
+
+def test_stops_write_fenced_heading_end_to_end(tmp_path):
+    """goal:g15.25 SL7.80 (c) FALSIFIER, END TO END — a card whose stops
+    block QUOTES a `## fake where it stops` heading line (the stops slot
+    quotes headings verbatim) is put through the REAL stops-slot writer
+    (`_write_stops_section`), re-read and re-split. The fenced fake line
+    must never resolve: `_locate_where_it_stops` keys on the REAL `###`
+    subheader (written, replaced) and on the re-read `_split_card_sections`
+    the card shows only its real `## ` sections. Pre-fix the fenced fake
+    resolved as the subheader and the writer targeted the wrong block."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text(
+        "# SESSION HANDOFF scratchpad\n\n"
+        "## Station\n"
+        "````\n"
+        "## fake where it stops\n"
+        "quoted inside four-backtick fence\n"
+        "````\n"
+        "### RED where it stops\n```md\nold command\n```\n"
+        "## Later\nkeep\n", encoding="utf-8")
+    secs_before = _r._split_card_sections(
+        card.read_text(encoding="utf-8"))[1]
+    # the fenced fake must NOT be the resolved slot pre-write: the resolve
+    # points at the REAL `### RED where it stops` subheader
+    sec_idx, sub = _r._locate_where_it_stops(secs_before)
+    slot_body = secs_before[sec_idx][1]
+    assert "fake" not in slot_body.splitlines()[sub]
+    body, slot = _r._write_stops_section(card, "s", "new command")
+    assert slot == "replaced"
+    out = card.read_text(encoding="utf-8")
+    assert "new command" in out
+    assert "old command" not in out       # the REAL slot block was replaced
+    secs_after = _r._split_card_sections(out)[1]
+    assert [h for h, _ in secs_after] == ["## Station", "## Later"]
+    # re-locate on the written card still resolves the REAL subheader
+    ai, aj = _r._locate_where_it_stops(secs_after)
+    assert "fake" not in secs_after[ai][1].splitlines()[aj]
+
+
+
 def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
     """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
     `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
