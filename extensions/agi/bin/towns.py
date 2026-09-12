@@ -27,8 +27,15 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from graph_core.persistence import load_node_file  # noqa: F401
-from graph_core.persistence.frontmatter import load_node_file as _load_node_file
+# Same two inserts every bin module carries (write.py:60-61): graph_core lives
+# under extensions/agi/src, so the CLI and a plain `import towns` from a
+# sibling module resolve it without pytest's conftest on the path (director
+# fix at the L4.333 harvest — the merged bytes raised ModuleNotFoundError from
+# `python3 extensions/agi/bin/towns.py .agi --tuples`).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from graph_core.persistence.frontmatter import load_node_file as _load_node_file  # noqa: E402
 
 __all__ = ["Town", "TownError", "load_towns", "town_tuples", "derive_names"]
 
@@ -58,9 +65,22 @@ class Town:
         return derive_names(self.slug, self.season)
 
 
+def _graph_dir(root) -> Path:
+    """Accept EITHER the graph dir (`.agi/`, holding `nodes/`) or the project
+    root that contains it — `find_project_root()` returns the graph dir, a
+    human passes the checkout. A wrong root must not read as "no towns" and
+    silently take a caller's fallback (director fix, L4.333 harvest)."""
+    r = Path(root)
+    if (r / "nodes").is_dir():
+        return r
+    if (r / ".agi" / "nodes").is_dir():
+        return r / ".agi"
+    return r
+
+
 def _town_dirs(root: Path) -> list[Path]:
     """nodes/town/ then nodes/deprecated/town/ — live first, exist-only."""
-    base = Path(root) / "nodes"
+    base = _graph_dir(root) / "nodes"
     live = base / "town"
     dep = base / "deprecated" / "town"
     out: list[Path] = []
@@ -74,7 +94,7 @@ def _town_dirs(root: Path) -> list[Path]:
 def _read_council_rows(root: Path) -> dict[str, dict]:
     """The config:posts row name -> row map, post-first with the deprecated
     seats.md/`seats:` sibling — same resolver shape as geometry_config.py."""
-    geom = Path(root) / "nodes" / ".geometry"
+    geom = _graph_dir(root) / "nodes" / ".geometry"
     rows: list[dict] = []
     seen = set()
     for filename in ("posts.md", "seats.md"):
@@ -124,7 +144,7 @@ def _all_vision_ids(root: Path) -> set[str]:
     it is a real vision node AND no other town claims it.
     """
     ids: set[str] = set()
-    base = Path(root) / "nodes"
+    base = _graph_dir(root) / "nodes"
     for d in (base / "vision", base / "deprecated" / "vision"):
         if not d.is_dir():
             continue
@@ -180,8 +200,9 @@ def _validate(t: Town, council_names: set[str]) -> None:
 
 
 def load_towns(root) -> list[Town]:
-    """Load and validate every town node under ``root/.agi`` (live + deprecated,
-    live first). Raises TownError on the first schema violation, BY NAME."""
+    """Load and validate every town node under ``root`` — the graph dir
+    (``.agi/``) or the project root that contains it (live + deprecated, live
+    first). Raises TownError on the first schema violation, BY NAME."""
     root = Path(root)
     towns: list[Town] = []
     for d in _town_dirs(root):
@@ -212,7 +233,7 @@ def load_towns(root) -> list[Town]:
 
 def _ladder_global_season(root: Path) -> int:
     """The ladder's current_season — the GLOBAL counter a town_tuples row carries."""
-    p = Path(root) / "nodes" / ".geometry" / "ladder.md"
+    p = _graph_dir(root) / "nodes" / ".geometry" / "ladder.md"
     try:
         nf = _load_node_file(p, body=False)
         return int(nf.frontmatter.get("current_season", 0) or 0)
@@ -267,7 +288,7 @@ def _main(argv=None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(prog="towns.py")
     ap.add_argument("root", nargs="?", default=".",
-                    help="graph root (a dir containing .agi/)")
+                    help="the graph dir (.agi/) or the project root containing it")
     ap.add_argument("--tuples", action="store_true",
                     help="print town_tuples rows")
     args = ap.parse_args(argv)
