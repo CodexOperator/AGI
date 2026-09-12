@@ -66,6 +66,7 @@ from pathlib import Path
 # point under `bin/` already has this directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import branches  # noqa: E402
 import locations  # noqa: E402
 
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
@@ -855,8 +856,10 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
 
     # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
     # branch unless --allow-branch is passed. Session commits (D3 drafts)
-    # are never gated. Addendum (owners, seasons-as-branches): branches named
-    # season/* are admitted like master; any other non-master branch refused.
+    # are never gated. Addendum (owners, seasons-as-branches): any branch the
+    # season grammar admits (canonical season<n>/… or the legacy master/
+    # season/s<N> aliases) is admitted like master; anything else — feature
+    # branches, malformed season names, detached HEAD — refused.
     if not session and not allow_branch:
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
@@ -864,7 +867,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         # master.
         branch = git(root, "symbolic-ref", "--short", "HEAD", check=False)
         # git symbolic-ref returns empty string on error with check=False
-        if not branch or (branch != "master" and not branch.startswith("season/")):
+        if not branches.is_legal_branch(branch):
             ref_name = branch if branch else "detached HEAD"
             print(
                 f"grid: refusing commit --all on {ref_name!r}, node refs are "

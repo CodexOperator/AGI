@@ -11,7 +11,7 @@ Subcommands:
   rollover [--dry-run]            — print or perform season N+1 rollover
     [--visions-from <dir|file>]   — vision bodies verbatim (owner text + gloss)
     [--name <name>]               — name season 1 in the ladder's season_names
-    [--branch]                    — git checkout -b season/s<N> after the write
+    [--branch]                    — git checkout -b season<N>/main after the write
     [--allow-unjudged]            — bypass the unjudged-overview stage gate
   retag                           — backfill the season stamp
   merge-up <branch>               — --no-ff merge a loop branch into its recorded
@@ -34,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import branches  # noqa: E402
 import geometry_config  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
@@ -865,9 +866,9 @@ def cmd_rollover(root: Path, args) -> int:
         **verbatim** from the owner text (text + gloss); `--actor owner`;
       * `--name <name>` names the CURRENT season in the ladder's
         `season_names` through write.py (e.g. `genesis`);
-      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+      * `--branch` opens `season<N>/main` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
-      * `--branch` opens `season/s<new>` with `git checkout -b` after the
+      * `--branch` opens `season<N>/main` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
       * a stage gate (brief 2.9) refuses the rollover while any season-current
         overview lacks a judgment unless `--allow-unjudged` is given,
@@ -983,7 +984,7 @@ def cmd_rollover(root: Path, args) -> int:
     print()
 
     # ---- Branch step (never pushes).
-    branch_name = f"season/s{new_season}"
+    branch_name = branches.season_main(new_season)
     if want_branch:
         print(f"Branch: git checkout -b {branch_name} (never pushes)")
 
@@ -1745,7 +1746,7 @@ def main(argv: list[str] | None = None) -> int:
                             help="name season 1 in the ladder's season_names "
                                  "(e.g. genesis)")
     p_rollover.add_argument("--branch", action="store_true", default=False,
-                            help="open season/s<N> with git checkout -b after the "
+                            help="open season<N>/main with git checkout -b after the "
                                  "graph writes (never pushes)")
     p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
                             help="proceed even while a season-current overview lacks "
