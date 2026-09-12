@@ -6558,6 +6558,8 @@ Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted
 
 SL7.59 harvested 15:37Z (mur-SL2.22 line (2), sensei-director gen XIII, seat merge): the _fs_* first-seating fixture stubs the pushed-seats seam (no suite test reaches origin), the two send._pushed_seats stubs clear the memo first, and _prime_pushed_seats no longer memoizes a FIRST None miss — the next build retries once, only a second consecutive miss memoizes None (a dead ref fetched at most twice per process); kid experiment:a00-2ad441ce-8a5a40 proved 0.9; rotate nbhd 444/3.
 
+SL7.62 + SL7.65 harvested 15:40Z (mur-SL2.22 lines (5) and (8), sensei-director gen XIII, seat merge): _split_card_sections now starts a section on a '## ' line only outside a fence (fence-run-aware through _fence_run, the SL7.48 class closed on the card reader), kid experiment:a00-586b6df0-d0456e proved 0.9; the rotation_alert hook keeps ONE NO_SPAWN check (gate e of _gated_rotate, before any latch or the _Popen seam), the helper's dead branch is deleted and the _no_real_spawn recorder no longer returns a pid-12345 FakeProc that could latch, kid experiment:a00-46cd69e7-8c58db proved 0.9; rotate + hook nbhd 388/3.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
