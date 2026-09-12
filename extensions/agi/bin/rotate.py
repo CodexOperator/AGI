@@ -14285,6 +14285,163 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     return None
 
 
+# --- rotate-by-key round 1: the resolvers (hyp l4-rotate-by-key-resolvers-
+# caller-post-ranks-role-timeout-and-default-stops-from-the-card) ----------
+# PURE resolvers only, no verb, no argparse change. The `rotate` verb (round
+# 2, SL7.115) resolves every default from these five names; TEMPLATE-FIRST:
+# rank order + per-role timeout live in config:rotations so the next change
+# is a template edit, never a code edit.
+DEFAULT_RANKS = ["prime_director", "director", "helper"]  # highest first
+
+
+def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
+    """The post whose signing key the caller holds, or (None, None, refusal).
+    Returns (post, row, how | refusal) -- `how` on success is 'env' or
+    'worktree'; a failure returns (None, None, a refusal line). Resolution
+    order: $AGI_POST, $AGI_SEAT, then the cwd's git toplevel matched against
+    a row's `worktree` cell (a worktree post). A resolved post must HOLD its
+    own key -- the key file loads AND its pub equals the committed row's
+    pubkey -- else refuse by name (unkeyed, missing, or fingerprint mismatch)."""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
+    if seat:
+        row = _find_seat(root, seat)
+        if row is None:
+            return None, None, (
+                f"no key holder identity: {seat!r} is not in the seats "
+                "registry; export AGI_SEAT or pass --post")
+        return _caller_hold_key(root, seat, row, "env")
+    top = _git_toplevel(Path.cwd())
+    seat = row = None
+    if top is not None:
+        for r in _load_seats(root):
+            if r.get("worktree") and Path(str(r.get("worktree"))) == top:
+                seat, row = r.get("name"), r
+                break
+    if seat is None:
+        _where = top if top is not None else "a non-repo cwd"
+        return None, None, (
+            f"no key holder identity: export AGI_SEAT or pass --post "
+            f"(no env seat, no worktree-post match against {_where})")
+    return _caller_hold_key(root, seat, row, "worktree")
+
+
+def _caller_hold_key(root: Path, seat: str, row: dict | None,
+                     how: str) -> tuple[str | None, dict | None, str]:
+    """The KEY-HOLDER half of _caller_post (the falsifier: a resolver that
+    reads a key file without comparing its pub to the committed row). """
+    import send  # local
+    if not row or not row.get("pubkey"):
+        return None, None, f"post {seat!r} is unkeyed: send.py keygen {seat} first"
+    key_path = send._seat_key_path(root, seat)
+    obj = send._signing_key_obj(root, seat, key_path)
+    if obj is None:
+        return None, None, (
+            f"post {seat!r} carries a pubkey but holds no signing key at "
+            f"{key_path}: send.py keygen {seat} first")
+    try:
+        scheme = send.seatsig.get(str(obj.get("scheme") or "ed25519"))
+        ours = send.seatsig.fingerprint(
+            scheme.public_from_secret(bytes.fromhex(obj["priv_hex"])))
+        # the row's pubkey cell IS the public key (never a seed): fingerprint
+        # the raw bytes, don't re-derive it as a secret.
+        row_fp = send.seatsig.fingerprint(bytes.fromhex(str(row.get("pubkey"))))
+    except Exception:  # noqa: BLE001 (an unhashable key is a mismatch)
+        return None, None, (
+            f"post {seat!r}: could not compare the held key to the committed row")
+    if ours != row_fp:
+        return None, None, (
+            f"post {seat!r}: held key fingerprint {ours} does not match the "
+            f"committed row {row_fp}; send.py keygen {seat} first")
+    return seat, row, how
+
+
+def _ranks(root: Path) -> list[str]:
+    """config:rotations frontmatter `ranks:` (highest first) when present,
+    else DEFAULT_RANKS (a module constant, named in the refusal)."""
+    path = _rotations_node_path(root)
+    ranks = None
+    if path.exists():
+        try:
+            ranks = frontmatter.load_node_file(path).frontmatter.get("ranks")
+        except Exception:  # noqa: BLE001
+            ranks = None
+    if isinstance(ranks, list) and ranks \
+            and all(isinstance(r, str) and r for r in ranks):
+        return [str(r) for r in ranks]
+    return list(DEFAULT_RANKS)
+
+
+def _rank(role: str | None, ranks: list[str]) -> int:
+    """Index of `role` in `ranks` (a role absent from the list ranks BELOW
+    every listed one)."""
+    for i, r in enumerate(ranks):
+        if r == role:
+            return i
+    return len(ranks)
+
+
+def _rank_gate(caller_row: dict, target_row: dict, ranks: list[str]) -> str | None:
+    """None when the caller may rotate the target -- caller IS the target
+    (self) or rank(caller) is STRICTLY higher than rank(target) -- else a
+    refusal naming both posts, both roles and the order."""
+    cap, tap = caller_row.get("name"), target_row.get("name")
+    c_role, t_role = caller_row.get("role"), target_row.get("role")
+    if cap and tap and cap == tap:
+        return None  # self-row carve-out
+    c_r, t_r = _rank(c_role, ranks), _rank(t_role, ranks)
+    if c_r < t_r:
+        return None  # caller strictly higher in the highest-first list
+    if c_r == t_r:
+        return f"{cap} may not rotate {tap}: equal rank ({c_role} = {t_role})"
+    return f"{cap} may not rotate {tap}: refuse upward ({c_role} ranks below {t_role})"
+
+
+def _role_timeout(root: Path, role: str) -> int:
+    """templates.<role>.timeout_s (config:rotations) when an int, else 600
+    (the CLI default -- say so in the docstring, it does)."""
+    tmpl = _load_templates(root).get(role) or {}
+    t = tmpl.get("timeout_s")
+    if isinstance(t, bool):
+        return 600
+    if isinstance(t, int):
+        return t
+    if isinstance(t, str) and t.strip().isdigit():
+        return int(t.strip())
+    return 600
+
+
+def _default_stops_text(root: Path, seat: str) -> tuple[str | None, str]:
+    """The BODY text of the card's where-it-stops slot (the same locator
+    `_locate_where_it_stops` uses), stripped -- the default `--stops` -- or
+    (None, why) when the card/slot is missing or empty."""
+    card = _own_card_path(root, seat)
+    if not card or not card.exists():
+        return None, f"no own card at {card}"
+    _preamble, sections = _split_card_sections(card.read_text(encoding="utf-8"))
+    slot = _locate_where_it_stops(sections)
+    if slot == "ambiguous":
+        return None, "ambiguous where-it-stops slot (replace refused)"
+    if slot is None:
+        return None, f"card owns no where-it-stops slot ({card})"
+    sec_idx, sub = slot
+    header, body = sections[sec_idx]
+    lines = body.splitlines()
+    if sub is not None and sub >= 0:
+        start, end = sub + 1, len(lines)
+        for j, (ln, in_fence) in enumerate(_fence_items(lines[start:]),
+                                           start=start):
+            if not in_fence and ln.strip().startswith("#"):
+                end = j
+                break
+        text = "\n".join(lines[start:end])
+    else:
+        text = body
+    if not text.strip():
+        return None, f"where-it-stops slot is empty ({card})"
+    return text.strip(), header
+
+
 def _rotate_human_gate(root: Path, seat: str,
                        actor: str | None = None) -> tuple[str | None, dict | None]:
     """RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
