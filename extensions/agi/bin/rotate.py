@@ -5414,6 +5414,52 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
             + "\n".join(lines) + f"\ngit -C {top} push")
 
 
+def _push_season_branch(root: Path) -> str:
+    """Push MAIN's checked-out branch to ``origin`` -- the clause-(2) push
+    leg the key-cell writers run AFTER their own-row commit. Best-effort,
+    never raises, never fails the caller: a push failure prints exactly one
+    line to STDERR naming the remote error (``push: FAILED -- <stderr>``)
+    and the mint or rotation completes regardless. Prints ``push: OK --
+    <branch>`` on success and ``push: SKIPPED -- ...`` when there is nothing
+    to push. Never a force-push, never a second commit. Returns the same
+    one line it prints (for callers that log the outcome)."""
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        _l = "push: SKIPPED -- no git repo (gitless fixture/root)"
+        print(_l, file=sys.stderr)
+        return _l
+    try:
+        branch_out = subprocess.run(
+            ["git", "-C", str(top), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        _l = "push: SKIPPED -- could not resolve the branch"
+        print(_l, file=sys.stderr)
+        return _l
+    branch = (branch_out.stdout or "").strip()
+    if not branch or branch == "HEAD":
+        _l = "push: SKIPPED -- detached HEAD, nothing to push"
+        print(_l, file=sys.stderr)
+        return _l
+    try:
+        push = subprocess.run(
+            ["git", "-C", str(top), "push", "origin", branch],
+            capture_output=True, text=True, timeout=60)
+    except Exception as exc:  # noqa: BLE001
+        _l = f"push: FAILED -- {exc}"
+        print(_l, file=sys.stderr)
+        return _l
+    if push.returncode != 0:
+        _l = (f"push: FAILED -- "
+              f"{push.stderr.strip() or push.stdout.strip()}")
+        print(_l, file=sys.stderr)
+        return _l
+    _l = f"push: OK -- {branch}"
+    print(_l, file=sys.stderr)
+    return _l
+
+
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                       session_id: str | None = None,
                       window: str = "",
@@ -5452,9 +5498,11 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
         return ("spawn_row_commit: SKIPPED — no git repo; the spawn-row "
                 "write stays in the tree, never committed (gitless "
                 "fixture/root)")
-    # the file the ONE writer wrote: the seats.md under _shared_graph_root,
-    # the exact path write._load_seats / _write_identity_cells read/write.
-    seats = main_root / "nodes" / ".geometry" / "seats.md"
+    # the file the ONE writer wrote: the posts/seats.md under
+    # _shared_graph_root, resolved through the geometry_config resolver the
+    # ONE writer uses (never the literal seats.md -- post-rename, a
+    # posts.md tree must commit posts.md).
+    seats = _ack_seats_path(main_root)
     rel = os.path.relpath(seats, top)
     add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                          capture_output=True, text=True, timeout=10)
@@ -5483,6 +5531,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
         sha = (out.stdout or "").strip()
     except Exception:  # noqa: BLE001
         sha = ""
+    # clause (2): the own-row commit is followed by the season-branch PUSH --
+    # best-effort, one printed line, never fails the rotation (the helper
+    # prints its own outcome to stderr).
+    _push_season_branch(root)
     return (f"spawn_row_commit: committed (sha {sha}) — seats.md only: "
             f"{msg}")
 
@@ -9197,6 +9249,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
     note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
+    _row_keyed = False
     try:
         # The three identity cells (pubkey / sig_scheme / enc_scheme) ride
         # the ONE identity writer (_write_identity_cells) into MAIN's
@@ -9218,8 +9271,24 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                        "sig_scheme": _cur.get("sig_scheme") or scheme,
                        "enc_scheme": _cur.get("enc_scheme") or "none"}):
             note += f"; row {seat!r} keyed"
+            _row_keyed = True
     except Exception as exc:  # noqa: BLE001
         note += f"; row write not admitted ({exc})"
+    # clause (2): a KEY-CELL write commits its own-row hunk through the ONE
+    # spawn-row commit helper and PUSHES the season branch -- best-effort,
+    # a refused commit or push never fails the rotation (the key file is
+    # already minted). The identity cells ride from the row the mint reads.
+    if _row_keyed:
+        try:
+            _cn = _commit_spawn_row(
+                root, seat=seat,
+                generation=int(row.get("generation") or 0),
+                session_id=str(row.get("session_id") or ""),
+                window=str(row.get("window") or ""),
+                pid=int(row.get("pid") or 0))
+            note += f"; {_cn.splitlines()[0]}"
+        except Exception as exc:  # noqa: BLE001
+            note += f"; key row commit not performed ({exc})"
     return note
 
 
