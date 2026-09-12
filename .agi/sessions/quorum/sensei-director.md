@@ -46,7 +46,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | SL7.50 · a00-981b4e12 | l4-level3-checks-the-env-spelled-root-by-name-… · g15 | test_level3.py + test_bin_help_smoke.py | 14:03Z |
 | SL7.51 · a00-31e60eca | l4-a-frontmatter-container-entry-escapes-…-nel-ls-ps-… · g13.1 | test_node_writer.py test_write*.py test_frontmatter*.py | 14:03Z |
 | SL7.52 · a00-3412af52 | l4-work-only-added-rows-keep-their-walk-position-… · g15.24 | rotate nbhd (test_rotate.py shared with 48) | 14:03Z |
-| SL7.53 · a00-ec5c43cd | l4-the-cross-second-boundary-respawn-record-claim-… · g15.19 | test_rotate_recover.py test_heal.py | 14:03Z |
+| ~~SL7.53 · a00-ec5c43cd~~ **HARVESTED** 3975aac53 (proved 0.9, test-only, nbhd 98/3) | l4-the-cross-second-boundary-respawn-record-claim-… · g15.19 | test_rotate_recover.py test_heal.py | 14:03Z |
 
 ### Queue — in this order
 1. Harvest the ten as they land — file-disjoint first (44 send.py · 45 rotation_alert.py · 50 level3.py · 51 node_writer.py · 53 test_rotate_recover.py), then the rotate.py five. Each harvest: nbhd tests WITH the rounds already merged on the seat; note the owning goal; render; push.
