@@ -302,6 +302,97 @@ def test_post_rename_output_post_at_composes(tmp_path: Path):
     assert "season2/posts/post-x" in out
 
 
+# ---- KID 2 (L4.316): delete ORDER posts->towns->mains, master ADD-ONLY --
+def _master_repo(tmp_path: Path):
+    """The base fixture PLUS a `master` branch (which reshuffles to
+    season1/main, kind main) on the local branches and the bare origin."""
+    r = _build_repo(tmp_path)
+    _git(r, "branch", "master")
+    _git(r, "push", "-q", "origin", "master")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def _first(haystack: str, needle: str) -> int:
+    return haystack.index(needle)
+
+
+def test_delete_old_orders_posts_towns_mains_and_keeps_master(tmp_path: Path):
+    r = _master_repo(tmp_path)
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+
+    res = _run_cli(r / ".agi", "--delete-old")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    # delete order is post(s) -> town(s) -> main(s) -> loop(s), by OLD name
+    posts = "origin --delete seat/post-a@s2"
+    towns = "origin --delete town/core/season/s2"
+    mains = "origin --delete season/s2"
+    loops = "origin --delete loop/x@s2"
+    assert _first(out, posts) < _first(out, towns) < _first(out, mains)\
+        < _first(out, loops), out
+    # master is add-only: it is NOT a delete job, and the add-only line names it
+    assert "origin --delete master" not in out
+    assert "master: add-only" in out
+    # master's remote name is KEPT
+    ls = _git(r, "ls-remote", "origin", "refs/heads/master").stdout
+    assert ls.strip(), "origin/master must survive --delete-old"
+    # the rest WERE deleted remotely
+    origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "loop/x@s2",
+                "town/core/season/s2"]:
+        assert f"origin/{old}" not in origin, (old, origin)
+
+
+# ---- KID 2: a refused delete names its job and the run CONTINUES --------
+def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
+    r = _build_repo(tmp_path)
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+    # make the (last-ordered) LOOP delete fail: drop origin/loop/x@s2
+    # out-of-band, so `git push origin --delete loop/x@s2` is refused.
+    _git(r, "push", "origin", "--delete", "loop/x@s2")
+
+    res = _run_cli(r / ".agi", "--delete-old")
+    assert res.returncode == 1, res.stdout
+    assert "loop/x@s2" in res.stderr, res.stderr
+    # the run did NOT abort at the refusal: earlier + later jobs were deleted
+    origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2"]:
+        assert f"origin/{old}" not in origin, (old, origin)
+    # local legacy branches stay (delete is remote-only)
+    local = _git(r, "branch", "--format=%(refname:short)").stdout
+    for old in ["loop/x@s2", "season/s2", "seat/post-a@s2"]:
+        assert old in local, old
+
+
+# ---- KID 2: the origin-moved refusal never re-baselines -----------------
+def test_apply_refuses_origin_moved_a_second_time_same_branch(tmp_path: Path):
+    r = _build_repo(tmp_path)
+    root = r / ".agi"
+    res_dry = _run_cli(root, "--dry-run")
+    assert res_dry.returncode == 0, res_dry.stderr
+    # move origin's season/s2 tip externally, AFTER the baseline was taken
+    _write(r, "moved", "x\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "move origin tip")
+    _git(r, "push", "-q", "origin", "HEAD:refs/heads/season/s2")
+
+    res1 = _run_cli(root, "--apply")
+    assert res1.returncode == 1, res1.stdout
+    assert "REFUSES season/s2" in res1.stderr, res1.stderr
+
+    # a SECOND --apply must be refused the SAME way: --apply never
+    # overwrote the baseline, so it still compares against the pre-move shas.
+    res2 = _run_cli(root, "--apply")
+    assert res2.returncode == 1, res2.stdout
+    assert "REFUSES season/s2" in res2.stderr, res2.stderr
+    # the twice-refused branch was never locally renamed
+    local = _git(r, "branch", "--format=%(refname:short)").stdout
+    assert "season/s2" in local
+
+
 # ---- KID D contract: last line of --dry-run is the one-line runbook note --
 def test_dry_run_last_line_is_runbook_note(repo: Path):
     res = _run_cli(repo / ".agi", "--dry-run")
