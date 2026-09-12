@@ -1786,6 +1786,307 @@ def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
     assert killed == ["adv-alive.gen1"]
 
 
+# ── goal:g15.25 line (3): --stops — the rotate-out is ONE call ──────
+def _init_git_remote(tmp_path, branch="master"):
+    """Turn tmp_path into a git repo WITH a bare origin and an upstreamed
+    `branch`, so the rotate-out stop commit/push and the captive checklist
+    (which measure against real git) run like live. Returns the bare path."""
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", str(bare)], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "init"], check=True,
+                   capture_output=True)
+    # keep fixture-only noise (the nested bare remote, the fake tmux window
+    # file) out of `git status` so the captive dirty-tree check sees only
+    # real work — exactly what a live seat branch has.
+    (tmp_path / ".gitignore").write_text(
+        "remote.git/\nwindows.txt\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "remote", "add",
+                    "origin", str(bare)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "t@t"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "t"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "fixture"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "push", "-u", "origin",
+                    branch], check=True, capture_output=True)
+    return bare
+
+
+def test_stops_block_refuses_empty(fake_ladder, tmp_path, capsys):
+    """FALSIFIER: `--stops ''` refuses (exit 2), never touches the card."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    args = _rotate_self_args(tmp_path, stops="  ")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 2
+    assert "EMPTY stops text" in capsys.readouterr().err
+
+
+def test_write_stops_section_created_and_replaced(tmp_path):
+    """The where-it-stops slot is CREATED at the card's end when absent and
+    REPLACED (up to the next heading) when it exists; --ask-diff gap rides the
+    body in both shapes. Only the slot changes, everything else verbatim."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## Intro\nkeep this\n", encoding="utf-8")
+    body, slot = _r._write_stops_section(card, "s", "fix seat-3")
+    assert slot == "created"
+    assert "### 🔴 Where it stops\nfix seat-3" in body
+    assert "keep this" in body          # carried verbatim
+    txt = card.read_text(encoding="utf-8")
+    assert "### 🔴 Where it stops" in txt and "fix seat-3" in txt
+    # second write REPLACES, and the ask-diff gap rides the body
+    body2, slot2 = _r._write_stops_section(card, "s", "now this",
+                                           diff_gap="review the handoff")
+    assert slot2 == "replaced"
+    txt2 = card.read_text(encoding="utf-8")
+    assert "fix seat-3" not in txt2
+    assert "now this" in txt2
+    assert "diff requested: review the handoff" in txt2
+    assert "keep this" in txt2
+
+
+def test_commit_stops_row_commits_card_and_own_row_nothing_else(tmp_path):
+    """The rotate-out commit stages the card + the seat's OWN seats row and
+    NOTHING else: a foreign seats row change and a stray untracked file never
+    ride it (`--stops` never `git add -A`)."""
+    from agi.bin import rotate as _r
+    nodes = tmp_path / "nodes" / ".geometry"
+    nodes.mkdir(parents=True)
+    seats = nodes / "seats.md"
+    seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
+                     "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
+                     "  - {\"name\": \"s2\", \"role\": \"parent\"}\n"
+                     "---\n", encoding="utf-8")
+    # route _ack_seats_path back to seats.md (no config:posts in this fixture)
+    card = tmp_path / "sessions" / "quorum" / "s1.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s1 card\n", encoding="utf-8")
+    _init_git_remote(tmp_path)
+    # dirty: s1's own row (committed by the stop commit) + s2's FOREIGN row
+    # (must stay out) + a stray untracked file (must stay out)
+    seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
+                     "  - {\"name\": \"s1\", \"role\": \"parent\", "
+                     "\"edited_by\": \"s1\"}\n"
+                     "  - {\"name\": \"s2\", \"role\": \"parent\", "
+                     "\"edited_by\": \"s2-foreign\"}\n"
+                     "---\n", encoding="utf-8")
+    (tmp_path / "scratch.log").write_text("x\n", encoding="utf-8")
+    card.write_text("# s1 card\n## 🔴 Where it stops\nkeep\n",
+                    encoding="utf-8")
+    out = _r._commit_stops_row(tmp_path, "s1", card, "s1 rotate-out")
+    assert "stop_commit: committed" in out, out
+    top = tmp_path
+    names = subprocess.run(
+        ["git", "-C", str(top), "log", "-1", "--name-only",
+         "--format="], capture_output=True, text=True).stdout.splitlines()
+    names = [n for n in names if n.strip()]
+    assert names, "no files in the rotate-out commit"
+    for n in names:
+        assert n in ("sessions/quorum/s1.md", "nodes/.geometry/seats.md"), \
+            f"rotate-out commit touched an outside path: {n}"
+    # s1's own row IS in the commit; s2's foreign edit stayed out
+    committed = subprocess.run(
+        ["git", "-C", str(top), "show", "HEAD:nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert "s1" in committed and "edited_by\": \"s1" in committed
+    assert "s2-foreign" not in committed
+    # the stray untracked file never rode the commit
+    status = subprocess.run(["git", "-C", str(top), "status",
+                             "--porcelain"], capture_output=True,
+                            text=True).stdout
+    assert "scratch.log" in status   # still untracked, not committed
+
+
+def test_rotate_self_stops_one_call_writes_card_commits_rotates(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """FALSIFIER (the core): ONE `rotate-self --stops 'x'` call rotates on the
+    keyed fake seat — the card carries the stops text, the rotate-out commit
+    touched nothing outside card + seats, the rotation line is printed (no
+    send.py), and the record is `success`."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n",
+                    encoding="utf-8")
+    _init_git_remote(tmp_path)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge on seat-3")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, capsys.readouterr().out
+    body = card.read_text(encoding="utf-8")
+    assert "### 🔴 Where it stops" in body
+    assert "fix the merge on seat-3" in body
+    assert "carried" in body
+    out = capsys.readouterr().out
+    assert ("rotation line: delivered as the [rotation-alert] dm "
+            "to <prime> (no send.py call needed)") in out
+    top = tmp_path
+    names = subprocess.run(
+        ["git", "-C", str(top), "log", "-1", "--name-only", "--format="],
+        capture_output=True, text=True).stdout.splitlines()
+    names = [n for n in names if n.strip()]
+    assert names, "rotate-out commit committed nothing"
+    for n in names:
+        assert n.startswith("sessions/quorum/") or n == "nodes/.geometry/seats.md"
+    # the stops text is IN the committed card
+    committed_card = subprocess.run(
+        ["git", "-C", str(top), "show", "HEAD:sessions/quorum/adv-alive.md"],
+        capture_output=True, text=True).stdout
+    assert "fix the merge on seat-3" in committed_card
+
+def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """FALSIFIER (the parent's measured gap): when the captive checklist
+    PERFORMS the only-behind merge (check 3), the SAME `rotate-self --stops`
+    flow pushes that merge commit (push line 2) BEFORE the spawn -- the live
+    flow runs BOTH pushes and HEAD ends equal to its upstream (unpushed ==
+    0). Before this slice the dry-run printed a push line 2 that the live
+    flow never performed (a real gap, not just an unproven sub-claim). The
+    false spawn proves it ran AFTER the push (it is the last side effect)."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n",
+                    encoding="utf-8")
+    _init_git_remote(tmp_path)          # master upstreamed to origin/master
+    # origin/season/s2 — ONE commit ahead of master, merging cleanly: the
+    # merge target `_prepare_merge_target` resolves (branch master falls
+    # back to season_branch = season/s2). _init_git_remote committed the
+    # card/seats seed and pushed master, so this branch is the ONLY behead.
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "-b",
+                    "season/s2"], check=True, capture_output=True)
+    (tmp_path / "season.txt").write_text("season\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--",
+                    "season.txt"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "season work"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "push", "-u", "origin",
+                    "season/s2"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "master"],
+                   check=True, capture_output=True)
+
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+
+    pre_merge_head = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "--short", "HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge on seat-3")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, capsys.readouterr().err
+    err = capsys.readouterr().err
+    # THE second push line actually ran live (previously dry-run-only)
+    assert "merge push: OK -- master" in err
+    # the merge landed: HEAD advanced past the season commit, season file in
+    assert subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "--short", "HEAD"],
+        capture_output=True, text=True).stdout.strip() != pre_merge_head
+    assert "season.txt" in subprocess.run(
+        ["git", "-C", str(tmp_path), "ls-files"],
+        capture_output=True, text=True).stdout
+    # the merge commit (+ the stops commit) were BOTH pushed before the
+    # spawn: HEAD equals its upstream, unpushed count is ZERO
+    unpushed = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-list", "--count", "@{u}..HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    assert unpushed == "0", f"unpushed commits before spawn: {unpushed}"
+    # the spawn ran AFTER the push (last side effect) and exactly once
+    assert win.read_text(encoding="utf-8").count("adv-alive") == 2
+    # merge did not clobber the stops card
+    assert "fix the merge on seat-3" in card.read_text(encoding="utf-8")
+
+
+def test_rotate_self_refused_when_merge_push_fails(fake_ladder, tmp_path,
+                                                   monkeypatch, capsys):
+    """FALSIFIER: when the only-behind merge LANDED but the merge-commit
+    push (push line 2) is REFUSED, rotate-self blocks with exit 3 and the
+    spawn does NOT run -- a refused second push is the same discipline as a
+    refused stops push (nothing rotated)."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n",
+                    encoding="utf-8")
+    _init_git_remote(tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "-b",
+                    "season/s2"], check=True, capture_output=True)
+    (tmp_path / "season.txt").write_text("season\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--",
+                    "season.txt"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "season work"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "push", "-u", "origin",
+                    "season/s2"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "master"],
+                   check=True, capture_output=True)
+
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    spawn_calls = []
+
+    def fake_spawn(**kw):
+        spawn_calls.append(kw)
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    real_push = rotate._stops_push
+
+    def refusing_merge_push(root, label="stops"):
+        if label == "merge":
+            return f"push refused out: merge-commit rejection (test)"
+        return real_push(root, label=label)
+    monkeypatch.setattr(rotate, "_stops_push", refusing_merge_push)
+
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge on seat-3")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 3, capsys.readouterr().err
+    assert "rotate-self refused" in capsys.readouterr().err
+    # the merge landed but was NOT pushed, and the spawn never ran
+    assert "season.txt" in subprocess.run(
+        ["git", "-C", str(tmp_path), "ls-files"],
+        capture_output=True, text=True).stdout
+    assert not spawn_calls, "spawn must not run when the merge push is refused"
+
+
 def test_seat_handoff_generation_bumps_on_rotation(fake_ladder, tmp_path,
                                                    capsys, monkeypatch):
     """A seat whose handoff says generation 3 rotates onto generation 4."""

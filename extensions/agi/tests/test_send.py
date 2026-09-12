@@ -4860,96 +4860,78 @@ def test_whois_forged_without_msg_informational_not_refused(
         "informational verify never refuses or quarantines"
 
 
-def test_whois_quarantine_filename_sanitized_against_traversal(
+def test_whois_sig_unresolvable_traversal_ref_reads_unverifiable(
         tmp_path, monkeypatch):
-    """A session_ref shaped like a traversal (`../../x`, `a/b`) can never pick
-    a path: the written file lands INSIDE <inbox>/quarantine with a sanitized
-    name, the raw ref survives as the record's first line, and the refusal line
-    names the raw ref."""
+    """SL7.14 (a)/(d): a traversal-shaped whois --sig session_ref that
+    resolves to NO row reads `UNVERIFIABLE (no row: ...)` -- INFORMATIONAL,
+    never FORGED, never refused -- and writes NO file, so an unresolvable ref
+    can never plant a path outside quarantine. A genuinely FORGED sig on a
+    RESOLVABLE ref still quarantines under a sanitized name (see
+    test_whois_forged_under_enforcing_exits_2_and_quarantines); the filename
+    sanitizer's bounds are covered directly by
+    test_sanitize_ref_accepts_and_refuses_bounds."""
     project = _project_with_comms(tmp_path, {"verify": "enforcing"})
     send_mod.keygen(project, "seat-a")
     sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
                                                      "whois me")
     _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
-    forged = canonical + "x"
-    # a traversal-shaped ref under a FORGED label (row for it won't resolve)
-    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
     inbox = project / ".agi" / "sessions" / "inbox"
     before = {p for p in inbox.iterdir()}
     for raw in ("../../x", "a/b"):
         rc, text = send_mod.whois(project, raw, claim="seat-a",
                                   source="refs/x", do_fetch=False,
-                                  sig_line=sig_line, msg_text=forged)
-        assert rc == send_mod.WHOIS_NOT_AUTHORIZED, (raw, rc)
-        # the refusal names the RAW ref
-        assert repr(raw) in text, (raw, text)
-        # find the file this call wrote (sanitized name, inside quarantine)
-        sanitized = send_mod._sanitize_ref(raw)
-        q = qdir / f"{sanitized}.md"
-        assert q.is_file(), f"sanitized file {sanitized}.md missing"
-        assert q.resolve().parent == qdir.resolve(), \
-            f"{raw} escaped the quarantine dir"
-        body = q.read_text()
-        assert raw in body, "the RAW ref survives as the record's first line"
-        assert sig_line in body
-        assert forged in body
-    # no NEW file appeared OUTSIDE the quarantine dir
-    outside = [p for p in inbox.iterdir() if p not in before
-               and p.name != "quarantine" and p.is_file()]
-    assert outside == [], f"traversal-shaped ref escaped the quarantine: {outside}"
+                                  sig_line=sig_line, msg_text=canonical)
+        assert f"UNVERIFIABLE (no row: {raw})" in text, (raw, text)
+        assert "FORGED" not in text, (raw, text)
+        assert "REFUSED" not in text, (raw, text)
+    # no NEW file appeared anywhere -- nothing was forged, nothing quarantined.
+    outside = [p for p in inbox.iterdir() if p not in before and p.is_file()]
+    assert outside == [], \
+        f"an unresolvable ref writes nothing: {outside}"
 
 
-def test_whois_quarantine_refuses_empty_sanitized_ref(
-        tmp_path, monkeypatch):
-    """SL7.02 clause (5): a session_ref that sanitizes to empty (only
-    stripped chars) is REFUSED in one line with exit 2 BEFORE any quarantine
-    path is built -- no file (not even the old invalid-ref.md fallback) is
-    written and no path is derived from the absent ref."""
+def test_whois_sig_empty_sanitized_ref_reads_unverifiable(tmp_path, monkeypatch):
+    """SL7.14 (a)/(d): a session_ref that sanitizes to empty (only stripped
+    chars) resolves to NO row, so whois --sig reads
+    `UNVERIFIABLE (no row: ///)` -- never FORGED, never refused, no SystemExit,
+    no quarantine file (there are no bytes to withhold under an unverifiable
+    label). SL7.02's ref-shape guard stayed a property of `_sanitize_ref`
+    (unit-tested in test_sanitize_ref_accepts_and_refuses_bounds)."""
     project = _project_with_comms(tmp_path, {"verify": "enforcing"})
     send_mod.keygen(project, "seat-a")
     sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
                                                      "whois me")
     _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
-    forged = canonical + "x"
     qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
-    with pytest.raises(SystemExit) as ex:
-        send_mod.whois(project, "///", claim="seat-a",
-                       source="refs/x", do_fetch=False,
-                       sig_line=sig_line, msg_text=forged)
-    assert ex.value.code == 2
-    # nothing was written -- refusal happened BEFORE any path was built
-    if qdir.exists():
-        assert not any(qdir.iterdir()), f"empty ref must write nothing: {list(qdir.iterdir())}"
-    qdir.mkdir(parents=True, exist_ok=True)  # guard: still nothing may appear
-
-
-def test_whois_quarantine_refuses_overlong_ref(tmp_path, monkeypatch):
-    """SL7.02 clause (5): a session_ref whose sanitized form exceeds 64 chars
-    is REFUSED in one line with exit 2 BEFORE any quarantine path is built; a
-    ref AT the 64-char cap is accepted and quarantined under its name."""
-    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
-    send_mod.keygen(project, "seat-a")
-    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
-                                                     "whois me")
-    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
-    forged = canonical + "x"
-    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
-
-    long_ref = "x" * 65
-    with pytest.raises(SystemExit) as ex:
-        send_mod.whois(project, long_ref, claim="seat-a",
-                       source="refs/x", do_fetch=False,
-                       sig_line=sig_line, msg_text=forged)
-    assert ex.value.code == 2
-
-    # at the 64-char cap it is accepted and lands under its (capped) name
-    cap_ref = "y" * 64
-    rc, text = send_mod.whois(project, cap_ref, claim="seat-a",
+    rc, text = send_mod.whois(project, "///", claim="seat-a",
                               source="refs/x", do_fetch=False,
-                              sig_line=sig_line, msg_text=forged)
-    assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
-    q = qdir / f"{cap_ref}.md"
-    assert q.is_file(), f"64-char ref must quarantine under its own name"
+                              sig_line=sig_line, msg_text=canonical)
+    assert "UNVERIFIABLE (no row: ///)" in text, text
+    assert "FORGED" not in text, text
+    assert "REFUSED" not in text, text
+    if qdir.exists():
+        assert not any(qdir.iterdir()), \
+            f"nothing may quarantine: {list(qdir.iterdir())}"
+
+
+def test_whois_sig_overlong_ref_reads_unverifiable(tmp_path, monkeypatch):
+    """SL7.14 (a)/(d): an OVERLONG session_ref (65 chars) and one AT the
+    64-char cap both resolve to NO row, so whois --sig reads
+    `UNVERIFIABLE (no row: ...)` for each -- never FORGED, never refused, no
+    SystemExit. The 64-char filename cap stays a `_sanitize_ref` property
+    (test_sanitize_ref_accepts_and_refuses_bounds)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    for ref in ("x" * 65, "y" * 64):
+        rc, text = send_mod.whois(project, ref, claim="seat-a",
+                                  source="refs/x", do_fetch=False,
+                                  sig_line=sig_line, msg_text=canonical)
+        assert f"UNVERIFIABLE (no row: {ref})" in text, (ref, text)
+        assert "FORGED" not in text and "REFUSED" not in text, (ref, text)
+
 
 
 def test_sanitize_ref_accepts_and_refuses_bounds():
@@ -5781,6 +5763,194 @@ def test_clause3_seat_absent_from_committed_reads_unverifiable(
     assert "UNVERIFIABLE seat-a (row not on origin yet)" in out, out
     assert "FORGED" not in out, out
     assert "REFUSED" not in out, out
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# hypothesis:l4-an-absent-pushed-row-reads-unverifiable-never-forged-whois-sig-
+# gets-the-seam-and-all-live-stages-only-the-keyed-rows
+#
+# (a): ONE resolver _row_for_label feeds BOTH verifiers: a row ABSENT from the
+# pushed set (a merely-late push, NOT an unkeyed present row) falls to MAIN's
+# COMMITTED row; a name in NEITHER reads UNVERIFIABLE (no row: <name>), never
+# FORGED. (b): whois --sig consults the SAME resolver, so a main-committed key
+# verifies there too. (c): keygen --all-live stages ONLY the rows it keyed -- a
+# planted FOREIGN row edit stays out of HEAD and stays in the working copy.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def test_absent_pushed_row_verifies_main_committed(tmp_path, monkeypatch,
+                                                   capsys):
+    """(a) FALSIFIER THE RESOLVER CLOSES: the from-seat's row is ABSENT from
+    the pushed set (origin lagging) but COMMITTED (keyed) on MAIN -- a signed
+    block must read `VERIFIED seat-a (ed25519, main-committed)`, never FORGED.
+    Before SL7.14 this read FORGED because `_seat_row_in` missed and the
+    committed seam never ran."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()                # the seat's own key
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex(),
+          "generation": 2}],
+        branch="season/s2")
+    # the PUSHED set is merely LAGGING: seat-a is not in it at all.
+    _stub_seat_rows(monkeypatch, [{"name": "seat-other", "generation": 9}])
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()                            # drain send stdout
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_absent_row_everywhere_reads_unverifiable_no_row(tmp_path, monkeypatch,
+                                                        capsys):
+    """(a) FALSIFIER: the from-seat's row is in NEITHER the pushed set NOR
+    MAIN's committed rows (this tree is gitless, so there is no committed
+    authority to lag against) -- the signed block reads
+    `UNVERIFIABLE (no row: seat-a)`, NEVER FORGED, never REFUSED."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, _pub_a = scheme.keygen()
+    root = tmp_path / "proj"
+    (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (root / ".agi" / "config.json").write_text(
+        json.dumps({"metric_primary": "x"}))
+    (root / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md([{"name": "seat-other"}]))
+    (root / ".agi" / "sessions" / "inbox").mkdir(parents=True, exist_ok=True)
+    _stub_seat_rows(monkeypatch, [{"name": "seat-other"}])
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNVERIFIABLE (no row: seat-a)" in out, out
+    assert "FORGED" not in out, out
+    assert "REFUSED" not in out, out
+
+
+def test_absent_pushed_row_two_tree_verifies_main_committed(
+        tmp_path, monkeypatch, capsys):
+    """PROOF (the SL7.08 two-tree shape, both trees REAL): a keyed row is
+    COMMITTED on MAIN while origin's bare remote LAGS (its pushed seats.md
+    lacks the row entirely). A signed block from the seat reads
+    `VERIFIED seat-a (ed25519, main-committed)` -- never FORGED -- and the
+    pushed set genuinely comes from the lagging remote (fetched, not stubbed).
+    """
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)],
+                   check=True)
+    # seed MAIN with a row set that LACKS seat-a and push it: origin's
+    # season/s2 now holds the LAGGING (no-seat-a) authority.
+    root = _git_project(tmp_path, [{"name": "seat-other", "generation": 9}],
+                        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    # commit seat-a KEYED on MAIN -- HEAD carries it while origin still lags.
+    seats = root / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(_seats_md([{"name": "seat-a", "sig_scheme": "ed25519",
+                                 "pubkey": pub_a.hex(), "generation": 2}]))
+    subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m",
+                    "key seat-a on MAIN"], check=True)
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()                          # drain send stdout
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_whois_sig_verifies_main_committed_when_pushed_row_absent(
+        tmp_path, monkeypatch):
+    """(b): whois --sig consults the SAME resolver -- with seat-a ABSENT from
+    the pushed set but keyed on MAIN's committed row, `whois --sig` answers
+    `VERIFIED seat-a (ed25519, main-committed)` (INFORMATIONAL), never FORGED,
+    and the label never gates the exit."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "session_ref": "seat-a",
+          "sig_scheme": "ed25519", "pubkey": pub_a.hex(),
+          "generation": 2}],
+        branch="season/s2")
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    sig_line, canonical = _signed_send_and_canonical(root, "seat-a", "recv",
+                                                     "whois me")
+    # seat-a is ABSENT from the pushed set -- merely lagging.
+    _stub_seat_rows(monkeypatch, [{"name": "seat-other"}])
+    rc, text = send_mod.whois(root, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=canonical)
+    # the seat is not in the pushed authority, but the sig label still names
+    # the main-committed row and never reads FORGED / never refuses.
+    assert "VERIFIED seat-a (ed25519, main-committed)" in text, text
+    assert "FORGED" not in text, text
+    assert "REFUSED" not in text, text
+
+
+def test_keygen_all_live_keeps_foreign_row_delta_out_of_head_and_in_worktree(
+        tmp_path, monkeypatch, capsys):
+    """(c): with a FOREIGN row edit planted in MAIN's working copy, keygen
+    --all-live commits ONLY the rows it keyed: `git show HEAD:seats.md` is
+    CLEAN of the foreign delta, while the working copy KEEPS it byte-for-byte
+    (uncommitted). The commit subject names only the keyed seats. Before
+    SL7.14 the whole-file `git add -- <rel>` swept the foreign edit into the
+    keygen commit."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(
+        tmp_path,
+        [{"name": "s1", "role": "director", "pid": 111},
+         {"name": "s2", "role": "director", "session_id": "abc"},
+         {"name": "s3", "role": "director", "pid": 333,
+          "sig_scheme": "ed25519", "pubkey": scheme.keygen()[1].hex()}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    # plant a FOREIGN (already-keyed, not-this-pass) s3 delta in the WORKING
+    # copy -- a concurrent writer's uncommitted row edit.
+    seats = root / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(
+        '"name": "s3", "role": "director", "pid": 333,',
+        '"name": "s3", "role": "director", "pid": 333, '
+        '"window": "@999",'))
+    capsys.readouterr()
+    out = send_mod.keygen(root, all_live=True, actor="belam",
+                          role="prime_director")
+    assert out is not None and len(out) == 2, out
+    capsys.readouterr()                          # drain keygen stdout/stderr
+    # (a) HEAD's seats.md is CLEAN of the foreign window delta ...
+    head = subprocess.run(
+        ["git", "-C", str(root), "show",
+         "HEAD:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert '"@999"' not in head.stdout, \
+        "foreign delta must NOT ride the --all-live commit"
+    # ... while the committed HEAD DOES carry the keyed s1/s2 rows.
+    assert head.stdout.count("pubkey") >= 2, head.stdout
+    # (b) ... and the WORKING copy keeps the foreign delta (uncommitted).
+    assert "@999" in seats.read_text(), \
+        "foreign delta must stay in the working copy"
+    subj = subprocess.run(
+        ["git", "-C", str(root), "log", "-1", "--format=%s"],
+        capture_output=True, text=True)
+    assert subj.stdout.strip() == "keygen --all-live: keyed s1, s2", \
+        subj.stdout
 
 
 # ════════════════════════════════════════════════════════════════════════════
