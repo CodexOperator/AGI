@@ -119,6 +119,26 @@ def run(project: Path, engine: Path | None, *args):
 # --- materialize: the happy path --------------------------------------------
 
 
+def test_parse_frontmatter_no_strip_precheck_behaviour_identical():
+    """CLAIM (6d/SL7.17, hypothesis:l4-prepare-check-2-reads-the-index-blob...):
+    `_parse_frontmatter` relies on `split_frontmatter` alone and drops the
+    `strip().startswith("---")` prose pre-check (the exact shape SL7.11
+    retired elsewhere). On every real node the behaviour is byte-identical:
+    a well-formed node still parses; a leading-blank-line or marker-not-on-
+    line-1 input (which the pre-check used to pass to the anchored splitter,
+    which then refused it) still returns None."""
+    ok = "---\nid: x\ntitle: t\n---\nbody\n"
+    fm, body = st._parse_frontmatter(ok)
+    assert fm == {"id": "x", "title": "t"}
+    assert body == "body\n"
+    # leading blank line before the marker: pre-check passed it, the anchored
+    # splitter refused it -> None; with the pre-check gone, still None.
+    assert st._parse_frontmatter("\n---\nid: x\ntitle: t\n---\n") is None
+    # marker not on line 1, and an empty input: both None (unchanged).
+    assert st._parse_frontmatter("no marker here\n") is None
+    assert st._parse_frontmatter("") is None
+
+
 def test_materialize_copies_every_payload_byte_identical(tmp_path, engine, project):
     for rel in ENGINE_FILES:
         mint_node(engine, project, rel)

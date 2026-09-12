@@ -148,6 +148,42 @@ def test_verb_set_refuses_a_value_that_would_render_a_bare_dash_line():
     assert e.set_fm["title"] == "the --- and --- again"
 
 
+def test_verb_set_refuses_a_bare_dash_with_trailing_whitespace():
+    """CLAIM (6b/SL7.17): the writer's marker guard uses frontmatter.py's
+    boundary regex (`^---[ \\t]*\\r?$`), IMPORTED not re-spelled — so a value
+    that would render `--- ` (a bare dash with trailing whitespace) is refused
+    even though an `== \"---\"` equality test (the old re-spelling) misses it.
+    The shared line-anchored reader splits on that line, so the writer must
+    refuse it."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="cannot set 'parents'"):
+        write.verb_set(e, "parents", "[a\n--- \nb]")
+
+
+def test_verb_set_refuses_a_value_carrying_the_thought_marker():
+    """CLAIM (6b/SL7.17): the shared guard also refuses a value that carries
+    an open `<!-- THOUGHT:` marker, so it can never be landed into frontmatter
+    and fabricate an authored region or confuse extraction."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="THOUGHT marker"):
+        write.verb_set(e, "title", "a <!-- THOUGHT:BEGIN -- x")
+
+
+def test_create_set_runs_the_same_marker_guard_as_set(project):
+    """CLAIM (6b/SL7.17): `create --set` runs the SAME value guard as `set` —
+    a value that `set` would refuse (a list item carrying a bare `---` line the
+    shared reader splits on) is refused by the writer with exit 2, one line
+    naming the key, instead of being landed straight into the frontmatter."""
+    out, err, rc = _run(["create", "hypothesis", "new-one",
+                         "--parent", "goal:g1",
+                         "--set", "parents=[a\n---\nb]",
+                         "--root", str(project)])
+    assert rc == 2, (out, err)
+    assert "'parents'" in err, err
+    # the node was NOT created.
+    assert not (project / "nodes" / "hypothesis" / "new-one.md").exists()
+
+
 # --------------------------------------------------------------------------
 # The two callers run the identical operations
 # --------------------------------------------------------------------------

@@ -206,7 +206,11 @@ def test_prepare_card_check_reads_the_last_work_commit_only(
     os.utime(card, (1000000000, 1000000000))   # long before any commit
     spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
             ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
-            ":(exclude)sessions/quorum/adv-alive.md")
+            ":(exclude)sessions/quorum/adv-alive.md",
+            # goal:g15.25 — the rotate-out stop commit may touch the seat
+            # row (seats.md/posts.md) *and* the card and is NOT work; the
+            # captives exclude that bookkeeping path too.
+            ":(exclude)nodes/.geometry/posts.md")
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
@@ -822,6 +826,37 @@ def test_prepare_check2_whitespace_only_delta_clean(prep_root, capsys):
     out = capsys.readouterr().out
     assert rc == 3, out
     assert "[BLOCK] dirty tree: seats.md" in out
+
+
+def test_prepare_check2_index_only_real_change_blocks(prep_root, capsys):
+    """CLAIM (6a/SL7.17, hypothesis:l4-prepare-check-2-reads-the-index-blob...):
+    a STAGED real edit whose working copy is restored to HEAD bytes must read
+    DIRTY, never whitespace-only — prepare check 2 BLOCKS naming it
+    'seats.md: staged change (index differs from HEAD)' so a rotation never
+    proceeds over an unrecorded staged edit. FALSIFIER (pre-fix):
+    `_path_delta_whitespace_only` compared HEAD against the WORKING file only,
+    so the restored copy read whitespace-only and prepare exited 0."""
+    root = _real_repo(prep_root, conflict=False)
+    (root / "seats.md").write_text("name\trole\nbelam\tprime\n",
+                                   encoding="utf-8")
+    _git(root, "add", "seats.md")
+    _git(root, "commit", "-qm", "seats")
+    _git(root, "update-ref", "refs/remotes/origin/seat/x",
+         _git(root, "rev-parse", "HEAD").stdout.strip())
+    # stage a REAL edit...
+    (root / "seats.md").write_text("name\trole\nbelam\tadversary\n",
+                                   encoding="utf-8")
+    _git(root, "add", "seats.md")
+    # ...then restore the working copy to HEAD bytes (a staged-only change):
+    # porcelain `M `, index differs from HEAD in real bytes, working == HEAD.
+    (root / "seats.md").write_text(
+        _git(root, "show", "HEAD:seats.md").stdout, encoding="utf-8")
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] dirty tree: seats.md: staged change "
+            "(index differs from HEAD)") in out, out
+    assert "whitespace-only delta" not in out, out
 
 
 def test_prepare_perform_season_merge_aborts_live_conflict(prep_root):

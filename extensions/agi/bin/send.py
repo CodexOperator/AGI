@@ -553,21 +553,100 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
               file=sys.stderr)
 
 
+def _all_live_seats_content(root: Path, top: Path,
+                            keyed_names: list[str]) -> str | None:
+    """The seats.md blob the `--all-live` keygen commit should stage: HEAD's
+    content with ONLY the changes that carry THIS pass's keyed rows applied
+    (a changed line whose `name` cell keys one of the keyed seats, or the
+    whole-node frontmatter `edited_by:` stamp the same write owns), and every
+    FOREIGN change REVERTED to the committed (HEAD) line. Base is HEAD, never
+    the index -- a pre-staged foreign hunk cannot ride the keygen commit.
+    Returns None when there is no keyed-row change to stage.
+
+    A multi-row generalisation of rotate._seats_ownrow_content (send.py never
+    edits rotate.py; sibling rows sit ADJACENT so git's unified diff folds an
+    own and a foreign row into ONE hunk -- the cut is therefore made per
+    CHANGED LINE, into an in-memory buffer, never onto the working tree). The
+    caller stages this content into the index via update-index (working tree
+    untouched), so the keygen commit carries exactly the rows it keyed and
+    every foreign hunk stays unstaged and byte-untouched in the tree.
+    """
+    import difflib  # local: only the buffer-builder needs it
+    rel = os.path.relpath(_shared_seats_path(root), top)
+    try:
+        run = subprocess.run(["git", "-C", str(top), "show",
+                              f"HEAD:{rel}"],
+                             capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if run.returncode != 0:
+        return None
+    try:
+        work = _shared_seats_path(root).read_text(encoding="utf-8")
+    except OSError:
+        return None
+    base_lines = run.stdout.splitlines()
+    work_lines = work.splitlines()
+    cells = [f'"name": "{n}"' for n in keyed_names]
+
+    def _own(l: str) -> bool:
+        # a changed line is KEYED when its row-cell `name` names one of the
+        # keyed seats, or it is the top-level YAML `edited_by: <writer>`
+        # frontmatter provenance stamp the SAME write owns (value-agnostic:
+        # the writer's actor, not a seat name -- mirror rotate._own_row_line).
+        stripped = l.lstrip("+- ")
+        if stripped.startswith("edited_by: ") or stripped == "edited_by:":
+            return True
+        return any(c in l for c in cells)
+
+    staged: list[str] = []
+    b = w = 0
+    any_own = False
+    sm = difflib.SequenceMatcher(None, base_lines, work_lines, autojunk=False)
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        staged.extend(base_lines[b:i1])
+        removed = base_lines[i1:i2]
+        added = work_lines[j1:j2]
+        for k in range(max(len(removed), len(added))):
+            old = removed[k] if k < len(removed) else None
+            new = added[k] if k < len(added) else None
+            is_own = ((old is not None and _own(old))
+                      or (new is not None and _own(new)))
+            if is_own:
+                any_own = True
+                if new is not None:
+                    staged.append(new)   # keyed change: keep working line
+                # else: a keyed deletion -- append nothing
+            elif old is not None:
+                staged.append(old)        # foreign change: keep committed line
+        b, w = i2, j2
+    staged.extend(base_lines[b:])
+    if not any_own:
+        return None
+    return "\n".join(staged) + "\n"
+
+
 def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
-    """CLAUSE (2)/(4b) -- the `--all-live` keygen commit: ONE plain `git
-    commit` of the seats.md the write just keyed, whose message names EVERY
-    seat this pass keyed (`keygen --all-live: keyed <a>, <b>, <c>`), then the
-    clause-(2) season-branch push leg. Resolved and staged against MAIN's
-    graph tree (a linked-worktree caller commits MAIN, never its own fork),
-    staging seats.md ONLY (never `git add -A`), so keygen --all-live never
-    sweeps another writer's uncommitted work into its commit. Best-effort,
-    never raises, never fails the mint: a refused commit or push prints one
-    note line to stderr and the keys stay minted. Returns the one note line.
+    """CLAUSE (2)/(4b) -- the `--all-live` keygen commit: ONE commit of
+    seats.md carrying EXACTLY the rows this pass keyed, whose message names
+    EVERY seat it keyed (`keygen --all-live: keyed <a>, <b>, <c>`), then the
+    clause-(2) season-branch push leg. Resolved against MAIN's graph tree (a
+    linked-worktree caller commits MAIN, never its own fork). Staging seats.md
+    ONLY AND ONLY the keyed rows: the committed blob is HEAD's seats.md plus
+    exactly those rows (generalising rotate's own-row discipline -- see
+    :func:`_all_live_seats_content`), committed against a THROWAWAY index
+    seeded from HEAD via update-index --cacheinfo (working tree NEVER
+    written), so keygen --all-live never sweeps a foreign writer's uncommitted
+    row edit into its commit -- the foreign delta stays byte-untouched and
+    uncommitted in the working copy. Best-effort, never raises, never fails
+    the mint: a refused commit or push prints one note line to stderr and the
+    keys stay minted. Returns the one note line.
     """
     listed = ", ".join(keyed_names)
     note = f"keygen --all-live: keyed {listed}"
     try:
         import rotate  # local: same dir (send.py pattern, no import cycle)
+        import tempfile
         main_root = _shared_graph_root(root)
         top = rotate._git_toplevel(main_root)
         if top is None:
@@ -576,29 +655,61 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
             return _l
         seats = _shared_seats_path(root)
         rel = os.path.relpath(seats, top)
-        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
-                             capture_output=True, text=True, timeout=10)
-        if add.returncode != 0:
-            _l = (f"note: {note} — git add {rel!r} failed: "
-                  f"{add.stderr.strip()}")
+        new_content = _all_live_seats_content(root, top, keyed_names)
+        if new_content is None:
+            _l = f"note: {note} — seats.md already clean after the write; " \
+                "nothing committed"
             print(_l, file=sys.stderr)
             return _l
-        staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
-                                 "--", rel], capture_output=True, text=True,
-                                timeout=10)
-        if staged.returncode != 0 or not (staged.stdout or "").strip():
-            _l = (f"note: {note} — seats.md already clean after the write; "
-                  "nothing committed")
+        # Build the keyed-only blob and commit it against a THROWAWAY index
+        # seeded from HEAD (GIT_INDEX_FILE=<tmp>; read-tree HEAD, then
+        # hash-object the content and update-index --cacheinfo under it) and
+        # commit against THAT index with no pathspec, so git resolves the
+        # committed tree from the temp index, never the working tree. The
+        # shared seats.md working copy and every foreign hunk stay byte-
+        # untouched throughout.
+        fd, tmp_index = tempfile.mkstemp(prefix="alllive-idx-")
+        os.close(fd)
+        env = dict(os.environ)
+        env["GIT_INDEX_FILE"] = tmp_index
+
+        def _tmp_git(parts, input=None):
+            return subprocess.run(["git", "-C", str(top)] + parts,
+                                  capture_output=True, text=True, env=env,
+                                  timeout=10, input=input)
+
+        rc = None
+        blob_sha = ""
+        try:
+            seed = _tmp_git(["read-tree", "HEAD"])
+            if seed.returncode != 0:
+                raise RuntimeError(seed.stderr.strip())
+            blob = _tmp_git(["hash-object", "-w", "--stdin"],
+                            input=new_content)
+            if blob.returncode != 0 or not blob.stdout.strip():
+                raise RuntimeError(blob.stderr.strip())
+            blob_sha = blob.stdout.strip()
+            upd = _tmp_git(["update-index", "--add", "--cacheinfo",
+                            f"100644,{blob_sha},{rel}"])
+            if upd.returncode != 0:
+                raise RuntimeError(upd.stderr.strip())
+            msg = f"keygen --all-live: keyed {listed}"
+            rc = _tmp_git(["commit", "-q", "-m", msg])
+        finally:
+            try:
+                os.unlink(tmp_index)
+            except OSError:
+                pass
+        if rc is None or rc.returncode != 0:
+            _l = f"note: {note} — git commit failed: " \
+                f"{rc.stderr.strip() if rc else 'unknown'}"
             print(_l, file=sys.stderr)
             return _l
-        msg = f"keygen --all-live: keyed {listed}"
-        rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
-                             msg, "--", rel], capture_output=True, text=True,
-                            timeout=10)
-        if rc.returncode != 0:
-            _l = f"note: {note} — git commit failed: {rc.stderr.strip()}"
-            print(_l, file=sys.stderr)
-            return _l
+        # point the REAL index's seats.md at the committed blob so the keyed
+        # rows no longer show staged; only foreign hunks remain.
+        subprocess.run(["git", "-C", str(top), "update-index", "--add",
+                        "--cacheinfo", f"100644,{blob_sha},{rel}"],
+                       capture_output=True, text=True, timeout=10)
         push = rotate._push_season_branch(root)
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
@@ -2290,6 +2401,37 @@ def _merge_main_committed_keys(root: Path, pushed: list) -> list:
     return out
 
 
+def _row_for_label(root: Path, rows: list | None, name: str) -> dict | None:
+    """The ONE row resolver every signature verifier feeds from: the PUSHED
+    row first (the author's own key wins -- a stale MAIN key never overrides
+    origin), then MAIN's COMMITTED row for the same seat (`_seats_committed_rows`,
+    `git show HEAD`, never the dirty copy -- the SL7.08 seam's authority),
+    else None. A name found in NEITHER labels ``UNVERIFIABLE`` (never FORGED,
+    hypothesis:l4-an-absent-pushed-row-reads-unverifiable...); ``rows is
+    None`` (no pushed set at all) likewise falls through to the committed
+    row, then None. A row that IS resolved yet fails its OWN signature still
+    reads FORGED exactly as today -- this resolver only ever SUPPLIES the
+    authoritative row, it never softens a verdict against a row. Merges,
+    never rebases: for a pushed row that is PRESENT and fails, the caller's
+    existing generation-guarded seam (`_seam_main_committed`) still runs,
+    because the pushed row wins here and the seam owns the would-be-FORGED
+    case. The COMMITTED row is returned tagged ``_main_committed`` so a
+    VERIFIED label names the authority (:func:`_verify_block`,
+    :func:`_whois_sig_label`).
+    """
+    if rows is not None:
+        row = _seat_row_in(rows, name)
+        if row is not None:
+            return row
+    committed = _seats_committed_rows(root)
+    crow = _seat_row_in(committed, name)
+    if crow is None:
+        return None
+    tagged = dict(crow)
+    tagged["_main_committed"] = True
+    return tagged
+
+
 def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
                    msg: bytes, seat_name: str) -> str:
     """The ONE label for a parsed sig against ONE seat row.
@@ -2405,10 +2547,14 @@ def _verify_block(root: Path, rows: list | None,
     when there is no sig line; ``UNKEYED <seat>`` when a sig is present but the
     from-seat's row NAMES no pubkey or no sig_scheme (nothing to refute it --
     readers print UNKEYED like UNSIGNED, never withheld, never REFUSED);
+    ``UNVERIFIABLE (no row: <name>)`` when the from-seat's row resolves in
+    NEITHER the pushed set NOR MAIN's committed rows -- never FORGED, printed
+    like UNSIGNED, never REFUSED (hypothesis:l4-an-absent-pushed-row-...);
     ``FORGED`` when a sig is present and fails a check AGAINST A KEY THE ROW
-    NAMES (bad shape, unknown scheme, unknown sender, a scheme the row does
-    not name, or a signature that does not verify -- but NOT a row with no
-    pubkey/sig_scheme, which is UNKEYED); ``RETIRED:<fp>`` when the sig's
+    NAMES (bad shape, unknown scheme, a scheme the row does not
+    name, or a signature that does not verify -- but NOT a row with no
+    pubkey/sig_scheme, which is UNKEYED, and NOT a row missing everywhere,
+    which is UNVERIFIABLE); ``RETIRED:<fp>`` when the sig's
     fingerprint matches a key_history entry of the from-seat and verifies
     under that retired pub. The label is NEVER a drop -- the caller prints
     the block in full under all labels, and under comms.verify==enforcing only
@@ -2422,11 +2568,9 @@ def _verify_block(root: Path, rows: list | None,
         sig_bytes = bytes.fromhex(sig_hex)
     except (ValueError, TypeError):
         return "FORGED"
-    if rows is None:
-        return "FORGED"
-    row = _seat_row_in(rows, meta.get("from", ""))
+    row = _row_for_label(root, rows, meta.get("from", ""))
     if row is None:
-        return "FORGED"
+        return f"UNVERIFIABLE (no row: {meta.get('from', '?')})"
     msg = _canonical_msg(meta.get("ts", ""), meta.get("from", ""),
                          meta.get("to", ""), text).encode()
     label = _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
@@ -3539,17 +3683,21 @@ def _whois_enforced_refusal(root: Path, session_ref: str, label: str | None,
             f"withheld to {path} (ref {session_ref!r})")
 
 
-def _whois_sig_label(rows: list | None, session_ref: str,
+def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
                      sig_line: str | None, msg_text: str | None) -> str | None:
     """The signature label for a whois call, or None when no signature was
     given (nothing to verify). INFORMATIONAL only: the caller (whois) reports
     this in the text but NEVER keys its exit code on it (Prime ruling A).
 
     ``UNSIGNED`` when no signed line was given; otherwise resolve the row for
-    ``session_ref`` and answer ``VERIFIED`` / ``FORGED`` / ``RETIRED:<fp>``
-    exactly as the inbox writer does (:func:`_label_for_sig`), so whois and
-    the speaker agree byte-for-byte.
-    """
+    ``session_ref`` through the ONE shared resolver (:func:`_row_for_label` --
+    pushed row first, then MAIN's committed row, then UNVERIFIABLE) and answer
+    ``VERIFIED`` / ``FORGED`` / ``RETIRED:<fp>`` / ``UNVERIFIABLE (no row:
+    <name>)`` exactly as the inbox writer does (:func:`_label_for_sig`), so
+    whois and the speaker agree byte-for-byte. A row missing from NEITHER the
+    pushed set nor MAIN's committed rows reads UNVERIFIABLE, never FORGED;
+    a main-committed key that verifies answers ``VERIFIED ... main-committed``
+    just like the inbox seam. """
     if not sig_line:
         return "UNSIGNED"
     try:
@@ -3557,17 +3705,23 @@ def _whois_sig_label(rows: list | None, session_ref: str,
         sig_bytes = bytes.fromhex(sig_hex)
     except (ValueError, TypeError):
         return "FORGED"
-    if rows is None:
-        return "FORGED"
-    row = _seat_row_in(rows, session_ref)
+    row = _row_for_label(root, rows, session_ref)
     if row is None:
-        return "FORGED"
+        return f"UNVERIFIABLE (no row: {session_ref})"
     # --msg IS the exact canonical message bytes the sig covers; the caller
     # reconstructs them (ts\nfrom\nto\n\ntext), because only the ONE canonical
     # shape can verify. We do not re-derive it here.
     msg = (msg_text or "").encode()
-    return _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
-                          row.get("name", session_ref))
+    label = _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
+                           row.get("name", session_ref))
+    # name the authority like the inbox seam: a VERIFIED answer resolved from
+    # MAIN's committed row reads ``<scheme>, main-committed``.
+    if row.get("_main_committed") and label.startswith("VERIFIED"):
+        if label.endswith(")"):
+            label = label[:-1] + ", main-committed)"
+        else:
+            label += ", main-committed"
+    return label
 
 
 def whois(root: Path, session_ref: str, claim: str | None,
@@ -3611,7 +3765,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         text = (f"UNVERIFIED {session_ref}: pushed ref(s) {tried} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
-        label = _whois_sig_label(local, session_ref, sig_line, msg_text)
+        label = _whois_sig_label(root, local, session_ref, sig_line, msg_text)
         if label is not None:
             text += f"\n{label}"
         # A forged sig is refused even on the unproven path: 2 outranks 1,
@@ -3631,7 +3785,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
     text = f"{answer}  (verified against {live_ref} @ {sha})"
     # INFORMATIONAL signature label: never part of the exit decision -- EXCEPT
     # clause (3)'s enforced FORGED refusal, checked below.
-    label = _whois_sig_label(rows, session_ref, sig_line, msg_text)
+    label = _whois_sig_label(root, rows, session_ref, sig_line, msg_text)
     if label is not None:
         text += f"\n{label}"
     refusal = _whois_enforced_refusal(root, session_ref, label,
