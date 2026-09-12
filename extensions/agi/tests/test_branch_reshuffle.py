@@ -539,7 +539,149 @@ def test_delete_old_refuses_by_name_and_deletes_nothing_when_unpointed(tmp_path:
         assert f"origin/{old}" in origin, (old, origin)
 
 
-# ---- KID 2 (B1, L4.320): --dry-run --delete-old prints [DRY ] runs none --
+# ---- L4.330 (KID B): reshuffle --delete-old is rc-honest + RESUMABLE -----
+def test_delete_old_ls_remote_failure_is_rc_honest(tmp_path: Path):
+    """(rc-honest; L4.330 KID B) reshuffle --delete-old probes origin with an
+    rc-honest ls-remote before each non-dry delete. A FAILED probe (bogus
+    origin URL) must be collected as a refusal, name each branch, exit non-zero
+    and NEVER be read as "already deleted" — otherwise a resuming run reports
+    success while deleting nothing. The falsifier is
+    `assert res.returncode != 0` and `assert 'seat/post-a@s2' in res.stderr`
+    (both flip to a false success under the pre-fix unconditional pass)."""
+    r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+    # unreachable origin (a local path that does not exist): deterministic,
+    # instant, rc != 0 — no SSH/network.
+    _git(r, "remote", "set-url", "origin", "/nonexistent/origin.git")
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
+    assert res.returncode != 0, res.stdout
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert old in res.stderr, (old, res.stderr)
+    assert "refused" in res.stderr, res.stderr
+    # PARENT (L4.330): the real falsifier for the PROBE, not just for the
+    # push that would fail anyway. The rc-honest probe must refuse BEFORE any
+    # delete is attempted, so NO `[APPLY] branch delete` line may be printed.
+    # Pre-fix (or with the probe disabled) the pass prints the delete line,
+    # tries the push against the bogus origin, and produces the same stderr
+    # by a different route -- which is why the old asserts above passed under
+    # mutation. This assert flips.
+    assert "[APPLY] branch delete (remote)" not in res.stdout, res.stdout
+
+
+def test_delete_old_second_run_resumes_and_exits_zero(tmp_path: Path):
+    """(resume; L4.330 KID B) reshuffle --delete-old gains an rc-honest
+    resume-skip: once a run has deleted the legacy branches, a SECOND run
+    re-probes each ref, sees them genuinely absent (rc 0, empty stdout), skips
+    with a clear line, and exits 0 — deleting only what remains (nothing).
+    Before the fix the pass had NO skip at all and unconditionally re-pushed
+    `git push origin --delete <old>` for every non-master job. The falsifier is
+    `assert 'origin --delete seat/post-a@s2' not in res2.stdout` (present
+    before the fix)."""
+    r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+    kinds = ["main,posts,towns,loops"]
+    # capture the sha BEFORE res1: a successful delete also prunes the local
+    # remote-tracking ref, so afterwards there is nothing left to recreate
+    # from.
+    sha = _git(r, "rev-parse",
+               "refs/remotes/origin/seat/post-a@s2").stdout.strip()
+    assert sha, "fixture must have a legacy tracking ref to recreate"
+    res1 = _run_cli(r / ".agi", "--delete-old", "--kinds", *kinds)
+    assert res1.returncode == 0, res1.stdout + res1.stderr
+    # PARENT (L4.330): a plain second run is NOT enough -- a successful
+    # delete also prunes the local remote-tracking ref, so `_reshuffle_jobs`
+    # finds nothing and the run returns before the probe. KID B's original
+    # second-run test was therefore vacuous (it passed with the skip
+    # disabled). Re-create the STALE tracking ref for one already-deleted
+    # legacy branch so the job is still discovered and the skip is the only
+    # thing that can keep the run quiet.
+    _git(r, "update-ref", "refs/remotes/origin/seat/post-a@s2", sha)
+    res2 = _run_cli(r / ".agi", "--delete-old", "--kinds", *kinds)
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    # the skip fired by name and the already-gone ref was NOT re-deleted
+    assert "already absent" in res2.stdout, res2.stdout
+    for old in ["seat/post-a@s2", "town/core/season/s2"]:
+        assert f"origin --delete {old}" not in res2.stdout, (old, res2.stdout)
+
+
+def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
+    """(L4.330 KID B; restored from Prime mur-47, adapted to the gated form)
+    --delete-old on the reshuffle pass: (a) an un-pointed target is refused
+    ALL-OR-NOTHING BEFORE any delete (no remote branch touched) and (b) a
+    delete that fails AT PUSH TIME is COLLECTED and the run CONTINUES to the
+    next ordered target, exiting non-zero and naming ONLY the failed one —
+    proven by a LATER ordered target (a town, after the refused post) being
+    deleted in the SAME run. The push-time failure is REAL, never a
+    monkeypatch: a pre-receive hook in the bare origin rejects only the
+    deletion (zero new-sha) of refs/heads/seat/post-a@s2."""
+    # (a) all-or-nothing wall BEFORE any delete
+    (tmp_path / "a").mkdir()
+    ra = _build_repo(tmp_path / "a")
+    _apply_all(ra / ".agi")
+    (ra / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (ra / ".agi/sessions/verified.stamp").write_text("green")
+
+    # sabotage ONE target's upstream back to the carried old name
+    _git(ra, "branch", "--set-upstream-to", "origin/seat/post-a@s2",
+         "season2/posts/post-a")
+    res_a = _run_cli(ra / ".agi", "--delete-old", "--kinds",
+                     "main,posts,towns,loops")
+    assert res_a.returncode == 1, res_a.stdout + res_a.stderr
+    assert "season2/posts/post-a" in res_a.stderr, res_a.stderr
+    origin_a = _git(ra, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert f"origin/{old}" in origin_a, (old, origin_a)
+
+    # (b) push-time failure is collected; the run CONTINUES past it
+    (tmp_path / "b").mkdir()
+    rb = _build_repo(tmp_path / "b")
+    _apply_all(rb / ".agi")
+    (rb / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (rb / ".agi/sessions/verified.stamp").write_text("green")
+    # a real pre-receive hook in the bare origin rejects the deletion of ONLY
+    # refs/heads/seat/post-a@s2 (kind post — the EARLIEST ordered target
+    # posts->towns->mains->loops), so the next ordered target is the town.
+    hook = (
+        "#!/bin/sh\n"
+        "while read old new ref; do\n"
+        "  if [ \"$ref\" = \"refs/heads/seat/post-a@s2\" ]; then\n"
+        "    echo 'blocked' >&2\n"
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    hooks_dir = rb.parent / "origin.git" / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    pre_receive = hooks_dir / "pre-receive"
+    pre_receive.write_text(hook)
+    pre_receive.chmod(0o755)
+
+    res_b = _run_cli(rb / ".agi", "--delete-old", "--kinds",
+                     "main,posts,towns,loops")
+    assert res_b.returncode != 0, res_b.stdout + res_b.stderr
+    # ONLY the failed one is named (it failed at push time, not the gate)
+    assert "seat/post-a@s2" in res_b.stderr, res_b.stderr
+    assert "town/core/season/s2" not in res_b.stderr, res_b.stderr
+    origin_b = _git(rb, "branch", "-r", "--format=%(refname:short)").stdout
+    # a LATER ordered target was deleted in the SAME run => continuation
+    assert "origin/town/core/season/s2" not in origin_b, \
+        "continuation proven: later town was deleted"
+    assert "origin/season/s2" not in origin_b, \
+        "continuation proven: later main was deleted"
+    assert "origin/loop/x@s2" not in origin_b, \
+        "continuation proven: later loop was deleted"
+    # the refused (blocked) post survived the run
+    assert "origin/seat/post-a@s2" in origin_b, origin_b
+
+
 def test_delete_old_dry_run_prints_zero_runs(tmp_path: Path):
     """(B1) `--dry-run --delete-old` prints every delete as a `[DRY ]` line
     and runs NONE of them — the remote still holds every old branch, and the
@@ -616,3 +758,46 @@ def test_dry_run_plans_intermediate_post_at_to_canonical(tmp_path: Path):
     assert "post/post-y@s2" in out
     assert "season2/posts/post-y" in out
     assert "NO-MATCH" not in out
+
+
+# ---- L4.330 (KID A): the plan prints what --apply does + dry/apply refusal --
+def test_dry_run_plans_master_as_add_only_push(tmp_path: Path):
+    """A MAIN-kind job (old == master) must be planned ADD-ONLY: the plan
+    prints `git push origin master:<new>` FROM master's tip and NEVER a
+    `git branch -m master` line — byte-for-byte what --apply runs for a
+    master job. If the plan were reverted to the old blanket `git branch -m
+    {old} {new}` for every job, `git branch -m master` would appear and this
+    assert would flip."""
+    r = _master_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    # master is add-only: pushed FROM master's tip (master:<new>), not a
+    # plain rename-and-push, and NO `git branch -m master` anywhere.
+    assert "git push origin master:season1/main" in out, out
+    assert "git branch -m master" not in out, out
+    # the master push line is a push (new), exactly matching the --apply form
+    assert "[DRY ] branch push (new): git push origin master:season1/main" in out, out
+
+
+def test_dry_run_apply_refused_by_name_and_changes_nothing(tmp_path: Path):
+    """`--dry-run --apply` is REFUSED BY NAME: exits 1, prints an ERR naming
+    BOTH flags, and performs no rename/push. Before the L4.330 guard the pair
+    fell through to the --apply branch and APPLIED (the defect)."""
+    r = _build_repo(tmp_path)
+    root = r / ".agi"
+    kinds = ["main,posts,towns,loops"]
+    before_local = _git(r, "branch", "--format=%(refname:short)").stdout
+    before_origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+
+    res = _run_cli(root, "--dry-run", "--apply", "--kinds", *kinds)
+    assert res.returncode == 1, res.stdout
+    assert "--dry-run" in res.stderr and "--apply" in res.stderr, res.stderr
+
+    # nothing done: local + origin refs unchanged, no plan file written
+    after_local = _git(r, "branch", "--format=%(refname:short)").stdout
+    assert after_local == before_local, (before_local, after_local)
+    after_origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    assert after_origin == before_origin, (before_origin, after_origin)
+    # no plan/baseline file was written by the refused pair
+    assert not (root / "sessions/branch-reshuffle-plan.json").exists()
