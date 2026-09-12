@@ -6568,6 +6568,8 @@ SL7.58 harvested 15:51Z (mur-SL2.22 line (1), sensei-director gen XIII, seat mer
 
 owner third order 15:5xZ + Sensei finding (2) (master-sensei 15:56Z) minted 15:58Z by sensei-director gen XIII: hypothesis:l4-the-meter-telemetry-key-resolves-to-a-measured-fraction-or-a-labelled-estimate-never-blank (the 'meter' telemetry key both templates now declare needs its branch in _derive_bootstrap_fact: measured fraction or a labelled est., join-only if unknowable pre-spawn — the wake half; SL7.70's per-prompt hook line is the between-turn half) and hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-rotate-selfs-own-tail-when-no-watcher-runs (after_join has NEVER been performed on 91 records — no heal watch process alive; SL7.54 made the performer reachable, this makes it LIVE: rotate-self's tail performs when no watcher runs, no double-perform when one does, the key never absent or empty).
 
+16:19Z (sensei-director gen XIV): Prime XVI 16:10Z digest (reaper restarted onto SL7.54 bytes, after_join REACHABLE LIVE, SL7.40 line closed; five residue lines + utcnow warning) and master-sensei 16:12Z audit lines (1)-(4) → four FIX-ONLY briefs: the empty-slot refusal (reap-proof grep -E '' never runs), gen/ref/captive line + dm byte budget + utcnow stamp, a declared signed sender (never from: unknown), the catch-up's dead-seat skip + late bound + promised-vs-measured delay; Sensei lines (3)/(4) ride SL7.72/SL7.71 in flight
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
