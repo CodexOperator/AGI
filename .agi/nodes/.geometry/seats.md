@@ -4,7 +4,7 @@ mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
   - goal:g17
-edited_by: belam
+edited_by: stream-master
 locations: {}
 scaffold_hash: ea45aa757f70e3ef
 seats:
@@ -24,6 +24,7 @@ seats:
   - {"role": "council", "tier": 1, "harness": "", "model": "", "effort": "", "settings": "", "session_kind": "", "personality_ref": "", "handoff_file": "", "worktree": "", "session_ref": "", "name": "council-core", "pin_ref": ".agi/sessions/council-core.meter", "rotated_by": "prime", "owning_goal": "vision:self-perpetuating", "town": "core"}
   - {"role": "council", "tier": 1, "harness": "", "model": "", "effort": "", "settings": "", "session_kind": "", "personality_ref": "", "handoff_file": "", "worktree": "", "session_ref": "", "name": "council-streaming-suite", "pin_ref": ".agi/sessions/council-streaming-suite.meter", "rotated_by": "council-core", "owning_goal": "vision:streaming-suite", "town": "streaming-suite"}
   - {"role": "council", "tier": 1, "harness": "", "model": "", "effort": "", "settings": "", "session_kind": "", "personality_ref": "", "handoff_file": "", "worktree": "", "session_ref": "", "name": "council-web-app-suite", "pin_ref": ".agi/sessions/council-web-app-suite.meter", "rotated_by": "council-core", "owning_goal": "vision:web-app-suite", "town": "web-app-suite"}
+  - {"name": "stream-master", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "max", "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": ".agi/sessions/seats/stream-master.handoff.md", "pin_ref": ".agi/sessions/stream-master.meter", "rotated_by": "belam", "owning_goal": "goal:g18.1", "worktree": "", "session_ref": "6a3600", "town": "streaming-suite", "rotate_at": 0.47, "generation": 1, "window": "@312", "pid": 3364723, "session_id": "bedee523-36d8-47d9-80e7-ae6712822c07"}
 thought_session: belam-S1-L4-VII
 ---
 <!-- BODY:BEGIN -->

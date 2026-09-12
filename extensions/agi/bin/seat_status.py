@@ -63,11 +63,15 @@ def _load_registry_rows(root: Path) -> tuple[list, bool]:
     declared frontmatter sources (hypothesis:l3w4-hierarchy-one-source) — the
     same file `dispatch.py --seat` and `rotate.py meter --seat` read. The
     seat_status copy of the seats.md read is gone so the view cannot drift
-    from the chart. Absent file -> `([], False)`, the fail-open contract
-    everything else degrades to.
+    from the chart. Presence resolves THROUGH geometry_config (posts-first,
+    else the deprecated seats.md), never a literal seats.md — the same
+    post:seats-renamed resolver every other reader uses
+    (hypothesis:l4-a-seat-is-a-post-everywhere). Absent file ->
+    `([], False)`, the fail-open contract everything else degrades to.
     """
-    seats_md = Path(root) / "nodes" / ".geometry" / "seats.md"
-    present = seats_md.is_file()
+    import geometry_config as _gc
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
     rows = []
     try:
         import hierarchy as _hier
@@ -80,10 +84,18 @@ def _load_registry_rows(root: Path) -> tuple[list, bool]:
 
 
 def _rows_via_zoom(root: Path) -> list:
+    """Last-resort row read, posts-first with the seats fallback. zoom's
+    frontmatter view is keyed by file-id+list-key, so the renamed layout
+    (`config:posts`.`posts`) must be tried before the deprecated
+    `config:seats`.`seats` — a hardcoded seats-only lookup returns [] the
+    moment the file is posts.md."""
     try:
         import zoom as _zoom
         gf = _zoom._frontmatter_for(root, ".geometry")
-        return (gf.get("config:seats") or {}).get("seats") or []
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        return rows or []
     except Exception:                                                # noqa: BLE001
         return []
 

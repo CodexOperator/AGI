@@ -479,8 +479,9 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             return list(rows), True
     except Exception:
         pass
-    seats_md = root / "nodes" / ".geometry" / "seats.md"
-    present = seats_md.is_file()
+    import geometry_config as _gc
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
     rows = []
     if present:
         # The view derives from the one reader (hypothesis:l3w4-hierarchy-
@@ -490,8 +491,14 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             import hierarchy as _hier
             rows = _hier.load_seats(root)
         except Exception:
+            # zoom frontmatter is keyed by file-id+list-key; the renamed
+            # layout (`config:posts`.`posts`) precedes the deprecated
+            # `config:seats`.`seats` (hypothesis:l4-a-seat-is-a-post-everywhere).
             gf = zoom._frontmatter_for(root, ".geometry")
-            rows = (gf.get("config:seats") or {}).get("seats") or []
+            rows = (gf.get("config:posts") or {}).get("posts")
+            if not rows:
+                rows = (gf.get("config:seats") or {}).get("seats")
+            rows = rows or []
     return list(rows), present
 
 
