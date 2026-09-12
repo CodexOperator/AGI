@@ -299,7 +299,7 @@ def test_the_numerator_is_the_latest_message_not_a_running_sum(tmp_path):
     assert used == 1000, used          # ...and reports the LEVEL, not 200_000
 
 
-def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
+def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch, run_hook, capsys):
     """P5 is the hook's whole reason for existing, so an unrunnable command is
     the deliverable failing, not a typo.
 
@@ -307,12 +307,17 @@ def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
     `--pin` (which TAKES A PATH) swallowed the `--session-log` flag as its
     value. This asserts the emitted argv PARSES against rotate.py's own
     parser — the arithmetic-not-the-string standard.
+
+    mur-SL2.17 / goal:g15.24 (ii): drives the hook's ENTRY FUNCTION IN
+    PROCESS — `hook.main([])` with `sys.stdin` monkeypatched to a StringIO
+    carrying the JSON payload, `capsys` capturing stdout (via `run_hook`),
+    and the autouse `_no_real_spawn` fixture patching the ONE launch seam
+    `hook._Popen` to a recorder. An in-process run proves the spawn argv was
+    BUILT without firing a real rotate-self — no subprocess is spawned, so
+    the `AGI_HOOK_NO_SPAWN` guard is not needed here (its OWN out-of-process
+    coverage lives at test_the_no_spawn_guard... below).
     """
     import shlex
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("ra_repair2", _HOOK)
-    ra = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ra)
 
     # A seat worktree shape, so the seat is derivable and --pin is emitted.
     root = tmp_path / "repo" / ".agi" / "worktrees" / "seat-demo" / ".agi"
@@ -324,22 +329,9 @@ def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
     tp = tmp_path / "own.jsonl"
     _many_message_transcript(tp, turns=3, per_turn=900)   # 0.90 -> over the line
 
-    payload = {"transcript_path": str(tp), "session_id": "sess-1",
-               "cwd": str(root.parent)}
-    proc = _subprocess.run(
-        [_sys.executable, str(_HOOK)], input=_json.dumps(payload),
-        capture_output=True, text=True,
-        env={**dict(**{k: v for k, v in __import__("os").environ.items()}),
-             "AGI_ROTATION_STATE_DIR": str(tmp_path / "state"),
-             # Out-of-process safety (c1f01e920): a fresh interpreter imports
-             # this module with the REAL subprocess.Popen, which the in-process
-             # `_no_real_spawn` seam-patch cannot reach — so an over-line seat
-             # must never fire a live rotate-self from a pytest. The hook
-             # short-circuits at `_spawn_rotate_self` and records a fake pid
-             # instead of touching Popen when this is set.
-             "AGI_HOOK_NO_SPAWN": "1"})
-    assert proc.returncode == 0, proc.stderr
-    out = proc.stdout
+    code, out, err = run_hook(_payload(root.parent, tp), tmp_path / "state",
+                              monkeypatch, capsys)
+    assert code == 0, err
     assert "ROTATION OWED NOW" in out, out
 
     cmd = [ln for ln in out.splitlines() if "rotate.py meter" in ln]
