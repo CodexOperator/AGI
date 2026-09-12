@@ -7415,14 +7415,21 @@ def _git_head(root: Path, *, argv: list[str] | None = None) -> str | None:
 
 def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
                            seat_row: dict | None, commit: str | None,
-                           generation: int | None = None):
+                           generation: int | None = None,
+                           meter_first_input_bytes: int | None = None):
     """Resolve ONE bootstrap fact to a real value the handover can see, else
     None with a NAMED skip reason. NEVER the old blanket `0b owns deriving`:
     every skip names the connection that is missing (the seat row field, the
     join, the sibling round that owns it), so a cold reader knows who to ask.
     `root` is the repo, `seat` the successor's name, `seat_row` its
     config:seats row (or {} when no row exists), `commit` the HEAD stamp (or
-    None when there is no repo). Returns (value, reason)."""
+    None when there is no repo). Returns (value, reason).
+
+    `meter_first_input_bytes` (goal:g15.25 SL7.71) is the successor's composed
+    first-input byte count (head + brief + STARTUP) as rotate-self composed
+    it, supplied ONLY by a caller that truly holds those bytes; the 'meter'
+    branch uses it for the `est. N tokens = ...` estimate when the pinned
+    successor transcript has no assistant usage yet. Default None."""
     row = seat_row or {}
     if key == "commit":
         return commit, ("no git repo to stamp at" if commit is None else None)
@@ -7483,6 +7490,53 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         return ((str(row[key]) if row.get(key) is not None else None),
                 (f"seat row carries no {key} at HEAD"
                  if row.get(key) is None else None))
+    if key == "meter":
+        # GOAL:g15.25 (SL7.71) — the 'meter' telemetry key BOTH templates now
+        #     declare (director + prime_director, 4bad592ec + fb9e86652).
+        #     NEVER blank, NEVER a bare unlabelled number, NEVER a confident
+        #     wrong number (P6), in three descending cases:
+        #       (a) the pinned successor transcript has assistant usage -> the
+        #           measured fraction EXACTLY as rotate.py meter prints it
+        #           (`0.NNNN (tokens/window tokens) source=... threshold=...`);
+        #       (b) else, when the caller supplied the successor's composed
+        #           first-input byte count -> `est. N tokens = first input
+        #           <bytes>/4 (head + brief + STARTUP)`;
+        #       (c) else (pre-spawn, no usage, no bytes) -> None with a NAMED
+        #           join-only reason, and because 'meter' is in
+        #           BOOTSTRAP_JOIN_ONLY_FACTS the pre-spawn record writes
+        #           `pending: resolved after join` and
+        #           _fill_bootstrap_join_facts fills it once the successor
+        #           has answered — never `SKIPPED: no handover derivation`.
+        usage = None
+        src = None
+        pin = _seat_pin_path(root, seat)
+        if pin.is_file():
+            lp = _read_pin_target(pin)
+            if lp is not None:
+                try:
+                    usage = parse_usage_from_cc_transcript(lp)
+                    if usage is not None:
+                        src = usage_source_name("pin_file")
+                except (OSError, ValueError):
+                    usage = None
+        if usage is not None:
+            ctxt = load_ladder_field(root, "director_context_tokens",
+                                     DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+            thr = load_ladder_field(root, "director_rotate_at",
+                                    DEFAULT_DIRECTOR_ROTATE_AT)
+            fraction = calculate_fraction(usage, ctxt)
+            tokens_used = (usage.get("input_tokens", 0)
+                           + usage.get("cache_read_input_tokens", 0)
+                           + usage.get("cache_creation_input_tokens", 0))
+            return (f"{fraction:.4f} ({tokens_used}/{ctxt} tokens) "
+                    f"source={src} threshold={thr}"), None
+        if meter_first_input_bytes is not None:
+            est = max(1, meter_first_input_bytes // 4)
+            return (f"est. {est} tokens = first input "
+                    f"{meter_first_input_bytes} bytes/4 (head + brief + STARTUP)"), None
+        return None, ("meter is join-only: the pinned successor transcript "
+                      "has no assistant usage yet and no composed first-input "
+                      "bytes were supplied; the after_join fill resolves it")
     # -- join-only: only the @id join (after_join round) can supply these ----
     if key == "successor_live_model":
         return None, "successor live model is known only after the @id join (after_join)"
@@ -7518,6 +7572,7 @@ BOOTSTRAP_FIXED_FACTS = [
 # resolved (post-join overrides).
 BOOTSTRAP_JOIN_ONLY_FACTS = [
     "successor_live_model", "successor_address", "model_refusal_fallback",
+    "meter",
 ]
 
 
@@ -7528,7 +7583,8 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      overrides: dict | None = None,
                      join_poll_secs: int | None = None,
                      prior_measured_at: dict | None = None,
-                     keep_measured: set | None = None) -> str:
+                     keep_measured: set | None = None,
+                     meter_first_input_bytes: int | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -7602,7 +7658,8 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
             continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit,
-            generation=generation)
+            generation=generation,
+            meter_first_input_bytes=meter_first_input_bytes)
         if value is None:
             tele[key] = f"SKIPPED: {reason}"
         else:
@@ -9492,6 +9549,38 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
             overrides["successor_live_model"] = str(live_model)
         if refusal_fallback:
             overrides["model_refusal_fallback"] = refusal_fallback
+        # (goal:g15.25 SL7.71) the 'meter' join fact — filled here the same
+        #     way the meter branch reads it at pre-spawn: the pinned
+        #     successor transcript (which, AFTER the join, has carried its
+        #     first assistant turn) is parsed for usage; when it has usage,
+        #     the measured fraction (exactly as rotate.py meter prints it)
+        #     is overridden — the pre-spawn `pending: resolved after join`
+        #     is never left behind. A fill that finds no usage leaves the
+        #     key in join_pending (written `unresolved: ...` by the caller's
+        #     join_poll_secs — never the PRE-join pending lie).
+        pin = _seat_pin_path(root, seat)
+        if pin.is_file():
+            lp = _read_pin_target(pin)
+            if lp is not None:
+                try:
+                    _use = parse_usage_from_cc_transcript(lp)
+                except (OSError, ValueError):
+                    _use = None
+                if _use is not None:
+                    _ctxt = load_ladder_field(
+                        root, "director_context_tokens",
+                        DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+                    _thr = load_ladder_field(
+                        root, "director_rotate_at",
+                        DEFAULT_DIRECTOR_ROTATE_AT)
+                    _frac = calculate_fraction(_use, _ctxt)
+                    _used = (_use.get("input_tokens", 0)
+                             + _use.get("cache_read_input_tokens", 0)
+                             + _use.get("cache_creation_input_tokens", 0))
+                    overrides["meter"] = (
+                        f"{_frac:.4f} ({_used}/{_ctxt} tokens) "
+                        f"source={usage_source_name('pin_file')} "
+                        f"threshold={_thr}")
         # carry EVERY other fact through byte-identically (value AND
         # measured_at): only the join facts may change on this rewrite. A
         # join-only fact ANOTHER path already resolved (rotate-self's
