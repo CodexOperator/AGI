@@ -1099,19 +1099,54 @@ def _ring_pubkey_for_post(root):
     return resolver
 
 
-def _config_write_fields(where, set_fm):
+#: The RESERVED key under which a config-write decision names its node id.
+#: Prefixed with `_` and REFUSED BY NAME if a caller tries to write it, so a
+#: ``set_fm``/``unset_fm`` key can NEVER displace the node the quorum
+#: authorises (defect 2 of hypothesis:l4-canonical-bytes-are-injective-and-
+#: fresh-and-the-ring-gates-the-write-itself: the id under a caller-mutable
+#: ``node`` key meant one signature authorised removing ANY key from X).
+NODE_KEY = "_node"
+
+#: The removed-marker an UNSET key carries in the signed decision, so a
+#: signature authorising "unset k" is DISTINCT in the bytes from one
+#: authorising "set k: <value>" (defect 1: the quorum must cover the keys
+#: being REMOVED, not the set keys alone -- an unset-only edit previously
+#: demanded a quorum whose bytes covered nothing).
+UNSET_MARKER = "<unset>"
+
+
+def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
+                         nonce=None):
     """The FULL config-write decision fields a ring's signatures cover: the
-    node id AND every row field being written, its value string-serialized by
-    rings.json_field -- NO truncation (hypothesis:l4-a-ring-decision-carries-
-    m-of-n-signatures claim (2), HOLE 2: the signed bytes must cover the
-    decision they authorise, so a signature for one row cannot authorise a
-    different one). The sign side, the gate, and the persisted record all use
-    these same bytes."""
+    node id (under the reserved NODE_KEY a caller's set_fm can never dispose)
+    AND every key being set AND every key being unset, each value
+    string-serialized by rings.json_field (an unset key carries UNSET_MARKER,
+    so "unset k" is distinct in the bytes from "set k: <value>"). The sign
+    side, the gate, and the persisted record all use these same bytes.
+    FRESH (kid B): the returned dict carries the reserved ``_fresh``
+    (ts|nonce) so a persisted config-write quorum does NOT replay across
+    time; ts/nonce default to freshly minted, pass them to fix the bytes the
+    signer covered (fixtures do)."""
     from seatsig import rings as _rings  # noqa: PLC0415
-    fields = {"node": where}
-    for k, v in (set_fm or {}).items():
-        fields[k] = _rings.json_field(v)
-    return fields
+    fields = {NODE_KEY: _rings.json_field(where)}  # _node: never displaced
+    for k in (set_fm or {}):
+        if k == NODE_KEY:
+            raise EditError(
+                f"config-row write to {where}: the reserved decision key "
+                f"{NODE_KEY!r} (the node id a ring quorum authorises) is "
+                f"REFUSED as a set field so a caller's key cannot name a "
+                f"different node (defect 2, hypothesis:l4-canonical-bytes-are-"
+                f"injective-and-fresh-and-the-ring-gates-the-write-itself)")
+        fields[k] = _rings.json_field(set_fm[k])
+    for k in (unset_fm or []):
+        if k == NODE_KEY:
+            raise EditError(
+                f"config-row write to {where}: the reserved decision key "
+                f"{NODE_KEY!r} is REFUSED as an unset key (defect 2, "
+                f"hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-"
+                f"the-ring-gates-the-write-itself)")
+        fields[k] = _rings.json_field(UNSET_MARKER)
+    return _rings.fresh_fields(fields, ts=ts, nonce=nonce)
 
 
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
@@ -1120,7 +1155,8 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         allow_self_row: bool = False,
                         has_body: bool = False,
                         signatures: list | None = None,
-                        out_decision: dict | None = None):
+                        out_decision: dict | None = None,
+                        ring_fresh: tuple | None = None):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
@@ -1176,85 +1212,107 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 f"(human gate, rung 3)")
 
     admitted = links.parse_written_by(written_by) if written_by is not None else None
-    if not admitted:
-        return
     resolved = _resolve_role(root, actor, role)
-    if resolved in admitted:
-        return
 
-    # PRIME RULING 2026-09-11 carve-out: the master-sensei seat may write
-    # config:rotations `templates` (startup/telemetry, facts body) directly
-    # instead of dm-and-wait. Authorized by the schema's `master_sensei_row`
-    # declaration, gated by the startup producing judge -- one generic rule,
-    # no role literal in the enforcement path (the self_row pattern). Must be
-    # tried only when the writer is NOT admitted. Two entry shapes: a
-    # templates frontmatter set (checked here against old bytes + the
-    # judge), and a body-only edit (set_fm/unset_fm empty -- checked by
-    # submit's facts-region gate, since the body bytes only exist after
-    # composition). This block comes BEFORE the self_row gate so a
-    # master-sensei templates write is adjudicated by this carve-out, not
-    # refused by an unrelated seats declaration.
-    ms = schema.frontmatter.get("master_sensei_row")
-    if isinstance(ms, dict) and ms.get("actor") and has_body is not None:
-        # The master-sensei identity is the RESOLVED SEAT NAME only (L4.110
-        # self_row rule); a free-text `--actor` string is never the identity
-        # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-
-        # on-the-resolved-seat).
-        is_ms = _resolve_seat(root, actor) == str(ms.get("actor"))
-        if is_ms:
-            touches_templates = (set_fm is not None
-                                 and ms.get("list_key") in set_fm)
-            if touches_templates:
-                mrefusal = _master_sensei_templates_refusal(
-                    root, schema, actor, set_fm, unset_fm, where)
-                if mrefusal is None:
+    # ------------------------------------------------------ GATE 1: written_by
+    # The schema's OWN restricted-writer rule. An UNRESOLVED identity refuses
+    # only because the type declares `written_by`; a schema declaring nothing
+    # (admitted None) gates nothing here. A writer this gate does NOT admit is
+    # REFUSED BEYOND THIS POINT -- a later satisfied ring quorum is never an
+    # OR substitute for written_by (hypothesis:l4-canonical-bytes-are-
+    # injective-and-fresh-and-the-ring-gates-the-write-itself, defect 3: the
+    # two gates are an AND, so an unadmitted writer with a valid quorum is
+    # still refused by name, and an ADMITTED writer still must satisfy the
+    # ring when the schema declares one -- gate 2 below).
+    if admitted is not None and resolved not in admitted:
+        # PRIME RULING 2026-09-11 carve-out: the master-sensei seat may write
+        # config:rotations `templates` (startup/telemetry, facts body) directly
+        # instead of dm-and-wait. Authorized by the schema's `master_sensei_row`
+        # declaration, gated by the startup producing judge -- one generic rule,
+        # no role literal in the enforcement path (the self_row pattern). Must be
+        # tried only when the writer is NOT admitted. Two entry shapes: a
+        # templates frontmatter set (checked here against old bytes + the
+        # judge), and a body-only edit (set_fm/unset_fm empty -- checked by
+        # submit's facts-region gate, since the body bytes only exist after
+        # composition). This block comes BEFORE the self_row gate so a
+        # master-sensei templates write is adjudicated by this carve-out, not
+        # refused by an unrelated seats declaration.
+        ms = schema.frontmatter.get("master_sensei_row")
+        if isinstance(ms, dict) and ms.get("actor") and has_body is not None:
+            # The master-sensei identity is the RESOLVED SEAT NAME only (L4.110
+            # self_row rule); a free-text `--actor` string is never the identity
+            # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-and-keys-
+            # on-the-resolved-seat).
+            is_ms = _resolve_seat(root, actor) == str(ms.get("actor"))
+            if is_ms:
+                touches_templates = (set_fm is not None
+                                     and ms.get("list_key") in set_fm)
+                if touches_templates:
+                    mrefusal = _master_sensei_templates_refusal(
+                        root, schema, actor, set_fm, unset_fm, where)
+                    if mrefusal is None:
+                        return
+                    raise EditError(
+                        f"{node_type} nodes ({where}): a master-sensei write is "
+                        f"limited to the declared template regions and must pass "
+                        f"the startup producing judge; {mrefusal} "
+                        f"(PRIME RULING 2026-09-11)")
+                if has_body and not (set_fm or unset_fm):
+                    # Body-only master-sensei edit: the facts-body carve-out
+                    # applies ONLY to the node whose frontmatter carries the
+                    # declaration's list_key (the `templates` node). A config:seats
+                    # body probe, or any other config node, is NOT granted here and
+                    # falls through to the written_by refusal below
+                    # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-
+                    # and-keys-on-the-resolved-seat).
+                    if ms.get("list_key") and (_read_node_fm(root, where) or {}).get(
+                            ms.get("list_key")):
+                        # admission here is refined by submit's facts-region gate,
+                        # which refuses any delta outside the `## facts` section.
+                        return
+
+        # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
+        # say) is not in `written_by` and yet may update ONE thing — its own seat
+        # row, restricted to the fields the type's `self_row` declaration names.
+        # This is the only unadmitted-writer path; without the schema declaring
+        # `self_row`, or for a `create`, the refusal below holds exactly as
+        # before. `allow_self_row` is True only for `submit` (an edit); `create`
+        # never admits a seated writer to mint a config node. The self_row path
+        # DOES NOT need the ring quorum (test D ruling, hypothesis:l4-canonical-
+        # bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself): a
+        # seat may always update its OWN declared row fields, gate 2 is for
+        # non-self-row config writes.
+        if allow_self_row and (set_fm is not None or unset_fm is not None):
+            sr = schema.frontmatter.get("self_row")
+            if isinstance(sr, dict) and _resolve_seat(root, actor) is not None:
+                refusal = _self_row_refusal(root, schema, actor, set_fm,
+                                            unset_fm, where)
+                if refusal is None:
                     return
                 raise EditError(
-                    f"{node_type} nodes ({where}): a master-sensei write is "
-                    f"limited to the declared template regions and must pass "
-                    f"the startup producing judge; {mrefusal} "
-                    f"(PRIME RULING 2026-09-11)")
-            if has_body and not (set_fm or unset_fm):
-                # Body-only master-sensei edit: the facts-body carve-out
-                # applies ONLY to the node whose frontmatter carries the
-                # declaration's list_key (the `templates` node). A config:seats
-                # body probe, or any other config node, is NOT granted here and
-                # falls through to the written_by refusal below
-                # (hypothesis:l4-the-carve-out-refuses-a-non-dict-template-
-                # and-keys-on-the-resolved-seat).
-                if ms.get("list_key") and (_read_node_fm(root, where) or {}).get(
-                        ms.get("list_key")):
-                    # admission here is refined by submit's facts-region gate,
-                    # which refuses any delta outside the `## facts` section.
-                    return
+                    f"{node_type} nodes ({where}): a seated role may update only "
+                    f"its OWN row and only the declared fields; {refusal}. "
+                    f"(L4.110 prime ruling B)")
 
-    # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
-    # say) is not in `written_by` and yet may update ONE thing — its own seat
-    # row, restricted to the fields the type's `self_row` declaration names.
-    # This is the only unadmitted-writer path; without the schema declaring
-    # `self_row`, or for a `create`, the refusal below holds exactly as
-    # before. `allow_self_row` is True only for `submit` (an edit); `create`
-    # never admits a seated writer to mint a config node.
-    if allow_self_row and (set_fm is not None or unset_fm is not None):
-        sr = schema.frontmatter.get("self_row")
-        if isinstance(sr, dict) and _resolve_seat(root, actor) is not None:
-            refusal = _self_row_refusal(root, schema, actor, set_fm,
-                                        unset_fm, where)
-            if refusal is None:
-                return
-            raise EditError(
-                f"{node_type} nodes ({where}): a seated role may update only "
-                f"its OWN row and only the declared fields; {refusal}. "
-                f"(L4.110 prime ruling B)")
+        # Not admitted by written_by nor any carve-out: REFUSE BY NAME with the
+        # admitted roles -- even with a satisfied ring quorum (test C: the
+        # refusal here is the written_by line, never the ring line).
+        raise EditError(
+            f"{node_type} nodes ({where}) may be hand-edited only by "
+            f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
+            f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
+            f"(goal:g12)")
 
+    # ------------------------------------------------------------ GATE 2: ring
     # RUNG 2 ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
-    # signatures). OPT-IN: only a schema that declares `ring: <name>` — the
-    # ring whose quorum governs NON-SELF-ROW config writes to this node type
-    # — demands a quorum, and only for a config-row edit (set_fm/unset_fm),
-    # never a body-only or self-row write (those returned above). The quorum
-    # is verified through the SAME seatsig Scheme interface send.py uses
-    # (seatsig/rings.py), never the gate's own crypto; a record short of m is
-    # REFUSED BY NAME with the m-of-n count.
+    # signatures), now an ADDITIONAL gate on top of written_by (AND, defect 3):
+    # a writer that passed gate 1 is STILL refused here when the schema
+    # declares `ring: <name>` and the write is a config-row edit
+    # (set_fm/unset_fm). OPT-IN: a schema declaring no `ring:` (or a ring the
+    # geometry does not name) demands no quorum, and body-only / self-row
+    # writes never reach here. The quorum is verified through the SAME seatsig
+    # Scheme interface send.py uses (seatsig/rings.py), never the gate's own
+    # crypto; a record short of m is REFUSED BY NAME with the m-of-n count.
     ring_name = schema.frontmatter.get("ring")
     if ring_name and (set_fm or unset_fm):
         try:
@@ -1265,7 +1323,15 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         except Exception:  # noqa: BLE001
             ring = None
         if ring is not None:
-            fields = _config_write_fields(where, set_fm)
+            # FRESH (kid B): the gate signs the SAME fresh decision a producer
+            # signs (pin ts/nonce via ring_fresh, or mint fresh here once);
+            # canonical + freshness + the persisted cell all share these bytes.
+            # The decision covers set AND unset keys (defect 1: an unset-only
+            # edit's signed bytes cover the keys being removed).
+            fields = _config_write_fields(
+                where, set_fm, unset_fm,
+                ts=ring_fresh[0] if ring_fresh else None,
+                nonce=ring_fresh[1] if ring_fresh else None)
             canonical = _rings.canonical_bytes("config-write", fields)
             res = _rings.verify_ring(
                 ring, canonical, signatures or [],
@@ -1274,6 +1340,17 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 raise EditError(
                     f"{node_type} nodes ({where}): {res.refused}. "
                     f"(rung 2 multisig ring)")
+            # FRESH (kid B): the quorum satisfied, so the decision must still
+            # sit inside its replay window and not carry a spent nonce.
+            seen, remember = _rings.nonce_ledger(root)
+            fr = _rings.freshness_refusal(
+                fields,
+                max_age_s=_rings._effective_max_age_s(ring),
+                seen=seen, remember=remember)
+            if fr:
+                raise EditError(
+                    f"{node_type} nodes ({where}): freshness {fr}. "
+                    f"(rung 2 multisig ring)")
             # RUNG 2 claim (2): hand the admitted config-write decision
             # (kind + signed fields + signatures) back to the caller so it
             # can be persisted onto the node the write sanctions -- a reader
@@ -1281,13 +1358,10 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
             if out_decision is not None:
                 out_decision["cell"] = _rings.decision_cell(
                     ring_name, "config-write", fields, signatures or [])
-            return  # ring quorum satisfied -> admit
 
-    raise EditError(        
-        f"{node_type} nodes ({where}) may be hand-edited only by "
-        f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
-        f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
-        f"(goal:g12)")
+    # Admitted: the writer passed written_by (gate 1) and, when the schema
+    # declared a ring for a config-row edit, the ring quorum (gate 2).
+    return
 
 
 def _resolve_replace_text(edit: Edit) -> None:
@@ -1368,7 +1442,8 @@ def _resolve_api_root(root) -> Path:
         f"Nothing was written.")
 
 
-def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "") -> object:
+def submit(root, edit: Edit, actor: str = "", session: str = "",
+           role: str = "", ring_fresh: tuple | None = None) -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
 
     Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
@@ -1398,7 +1473,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
                                       or edit.body_patch_diff
                                       or edit.replace_target == "body"),
                         signatures=getattr(edit, "signatures", []),
-                        out_decision=_ring_out)
+                        out_decision=_ring_out,
+                        ring_fresh=ring_fresh)
 
     set_fm = dict(edit.set_fm)
     # RUNG 2 claim (2): when a `ring:`-declaring schema admitted this
@@ -1943,6 +2019,19 @@ def main(argv: list[str] | None = None) -> int:
                     help="repeatable; a `<post>:<scheme>:<sig_hex>` signature "
                          "backing a config write that a `ring:`-declaring "
                          "schema demands (rung 2, seatsig/rings.py)")
+    ap.add_argument("--ring-fresh", default=None, metavar="TS|NONCE",
+                    help="rung 2 freshness seam (kid D): pin the EXACT "
+                         "'<ts>|<nonce>' this config write's `_fresh` field "
+                         "carries, so an out-of-process signer computes the "
+                         "SAME canonical bytes a `ring:`-declaring schema's "
+                         "gate verifies. Absent -> the gate mints fresh "
+                         "(unpredictable).")
+    ap.add_argument("--ring-fields", action="store_true",
+                    help="rung 2 signer's view (kid D): print the exact "
+                         "config-write decision fields and canonical bytes the "
+                         "`ring:`-declaring gate will verify for this edit "
+                         "(+ `--ring-fresh`), then exit 0 -- never writes or "
+                         "records a nonce.")
     args = ap.parse_args(argv)
 
     if args.node_id == "create":
@@ -2012,6 +2101,29 @@ def main(argv: list[str] | None = None) -> int:
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
+
+    # hypothesis:l4-...-the-write-itself, SIGNER'S VIEW (kid D): `--ring-fields`
+    # prints the EXACT config-write decision bytes a `ring:`-declaring schema's
+    # gate will verify for this edit (+ `--ring-fresh`), then exits 0 -- never
+    # writes, never records a nonce. The signer parses the canonical hex line,
+    # signs over it, and the corresponding real invocation admits (acceptance D).
+    if args.ring_fields:
+        from seatsig import rings as _ringslib  # noqa: PLC0415
+        try:
+            _fresh = _ringslib.parse_ring_fresh(args.ring_fresh)
+        except ValueError as _ve:
+            print(f"ERR: {_ve}", file=sys.stderr)
+            return 2
+        _t, _n = (_fresh if _fresh is not None else (None, None))
+        fields = _config_write_fields(
+            edit.node_id,
+            edit.set_fm if edit.set_fm else None,
+            edit.unset_fm if edit.unset_fm else None,
+            ts=_t, nonce=_n)
+        print(_ringslib.render_ring_fields(
+            "config-write", fields,
+            _ringslib.canonical_bytes("config-write", fields)))
+        return 0
 
     # hypothesis:l3-write-partial-diffs-as-writes, build item 1 — `read` is a
     # TERMINAL, read-only verb: render the requested range to stdout and
@@ -2149,8 +2261,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         edit.signatures = args.ring_sigs
+        from seatsig import rings as _ringslib  # noqa: PLC0415
+        try:
+            _fresh = _ringslib.parse_ring_fresh(args.ring_fresh)
+        except ValueError as _ve:
+            print(f"ERR: {_ve}", file=sys.stderr)
+            return 2
         res = submit(root, edit, actor=args.actor, session=args.session,
-                     role=args.role)
+                     role=args.role, ring_fresh=_fresh)
     except (EditError, FileNotFoundError) as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
