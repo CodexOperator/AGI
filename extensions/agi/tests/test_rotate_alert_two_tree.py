@@ -185,22 +185,21 @@ def test_gap1_alert_reads_verified_under_enforcing_two_tree(
     labels `VERIFIED seat-a` — never FORGED / UNVERIFIABLE / REFUSED. The
     rotation-alert path finally crosses the resolver."""
     fx = _two_tree(tmp_path)
-    dm_seen = []
-    orig_dm = _send.send_dm
-
-    def _wrapped_dm(croot, me, other, text, sender=None):
-        dm_seen.append((other, text))
-        return orig_dm(croot, me, other, text, sender)
-
-    monkeypatch.setattr(_send, "send_dm", _wrapped_dm)
     delivered = rotate._announce_rotation(
         root=fx.wt, croot=fx.wt, seat=fx.seat, successor=fx.seat,
         gen_before=2, gen_after=3, trigger="meter due",
         handoff_path=f"{fx.seat}.handoff.md", in_flight="",
         live_names=[fx.seat, fx.recv])
     assert fx.recv in delivered, f"alert must reach {fx.recv}: {delivered}"
-    assert dm_seen, "the alert must land as a real dm"
-    assert "[rotation-alert]" in dm_seen[0][1]
+    # The dm is observed ON DISK, never through a monkeypatched `send_dm`:
+    # rotate binds `send` lazily at call time, and in the full suite that
+    # binding is not always the `send` object this module imported (an
+    # earlier test may have re-imported it), so a wrapper installed on
+    # `_send` can be invisible to rotate while the real dm still lands
+    # (SL2#17 first cut, 08:36Z: passed alone, failed only in the full run).
+    dm_log = send_mod._dm_path(fx.wt, fx.seat, fx.recv)
+    assert dm_log.is_file(), f"the alert must land as a real dm: {dm_log}"
+    assert "[rotation-alert]" in dm_log.read_text(encoding="utf-8")
 
     # read the recipient's inbox (written by real send.send on the worktree)
     # back through the real read -> _verify_block -> resolver path.
