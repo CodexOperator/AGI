@@ -611,11 +611,15 @@ def test_watch_mirror_falsifier_no_terminal_behind_running(graph_project,
 # the genuine record format.
 # --------------------------------------------------------------------------
 
-def _rot_shim(tmp_rot):
+def _rot_shim(tmp_rot, rows=None):
     """A minimal `_rotate` stand-in whose records are real rotate.py-shape
     JSON under `tmp_rot`, exercising heal's own dedupe read + the same
-    `.seating.json`-style naming the real writer uses."""
+    `.seating.json`-style naming the real writer uses. `rows`, when given, is
+    the `_load_seats` result amplified out of the shim so `_watch_one_seat`
+    re-reads the seat row it needs without a real geometry seats.md."""
     import datetime as _dt
+    _ROWS = rows if rows is not None else []
+    _LOAD = _ROWS if callable(_ROWS) else (lambda root: _ROWS)
     class _R:
         # SL2#10 seam: `_write_crash_recovery` reads the module constant for
         # the record's `tmux_session` cell (heal.py, landed by a00-a4f9327b
@@ -623,8 +627,39 @@ def _rot_shim(tmp_rot):
         # shape stays the real writer's; nothing under test reads the value.
         DEFAULT_TMUX_SESSION = "agi-rc"
         @staticmethod
+        def _load_seats(root):
+            return _LOAD(root)
+        @staticmethod
+        def _sessions_dir(root):
+            return Path(str(root)) / "sessions"
+        @staticmethod
         def _rotations_dir(root):
             return tmp_rot
+        @staticmethod
+        def _rotation_record_files(root, seat):
+            rot = _R._rotations_dir(root)
+            if not rot.is_dir():
+                return []
+            out = []
+            for p in sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name):
+                try:
+                    rec = json.loads(p.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    out.append(p)
+                    continue
+                if isinstance(rec, dict) and rec.get("rotation") == "crash-recovery":
+                    continue
+                out.append(p)
+            return out
+        @staticmethod
+        def _latest_rotation_record(root, seat):
+            files = _R._rotation_record_files(root, seat)
+            if not files:
+                return None
+            try:
+                return json.loads(files[-1].read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                return None
         @staticmethod
         def _write_rotation_record(root, rec, path=None):
             tmp_rot.mkdir(parents=True, exist_ok=True)
@@ -689,3 +724,254 @@ def test_respawned_recovery_writes_fresh_file_per_outcome(graph_project,
     for p in files:
         rec = json.loads(p.read_text())
         assert rec["result"] == "respawned"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-
+# before-declaring-a-crash, clauses (2)/(3): a rotation that just FINISHED
+# must not read as a crash. A SUCCESS rotation record newer than the row
+# (gen_after > row generation, or landed inside SEAT_DEAD_WINDOW_S while the
+# row pid is dead) means the row's pid/@id belong to the RETIRED predecessor
+# -- the seat ROTATED, never DEAD. No crash-recovery record, no launcher,
+# {} returned. The guard is never lowered: a genuinely dead seat with no
+# newer success record is still detected.
+# --------------------------------------------------------------------------
+
+SEAT_DEAD_PLUS = heal.SEAT_DEAD_WINDOW_S + 60
+
+
+def _write_started_record(rot: Path, seat: str, age_s: int) -> None:
+    """A real rotate.py-shape `started` rotate-self record, `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "started",
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s)),
+           "steps_reached": ["spawn"]}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _mk_dead_row(name: str, gen: int, pid: int = 31337,
+                 window: str = "@306") -> dict:
+    """A pre-rotation row: dead pid, gone window @id, dead generation.
+    `recover: False` keeps the counter-falsifier assertions at the DEAD-NAMING
+    seam without pulling `_recover_seat` (and its rotate shim surface) in."""
+    return {"name": name, "role": "director", "model": "x", "pid": pid,
+            "window": window, "session_id": "sess-1", "generation": gen,
+            "recover": False}
+
+
+def _write_success_record(rot: Path, seat: str, gen_before: int,
+                          gen_after: int, age_s: int) -> None:
+    """A real rotate.py-shape `success` rotate-self record, `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": gen_before, "gen_after": gen_after,
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s))}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_success_record_nested(rot: Path, seat: str, before: int,
+                                 after: int, age_s: int) -> None:
+    """A `success` record in the REAL INCIDENT shape: top-level gen fields
+    absent/null, generation carried ONLY nested under
+    `observations.b_generation.before/after` (cf.
+    sensei-director.20260912T000346Z.json)."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": None, "gen_after": None,
+           "observations": {"b_generation": {"before": before,
+                                               "after": after}},
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s))}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def test_success_rotation_suppresses_false_dead(graph_project, tmp_path,
+                                                monkeypatch):
+    """THE falsifier: a gen-4 row with a DEAD predecessor pid and gone @306,
+    plus a success record gen 4 -> 5 inside the dead window, must NOT read as
+    a crash. `_watch_one_seat` returns {} -- NAMED once as rotated, NO
+    crash-recovery record written, launcher NEVER invoked."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record(rot, "sensei-director", 4, 5, age_s=21)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, f"rotated seat must return {{}}, got {summary}"
+    assert launched == [], "launcher must never be called for a rotated seat"
+    crash = [p for p in rot.glob("sensei-director.*.json")]
+    assert len(crash) == 1, \
+        f"no crash-recovery may be written for a rotated seat, got: {crash}"
+
+
+def test_dead_without_newer_success_still_dead(graph_project, tmp_path,
+                                               monkeypatch):
+    """COUNTER-falsifier: a genuinely dead seat (dead pid, gone @id) whose
+    only success record is OLDER than the window with the SAME generation as
+    the row must STILL be detected as DEAD -- the guard is never lowered."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("helo", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    # same generation as the row, OLDER than the window -> not rotated
+    _write_success_record(rot, "helo", 3, 4, age_s=SEAT_DEAD_PLUS)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "a genuinely dead seat must still be DEAD"
+    assert summary.get("probable_cause") is not None
+
+
+def test_dead_with_no_success_record_still_dead(graph_project, tmp_path,
+                                                monkeypatch):
+    """COUNTER-falsifier: no success record at all -> still DEAD."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("helo2", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "no success record -> seat is still DEAD"
+
+
+def test_old_success_new_gen_still_suppresses(graph_project, tmp_path,
+                                              monkeypatch):
+    """Condition (a): a success record older than the window whose gen_after
+    EXCEEDS the row generation still proves the row is the RETIRED predecessor
+    -- rotated, not dead, even outside the window."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("oldrot", gen=2)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record(rot, "oldrot", 1, 5, age_s=SEAT_DEAD_PLUS)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary == {}, "gen_after > row gen suppresses even outside window"
+
+
+def test_nested_generation_record_names_4_to_5(graph_project, tmp_path,
+                                               monkeypatch):
+    """BUGFIX (parent a00-fcdbdec1): the REAL INCIDENT shape -- a success
+    record whose gen_before/gen_after are TOP-LEVEL NULL and whose generation
+    lives ONLY nested under observations.b_generation -- must both suppress
+    the false DEAD ({} returned) AND name "4 -> 5", not "None -> 5". The
+    `_watch_one_seat` naming branch must read BEFORE and AFTER through the
+    SAME nested-aware extraction as `_success_record_rotated`."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_nested(rot, "sensei-director", 4, 5, age_s=21)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, f"nested-shape rotated seat must return {{}}, got {summary}"
+    assert launched == [], "launcher must never be called for a rotated seat"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "4 -> 5" in log, \
+        f"nested-shape record must name '4 -> 5', not 'None -> 5'; reaper:\n{log}"
+    assert "None -> 5" not in log, \
+        f"nested-shape record must NOT name 'None -> 5'; reaper:\n{log}"
+
+
+def test_rotation_before_after_extraction(tmp_path):
+    """Shared extraction prefers top-level gens and falls back to the nested
+    incident shape; the two agree on the real record."""
+    top = {"gen_before": 4, "gen_after": 5}
+    assert heal._rotation_before_after(top) == (4, 5)
+    nested = {"gen_before": None, "gen_after": None,
+              "observations": {"b_generation": {"before": 4,
+                                                  "after": 5}}}
+    assert heal._rotation_before_after(nested) == (4, 5)
+    mixed = {"gen_after": 5, "gen_before": None,
+             "observations": {"b_generation": {"before": 4}}}
+    assert heal._rotation_before_after(mixed) == (4, 5)
+
+
+def test_success_record_rotated_unit(tmp_path):
+    """`_success_record_rotated` unit: (a) gen_after > row gen and (b) a
+    success inside the window both return the record; a started / absent /
+    same-gen-old record returns None."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    # (a) gen_after exceeds the row's generation
+    _write_success_record(rot, "a", 4, 5, age_s=SEAT_DEAD_PLUS)
+    got = heal._success_record_rotated(tmp_path, "a",
+                                       _mk_dead_row("a", gen=4), shim,
+                                       time.time())
+    assert got is not None and got.get("gen_after") == 5
+    # (b) success inside the window, same/any generation
+    _write_success_record(rot, "b", 4, 4, age_s=21)
+    got = heal._success_record_rotated(tmp_path, "b",
+                                       _mk_dead_row("b", gen=4), shim,
+                                       time.time())
+    assert got is not None, "success inside window -> rotated"
+    # a `started` record is never a success -> None
+    _write_started_record(rot, "c", age_s=21)
+    got = heal._success_record_rotated(tmp_path, "c",
+                                       _mk_dead_row("c", gen=4), shim,
+                                       time.time())
+    assert got is None
+    # same generation, OLDER than window -> None
+    _write_success_record(rot, "d", 3, 4, age_s=SEAT_DEAD_PLUS)
+    got = heal._success_record_rotated(tmp_path, "d",
+                                       _mk_dead_row("d", gen=4), shim,
+                                       time.time())
+    assert got is None
+
+
+def test_rotation_in_flight_honours_success(graph_project, tmp_path):
+    """Clause (3): `_rotation_in_flight` honours a SUCCESS rotation record as
+    a rotation in flight (the seat already rotated), shared helper."""
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("flightsucc", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record(rot, "flightsucc", 4, 5, age_s=21)
+    assert heal._rotation_in_flight(graph_project, "flightsucc", shim,
+                                    time.time(), row=row) is True
+
+
+def test_live_seat_row_takes_identity_from_main(monkeypatch, tmp_path):
+    """Clause (1): `_live_seat_row` takes the IDENTITY cells (generation /
+    pid etc.) from the MAIN checkout's copy, keeping non-identity cells
+    live-first. Two geometry dirs that DIFFER: the worktree copy says gen 4,
+    MAIN says gen 5 -- the row reads gen 5 (the ONE writer's file)."""
+    main_dir = tmp_path / "main"
+    wt_dir = tmp_path / "wt"
+    wt_dir.mkdir(parents=True, exist_ok=True)
+    main_dir.mkdir(parents=True, exist_ok=True)
+    def _rows(root):
+        if str(root) == str(main_dir):
+            return [{"name": "dir", "generation": 5, "role": "director",
+                     "session_ref": "main-sess"}]
+        return [{"name": "dir", "generation": 4, "role": "director"}]
+    shim = _rot_shim(tmp_path / "rotations", rows=_rows)
+    monkeypatch.setattr(heal, "_main_graph_root", lambda gdir: main_dir)
+    row = heal._live_seat_row(wt_dir, "dir", shim)
+    assert row["generation"] == 5, \
+        "IDENTITY cells must come from MAIN, not the worktree copy"
