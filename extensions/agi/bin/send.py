@@ -481,13 +481,11 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
             if not _row_write_submit(graph, new_rows, actor=actor, role=role):
                 # clause (1): every keyed row stayed UNKEYED; the CLI exits 2.
                 _keygen_row_refused("write.submit returned False for the keyed rows")
-            # clause (2): each keyed row's own-hunk commit + push through
-            # SL6.01's helper; the first commit lands the whole write, the
-            # rest skip (already clean). Never fails the keygen.
-            _by = {r["name"]: r for r in new_rows if r.get("name")}
-            for keyed in keyed_names:
-                _commit_push_seat_row(root, _by.get(keyed, {}) or {},
-                                      keyed, "keygen --all-live")
+            # clause (2)/(4b): ONE own-row commit whose message names EVERY
+            # seat this --all-live pass keyed (`keygen --all-live: keyed<list>`),
+            # staging seats.md ONLY, then the clause-(2) push leg. Best-effort;
+            # never fails the keygen.
+            _commit_push_all_live(root, keyed_names)
         return results
     minted = _mint_seat_key(root, seat, scheme_name)
     if minted is None:
@@ -553,6 +551,62 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
     except Exception as exc:  # noqa: BLE001
         print(f"note: {origin} row commit/push skipped ({exc})",
               file=sys.stderr)
+
+
+def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
+    """CLAUSE (2)/(4b) -- the `--all-live` keygen commit: ONE plain `git
+    commit` of the seats.md the write just keyed, whose message names EVERY
+    seat this pass keyed (`keygen --all-live: keyed <a>, <b>, <c>`), then the
+    clause-(2) season-branch push leg. Resolved and staged against MAIN's
+    graph tree (a linked-worktree caller commits MAIN, never its own fork),
+    staging seats.md ONLY (never `git add -A`), so keygen --all-live never
+    sweeps another writer's uncommitted work into its commit. Best-effort,
+    never raises, never fails the mint: a refused commit or push prints one
+    note line to stderr and the keys stay minted. Returns the one note line.
+    """
+    listed = ", ".join(keyed_names)
+    note = f"keygen --all-live: keyed {listed}"
+    try:
+        import rotate  # local: same dir (send.py pattern, no import cycle)
+        main_root = _shared_graph_root(root)
+        top = rotate._git_toplevel(main_root)
+        if top is None:
+            _l = f"note: {note} — no git repo; rows stay uncommitted"
+            print(_l, file=sys.stderr)
+            return _l
+        seats = _shared_seats_path(root)
+        rel = os.path.relpath(seats, top)
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=10)
+        if add.returncode != 0:
+            _l = (f"note: {note} — git add {rel!r} failed: "
+                  f"{add.stderr.strip()}")
+            print(_l, file=sys.stderr)
+            return _l
+        staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                                 "--", rel], capture_output=True, text=True,
+                                timeout=10)
+        if staged.returncode != 0 or not (staged.stdout or "").strip():
+            _l = (f"note: {note} — seats.md already clean after the write; "
+                  "nothing committed")
+            print(_l, file=sys.stderr)
+            return _l
+        msg = f"keygen --all-live: keyed {listed}"
+        rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--", rel], capture_output=True, text=True,
+                            timeout=10)
+        if rc.returncode != 0:
+            _l = f"note: {note} — git commit failed: {rc.stderr.strip()}"
+            print(_l, file=sys.stderr)
+            return _l
+        push = rotate._push_season_branch(root)
+        _l = f"note: {note}; {push}"
+        print(_l, file=sys.stderr)
+        return _l
+    except Exception as exc:  # noqa: BLE001
+        _l = f"note: {note} row commit/push skipped ({exc})"
+        print(_l, file=sys.stderr)
+        return _l
 
 
 def _quorum_caller() -> bool:
@@ -2144,8 +2198,12 @@ def _load_rows(root: Path) -> list | None:
         rows, _sha = seeded
         if rows:
             return _merge_main_committed_keys(root, rows)
-        rows = _locally_loaded_rows(root)
-        return rows or None
+        # hypothesis:l4-the-main-committed-reader... — an EMPTY pushed row
+        # set (a real, reachable authority that carries no rows) reads None,
+        # never the dirty working copy. Before F1 it returned None here;
+        # restoring that means a reader labels any sig FORGED rather than
+        # guessing against an uncommitted local file.
+        return None
     rows = _locally_loaded_rows(root)
     return rows or None
 
@@ -2172,11 +2230,22 @@ def _seats_committed_rows(root: Path) -> list:
     no key cell. Reads the BLOB from HEAD (never the dirty working copy),
     so a key that is committed but not yet pushed is still the authority
     for an unkeyed pushed row. Returns [] when the committed content cannot
-    be read (no repo, no blob, not a path git addresses)."""
+    be read (no repo, no blob, not a path git addresses).
+
+    A reader inside a LINKED WORKTREE must still reach MAIN's committed row:
+    git is run from MAIN's graph root (``_shared_graph_root``), never the
+    caller's worktree, and the blob is read with ``git -C <main-toplevel>
+    show HEAD:<rel>``. Running git at a worktree's root makes
+    ``rev-parse --show-toplevel`` return the WORKTREE toplevel, so
+    ``relative_to`` fails against MAIN's seats path and the helper returns
+    [] -- the fallback never fires for the very reader (a ``--branch`` kid)
+    that needs it most
+    (hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel...)."""
     if not _in_git_repo(root):
         return []
     seats = _shared_seats_path(root)
-    top = _run_git(root, ["rev-parse", "--show-toplevel"])
+    graph = _shared_graph_root(root)
+    top = _run_git(graph, ["rev-parse", "--show-toplevel"])
     if top is None or top.returncode != 0:
         return []
     try:
@@ -2184,7 +2253,7 @@ def _seats_committed_rows(root: Path) -> list:
         rel = seats.resolve().relative_to(top_path.resolve())
     except (ValueError, OSError):
         return []
-    shown = _run_git(root, ["show", f"HEAD:{rel}"])
+    shown = _run_git(top_path, ["show", f"HEAD:{rel}"])
     if shown is None or shown.returncode != 0:
         return []
     return _load_seats_rows(shown.stdout)
@@ -3240,6 +3309,21 @@ def _locally_loaded_rows(root: Path) -> list:
         return []
 
 
+def _shared_graph_root(root: Path) -> Path:
+    """MAIN's project graph root (the directory holding `.agi`), never the
+    caller's worktree — the ONE checkout the shared-seats reader (and the
+    committed-row reader) must both address. A linked-worktree call rebases to
+    MAIN through `locations.git_common_root`; a caller in the main checkout or
+    outside git keeps its own literal root (the legacy/graph-root and
+    test-fixture layouts read exactly the file they mean)."""
+    graph = Path(root)
+    main = locations.git_common_root(graph)
+    if main is not None and main != graph:
+        # inside a git repo: the MAIN checkout's graph root.
+        graph = locations.find_project_root(main) or main
+    return graph
+
+
 def _shared_seats_path(root: Path) -> Path:
     """The MAIN checkout's `nodes/.geometry/seats.md`, identity for a
     non-worktree caller — the resolution `locations.git_common_root` performs
@@ -3249,11 +3333,7 @@ def _shared_seats_path(root: Path) -> Path:
     in the main checkout or outside git keeps its own literal root (the
     legacy/graph-root and test-fixture layouts read exactly the file they
     mean)."""
-    graph = Path(root)
-    main = locations.git_common_root(graph)
-    if main is not None and main != graph:
-        # inside a git repo: the MAIN checkout's graph root.
-        graph = locations.find_project_root(main) or main
+    graph = _shared_graph_root(root)
     if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
         graph = graph / locations.GRAPH_DIR_NAME
     return geometry_config.geometry_config_path(graph) or (
