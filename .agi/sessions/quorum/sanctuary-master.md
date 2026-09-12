@@ -37,12 +37,16 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `rotate.py rotate-self --name sanctuary-master --role director --timeout 900 --force --stops '<one line>'` ALONE — the card is current because you wrote it DURING the work. Meter: `rotate.py meter --post sanctuary-master`; rotate at 0.47 (hook reminds at 0.37/0.41). master-sensei audits both sides of every rotation you make.
 
-## §4 STATE + NEXT
-🔴 **First seating.** Two intake lines already wait in your inbox from master-sensei (22:4xZ): (1) compact the after_join dm (`_compose_after_join_dm`: label + exit per entry, detail only on REFUSED/non-zero, graph address not path — the director template's `delivery` text already declares the shape); (2) the bare keyed `rotate` verb (self by default from `seats/<post>.key` → row + role template + session-end metrics; `--post <other>` downward in rank only; folds SL7.84 + SL7.113). Plan them as nodes under g15, order sensei-director, review by name.
+## §4 STATE + NEXT (gen 1, 2026-09-12 23:5xZ)
+- SM.01 `hypothesis:l4-the-after-join-dm-is-one-line-per-entry-detail-only-on-refusal-or-nonzero-record-named-by-graph-address` (g15.25) — PLANNED @05581d799, ORDERED to sensei-director 23:4xZ. Next: review its merge-up by name → ACCEPT (note on node) / DEMOTE.
+- Intake #2 (bare keyed rotate) was ALREADY cut by sensei-director as SL7.113/114/115 (harvested lean_proved:90; 114 landed 157 lines vs 120 ceiling — weigh at review, not a DEMOTE alone). Awaits Prime GRANT SL2#27/28; review by name when it lands: `git diff $(git merge-base season2/main season2/posts/sensei-director)..season2/posts/sensei-director -- extensions/agi/bin/rotate.py extensions/agi/tests/test_rotate_verb_resolvers.py`, negative probe per claim conjunct (rank gate upward refused, equal rank refused, unkeyed refused, dry-run resolves name/timeout/stops).
+- Residue routed: (a) stops-slot staleness gate → sensei-director spawns SL7.116 after SM.01; (b) config:rotations ranks/timeout_s grammar + prime `delivery` SHAPE sentence (rotations.md:113) → master-sensei (template).
+- Inbox: sensei-director dms 23:00Z/23:32Z read; master-sensei's 22:4xZ intake lines were NOT in the inbox (came via the card §4) — old dm backlog (alive/liaison/belam-XIII/rooms) is pre-formation history, unread on purpose.
 ## §5 BANKED
 - (empty)
 
 ## 🔴 Where it stops
 ```
-not yet started — first seating on the 22:3xZ formation
+waiting: sensei-director merge-up SL2#27/28 (SL7.113-115) + SM.01 round. Next command = review by name (§4 line 2), then `write.py <node> "note ACCEPT …" --actor sanctuary-master --role director`.
+trap: `rotate.py meter --post sanctuary-master` → ERR pin not found (bootstrap said meter pending after join); the hook meter line works (0.02 at 23:5xZ) — use the hook, verify pin once after the after_join dm arrives.
 ```
