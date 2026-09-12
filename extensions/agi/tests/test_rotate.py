@@ -2528,6 +2528,81 @@ def test_stops_text_with_inner_fence_pairs_outer_on_next_write(tmp_path):
     assert "keep me" in out2           # the after-slot section survived
 
 
+def test_stops_nested_fence_round_trip_byte_identical(tmp_path):
+    """goal:g15.25 (iii) FALSIFIER — a stops text whose fenced block
+    contains an inner three-backtick block round-trips byte-identical
+    across TWO consecutive `_write_stops_section` calls (no truncation, no
+    tail re-append)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```sh\ninner block\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    first = card.read_text(encoding="utf-8")
+    _, slot2 = _r._write_stops_section(card, "s", _stops)
+    assert slot2 == "replaced"
+    second = card.read_text(encoding="utf-8")
+    assert second == first, "two identical stops writes produced different files"
+    assert "keep me" in second
+
+
+def test_stops_hash_line_inside_inner_fence_never_truncates(tmp_path):
+    """goal:g15.25 (iii) FALSIFIER — a `#`-leading line (a shell comment, a
+    quoted heading) inside an inner three-backtick block under a four-\
+    backtick outer fence must NOT end the slot: the end-of-slot scan is
+    fence-run aware, so the # line stays content and the whole inner block
+    is replaced whole on a later write."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```sh\n# a shell comment\ninner\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    _, slot2 = _r._write_stops_section(card, "s", "clean new cmd")
+    assert slot2 == "replaced"
+    out = card.read_text(encoding="utf-8")
+    assert out.count("clean new cmd") == 1, out
+    assert "# a shell comment" not in out   # no tail leaked past the block
+    assert "inner" not in out
+    assert "shell comment" not in out
+    assert "keep me" in out                 # the after-slot section survived
+
+
+def test_replace_fence_after_pairs_outer_within_longer_fence():
+    """goal:g15.25 (iii) FALSIFIER — `_replace_fence_after` under a four-\
+    backtick outer fence pairs the OUTER closer (run >= opener), never an
+    inner three-backtick line that happens to come first: the inner fence
+    survives as content and NEW lands between the two outer fences."""
+    from agi.bin import rotate as _r
+    lines = ("text\n"
+             "````\n"
+             "```sh\n"
+             "still inside\n"
+             "````\n"
+             "after\n").splitlines()
+    start = next(i for i, ln in enumerate(lines)
+                 if ln.strip().startswith("````"))
+    new = _r._replace_fence_after(lines, start, "NEW")
+    assert new is not None
+    joined = "\n".join(new)
+    # the outer 4-backtick opener and closer are kept, NEW sits between them
+    # (the inner block is REPLACED whole, never partially truncated at the
+    # inner 3-backtick line that the buggy scan would have paired as the
+    # closer).
+    assert "````\nNEW\n````" in joined, joined
+    assert "```sh" not in joined     # inner shorter fence replaced, not kept
+    assert "still inside" not in joined
+    assert "after" in joined         # past the outer closer, preserved
+    assert "text" in joined
+
+
 def test_stops_push_real_refusal_branch_receive_fails(
         fake_ladder, tmp_path, monkeypatch, capsys):
     """goal:g15.25 (d) FALSIFIER — the REAL `_stops_push` refusal branch (a
@@ -4474,6 +4549,73 @@ def test_ack_gen1_first_seating_announces_once_dedup(tmp_path, monkeypatch):
     rc = rotate.cmd_ack(args, tmp_path)
     assert rc == 0
     assert sent == [], f"a second dm for the same seat + gen is the falsifier: {sent}"
+
+
+def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
+    """g15.24 FIX-ONLY (SL7.33 residue) — a gen-1 ack answered `diff` whose
+    TEXT is empty/whitespace stands the handoff exactly like `continue`, so it
+    commits its own row write AND — because the first-seating announce gate
+    now uses the SAME predicate as do_commit (_ack_commits), not a literal
+    `answer == 'continue'` — sends the first-seating alert ONCE."""
+    import send as _send
+    rows = [{"name": "diff-seat", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-seat", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-seat", gen=1, ref="d1",
+                                        answer="diff", text="   "), tmp_path)
+    assert rc == 0
+    assert len(sent) == 1, \
+        f"a gen-1 diff-empty must announce the first seating once: {sent}"
+    _to, text = sent[0]
+    assert "first seating diff-seat" in text
+    assert "trigger: first-seating" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("diff-seat.*.seating.json"))
+    assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
+
+
+def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
+    """g15.24 FIX-ONLY falsifier — a gen-1 ack answered `diff` WITH text never
+    commits (the successor still edits), so by the SAME predicate it announces
+    NO first-seating alert and writes no seating record."""
+    import send as _send
+    rows = [{"name": "diff-t", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-t", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-t", gen=1, ref="d2",
+                                        answer="diff", text="- a\n+ b"), tmp_path)
+    assert rc == 0
+    assert sent == [], \
+        f"a gen-1 diff-with-text must NOT announce a seating: {sent}"
+    assert not list(rotate._rotations_dir(tmp_path).glob("diff-t.*.seating.json"))
+
+
+def test_ack_help_names_diff_empty_commits(capsys):
+    """g15.24 FIX-ONLY (SL7.33 residue) — `ack --help` names the THREE answers
+    and what each commits (the FALSIFIER: help lacks the words diff and empty,
+    or claims diff never commits)."""
+    with pytest.raises(SystemExit) as e:
+        rotate.main(["ack", "--help"])
+    assert e.value.code in (0, None)
+    raw = capsys.readouterr().out
+    import re
+    h = re.sub(r"\s+", " ", raw)  # argparse line-wraps long help; fold first
+    assert "diff" in h and "empty" in h, f"help must name diff/empty:\n{raw}"
+    assert "diff with empty text commits" in h, raw
+    assert "diff with text never commits" in h, raw
 
 
 def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypatch):
@@ -7092,23 +7234,30 @@ def test_own_row_cut_own_write_keeps_its_frontmatter_stamp(tmp_path):
 
 
 def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
-                                                     capsys):
-    """g15.26 claim (b) -- the send.py `--all-live` push-OK site: a keygen
-    --all-live pass that PUSHES the season branch completes a deferred
-    `<seat>.key.pending` swap for a seat whose committed row names exactly the
-    pending successor pubkey (origin just received it), via rotate's ONE shared
-    helper. A second seat's keyed change supplies the `--all-live` commit so
-    the push is real; the pending seat's committed row already carrying its own
-    pubkey means the completion is the pending swap, not a fresh mint."""
+                                                 capsys):
+    """g15.26 claim (b) -- RE-SEEDED to the REAL shape (SL7.44). The pending
+    seat `a` is ALREADY KEYED in HEAD's row (a live seat, so it OWNS a
+    `<seat>.key.pending` written when an earlier own-row push FAILED) and is
+    therefore SKIPPED by the `--all-live` walk -- it is NOT in the
+    keyed_names handed to `_commit_push_all_live` (only the freshly-keyed
+    seat `b` is). Pre-fix, the completion loop iterated `keyed_names` only,
+    so `a`'s deferred swap never completed and the pending file survived the
+    push. Post-fix, the completion loop runs rotate's ONE shared helper for
+    EVERY live row -- the already-keyed seat `a` -- and its deferred swap
+    completes even though this pass did not key it."""
     import send as bin_send
-    # seat `a` holds the deferred pending swap (HEAD row names pending pub).
+    # seat `a` holds the deferred pending swap and is ALREADY KEYED (live,
+    # committed row names the successor pubkey). seat `b` is the row this
+    # --all-live pass actually keys (fresh mint, keyed_names below).
     _ka, pred_pub = _mk_seat_key(tmp_path, "a")
     succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
     _write_seats_sheet(tmp_path, [
         {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
          "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
         {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
          "sig_scheme": "ed25519", "pubkey": pred_pub.hex()}])
     _init_git_remote(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "a.key.pending"
@@ -7120,13 +7269,18 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     # dirt seat `b`'s working row so the all-live commit has content to push.
     _write_seats_sheet(tmp_path, [
         {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
          "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
         {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex()}])
-    out = bin_send._commit_push_all_live(tmp_path, ["a", "b"])
+    # the REAL shape: `a` is already keyed so it is NOT in keyed_names --
+    # only the freshly-keyed seat `b` is (production never hands `a` here).
+    out = bin_send._commit_push_all_live(tmp_path, ["b"])
     assert "push: OK" in out, out
-    # the pending swap completed through the all-live push-OK site.
+    # the deferred swap completed through the all-live push-OK site even
+    # though seat `a` was not keyed by this pass.
     assert not pend.exists()
     assert json.loads(bin_send._seat_key_path(tmp_path, "a").read_text())["priv_hex"] \
         == succ_priv.hex()
@@ -7138,6 +7292,41 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     assert "VERIFIED a (ed25519)" in out2, out2
     assert "FORGED" not in out2.split("alllive hello")[0]
     assert "RETIRED" not in out2.split("alllive hello")[0]
+
+
+def test_keygen_all_live_no_pending_never_touches_key(tmp_path):
+    """g15.26 claim (b) FALSIFIER guard: a live keyed seat with NO
+    `.key.pending` file is UNTOUCHED by the all-live push -- its `.key` bytes
+    are identical before and after. The completion loop runs rotate's helper
+    for EVERY live row, but that helper is a strict NO-OP ('' and not a byte
+    flipped) when no pending file exists, so looping a live row that neither
+    deferred a swap nor was keyed by this pass must leave its key exactly as
+    it was."""
+    import send as bin_send
+    _ka, pred_pub = _mk_seat_key(tmp_path, "a")
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()}])
+    _init_git_remote(tmp_path)
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
+         "sig_scheme": "ed25519",
+         "pubkey": bin_send.seatsig.get("ed25519").keygen()[1].hex()}])
+    key_a = bin_send._seat_key_path(tmp_path, "a")
+    before = key_a.read_bytes()
+    out = bin_send._commit_push_all_live(tmp_path, ["b"])
+    assert "push: OK" in out, out
+    assert key_a.read_bytes() == before, \
+        "a live keyed seat without a pending file must be byte-identical " \
+        "after the all-live push"
 
 
 def test_own_row_cut_swapped_pair_keeps_own_added_line(tmp_path):
@@ -7183,3 +7372,80 @@ def test_own_row_cut_swapped_pair_keeps_own_added_line(tmp_path):
             l for l in head_blob.splitlines() if '"name": "other"' in l)
         assert foreign_head in staged, \
             "the foreign row must appear byte-identical to HEAD"
+
+
+def test_own_row_cut_work_only_added_row_keeps_walk_position(tmp_path):
+    """goal:g15.24 (ii) / SL7.52 THE falsifier: a WORK-only added row — an
+    own row this seat's write INSERTED into seats.md that HEAD lacks (here
+    `belam` is the NEW seat, absent from HEAD) — sits in WORK BETWEEN the
+    two HEAD rows (`alpha`, `other`), all three inside ONE replace opcode
+    (alpha and other are both edited, so difflib folds them). The SL7.38
+    removed-first walk flushed WORK-only added lines at the region END, so
+    the staged buffer put the own inserted row LAST — a byte-order change in
+    seats.md relative to the tree's own file, pinned by no fixture. The cut
+    must keep the own inserted row at its WALK position: right where it sits
+    between the two HEAD rows, foreign edits reverted byte-identical to HEAD.
+    FALSIFIER: the staged output has the own added row AFTER `other`."""
+    root, top = _empty_row_git_root(tmp_path, ["alpha", "other"])
+    seats = rotate._ack_seats_path(root)
+    rows = [
+        {"name": "alpha", "role": "p2", "model": "x", "effort": "max",
+         "settings": ""},
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        {"name": "other", "role": "director", "edited_by": "x",
+         "model": "x", "effort": "max", "settings": ""},
+    ]
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row insert must build content"
+    lines = staged.splitlines()
+    # the OWN inserted row is kept at its WALK position BETWEEN the two HEAD
+    # rows — not flushed to the region end (the SL7.38 defect).
+    yes = [i for i, l in enumerate(lines) if '"name": "belam"' in l]
+    assert yes, "the own inserted row must be staged"
+    row_i = yes[0]
+    assert row_i < next(i for i, l in enumerate(lines)
+                        if '"name": "other"' in l), \
+        "the own added row must precede `other`, not flush to the end"
+    assert row_i > next(i for i, l in enumerate(lines)
+                        if '"name": "alpha"' in l), \
+        "the own added row must follow `alpha` (its walk position)"
+    # FOREIGN edits around it are reverted byte-identical to HEAD: alpha's
+    # role change and other's `edited_by` cell never stage.
+    assert '"name": "alpha", "role": "director"' in staged, \
+        "alpha's role change must be reverted to HEAD"
+    assert '"edited_by": "x"' not in staged, \
+        "the foreign `edited_by` cell must never be staged as own"
+    assert '"role": "p2"' not in staged, \
+        "a foreign row's role change must be reverted"
+
+
+def _empty_row_git_root(tmp_path, names):
+    """A committed git root whose seats.md carries the rows NAMED in `names`
+    (all foreign to the seat under test, which is ABSENT — the seat's own row
+    is the WORK-only insert). Returns (root, top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "project marker"], check=True, capture_output=True)
+    _write_seats_sheet(root, [{"name": n, "role": "director", "model": "x",
+                               "effort": "max", "settings": ""}
+                              for n in names])
+    rel = os.path.relpath(rotate._ack_seats_path(root), tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", rel],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "rows"], check=True, capture_output=True)
+    return root, tmp_path

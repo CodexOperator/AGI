@@ -753,13 +753,22 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
         # g15.26 claim (b): a successful all-live push means origin now
-        # carries every keyed row's committed pubkey -- so for each seat
-        # this pass keyed, any deferred `<seat>.key.pending` swap (written
-        # when an earlier push FAILED) now COMPLETES through rotate's ONE
-        # shared helper (each only flips when its committed row matches the
-        # pending pubkey). Best-effort; never raises.
-        for _seat in keyed_names:
-            rotate._finish_pending_swap_on_push(root, _seat, push)
+        # carries every committed row's pubkey -- so the completion loop runs
+        # rotate's ONE shared helper for EVERY live row (not only the rows
+        # this pass keyed). A live KEYED seat -- skipped by the walk because
+        # it already carried a pubkey, so never in keyed_names -- is exactly
+        # the seat that owns a `.key.pending` (only an already-keyed seat's
+        # row could have committed the successor pubkey before an earlier
+        # push FAILED), and this is the site that completes its deferred
+        # swap. The helper is a strict NO-OP unless `push:` starts `push: OK`
+        # AND a pending file exists whose pub_hex matches the committed row,
+        # so looping every live row is safe and idempotent: a keyed seat
+        # with no pending file, and a freshly-keyed seat, both keep their
+        # `.key` byte-identical. Best-effort; never raises.
+        for _row in _seats_rows(_graph_root(root)):
+            _live_name = str(_row.get("name") or "")
+            if _live_name and _live_row(_row):
+                rotate._finish_pending_swap_on_push(root, _live_name, push)
         return _l
     except Exception as exc:  # noqa: BLE001
         _l = f"note: {note} row commit/push skipped ({exc})"
