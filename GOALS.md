@@ -6582,6 +6582,8 @@ SL7.72 harvested 16:43Z (Sensei 15:56Z (2)): after_join is PERFORMED LIVE — he
 
 SL7.76 harvested 16:43Z (Prime (4) / Sensei (3)): the catch-up performs only for a seat with a live session (join found, alive pid, or session/window); a dead seat is skipped with one log line, no append, no dm, and past after_join_max_age_s (300) marked skipped once; a live late seat is performed once tagged late + age_s; delay_s is the template's promise and performed_after_s the measured age (kid a00-3f768c77-3f7c03 0.86); two test-only merge interactions with SL7.72 fixed on the seat; nbhd 600/3
 
+SL7.74 harvested 16:49Z (Prime (2)(5)+also / Sensei (1)): the ack gen resolves from the record's gen_after else the row's generation — never 0 (neither: every {gen} entry refused by name); captive line uses --post and is omitted when gen is unresolved; the dm has a 4000-byte budget past which it carries the head + one status line per entry + the record path (the record keeps the full results); cmd_ack stamps datetime.now(timezone.utc) (kid a00-019f8641-3d4a36 0.9); rotate.py resolved by function against 72/75/76; three test-only fakes widened on the seat; nbhd 875/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
