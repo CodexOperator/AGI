@@ -1170,6 +1170,14 @@ def test_mint_run_key_three_shapes(tmp_path):
     # SL1#2 merge_up cell -> slugified to sl1-2
     assert _mint_run_key(tmp_path, "merge-up-review",
                          {"rounds": [{"merge_up": "SL2#2"}]}) == "mur-sl2-2"
+    # a DESCRIPTOR cell: `42 (point, mur-42 window)` slugs its LEADING token
+    # `42`, exactly like the bare integer 42, and the two dedupe to ONE token
+    assert _mint_run_key(tmp_path, "merge-up-review", {"rounds": [
+        {"merge_up": "42 (point, mur-42 window)", "key": "L4.301"},
+        {"merge_up": 42, "key": "L4.302"}]}) == "mur-42"
+    assert _mint_run_key(tmp_path, "merge-up-review", {"rounds": [
+        {"merge_up": "42 (point)"},
+        {"merge_up": 40}]}) == "mur-42-40"
     # a round with no merge_up cell names itself by its key cell
     assert _mint_run_key(tmp_path, "merge-up-review",
                          {"rounds": [{"key": "L4.288"}]}) == "mur-l4-288"

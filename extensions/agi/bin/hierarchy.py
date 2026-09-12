@@ -5,8 +5,11 @@
 The command structure is declared EXACTLY ONCE, in machine-readable
 frontmatter:
 
-  * config:seats  (.agi/nodes/.geometry/seats.md)  `seats:`  — the instance
-    registry. Authoritative for anything that HAS a seat.
+  * config:posts  (.agi/nodes/.geometry/posts.md)  `posts:`  — the instance
+    registry (config:seats / .agi/nodes/.geometry/seats.md `seats:` is the
+    one-season alias; post-first via geometry_config.resolve,
+    hypothesis:l4-a-seat-is-a-post-everywhere). Authoritative for anything
+    that HAS a seat.
   * ladder:ladder (.agi/nodes/.geometry/ladder.md) `roles:`  — the CLASS
     default table. Authoritative only where no seat exists.
 
@@ -38,6 +41,7 @@ _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_HERE.parent / "src"))  # graph_core package
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
+import geometry_config as _gc  # noqa: E402
 
 #: Session-named pins (`a00-<8 hex>`) belong to spawned agents, NOT to seats:
 #: the brief says pi parents/kids were never granted seats. They were not
@@ -64,16 +68,9 @@ _TABLE_DEFS = {
 # Loading (one reader: nothing re-reads the files)
 # --------------------------------------------------------------------------- #
 def load_seats(root: Path) -> list:
-    """`config:seats`'s `seats:` rows, or [] when absent."""
-    p = Path(root) / "nodes" / ".geometry" / "seats.md"
-    if not p.is_file():
-        return []
-    try:
-        nf = _fm.load_node_file(p)
-        rows = (nf.frontmatter or {}).get("seats") or []
-        return [dict(r) for r in rows if isinstance(r, dict)]
-    except Exception:                                                # noqa: BLE001
-        return []
+    """`config:posts`'s `posts:` rows (post-first, one-season config:seats
+    fallback), or [] when absent. Shared resolver: geometry_config.load_rows."""
+    return _gc.load_rows(root)
 
 
 def load_ladder(root: Path) -> dict:

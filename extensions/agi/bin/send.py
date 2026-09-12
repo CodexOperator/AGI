@@ -60,6 +60,7 @@ sys.path.insert(0, str(_BIN.parent / "src"))
 import locations  # noqa: E402
 import spawn_gate  # noqa: E402
 import seatsig  # noqa: E402
+import geometry_config  # noqa: E402
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
@@ -484,9 +485,9 @@ def _detect_sender(from_flag: str | None) -> str:
     env = os.environ.get("AGI_AGENT_ID", "").strip()
     if env:
         return env
-    seat = os.environ.get("AGI_SEAT", "").strip()
+    seat = geometry_config.resolved_seat_env()
     if seat:
-        return seat
+        return seat.strip()
     if from_flag:
         return from_flag
     return "unknown"
@@ -2824,24 +2825,38 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #   * UNVERIFIED + non-zero exit, when it is not — never a silent success.
 # --------------------------------------------------------------------------- #
 
-#: The pushed branch that carries config:seats (`.agi/nodes/.geometry/seats.md`).
-#: The prime updates and pushes it at every rotation, so its HEAD is the
-#: authoritative answer after a fetch — never the local working tree.
+#: The pushed branch carries the geometry config (hypothesis:l4-a-seat-is-a-
+#: post-everywhere): posts.md post-first, the deprecated seats.md as the
+#: one-season alias. The prime updates and pushes it at every rotation, so its
+#: HEAD is the authoritative answer after a fetch — never the local working
+#: tree.
 _PUSHED_SEATS = "origin/season/s2"
-_SEATS_REPO_PATH = ".agi/nodes/.geometry/seats.md"
+#: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
+#: first that `git show` succeeds on wins.
+_SEATS_REPO_PATHS = (
+    ".agi/nodes/.geometry/posts.md",
+    ".agi/nodes/.geometry/seats.md",
+)
 
 
 def _load_seats_rows(content: str) -> list:
-    """Parse a seats.md byte-string with the engine's node-loader (the same
-    path hierarchy.load_seats uses) — reusing the ONE parse, never adding a
-    sixth hand-rolled reader."""
+    """Parse a seats/posts.md byte-string with the engine's node-loader (the
+    same path hierarchy.load_seats uses) — reusing the ONE parse, never adding
+    a sixth hand-rolled reader. Reads `posts:` first, then the deprecated
+    `seats:` key, so a pushed ref in either spelling resolves."""
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as tf:
         tf.write(content)
         tmp = Path(tf.name)
     try:
         nf = _fm.load_node_file(tmp)
-        return [dict(r) for r in ((nf.frontmatter or {}).get("seats") or [])
-                if isinstance(r, dict)]
+        fm = nf.frontmatter or {}
+        for key in ("posts", "seats"):
+            if key not in fm:
+                continue
+            rows = fm[key] or []
+            if isinstance(rows, list):
+                return [dict(r) for r in rows if isinstance(r, dict)]
+        return []
     finally:
         try:
             tmp.unlink()
@@ -2869,7 +2884,11 @@ def _pushed_seats(root: Path, ref: str, do_fetch: bool):
     sha = _run_git(root, ["rev-parse", ref])
     if sha is None or sha.returncode != 0:
         return None
-    shown = _run_git(root, ["show", f"{ref}:{_SEATS_REPO_PATH}"])
+    shown = None
+    for path in _SEATS_REPO_PATHS:
+        shown = _run_git(root, ["show", f"{ref}:{path}"])
+        if shown is not None and shown.returncode == 0:
+            break
     if shown is None or shown.returncode != 0:
         return None
     return _load_seats_rows(shown.stdout), sha.stdout.strip()
@@ -2911,7 +2930,8 @@ def _shared_seats_path(root: Path) -> Path:
         graph = locations.find_project_root(main) or main
     if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
         graph = graph / locations.GRAPH_DIR_NAME
-    return graph / "nodes" / ".geometry" / "seats.md"
+    return geometry_config.geometry_config_path(graph) or (
+        graph / "nodes" / ".geometry" / "posts.md")
 
 
 #: whois exit codes. 🔴 A NEGATIVE ANSWER MUST NOT EXIT 0. This check exists
@@ -3298,7 +3318,7 @@ def main(argv: list[str] | None = None) -> int:
              "with --all-live, the prime keys every LIVE row that has no "
              "pubkey (hypothesis:l4-every-live-row-is-keyed...)",
         epilog=_LOCKDOWN_RESERVED_HELP)
-    p_keygen.add_argument("--seat", default=None, help="seat name")
+    p_keygen.add_argument("--seat", "--post", default=None, help="seat name")
     p_keygen.add_argument("--scheme", default=seatsig.DEFAULT_SCHEME,
                           help="swappable scheme name (default "
                                f"{seatsig.DEFAULT_SCHEME})")

@@ -62,6 +62,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import links  # noqa: E402
+import geometry_config  # noqa: E402
 
 #: Frontmatter keys this module stamps on every submitted edit.
 PROVENANCE_ACTOR = "edited_by"
@@ -534,22 +535,12 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
 
 
 def _load_seats(root) -> list[dict]:
-    """The `seats:` rows of `.agi/nodes/.geometry/seats.md` (config:seats),
-    or [] when absent/unparseable. Mirror of rotate.py's loader — each row
-    carries `name` and `role`, which is what role resolution keys on.
+    """The geometry config `posts:`/`seats:` rows (config:posts, post-first
+    with a one-season config:seats fallback), or [] when absent/unparseable.
+    Shared resolver: geometry_config.load_rows. Each row carries `name` and
+    `role`, which is what role resolution keys on.
     """
-    path = Path(root) / "nodes" / ".geometry" / "seats.md"
-    if not path.exists():
-        return []
-    try:
-        from graph_core.persistence import frontmatter
-        nf = frontmatter.load_node_file(path)
-        seats = nf.frontmatter.get("seats") or []
-        if isinstance(seats, list):
-            return [r for r in seats if isinstance(r, dict)]
-    except Exception:  # noqa: BLE001
-        pass
-    return []
+    return geometry_config.load_rows(root)
 
 
 def _pick_longest_role(candidates: list[tuple[int, str, str]]):
@@ -716,7 +707,20 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     seat = _resolve_seat(root, actor)
     if seat is None:
         return None  # not a seated writer; the caller's written_by gate decides
-    list_key = sr.get("list_key")
+    # The list key is resolved POST-FIRST from the live geometry config
+    # (hypothesis:l4-a-seat-is-a-post-everywhere): `posts` when posts.md
+    # exists, else `seats` when only seats.md exists. The schema's declared
+    # `list_key` is used ONLY as the fallback when the resolver finds neither
+    # file, so a migrated tree (posts.md) admits ack-shaped `set_fm["posts"]`
+    # writes instead of refusing them as a foreign top-level field. The
+    # schema's `list_key: seats` spelling stays as the one-season deprecated
+    # alias.
+    lst_path, resolved_key = geometry_config.resolve(root)
+    if lst_path is not None and Path(lst_path).exists() and resolved_key in (
+            "posts", "seats"):
+        list_key = resolved_key
+    else:
+        list_key = sr.get("list_key")
     match_key = sr.get("match_key")
     fields = [str(f) for f in (sr.get("fields") or [])]
     if not list_key or not match_key:
@@ -1603,7 +1607,7 @@ def _log_provenance(actor: str = "") -> dict:
     role = os.environ.get("AGI_ROLE")
     if role:
         prov["role"] = role.strip()
-    seat = os.environ.get("AGI_SEAT")
+    seat = geometry_config.resolved_seat_env()
     if seat:
         prov["seat"] = seat.strip()
     return prov

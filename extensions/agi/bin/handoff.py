@@ -158,7 +158,7 @@ def _holder_opts(subp, *, required=False):
     handler refuses a missing holder by name.
     """
     subp.add_argument("--holder", help="seat holding the claim")
-    subp.add_argument("--seat", dest="holder",
+    subp.add_argument("--seat", "--post", dest="holder",
                       help="alias for --holder")
 
 

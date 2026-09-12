@@ -1622,7 +1622,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("wake-audit",
                         help="classify a rotation wake's tool calls")
-    p.add_argument("--seat", required=True)
+    p.add_argument("--seat", "--post", required=True)
     p.add_argument("--gen", type=int, default=None,
                    help="rotation-record generation to audit (default: the "
                         "seat's LATEST rotation record; the transcript comes "
@@ -1637,7 +1637,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
-    p.add_argument("--seat", required=True)
+    p.add_argument("--seat", "--post", required=True)
     p.add_argument("--gen", type=int, default=None,
                    help="generation that ROTATED OUT (default: the latest "
                         "record's b_generation.before)")
