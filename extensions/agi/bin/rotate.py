@@ -1647,7 +1647,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                 _spawn_gen = _rowgen
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
-                tmux_session=tmux_session, dry_run=args.dry_run)
+                tmux_session=tmux_session, dry_run=args.dry_run,
+                ask_diff=bool(getattr(args, "ask_diff", False)))
     # The SEAT ROW is the model source for a seated spawn, the flags only an
     # override — the same precedence rotate-self (`cmd_rotate_self`), the
     # reaper's crash-recovery respawn (heal.py) and seats-launch already use.
@@ -4856,8 +4857,9 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     The preamble is every line before the first `## ` header (the single-`#`
     title, a carried owner rule, blank lines) — CARRIED VERBATIM, never
     dropped. Sections split on lines starting with `## `; each header keeps
-    its `## ` prefix and its body is the lines below up to the next `## `
-    (leading/trailing blank trimmed)."""
+    its `## ` prefix and its body is the exact raw span of lines below it up
+    to the next `## ` (`_section_body`), so a re-join loses NO section-
+    boundary blank line (goal:g15.25 residue (i))."""
     preamble: list[str] = []
     sections: list[tuple[str, str]] = []
     header: str | None = None
@@ -4865,7 +4867,7 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     for ln in text.splitlines():
         if ln.startswith("## "):
             if header is not None:
-                sections.append((header, "\n".join(body).strip()))
+                sections.append((header, _section_body(body)))
             header = ln
             body = []
         else:
@@ -4874,8 +4876,37 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
             else:
                 body.append(ln)
     if header is not None:
-        sections.append((header, "\n".join(body).strip()))
+        sections.append((header, _section_body(body)))
     return "\n".join(preamble), sections
+
+
+def _section_body(raw_lines: list[str]) -> str:
+    """The EXACT raw span of a `## ` section's body from its collected lines.
+
+    `raw_lines` is the line list between this header and the next `## `
+    header (or EOF): blank LINE separators are `""` entries, and the EOL
+    newline that always precedes the next header line is the trailing
+    `"\n"` this appends. This makes `_split_card_sections` + `_render_card`
+    an EXACT inverse at section boundaries, so the stops writer re-emits
+    the blank line(s) that separated sections instead of stripping them
+    (goal:g15.25 residue (i)). An `""`-only span (a blank line between two
+    headers with no body) decodes back to ONE blank via `splitlines()`
+    below, and an empty section stays empty."""
+    return "\n".join(raw_lines) + "\n"
+
+
+def _join_body(lines: list[str]) -> str:
+    """Join a rebuilt section-body line list back into a body STRING,
+    keeping a trailing blank line (a final `""` element) visible to
+    `_render_card`'s `body.splitlines()` — the inverse of `_section_body`.
+    A bare `"\n".join` flattens a terminal `""` to a single newline, so a
+    section's trailing blank (the separator before the next `## ` header)
+    would otherwise be lost on replace; this restores it (goal:g15.25
+    residue (i), the `###`-path and `##`-path rebuilds)."""
+    body = "\n".join(lines)
+    if lines and lines[-1] == "":
+        body += "\n"
+    return body
 
 
 def _render_card(preamble: str,
@@ -7042,7 +7073,8 @@ def _git_head(root: Path, *, argv: list[str] | None = None) -> str | None:
 
 
 def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
-                           seat_row: dict | None, commit: str | None):
+                           seat_row: dict | None, commit: str | None,
+                           generation: int | None = None):
     """Resolve ONE bootstrap fact to a real value the handover can see, else
     None with a NAMED skip reason. NEVER the old blanket `0b owns deriving`:
     every skip names the connection that is missing (the seat row field, the
@@ -7079,6 +7111,13 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         #     a prefixed value here would render the doubled `- ack: ack: ...`
         #     (the SL7.15 defect part (a)). The staleness bound (`head` as
         #     today) is applied by the caller, unchanged.
+        # GOAL:g15.25 (SL7.42) — a RE-SEATED post must not print a leftover
+        #     PRIOR-generation ack file as this seating's. When the writer
+        #     knows its own generation and the ack file carries a `gen_after`
+        #     that is NOT it (a stale file from an earlier seating of the
+        #     same seat name), the fact is NAMED `stale: gen N` — never
+        #     printed as current. generation=None (the SL7.29 direct calls
+        #     that predate the bound) keeps the old read.
         ack_path = _ack_path(root, seat)
         try:
             _a = (json.loads(ack_path.read_text(
@@ -7087,8 +7126,16 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         except (OSError, ValueError):
             _a = None
         if isinstance(_a, dict) and _a.get("answer"):
+            _g = _a.get("gen_after")
+            if generation is not None and _g is not None:
+                try:
+                    _stale = int(_g) != int(generation)
+                except (TypeError, ValueError):
+                    _stale = False
+                if _stale:
+                    return f"stale: gen {_g}", None
             return (("{} (source {}, gen {})".format(
-                _a.get("answer"), _a.get("source"), _a.get("gen_after"))),
+                _a.get("answer"), _a.get("source"), _g)),
                     None)
         return "none", None
     if key == "prev_gen":
@@ -7203,7 +7250,8 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                              f"{join_poll_secs}s")
             continue
         value, reason = _derive_bootstrap_fact(
-            key, root=root, seat=seat, seat_row=seat_row, commit=commit)
+            key, root=root, seat=seat, seat_row=seat_row, commit=commit,
+            generation=generation)
         if value is None:
             tele[key] = f"SKIPPED: {reason}"
         else:
@@ -7459,8 +7507,8 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "prime_key", "prime_seat", "worktree", "repo",
-    "tmux_session", "pred_pids",
+    "prime_ref", "prime_key", "prime_seat", "prime_from", "worktree",
+    "repo", "tmux_session", "pred_pids",
 }
 
 #: Per-placeholder CODE fallbacks: a used `{key}` whose value is EMPTY is
@@ -8504,7 +8552,8 @@ def _compose_startup_output(results: list) -> str:
 def _first_seating_run(root: Path, *, seat: str, role: str,
                        succ_name: str,
                        tmux_session: str = DEFAULT_TMUX_SESSION,
-                       dry_run: bool = False) -> tuple[str, list]:
+                       dry_run: bool = False,
+                       ask_diff: bool = False) -> tuple[str, list]:
     """First-seating STARTUP composition (hypothesis:l4-a-first-seating-is-a-
     rotation-without-a-predecessor).
 
@@ -8539,10 +8588,37 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     results = _run_first_turn_commands(startup, values, dry_run=dry_run)
     block = _compose_startup_output(results)
     if block and not dry_run:
+        # GOAL:g15.25 (SL7.42) — a first seating has NO predecessor (gen 1),
+        #     so its turn-one bootstrap `ack` fact must name the SOURCE
+        #     `first-seating`, never `predecessor`, and must not fall through
+        #     to `_derive_bootstrap_fact` — which would print `ack: none`
+        #     (no ack file yet) or, on a RE-SEATED post, a STALE prior-gen
+        #     answer still sitting in seats/<seat>.ack.json. This post acks
+        #     itself once (`continue`; F8/SL7.06 default), so the truthful
+        #     turn-one value is supplied verbatim through the SAME `overrides`
+        #     seam the rotation path (cmd_rotate_self step 2.75) uses — one
+        #     override, no new flag.
+        # GOAL:g15.25 (SL7.42) — the turn-one value must track the MODE this
+        #     seat will actually have. `cmd_spawn --ask-diff` inherits its ack
+        #     open (`_first_seating_spawn_writes` writes answer
+        #     `diff-requested` into seats/<seat>.ack.json), so a bootstrap
+        #     record that says `continue` while the ack channel it opened says
+        #     `diff-requested` is the same lie this node exists to kill — just
+        #     in the ask-diff mode. The bootstrap ANSWER must equal the ack
+        #     file's answer; SOURCE stays `first-seating` (never
+        #     `predecessor`) in both modes. seats-launch (no ask-diff) is
+        #     unchanged: default-`continue`. One caller parameter, no new flag.
+        _answer = "diff-requested" if ask_diff else "continue"
+        _ack_override = (
+            f"{_answer} (source first-seating, gen 1) — "
+            "this post awaits one diff answer" if ask_diff else
+            "continue (source first-seating, gen 1) — "
+            "this post acks once itself")
         _write_bootstrap(root, seat=seat, generation=1,
                          telemetry=role_tmpl.get("telemetry"),
                          verification=None,
-                         join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+                         join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
+                         overrides={"ack": _ack_override})
     return block, results
 
 
@@ -8557,6 +8633,39 @@ def _first_seating_startup(root: Path, *, seat: str, role: str,
         root, seat=seat, role=role, succ_name=succ_name,
         tmux_session=tmux_session, dry_run=dry_run)
     return block
+
+
+def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
+    """The prime row for the startup placeholder map, read the way whois
+    reads it — ONE reader: the PUSHED season ref first (`send._pushed_seats`,
+    the SAME ref whois authorizes against, fetch included), the working-tree
+    seat row only as a FALLBACK when the pushed ref is unreachable, and the
+    SOURCE named either way (prime_from). A deferred-key window (a pending
+    key persisted when the push FAILED, SL7.22) leaves the ROTATING worktree's
+    prime row carrying a key the PUSHED authority does not — so a startup
+    {prime_key} read from the worktree can name a key the pushed row never
+    carries and read NO-MATCH/RETIRED for a live Prime
+    (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
+    sig-resolves-the-sig-row-by-pubkey). Returns (row, source) with source
+    ``"pushed"`` or ``"worktree (pushed ref unreachable)"``."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+
+    def _pick(rows):
+        for row in (rows or []):
+            if row.get("role") == "prime_director":
+                return row
+        return None
+
+    try:
+        seeded = send._pushed_seats(root, send._PUSHED_SEATS, True)
+    except Exception:                                       # noqa: BLE001
+        seeded = None
+    if seeded is not None:
+        rows, _sha, _ref = seeded
+        return _pick(rows), "pushed"
+    # Pushed authority unreachable — the FALLBACK, named as such so a reader
+    # never mistakes a rotation-local key for the pushed prime.
+    return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
 def _first_turn_values(root: Path, *, seat: str, gen: int,
@@ -8583,20 +8692,28 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
     prime_ref = ""
     prime_key = ""
     prime_seat = ""
-    for row in _load_seats(root):
-        if row.get("role") == "prime_director":
-            if row.get("session_ref"):
-                prime_ref = str(row["session_ref"])
-            # The prime row's pubkey and name ARE filled at every rotation
-            # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are
-            # the by-key fallback axes a startup entry with an EMPTY prime
-            # session_ref declares (hypothesis:l4-prime-authority-resolves-by-
-            # key-when-the-prime-rows-session-ref-is-empty...).
-            if row.get("pubkey"):
-                prime_key = str(row["pubkey"])
-            if row.get("name"):
-                prime_seat = str(row["name"])
-            break
+    # The prime row is read the way whois reads it — ONE reader: the PUSHED
+    # season ref first, the working-tree seat row only as a fallback when the
+    # ref is unreachable, and the SOURCE named (prime_from). A deferred-key
+    # window (a pending key persisted when the push FAILED, SL7.22) leaves the
+    # ROTATING worktree's prime row carrying a key the PUSHED authority does
+    # not — a {prime_key} read from the worktree would name a key the pushed
+    # row never carries and read NO-MATCH/RETIRED for a live Prime
+    # (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
+    # sig-resolves-the-sig-row-by-pubkey).
+    prime_row, prime_from = _prime_row_authority(root)
+    if prime_row is not None:
+        if prime_row.get("session_ref"):
+            prime_ref = str(prime_row["session_ref"])
+        # The prime row's pubkey and name ARE filled at every rotation
+        # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are the
+        # by-key fallback axes a startup entry with an EMPTY prime session_ref
+        # declares (hypothesis:l4-prime-authority-resolves-by-key-when-the-
+        # prime-rows-session-ref-is-empty...).
+        if prime_row.get("pubkey"):
+            prime_key = str(prime_row["pubkey"])
+        if prime_row.get("name"):
+            prime_seat = str(prime_row["name"])
     return {
         "seat": seat,
         "succ_ref": succ_ref or "",
@@ -8607,6 +8724,7 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "prime_ref": prime_ref,
         "prime_key": prime_key,
         "prime_seat": prime_seat,
+        "prime_from": prime_from,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
@@ -10655,6 +10773,40 @@ def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _fence_run(ln: str) -> int:
+    """Length of the backtick fence run on `ln`, or 0 when it is not a
+    CommonMark fence line. A fence line is optional leading whitespace then
+    a run of >= 3 backticks (the opener may carry a trailing info string,
+    the closer is backticks alone). Returns the run length so a length-aware
+    scan can pair the OUTER fence and let an inner (shorter) fence survive
+    as content (goal:g15.25 residue (iii))."""
+    s = ln.strip()
+    if not s.startswith("`"):
+        return 0
+    n = 0
+    for ch in s:
+        if ch == "`":
+            n += 1
+        else:
+            break
+    return n if n >= 3 else 0
+
+
+def _fence_for(stops_text: str) -> str:
+    """The fence string that wraps `stops_text`: a run of backticks LONGER
+    than every code fence already inside it, three by default. CommonMark
+    closes a fence with the next run >= the opener, so an inner fence one
+    shorter never closes the block (goal:g15.25 residue (iii)) — a stops
+    text carrying its own ``` nests inside a four-backtick (or longer)
+    outer fence and pairs correctly on the next write."""
+    inner = 3
+    for ln in stops_text.splitlines():
+        n = _fence_run(ln)
+        if n >= inner:
+            inner = n + 1        # outer must EXCEED every inner fence run
+    return "`" * inner
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -10663,10 +10815,12 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     so a slot written fresh and one filled over an existing block take an
     identical shape, and the exterior prose of an existing slot that sits
     OUTSIDE the fence is carried verbatim by the callers. The fence is
-    always part of the block, so a stops text that itself carries a ```
-    fence nests cleanly instead of being spliced between someone else's
-    delimiters (goal:g15.25 line (3))."""
-    out = "```\n" + stops_text.rstrip("\n") + "\n```"
+    always part of the block; a stops text that itself carries a ```
+    fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
+    rule) so the inner fence is content, never a delimiter (goal:g15.25
+    line (3), residue (iii))."""
+    fence = _fence_for(stops_text)
+    out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
         out += f"\n\ndiff requested: {diff_gap}"
     return out
@@ -10684,18 +10838,32 @@ def _stops_replace_fenced_region(lines: list[str], block: str):
     text carrying its own fence would interlock with)."""
     fence_i = None
     for i, ln in enumerate(lines):
-        if ln.strip().startswith("```"):
+        if _fence_run(ln) >= 3:
             fence_i = i
             break
     if fence_i is None:
         return None
+    opener = _fence_run(lines[fence_i])
     close_i = None
+    # CommonMark closes on the first fence run >= the opener — so with a
+    # longer outer fence the inner (shorter) fences are content and only the
+    # real closer (run >= opener) pairs (goal:g15.25 residue (iii)).
     for i in range(fence_i + 1, len(lines)):
-        if lines[i].strip().startswith("```"):
+        if _fence_run(lines[i]) >= opener:
             close_i = i
             break
     if close_i is None:
         close_i = len(lines) - 1
+    # the rendered block trails a `diff requested:` line after the close
+    # fence; a re-write must REPLACE (never stack) the previous block's
+    # trailer, so extend the replaced region over an optional blank + one
+    # such trailer line (goal:g15.25 residue (ii)).
+    tail = close_i + 1
+    if tail < len(lines) and lines[tail].strip() == "":
+        tail += 1
+    if (tail < len(lines)
+            and lines[tail].lstrip().startswith("diff requested:")):
+        close_i = tail
     return lines[:fence_i] + block.splitlines() + lines[close_i + 1:]
 
 
@@ -10759,11 +10927,11 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
         if new_region is None:
             new_region = block.splitlines()   # no fence: whole slot replaced
-        new_body = "\n".join(keep + [sub_header] + new_region + tail)
+        new_body = _join_body(keep + [sub_header] + new_region + tail)
     else:
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(body.splitlines(), block)
-        new_body = block if new_region is None else "\n".join(new_region)
+        new_body = block if new_region is None else _join_body(new_region)
     sections[sec_idx] = (header, new_body)
     full = _render_card(preamble, sections)
     if frac is not None:
