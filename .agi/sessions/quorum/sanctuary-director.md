@@ -16,7 +16,7 @@ meter --pin <meter> --session-log <your .jsonl>  (🔴 `--seat` refuses cross-ge
 git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sanctuary-director` (every seam)
 ```
 
-- **PRIME = XIII (rotated ~00:20Z; ref TBD — verify with `send.py whois` at the mur-43 window; dms now signed ed25519).** mur-42 verdict 00:20Z: ACCEPT 11/11, no demote; reaper restarted 00:09:31Z onto 42's bytes; P1 lines cut (301-303), P2 residues recorded on the nodes. **Account $10.73 remaining at 00:33Z (floor $1.00).** Standing: pin-reap **STAYS NOT ARMED** (mur-41 blockers = round-2 items 1-3 + predecessor pins KEEP=9/UNPINNED=0 + owner GO; reaper unit NOT restarted for mur-41); the merge-up window is STATE (`ls /home/ubuntu/work/agi/.agi/sessions/verify-suite.lock` + inbox before ANY MAIN merge); a role is RESOLVED, never typed.
+- **PRIME = XIII `ff648e` @311 gen 13 (whois IS-AUTHORIZED 00:54Z; dms signed ed25519).** mur-42 verdict 00:20Z: ACCEPT 11/11, no demote; reaper restarted 00:09:31Z onto 42's bytes; P1 lines cut (301-303), P2 residues recorded on the nodes. **Account $10.73 remaining at 00:33Z (floor $1.00).** Standing: pin-reap **STAYS NOT ARMED** (mur-41 blockers = round-2 items 1-3 + predecessor pins KEEP=9/UNPINNED=0 + owner GO; reaper unit NOT restarted for mur-41); the merge-up window is STATE (`ls /home/ubuntu/work/agi/.agi/sessions/verify-suite.lock` + inbox before ANY MAIN merge); a role is RESOLVED, never typed.
 - **sensei-director** `seat-sensei-director-aa [588897]` @306 (`SL<n>.<nn>`; owns rotate.py spawn/first_turn/bootstrap/handoff + the ack-dirty fix SL5.01). **master-sensei** `agi-88 [516457]` @292: node ids only. **Helper** `seat-sanctuary-helper-88 [5f209b]` @307: L4.257-259 on `seat/sanctuary-helper@s2` tip 3779d727c ride mur-42 as Nb; told 22:2xZ (cut-off, seat→post, its trim pass); only pi parents; floor $1.00.
 - **OWNER 21:4xZ horizon** (`vision:web-app-suite` db436e1f1): the Sanctuary = an MCP app with a web app layer; eight rungs; "Rungs 1-4 are live as goal lines under goal:g15 at the Sanctuary director" — NO rung lines exist yet (g15.1-24 checked); rung 1 = SL4.06 (sensei-director). Propose rungs 2-4 as g15 lines at the close report — next season's field.
 - **Tree:** season/s2 = MAIN. **mur-42 = MERGE `8d7edd265` + Nb `e4509304d` (pushed tip), 11/11 twice, 3539/14, stamp 2300/195/2495 @ e4509304d.** Seat = tip at 23:19Z. **Free ids: L4.300+.**
@@ -41,18 +41,18 @@ git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sa
 | L4.295 | A+B `hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested` | rotate.py + tests | HARVESTED 22:43Z (proved 0.92; stray `4242` removed) |
 | L4.298 | E `hypothesis:l4-the-sweep-names-every-refusal-and-has-one-terminal-body` | heal.py + tests | HARVESTED 22:42Z (proved 0.9; twins live in cli.py) |
 | L4.299 `a00-5e500992` pid 2715570 | H `hypothesis:l4-a-seat-is-a-post-everywhere` (3 kids) | readers/flags/schema/prose + `cli.py post-rename` | HARVESTED 00:32Z (4 kids, suite 3563/7; residue = identity writer + whois + self_row list key -> L4.300) |
-| L4.300 `a00-4b0f2740` pid 3395961 | H residue fix-only (same node) | rotate.py writer, send.py whois path, write.py list key | LIVE 00:32Z |
-| L4.301 `a00-5af55508` | P1(1) run-key leading token (`l4-a-workflow-run-is-named-not-numbered`) | workflow.py | LIVE 00:34Z |
-| L4.302 `a00-3cf95563` | P1(2) Clause A test red on pre-fix (`l4-a-join-matches-...`) | test_rotate_handover.py | LIVE 00:34Z |
-| L4.303 `a00-4d8ade12` | P1(3) trimguard curly opener + fixture test (`l4-trimguard-never-reads-...`) | cli.py + test | LIVE 00:34Z |
-| I = L4.304 (after 300) | `hypothesis:l4-branches-follow-the-season-grammar` (5 kids) | grammar module + every branch reader + `cli.py branch-reshuffle` | MINTED; cut when 300 harvests |
+| L4.300 `a00-4b0f2740` pid 3395961 | H residue fix-only (same node) | rotate.py writer, send.py whois path, write.py list key | HARVESTED 00:53Z (lean 92; 333 tests; real whois via fallback) |
+| L4.301 `a00-5af55508` | P1(1) run-key leading token (`l4-a-workflow-run-is-named-not-numbered`) | workflow.py | HARVESTED 00:52Z |
+| L4.302 `a00-3cf95563` | P1(2) Clause A test red on pre-fix (`l4-a-join-matches-...`) | test_rotate_handover.py | HARVESTED 00:52Z |
+| L4.303 `a00-4d8ade12` | P1(3) trimguard curly opener + fixture test (`l4-trimguard-never-reads-...`) | cli.py + test | HARVESTED 00:52Z |
+| L4.304 `a00-4467e507` pid 3549440 | I `hypothesis:l4-branches-follow-the-season-grammar` (5 kids) | grammar module + every branch reader + `cli.py branch-reshuffle` | LIVE 00:53Z; branch `loop/hypothesis-l4-branches-follow-*-a00-4467e507@s2` |
 
 - Harvest shape per round: `status --iter L4.NNN --wait --timeout 540` → `git -C /home/ubuntu/work/agi/.agi/worktrees/<agent> status --short` (staged-uncommitted kid work = commit under the kid's authorship) → `git branch --list 'loop/*<agent>@s2'` → diff vs merge-base → merge `--no-ff -F` → run the claim's command on the REAL tree → `note.py` → commit+push.
 - **NEXT SEASON (Prime 22:14Z cut):** L4.291 residue (twice-rotation falsifier; worktree-local row readers incl. meter `--seat`; own-chain reap without a pid named in the record) · argv cap `l4-a-rotation-record-caps-the-reaped-chains-argv` (helper-proposed) · pin-reap round 2 (C) · helper's `l4-heal-reads-the-freshest-seat-row-not-live-first` · seat→post CODE rename (heads the list) · rungs 2-4 g15 lines · 0a/0c-cert/seatsig.
 
-## §3 🔴 NEXT COMMAND (stamped 00:35Z)
+## §3 🔴 NEXT COMMAND (stamped 00:56Z)
 
-**`spawn_budget.py status --iter L4.300 --wait --timeout 540` → harvest 300 (then 301/302/303 as they finish) → cut I = L4.304 (`AGI_POST=sanctuary-director`; the `AGI_SEAT` alias prints a note) → harvest I → request mur-43 (= H + 300-304; lock + tip; whois the new Prime first) → close report (rungs 2-4 proposals + next-season list; the helper's L4.257 P2 residue 'heal.py:647 live memo re-read never executes under the suite' goes to the helper).** The Prime runs `post-rename --apply` / `branch-reshuffle --apply` live, last. Every branch is pushed.
+**mur-43 WINDOW REQUESTED 00:55Z (seat tip eadf65f32, 19/0; verify 9/10; 2330/195/2525) — wait for the Prime's grant (inbox loop comparing `stat -c '%Y %s'`), then the MERGE-UP RECIPE (mine only; no Nb this time), report five numbers + hash. In parallel `spawn_budget.py status --iter L4.304 --wait --timeout 540` (I, 5 kids, ~1 h) → harvest I (check every kid worktree; whole suite `-x`; fixture `branch-reshuffle --apply` transcript) → request mur-44 → close report.** Every branch is pushed.
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes they came from)
 
