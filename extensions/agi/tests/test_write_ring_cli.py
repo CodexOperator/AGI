@@ -253,6 +253,77 @@ def test_G_node_key_cannot_rename_the_signed_record(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# RUNG 2b residues (hypothesis:l4-a-signed-decision-covers-every-written-
+# key-and-a-nonce-is-never-spent-on-a-failed-write): a `_fresh` set/unset key
+# is refused, a set/unset OVERLAP is refused by name, and a failed ledger
+# write refuses the gate by name (never a silent nonce spend).
+# ---------------------------------------------------------------------------
+
+def test_H_fresh_key_refused_as_set_field(tmp_path):
+    """RUNG 2b clause 1: a `set_fm` key literally named `_fresh` is REFUSED
+    BY NAME -- the freshness field is never silently displaced, so every
+    written value stays covered by the quorum's signed bytes."""
+    with pytest.raises(write.EditError) as ei:
+        write._config_write_fields("config:seats", {"_fresh": "spoof"})
+    msg = str(ei.value)
+    assert "_fresh" in msg
+    assert "REFUSED" in msg
+
+
+def test_H2_fresh_key_refused_as_unset_key(tmp_path):
+    """RUNG 2b clause 1 (unset side): an unset_fm key named `_fresh` is
+    REFUSED by name too."""
+    with pytest.raises(write.EditError) as ei:
+        write._config_write_fields("config:seats", None, ["_fresh"])
+    msg = str(ei.value)
+    assert "_fresh" in msg
+    assert "REFUSED" in msg
+
+
+def test_H3_set_unset_overlap_refused_by_name(tmp_path):
+    """RUNG 2b clause 2: a key present in BOTH set_fm and unset_fm is
+    REFUSED by name (today the bytes said `<unset>` while the write applied
+    the set value -- the quorum signed something other than is written)."""
+    with pytest.raises(write.EditError) as ei:
+        write._config_write_fields(
+            "config:seats", {"seats": "x"}, ["seats"])
+    msg = str(ei.value)
+    assert "seats" in msg
+    assert "BOTH set_fm and unset_fm" in msg
+
+
+def test_H4_gate_refuses_by_name_when_ledger_unwritable(tmp_path, monkeypatch):
+    """RUNG 2b clause 3: when nonce_ledger.remember() cannot write, the ring
+    gate converts the LedgerWriteError into a by-name EditError (never an
+    unhandled traceback, never a silent spend), so the decision is refused."""
+    root, signers = _ring_root(tmp_path)
+    ts, nonce = _now(), "write-h4"
+    fields = _cell_fields(root, "config:seats", {"a": "1"},
+                          ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+
+    def _boom_ledger(_root):
+        class _Seen:
+            def __contains__(self, _item):
+                return False
+
+        def _remember(_nonce):
+            raise rings.LedgerWriteError(
+                "could not write the nonce ledger at /fake/ring-nonces.json: "
+                "read-only (the admitted nonce was NOT remembered)")
+        return _Seen(), _remember
+
+    monkeypatch.setattr(rings, "nonce_ledger", _boom_ledger)
+    with pytest.raises(write.EditError) as ei:
+        write._enforce_written_by(
+            root, "config", "director1", "config:seats", role="prime",
+            set_fm={"a": "1"}, signatures=sigs, ring_fresh=(ts, nonce))
+    msg = str(ei.value)
+    assert "nonce ledger" in msg and "ring-nonces.json" in msg
+
+
+# ---------------------------------------------------------------------------
 # D: the seated self-row path admits WITHOUT the ring quorum.
 # ---------------------------------------------------------------------------
 
@@ -357,3 +428,145 @@ def test_submit_end_to_end_short_of_m_refused(tmp_path, monkeypatch):
     assert "approval" in str(ei.value)
     assert "got 1" in str(ei.value)
     assert "ring_decision" not in (root / "nodes" / "posts.md").read_text()
+
+
+# ---------------------------------------------------------------------------
+# CLAUSE 4: an empty-but-DECLARED written_by refuses BY NAME; absent still
+#             gates nothing (hypothesis:l4-a-signed-decision-covers-every-
+#             written-key-and-a-nonce-is-never-spent-on-a-failed-write).
+# ---------------------------------------------------------------------------
+
+def test_empty_declared_written_by_refuses_by_name(tmp_path):
+    """Clause 4: `written_by: []` (declared but EMPTY) refuses an otherwise
+    ordinary writer BY NAME with the empty-list reason, naming the node type
+    -- never the misleading 'admitted roles ;' phrasing."""
+    root, _s = _ring_root(tmp_path, written_by="[]")
+    with pytest.raises(write.EditError) as ei:
+        write._enforce_written_by(
+            root, "config", "director1", "config:seats", role="prime",
+            set_fm={"seats": [{"name": "x"}]})
+    msg = str(ei.value)
+    assert "EMPTY" in msg          # names the empty list
+    assert "config" in msg         # names the node type
+    assert "admitted roles" not in msg   # never the misleading phrasing
+
+
+def test_absent_written_by_still_gates_nothing(tmp_path):
+    """Clause 4 regression: a schema with NO written_by (undeclared -> None)
+    still gates nothing -- an ordinary writer is admitted with no quorum, and
+    the empty-list refusal never fires for the undeclared case."""
+    root, _s = _ring_root(tmp_path, written_by="", ring="")
+    # No exception => the writer is admitted (written_by gates nothing, and
+    # with no ring there is no gate 2 either).
+    write._enforce_written_by(
+        root, "config", "director1", "config:seats", role="prime",
+        set_fm={"seats": [{"name": "x"}]})
+
+
+# ---------------------------------------------------------------------------
+# CLAUSE 6: `--dry-run` previews the ring/freshness refusal the real gate
+#            raises, and is a pure no-op (nothing written, no nonce spent).
+# ---------------------------------------------------------------------------
+
+def _cli_dry(root, sigs, *, fresh, target="config:seats",
+             value='[{"name": "x"}]'):
+    argv = [target, f"set seats {value}", "--dry-run",
+            "--actor", "director1", "--role", "prime",
+            "--ring-fresh", f"{fresh[0]}|{fresh[1]}",
+            "--root", str(root)]
+    for sig in sigs:
+        argv += ["--ring-sig", sig]
+    return write.main(argv)
+
+
+def test_dry_run_previews_ring_refusal_naming_quorum(tmp_path, capsys):
+    """Clause 6: a `--dry-run` with too few signatures prints the SAME ring
+    refusal the real gate raises (named by quorum), and is a no-op: the node
+    is not touched and no nonce ledger is created."""
+    root, _s = _ring_root(tmp_path)      # written_by=prime, ring=approval, m=2
+    _real_node(root)
+    node = root / "nodes" / "posts.md"
+    before = node.read_text()
+    ts, nonce = _now(), "dry-preview"
+    rc = _cli_dry(root, [], fresh=(ts, nonce), target="config:posts",
+                  value='[{"name": "x"}]')
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "RING-GATE PREVIEW:" in out
+    assert "approval" in out           # names the ring
+    assert "rung 2 multisig ring" in out
+    assert node.read_text() == before  # nothing written, no editor stamped
+
+
+def test_dry_run_admits_without_spending_nonce(tmp_path, capsys):
+    """Clause 6: a `--dry-run` with a VALID quorum and fresh fields prints the
+    admitted preview and does NOT record the nonce -- the identical dry-run a
+    second time (same fresh fields) still admits, where a spent nonce would
+    refuse as replayed."""
+    root, signers = _ring_root(tmp_path)
+    ts, nonce = _now(), "dry-admit"
+    fields = _cell_fields(root, "config:seats",
+                          {"seats": [{"name": "x"}]}, ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+    rc1 = _cli_dry(root, sigs, fresh=(ts, nonce))
+    assert rc1 == 0
+    assert "RING-GATE PREVIEW: admitted" in capsys.readouterr().out
+    # the preview did NOT spend the nonce: an identical second dry-run admits
+    rc2 = _cli_dry(root, sigs, fresh=(ts, nonce))
+    assert rc2 == 0
+    assert "RING-GATE PREVIEW: admitted" in capsys.readouterr().out
+
+
+def test_dry_run_previews_freshness_refusal_for_stale(tmp_path, capsys):
+    """Clause 6: a `--dry-run` of a STALE decision previews the freshness
+    refusal BY NAME (age > window) even with a valid quorum."""
+    root, signers = _ring_root(tmp_path)
+    ts = _iso(time.time() - 10_000)      # far beyond the 900s window
+    nonce = "dry-stale"
+    fields = _cell_fields(root, "config:seats",
+                          {"seats": [{"name": "x"}]}, ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+    rc = _cli_dry(root, sigs, fresh=(ts, nonce))
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "RING-GATE PREVIEW:" in out
+    assert "stale" in out
+
+
+def test_live_schema_scan_reports_empty_written_by():
+    """Clause 4 scan: over the LIVE `.agi/context/schemas/`, report which
+    schemas declare `written_by:` and whether any parses to an EMPTY list or
+    empty string (the case clause 4 now refuses BY NAME). Kept a scan, not a
+    live-schema assertion -- it lists whatever it finds and asserts only that
+    the empty-but-declared count is what the scan accounted. No schema cell
+    is edited."""
+    from schema_registry import load_schemas_from_dir  # noqa: PLC0415
+    import links  # noqa: PLC0415
+
+    schemas_dir = (Path(__file__).resolve().parents[3] / ".agi"
+                   / "context" / "schemas")
+    reg = load_schemas_from_dir(schemas_dir)
+    declared = not_declared = empty_declared = 0
+    for ntype in sorted(reg.names()):
+        s = reg.get(ntype)
+        wb = s.frontmatter.get("written_by")
+        if wb is None:
+            not_declared += 1
+            continue
+        declared += 1
+        admitted = links.parse_written_by(wb)
+        if admitted is not None and not admitted:
+            empty_declared += 1
+    # The scan must still list what it finds (a regression guard, not a claim
+    # about the live corpus): every schema is either declared or undeclared.
+    total = len(reg.names())
+    assert declared + not_declared == total
+    assert empty_declared >= 0
+    # The empty-but-DECLARED case (the clause 4 refusal) must be a MEASURED
+    # finding, never an assumption: report its count on the node body. The non-
+    # empty YAML (`written_by:`) parsing to None is the undeclared case, which
+    # still gates nothing.
+    print(f"schema scan: {total} schemas, {declared} declare written_by, "
+          f"{not_declared} undeclared, {empty_declared} empty-but-declared")

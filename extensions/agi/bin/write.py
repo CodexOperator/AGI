@@ -1128,6 +1128,24 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
     time; ts/nonce default to freshly minted, pass them to fix the bytes the
     signer covered (fixtures do)."""
     from seatsig import rings as _rings  # noqa: PLC0415
+    # RUNG 2b residues: refuse a caller key that would collide with the
+    # reserved FRESH field, and a key present in BOTH set_fm and unset_fm,
+    # BEFORE anything is signed, so every WRITTEN value is covered by the
+    # quorum's signed bytes (hypothesis:l4-a-signed-decision-covers-every-
+    # written-key-and-a-nonce-is-never-spent-on-a-failed-write).
+    if _rings.FRESH_KEY in (set_fm or {}):
+        raise EditError(
+            f"config-row write to {where}: the reserved freshness key "
+            f"{_rings.FRESH_KEY!r} (which carries the ts|nonce a ring "
+            f"quorum covers) is REFUSED as a set field so it cannot displace "
+            f"a written value from the signed bytes (RUNG 2b residue)")
+    overlap = [k for k in (unset_fm or []) if k in (set_fm or {})]
+    if overlap:
+        raise EditError(
+            f"config-row write to {where}: the key {overlap[0]!r} appears in "
+            f"BOTH set_fm and unset_fm; REFUSED by name so the quorum never "
+            f"signs one value while the write applies another (RUNG 2b "
+            f"residue)")
     fields = {NODE_KEY: _rings.json_field(where)}  # _node: never displaced
     for k in (set_fm or {}):
         if k == NODE_KEY:
@@ -1145,8 +1163,68 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
                 f"{NODE_KEY!r} is REFUSED as an unset key (defect 2, "
                 f"hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-"
                 f"the-ring-gates-the-write-itself)")
+        if k == _rings.FRESH_KEY:
+            raise EditError(
+                f"config-row write to {where}: the reserved freshness key "
+                f"{_rings.FRESH_KEY!r} is REFUSED as an unset key so it cannot "
+                f"displace the ts|nonce a ring quorum covers (RUNG 2b residue)")
         fields[k] = _rings.json_field(UNSET_MARKER)
     return _rings.fresh_fields(fields, ts=ts, nonce=nonce)
+
+
+def _preview_dry_run_gate(root, edit, args):
+    """The `--dry-run` RING-GATE PREVIEW (hypothesis:l4-a-signed-decision-
+    covers-every-written-key-and-a-nonce-is-never-spent-on-a-failed-write,
+    clause 6): after resolving the edit, run the SAME written_by / ring /
+    freshness judgement the real gate runs in submit -- same
+    `_config_write_fields`, same `rings.verify_ring`, same
+    `rings.freshness_refusal`, honouring `--ring-sig` and `--ring-fresh` --
+    and print what it WOULD do. A pure no-op on state: writes nothing, stamps
+    no editor, spends no nonce (`preview` -> remember=None). Without this a
+    dry run of a write the gate would refuse (short of quorum, stale, or
+    replayed nonce) printed as if it would succeed."""
+    from seatsig import rings as _pr  # noqa: PLC0415
+    _prev: dict = {}
+    try:
+        _pfresh = _pr.parse_ring_fresh(args.ring_fresh)
+    except ValueError as _pve:
+        print(f"ERR: {_pve}", file=sys.stderr)
+        return 2
+    try:
+        _enforce_written_by(
+            root, edit.node_id.split(":", 1)[0], args.actor, edit.node_id,
+            args.role,
+            set_fm=edit.set_fm or None,
+            unset_fm=edit.unset_fm or None,
+            allow_self_row=True,
+            has_body=bool(edit.body_append or edit.thought
+                          or edit.body_patch_diff
+                          or edit.replace_target == "body"),
+            signatures=args.ring_sigs,
+            out_decision=_prev,
+            ring_fresh=_pfresh,
+            preview=True)
+    except Exception as _pe:  # noqa: BLE001  (a preview never masks the summary)
+        _prev["refusal"] = f"{_pe}"
+    if _prev.get("refusal"):
+        print(f"  RING-GATE PREVIEW: {_prev['refusal']}")
+    else:
+        print("  RING-GATE PREVIEW: admitted (written_by + ring quorum + "
+              "freshness satisfied); dry-run writes nothing")
+    return 0
+
+
+def _refuse(out_decision, preview, msg):
+    """Raise a gate refusal in a REAL write; in a DRY-RUN preview, record it
+    on ``out_decision['refusal']`` and return True instead (the caller returns).
+    ONE message string shared by both paths, so a preview prints exactly the
+    text the real gate would raise -- and a dry run writes nothing, stamps no
+    editor, and spends no nonce (hypothesis:l4-a-signed-decision-covers-every-
+    written-key-and-a-nonce-is-never-spent-on-a-failed-write, clause 6)."""
+    if preview:
+        out_decision["refusal"] = msg
+        return True
+    raise EditError(msg)
 
 
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
@@ -1156,7 +1234,8 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         has_body: bool = False,
                         signatures: list | None = None,
                         out_decision: dict | None = None,
-                        ring_fresh: tuple | None = None):
+                        ring_fresh: tuple | None = None,
+                        preview: bool = False):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
@@ -1206,13 +1285,30 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
         except Exception:  # noqa: BLE001  (a broken veto cell never frees-silent)
             _frozen, _why = False, ""
         if _frozen:
-            raise EditError(
-                f"{node_type} nodes ({where}): a config-row edit outside "
-                f"self_row is a gated act and {_why} "
-                f"(human gate, rung 3)")
+            if _refuse(out_decision, preview,
+                       f"{node_type} nodes ({where}): a config-row edit "
+                       f"outside self_row is a gated act and {_why} "
+                       f"(human gate, rung 3)"):
+                return
 
     admitted = links.parse_written_by(written_by) if written_by is not None else None
     resolved = _resolve_role(root, actor, role)
+
+    # CLAUSE 4 (hypothesis:l4-a-signed-decision-covers-every-written-key-and-
+    # a-nonce-is-never-spent-on-a-failed-write): a `written_by` that is
+    # DECLARED but EMPTY (`written_by: []` or `written_by: ""`) gates the type
+    # to a writer set with nothing in it, so NO role is ever admitted. Refuse
+    # BY NAME with the empty-list reason -- without this the final written_by
+    # refusal below would read "admitted roles ;" as if roles were admitted.
+    # An ABSENT written_by (admitted None) still gates nothing, unchanged; and
+    # this REFUSES BEFORE the self_row / master_sensei carve-outs, because an
+    # empty gate admits nobody regardless of a carved-out row on the same type.
+    if admitted is not None and not admitted:
+        if _refuse(out_decision, preview,
+                   f"{node_type} nodes ({where}): the schema declares "
+                   f"`written_by:` but the declared list is EMPTY, so no role "
+                   f"may hand-edit them. (goal:g12)"):
+            return
 
     # ------------------------------------------------------ GATE 1: written_by
     # The schema's OWN restricted-writer rule. An UNRESOLVED identity refuses
@@ -1252,11 +1348,13 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         root, schema, actor, set_fm, unset_fm, where)
                     if mrefusal is None:
                         return
-                    raise EditError(
-                        f"{node_type} nodes ({where}): a master-sensei write is "
-                        f"limited to the declared template regions and must pass "
-                        f"the startup producing judge; {mrefusal} "
-                        f"(PRIME RULING 2026-09-11)")
+                    if _refuse(out_decision, preview,
+                               f"{node_type} nodes ({where}): a master-sensei "
+                               f"write is limited to the declared template "
+                               f"regions and must pass the startup producing "
+                               f"judge; {mrefusal} "
+                               f"(PRIME RULING 2026-09-11)"):
+                        return
                 if has_body and not (set_fm or unset_fm):
                     # Body-only master-sensei edit: the facts-body carve-out
                     # applies ONLY to the node whose frontmatter carries the
@@ -1289,19 +1387,23 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                                             unset_fm, where)
                 if refusal is None:
                     return
-                raise EditError(
-                    f"{node_type} nodes ({where}): a seated role may update only "
-                    f"its OWN row and only the declared fields; {refusal}. "
-                    f"(L4.110 prime ruling B)")
+                if _refuse(out_decision, preview,
+                           f"{node_type} nodes ({where}): a seated role may "
+                           f"update only its OWN row and only the declared "
+                           f"fields; {refusal}. "
+                           f"(L4.110 prime ruling B)"):
+                    return
 
         # Not admitted by written_by nor any carve-out: REFUSE BY NAME with the
         # admitted roles -- even with a satisfied ring quorum (test C: the
         # refusal here is the written_by line, never the ring line).
-        raise EditError(
-            f"{node_type} nodes ({where}) may be hand-edited only by "
-            f"admitted roles {', '.join(sorted(admitted))}; resolution for actor "
-            f"{actor!r} gave {resolved or 'UNRESOLVED'}, which is not admitted. "
-            f"(goal:g12)")
+        if _refuse(out_decision, preview,
+                   f"{node_type} nodes ({where}) may be hand-edited only by "
+                   f"admitted roles {', '.join(sorted(admitted))}; resolution "
+                   f"for actor {actor!r} gave {resolved or 'UNRESOLVED'}, "
+                   f"which is not admitted. "
+                   f"(goal:g12)"):
+            return
 
     # ------------------------------------------------------------ GATE 2: ring
     # RUNG 2 ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
@@ -1337,20 +1439,34 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 ring, canonical, signatures or [],
                 pubkey_for_post=_ring_pubkey_for_post(root))
             if not res.ok:
-                raise EditError(
-                    f"{node_type} nodes ({where}): {res.refused}. "
-                    f"(rung 2 multisig ring)")
+                if _refuse(out_decision, preview,
+                           f"{node_type} nodes ({where}): {res.refused}. "
+                           f"(rung 2 multisig ring)"):
+                    return
             # FRESH (kid B): the quorum satisfied, so the decision must still
             # sit inside its replay window and not carry a spent nonce.
             seen, remember = _rings.nonce_ledger(root)
-            fr = _rings.freshness_refusal(
-                fields,
-                max_age_s=_rings._effective_max_age_s(ring),
-                seen=seen, remember=remember)
+            if preview:
+                # a dry run previews the freshness judgement but NEVER spends
+                # the nonce: remember=None means freshness_refusal only reads
+                # the seen set and never records the nonce it admits.
+                remember = None
+            try:
+                fr = _rings.freshness_refusal(
+                    fields,
+                    max_age_s=_rings._effective_max_age_s(ring),
+                    seen=seen, remember=remember)
+            except _rings.LedgerWriteError as le:
+                if _refuse(out_decision, preview,
+                           f"{node_type} nodes ({where}): {le}. "
+                           f"(rung 2 multisig ring)"):
+                    return
+                raise  # pragma: no cover -- _refuse raises in the real gate
             if fr:
-                raise EditError(
-                    f"{node_type} nodes ({where}): freshness {fr}. "
-                    f"(rung 2 multisig ring)")
+                if _refuse(out_decision, preview,
+                           f"{node_type} nodes ({where}): freshness {fr}. "
+                           f"(rung 2 multisig ring)"):
+                    return
             # RUNG 2 claim (2): hand the admitted config-write decision
             # (kind + signed fields + signatures) back to the caller so it
             # can be persisted onto the node the write sanctions -- a reader
@@ -2243,7 +2359,7 @@ def main(argv: list[str] | None = None) -> int:
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
-        return 0
+        return _preview_dry_run_gate(root, edit, args)
 
     if edit.payload_from == "-":
         # The CLI layer reads stdin; the library never does. `payload -` is
