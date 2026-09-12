@@ -794,3 +794,59 @@ def test_tail_with_an_acked_ref_passes_that_ref_never_the_uuid(_fix,
     assert succ_ref == "1be8d4", (
         f"{succ_ref!r}: the tail must carry the successor's ACKED ref, never "
         "the join uuid (F15)")
+
+
+# ── SL7.102 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-spawn-time-ack-carries-
+# ── no-session-ref-cmd-ack-refuses-any-uuid-shaped-ref-...): the OWN-TAIL
+# ── reads a REAL predecessor-written ack file and status names the empty
+# ── session_ref ─────────────────────────────────────────────────────────────
+
+def test_tail_reads_real_predecessor_ack_keeps_row_session_ref_empty(
+        _fix, tmp_path, monkeypatch):
+    """SL7.102 FIX-ONLY (claim a): the OWN-TAIL reads a REAL ack file — the
+    `_read_ack` stub is DELETED for this test, so rotate-self writes its OWN
+    spawn-time ack (s6.3, session_ref '' — the predecessor cannot know the
+    harness ref) and the tail reads THAT file back. Assert the acked ref is
+    '' and the row's session_ref stays '' (never the JOIN's session uuid that
+    the pre-F15 `session_ref=succ_session_id` write back-filled)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    # NO `monkeypatch.setattr(rotate, "_read_ack", ...)`: the real file the
+    # s6.3 spawn-time write lands is what the tail reads back.
+    args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                    session_ref="c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2",
+                    successor_transcript=str(transcript))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, "tail must complete so the ack write + read + row run"
+    # the REAL ack rotate-self wrote + rotated carries session_ref '' — never
+    # the JOIN uuid that `session_ref=succ_session_id` used to put there.
+    ack_files = sorted((tmp_path / "sessions" / "seats")
+                       .glob("adv-alive.ack.*.json"))
+    assert ack_files, "the spawn-time ack file must exist (written and rotated)"
+    ack = json.loads(ack_files[-1].read_text(encoding="utf-8"))
+    assert ack.get("session_ref", "<missing>") == "", ack
+    # the row's session_ref stays '' after the tail (the uuid never lands).
+    row = next(r for r in rotate._load_seats(tmp_path)
+               if r.get("name") == "adv-alive")
+    assert (row.get("session_ref") or "") == "", row
+
+
+def test_status_prints_unset_when_session_ref_empty(_fix, tmp_path, capsys):
+    """SL7.102 FIX-ONLY (claim b): `status --record latest --seat` prints an
+    EMPTY session_ref as `unset (awaits the ack)` — the spawn-time ack now
+    carries no ref, so empty is the NORMAL pre-ack state, named rather than a
+    silently omitted line."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    rc = rotate.cmd_status(SimpleNamespace(record="latest", seat="adv-alive"),
+                           tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "session_ref: unset (awaits the ack)" in out, out
+    assert "stale" not in out, out

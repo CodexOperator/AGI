@@ -2171,19 +2171,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 2
     rows = send._locally_loaded_rows(root)
-    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-own-tail-after-join-...):
-    # the ListAgents ref is harness-only and is NEVER the row's session uuid.
-    # A --ref equal to the RUNNING seat's own session_id cell IS the session
-    # id-as-ref defect — the JOIN registers the same uuid in the row, so the
-    # own-tail ack that back-filled it (rotate.py step 6.4 pre-F15) poisoned
-    # session_ref with a value send.whois reads as NO-MATCH for every peer.
-    # Refuse BY NAME and write NOTHING (no ack file, no row write, rc != 0);
-    # _resolve_rows below would otherwise ACCEPT it as the seat's own row
-    # (an exact session_id match), which is exactly what let the uuid in.
-    _own_session_id = next(
-        ((r.get("session_id") or "") for r in rows
-         if r.get("name") == seat or r.get("role") == seat), "")
-    if ref and _own_session_id and ref == _own_session_id:
+    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-spawn-time-ack-carries-no-
+    # session-ref-cmd-ack-refuses-any-uuid-shaped-ref-...): the ListAgents ref
+    # is harness-only and is NEVER a session uuid. A --ref that IS a 36-char
+    # uuid shape is refused BY NAME (`_looks_like_session_uuid` on the value
+    # itself, not only equality with the seat's OWN session_id) and NOTHING is
+    # written (no ack file, no row write, rc != 0). The pre-F15 join registered
+    # the same uuid in the row, so an own-tail or cmd_ack that back-filled a
+    # uuid-shaped --ref (matching the seat's own session_id OR any foreign
+    # one) poisoned session_ref with a value send.whois reads as NO-MATCH for
+    # every peer; `_resolve_rows` below would otherwise ACCEPT the own uuid as
+    # the seat's own row (an exact session_id match), which is exactly what
+    # let the uuid in.
+    if ref and _looks_like_session_uuid(ref):
         print(f"ERR: --ref {ref!r} is a session id, not your ListAgents ref "
               "(F15): pass the bare ref or omit --ref.", file=sys.stderr)
         return 2
@@ -2699,6 +2699,12 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             if _looks_like_session_uuid(_sref):
                 print(f"session_ref: {_sref} (stale: a session id, never a "
                       "harness ref — pass the bare ListAgents ref)")
+            elif not _sref:
+                # SL7.102 FIX-ONLY: empty session_ref is the NORMAL pre-ack
+                # state (the spawn ack carries none) — name it, don't omit.
+                print("session_ref: unset (awaits the ack)")
+            else:
+                print(f"session_ref: {_sref}")
             if row.get("session_name"):
                 print(f"session_name: {row['session_name']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
@@ -15349,11 +15355,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     handoff inspection exactly as today
         #     (hypothesis:l4-the-predecessor-answers-continue-by-default-and-
         #     ask-diff-hands-the-successor-exactly-one-call).
+        # SL7.102 (hypothesis:l4-the-spawn-time-ack-carries-no-session-ref-...):
+        #     session_ref '' — the predecessor CANNOT know the successor's
+        #     harness ref at spawn (it only arrives when the successor names
+        #     it); the pre-F15 `succ_session_id` wrote a JOIN uuid no peer
+        #     can message into session_ref.
         _ack_answer = "diff-requested" if ask_diff else "continue"
         try:
             handover["ack_written"] = str(_write_ack(
                 root=root, seat=seat, gen_after=gen,
-                session_ref=succ_session_id, answer=_ack_answer))
+                session_ref="", answer=_ack_answer))
             if ask_diff:
                 print("(s6.3) --ask-diff: the successor's ONE wake call is:\n"
                       f"    python3 extensions/agi/bin/rotate.py ack --seat "

@@ -1114,6 +1114,29 @@ def test_empty_pred_pids_refuses_named_never_runs():
     _assert_named_refusal(r, "pred_pids", "no predecessor chain")
 
 
+def test_empty_succ_ref_ack_entry_refused_named_never_runs():
+    """SL7.102 FIX-ONLY: the after_join ACK entry that USES `{succ_ref}` for
+    the successor's ref refuses by SL7.73's existing line when succ_ref
+    resolves EMPTY — the spawn-time ack now carries no ref, so empty is the
+    normal pre-ack state and the ack command must NEVER run on the empty
+    slot (no rc, no output), exactly as the reap-proof's `{pred_pids}`
+    refuses."""
+    entry = {"label": "ack",
+             "cmd": "rotate.py ack --seat {seat} --gen {gen} "
+                     "--ref {succ_ref} continue"}
+    vals = dict(VALUES)
+    vals["succ_ref"] = ""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refused entry must NEVER run"))
+    try:
+        r = rot._run_after_join_command(entry, vals, 60, 4000)
+    finally:
+        rot.subprocess.run = real_run
+    _assert_named_refusal(r, "succ_ref", "row session_ref empty")
+
+
 def test_non_empty_pred_pids_runs():
     """A non-empty `{pred_pids}` resolves and the entry RUNS (rc present, no
     refusal)."""
