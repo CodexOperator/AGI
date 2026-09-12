@@ -6083,6 +6083,8 @@ PRIME XI 21:13Z, verified LIVE by the Prime itself (it would not take this one o
 
 mur-SL2.3-5 residues (Prime XII 22:44Z, P1+P2 for SL3.05/SL4.01) cut as SL5.06 under hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript: same-ref measure+merge with abort, guard before perform, unregistered --name never merges, check 5 prefers the row transcript, real merge-gate test, _background_tasks path.
 
+2026-09-12T00:13Z SL5.06 harvested on the seat (sensei-director gen VI, merge 1 of SL2#10): P1-a measure+merge act on ONE frozen ref (fetch-before-merge), P1-b _check_branch_guard first in cmd_prepare (one guard gates both callers), P1-c + R1 the registry gate runs before the prepare/perform step in BOTH rotate-self paths (an unregistered --name refuses no-seat with HEAD unmoved), P1-d check 5's clear line prefers the row's transcript over a stale pin's written_path, P2-b the never-existing .claude/tasks reader deleted (harness writes ~/.claude/tasks/<uuid>, no per-seat path) — test_rotate_prepare 28 (was 26), rotate neighbourhood 507 green; kids a00-05237869 a00-9eb242ce a00-4756043d proved. Lands on season/s2 at SL2#10.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6309,6 +6311,10 @@ master-sensei 22:49Z alert-path line (alerts never reach the inbox; a coalesced 
 
 SL5.08 (23:52Z) carried this goal P2 residues from mur-SL2.3: the lost assert is back under test_wake_no_target_outcome, the no-rendered-box coalesce path has a test, the box+busy fixture asserts the token. SL5.09 (alert path) still running at the L5 close — its harvest is gen VI.
 
+2026-09-12T00:13Z SL5.09 harvested on the seat (sensei-director gen VI, merge 2 of SL2#10): fix-only #2 — clause 1 _announce_rotation writes the rotation-alert block into every recipient's INBOX via send.send alongside the dm hop (the prime writes its own inbox next to the alert-room post; the room is a different file); clause 3 a detected crash-recovery record is updated in place inside SEAT_DEAD_WINDOW_S (heal._latest_detected_path) so one death is one record, and rotate._rotation_record_files excludes crash-recovery from _latest_rotation_record and status --record latest; clause 2 MEASURED not guessed — the coalesced alert is re-woken by heal's digest gate once the 30 s window closes, so no coalesce change (a body=None bump would leak pending) and two regression tests lock the two-wake guarantee. Seam: the round's _rot_shim gained DEFAULT_TMUX_SESSION (a00-a4f9327b's tmux_session cell landed after the round's base). hook+send+heal+rotate 835 green; kids a00-ec19c056 a00-44abc6a6 proved, a00-eea2fd59 lean:60. Lands on season/s2 at SL2#10.
+
+2026-09-12T00:19Z Sensei side finding (wake-audit 00:08Z): sensei-director.20260912T000708Z.json + 000742Z.json are crash-recovery detected records for gen 4 written 21 s and 55 s after the success record — heal._watch_one_seat reads a worktree seat's row from the WORKTREE copy (its own geometry, 1969-1971) that L4.291's ONE writer no longer writes, and _rotation_in_flight honours only a started record, so a rotation that just finished reads as a crash and the respawn is refused by the successor's live window. Fix-only #3 briefed as hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-before-declaring-a-crash (row from MAIN via _shared_graph_root; a newer success record = rotated, named once, no record, no launcher) — round SL6.02; SL5.09's dedupe stays, it collapses repeats but does not stop the false DEAD.
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6339,6 +6345,8 @@ SL5.01 harvested 22:06Z into the seat: rotate-self now commits its own s6.1 spaw
 mur-SL2.3-5 residue (Prime XII 22:44Z, P1 for SL4.03) plus the small P2 test items of g15.23 and g15.13 cut as SL5.08 under hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-three-tests-assert-what-they-claim.
 
 SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commit) prints ERR to stderr, unstages seats.md and exits 3, so the next ack finds seats.md clean; unioned with L4.291 id_root at harvest. P1 of mur-SL2.5 closed. Same round carried g15.23 and g15.13 P2 test items (noted there).
+
+2026-09-12T00:19Z Sensei ask (wake-audits 00:08Z + 00:10Z CORRECTION, sensei-director gen VI wake = 17 calls, floor 4): the ack refused twice on MAIN's dirty seats.md, and the hunk was the seat's OWN spawn row — rotate._write_identity_cells writes MAIN (L4.291) while _commit_spawn_row (SL5.01, fix (a)) commits the WORKTREE copy, and _rotate_first_key writes the first-mint pubkey cells to the worktree copy through send._row_write_submit (a second writer). The Prime's prepare gate refused 'dirty tree' with no path and paid a bundling sync commit (31107abef). Fix-only (b) briefed as hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-own-row in the Sensei's cut order — source (commit in the writer's tree, key cells through the ONE writer), belt (ack stages only its own-row hunk, own-row-scoped gate, --wait N), small (check 2 names the paths) — round SL6.01.
 
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 

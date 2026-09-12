@@ -495,6 +495,70 @@ def test_read_clears_announced_so_new_state_types(project: Path, monkeypatch,
     assert len(_typed(calls)) == 2, calls
 
 
+def test_two_inbox_alerts_ten_seconds_apart_produce_two_wakes(
+        project: Path, monkeypatch, capsys):
+    """Clause (2) falsifier (hypothesis:l4-a-rotation-alert-lands-in-the-
+    inbox-...): two rotation alerts 10 s apart -> TWO inbox blocks AND TWO
+    wakes. The SECOND `send` lands inside the 30 s coalesce window, so its
+    bare nudge coalesces (nothing typed) -- the coalesced alert's OWN wake
+    is owed AFTER the window closes. `heal._repair_stranded_wakes` polls
+    every seat each pass via `send.wake`, and `wake` gates on the unread
+    digest, so a heal-style wake once the window lapses MUST type the second
+    token. Assert the typed `-l` calls, not a return value."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    # ALERT 1: writes block 1 AND types the first wake token
+    send_mod.send(project, seat, "ALERT rotation a", sender="master")
+    assert len(_typed(calls)) == 1, calls
+    capsys.readouterr()                        # clear the coalesce stderr
+
+    # ALERT 2 ten seconds later: inside the window -> coalesced, NOT typed
+    send_mod.send(project, seat, "ALERT rotation b", sender="master")
+    assert len(_typed(calls)) == 1, \
+        "the second alert's nudge coalesces inside the 30s window"
+    assert "nudge: coalesced" in capsys.readouterr().err
+    # the inbox now carries TWO blocks (the alert is in the INBOX, clause 1)
+    assert len(send_mod._scan_messages(inbox)[0]) == 2
+
+    # heal polls after the window lapses: the coalesced alert's wake appears
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+    assert capsys.readouterr().out.strip() == "typed-token"
+
+
+def test_two_dms_ten_seconds_apart_still_wake_twice(project: Path,
+                                                    monkeypatch, capsys):
+    """Clause (2) for the DM path: two dms 10 s apart -- the second, inside
+    the coalesce window, is counted (`(+N more)`) not typed, and the heal-
+    style wake after the window lapses still produces the second wake. The
+    DM body is in the log (record); the coalesced wake is the deliverable."""
+    seat = "sanctuary-director"
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    assert send_mod._nudge_window(project, seat, body="dm one") is True
+    assert len(_typed(calls)) == 1, calls
+    capsys.readouterr()
+    # second dm inside the window: counted as pending, not typed
+    assert send_mod._nudge_window(project, seat, body="dm two") is False
+    assert len(_typed(calls)) == 1
+    assert "nudge: coalesced" in capsys.readouterr().err
+    assert send_mod._pending_more(project, seat) == 1
+
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+
+
 # ── a consuming read clears the coalesced nudge count ──
 # (hypothesis:l4-a-read-clears-the-coalesced-nudge-count): the count is
 # "how many sends coalesced into the one token", and a read drains them
