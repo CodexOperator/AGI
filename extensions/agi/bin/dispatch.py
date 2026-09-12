@@ -44,6 +44,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import locations  # noqa: E402
+import geometry_config  # noqa: E402
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
@@ -106,7 +107,7 @@ def _resolved_seat(args_seat: str | None) -> str | None:
     """
     if args_seat:
         return args_seat
-    return os.environ.get("AGI_SEAT")
+    return geometry_config.resolved_seat_env()
 
 
 # --- secret redaction for the debugger's spawn.json (hypothesis:l4-dispatch-
@@ -1069,13 +1070,15 @@ def main() -> int:
              "--target vision:<id> --goal goal:<id>",
     )
     ap.add_argument(
-        "--seat",
+        "--seat", "--post",
+        action=geometry_config.SeatAction,
         default=None,
         help="Seat name to dispatch as (hypothesis:l3w4-seat-registry). The "
-             "seat's own row in config:seats overrides harness/model/effort/"
-             "settings from the ladder's (tier, role) class table. No row for "
-             "the name falls back to the ladder. Export AGI_SEAT=<name> for "
-             "the meter pin to land seat-stable.",
+             "seat's own row in config:posts (alias config:seats) overrides "
+             "harness/model/effort/settings from the ladder's (tier, role) "
+             "class table. No row for the name falls back to the ladder. "
+             "Export AGI_POST=<name> (legacy AGI_SEAT) for the meter pin to "
+             "land seat-stable.",
     )
     ap.add_argument(
         "--list-rows",
