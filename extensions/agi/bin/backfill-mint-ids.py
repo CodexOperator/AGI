@@ -56,6 +56,7 @@ _graph_core_src = str(PLUGIN_ROOT / "src")
 if _graph_core_src not in sys.path:
     sys.path.insert(0, _graph_core_src)
 from graph_core.identity import mint_permanent_id  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 # --- reuse snapshot-goals.py's write_frontmatter, by file path (see module
 # docstring) — not a copy, the actual function. ---------------------------
@@ -79,16 +80,16 @@ def read_node(path: Path) -> tuple[dict, str] | None:
     text = path.read_text(encoding="utf-8")
     if not text.strip().startswith("---"):
         return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return None
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError:
         return None
     if not isinstance(fm, dict):
         return None
-    return fm, parts[2]
+    return fm, parted[1]
 
 
 def backfill(project_root: Path, write: bool) -> dict:

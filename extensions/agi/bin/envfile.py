@@ -50,6 +50,8 @@ import locations  # noqa: E402
 
 import yaml
 
+from frontmatter import split_frontmatter  # noqa: E402
+
 #: Relative to the project root `locations.find_project_root` resolves — the
 #: same `.geometry/` directory `crons.md` lives in, reached the same way.
 SECRETS_NODE_REL = Path("nodes") / ".geometry" / "secrets.md"
@@ -129,15 +131,15 @@ class SecretsError(Exception):
 
 
 def _parse_frontmatter(path: Path) -> dict:
-    """Frontmatter as a dict. Same `split("---", 2)` shape as `crons.py`."""
+    """Frontmatter as a dict. Same line-anchored shape as `crons.py`, via frontmatter.py."""
     text = path.read_text(encoding="utf-8")
     if not text.strip().startswith("---"):
         raise SecretsError(f"{path}: no YAML frontmatter (expected a leading `---`)")
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         raise SecretsError(f"{path}: unterminated frontmatter block (only one `---`)")
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError as exc:
         raise SecretsError(f"{path}: malformed YAML frontmatter — {exc}") from exc
     if not isinstance(fm, dict):

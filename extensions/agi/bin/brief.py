@@ -45,6 +45,8 @@ from pathlib import Path
 
 import evidence_gate
 
+from frontmatter import split_frontmatter
+
 #: Tiers a brief can be assembled for. Not the same list as
 #: `adapters.TIERS`, which is about which models a harness declares -- a
 #: harness may declare a tier this module has no brief for, and that should
@@ -320,11 +322,11 @@ def _extract_read_order(text: str, tier: str) -> list[str]:
 
     if not text.startswith("---"):
         return []
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return []
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parted[0]) or {}
     except Exception:
         return []
     if not isinstance(fm, dict):
@@ -342,11 +344,11 @@ def _load_frontmatter(text: str) -> dict:
 
     if not text.startswith("---"):
         return {}
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return {}
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parted[0]) or {}
     except Exception:
         return {}
     return fm if isinstance(fm, dict) else {}
@@ -978,10 +980,10 @@ def _read_vision_node(project_root: Path, target: str | None) -> tuple[str, str]
     except (OSError, FileNotFoundError):
         return None
     if text.startswith("---"):
-        parts = text.split("---", 2)
-        if len(parts) < 3:
+        parted = split_frontmatter(text)
+        if parted is None:
             return None
-        body = parts[2].strip()
+        body = parted[1].strip()
     else:
         body = text.strip()
     if not body:

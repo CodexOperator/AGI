@@ -144,10 +144,12 @@ def test_falsifier_no_substring_split_left_in_migrated_files():
     """(d) No `split(\"---\"` remains in the shared reader or the 8 migrated files.
 
     The reader is the ONE place the boundary lives; any substring split that
-    survives is a regression. (Other engine files — snapshot-goals, crons,
-    sensei, brief, envfile, write_guard, season, post_wire, workflow,
-    backfill, verify_unified — still split on `---` but are OUTSIDE the
-    seventeen-site scope of this hypothesis; a different node owns them.)
+    survives is a regression. (The remaining naive readers — snapshot-goals,
+    crons, sensei, brief, envfile, write_guard, season, post_wire, workflow,
+    backfill, verify_unified, snapshot-build-site — were migrated onto
+    frontmatter.py by hypothesis:l4-every-remaining-frontmatter-reader-calls-
+    the-one-line-anchored-splitter; the repo-wide guard, test_repo_wide_guard_
+    only_frontmatter_allowed, now owns the whole bin/ tree.)
     """
     files = ["frontmatter.py", "metrics.py", "evidence_gate.py", "spawn_gate.py",
              "completion.py", "cli.py", "node_writer.py", "stitch.py"]
@@ -159,3 +161,90 @@ def test_falsifier_no_substring_split_left_in_migrated_files():
         if 'split("---"' in src:
             offenders.append(name)
     assert not offenders, f"substring split-on-dashes still present: {offenders}"
+
+
+# --- hypothesis:l4-every-remaining-frontmatter-reader-calls-the-one-line-anchored-splitter
+#
+# SL7.11 residue: all seventeen documented naive `text.split("---", 2)` readers
+# in `bin/` were migrated onto `frontmatter.split_frontmatter`. These tests
+# pin the two halves that have to stay true: (e) NO naive reader remains in
+# ANY engine file outside frontmatter.py — the repo-wide guard — and (f) the
+# guard actually FAILS when a naive site lands (so a new reader trips the
+# suite instead of passing because "nothing matched today"). Plus (g) the
+# round-trip over a fixture goal whose title carries a `---` run, which is the
+# read-narrowing the render check depends on.
+
+
+def _naive_split_offenders(bin_dir: Path) -> list[str]:
+    """Every *.py under `bin_dir` whose source contains the naive split literal.
+
+    The guard greps the live source, exactly as documented: a file carrying
+    `split("---", 2)` anywhere — code OR prose — is a reader the line-anchored
+    splitter has not absorbed. frontmatter.py alone may carry it, and only
+    because it is the boundary owner; today it does not even do that.
+    """
+    offenders = []
+    for p in sorted(bin_dir.glob("*.py")):
+        src = p.read_text(encoding="utf-8", errors="replace")
+        if 'split("---", 2)' in src:
+            offenders.append(p.name)
+    return offenders
+
+
+def test_repo_wide_guard_only_frontmatter_allowed():
+    """(e) No naive read remains in ANY engine file but frontmatter.py."""
+    bin_dir = Path(__file__).resolve().parent.parent / "bin"
+    offenders = [f for f in _naive_split_offenders(bin_dir) if f != "frontmatter.py"]
+    assert not offenders, (
+        f"naive split(\"---\", 2) still in: {offenders} — migrate to "
+        f"frontmatter.split_frontmatter"
+    )
+
+
+def test_repo_wide_guard_flags_a_new_naive_site():
+    """(f) The guard is live: it FAILS when a naive site is injected.
+
+    Zero matches today is not the point — a future reader introduces a match.
+    Probe a synthetic bin/ with one offender and assert the same checker the
+    guard runs flags it, so the suite would go red rather than silently accept.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        probe = Path(td) / "probe.py"
+        probe.write_text('parts = text.split("---", 2)\n', encoding="utf-8")
+        # a real file without the pattern must stay clean
+        (Path(td) / "clean.py").write_text("x = 1\n", encoding="utf-8")
+        offenders = _naive_split_offenders(Path(td))
+        assert offenders == ["probe.py"], offenders
+
+
+def test_fixture_goal_title_with_dash_run_round_trips():
+    """(g) A goal whose title carries a `---` run reads intact, round-trip.
+
+    This is the read-narrowing the `snapshot-goals.py --render --check`
+    byte-identical round trip depends on: had the split still cut on the first
+    `---` inside the YAML, the title would fragment and the render would move
+    bytes. The fixture mirrors the LIVE goal corpus shape — title as a quoted
+    scalar holding a literal `---`, plus a body that itself carries a `---`.
+    """
+    fixture = (
+        "---\n"
+        "id: goal:g-fixture-dash\n"
+        "type: goal\n"
+        "title: 'cross --- the --- seam'\n"
+        "status: active\n"
+        "---\n"
+        "preamble\n---\nthis --- line is body\n"
+    )
+    parted = frontmatter.split_frontmatter(fixture)
+    assert parted is not None
+    fm_text, body = parted
+    # fm_text is exactly the YAML, dash runs intact as one scalar
+    assert "title: 'cross --- the --- seam'" in fm_text
+    raw = yaml.safe_load(fm_text) or {}
+    assert raw["title"] == "cross --- the --- seam", raw
+    assert frontmatter.read_frontmatter(fixture) == raw
+    # body carries its own `---` — past the frontier it is body, never a split
+    assert body == "preamble\n---\nthis --- line is body\n"
+    # and the byte-identical round trip: reader output reassembles the input
+    assert "---\n" + fm_text + "\n---\n" + body == fixture
