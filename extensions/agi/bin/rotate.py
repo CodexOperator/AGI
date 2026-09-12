@@ -1857,12 +1857,23 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     id_root = _shared_graph_root(Path(root))
     if do_commit and ref:
         top = _git_toplevel(id_root)
-        dirty = _ack_seats_dirty(id_root, top) if top else None
+        dirty = _ack_seats_dirty(id_root, top, seat) if top else None
+        # g15.24 belt fallback (2c): `--wait N` re-polls the OWN-row gate
+        # every 5 s up to N s before the exit-3 refusal. `--wait 0` (the
+        # default) behaves exactly as today. A re-poll that succeeds clears
+        # the outer refusal and lets the ack proceed normally.
+        wait = getattr(args, "wait", 0) or 0
+        deadline = time.monotonic() + wait if wait > 0 else None
+        while dirty:
+            if deadline is None or time.monotonic() >= deadline:
+                break
+            time.sleep(min(5.0, max(0.05, deadline - time.monotonic())))
+            dirty = _ack_seats_dirty(id_root, top, seat) if top else None
         if dirty:
-            print(f"ERR: refuse to ack --commit: {dirty!r} is dirty "
-                  "(staged or unstaged) before this ack; resolve it first so "
-                  "the ack never bundles someone else's row change into its "
-                  "own commit.", file=sys.stderr)
+            print(f"ERR: refuse to ack --commit: your OWN row in "
+                  f"{dirty!r} is dirty (staged or unstaged) before this ack; "
+                  f"resolve it first so the ack never double-writes a row "
+                  f"someone was mid-edit on.", file=sys.stderr)
             return 3
     ack = {
         "seat": seat,
@@ -5148,42 +5159,175 @@ def _ack_seats_path(root: Path) -> Path:
 
 
 
-def _ack_seats_dirty(root: Path, top: Path) -> str | None:
-    """The config:seats path (relative to repo top) when seats.md is ALREADY
-    dirty — staged OR unstaged hunks in THAT file — else None. r3b: the ack
-    refuses the commit path on a pre-dirtied seats.md so its own back-fill
-    commit never bundles someone else's row change. None when seats.md is
-    clean, or when the read cannot answer (not a repo). Never raises."""
+def _own_row_line(line: str, seat: str) -> bool:
+    """Whether a seats.md CHANGED line belongs to `seat`'s OWN write. One
+    row sits on ONE JSON line, so the row-cell `name` cell ALONE keys the
+    row — an `"edited_by": ...` cell on a FOREIGN row must never count. BUT
+    `write.submit` also restamps a FRONTMATTER provenance line
+    (`edited_by: <seat>`, YAML form, no quotes) on the same write, and that
+    line has no `name` cell; a row write owns it too, so the ack commits it
+    with the own row and the tree stays clean. Kept together so
+    `_diff_owns_row` and `_seats_ownrow_content` can never drift."""
+    name_cell = f'"name": "{seat}"'
+    # JSON row-cell vs YAML frontmatter: `edited_by: <seat>` (space after
+    # the colon, no quotes) is the OWN frontmatter provenance; a foreign
+    # row's `"edited_by": ...` cell is quoted JSON and never matches.
+    return name_cell in line or f"edited_by: {seat}" in line
+
+
+def _diff_owns_row(diff: str, seat: str) -> bool:
+    """True when any CHANGED line (`+`/`-` content, never `+++`/`---` headers
+    or context) of a unified diff carries THIS seat's OWN row or the OWN
+    frontmatter provenance line (`edited_by: <seat>`) — see `_own_row_line`.
+    A hunk whose changed lines name another seat (or another row's
+    `edited_by` cell) is FOREIGN and does not own the row."""
+    in_hunk = False
+    for ln in diff.splitlines():
+        if ln.startswith("@@"):
+            in_hunk = True
+            continue
+        if not in_hunk:
+            continue
+        if ln.startswith(("+++", "---")):
+            continue
+        if ln.startswith(("+", "-")):
+            if _own_row_line(ln, seat):
+                return True
+    return False
+
+
+def _seats_diff_has_own_row(root: Path, top: Path, seat: str,
+                            cached: bool = False) -> bool:
+    """True when `git diff [--cached] -- <seats.md>` carries a hunk that
+    owns the seat's OWN row (see `_diff_owns_row`). Never raises; False when
+    clean or when the diff cannot be read (not a repo)."""
     rel = os.path.relpath(_ack_seats_path(root), top)
+    cmd = ["git", "-C", str(top), "diff"]
+    if cached:
+        cmd.append("--cached")
+    cmd += ["--", rel]
     try:
-        out = subprocess.run(
-            ["git", "-C", str(top), "status", "--porcelain", "--", rel],
-            capture_output=True, text=True, timeout=10)
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return False
+    if out.returncode != 0 or not out.stdout.strip():
+        return False
+    return _diff_owns_row(out.stdout, seat)
+
+
+def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
+    """The seats.md content the ack's OWN-row commit should stage: HEAD's
+    content with ONLY the changes that carry THIS seat's own row (a changed
+    line whose `name` cell keys the seat) applied, and every FOREIGN change
+    REVERTED to the committed (HEAD) line. Base is HEAD, not the index, so a
+    pre-staged foreign hunk cannot ride the ack. Returns None when there is
+    no own-row change to stage.
+
+    Sibling rows sit ADJACENT in seats.md, so git's unified diff folds an
+    own row and a foreign row into ONE hunk and `git apply` cannot separate
+    them by hunk — the cut is therefore made per CHANGED LINE, into an
+    in-memory buffer, never onto the working tree. The caller stages this
+    content into the index via `update-index` (working tree untouched), so
+    the ack's commit carries exactly its own row and every foreign hunk
+    stays unstaged and byte-untouched in the tree. Never raises."""
+    import difflib  # local: only the buffer-builder needs it
+    rel = os.path.relpath(_ack_seats_path(root), top)
+    # base is HEAD, NOT the index (`git show :<rel>`): a foreign hunk that
+    # was STAGED before the ack would sit in the index, thus inside the base,
+    # and ride the ack commit. Cutting against HEAD keeps every foreign
+    # change — staged or not — out of the own-row-only content, so a
+    # pre-staged foreign row ends up UNSTAGED (bytes preserved) and never
+    # committed. The gate (`_ack_seats_dirty`) has already guaranteed the OWN
+    # row is not pre-staged, so HEAD is a safe base.
+    try:
+        run = subprocess.run(["git", "-C", str(top), "show",
+                              f"HEAD:{rel}"],
+                             capture_output=True, text=True, timeout=10)
     except Exception:  # noqa: BLE001
         return None
-    if out.returncode != 0 or not out.stdout.strip():
+    if run.returncode != 0:
         return None
-    return rel
+    try:
+        work = _ack_seats_path(root).read_text(encoding="utf-8")
+    except OSError:
+        return None
+    base_lines = run.stdout.splitlines()
+    work_lines = work.splitlines()
+
+    def _own(l: str) -> bool:
+        # shared with `_diff_owns_row`: the row-cell `name` keys the OWN row,
+        # plus the OWN frontmatter `edited_by: <seat>` provenance write.submit
+        # adds; a FOREIGN row's `"edited_by": ...` JSON cell never matches, so
+        # a foreign provenance restamp is never bundled as own.
+        return _own_row_line(l, seat)
+
+    staged: list[str] = []
+    b = w = 0
+    any_own = False
+    sm = difflib.SequenceMatcher(None, base_lines, work_lines, autojunk=False)
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        staged.extend(base_lines[b:i1])
+        removed = base_lines[i1:i2]
+        added = work_lines[j1:j2]
+        for k in range(max(len(removed), len(added))):
+            old = removed[k] if k < len(removed) else None
+            new = added[k] if k < len(added) else None
+            is_own = ((old is not None and _own(old))
+                      or (new is not None and _own(new)))
+            if is_own:
+                any_own = True
+                if new is not None:
+                    staged.append(new)   # own change: keep working line
+                # else: own deletion — append nothing
+            elif old is not None:
+                staged.append(old)        # foreign change: keep committed line
+        b, w = i2, j2
+    staged.extend(base_lines[b:])
+    if not any_own:
+        return None
+    return "\n".join(staged) + "\n"
+
+
+def _ack_seats_dirty(root: Path, top: Path, seat: str) -> str | None:
+    """The config:seats path (relative to repo top) when the SEAT'S OWN row
+    in seats.md is ALREADY dirty — staged OR unstaged hunks that touch the
+    seat's own row (the row keyed by the `name` cell) — else None. r3b/g15.24
+    belt: the ack refuses the commit path on a PRE-DIRTIED OWN row so its own
+    back-fill commit never double-writes a row someone else was mid-edit on.
+    A dirty FOREIGN row (another seat's hunks) NEVER blocks the ack — the ack
+    commits only its own row's hunks and leaves the foreign byte-untouched.
+    None when the own row is clean, or when the read cannot answer (not a
+    repo). Never raises."""
+    rel = os.path.relpath(_ack_seats_path(root), top)
+    if _seats_diff_has_own_row(root, top, seat, cached=True):
+        return rel
+    if _seats_diff_has_own_row(root, top, seat, cached=False):
+        return rel
+    return None
 
 
 def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
                       ref: str) -> tuple[bool, str]:
-    """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
-    row rewrite it just back-filled: `git add` seats.md + ONE commit whose
-    message is a single line
-    `<seat> ack: gen <N>, session_ref <ref>, window <@id>, pid <pid>`
-    (the values read from the row it just wrote), touching seats.md ONLY,
-    and PRINTS the seat's old and new row lines from `git diff --cached` so
-    the successor never re-reads. A back-fill that changed nothing (the row
-    already carried the ref) commits nothing and says so in one line. The
+    """r3b/g15.24 belt — `rotate.py ack ... continue` (no `--no-commit`)
+    COMMITS the OWN row rewrite it just back-filled: builds the seats.md
+    content that carries ONLY THIS seat's own row (the committed content
+    with own-row changes applied and every FOREIGN change reverted), stages
+    that content into the index ONLY — against a throwaway `GIT_INDEX_FILE`
+    seeded from HEAD, so the shared seats.md WORKING TREE is never written
+    — commits against that temp index (no pathspec, so the committed tree is
+    resolved from the index, never the working tree), and PRINTS the seat's
+    old and new row lines from the resulting commit's diff so the successor
+    never re-reads. The working tree's foreign hunks are never bundled and
+    end up unstaged and byte-unTouched. A back-fill that changed nothing (the
+    row already carried the ref) commits nothing and says so in one line. The
     last printed line is the exact `git push` command — printed, never run.
 
     Returns (ok, out). ok True -> out is the multi-line success string for
-    STDOUT and the row is committed. ok False -> EITHER `git add` OR
-    `git commit` failed: the row was UNSTAGED with `git reset -q -- <rel>`
-    (the working tree keeps the back-filled row) and out is the error line
-    the caller must PRINT TO STDERR and pair with a non-zero (3) exit: a
-    failed ack commit must never leave seats.md staged — that is exactly
+    STDOUT and the row is committed. ok False -> `git commit` failed: the
+    real index and the working tree were never touched by this path (so
+    seats.md is not left staged — nothing to reset) and out is the error
+    line the caller must PRINT TO STDERR and pair with a non-zero (3) exit:
+    a failed ack commit must never leave seats.md staged — that is exactly
     the dirt that would refuse the NEXT ack."""
     top = _git_toplevel(root)
     if top is None:
@@ -5191,35 +5335,81 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
                 "(a gitless worktree has no commit to make)")
     seats = _ack_seats_path(root)
     rel = os.path.relpath(seats, top)
-    add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
-                         capture_output=True, text=True)
-    if add.returncode != 0:
-        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
-                       capture_output=True, text=True)
-        return (False, f"ERR: git add {rel!r} failed: {add.stderr.strip()}")
-    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
-                             "--", rel], capture_output=True, text=True)
-    diff = cached.stdout if cached.returncode == 0 else ""
-    if not diff.strip():
+    # The ack commits ONLY its own row, and the shared MAIN seats.md is
+    # NEVER written by this path. `git commit -- <rel>` snapshots the WORKING
+    # TREE of rel, so that form cannot commit own-row-only content without
+    # transiently rewriting the shared file (a concurrent writer could be
+    # clobbered by the restore). Instead the own-row-only content is staged
+    # against a THROWAWAY INDEX seeded from HEAD (`GIT_INDEX_FILE=<tmp>`; git
+    # read-tree HEAD, then hash-object the content and update-index
+    # --cacheinfo under the temp index) and committed against THAT index with
+    # no pathspec, so git resolves the committed tree from the temp index,
+    # never the working tree. The working tree and every foreign hunk stay
+    # byte-untouched throughout. The real index's seats.md entry is then
+    # pointed at the committed blob so the own-row diff is no longer staged
+    # or unstaged and only foreign hunks show under `git status`.
+    new_content = _seats_ownrow_content(root, top, seat)
+    if new_content is None:
         return (True, "ack: no change to seats.md — nothing committed")
-    lines = []
-    for ln in diff.splitlines():
-        if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
-            continue
-        if ln.startswith(("+", "-")):
-            lines.append(ln)
     row = _find_seat(root, seat) or {}
     gen = getattr(args, "gen", None)
     win = str(row.get("window") or "")
     pid = str(row.get("pid") or "")
     msg = (f"{seat} ack: gen {gen}, session_ref {ref}, "
            f"window {win}, pid {pid}")
-    rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
-                         msg, "--", rel], capture_output=True, text=True)
+
+    import tempfile
+    fd, tmp_index = tempfile.mkstemp(prefix="ack-idx-")
+    os.close(fd)
+    env = dict(os.environ)
+    env["GIT_INDEX_FILE"] = tmp_index
+
+    def _tmp_git(parts, **kw):
+        return subprocess.run(["git", "-C", str(top)] + parts,
+                              capture_output=True, text=True, env=env, **kw)
+
+    blob_sha = ""
+    try:
+        seed = _tmp_git(["read-tree", "HEAD"])
+        if seed.returncode != 0:
+            return (False, f"ERR: git commit failed: {seed.stderr.strip()}")
+        blob = _tmp_git(["hash-object", "-w", "--stdin"],
+                        input=new_content)
+        if blob.returncode != 0 or not blob.stdout.strip():
+            return (False, f"ERR: git commit failed: {blob.stderr.strip()}")
+        blob_sha = blob.stdout.strip()
+        upd = _tmp_git(["update-index", "--add", "--cacheinfo",
+                        f"100644,{blob_sha},{rel}"])
+        if upd.returncode != 0:
+            return (False, f"ERR: git commit failed: {upd.stderr.strip()}")
+        rc = _tmp_git(["commit", "-q", "-m", msg])
+    finally:
+        try:
+            os.unlink(tmp_index)
+        except OSError:
+            pass
     if rc.returncode != 0:
-        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
-                       capture_output=True, text=True)
+        # the real index and the working tree were never touched, so seats.md
+        # is left clean under the NEXT ack's dirty gate; the row (and any
+        # foreign hunks) stay in the working tree, unstaged. The caller
+        # prints the error line to STDERR and pairs it with exit 3.
         return (False, f"ERR: git commit failed: {rc.stderr.strip()}")
+    # point the REAL index's seats.md entry at the committed blob so the own
+    # row no longer shows staged/unstaged; only foreign hunks remain.
+    subprocess.run(["git", "-C", str(top), "update-index", "--add",
+                    "--cacheinfo", f"100644,{blob_sha},{rel}"],
+                   capture_output=True, text=True)
+    head = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                          capture_output=True, text=True)
+    show = subprocess.run(["git", "-C", str(top), "show", "--format=",
+                           head.stdout.strip(), "--", rel],
+                          capture_output=True, text=True)
+    lines = []
+    for ln in (show.stdout if show.returncode == 0 else "").splitlines():
+        if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
+            continue
+        if ln.startswith(("+", "-")):
+            lines.append(ln)
     return (True, "ack: committed own row write (" + str(rel) + "):\n"
             + "\n".join(lines) + f"\ngit -C {top} push")
 
@@ -8039,6 +8229,18 @@ PREPARE_CHURN_PREFIXES = (".agi/comms/",)
 PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
 
 
+def _porcelain_path(porcelain_line: str) -> str:
+    """The path a `git status --porcelain` line names — the two-column
+    status prefix stripped, any `old -> new` rename reduced to the new path,
+    surrounding quotes removed. One extractor; `_prepare_churn_path` and the
+    dirty-tree captive both use it so a churn filter and a name always agree
+    on what a line's path IS."""
+    path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1]
+    return path.strip().strip('"')
+
+
 def _prepare_churn_path(porcelain_line: str) -> bool:
     """True when a `git status --porcelain` line -- modified OR untracked --
     names cron-owned churn rather than a file the seat changed:
@@ -8047,13 +8249,19 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     files elsewhere still count: a new test file never `git add`-ed is
     exactly the stranded work the captive exists to name. Renames
     (`R old -> new`) are judged on the new path."""
-    path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
-    if " -> " in path:
-        path = path.split(" -> ", 1)[1]
-    path = path.strip().strip('"')
+    path = _porcelain_path(porcelain_line)
     if path.startswith(PREPARE_CHURN_PREFIXES):
         return True
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
+
+
+def _prepare_dirty_paths(porcelain: list[str] | None) -> list[str]:
+    """The NON-churn dirty/untracked paths `git status --porcelain` reports
+    (cron-owned churn excluded exactly as `_prepare_churn_path`), in porcelain
+    order. These are the seat's own stranded modifications a dirty-tree
+    captive exists to name."""
+    return [_porcelain_path(ln) for ln in (porcelain or [])
+            if ln.strip() and not _prepare_churn_path(ln)]
 
 
 def _merge_applies_clean(root: Path, sb: str) -> bool | None:
@@ -8249,19 +8457,26 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                      f"git push -u origin {branch}")
     checks.append((unpushed, pname, pclear))
 
-    # 2 dirty tree
-    porcelain = _git_maybe(root, "status", "--porcelain")
-    # The clear command names YOUR OWN paths -- `git add -A` is forbidden in
-    # this tree (parallel agents share it; it has swept a second agent's
-    # half-written node and a human's uncommitted edits into one commit).
-    # Cron-owned churn is not the seat's dirt (Sensei 18:26Z, measured on a
+    # 2 dirty tree — NAMES the non-churn dirty/untracked paths (up to 5,
+    # then `+N more`) so no caller reads a bare "dirty tree". The clear
+    # command names YOUR OWN paths -- `git add -A` is forbidden in this tree
+    # (parallel agents share it; it has swept a second agent's half-written
+    # node and a human's uncommitted edits into one commit). Cron-owned
+    # churn is not the seat's dirt (Sensei 18:26Z, measured on a
     # MAIN-checkout seat: the checklist blocked on `.agi/comms/season-2/dm/
     # *.md`, which send.py writes as dms flow -- the seat's own included --
     # and `.agi/sessions/rotations/sequence.json`; grid_sync commits both,
     # a worktree seat never sees them). Those paths are excluded by name.
-    dirty = [ln for ln in (porcelain or [])
-             if ln.strip() and not _prepare_churn_path(ln)]
-    checks.append((bool(dirty), "dirty tree",
+    porcelain = _git_maybe(root, "status", "--porcelain")
+    dirty_paths = _prepare_dirty_paths(porcelain)
+    if dirty_paths:
+        shown = dirty_paths[:5]
+        suffix = (f", +{len(dirty_paths) - 5} more"
+                  if len(dirty_paths) > 5 else "")
+        dirty_name = "dirty tree: " + ", ".join(shown) + suffix
+    else:
+        dirty_name = "dirty tree"
+    checks.append((bool(dirty_paths), dirty_name,
                    "git commit -m '<msg>' -- <the files you changed>"))
 
     # 3 behind origin/season/sX (N commits) -- branch from the ladder via
@@ -8279,7 +8494,7 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         # an unmeasurable behind (no origin ref to count against) stays ok and
         # says so plainly, never a fabricated number
         checks.append((False, f"behind origin/{_sb} (unmeasured)", behind_clear))
-    elif perform and not dirty and behind > 0:
+    elif perform and not dirty_paths and behind > 0:
         # `--perform` (rotate-self defaults ON): check 2 passed (tree clean)
         # and we are measurably behind. PERFORM the merge ONLY if it is
         # mechanical -- zero conflicts. A conflicting merge is exactly the
@@ -10828,6 +11043,13 @@ def main(argv: list[str] | None = None) -> int:
                        help="write + print the back-fill but do NOT commit "
                             "the seat row (continue commits by default; "
                             "diff never commits)")
+    # g15.24 belt fallback (2c): when the own-row dirty gate refuses, re-poll
+    # the gate every 5 s up to N s before the exit-3 refusal. --wait 0 (the
+    # default) behaves exactly as today.
+    p_ack.add_argument("--wait", type=int, default=0,
+                       help="when the own-row dirty gate refuses, re-poll it "
+                            "every 5 s up to N s before the exit-3 refusal "
+                            "(default: 0 = no re-poll)")
     p_ack.set_defaults(func=cmd_ack)
 
     # status
