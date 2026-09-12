@@ -1844,10 +1844,10 @@ def test_read_ack_matches_gen_after(tmp_path):
     ac.write_text(json.dumps({"seat": "s", "gen_after": 7,
                               "answer": "continue", "ts": "Z"}),
                   encoding="utf-8")
-    got = rotate._read_ack(str(ac), gen_after=7, timeout=5)
+    got = rotate._read_ack(str(ac), gen_after=7, timeout=5, poll_s=0.05)
     assert got is not None and got["answer"] == "continue"
     # wrong generation -> refused, not confirmed
-    assert rotate._read_ack(str(ac), gen_after=8, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=8, timeout=1, poll_s=0.05) is None
 
 
 def test_read_ack_polls_until_written(tmp_path):
@@ -1858,13 +1858,18 @@ def test_read_ack_polls_until_written(tmp_path):
     seat.mkdir()
     ac = seat / "s.ack.json"
     import threading
+    _writer_go = threading.Event()
     def _writer():
-        import time
-        time.sleep(1)
+        _writer_go.wait(5)  # hold until the reader has begun polling
         ac.write_text(json.dumps({"seat": "s", "gen_after": 9,
                                   "answer": "continue"}), encoding="utf-8")
     threading.Thread(target=_writer, daemon=True).start()
-    got = rotate._read_ack(str(ac), gen_after=9, timeout=20, poll_s=0.05)
+    def _reader_then_release(path, gen_after, timeout, poll_s=2.0):
+        # gates the writer on the reader having started, so the ack is written
+        # genuinely WHILE _read_ack is spinning (not before its first poll).
+        _writer_go.set()
+        return rotate._read_ack(path, gen_after, timeout, poll_s=poll_s)
+    got = _reader_then_release(str(ac), gen_after=9, timeout=20, poll_s=0.05)
     assert got is not None and got["answer"] == "continue"
 
 
@@ -1876,7 +1881,7 @@ def test_read_ack_ignores_unparsable(tmp_path, body):
     seat.mkdir()
     ac = seat / "s.ack.json"
     ac.write_text(body, encoding="utf-8")
-    assert rotate._read_ack(str(ac), gen_after=7, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=7, timeout=1, poll_s=0.05) is None
 
 
 def test_read_ack_absent_never_confirms(tmp_path):
@@ -1884,7 +1889,8 @@ def test_read_ack_absent_never_confirms(tmp_path):
     states: without the ack, the channel is silent)."""
     seat = tmp_path / "seats"
     seat.mkdir()
-    assert rotate._read_ack(str(seat / "s.ack.json"), gen_after=7, timeout=1) is None
+    assert rotate._read_ack(str(seat / "s.ack.json"), gen_after=7, timeout=1,
+                            poll_s=0.05) is None
 
 
 def test_loop_returns_success_when_successor_acks_continue(monkeypatch, tmp_path, capsys):
@@ -2074,7 +2080,7 @@ def test_loop_refuses_ack_with_wrong_gen_on_self_reader(tmp_path, monkeypatch):
     ac.write_text(json.dumps({"seat": "seat-x", "gen_after": 99,
                               "answer": "continue"}), encoding="utf-8")
     # reader spawned gen 3: gen 99 ack is refused
-    assert rotate._read_ack(str(ac), gen_after=3, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=3, timeout=1, poll_s=0.05) is None
 
 
 def test_cmd_ack_text_dash_reads_stdin(tmp_path, monkeypatch):
