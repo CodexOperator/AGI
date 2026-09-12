@@ -2210,3 +2210,203 @@ def test_after_join_byte_cap_counts_utf8_bytes():
         "s", 1, "r", results, dm_byte_cap=1500, record_path="/tmp/r.json")
     assert "… [trimmed" in out, \
         "byte-cap trimmed; a code-point cap (1000 < 1500) would not have"
+
+
+# ── hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors- ──
+# pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox
+# The after_join SECOND input is TYPED into the successor's pane as the
+# input ITSELF (send.type_input — the wake typing seam), NEVER a dm plus a
+# nudge pointing at the inbox: a successor pays ZERO reads. The dm copy stays
+# the durable record, but send.send's pane NUDGE is suppressed for the one
+# typed message. Seams: a fake type_input recording (seat, text) and a fake
+# send_dm, all through run_after_join_for_seat → run_after_join.
+def _service_delivery_fixture(tmp_path, monkeypatch, tmpl, *, rec_js=None):
+    """Stub the discovery/join/claim seams so run_after_join_for_seat reaches
+    run_after_join's delivery block with the REAL (recorded) delivery logic."""
+    import agi.bin.rotate as rot
+    rec_path = tmp_path / "sessions" / "rotations" / "d.20200101T000000Z.json"
+    rec_path.parent.mkdir(parents=True, exist_ok=True)
+    rec_js = rec_js or {
+        "rotation": "rotate-self", "seat": "d", "result": "success",
+        "gen_after": 1, "recorded_at": "2020-01-01T00:00:00.000000Z",
+        "handover": {"join": {"window_id": "@1", "transcript": "/tmp/j.jsonl"}}}
+    rec_path.write_text(json.dumps(rec_js), encoding="utf-8")
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()), str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "session_ref": "ref-123"})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw:
+                            (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {
+        "found": True, "pid": None, "session_id": None, "transcript": ""})
+    monkeypatch.setattr(rot, "_first_turn_values", lambda *a, **k:
+                        {"succ_ref": "ref-123", "succ_transcript": "",
+                         "gen": "1", "seat": "d"})
+    monkeypatch.setattr(rot, "_claim_after_join", lambda *a, **k: None)
+    monkeypatch.setattr(rot, "_after_join_model_confirm", lambda *a, **k: None)
+    monkeypatch.setattr(rot, "_commit_after_join_record", lambda *a, **k: None)
+    _fake_run(monkeypatch)
+    return rec_path
+
+
+def test_after_join_types_second_input_records_typed(tmp_path, monkeypatch):
+    """(a) run_after_join_for_seat with a SUCCEEDING typing seam records
+    delivery typed; the typed body is byte-identical to the dm body (one
+    composer, one string); the dm is STILL sent exactly once (the durable,
+    signed record); and the pane NUDGE is SUPPRESSED for this one message
+    (assert the suppression argument on the delivery) — the successor pays
+    ZERO reads."""
+    import agi.bin.rotate as rot
+    rec_path = _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}], delay_s=0))
+    typed, sent = [], []
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None,
+        type_input=lambda seat, text: typed.append((seat, text)) or True,
+        send_dm=lambda to, text: sent.append((to, text)))
+    deliv = out["delivery"]
+    assert deliv["mode"] == "typed", deliv
+    assert deliv["nudge"] == "suppressed", deliv  # the suppression argument
+    assert len(sent) == 1 and sent[0][0] == "d", sent  # dm STILL written once
+    assert typed and typed[0][0] == "d" and typed[0][1] == out["dm"], typed
+    assert typed[0][1] == sent[0][1], "typed body == dm body (one string)"
+    assert out["sent"] is True
+    # the record's after_join names the typed delivery too
+    data = json.loads(rec_path.read_text())
+    assert data["after_join"]["delivery"]["mode"] == "typed", data["after_join"]["delivery"]
+    assert data["after_join"]["dm"] == typed[0][1]
+
+
+def test_after_join_typing_refusal_runs_dm_nudge_as_today(tmp_path, monkeypatch):
+    """(b) run_after_join_for_seat with a REFUSING typing seam (False) records
+    delivery dm+nudge names the refusal reason, and the dm path runs exactly
+    as today (send_dm still called once with the SAME dm body — a nudge pointer
+    is still the only pane signal)."""
+    import agi.bin.rotate as rot
+    rec_path = _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}], delay_s=0))
+    sent, typed = [], []
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None,
+        type_input=lambda seat, text: typed.append(1) or False,
+        send_dm=lambda to, text: sent.append((to, text)))
+    deliv = out["delivery"]
+    assert deliv["mode"] == "dm+nudge", deliv
+    assert deliv["nudge"] == "kept", deliv
+    assert isinstance(deliv.get("typing_refused"), str) and \
+        deliv["typing_refused"], deliv  # the refusal is NAMED, never blank
+    assert len(typed) == 1, "the refusing typing seam WAS consulted"
+    assert len(sent) == 1 and sent[0][1] == out["dm"], sent  # dm+nudge as today
+    data = json.loads(rec_path.read_text())
+    assert data["after_join"]["delivery"]["mode"] == "dm+nudge", data["after_join"]["delivery"]
+
+
+def test_after_join_dry_run_types_and_sends_nothing(tmp_path, monkeypatch):
+    """(c) a dry_run TYPES NOTHING and SENDS NOTHING: delivery mode none,
+    the typing seam and the send_dm seam are never called (and the record
+    carries no after_join delivery)."""
+    import agi.bin.rotate as rot
+    rec_path = tmp_path / "s.json"
+    rec_path.write_text(json.dumps({"result": "success", "seat": "s"}),
+                        encoding="utf-8")
+    _fake_run(monkeypatch)
+    called = []
+    out = rot.run_after_join(
+        Path(tmp_path), seat="s", gen=2,
+        startup=_startup(after_join=[{"label": "a", "cmd": "echo x"}],
+                         delay_s=0),
+        values=VALUES, record_path=str(rec_path), dry_run=True,
+        sleep_impl=lambda s: None, type_input=lambda *a: called.append(1) or True,
+        send_dm=lambda *a: called.append(1))
+    assert out["delivery"] == {"mode": "none", "nudge": "n/a"}, out["delivery"]
+    assert called == [], f"dry_run must type and send NOTHING: {called}"
+    assert out.get("sent") in (None, False), out
+    assert "after_join" not in json.loads(rec_path.read_text()), "dry_run must not write"
+
+
+# ── SL7.93 regression (parent review of a00-546bfb85) — the PRODUCTION ──────
+# default of the typing seam. The SL7.9x build wired rotate.py to call the
+# production default as `_type_fn(seat, dm)` — but send.type_input has the
+# FULL (root, to, text) signature, so a REAL successor hit `TypeError:
+# missing text` which the `except Exception` sank to `typed_ok=False` →
+# dm+nudge kept. The falsifier "a successor pane that still receives a
+# pointer line for a typed input" was LIVE in production: the seam only
+# appeared to work because every test injected a fake `(seat, text)` seam and
+# never exercised the production default. Fixed by resolving the default as a
+# CLOSURE over `root` so the seam contract stays (seat, text). These two
+# tests drive the REAL default wiring (no type_input seam injected) and
+# assert the REAL send.send nudge argument.
+
+def _send_stub(monkeypatch, type_input_ret=True, record_dm=False):
+    """Register a `send` stub module (the name rotate's two default closures
+    import) recording the REAL call shapes: type_input(root, to, text) and
+    send(root, to, text, sender, nudge). type_input_ret controls whether the
+    wake typing succeeds."""
+    stub = _types.ModuleType("send")
+    typed, sent = [], []
+    def _type_input(root, to, text, tmux_session=None):
+        typed.append((str(root), to, text))
+        return type_input_ret
+    def _send(root, to, text, sender=None, nudge=True):
+        sent.append((str(root), to, text, sender, nudge))
+    stub.type_input = _type_input
+    stub.send = _send
+    monkeypatch.setitem(sys.modules, "send", stub)
+    return typed, sent
+
+
+def test_production_default_types_through_real_wiring(tmp_path, monkeypatch):
+    """REGRESSION: NO type_input seam is injected — run_after_join resolves
+    the production default closure over `root` and the REAL send.type_input
+    receives `(root, seat, text)`. delivery=typed, the typed body is
+    byte-identical to the dm body, and the REAL send.send carries
+    nudge=False (the pane pointer is suppressed for the typed message).
+    A TypeError (the old `_type_fn(seat, dm)` abusing (root, to)) would sink
+    to dm+nudge and fail this test."""
+    import agi.bin.rotate as rot
+    typed, sent = _send_stub(monkeypatch, type_input_ret=True)
+    rec_path = _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}],
+                 delay_s=0))
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None)
+    deliv = out["delivery"]
+    assert deliv["mode"] == "typed", deliv
+    assert deliv["nudge"] == "suppressed", deliv
+    # the production default reached the REAL send.type_input(root, seat, text)
+    assert typed and typed[0] == (str(tmp_path), "d", out["dm"]), typed
+    # the REAL send.send carried nudge=False (suppressed) for the typed message
+    assert sent and sent[0] == (str(tmp_path), "d", out["dm"], "heal", False), sent
+    # the dm is still written once (the durable, signed record)
+    data = json.loads(rec_path.read_text())
+    assert data["after_join"]["delivery"]["mode"] == "typed"
+
+
+def test_production_default_nudge_kept_on_typing_refusal(tmp_path, monkeypatch):
+    """REGRESSION: the REAL default send_dm keeps the pane NUDGE (nudge=True)
+    when the production typing seam REFUSES (False) — the dm+nudge path runs
+    exactly as today, a pointer is still the only pane signal, and no
+    TypeError is swallowed into a silent dm+nudge lie."""
+    import agi.bin.rotate as rot
+    typed, sent = _send_stub(monkeypatch, type_input_ret=False)
+    _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}],
+                 delay_s=0))
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None)
+    deliv = out["delivery"]
+    assert deliv["mode"] == "dm+nudge", deliv
+    assert deliv["nudge"] == "kept", deliv
+    assert isinstance(deliv.get("typing_refused"), str) and \
+        deliv["typing_refused"], deliv
+    # the refusing production default WAS consulted (once), then nudge kept
+    assert len(typed) == 1, "the refusing production typing seam WAS consulted"
+    assert sent and sent[0][4] is True, \
+        "the REAL send.send keeps nudge=True when typing refused: %r" % sent

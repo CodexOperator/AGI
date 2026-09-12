@@ -11362,7 +11362,8 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                    performed_after_s: float | None = None,
                    gen_unresolved_reason: str | None = None,
                    dm_byte_cap: int | None = None,
-                   join_unresolved_wait_s: int | None = None) -> dict:
+                   join_unresolved_wait_s: int | None = None,
+                   type_input=None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -11514,6 +11515,58 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         dm_byte_cap=(dm_byte_cap if dm_byte_cap is not None
                      else startup.get("dm_byte_cap")),
         record_path=record_path)
+    # (hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-
+    # pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox) the
+    # DELIVERY decision: when a type_input seam is provided (production
+    # default is send.type_input — the wake typing seam) the composed SECOND
+    # input is TYPED into the successor's pane as the input ITSELF, so the
+    # successor pays ZERO reads (no nudge pointer to read). The dm copy is
+    # STILL the durable, signed record written below; send.send's pane NUDGE is
+    # SUPPRESSED for this one message (`nudge_suppressed` closure state, read
+    # by the DEFAULT send_dm — never by a caller-injected seam) because the
+    # pane already saw the body once. When typing refuses (no resolvable
+    # window / tmux absent / a failed send / a send module with no
+    # type_input, as a test stub may be), everything above the record runs
+    # EXACTLY as today and the delivery mode names the refusal. A dry_run
+    # types and sends NOTHING.
+    nudge_suppressed = False
+    if dry_run:
+        delivery = {"mode": "none", "nudge": "n/a"}
+    else:
+        typed_ok = False
+        typing_refused = None
+        _type_fn = type_input
+        if _type_fn is None:
+            # production default: send.type_input (the wake typing seam) — a
+            # caller that passes no seam still TYPES the second input into
+            # the pane; a test seam overrides it. getattr-guarded so a stub
+            # `send` module (or tmux absence) reads as "typing unavailable"
+            # and falls to the dm+nudge path, never raising. The seam
+            # CONTRACT is (seat, text), but send.type_input has the FULL
+            # (root, to, text, tmux_session=None) signature — so the
+            # default is resolved as a CLOSURE over `root`, never passed
+            # (seat, text) directly as (root, to) and losing `text`. The
+            # closure is what makes a REAL successor pane receive the typing
+            # through the REAL default, not through a test stub.
+            import send as _send
+            _ti = getattr(_send, "type_input", None)
+            if _ti is not None:
+                _type_fn = lambda _seat, _text: _ti(root, _seat, _text)
+        if _type_fn is not None:
+            try:
+                typed_ok = bool(_type_fn(seat, dm))
+            except Exception:  # noqa: BLE001 — a throwing typing seam must not sink the after_join
+                typed_ok = False
+                typing_refused = "the typing seam raised"
+        if typed_ok:
+            nudge_suppressed = True
+            delivery = {"mode": "typed", "nudge": "suppressed"}
+        else:
+            delivery = {"mode": "dm+nudge", "nudge": "kept",
+                        "typing_refused": (typing_refused or
+                            "could not resolve the successor pane (tmux "
+                            "absent or no addressable window) or the typed "
+                            "chunk failed")}
     # (goal:g15.25 FIX-ONLY) SEND FIRST so the record can name what the send
     # actually RETURNED. The default closure returns send.py's (sender, signed)
     # pair; an injected send_dm may return the same pair (or nothing -- the
@@ -11530,6 +11583,12 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             # appear on a service dm. `heal` is an established system sender
             # (heal.py sends its own alarms as "heal"); the seat signs when the
             # helper resolved a keyed custodian.
+            # `nudge=False` (ONLY when the body was already typed into the
+            # pane as the input itself, SL7.93) suppresses the redundant pane
+            # pointer for this one message; the returned (sender, signed)
+            # pair is what the record names (SL7.99).
+            if nudge_suppressed:
+                return _send.send(root, to, text, sender, nudge=False)
             return _send.send(root, to, text, sender)
     if not dry_run and send_dm is not None:
         _dm_ret = send_dm(seat, dm)
@@ -11582,6 +11641,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     "delay_s": promised_delay_s,
                     "results": results,
                     "dm": dm,
+                    "delivery": delivery,
                     "dm_sender": dm_sender,
                     "dm_signed": dm_signed,
                 }
@@ -11618,7 +11678,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             except (OSError, ValueError, json.JSONDecodeError) as exc:
                 appended = False
     return {"delay_s": delay_s, "results": results, "dm": dm,
-            "appended": appended, "sent": sent,
+            "appended": appended, "sent": sent, "delivery": delivery,
             "record_commit": record_commit,
             "model_confirm": model_confirm,
             "record_path": str(record_path) if record_path else None}
@@ -11662,6 +11722,7 @@ def _code_head(root: Path) -> str:
 
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
+                            type_input=None,
                             performer: str = "watch") -> dict | None:
     """The heal.py watch loop's per-seat action: discover the seat's latest
     rotation record that has NOT yet had its captive after_join run and whose
@@ -11848,7 +11909,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
         performer=performer, late=late, performed_after_s=age_s,
         gen_unresolved_reason=gen_reason,
-        join_unresolved_wait_s=_join_wait_s)
+        join_unresolved_wait_s=_join_wait_s,
+        type_input=type_input)
     result["code_head"] = _code_head(root)
     return result
 
