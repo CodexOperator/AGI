@@ -1,7 +1,8 @@
 #!/bin/bash
 # cc-session-start.next.sh — PREVIEW copy of cc-session-start.sh, the Claude
-# Code SessionStart hook, carrying the seat-successor bootstrap injection
-# (hypothesis:l4-startup-is-one-script-or-a-driven-prompt, 0b kid 3). Not yet
+# Code SessionStart hook, carrying the seat-successor bootstrap injection since
+# 2026-09-11, SL1.03 / hypothesis:l4-startup-is-one-script-or-a-driven-prompt
+# (0b kid 3). Not yet
 # installed: the LIVE hook cc-session-start.sh and ~/.claude/settings.json are
 # the PRIME's install step. This copy is the review + proof surface.
 #
@@ -233,7 +234,7 @@ fi
 # other optional section of this hook. rotate.py returns 0+block on emit,
 # 1+silence on refuse — SILENCE is the safe direction (no stale state, no
 # banner on a non-seat session).
-BOOTSTRAP_SEAT="${AGI_SEAT:-}"
+BOOTSTRAP_SEAT="${AGI_POST:-${AGI_SEAT:-}}"
 if [[ -n "$BOOTSTRAP_SEAT" ]]; then
   BOOTSTRAP_BLOCK="$(AGI_PROJECT_ROOT="$PROJECT_ROOT" python3 \
     "$PLUGIN_ROOT/bin/rotate.py" bootstrap-block --seat "$BOOTSTRAP_SEAT" \
