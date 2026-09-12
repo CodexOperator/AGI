@@ -2872,6 +2872,14 @@ def test_rotate_self_stops_dry_run_touches_nothing(
     card.write_text("# adv-alive card\n## 🔴 Where it stops\nold cmd\n",
                     encoding="utf-8")
     _init_git_remote(tmp_path)
+    # The card was written BEFORE the fixture commit above, and the captive
+    # "card older than last commit" compares the card's float mtime against
+    # the commit's whole-second %ct: when the write and the commit straddle a
+    # second boundary (likelier under suite load) the card reads stale and
+    # rotate-self refuses with rc 3 — a fixture race, not the claim under
+    # test. A dry-run never rewrites the card, so refresh its mtime here the
+    # way a live rotate-out's stops write would (bytes unchanged).
+    os.utime(card, None)
     win = tmp_path / "windows.txt"
     win.write_text("adv-alive\n", encoding="utf-8")
 
