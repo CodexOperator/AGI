@@ -2037,22 +2037,29 @@ def _post_rename_upstream(repo: Path, branch: str) -> str:
 
 
 def _post_rename_commit_targets(repo: Path, dest: Path,
-                                seats_rel: Path) -> list:
+                                seats_rel: Path,
+                                seats_abs: Path) -> list:
     """The step-3 commit pathspec, shared by the --dry-run plan and --apply
-    (hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
-    true, Region A). The seats.md DELETE (staged by the git mv) stays in the
-    pathspec only while that staged delete is still PENDING in the index; once
-    a prior commit carries it, the path is gone from the index and a
-    `git commit -- ... seats.md` would ERROR instead of skipping. `git diff
-    --cached` reports the pending staged-delete cleanly (empty output when
-    absent), so a dry-run names exactly the files --apply would commit for the
-    same tree. Queries the index only -- never git mv -- so a dry-run changes
-    NOTHING and a dry-run tree stays byte-identical (pinned by the no-plan-file
-    / byte-identical test)."""
+    (hypothesis:l4-the-step-3-pathspec-names-seats-md-too-on-an-unmigrated-tree).
+    Predicts the apply's writes on the SAME tree state: seats.md belongs in the
+    pathspec whenever --apply's own `git mv` would stage its delete -- that is,
+    when the seats.md DELETE is already PENDING in the index (the git mv ran)
+    OR seats.md is still PRESENT ON DISK (the apply's git mv will stage it).
+    On an unmigrated tree (seats.md on disk, posts.md to be created) the
+    dry-run therefore names BOTH posts.md and seats.md -- exactly what --apply
+    commits; once a prior commit carries the delete, the path is gone from the
+    index AND the disk, and a `git commit -- ... seats.md` would ERROR instead
+    of skipping, so it is dropped. `git diff --cached` reports the pending
+    staged-delete cleanly (empty output when absent); `seats_abs.exists()`
+    covers the not-yet-mv'd state the index cannot see. Queries the index and
+    the filesystem only -- never git mv -- so a dry-run changes NOTHING and a
+    dry-run tree stays byte-identical (pinned by the no-plan-file /
+    byte-identical test)."""
     seats_pending = subprocess.run(
         ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
         cwd=repo, capture_output=True, text=True)
-    return ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
+    seats_would_stage = bool(seats_pending.stdout.strip()) or seats_abs.exists()
+    return ([str(dest), str(seats_rel)] if seats_would_stage
             else [str(dest)])
 
 
@@ -2168,7 +2175,8 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     #    while that staged delete is still pending, and the rollback is printed
     #    only when a commit was really created, never a stale HEAD~1 on a skip.)
     if not apply:
-        targets = _post_rename_commit_targets(repo, dest, seats_rel)
+        targets = _post_rename_commit_targets(repo, dest, seats_rel,
+                                              seats_abs)
         commit_cmds = [f"git add {dest}",
                        f'git commit -m "post-rename: seats.md -> posts.md" -- '
                        + " ".join(targets)]
@@ -2187,7 +2195,8 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
         # it, the path is gone from the index and a `git commit -- ... seats.md`
         # would ERROR instead of skipping; `git diff --cached` reports the
         # pending staged-delete cleanly (empty output when absent).
-        targets = _post_rename_commit_targets(repo, dest, seats_rel)
+        targets = _post_rename_commit_targets(repo, dest, seats_rel,
+                                              seats_abs)
         pending = subprocess.run(
             ["git", "diff", "--cached", "--name-only", "--", *targets],
             cwd=repo, capture_output=True, text=True)
