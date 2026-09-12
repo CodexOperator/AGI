@@ -7053,13 +7053,16 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         return ((str(row[key]) if row.get(key) else None),
                 (f"seat row carries no {key}" if not row.get(key) else None))
     if key == "ack":
-        # GOAL:g15.25 (SL7.15) — the ack fact derives from the ACK FILE, never
+        # GOAL:g15.25 (SL7.29) — the ack fact derives from the ACK FILE, never
         #     from the seat row (no writer ever fills a `row['ack']`, so the
         #     old read printed `ack: SKIPPED: seat row carries no ack at HEAD`
         #     for every seat while the truth sat in seats/<seat>.ack.json).
-        #     Shape: `ack: <answer> (source <source>, gen <gen_after>)` when a
-        #     live ack file exists, else `ack: none`. The staleness bound
-        #     (`head` as today) is applied by the caller, unchanged.
+        #     Shape: the BARE `<answer> (source <source>, gen <gen_after>)`
+        #     when a live ack file exists, else `none` — the block writer
+        #     (`_bootstrap_block`) prefixes the key ONCE (`- ack: {val}`), so
+        #     a prefixed value here would render the doubled `- ack: ack: ...`
+        #     (the SL7.15 defect part (a)). The staleness bound (`head` as
+        #     today) is applied by the caller, unchanged.
         ack_path = _ack_path(root, seat)
         try:
             _a = (json.loads(ack_path.read_text(
@@ -7068,10 +7071,10 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         except (OSError, ValueError):
             _a = None
         if isinstance(_a, dict) and _a.get("answer"):
-            return (("ack: {} (source {}, gen {})".format(
+            return (("{} (source {}, gen {})".format(
                 _a.get("answer"), _a.get("source"), _a.get("gen_after"))),
                     None)
-        return "ack: none", None
+        return "none", None
     if key == "prev_gen":
         return ((str(row[key]) if row.get(key) is not None else None),
                 (f"seat row carries no {key} at HEAD"
@@ -11297,10 +11300,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         verification = _run_verification(
             root, argv=getattr(args, "verification_argv", None))
     if not args.dry_run:
+        # (SL7.29 part (b)) the ack answer is fully knowable BEFORE the spawn
+        #     (`_answer = "diff-requested" if ask_diff else "continue"`), so
+        #     the PRE-SPAWN bootstrap record carries it verbatim via the
+        #     `overrides` seam -- `- ack: continue (source predecessor, gen
+        #     N)` (or diff-requested) at TURN ONE, instead of `ack: none`
+        #     (which happened because the pre-spawn `_derive_bootstrap_fact`
+        #     found no ack FILE yet -- the ack is only written at s6.3, AFTER
+        #     the successor has already read this record). The post-join s11
+        #     rewrite and the existing `overrides` machinery are unchanged;
+        #     this only makes the TURN-ONE record truthful.
+        _ack_answer = "diff-requested" if ask_diff else "continue"
         _write_bootstrap(
             root, seat=seat, generation=gen,
             telemetry=tmpl.get("telemetry"), verification=verification,
-            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
+            overrides={"ack": f"{_ack_answer} (source predecessor, gen {gen})"})
 
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
