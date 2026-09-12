@@ -1475,6 +1475,43 @@ def test_loop_returns_diff_when_successor_acks_diff(monkeypatch, tmp_path, capsy
     assert "acked diff" in err and "+ y" in err
 
 
+def test_loop_returns_success_when_diff_is_empty(monkeypatch, tmp_path, capsys):
+    """An acked `diff` whose TEXT is empty/whitespace is the reviewed-no-change
+    answer the --ask-diff gate names: the handoff STANDS exactly like a
+    `continue` — recorded `result: success` with `d_reply_decision: diff-empty`,
+    never result: diff (hypothesis:l4-the-ask-diff-gate-offers-no-continue-
+    and-an-empty-diff-stands-the-handoff)."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    dbg = tmp_path / "seat.log"
+    dbg.write_text(REAL_DEBUG_LOG)
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "diff", "text": "   "}),
+                    encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window",
+                        lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "success"
+    assert rec["observations"]["d_reply_decision"] == "diff-empty"
+    err = capsys.readouterr().err
+    assert "handoff stood" in err and "EMPTY diff" in err
+
+
+
 def test_loop_present_but_silent_no_ack_still_no_reply(monkeypatch, tmp_path):
     """FALSIFIER (2): the same REAL --debug-file WITHOUT an ack file, with the
     successor window present, is PRESENT-BUT-SILENT — recorded inconclusive,
