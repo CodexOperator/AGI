@@ -6010,6 +6010,30 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
             # region end. Only this seat's own write is staged.
             if al is not None and ak is not None and ak not in rkeys \
                     and ak not in matched:
+                # When a FOREIGN row that HEAD deletes meets this WORK-only
+                # added row at one slot (the removed pointer's key is absent
+                # from the added side AND not own), the row is emitted in the
+                # tree's own order: the foreign row FIRST, restored
+                # byte-identical to HEAD, then the WORK row — the WORK row must
+                # not race ahead of the slot it is replacing (SL7.66).
+                if (rl is not None and rk is not None
+                        and rk not in add_by_key and rk not in matched
+                        and not _own(rl)):
+                    out.append(rl)
+                    i += 1
+                    continue
+                if _own(al):
+                    out.append(al)
+                j += 1
+                continue
+            # A KEYLESS WORK-only line (no `"name"` cell — a structural line
+            # this seat's write added, e.g. the malformed `edited_by:` stamp
+            # the own row write leaves beside the rows) also sits at its WALK
+            # position: emitted HERE, before the next removed line, past the
+            # same `_own` gate the region-end branch applies — never deferred
+            # to the region end (SL7.66). A FOREIGN keyless added line is
+            # never staged.
+            if al is not None and ak is None:
                 if _own(al):
                     out.append(al)
                 j += 1

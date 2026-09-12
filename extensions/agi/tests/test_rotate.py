@@ -7568,6 +7568,90 @@ def test_own_row_cut_work_only_added_row_keeps_walk_position(tmp_path):
         "a foreign row's role change must be reverted"
 
 
+def test_own_row_cut_keyless_work_only_line_keeps_walk_position(tmp_path):
+    """SL7.66 / goal:g15.24 falsifier: a KEYLESS WORK-only line — a changed
+    line with NO `"name"` cell that this seat's write added (here the
+    `edited_by:` frontmatter-stamp line the own-row write leaves BETWEEN the
+    row lines), in the SAME opcode as keyed rows — is emitted at its WALK
+    position, right where it sits on the added side, past the same `_own`
+    gate the region-end branch applies. Pre-fix it never took the in-place
+    emission branch (that branch was gated on `ak is not None`), so it was
+    flushed to the REGION END, after the next HEAD row. FALSIFIER: the
+    keyless line lands after `other` instead of preceding it."""
+    root, top = _empty_row_git_root(tmp_path, ["alpha", "other"])
+    seats = rotate._ack_seats_path(root)
+    rows = [
+        {"name": "alpha", "role": "p2", "model": "x", "effort": "max",
+         "settings": ""},
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        # keyless structural line the own-row write adds between the rows
+        {"name": "other", "role": "director", "edited_by": "x",
+         "model": "x", "effort": "max", "settings": ""},
+    ]
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows[0:2]:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "edited_by: belam\n"
+    body += "  - " + json.dumps(rows[2]) + "\n"
+    body += "---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row write must build content"
+    lines = staged.splitlines()
+    # the KEYLESS own line is staged at its WALK position — before the next
+    # HEAD row (`other`), not flushed to the region end (the SL7.66 defect).
+    key_i = next(i for i, l in enumerate(lines)
+                 if l.strip() == "edited_by: belam")
+    assert key_i < next(i for i, l in enumerate(lines)
+                        if '"name": "other"' in l), \
+        "the keyless own line must precede the next HEAD row, not the end"
+    # the OWN inserted row still sits at its walk position beside it.
+    assert next(i for i, l in enumerate(lines)
+                if '"name": "belam"' in l) < key_i, \
+        "the own inserted row must precede the keyless line"
+    # FOREIGN edits around them are reverted byte-identical to HEAD.
+    assert '"name": "alpha", "role": "director"' in staged, \
+        "alpha's role change must be reverted to HEAD"
+    assert '"edited_by": "x"' not in staged, \
+        "the foreign `edited_by` cell must never be staged as own"
+    assert '"role": "p2"' not in staged, \
+        "a foreign row's role change must be reverted"
+
+
+def test_own_row_cut_foreign_deleted_row_precedes_own_added_at_same_slot(tmp_path):
+    """SL7.66 / goal:g15.24 falsifier: when a FOREIGN row that HEAD deletes
+    meets a WORK-only added row at ONE slot (HEAD has `other`, the WORK copy
+    deletes it and inserts the OWN row `belam` there), the staged order must
+    match the tree's own file: the foreign row FIRST — restored byte-identical
+    to HEAD — then the WORK row. Pre-fix the in-place emission raced the WORK
+    row ahead of the slot it replaces, so `belam` came before the restored
+    `other`. FALSIFIER: the restored foreign row appears after the WORK row."""
+    root, top = _empty_row_git_root(tmp_path, ["other"])
+    seats = rotate._ack_seats_path(root)
+    body = "---\nid: config:seats\ntype: config\nseats:\n" + \
+        "  - " + json.dumps({"name": "belam", "role": "prime_director",
+                            "model": "x", "effort": "max",
+                            "settings": ""}) + "\n---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row write must build content"
+    lines = staged.splitlines()
+    work_i = next(i for i, l in enumerate(lines) if '"name": "belam"' in l)
+    foreign_i = next(i for i, l in enumerate(lines) if '"name": "other"' in l)
+    assert foreign_i < work_i, \
+        "the restored foreign row must precede the WORK-only row"
+    # the FOREIGN row is byte-identical to HEAD.
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    head_blob = subprocess.run(
+        ["git", "-C", str(top), "show", f"HEAD:{rel}"],
+        capture_output=True, text=True).stdout
+    foreign_head_line = next(
+        l for l in head_blob.splitlines() if '"name": "other"' in l)
+    assert foreign_head_line in staged, \
+        "the foreign row must appear byte-identical to HEAD"
+
+
 def _empty_row_git_root(tmp_path, names):
     """A committed git root whose seats.md carries the rows NAMED in `names`
     (all foreign to the seat under test, which is ABSENT — the seat's own row
