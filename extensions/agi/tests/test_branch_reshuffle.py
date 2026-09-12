@@ -600,14 +600,18 @@ def test_delete_old_ls_remote_failure_is_rc_honest(tmp_path: Path):
 
 
 def test_delete_old_second_run_resumes_and_exits_zero(tmp_path: Path):
-    """(resume; L4.330 KID B) reshuffle --delete-old gains an rc-honest
-    resume-skip: once a run has deleted the legacy branches, a SECOND run
-    re-probes each ref, sees them genuinely absent (rc 0, empty stdout), skips
-    with a clear line, and exits 0 — deleting only what remains (nothing).
-    Before the fix the pass had NO skip at all and unconditionally re-pushed
-    `git push origin --delete <old>` for every non-master job. The falsifier is
+    """(resume; L4.330 KID B, origin-heads form) reshuffle --delete-old
+    resumes correctly: once a run has deleted the legacy branches, a SECOND
+    run re-probes origin's refs/heads and finds nothing left to delete — a
+    stale LOCAL remote-tracking ref for an already-deleted branch does NOT
+    resurrect a delete job (the delete set is origin-heads-derived, never a
+    local-refs guess), and the run exits 0 deleting nothing. Before the skip
+    the pass unconditionally re-pushed `git push origin --delete <old>` for
+    every non-master job. The falsifier is
     `assert 'origin --delete seat/post-a@s2' not in res2.stdout` (present
-    before the fix)."""
+    before the fix; under origin-heads discovery the stale tracking ref is
+    irrelevant, so the re-delete would have to come from the heads listing —
+    origin genuinely no longer has it)."""
     r = _build_repo(tmp_path)
     _apply_all(r / ".agi")
     (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
@@ -621,18 +625,18 @@ def test_delete_old_second_run_resumes_and_exits_zero(tmp_path: Path):
     assert sha, "fixture must have a legacy tracking ref to recreate"
     res1 = _run_cli(r / ".agi", "--delete-old", "--kinds", *kinds)
     assert res1.returncode == 0, res1.stdout + res1.stderr
-    # PARENT (L4.330): a plain second run is NOT enough -- a successful
-    # delete also prunes the local remote-tracking ref, so `_reshuffle_jobs`
-    # finds nothing and the run returns before the probe. KID B's original
-    # second-run test was therefore vacuous (it passed with the skip
-    # disabled). Re-create the STALE tracking ref for one already-deleted
-    # legacy branch so the job is still discovered and the skip is the only
-    # thing that can keep the run quiet.
+    # Re-create the STALE local tracking ref for one already-deleted legacy
+    # branch. Under the OLD local-refs discovery that re-created a delete job
+    # that only the resume-skip could keep quiet; under origin-heads
+    # discovery the stale local ref is simply not a candidate, so nothing is
+    # even considered for deletion — both models must exit 0 and re-delete
+    # nothing.
     _git(r, "update-ref", "refs/remotes/origin/seat/post-a@s2", sha)
     res2 = _run_cli(r / ".agi", "--delete-old", "--kinds", *kinds)
     assert res2.returncode == 0, res2.stdout + res2.stderr
-    # the skip fired by name and the already-gone ref was NOT re-deleted
-    assert "already absent" in res2.stdout, res2.stdout
+    # the already-gone branches were NOT re-deleted (the falsifier); the
+    # stale local tracking ref never resurrected a delete job
+    assert "git push origin --delete" not in res2.stdout, res2.stdout
     for old in ["seat/post-a@s2", "town/core/season/s2"]:
         assert f"origin --delete {old}" not in res2.stdout, (old, res2.stdout)
 
