@@ -69,6 +69,7 @@ from typing import Any, Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 import yaml
 
@@ -138,8 +139,8 @@ def _grid_refs(repo: Path) -> dict[str, str]:
 
 def _read_frontmatter(path: Path) -> dict | None:
     """Same shape as `crons.py::_parse_frontmatter` and
-    `backfill-mint-ids.py::read_node` — `text.split("---", 2)`, then
-    `yaml.safe_load` on the middle. `None` on anything unparseable: a bad
+    `backfill-mint-ids.py::read_node` — the line-anchored splitter, then
+    `yaml.safe_load` on the frontmatter. `None` on anything unparseable: a bad
     node here is a node this checker cannot read `payload_ref` from, reported
     by the caller, never guessed at."""
     try:
@@ -148,11 +149,11 @@ def _read_frontmatter(path: Path) -> dict | None:
         return None
     if not text.strip().startswith("---"):
         return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         return None
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError:
         return None
     return fm if isinstance(fm, dict) else None

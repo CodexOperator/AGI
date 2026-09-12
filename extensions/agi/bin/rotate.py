@@ -1809,12 +1809,18 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
                 if not isinstance(ack, dict):
                     pass  # malformed shape — keep polling
                 elif gen_after is None or ack.get("gen_after") == gen_after:
-                    if ack.get("answer") == "pending":
+                    if ack.get("answer") in ("pending", "diff-requested"):
                         # L4.114 (s6/s7): the predecessor writes `pending` as
                         # the ack's initial state (carrying the machine
                         # identity) and the SUCCESSOR flips it to continue/
-                        # diff. A `pending` answer is not terminal — keep
-                        # polling for the flip, it cannot confirm a rotation.
+                        # diff. WITH `--ask-diff` the predecessor writes
+                        # `diff-requested` instead (source: predecessor) and
+                        # the successor's ONE reply is `diff` or `continue`.
+                        # Neither `pending` nor `diff-requested` is terminal —
+                        # keep polling for the flip, neither can confirm a
+                        # rotation (hypothesis:l4-the-predecessor-answers-
+                        # continue-by-default-and-ask-diff-hands-the-
+                        # successor-exactly-one-call).
                         pass
                     else:
                         return ack
@@ -1850,6 +1856,28 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # claim (4): under the DEFAULT-continue contract the predecessor already
+    # answered the ack channel (`answer: continue, source: predecessor`), so a
+    # successor that runs `ack continue` out of the old habit is a one-line
+    # NO-OP -- nothing to run, exit 0, never a double-write. `ack diff` still
+    # works (the override): the successor may overwrite the predecessor's
+    # continue with its own diff inside the read-back window.
+    if args.answer == "continue":
+        _prev_src = None
+        _prev_ans = None
+        try:
+            _ap = Path(_ack_path(root, seat))
+            if _ap.exists():
+                _pa = json.loads(_ap.read_text(encoding="utf-8", errors="replace"))
+                if isinstance(_pa, dict):
+                    _prev_src = _pa.get("source")
+                    _prev_ans = _pa.get("answer")
+        except (OSError, ValueError):
+            pass
+        if _prev_src == "predecessor" and _prev_ans == "continue":
+            print("ack: already answered continue by your predecessor -- "
+                  "nothing to run")
+            return 0
     # r3+ (L4.1xx / hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
     # and-the-successor-one): the successor's identity is the reason the row
     # wants a session_ref at all. A GIVEN --ref must be the BARE ref (a
@@ -3725,10 +3753,12 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor): pin
     the seat's meter at ITS generation (the SAME `_pin_successor_meter`
     rotate-self uses, never a second pin format) and write
-    seats/<seat>.ack.json with `answer: pending` (F8's contract, the same
-    `_write_ack`). These are the SPAWN's writes -- rotate-self step 2's -- NOT
-    the autopsy's (which runs read-only only); they are the spawn occupying
-    its own meter and opening its ack channel.
+    seats/<seat>.ack.json with `answer: continue, source: predecessor` (F8's
+    contract, the same `_write_ack`; the seating writer answers its OWN ack
+    so a hand seating's post also wakes at 0 -- its alert/brief prints no ack
+    line unless `--ask-diff`). These are the SPAWN's writes -- rotate-self
+    step 2's -- NOT the autopsy's (which runs read-only only); they are the
+    spawn occupying its own meter and opening its ack channel.
 
     The transcript is the caller's known one -- EMPTY for a fresh first
     seating (there is no successor transcript from a JOIN yet); rotate-self
@@ -3739,7 +3769,7 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     mp = _pin_successor_meter(root, seat=seat, generation=generation,
                               transcript=transcript)
     ap = _write_ack(root=root, seat=seat, gen_after=generation,
-                    session_ref="", answer="pending")
+                    session_ref="", answer="continue")
     return {"meter_pin": mp, "ack_path": str(ap)}
 
 
@@ -4989,21 +5019,25 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
 
 
 def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
-               answer: str = "continue", text: str = "") -> Path:
+               answer: str = "continue", text: str = "",
+               source: str = "predecessor") -> Path:
     """Write the successor's ACK file on ITS behalf (kid-2 step 6).
 
-    The successor makes ZERO tool calls on wake: the predecessor writes
-    `continue` into the same ack channel `cmd_ack` used, so the read-back
-    confirms the rotation the moment it polls. cmd_ack stays CALLABLE as a
-    one-generation fallback (hypothesis:l4-rotate-readback-
-    false-negative-and-the-orphan-by-design) but is no longer the successor's
-    first act."""
+    The predecessor writes into the same ack channel `cmd_ack` used, so the
+    read-back confirms (or polls) the rotation the moment it reads. `source`
+    marks WHO wrote the ack: `predecessor` (rotate-self / the first seating -
+    writer) vs the successor's own `cmd_ack` turn; `source: predecessor` is
+    how the read-back and `--ask-diff` tell a pre-answer from a successor
+    reply. cmd_ack stays CALLABLE as a one-generation fallback
+    (hypothesis:l4-rotate-readback-false-negative-and-the-orphan-by-design)
+    but is no longer a first-class wake act under the default."""
     ack = {
         "seat": seat,
         "gen_after": gen_after,
         "session_ref": session_ref,
         "answer": answer,
         "text": text,
+        "source": source,
         "ts": datetime.utcnow().isoformat() + "Z",
     }
     path = _ack_path(root, seat)
@@ -5250,6 +5284,67 @@ def _diff_owns_row(diff: str, seat: str) -> bool:
     return False
 
 
+def _rstrip_lines(text: str) -> list[str]:
+    """Normalised comparison form of a text file: per-line TRAILING
+    whitespace stripped and the EOF newline folded away. Two texts whose ONLY
+    difference is trailing whitespace / a missing final newline compare EQUAL
+    here (claim 2: a whitespace-only delta reads CLEAN); any leading or
+    interior whitespace or a real byte still differs, so a genuine one-cell /
+    interior change is never collapsed to clean."""
+    return [ln.rstrip() for ln in text.splitlines()]
+
+
+def _blob_text(top: Path, rev: str) -> str | None:
+    """`git show <rev>` (a `HEAD:<path>` or `:<path>` index blob) as text, or
+    None on any failure (not a repo, an opaque refusal)."""
+    try:
+        run = subprocess.run(["git", "-C", str(top), "show", rev],
+                             capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if run.returncode != 0:
+        return None
+    return run.stdout
+
+
+def _diff_is_whitespace_only(root: Path, top: Path, rel: str,
+                             cached: bool) -> bool:
+    """True when the two trees `git diff [--cached] -- <rel>` is comparing
+    differ only in trailing whitespace / the EOF newline after per-line
+    trailing-strip normalisation (claim 2). cached -> index vs HEAD; uncached
+    -> index vs the working file. False on any unmeasurable read — a gate
+    must never mis-free a real delta on an opaque git answer."""
+    if cached:
+        a = _blob_text(top, f"HEAD:{rel}")
+        b = _blob_text(top, f":{rel}")
+    else:
+        a = _blob_text(top, f":{rel}")
+        try:
+            b = _ack_seats_path(root).read_text(encoding="utf-8")
+        except OSError:
+            return False
+    if a is None or b is None:
+        return False
+    return _rstrip_lines(a) == _rstrip_lines(b)
+
+
+def _path_delta_whitespace_only(root: Path, top: Path, path: str) -> bool:
+    """True when <path> (relative to `root`) differs from ITS committed HEAD
+    bytes only in trailing whitespace / the EOF newline. False when clean,
+    untracked (no HEAD blob), or unmeasurable — untracked files and real
+    deltas always stay dirty. Claim 2's prepare check 2 counterpart."""
+    abs_p = os.path.abspath(os.path.join(str(root), path))
+    rel_top = os.path.relpath(abs_p, str(top))
+    head = _blob_text(top, f"HEAD:{rel_top}")
+    if head is None:
+        return False
+    try:
+        work = Path(abs_p).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return _rstrip_lines(head) == _rstrip_lines(work)
+
+
 def _seats_diff_has_own_row(root: Path, top: Path, seat: str,
                             cached: bool = False) -> bool:
     """True when `git diff [--cached] -- <seats.md>` carries a hunk that
@@ -5265,6 +5360,16 @@ def _seats_diff_has_own_row(root: Path, top: Path, seat: str,
     except Exception:  # noqa: BLE001
         return False
     if out.returncode != 0 or not out.stdout.strip():
+        return False
+    # claim 2 (hypothesis:l4-one-serializer-...-reads-a-whitespace-only-
+    # delta-as-clean): a delta whose ONLY difference is trailing whitespace /
+    # a missing EOF newline reads CLEAN. Compare the two trees git is
+    # diffing under a per-line TRAILING-strip normalisation; equality means
+    # the seat's row is byte-unchanged in every interior cell, so the gate
+    # never refuses on whitespace-only. A real one-cell change is an interior
+    # byte and still differs, so the falsifier (never treat a real change as
+    # clean) holds.
+    if _diff_is_whitespace_only(root, top, rel, cached):
         return False
     return _diff_owns_row(out.stdout, seat)
 
@@ -5558,25 +5663,76 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # posts.md tree must commit posts.md).
     seats = _ack_seats_path(main_root)
     rel = os.path.relpath(seats, top)
-    add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
-                         capture_output=True, text=True, timeout=10)
-    if add.returncode != 0:
-        return (f"spawn_row_commit: FAILED — git add {rel!r}: "
-                f"{add.stderr.strip()}")
-    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
-                             "--", rel], capture_output=True, text=True,
-                            timeout=10)
-    if staged.returncode != 0 or not (staged.stdout or "").strip():
+    # claim (7): the spawn-row commit stages ONLY ITS OWN row via the
+    # SL6.09 own-row helper (`_seats_ownrow_content`: MAIN's HEAD content
+    # with every FOREIGN change reverted), as an INDEX-ONLY write against a
+    # throwaway `GIT_INDEX_FILE` seeded from HEAD — the shared seats.md
+    # WORKING TREE is NEVER written, so a foreign pre-dirty row in MAIN
+    # (staged OR unstaged) is never committed under this post's name (`git
+    # add -- seats.md` whole would bundle it). On commit failure the real
+    # index is reset (`git reset -q -- <rel>`) exactly like the ack's
+    # failure path.
+    new_content = _seats_ownrow_content(main_root, top, seat)
+    if new_content is None:
+        return ("spawn_row_commit: SKIPPED — seats.md already clean after "
+                "the write (row was byte-identical); nothing committed")
+    # `_seats_ownrow_content` flags the seat's own row even on an UNCHANGED
+    # (equal) line, so a clean row write (own row byte-identical) still
+    # builds own content — equal to HEAD. That is nothing to commit: skip.
+    _hdr = subprocess.run(["git", "-C", str(top), "show",
+                           f"HEAD:{rel}"], capture_output=True, text=True,
+                          timeout=10)
+    _head_content = _hdr.stdout if _hdr.returncode == 0 else ""
+    if _head_content and _head_content == new_content:
         return ("spawn_row_commit: SKIPPED — seats.md already clean after "
                 "the write (row was byte-identical); nothing committed")
     msg = (f"{seat} spawn row: gen {generation}, session_id "
            f"{session_id or ''}, window {window or ''}, pid {pid or ''}")
-    rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
-                         msg, "--", rel], capture_output=True, text=True,
-                        timeout=10)
+    import tempfile  # noqa: PLC0415  (local, mirrors _ack_commit_seats)
+    fd, tmp_index = tempfile.mkstemp(prefix="spawnrow-idx-")
+    os.close(fd)
+    env = dict(os.environ)
+    env["GIT_INDEX_FILE"] = tmp_index
+
+    def _tmp_git(parts, **kw):
+        return subprocess.run(["git", "-C", str(top)] + parts,
+                              capture_output=True, text=True, env=env, **kw)
+
+    blob_sha = ""
+    try:
+        seed = _tmp_git(["read-tree", "HEAD"])
+        if seed.returncode != 0:
+            return (f"spawn_row_commit: FAILED — git commit: "
+                    f"{seed.stderr.strip()}")
+        blob = _tmp_git(["hash-object", "-w", "--stdin"],
+                        input=new_content)
+        if blob.returncode != 0 or not blob.stdout.strip():
+            return (f"spawn_row_commit: FAILED — git commit: "
+                    f"{blob.stderr.strip()}")
+        blob_sha = blob.stdout.strip()
+        upd = _tmp_git(["update-index", "--add", "--cacheinfo",
+                        f"100644,{blob_sha},{rel}"])
+        if upd.returncode != 0:
+            return (f"spawn_row_commit: FAILED — git commit: "
+                    f"{upd.stderr.strip()}")
+        rc = _tmp_git(["commit", "-q", "-m", msg])
+    finally:
+        try:
+            os.unlink(tmp_index)
+        except OSError:
+            pass
     if rc.returncode != 0:
+        # the own-row commit FAILED: unstage so the next write's own-row
+        # gate finds seats.md clean again, exactly like the ack.
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
         return (f"spawn_row_commit: FAILED — git commit: "
                 f"{rc.stderr.strip()}")
+    # point the REAL index's seats.md entry at the committed blob so the own
+    # row no longer shows staged/unstaged; only foreign hunks remain.
+    subprocess.run(["git", "-C", str(top), "update-index", "--add",
+                    "--cacheinfo", f"100644,{blob_sha},{rel}"],
+                   capture_output=True, text=True)
     sha = ""
     try:
         out = subprocess.run(
@@ -5589,8 +5745,8 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # best-effort, one printed line, never fails the rotation (the helper
     # prints its own outcome to stderr).
     _push_season_branch(root)
-    return (f"spawn_row_commit: committed (sha {sha}) — seats.md only: "
-            f"{msg}")
+    return (f"spawn_row_commit: committed (sha {sha}) — seats.md own-row "
+            f"only: {msg}")
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -8384,13 +8540,26 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
-def _prepare_dirty_paths(porcelain: list[str] | None) -> list[str]:
+def _prepare_dirty_paths(porcelain: list[str] | None,
+                         root: Path, top: Path | None) -> list[str]:
     """The NON-churn dirty/untracked paths `git status --porcelain` reports
     (cron-owned churn excluded exactly as `_prepare_churn_path`), in porcelain
-    order. These are the seat's own stranded modifications a dirty-tree
-    captive exists to name."""
-    return [_porcelain_path(ln) for ln in (porcelain or [])
-            if ln.strip() and not _prepare_churn_path(ln)]
+    order, EXCLUDING a path whose ONLY delta vs HEAD is trailing whitespace /
+    a missing EOF newline (claim 2: a whitespace-only delta reads CLEAN, never
+    a blocker). These are the seat's own stranded modifications a dirty-tree
+    captive exists to name. A real one-cell change is an interior byte and
+    still names a blocker (falsifier). `top` None (not a repo) -> every
+    non-churn path stays dirty, exactly as before."""
+    paths = []
+    for ln in (porcelain or []):
+        if ln.strip() and not _prepare_churn_path(ln):
+            path = _porcelain_path(ln)
+            if (top is not None and path
+                    and _path_delta_whitespace_only(root, top, path)):
+                # a whitespace-only delta is never the seat's dirt — skip it
+                continue
+            paths.append(path)
+    return paths
 
 
 def _merge_applies_clean(root: Path, sb: str) -> bool | None:
@@ -8625,7 +8794,21 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # and `.agi/sessions/rotations/sequence.json`; grid_sync commits both,
     # a worktree seat never sees them). Those paths are excluded by name.
     porcelain = _git_maybe(root, "status", "--porcelain")
-    dirty_paths = _prepare_dirty_paths(porcelain)
+    top = _git_toplevel(root)
+    dirty_paths = _prepare_dirty_paths(porcelain, root, top)
+    # claim 2 (one-serializer hypothesis): a dirty path whose ONLY delta vs
+    # HEAD is trailing whitespace / a missing EOF newline reads CLEAN — named
+    # on ONE benign (never-blocking, ok) line, never a dirty-tree blocker. A
+    # real one-cell change is an interior byte and still names a BLOCK.
+    ws_only: list[str] = []
+    if top is not None:
+        for ln in (porcelain or []):
+            if not ln.strip() or _prepare_churn_path(ln):
+                continue
+            p = _porcelain_path(ln)
+            if p and _path_delta_whitespace_only(root, top, p) \
+                    and p not in ws_only:
+                ws_only.append(p)
     if dirty_paths:
         shown = dirty_paths[:5]
         suffix = (f", +{len(dirty_paths) - 5} more"
@@ -8635,6 +8818,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         dirty_name = "dirty tree"
     checks.append((bool(dirty_paths), dirty_name,
                    "git commit -m '<msg>' -- <the files you changed>"))
+    # claim 2 benign naming: each whitespace-only-delta path is named on ONE
+    # never-blocking (ok) line so prepare both passes AND says why the path
+    # was not a blocker. Name relative to the repo top so the familiar
+    # `seats.md` / `posts.md` form appears.
+    for p in ws_only:
+        abs_p = os.path.abspath(os.path.join(str(root), p))
+        rel_top = os.path.relpath(abs_p, str(top))
+        checks.append((False, f"{rel_top}: whitespace-only delta, "
+                              f"treated as clean", ""))
 
     # 3 behind origin/season/sX (N commits) -- branch from the ladder via
     # season_branch, never a hardcoded season. The merge target resolves
@@ -9796,6 +9988,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # happens without it — the newest `.jsonl` in the sessions dir never
     # supplies identity.
     session_ref = (getattr(args, "session_ref", None) or "").strip()
+    # (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    #  hands-the-successor-exactly-one-call): `--ask-diff` opts the rotation
+    # into handing the successor ONE explicit `diff` call instead of
+    # pre-answering the ack channel.
+    ask_diff = bool(getattr(args, "ask_diff", False))
 
     # goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
     # is-key-gated...): a KEYED seat mints its successor keypair at rotation
@@ -9907,15 +10104,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if (not args.dry_run and prompt_file is None
             and tmpl is not None and tmpl.get("brief_file")):
         prompt_file = str(tmpl["brief_file"]).replace("{seat}", seat)
-    ack_gate = (
-        "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
-        "ACK channel, not a bare word. First act after reading your handoff: "
-        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} "
-        f"--gen {gen} --ref <your own ListAgents ref> continue` if the handoff "
-        "needs no change, or `... diff --text '<the exact diff>'` if it does. "
-        "The predecessor's read-back reads THAT ack and refuses an ack whose "
-        "gen_after is not this generation."
-    )
+    if ask_diff:
+        # --ask-diff leg: the predecessor wrote `diff-requested`; the
+        # successor's ONE wake call is the diff review, exactly one call
+        # (hypothesis:l4-the-predecessor-answers-continue-by-default-
+        # and-ask-diff-hands-the-successor-exactly-one-call).
+        ack_gate = (
+            "ROTATION CONTINUATION (--ask-diff): your ONE wake action is "
+            f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+            f"--gen {gen} --ref <your own ListAgents ref> diff --text -` -- "
+            "run it to review the handoff (the predecessor has NOT answered "
+            "it). Answer `continue` instead if the handoff needs no change."
+        )
+    else:
+        ack_gate = (
+            "ROTATION CONTINUATION: ack: answered continue by your "
+            "predecessor -- nothing to run. The handoff needs no action on "
+            "your first turn: your predecessor already answered the ack "
+            "channel. (If the handoff actually needs change, you may still "
+            f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+            f"--gen {gen} --ref <your own ListAgents ref> diff --text -` "
+            "to halt the rotation for inspection.)"
+        )
     extra = ack_gate + ("\n\n" + startup_block if startup_block else "")
 
     # (2.75) PRE-SPAWN VERIFICATION + BOOTSTRAP (hypothesis:l4-startup-first-
@@ -9991,11 +10201,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 else:
                     state = f"exit {r.get('rc')}"
                 print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
-        print("(4) read back successor reply — pending ack channel ->")
-        print(f"    pending ack path: {_ack_path(root, seat)}")
-        print("    (the successor's own `rotate.py ack --seat "
-              f"{seat} --gen {gen}` flips it continue/diff; a diff leaves "
-              "the renamed window for inspection)")
+        print("(4) read back successor reply — ack channel ->")
+        print(f"    ack path: {_ack_path(root, seat)}")
+        print("    (default: the predecessor answered `continue` itself, so the "
+              "read-back confirms the rotation with ZERO successor calls; "
+              "`--ask-diff` instead leaves `diff-requested` for the successor's "
+              "ONE `diff`/`continue` reply)")
         print("(5) successor-window guarantee: tmux list-windows must show "
               f"the {'numeral-chain' if is_chain_seat else 'plain'} name "
               f"{spawn_name!r}")
@@ -10015,7 +10226,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print("    handoff identity: successor session_id written to the "
               "handoff header")
         print("(6) release own authority ", end="")
-        print(f"(generation {gen_before} -> {gen}); ack record written pending")
+        print(f"(generation {gen_before} -> {gen}); ack record answered "
+              "continue for the successor (source: predecessor, wake 0)")
         print(f"    bootstrap record: "
               f"{_sessions_dir(root) / 'seats' / f'{seat}.bootstrap.json'}  "
               f"telemetry={tmpl.get('telemetry')}")
@@ -10300,13 +10512,31 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         else:
             handover["meter_pin"] = ("skipped: no successor transcript "
                                       "from the JOIN")
-        # (s6.3) write the ACK as `pending`, carrying the machine identity —
-        #     the SUCCESSOR flips it to continue/diff. NEVher pre-write
-        #     `continue`: an unflipped pending ack confirms nothing.
+        # (s6.3) write the ACK on the successor's behalf, carrying the machine
+        #     identity. DEFAULT (no `--ask-diff`): `answer: continue,
+        #     source: predecessor` -- the predecessor answers its OWN ack, so
+        #     the read-back immediately confirms the rotation and the successor
+        #     runs NO ack (wake 0). WITH `--ask-diff` the predecessor instead
+        #     writes `answer: diff-requested, source: predecessor` and hands
+        #     the successor EXACTLY ONE wake call --
+        #     `rotate.py ack ... diff --text -` -- so the rotation halts for
+        #     handoff inspection exactly as today
+        #     (hypothesis:l4-the-predecessor-answers-continue-by-default-and-
+        #     ask-diff-hands-the-successor-exactly-one-call).
+        _ack_answer = "diff-requested" if ask_diff else "continue"
         try:
             handover["ack_written"] = str(_write_ack(
                 root=root, seat=seat, gen_after=gen,
-                session_ref=succ_session_id, answer="pending"))
+                session_ref=succ_session_id, answer=_ack_answer))
+            if ask_diff:
+                print("(s6.3) --ask-diff: the successor's ONE wake call is:\n"
+                      f"    python3 extensions/agi/bin/rotate.py ack --seat "
+                      f"{seat} --gen {gen} --ref <your ListAgents ref> "
+                      "diff --text -", file=sys.stderr)
+            else:
+                print("(s6.3) default: answered `continue` for the successor "
+                      "(source: predecessor); the successor runs NO ack (wake "
+                      "0).", file=sys.stderr)
         except Exception as exc:  # noqa: BLE001
             handover["ack_written"] = f"FAILED: {exc}"
         # (s6.4) release own authority. config:seats self_row fields are
@@ -11452,6 +11682,18 @@ def main(argv: list[str] | None = None) -> int:
                       help="explicit stand-in successor command run verbatim "
                            "instead of the real claude --remote-control "
                            "(hypothesis:l3-rotate-self-successor-override)")
+    # (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    #  hands-the-successor-exactly-one-call, --ask-diff leg): by default the
+    # predecessor pre-answers the successor's ack channel itself; WITH this
+    # flag it instead writes `answer: diff-requested, source: predecessor` and
+    # hands the successor EXACTLY ONE wake call -- `rotate.py ack ... diff
+    # --text -` -- so the rotation halts for handoff inspection exactly as a
+    # manual `diff` does today.
+    p_rs.add_argument("--ask-diff", "--successor-diff",
+                      action="store_true",
+                      help="write the ack as `diff-requested` (source: "
+                           "predecessor) and hand the successor exactly one "
+                           "diff call, instead of pre-answering `pending`")
     # ++ L4.114 handover: identity is SUPPLIED by the registry JOIN by the
     # successor's WINDOW @id, not by a --session-ref flag (that flag is
     # GONE; tests inject the seam into the Namespace directly). --registry-dir

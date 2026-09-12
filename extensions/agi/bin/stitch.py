@@ -152,6 +152,7 @@ from collections import Counter
 from pathlib import Path
 
 import yaml
+from frontmatter import split_frontmatter
 
 BIN_DIR = Path(__file__).resolve().parent
 PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
@@ -232,16 +233,16 @@ def _parse_frontmatter(text: str) -> tuple[dict, str] | None:
     """Split a node file into (frontmatter dict, body). None if malformed."""
     if not text.strip().startswith("---"):
         return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parts = split_frontmatter(text)
+    if parts is None:
         return None
     try:
-        fm = yaml.safe_load(parts[1]) or {}
+        fm = yaml.safe_load(parts[0]) or {}
     except yaml.YAMLError:
         return None
     if not isinstance(fm, dict):
         return None
-    return fm, parts[2]
+    return fm, parts[1]
 
 
 _extract_contract = level3.extract_contract

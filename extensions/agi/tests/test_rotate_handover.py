@@ -79,7 +79,7 @@ def _rotate_self_args(tmp_path, **over):
                 tmux_session="t", window_path=None, dry_run=False,
                 throwaway=False, successor_argv=None, role="parent",
                 session_ref=None, successor_transcript=None, own_pid=None,
-                belam_prefix=None)
+                belam_prefix=None, ask_diff=False)
     base.update(over)
     return SimpleNamespace(**base)
 
@@ -169,14 +169,16 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
         .read_text(encoding="utf-8")
     assert "session_ref: 00000000-0000-4000-8000-000000000000" in hand
 
-    # ack written on the successor's behalf as `pending` (s6/s7): it carries
-    # the machine identity but is NOT a confirmation until the successor
-    # flips it to continue.
+    # ack written on the successor's behalf as `continue` (s6/s7, the
+    # DEFAULT-continue contract): it carries the machine identity AND is
+    # already answered `continue, source: predecessor`, so the read-back
+    # confirms the rotation with zero successor calls.
     ack = json.loads(
         (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
         .read_text(encoding="utf-8"))
     assert ack["gen_after"] == 1
-    assert ack["answer"] == "pending"         # never pre-write `continue`
+    assert ack["answer"] == "continue"
+    assert ack["source"] == "predecessor"
     assert ack["session_ref"] == "00000000-0000-4000-8000-000000000000"
 
     # the record shows each handover step.
@@ -1091,3 +1093,191 @@ def test_belam_cap_skip_already_gone_records_not_an_error(
     assert out["window_killed"] is False
     # no exception, and nothing was killed (nothing to kill).
     assert "@9" not in win.read_text(encoding="utf-8")
+
+
+def test_cmd_ack_continue_on_predecessor_answered_is_noop(
+        _fix, tmp_path, capsys):
+    """claim (4): when the predecessor already answered `continue`
+    (source: predecessor) — the DEFAULT contract — a successor's
+    `ack continue` is a ONE-LINE NO-OP exiting 0, and the ack file is NOT
+    overwritten (no double-write, no commit).
+    (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    hands-the-successor-exactly-one-call)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent"}])
+    seats = tmp_path / "sessions" / "seats"
+    seats.mkdir(parents=True, exist_ok=True)
+    orig = {"seat": "adv-alive", "gen_after": 1,
+            "answer": "continue", "source": "predecessor",
+            "session_ref": "", "ts": "T", "text": ""}
+    (seats / "adv-alive.ack.json").write_text(
+        json.dumps(orig) + "\n", encoding="utf-8")
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="adv-alive", gen=1, ref="deadbeef", answer="continue",
+        text=None, no_commit=False, wait=0), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "already answered continue by your predecessor" in out
+    assert "nothing to run" in out
+    # the ack file is byte-unchanged (no overwrite, no ref back-fill).
+    ack = json.loads((seats / "adv-alive.ack.json")
+                     .read_text(encoding="utf-8"))
+    assert ack["answer"] == "continue" and ack["source"] == "predecessor"
+    assert ack["session_ref"] == ""   # ref NOT back-filled by the no-op
+
+
+def test_cmd_ack_diff_overrides_predecessor_continue(
+        _fix, tmp_path, capsys):
+    """claim (2)/override: a successor may still overwrite a predecessor
+    `continue` with its OWN `diff` inside the read-back window — `ack diff`
+    is never a no-op (it halts the rotation for inspection).
+    (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    hands-the-successor-exactly-one-call)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent"}])
+    seats = tmp_path / "sessions" / "seats"
+    seats.mkdir(parents=True, exist_ok=True)
+    (seats / "adv-alive.ack.json").write_text(json.dumps({
+        "seat": "adv-alive", "gen_after": 1, "answer": "continue",
+        "source": "predecessor", "session_ref": "", "ts": "T",
+        "text": ""}) + "\n", encoding="utf-8")
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="adv-alive", gen=1, ref=None, answer="diff", text="need edit",
+        no_commit=False, wait=0), tmp_path)
+    assert rc == 0
+    ack = json.loads((seats / "adv-alive.ack.json")
+                     .read_text(encoding="utf-8"))
+    assert ack["answer"] == "diff"      # overwritten, override holds
+    assert ack.get("source") != "predecessor"   # a successor write, no pred source
+
+
+# ── l4-the-predecessor-answers-...-ask-diff (the --ask-diff leg) ──────────
+
+
+def test_rotate_self_ask_diff_writes_diff_requested_and_one_call(
+        _fix, tmp_path, monkeypatch, capsys):
+    """WITH `--ask-diff` the predecessor writes the ack as
+    `answer: diff-requested, source: predecessor` and hands the successor
+    EXACTLY ONE wake call -- `rotate.py ack ... diff --text -`. The default
+    read-back polls `diff-requested` like `pending` (it is NOT an answer); a
+    successor that flips it to `continue` completes the rotation.
+    (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    hands-the-successor-exactly-one-call)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript), ask_diff=True)
+    # the successor's ONE reply to the diff-requested ack is `continue` here.
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue",
+                          "source": "predecessor"})
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+
+    ack = json.loads(
+        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
+        .read_text(encoding="utf-8"))
+    assert ack["gen_after"] == 1
+    assert ack["answer"] == "diff-requested"
+    assert ack["source"] == "predecessor"
+    # the ONE wake call is named verbatim.
+    err = capsys.readouterr().err
+    assert "rotate.py ack --seat adv-alive --gen 1 --ref <your ListAgents ref> diff --text -" in err
+
+
+def test_rotate_self_default_ack_is_continue_wake_zero(
+        _fix, tmp_path, monkeypatch, capsys):
+    """The DEFAULT (no `--ask-diff`) write answers the ack ITSELF: the ack
+    lands `answer: continue, source: predecessor`, and the REAL `_read_ack`
+    reads it back immediately — confirming the rotation with ZERO successor
+    calls (the claimed wake-0). `--ask-diff` is the explicit opt-in that
+    leaves `diff-requested` instead.
+    (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    hands-the-successor-exactly-one-call)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    # NO _read_ack monkeypatch: the REAL read-back reads the predecessor's own
+    # `continue` and confirms immediately — the wake-0 proof.
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    ack = json.loads(
+        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
+        .read_text(encoding="utf-8"))
+    assert ack["answer"] == "continue"
+    assert ack["source"] == "predecessor"
+    # the rotation record says success (not unwitnessed): the predecessor's
+    # own continue confirmed it.
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    # the (s6.3) default line names the wake-0 outcome.
+    err = capsys.readouterr().err
+    assert "successor runs NO ack" in err
+
+
+def test_read_ack_polls_diff_requested_and_returns_continue(
+        tmp_path, monkeypatch):
+    """`_read_ack` treats `diff-requested` exactly like `pending`: NOT an
+    answer, keep polling (returns None on timeout). A `continue` (or `diff`)
+    flip returns promptly. This is what lets the predecessor write
+    `diff-requested` and then WAIT for the successor's one reply."""
+    monkeypatch.setattr(rotate, "time", _FakeTime())
+    seat_dir = tmp_path / "seats"
+    seat_dir.mkdir(parents=True, exist_ok=True)
+    path = seat_dir / "seat.ack.json"
+
+    # diff-requested: never returned as a terminal answer (keep polling).
+    path.write_text(json.dumps(
+        {"seat": "seat", "gen_after": 3, "session_ref": "",
+         "answer": "diff-requested", "source": "predecessor",
+         "ts": "x"}), encoding="utf-8")
+    assert rotate._read_ack(path, gen_after=3, timeout=0.5) is None
+
+    # same shape as `pending`: also never terminal.
+    path.write_text(json.dumps(
+        {"seat": "seat", "gen_after": 3, "session_ref": "",
+         "answer": "pending", "source": "predecessor", "ts": "x"}),
+        encoding="utf-8")
+    assert rotate._read_ack(path, gen_after=3, timeout=0.5) is None
+
+    # the successor's ONE reply completes the read.
+    path.write_text(json.dumps(
+        {"seat": "seat", "gen_after": 3, "session_ref": "",
+         "answer": "continue", "source": "predecessor", "ts": "x"}),
+        encoding="utf-8")
+    ack = rotate._read_ack(path, gen_after=3, timeout=0.5)
+    assert ack is not None and ack["answer"] == "continue"
+
+
+class _FakeTime(object):
+    """Deterministic time for `_read_ack`: no real sleeps; a tiny monotonic
+    clock so the timeout fires after the first keep-polling pass."""
+
+    def __init__(self):
+        self.t = 1000.0
+
+    def time(self):
+        return self.t
+
+    def monotonic(self):
+        return self.t
+
+    def sleep(self, s):
+        self.t += 2.0

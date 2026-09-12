@@ -73,6 +73,11 @@ SUITE_CMD = "tests"
 
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+
+#: Named non-zero exit when --suite is refused because another LIVE runner
+#: holds the suite window. Named, not a bare 1, so the caller abroad can tell
+#: "locked" from "suite ran and failed".
+EXIT_SUITE_LOCKED = 2
 # One persisted "when did the suite last run" timestamp (L4.81), written on
 # --suite completion and read by the no-suite rotation check so "a new
 # bin/*.py needs the suite" is a CHECK, not a memo (goal:g15.10).
@@ -386,6 +391,48 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
         except OSError:
             return None, None
     return None, None
+
+
+def _suite_lock_guard(groot: Path) -> str | None:
+    """Probe the suite lock BEFORE pytest is spawned; refuse with one line.
+
+    The lock's real owner is the pytest session it guards -- conftest.py is the
+    single live acquirer (hypothesis:l4-the-suite-lock-belongs-to-pytest-not-
+    its-caller) -- so this runner must NOT hold the window across the spawn or
+    the child conftest would see OUR live pid and refuse itself. This guard
+    REUSES acquire_suite_lock for the held/stale judgement (a dead pid is
+    broken exactly as today, never reimplemented) and, whenever the acquisition
+    actually succeeds, immediately releases again so the child pytest is the
+    one pid holding the window when it spawns.
+
+    The point is the EARLY clean refusal: a held lock means "do not spawn at
+    all, print one line" instead of letting conftest raise one setup error per
+    collected test (3650 errors on the round that measured this -- residue (5)
+    of hypothesis:l4-one-line-anchored-frontmatter-reader-and-the-suite-
+    runner-refuses-a-held-lock-before-spawning).
+
+    Returns the one refusal line when a LIVE foreign pid holds the window,
+    else None (proceed -- the purpose-built acquirer rules).
+    """
+    lock_path, holder = acquire_suite_lock(groot)
+    if lock_path is None and holder is not None:
+        try:
+            since = time.strftime(
+                "%H:%M:%SZ",
+                time.gmtime((Path(groot) / "sessions" / SUITE_LOCK)
+                            .stat().st_mtime))
+        except OSError:
+            since = "?"
+        return (f"suite: lock held by {holder} since {since}"
+                " — refusing, not spawning")
+    if lock_path is not None:
+        # We took the window only to probe it. Hand it back so conftest -- the
+        # one live acquirer -- owns it across the spawned suite.
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+    return None
 
 
 # --- the bin freshness guard (a new bin/*.py needs the suite) ---------------
@@ -937,6 +984,12 @@ def main(argv: list[str] | None = None) -> int:
     # merge-up, a bare shell — contends for the SAME lock. This runner spawns
     # pytest as a child with no env= (so it inherits os.environ), and that
     # child acquires. Exactly one acquirer exists now.
+    if args.suite:
+        refusal = _suite_lock_guard(groot)
+        if refusal is not None:
+            print(refusal)
+            return EXIT_SUITE_LOCKED
+
     results = run_level(groot, args.level, args.suite, args.verbose,
                         stamp=args.stamp)
     if args.suite:

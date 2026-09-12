@@ -47,7 +47,6 @@ import fcntl
 import hashlib
 import re
 import json
-import re
 import os
 import subprocess
 import sys
@@ -90,9 +89,14 @@ MSG_SEP = "---\n"
 # split tail (SL6.06, hypothesis:l4-sign-exactly-the-bytes-the-reader-parses...).
 # (?m)^ anchors the separator at a fresh line (blocks are concatenated with a
 # trailing \\n, so the next block ALWAYS starts a new line). Only "---\n" is
-# consumed; the following "ts: " is a lookahead so the header stays on the
-# block. One canonical split used by the inbox scan AND the conversation reader.
-_MSG_BOUNDARY_RE = re.compile(r"(?m)^---\n(?=ts: )")
+# consumed; the lookahead requires a FULL header after it (a `ts:` line AND the
+# following `from:` line) so the header stays on the block. A signed BODY that
+# happens to contain a "---\n" line immediately followed by a body line that
+# merely STARTS with "ts: " no longer fragments: without a `from:` after it,
+# there is no full header, so it stays ONE block and its own sig reads VERIFIED
+# instead of FORGED on a split tail (SL6.06, SL7.02 clause (4)). One canonical
+# split used by the inbox scan AND the conversation reader.
+_MSG_BOUNDARY_RE = re.compile(r"(?m)^---\n(?=ts: [^\n]*\nfrom: )")
 
 #: Marker line placed after the last read message. Everything before this line
 #: has been "read"; everything after is "unread".
@@ -360,9 +364,10 @@ def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
         write_mod.verb_set(e, list_key, json.dumps(rows))
         write_mod.submit(graph, e, actor=actor, role=role)
         return True
-    except Exception as exc:                                   # noqa: BLE001
-        print(f"note: row write not admitted ({exc}); key still minted",
-              file=sys.stderr)
+    except Exception:                                          # noqa: BLE001
+        # Reporting is the caller's job (clause (1)): `keygen` prints the ONE
+        # canonical line `keygen: key minted but the row write was refused
+        # ...` when this returns False. Never a second copy here.
         return False
 
 
@@ -373,6 +378,26 @@ def _seats_rows(graph: Path) -> list:
         return list(write_mod._load_seats(graph))
     except Exception:                                          # noqa: BLE001
         return []
+
+
+# Clause (1) row-write outcome, threaded from `keygen` to `_cli_keygen`
+# WITHOUT changing keygen's public Path|list|None contract (direct callers
+# and the 25+ tests that assert it stay untouched). `keygen` resets it to
+# True at entry and clears it when a MINTED key's row write was refused or
+# the seat row was not found; `_cli_keygen` reads it once and exits 2. The
+# key stays minted either way (a keygen never fails to mint); only the CLI
+# exit code and the one stderr line change.
+_last_keygen_row_ok = True
+
+
+def _keygen_row_refused(reason: str) -> None:
+    """The ONE canonical stderr line for a minted-but-unkeyed row (clause
+    (1)) and the flag `_cli_keygen` keys on. Exactly one line, no block, no
+    second copy of the text anywhere."""
+    global _last_keygen_row_ok
+    _last_keygen_row_ok = False
+    print(f"keygen: key minted but the row write was refused -- {reason}; "
+          f"the row is UNKEYED until a prime writes it", file=sys.stderr)
 
 
 def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME,
@@ -395,6 +420,8 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
     Returns the key Path (single), a list of Paths (--all-live), or None
     when the requested key was refused (already exists).
     """
+    global _last_keygen_row_ok
+    _last_keygen_row_ok = True  # reset per call; cleared when a minted row's write is refused/missing
     if all_live:
         graph = _graph_root(root)
         rows = _seats_rows(graph)
@@ -445,19 +472,20 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
                     nr["pubkey"] = pub.hex()
                     nr["sig_scheme"] = scheme_name
                     nr["enc_scheme"] = nr.get("enc_scheme") or "none"
+                    nr.setdefault("key_history", [])  # seed: keyed rows carry the cell
             print(f"keyed {name} {seatsig.fingerprint(pub)}")
             results.append(path)
             keyed_names.append(name)
             wrote_any = True
         if wrote_any:
-            _row_write_submit(graph, new_rows, actor=actor, role=role)
-            # clause (2): each keyed row's own-hunk commit + push through
-            # SL6.01's helper; the first commit lands the whole write, the
-            # rest skip (already clean). Never fails the keygen.
-            _by = {r["name"]: r for r in new_rows if r.get("name")}
-            for keyed in keyed_names:
-                _commit_push_seat_row(root, _by.get(keyed, {}) or {},
-                                      keyed, "keygen --all-live")
+            if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+                # clause (1): every keyed row stayed UNKEYED; the CLI exits 2.
+                _keygen_row_refused("write.submit returned False for the keyed rows")
+            # clause (2)/(4b): ONE own-row commit whose message names EVERY
+            # seat this --all-live pass keyed (`keygen --all-live: keyed<list>`),
+            # staging seats.md ONLY, then the clause-(2) push leg. Best-effort;
+            # never fails the keygen.
+            _commit_push_all_live(root, keyed_names)
         return results
     minted = _mint_seat_key(root, seat, scheme_name)
     if minted is None:
@@ -479,11 +507,18 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
         own["pubkey"] = pub.hex()
         own["sig_scheme"] = scheme_name
         own["enc_scheme"] = own.get("enc_scheme") or "none"
-        _row_write_submit(graph, new_rows, actor=actor, role=role)
+        own.setdefault("key_history", [])  # seed: every keyed row carries the cell
+        if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+            # clause (1): minted but the row write was refused -> CLI exits 2.
+            _keygen_row_refused(f"write.submit returned False for seat row {seat!r}")
         # clause (2): keygen commits its own-row hunk and pushes, like every
         # key-cell writer, through SL6.01's `_commit_spawn_row` + the push
         # leg. Best-effort; a refused commit/push never fails the mint.
         _commit_push_seat_row(root, own, seat, "keygen")
+    else:
+        # seat row not found: a key minted that no row carries reads UNKEYED
+        # forever -- the defect the claim closes. The CLI exits 2 (clause (1)).
+        _keygen_row_refused(f"seat row {seat!r} is not in the registry")
     return _path
 
 
@@ -516,6 +551,62 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
     except Exception as exc:  # noqa: BLE001
         print(f"note: {origin} row commit/push skipped ({exc})",
               file=sys.stderr)
+
+
+def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
+    """CLAUSE (2)/(4b) -- the `--all-live` keygen commit: ONE plain `git
+    commit` of the seats.md the write just keyed, whose message names EVERY
+    seat this pass keyed (`keygen --all-live: keyed <a>, <b>, <c>`), then the
+    clause-(2) season-branch push leg. Resolved and staged against MAIN's
+    graph tree (a linked-worktree caller commits MAIN, never its own fork),
+    staging seats.md ONLY (never `git add -A`), so keygen --all-live never
+    sweeps another writer's uncommitted work into its commit. Best-effort,
+    never raises, never fails the mint: a refused commit or push prints one
+    note line to stderr and the keys stay minted. Returns the one note line.
+    """
+    listed = ", ".join(keyed_names)
+    note = f"keygen --all-live: keyed {listed}"
+    try:
+        import rotate  # local: same dir (send.py pattern, no import cycle)
+        main_root = _shared_graph_root(root)
+        top = rotate._git_toplevel(main_root)
+        if top is None:
+            _l = f"note: {note} — no git repo; rows stay uncommitted"
+            print(_l, file=sys.stderr)
+            return _l
+        seats = _shared_seats_path(root)
+        rel = os.path.relpath(seats, top)
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=10)
+        if add.returncode != 0:
+            _l = (f"note: {note} — git add {rel!r} failed: "
+                  f"{add.stderr.strip()}")
+            print(_l, file=sys.stderr)
+            return _l
+        staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                                 "--", rel], capture_output=True, text=True,
+                                timeout=10)
+        if staged.returncode != 0 or not (staged.stdout or "").strip():
+            _l = (f"note: {note} — seats.md already clean after the write; "
+                  "nothing committed")
+            print(_l, file=sys.stderr)
+            return _l
+        msg = f"keygen --all-live: keyed {listed}"
+        rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--", rel], capture_output=True, text=True,
+                            timeout=10)
+        if rc.returncode != 0:
+            _l = f"note: {note} — git commit failed: {rc.stderr.strip()}"
+            print(_l, file=sys.stderr)
+            return _l
+        push = rotate._push_season_branch(root)
+        _l = f"note: {note}; {push}"
+        print(_l, file=sys.stderr)
+        return _l
+    except Exception as exc:  # noqa: BLE001
+        _l = f"note: {note} row commit/push skipped ({exc})"
+        print(_l, file=sys.stderr)
+        return _l
 
 
 def _quorum_caller() -> bool:
@@ -2107,8 +2198,12 @@ def _load_rows(root: Path) -> list | None:
         rows, _sha = seeded
         if rows:
             return _merge_main_committed_keys(root, rows)
-        rows = _locally_loaded_rows(root)
-        return rows or None
+        # hypothesis:l4-the-main-committed-reader... — an EMPTY pushed row
+        # set (a real, reachable authority that carries no rows) reads None,
+        # never the dirty working copy. Before F1 it returned None here;
+        # restoring that means a reader labels any sig FORGED rather than
+        # guessing against an uncommitted local file.
+        return None
     rows = _locally_loaded_rows(root)
     return rows or None
 
@@ -2135,11 +2230,22 @@ def _seats_committed_rows(root: Path) -> list:
     no key cell. Reads the BLOB from HEAD (never the dirty working copy),
     so a key that is committed but not yet pushed is still the authority
     for an unkeyed pushed row. Returns [] when the committed content cannot
-    be read (no repo, no blob, not a path git addresses)."""
+    be read (no repo, no blob, not a path git addresses).
+
+    A reader inside a LINKED WORKTREE must still reach MAIN's committed row:
+    git is run from MAIN's graph root (``_shared_graph_root``), never the
+    caller's worktree, and the blob is read with ``git -C <main-toplevel>
+    show HEAD:<rel>``. Running git at a worktree's root makes
+    ``rev-parse --show-toplevel`` return the WORKTREE toplevel, so
+    ``relative_to`` fails against MAIN's seats path and the helper returns
+    [] -- the fallback never fires for the very reader (a ``--branch`` kid)
+    that needs it most
+    (hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel...)."""
     if not _in_git_repo(root):
         return []
     seats = _shared_seats_path(root)
-    top = _run_git(root, ["rev-parse", "--show-toplevel"])
+    graph = _shared_graph_root(root)
+    top = _run_git(graph, ["rev-parse", "--show-toplevel"])
     if top is None or top.returncode != 0:
         return []
     try:
@@ -2147,7 +2253,7 @@ def _seats_committed_rows(root: Path) -> list:
         rel = seats.resolve().relative_to(top_path.resolve())
     except (ValueError, OSError):
         return []
-    shown = _run_git(root, ["show", f"HEAD:{rel}"])
+    shown = _run_git(top_path, ["show", f"HEAD:{rel}"])
     if shown is None or shown.returncode != 0:
         return []
     return _load_seats_rows(shown.stdout)
@@ -2237,6 +2343,59 @@ def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
     return f"VERIFIED {seat_name} ({sig_scheme})"
 
 
+def _row_generation(row: dict) -> int:
+    """A seat row's ``generation`` cell as an int (0 when absent/unparseable),
+    so a lagging vs. successor key can be compared by freshness. Clause (3):
+    MAIN's committed row is the successor authority only when its generation
+    is >= the pushed row's -- a stale MAIN key never overrides a newer one."""
+    try:
+        return int(row.get("generation") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _seam_main_committed(root: Path, row: dict, seat_name: str,
+                         sig_scheme: str, fp: str, sig_bytes: bytes,
+                         msg: bytes) -> str:
+    """Clause (3) SEAM RULE -- the SECOND consult at the label site, never a
+    change to F1's `_merge_main_committed_keys`. A sig the pushed row's own
+    key material cannot verify (would-be FORGED) is NOT immediately a forgery:
+    origin may be a lagging row still holding the PREDECESSOR key while MAIN's
+    COMMITTED row already carries the successor. Consult MAIN's committed row
+    for the same seat (`_seats_committed_rows`, `git show HEAD` -- NEVER the
+    dirty copy). If that row's pubkey or key_history verifies the sig AND its
+    generation is >= the pushed row's, answer ``VERIFIED <seat> (<scheme>,
+    main-committed)`` (or ``RETIRED:<fp>``). If MAIN's committed row cannot
+    be read (no git, no such seat) answer ``UNVERIFIABLE <seat> (row not on
+    origin yet)`` -- printed like UNSIGNED, never withheld, never REFUSED,
+    never FORGED. FORGED stays reserved for a signature that verifies under
+    NO row anywhere."""
+    committed = _seats_committed_rows(root)   # git show HEAD, never dirty copy
+    if not committed:
+        return f"UNVERIFIABLE {seat_name} (row not on origin yet)"
+    ident = row.get("name") or seat_name
+    crow = _seat_row_in(committed, ident)
+    if crow is None:
+        return f"UNVERIFIABLE {seat_name} (row not on origin yet)"
+    # MAIN is the successor authority only when STRICTLY fresher than origin
+    # (generation greater, never equal): a MAIN row at the same generation as
+    # origin's is not provably the successor, so a stale-bound-equal MAIN must
+    # not override a keyed origin row (hypothesis falsifier: a pushed key
+    # stays authoritative over a not-fresher MAIN key).
+    if _row_generation(crow) <= _row_generation(row):
+        return "FORGED"
+    sub = _label_for_sig(crow, sig_scheme, fp, sig_bytes, msg, seat_name)
+    if sub.startswith("VERIFIED"):
+        if sub.endswith(")"):
+            return sub[:-1] + ", main-committed)"
+        return sub + ", main-committed"
+    if sub.startswith("RETIRED:"):
+        return sub
+    # MAIN's committed row exists and is fresh but verifies under no key
+    # either: the sig verifies under NO row anywhere -- FORGED.
+    return "FORGED"
+
+
 def _verify_block(root: Path, rows: list | None,
                   meta: dict, text: str) -> str:
     """The ONE label line for a block: VERIFIED / UNSIGNED / FORGED / RETIRED.
@@ -2272,11 +2431,23 @@ def _verify_block(root: Path, rows: list | None,
                          meta.get("to", ""), text).encode()
     label = _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
                            row.get("name", meta.get("from", "?")))
-    # Clause (3): when `_load_rows` fell back to MAIN's COMMITTED row for an
-    # unkeyed pushed row, name the authority on the VERIFIED line. The
-    # `_label_for_sig` verdict logic itself is untouched (SL6.03); this only
-    # appends the provenance tag the merge recorded.
-    if row.get("_main_committed") and label.startswith("VERIFIED"):
+    # Clause (3) SEAM RULE: a would-be FORGED is the case where origin may be
+    # lagging MAIN -- the pushed row holds the PREDECESSOR key while MAIN's
+    # COMMITTED row already carries the successor. When the root IS a git
+    # work tree, consult MAIN's committed row as a SECOND authority (git show
+    # HEAD, never the dirty copy); see `_seam_main_committed` for the full
+    # contract. A gitless root has NO MAIN to lag against, so the ordinary
+    # FORGED verdict stands (a tampered body / wrong key is forged regardless
+    # of git) -- the seam is only ever a way to VERIFY, never to soften a real
+    # forgery. This never changes `_label_for_sig`'s own verdicts (SL6.03) nor
+    # F1's `_merge_main_committed_keys`.
+    if label == "FORGED" and _in_git_repo(root):
+        label = _seam_main_committed(root, row,
+                                     row.get("name", meta.get("from", "?")),
+                                     sig_scheme, fp, sig_bytes, msg)
+    # Clause (3) merge tag: when `_load_rows` fell back to MAIN's COMMITTED
+    # row for an unkeyed pushed row, name the authority on the VERIFIED line.
+    elif row.get("_main_committed") and label.startswith("VERIFIED"):
         # the authority tag sits INSIDE the scheme parens (clause 3: a
         # ``VERIFIED <seat> (<scheme>, main-committed)`` label).
         if label.endswith(")"):
@@ -2605,6 +2776,7 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     (hypothesis:l3w4-quorum-reviews): the prime is inbox-only, reached only
     through the gated `audience` path.
     """
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     if other == PRIME or me == PRIME or other.startswith(PRIME + "-"):
         print(f"ERR: the prime is inbox-only; a dm may not address or "
               f"originate from the prime — use `audience prime` instead",
@@ -2628,6 +2800,7 @@ def send_dm(croot: Path, me: str, other: str, text: str,
 
 def send_room(croot: Path, room: str, text: str, sender: str | None) -> Path:
     """Append a message to a room. A room may never address the prime."""
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     if room == PRIME or room.startswith(PRIME + "-"):
         print(f"ERR: {room!r} may not address the prime — the prime is "
               f"inbox-only; use `audience prime` instead", file=sys.stderr)
@@ -2735,6 +2908,7 @@ def read_dm(croot: Path, me: str, other: str, since: str | None,
     """Render a dm transcript after `since` (or the reader's read position),
     and mark the latest shown message read. `all_` shows the whole transcript
     without advancing the cursor; `wrap` wraps the message bodies."""
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
@@ -2745,6 +2919,7 @@ def read_dm(croot: Path, me: str, other: str, since: str | None,
 
 def peek_dm(croot: Path, me: str, other: str, since: str | None,
             all_: bool = False, wrap: int = 160) -> list[str]:
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     path = _dm_path(croot, me, other)
     blocks = _conv_blocks(path)
     state = _load_state(path)
@@ -2756,6 +2931,7 @@ def peek_dm(croot: Path, me: str, other: str, since: str | None,
 def read_room(croot: Path, room: str, participant: str, since: str | None,
               sender: str | None, all_: bool = False,
               wrap: int = 160) -> list[str]:
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
@@ -2766,6 +2942,7 @@ def read_room(croot: Path, room: str, participant: str, since: str | None,
 
 def peek_room(croot: Path, room: str, participant: str, since: str | None,
               all_: bool = False, wrap: int = 160) -> list[str]:
+    _lockdown_warn(locations.find_project_root(croot) or croot)
     path = _room_path(croot, room)
     blocks = _conv_blocks(path)
     state = _load_state(path)
@@ -3132,6 +3309,21 @@ def _locally_loaded_rows(root: Path) -> list:
         return []
 
 
+def _shared_graph_root(root: Path) -> Path:
+    """MAIN's project graph root (the directory holding `.agi`), never the
+    caller's worktree — the ONE checkout the shared-seats reader (and the
+    committed-row reader) must both address. A linked-worktree call rebases to
+    MAIN through `locations.git_common_root`; a caller in the main checkout or
+    outside git keeps its own literal root (the legacy/graph-root and
+    test-fixture layouts read exactly the file they mean)."""
+    graph = Path(root)
+    main = locations.git_common_root(graph)
+    if main is not None and main != graph:
+        # inside a git repo: the MAIN checkout's graph root.
+        graph = locations.find_project_root(main) or main
+    return graph
+
+
 def _shared_seats_path(root: Path) -> Path:
     """The MAIN checkout's `nodes/.geometry/seats.md`, identity for a
     non-worktree caller — the resolution `locations.git_common_root` performs
@@ -3141,11 +3333,7 @@ def _shared_seats_path(root: Path) -> Path:
     in the main checkout or outside git keeps its own literal root (the
     legacy/graph-root and test-fixture layouts read exactly the file they
     mean)."""
-    graph = Path(root)
-    main = locations.git_common_root(graph)
-    if main is not None and main != graph:
-        # inside a git repo: the MAIN checkout's graph root.
-        graph = locations.find_project_root(main) or main
+    graph = _shared_graph_root(root)
     if (graph / locations.GRAPH_DIR_NAME / "nodes").is_dir():
         graph = graph / locations.GRAPH_DIR_NAME
     return geometry_config.geometry_config_path(graph) or (
@@ -3236,12 +3424,24 @@ _SAFE_REF_RE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 def _sanitize_ref(session_ref: str) -> str:
-    """A filename-for-safe for a CLI-provided session_ref: keep ONLY
+    """The safe FILENAME for a CLI-provided session_ref: keep ONLY
     ``[A-Za-z0-9._-]``, dropping everything else (so ``/`` and ``..``-shaped
-    traversal can never escape the quarantine dir). Empty (or strips-to-nothing)
-    becomes the literal ``invalid-ref``."""
+    traversal can never escape the quarantine dir).
+
+    REFUSES in one line (exit 2) when the sanitized ref is EMPTY (or
+    strips-to-nothing) or LONGER than 64 characters, BEFORE any path is built:
+    a legit harness ref is 6-8 chars, so a 65-char or empty session_ref is
+    garbage/noise and must not silently truncate into a filename or craft one
+    the caller never meant (SL7.02 clause (5)). The refusal is the caller's
+    gate -- never a fallback string -- so no path is ever derived from a ref
+    the operator did not intend.
+    """
     safe = _SAFE_REF_RE.sub("", session_ref)
-    return safe or "invalid-ref"
+    if not safe or len(safe) > 64:
+        print(f"ERR: bad session_ref {session_ref!r}: must be 1-64 chars of "
+              f"[A-Za-z0-9._-] after sanitizing", file=sys.stderr)
+        raise SystemExit(2)
+    return safe
 
 
 def _quarantine_whois(root: Path, session_ref: str, sig_line: str | None,
@@ -3252,15 +3452,17 @@ def _quarantine_whois(root: Path, session_ref: str, sig_line: str | None,
     whois has no inbox block to withhold (the sig + msg travel on the command
     line, not the wire), so the natural record IS the ``--sig`` line plus the
     canonical ``--msg`` text whois was handed. The filename is derived from a
-    SANITIZED session_ref (only ``[A-Za-z0-9._-]`` survive; an empty result
-    becomes ``invalid-ref``), so no CLI value can choose a path -- the ORIGINAL
-    raw ref is written as the record's first line so provenance survives the
-    sanitization. SAME append semantics as :func:`_quarantine_block`
+    SANITIZED session_ref (only ``[A-Za-z0-9._-]`` survive; an EMPTY or
+    >64-char ref is REFUSED with exit 2 before this dir is even created), so no
+    CLI value can choose a path -- the ORIGINAL raw ref is written as the
+    record's first line so provenance survives the sanitization. SAME append
+    semantics as :func:`_quarantine_block`
     (`mkdir(parents=True, exist_ok=True)`, `open(path, "a", newline="")`) --
     never rewrites or truncates, and ``newline=""`` keeps any CR surviving."""
+    safe = _sanitize_ref(session_ref)   # REFUSES (exit 2) on empty or >64, pre-path
     qdir = _inbox_dir(root) / "quarantine"
     qdir.mkdir(parents=True, exist_ok=True)
-    path = qdir / f"{_sanitize_ref(session_ref)}.md"
+    path = qdir / f"{safe}.md"
     record = f"{session_ref}\n{sig_line or '?'}\n{msg_text}\n"
     with open(path, "a", newline="") as f:
         f.write(record)
@@ -3270,20 +3472,26 @@ def _quarantine_whois(root: Path, session_ref: str, sig_line: str | None,
 def _whois_enforced_refusal(root: Path, session_ref: str, label: str | None,
                             sig_line: str | None,
                             msg_text: str | None) -> str | None:
-    """Clause (3): is this whois REFUSED, and if so under what bytes?
+    """Is this whois REFUSED under enforcement, and if so under what bytes?
 
-    Returns the ONE refusal line when -- AND ONLY WHEN -- the signature label
-    is EXACTLY ``FORGED``, the config says ``comms.verify == "enforcing"``,
-    AND a canonical ``--msg`` was handed to withhold. The caller then returns
-    WHOIS_NOT_AUTHORIZED (2) EVEN IF the authority answer was 0, and prints
-    this line INSTEAD of its normal text -- the same shape as clause (1)'s
-    inbox refusal, so a withheld whois reads identically.
+    Returns the ONE refusal line when the signature label is EXACTLY
+    ``FORGED`` AND the config says ``comms.verify == "enforcing"``. The caller
+    then returns WHOIS_NOT_AUTHORIZED (2) EVEN IF the authority answer was 0,
+    and prints this line INSTEAD of its normal text -- the same shape as
+    clause (1)'s inbox refusal, so a withheld whois reads identically.
+
+    ``--msg`` changes only WHAT is withheld: with one, the forged sig+sig_msg
+    is written to the quarantine (SL7.02 clause (5) caps/refuses the derived
+    filename's ref); without one there are no canonical bytes to trace a ts/from
+    from and none to write, but the forgery is STILL refused (exit 2) and the
+    line says so -- F4 (SL6.08) made whois exit 2 on FORGED under enforcing
+    with or without ``--msg``.
 
     ``None`` means no refusal: whois keeps today's bytes and exit, unchanged.
     A non-FORGED label (VERIFIED/UNSIGNED/RETIRED), a non-enforcing verify, or
-    an absent ``--msg`` (nothing to trace to a ts/from, nothing to withhold)
-    all fall through to today's INFORMATIONAL behavior -- Prime ruling A stays
-    the default, and enforcement is the ONE exception, when the config says so.
+    an EMPTY ``session_ref`` / >64-char ref all fall through to today's
+    INFORMATIONAL behavior or a ref refusal -- Prime ruling A stays the
+    default, and enforcement is the ONE exception, when the config says so.
     """
     if label != "FORGED":
         return None
@@ -3748,17 +3956,25 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _cli_keygen(root: Path, args) -> int:
-    """The keygen CLI: exit 0 when every requested key was minted, else 1
-    (a single-seat refusal, or an unnamed seat without --all-live)."""
+    """The keygen CLI: exit 0 when every requested key was minted AND its
+    row write landed; 1 on a refusal (single-seat refusal, or an unnamed
+    seat without --all-live); 2 when the key WAS minted but the row write
+    was refused or the seat row was not found (clause (1)) -- the key on
+    disk with no pubkey on the row would otherwise read UNKEYED forever
+    under an exit 0. The one stderr line is printed by keygen._keygen_row_refused."""
     actor = _detect_sender(getattr(args, "from_id", None))
     if getattr(args, "all_live", False):
         out = keygen(root, all_live=True, scheme_name=args.scheme,
                      actor=actor)
+        if out is not None and not _last_keygen_row_ok:
+            return 2
         return 0 if out is not None else 1
     if not args.seat:
         print("ERR: keygen needs --seat (or --all-live)", file=sys.stderr)
         return 1
     out = keygen(root, args.seat, args.scheme, actor=actor)
+    if out is not None and not _last_keygen_row_ok:
+        return 2
     return 0 if out is not None else 1
 
 

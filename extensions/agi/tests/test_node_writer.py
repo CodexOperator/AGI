@@ -293,6 +293,54 @@ def test_frontmatter_is_valid_yaml_for_every_type(project):
         assert fm["parents"] == parents
 
 
+def test_every_write_ends_with_exactly_one_newline(project):
+    """hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline.
+
+    The frontmatter reader splits the body and drops its trailing newline, so
+    a frontmatter-only (`set_fm`) edit that re-serializes `nf.body` silently
+    dropped the EOF newline of a file that ended `...content\n` -- a 1-byte
+    whitespace dirt (`\\ No newline at end of file`) that showed up after
+    rotate-self's spawn-row write and refused the ack's prepare/ack gates on
+    a delta they read as dirty. ONE serializer now guarantees EXACTLY one
+    trailing `\n` (never zero, never two).
+    """
+    res = nw.write_node(project, "goal", "eofprobe", [],
+                        extra_fm={"title": "P", "body": "x"}, bypass=True)
+    path = res.path
+
+    def write_body(body: str):
+        from graph_core.persistence import frontmatter as _fm
+        fm = dict(_fm.load_node_file(path).frontmatter)
+        open(path, "w", encoding="utf-8").write(
+            "\n".join(["---", *nw.render_frontmatter(fm), "---", ""]) + body)
+
+    # The original defect: a body ending `...content\n` (one newline, no
+    # blank line). A set_fm-only edit must NOT drop it.
+    write_body("# goal:eofprobe\n\nsome text\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u"})
+    assert path.read_bytes().endswith(b"\n"), \
+        "set_fm-only edit must not drop the EOF newline"
+    assert not path.read_bytes().endswith(b"\n\n"), \
+        "file must end with exactly one newline"
+
+    # Canonical invariant through every writer: zero trailing newlines gets
+    # one added; two trailing newlines collapses to one.
+    write_body("# goal:eofprobe\n\nno trailing nl")
+    nw.update_node(project, res.node_id, set_fm={"status": "u2"})
+    assert path.read_bytes().endswith(b"\n")
+
+    write_body("# goal:eofprobe\n\ntwo trailing\n\n\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u3"})
+    data = path.read_bytes()
+    assert data.endswith(b"\n") and not data.endswith(b"\n\n")
+
+    # Body is preserved byte-identically across a frontmatter-only edit once
+    # canonical: only the EOF newline is normalized, nothing interior.
+    write_body("# goal:eofprobe\n\n## Facts\n\ngolden fact\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u4"})
+    assert b"## Facts\n\ngolden fact\n" in path.read_bytes()
+
+
 # --------------------------------------------------------------------------
 # on_exists — dispatch.py's re-scaffold rule, preserved
 # --------------------------------------------------------------------------
@@ -724,6 +772,89 @@ def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
     assert back["nothing"] is None
     assert back["n"] == 3 and back["s"] == "plain"
     assert "flag: true" in text, "bools stay lowercase yaml"
+
+
+def test_a_dash_run_scalar_is_quoted_and_round_trips():
+    """Writer-side belt, residue (2): any scalar carrying a `---` run must
+    render quoted, so it is valid YAML that survives every reader, and a
+    `---` never presents as a bare marker line to the line-anchored shared
+    reader (hypothesis:l4-one-line-anchored-frontmatter-reader-and-the-
+    suite-runner-refuses-a-held-lock-before-spawning). Before this fix
+    `testable_claim: the --- and --- again` rendered unquoted and a naive
+    substring reader silently cut the frontmatter short — exactly what hid
+    `verdict: proved` on 97bf639a5 / 7a965332c."""
+    import yaml
+
+    s = "the --- and --- again"
+    assert nw._needs_quoting(s) is True
+    rendered = nw._scalar(s)
+    assert rendered == '"the --- and --- again"'
+    assert yaml.safe_load(rendered) == s  # exact round trip, nothing lost
+
+    # The value renders as one quoted line, never a bare `---` line.
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "title": s}))
+    assert "title: \"the --- and --- again\"" in text
+    fm_lines = text.split("\n")
+    assert "---" not in [ln.strip() for ln in fm_lines], (
+        "a bare `---` line leaked into the frontmatter")
+
+
+def test_dash_run_rule_keeps_negative_numbers_plain():
+    """The new dash-run rule must not break the deliberate negative-number
+    rule (`-1`, `-0.5` are valid YAML plain scalars and round-trip lossy as
+    quoted strings against a `{type: int}` schema — verified 2026-09-04,
+    iter-1068)."""
+    import yaml
+
+    for neg in ("-1", "-42", "-0.5"):
+        assert nw._needs_quoting(neg) is False, neg
+        assert nw._scalar(neg) == neg
+        assert yaml.safe_load(neg) is not None  # parses as a real number
+
+    # A dash-leading word still quotes (bare `-foo` is not a negative number).
+    assert nw._scalar("-foo") == '"-foo"'
+    # A bare document marker is quoted too.
+    assert nw._scalar("---") == '"---"'
+
+
+def test_frontmatter_carrying_a_dash_run_reads_whole_through_both_readers(
+        project, tmp_path):
+    """The point of the belt: write a node whose title and testable_claim
+    carry `---` runs, through the real writer path, then read the written
+    bytes back with BOTH the shared line-anchored reader (frontmatter.py) and
+    a deliberately naive line-anchored reader. Both must see the whole
+    frontmatter (id/title/testable_claim intact) — there is no bare `---`
+    line anywhere inside it."""
+    import yaml
+
+    fm = frontmatter = _load("frontmatter")
+    title = "A title with the --- and --- again"
+    claim = "claim: --- and ---"
+    res = nw.write_node(
+        project, "hypothesis", "dashbelt",
+        parents=["idea:i1"],
+        extra_fm={"title": title, "testable_claim": claim},
+        bypass=True, announce=False)
+    assert res.status == nw.WRITTEN
+
+    raw = (project / "nodes" / "hypothesis" / "dashbelt.md").read_text()
+
+    # Shared (line-anchored) reader reads the whole frontmatter.
+    fm_d = frontmatter.read_frontmatter(raw)
+    assert fm_d["id"] == "hypothesis:dashbelt"
+    assert fm_d["title"] == title
+    assert fm_d["testable_claim"] == claim
+
+    # A deliberately naive line-anchored reader reads it whole too.
+    lines = raw.split("\n")
+    assert lines[0] == "---"
+    close = next(i for i in range(1, len(lines)) if lines[i] == "---")
+    naive_fm = yaml.safe_load("\n".join(lines[1:close])) or {}
+    assert naive_fm["id"] == "hypothesis:dashbelt"
+    assert naive_fm["title"] == title
+    assert naive_fm["testable_claim"] == claim
+
 
 
 # --------------------------------------------------------------------------
