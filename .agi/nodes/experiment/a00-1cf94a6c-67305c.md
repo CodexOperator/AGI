@@ -42,7 +42,7 @@ stitch --verify: project=<repo>/.agi        (was <repo>, the bug)
 rc=0
 ```
 
-300 real build nodes now verified (274 active `nodes/build` + 24 retired `nodes/deprecated/build`); the count line reads 300, never a silent 0. rc=0 non-strict = clean.
+300 real build nodes now verified (274 active `nodes/build` + 24 retired `nodes/deprecated/build`); the count line reads 300, never a silent 0. rc=0 non-strict with 18 missing_payload and 108 orphan_files in the full report — not clean: main returns 0 unless `--strict`, and a non-strict rc=0 means not strict, never clean.
 
 ### Tests (clause d), all asserting the count line / the refusal
 
