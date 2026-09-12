@@ -22,6 +22,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from frontmatter import split_frontmatter
+
 #: Known log path relative to the project root.
 WRITE_LOG = "sessions/write-log.jsonl"
 
@@ -193,12 +195,12 @@ def _read_payload_refs(agi_root: Path) -> list[dict]:
         text = nf.read_text(encoding="utf-8", errors="replace")
         if not text.startswith("---"):
             continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
+        parted = split_frontmatter(text)
+        if parted is None:
             continue
         try:
             import yaml
-            fm = yaml.safe_load(parts[1]) or {}
+            fm = yaml.safe_load(parted[0]) or {}
         except BaseException:
             continue
         nid = fm.get("id", "")
@@ -283,11 +285,11 @@ def cmd_check(argv: list[str]) -> int:
         """Read the changed node's mint_id from its frontmatter, if any."""
         try:
             text = Path(abspath).read_text(encoding="utf-8", errors="replace")
-            parts = text.split("---", 2)
-            if len(parts) < 3 or not text.startswith("---"):
+            parted = split_frontmatter(text)
+            if parted is None or not text.startswith("---"):
                 return ""
             import yaml
-            fm = yaml.safe_load(parts[1]) or {}
+            fm = yaml.safe_load(parted[0]) or {}
             return str(fm.get("mint_id", "") or "")
         except BaseException:
             return ""
