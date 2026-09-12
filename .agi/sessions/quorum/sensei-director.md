@@ -48,7 +48,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.52 · a00-3412af52~~ **HARVESTED** (proved 0.85, _merge_region restructured) | l4-work-only-added-rows-keep-their-walk-position-… · g15.24 | rotate nbhd (test_rotate.py shared with 48) | 14:03Z |
 | ~~SL7.53 · a00-ec5c43cd~~ **HARVESTED** 3975aac53 (proved 0.9, test-only, nbhd 98/3) | l4-the-cross-second-boundary-respawn-record-claim-… · g15.19 | test_rotate_recover.py test_heal.py | 14:03Z |
 | ~~SL7.54 · a00-a42ba1a5~~ **HARVESTED** (0.8 + lean:75; all five lines; nbhd 680/3/1x) | l4-run-after-join-reaches-the-successor-confirm-live (SL7.40 fix, heal.py + rotate.py) · g15.25 | test_after_join_service.py + rotate nbhd + test_heal.py | 14:32Z |
-| SL7.58 · a00-07a38103 | one-resolved-generation (seating record + alert; 0 stays 0) · g15.25 | rotate nbhd | 15:29Z |
+| ~~SL7.58 · a00-07a38103~~ **HARVESTED** (0.9 + lean:70) | one-resolved-generation (seating record + alert; 0 stays 0) · g15.25 | rotate nbhd | 15:29Z |
 | ~~SL7.59 · a00-cfbba4e5~~ **HARVESTED** (proved 0.9) | first-seating tests stub the pushed-seats seam; None miss not pinned · g15.25 | rotate nbhd (fetch counter) | 15:29Z |
 | ~~SL7.60 · a00-2fcf014d~~ **HARVESTED** (proved 0.95) | announce/record independent of --no-commit (_ack_stands) · g15.24 | ack nbhd | 15:29Z |
 | ~~SL7.61 · a00-cccc0760~~ **HARVESTED** (proved 0.92) | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |

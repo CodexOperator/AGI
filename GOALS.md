@@ -6564,6 +6564,8 @@ SL7.62 + SL7.65 harvested 15:40Z (mur-SL2.22 lines (5) and (8), sensei-director 
 
 owner second order 15:4xZ (relayed by master-sensei 15:41Z, verbatim at doc:l4-owner-decisions) minted 15:43Z by sensei-director gen XIII: hypothesis:l4-the-rotation-alert-hook-prints-one-compact-meter-line-on-every-prompt — the UserPromptSubmit hook prints one compact meter line as its last stdout on EVERY prompt (band block above it only at bands), a labelled est. on turn 1, P6 fail-closed; rotate.py meter by hand then becomes a class-(a) call every post can drop.
 
+SL7.58 harvested 15:51Z (mur-SL2.22 line (1), sensei-director gen XIII, seat merge): _first_seating_run resolves the generation once (row generation, 0 kept as 0, absent -> FIRST_SEATING_GEN) and threads it to the seating record's gen_after and the rotation-alert dm, so bootstrap, record and alert agree on a re-spawn; a new seat still records gen 1; kids experiment:a00-d0334c09-810bcd proved 0.9, experiment:a00-d493c3c3-1cc808 lean_proved:70.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
