@@ -6454,6 +6454,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T02:05Z mur-SL2.11 (Prime XIII 02:04Z): SL6.03 clean, SL6.07 with residue — P2 recorded: the sidecar read-then-append in _quarantine_block is unlocked (two simultaneous peeks = two copies; benign). F4 confirmed carried by SL6.08 (harvested on the seat 01:47Z, lands at SL2#12 with F2).
 
+2026-09-12T03:06Z trap closed: the F2 brief's claim carried literal three-dash sequences, which a naive frontmatter splitter reads as the frontmatter fence — the integrity reader then reported its kid's parent unknown while links.py resolved it. Spelled out as <three dashes>; never put a literal three-dash run inside frontmatter text.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
