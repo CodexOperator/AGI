@@ -6542,6 +6542,95 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
             f"own-row only: {msg}\npush: {_push}")
 
 
+def _commit_after_join_record(root: Path, *, record: dict,
+                             record_path: str,
+                             seat: str, performer: str = "service") -> str:
+    """The SERVICE's after_join rewrite of a rotation record is committed as
+    ITS OWN one-pathspec commit (hypothesis:l4-the-after-join-record-rewrite-
+    is-committed-by-pathspec...), so MAIN never reads `M` on a record that
+    rotate-self already committed (and a record rotate-self left UNTRACKED on
+    a worktree seat is committed here too, never left untracked).
+
+    Writes the already-mutated `record` (its `after_join` block names the
+    committer via `committed_by`), then ONE `git add -- <record>` and ONE
+    `git commit -q -m 'after_join record: <seat> <stamp> (performed by
+    <performer>)' -- <record>`, from the MAIN checkout's toplevel
+    (`_shared_graph_root` + `_git_toplevel`): the record physically lives in
+    MAIN's shared rotations dir even for a worktree heal watch, and the
+    caller's own tree may be a worktree copy that was never the written
+    file. Touches ONLY the record path — never `git add -A`, never a grid
+    commit, never a push. Best-effort: on ANY failure returns a
+    FAILED/SKIPPED one-line outcome (a failure is ALSO NAMED on the record's
+    `after_join.record_commit`, since its rewrite is left local/uncommitted)
+    and NEVER raises into the watch (mirror `_commit_rotation_record`'s
+    fail-soft contract). On success NO extra field rides on the record — the
+    committed byte carries `committed_by` unchanged, the SHA lives in git
+    log and the returned string; a byte-identical re-rewrite of an
+    already-committed record (`git add` stages nothing) is SKIPPED cleanly.
+    Returns the one-line outcome (with sha on success).
+    """
+    rp = Path(record_path) if record_path else None
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return (f"after_join_record_commit: SKIPPED \u2014 no git repo; the "
+                "after_join rewrite stays uncommitted (gitless fixture/root)")
+    if rp is None or not rp.exists():
+        return ("after_join_record_commit: SKIPPED \u2014 no rotation record "
+                "file to commit")
+    try:
+        rel = os.path.relpath(rp, top)
+    except ValueError:
+        return ("after_join_record_commit: SKIPPED \u2014 record lies outside "
+                "the git repo")
+    msg = (f"after_join record: {seat} {rp.name} (performed by "
+           f"{performer})")
+    try:
+        # `record` is the byte the caller just wrote (committer named); the
+        # helper stages and commits exactly those bytes, never re-writing.
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=30)
+        if add.returncode != 0:
+            raise RuntimeError(add.stderr.strip())
+        chk = subprocess.run(
+            ["git", "-C", str(top), "diff", "--cached", "--quiet", "--",
+             rel], capture_output=True, text=True, timeout=30)
+        if chk.returncode == 0:
+            # nothing staged: a byte-identical rewrite — already clean.
+            subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                           capture_output=True, text=True, timeout=30)
+            return ("after_join_record_commit: SKIPPED \u2014 record already "
+                    "clean after the rewrite")
+        cm = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--", rel],
+                            capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            raise RuntimeError((cm.stderr or cm.stdout or "").strip())
+        sha = ""
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(top), "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=10)
+            sha = (out.stdout or "").strip()
+        except Exception:  # noqa: BLE001
+            sha = ""
+        return f"after_join_record_commit: committed (sha {sha}) \u2014 {rel}"
+    except Exception as exc:  # noqa: BLE001
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True, timeout=30)
+        outcome = f"after_join_record_commit: FAILED \u2014 {exc}"
+        # name the failure on the record; the rewrite stays local (dirty),
+        # never attributed to a commit that did not happen.
+        try:
+            record["after_join"]["record_commit"] = outcome
+            rp.write_text(json.dumps(record, indent=2) + "\n",
+                          encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
+        return outcome
+
+
+
 def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
                             gen_after: int,
                             record_path: Path | None = None) -> str:
@@ -6554,7 +6643,9 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
     a MAIN-checkout post ONLY (`_commit_spawn_row`'s tree: `_git_toplevel`
     of `_shared_graph_root(root)`); a WORKTREE seat keeps `_button_down` and
     adds no commit here (`_shared_graph_root` resolves MAIN even from a
-    worktree, so `main_root != root` identifies a worktree seat).
+    worktree, so `main_root != root` identifies a worktree seat). CLAIM (b) removes
+    that skip: a worktree seat's record ALSO lives in MAIN and is committed
+    here, `committed_by: rotate-self` named on the record.
 
     Staging is as narrow as git allows: `git add -- <record> <seq>` then
     `git commit -q -m ... -- <both>` — NEVER `git add -A`, never a grid
@@ -6575,15 +6666,31 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
         return ("rotation_record_commit: SKIPPED — no git repo; the record "
                 "+ sequence stay in the tree, never committed (gitless "
                 "fixture/root)")
-    if main_root != root:
-        return ("rotation_record_commit: SKIPPED — worktree seat; the record "
-                "+ sequence commit runs only on a MAIN checkout "
-                "(_button_down handles the grid commit)")
+    # (hypothesis:l4-the-after-join-record-rewrite-is-committed-by-pathspec-...
+    # claim (b)) a WORKTREE seat's record ALSO lands in MAIN (the shared
+    # rotations dir) and is committed here — the writer's own pathspec commit
+    # from MAIN's toplevel (`main_root`/`top` resolve MAIN even for a worktree
+    # caller) — with `committed_by: rotate-self` named on the record, NEVER
+    # left untracked. The old worktree SKIP is removed: _button_down's grid
+    # commit does not cover sessions/rotations (PREPARE_CHURN captive
+    # exemption), which is exactly why the record rode uncommitted.
     if record_path is None or not Path(record_path).exists():
         return ("rotation_record_commit: SKIPPED — no rotation record file "
                 "to commit")
     rec = Path(record_path)
     seq = _seq_file(main_root)
+    # name the committer on the record BEFORE the pathspec commit so a reader
+    # sees who owns the rotation's record commit; best-effort, never fails the
+    # commit (rotate-self from MAIN or a worktree is the SAME writer,
+    # `rotate-self`).
+    try:
+        _r = json.loads(rec.read_text(encoding="utf-8"))
+        if isinstance(_r, dict):
+            _r["committed_by"] = "rotate-self"
+            rec.write_text(json.dumps(_r, indent=2) + "\n",
+                           encoding="utf-8")
+    except (OSError, ValueError, json.JSONDecodeError):
+        pass
     rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
     try:
         add = subprocess.run(["git", "-C", str(top), "add", "--"] + rels,
@@ -10109,6 +10216,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                      else startup.get("dm_byte_cap")),
         record_path=record_path)
     appended = False
+    record_commit = None
     if not dry_run and record_path is not None:
         rp = Path(record_path)
         if rp.exists():
@@ -10143,6 +10251,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                 rec["after_join"] = {
                     "performer": performer,
                     "performed_by": performer,
+                    "committed_by": performer,
                     "delay_s": promised_delay_s,
                     "results": results,
                     "dm": dm,
@@ -10160,8 +10269,20 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     rec["after_join"]["late"] = True
                     if performed_after_s is not None:
                         rec["after_join"]["age_s"] = float(performed_after_s)
+                record_commit = None
                 rp.write_text(json.dumps(rec, indent=2) + "\n",
                               encoding="utf-8")
+                # (hypothesis:l4-the-after-join-record-rewrite-is-committed-
+                # by-pathspec-and-a-worktree-seats-record-names-its-committer
+                # claim (a)) the SERVICE's rewrite commits ITS OWN change as
+                # ONE pathspec commit from MAIN's toplevel, so MAIN never reads
+                # M on a record rotate-self already committed. Best-effort:
+                # the caller's byte above (committer named) is what the helper
+                # stages and commits; a failed commit is NAMED back on the
+                # record by the helper, never an exception into the watch.
+                record_commit = _commit_after_join_record(
+                    root, record=rec, record_path=str(rp),
+                    seat=seat, performer=performer)
                 appended = True
             except (OSError, ValueError, json.JSONDecodeError) as exc:
                 appended = False
@@ -10181,6 +10302,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         sent = True
     return {"delay_s": delay_s, "results": results, "dm": dm,
             "appended": appended, "sent": sent,
+            "record_commit": record_commit,
             "model_confirm": model_confirm,
             "record_path": str(record_path) if record_path else None}
 
@@ -13808,7 +13930,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # record rewrite (ack-rename / after_join / s12 append), so the committed
     # bytes are the FINAL record. Best-effort + fail-soft: on any failure it
     # prints ONE stderr line and the rotation still succeeds (falsifier 4).
-    # Worktree seats are unchanged (_button_down owns their grid commit).
+    # A worktree seat's record ALSO lands in MAIN and is committed here
+    # too (claim (b), committer named) — the record commit is the
+    # writer's own, from MAIN's toplevel, for both MAIN and worktree.
     handover["rotation_record_commit"] = _commit_rotation_record(
         root, seat=seat, gen_before=gen_before, gen_after=gen,
         record_path=record_path)

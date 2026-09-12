@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -1650,3 +1651,143 @@ def test_for_seat_gen_refused_when_neither_record_nor_row(tmp_path,
     assert calls["gen_unresolved_reason"] == (
         "gen unresolved for s: no gen_after on the record and "
         "no generation on the row"), calls
+
+
+# ---- g15.25 (hypothesis:l4-the-after-join-record-rewrite-is-committed-by-
+# ---- pathspec-and-a-worktree-seats-record-names-its-committer): the service's
+# ---- after_join rewrite commits ITS OWN pathspec change, so MAIN never reads
+# ---- M on a record rotate-self already committed.
+
+def _make_git_repo(tmp_path, seat="s", stamp="20260912T000000Z"):
+    """A tmp git repo whose `.agi` graph holds one rotation record, already
+    COMMITTED (simulating rotate-self's own record commit — F20). Returns
+    `(repo, record)` where `root` for rotate calls is `repo / ".agi"`."""
+    repo = tmp_path / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    g = repo / ".agi"
+    (g / "nodes").mkdir(parents=True)
+    (g / "config.json").write_text('{"metric_primary": "x"}')
+    rot = g / "sessions" / "rotations"
+    rot.mkdir(parents=True)
+    (g / ".gitkeep").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    record = rot / f"{seat}.{stamp}.json"
+    record.write_text(json.dumps({"seat": seat, "result": "success",
+                                  "gen_after": 7}))
+    subprocess.run(["git", "-C", str(repo), "add", "--",
+                    f".agi/sessions/rotations/{seat}.{stamp}.json"],
+                   check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "commit", "-m",
+         f"rotate-self {seat} gen 6->7: record + sequence"],
+        check=True, capture_output=True)
+    return repo, record
+
+
+def _run_aj(repo, record, *, performer="watch", monkeypatch=None,
+            confirm_model=None, send_dm=None):
+    """A no-wait run_after_join against the fixture repo. Returns the out
+    dict and re-attaches subprocess.run (the commit helper needs the REAL
+    git subprocess, so callers that patch it must restore before this)."""
+    if confirm_model is None:
+        confirm_model = lambda **kw: "skipped: none"  # noqa: E731
+    vals = dict(VALUES)
+    vals["succ_transcript"] = ""  # no loop: no poll, no real wait
+    out = rotate.run_after_join(
+        repo / ".agi", seat="s", gen=7,
+        startup=_startup(after_join=[]),
+        values=vals, record_path=str(record), delay_override=0,
+        sleep_impl=lambda s: None, performer=performer,
+        send_dm=(send_dm if send_dm is not None else lambda to, text: None),
+        confirm_model=confirm_model, poll_interval=1, timeout_s=5)
+    return out
+
+
+def test_after_join_rewrite_committed_by_pathspec_leaves_tree_clean(tmp_path):
+    """claim (a) FALSIFIER: after a performed after_join, `git status` on MAIN
+    shows NO M/?? for the rotation record — the SERVICE's rewrite committed
+    ITS OWN change by one pathspec commit, touching nothing else. The record
+    carries `committed_by` (the performer) and the commit outcome."""
+    repo, record = _make_git_repo(tmp_path)
+    # PRE-FIX sanity: the seeded record is committed clean (rotate-self's own
+    # commit); the service rewrite will then dirty it in place.
+    pre = subprocess.run(
+        ["git", "-C", str(repo), "status", "--porcelain", "--",
+         ".agi/sessions/rotations/"],
+        capture_output=True, text=True).stdout.strip()
+    assert pre == "", f"seed record must be clean before the rewrite: {pre}"
+
+    out = _run_aj(repo, record, performer="watch")
+    assert out["appended"] is True
+    assert out["record_commit"].startswith(
+        "after_join_record_commit: committed"), out["record_commit"]
+    # FALSIFIER: after the rewrite + its own commit, MAIN reads CLEAN on the
+    # rotation record — never M, never ??.
+    st = subprocess.run(
+        ["git", "-C", str(repo), "status", "--porcelain", "--",
+         ".agi/sessions/rotations/"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", f"after_join rewrite must leave the record committed-clean: {st}"
+    # exactly ONE new commit (the service's own) over the seed record commit.
+    log = subprocess.run(
+        ["git", "-C", str(repo), "log", "--format=%h %s"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert len(log) == 3, log
+    msg = log[0].split(" ", 1)[1]
+    assert msg.startswith("after_join record: s "), log[0]
+    assert "(performed by watch)" in msg, msg
+    # only the record path changed in that commit (pathspec, nothing else).
+    changed = subprocess.run(
+        ["git", "-C", str(repo), "show", "--name-only", "--format=", "HEAD"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert changed == [f".agi/sessions/rotations/s.20260912T000000Z.json"], changed
+    # the record names its COMMITTER (the performer) and stays clean; the
+    # commit outcome rides the RETURN (and git log), not a second dirty field.
+    data = json.loads(record.read_text())
+    assert data["after_join"]["committed_by"] == "watch", data["after_join"]
+
+
+def test_after_join_record_commit_failure_is_named_not_raised(
+        tmp_path, monkeypatch):
+    """claim (a) fail-soft: when the after_join pathspec commit FAILS, the
+    outcome is NAMED on the record's after_join key and in the return — a
+    failed commit is never an exception into the watch."""
+    repo, record = _make_git_repo(tmp_path)
+    real_run = rotate.subprocess.run
+
+    def _boom(args, **kw):
+        if any(a == "commit" for a in args):
+            raise RuntimeError("injected boom")
+        return real_run(args, **kw)
+
+    monkeypatch.setattr(rotate.subprocess, "run", _boom)
+    _run_aj(repo, record, performer="tail")
+    # no exception escaped; the outcome is NAMED on the record.
+    data = json.loads(record.read_text())
+    assert data["after_join"]["record_commit"].startswith(
+        "after_join_record_commit: FAILED"), data["after_join"]
+    assert "injected boom" in data["after_join"]["record_commit"]
+
+
+def test_after_join_record_commit_skips_clean_already_committed(
+        tmp_path):
+    """claim (a) no-op: a record that already carries the after_join key and
+    is committed is rewritten byte-identical; `git add` stages nothing and the
+    commit reports SKIPPED (already clean), never a spurious empty commit."""
+    repo, record = _make_git_repo(tmp_path)
+    _run_aj(repo, record, performer="watch")      # commit #1 (service)
+    out2 = _run_aj(repo, record, performer="watch")   # rewrite #2 (no-op)
+    assert out2["record_commit"].startswith(
+        "after_join_record_commit: SKIPPED"), out2["record_commit"]
+    log = subprocess.run(
+        ["git", "-C", str(repo), "log", "--format=%h %s"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert len(log) == 3, log  # init, seed-record, service — NO 4th empty one
