@@ -290,6 +290,36 @@ def test_record_receives_every_command_output(tmp_path):
         rot.subprocess.run = real_run
 
 
+def test_record_after_join_block_persists_code_head(tmp_path, monkeypatch):
+    """(goal:g15.25 SL7.105 claim 1) the PERSISTED record's `after_join`
+    block — the one written to disk through the same pathspec-committed
+    write that lands the results — carries `code_head`, so the on-disk record
+    (not just the returned result dict) names the engine HEAD that ran it."""
+    rec_path = tmp_path / "seat.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({"rotation": "rotate-self", "seat": "s",
+                                    "result": "success", "gen_after": 7}))
+    import agi.bin.rotate as rot
+    orig_head = rot._code_head
+    rot._code_head = lambda root: "c0debeef"
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out=cmd[1])
+    try:
+        out = rotate.run_after_join(
+            tmp_path, seat="s", gen=7, startup=_startup(after_join=[
+                {"label": "ack", "cmd": "echo ack-op"}]),
+            values=VALUES, record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None)
+        assert out["appended"] is True
+        saved = json.loads(rec_path.read_text())
+        assert saved["after_join"]["code_head"] == "c0debeef", \
+            f"persisted after_join block must name code_head: {saved}"
+    finally:
+        rec_path.unlink(missing_ok=True)
+        rot.subprocess.run = real_run
+        rot._code_head = orig_head
+
+
 def test_heal_service_calls_the_same_rotate_function(tmp_path):
     """(e) caller 1 — the heal.py watch loop (the service when inline_reaper
     is false) reaches the SAME rotate.run_after_join_for_seat, and is a silent

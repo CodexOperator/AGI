@@ -475,7 +475,8 @@ def _run_pending_after_joins(root: Path) -> None:
                 _watch_log(f"watch: after_join performed for seat {seat!r} "
                            f"({len(result.get('results') or [])} command(s); "
                            f"record appended: {result.get('appended')}, "
-                           f"dm sent: {result.get('sent')})")
+                           f"dm sent: {result.get('sent')}, "
+                           f"code_head={result.get('code_head') or '?'})")
 
 
 def _sweep_season(branch: str) -> int | None:
@@ -987,12 +988,18 @@ def _reexec(argv: list[str]) -> None:
 
 
 def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
-    """Re-read the code identity each pass. A CHANGED identity with a CLEAN
-    tree for heal.py/rotate.py -> ONE '[watch] code changed <old>-><new>:
-    re-exec' line then re-exec. A dirty tree logs a 'waiting' line and does
-    NOT exec. Under `--once` the change is never acted on (a fresh process
-    per run; the seam is exercised by the tests). Always returns the newly-
-    read identity unless re-exec happened (then it is unreachable)."""
+    """Re-read the code identity each pass. THE RULE: the watch re-execs
+    ITSELF only when the engine HEAD CHANGED **and** the tree is clean for
+    heal.py/rotate.py — a file-only identity change (mtime/size touched,
+    HEAD unchanged) NEVER execs. A changed HEAD with a clean tree -> ONE
+    '[watch] code changed <old>-><new>: re-exec' line then re-exec; a dirty
+    tree logs a 'waiting' line and does NOT exec. An execv that raises
+    OSError is caught, logged by name + errno, and the loop continues on the
+    running bytes (no retry storm: the fresh identity is adopted, so the
+    next attempt waits for the NEXT clean-tree HEAD change). Under `--once`
+    the change is never acted on (a fresh process per run; the seam is
+    exercised by the tests). Always returns the newly-read identity unless
+    re-exec happened (then it is unreachable)."""
     if once:
         return identity
     fresh = _code_identity(root)
@@ -1000,9 +1007,18 @@ def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
         return fresh
     old7 = identity.get("head") or "?"
     new7 = fresh.get("head") or "?"
+    # (goal:g15.25 SL7.105) exec ONLY on a CHANGED HEAD — a file-only change
+    # keeps re-running the bytes it is actually running.
+    if fresh.get("head") == identity.get("head"):
+        return fresh
     if _code_files_clean(root):
         _watch_log(f"watch: code changed {old7}->{new7}: re-exec")
-        _reexec(sys.argv)
+        try:
+            _reexec(sys.argv)
+        except OSError as _exc:  # missing interpreter / EACCES / ENOMEM
+            _watch_log(f"watch: re-exec error ({type(_exc).__name__}, "
+                       f"errno {_exc.errno}): continuing on running bytes")
+            return fresh
         return fresh  # unreachable under real execv; the seam returns here
     _watch_log(f"watch: code changed {old7}->{new7}: waiting (dirty)")
     return fresh
