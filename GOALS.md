@@ -6440,6 +6440,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T01:21Z mur-SL2.6-9 (Prime XIII 01:17Z): ACCEPT 8/8 with residue; FLIP STAYS HELD — mur-SL5.04's preconditions minted as four P1 briefs, to dispatch serially in this order after SL6.01 lands: F1 SL6.05 hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row (send _load_rows fallback + rotate mint legs commit/push via SL6.01's helper); F2 SL6.06 hypothesis:l4-sign-exactly-the-bytes-the-reader-parses-one-canonical-form-so-a-legitimate-body-never-reads-forged (LF-terminated / ---line / CRLF bodies); F3 SL6.07 hypothesis:l4-quarantine-dedupes-by-block-hash-and-the-withheld-block-cursor-decision-is-recorded; F4 SL6.08 hypothesis:l4-whois-exits-non-zero-on-forged-under-enforcing-without-msg-and-its-quarantine-filename-is-sanitized. SL6.04 stays a withdrawn id. VALUE stays informational until all land and the Prime reviews them by name.
 
+2026-09-12T01:21Z deviation, recorded: F2/F3/F4 (SL6.06-08) cut in PARALLEL at 01:2xZ rather than serially — all three are send.py-only with disjoint FILE SCOPE and each EXCLUDES the others' functions by name (the SL5.06/SL5.09 shared-file shape that merged clean); none depends on SL6.01. F1 (SL6.05) waits for SL6.01's own-row-hunk helper. The Prime's order is honoured as priority at review time; any harvest seam is unioned by hand and named in the merge message.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
