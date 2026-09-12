@@ -5145,14 +5145,17 @@ def _replace_fence_after(lines: list[str], start: int, s3: str):
     (caller falls back to whole-body replacement)."""
     fence = None
     for i in range(start, len(lines)):
-        if lines[i].strip().startswith("```"):
+        if _fence_run(lines[i]) >= 3:
             fence = i
             break
     if fence is None:
         return None
+    opener = _fence_run(lines[fence])
     close = None
     for i in range(fence + 1, len(lines)):
-        if lines[i].strip().startswith("```"):
+        # pair the run-length-aware closer (>= opener), so an inner shorter
+        # fence under a longer outer fence never mis-pairs (residue (iii)).
+        if _fence_run(lines[i]) >= opener:
             close = i
             break
     if close is None:
@@ -11110,12 +11113,22 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                       else "### 🔴 Where it stops")
         end = len(lines)
         in_fence = False
+        opener = 0
         for j in range(sub + 1, len(lines)):
-            s = lines[j].strip()
-            if s.startswith("```"):
-                in_fence = not in_fence
+            r = _fence_run(lines[j])
+            if in_fence:
+                # a fence closes only on a fence of the SAME character
+                # whose run is at least the opener's (CommonMark); an inner
+                # shorter fence and any `#` line inside it stay content
+                # (goal:g15.25 residue (iii)).
+                if r >= opener:
+                    in_fence = False
                 continue
-            if s.startswith("#") and not in_fence:
+            if r >= 3:                      # an opener: record its run
+                in_fence = True
+                opener = r
+                continue
+            if lines[j].strip().startswith("#"):
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []

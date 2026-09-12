@@ -2528,6 +2528,81 @@ def test_stops_text_with_inner_fence_pairs_outer_on_next_write(tmp_path):
     assert "keep me" in out2           # the after-slot section survived
 
 
+def test_stops_nested_fence_round_trip_byte_identical(tmp_path):
+    """goal:g15.25 (iii) FALSIFIER — a stops text whose fenced block
+    contains an inner three-backtick block round-trips byte-identical
+    across TWO consecutive `_write_stops_section` calls (no truncation, no
+    tail re-append)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```sh\ninner block\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    first = card.read_text(encoding="utf-8")
+    _, slot2 = _r._write_stops_section(card, "s", _stops)
+    assert slot2 == "replaced"
+    second = card.read_text(encoding="utf-8")
+    assert second == first, "two identical stops writes produced different files"
+    assert "keep me" in second
+
+
+def test_stops_hash_line_inside_inner_fence_never_truncates(tmp_path):
+    """goal:g15.25 (iii) FALSIFIER — a `#`-leading line (a shell comment, a
+    quoted heading) inside an inner three-backtick block under a four-\
+    backtick outer fence must NOT end the slot: the end-of-slot scan is
+    fence-run aware, so the # line stays content and the whole inner block
+    is replaced whole on a later write."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```sh\n# a shell comment\ninner\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    _, slot2 = _r._write_stops_section(card, "s", "clean new cmd")
+    assert slot2 == "replaced"
+    out = card.read_text(encoding="utf-8")
+    assert out.count("clean new cmd") == 1, out
+    assert "# a shell comment" not in out   # no tail leaked past the block
+    assert "inner" not in out
+    assert "shell comment" not in out
+    assert "keep me" in out                 # the after-slot section survived
+
+
+def test_replace_fence_after_pairs_outer_within_longer_fence():
+    """goal:g15.25 (iii) FALSIFIER — `_replace_fence_after` under a four-\
+    backtick outer fence pairs the OUTER closer (run >= opener), never an
+    inner three-backtick line that happens to come first: the inner fence
+    survives as content and NEW lands between the two outer fences."""
+    from agi.bin import rotate as _r
+    lines = ("text\n"
+             "````\n"
+             "```sh\n"
+             "still inside\n"
+             "````\n"
+             "after\n").splitlines()
+    start = next(i for i, ln in enumerate(lines)
+                 if ln.strip().startswith("````"))
+    new = _r._replace_fence_after(lines, start, "NEW")
+    assert new is not None
+    joined = "\n".join(new)
+    # the outer 4-backtick opener and closer are kept, NEW sits between them
+    # (the inner block is REPLACED whole, never partially truncated at the
+    # inner 3-backtick line that the buggy scan would have paired as the
+    # closer).
+    assert "````\nNEW\n````" in joined, joined
+    assert "```sh" not in joined     # inner shorter fence replaced, not kept
+    assert "still inside" not in joined
+    assert "after" in joined         # past the outer closer, preserved
+    assert "text" in joined
+
+
 def test_stops_push_real_refusal_branch_receive_fails(
         fake_ladder, tmp_path, monkeypatch, capsys):
     """goal:g15.25 (d) FALSIFIER — the REAL `_stops_push` refusal branch (a
