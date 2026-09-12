@@ -312,3 +312,299 @@ def test_closeout_log_survives_record_rewrites():
     doc = json.loads(path.read_text(encoding="utf-8"))
     assert doc["closeout"] == entries
     assert doc["result"] == "success"    # the outcome write kept it too
+
+# ── SEAT-KIND LISTS (SL7.90): the closeout list is chosen by seat kind ──
+# hypothesis:l4-closeout-step-list-is-chosen-by-seat-kind-main-post-and-
+# prime-lists-coded-never-the-worktree-list-by-default. Today a Prime
+# (role prime_director) and a MAIN post (empty worktree cell) are both
+# driven through the worktree list (merge_up_ask / wait_grant / merge_up /
+# suite). These prove the coded MAIN-post list and PRIME list are served by
+# kind, every step of every list has a runner in the real table AND the CLI
+# fake table, and a CLI-driven MAIN-post / Prime fixture records exactly its
+# kind's list -- never the worktree list, never another role's list.
+
+
+def test_step_list_is_chosen_by_seat_kind_and_template_still_wins():
+    """(a) The list follows SEAT KIND when the template lacks closeout.steps:
+    prime_director -> PRIME list; an EMPTY worktree cell -> MAIN-post list;
+    a worktree path -> the worktree list. The template's closeout.steps STILL
+    wins over all three."""
+    assert rotate._closeout_step_list(
+        "prime_director", None) == rotate.PRIME_CLOSEOUT_STEPS
+    assert rotate._closeout_step_list("prime", None) == \
+        rotate.PRIME_CLOSEOUT_STEPS
+    assert rotate._closeout_step_list(
+        "parent", None, worktree="") == rotate.MAIN_POST_CLOSEOUT_STEPS
+    assert rotate._closeout_step_list(
+        "parent", None, worktree="/tmp/wt-adv") == \
+        rotate.WORKTREE_POST_CLOSEOUT_STEPS
+    # a whitespace-only worktree cell is a MAIN post
+    assert rotate._closeout_step_list(
+        "parent", None, worktree="   ") == rotate.MAIN_POST_CLOSEOUT_STEPS
+    # template closeout.steps wins over prime kind and main-post kind alike
+    tmpl = {"closeout": {"steps": ["merge_up", "numbers"]}}
+    assert rotate._closeout_step_list(
+        "prime_director", tmpl, worktree="") == ["merge_up", "numbers"]
+    assert rotate._closeout_step_list(
+        "parent", tmpl, worktree="/tmp/wt") == ["merge_up", "numbers"]
+    # the three coded spellings are exactly the claim's
+    assert rotate.MAIN_POST_CLOSEOUT_STEPS == ["pathspec_commit", "push"]
+    assert rotate.PRIME_CLOSEOUT_STEPS == ["g17_1_note", "render", "push"]
+
+
+def test_real_seam_table_covers_every_step_of_all_three_lists():
+    """(b) The REAL seam table (built on a fixture root; runners NOT called)
+    has a key for every step of all three coded lists -- a step of ANY list
+    with no real runner would be refused by name at run time."""
+    seams = rotate._make_closeout_seams(Path("/tmp/co-root"), {})
+    for lst in (rotate.WORKTREE_POST_CLOSEOUT_STEPS,
+                rotate.MAIN_POST_CLOSEOUT_STEPS,
+                rotate.PRIME_CLOSEOUT_STEPS):
+        for step in lst:
+            assert step in seams, f"{step!r} missing from the real seam table"
+    # the four NEW thin wrappers are present and callable
+    for step in ("pathspec_commit", "g17_1_note", "render", "push"):
+        assert callable(seams[step])
+
+
+def test_cli_fake_table_covers_union_and_refuser_stops_main_post():
+    """(c) The CLI fake table (`_closeout_cli_seams`) has a runner for every
+    step of all three coded lists, and a refuser named in a MAIN-post step
+    stops a MAIN-post run at exactly that step."""
+    fake = rotate._closeout_cli_seams(Path("/tmp/co-root"), "{}")
+    # the union of all three coded lists (push is shared across the three, so
+    # the fake table carries ONE runner for it -- the driver's own rule that
+    # a step lists twice is refused at run time, not duplicated here)
+    _union = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) | \
+        set(rotate.MAIN_POST_CLOSEOUT_STEPS) | set(rotate.PRIME_CLOSEOUT_STEPS)
+    assert set(fake) == _union
+    for lst in (rotate.WORKTREE_POST_CLOSEOUT_STEPS,
+                rotate.MAIN_POST_CLOSEOUT_STEPS,
+                rotate.PRIME_CLOSEOUT_STEPS):
+        for step in lst:
+            assert step in fake and callable(fake[step])
+    # drive a MAIN-post run through the fake table; refuse `push` (its LAST
+    # step) -> entries are exactly [pathspec_commit, push], push refused
+    seams = {"refuse": ["push"]}
+    cli = rotate._closeout_cli_seams(Path("/tmp/co-root"),
+                                     json.dumps(seams))
+    entries, err = rotate._closeout_run_steps(
+        Path("/tmp/co-root"), "a", "parent", worktree="", seams=cli)
+    assert err is not None and "push" in err and "refused" in err
+    assert [e["step"] for e in entries] == ["pathspec_commit", "push"]
+    assert entries[-1]["result"] == "refused"
+    assert entries[0]["step"] == "pathspec_commit"
+
+
+@pytest.fixture
+def _co_rs_kind(tmp_path, monkeypatch):
+    """Fixture root like `_co_rs` but with a configurable seats row + the
+    prime_director template default, so a MAIN-post row (worktree '') or a
+    prime_director row can be driven through the rotate-self --closeout CLI
+    path with the named seam (`--closeout-seams-json`) -- no spawn / merge /
+    push, no network."""
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(
+        rotate, "load_ladder_field",
+        lambda r, f, d: {"director_context_tokens": 100_000,
+                         "director_rotate_at": 0.25}.get(f, d))
+
+    def _write_seats(rows):
+        g = root / "nodes" / ".geometry"
+        g.mkdir(parents=True, exist_ok=True)
+        (root / "sessions").mkdir(parents=True, exist_ok=True)
+        body = "---\nid: config:seats\ntype: config\nseats:\n"
+        for r in rows:
+            body += "  - " + json.dumps(r) + "\n"
+        body += "---\n"
+        (g / "seats.md").write_text(body, encoding="utf-8")
+
+    def _write_templates():
+        g = root / "nodes" / ".geometry"
+        g.mkdir(parents=True, exist_ok=True)
+        (g / "rotations.md").write_text(
+            "---\nid: config:rotations\ntype: config\ntemplates:\n"
+            "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
+            "    steps: [handoff, rename, spawn]\n    telemetry: [seat]\n"
+            "  prime_director:\n    brief_file: extensions/agi/briefs/prime-successor.md\n"
+            "    steps: [handoff, rename, spawn]\n    telemetry: [seat]\n"
+            "---\n\nbody\n", encoding="utf-8")
+
+    _write_seats([{"name": "adv-alive", "role": "parent", "worktree": "",
+                   "model": "x", "effort": "max", "settings": ""}])
+    _write_templates()
+    win = root / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    monkeypatch.setattr(rotate, "_stops_push", lambda root, label="stops": None)
+    return root, win
+
+
+def _drive_rotate_self_closeout(root, win, monkeypatch, seams):
+    from types import SimpleNamespace
+    spawned = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: spawned.append(kw.get("name")) or (0, "ok"))
+    args = SimpleNamespace(
+        name="adv-alive", force=False, dry_run=False, throwaway=False,
+        role=None, template=None, prepare=False, stops=None, stops_file=None,
+        ask_diff=False, closeout=True, form="-", closeout_seams_json=seams,
+        window_path=str(win), tmux_session="t", debug_file=None,
+        model=None, effort=None, settings=None, prompt_file=None,
+        session_ref=None, successor_transcript=None, successor_argv=None,
+        verification_argv=None, comms_root=None, trigger="rotate-self",
+        in_flight=None, own_pid=None)
+    import io
+    import sys as _sys
+    _sys.stdin = io.StringIO(_closeout_form())
+    try:
+        rc = rotate.cmd_rotate_self(args, root)
+    finally:
+        _sys.stdin = _sys.__stdin__  # type: ignore[attr-defined]
+    return rc, spawned
+
+
+def _driven_record(root):
+    recs = sorted((root / "sessions" / "rotations").glob("adv-alive.*.json"))
+    assert recs, "rotate-self --closeout wrote no rotation record"
+    return json.loads(recs[-1].read_text(encoding="utf-8"))
+
+
+def test_main_post_cli_drives_only_pathspec_commit_and_push(
+        _co_rs_kind, monkeypatch):
+    """(d) A MAIN-post fixture (seat row with worktree '') driven through the
+    CLI path records a closeout list of EXACTLY [pathspec_commit, push] in
+    order -- no worktree step name (no merge_up_ask / wait_grant / merge_up /
+    suite) -- and the rotate-out completes (rc 0)."""
+    root, win = _co_rs_kind
+    _drive_rotate_self_closeout(root, win, monkeypatch, "{}")
+    rec = _driven_record(root)
+    assert [e["step"] for e in rec["closeout"]] == \
+        ["pathspec_commit", "push"]
+    names = {e["step"] for e in rec["closeout"]}
+    # no WORKTREE-ONLY step (post_verify / merge_up_ask / wait_grant /
+    # merge_up / render_check / suite / grid_commit / verify_stamp / numbers)
+    # -- `push` is shared with the worktree list by design, so exclude it
+    _wt_only = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) - {"push"}
+    assert not (names & _wt_only), names
+    # the MAIN-post run recorded BOTH its kind's steps as OK (no refuser)
+    assert all(e["result"] == "ok" for e in rec["closeout"]), rec["closeout"]
+
+
+def test_prime_cli_drives_only_g17_1_note_render_push(
+        _co_rs_kind, monkeypatch):
+    """(e) A prime_director fixture (no worktree cell) driven through the CLI
+    path records a closeout list of EXACTLY [g17_1_note, render, push] in
+    order -- the Prime is never asked for a grant and never merges."""
+    root, win = _co_rs_kind
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"adv-alive\", \"role\": \"prime_director\", "
+        "\"model\": \"x\", \"effort\": \"max\", \"settings\": \"\"}\n"
+        "---\n", encoding="utf-8")
+    _drive_rotate_self_closeout(root, win, monkeypatch, "{}")
+    rec = _driven_record(root)
+    assert [e["step"] for e in rec["closeout"]] == \
+        ["g17_1_note", "render", "push"]
+    names = {e["step"] for e in rec["closeout"]}
+    _wt_only = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) - {"push"}
+    assert not (names & _wt_only), names
+    # the Prime's list is ITS list, never another role's: no MAIN-post
+    # pathspec_commit, no worktree merge-up steps
+    assert "pathspec_commit" not in names
+    assert not (names & {"merge_up_ask", "wait_grant", "merge_up", "suite"})
+
+
+def test_pathspec_commit_real_runner_commits_only_card_and_own_row(tmp_path):
+    """(f) The pathspec_commit REAL runner (git fixture) commits card + own
+    row -- NEVER `git add -A`: a foreign dirty path stays UNCOMMITTED. A
+    card is present here, so it wraps `_commit_stops_row`. (The _commit_stops_
+    row-only case is covered by the existing test in test_rotate.py.)"""
+    from agi.bin import rotate as _r
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    nodes = root / "nodes" / ".geometry"
+    nodes.mkdir(parents=True)
+    seats = nodes / "seats.md"
+    seats.write_text("---\nid: config:seats\ntype: config\nseats:\n"
+                     "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
+                     "---\n", encoding="utf-8")
+    card = root / "sessions" / "quorum" / "s1.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s1 card\n", encoding="utf-8")
+    # a bare git fixture (no remote origin needed -- push is stubbed)
+    subprocess = __import__("subprocess")
+    subprocess.run(["git", "-C", str(root), "init"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "add", "agi-tree.config.json",
+                    "nodes", "sessions"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "fixture"],
+                   check=True, capture_output=True)
+    # dirty: s1's OWN row (committed by the runner) + a FOREIGN decoy path
+    seats.write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"s1\", \"role\": \"parent\", "
+        "\"edited_by\": \"s1\"}\n"
+        "---\n", encoding="utf-8")
+    decoy = root / "scratch.log"
+    decoy.write_text("x\n", encoding="utf-8")
+    card.write_text("# s1 card\n## 🔴 Where it stops\nkeep\n",
+                    encoding="utf-8")
+    seams = _r._make_closeout_seams(root, {"gen_before": 0, "gen_after": 1},
+                                    seat="s1")
+    ok, result, detail = seams["pathspec_commit"]()
+    assert ok is True and result == "committed", detail
+    names = subprocess.run(
+        ["git", "-C", str(root), "log", "-1", "--name-only", "--format="],
+        capture_output=True, text=True).stdout.splitlines()
+    names = [n for n in names if n.strip()]
+    assert names, "no files in the pathspec closeout commit"
+    for n in names:
+        assert n in ("sessions/quorum/s1.md", "nodes/.geometry/seats.md"), \
+            f"foreign path {n!r} rode the pathspec closeout commit"
+    # the decoy stayed UNCOMMITTED (never `git add -A`)
+    dirty = subprocess.run(
+        ["git", "-C", str(root), "status", "--porcelain"],
+        capture_output=True, text=True).stdout
+    assert "scratch.log" in dirty, "decoy was swept into the commit"
+
+
+def test_g17_1_note_runner_drives_write_py_subprocess_seam(
+        _co_rs_kind, monkeypatch):
+    """(f) The g17_1_note REAL runner is driven through a subprocess seam --
+    a recorded argv -- never by writing the live goal:g17.1 node."""
+    root, _win = _co_rs_kind
+    recorded = []
+    def _fake(subprocess_module, argv, **kw):
+        recorded.append(argv)
+        class _R:
+            returncode = 0
+            stdout = "ok"
+            stderr = ""
+        return _R()
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda argv, *a, **k: _fake(rotate.subprocess, argv))
+    seams = rotate._make_closeout_seams(root, {"commit": "abc1234",
+                                               "facts": ["42"]})
+    ok, result, detail = seams["g17_1_note"]()
+    assert ok is True and result == "ok", detail
+    assert recorded and str(recorded[0][1]).endswith("write.py")
+    assert recorded[0][2:4] == ["goal:g17.1", "note"]
+    assert recorded[0][4] == "42 | abc1234"   # the closeout numbers line
+    # a non-zero exit REFUSES BY NAME
+    def _refuse(argv, *a, **k):
+        class _R:
+            returncode = 1
+            stdout = ""
+            stderr = "boom"
+        return _R()
+    monkeypatch.setattr(rotate.subprocess, "run", _refuse)
+    ok, result, detail = seams["g17_1_note"]()
+    assert ok is False and result == "refused" and "g17_1_note" in detail
