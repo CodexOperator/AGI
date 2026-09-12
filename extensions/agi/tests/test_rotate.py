@@ -8130,3 +8130,34 @@ def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
     assert uid in err
     # nothing written: no ack file (and the row is untouched by a refusal).
     assert not rotate._ack_path(root, "sanctuary-director").exists()
+
+
+def test_seat_has_live_session_window_cell_and_dead_pid_over_join():
+    """(e) SL7.98: `_seat_has_live_session` reads the row's WINDOW cell
+    (accepting window_id as a legacy alias) — the spawn/join shape carries
+    `window`, not `window_id` — and a row carrying a DEAD pid is dead even
+    over a resolved join (the pid is judged BEFORE joined.found, matching the
+    docstring)."""
+    import agi.bin.rotate as rot
+    real_gone = rot._pid_gone
+    try:
+        # pid alive -> live (pid authority)
+        rot._pid_gone = lambda pid: False
+        assert rot._seat_has_live_session(
+            {"pid": 1234}, {"found": False}) is True
+        # window CELL honoured (the shape the spawn/join reader uses)
+        assert rot._seat_has_live_session(
+            {"window": "@9"}, {"found": False}) is True
+        # legacy window_id alias still honoured
+        assert rot._seat_has_live_session(
+            {"window_id": "@9"}, {"found": False}) is True
+        # DEAD pid + RESOLVED join -> DEAD (pid checked before joined.found)
+        rot._pid_gone = lambda pid: True
+        assert rot._seat_has_live_session(
+            {"pid": 987654}, {"found": True, "pid": 987654}) is False
+        # no pid, no join, no window -> dead
+        assert rot._seat_has_live_session({}, {"found": False}) is False
+        # no row at all -> dead
+        assert rot._seat_has_live_session(None, None) is False
+    finally:
+        rot._pid_gone = real_gone
