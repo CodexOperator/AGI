@@ -8203,3 +8203,55 @@ def test_seat_has_live_session_window_cell_and_dead_pid_over_join():
         assert rot._seat_has_live_session(None, None) is False
     finally:
         rot._pid_gone = real_gone
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): the ack back-fill writes session_name (the joined harness name),
+# and status FLAGS a lingering 36-char uuid in session_ref as STALE. The
+# SL7.86 uuid refusal (test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid)
+# stays green above — session_ref is still written ONLY from an acked ref.
+# ---------------------------------------------------------------------------
+def test_ack_backfill_writes_session_name_from_joined_registry(
+        tmp_path, monkeypatch, capsys):
+    """(c) claim: cmd_ack's own-row back-fill writes session_name = the
+    harness name the registry join resolves (join['name'], e.g. agi-d7) —
+    F3's join key travels in the row from the ack too, alongside session_ref,
+    still never a session uuid."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
+                               "model": "x", "effort": "max", "settings": "",
+                               "session_ref": "", "session_id": "abc-def",
+                               "window": "@42"}])
+    reg = _seating_registry(tmp_path, raw="@42")
+    # the registry file that matches @42 carries a HARNESS NAME.
+    (reg / "999.json").write_text(json.dumps({
+        "window_id": "@42", "name": "agi-d7", "session_id": "2717-aaaa",
+        "transcript": "t.jsonl", "cwd": str(tmp_path)}), encoding="utf-8")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text="",
+        registry_dir=str(reg)), root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    assert belam.get("session_name") == "agi-d7"
+
+
+def test_status_flags_uuid_session_ref_as_stale(tmp_path, capsys):
+    """(d) claim: `status --record latest --seat` FLAGS a 36-char session
+    uuid lingering in session_ref as STALE (a session id, pre-F15) — a row
+    written before SL7.86 still carries one, and nothing may read it as a
+    harness ref (send.whois reads a uuid as NO-MATCH for every peer). The
+    F3 join name is printed when present."""
+    uid = "c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2"
+    _write_seats_sheet(tmp_path, [{"name": "kid-1", "role": "director",
+                                   "session_ref": uid,
+                                   "session_name": "agi-d7"}])
+    rc = rotate.cmd_status(SimpleNamespace(record="latest", seat="kid-1"),
+                           tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert uid in out and "stale" in out and "session id" in out
+    assert "agi-d7" in out  # session_name printed when present

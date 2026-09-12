@@ -2431,3 +2431,69 @@ def test_golden_non_join_facts_byte_identical_across_four_writers(tmp_path,
             assert doc["telemetry"][key] == _golden(key, ov), (
                 f"{tag}: non-join fact {key!r} changed: "
                 f"{doc['telemetry'][key]!r} != {_golden(key, ov)!r}")
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): the spawn row write carries a `session_name` cell = the harness
+# registry name the join resolved (join['name'], e.g. agi-d7), '' when the
+# join did not resolve (a first seating) — ADDITIVE, every other cell byte-
+# identical. The cell is written ALWAYS (even empty) so it exists from the
+# seat's own first spawn/ack write; admission is the self_row DATA gate
+# (the schema now lists session_name), so these tests run on a schema'd
+# graph root exactly like test_rotate._seed_key_history_graph.
+# ---------------------------------------------------------------------------
+def _sn_graph(root, rows):
+    """A minimal .agi graph root (schema'd, session_name admitted) so the
+    self_row gate runs on the spawn write."""
+    graph = root / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sd = graph / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    live = (Path(__file__).resolve().parents[3] / ".agi" / "context" /
+            "schemas" / "[config].md")
+    if live.exists():
+        (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
+    d = graph / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f"  - {r!r}" for r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nseats:\n" + body + "\n---\n\nfixture\n",
+        encoding="utf-8")
+    return graph
+
+
+def test_successor_row_write_carries_resolved_session_name(tmp_path):
+    """(a) claim: a spawn row write with a joined name writes session_name —
+    F3's SendMessage-by-ref join key travels in the row, admitted by the
+    self_row gate."""
+    graph = _sn_graph(tmp_path, [{"name": "sd", "role": "director",
+                                  "session_ref": "", "session_id": "x",
+                                  "window": "@42", "pid": 1}])
+    out = rotate._successor_row_write(
+        graph, actor="sd", seat="sd", role="director",
+        session_ref="", generation=2, window="@42",
+        pid=9, session_id="y", session_name="agi-d7")
+    assert "agi-d7" in out
+    own = next(r for r in rotate._load_seats(graph)
+               if r.get("name") == "sd")
+    assert own.get("session_name") == "agi-d7"
+
+
+def test_first_seating_spawn_row_writes_empty_session_name(tmp_path):
+    """(b) claim: a first seating (NO join to resolve a name from) writes
+    session_name='' — the cell exists from the seat's first spawn write but
+    is never a guessed name; every other cell rides unchanged."""
+    graph = _sn_graph(tmp_path, [{"name": "sd", "role": "prime_director",
+                                  "session_ref": "", "session_id": "x",
+                                  "window": "", "pid": 1}])
+    res = rotate._first_seating_spawn_writes(
+        root=graph, seat="sd", generation=1,
+        session_id="2717-aaaa", window="@42", pid=999)
+    assert res["row"], "a registry-seated seat must write its own spawn row"
+    own = next(r for r in rotate._load_seats(graph)
+               if r.get("name") == "sd")
+    assert own.get("session_name") == ""
+    assert own.get("session_id") == "2717-aaaa"
+    assert own.get("pid") == 999
