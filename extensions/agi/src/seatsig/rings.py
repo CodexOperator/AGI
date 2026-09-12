@@ -310,8 +310,22 @@ FRESH_KEY = "_fresh"
 NONCE_LEDGER_TTL_S = 86400
 
 
-#: where nonce_ledger keeps the admitted-nonce log.
-NONCE_LEDGER_FILE = Path("nodes") / ".geometry" / "ring-nonces.json"
+#: where nonce_ledger keeps the admitted-nonce log: a FILENAME ONLY, resolved
+#: at call time under the project's SHARED sessions dir (locations
+#: shared_sessions_dir) so every git worktree shares ONE ledger -- never under
+#: `<root>/nodes/.geometry`, which is committed graph content and would churn
+#: commits once a ring is live (RUNG 2b clause 5).
+NONCE_LEDGER_FILE = "ring-nonces.json"
+
+
+class LedgerWriteError(Exception):
+    """A nonce_ledger.remember() write could not be completed.
+
+    Raised instead of swallowing (RUNG 2b clause 3): a nonce is NEVER spent
+    silently -- if the admitted-nonce ledger cannot be written, the caller (a
+    ring gate) converts this into a by-name refusal so the decision is not
+    admitted with an unremembered nonce (an admitted replayed record would
+    otherwise become possible after a failed ledger write)."""
 
 
 def _now_iso() -> str:
@@ -440,13 +454,32 @@ def freshness_refusal(fields: dict, *, max_age_s=DEFAULT_MAX_AGE_S,
     return None
 
 
+def _ledger_path(root) -> Path:
+    """The admitted-nonce ledger path for a project: the shared sessions dir
+    (``locations.shared_sessions_dir(root)``) plus NONCE_LEDGER_FILE, so a
+    seat in a linked worktree reads/writes the SAME room the parent does.
+    Imported lazily/defensively because rings.py lives under src/ while
+    locations.py lives in bin/ (the bin scripts that put bin/ on sys.path
+    already import it); if that import fails, fall back to
+    ``<root>/sessions`` so a bare/off-tree caller still gets a sane path."""
+    try:
+        import locations  # type: ignore  # noqa: PLC0415
+
+        base = Path(locations.shared_sessions_dir(root))  # type: ignore
+    except Exception:  # noqa: BLE001
+        base = Path(root) / "sessions"
+    return base / NONCE_LEDGER_FILE
+
+
 def nonce_ledger(root) -> tuple:
-    """A (seen, remember) pair over the on-disk admitted-nonce ledger at
-    ``<root>/nodes/.geometry/ring-nonces.json`` (a JSON list of
-    {nonce, ts, kind}), re-read fresh on every call/query. An absent file
-    reads as an empty seen set. remember() prunes entries older than 24h and
-    appends the freshly admitted nonce; refused records never reach it."""
-    lpath = Path(root) / NONCE_LEDGER_FILE
+    """A (seen, remember) pair over the on-disk admitted-nonce ledger, a JSON
+    list of {nonce, ts, kind}, re-read fresh on every call/query. An absent
+    file reads as an empty seen set. remember() prunes entries older than 24h
+    and appends the freshly admitted nonce; refused records never reach it.
+    remember() RAISES LedgerWriteError (naming the ledger path and the
+    underlying error) when the ledger cannot be written -- a nonce is never
+    spent silently."""
+    lpath = _ledger_path(root)
 
     def _read() -> list:
         try:
@@ -475,8 +508,11 @@ def nonce_ledger(root) -> tuple:
             lpath.parent.mkdir(parents=True, exist_ok=True)
             lpath.write_text(_json.dumps(entries, indent=2, ensure_ascii=False),
                              encoding="utf-8")
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001
+            raise LedgerWriteError(
+                f"could not write the nonce ledger at {lpath}: {exc} -- "
+                "the admitted nonce was NOT remembered, so the decision is "
+                "not admitted (a nonce is never spent silently)") from exc
 
     class _Seen:
         """A container whose __contains__ hits the ledger fresh each time."""
