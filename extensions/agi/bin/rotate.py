@@ -16539,6 +16539,215 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
     return 0
 
 
+# --- rotate (the bare verb) and the ONE rotate-self flag set -----------------
+
+def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
+                           timeout_default: int | None,
+                           trigger_default: str = "rotate-self") -> None:
+    """THE ONE definition of the rotate-self flag set (SL7.115 claim 1): BOTH
+    the `rotate-self` and `rotate` subparsers are built from this helper so a
+    flag added here reaches `rotate` by construction -- never a second copy of
+    the list (the parity test proves the option-string sets agree except
+    --name's requirement and the extra --post). Only the three verb differences
+    are parameterized: --name is required on rotate-self but an optional
+    override (target default) on rotate; --timeout defaults to 600 on
+    rotate-self but None (resolve the role template) on rotate; --trigger
+    defaults to the verb name so the rotation record names the verb that ran.
+    """
+    p.add_argument("--name", required=name_required,
+                   help="the seat's own plain registry name")
+    p.add_argument("--force", action="store_true",
+                   help="rotate without an over-threshold meter check")
+    p.add_argument("--timeout", type=int, default=timeout_default,
+                   help="seconds to wait for the successor `continue` "
+                        "(default: 600 on rotate-self; resolved from the "
+                        "role template on rotate)")
+    p.add_argument("--debug-file", default=None,
+                   help="override the successor log path (default: "
+                        ".agi/sessions/<name>.log)")
+    p.add_argument("--model", default=None, help="model override")
+    p.add_argument("--effort", default=None, help="effort override")
+    p.add_argument("--settings", default=None,
+                   help="JSON settings flag")
+    p.add_argument("--prompt-file", default=None,
+                   help="successor body file (default by tier)")
+    p.add_argument("--throwaway", action="store_true",
+                   help="rehearsal-only seat: skip the seats.md registry "
+                        "gate, never write seats.md "
+                        "(hypothesis:l3-rotate-self-successor-override)")
+    p.add_argument("--role", default=None,
+                   help="role tier for a --throwaway seat (default: parent)")
+    p.add_argument("--template", default=None,
+                   help="rotation template name (L4.110): resolve THIS "
+                        "template for this one rotation -- may name another "
+                        "role's template. Default: the seat role's own "
+                        "default. Source: .geometry/rotations.md.")
+    p.add_argument("--successor-argv", default=None,
+                   help="explicit stand-in successor command run verbatim "
+                        "instead of the real claude --remote-control "
+                        "(hypothesis:l3-rotate-self-successor-override)")
+    p.add_argument("--ask-diff", "--successor-diff",
+                   nargs="?", const=True, default=False,
+                   help="write the ack as `diff-requested` (source: "
+                        "predecessor) and hand the successor exactly one "
+                        "diff call, instead of pre-answering `pending`; "
+                        "a value (`--ask-diff '<gap>'`) is ALSO written "
+                        "into the stops section as `diff requested: "
+                        "<gap>` when `--stops` accompanies it")
+    p.add_argument("--registry-dir", default=None,
+                   help="per-session registry dir to JOIN the successor "
+                        "from (default: ~/.claude/sessions) -- tests")
+    p.add_argument("--registry-poll", type=int, default=None,
+                   help="seconds to bound the registry JOIN poll "
+                        "(default: 60) -- tests")
+    p.add_argument("--successor-transcript", default=None,
+                   help="the successor's OWN transcript path from the JOIN; "
+                        "the meter pin is written AT this, never the newest "
+                        "sessions-dir .jsonl.")
+    p.add_argument("--belam-prefix", default=None,
+                   help="force the Belam-cap check (count windows under this "
+                        "prefix, reap the OLDEST when a sixth would exist). "
+                        "Default: only for role prime_director, prefix belam.")
+    p.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
+                   help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
+    p.add_argument("--window-path", default=None,
+                   help="read/write window names from this file (tests)")
+    p.add_argument("--dry-run", action="store_true",
+                   help="print all five steps and touch nothing")
+    p.add_argument("--prepare", action="store_true",
+                   help="print the captive rotate-out checklist and exit "
+                        "(0 clear / 3 blocked) without rotating -- the "
+                        "same `_prepare_checks` rotate-self refuses on "
+                        "(goal:g15.14 STEP 2)")
+    p.add_argument("--comms-root", default=None,
+                   help="override the comms dir the rotation announcement "
+                        "is delivered to (default: send.py's comms_root)")
+    p.add_argument("--trigger", default=trigger_default,
+                   help="spell the rotation's trigger in the announcement "
+                        "(meter due / --force / fable-limit)")
+    p.add_argument("--in-flight", default=None,
+                   help="one line of what is in flight, for peers to know "
+                        "if their round is orphaned")
+    p.add_argument("--stops", default=None,
+                   help="what the seat leaves behind: written into the "
+                        "seat's own card's `### 🔴 Where it stops` section "
+                        "at rotate-out (`-` reads stdin); commits it with "
+                        "the seat's own seats.md row in ONE pathspec "
+                        "commit and pushes")
+    p.add_argument("--stops-file", default=None,
+                   help="read the stops text from FILE instead of "
+                        "--stops (mutually the rotate-out stops write)")
+    p.add_argument("--closeout", action="store_true",
+                   help="phase-1 closeout: print the ONE JSON CARD FORM "
+                        "(no --form) or apply a filled form (--form) and "
+                        "drive the existing stops write in the same call")
+    p.add_argument("--form", default=None,
+                   help="with --closeout: the filled JSON array; `-` reads "
+                        "stdin; absent prints the form and exits")
+    p.add_argument("--closeout-seams-json", default=None,
+                   help="phase-3 TEST SEAM for `rotate-self --closeout`: a "
+                        "JSON object {refuse: [step...]} -> a fake captive-"
+                        "step seam table that returns ok for every step "
+                        "except the named refusers (which stop the call); "
+                        "ABSENT runs the REAL captive steps (merge, suite, "
+                        "push) -- a live close-out is the real run.")
+
+
+def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
+    """The BARE rotation verb (SL7.115, owner order 22:2xZ via the Sensei):
+    `rotate` IS `rotate-self` for the post whose SIGNING KEY the caller holds
+    (goal:g15.25: 'rotate by default does self and all the other options and
+    args and pieces are filled in based on the key holder identity and other
+    relevant session-end metrics. With individual override options so higher
+    up hierarchy members can rotate lower-ranked ones but not the other way
+    around.'). Every default is DERIVED, never hand-filled: name=the caller's
+    held-key post (or --post/--name), force=True (the held key implies it),
+    timeout from the role template, stops from the card's where-it-stops slot,
+    trigger='rotate'. A refusal (no identity, missing seat, rank gate,
+    empty-stops slot) prints BY NAME and returns NON-ZERO with NOTHING
+    delegated. On success it delegates `return cmd_rotate_self(ns, root)`
+    with a Namespace carrying EVERY rotate-self attribute -- built from the
+    parsed args (both subparsers declare the same flag set), never a
+    hand-written subset.
+    """
+    if root is None:
+        print("ERR: rotate needs an agi project root.", file=sys.stderr)
+        return 1
+    # (2) who is the caller? the post whose key the caller holds, or refuse by
+    # name (no identity / unkeyed / fingerprint mismatch): NOTHING delegated.
+    caller_post, caller_row, how = _caller_post(root)
+    if caller_post is None:
+        print(f"rotate refused: {how} (nothing delegated)", file=sys.stderr)
+        return 3
+    # target = --post or --name or the caller's own post.
+    target = args.post or args.name or caller_post
+    if target != caller_post:
+        target_row = _find_seat(root, target)
+        if target_row is None:
+            print(f"rotate refused: no seat {target!r} in the seats registry "
+                  f"(nothing delegated)", file=sys.stderr)
+            return 3
+        gate = _rank_gate(caller_row, target_row, _ranks(root))
+        if gate:
+            print(f"rotate refused: {gate} (nothing delegated)", file=sys.stderr)
+            return 3
+    else:
+        target_row = caller_row
+    # (3) defaults filled ONLY where the override is absent.
+    args.name = target
+    args.force = True            # the caller HELD the key into _caller_post
+    if args.timeout is None:
+        args.timeout = _role_timeout(root, target_row.get("role"))
+    # (4) TEMPLATE-FIRST closeout: templates.<role>.rotate_defaults (a map,
+    # e.g. {closeout: false}) when present, else {closeout: False}; the verb
+    # passes closeout=True ONLY when the template says so or --closeout was
+    # given -- and it NEVER writes config:rotations (read-only, like _ranks).
+    _closeout = bool(args.closeout)
+    _rotate_defaults = {}
+    try:
+        _rt = _load_templates(root).get(target_row.get("role")) or {}
+        _rd = _rt.get("rotate_defaults")
+        if isinstance(_rd, dict):
+            _rotate_defaults = _rd
+    except Exception:  # noqa: BLE001
+        _rotate_defaults = {}
+    args.closeout = _closeout or bool(_rotate_defaults.get("closeout", False))
+    # stops: derive from the own card's where-it-stops slot only when none of
+    # --stops/--stops-file/--closeout was given; an empty slot refuses BY NAME
+    # (exit 2, NOTHING delegated).
+    if args.stops is None and args.stops_file is None and not args.closeout:
+        _stext, _swhy = _default_stops_text(root, target)
+        if _stext is None or not _stext.strip():
+            print(f"rotate refused: no stops text: {_swhy} -- write it or "
+                  f"pass --stops (nothing delegated)", file=sys.stderr)
+            return 2
+        args.stops = _stext
+    # (5) --dry-run prints the ONE resolved line, then delegates (rotate-self's
+    # own dry-run does the rest, touching nothing). The stops token is truthful
+    # to the SOURCE actually set: the derived text (or -) when --stops/--closeout
+    # supplied no text, the file NAME when --stops-file was given, the flag when
+    # --closeout won -- NEVER len(None) on the valid --dry-run --stops-file /
+    # --dry-run --closeout combinations.
+    if args.dry_run:
+        _rank_desc = "self" if target == caller_post else "caller>target"
+        if args.stops is not None:
+            _stops_desc = f"--stops {len(args.stops)} chars"
+        elif args.stops_file is not None:
+            _stops_desc = f"--stops-file {args.stops_file}"
+        elif args.closeout:
+            _stops_desc = "--closeout"
+        else:                                   # defensive: never crashed
+            _stops_desc = "--stops -"
+        print(f"rotate: resolved -> rotate-self --name {target} "
+              f"--timeout {args.timeout} --force "
+              f"{_stops_desc} (from: {how}; "
+              f"rank: {_rank_desc})")
+    # (6) delegation: the Namespace carries EVERY rotate-self attribute (built
+    # from the parsed args -- never a hand-built subset).
+    ns = argparse.Namespace(**vars(args))
+    return cmd_rotate_self(ns, root)
+
+
 # --- main ------------------------------------------------------------------
 
 
@@ -16908,127 +17117,28 @@ def main(argv: list[str] | None = None) -> int:
     p_rs = sub.add_parser(
         "rotate-self", help="rotate a non-prime seat onto a same-named "
                              "successor and kill its own window")
-    p_rs.add_argument("--name", required=True,
-                      help="the seat's own plain registry name")
-    p_rs.add_argument("--force", action="store_true",
-                      help="rotate without an over-threshold meter check")
-    p_rs.add_argument("--timeout", type=int, default=600,
-                      help="seconds to wait for the successor `continue` "
-                           "(default: 600)")
-    p_rs.add_argument("--debug-file", default=None,
-                      help="override the successor log path (default: "
-                           ".agi/sessions/<name>.log)")
-    p_rs.add_argument("--model", default=None, help="model override")
-    p_rs.add_argument("--effort", default=None, help="effort override")
-    p_rs.add_argument("--settings", default=None,
-                      help="JSON settings flag")
-    p_rs.add_argument("--prompt-file", default=None,
-                      help="successor body file (default by tier)")
-    p_rs.add_argument("--throwaway", action="store_true",
-                      help="rehearsal-only seat: skip the seats.md registry "
-                           "gate, never write seats.md "
-                           "(hypothesis:l3-rotate-self-successor-override)")
-    p_rs.add_argument("--role", default=None,
-                      help="role tier for a --throwaway seat (default: parent)")
-    p_rs.add_argument("--template", default=None,
-                      help="rotation template name (L4.110): resolve THIS "
-                           "template for this one rotation -- may name another "
-                           "role's template. Default: the seat role's own "
-                           "default. Source: .geometry/rotations.md.")
-    p_rs.add_argument("--successor-argv", default=None,
-                      help="explicit stand-in successor command run verbatim "
-                           "instead of the real claude --remote-control "
-                           "(hypothesis:l3-rotate-self-successor-override)")
-    # (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
-    #  hands-the-successor-exactly-one-call, --ask-diff leg): by default the
-    # predecessor pre-answers the successor's ack channel itself; WITH this
-    # flag it instead writes `answer: diff-requested, source: predecessor` and
-    # hands the successor EXACTLY ONE wake call -- `rotate.py ack ... diff
-    # --text -` -- so the rotation halts for handoff inspection exactly as a
-    # manual `diff` does today.
-    p_rs.add_argument("--ask-diff", "--successor-diff",
-                      nargs="?", const=True, default=False,
-                      help="write the ack as `diff-requested` (source: "
-                           "predecessor) and hand the successor exactly one "
-                           "diff call, instead of pre-answering `pending`; "
-                           "a value (`--ask-diff '<gap>'`) is ALSO written "
-                           "into the stops section as `diff requested: "
-                           "<gap>` when `--stops` accompanies it")
-    # ++ L4.114 handover: identity is SUPPLIED by the registry JOIN by the
-    # successor's WINDOW @id, not by a --session-ref flag (that flag is
-    # GONE; tests inject the seam into the Namespace directly). --registry-dir
-    # is the test seam; production defaults to ~/.claude/sessions.
-    p_rs.add_argument("--registry-dir", default=None,
-                      help="per-session registry dir to JOIN the successor "
-                           "from (default: ~/.claude/sessions) — tests")
-    p_rs.add_argument("--registry-poll", type=int, default=None,
-                      help="seconds to bound the registry JOIN poll "
-                           "(default: 60) — tests")
-    p_rs.add_argument("--successor-transcript", default=None,
-                      help="the successor's OWN transcript path from the JOIN; "
-                           "the meter pin is written AT this, never the newest "
-                           "sessions-dir .jsonl.")
-    p_rs.add_argument("--belam-prefix", default=None,
-                      help="force the Belam-cap check (count windows under this "
-                           "prefix, reap the OLDEST when a sixth would exist). "
-                           "Default: only for role prime_director, prefix belam.")
-    p_rs.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
-                      help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
-    p_rs.add_argument("--window-path", default=None,
-                      help="read/write window names from this file (tests)")
-    p_rs.add_argument("--dry-run", action="store_true",
-                      help="print all five steps and touch nothing")
-    p_rs.add_argument("--prepare", action="store_true",
-                      help="print the captive rotate-out checklist and exit "
-                           "(0 clear / 3 blocked) without rotating -- the "
-                           "same `_prepare_checks` rotate-self refuses on "
-                           "(goal:g15.14 STEP 2)")
-    p_rs.add_argument("--comms-root", default=None,
-                      help="override the comms dir the rotation announcement "
-                           "is delivered to (default: send.py's comms_root)")
-    p_rs.add_argument("--trigger", default="rotate-self",
-                      help="spell the rotation's trigger in the announcement "
-                           "(meter due / --force / fable-limit)")
-    p_rs.add_argument("--in-flight", default=None,
-                      help="one line of what is in flight, for peers to know "
-                           "if their round is orphaned")
-    # goal:g15.25 line (3) -- the rotate-OUT is ONE call. `--stops 'text'`
-    # (or `--stops-file F`; `--stops -` reads stdin) writes <text> as the
-    # body of the seat's own card's `### 🔴 Where it stops` section, and the
-    # ONE rotate-out commit (card + the seat's own seats.md row, nothing
-    # else) + push + the rotation line all happen INSIDE rotate-self -- the
-    # post's out-count is ONE call, no separate send.py.
-    p_rs.add_argument("--stops", default=None,
-                      help="what the seat leaves behind: written into the '"
-                           "seat's own card's `### 🔴 Where it stops` section "
-                           "at rotate-out (`-` reads stdin); commits it with "
-                           "the seat's own seats.md row in ONE pathspec "
-                           "commit and pushes")
-    p_rs.add_argument("--stops-file", default=None,
-                      help="read the stops text from FILE instead of "
-                           "--stops (mutually the rotate-out stops write)")
-    # ++ phase-1 closeout CARD FORM (hypothesis:l4-rotate-self-closeout-is-
-    # one-call-...). `--closeout` alone prints the ONE JSON slot form and
-    # exits (the LLM fills it once); `--closeout --form FILE|-` applies the
-    # filled array BY CODE to the seat's own card, then derives the where-it-
-    # stops and reuses the EXISTING --stops write/commit/push path (phase 2,
-    # no second implementation). `--closeout` and `--stops` are mutually
-    # exclusive: the form is the single source for the card's stops slot.
-    p_rs.add_argument("--closeout", action="store_true",
-                      help="phase-1 closeout: print the ONE JSON CARD FORM "
-                           "(no --form) or apply a filled form (--form) and "
-                           "drive the existing stops write in the same call")
-    p_rs.add_argument("--form", default=None,
-                      help="with --closeout: the filled JSON array; `-` reads "
-                           "stdin; absent prints the form and exits")
-    p_rs.add_argument("--closeout-seams-json", default=None,
-                      help="phase-3 TEST SEAM for `rotate-self --closeout`: a "
-                           "JSON object {refuse: [step...]} -> a fake captive-"
-                           "step seam table that returns ok for every step "
-                           "except the named refusers (which stop the call); "
-                           "ABSENT runs the REAL captive steps (merge, suite, "
-                           "push) -- a live close-out is the real run.")
+    _add_rotate_self_flags(p_rs, name_required=True, timeout_default=600)
     p_rs.set_defaults(func=cmd_rotate_self)
+
+    # rotate [every rotate-self flag | --post T]: the BARE verb (SL7.115).
+    # `rotate` IS `rotate-self` for the post whose SIGNING KEY the caller
+    # holds — name/timeout/force/stops derived (never hand-filled) through
+    # the SL7.114 resolvers, every rotate-self flag an override, --post
+    # rotating a LOWER-RANKED post only (downward rank-gated). Delegates to
+    # cmd_rotate_self with a Namespace carrying EVERY rotate-self attribute.
+    p_r = sub.add_parser(
+        "rotate", help="rotate-self for the post whose key the caller "
+                        "holds: name/timeout/force/stops derived, every "
+                        "rotate-self flag an override, --post rank-gated "
+                        "downward only")
+    _add_rotate_self_flags(p_r, name_required=False, timeout_default=None,
+                           trigger_default="rotate")
+    p_r.add_argument("--post", default=None,
+                     help="target post to rotate; defaults to the caller's "
+                          "own post; a higher-ranked post may rotate a "
+                          "lower-ranked one but never the reverse")
+    p_r.set_defaults(func=cmd_rotate)
+
 
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
@@ -17141,7 +17251,7 @@ def main(argv: list[str] | None = None) -> int:
         return args.func(args, getattr(args, "root", None))
 
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
-    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
+    if args.cmd in ("meter", "loop", "alarms", "rotate-self", "rotate", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
                     "first-decision", "autopsy", "closeout"):
         root = find_project_root()
