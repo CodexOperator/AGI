@@ -1202,50 +1202,23 @@ def _rotation_before_after(rec: dict) -> tuple:
 
 
 def _record_join(rec: dict) -> dict:
-    """The rotation record's JOIN (successor) identity, read ONCE through a
-    single accessor named the same as rotate.py's — SL7.09 adds rotate.py's
-    copy, same name, same shape; each module owns its own copy until a shared
-    home exists (`_rotation_identity` routes the succ identity through this).
+    """The ONE rotation-record join accessor — rotate.py's copy, imported by
+    name (g15.26 (d): heal's same-named twin is deleted so a SINGLE definition
+    serves both modules). Pid is STR-COERCED and a crash-recovery record's
+    TOP-LEVEL `window_id` is read, exactly as heal's own copy did — widening
+    rotate's was the merge, not keeping two. Missing/malformed fields never
+    raise; absent join identity yields an empty dict.
     Reads BOTH durable record shapes:
       rotate-self:   `handover.join.{pid,window_id}` and
                      `handover.successor_window.id`
-      crash-recovery: TOP-LEVEL `window_id` ONLY. `_write_crash_recovery`
-                     emits NO top-level `pid` and NO top-level `session_id`
-                     (the dead predecessor's pid/session ride in the nested
-                     `row`; the successor's real pid in `respawn_outcome`),
-                     so this branch reads exactly the one identity field the
-                     producer actually writes — earlier hand-rolled dicts
-                     with top-level pid/session_id satisfied the words, but
-                     no real record carries them (experiment:a00-8584ff07).
-    Missing/malformed fields never raise; absent join identity yields an
-    empty dict."""
-    join: dict = {}
-    if not isinstance(rec, dict):
-        return join
-    hand = rec.get("handover")
-    if isinstance(hand, dict):
-        jn = hand.get("join")
-        if isinstance(jn, dict):
-            if jn.get("pid") is not None:
-                join.setdefault("pid", str(jn.get("pid")))
-            if jn.get("window_id") is not None:
-                join.setdefault("window_id", str(jn.get("window_id")))
-        sw = hand.get("successor_window")
-        if isinstance(sw, dict) and sw.get("id") is not None:
-            join.setdefault("window_id", str(sw.get("id")))
-    # crash-recovery shape: TOP-LEVEL `window_id` only (the recovery-target
-    # window; the successor pid/session are NOT top-level — see docstring).
-    # UNREACHABLE from the watcher today: rotate._rotation_record_files
-    # excludes `rotation: crash-recovery` records and `_success_record_rotated`
-    # gates on result == "success" (a recovery record reads respawned/detected),
-    # so no production path feeds a crash-recovery record here. This branch
-    # exists for direct accessor tests and any future reader that bypasses
-    # the exclusion; do NOT lower the guard to make it reachable — a recovery
-    # record's successor is the RESPAWN TARGET, not a rotation predecessor
-    # (experiment:a00-8584ff07-645be9).
-    if join.get("window_id") is None and rec.get("window_id") is not None:
-        join["window_id"] = str(rec.get("window_id"))
-    return join
+      crash-recovery: TOP-LEVEL `window_id` ONLY (the producer writes no
+                     top-level pid/session_id — see test_heal_watch).
+    The crash-recovery branch stays UNREACHABLE from the watcher (rotate's
+    `_rotation_record_files` excludes those records) — it exists for direct
+    accessor tests and any future reader that bypasses the exclusion; do NOT
+    lower the guard (experiment:a00-8584ff07-645be9)."""
+    import rotate as _rotate  # noqa: PLC0415  (heal's local-import pattern)
+    return _rotate._record_join(rec)
 
 
 def _rotation_identity(rec: dict) -> tuple[list, list, list, list]:
