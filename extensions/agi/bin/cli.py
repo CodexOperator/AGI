@@ -26,6 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import geometry_config  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
@@ -1894,15 +1895,19 @@ def _collect_owner_spans(sec: str) -> set:
     trim on a fully-quoted line (HEADOFF §6 item 106).
     """
     MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
+    OPEN = '"“'   # what may OPEN a span
+    CLOSE = '"”'  # what may CLOSE a span
     spans = set()
     for line in sec.splitlines():
         line = MARK.sub("", line)
         i, n = 0, len(line)
         while i < n:
-            if line[i] in '"“”':
-                # a quote: find the far edge of the span it bounds
+            # A closing curly quote `”` outside a span is SKIPPED, never an
+            # opener (hypothesis:l4-trimguard...). Only `"` and `“` open.
+            if line[i] in OPEN:
+                # a real opening quote: find the far edge of the span it bounds
                 j = i + 1
-                while j < n and line[j] not in '"“”':
+                while j < n and line[j] not in CLOSE:
                     j += 1
                 if j < n:
                     s = line[i + 1:j].strip().strip("*").strip()
@@ -1919,6 +1924,174 @@ def _collect_owner_spans(sec: str) -> set:
             else:
                 i += 1
     return spans
+
+
+def _post_rename_jobs(root: Path) -> list:
+    """The worktree-owning seat rows to rename, read from the geometry config
+    that is CURRENTLY on disk (post-first with the seats fallback, via
+    geometry_config). Each job is {"name", "wt_rel"}: `name` is the seat name,
+    `wt_rel` is the row's `worktree` cell (a repo-top-relative path whose
+    basename spells `seat-<name>`). Rows whose worktree cell is empty, or that
+    do not spell `seat-<name>`, are left alone (hypothesis:l4-a-seat-is-a-
+    post-everywhere — rename only what the config itself declares).
+
+    Parses the frontmatter directly (never node_writer, so a bare fixture node
+    without parents/schema can be renamed) and never runs git.
+    """
+    path, key = geometry_config.resolve(root)
+    jobs = []
+    if path is None or not Path(path).exists():
+        return jobs
+    try:
+        import yaml
+        text = Path(path).read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            return jobs
+        fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+        rows = fm.get(key) or []
+        if not isinstance(rows, list):
+            return jobs
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            wt = row.get("worktree") or ""
+            base = Path(str(wt)).name
+            if base.startswith("seat-") and len(base) > 5:
+                jobs.append({"name": base[5:], "wt_rel": str(wt)})
+    except Exception:  # noqa: BLE001  (a malformed config never takes the rename down)
+        return jobs
+    return jobs
+
+
+def _post_rename_print(step: str, cmd: str, applied: bool) -> None:
+    print(f"[{'APPLY' if applied else 'DRY '}] {step}: {cmd}")
+
+
+def cmd_post_rename(args: argparse.Namespace) -> int:
+    """hypothesis:l4-a-seat-is-a-post-everywhere — clause 3: the live rename
+    (migration script + fixture proof). Renames the seat geometry to posts IN
+    ORDER, printing every step:
+      1. fetch                    (dry-run: print only)
+      2. git mv seats.md->posts.md, rewrite id:config:seats->config:posts and
+         seats:->posts:, keeping mint_id BYTE-IDENTICAL
+      3. rewrite each row `worktree` cell seat-<name> -> post-<name>
+      4. git worktree move each .agi/worktrees/seat-<name> -> post-<name>
+      5. git branch -m seat/<name>@s2 -> post/<name>@s2, LOCAL then REMOTE
+         (push new, delete old LAST)
+
+    --dry-run changes NOTHING and prints the exact ordered steps. --apply
+    performs them against the --root graph (default: resolve normally — the
+    LIVE tree, which is the Prime's job, never a kid's). All git runs with
+    cwd at the repo top derived from --root, so an --apply against a fixture
+    tmp_path is hermetic and never touches the shared tree.
+    """
+    root = Path(args.root).resolve() if args.root else _find_root()
+    apply = bool(args.apply)
+    repo = root.parent if root.name == ".agi" else root  # checkout top for git
+    cfg, _key = geometry_config.resolve(root)
+    cfg = Path(cfg) if cfg else None
+
+    # 1. fetch
+    _post_rename_print("fetch", "git fetch", apply)
+    if apply:
+        r = subprocess.run(["git", "fetch"], cwd=repo, capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  note: git fetch rc={r.returncode} (no remote or offline); "
+                  "continuing with the local rename", file=sys.stderr)
+
+    # fail fast: without the geometry config there is nothing to rename
+    if cfg is None or not cfg.exists():
+        print("ERR: no geometry config (seats.md/posts.md) to rename", file=sys.stderr)
+        return 1
+
+    jobs = _post_rename_jobs(root)
+    rel = cfg.relative_to(repo)
+    dest = rel.parent / "posts.md"          # git mv target (repo-relative)
+    posts_abs = cfg.parent / "posts.md"     # for file IO (absolute)
+
+    # 2. git mv the geometry config file
+    _post_rename_print("git mv", f"git mv {rel} {dest}", apply)
+    if apply:
+        r = subprocess.run(["git", "mv", str(rel), str(dest)], cwd=repo,
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"ERR: git mv failed: {r.stderr.strip()}", file=sys.stderr)
+            return 1
+        text = posts_abs.read_text(encoding="utf-8")
+        rewritten = _post_rename_rewrite(text, [j["name"] for j in jobs])
+        posts_abs.write_text(rewritten, encoding="utf-8")
+        _post_rename_print("rewrite frontmatter + worktree cells",
+                           f"edit {dest} (id, {rel.stem}:, worktree cells)", True)
+    else:
+        _post_rename_print("rewrite frontmatter + worktree cells",
+                           f"edit {dest} (id, {rel.stem}:, worktree cells)", False)
+
+    # 4. git worktree move each seat-<name> -> post-<name>
+    for j in jobs:
+        old = j["wt_rel"]
+        new = old.replace("seat-" + j["name"], "post-" + j["name"])
+        _post_rename_print("git worktree move", f"git worktree move {old} {new}", apply)
+        if apply:
+            r = subprocess.run(["git", "worktree", "move", old, new],
+                               cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git worktree move {old} failed: {r.stderr.strip()}",
+                      file=sys.stderr)
+                return 1
+
+    # 5. rename branches local + remote
+    for j in jobs:
+        old_b = f"seat/{j['name']}@s2"
+        new_b = f"post/{j['name']}@s2"
+        _post_rename_print("branch rename (local)", f"git branch -m {old_b} {new_b}", apply)
+        _post_rename_print("branch rename (remote)",
+                           f"git push origin {new_b} && git push origin --delete {old_b}",
+                           apply)
+        if apply:
+            r = subprocess.run(["git", "branch", "-m", old_b, new_b],
+                               cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git branch -m {old_b} failed: {r.stderr.strip()}",
+                      file=sys.stderr)
+                return 1
+            rem = subprocess.run(["git", "remote"], cwd=repo, capture_output=True,
+                                 text=True)
+            if "origin" in rem.stdout.split():
+                for push in (["push", "origin", new_b],
+                             ["push", "origin", "--delete", old_b]):
+                    pr = subprocess.run(["git"] + push, cwd=repo,
+                                        capture_output=True, text=True)
+                    if pr.returncode != 0:
+                        print(f"ERR: git {' '.join(push)} failed: "
+                              f"{pr.stderr.strip()}", file=sys.stderr)
+                        return 1
+
+    print("dry-run: nothing changed" if not apply else "rename applied")
+    return 0
+
+
+def _post_rename_rewrite(text: str, names: list) -> str:
+    """Return `text` with the seat->post renames applied line-preserving:
+    `id: config:seats` -> `id: config:posts`, the bare list key `seats:` ->
+    `posts:`, and every row `worktree` cell `seat-<name>` -> `post-<name>`.
+    Every other line — most importantly `mint_id` — is passed through
+    BYTE-IDENTICAL (hypothesis:l4-a-seat-is-a-post-everywhere: never edit
+    mint_id, and never touch any row value but the worktree cell).
+    """
+    out = []
+    for line in text.splitlines(keepends=True):
+        s = line
+        if s.startswith("id: config:seats"):
+            s = s.replace("id: config:seats", "id: config:posts", 1)
+        if s.strip() == "seats:":
+            s = s.replace("seats:", "posts:", 1)
+        for name in names:
+            old = f'"worktree": ".agi/worktrees/seat-{name}"'
+            new = f'"worktree": ".agi/worktrees/post-{name}"'
+            if old in s:
+                s = s.replace(old, new, 1)
+        out.append(s)
+    return "".join(out)
 
 
 def main() -> int:
@@ -2036,6 +2209,29 @@ def main() -> int:
              "no .agi/nodes/ file, else OK. Fold of the untracked trimguard.py.",
     )
     p_tg.set_defaults(func=cmd_trimguard)
+
+    p_pr = sub.add_parser(
+        "post-rename",
+        help="hypothesis:l4-a-seat-is-a-post-everywhere — rename the seat "
+             "geometry to posts IN ORDER (seats.md->posts.md, worktree cells, "
+             "worktree dirs, branches). --dry-run prints the exact steps and "
+             "changes nothing; --apply performs them against --root (never the "
+             "live tree unless --root is omitted, which is the Prime's job).",
+    )
+    p_pr.add_argument(
+        "--dry-run", action="store_true",
+        help="print the ordered steps and change NOTHING — the default testing "
+             "posture and the only mode a fixture may use without --root.")
+    p_pr.add_argument(
+        "--apply", action="store_true",
+        help="perform the rename IN ORDER (git mv, rewrite, worktree move, "
+             "branch rename). Dangerous against the live tree; always pass "
+             "--root <fixture> in tests.")
+    p_pr.add_argument(
+        "--root", default=None,
+        help="the graph root (.agi dir) to act on — required to run against a "
+             "fixture repo; default resolves the live tree normally.")
+    p_pr.set_defaults(func=cmd_post_rename)
 
     args = ap.parse_args()
     return args.func(args)

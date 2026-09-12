@@ -602,13 +602,16 @@ def read_seat_registry(nodes_dir: Path | None) -> list | None:
     name that may resolve to the wrong seat (hypothesis:l3w4-hierarchy-
     one-source).
     """
-    seats = Path(nodes_dir) / ".geometry" / "seats.md" if nodes_dir else None
-    if seats is None or not seats.is_file():
+    if nodes_dir is None:
         return None
-    fm = _read_frontmatter(seats)
+    import geometry_config as _gc  # same bin dir
+    path, key = _gc.resolve(nodes_dir.parent)
+    if path is None or not Path(path).exists():
+        return None
+    fm = _read_frontmatter(path)
     if not fm:
         return None
-    return fm.get("seats")
+    return fm.get(key)
 
 
 def read_ladder_season(nodes_dir: Path) -> int | None:

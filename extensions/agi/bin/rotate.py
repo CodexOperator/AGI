@@ -64,6 +64,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import geometry_config  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -2369,21 +2370,10 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
 
 
 def _load_seats(root: Path | None) -> list[dict]:
-    """The `seats:` rows of `.agi/nodes/.geometry/seats.md` (config:seats),
-    or [] when absent/unparseable."""
-    if root is None:
-        return []
-    path = Path(root) / "nodes" / ".geometry" / "seats.md"
-    if not path.exists():
-        return []
-    try:
-        nf = frontmatter.load_node_file(path)
-        seats = nf.frontmatter.get("seats") or []
-        if isinstance(seats, list):
-            return [r for r in seats if isinstance(r, dict)]
-    except Exception:
-        pass
-    return []
+    """The geometry config `posts:`/`seats:` rows (config:posts, post-first
+    with a one-season config:seats fallback), or [] when absent/unparseable.
+    Shared resolver: geometry_config.load_rows."""
+    return geometry_config.load_rows(root)
 
 
 def _find_seat(root: Path | None, name: str) -> dict | None:
@@ -4982,19 +4972,25 @@ def _shared_graph_root(root: Path) -> Path:
 
 def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
                           cells: dict) -> str:
-    """The ONE writer of a seat's identity cells in config:seats.
+    """The ONE writer of a seat's identity cells in config:posts.
 
     `generation`/`window`/`pid`/`session_ref`/`session_id` — every cell that
     a rotation moves — are written through here, into the MAIN checkout's
-    `nodes/.geometry/seats.md` (resolved via `_shared_graph_root`), never the
-    caller's worktree copy (hypothesis:l4-a-seats-identity-cell-has-one-
-    writer-and-it-writes-main). A worktree seat's rotation reaches MAIN where
-    every sender reads, and the worktree copy is never written on these
-    cells — nothing to diverge, nothing to conflict at merge-up. From MAIN
-    itself the path is unchanged. Admission is the `self_row` declaration as
-    today (the `seat` is the actor's own row). Returns a truthy one-line
-    outcome when the write landed, or '' when the seat has no registry row
-    (the caller prints its own skip message)."""
+    `nodes/.geometry/posts.md` (resolved via `_shared_graph_root` and
+    `geometry_config.resolve`; `config:seats`/`seats.md` is the one-season
+    alias until the rename settles), never the caller's worktree copy
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main).
+    A worktree seat's rotation reaches MAIN where every sender reads, and the
+    worktree copy is never written on these cells — nothing to diverge,
+    nothing to conflict at merge-up. From MAIN itself the path is unchanged.
+    The node id and frontmatter list key come from `geometry_config.resolve`
+    (`config:posts`/`posts` when posts.md exists, else
+    `config:seats`/`seats`), so a migrated tree's own acks write posts.md.
+    Admission is the `self_row` declaration as today (the `seat` is the
+    actor's own row). Returns a truthy one-line outcome when the write
+    landed, or '' when the seat has no registry row (the caller prints its
+    own skip message)."""
+    import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
     import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
     rows = write._load_seats(main_root)
@@ -5012,10 +5008,12 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
             new_rows.append(r)
     if not found:
         return ""
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
+    _, list_key = geometry_config.resolve(main_root)
+    node_id = f"config:{list_key}"
+    edit = write.Edit(node_id=node_id)
+    edit.set_fm[list_key] = new_rows
     write.submit(main_root, edit, actor=actor, role=role)
-    return f"wrote identity cells for seat {seat!r} into MAIN seats.md"
+    return f"wrote identity cells for seat {seat!r} into MAIN {list_key}.md"
 
 
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
@@ -5032,7 +5030,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     [session_ref, session_id, generation, window, pid]).
 
     The row edit itself moves into `_write_identity_cells`, which resolves the
-    seats node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
+    posts node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
     identity-cell-has-one-writer-and-it-writes-main); `_backfill_session_ref`
     routes through the SAME writer, so a seat's identity cells have one
     writer and it writes MAIN. The successor reuses the PLAIN seat name, so
@@ -5142,10 +5140,12 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
 
 
 def _ack_seats_path(root: Path) -> Path:
-    """The config:seats file the ack's back-fill writes
-    (`.agi/nodes/.geometry/seats.md`) — the ONE path the ack ever stages or
-    commits, never `-A`, never a sibling."""
-    return Path(root) / "nodes" / ".geometry" / "seats.md"
+    """The config:posts/config:seats file the ack's back-fill writes
+    (`.agi/nodes/.geometry/posts.md`, else the deprecated seats.md) — the ONE
+    path the ack ever stages or commits, never `-A`, never a sibling."""
+    return geometry_config.geometry_config_path(root) or (
+        Path(root) / "nodes" / ".geometry" / "posts.md")
+
 
 
 def _ack_seats_dirty(root: Path, top: Path) -> str | None:
@@ -10661,7 +10661,7 @@ def main(argv: list[str] | None = None) -> int:
                              "remote-control debug log")
     p_meter.add_argument("--check", action="store_true",
                         help="exit 1 if fraction >= threshold; else 0")
-    p_meter.add_argument("--seat", default=None,
+    p_meter.add_argument("--seat", "--post", default=None,
                         help="seat name: read the seat-stable "
                              ".agi/sessions/<name>.meter pin over the "
                              "newest-mtime pin (hypothesis:l3w4-seat-registry)")
@@ -10693,7 +10693,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
-    p_spawn.add_argument("--seat", default=None,
+    p_spawn.add_argument("--seat", "--post", default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -10723,7 +10723,7 @@ def main(argv: list[str] | None = None) -> int:
         "autopsy",
         help="print a predecessor seat's death forensics from files only "
              "(read-only; never decides/kills/merges)")
-    p_ap.add_argument("--seat", required=True, help="seat name")
+    p_ap.add_argument("--seat", "--post", required=True, help="seat name")
     p_ap.add_argument("--pid", type=int, default=None,
                       help="predecessor pid (default: the seat row's pid)")
     p_ap.add_argument("--registry-dir", default=None,
@@ -10752,7 +10752,7 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
-    p_loop.add_argument("--seat", default=None,
+    p_loop.add_argument("--seat", "--post", default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -10786,7 +10786,7 @@ def main(argv: list[str] | None = None) -> int:
                     "(<sessions>/seats/<seat>.ack.json); the predecessor writes "
                     "the ack in kid 2 (rotate self) -- kept callable for one "
                     "generation as a fallback only")
-    p_ack.add_argument("--seat", required=True,
+    p_ack.add_argument("--seat", "--post", required=True,
                        help="the successor's seat name", dest="seat")
     p_ack.add_argument("--gen", type=int, required=True, dest="gen",
                        help="the generation this ACK confirms (gen_after)")
@@ -10816,7 +10816,7 @@ def main(argv: list[str] | None = None) -> int:
     p_status.add_argument("--seats", action="store_true",
                           help="list registry seats instead (seat/generation/"
                                "fraction/age, one line per row)")
-    p_status.add_argument("--seat", default=None,
+    p_status.add_argument("--seat", "--post", default=None,
                           help="seat name to read with --record")
     p_status.add_argument("--record", default=None,
                           help="print the LATEST durable rotation record for "
@@ -10837,7 +10837,7 @@ def main(argv: list[str] | None = None) -> int:
         "harvest-table",
         help="report each round's branch/worktree/diffstat-vs-merge-base/"
              "kid-experiment-ids/verdicts, from git + session manifests")
-    p_ht.add_argument("--seat", default=None,
+    p_ht.add_argument("--seat", "--post", default=None,
                       help="only rounds dispatched_by this seat")
     p_ht.add_argument("--round", default=None,
                       help="only the named iter (accepts 'L4.236' or "
@@ -10880,7 +10880,7 @@ def main(argv: list[str] | None = None) -> int:
                      "seat, advancing only on a recorded success — the "
                      "DRIVEN operator half (hypothesis:l4-startup-is-one-\n"
                      "script-or-a-driven-prompt)")
-    p_next.add_argument("--seat", required=True, help="seat name")
+    p_next.add_argument("--seat", "--post", required=True, help="seat name")
     p_next.add_argument("--role", default=None,
                         help="role tier to resolve the template (default: the "
                              "seat's registry row role)")
@@ -10920,7 +10920,7 @@ def main(argv: list[str] | None = None) -> int:
     p_h.add_argument("--driven", action="store_true",
                      help="driven mode: build §0, prompt for §3/§6 (the only "
                           "mode that exists today)")
-    p_h.add_argument("--seat", default=None, help="seat name")
+    p_h.add_argument("--seat", "--post", default=None, help="seat name")
     p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
                      help="field value source; FIELD is s3 or s6, SRC is a "
                           "filename or `-` for stdin (repeatable)")
@@ -10937,7 +10937,7 @@ def main(argv: list[str] | None = None) -> int:
                           "when nothing blocks, exit 3 otherwise "
                          "(hypothesis:l4-rotate-self-drives-the-handoff-and-"
                          "prepares-the-spawn)")
-    p_pr.add_argument("--seat", default="",
+    p_pr.add_argument("--seat", "--post", default="",
                       help="seat name (a seat-bound checklist: card path, "
                            "meter pin, ack file)")
     p_pr.add_argument("--perform", action="store_true",
@@ -10960,7 +10960,7 @@ def main(argv: list[str] | None = None) -> int:
                                 "the pre-filled row + ONE bounded prompt per "
                                 "open round; --answers replays the choice "
                                 "into the named next command (never run)")
-    p_fd.add_argument("--seat", required=True, help="seat name")
+    p_fd.add_argument("--seat", "--post", required=True, help="seat name")
     p_fd.add_argument("--answers", default=None,
                       help="file of choices, one per open round in table "
                            "order: 'harvest <branch>' | 'cut <node-id>' | "
@@ -11050,7 +11050,7 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap-block", help="emit the bootstrap block for a seat "
                                  "successor, or REFUSE when absent/malformed "
                                  "(a stale fact is MARKED stale, still emitted)")
-    p_bb.add_argument("--seat", required=True, help="seat name")
+    p_bb.add_argument("--seat", "--post", required=True, help="seat name")
     p_bb.add_argument("--root", default=None,
                       help="project root (default: resolve from cwd)")
     p_bb.add_argument("--commit", default=None,
@@ -11130,7 +11130,7 @@ def main(argv: list[str] | None = None) -> int:
         "launch-wrapper", help="signal-masking parent that wraps a seat's "
                                "claude argv and logs every process-sent "
                                "TERM/HUP/INT with its sender pid")
-    p_lw.add_argument("--seat", required=True,
+    p_lw.add_argument("--seat", "--post", required=True,
                       help="seat name (log attribution + default log path)")
     p_lw.add_argument("--log", default=None,
                       help="append wrapper lifecycle lines here (default: "
