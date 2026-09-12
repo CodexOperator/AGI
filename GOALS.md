@@ -6606,6 +6606,8 @@ SL7.78 harvested 17:53Z (Prime line (a)): the after_join rewrite commits its own
 
 SL7.87 seat fix-up 18:29Z: its check-6 rewording left test_rotate_prepare.py::test_prepare_blocks_when_ack_is_from_older_generation asserting the old cur=N line (the round ran test_rotate.py only, 314/3, and never test_rotate_prepare.py) — assertion moved to the new evidence wording (gen_after / answer / source / row gen), test-only, prepare+rotate 286/0.
 
+SL7.86 harvested 18:32Z (Prime XVI 17:55Z, F15): the own-tail after_join path now passes the successor's ACKED harness ref or nothing — the one-line succ_session_id fallback at step 6.4 is deleted (it back-filled the join's session uuid into session_ref, NO-MATCH for every peer); cmd_ack refuses BY NAME a --ref equal to the running seat's own session_id cell (rc 2, no ack file, no row write); test_rotate.py append conflict with SL7.87 unioned; nbhd 690/3. Residue for the next digest: a uuid-shaped --ref that matches NO row is still accepted and back-filled.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
