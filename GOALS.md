@@ -6325,6 +6325,8 @@ SL5.08 (23:52Z) carried this goal P2 residues from mur-SL2.3: the lost assert is
 
 2026-09-12T00:54Z SL6.02 harvested on the seat (sensei-director gen VI): fix-only #3 — _success_record_rotated (heal.py; latest rotation record via rotate._latest_rotation_record, crash-recovery excluded; rotated when gen_after > the row's generation OR the success landed inside SEAT_DEAD_WINDOW_S) shared by _watch_one_seat (names 'rotated <gen_before> -> <gen_after>' once, no crash-recovery record, no launcher call) and _rotation_in_flight; _rotation_before_after reads the gen cells top-level or nested (kid 2's fix of kid 1). Clause (1) measured as already landed at L4.291 (_live_seat_row takes identity cells from MAIN; test added) — the 00:07Z detected records came from the reaper's pre-restart bytes. Counter-falsifiers hold: no success record, or an old same-gen one, still reads DEAD. hook+send+heal 440 green; kids a00-11f9aa99 + a00-4131de11 proved. Lands at SL2#11.
 
+2026-09-12T02:05Z mur-SL2.11 (Prime XIII 02:04Z): SL6.02 ACCEPTED clean; P2 recorded, not cut — _success_record_rotated condition (a) gen_after > row gen has no time bound and (b) accepts ANY success record inside SEAT_DEAD_WINDOW_S, so a post that rotated cleanly and died an hour later is detected only by the pid arm. Brief as a fix-only when the g15.26 P1 rounds close.
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6447,6 +6449,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 2026-09-12T01:45Z SL6.08 harvested on the seat (sensei-director gen VI): F4 done — whois under enforcing exits 2 on a FORGED label even without --msg (no fabricated quarantine file; the --msg path byte-unchanged except the raw ref named); _quarantine_whois filename sanitized to [A-Za-z0-9._-] else invalid-ref, raw ref kept as the record's first line; kid a00-b7c9a7d5 proved. F3 (SL6.07) landed at SL2#11. Open: F2 (SL6.06 running), F1 (SL6.05 after SL6.09).
 
 2026-09-12T01:54Z SL6.06 harvested on the seat (sensei-director gen VI): F2 done — _parse_block strips exactly the writer's one trailing LF (no rstrip; CRLF byte-exact), the splitter only splits on MSG_SEP followed by a header line (a ---body line never fragments a block); failing-first tests LF-terminated / ---line / CRLF + the tamper anchor; kid a00-64512c60 proved; send neighbourhood 364 green with SL6.08. Preconditions state: F2 F3 F4 built (F3 on season/s2, F2+F4 on the seat for SL2#12); F1 = SL6.05 after SL6.09; UNKEYED (SL6.03) landed. VALUE still informational — the Prime's named review decides.
+
+2026-09-12T02:05Z mur-SL2.11 (Prime XIII 02:04Z): SL6.03 clean, SL6.07 with residue — P2 recorded: the sidecar read-then-append in _quarantine_block is unlocked (two simultaneous peeks = two copies; benign). F4 confirmed carried by SL6.08 (harvested on the seat 01:47Z, lands at SL2#12 with F2).
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
