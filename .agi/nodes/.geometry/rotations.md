@@ -89,6 +89,7 @@ templates:
       - worktree
       - ack
       - prev_gen
+      - meter
     startup:
       byte_cap: 40000
       first_turn:
