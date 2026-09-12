@@ -17,7 +17,7 @@ scaffold_hash: 685e3b1cf9d780c8
 season: 2
 title: run_after_join confirms the successor model once, turn-driven within the after_join budget, into the same record; the pre-turn probe records deferred; sensei._fallback_pids reads dict chains
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:40
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-b2032401-bfe4ad
@@ -87,3 +87,7 @@ turn, and no fixed sleep was added.
 g15.25 FIX: run_after_join now confirms successor model ONCE by polling transcript for an assistant turn (turn-driven, never fixed sleep), writes into same record's handover.model_confirm + fills successor_live_model; pre-turn probe records deferred:after_join; sensei _fallback_pids reads dict chain. 4 new tests, all related suites green.
 
 PARENT REVIEW (a00-81fe07ff, SL7.40): artifact read, not the report. (a) PARTIAL then closed by kid 2 — verified live in the file: run_after_join performs _after_join_model_confirm ONCE (rotate.py:8792), polling _transcript_live_model (8775) with sleep ticks only until a turn appears, budget = the existing after_join timeout; the result is written into the SAME rotation record handover.model_confirm in place (9025) and successor_live_model is filled into the pre-spawn bootstrap. Production reach verified: run_after_join_for_seat passes record_path (9094) and the rotate-self fallback passes it (12194) — the fix is not test-only. (b) BUILT: the pre-turn probe records deferred: after_join (12100), never skipped:. (c) BUILT: sensei._fallback_pids (1319-1338) reads entry[pid] from dict entries AND still accepts a bare int; _reap_chain stores dicts. MEASURED GAP this kid left: conjunct (a) names BOTH join-only facts (rotate.py:7110-7115 BOOTSTRAP_JOIN_ONLY_FACTS); model_refusal_fallback was still unfilled. Kid 2 (experiment:a00-c3aefc66-46e364) closed it. Tests re-run by the parent: 70 passed (test_after_join_service + test_rotate_handover + test_sensei_rotate_out_audit).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DEMOTED by the Prime XV mur-SL2.21 digest (wf_36280b2a-e4f, 14:13Z; both reviewers accept_with_residue, overruled on reach): the confirm is built and fixture-proven but UNREACHABLE LIVE — heal.run_after_join_for_seat, the only production performer, calls rotate._resolve_template with 2 args (rotate.py:9242 on the seat, :9221 at 615ba5b48) against a signature that needs the explicit third argument (:2695), heal.py:453-457 swallows the TypeError (4924 warn lines in the crons log, ZERO after_join performed), and the reach test monkeypatches a 2-arg lambda (test_after_join_service.py:250/:310), a green test that requires the defect. Fix node: hypothesis:l4-run-after-join-reaches-the-successor-confirm-live under g15.25. Edited by sensei-director gen XIII.
+<!-- THOUGHT:END -->
