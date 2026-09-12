@@ -1,7 +1,7 @@
 ---
 name: config
 written_by: [owner, prime_director]   # list-shaped; links.parse_written_by reads a list (L4.50 flip)
-self_row: {list_key: seats, match_key: name, fields: [session_ref, session_id, generation, window, pid, pubkey, sig_scheme, enc_scheme, key_history]}  # L4.110 prime ruling B + L4.114 r3: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration. r3 added session_id (the successor's session uuid) and pid (its process), both supplied by the L4.114 registry JOIN; the row write records source in the rotation record, never here. pubkey/sig_scheme/enc_scheme/key_history added hypothesis:l4-every-live-row-is-keyed...: a seated seat writes its own signing cells via `send.py keygen` (self-row), the prime writes other rows via `keygen --all-live`, and key_history records rotations.
+self_row: {list_key: seats, match_key: name, fields: [session_ref, session_id, generation, window, pid, pubkey, sig_scheme, enc_scheme, key_history]}  # L4.110 prime ruling B + L4.114 r3: a seated non-prime role may update ONLY its own seat row (the one whose `name` it resolved from) and ONLY these fields; role/model/tier/harness/effort/owning_goal/worktree/rotated_by stay prime/owner-only and a write touching any of them is refused whole. Driven generically by write.py `_enforce_written_by` from THIS declaration. r3 added session_id (the successor's session uuid) and pid (its process), both supplied by the L4.114 registry JOIN; the row write records source in the rotation record, never here. pubkey/sig_scheme/enc_scheme/key_history added hypothesis:l4-every-live-row-is-keyed...: a seated seat writes its own signing cells via `send.py keygen` (self-row), the prime writes other rows via `keygen --all-live`, and key_history records rotations. list_key FOLLOWS the geometry_config resolver (hypothesis:l4-a-seat-is-a-post-everywhere): it is `seats` in THIS window — the live node is still `.geometry/seats.md` bearing a `seats:` list until the migration renames it — and becomes `posts` (config:posts) after that rename. write._load_seats already reads through the resolver, so old/new row comparison stays correct regardless of which spelling the live file uses.
 master_sensei_row: {actor: master-sensei, list_key: templates, role_field: id, fields: [startup, telemetry], deny_roles: [prime_director]}  # PRIME RULING 2026-09-11 (hypothesis:write-guard-carve-out-for-master-sensei-templates): the master-sensei seat may write config:rotations `templates` (startup + telemetry per role) and the `## facts` body section for EVERY role EXCEPT prime_director, without dm-and-wait. `brief_file` and `steps` of any template stay prime/owner-only, refused BY NAME. Every resolved first_turn/after_join cmd in the written value must pass rotate's startup producing judge (`rotate._producing_refusal`), so a Sensei cannot land an entry the executor would refuse. One generic rule in write.py `_enforce_written_by`, the regions as DATA here (the self_row pattern).
 structural: true
 derived_from: read-2026-08-25 from lib/find-root.sh, bin/level3.py, bin/grid.py
@@ -12,7 +12,7 @@ fields:
   required_keys: {type: list}        # env keys a project cannot run without
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
-  seats: {type: list}                # hypothesis:l3w4-seat-registry — one row per active seat:
+  seats: {type: list}                # config:seats (deprecated spelling, one season) / config:posts. The row list is resolved post-first by extensions/agi/bin/geometry_config.py (hypothesis:l4-a-seat-is-a-post-everywhere): `posts.md`/`posts:` is the primary; `seats.md`/`seats:` is the deprecated alias accepted in THIS window, so the live node may keep `seats:` until the migration renames it. One row per active seat:
                                       # {name, role, tier, harness, model, effort, settings,
                                       #  session_kind, personality_ref, handoff_file, pin_ref,
                                       #  rotated_by, owning_goal, worktree, session_ref,
@@ -41,6 +41,10 @@ fields:
                                       #  shows it any more than it can know its own pin transcript
                                       #  before claiming it) -- write it via the seat's own report
                                       #  to its rotator, never guessed by a third party.
+  posts: {type: list}                # config:posts — the post-first spelling of the same row list
+                                      # (hypothesis:l4-a-seat-is-a-post-everywhere). Accepted in
+                                      # this window so a fixture/post-migration node validates;
+                                      # the live node stays `seats:` until the migration runs.
 validation:
   required: [locations]
   types:
@@ -51,6 +55,7 @@ validation:
     optional_keys: list
     forbidden_keys: list
     seats: list
+    posts: list
 
 # ===========================================================================
 # The three filesystem facts, and the three places each is defined today.

@@ -34,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import geometry_config  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
 # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the per-town
@@ -1203,11 +1204,12 @@ def _merge_up_town_gate(root: Path, args) -> str | None:
     round_id = getattr(args, "round", "") or ""
     seat_name = getattr(args, "seat", "") or ""
     round_town = _resolve_round_town(root, args)
-    # Seat town (half B) -- from --seat, then the exported AGI_SEAT env var
-    # (the seat name the spawn already carries), then the seat registry.
+    # Seat town (half B) -- from --seat/--post, then the exported
+    # AGI_POST/AGI_SEAT env var (the seat name the spawn already carries),
+    # then the seat registry.
     seat_town = None
     if not seat_name:
-        seat_name = os.environ.get("AGI_SEAT", "") or ""
+        seat_name = geometry_config.resolved_seat_env() or ""
     if seat_name:
         from spawn_gate import read_seat_registry
         rows = read_seat_registry(Path(root) / "nodes") or []
@@ -1793,7 +1795,7 @@ def main(argv: list[str] | None = None) -> int:
     p_merge.add_argument("--round", default="",
                          help="round node id (e.g. experiment:x) whose town "
                               "cell the merge-up town gate checks")
-    p_merge.add_argument("--seat", default="",
+    p_merge.add_argument("--seat", "--post", default="",
                          help="seat name whose config:seats town cell the "
                               "merge-up town gate checks")
 
