@@ -5899,46 +5899,79 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
         crossed inside one replace opcode) still keeps the own row's WORK
         bytes and restores the foreign row byte-identical to HEAD, instead of
         falling through to a fail-safe that dropped the own added line
-        (mur-SL2.17 / goal:g15.24 (i)). Structured as: walk the REMOVED lines
-        in HEAD order, for each keyed row keep/restore/drop by identity using
-        the WORK version when the row survived; then flush any WORK-only
-        added lines (row inserts / structural additions) not already consumed,
-        staging each only when OWN. Non-row structural lines (frontmatter
-        `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) likewise keep HEAD
-        unless the work version is an owned frontmatter stamp."""
+        (mur-SL2.17 / goal:g15.24 (i)). One two-pointer walk over the removed
+        AND added sides in their own order interleaves a WORK-only added line
+        (an own row inserted into WORK that HEAD lacks) at its WALK position —
+        right where it sits on the added side, before the next removed line —
+        instead of flushing it to the region END, so an own inserted row
+        BETWEEN two HEAD rows keeps its byte position in the staged buffer
+        (goal:g15.24 (ii), SL7.52). When the two sides sit at EXACTLY this
+        spot (aligned keys) or a key CROSSES inside the opcode (both present on
+        both sides, wrong order), pair BY KEY: keep the own row's WORK bytes,
+        restore the foreign row byte-identical to HEAD. Structural lines
+        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) carry
+        their HEAD bytes unless the work version is an owned frontmatter stamp.
+        """
         rem = [(l, _key(l)) for l in removed]
         add = [(l, _key(l)) for l in added]
         add_by_key = {k: l for l, k in add if k is not None}
-        consumed: set[str] = set()
+        rkeys = {k for _, k in rem if k is not None}
+        matched: set[str] = set()
+        i = j = 0
         out: list[str] = []
-        for rl, rk in rem:
-            if rk is not None:
-                al = add_by_key.get(rk)  # the work version of THIS row, if any
-                if al is not None:
-                    # the row survived on both sides (edited in work, or its
-                    # position crossed inside one opcode): keep WORK bytes
-                    # when this seat owns the row, else RESTORE HEAD.
-                    consumed.add(rk)
-                    out.append(al if _own(al) else rl)
-                else:
-                    # the row was DELETED from the work copy: restore it from
-                    # HEAD unless it is this seat's OWN row (own deletion).
-                    if not _own(rl):
-                        out.append(rl)
-            else:
-                # a structural line in the removed region: keep HEAD unless it
-                # is an owned frontmatter stamp.
+        while i < len(rem) or j < len(add):
+            rl, rk = rem[i] if i < len(rem) else (None, None)
+            al, ak = add[j] if j < len(add) else (None, None)
+            # A WORK-only added row sits HERE in the added walk (its key is
+            # absent from HEAD and it is not yet emitted): stage it at this
+            # position, before the next removed line — never flushed to the
+            # region end. Only this seat's own write is staged.
+            if al is not None and ak is not None and ak not in rkeys \
+                    and ak not in matched:
+                if _own(al):
+                    out.append(al)
+                j += 1
+                continue
+            if rl is None:
+                # only WORK-only added rows remain past the removed side.
+                if ak is None:
+                    if _own(al):  # own structural addition (frontmatter stamp)
+                        out.append(al)
+                elif ak not in matched:
+                    if _own(al):
+                        out.append(al)
+                    matched.add(ak)
+                j += 1
+                continue
+            if rk == ak is not None and rk not in matched:
+                # aligned same-slot pair: keep WORK bytes when own, else the
+                # row is restored byte-identical to HEAD.
+                out.append(al if _own(al) else rl)
+                matched.add(rk)
+                i += 1
+                j += 1
+                continue
+            if rk is not None and rk not in add_by_key:
+                # the row was DELETED from the work copy: restore it from
+                # HEAD unless it is this seat's OWN row (own deletion).
                 if not _own(rl):
                     out.append(rl)
-        # flush any WORK-only added lines not consumed above (row
-        # inserts and structural additions): stage each only when OWN.
-        for al, ak in add:
-            if ak is None:
-                if _own(al):
-                    out.append(al)
-            elif ak not in consumed:
-                if _own(al):
-                    out.append(al)
+                i += 1
+                continue
+            if rk is not None and rk not in matched:
+                # key present on BOTH sides but crossed / not yet paired:
+                # pair by KEY — keep own WORK bytes, restore foreign from HEAD.
+                wal = add_by_key.get(rk)
+                if wal is not None:
+                    out.append(wal if _own(wal) else rl)
+                    matched.add(rk)
+                    i += 1
+                    continue
+            # structural removed line, or a removed row whose work twin is
+            # already emitted: keep HEAD unless this is an owned stamp.
+            if not _own(rl):
+                out.append(rl)
+            i += 1
         return out
 
     staged: list[str] = []
