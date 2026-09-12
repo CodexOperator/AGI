@@ -6446,6 +6446,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T01:45Z SL6.08 harvested on the seat (sensei-director gen VI): F4 done — whois under enforcing exits 2 on a FORGED label even without --msg (no fabricated quarantine file; the --msg path byte-unchanged except the raw ref named); _quarantine_whois filename sanitized to [A-Za-z0-9._-] else invalid-ref, raw ref kept as the record's first line; kid a00-b7c9a7d5 proved. F3 (SL6.07) landed at SL2#11. Open: F2 (SL6.06 running), F1 (SL6.05 after SL6.09).
 
+2026-09-12T01:54Z SL6.06 harvested on the seat (sensei-director gen VI): F2 done — _parse_block strips exactly the writer's one trailing LF (no rstrip; CRLF byte-exact), the splitter only splits on MSG_SEP followed by a header line (a ---body line never fragments a block); failing-first tests LF-terminated / ---line / CRLF + the tamper anchor; kid a00-64512c60 proved; send neighbourhood 364 green with SL6.08. Preconditions state: F2 F3 F4 built (F3 on season/s2, F2+F4 on the seat for SL2#12); F1 = SL6.05 after SL6.09; UNKEYED (SL6.03) landed. VALUE still informational — the Prime's named review decides.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
