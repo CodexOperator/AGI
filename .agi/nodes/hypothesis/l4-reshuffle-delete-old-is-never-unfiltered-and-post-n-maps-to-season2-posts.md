@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.319 (sanctuary-director 114003Z, 11:59Z): landed on the seat a708d9aad (parent a00-d5b6e48c, kids a00-3e3acdf1 proved / a00-8632c40f; one clean done commit, no scratch, no kid worktrees). Director re-ran on the real seat tree: 85 passed (test_branch_reshuffle + test_branches + test_cli); unfiltered branch-reshuffle --dry-run prints the defaulting line, lists 5 legacy branches (3 posts + 2 towns), no loop/* and no master job, nothing changed, tree clean. Ruling A (default posts,towns + printed) and ruling B (post/<n>@sN alias + reverse) hold as stated. RESIDUE, measured in-process on this branch's branches.py (for the Prime): ref_candidates('post/<n>@s2') returns [season2/posts/<n>, seat/<n>@s2] and DROPS the input spelling, so at the rename mid-point (post-rename --apply done, reshuffle --apply not yet, --delete-old not yet) a reader handed the live post/ name never tries it; it still resolves through the not-yet-deleted seat/ ref, same tip unless post/ moved. One-line fix: canonical + intermediate + legacy, deduped, in ref_candidates.
