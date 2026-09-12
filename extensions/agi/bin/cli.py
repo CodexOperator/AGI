@@ -2022,11 +2022,38 @@ def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
 
 
 def _post_rename_upstream(repo: Path, branch: str) -> str:
-    """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset."""
+    """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset.
+    Returncode-honest: on a non-zero git rc (a dead upstream makes rev-parse
+    emit the LITERAL `<branch>@{upstream}` on stdout with rc!=0), return ''
+    so a caller can never mistake that literal for a real upstream
+    (hypothesis:l4-post-rename-apply-re-points-every-upstream-and-deletes-
+    nothing)."""
     r = subprocess.run(["git", "rev-parse", "--abbrev-ref",
                         f"{branch}@{{upstream}}"], cwd=repo,
                        capture_output=True, text=True)
+    if r.returncode != 0:
+        return ""
     return (r.stdout or "").strip()
+
+
+def _post_rename_commit_targets(repo: Path, dest: Path,
+                                seats_rel: Path) -> list:
+    """The step-3 commit pathspec, shared by the --dry-run plan and --apply
+    (hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
+    true, Region A). The seats.md DELETE (staged by the git mv) stays in the
+    pathspec only while that staged delete is still PENDING in the index; once
+    a prior commit carries it, the path is gone from the index and a
+    `git commit -- ... seats.md` would ERROR instead of skipping. `git diff
+    --cached` reports the pending staged-delete cleanly (empty output when
+    absent), so a dry-run names exactly the files --apply would commit for the
+    same tree. Queries the index only -- never git mv -- so a dry-run changes
+    NOTHING and a dry-run tree stays byte-identical (pinned by the no-plan-file
+    / byte-identical test)."""
+    seats_pending = subprocess.run(
+        ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
+        cwd=repo, capture_output=True, text=True)
+    return ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
+            else [str(dest)])
 
 
 def cmd_post_rename(args: argparse.Namespace) -> int:
@@ -2058,6 +2085,11 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     """
     root = Path(args.root).resolve() if args.root else _find_root()
     apply = bool(args.apply)
+    delete_old = bool(args.delete_old)
+    if apply and delete_old:
+        print("ERR: --apply and --delete-old are mutually exclusive; "
+              "--delete-old is the separate final step", file=sys.stderr)
+        return 1
     repo = root.parent if root.name == ".agi" else root  # checkout top for git
     cfg, _key = geometry_config.resolve(root)
     cfg = Path(cfg) if cfg else None
@@ -2087,8 +2119,11 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
         if apply:          # dry-run never writes the plan file
             _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
 
-    origin = _post_rename_has_origin(repo) if apply else False
+    origin = _post_rename_has_origin(repo) if (apply or delete_old) else False
     cur = _post_rename_current_branch(repo) if apply else "HEAD"
+
+    if delete_old:
+        return _post_rename_delete_old(repo, jobs)
 
     # 1. fetch (dry-run: print only)
     _post_rename_print("fetch", "git fetch", apply)
@@ -2133,9 +2168,10 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     #    while that staged delete is still pending, and the rollback is printed
     #    only when a commit was really created, never a stale HEAD~1 on a skip.)
     if not apply:
+        targets = _post_rename_commit_targets(repo, dest, seats_rel)
         commit_cmds = [f"git add {dest}",
                        f'git commit -m "post-rename: seats.md -> posts.md" -- '
-                       + " ".join([str(dest), str(seats_rel)])]
+                       + " ".join(targets)]
         if origin:
             commit_cmds.append(f"git push origin {cur}")
         _post_rename_print("commit posts.md", " && ".join(commit_cmds), apply,
@@ -2151,11 +2187,7 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
         # it, the path is gone from the index and a `git commit -- ... seats.md`
         # would ERROR instead of skipping; `git diff --cached` reports the
         # pending staged-delete cleanly (empty output when absent).
-        seats_pending = subprocess.run(
-            ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
-            cwd=repo, capture_output=True, text=True)
-        targets = ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
-                   else [str(dest)])
+        targets = _post_rename_commit_targets(repo, dest, seats_rel)
         pending = subprocess.run(
             ["git", "diff", "--cached", "--name-only", "--", *targets],
             cwd=repo, capture_output=True, text=True)
@@ -2233,18 +2265,17 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     if apply:
         mark("branch_rename")
 
-    # 6. push the renamed branch (new, then delete old LAST) — when origin exists
+    # 6. push the renamed branch (new only) — when origin exists. L4.316: the
+    #    old remote name is NEVER deleted under --apply (deletion is the
+    #    separate --delete-old step, its own LAST pass); origin/seat/<n>@s2
+    #    survives --apply so a later --delete-old can clear it in isolation.
     for j in jobs:
-        old_b = f"seat/{j['name']}@s2"
         new_b = f"post/{j['name']}@s2"
-        _post_rename_print("branch push (remote)",
-                           f"git push origin {new_b} ; git push origin --delete {old_b}",
-                           apply,
-                           rollback=f"git push origin {old_b} ; git push origin --delete {new_b}")
+        _post_rename_print("branch push (remote)", f"git push origin {new_b}",
+                           apply, rollback=f"git push origin --delete {new_b}")
     if apply and not step_done("branch_push"):
         if origin:
             for j in jobs:
-                old_b = f"seat/{j['name']}@s2"
                 new_b = f"post/{j['name']}@s2"
                 if not _post_rename_ls_remote(repo, f"refs/heads/{new_b}"):
                     r = subprocess.run(["git", "push", "origin", new_b], cwd=repo,
@@ -2254,18 +2285,14 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
                         print(f"ERR: git push origin {new_b} failed: {r.stderr.strip()}",
                               file=sys.stderr)
                         return 1
-                if _post_rename_ls_remote(repo, f"refs/heads/{old_b}"):
-                    r = subprocess.run(["git", "push", "origin", "--delete", old_b],
-                                       cwd=repo, capture_output=True, text=True)
-                    if r.returncode != 0:
-                        _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
-                        print(f"ERR: git push origin --delete {old_b} failed: "
-                              f"{r.stderr.strip()}", file=sys.stderr)
-                        return 1
         mark("branch_push")
 
     # 7. set the upstream on each renamed branch (L4.306 fix) — after the push,
-    #    so origin/post/<name>@s2 exists to bind to
+    #    so origin/post/<name>@s2 exists to bind to. L4.316: git branch -m
+    #    CARRIES the old upstream (origin/seat/<n>@s2), so the skip gate is
+    #    `== origin/<new>` — re-point whenever it is anything else, including
+    #    '' (unset) or the carried old name. _post_rename_upstream is
+    #    returncode-honest, never the literal `<b>@{upstream}`.
     for j in jobs:
         new_b = f"post/{j['name']}@s2"
         _post_rename_print("branch upstream",
@@ -2276,7 +2303,7 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
         if origin:
             for j in jobs:
                 new_b = f"post/{j['name']}@s2"
-                if _post_rename_upstream(repo, new_b):
+                if _post_rename_upstream(repo, new_b) == f"origin/{new_b}":
                     continue
                 r = subprocess.run(["git", "branch", "--set-upstream-to",
                                     f"origin/{new_b}", new_b], cwd=repo,
@@ -2288,7 +2315,45 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
                     return 1
         mark("branch_upstream")
 
+    # L4.316: the remote delete is NEVER implied by --apply; say so plainly.
+    # (Same one-line note branch-reshuffle prints for its own --delete-old.)
+    print("  NOTE: remote delete is NOT implied by --apply; run --delete-old "
+          "separately")
     print("dry-run: nothing changed" if not apply else "rename applied")
+    return 0
+
+
+def _post_rename_delete_old(repo: Path, jobs: list) -> int:
+    """The ONLY path that deletes origin/seat/<name>@s2 — a separate final
+    step, never implied by --apply. First reads the upstream gate GREEN for
+    EVERY renamed branch: if any post/<name>@s2 has an upstream other than
+    origin/post/<name>@s2 (still the carried old name, or unset), refuse
+    non-zero NAMING the branch and delete NOTHING. When every gate reads
+    green, delete each origin/seat/<name>@s2 (hypothesis:l4-post-rename-
+    apply-re-points-every-upstream-and-deletes-nothing)."""
+    if not _post_rename_has_origin(repo):
+        print("ERR: --delete-old refuses: no 'origin' remote present (remote "
+              "delete happens against origin/ only)", file=sys.stderr)
+        return 1
+    for j in jobs:
+        new_b = f"post/{j['name']}@s2"
+        want = f"origin/{new_b}"
+        got = _post_rename_upstream(repo, new_b)
+        if got != want:
+            print(f"ERR: --delete-old REFUSES {new_b}: upstream is {got!r}, not "
+                  f"{want!r}; re-point it with --apply before deleting",
+                  file=sys.stderr)
+            return 1
+    for j in jobs:
+        old_b = f"seat/{j['name']}@s2"
+        print(f"[APPLY] branch delete (remote): git push origin --delete {old_b}")
+        r = subprocess.run(["git", "push", "origin", "--delete", old_b],
+                           cwd=repo, capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"ERR: git push origin --delete {old_b} failed: "
+                  f"{r.stderr.strip()}", file=sys.stderr)
+            return 1
+    print("delete-old: remote seat/<name>@s2 branches removed")
     return 0
 
 
@@ -2474,6 +2539,12 @@ _RESHUFFLE_KIND_ALIASES = {"main": "main", "mains": "main", "post": "post",
                            "town": "town_main", "towns": "town_main",
                            "town_main": "town_main"}
 
+# Prime ruling (window-46 HOLD, recorded on goal:g17.1): --delete-old is NEVER
+# unfiltered. An unfiltered run MUST default to a safe kind set (posts,towns
+# here) and say so; a loop/* or main/master branch is a delete job ONLY when
+# --kinds names it explicitly.
+_RESHUFFLE_DEFAULT_KINDS = {"post", "town_main"}
+
 
 def _reshuffle_kinds(spec: str) -> set[str]:
     """`--kinds main,posts,towns` -> {"main", "post", "town_main"}; empty
@@ -2494,6 +2565,18 @@ def _reshuffle_kind(canonical: str) -> str:
         return str(branches.parse(canonical).get("kind") or "")
     except Exception:  # noqa: BLE001
         return ""
+
+
+_RS_DELETE_ORDER = {"post": 0, "town_main": 1, "main": 2, "loop": 3}
+
+
+def _reshuffle_delete_order(jobs: list[dict]) -> list[dict]:
+    """Delete-pass ordering: posts first, then towns, then mains (dead loops
+    last), judged by the NEW (canonical) name's grammar kind. The `--kinds`
+    filter has already narrowed the set; this only orders WITHIN it. Unknown
+    kinds sort last."""
+    return sorted(jobs, key=lambda j: _RS_DELETE_ORDER.get(
+        _reshuffle_kind(j["new"]), 99))
 
 
 
@@ -2562,7 +2645,17 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # names -- harvest notes and experiment nodes cite them by name, and a
     # rename would make every citation stale for nothing. The kind of a job
     # is the kind of its NEW (canonical) name: main | post | loop | town_main.
-    kinds = _reshuffle_kinds(getattr(args, "kinds", "") or "")
+    kinds_spec = (getattr(args, "kinds", "") or "").strip()
+    kinds = _reshuffle_kinds(kinds_spec)
+    if not kinds_spec:
+        # Prime ruling (window 46 HOLD, goal:g17.1): --delete-old is NEVER
+        # unfiltered. No explicit --kinds -> default to posts,towns (main and
+        # loop excluded), and PRINT the default so a --dry-run / --delete-old
+        # reader sees the filter that was applied. An explicit full list
+        # (--kinds main,posts,towns,loops) still means all four.
+        kinds = _RESHUFFLE_DEFAULT_KINDS
+        print("branch-reshuffle: --kinds not given; defaulted to kinds "
+              "posts,towns (main/loops excluded until named explicitly)")
     if kinds:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
@@ -2580,7 +2673,12 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     remotes = subprocess.run(["git", "remote"], cwd=repo,
                              capture_output=True, text=True).stdout.split()
     has_origin = "origin" in remotes
-    if not delete_old:
+    # The origin-moved baseline is taken at most once: on a --dry-run, or on
+    # an --apply that finds NO plan file yet. An --apply over an existing
+    # plan READS it and never rewrites it, so a refused origin-moved apply
+    # does not silently re-baseline itself onto the moved shas and a SECOND
+    # --apply is refused the SAME way, naming the SAME branch.
+    if not delete_old and (not apply or not _rs_plan_path(root).exists()):
         jobs_map = {}
         for j in jobs:
             sha = _rs_ls_remote_sha(repo, j["old"]) if has_origin else ""
@@ -2624,15 +2722,31 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                   file=sys.stderr)
             return 3
         # defect 1: --delete-old EXECUTES the deletes it listed, one branch
-        # per APPLY line, in the refs/heads/<old> namespace.
-        for j in jobs:
-            print(f"[APPLY] branch delete (remote): git push origin --delete {j['old']}")
-            r = subprocess.run(["git", "push", "origin", "--delete", j["old"]],
+        # per APPLY line, in the refs/heads/<old> namespace, ordered posts ->
+        # towns -> mains (dead loops last) within the --kinds-filtered set.
+        # a refused delete names its job and the run CONTINUES to the next
+        # one; refusals are collected and the exit is non-zero only if any.
+        djobs = _reshuffle_delete_order(jobs)
+        refused: list[str] = []
+        for j in djobs:
+            old = j["old"]
+            # master -> season1/main is ADD-ONLY: master stays the frozen
+            # season-1 name, so its remote name is KEPT, never a delete target.
+            if old == "master":
+                print("  master: add-only, remote name kept (frozen season-1 "
+                      "name); not deleted")
+                continue
+            print(f"[APPLY] branch delete (remote): git push origin --delete {old}")
+            r = subprocess.run(["git", "push", "origin", "--delete", old],
                                cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
-                print(f"ERR: git push origin --delete {j['old']} failed: "
+                print(f"ERR: git push origin --delete {old} failed: "
                       f"{r.stderr.strip()}", file=sys.stderr)
-                return 1
+                refused.append(old)
+        if refused:
+            print(f"ERR: --delete-old: {len(refused)} remote delete(s) refused: "
+                  f"{', '.join(refused)}", file=sys.stderr)
+            return 1
         print("delete-old: remote legacy branches removed")
         return 0
 
@@ -2839,6 +2953,12 @@ def main() -> int:
              "branch rename). Dangerous against the live tree; always pass "
              "--root <fixture> in tests.")
     p_pr.add_argument(
+        "--delete-old", action="store_true",
+        help="SEPARATE final step: git push origin --delete seat/<name>@s2 "
+             "for each renamed branch. REFUSES unless every renamed branch "
+             "reads upstream origin/post/<name>@s2 (re-point with --apply "
+             "first). Never implied by --apply.")
+    p_pr.add_argument(
         "--root", default=None,
         help="the graph root (.agi dir) to act on — required to run against a "
              "fixture repo; default resolves the live tree normally.")
@@ -2875,8 +2995,9 @@ def main() -> int:
     p_rs.add_argument(
         "--kinds", default="",
         help="comma list of kinds to reshuffle (main, posts, towns, loops); "
-             "empty = every legacy branch. Prime ruling: --kinds "
-             "main,posts,towns FIRST, dead loop/* keep their cited names")
+             "empty = DEFAULTS to posts,towns (NEVER unfiltered: main and "
+             "loop are delete/rename jobs only when named explicitly, per "
+             "the Prime ruling)")
     p_rs.add_argument(
         "--season", type=int, default=None,
         help="root season for town-main renames (default: ladder "
