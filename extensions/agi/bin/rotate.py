@@ -1647,7 +1647,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                 _spawn_gen = _rowgen
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
-                tmux_session=tmux_session, dry_run=args.dry_run)
+                tmux_session=tmux_session, dry_run=args.dry_run,
+                ask_diff=bool(getattr(args, "ask_diff", False)))
     # The SEAT ROW is the model source for a seated spawn, the flags only an
     # override — the same precedence rotate-self (`cmd_rotate_self`), the
     # reaper's crash-recovery respawn (heal.py) and seats-launch already use.
@@ -7053,7 +7054,8 @@ def _git_head(root: Path, *, argv: list[str] | None = None) -> str | None:
 
 
 def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
-                           seat_row: dict | None, commit: str | None):
+                           seat_row: dict | None, commit: str | None,
+                           generation: int | None = None):
     """Resolve ONE bootstrap fact to a real value the handover can see, else
     None with a NAMED skip reason. NEVER the old blanket `0b owns deriving`:
     every skip names the connection that is missing (the seat row field, the
@@ -7090,6 +7092,13 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         #     a prefixed value here would render the doubled `- ack: ack: ...`
         #     (the SL7.15 defect part (a)). The staleness bound (`head` as
         #     today) is applied by the caller, unchanged.
+        # GOAL:g15.25 (SL7.42) — a RE-SEATED post must not print a leftover
+        #     PRIOR-generation ack file as this seating's. When the writer
+        #     knows its own generation and the ack file carries a `gen_after`
+        #     that is NOT it (a stale file from an earlier seating of the
+        #     same seat name), the fact is NAMED `stale: gen N` — never
+        #     printed as current. generation=None (the SL7.29 direct calls
+        #     that predate the bound) keeps the old read.
         ack_path = _ack_path(root, seat)
         try:
             _a = (json.loads(ack_path.read_text(
@@ -7098,8 +7107,16 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         except (OSError, ValueError):
             _a = None
         if isinstance(_a, dict) and _a.get("answer"):
+            _g = _a.get("gen_after")
+            if generation is not None and _g is not None:
+                try:
+                    _stale = int(_g) != int(generation)
+                except (TypeError, ValueError):
+                    _stale = False
+                if _stale:
+                    return f"stale: gen {_g}", None
             return (("{} (source {}, gen {})".format(
-                _a.get("answer"), _a.get("source"), _a.get("gen_after"))),
+                _a.get("answer"), _a.get("source"), _g)),
                     None)
         return "none", None
     if key == "prev_gen":
@@ -7214,7 +7231,8 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                              f"{join_poll_secs}s")
             continue
         value, reason = _derive_bootstrap_fact(
-            key, root=root, seat=seat, seat_row=seat_row, commit=commit)
+            key, root=root, seat=seat, seat_row=seat_row, commit=commit,
+            generation=generation)
         if value is None:
             tele[key] = f"SKIPPED: {reason}"
         else:
@@ -8515,7 +8533,8 @@ def _compose_startup_output(results: list) -> str:
 def _first_seating_run(root: Path, *, seat: str, role: str,
                        succ_name: str,
                        tmux_session: str = DEFAULT_TMUX_SESSION,
-                       dry_run: bool = False) -> tuple[str, list]:
+                       dry_run: bool = False,
+                       ask_diff: bool = False) -> tuple[str, list]:
     """First-seating STARTUP composition (hypothesis:l4-a-first-seating-is-a-
     rotation-without-a-predecessor).
 
@@ -8550,10 +8569,37 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     results = _run_first_turn_commands(startup, values, dry_run=dry_run)
     block = _compose_startup_output(results)
     if block and not dry_run:
+        # GOAL:g15.25 (SL7.42) — a first seating has NO predecessor (gen 1),
+        #     so its turn-one bootstrap `ack` fact must name the SOURCE
+        #     `first-seating`, never `predecessor`, and must not fall through
+        #     to `_derive_bootstrap_fact` — which would print `ack: none`
+        #     (no ack file yet) or, on a RE-SEATED post, a STALE prior-gen
+        #     answer still sitting in seats/<seat>.ack.json. This post acks
+        #     itself once (`continue`; F8/SL7.06 default), so the truthful
+        #     turn-one value is supplied verbatim through the SAME `overrides`
+        #     seam the rotation path (cmd_rotate_self step 2.75) uses — one
+        #     override, no new flag.
+        # GOAL:g15.25 (SL7.42) — the turn-one value must track the MODE this
+        #     seat will actually have. `cmd_spawn --ask-diff` inherits its ack
+        #     open (`_first_seating_spawn_writes` writes answer
+        #     `diff-requested` into seats/<seat>.ack.json), so a bootstrap
+        #     record that says `continue` while the ack channel it opened says
+        #     `diff-requested` is the same lie this node exists to kill — just
+        #     in the ask-diff mode. The bootstrap ANSWER must equal the ack
+        #     file's answer; SOURCE stays `first-seating` (never
+        #     `predecessor`) in both modes. seats-launch (no ask-diff) is
+        #     unchanged: default-`continue`. One caller parameter, no new flag.
+        _answer = "diff-requested" if ask_diff else "continue"
+        _ack_override = (
+            f"{_answer} (source first-seating, gen 1) — "
+            "this post awaits one diff answer" if ask_diff else
+            "continue (source first-seating, gen 1) — "
+            "this post acks once itself")
         _write_bootstrap(root, seat=seat, generation=1,
                          telemetry=role_tmpl.get("telemetry"),
                          verification=None,
-                         join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+                         join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
+                         overrides={"ack": _ack_override})
     return block, results
 
 
