@@ -4551,6 +4551,73 @@ def test_ack_gen1_first_seating_announces_once_dedup(tmp_path, monkeypatch):
     assert sent == [], f"a second dm for the same seat + gen is the falsifier: {sent}"
 
 
+def test_ack_gen1_diff_empty_announces_once(tmp_path, monkeypatch):
+    """g15.24 FIX-ONLY (SL7.33 residue) — a gen-1 ack answered `diff` whose
+    TEXT is empty/whitespace stands the handoff exactly like `continue`, so it
+    commits its own row write AND — because the first-seating announce gate
+    now uses the SAME predicate as do_commit (_ack_commits), not a literal
+    `answer == 'continue'` — sends the first-seating alert ONCE."""
+    import send as _send
+    rows = [{"name": "diff-seat", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-seat", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-seat", gen=1, ref="d1",
+                                        answer="diff", text="   "), tmp_path)
+    assert rc == 0
+    assert len(sent) == 1, \
+        f"a gen-1 diff-empty must announce the first seating once: {sent}"
+    _to, text = sent[0]
+    assert "first seating diff-seat" in text
+    assert "trigger: first-seating" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("diff-seat.*.seating.json"))
+    assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
+
+
+def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
+    """g15.24 FIX-ONLY falsifier — a gen-1 ack answered `diff` WITH text never
+    commits (the successor still edits), so by the SAME predicate it announces
+    NO first-seating alert and writes no seating record."""
+    import send as _send
+    rows = [{"name": "diff-t", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-t", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-t", gen=1, ref="d2",
+                                        answer="diff", text="- a\n+ b"), tmp_path)
+    assert rc == 0
+    assert sent == [], \
+        f"a gen-1 diff-with-text must NOT announce a seating: {sent}"
+    assert not list(rotate._rotations_dir(tmp_path).glob("diff-t.*.seating.json"))
+
+
+def test_ack_help_names_diff_empty_commits(capsys):
+    """g15.24 FIX-ONLY (SL7.33 residue) — `ack --help` names the THREE answers
+    and what each commits (the FALSIFIER: help lacks the words diff and empty,
+    or claims diff never commits)."""
+    with pytest.raises(SystemExit) as e:
+        rotate.main(["ack", "--help"])
+    assert e.value.code in (0, None)
+    raw = capsys.readouterr().out
+    import re
+    h = re.sub(r"\s+", " ", raw)  # argparse line-wraps long help; fold first
+    assert "diff" in h and "empty" in h, f"help must name diff/empty:\n{raw}"
+    assert "diff with empty text commits" in h, raw
+    assert "diff with text never commits" in h, raw
+
+
 def test_ack_gen1_does_not_announce_for_non_first_generation(tmp_path, monkeypatch):
     """Only --gen 1 (the no-predecessor first generation) is a hand-seating;
     a rotation ack at a later generation never re-announces it."""

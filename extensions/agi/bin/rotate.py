@@ -1964,6 +1964,18 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
     return None
 
 
+def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
+    """The ONE predicate that decides whether an answered ack commits its own
+    row write: `continue` commits; `diff` with empty/whitespace text commits
+    (an empty diff stands the handoff exactly like continue); `diff` with text
+    never commits. `--no-commit` suppresses the commit on every path. Shared
+    by the do_commit gate and the first-seating announce gate so the two can
+    never disagree (g15.24 FIX-ONLY)."""
+    return (answer == "continue"
+            or (answer == "diff" and not (text or "").strip())) \
+        and not no_commit
+
+
 def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     """The successor's explicit, identity-supplied reply to its rotation.
 
@@ -2078,9 +2090,8 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # an unrelated FOREIGN hunk, staged or unstaged, is neither bundled nor
     # blocking — only the OWN row's uncommitted change names the refusal), so
     # the ack's own commit never double-writes a row someone was mid-edit on.
-    do_commit = (args.answer == "continue"
-                 or (args.answer == "diff" and not (text or "").strip())) \
-        and not getattr(args, "no_commit", False)
+    do_commit = _ack_commits(args.answer, text,
+                             getattr(args, "no_commit", False))
     # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
     # identity cells now have ONE writer and it writes MAIN's seats.md
     # (`_write_identity_cells` -> `_shared_graph_root`), so every read the
@@ -2245,7 +2256,14 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # so a spawn/seats-launch that already recorded + announced is never
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
-    if args.gen == FIRST_SEATING_GEN and args.answer == "continue" \
+    # g15.24: the announce gate uses the SAME predicate as do_commit (_ack_commits),
+    # NOT a literal `answer == "continue"`, so a gen-1 answer of `diff` with EMPTY
+    # text commits AND announces once (a `diff` with text commits nothing and, by
+    # the same predicate, announces nothing). The double-send falsifier (a second
+    # dm for the same seat+gen) still holds via _seating_record_exists.
+    if args.gen == FIRST_SEATING_GEN \
+            and _ack_commits(args.answer, text,
+                             getattr(args, "no_commit", False)) \
             and not _seating_record_exists(root, seat, generation=args.gen) \
             and not _rotation_record_exists(root, seat) \
             and not _pending_ack_present:
@@ -13205,8 +13223,10 @@ def main(argv: list[str] | None = None) -> int:
                             "JOIN (default: ~/.claude/sessions)")
     p_ack.add_argument("--no-commit", action="store_true", dest="no_commit",
                        help="write + print the back-fill but do NOT commit "
-                            "the seat row (continue commits by default; "
-                            "diff never commits)")
+                            "the seat row even on a committing answer - the "
+                            "three answers commit as: continue commits; diff "
+                            "with empty text commits; diff with text never "
+                            "commits")
     # g15.24 belt fallback (2c): when the own-row dirty gate refuses, re-poll
     # the gate every 5 s up to N s before the exit-3 refusal. --wait 0 (the
     # default) behaves exactly as today.
