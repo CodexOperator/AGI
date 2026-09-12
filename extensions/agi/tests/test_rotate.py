@@ -264,6 +264,105 @@ def test_rotate_successor_key_gate_defers_on_push_failure(tmp_path):
     assert key_path2.read_text() != before2
 
 
+def test_rotate_successor_key_gate_persists_pending_on_push_failure(tmp_path):
+    """g15.26 claim (a): on `push: FAILED` the pending successor key is
+    PERSISTED to `<sessions>/seats/<seat>.key.pending` (0600), not dropped
+    with the return string -- so the minted key exists on disk after a
+    failed push (the main falsifier), and a later successful push can
+    complete the swap. The predecessor <seat>.key stays byte-identical, the
+    return still names the deferred swap (existing assertions unchanged),
+    and the pending file carries the exact spawned-private-key JSON shape
+    `{scheme,priv_hex,pub_hex,gen_after,minted_at}`."""
+    import send as bin_send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s9")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "helper"}
+    out = rotate._rotate_successor_key(tmp_path, "s9", row,
+                                       gen_before=1, gen_after=2)
+    r = rotate._apply_successor_key_gated(
+        out, "config:seats row s9: ...",
+        "spawn_row_commit: committed (sha abc1234)\n"
+        "push: push: FAILED -- remote: permission denied")
+    # existing assertions still hold: deferred + NOT applied.
+    assert "NOT applied" in r and "deferred swap" in r
+    assert key_path.read_text() == before  # predecessor key stays put
+    # (a) the pending successor key IS persisted, 0600, exact shape.
+    pend = bin_send._seats_dir(tmp_path) / "s9.key.pending"
+    assert pend.is_file(), "pending successor key must survive a failed push"
+    assert oct(os.stat(pend).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(pend.read_text())
+    assert obj["scheme"] == "ed25519"
+    assert obj["priv_hex"] == out["pending_key"]["priv_hex"]
+    assert obj["pub_hex"] == out["successor_pub"]
+    assert obj["gen_after"] == 2
+    assert "persisted to" in r and ".key.pending" in r
+    # a push-SKIPPED / push-OK / row-failed case persists nothing.
+    key_path2, _ = _mk_seat_key(tmp_path, "s10")
+    out2 = rotate._rotate_successor_key(tmp_path, "s10",
+                                        {"pubkey": "x", "role": "p"},
+                                        gen_before=1, gen_after=2)
+    rotate._apply_successor_key_gated(out2, "config:seats row s10: ...",
+                                      "spawn_row_commit: committed (a)\n"
+                                      "push: push: OK -- master")
+    assert not (bin_send._seats_dir(tmp_path) / "s10.key.pending").exists()
+    key_path3, _ = _mk_seat_key(tmp_path, "s11")
+    out3 = rotate._rotate_successor_key(tmp_path, "s11",
+                                        {"pubkey": "y", "role": "p"},
+                                        gen_before=1, gen_after=2)
+    rotate._apply_successor_key_gated(out3, "FAILED: write boom", "")
+    assert not (bin_send._seats_dir(tmp_path) / "s11.key.pending").exists()
+
+
+def test_rotate_complete_pending_key_swap(tmp_path, monkeypatch):
+    """g15.26 claim (b): a later successful push of the row completes the
+    deferred swap. A `.key.pending` whose `pub_hex` matches the seat's
+    COMMITTED row pubkey triggers the ONE atomic replace of <seat>.key with
+    the pending private key and deletes the pending file; when the row still
+    names the OLD pubkey the pending file is left alone (still deferred).
+    rotate's local `import send` is the top-level bin module, so patch that
+    object (the frame stream's own send is `agi.bin.send`, a different one)."""
+    import send as bin_send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s12")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    pend = bin_send._seats_dir(tmp_path) / "s12.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    # no pending file -> nothing to do, '' (never a failure)
+    assert rotate._complete_pending_key_swap(tmp_path, "s13") == ""
+
+    def _fake_committed(root):
+        return [{"name": "s12", "pubkey": succ_pub.hex(),
+                 "role": "helper"}]
+
+    monkeypatch.setattr(bin_send, "_seats_committed_rows", _fake_committed)
+    r = rotate._complete_pending_key_swap(tmp_path, "s12")
+    assert r == "key swap completed (deferred from gen 2)"
+    assert not pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] == succ_priv.hex()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+
+    # row still names the OLD pubkey -> pending left alone, still deferred.
+    key_path2, _ = _mk_seat_key(tmp_path, "s14")
+    pend2 = bin_send._seats_dir(tmp_path) / "s14.key.pending"
+    pend2.write_text(json.dumps({"scheme": "ed25519",
+                                 "priv_hex": succ_priv.hex(),
+                                 "pub_hex": succ_pub.hex(),
+                                 "gen_after": 3, "minted_at": ""}))
+
+    def _fake_old(root):
+        return [{"name": "s14", "pubkey": pred_pub.hex(),
+                 "role": "helper"}]
+
+    monkeypatch.setattr(bin_send, "_seats_committed_rows", _fake_old)
+    r2 = rotate._complete_pending_key_swap(tmp_path, "s14")
+    assert "NOT completed" in r2 and "deferred" in r2
+    assert pend2.exists()
+    assert json.loads(key_path2.read_text())["priv_hex"] != succ_priv.hex()
+
+
 def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
     """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
     must fail under a corrupted record (the signature is specific)."""
@@ -1473,6 +1572,43 @@ def test_loop_returns_diff_when_successor_acks_diff(monkeypatch, tmp_path, capsy
     assert rec["result"] == "diff"
     err = capsys.readouterr().err
     assert "acked diff" in err and "+ y" in err
+
+
+def test_loop_returns_success_when_diff_is_empty(monkeypatch, tmp_path, capsys):
+    """An acked `diff` whose TEXT is empty/whitespace is the reviewed-no-change
+    answer the --ask-diff gate names: the handoff STANDS exactly like a
+    `continue` — recorded `result: success` with `d_reply_decision: diff-empty`,
+    never result: diff (hypothesis:l4-the-ask-diff-gate-offers-no-continue-
+    and-an-empty-diff-stands-the-handoff)."""
+    root = _proj(tmp_path)
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    dbg = tmp_path / "seat.log"
+    dbg.write_text(REAL_DEBUG_LOG)
+    ack = rotate._ack_path(root, "belam-II")
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                               "answer": "diff", "text": "   "}),
+                    encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    monkeypatch.setattr(rotate, "_launch_window",
+                        lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(dbg), dry_run=False, timeout=1,
+    ), root)
+    assert code == 0
+    recs = list((rotate._rotations_dir(root)).glob("belam-II.*.json"))
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "success"
+    assert rec["observations"]["d_reply_decision"] == "diff-empty"
+    err = capsys.readouterr().err
+    assert "handoff stood" in err and "EMPTY diff" in err
+
 
 
 def test_loop_present_but_silent_no_ack_still_no_reply(monkeypatch, tmp_path):
@@ -2952,6 +3088,127 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     assert "generation 0 -> 1" in text and "--gen 0" not in text
     assert ("rotate.py ack --seat director-seat --gen 1 "
             "--ref <your ListAgents ref> diff --text -") in text, text
+
+
+def _spawn_seat_args(reg, wins, pid_arg):
+    """cmd_spawn Namespace for a hand seating of the seeded `belam` seat on a
+    real git root. `--pid` is what the SPAWNER typed (the predecessor's or
+    the launcher's pid, whatever the caller supplied) -- NEVER the seated
+    window's own; `no_autopsy` keeps the run on the seat row."""
+    return SimpleNamespace(
+        name="belam", tier="parent", prompt_file=None, model=None,
+        effort=None, settings=None, successor_argv=None, seat="belam",
+        tmux_session="agi-rc", window_path=str(wins), dry_run=False,
+        registry_dir=str(reg), no_autopsy=True, pid=pid_arg, ask_diff=False)
+
+
+def test_spawn_seating_row_commits_joined_pid_and_session_and_prints(
+        tmp_path, monkeypatch, capsys):
+    """Claim (a)+(b)+(c) FIRST test (hypothesis:l4-a-hand-seating-commits-the-
+    joined-pid-and-session-and-prints-its-row-commit-outcome): `cmd_spawn`
+    on a REAL tmp git root COMMITS the seating row with the JOIN identity --
+    the registry record for the seated window @id (pid 4242, session t-join),
+    the `_record_join` shape rotate-self commits -- NEVER the spawner's
+    `--pid` (7777). The `_commit_spawn_row` outcome + push is printed as ONE
+    stderr line and carried into the first-seating record's
+    `handover.seating_row_commit`."""
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = tmp_path / "registry"
+    reg.mkdir(parents=True, exist_ok=True)
+    (reg / "4242.json").write_text(json.dumps(
+        {"window_id": "@42", "session_id": "t-join",
+         "cwd": str(root)}), encoding="utf-8")
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    # the seat-liveness gate is SL7.03/SL7.07-proven; passing a `--pid` would
+    # trip the window probe on the fake @42. This round scopes to the JOINTED-
+    # identity row commit + print, so the gate is bypassed.
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    rc = rotate.cmd_spawn(_spawn_seat_args(reg, wins, 7777), root)
+    assert rc == 0
+    err = capsys.readouterr().err
+    # (b) the commit + push OUTCOME is ONE printed stderr line.
+    assert "committed (sha" in err and "seating row" in err, err
+    assert "push: OK" in err, err
+    # the JOINED identity (never the spawner's --pid) is on origin's row.
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert "\"pid\": 4242" in shown, shown
+    assert "\"session_id\": \"t-join\"" in shown, shown
+    assert "7777" not in shown, f"the spawner's --pid MUST NOT leak: {shown}"
+    # seats.md clean in MAIN (a hand seating leaves MAIN clean).
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain",
+                         "--", "proj/nodes/.geometry/seats.md"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    # the commit subject names the seating row + the JOINED identity (the
+    # generation re-pins at the row's own -- 2 in the seed -- a re-spawn
+    # never reset to 1).
+    assert "belam seating row: gen " in commits[0] and \
+        "session_id t-join, window @42, pid 4242" in commits[0], commits[0]
+    assert "7777" not in commits[0], commits[0]
+    # (b) the seating record carries handover.seating_row_commit.
+    recs = list(rotate._rotations_dir(root).glob("belam.*.seating.json"))
+    assert len(recs) == 1, recs
+    rec = json.loads(recs[0].read_text(encoding="utf-8"))
+    ho = rec.get("handover") or {}
+    assert ho.get("seating_row_commit", "").startswith(
+        "spawn_row_commit: committed"), rec
+    _push = ho["seating_row_commit"].split("\npush: ")[1]
+    assert "push: OK" in _push, rec
+
+
+def test_spawn_seating_row_join_miss_leaves_cells_empty(
+        tmp_path, monkeypatch, capsys):
+    """Claim (a)+(c) SECOND test -- registry MISS: `cmd_spawn` with the
+    spawner's `--pid 7777` and NO registry record for the seated window
+    commits the seating row with EMPTY pid/session_id cells and prints
+    `join: miss`; the spawner's `--pid` never leaks. The seat's row is
+    SEEDED with a PREDECESSOR identity (`pid 4242, session_id old-sess` —
+    a dead predecessor, per the falsifier: a registry MISS commits the
+    predecessor's pid/session into the seat's OWN row as if they were the
+    newly seated window's identity) and the miss must CLEAR both cells to
+    the empty sentinel, never inherit 4242/old-sess."""
+    root, top, bare = _git_with_bare(
+        tmp_path, lambda r: None,
+        seat_row={"name": "belam", "role": "prime_director", "model": "x",
+                   "effort": "max", "settings": "", "session_ref": "p-ref",
+                   "session_id": "old-sess", "generation": 2,
+                   "window": "@42", "pid": 4242})
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = tmp_path / "registry"
+    reg.mkdir(parents=True, exist_ok=True)
+    # a registry file that does NOT name the seated window @42 -> miss.
+    (reg / "7777.json").write_text(json.dumps(
+        {"window_id": "@99", "session_id": "other"}), encoding="utf-8")
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    monkeypatch.setattr(rotate, "FIRST_SEATING_JOIN_POLL_S", 0)
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    rc = rotate.cmd_spawn(_spawn_seat_args(reg, wins, 7777), root)
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "join: miss" in err, err
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    # BOTH identity cells are EMPTY (the empty-row sentinels): the stale
+    # predecessor pid/session_id are CLEARED, and neither the predecessor's
+    # nor the spawner's pid leaks anywhere.
+    assert '"pid": 0' in shown, f"pid cell not cleared: {shown}"
+    assert '"session_id": ""' in shown, f"session_id cell not cleared: {shown}"
+    assert "4242" not in shown, f"predecessor pid leaks: {shown}"
+    assert "old-sess" not in shown, f"predecessor session leaks: {shown}"
+    assert "7777" not in shown, f"the spawner's --pid MUST NOT leak: {shown}"
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert "7777" not in " ".join(commits), commits
 
 
 def test_seats_launch_first_seating_emits_seating_alert(tmp_path, monkeypatch):
@@ -4981,11 +5238,14 @@ def test_ack_failed_commit_cmd_exits_nonzero_and_no_staged_diff(
 # '<seat> ack: gen ...' authored by the ack — with NO exit-3 refusal in
 # between and `git status --porcelain -- seats.md` empty after each.
 
-def _spawn_seed_git(tmp_path):
+def _spawn_seed_git(tmp_path, seat_row=None):
     """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
     COMMITTED seats.md carrying one row — the rotate-self s6.1 spawn-row
     write + commit + ack path. sessions/ is gitignored so the ack.json the
-    ack writes stays out of `git status`. Returns (graph_root, repo_top)."""
+    ack writes stays out of `git status`. Returns (graph_root, repo_top).
+    `seat_row` (optional) overrides the single committed belam row, so a
+    test may seed a PREDECESSOR identity (dead pid/session_id) that a miss
+    must clear rather than inherit."""
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
                     "spawn@test"], check=True)
@@ -4994,11 +5254,13 @@ def _spawn_seed_git(tmp_path):
     (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
     root = _proj(tmp_path, ladder_roles="")
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
-    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
-                               "model": "x", "effort": "max",
-                               "settings": "", "session_ref": "",
-                               "session_id": "", "generation": 2,
-                               "window": "", "pid": 0}])
+    if seat_row is None:
+        seat_row = {"name": "belam", "role": "prime_director",
+                    "model": "x", "effort": "max",
+                    "settings": "", "session_ref": "",
+                    "session_id": "", "generation": 2,
+                    "window": "", "pid": 0}
+    _write_seats_sheet(root, [seat_row])
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "seats seed"], check=True)
@@ -5341,17 +5603,19 @@ def test_prepare_merge_target_season_loop_targets_season_main(tmp_path):
 # ════════════════════════════════════════════════════════════════════════════
 
 
-def _git_with_bare(tmp_path, seed):
+def _git_with_bare(tmp_path, seed, seat_row=None):
     """seed(main_root, seats_path) -> commit an initial seats.md, then wire a
     bare remote and push the initial branch so `origin` exists. Returns
     (main_root, repo_top, bare). The caller's key-cell write then commits and
-    pushes onto that branch and origin reflects it."""
+    pushes onto that branch and origin reflects it. `seat_row` (optional)
+    overrides the seed's single belam row so a test can seed a PREDECESSOR
+    identity (a real pid/session_id) and assert the miss clears it."""
     # bare remote OUTSIDE the seeded repo tree -- placing it under tmp_path
     # would itself show as untracked in `git status` and trip the "MAIN not
     # dirty" assertion.
     bare = tmp_path.parent / f"{tmp_path.name}-remote.git"
     subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
-    root, top = _spawn_seed_git(tmp_path)   # proj graph + committed seats.md
+    root, top = _spawn_seed_git(tmp_path, seat_row=seat_row)   # proj graph + committed seats.md
     subprocess.run(["git", "-C", str(top), "remote", "add", "origin",
                     str(bare)], check=True)
     branch = subprocess.run(["git", "-C", str(top), "rev-parse",
@@ -5453,3 +5717,152 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "continue" and ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
+
+
+def _two_row_git_root(tmp_path):
+    """A committed git root whose seats.md carries TWO adjacent rows: belam
+    (the seat under test) then `other` (foreign). Returns (root, top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "project marker"], check=True, capture_output=True)
+    _write_seats_sheet(root, [
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        {"name": "other", "role": "director", "model": "x",
+         "effort": "max", "settings": ""},
+    ])
+    rel = os.path.relpath(rotate._ack_seats_path(root), tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", rel],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    return root, tmp_path
+
+
+def test_own_row_cut_classifies_by_row_identity_not_index(tmp_path):
+    """mur-SL2.15 clause (a): `_seats_ownrow_content` pairs each changed line
+    by ROW IDENTITY (the `name` cell), never by index. An OWN row and a
+    FOREIGN row edited in the SAME replace opcode (adjacent rows, both
+    edited) — in BOTH orders — must stage exactly the own row's change with
+    the foreign row byte-identical to HEAD: no foreign k-pair rides the
+    staged content. This was the defect: per-index pairing made `is_own` true
+    from EITHER side of a pair, so an own/foreign pair at the same k staged
+    the foreign added line as own."""
+    own_role_new, foreign_ed = '"role": "p2"', '"edited_by": "x"'
+    for i, (own_at, foreign_at) in enumerate(
+            (("belam", "other"), ("other", "belam"))):
+        root, top = _two_row_git_root(tmp_path / f"ord{i}")
+        seats = rotate._ack_seats_path(root)
+        work = seats.read_text(encoding="utf-8")
+        if own_at == "belam":
+            work = work.replace('"name": "belam", "role": "prime_director"',
+                                '"name": "belam"' + own_role_new)
+            work = work.replace('"name": "other", "role": "director"',
+                                '"name": "other"' + foreign_ed)
+        else:
+            work = work.replace('"name": "other", "role": "director"',
+                                '"name": "other"' + foreign_ed)
+            work = work.replace('"name": "belam", "role": "prime_director"',
+                                '"name": "belam"' + own_role_new)
+        seats.write_text(work, encoding="utf-8")
+        staged = rotate._seats_ownrow_content(root, top, own_at)
+        assert staged is not None, "an own-row change must build content"
+        if own_at == "belam":
+            assert '"name": "belam"' + own_role_new in staged, staged
+            assert '"name": "other", "role": "director"' in staged, staged
+            assert foreign_ed not in staged, \
+                "foreign `edited_by` cell must never be staged as own"
+        else:
+            assert '"name": "other"' + foreign_ed in staged, staged
+            assert '"name": "belam", "role": "prime_director"' in staged, \
+                staged
+            assert own_role_new not in staged, \
+                "belam is foreign here — its role change must be reverted"
+        # the FOREIGN row is byte-identical to HEAD (base blob).
+        rel = os.path.relpath(os.fspath(seats), os.fspath(top))
+        head_blob = subprocess.run(
+            ["git", "-C", str(top), "show", f"HEAD:{rel}"],
+            capture_output=True, text=True).stdout
+        foreign_head_line = next(
+            l for l in head_blob.splitlines() if f'"name": "{foreign_at}"' in l)
+        assert foreign_head_line in staged, \
+            "the foreign row must appear byte-identical to HEAD"
+
+
+def test_own_row_cut_own_deletion_plus_foreign_change_and_insert(tmp_path):
+    """mur-SL2.15 clause (a) pre-fix defect shape: an OWN row DELETED, a
+    FOREIGN row CHANGED and a FOREIGN row INSERTED all in one working copy.
+    The legendary per-index pairing staged the foreign `edited_by` change as
+    own; the cut by row identity must stage: own deletion dropped, foreign
+    changed row RESTORED to HEAD bytes, foreign inserted row never staged."""
+    root, top = _two_row_git_root(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    foreign_changed = {"name": "other", "role": "director",
+                       "edited_by": "x"}
+    third_inserted = {"name": "third", "role": "director"}
+    work = ("---\nid: config:seats\ntype: config\nseats:\n"
+            + "  - " + json.dumps(foreign_changed) + "\n"
+            + "  - " + json.dumps(third_inserted) + "\n---\n")
+    seats.write_text(work, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "own-deletion of belam is still an own change"
+    assert '"name": "belam"' not in staged, staged
+    assert '"name": "other"' in staged and '"role": "director"' in staged, \
+        staged
+    assert '"edited_by": "x"' not in staged, \
+        "foreign changed line must be restored to HEAD, never staged"
+    assert '"name": "third"' not in staged, \
+        "a foreign inserted row must never be staged"
+
+
+def test_own_row_cut_foreign_only_frontmatter_restamp_reads_foreign(tmp_path):
+    """mur-SL2.15 clause (b): the frontmatter `edited_by:` provenance stamp is
+    own ONLY when the SAME diff also carries an own-row `name`-cell change.
+    A seats.md whose ONLY change is a FOREIGN `edited_by:` restamp reads
+    FOREIGN: the ack's dirty GATE does not fire as own and the commit-content
+    cut stages nothing of it (`_diff_owns_row` False, `_seats_ownrow_content`
+    None). This was the SL6.09 residue: the stamp was owned value-agnostically,
+    so every seat's ack staged a foreign restamp as its own."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    # plant a FOREIGN frontmatter restamp: the ONLY change vs HEAD.
+    seats.write_text(text.replace("type: config",
+                                  "type: config\nedited_by: some-foreign"),
+                     encoding="utf-8")
+    rel = os.path.relpath(os.fspath(seats), os.fspath(top))
+    diff = subprocess.run(
+        ["git", "-C", str(top), "diff", "HEAD", "--", rel],
+        capture_output=True, text=True).stdout
+    assert rotate._diff_owns_row(diff, "belam") is False, \
+        "the gate must read a foreign-only frontmatter restamp as NOT own"
+    assert rotate._seats_ownrow_content(root, top, "belam") is None, \
+        "the commit-content cut must stage nothing of a foreign-only restamp"
+
+
+def test_own_row_cut_own_write_keeps_its_frontmatter_stamp(tmp_path):
+    """mur-SL2.15 clause (b) POSITIVE + SL7.09 clause (4) regression guard: an
+    own-row `name`-cell change TOGETHER with the write's own frontmatter
+    `edited_by:` restamp stages BOTH — the whole-node stamp is part of the
+    same write that produced the own row, so the ack carries it and MAIN reads
+    clean (never `M seats.md` after a keygen/spawn-row write)."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    work = seats.read_text(encoding="utf-8")
+    work = work.replace("type: config",
+                        "type: config\nedited_by: belam")
+    work = work.replace('"settings": ""', '"settings": "s"')
+    seats.write_text(work, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None
+    assert "edited_by: belam" in staged, \
+        "the write's own frontmatter stamp must ride the own-row commit"
+    assert '"settings": "s"' in staged

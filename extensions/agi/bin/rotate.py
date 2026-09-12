@@ -1729,9 +1729,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # seating dm + write the gen-1 seating record. Non-fatal — a failure
         # never fails the seating.
         ask_diff = bool(getattr(args, "ask_diff", False))
+        _seating_rec = None
         if seat is not None and root is not None:
             try:
-                _first_seating_announce(
+                _seating_rec = _first_seating_announce(
                     root, None,  # croot None -> resolved inside
                     seat=seat, role=_fs_role, source="cmd_spawn",
                     tmux_session=tmux_session,
@@ -1759,12 +1760,43 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     seat, tmux_session, getattr(args, "window_path", None))
             except Exception:                       # noqa: BLE001
                 _window_id = ""
+            # Claim (a) — the seating row commits the JOINED identity
+            # (hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-
+            # session-and-prints-its-row-commit-outcome): pid + session_id
+            # come from the first-seating join `_first_seating_announce`
+            # performed -- the registry record for the seated window @id, the
+            # same `_record_join` shape rotate-self writes -- NEVER from the
+            # spawner's `--pid` (that is the PREDECESSOR's or the launch
+            # script's pid, whatever the caller typed, never the seated
+            # window's own). A join that found nothing leaves the row's
+            # pid/session_id cells EMPTY and names it in ONE stderr line.
+            _jrec = _seating_rec if isinstance(_seating_rec, dict) else {}
+            _jpid = _jrec.get("pid")
+            _jsess = _jrec.get("session_id") or ""
+            if _jpid is None and not _jsess and _jrec.get("window_id"):
+                print(f"join: miss (seat {seat!r}: no registry record for "
+                      f"window @{str(_jrec['window_id']).lstrip('@')} within "
+                      f"the bounded join poll); the seating row commits "
+                      f"EMPTY pid/session_id -- never the spawner's --pid "
+                      f"({getattr(args, 'pid', None)!r})", file=sys.stderr)
+            # Claim (c) -- a join MISS must NOT leave the predecessor's stale
+            # pid/session_id in the seat's OWN committed row (falsifier: a
+            # registry MISS commits the predecessor's pid/session into the
+            # seating row as if they were the seated window's own). Pass the
+            # EMPTY sentinel (`pid 0`, the seed an empty row already holds)
+            # -- NEVER None -- so `_write_identity_cells`'s None-guard
+            # OVERWRITES the stale cells with empty rather than skipping
+            # them. `_successor_row_write`/`_commit_spawn_row` bodies stay
+            # unchanged; rotate-self's hit path (a real joined pid/session)
+            # is byte-identical because it never takes this branch.
+            if _jpid is None:
+                _jpid = 0
             try:
                 _fs_writes = _first_seating_spawn_writes(
                     root=root, seat=seat, generation=_spawn_gen,
                     ask_diff=ask_diff, role=_fs_role,
-                    session_id="", window=_window_id or "",
-                    pid=getattr(args, "pid", None))
+                    session_id=_jsess, window=_window_id or "",
+                    pid=_jpid)
             except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -1776,16 +1808,31 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # MAIN is left CLEAN after the hand seating (falsifier: "a
             # seating leaves seats.md dirty in MAIN"). Best-effort, never
             # fails the seating; a gitless root / clean-unmodified row skips.
+            _commit = ""
             try:
-                _commit_spawn_row(
+                _commit = _commit_spawn_row(
                     root, seat=seat, generation=_spawn_gen,
-                    session_id="",
+                    session_id=_jsess,
                     window=_window_id or "",
-                    pid=getattr(args, "pid", None),
+                    pid=_jpid,
                     verb="seating row")
             except Exception as exc:                # noqa: BLE001
-                print(f"warn: first-seating seating-row commit failed: {exc}",
-                      file=sys.stderr)
+                _commit = f"seating_row_commit: FAILED: {exc}"
+            # Claim (b) (hypothesis:l4-a-hand-seating-commits-the-joined-pid-
+            # and-session-and-prints-its-row-commit-outcome): the seating-row
+            # commit + push outcome is PRINTED as ONE stderr line and carried
+            # into the first-seating record (`handover.seating_row_commit`,
+            # trailing `\npush:` line and all), so a failed commit or a
+            # failed push is visible and the record carries the same outcome
+            # the key-swap gate weighs -- the seating mirror of rotate-self's
+            # `handover.spawn_row_commit`.
+            if _commit:
+                print(_commit, file=sys.stderr)
+                if isinstance(_seating_rec, dict):
+                    _seating_rec["handover"] = dict(
+                        _seating_rec.get("handover") or {})
+                    _seating_rec["handover"]["seating_row_commit"] = _commit
+                    _seating_record_merge_handover(root, _seating_rec)
     return 0
 
 
@@ -2328,7 +2375,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     ack = _read_ack(ack_path, gen_after=None, timeout=args.timeout)
     if ack is not None:
         answer = ack.get("answer")
-        if answer == "diff":
+        # A `diff` with a NON-EMPTY text means the handoff needs change: halt it
+        # for inspection (result: diff). A `diff` with an EMPTY/whitespace text is
+        # the reviewed-no-change answer the --ask-diff gate names — the handoff
+        # STANDS exactly like a `continue`
+        # (hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-
+        # diff-stands-the-handoff).
+        if answer == "diff" and (ack.get("text") or "").strip():
             _write_rotation_record(root, _loop_record(
                 name=name, result="diff", succ=succ,
                 readback_log=Path(ack_path).expanduser().resolve(),
@@ -2340,12 +2393,16 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
                 print("  " + txt.strip().replace("\n", "\n  "),
                       file=sys.stderr)
             return 0
-        # answer == continue
+        # answer == continue, OR diff with an EMPTY text: the handoff stands.
+        reply = "diff-empty" if answer == "diff" else "continue"
         _write_rotation_record(root, _loop_record(
             name=name, result="success", succ=succ,
             readback_log=Path(ack_path).expanduser().resolve(),
-            reply_decision="continue"))
-        print("handoff stood: successor acked `continue`.", file=sys.stderr)
+            reply_decision=reply))
+        print("handoff stood: successor acked an EMPTY diff (no change)."
+              if reply == "diff-empty"
+              else "handoff stood: successor acked `continue`.",
+              file=sys.stderr)
         import send  # local: same dir
         _announce_rotation(
             root=root,
@@ -3318,7 +3375,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
                         succ=None, pred=None, readback_log=None,
                         cursor_offset: int | None = None,
                         handover: dict | None = None,
-                        steps_reached: list[str] | None = None) -> dict:
+                        steps_reached: list[str] | None = None,
+                        reply_decision: str | None = None) -> dict:
     """One durable JSON record for a rotate-self rotation: observations (a)-(e)
     of hypothesis:l3-rotation-record-and-predecessor-guarantee, each an
     observed fact with the command output that established it.
@@ -3342,6 +3400,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
             "note": "only bytes AFTER start_offset can confirm the successor; "
                     "a stale pre-spawn `continue` at/before the cursor is refused",
         }
+    if reply_decision is not None:
+        obs["d_reply_decision"] = reply_decision
     if pred is not None:
         # `pred` carries name (the renamed aside window) + the observed list.
         obs["e_predecessor_alive"] = {
@@ -3703,6 +3763,55 @@ def _write_seating_record(root: Path, record: dict) -> Path:
     return path
 
 
+def _seating_record_merge_handover(root: Path, record: dict) -> str:
+    """Merge `record['handover']` into the ONE seating record already on
+    disk for the same seat and `recorded_at`, in place.
+
+    Claim (b) of hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-
+    session-and-prints-its-row-commit-outcome: a hand seating's
+    `_commit_spawn_row` outcome rides the seating record as
+    `handover.seating_row_commit` (the seating mirror of a rotation's
+    `handover.spawn_row_commit`), trailing `\npush:` line included, so the
+    commit/push history lives on the record any later reader opens. The first
+    seating's record is written by `_first_seating_announce` BEFORE the row
+    commit, so the outcome is merged back in here once it exists. Idempotent:
+    a record already carrying a handover is never double-merged; a missing or
+    unmatched record is left alone. Returns the written path or ''."""
+    seat = str(record.get("seat") or "")
+    stamp = record.get("recorded_at")
+    handover = record.get("handover") or {}
+    if not seat or not handover:
+        return ""
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return ""
+    target = None
+    for p in rot.glob(f"{seat}.*.seating.json"):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(rec, dict):
+            continue
+        if rec.get("recorded_at") != stamp or rec.get("handover"):
+            continue
+        if target is None or p.stat().st_mtime >= target.stat().st_mtime:
+            target = p
+    if target is None:
+        return ""
+    try:
+        rec = json.loads(target.read_text(encoding="utf-8", errors="replace"))
+        if not isinstance(rec, dict):
+            return ""
+        merged = dict(rec.get("handover") or {})
+        merged.update(handover)
+        rec["handover"] = merged
+        target.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    except (OSError, ValueError):
+        return ""
+    return str(target)
+
+
 def _seating_record_exists(root: Path, seat: str,
                            generation: int = FIRST_SEATING_GEN) -> bool:
     """True when a seating record for `seat` at `generation` already exists.
@@ -3830,7 +3939,13 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
     BOUNDED join when not already supplied (a freshly-seated window usually
     has its `<pid>.json` registry file within seconds); otherwise they stay
     absent/honest. Delivery failure never fails the seating — the record is
-    the proof, not a gate. Returns the recipients reached.
+    the proof, not a gate. Returns the SEATING RECORD dict that was written
+    (the same object `_announce_rotation` wrote as `<seat>.<ts>.seating.json`)
+    — the JOINED identity (window_id/pid/session_id/transcript_path) plus,
+    after `cmd_spawn` commits the seating row, the `handover.seating_row_commit`
+    outcome — so the seating block carries the joined identity and the commit
+    history exactly as a rotation's handover does. A caller that only needs
+    the announcement (cmd_ack / cmd_seats_launch) may discard it.
     """
     import send  # local: same dir
     if croot is None:
@@ -3851,7 +3966,7 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         pid=pid, session_id=session_id, transcript_path=transcript_path,
         first_turn=first_turn)
     in_flight = _seating_in_flight(first_turn)
-    return _announce_rotation(
+    _announce_rotation(
         root=root, croot=croot, seat=seat, successor=seat,
         gen_before=0, gen_after=FIRST_SEATING_GEN,
         trigger="first-seating",
@@ -3859,6 +3974,13 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         in_flight=in_flight, live_names=live_list,
         successor_ref=ref, successor_window=window_id or "",
         seating=seating, ask_diff=ask_diff)
+    # the seating record IS a seating's handover: it carries the JOINED
+    # identity (window_id/pid/session_id/transcript_path) and is where the
+    # seating-row commit outcome (`handover.seating_row_commit`, claim (b) of
+    # hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-session-and-
+    # prints-its-row-commit-outcome) rides. Return it so `cmd_spawn` can
+    # commit THAT identity and record the outcome into the same record.
+    return seating
 
 
 def _first_seating_spawn_writes(*, root: Path, seat: str,
@@ -3905,7 +4027,7 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     row = _successor_row_write(
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
-        session_id=session_id or None)
+        session_id=session_id)
     return {"meter_pin": mp, "ack_path": str(ap), "row": row}
 
 
@@ -4531,29 +4653,37 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
 def _record_join(rec: dict) -> dict:
     """ONE accessor for a rotation record's successor-join identity, accepting
     BOTH record shapes (mur-SL2.13 part 6):
-      - rotate-self:  `handover.join.{window_id,pid,session_id,transcript}`
-      - crash-recovery: TOP-LEVEL `window_id`/`pid`/`session_id` (the shape
-        `_write_crash_recovery` writes), with `respawn_outcome.{window,pid}`
-        as the *successor* fallback (the recovered seat's own window/pid).
+      - rotate-self:  `handover.join.{window_id,pid,session_id,transcript}`,
+        with `handover.successor_window.id` as the window_id fallback
+        (g15.26 (d): heal.py's widest read shape still resolves here).
+      - crash-recovery: TOP-LEVEL `window_id` (the shape `_write_crash_recovery`
+        writes), with `respawn_outcome.window` as the *successor-window*
+        fallback. `respawn_outcome` NEVER contributes a `pid`: heal's
+        `_rotation_identity` (which imports THIS accessor, g15.26 (d)) reads
+        succ_pids from the identity surface the producer actually writes —
+        top-level pid/session_id DO NOT exist on a real CRP, and the real
+        successor pid rides in `respawn_outcome` (not the identity surface),
+        so surfacing it would break heal's
+        test_crash_recovery_record_roundtrip_real_producer (succ_pids must
+        stay empty).
     Returns a flat dict of `{pid, window_id, session_id, transcript}` — keys
     present only when the record carries them — or {} for a record with no
-    join identity (an OLDER record). Never raises, never None members.
-    heal.py's `_rotation_identity` will read this same accessor by name
-    (SL7.10 coordinates, heal.py itself is NOT edited this round) so every
-    reader sees one canonical shape."""
+    join identity (an OLDER record). pids are STR-COERCED (heal.py's
+    `_rotation_identity` reads this same accessor and appends them as-is, so
+    an integer pid must surface as `"222"`, not `222`). Never raises, never
+    None members. heal.py imports THIS copy (g15.26 (d)) — ONE definition
+    serves both modules, no same-named twin."""
     out: dict = {}
-    # the recovered seat's own successor identity (crash-recovery respawn).
+    # the recovered seat's own successor window (crash-recovery respawn);
+    # never a pid -- that is NOT part of the identity surface (see docstring).
     ro = rec.get("respawn_outcome")
-    if isinstance(ro, dict):
-        if ro.get("pid") is not None:
-            out["pid"] = ro["pid"]
-        if ro.get("window"):
-            out["window_id"] = str(ro["window"])
+    if isinstance(ro, dict) and ro.get("window"):
+        out["window_id"] = str(ro["window"])
     # top-level fields: the crash-recovery record puts window_id at TOP level.
     if rec.get("window_id"):
         out["window_id"] = str(rec["window_id"])
     if rec.get("pid") is not None:
-        out["pid"] = rec["pid"]
+        out["pid"] = str(rec["pid"])
     if rec.get("session_id"):
         out["session_id"] = str(rec["session_id"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
@@ -4564,11 +4694,16 @@ def _record_join(rec: dict) -> dict:
             if jn.get("window_id"):
                 out["window_id"] = str(jn["window_id"])
             if jn.get("pid") is not None:
-                out["pid"] = jn["pid"]
+                out["pid"] = str(jn["pid"])
             if jn.get("session_id"):
                 out["session_id"] = str(jn["session_id"])
             if jn.get("transcript"):
                 out["transcript"] = str(jn["transcript"])
+        # heal.py's widest read shape: successor_window.id names the same
+        # successor window when handover.join carried no window_id.
+        sw = hov.get("successor_window")
+        if isinstance(sw, dict) and sw.get("id") is not None:
+            out.setdefault("window_id", str(sw.get("id")))
     return out
 
 
@@ -5429,30 +5564,36 @@ def _ack_seats_path(root: Path) -> Path:
 
 
 
-def _own_row_line(line: str, seat: str) -> bool:
+def _own_row_line(line: str, seat: str, session_owns: bool = False) -> bool:
     """Whether a seats.md CHANGED line belongs to `seat`'s OWN write. One
     row sits on ONE JSON line, so the row-cell `name` cell ALONE keys the
-    row — an `"edited_by": ...` cell on a FOREIGN row must never count. BUT
-    `write.submit` also restamps a FRONTMATTER provenance line
-    (`edited_by: <writer>`, YAML form, no quotes) on the same write, and that
-    line has no `name` cell; a row write owns it too, so the ack commits it
-    with the own row and the tree stays clean. The FRONTMATTER line is owned
-    BY VALUE-INDEPENDENT POSITION, not by the seat name it happens to carry
-    (SL7.09 clause (4)): write.submit restamps `edited_by:` to the WRITER'S
-    resolved actor (`actor or _default_actor()`, e.g. the dispatch agent id),
-    which is usually NOT the seat's own name — keying the own-row cut on
-    `edited_by: <seat>` left that frontmatter line revertable, so MAIN read
-    `M seats.md` after every keygen/spawn-row write. The whole-node stamp is
-    part of the SAME write that produced the own row, so it is carried in
-    the own-row commit and the tree stays clean. Kept together so
-    `_diff_owns_row` and `_seats_ownrow_content` can never drift."""
+    row — an `"edited_by": ...` cell on a FOREIGN row must never count. A
+    row line is own when (and only when) it carries this seat's OWN `name`
+    cell; that decision is made on the line alone, NEVER by pairing it with a
+    changed line beside it (SL4/6.09 residue, mur-SL2.15: per-INDEX pairing
+    staged a foreign adjacent line as own — the cut classifies each changed
+    line by ROW IDENTITY, not by index).
+
+    The FRONTMATTER provenance line (`edited_by: <writer>`, YAML form, no
+    quotes) has no `name` cell, but `write.submit` restamps it on the SAME
+    write that produces the own row; the whole-node stamp is part of that
+    write, so it is owned WITH the own row and the tree stays clean (SL7.09
+    clause (4): value-agnostic, because write.submit names the WRITER'S
+    resolved actor, usually not the seat's own name). It counts as own ONLY
+    when the SAME diff also carries an own-row `name`-cell change
+    (`session_owns`); frontmatter alone never owns. Kept together so
+    `_diff_owns_row` and `_seats_ownrow_content` read the SAME predicate and
+    can never drift."""
     name_cell = f'"name": "{seat}"'
+    if name_cell in line:
+        return True
     # JSON row-cell vs YAML frontmatter: the top-level `edited_by:` YAML line
     # (space after the colon, no quotes) is the whole-node stamp the self-row
-    # write owns, whatever actor it names. A FOREIGN row's `"edited_by": ...`
-    # cell is quoted JSON inside an indented `  - {...}` row line, which never
-    # starts with `edited_by: `, so it can never count as own here.
-    return name_cell in line or _is_frontmatter_edited_by(line)
+    # write owns, whatever actor it names — but only when this diff carries an
+    # own row. A FOREIGN row's `"edited_by": ...` cell is quoted JSON inside
+    # an indented `  - {...}` row line, which never starts with `edited_by: `,
+    # so it can never count as own here.
+    return session_owns and _is_frontmatter_edited_by(line)
 
 
 def _is_frontmatter_edited_by(line: str) -> bool:
@@ -5467,12 +5608,16 @@ def _is_frontmatter_edited_by(line: str) -> bool:
 
 
 def _diff_owns_row(diff: str, seat: str) -> bool:
-    """True when any CHANGED line (`+`/`-` content, never `+++`/`---` headers
-    or context) of a unified diff carries THIS seat's OWN row or the OWN
-    frontmatter provenance line (`edited_by: <seat>`) — see `_own_row_line`.
-    A hunk whose changed lines name another seat (or another row's
-    `edited_by` cell) is FOREIGN and does not own the row."""
+    """True when a unified diff's CHANGED lines (`+`/`-` content, never
+    `+++`/`---` headers or context) carry THIS seat's OWN row (a changed line
+    whose `name` cell keys the seat). The frontmatter `edited_by:` provenance
+    line is owned ONLY when the SAME diff also carries an own-row `name`-cell
+    change — so a seats.md whose ONLY change is a foreign `edited_by:`
+    restamp reads FOREIGN: the gate (SL7.09 clause (4) tie-in) does not fire
+    as own and the commit stages nothing of it. One definition, shared with
+    `_seats_ownrow_content` (both call `_own_row_line`; none re-spells it)."""
     in_hunk = False
+    changed: list[str] = []
     for ln in diff.splitlines():
         if ln.startswith("@@"):
             in_hunk = True
@@ -5482,9 +5627,11 @@ def _diff_owns_row(diff: str, seat: str) -> bool:
         if ln.startswith(("+++", "---")):
             continue
         if ln.startswith(("+", "-")):
-            if _own_row_line(ln, seat):
-                return True
-    return False
+            changed.append(ln)
+    # session_owns: does this diff carry an own-row `name`-cell change? The
+    # frontmatter stamp counts only beside that; alone it stays FOREIGN.
+    session_owns = any(_own_row_line(l, seat) for l in changed)
+    return any(_own_row_line(l, seat, session_owns) for l in changed)
 
 
 def _rstrip_lines(text: str) -> list[str]:
@@ -5654,35 +5801,118 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
     base_lines = run.stdout.splitlines()
     work_lines = work.splitlines()
 
-    def _own(l: str) -> bool:
+
+    name_re = re.compile(r'"name":\s*"([^"]*)"')
+
+    def _key(line: str) -> str | None:
+        """A line's ROW IDENTITY: the `"name": "..."` cell (the row the line
+        is), or None for a frontmatter / structural line. Own/foreign is
+        decided PER LINE on this cell, never by index-pairing with a
+        neighbour (mur-SL2.15: a per-index pair staged a foreign line as
+        own)."""
+        m = name_re.search(line)
+        return m.group(1) if m else None
+
+    def _own(line: str) -> bool:
         # shared with `_diff_owns_row`: the row-cell `name` keys the OWN row,
         # plus the OWN frontmatter `edited_by: <seat>` provenance write.submit
-        # adds; a FOREIGN row's `"edited_by": ...` JSON cell never matches, so
-        # a foreign provenance restamp is never bundled as own.
-        return _own_row_line(l, seat)
+        # adds — but the frontmatter stamp counts only beside an own-row
+        # `name`-cell change in this SAME diff (_session_owns). A FOREIGN
+        # row's `"edited_by": ...` JSON cell never matches, so a foreign
+        # provenance restamp is never bundled as own.
+        return _own_row_line(line, seat, _session_owns)
+
+    # session_owns (clause (b)): the whole-diff context. Gather every changed
+    # line (removed + added) and decide whether an own-row `name`-cell change
+    # appears anywhere; the frontmatter stamp is owned only when it does.
+    sm = difflib.SequenceMatcher(None, base_lines, work_lines,
+                                 autojunk=False)
+    _changed: list[str] = []
+    for _tag, _i1, _i2, _j1, _j2 in sm.get_opcodes():
+        if _tag == "equal":
+            continue
+        _changed.extend(base_lines[_i1:_i2])
+        _changed.extend(work_lines[_j1:_j2])
+    _session_owns = any(_own_row_line(_l, seat) for _l in _changed)
+
+    def _merge_region(removed: list[str], added: list[str]) -> list[str]:
+        """The staged splice of ONE replace/insert/delete opcode region.
+        Each changed line is classified on its own by ROW IDENTITY (never by
+        index): an OWN removed line is DROPPED (own deletion), an OWN added
+        line is KEPT (own change / own write), a FOREIGN removed line is
+        RESTORED from HEAD, a FOREIGN added line is NEVER staged. Rows are
+        paired across removed/added by their `name` identity (diff never
+        reorders rows), so an own row and a foreign row edited in the SAME
+        replace opcode keep the own change and the foreign row byte-identical
+        to HEAD, whichever order they sit in. Non-row structural lines
+        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) are
+        matched positionally and likewise keep HEAD unless the work version is
+        an owned frontmatter stamp."""
+        rem = [(l, _key(l)) for l in removed]
+        add = [(l, _key(l)) for l in added]
+        rkeys = {k for _, k in rem if k is not None}
+        akeys = {k for _, k in add if k is not None}
+        ri = ai = 0
+        out: list[str] = []
+        while ri < len(rem) or ai < len(add):
+            rl, rk = rem[ri] if ri < len(rem) else (None, None)
+            al, ak = add[ai] if ai < len(add) else (None, None)
+            if rl is not None and al is not None and rk == ak:
+                # the same slot on both sides: an own/foreign row edited in
+                # work, or an aligned structural line. Keep the WORK line when
+                # it is THIS seat's own, else restore HEAD.
+                out.append(al if _own(al) else rl)
+                ri += 1
+                ai += 1
+                continue
+            if rl is not None and rk is not None and rk not in akeys:
+                # a row DELETED from the work copy: restore it from HEAD unless
+                # it is this seat's OWN row (an own deletion is dropped).
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+                continue
+            if al is not None and ak is not None and ak not in rkeys:
+                # a row INSERTED into the work copy: stage it only when OWN.
+                if _own(al):
+                    out.append(al)
+                ai += 1
+                continue
+            if rl is not None and rk is None:
+                # a structural line with no aligned work partner: keep HEAD
+                # (restored) unless it is an owned frontmatter stamp.
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+                continue
+            if al is not None and ak is None:
+                # a structural line present only in work: stage only when OWN.
+                if _own(al):
+                    out.append(al)
+                ai += 1
+                continue
+            # fail-safe (should be unreachable): swallow the base line.
+            if rl is not None:
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+            else:
+                ai += 1
+        return out
 
     staged: list[str] = []
-    b = w = 0
     any_own = False
-    sm = difflib.SequenceMatcher(None, base_lines, work_lines, autojunk=False)
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        staged.extend(base_lines[b:i1])
-        removed = base_lines[i1:i2]
-        added = work_lines[j1:j2]
-        for k in range(max(len(removed), len(added))):
-            old = removed[k] if k < len(removed) else None
-            new = added[k] if k < len(added) else None
-            is_own = ((old is not None and _own(old))
-                      or (new is not None and _own(new)))
-            if is_own:
+        if tag == "equal":
+            # unchanged context: carry HEAD's lines verbatim. (`base_lines[
+            # b:i1]` is always empty here — opcodes tile the sequences
+            # contiguously — so equal lines must be emitted explicitly.)
+            staged.extend(base_lines[i1:i2])
+        else:
+            splice = _merge_region(base_lines[i1:i2], work_lines[j1:j2])
+            if any(_own(_l) for _l in base_lines[i1:i2] + work_lines[j1:j2]):
                 any_own = True
-                if new is not None:
-                    staged.append(new)   # own change: keep working line
-                # else: own deletion — append nothing
-            elif old is not None:
-                staged.append(old)        # foreign change: keep committed line
-        b, w = i2, j2
-    staged.extend(base_lines[b:])
+            staged.extend(splice)
     if not any_own:
         return None
     return "\n".join(staged) + "\n"
@@ -5994,7 +6224,19 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
-    return (f"spawn_row_commit: committed (sha {sha}) — seats.md own-row "
+    # g15.26 claim (b): a successful push means origin now carries the
+    # committed row -- so any deferred successor-key swap for this seat (a
+    # `.key.pending` written when an earlier push FAILED) COMPLETES now:
+    # the successor key is atomically put in place and the pending file
+    # deleted. Print the one-line outcome alongside the push line. Best-
+    # effort; `_complete_pending_key_swap` never raises.
+    if _push.startswith("push: OK"):
+        _done = _complete_pending_key_swap(root, seat)
+        if _done:
+            print(_done, file=sys.stderr)
+            return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
+                    f"own-row only: {msg}\npush: {_push}\n{_done}")
+    return (f"spawn_row_commit: committed (sha {sha}) -- seats.md own-row "
             f"only: {msg}\npush: {_push}")
 
 
@@ -7198,7 +7440,24 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "worktree", "repo", "tmux_session", "pred_pids",
+    "prime_ref", "prime_key", "prime_seat", "worktree", "repo",
+    "tmux_session", "pred_pids",
+}
+
+#: Per-placeholder CODE fallbacks: a used `{key}` whose value is EMPTY is
+#: replaced by this WHOLE FRAGMENT (each `{...}` inside it resolved fresh
+#: against the spawn values) instead of refusing, when the entry names no
+#: `fallback:` of its own. `{prime_ref}` falls back to the by-key whois form:
+#: the prime row's session_ref is EMPTY for a whole generation under SL7.06's
+#: default, but its pubkey is filled at every rotation — so prime authority
+#: resolves by key, never by a refusal that leaves F3's by-ref channel without
+#: a ref (goal:g15.25 line (4); hypothesis:l4-prime-authority-resolves-by-key-
+#: when-the-prime-rows-session-ref-is-empty...). The fragment must carry the
+#: `--key` FLAG itself: substituting only the pubkey VALUE would land it in
+#: the POSITIONAL session_ref slot, where whois resolves by session_ref and
+#: answers NO-MATCH, never IS-AUTHORIZED.
+_STARTUP_FALLBACKS = {
+    "prime_ref": "--key {prime_key}",
 }
 
 #: Per-command timeout and output cap defaults when the template's startup
@@ -7973,8 +8232,35 @@ def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
     return f"{label} {trailer}" if label else trailer
 
 
+def _resolve_fallback_fragment(frag: str, emptied_key: str,
+                               values: dict) -> str:
+    """Resolve every `{k}` inside a fallback FRAGMENT fresh against
+    ``values``. Fail closed -- unknown key, a key whose value is EMPTY, or a
+    key that IS the emptied placeholder (a fragment must not substitute
+    itself) all raise a named ValueError. A `#{...}` tmux format form stays
+    literal, byte-for-byte."""
+    def _fsub(m):
+        if m.start() > 0 and frag[m.start() - 1] == "#":
+            return m.group(0)
+        fk = m.group(1)
+        if fk not in STARTUP_PLACEHOLDERS:
+            raise ValueError(f"unknown startup placeholder {{{fk}}}")
+        if fk == emptied_key:
+            raise ValueError(
+                f"startup fallback {{{fk}}} references the empty placeholder "
+                "it substitutes")
+        fv = values.get(fk, "")
+        if not str(fv):
+            raise ValueError(
+                f"startup fallback {{{fk}}} empty at spawn "
+                f"(placeholder {{{emptied_key}}} is empty)")
+        return str(fv)
+    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _fsub, frag)
+
+
 def _resolve_startup_placeholders(command: str, values: dict, *,
-                                  refuse_empty: bool = False) -> str:
+                                  refuse_empty: bool = False,
+                                  fallback: str = "") -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
     key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
     unknown/unresolved placeholder is never silently left in the command.
@@ -7984,7 +8270,21 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     command that runs on an empty slot and dumps a usage error. Other callers
     (the driven `next` walk, bootstrap) leave `refuse_empty` False: for them
     an empty placeholder may be legitimate, and they must not be forced to
-    fall over on it."""
+    fall over on it.
+
+    ``fallback`` (a WHOLE FRAGMENT string, from a per-entry ``fallback:`` on
+    the first_turn template) supplies the substitution
+    (hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+    session-ref-is-empty...): when an emptied placeholder WOULD refuse, the
+    fragment -- each `{...}` inside it resolved fresh against ``values`` -- is
+    substituted INSTEAD. ``{prime_ref}`` empty falls back to the by-key form
+    ``--key {prime_key}``. When the entry names NO fallback, the per-
+    placeholder code map ``_STARTUP_FALLBACKS`` supplies one, so the CURRENT
+    director template resolves prime authority by key without a template
+    edit. When neither names a usable fallback (or the fallback's own
+    placeholder is empty or references the emptied placeholder) the refusal
+    stands (named), so a placeholder never runs empty and never silently
+    self-declares a fallback."""
     def _sub(m):
         # A `{name}` that is part of tmux's OWN format syntax is LITERAL and
         # must pass through byte-for-byte: it is immediately preceded by `#`
@@ -8000,6 +8300,9 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
             raise ValueError(f"unknown startup placeholder {{{key}}}")
         value = values.get(key, "")
         if refuse_empty and not str(value):
+            frag = fallback or _STARTUP_FALLBACKS.get(key, "")
+            if frag:
+                return _resolve_fallback_fragment(frag, key, values)
             raise ValueError(f"placeholder {{{key}}} empty at spawn")
         return str(value)
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
@@ -8033,6 +8336,18 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        # A per-entry `fallback:` (e.g. "fallback: --key {prime_key}") names a
+        # WHOLE FRAGMENT substituted when a USED placeholder is EMPTY -- so a
+        # prime-authority entry whose {prime_ref} is empty resolves by the
+        # prime row's pubkey (by-key form, flags included), not by a bare
+        # value dropped into the positional slot
+        # (hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+        # session-ref-is-empty-and-a-placeholder-with-a-fallback-never-
+        # refuses). An entry with NO fallback of its own still resolves
+        # through the per-placeholder code map `_STARTUP_FALLBACKS` (so the
+        # CURRENT director template works without a template edit); an empty
+        # or unresolvable fallback fails closed too: the refusal names it.
+        fallback = str(entry.get("fallback") or "")
         env_refusal = _env_prefix_refusal(cmd, env_allow)
         if env_refusal:
             results.append({"label": label, "cmd": cmd,
@@ -8044,8 +8359,8 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "refused": f"not on startup.allow: {refusal}"})
             continue
         try:
-            record_cmd = _resolve_startup_placeholders(cmd, values,
-                                                       refuse_empty=True)
+            record_cmd = _resolve_startup_placeholders(
+                cmd, values, refuse_empty=True, fallback=fallback)
         except ValueError as exc:
             results.append({"label": label, "cmd": cmd, "refused": str(exc)})
             continue
@@ -8247,9 +8562,21 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         except Exception:  # noqa: BLE001
             repo = str(worktree)
     prime_ref = ""
+    prime_key = ""
+    prime_seat = ""
     for row in _load_seats(root):
-        if row.get("role") == "prime_director" and row.get("session_ref"):
-            prime_ref = str(row["session_ref"])
+        if row.get("role") == "prime_director":
+            if row.get("session_ref"):
+                prime_ref = str(row["session_ref"])
+            # The prime row's pubkey and name ARE filled at every rotation
+            # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are
+            # the by-key fallback axes a startup entry with an EMPTY prime
+            # session_ref declares (hypothesis:l4-prime-authority-resolves-by-
+            # key-when-the-prime-rows-session-ref-is-empty...).
+            if row.get("pubkey"):
+                prime_key = str(row["pubkey"])
+            if row.get("name"):
+                prime_seat = str(row["name"])
             break
     return {
         "seat": seat,
@@ -8259,6 +8586,8 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "pin_ref": str(_sessions_dir(root) / f"{seat}.meter"),
         "gen": str(gen),
         "prime_ref": prime_ref,
+        "prime_key": prime_key,
+        "prime_seat": prime_seat,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
@@ -10076,6 +10405,119 @@ def _apply_successor_key_pending(pending: dict) -> str:
             f"(0600, atomic replace)")
 
 
+def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
+    """g15.26 claim (a) -- PERSIST the pending successor key, not drop it.
+    Called by `_apply_successor_key_gated` when the row WAS written and
+    committed (so HEAD's committed row names the successor PUBKEY) but the
+    season-branch PUSH FAILED. Writes the successor private key to
+    `<sessions>/seats/<seat>.key.pending` (SEAT_KEY_MODE 0600, temp +
+    os.replace, never committed) as the JSON shape `{scheme, priv_hex,
+    pub_hex, gen_after, minted_at}`, derived from the rotation dict -- so a
+    later successful push of that row can complete the swap
+    (`_complete_pending_key_swap`). Without this file the successor private
+    key exists nowhere on disk (it lived only in the rotation dict before
+    this), and the seat would go on signing under a predecessor key origin's
+    row (once pushed) no longer names. Best-effort: if the file cannot be
+    written we still report the deferred swap (never raise). Returns ONE
+    line naming the pending path."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+    _pend = key_path.parent / f"{key_path.name}.pending"
+    _pend.parent.mkdir(parents=True, exist_ok=True)
+    _frag = {
+        "scheme": key_rotation.get("scheme")
+        or (key_rotation.get("pending_key") or {}).get("scheme"),
+        "priv_hex": (key_rotation.get("pending_key") or {}).get("priv_hex"),
+        "pub_hex": key_rotation.get("successor_pub"),
+        "gen_after": (key_rotation.get("retired") or {}).get("to"),
+        "minted_at": (key_rotation.get("note") or ""),
+    }
+    _tmp = _pend.parent / f".{_pend.name}.tmp"
+    try:
+        _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                      send.SEAT_KEY_MODE)
+        try:
+            with os.fdopen(_fd, "w") as _f:
+                _f.write(json.dumps(_frag))
+        except BaseException:  # noqa: BLE001
+            try:
+                os.close(_fd)
+            except OSError:
+                pass
+            raise
+        os.chmod(_tmp, send.SEAT_KEY_MODE)
+        os.replace(_tmp, _pend)
+    except (OSError, TypeError, ValueError):
+        return (f"key_replace: NOT applied -- push did not succeed; "
+                f"{key_path} left byte-identical; pending successor key "
+                f"could NOT be persisted to {_pend}"
+                f" (deferred swap on later join-origin)")
+    return (f"key_replace: NOT applied -- push did not succeed; "
+            f"{key_path} left byte-identical; pending successor key "
+            f"persisted to {_pend} (0600, deferred swap on a later "
+            f"successful push)")
+
+
+def _complete_pending_key_swap(root: Path, seat: str) -> str:
+    """g15.26 claim (b) -- COMPLETE a deferred successor-key swap at a later
+    successful push of that row. Callers invoke it AFTER `_push_season_branch`
+    reports a successful push (origin now carries the committed row). A
+    `<sessions>/seats/<seat>.key.pending` file (written by
+    `_persist_pending_key` when an earlier push FAILED) whose `pub_hex`
+    equals the seat's COMMITTED row pubkey (read fresh via `git show
+    HEAD`, never the dirty copy -- origin just received exactly this HEAD)
+    triggers the ONE deferred atomic replace of `<seat>.key` with the
+    pending private key, then deletes the pending file and prints one line
+    `key swap completed (deferred from gen N)`. If the pending file's
+    pub_hex does NOT match the committed row (the row still names the OLD
+    pubkey), the pending file is left alone -- the swap stays deferred, and
+    ONE line says so. Absent pending file / gitless root -> '' (nothing to
+    do, never a failure). Never raises."""
+    import send  # local: same dir (send.py pattern)
+    _key = send._seat_key_path(root, seat)
+    _pend = _key.parent / f"{_key.name}.pending"
+    if not _pend.is_file():
+        return ""
+    try:
+        _obj = json.loads(_pend.read_text())
+    except (ValueError, OSError):
+        return (f"key swap NOT completed -- unreadable pending file "
+                f"{_pend} (left as-is)")
+    _pend_pub = str(_obj.get("pub_hex") or "")
+    if not _pend_pub:
+        return (f"key swap NOT completed -- pending file {_pend} carries "
+                f"no pub_hex (left as-is)")
+    # HEAD's committed row is origin's row right now (the push just
+    # succeeded): only a full match flips the key.
+    _committed = send._seats_committed_rows(root)
+    _row = send._seat_row_in(_committed, seat) if _committed else None
+    _row_pub = str((_row or {}).get("pubkey") or "")
+    _gen = str(_obj.get("gen_after") or _obj.get("gen") or "?")
+    if not _row or _row_pub != _pend_pub:
+        return (f"key swap NOT completed -- committed row for {seat} still "
+                f"names the old pubkey (deferred, gen {_gen})")
+    try:
+        _tmp = _key.parent / f".{_key.name}.tmp"
+        _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                      send.SEAT_KEY_MODE)
+        try:
+            with os.fdopen(_fd, "w") as _f:
+                _f.write(json.dumps({"scheme": _obj.get("scheme"),
+                                     "priv_hex": _obj.get("priv_hex")}))
+        except BaseException:  # noqa: BLE001
+            try:
+                os.close(_fd)
+            except OSError:
+                pass
+            raise
+        os.chmod(_tmp, send.SEAT_KEY_MODE)
+        os.replace(_tmp, _key)
+        _pend.unlink()
+    except (OSError, ValueError):
+        return (f"key swap NOT completed -- could not replace {_key} "
+                f"(pending {_pend} left as-is)")
+    return f"key swap completed (deferred from gen {_gen})"
+
+
 def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
     """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
     into the on-disk <seat>.key ONLY when the successor spawn-row write, its
@@ -10117,11 +10559,17 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     else:
         _why = "push"
     # SL: on a push failure the swap is DEFERRED -- the ONE stderr line naming
-    # the deferred swap (the caller prints this return to stderr); a later
-    # rotate.py ack/prepare that finds this pending successor key with the
-    # row now on origin completes it (SL7.09 leaves that completion
-    # forward-look; the core falsifier -- a key on disk origin's row does not
-    # carry -- is closed here).
+    # the deferred swap (the caller prints this return to stderr). g15.26
+    # claim (a): unlike a row-write/commit failure (where NO successor pubkey
+    # reached a committed row, so there is nothing to complete), a push
+    # failure leaves HEAD's COMMITTED row naming the successor pubkey -- so
+    # the pending successor key is PERSISTED to <seat>.key.pending, not
+    # dropped with the return string, and a later successful push of that row
+    # (`_complete_pending_key_swap`) atomically completes the swap. The
+    # falsifier "after a failed push the minted key exists nowhere on disk"
+    # is closed here.
+    if _why == "push":
+        return _persist_pending_key(key_rotation, Path(_path))
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{_path} left byte-identical with the predecessor key, NO "
             f"successor key written (deferred swap on later join-origin) "
@@ -10765,7 +11213,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} "
             f"--gen {gen} --ref <your own ListAgents ref> diff --text -` -- "
             "run it to review the handoff (the predecessor has NOT answered "
-            "it). Answer `continue` instead if the handoff needs no change."
+            "it). The handoff STANDS on an EMPTY diff text (`--text -` with "
+            "no stdin, or `--text ''`); a non-empty diff text halts it for "
+            "inspection."
         )
     else:
         ack_gate = (
@@ -11264,16 +11714,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # kept as a fallback (a debug logger cannot carry prose).
     ack = _read_ack(_ack_path(root, seat), gen_after=gen, timeout=timeout)
     acked_continue = False
+    reply_decision = None
     if ack is not None and ack.get("answer") == "continue":
         acked_continue = True
     elif ack is not None and ack.get("answer") == "diff":
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
-            succ=succ, readback_log=Path(_ack_path(root, seat)).expanduser(),
-            refusal="successor acked diff: handoff needs change"), path=rec_path)
-        print("successor acked diff (handoff needs change); leaving the "
-              "renamed window in place for inspection.", file=sys.stderr)
-        return 1
+        # A `diff` with an EMPTY/whitespace text is the reviewed-no-change
+        # answer the --ask-diff gate names: the handoff STANDS, on the same
+        # success path as `continue`. A non-empty diff text means the handoff
+        # needs change and halts (hypothesis:l4-the-ask-diff-gate-offers-no-
+        # continue-and-an-empty-diff-stands-the-handoff).
+        if not (ack.get("text") or "").strip():
+            acked_continue = True
+            reply_decision = "diff-empty"
+        else:
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
+                succ=succ,
+                readback_log=Path(_ack_path(root, seat)).expanduser(),
+                refusal="successor acked diff: handoff needs change"),
+                path=rec_path)
+            print("successor acked diff (handoff needs change); leaving the "
+                  "renamed window in place for inspection.", file=sys.stderr)
+            return 1
 
     # Three realities (ACKED / PRESENT-BUT-SILENT / ABSENT): the window was
     # confirmed present above and no ack arrived -> PRESENT-BUT-SILENT, the
@@ -11368,7 +11830,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
-        handover=handover, steps_reached=steps_reached), path=rec_path)
+        handover=handover, steps_reached=steps_reached,
+        reply_decision=reply_decision), path=rec_path)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack
