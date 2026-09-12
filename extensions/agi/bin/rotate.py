@@ -6468,13 +6468,19 @@ def _restore_shield_signals(old: list) -> None:
 def _button_down_legal_hint(root: Path) -> str:
     """Read-only one-liner for the dry-run: which branch a grid commit would
     run on. NEVER commits/pushes (dry-run touches nothing); only reads the
-    checked-out branch via `git rev-parse`, and reports no-repo otherwise."""
+    checked-out branch via `git rev-parse`, consults
+    branches.is_legal_branch (the ONE legality rule, L4.311), and reports
+    no-repo otherwise."""
     try:
         out = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True, text=True, timeout=5)
         if out.returncode == 0 and (out.stdout or "").strip():
-            return f"legal on {out.stdout.strip()!r}"
+            branch = out.stdout.strip()
+            if branches.is_legal_branch(branch):
+                return f"legal on {branch!r}"
+            return (f"NOT legal on {branch!r} (grid commit would be SKIPPED "
+                    f"\u2014 season main or master only)")
     except Exception:  # noqa: BLE001
         pass
     return "no repo / unknown branch (grid commit would be SKIPPED)"
