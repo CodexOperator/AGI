@@ -669,7 +669,7 @@ def test_after_join_service_performs_recovered_seats_join_pin_ack(graph):
     got = {}
     try:
         _rotate._find_seat = lambda root, name: {"role": "director"}
-        _rotate._resolve_template = lambda root, role: (
+        _rotate._resolve_template = lambda root, role, explicit=None, **kw: (
             {"startup": {"after_join": [
                 {"label": "join", "cmd": "echo join"},
                 {"label": "pin", "cmd": "echo pin"},
@@ -730,7 +730,7 @@ def test_recovered_top_level_window_id_fills_after_join_identity(graph):
     got = {}
     try:
         _rotate._find_seat = lambda root, name: {"role": "director"}
-        _rotate._resolve_template = lambda root, role: (
+        _rotate._resolve_template = lambda root, role, explicit=None, **kw: (
             {"startup": {"after_join": [
                 {"label": "join", "cmd": "echo join"}]}},
             "director", "test")

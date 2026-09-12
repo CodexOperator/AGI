@@ -7239,7 +7239,9 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      commit: str | None = None,
                      join_pending: set | None = None,
                      overrides: dict | None = None,
-                     join_poll_secs: int | None = None) -> str:
+                     join_poll_secs: int | None = None,
+                     prior_measured_at: dict | None = None,
+                     keep_measured: set | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -7272,6 +7274,13 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     `pending: resolved after join`, which would lie that a future join will
     fix it. None (the pre-join first-seating write) keeps `pending: resolved
     after join`.
+
+    `prior_measured_at` seeds the new `measured_at` map (a rewrite preserves
+    the record's existing stamps instead of dropping them); `keep_measured`
+    names the keys whose stamp is carried through UNCHANGED rather than
+    restamped at this commit — the surgical only-join-facts rewrite uses both
+    so every NON-join fact keeps its byte-identical value AND its original
+    measured_at, while the newly-resolved join facts are stamped here.
     """
     if commit is None:
         commit = _git_head(root)
@@ -7279,6 +7288,7 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
 
     join_pending = join_pending or set()
     overrides = overrides or {}
+    keep_measured = keep_measured or set()
     keys = []
     if isinstance(telemetry, list):
         keys = list(telemetry)
@@ -7289,11 +7299,11 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
             keys.append(k)
 
     tele: dict = {}
-    measured_at: dict = {}
+    measured_at: dict = dict(prior_measured_at) if prior_measured_at else {}
     for key in keys:
         if key in overrides:
             tele[key] = overrides[key]
-            if commit:
+            if commit and key not in keep_measured:
                 measured_at[key] = commit
             continue
         if key in join_pending:
@@ -8902,6 +8912,33 @@ def _inline_reaper_enabled(root: Path) -> bool:
     return bool(ad.get("inline_reaper", True))
 
 
+def _after_join_performer_armed(root: Path, *, forced: bool = False) -> bool:
+    """(goal:g15.25 SL7.54 fix 4) True when SOMEONE will perform the captive
+    after_join for this rotation, so a pre-turn confirm skip is a truthful
+    `deferred: after_join` (a real confirm will land later) rather than a lie
+    that a future confirm will fix a record nobody will touch. A performer
+    runs when rotate-self is the fallback (`agent_dispatch.inline_reaper`
+    truthy — this very process runs after_join in step 6.4), when the fixture
+    forces the fallback (`forced` = the `--after-join` cloak), or when the
+    persistent heal.py watch unit is the performer (inline_reaper falsey AND
+    `reaper.unit_enabled` is not false — the one-edit guard for a box whose
+    unit is down; absent key reads true, matching the crons that arm it).
+    Missing/broken config reads armed (defensive: an absent config never
+    silently withholds a confirm a performer would do)."""
+    if forced:
+        return True
+    if _inline_reaper_enabled(root):
+        return True
+    try:
+        cfg_path = locations.config_path(root) if root is not None else None
+        if cfg_path is None:
+            return True
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:                                   # noqa: BLE001
+        return True
+    return bool(((cfg or {}).get("reaper") or {}).get("unit_enabled", True))
+
+
 def _run_after_join_command(entry, values: dict, timeout_s: int,
                             byte_cap: int) -> dict:
     """Resolve + run ONE after_join command through the no-shell executor,
@@ -9090,7 +9127,8 @@ def _after_join_model_confirm(root: Path, *, seat: str, values: dict,
 
 def _fill_bootstrap_join_facts(root: Path, *, seat: str,
                                live_model: str | None,
-                               refusal_fallback: str | None) -> bool:
+                               refusal_fallback: str | None,
+                               join_poll_secs: int | None = None) -> bool:
     """(goal:g15.25 SL7.40 (a)) fill the pre-spawn bootstrap record's TWO
     join-only facts the after_join confirm can now supply —
     `successor_live_model` and `model_refusal_fallback` — THROUGH the existing
@@ -9099,14 +9137,20 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
     re-mint). run_after_join holds no template/verification/generation (the
     service-layer caller owns only the record file), so the record's own
     telemetry / verification / generation are reconstructed from the existing
-    file to reach the seam; any OTHER join-only fact already resolved in that
-    record (e.g. `successor_address` set by rotate-self before it handed
-    after_join to the service) is carried through as an override so the
-    rewrite never clobbers a value another path already resolved.
-    No-op (False) when there is no live model, no bootstrap file, or the
-    record will not parse — never raises."""
-    if not live_model:
-        return False
+    file to reach the seam.
+
+    SURGICAL (SL7.54 fix 3): the rewrite touches ONLY the join facts. Every
+    NON-join telemetry fact is carried through as an override, so its value is
+    written byte-identical and its `measured_at` stamp is preserved
+    (`prior_measured_at` + `keep_measured`) — never re-derived and never
+    restamped. A join fact this confirm cannot resolve (no live model, no
+    refusal, or a join fact another path owns such as rotate-self's
+    `successor_address`) stays in `join_pending`; with the caller's
+    `join_poll_secs` threaded through, such a key is written `unresolved: join
+    found nothing within <N>s` — never the PRE-join `pending: resolved after
+    join` lie that a future join will fix it.
+    No-op (False) when there is no bootstrap file or the record will not
+    parse — never raises."""
     bpath = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
     try:
         if not bpath.exists():
@@ -9115,32 +9159,43 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
         if not isinstance(b, dict):
             return False
         tele = b.get("telemetry")
-        if not tele:
+        if not isinstance(tele, dict):
             return False
-        # carry already-resolved join facts through the seam so a rewrite never
-        # clobbers a value rotate-self already put in the record
-        overrides: dict = {}
-        if isinstance(tele, dict):
-            for k in BOOTSTRAP_JOIN_ONLY_FACTS:
-                v = tele.get(k)
-                if (v is not None
-                        and not (isinstance(v, str)
-                                 and v.startswith(("pending:", "unresolved:",
-                                                  "SKIPPED:")))):
-                    overrides[k] = v
-        overrides["successor_live_model"] = str(live_model)
-        if refusal_fallback:
-            overrides["model_refusal_fallback"] = refusal_fallback
         verification = b.get("verification")
         if not isinstance(verification, dict):
             verification = None
+        measured = b.get("measured_at")
+        if not isinstance(measured, dict):
+            measured = {}
+        # resolve the join-only facts THIS confirm can supply
+        overrides: dict = {}
+        if live_model:
+            overrides["successor_live_model"] = str(live_model)
+        if refusal_fallback:
+            overrides["model_refusal_fallback"] = refusal_fallback
+        # carry EVERY other fact through byte-identically (value AND
+        # measured_at): only the join facts may change on this rewrite. A
+        # join-only fact ANOTHER path already resolved (rotate-self's
+        # successor_address) is preserved, never clobbered back to pending.
+        for k, v in tele.items():
+            if k not in BOOTSTRAP_JOIN_ONLY_FACTS:
+                overrides[k] = v
+            elif (v is not None
+                  and not (isinstance(v, str)
+                           and v.startswith(("pending:", "unresolved:",
+                                             "SKIPPED:")))):
+                overrides[k] = v
         _write_bootstrap(
             root, seat=seat,
             generation=b.get("generation"),
             telemetry=tele,
             verification=verification,
             overrides=overrides,
-            join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)))
+            join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)),
+            join_poll_secs=join_poll_secs,
+            prior_measured_at=measured,
+            keep_measured={k for k in tele
+                           if k not in BOOTSTRAP_JOIN_ONLY_FACTS})
         return True
     except (OSError, ValueError):
         return False
@@ -9236,13 +9291,24 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                         hov = {}
                     hov["model_confirm"] = model_confirm
                     rec["handover"] = hov
-                    if (isinstance(model_confirm, dict)
-                            and model_confirm.get("live")):
-                        _fill_bootstrap_join_facts(
-                            root, seat=seat,
-                            live_model=str(model_confirm["live"]),
-                            refusal_fallback=_transcript_refusal_fallback(
-                                values.get("succ_transcript") or ""))
+                    # (SL7.54 fix 3) fill/annotate the bootstrap join facts
+                    # when a join WAS attempted — even when the confirm
+                    # resolved NO live model, so an unresolved join fact reads
+                    # `unresolved: join found nothing within <inter>s`, never
+                    # the PRE-join `pending: resolved after join` lie that a
+                    # future join will fix it. Thread the effective poll
+                    # (`inter`) through as join_poll_secs.
+                    _confirm = (model_confirm if isinstance(model_confirm, dict)
+                                else {})
+                    _live = _confirm.get("live")
+                    _fill_bootstrap_join_facts(
+                        root, seat=seat,
+                        live_model=(str(_live) if _live else None),
+                        refusal_fallback=(
+                            _transcript_refusal_fallback(
+                                values.get("succ_transcript") or "")
+                            if isinstance(model_confirm, dict) else None),
+                        join_poll_secs=int(inter))
                 rec["after_join"] = {
                     "performed_by": "service",
                     "delay_s": delay_s,
@@ -9310,6 +9376,13 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     rec, path = pair
     if rec.get("after_join"):
         return None  # already performed
+    # (goal:g15.25 SL7.54 fix 5) the pushed-seats fetch memo is per-PROCESS
+    # (`_PUSHED_SEATS_FETCHED_ONCE`, keyed on (root, ref)); a long-lived
+    # reaper process pins the FIRST-fetched prime row across Prime rotations.
+    # Clear it at the START of every run so two runs in one process after a
+    # prime row change read the new row (the first/first_turn values build
+    # below refetches). `_prime_rows_fetch_clear` had NO production caller.
+    _prime_rows_fetch_clear()
     delay_s = int((rec.get("after_join") or {}).get("delay_s")
                   or DEFAULT_AFTER_JOIN_DELAY_S)
     rec_ts = rec.get("recorded_at", "")
@@ -9321,13 +9394,25 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                 ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%SZ")
             except ValueError:
                 ts = None
+        # (goal:g15.25 SL7.54) a rotation record's `recorded_at` is a UTC
+        # instant (isoformat + trailing Z), never a naive LOCAL wall clock.
+        # strptime's literal `Z` yields a NAIVE datetime; timestamp() then
+        # interprets it in the box's local zone — a 4 h skew on an EDT host —
+        # so a record stamped within its delay in UTC read not-due until
+        # hours later. Stamp it UTC explicitly, then compare in UTC.
+        if ts is not None and ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
         if ts is not None:
             now = now if now is not None else time.time()
             if (ts.timestamp() + delay_s) > now:
                 return None  # not yet due
+
     row = _find_seat(root, seat)
     role = (row or {}).get("role") or "parent"
-    tmpl, _name, _src = _resolve_template(root, role)
+    # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
+    # (None = role default) so `_resolve_template(root, role, None)` matches
+    # its 4-arg signature — the old 2-arg call raised TypeError every run.
+    tmpl, _name, _src = _resolve_template(root, role, None)
     startup = (tmpl.get("startup") if tmpl else None) or {}
     gen = rec.get("gen_after")
     # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
@@ -12474,9 +12559,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                          or args.effort),
         pid=succ_pid, transcript=succ_transcript)
     if isinstance(_mc, str):
-        handover["model_confirm"] = (
-            "deferred: after_join — no assistant turn yet at rotate-self; "
-            "run_after_join confirms once the successor transcript carries one")
+        # (goal:g15.25 SL7.54 fix 4) `deferred: after_join` only when SOMEONE
+        # will actually perform the after_join confirm — the rotate-self
+        # fallback (`inline_reaper` truthy, or the fixture forces it) or the
+        # persistent heal.py watch unit. When NO performer can run, the honest
+        # record is the real non-verdict `skipped: <reason>` — never a lie
+        # that a future confirm will land.
+        if _after_join_performer_armed(
+                root, forced=bool(getattr(args, "after_join", False))):
+            handover["model_confirm"] = (
+                "deferred: after_join — no assistant turn yet at rotate-self; "
+                "run_after_join confirms once the successor transcript carries one")
+        else:
+            handover["model_confirm"] = (
+                f"skipped: {_mc} — no captive after_join performer (reaper "
+                f"unit off and agent_dispatch.inline_reaper=false)")
     else:
         _mc["confirm_at"] = "rotate-self"
         handover["model_confirm"] = _mc
