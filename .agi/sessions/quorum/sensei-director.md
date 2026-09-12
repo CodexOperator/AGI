@@ -33,7 +33,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` = origin/season/s2 + the four harvested rounds (never rebased); merged c1af139e0 (my spawn row) at 04:57Z. **ON THE SEAT, NOT merged up: SL7.02 · SL7.04 · SL7.05 · SL7.06** — 739 rotate+send green + ONE strict-xfail (test_send.py::test_keygen_commits_and_pushes_own_row_to_bare_remote, SL7.09 owns it; REMOVE the mark when it lands) → SL2#14 |
+| seat | `seat/sensei-director@s2` = origin/season/s2 + the harvested rounds (never rebased); merged c1af139e0 (my spawn row) at 04:57Z. **ON THE SEAT, NOT merged up: SL7.02 · SL7.04 · SL7.05 · SL7.06 · SL7.10 · SL7.11 · SL7.08 (seven)** — 739 rotate+send green + ONE strict-xfail (test_send.py::test_keygen_commits_and_pushes_own_row_to_bare_remote, SL7.09 owns it; REMOVE the mark when it lands) → SL2#14 |
 | SL2#14 | window ASKED 04:55Z → Prime: **HOLD until its GO line (~05:0xZ)**, mur-44 verify agents hold MAIN's suite lock since 04:43Z. Baseline for me **2373 / 195 / 2568** (merge-up 44 = 14cd8fb29 04:38Z, suite 3733/14 11/11), active never lower; name the xfail in the numbers line |
 | wake | gen VIII: 0 calls (SL7.06 default answered continue). Owner order 03:3xZ: wake 0 / out 1 → line (3) `--stops` out-1 + line (4) still to brief |
 | Prime | belam XIV [92eda4] @314. Owes: GO line for SL2#14; mur-SL2.14 by name; reaper restart once after merge-up 44 |
@@ -47,9 +47,8 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 |---|---|---|---|
 | **SL7.09** a00-8f0f4ffa `season2/loops/hypothesis-l4-the-successor-key--a00-8f0f4ffa` (kid a00-89d49b37 live) | `hypothesis:l4-the-successor-key-swap-waits-for-the-push-and-a-recovery-record-still-yields-the-join` (g15.26 flip gate (2)(6) + mur-SL2.12 (3) + the edited_by xfail) | MANDATORY two-tree alert fixture VERIFIED never FORGED; xfail flips → remove the strict mark in test_send.py · rotate + send | 04:54Z |
 | **SL7.07** a00-a457c3fe `season2/loops/hypothesis-l4-the-spawn-gate-ref-a00-a457c3fe` (kid a00-7d33638d live) | `hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-hand-seating-commits-its-row-and-answers-the-ack` (Sensei B + flip gate (5)) | both-direction gate fixtures; hand seating leaves MAIN clean, post wakes at 0 · rotate | 04:54Z |
-| **SL7.08** a00-380bb138 `season2/loops/hypothesis-l4-the-main-committed-a00-380bb138` | `hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel-and-an-empty-pushed-set-reads-none` (g15.26 flip gate (1)(3)(4b)) | two-tree test with a WORKTREE reader; empty pushed set → None · send | 04:42Z |
 
-Harvested on the seat this gen (lands at SL2#14): **SL7.11** 05:02Z (frontmatter splitter migration, 16 sites + cli.py fix-up, guard test) · **SL7.10** 05:04Z (heal.py real crash-recovery shape; watcher clause (1) retired, guard kept). Round branches now spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar; a `+` prefix in plain `git branch` = checked out in the round's worktree.
+Harvested on the seat this gen (lands at SL2#14): **SL7.08** 05:12Z (send.py: committed reader at MAIN's toplevel, empty pushed set → None, keygen --all-live one aggregate commit; flip gate (1)(3)(4b)) · **SL7.11** 05:02Z (frontmatter splitter migration, 16 sites + cli.py fix-up, guard test) · **SL7.10** 05:04Z (heal.py real crash-recovery shape; watcher clause (1) retired, guard kept). Round branches now spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar; a `+` prefix in plain `git branch` = checked out in the round's worktree.
 
 ### Queue — dispatch in this order, each behind the round that owns its file
 
