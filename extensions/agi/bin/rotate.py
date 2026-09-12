@@ -4892,11 +4892,11 @@ def _section_tag(header: str) -> str | None:
     first word).
 
     **SL2.01 (hypothesis:l4-the-driven-handoff-writer-keys-on-declared-
-    titles-and-writes-the-seats-own-card):** the driven writer no longer keys
-    on the § numerals directly — the sensei-director card's numerics are a
-    DIFFERENT layout (§0 identity, §5 state). The numerals survive here only
-    as the legacy PRIME-card fallback (`## §3 🔴 NEXT COMMAND` has no
-    "where it stops" title), resolved by `_locate_where_it_stops`. KEYS ON
+    titles-and-writes-the-seats-own-card):** the driven writer keys on the
+    § numerals only to know which DECLARED slot to fill — the sensei-
+    director card's numerics are a DIFFERENT layout (§0 identity, §5 state)
+    and the where-it-stops slot resolves by TITLE
+    (`_locate_where_it_stops`), never a numeral. KEYS ON
     DECLARED TITLES first, never on these."""
     for tok in ("§0", "§3", "§6"):
         if tok in header:
@@ -4948,14 +4948,16 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
     more than one match, `None` when none (caller refuses an existing-card
     miss). Resolution order:
       1. a `## ` header whose TEXT contains "where it stops";
-      2. a `###`-level subheader whose text contains "where it stops";
-      3. the legacy PRIME fallback: a `## ` header carrying the §3 numeral
-         (`## §3 🔴 NEXT COMMAND` has no title, but is the next-command slot).
-    Never numerals ahead of titles — the sensei-director §3 is NEVER TOUCH."""
+      2. a `###`-level subheader whose text contains "where it stops".
+    NEVER a numeral: `## §3 WHAT YOU NEVER TOUCH` carries the §3 numeral but
+    is NOT the slot (the sensei-director §3 is NEVER TOUCH), so an untitled
+    §3 header falls through to `None` and the caller (`_write_stops_section`)
+    CREATES a TITLED slot at the card end instead of overwriting the untitled
+    block. The legacy §3-numeral fallback is DELETED
+    (hyp:l4-the-stops-slot-is-located-by-title-only…)."""
     # "next command" is the same slot under the Prime's and the Sensei's
     # titles (`## §3 🔴 NEXT COMMAND`, `## §5 🔴 NEXT COMMAND — the loop …`);
-    # a title synonym, keyed ahead of any numeral (Sensei 18:29Z: the §5
-    # card refused as 'no where-it-stops slot').
+    # a title synonym keyed exactly like 'where it stops'.
     top = [(i, -1) for i, (h, _) in enumerate(sections)
            if _is_stops_title(h)]
     sub = [(i, j) for i, (_, b) in enumerate(sections)
@@ -4967,12 +4969,26 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
         return top[0]
     if len(sub) == 1:
         return sub[0]
-    fallback = [i for i, (h, _) in enumerate(sections) if "§3" in h]
-    if len(fallback) > 1:
-        return "ambiguous"
-    if len(fallback) == 1:
-        return (fallback[0], -1)
     return None
+
+
+def _resolved_stops_slot_text(card_path: Path) -> str:
+    """The rotate-self --stops --dry-run 'stops slot:' line for a card, read
+    fresh and never written: the located header line + '(replace)', or
+    'none — will append at end' when no titled slot exists, or the ambiguous
+    refusal. Keys on TITLE only (the numeral fallback is deleted), so a card
+    carrying only `## §3 …` (no title) reports append-at-end."""
+    card_txt = (card_path.read_text(encoding="utf-8")
+                if card_path.exists() else "")
+    _preamble, _secs = _split_card_sections(card_txt)
+    _slot = _locate_where_it_stops(_secs)
+    if _slot == "ambiguous":
+        return "stops slot: AMBIGUOUS where-it-stops (replace refused)"
+    if isinstance(_slot, tuple):
+        _sec = _secs[_slot[0]]
+        _hdr = _sec[0] if _slot[1] < 0 else _sec[1].splitlines()[_slot[1]]
+        return f"stops slot: {_hdr.strip()} (replace)"
+    return "stops slot: none — will append at end"
 
 
 def _locate_banked(sections) -> tuple[int, int] | str | None:
@@ -5245,8 +5261,7 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         if stops is None:
             found = " / ".join(h for h, _ in sections)
             print("ERR: handoff --driven finds no where-it-stops slot (no "
-                  "'where it stops' / 'next command' title and no §3 "
-                  "numeral) to fill; "
+                  "'where it stops' / 'next command' title) to fill; "
                   f"refusing — found: {found or '(none)'}.", file=sys.stderr)
             return 2
         if banked == "ambiguous":
@@ -10649,8 +10664,13 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         sub_header = (lines[sub] if sub < len(lines)
                       else "### 🔴 Where it stops")
         end = len(lines)
+        in_fence = False
         for j in range(sub + 1, len(lines)):
-            if lines[j].strip().startswith("#"):
+            s = lines[j].strip()
+            if s.startswith("```"):
+                in_fence = not in_fence
+                continue
+            if s.startswith("#") and not in_fence:
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
@@ -10936,6 +10956,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:
+            print(f"(--stops) {_resolved_stops_slot_text(_card)}")
             print(f"(--stops) would write where-it-stops into {_card}")
             print(f"(--stops) commit: {_msg!r} "
                   f"(card + the seat's own seats.md row, nothing else)")
