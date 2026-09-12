@@ -16,3 +16,33 @@ from: sanctuary-director
 to: sensei-director
 
 [rotation-alert] sanctuary-director -> sanctuary-director [302273] @@291 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 31 | in flight: None
+---
+ts: 2026-09-11T18:50:57.143857+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director [1d14b7] @293 | generation 1 -> 2 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 33 | in flight: None
+---
+ts: 2026-09-11T19:57:54.643595+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director [49b939] @302 | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 35 | in flight: None
+---
+ts: 2026-09-11T20:08:57.879053+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director [a50533] @303 | generation 2 -> 3 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 36 | in flight: None
+---
+ts: 2026-09-11T21:36:25.923057+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director [588897] @306 | generation 3 -> 4 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 39 | in flight: None
+---
+ts: 2026-09-11T21:46:38.772965+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director [27c314] @308 | generation 18 -> 19 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 41 | in flight: None

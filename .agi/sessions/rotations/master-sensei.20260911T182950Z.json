@@ -1,16 +1,136 @@
 {
   "rotation": "rotate-self",
   "seat": "master-sensei",
-  "recorded_at": "2026-09-11T18:30:11.063239Z",
-  "result": "started",
+  "recorded_at": "2026-09-11T18:31:02.099146Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "master-sensei",
+      "windows": [
+        "belam-S1-L4-XI",
+        "sanctuary-helper",
+        "belam-S1-L4-V",
+        "master-sensei.gen1",
+        "belam-S1-L4-IX",
+        "sensei-director",
+        "belam-S1-L4-VIII",
+        "master-sensei",
+        "sanctuary-director",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 0,
+      "after": 1
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1145592,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "master-sensei.gen1",
+      "windows": [
+        "belam-S1-L4-XI",
+        "sanctuary-helper",
+        "belam-S1-L4-V",
+        "master-sensei.gen1",
+        "belam-S1-L4-IX",
+        "sensei-director",
+        "belam-S1-L4-VIII",
+        "master-sensei",
+        "sanctuary-director",
+        "belam-S1-L4-VI"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
   "steps_reached": [
-    "2",
-    "4",
-    "4.5",
     "handoff",
-    "spawn"
+    "2",
+    "spawn",
+    "4.5",
+    "4"
   ],
-  "template_source": "worktree (geometry current)",
-  "gen_before": 0,
-  "gen_after": 1
+  "handover": {
+    "own_window": {
+      "name": "master-sensei.gen1",
+      "id": "@279"
+    },
+    "successor_window": {
+      "name": "master-sensei",
+      "id": "@292"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@292",
+      "pid": 582621,
+      "session_id": "3ca02a29-4bc5-4e74-add0-3b1e9bc860cc",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/3ca02a29-4bc5-4e74-add0-3b1e9bc860cc.jsonl",
+      "name": "agi-88",
+      "path": "/home/ubuntu/.claude/sessions/582621.json",
+      "note": "joined by @292 in registry file 582621.json"
+    },
+    "successor_row": "config:seats row 'master-sensei': session_ref= session_id=3ca02a29-4bc5-4e74-add0-3b1e9bc860cc pid=582621 generation=1 window='@292' source=registry",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.ack.json",
+    "own_authority_released": "generation 0 of seat 'master-sensei' retired; successor generation 1 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "reap_own_pid": {
+      "pid": null,
+      "reaped": false,
+      "note": "no own-pid stand-in supplied; the predecessor's process is NOT reaped by this run"
+    },
+    "button_down": "grid committed \u2014 record+row on branch season/s2",
+    "livestream_repoint": {
+      "session": "view-master-sensei",
+      "target": "@292",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-master-sensei:@292"
+      ],
+      "active_windows": [
+        "@289 0",
+        "@290 0",
+        "@244 0",
+        "@279 0",
+        "@277 0",
+        "@288 0",
+        "@272 0",
+        "@292 1",
+        "@291 0",
+        "@247 0"
+      ]
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5"
+      },
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "ok"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json"
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3196979,
+      3196984,
+      3196985
+    ],
+    "reap_source": "derived from own window @id @279 pane 3196979: chain [3196979, 3196984, 3196985] (deepest-first)"
+  }
 }

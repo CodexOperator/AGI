@@ -1,0 +1,25 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-11T21:49:04.767506Z",
+  "result": "detected",
+  "probable_cause": "remote-control-disconnect",
+  "row": {
+    "name": "sanctuary-director",
+    "role": "director",
+    "model": "claude-opus-5",
+    "pid": 1102718,
+    "window": "@302",
+    "session_id": "90b706b4-df75-43fb-ab77-859a491ded24",
+    "generation": 18,
+    "worktree": ".agi/worktrees/seat-sanctuary-director"
+  },
+  "respawn_outcome": {
+    "name": "sanctuary-director",
+    "generation": 20,
+    "pid": null,
+    "window": null,
+    "reason": "successor window 'sanctuary-director' already exists",
+    "row": "skipped"
+  }
+}
