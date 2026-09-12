@@ -8,6 +8,7 @@ this script implements.
 
 import ast
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -1062,3 +1063,51 @@ def test_refuses_a_rootless_project_path_by_name(tmp_path):
     assert r.returncode == 2
     assert f"no graph root at or above {nowhere}" in r.stderr
     assert "no .agi/ and no nodes/" in r.stderr
+
+
+
+def _run_nof_flag(cwd: Path, *args,
+                  env_remove=("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                              "AUTORESEARCH_TREE_PROJECT_ROOT")):
+    """Run level3.py with NO `--project` flag, env overrides stripped, from
+    `cwd` — the spelling that used to fall back to the raw cwd."""
+    cmd = [sys.executable, str(BIN), *args]
+    env = {k: v for k, v in os.environ.items() if k not in env_remove}
+    return subprocess.run(cmd, cwd=str(cwd), capture_output=True,
+                          text=True, env=env)
+
+
+def test_nof_flag_default_refuses_a_rootless_cwd_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3-no-flag-default-refuses-a-rootless-cwd-
+    and-the-sl7-25-body-names-its-missing-and-orphan-counts — with no
+    `--project` and no env override, a run started in a rootless directory
+    (no `.agi/` at or above, no `nodes/` here) is REFUSED by name, exit 2,
+    exactly like the `--project` spelling — never scanned as an authoritative
+    `<cwd>/nodes` tree whose stray output later feeds the next scan."""
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    r = _run_nof_flag(rootless, "--dry-run", "--engine-root", str(engine))
+    assert r.returncode == 2, r.stderr
+    assert f"no graph root at or above {rootless}" in r.stderr
+    assert "no .agi/ and no nodes/" in r.stderr
+
+
+def test_nof_flag_run_from_inside_a_project_resolves_its_nearest_agi(tmp_path):
+    """Without `--project` or env, a run whose cwd is inside a project
+    resolves that project's own graph root (`<repo>/.agi`) through the same
+    resolver the flag uses — it does not misfire into a stray tree."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    r = _run_nof_flag(proj, "--dry-run", "--engine-root", str(engine))
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout

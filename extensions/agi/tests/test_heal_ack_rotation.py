@@ -242,6 +242,35 @@ def test_bootstrap_ack_fact_derives_from_ack_file(_fix):
     assert reason2 is None
 
 
+def test_stale_prior_gen_ack_is_named_not_current(_fix):
+    """(g15.25 SL7.42) `_derive_bootstrap_fact('ack', generation=G, ...)`
+    never reads an ack file whose `gen_after` is NOT G — a leftover prior-gen
+    ack (a re-seated post) is NAMED `stale: gen N`, never printed as the
+    current seating's answer. generation=None (the pre-bound SL7.29 direct
+    calls) keeps the unguarded read."""
+    (_fix / "sessions" / "seats").mkdir(parents=True, exist_ok=True)
+    (rotate._ack_path(_fix, "seat-a")).write_text(json.dumps({
+        "seat": "seat-a", "gen_after": 4, "answer": "continue",
+        "source": "predecessor", "session_ref": "", "ts": "T",
+        "text": ""}) + "\n", encoding="utf-8")
+    row = {"name": "seat-a", "role": "parent"}
+    # stale: the write's generation (1, a fresh seating) != the file's gen 4.
+    val, reason = rotate._derive_bootstrap_fact(
+        "ack", root=_fix, seat="seat-a", seat_row=row, commit=None,
+        generation=1)
+    assert val == "stale: gen 4", val
+    assert reason is None
+    # a matching generation reads current...
+    val2, _ = rotate._derive_bootstrap_fact(
+        "ack", root=_fix, seat="seat-a", seat_row=row, commit=None,
+        generation=4)
+    assert val2 == "continue (source predecessor, gen 4)", val2
+    # ...and the pre-bound None keeps the unguarded read.
+    val3, _ = rotate._derive_bootstrap_fact(
+        "ack", root=_fix, seat="seat-a", seat_row=row, commit=None)
+    assert val3 == "continue (source predecessor, gen 4)", val3
+
+
 def test_bootstrap_block_renders_no_doubled_ack(_fix):
     """(SL7.29 part (a)) the ack fact is prefixed ONCE — a rotate-self
     successor's STARTUP block renders `- ack: continue (source predecessor,
@@ -265,7 +294,7 @@ def test_bootstrap_block_renders_no_doubled_ack(_fix):
                           answer=answer, source="predecessor",
                           session_ref="")
         rotate._write_bootstrap(
-            _fix, seat="seat-a", generation=2,
+            _fix, seat="seat-a", generation=4,
             telemetry=["seed", "model", "effort", "window", "worktree",
                        "ack"],
             verification=None, commit="abc1234")
