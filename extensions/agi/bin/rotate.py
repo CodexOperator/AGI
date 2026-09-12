@@ -2068,13 +2068,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                   "ref.", file=sys.stderr)
             return 2
     # r3b: `continue` COMMITS its own row write (unless --no-commit); `diff`
-    # never commits (the successor still edits). Only the commit path checks
+    # WITH text never commits (the successor still edits) -- but a `diff` with
+    # an EMPTY text stands the handoff EXACTLY like `continue` (SL7.18 made
+    # the empty diff stand the handoff), so it commits the own-row back-fill
+    # the same way (g15.24 FIX-ONLY). Only the commit path checks
     # a pre-dirtied seats.md — the SEAT'S OWN row pre-staged or pre-edited
     # before the ack is REFUSED BY NAME before any write (SL6.09 own-row gate:
     # an unrelated FOREIGN hunk, staged or unstaged, is neither bundled nor
     # blocking — only the OWN row's uncommitted change names the refusal), so
     # the ack's own commit never double-writes a row someone was mid-edit on.
-    do_commit = args.answer == "continue" \
+    do_commit = (args.answer == "continue"
+                 or (args.answer == "diff" and not (text or "").strip())) \
         and not getattr(args, "no_commit", False)
     # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
     # identity cells now have ONE writer and it writes MAIN's seats.md
@@ -2410,7 +2414,9 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             seat=ack_seat, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
             handoff_path=str(Path(ack_path).expanduser().resolve()),
-            in_flight="successor acked `continue`; handoff stood",
+            in_flight=("successor acked `diff-empty`; handoff stood"
+                       if reply == "diff-empty"
+                       else "successor acked `continue`; handoff stood"),
             live_names=succ.get("names", []),
             # mechanism 1: the successor's ack carries its OWN ref back-filled
             # from the JOIN (cmd_ack r3), so this post-ack announce composes
@@ -5853,66 +5859,55 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
     def _merge_region(removed: list[str], added: list[str]) -> list[str]:
         """The staged splice of ONE replace/insert/delete opcode region.
         Each changed line is classified on its own by ROW IDENTITY (never by
-        index): an OWN removed line is DROPPED (own deletion), an OWN added
-        line is KEPT (own change / own write), a FOREIGN removed line is
-        RESTORED from HEAD, a FOREIGN added line is NEVER staged. Rows are
-        paired across removed/added by their `name` identity (diff never
-        reorders rows), so an own row and a foreign row edited in the SAME
-        replace opcode keep the own change and the foreign row byte-identical
-        to HEAD, whichever order they sit in. Non-row structural lines
-        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) are
-        matched positionally and likewise keep HEAD unless the work version is
-        an owned frontmatter stamp."""
+        index or positional key agreement): an OWN removed line is DROPPED
+        (own deletion), an OWN added line is KEPT (own change / own write), a
+        FOREIGN removed line is RESTORED from HEAD, a FOREIGN added line is
+        NEVER staged. Rows are paired across removed/added BY THEIR `name`
+        KEY, so progress never depends on the two sides sitting at the SAME
+        position — a physical SWAP of two rows (both edited, their order
+        crossed inside one replace opcode) still keeps the own row's WORK
+        bytes and restores the foreign row byte-identical to HEAD, instead of
+        falling through to a fail-safe that dropped the own added line
+        (mur-SL2.17 / goal:g15.24 (i)). Structured as: walk the REMOVED lines
+        in HEAD order, for each keyed row keep/restore/drop by identity using
+        the WORK version when the row survived; then flush any WORK-only
+        added lines (row inserts / structural additions) not already consumed,
+        staging each only when OWN. Non-row structural lines (frontmatter
+        `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) likewise keep HEAD
+        unless the work version is an owned frontmatter stamp."""
         rem = [(l, _key(l)) for l in removed]
         add = [(l, _key(l)) for l in added]
-        rkeys = {k for _, k in rem if k is not None}
-        akeys = {k for _, k in add if k is not None}
-        ri = ai = 0
+        add_by_key = {k: l for l, k in add if k is not None}
+        consumed: set[str] = set()
         out: list[str] = []
-        while ri < len(rem) or ai < len(add):
-            rl, rk = rem[ri] if ri < len(rem) else (None, None)
-            al, ak = add[ai] if ai < len(add) else (None, None)
-            if rl is not None and al is not None and rk == ak:
-                # the same slot on both sides: an own/foreign row edited in
-                # work, or an aligned structural line. Keep the WORK line when
-                # it is THIS seat's own, else restore HEAD.
-                out.append(al if _own(al) else rl)
-                ri += 1
-                ai += 1
-                continue
-            if rl is not None and rk is not None and rk not in akeys:
-                # a row DELETED from the work copy: restore it from HEAD unless
-                # it is this seat's OWN row (an own deletion is dropped).
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
-                continue
-            if al is not None and ak is not None and ak not in rkeys:
-                # a row INSERTED into the work copy: stage it only when OWN.
-                if _own(al):
-                    out.append(al)
-                ai += 1
-                continue
-            if rl is not None and rk is None:
-                # a structural line with no aligned work partner: keep HEAD
-                # (restored) unless it is an owned frontmatter stamp.
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
-                continue
-            if al is not None and ak is None:
-                # a structural line present only in work: stage only when OWN.
-                if _own(al):
-                    out.append(al)
-                ai += 1
-                continue
-            # fail-safe (should be unreachable): swallow the base line.
-            if rl is not None:
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
+        for rl, rk in rem:
+            if rk is not None:
+                al = add_by_key.get(rk)  # the work version of THIS row, if any
+                if al is not None:
+                    # the row survived on both sides (edited in work, or its
+                    # position crossed inside one opcode): keep WORK bytes
+                    # when this seat owns the row, else RESTORE HEAD.
+                    consumed.add(rk)
+                    out.append(al if _own(al) else rl)
+                else:
+                    # the row was DELETED from the work copy: restore it from
+                    # HEAD unless it is this seat's OWN row (own deletion).
+                    if not _own(rl):
+                        out.append(rl)
             else:
-                ai += 1
+                # a structural line in the removed region: keep HEAD unless it
+                # is an owned frontmatter stamp.
+                if not _own(rl):
+                    out.append(rl)
+        # flush any WORK-only added lines not consumed above (row
+        # inserts and structural additions): stage each only when OWN.
+        for al, ak in add:
+            if ak is None:
+                if _own(al):
+                    out.append(al)
+            elif ak not in consumed:
+                if _own(al):
+                    out.append(al)
         return out
 
     staged: list[str] = []
@@ -6241,18 +6236,18 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     _push = _push_season_branch(root)
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
-    # `.key.pending` written when an earlier push FAILED) COMPLETES now:
-    # the successor key is atomically put in place and the pending file
-    # deleted. Print the one-line outcome alongside the push line. Best-
-    # effort; `_complete_pending_key_swap` never raises.
-    if _push.startswith("push: OK"):
-        _done = _complete_pending_key_swap(root, seat)
-        if _done:
-            print(_done, file=sys.stderr)
-            return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
-                    f"own-row only: {msg}\npush: {_push}\n{_done}")
-    return (f"spawn_row_commit: committed (sha {sha}) -- seats.md own-row "
-            f"only: {msg}\npush: {_push}")
+    # `.key.pending` written when an earlier push FAILED) COMPLETES now
+    # through the ONE shared helper (`_finish_pending_swap_on_push`): the
+    # successor key is atomically put in place and the pending file
+    # deleted. Best-effort; `_finish_pending_swap_on_push` never raises
+    # (and returns '' -- no extra line -- when there is no push OK or no
+    # pending swap to complete).
+    _done = _finish_pending_swap_on_push(root, seat, _push)
+    if _done:
+        return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
+                f"own-row only: {msg}\npush: {_push}\n{_done}")
+    return (f"spawn_row_commit: committed (sha {sha}) -- "
+            f"own-row only: {msg}\npush: {_push}")
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -6462,13 +6457,19 @@ def _restore_shield_signals(old: list) -> None:
 def _button_down_legal_hint(root: Path) -> str:
     """Read-only one-liner for the dry-run: which branch a grid commit would
     run on. NEVER commits/pushes (dry-run touches nothing); only reads the
-    checked-out branch via `git rev-parse`, and reports no-repo otherwise."""
+    checked-out branch via `git rev-parse`, consults
+    branches.is_legal_branch (the ONE legality rule, L4.311), and reports
+    no-repo otherwise."""
     try:
         out = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True, text=True, timeout=5)
         if out.returncode == 0 and (out.stdout or "").strip():
-            return f"legal on {out.stdout.strip()!r}"
+            branch = out.stdout.strip()
+            if branches.is_legal_branch(branch):
+                return f"legal on {branch!r}"
+            return (f"NOT legal on {branch!r} (grid commit would be SKIPPED "
+                    f"\u2014 season main or master only)")
     except Exception:  # noqa: BLE001
         pass
     return "no repo / unknown branch (grid commit would be SKIPPED)"
@@ -10549,6 +10550,25 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     return f"key swap completed (deferred from gen {_gen})"
 
 
+def _finish_pending_swap_on_push(root: Path, seat: str,
+                                 push_line: str | None) -> str:
+    """g15.26 claim (b) -- ONE helper every push-OK site calls to complete a
+    deferred `<seat>.key.pending` swap. It completes the swap exactly when
+    ``push_line`` reports a successful push (starts ``push: OK``): that is the
+    exact gate `_commit_spawn_row` used to stock locally, lifted into a
+    single call so a future push site (ack/prepare/cron/keygen --all-live)
+    cannot drift into completing a swap on a FAILED push. Returns the one-line
+    outcome ('' when there is no push OK, no pending file, or the committed
+    row still names the old pubkey) and prints the completed-swap line to
+    stderr. Never raises."""
+    if not str(push_line or "").startswith("push: OK"):
+        return ""
+    _done = _complete_pending_key_swap(root, seat)
+    if _done:
+        print(_done, file=sys.stderr)
+    return _done
+
+
 def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
     """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
     into the on-disk <seat>.key ONLY when the successor spawn-row write, its
@@ -11045,6 +11065,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 print(f"rotate-self refused: {_perr} — clear it, then "
                       f"re-run (nothing rotated).", file=sys.stderr)
                 return 3
+            # g15.26 claim (b): this rotate-out PUSH succeeded, so origin
+            # now carries the seat's committed row -- a deferred
+            # `.key.pending` swap from an earlier failed push COMPLETES
+            # through the ONE shared helper (only when the committed row
+            # matches the pending key).
+            _finish_pending_swap_on_push(root, seat, "push: OK")
             print("rotation line: delivered as the [rotation-alert] dm "
                   "to <prime> (no send.py call needed)")
 
@@ -11110,6 +11136,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             print(f"rotate-self refused: {_mperr} — clear it, then "
                   f"re-run (nothing rotated).", file=sys.stderr)
             return 3
+        # g15.26 claim (b): the merge commit's HEAD now names the seat's
+        # committed pubkey and this push succeeded -- complete any deferred
+        # pending swap through the ONE shared helper.
+        _finish_pending_swap_on_push(root, seat, "push: OK")
 
     # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
     # rotate without its own signing key file; the gate refuses BY NAME and
@@ -11227,6 +11257,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # row write / commit leaves the predecessor key file BYTE-IDENTICAL.
     # `--dry-run` reports what it would do and touches nothing. The row
     # cells are consumed at s6.1 via `_key_rotation`.
+    # g15.26 claim (a): COMPLETE any deferred `<seat>.key.pending` swap
+    # BEFORE `_rotate_successor_key` mints a new successor generation. On a
+    # seat that already carries a `.key.pending` (a prior push FAILED after
+    # the spawn-row write committed), the committed HEAD row already names
+    # the pending successor pubkey -- so flipping `.key` now (when the
+    # committed row matches) resolves the old gen N->N+1 swap BEFORE this
+    # rotation mints N+1->N+2, instead of orphaning the old pending key and
+    # double-counting key_history once the spawn-row commit runs. The mint
+    # below then reads a `.key` that already agrees with HEAD. Never on a
+    # dry-run (the swap is a real write; dry-run touches nothing).
+    if not getattr(args, "dry_run", False):
+        _done = _complete_pending_key_swap(root, seat)
+        if _done:
+            print(_done, file=sys.stderr)
     _key_rotation = _rotate_successor_key(
         root, seat, row, gen_before=gen_before, gen_after=gen,
         dry_run=bool(getattr(args, "dry_run", False)))

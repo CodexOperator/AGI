@@ -101,6 +101,10 @@ sessions/
 !.agi/sessions/sensei/
 !.agi/sessions/rotations/
 !.agi/sessions/rotations/*
+# the once-per-generation hook latch (`hook-<seat>-gen<N>.lock`) is a
+# TRANSIENT lock rewritten by every threshold hook run — never commit it,
+# even though the durable rotation records beside it are tracked (goal:g15.25).
+.agi/sessions/rotations/hook-*.lock
 !.agi/sessions/quorum/
 !.agi/sessions/quorum/*
 !.agi/sessions/handoff-sections/

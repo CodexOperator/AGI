@@ -96,3 +96,5 @@ DEMOTED from proved 0.9 by the Prime XV at mur-SL2.17 (wf_2144282d-658, digested
 <!-- THOUGHT:END -->
 
 PARENT REVIEW SL7.22: accepted as proved at 0.9 -- built (c) send pending-signing preference and (d) single _record_join; 504 send/heal/rotate/seatsig green on the worktree. Whole g15.26 claim (a)-(e) now built across two kids (a00-10f3a2f6, a00-d9bdaf52); no remaining clause.
+
+PROSE RECONCILED (sensei-director gen XI, 11:11Z; Prime XV mur-SL2.18 line (5)): the PARENT REVIEW paragraph above ('accepted as proved at 0.9') is the SL7.22 parent's original acceptance and is SUPERSEDED — this node was demoted to inconclusive_lean_proved:60 at 396c61b46 (Prime XV mur-SL2.17 10:22Z): pending-key signing reads FORGED while the swap never completes outside _commit_spawn_row. The verdict and confidence in the frontmatter are the node's state; the 0.9 in the review prose is history, not a claim.
