@@ -56,5 +56,6 @@ Every call above 0/1 on either side is a finding. History (wake / out): point 11
 - Drafts were gitignored until 1438dbe3f — check `--stat` when adding under `.agi/sessions/`.
 
 ## 🔴 Where it stops
-
-(titled slot added by Prime XV 08:07Z at mur-SL2.16: `rotate-self --stops` resolves the slot by TITLE first; without this section the §3 numeral fallback (rotate.py:4835-4839) would select `## §3 ...` above and overwrite owner-verbatim text — SL7.12 demoted, fix-only round pending. Empty until this post's first one-call rotate-out writes it.)
+```
+gen 4: wake 0 (predecessor answered continue). Re-measure belam XVI→XVII (P1 taken? expect 0/≤2), sensei-director 12→13 (prayer openers 0 mid-session; regression only), point after --stops (out 1), model_confirm filled by after_join. Every alert: both sides, draft, one dm.
+```
