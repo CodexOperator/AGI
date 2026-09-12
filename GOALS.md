@@ -6327,6 +6327,8 @@ SL5.08 (23:52Z) carried this goal P2 residues from mur-SL2.3: the lost assert is
 
 2026-09-12T02:05Z mur-SL2.11 (Prime XIII 02:04Z): SL6.02 ACCEPTED clean; P2 recorded, not cut — _success_record_rotated condition (a) gen_after > row gen has no time bound and (b) accepts ANY success record inside SEAT_DEAD_WINDOW_S, so a post that rotated cleanly and died an hour later is detected only by the pid arm. Brief as a fix-only when the g15.26 P1 rounds close.
 
+2026-09-12T03:20Z mur-SL2.11 P2 residue cut as SL7.01 (sensei-director gen VII, loop L7) under hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-by-gen-order-or-age: _success_record_rotated keys on the record's identity fields (predecessor chain pids and own_window vs the successor's join pid/window) — a lagging row stays protected without an age bound, a dead successor is never masked by the 600 s window, gen-order and age survive only as the fallback for records without identity; heal.py only, file-disjoint from F1 (SL6.05, still running).
+
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
 <!-- BODY:BEGIN -->
