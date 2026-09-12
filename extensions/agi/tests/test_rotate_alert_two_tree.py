@@ -367,6 +367,12 @@ def _drive_self(fx, monkeypatch, capsys, tmp_path, seat="seat-a"):
     return (rc, args, ft)."""
     ft = _TwoTreeTmux(tmp_path, seat)
     monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    # SL7.40's turn-driven model confirm (run_after_join, rotate-self fallback
+    # included) polls the successor transcript with REAL sleeps for up to
+    # DEFAULT_AFTER_JOIN_TIMEOUT_S when no assistant turn appears; the fake
+    # successor here never produces one, so zero the budget (the confirm
+    # records `skipped: no assistant turn within 0s`, nothing waits).
+    monkeypatch.setattr(rotate, "DEFAULT_AFTER_JOIN_TIMEOUT_S", 0)
     monkeypatch.setattr(
         rotate, "_read_ack",
         lambda *a, **k: {"seat": seat, "gen_after": 3, "answer": "continue",

@@ -512,3 +512,25 @@ def test_rotate_out_records_read_shared_sessions_from_worktree(tmp_path):
     assert len(seen) == 1
     assert seen[0][1]["seat"] == SEAT
 
+
+
+def test_fallback_pids_reads_dict_chain_and_bare_ints():
+    """goal:g15.25 (c) — `_fallback_pids` reads `entry['pid']` from the DICT
+    entries `_reap_chain` actually returns and STILL accepts a bare int (a
+    record written before this cut). Before the fix it filtered bare ints
+    only, so the one reap section's chain of {pid, was_alive, termd, ...}
+    dicts yielded [] on every recorded rotation."""
+    rec = {"s12_self_reap": {"chain": [
+        {"pid": 111, "was_alive": True, "termd": True, "gone_after": True},
+        {"pid": 222, "was_alive": False, "termd": False, "gone_after": False},
+        333,
+        {"pid": 0},            # refused: pid <= 0
+        {"pid": -5, "termd": True},
+        {"pid": "444"},        # non-int ignored
+    ]}}
+    assert sensei._fallback_pids(rec) == [111, 222, 333]
+    # a record written before the dict cut still resolves
+    assert sensei._fallback_pids({"s12_self_reap": {"chain": [999]}}) == [999]
+    # no s12 / no chain -> []
+    assert sensei._fallback_pids({}) == []
+    assert sensei._fallback_pids({"s12_self_reap": {"chain": []}}) == []

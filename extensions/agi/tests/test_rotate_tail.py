@@ -34,6 +34,15 @@ import rotate  # noqa: E402
 def _fix(tmp_path, monkeypatch):
     """Fixture root for rotate-self tail mechanics (mirrors
     test_rotate_handover._fix)."""
+    # SL7.40 landed a turn-driven successor model confirm inside run_after_join
+    # (rotate-self fallback included) that polls the successor transcript
+    # with REAL sleeps for up to DEFAULT_AFTER_JOIN_TIMEOUT_S (60 s) when no
+    # assistant turn appears. The transcripts these tests hand rotate-self
+    # never gain a turn (they test the rotation, not the confirm), so the
+    # budget is zeroed here: the confirm records `skipped: no assistant
+    # turn within 0s` at once and nothing waits. A test OF the confirm
+    # drives run_after_join with its own sleep_impl / timeout_s seams.
+    monkeypatch.setattr(rotate, "DEFAULT_AFTER_JOIN_TIMEOUT_S", 0)
     root = tmp_path
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
 
