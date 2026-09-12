@@ -3474,7 +3474,7 @@ def test_whois_claim_yes_has_provenance(monkeypatch):
     assert "IS-AUTHORIZED" in text
     assert "prime_director" in text
     # provenance in the answer: the ref it read and the commit sha it used
-    assert "origin/season/s2" in text
+    assert "origin/season2/main" in text
     assert FAKE_SHA in text
 
 

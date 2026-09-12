@@ -1685,10 +1685,22 @@ def test_commit_all_on_season_branch_succeeds(guard_project):
 
 
 def test_commit_all_on_nested_season_branch_succeeds(guard_project):
-    """season/* admits nested names like season/ideas/flock too."""
-    _on_branch(guard_project, "season/ideas/flock")
+    """Canonical season2/main (the post-migration spelling) is admitted like
+    master. This is the exact case the old `startswith("season/")` rule broke
+    on — `"season2/main".startswith("season/")` is False."""
+    _on_branch(guard_project, "season2/main")
     grid.cmd_commit(guard_project, [], do_all=True, session=None)
     assert grid.ref_tip(guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_commit_all_refuses_non_grammar_season_branch(guard_project):
+    """A `season/*`-style name the season grammar does NOT admit (e.g. the
+    old loose nested name season/ideas/flock) is now REFUSED — the guard admits
+    only names branches.py parses, not every string starting with season/."""
+    _on_branch(guard_project, "season/ideas/flock")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
 
 
 def test_commit_all_still_refuses_plain_non_master_branch(guard_project):
