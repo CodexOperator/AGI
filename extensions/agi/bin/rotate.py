@@ -4955,6 +4955,29 @@ def _compose_card_s0(seat: str, facts: dict) -> str:
     return "\n".join(out)
 
 
+def _fence_items(lines: list[str]):
+    """Yield `(line, in_fence)` for each line, tracking Markdown code
+    fences by backtick-run length (`_fence_run`), run-length aware (the
+    OUTER fence wins; an inner shorter fence stays content — goal:g15.25
+    residue (iii)). This is the ONE shared fence-run walker that the card
+    readers `_split_card_sections`, `_subheader_in_body` and the stops
+    end-of-slot scan all use, so the three agree on where a fence is
+    (goal:g15.25 SL7.80). A fence opener reports in_fence True; a closer
+    reports False; any line in between (a `## ` heading quoted in the
+    block, an inner shorter fence) reports True."""
+    in_fence = False
+    opener = 0
+    for ln in lines:
+        run = _fence_run(ln)
+        if in_fence:
+            if run >= opener:      # closer (run >= opener's) ends the fence
+                in_fence = False
+        elif run > 0:              # opener (run >= 3) starts the fence
+            in_fence = True
+            opener = run
+        yield ln, in_fence
+
+
 def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     """Split a card into `(preamble, [(header, body), ...])`.
 
@@ -4976,21 +4999,8 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     sections: list[tuple[str, str]] = []
     header: str | None = None
     body: list[str] = []
-    in_fence = False
-    opener_run = 0
-    for ln in text.splitlines():
-        run = _fence_run(ln)
+    for ln, in_fence in _fence_items(text.splitlines()):
         if in_fence:
-            if run >= opener_run:
-                in_fence = False   # closer (run >= opener's) ends the fence
-            if header is None:
-                preamble.append(ln)
-            else:
-                body.append(ln)
-            continue
-        if run > 0:
-            in_fence = True        # opener (run >= 3) starts the fence
-            opener_run = run
             if header is None:
                 preamble.append(ln)
             else:
@@ -5090,8 +5100,16 @@ def _subheader_in_body(body: str, token: str) -> int | None:
     """Line index of the first header line at ANY depth (`###`, etc.) in
     `body` whose text contains `token` (case-insensitive), or None.
     Subsections live inside a `## ` section's body (`_split_card_sections`
-    splits only on `## `), so `### 🔴 Where it stops` is found here."""
-    for i, ln in enumerate(body.splitlines()):
+    splits only on `## `), so `### 🔴 Where it stops` is found here.
+
+    FENCE-RUN AWARE (goal:g15.25 SL7.80): a header line QUOTED inside a
+    code fence (a stops block quotes headings verbatim) is content and is
+    never resolved as a subheader — the shared `_fence_items` walker, the
+    same fix SL7.48 applied to the stops end-of-slot scan and SL7.62 to
+    `_split_card_sections`, now applied to this third card reader."""
+    for i, (ln, in_fence) in enumerate(_fence_items(body.splitlines())):
+        if in_fence:
+            continue
         s = ln.strip()
         if s.startswith("#") and token.lower() in s.lower():
             return i
@@ -12099,23 +12117,16 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         sub_header = (lines[sub] if sub < len(lines)
                       else "### 🔴 Where it stops")
         end = len(lines)
-        in_fence = False
-        opener = 0
-        for j in range(sub + 1, len(lines)):
-            r = _fence_run(lines[j])
+        # find the next REAL markdown heading outside a code fence — the
+        # same shared `_fence_items` walker `_split_card_sections` and
+        # `_subheader_in_body` use, so the stops scan agrees with them on
+        # where a fence is (goal:g15.25 SL7.80). A `#` line inside a fence
+        # (the stops block quotes headings verbatim) stays content.
+        for j, (ln, in_fence) in enumerate(
+                _fence_items(lines[sub + 1:]), start=sub + 1):
             if in_fence:
-                # a fence closes only on a fence of the SAME character
-                # whose run is at least the opener's (CommonMark); an inner
-                # shorter fence and any `#` line inside it stay content
-                # (goal:g15.25 residue (iii)).
-                if r >= opener:
-                    in_fence = False
                 continue
-            if r >= 3:                      # an opener: record its run
-                in_fence = True
-                opener = r
-                continue
-            if lines[j].strip().startswith("#"):
+            if ln.strip().startswith("#"):
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
