@@ -41,10 +41,10 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | SL7.45 · a00-12537dc7 | l4-a-no-spawn-hook-run-never-prints-spawned-… · g15.25 | hook nbhd | 14:03Z |
 | SL7.46 · a00-39f9a490 | l4-rotate-self-fetches-the-pushed-season-ref-once-… · g15.25 | rotate nbhd (test_rotate_startup.py shared with 49) | 14:03Z |
 | SL7.47 · a00-6549b630 | l4-ack-help-says-what-diff-does-… · g15.24 | rotate nbhd | 14:03Z |
-| SL7.48 · a00-0a257e10 | l4-the-stops-end-of-slot-scan-is-fence-run-aware-… · g15.25 | rotate nbhd (test_rotate.py shared with 52) | 14:03Z |
+| ~~SL7.48 · a00-0a257e10~~ **HARVESTED** (proved 0.9, rotate nbhd 589/3) | l4-the-stops-end-of-slot-scan-is-fence-run-aware-… · g15.25 | rotate nbhd (test_rotate.py shared with 52) | 14:03Z |
 | SL7.49 · a00-af99e663 | l4-a-first-seating-on-an-existing-seat-reports-… · g15.25 | rotate nbhd (test_rotate_startup.py shared with 46) | 14:03Z |
 | SL7.50 · a00-981b4e12 | l4-level3-checks-the-env-spelled-root-by-name-… · g15 | test_level3.py + test_bin_help_smoke.py | 14:03Z |
-| SL7.51 · a00-31e60eca | l4-a-frontmatter-container-entry-escapes-…-nel-ls-ps-… · g13.1 | test_node_writer.py test_write*.py test_frontmatter*.py | 14:03Z |
+| ~~SL7.51 · a00-31e60eca~~ **HARVESTED** (proved 0.9, 80/80) | l4-a-frontmatter-container-entry-escapes-…-nel-ls-ps-… · g13.1 | test_node_writer.py test_write*.py test_frontmatter*.py | 14:03Z |
 | SL7.52 · a00-3412af52 | l4-work-only-added-rows-keep-their-walk-position-… · g15.24 | rotate nbhd (test_rotate.py shared with 48) | 14:03Z |
 | ~~SL7.53 · a00-ec5c43cd~~ **HARVESTED** 3975aac53 (proved 0.9, test-only, nbhd 98/3) | l4-the-cross-second-boundary-respawn-record-claim-… · g15.19 | test_rotate_recover.py test_heal.py | 14:03Z |
 
