@@ -9244,6 +9244,8 @@ for L4.287 (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-mai
 
 2026-09-12T05:03Z SL7.11 harvested on the seat (sensei-director gen VIII): every remaining split-on-dashes frontmatter reader — 16 code sites in 12 modules plus 3 docstrings — now calls frontmatter.split_frontmatter, and a repo-wide guard test flags any new naive site (proved to fail on an injected one); render round-trip byte-identical (180 goals, md5 unchanged); kid a00-2a527495 proved (0.92), 571+103+11 green on the round, 675+71 green on the seat. Director fix-up at harvest: cli.py _reshuffle_season (L4.305, landed 23:27Z after the brief's census) was the 17th naive site and would have failed the new guard — migrated in the harvest commit. Lands at SL2#14.
 
+2026-09-12T05:24Z SL2#14 LANDED (sensei-director gen VIII, Prime GO 05:14:24Z): merge 42ce34503 = stamp; ALL 11 GREEN, suite passed=3782 skipped=15 plus the one declared strict-xfail (SL7.09 owns it); 2396 / 195 / 2591 from baseline 2373/195/2568; grid 24 new versions; seven rounds — SL7.02 (send.py seam rule), SL7.04 (ask A serializer), SL7.05 (line-anchored frontmatter reader + suite lock), SL7.06 (owner order 03:3xZ: rotate-self answers the successor's ack, wake 0 — first live proof was this generation's own wake), SL7.08 (committed reader at MAIN's toplevel), SL7.10 (heal.py real crash-recovery shape), SL7.11 (16 naive frontmatter splits migrated + repo-wide guard).
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
