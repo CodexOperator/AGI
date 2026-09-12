@@ -2068,13 +2068,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                   "ref.", file=sys.stderr)
             return 2
     # r3b: `continue` COMMITS its own row write (unless --no-commit); `diff`
-    # never commits (the successor still edits). Only the commit path checks
+    # WITH text never commits (the successor still edits) -- but a `diff` with
+    # an EMPTY text stands the handoff EXACTLY like `continue` (SL7.18 made
+    # the empty diff stand the handoff), so it commits the own-row back-fill
+    # the same way (g15.24 FIX-ONLY). Only the commit path checks
     # a pre-dirtied seats.md — the SEAT'S OWN row pre-staged or pre-edited
     # before the ack is REFUSED BY NAME before any write (SL6.09 own-row gate:
     # an unrelated FOREIGN hunk, staged or unstaged, is neither bundled nor
     # blocking — only the OWN row's uncommitted change names the refusal), so
     # the ack's own commit never double-writes a row someone was mid-edit on.
-    do_commit = args.answer == "continue" \
+    do_commit = (args.answer == "continue"
+                 or (args.answer == "diff" and not (text or "").strip())) \
         and not getattr(args, "no_commit", False)
     # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
     # identity cells now have ONE writer and it writes MAIN's seats.md
@@ -2410,7 +2414,9 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             seat=ack_seat, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
             handoff_path=str(Path(ack_path).expanduser().resolve()),
-            in_flight="successor acked `continue`; handoff stood",
+            in_flight=("successor acked `diff-empty`; handoff stood"
+                       if reply == "diff-empty"
+                       else "successor acked `continue`; handoff stood"),
             live_names=succ.get("names", []),
             # mechanism 1: the successor's ack carries its OWN ref back-filled
             # from the JOIN (cmd_ack r3), so this post-ack announce composes
