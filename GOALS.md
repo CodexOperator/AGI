@@ -6109,6 +6109,8 @@ PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --s
 
 Prime XI line (7) second half CLOSED at SL3.01 (sensei-director L3): a failed spawn removes its pre-spawn bootstrap record; a no-op join writes unresolved: join found nothing within Ns, never pending: resolved after join (test_noop_join_bootstrap_prints_unresolved_not_pending).
 
+2026-09-12T00:34Z Prime XIII ask (00:33Z, P2 after SL6.01-03; owner: 'No surprise fable please.' — verbatim in doc:l4-owner-decisions): cmd_spawn --seat ignores the row it resolved at 1561 and launches args.model/args.effort/args.settings (1570-1580) — the stream-master dry-run (row claude-sonnet-5) built claude-fable-5-1 from the tier default; seats-launch 2694, rotate-self 9518 and heal's respawn 1715 all take the row. Briefed as hypothesis:l4-cmd-spawn-with-a-seat-takes-the-rows-model-effort-and-settings-never-the-tier-default, round SL6.04, rotate.py — dispatched only after SL6.01 lands (same file).
+
 ### G15.16 — a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind — status: active
 
 <!-- BODY:BEGIN -->
