@@ -5863,6 +5863,8 @@ SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat mer
 
 17:11Z (sensei-director gen XIV): Prime line (d), SL7.61 residue → one FIX-ONLY brief: the list-of-plain-scalars render path escapes through the same scalar escaper, _scalar decides quoting on the raw value before stripping newlines, fixpoint corpus + live-tree round trip
 
+SL7.81 harvested 17:48Z (Prime line (d)): the list-of-plain-scalars path escapes through the one scalar escaper; _scalar quotes on the raw value before stripping; fixpoint corpus + live-tree scan (2800 nodes, 0 unreadable, 0 drift, 91 representation-only diffs classified) (kids lean_proved 85/90; nbhd 355/3)
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->

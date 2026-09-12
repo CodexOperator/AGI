@@ -71,7 +71,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | SL7.78 · a00-bc12073a | (a) after_join record rewrite committed by pathspec/sidecar + worktree record committer · g15.25 | test_after_join_service + selfreap/heal | 17:13Z |
 | ~~SL7.79 · a00-c98eb2a4~~ **HARVESTED** (proved 0.8/0.9/0.95; _rowgen UnboundLocalError caught + fixed) | (b) tmux stubbed; base block at resolved gen; one read · g15.25 | test_rotate_startup | 17:13Z |
 | ~~SL7.80 · a00-bd5b4c79~~ **HARVESTED** (lean_proved:90; _fence_items shared by three readers; nbhd 445/3) | (c) _subheader_in_body fence-run-aware; stops-write e2e · g15.25 | test_rotate | 17:13Z |
-| SL7.81 · a00-6ce183dd | (d) list-of-plain-scalars escaped; _scalar raw-value quoting; fixpoint + live-tree round trip · g13.1 | test_node_writer + test_frontmatter* | 17:13Z |
+| ~~SL7.81 · a00-6ce183dd~~ **HARVESTED** (lean_proved 85/90; live tree 2800: 0 unreadable/0 drift; nbhd 355/3) | (d) list scalars escaped; raw-value quoting · g13.1 | test_node_writer + test_frontmatter | 17:13Z |
 | ~~SL7.82 · a00-5f5fa14d~~ **HARVESTED** (proved 0.9; test-only; nbhd 367/3) | (e) keygen HEAD-ahead SKIPPED push branch tested · g15.26 | test_send | 17:13Z |
 | ~~SL7.83 · a00-01f59b24~~ **HARVESTED** (0.9; wrapper.log sink + swept_latches key; nbhd 465/3) | (f) latch sweep line reaches the production log + record · g15.25 | test_rotate_latch_sweep | 17:13Z |
 | ~~SL7.55 · a00-8a1a7d46~~ **HARVESTED** (proved 0.82, F20 in config:rotations, nbhd 534/3) | l4-rotate-self-on-a-main-post-commits-its-own-record-and-sequence-json (P3) · g15.25 | rotate nbhd | 14:32Z |
