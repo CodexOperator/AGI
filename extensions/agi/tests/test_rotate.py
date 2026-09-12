@@ -4219,7 +4219,11 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         dry_run=True, seat="sanctuary-director",
     )[1]
     assert "AGI_SEAT=" not in base
-    assert f"export AGI_SEAT={rotate.shlex.quote('sanctuary-director')} && " in seated
+    # a seat exports BOTH AGI_POST (primary) and AGI_SEAT (deprecated alias)
+    # so either spelling resolves downstream (hypothesis:l4-a-seat-is-a-post-
+    # everywhere).
+    _q = rotate.shlex.quote('sanctuary-director')
+    assert f"export AGI_POST={_q} AGI_SEAT={_q} && " in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
     # vs base is the `export AGI_SEAT=... &&` prefix plus the wrapper inserted

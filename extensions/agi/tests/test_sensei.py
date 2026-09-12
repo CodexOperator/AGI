@@ -73,8 +73,11 @@ def test_apply_refuses_without_a_reply_after_since_on_every_thread(
 
 
 def seat_fixture(root: Path, row: dict) -> dict:
-    """Materialise a one-row config:seats so load_seats finds it."""
-    nodes = root / "nodes" / "config"  # root is the GRAPH root (.agi/), as main() resolves it
+    """Materialise a one-row config:seats so load_seats finds it. The seat
+    registry lives at nodes/.geometry/seats.md (the geometry config resolved
+    post-first via geometry_config; hypothesis:l4-a-seat-is-a-post-everywhere) —
+    not nodes/config/seats.md, which load_seats no longer scans by node id."""
+    nodes = root / "nodes" / ".geometry"  # root is the GRAPH root (.agi/), as main() resolves it
     nodes.mkdir(parents=True, exist_ok=True)
     (nodes / "seats.md").write_text(
         "---\nid: config:seats\nmint_id: x\ntype: config\n"

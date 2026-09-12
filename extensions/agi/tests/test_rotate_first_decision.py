@@ -341,3 +341,86 @@ def test_cut_answer_prints_dispatch_line(tmp_path, capsys):
     assert "--target hypothesis:l4-some-next-node" in out
     # no merge line was emitted for a cut.
     assert "git merge --no-ff" not in out
+
+def _make_repo_post(tmp_path: Path) -> tuple[Path, Path]:
+    """Same shape as `_make_repo` but the seat is renamed to a POST
+    (hypothesis:l4-a-seat-is-a-post-everywhere): the worktree lives at
+    `.agi/worktrees/post-sanctuary-director` and the seat branch is
+    `post/sanctuary-director@s2`. Returns (main, worktree)."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    _git(repo, "init", "-b", "master")
+    _git(repo, "config", "user.email", "t@t")
+    _git(repo, "config", "user.name", "t")
+    (repo / "README").write_text("x\n")
+    graph = repo / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text('{"metric_primary": "outcome_coverage"}')
+    import json as _json
+    _row = {"name": "sanctuary-director", "role": "director",
+            "worktree": ".agi/worktrees/post-sanctuary-director",
+            "pin_ref": "", "session_ref": "", "town": "all"}
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - " + _json.dumps(_row) + "\n---\n", encoding="utf-8")
+    (repo / ".gitignore").write_text("sessions/\n.agi/sessions/\n",
+                                     encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "init with graph dir + post row")
+    _git(repo, "branch", "season/s2")
+    _git(repo, "checkout", "-q", "season/s2")
+    wt = repo / ".agi" / "worktrees" / "post-sanctuary-director"
+    _git(repo, "worktree", "add", "-b", "post/sanctuary-director@s2",
+         str(wt), "season/s2")
+    (wt / "POST-EXCLUSIVE").write_text("post\n", encoding="utf-8")
+    _git(wt, "add", "-A")
+    _git(wt, "commit", "-m", "post-exclusive commit")
+    return repo, wt
+
+
+def test_seat_resolves_under_post_rename_branch_and_worktree(tmp_path, capsys):
+    """hypothesis:l4-a-seat-is-a-post-everywhere — the CONVENTION readers
+    resolve a post-renamed seat: `_fd_seat_branch` returns the `post/...@s2`
+    branch, `_fd_seat_worktree` returns the `post-sanctuary-director` dir, and
+    first-decision names the post base branch as the round's parent."""
+    repo, wt = _make_repo_post(tmp_path)
+    main = repo
+    seat = "sanctuary-director"
+
+    root_dir = repo / ".agi"
+    # config:seats row points at the post- worktree, so the branch reader
+    # should resolve it via the checked-out HEAD first; force the convention
+    # fallback by resolving the branch for a name with no worktree row match.
+    assert rotate._fd_seat_branch(root_dir, main, seat) == \
+        "post/sanctuary-director@s2"
+    assert rotate._fd_seat_worktree(root_dir, main, seat) == wt
+
+    # first-decision across a round cut from the post base names post/ parent.
+    b1 = _make_round(repo, wt, "l4-x", "a00-aaaa", "a00-aaaa-deadbeef",
+                     base="post/sanctuary-director@s2")
+    # _make_round writes the owned-manifest into the seat- sessions dir; the
+    # post-renamed seat's reader owns FROM `.agi/worktrees/post-<seat>/...`,
+    # so mirror the manifest there so the manifest-join sees the round as
+    # this post seat's OWN.
+    import json as _json
+    pm = wt / ".agi" / "sessions" / "iter-L4.1"
+    pm.mkdir(parents=True, exist_ok=True)
+    (pm / "manifest.json").write_text(
+        _json.dumps({"iter": "L4.1", "agents": [{"id": "a00-aaaa"}]}),
+        encoding="utf-8")
+    rc, out = _run(repo, capsys)
+    assert rc == 0
+    assert f"parent: post/sanctuary-director@s2" in out
+    assert f"round: {b1}" in out
+
+
+def test_seat_branch_falls_back_to_deprecated_seat_alias(tmp_path):
+    """hypothesis:l4-a-seat-is-a-post-everywhere — the seat- spelling is still
+    accepted as a one-season alias: a worktree/branch only present under the
+    OLD name still resolves through `_fd_seat_branch` / `_fd_seat_worktree`."""
+    repo, wt = _make_repo(tmp_path)
+    root_dir = repo / ".agi"
+    assert rotate._fd_seat_branch(root_dir, repo, "sanctuary-director") == \
+        "seat/sanctuary-director@s2"
+    assert rotate._fd_seat_worktree(root_dir, repo, "sanctuary-director") == wt
