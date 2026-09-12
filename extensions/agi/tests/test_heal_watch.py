@@ -1132,7 +1132,8 @@ def test_lagging_chain_pid_row_still_rotated(graph_project, tmp_path,
     predecessor's chain pid, with a record AN HOUR OLD, must read ROTATED
     (pred-identity arm has NO age bound -- a lagging row is exactly what it
     protects), never DEAD."""
-    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
     rot = tmp_path / "rotations"
     row = _mk_dead_row("sensei-director", gen=4, pid=111)
     shim = _rot_shim(rot, rows=[row])
@@ -1149,6 +1150,12 @@ def test_lagging_chain_pid_row_still_rotated(graph_project, tmp_path,
         pin_table={}, seat_sessions=[], registry_dir=None)
     assert summary == {}, \
         "a lagging predecessor chain-pid row must read ROTATED, not DEAD"
+    # not vacuous: observe WHAT the path did -- the pred-identity arm decided
+    # (a row an hour old, protected by the identity arm, never the gen fallback).
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=pred-identity" in log, \
+        f"lagging chain-pid row must name arm=pred-identity; reaper:\n{log}"
+    # and the rotated seat never spawned (a counting fake proves no launcher).
     assert launched == []
 
 
@@ -1172,3 +1179,125 @@ def test_watch_log_names_deciding_arm(graph_project, tmp_path, monkeypatch):
     log = reaper.read_text() if reaper.exists() else ""
     assert "arm=pred-identity" in log, \
         f"rotate-seat line must name arm=pred-identity; reaper:\n{log}"
+
+
+def test_record_join_reads_both_record_shapes():
+    """Claim (1): `_rotation_identity` reads BOTH record shapes through ONE
+    accessor (`_record_join`) -- the rotate-self nesting (`handover.join` /
+    `handover.successor_window`) AND a crash-recovery record's TOP-LEVEL
+    `window_id` -- so a crash-recovery-shaped record yields identity (what
+    the producer actually writes) instead of falling to the identity-less
+    gen/age fallback. A crash-recovery record emits NO top-level `pid` /
+    `session_id` (dead-pred token), so succ_pids stays empty there."""
+    # rotate-self shape: identity under handover.join / successor_window.
+    rs = {"rotation": "rotate-self",
+          "handover": {"join": {"pid": 222, "window_id": "@6"},
+                       "successor_window": {"id": "@6"}},
+          "s12_self_reap": {"chain": [{"pid": 111}]}}
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(rs)
+    assert pred_pids == ["111"], f"chain pid must be read, got {pred_pids}"
+    assert succ_pids == ["222"], f"join pid must be read, got {succ_pids}"
+    assert succ_windows == ["@6"], f"join window_id read, got {succ_windows}"
+    # crash-recovery shape: top-level `window_id` only (real producer shape);
+    # NO top-level pid/session_id exist, so succ_pids stays empty.
+    cr = {"rotation": "crash-recovery", "window_id": "@9"}
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(cr)
+    assert succ_pids == [], \
+        f"producer emits no top-level pid; must stay empty, got {succ_pids}"
+    assert succ_windows == ["@9"], \
+        f"top-level window_id must be read as identity, got {succ_windows}"
+    # absent identity -> empty (an OLDER record falls to gen/age fallback).
+    _, _, succ_pids, succ_windows = heal._rotation_identity({"rotation": "x"})
+    assert succ_pids == [] and succ_windows == []
+
+
+def test_crash_recovery_record_roundtrip_real_producer(graph_project, tmp_path):
+    """Claim (A): a crash-recovery record built by the REAL producer
+    (`_write_crash_recovery`), loaded back the way a reader would load it,
+    yields the recovery-target WINDOW as successor identity through
+    `_rotation_identity`. Top-level `window_id` is the ONE identity field
+    the producer emits; top-level `pid` / `session_id` do NOT exist. This is
+    the round-trip the earlier test missed: it asserted against a hand-rolled
+    dict carrying top-level pid/session_id no real record has."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "model": "m",
+             "pid": 4242, "window": "@9", "session_id": "sess-1",
+             "generation": 3, "worktree": ""}
+    outcome = {"respawned": True, "name": "solo", "generation": 4,
+               "pid": 9999, "window": "@10", "reason": "", "row": ""}
+    path = heal._write_crash_recovery(graph_project, "solo", "dead", cells,
+                                      shim, now, outcome)
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    assert rec["rotation"] == "crash-recovery"
+    assert rec["result"] == "respawned"
+    # the producer's real top-level identity surface:
+    assert rec["window_id"] == "@10"
+    assert "pid" not in rec, "producer emits NO top-level pid"
+    assert "session_id" not in rec, "producer emits NO top-level session_id"
+    assert rec["succ_name"] == "solo"
+    # round-trip through the accessor on the WRITTEN bytes:
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(rec)
+    assert succ_pids == [], \
+        f"no top-level pid on a real record; succ_pids must stay empty, got {succ_pids}"
+    assert succ_windows == ["@10"], \
+        f"recovery-target window must be read as succ identity, got {succ_windows}"
+
+
+def test_crash_recovery_record_unreachable_from_watcher(graph_project, tmp_path):
+    """Claim (B): a crash-recovery record does NOT reach the identity accessor
+    from the watcher path. rotate's `_rotation_record_files` EXCLUDES
+    `rotation: crash-recovery` records, so `_latest_rotation_record` returns
+    None for a seat whose ONLY record is a crash one, and `_success_record_rotated`
+    / `_rotation_in_flight` never see it. This is the honest negative finding:
+    the crash-recovery branch of `_record_join` is UNREACHABLE from
+    `_watch_one_seat` (decorative for the watcher); do NOT lower the guard."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "pid": 4242,
+             "window": "@9", "generation": 3}
+    outcome = {"respawned": True, "name": "solo", "generation": 4,
+               "pid": 9999, "window": "@10", "reason": "", "row": ""}
+    heal._write_crash_recovery(graph_project, "solo", "dead", cells, shim,
+                               now, outcome)
+    # only the crash-recovery record exists for this seat:
+    assert len(list(rot.glob("solo.*.json"))) == 1
+    # the record is excluded by discovery, so the watcher's helper sees None:
+    row = {"name": "solo", "pid": 4242, "window": "@9", "generation": 3}
+    rec, arm = heal._success_record_rotated(graph_project, "solo", row, shim, now)
+    assert rec is None and arm is None, \
+        f"crash-recovery record must be excluded; got rec={rec} arm={arm}"
+    assert heal._rotation_in_flight(graph_project, "solo", shim, now, row=row) is False, \
+        "crash-recovery record must not look like a rotation in flight"
+    # the accessor itself CAN read a crash-recovery record when handed it
+    # directly (round-trip), but no watcher path feeds it one:
+    _, _, _, succ_windows = heal._rotation_identity(
+        {"rotation": "crash-recovery", "window_id": "@10"})
+    assert succ_windows == ["@10"]
+
+
+def test_succ_dead_arm_reaches_log(graph_project, tmp_path, monkeypatch):
+    """Claim (2): when the succ-dead arm decides (the row IS the successor the
+    record joined, and it is gone), the DEAD path logs ONE line naming
+    `arm=succ-dead` -- every arm that decides reaches the log (SL7.01 left the
+    succ-dead `None` return invisible, falling straight to the DEAD path)."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, pid=222)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "successor death must still read DEAD"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=succ-dead" in log, \
+        f"succ-dead arm must name itself in the reaper log; reaper:\n{log}"
