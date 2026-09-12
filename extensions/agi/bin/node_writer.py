@@ -266,8 +266,13 @@ def _needs_quoting(sval: str) -> bool:
     instead of `tier: -1`, a lossy round-trip for negative ints that broke
     schema validation ([task].md declares `tier: {type: int}`).
     """
-    if not sval:
-        return False
+    # Empty string is a real scalar, distinct from None. YAML renders a bare
+    # `- ` / `key: ` as null, so `''` must be written quoted (`- ""`) to
+    # round-trip as the empty string instead of collapsing into None. None
+    # itself is handled by its own explicit branches (`key:` / `  -`) before
+    # _scalar is ever reached, so there is no ambiguity between the two here.
+    if sval == "":
+        return True
     if ": " in sval or sval.endswith(":") or " #" in sval:
         return True
     # A `---` run ANYWHERE (e.g. `the --- and --- again`) would split the
@@ -331,10 +336,10 @@ def _scalar(v) -> str:
         # that read back to the exact code points.
         esc = _escape_yaml_linebreaks(esc)
         return f'"{esc}"'
-    # Not needing quoting (or empty): the historical normalisation (collapse
-    # newlines to spaces, trim edge whitespace) is safe here, because a raw
-    # value that carried a newline or edge whitespace would have been caught
-    # by the quote triggers above.
+    # Not needing quoting: the historical normalisation (collapse newlines to
+    # spaces, trim edge whitespace) is safe here, because a raw value that
+    # carried a newline or edge whitespace would have been caught by the quote
+    # triggers above. Empty reached the quote trigger, so it never lands here.
     return raw.replace("\n", " ").strip()
 
 
