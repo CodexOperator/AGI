@@ -290,3 +290,50 @@ def test_legal_branch_refuses_malformed_season_name():
 def test_legal_branch_refuses_detached_head():
     assert not b.is_legal_branch("")
     assert not b.is_legal_branch(None)
+
+
+# --- L4.319: the post/<n>@sN INTERMEDIATE alias (hypothesis:
+# l4-reshuffle-delete-old-is-never-unfiltered-and-post-n-maps-to-season2-posts)
+# The seat->post rename moves through `post/<name>@s<N>` before re-pointing
+# onto the canonical `season<N>/posts/<name>`. parse() must resolve it like the
+# seat alias (never raises); the reverse of a canonical post returns the
+# INTERMEDIATE spelling by default, with the DEPRECATED seat/ spelling still
+# reachable via legacy_seat for a reader of a pre-migration tree.
+
+def test_post_at_alias_canonicalises_to_post():
+    d = b.parse("post/foo@s2")
+    assert d["kind"] == "alias"
+    assert d["season"] == 2
+    assert d["canonical"] == "season2/posts/foo"
+
+
+def test_post_at_round_trips_through_canonical():
+    # parse(post/<n>@s2) -> canonical season2/posts/<n>; the reverse of that
+    # canonical yields the INTERMEDIATE spelling back.
+    d = b.parse("post/foo@s2")
+    assert b._canonical_to_old(d["canonical"]) == "post/foo@s2"
+    assert b.ref_candidates(d["canonical"])[0] == "season2/posts/foo"
+
+
+def test_post_at_reverse_keeps_legacy_seat_under_flag():
+    # The DEPRECATED seat/<name>@s<N> spelling stays reachable for a reader of
+    # a pre-migration tree (ref_candidates pins it); the intermediate post/
+    # spelling is the new default.
+    assert b._canonical_to_old("season2/posts/foo") == "post/foo@s2"
+    assert b._canonical_to_old("season2/posts/foo", legacy_seat=True) == "seat/foo@s2"
+
+
+def test_seat_alias_still_resolves_after_post_at_rule():
+    # The adjacent seat/<name>@s<N> deprecated alias must keep resolving.
+    d = b.parse("seat/foo@s2")
+    assert d["kind"] == "alias"
+    assert d["canonical"] == "season2/posts/foo"
+
+
+def test_post_at_malformed_without_season_raises():
+    # A `post/<n>` with no @s<N> is not claimed by the alias table — it must
+    # still be refused (raise / not parse).
+    with pytest.raises(ValueError):
+        b.parse("post/foo")
+    with pytest.raises(ValueError):
+        b.parse("post/foo@s")

@@ -98,8 +98,9 @@ def test_dry_run_changes_nothing(tmp_path):
     assert RESULT.returncode == 0, RESULT.stderr
     out = RESULT.stdout
     for token in ("git mv", "git worktree move", "git branch -m",
-                  "git push origin --delete", "fetch"):
+                  "--delete-old", "fetch"):
         assert token in out, f"dry-run must print a {token!r} step\n{out}"
+    assert "remote delete is NOT implied by --apply" in out, out
     assert "nothing changed" in out, out
 
     # NOTHING changed: clean status, seats.md still there, no posts.md, branches intact.
@@ -182,10 +183,12 @@ def test_apply_worktree_directories_moved(repo):
     assert "seat-a" not in mv.stdout.replace("\t", "").replace("post-", "")
 
 
-def test_apply_remote_ref_deleted_when_remote_present(repo):
-    """With a bare `origin` remote, --apply pushes post/<name>@s2 and deletes
-    the old seat/<name>@s2 LAST (git push origin --delete)."""
-    # a bare remote in tmp to receive pushes
+def test_apply_remote_ref_survives_when_remote_present(repo):
+    """With a bare `origin` remote, --apply pushes post/<name>@s2 but NEVER
+    deletes the old seat/<name>@s2 — the remote delete is the separate
+    --delete-old step (hypothesis:l4-post-rename-apply-re-points-every-
+    upstream-and-deletes-nothing), so after --apply origin still holds
+    seat/<name>@s2."""
     bare = repo.parent / "bare.git"
     _git(repo, "init", "--bare", "-q", str(bare))
     _git(repo, "remote", "add", "origin", str(bare))
@@ -198,12 +201,12 @@ def test_apply_remote_ref_deleted_when_remote_present(repo):
     assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
 
     for name in ("a", "b"):
-        # old remote ref deleted
+        # old remote ref SURVIVES --apply (the L4.316 fix: --apply deletes nothing)
         has_old = _git(repo, "ls-remote", "origin",
                        f"refs/heads/seat/{name}@s2").stdout.strip()
         has_new = _git(repo, "ls-remote", "origin",
                        f"refs/heads/post/{name}@s2").stdout.strip()
-        assert has_old == "", f"old remote seat/{name}@s2 not deleted: {has_old}"
+        assert has_old != "", f"--apply deleted old remote seat/{name}@s2"
         assert has_new != "", f"new remote post/{name}@s2 not pushed"
 
 # ---------------------------------------------------------------------------
@@ -568,3 +571,203 @@ def test_apply_second_run_prints_its_skips_no_duplicate_commit(repo):
     # exactly ONE post-rename commit ever on master (no duplicate)
     msgs = _git(repo, "log", "--format=%s", "master").stdout.splitlines()
     assert msgs.count("post-rename: seats.md -> posts.md") == 1, msgs
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-post-rename-apply-re-points-every-upstream-and-deletes-nothing
+# -- L4.316 FIX-ONLY. (A) --apply re-points the upstream of EVERY renamed
+# branch: git branch -m CARRIES the old upstream, so a fixture whose branch
+# already tracks origin/seat/<n>@s2 when --apply runs must end at
+# origin/post/<n>@s2 (the L4.312-demoted defect). (B) --apply deletes NO old
+# remote name (origin/seat/<n>@s2 survives); the delete is the separate
+# --delete-old step, which reads the upstream gate green for every renamed
+# branch first and refuses by name (deleting NOTHING) otherwise.
+# ---------------------------------------------------------------------------
+
+def _add_origin_tracked(repo):
+    """A bare origin (master + seat refs) AND each seat branch tracking its
+    OLD remote: the pre-seeded variant — the branch ALREADY has upstream
+    origin/seat/<name>@s2 when --apply runs, exactly what git branch -m
+    would carry forward on the live tree (bare `git push` without -u never
+    creates it, which is why the old green test only covered the unset path)."""
+    _add_origin(repo)
+    for name in ("a", "b"):
+        _git(repo, "branch", "--set-upstream-to", f"origin/seat/{name}@s2",
+             f"seat/{name}@s2")
+
+
+def test_apply_repoints_preseeded_upstream(repo):
+    """(A) FAILS pre-fix, PASSES post-fix: a branch already carrying
+    upstream origin/seat/<n>@s2 when --apply runs must be RE-POINTED to
+    origin/post/<n>@s2 — not skipped by a truthy upstream gate."""
+    _add_origin_tracked(repo)
+    g = repo / ".agi"
+    # prove the seeded state: every branch already tracks the OLD name
+    for name in ("a", "b"):
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"seat/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/seat/{name}@s2", up
+
+    RESULT = _run_cli(g, "--apply")
+    assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
+    for name in ("a", "b"):
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"post/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/post/{name}@s2", \
+            f"upstream for {name} not re-pointed: {up!r}"
+
+
+def test_apply_preseeded_upstream_second_run_resumes_cleanly(repo):
+    """(A)+(4) With the pre-seeded upstream, a SECOND --apply after a full
+    first one resumes as a clean no-op: exits 0, prints no commit, still ends
+    on the re-pointed upstream (resumability from L4.315 unbroken)."""
+    _add_origin_tracked(repo)
+    g = repo / ".agi"
+    assert _run_cli(g, "--apply").returncode == 0
+
+    R2 = _run_cli(g, "--apply")
+    assert R2.returncode == 0, R2.stdout + R2.stderr
+    assert "rename applied" in R2.stdout, R2.stdout
+    for name in ("a", "b"):
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"post/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/post/{name}@s2", up
+
+
+def _migrate_with_origin(repo):
+    """Run --apply on a repo with a bare origin, so the tree is migrated
+    (posts.md, worktrees moved, branches renamed, new name pushed, upstream
+    re-pointed) but origin/seat/<name>@s2 still EXISTS (--apply deletes
+    nothing)."""
+    _add_origin(repo)
+    g = repo / ".agi"
+    RESULT = _run_cli(g, "--apply")
+    assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
+    return g
+
+
+def test_delete_old_removes_old_remote_refs_only_after_gate_green(repo):
+    """(B-green) --delete-old, on a migrated tree whose renamed branches DO
+    read upstream origin/post/<name>@s2, deletes origin/seat/<name>@s2 and
+    leaves the new refs + upstreams untouched."""
+    g = _migrate_with_origin(repo)
+    # the gate is green before the delete: both upstreams read post
+    for name in ("a", "b"):
+        assert _git(repo, "rev-parse", "--abbrev-ref",
+                    f"post/{name}@s2@{{upstream}}").stdout.strip() == \
+            f"origin/post/{name}@s2"
+
+    RESULT = _run_cli(g, "--delete-old")
+    assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
+    for name in ("a", "b"):
+        has_old = _git(repo, "ls-remote", "origin",
+                       f"refs/heads/seat/{name}@s2").stdout.strip()
+        assert has_old == "", f"origin/seat/{name}@s2 not deleted:\n{has_old}"
+        has_new = _git(repo, "ls-remote", "origin",
+                       f"refs/heads/post/{name}@s2").stdout.strip()
+        assert has_new != "", f"new remote post/{name}@s2 missing"
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"post/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/post/{name}@s2", up
+
+
+def test_delete_old_refuses_names_branch_and_deletes_nothing(repo):
+    """(B-refuse) --delete-old REFUSES (non-zero, naming the offending
+    branch) when ANY renamed branch's upstream is not origin/post/<name>@s2,
+    and deletes NOTHING — not even the well-gated branches."""
+    g = _migrate_with_origin(repo)
+    # sabotage ONE branch's upstream back to the old name; b stays correct.
+    _git(repo, "branch", "--set-upstream-to", "origin/seat/b@s2", "post/b@s2")
+
+    RESULT = _run_cli(g, "--delete-old")
+    assert RESULT.returncode != 0, RESULT.stdout + RESULT.stderr
+    assert "post/b@s2" in RESULT.stderr, RESULT.stderr
+    for name in ("a", "b"):
+        has_old = _git(repo, "ls-remote", "origin",
+                       f"refs/heads/seat/{name}@s2").stdout.strip()
+        assert has_old != "", \
+            f"origin/seat/{name}@s2 was deleted despite the refusal"
+
+
+def test_apply_and_delete_old_are_mutually_exclusive(repo):
+    """(--delete-old shape) --apply and --delete-old cannot be combined; the
+    refusal names --delete-old as the separate final step."""
+    g = repo / ".agi"
+    RESULT = _run_cli(g, "--apply", "--delete-old")
+    assert RESULT.returncode != 0, RESULT.stdout
+    assert "mutually exclusive" in RESULT.stderr and \
+        "separate final step" in RESULT.stderr, RESULT.stderr
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
+# true — L4.318 FIX-ONLY, Region A. The --dry-run step-3 pathspec is built by
+# the SAME code path --apply uses (the shared `_post_rename_commit_targets`),
+# carrying the staged-pending INDEX check, so the dry-run plan names exactly
+# the files --apply would commit for the same tree state. Before the fix the
+# dry-run HARDCODED `[dest, seats_rel]`; on a tree where the seats.md delete
+# was already committed it printed a `git commit -- posts.md seats.md` that
+# --apply would never run and that would ERROR verbatim (path not in index).
+# Both tests seed the state, capture the dry-run path set from the printed
+# step-3 line, run --apply on the same state, and assert plan == apply.
+# ---------------------------------------------------------------------------
+
+def _step3_paths(R, mode: str) -> list:
+    """The path list a commit-posts.md line names after its `--` pathspec
+    separator, for either the `DRY ` (--dry-run) or `APPLY` mode. Strips the
+    trailing rollback tail first so its `--soft`/`git mv` tokens are never read
+    as paths. The apply branch prints this SAME line with the targets it really
+    uses, so comparing dry-run vs apply pathspecs on one state proves the two
+    branches agree on what --apply would commit."""
+    line = next(
+        l for l in R.stdout.splitlines()
+        if l.startswith(f"[{mode}] commit posts.md:") and ' -- ' in l)
+    body = line.split("  -- rollback:", 1)[0]   # drop rollback tail
+    _, _, spec = body.partition(' -- ')
+    return sorted(spec.strip().split())
+
+
+def test_dry_run_names_both_while_seats_delete_pending(repo):
+    """(Region A/a) While the seats.md DELETE is still PENDING in the index
+    (as the git mv staged it), the --dry-run step-3 pathspec names BOTH
+    posts.md and seats.md — and the string --apply prints for the same state
+    names exactly those same two paths. Plan and apply agree."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    _git(repo, "mv", str(seats.relative_to(repo)),
+         str(posts.relative_to(repo)))   # stages: seats delete + posts add
+
+    plan = _step3_paths(_run_cli(g, "--dry-run"), "DRY ")
+    names = {p.rsplit("/", 1)[-1] for p in plan}
+    assert "seats.md" in names and "posts.md" in names, plan
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    applied = _step3_paths(R, "APPLY")
+    assert plan == applied, (f"dry-run plan {plan} != apply pathspec {applied}")
+
+
+def test_dry_run_names_only_posts_after_seats_delete_committed(repo):
+    """(Region A/b) Once the seats.md DELETE is already COMMITTED (mv + commit
+    done), the --dry-run step-3 pathspec names ONLY posts.md — never a stale
+    seats.md that would make `git commit -- ... seats.md` ERROR verbatim. With
+    a freshly staged posts.md edit, the string --apply prints for the same state
+    names exactly posts.md: plan and apply agree."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    _git(repo, "mv", str(seats.relative_to(repo)),
+         str(posts.relative_to(repo)))
+    _git(repo, "commit", "-qm", "seed: seats->posts rename")  # delete committed
+    posts.write_text("\n# touched-after-commit\n", encoding="utf-8")
+    _git(repo, "add", str(posts.relative_to(repo)))   # something to commit
+
+    plan = _step3_paths(_run_cli(g, "--dry-run"), "DRY ")
+    names = {p.rsplit("/", 1)[-1] for p in plan}
+    assert "posts.md" in names and "seats.md" not in names, plan
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    applied = _step3_paths(R, "APPLY")
+    assert plan == applied, (f"dry-run plan {plan} != apply pathspec {applied}")
