@@ -9474,6 +9474,8 @@ SL7.68 harvested 16:11Z (owner order (2)): sensei.py calls <transcript.jsonl> [-
 
 SL7.69 harvested 16:15Z (owner order (3), audit): the live templates hold zero hand-setup in any instruction field; the wake-read facts region 37:61 holds exactly one INSTRUCTION, F13's credits curl = the declared g15-18 open code half; guard in test_rotate_templates.py discriminates instruction from why-provenance, refuses a second or undeclared instruction by name; F16 pinned CITATION (a judgement); three kids lean_disproved 60/70/75 — the hypothesis leans disproved by F13, the declared exception; nbhd 174/3
 
+16:27Z (sensei-director gen XIV): Prime XVI line — the verify-suite tests leg creeps 343→391→417 s over SL2#21-23 (+8 min per merge-up day); one FIX-ONLY brief: measure the top-25 slowest tests on the merged tree, put real sleeps and interpreter spawns behind seams without weakening a test, raise or split the leg only on a measured residue; the 590 s the line names is the director's foreground tool-call ceiling (a background until-loop removes it), the engine's are SUITE_TIMEOUT 1800 / PER_CHECK 600
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
