@@ -6612,6 +6612,10 @@ SL7.91 brief 18:41Z (FIX-ONLY; the gen 14->15 rotate-out refusal the Sensei's wa
 
 SL7.93 brief 18:47Z (FIX-ONLY, Sensei ask 18:40Z line (1)): hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox — the second input is typed into the pane through send.wake's existing typing seam (dm copy kept as the record, nudge suppressed for that one message, typed-or-refused named on the record); measured: run_after_join_for_seat delivers only via send_dm (rotate.py:10999-11010) so every successor pays one read; dispatch after SL7.88 lands (same file, after_join*).
 
+SL7.94 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (7)): hypothesis:l4-the-rotation-alert-hook-checks-the-project-first-prints-no-fraction-without-a-post-estimates-from-the-prompt-field-and-imports-rotate-lazily — P7 check before the rc-3 refusal, no fraction without a post, turn-1 estimate from the prompt field, rotate imported lazily
+
+SL7.96 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (9)): hypothesis:l4-a-post-row-carries-a-session-name-cell-the-registry-join-resolves-and-session-ref-is-never-the-session-uuid — optional session_name cell written by the spawn/ack writers, uuid session_ref flagged stale, whois over both cells, no migration, F3 re-cut delivered for the Prime
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
@@ -9539,6 +9543,10 @@ SL7.84 harvested 18:29Z (owner order 16:4xZ, Prime XVI ruling 17:49Z): rotate-se
 SL7.90 brief 18:36Z (FIX-ONLY, the SL7.84 near miss): hypothesis:l4-closeout-step-list-is-chosen-by-seat-kind-main-post-and-prime-lists-coded-never-the-worktree-list-by-default — the closeout step list is chosen by seat kind (Prime role = the Prime list g17_1_note/render/push; empty worktree cell = the MAIN-post list pathspec_commit/push; a worktree row = the worktree-post list), every step of every list has a real thin-wrapper runner and a CLI fake-seam runner, the template closeout.steps still wins; measured at d0f126f2a: _closeout_step_list serves the worktree list to every role today.
 
 SL7.92 brief 18:45Z (FIX-ONLY, read at the SL7.84 harvest, measured at 0c9d888bd): hypothesis:l4-closeout-worktree-post-real-runners-perform-the-merge-up-in-main-the-grant-is-read-from-the-seats-own-channel-and-the-push-carries-season2-main-plus-the-grid — the phase-3 REAL runners were never exercised (the seam tests injected fakes): merge_up is git merge origin/main IN THE SEAT TREE (sync direction, a ref that does not exist here), wait_grant reads the PRIME's own inbox for a line from the Prime (grants land in the seat's inbox or the dm), push is the seat-branch push, suite/grid/stamp run in the seat tree, the GO/GRANT grammar is a substring; a live --closeout therefore fails SAFE (300 s wait, then a refused merge_up, rc 3, no spawn — phase 2 stops already committed and pushed), and nobody should run --closeout live until this lands; dispatch after SL7.90 lands (same function _make_closeout_seams).
+
+SL7.95 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (8)): hypothesis:l4-sensei-calls-flattens-multi-line-commands-names-non-bash-tool-inputs-and-prints-the-boundary-only-inside-the-window — one row per call, non-Bash inputs named, boundary inside the window only
+
+SL7.97 brief 18:56Z (TEST-ONLY, Prime XVII 18:48Z test-only line): hypothesis:l4-test-only-templates-read-startup-delivery-after-join-roots-are-tmp-paths-read-ack-payers-poll-fast-and-test-grid-keeps-git-stderr — four test files, behaviour-preserving, wall time measured
 
 ### G16 — Telemetry per node, propagated up the ladder
 

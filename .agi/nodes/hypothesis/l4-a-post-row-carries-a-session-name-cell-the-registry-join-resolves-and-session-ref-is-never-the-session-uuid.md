@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-a-post-row-carries-a-session-name-cell-the-registry-join-resolves-and-session-ref-is-never-the-session-uuid
+mint_id: 8f476a7501a741a698ca5b002953e9ce
+type: hypothesis
+parents:
+  - goal:g15.25
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: 06f743291bbd40df
+season: 2
+testable_claim: "goal:g15.25 FIX-ONLY (Prime XVII 18:48Z line (9), mur-SL2.24). MEASURED (the Prime, on origin/season2/main @ 6dbd67525; re-measure on your base): after a wake-0 rotation a config:posts row's session_ref = the SESSION UUID (belam efe40bad8, sensei-director a3652da79 until its one re-ack), so F3's SendMessage-by-ref join can never resolve from the row; the registry join already knows the harness NAME (_join_successor rotate.py:8173 on post tip 80f1457db returns name in its dict, :8221 — e.g. agi-d7) and NO cell carries it. SL7.86 (7450474dc, harvested) already made cmd_ack refuse a session uuid as --ref and deleted the own-tail's uuid fallback (step 6.4), so the uuid can no longer be WRITTEN by the tail — but rows written before it still carry one and nothing flags it. Row writers to measure on your base: the spawn row write (rotate.py:1804-1822 region), cmd_ack's back-fill, rotate.py status's row print (grep -n session_ref extensions/agi/bin/rotate.py). CLAIM: (1) the spawn row write and the ack back-fill write a session_name cell = the registry name the join resolved (join['name']), '' when the join did not resolve — additive, every other cell byte-identical; (2) session_ref is written ONLY from an acked harness ref (as SL7.86 left it); rotate.py status --post <seat> prints a 36-char uuid found in session_ref as session_ref: <uuid> (stale: a session id, pre-F15) and no reader uses it as a ref; (3) send.py whois <token> resolves a session_name exactly as it resolves a session_ref (one lookup over both cells) so whois agi-d7 names the seat; (4) the posts schema (read .agi/context/schemas/ — the file that governs config:posts / seats rows) lists session_name as an OPTIONAL cell; NO migration of existing rows — each row gains the cell at its own next spawn/ack write, and the round touches no row but the ones its tests write in tmp_path (a seat never edits another seat's row); (5) the F3 re-cut (config:rotations facts) is delivered in the kid node's body under a heading 'F3 re-cut' as the exact replacement sentence naming session_name as the join key — NOT applied by the round; the Prime owns config:rotations. FALSIFIERS: a row writer that leaves session_name unset after a resolved join; session_ref written from anything but an acked ref; whois that ignores session_name; a schema without the cell; any edit to .agi/nodes/config/ or config:rotations in the diff. TESTS (append; <= 6 through the existing fakes): test_rotate_startup.py (a) spawn row with a joined name writes session_name, (b) unjoined -> ''; test_rotate.py (c) ack back-fill writes session_name and still refuses a uuid --ref (SL7.86's test stays green), (d) status flags a uuid session_ref as stale; test_send.py (e) whois resolves by session_name, (f) whois by session_ref unchanged. FILE SCOPE: rotate.py — the row writers (spawn write, cmd_ack back-fill, status print) ONLY; send.py — the whois lookup only; the posts/seats schema file; the three test files (append). EXCLUDED (in flight on rotate.py — by function): after_join* / run_after_join_for_seat (SL7.88/93/98/99), _closeout_* / _make_closeout_seams (SL7.90/92), cmd_meter (SL7.91), _write_bootstrap / _fill_bootstrap_join_facts (SL7.100), _join_successor itself, rotation records. CEILING: one optional cell, three writers, one lookup, <= 6 tests; rotate + send nbhds green."
+thought_session: sensei-director-genXVII-L17
+title: a config:posts row carries an optional session_name cell (the harness registry name the join resolves, e.g. agi-d7) beside session_ref; session_ref is written only from an acked harness ref and a lingering uuid is flagged stale by status; whois resolves either cell; no migration of other seats' rows; the F3 re-cut is delivered in the kid node for the Prime to apply
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-a-post-row-carries-a-session-name-cell-the-registry-join-resolves-and-session-ref-is-never-the-session-uuid
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
