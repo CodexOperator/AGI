@@ -53,6 +53,16 @@ def graph(tmp_path: Path) -> Path:
     return g
 
 
+# (SL7.03) leak detector: AGI_REAPER_LOG must never survive a test -- a raw
+# `os.environ[...] = ...` write would bleed a reaper-log path into later
+# tests' watch-loop logging. All writes go through monkeypatch.setenv.
+@pytest.fixture(scope="module", autouse=True)
+def _no_reaper_log_leak():
+    yield
+    assert "AGI_REAPER_LOG" not in os.environ, \
+        "AGI_REAPER_LOG leaked out of a test -- use monkeypatch.setenv"
+
+
 def _write_seats(graph: Path, rows: list[dict]) -> None:
     p = graph / "nodes" / ".geometry" / "seats.md"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -181,13 +191,13 @@ def test_respawned_record_suppresses_next_pass(graph):
 
 # --- RECOVER: spawn + row + dm + record -------------------------------------
 
-def test_dead_seat_respawns_and_writes_row_and_dms(graph):
+def test_dead_seat_respawns_and_writes_row_and_dms(graph, monkeypatch):
     """A dead plain director seat -> EXACTLY one spawn, one row rewrite
     (generation/pid/window; session_ref stays empty), one dm to the
     `rotated_by` holder AND one to the Sensei, and one crash-recovery record
     carrying both the probable_cause and the respawn outcome."""
     logp = graph / "reaper.log"
-    os.environ["AGI_REAPER_LOG"] = str(logp)
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logp))
     _write_seats(graph, [{"name": "dir-1", "pid": 424242, "window": "@50",
                           "role": "director", "model": "claude-sonnet-5",
                           "generation": 2, "rotated_by": "sanctuary-prime"}])
@@ -302,12 +312,12 @@ def test_respawned_record_is_a_bounded_guard_not_forever(graph):
     assert _row(graph, "seat-b")["generation"] == 3
 
 
-def test_crash_loop_is_named_not_respawned(graph):
+def test_crash_loop_is_named_not_respawned(graph, monkeypatch):
     """Three `respawned` recoveries within the hour -> the fourth death is
     NAMED in the watch log and NOT respawned (a seat that dies every few
     minutes is a finding for a human, not a spawn budget)."""
     logp = graph / "reaper.log"
-    os.environ["AGI_REAPER_LOG"] = str(logp)
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logp))
     _write_seats(graph, [{"name": "seat-c", "pid": 424242, "window": "@50",
                           "role": "director", "generation": 1}])
     for i in range(3):
@@ -445,11 +455,11 @@ def test_spawn_failure_leaves_no_row_and_no_dm(graph):
 
 # --- GRACEFUL: lock + rounds + inbox ----------------------------------------
 
-def test_stale_verify_suite_lock_removed(graph):
+def test_stale_verify_suite_lock_removed(graph, monkeypatch):
     """A stale verify-suite.lock under the dead seat's tree is removed with a
     log line as part of the recovery."""
     logp = graph / "this.log"
-    os.environ["AGI_REAPER_LOG"] = str(logp)
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logp))
     _write_seats(graph, [{"name": "seat-a", "pid": 424242, "window": "@50",
                           "role": "director"}]
                        )
@@ -459,7 +469,6 @@ def test_stale_verify_suite_lock_removed(graph):
     assert not lock.exists(), "stale lock removed"
     assert "verify-suite.lock" in logp.read_text(), \
         "the lock removal is logged"
-    del os.environ["AGI_REAPER_LOG"]
 
 
 def test_alive_seat_untouched_no_row_no_dm(graph):

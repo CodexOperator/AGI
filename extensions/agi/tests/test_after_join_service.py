@@ -219,48 +219,112 @@ def test_heal_service_calls_the_same_rotate_function():
 def test_rotate_self_fallback_reaches_the_same_function():
     """(e) caller 2 — rotate.run_after_join_for_seat (the rotate-self fallback
     path's discovery) invokes the SAME run_after_join with the seat's template
-    `after_join` list and the matched rotation record as record_path."""
+    `after_join` list, the matched rotation record as record_path, and the
+    succ_ref/succ_transcript resolved through the record's join window @id
+    (never a session id in the ref slot)."""
     import agi.bin.rotate as rot
     rec_path = Path(".") / "x.20260911T000000Z.json"
     rec_path.write_text(json.dumps({
         "rotation": "rotate-self", "seat": "seat-a", "result": "success",
         "gen_after": 7,
         "recorded_at": "2026-09-11T00:00:00.000000Z",
-        "handover": {"join": {"session_id": "ref9"}},
+        "handover": {"join": {
+            "window_id": "@42", "transcript": "/tmp/fallback.jsonl"}},
     }))
     orig_latest = rot._latest_rotate_record
     orig_find = rot._find_seat
     orig_tmpl = rot._resolve_template
     orig_ftv = rot._first_turn_values
+    orig_join = rot._join_successor
     orig_aj = rot.run_after_join
     record = []
+    ftv_calls = []
     tmpl = {"startup": _startup(
         after_join=[{"label": "join", "cmd": "echo {seat}"}], delay_s=20)}
     try:
         rot._latest_rotate_record = lambda root, seat: (
             json.loads(rec_path.read_text()), rec_path
         )
-        rot._find_seat = lambda root, name: {"role": "director"}
-        rot._resolve_template = lambda root, role: (
-            tmpl, "director", "test")
-        rot._first_turn_values = lambda *a, **k: dict(VALUES)
+        rot._find_seat = lambda root, name: {
+            "role": "director", "session_ref": "row-ref-a"}
+        rot._resolve_template = lambda root, role: (tmpl, "director", "test")
+        rot._join_successor = lambda *a, **k: {
+            "found": True, "window_id": "@42", "pid": 99,
+            "session_id": "sess-live", "transcript": "/tmp/live.jsonl",
+            "name": "seat-a", "path": "/tmp/reg/99.json", "note": "live"}
+        rot._first_turn_values = lambda *a, **k: (
+            ftv_calls.append(k) or {
+                "succ_ref": k.get("succ_ref", ""),
+                "succ_transcript": k.get("succ_transcript", ""),
+                "seat": "seat-a", "succ_name": k.get("succ_name", "")})
         rot.run_after_join = lambda *a, **kw: (
             record.append((a, kw)) or {
                 "delay_s": 20, "results": [], "dm": "",
-                "appended": True, "sent": True, "record_path": kw.get("record_path")})
+                "appended": True, "sent": True,
+                "record_path": kw.get("record_path")})
         out = rot.run_after_join_for_seat(Path("."), "seat-a")
         assert out is not None
         (_a, kw) = record[0]
         assert kw["startup"]["after_join"][0]["label"] == "join"
         assert str(kw["record_path"]) == str(rec_path)
-        assert kw["values"]["succ_ref"] == "ref9", \
-            "the joined session_id travels as the ack ref"
+        assert kw["values"]["succ_ref"] == "row-ref-a", \
+            "succ_ref is the seat row's OWN session_ref cell, never a session id"
+        assert kw["values"]["succ_transcript"] == "/tmp/live.jsonl", \
+            "succ_transcript fills from the live join"
+        assert ftv_calls and ftv_calls[-1]["succ_name"] == "seat-a"
     finally:
         rec_path.unlink(missing_ok=True)
         rot._latest_rotate_record = orig_latest
         rot._find_seat = orig_find
         rot._resolve_template = orig_tmpl
         rot._first_turn_values = orig_ftv
+        rot._join_successor = orig_join
+        rot.run_after_join = orig_aj
+
+
+def test_after_join_seat_no_join_key_falls_back_to_record_transcript():
+    """(1) — a record with NO handover.join.window_id does NO registry join;
+    succ_ref still comes ONLY from the row's session_ref; succ_transcript
+    falls back to the record's own handover.join.transcript."""
+    import agi.bin.rotate as rot
+    rec_path = Path(".") / "y.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "seat-b", "result": "success",
+        "gen_after": 2,
+        "recorded_at": "2026-09-11T00:00:00.000000Z",
+        "handover": {"join": {"transcript": "/tmp/rec-fallback.jsonl"}},
+    }))
+    orig_latest = rot._latest_rotate_record
+    orig_find = rot._find_seat
+    orig_tmpl = rot._resolve_template
+    orig_join = rot._join_successor
+    orig_aj = rot.run_after_join
+    joins = []
+    record = []
+    tmpl = {"startup": _startup(
+        after_join=[{"label": "j", "cmd": "echo {seat}"}], delay_s=20)}
+    try:
+        rot._latest_rotate_record = lambda root, seat: (
+            json.loads(rec_path.read_text()), rec_path)
+        rot._find_seat = lambda root, name: {"role": "director"}
+        rot._resolve_template = lambda root, role: (tmpl, "director", "test")
+        rot._join_successor = lambda *a, **k: (joins.append(k) or {"found": True})
+        rot.run_after_join = lambda *a, **kw: (
+            record.append((a, kw)) or {"record_path": kw.get("record_path")})
+        rot.run_after_join_for_seat(Path("."), "seat-b")
+        assert joins == [], \
+            "no window_id in the record => no registry join attempted"
+        (_a, kw) = record[0]
+        assert kw["values"]["succ_ref"] == "", \
+            "no row session_ref => succ_ref stays empty"
+        assert kw["values"]["succ_transcript"] == "/tmp/rec-fallback.jsonl", \
+            "succ_transcript falls back to the record's join transcript"
+    finally:
+        rec_path.unlink(missing_ok=True)
+        rot._latest_rotate_record = orig_latest
+        rot._find_seat = orig_find
+        rot._resolve_template = orig_tmpl
+        rot._join_successor = orig_join
         rot.run_after_join = orig_aj
 
 
