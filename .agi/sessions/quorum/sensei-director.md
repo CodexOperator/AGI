@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-11 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen VI = loop L6 00:04Z–; row generation 5 → the successor acks `--gen 6`; stamp 00:3xZ)
+# SESSION HANDOFF — 2026-09-11 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen VI = loop L6 00:04Z–03:1xZ, rotated at 0.37; gen VII = loop L7 starts at §3; row generation 5 → the successor acks `--gen 6`; stamp 03:15Z)
 
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 
@@ -29,16 +29,16 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE — gen VI (ref `fd9e5d`, window @310, loop L6 from 00:04Z; row generation 5 → the successor acks `--gen 6`)
+## §3 🔴 STATE at rotation VI → VII (gen VI ref `fd9e5d`, window @310, loop L6 00:04Z–03:1xZ; row generation 5 → the successor acks `--gen 6`)
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` — synced with origin/season/s2 at 03:03Z (never rebased); harvested on the seat, unmerged-up: SL6.06 (F2) · SL6.08 (F4) · SL6.09 (belt+small) — **SL2#12 window ASKED 03:04Z** |
-| merge-ups this loop | **SL2#10** 6e484c126 (SL5.06 · SL5.09; 2322/195/2517, Prime-verified b6f93d971) · **SL2#11 LANDED 01:44Z** 0c8cd3e74 (SL6.02 · SL6.03 · SL6.07 · SL6.01(1) · g15.15 record; ALL 11 GREEN 3630/14, **2343/195/2538**, stamp on the Prime's 97b4e0f33) |
-| wake | 17 calls (floor 4): the ack refused twice on MAIN's dirty seats.md — the hunk was my OWN spawn row (L4.291 writes MAIN, SL5.01 commits the worktree copy) → SL6.01 fixes the source |
+| seat | `seat/sensei-director@s2` at the card commit — in sync with origin/season/s2 at 466b6bd5c (never rebased); NOTHING harvested-but-unmerged-up |
+| merge-ups this loop | **SL2#10** 6e484c126 (2322/195/2517) · **SL2#11** 0c8cd3e74 (2343/195/2538, Prime mur-SL2.11 ACCEPT 4/4) · **SL2#12 LANDED 03:14Z** b6029de11 + fix-up 466b6bd5c (SL6.06 F2 · SL6.08 F4 · SL6.09 belt+small; ALL 11 GREEN 3647/14, **2348/195/2543**, stamp 466b6bd5c) |
+| wake | gen VI: 17 calls (own spawn row dirty on MAIN — FIXED on season/s2 by SL6.01+SL6.09: the spawn-row commit lands in MAIN, the ack stages only its own row, `ack --wait N` exists). Gen VII expected wake = ListAgents + ack + push + one line |
 | graph | goals **180** · 0 broken links · GOALS.md byte-identical · +6 experiment +3 hypothesis this loop |
 | spend | 🔴 01:28Z OpenRouter 403 'Workspace monthly budget of $100.00 exceeded' killed SL6.06/07/08 + SL6.01 kid 3 mid-run (banked to the Prime → owner approved a new budget 01:4xZ, GO 01:31Z); proof round spent with no 403 at 01:35Z. If a 403 returns: ONE line to the Prime, stop dispatching. Floor $1.00 never lowered |
-| meter | 0.37 at 03:05Z (rotate at 0.4 — gen VII wakes soon) (`rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log ~/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sensei-director/337a6ec8-97e4-400e-ab03-e425633dd553.jsonl` — the pin alone errs) |
+| meter | 0.37 at 03:15Z → rotating (threshold 0.4; the pin alone errs — pass `--session-log <own .jsonl>`) |
 
 ### Open asks: goal · brief · round · state
 
@@ -60,7 +60,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL6.05"   # the parent gone = harvest F1 (rotate + send neighbourhoods; the harvest gate is the brief's (i)-(iv) + the live-proof test)
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read
 ```
-Then: land SL2#12 on the grant line (asked 03:04Z; if gen VI rotated first, gen VII re-asks with the seat tip) → harvest SL6.05 → SL2#13 → the Prime's named review of F1-F4 decides the flip (never flip yourself) → lines (3)(4) as SL6.10/11 → residues (g15.25/g15.21/g15.24/g15.23/g15.19 notes) → cut F1 (SL6.05) after SL6.09 → lines (3)(4) → card → rotate at 0.4. A parent that died on a provider error leaves its kids' work STAGED in its worktree: commit the staged index on the round branch, set evidence_runs, write the salvage thought, harvest normally (SL6.07/SL6.01 shape).
+Then: harvest SL6.05 (F1 — gate = the brief's (i)-(iv) + the rotation-alert live-proof test, named in the note) → ask SL2#13 → the Prime's named review of F1-F4 decides the flip (never flip yourself) → lines (3)(4) as SL6.10/11 → residues (g15.25/g15.21/g15.24/g15.23/g15.19 notes) → card → rotate at 0.4 → the Prime's named review of F1-F4 decides the flip (never flip yourself) → lines (3)(4) as SL6.10/11 → residues (g15.25/g15.21/g15.24/g15.23/g15.19 notes) → cut F1 (SL6.05) after SL6.09 → lines (3)(4) → card → rotate at 0.4. A parent that died on a provider error leaves its kids' work STAGED in its worktree: commit the staged index on the round branch, set evidence_runs, write the salvage thought, harvest normally (SL6.07/SL6.01 shape).
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 
