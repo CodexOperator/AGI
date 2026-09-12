@@ -1111,3 +1111,60 @@ def test_nof_flag_run_from_inside_a_project_resolves_its_nearest_agi(tmp_path):
     r = _run_nof_flag(proj, "--dry-run", "--engine-root", str(engine))
     assert r.returncode == 0, r.stderr
     assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
+
+
+def test_nof_flag_default_refuses_a_rootless_env_root_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3-checks-the-env-spelled-root-by-name-
+    exactly-as-it-checks-the-cwd-leg — an env override (`AGI_TREE_PROJECT_ROOT`)
+    pointing at a directory that is NOT a project root is REFUSED by name, exit
+    2, naming the variable and its value — never accepted unchecked and scanned
+    as an authoritative stray tree. Cwd is a real project so the cwd leg alone
+    would resolve; the refusal must blame the env spell, proving the env leg
+    did not bypass the resolve-or-refuse check the cwd leg already has."""
+    imposter = tmp_path / "imposter"
+    imposter.mkdir()
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    env["AGI_TREE_PROJECT_ROOT"] = str(imposter)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(proj), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 2, r.stderr
+    assert f"env AGI_TREE_PROJECT_ROOT={imposter}" in r.stderr
+    assert "does not resolve to a project root" in r.stderr
+    assert "no .agi/ and no nodes/" in r.stderr
+
+
+def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):
+    """goal:g15, hypothesis:l4-level3-checks-the-env-spelled-root-by-name-
+    exactly-as-it-checks-the-cwd-leg — a valid env root resolves exactly as
+    before: `AGI_TREE_PROJECT_ROOT` naming a real project resolves to that
+    project's graph root and the run writes there, while a rootless cwd would
+    have been refused. The env override is honoured, not regressed."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    env["AGI_TREE_PROJECT_ROOT"] = str(proj)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(rootless), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
