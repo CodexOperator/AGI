@@ -1672,6 +1672,119 @@ def test_c_pin_with_explicit_session_log_still_writes_stamps_and_prints(monkeypa
     assert "0.020" in out, out                      # fraction still printed
 
 
+# ---------------------------------------------------------------------------
+# hypothesis:l4-meter-pin-never-lowers-an-existing-pins-generation-for-the-
+# same-transcript-a-lagging-row-is-named-not-written -- the pin NEVER lowers
+# an existing generation for the SAME transcript. The row's generation and an
+# existing pin's generation are read from different trees at different
+# moments, and the LOWER one used to win because the write was unconditional.
+# The stamped generation is now max(pin gen, row gen); a row reading LOWER
+# than the pin is named in one stdout line and never written into the pin.
+# ---------------------------------------------------------------------------
+
+
+def _pin_write(tmp_path, seat, gen, transcript):
+    """Write a gen-bearing seat pin naming a transcript."""
+    p = _sessions_dir_of(tmp_path) / f"{seat}.meter"
+    p.write_text(f"{gen}\t{transcript}\n", encoding="utf-8")
+    return p
+
+
+def test_ga_pin_gen_kept_when_row_reads_lower(monkeypatch, tmp_path,
+                                              fake_ladder, capsys):
+    # (a) FALSIFIER: a lagging row must NOT overwrite a fresh pin's higher
+    # generation for the same transcript. pin '15<TAB>T' + row gen 14 +
+    # --session-log T -> pin STILL '15<TAB>T' (bytes unchanged) and ONE
+    # stdout line names 15, 14 and the root.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 15, pinned)
+    before = p.read_bytes()
+    rotate._write_handoff(tmp_path, "belam", 14)   # the lagging row
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert p.read_bytes() == before, p.read_text(encoding="utf-8")
+    assert p.read_text(encoding="utf-8").startswith("15\t"), \
+        p.read_text(encoding="utf-8")
+    assert "pin gen 15 kept: config row reads 14" in out, out
+    assert str(tmp_path) in out, out
+
+
+def test_gb_pin_raised_when_row_reads_higher(monkeypatch, tmp_path,
+                                             fake_ladder, capsys):
+    # (b) A row reading HIGHER still raises the pin (a genuine rotation
+    # advance must never regress into keeping a stale gen).
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 14, pinned)
+    rotate._write_handoff(tmp_path, "belam", 15)
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("15\t"), content      # raised to the row's gen
+    assert "kept" not in out, out                   # no lag line on a raise
+
+
+def test_gc_different_transcript_claims_with_row_gen(monkeypatch, tmp_path,
+                                                     fake_ladder, capsys):
+    # (c) A pin naming a DIFFERENT transcript is still claimed with the row's
+    # gen -- a new session taking over the seat is untouched by the guard.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 15, pinned)   # pinned != foreign
+    rotate._write_handoff(tmp_path, "belam", 14)
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(foreign)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("14\t"), content      # row's gen, claimed
+    assert str(foreign) in content, content          # the new transcript
+    assert "kept" not in out, out                   # no lag line (different T)
+
+
+def test_gd_no_pin_written_with_row_gen(monkeypatch, tmp_path,
+                                        fake_ladder, capsys):
+    # (d) No pin -> written '<row gen><TAB>T' exactly as today.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    p = _sessions_dir_of(tmp_path) / "belam.meter"
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("14\t"), content
+    assert str(pinned) in content, content
+
+
+def test_ge_meter_output_identical_across_lag_and_control(monkeypatch,
+                                                          tmp_path,
+                                                          fake_ladder,
+                                                          capsys):
+    # (e) The meter's OUTPUT line (fraction, tokens, source, threshold) is
+    # byte-identical whether the guard kept the pin gen or ran an equal-gen
+    # control -- the extra "pin gen ... kept" line rides stdout separately.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+
+    p = _pin_write(tmp_path, "belam", 15, pinned)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    assert rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)]) == 0
+    out_lag = capsys.readouterr().out
+    frac_lag = next(l for l in out_lag.splitlines() if "source=" in l)
+
+    p2 = _pin_write(tmp_path, "belam", 14, pinned)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    assert rotate.main(["meter", "--seat", "belam", "--pin", str(p2),
+                        "--session-log", str(pinned)]) == 0
+    out_ctrl = capsys.readouterr().out
+    frac_ctrl = next(l for l in out_ctrl.splitlines() if "source=" in l)
+
+    assert frac_ctrl == frac_lag, (frac_lag, frac_ctrl)
+
+
 def test_d_agi_session_log_alone_still_permits_pin_write(monkeypatch, tmp_path, fake_ladder, capsys):
     # (d) $AGI_SESSION_LOG alone is a supplied identity: --pin still records it.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
