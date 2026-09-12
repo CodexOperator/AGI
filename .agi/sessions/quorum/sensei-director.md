@@ -40,7 +40,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.44 · a00-72c899ca~~ **HARVESTED** cee893b9c (proved 0.9; tmp brief dropped) | l4-keygen-all-live-completes-a-deferred-pending-swap-… · g15.26 | send nbhd + test_rotate.py -k keygen | 14:03Z |
 | SL7.45 · a00-12537dc7 | l4-a-no-spawn-hook-run-never-prints-spawned-… · g15.25 | hook nbhd | 14:03Z |
 | SL7.46 · a00-39f9a490 | l4-rotate-self-fetches-the-pushed-season-ref-once-… · g15.25 | rotate nbhd (test_rotate_startup.py shared with 49) | 14:03Z |
-| SL7.47 · a00-6549b630 | l4-ack-help-says-what-diff-does-… · g15.24 | rotate nbhd | 14:03Z |
+| ~~SL7.47 · a00-6549b630~~ **HARVESTED** (proved 0.9, rotate nbhd 641/3/1x) | l4-ack-help-says-what-diff-does-… · g15.24 | rotate nbhd | 14:03Z |
 | ~~SL7.48 · a00-0a257e10~~ **HARVESTED** (proved 0.9, rotate nbhd 589/3) | l4-the-stops-end-of-slot-scan-is-fence-run-aware-… · g15.25 | rotate nbhd (test_rotate.py shared with 52) | 14:03Z |
 | SL7.49 · a00-af99e663 | l4-a-first-seating-on-an-existing-seat-reports-… · g15.25 | rotate nbhd (test_rotate_startup.py shared with 46) | 14:03Z |
 | ~~SL7.50 · a00-981b4e12~~ **HARVESTED** (proved 0.95) | l4-level3-checks-the-env-spelled-root-by-name-… · g15 | test_level3.py + test_bin_help_smoke.py | 14:03Z |
