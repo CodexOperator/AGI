@@ -498,3 +498,25 @@ def real_judge_skip():
         return ("ModelJudge has no OPENROUTER_API_KEY; real semantic "
                 "measurement unavailable in this environment")
     return None
+
+
+@pytest.fixture
+def _no_pin_socket(monkeypatch):
+    """hypothesis:l4-test-only-the-real-judge... (e) -- raise on ANY socket
+    low-level open, proving a --pin test opens no network connection whether
+    it reaches `rotate._openrouter_get` via `urllib.request.urlopen` or any
+    other path. A test that genuinely opens a socket under this guard fails
+    loudly instead of silently spending -- that is the proof, not the tests'
+    own higher-level stubs. Applied to the spend-status / --pin tests in
+    test_rotate.py.
+    """
+    import socket
+
+    def _refuse(*_a, **_k):
+        raise RuntimeError(
+            "a socket was opened during a --pin test; spend-status must be "
+            "stubbed, never reach the network (hypothesis:l4-test-only-the-"
+            "real-judge-opt-in...)")
+
+    monkeypatch.setattr(socket, "socket", _refuse)
+    monkeypatch.setattr(socket, "create_connection", _refuse)

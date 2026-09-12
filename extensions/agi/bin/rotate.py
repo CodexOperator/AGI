@@ -1651,6 +1651,13 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     _srow = None
+    # `_rowgen` is also read on the SEAT-LESS path (bound by `root`, not
+    # `seat`, at lines ~1769 and ~1799), so it must be initialised here
+    # alongside its readers, or a seat-less spawn inside a project root hits
+    # an UnboundLocalError (hypothesis:l4-cmd-spawn-...-resolves-by-key-
+    # presence-and-preserve-swept-latches...). Seat-less reads the named
+    # FIRST_SEATING_GEN fallback; the seat branch above still owns it.
+    _rowgen = None
     if seat is not None:
         # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
@@ -2164,19 +2171,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 2
     rows = send._locally_loaded_rows(root)
-    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-own-tail-after-join-...):
-    # the ListAgents ref is harness-only and is NEVER the row's session uuid.
-    # A --ref equal to the RUNNING seat's own session_id cell IS the session
-    # id-as-ref defect — the JOIN registers the same uuid in the row, so the
-    # own-tail ack that back-filled it (rotate.py step 6.4 pre-F15) poisoned
-    # session_ref with a value send.whois reads as NO-MATCH for every peer.
-    # Refuse BY NAME and write NOTHING (no ack file, no row write, rc != 0);
-    # _resolve_rows below would otherwise ACCEPT it as the seat's own row
-    # (an exact session_id match), which is exactly what let the uuid in.
-    _own_session_id = next(
-        ((r.get("session_id") or "") for r in rows
-         if r.get("name") == seat or r.get("role") == seat), "")
-    if ref and _own_session_id and ref == _own_session_id:
+    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-spawn-time-ack-carries-no-
+    # session-ref-cmd-ack-refuses-any-uuid-shaped-ref-...): the ListAgents ref
+    # is harness-only and is NEVER a session uuid. A --ref that IS a 36-char
+    # uuid shape is refused BY NAME (`_looks_like_session_uuid` on the value
+    # itself, not only equality with the seat's OWN session_id) and NOTHING is
+    # written (no ack file, no row write, rc != 0). The pre-F15 join registered
+    # the same uuid in the row, so an own-tail or cmd_ack that back-filled a
+    # uuid-shaped --ref (matching the seat's own session_id OR any foreign
+    # one) poisoned session_ref with a value send.whois reads as NO-MATCH for
+    # every peer; `_resolve_rows` below would otherwise ACCEPT the own uuid as
+    # the seat's own row (an exact session_id match), which is exactly what
+    # let the uuid in.
+    if ref and _looks_like_session_uuid(ref):
         print(f"ERR: --ref {ref!r} is a session id, not your ListAgents ref "
               "(F15): pass the bare ref or omit --ref.", file=sys.stderr)
         return 2
@@ -2692,6 +2699,12 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             if _looks_like_session_uuid(_sref):
                 print(f"session_ref: {_sref} (stale: a session id, never a "
                       "harness ref — pass the bare ListAgents ref)")
+            elif not _sref:
+                # SL7.102 FIX-ONLY: empty session_ref is the NORMAL pre-ack
+                # state (the spawn ack carries none) — name it, don't omit.
+                print("session_ref: unset (awaits the ack)")
+            else:
+                print(f"session_ref: {_sref}")
             if row.get("session_name"):
                 print(f"session_name: {row['session_name']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
@@ -3458,9 +3471,13 @@ def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
     `_write_rotate_self_started` and the in-place `_write_rotation_record`
     rebuild the dict from arguments each time, so the only way the sweep
     fact survives their rewrite is to re-read it from the file and merge it
-    back (mechanism (A)). Absent on disk -> leaves `rec` unchanged (a
-    record written before or without a sweep stays sweep-free by design).
-    Best-effort: never raises.
+    back (mechanism (A)). A sweep THIS run always wins: when `rec` already
+    carries its own `swept_latches` (a fresh measurement) the on-disk list is
+    NOT copied over it — a re-run on an old record path never inherits a stale
+    sweep. When `rec` has none of its own, the on-disk list is carried and
+    marked `inherited: true` so a reader can tell measured from carried.
+    Absent on disk -> leaves `rec` unchanged (a record written before or
+    without a sweep stays sweep-free by design). Best-effort: never raises.
     """
     if existing_path is None:
         return
@@ -3472,7 +3489,14 @@ def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
     except Exception:  # noqa: BLE001
         return
     if isinstance(doc, dict) and "swept_latches" in doc:
-        rec["swept_latches"] = doc["swept_latches"]
+        # Inherit ONLY when THIS run measured no sweep of its own: a sweep
+        # performed now always wins over whatever a re-run left on disk
+        # (hypothesis:l4-...-preserve-swept-latches-never-inherits-a-stale-
+        # sweep). An inherited list is carried from the OLD record, so it is
+        # marked `inherited: true` for a reader to tell measured from carried.
+        if "swept_latches" not in rec:
+            rec["swept_latches"] = doc["swept_latches"]
+            rec["inherited"] = True
 
 
 def _preserve_closeout(rec: dict, existing_path: Path | None) -> None:
@@ -6334,7 +6358,8 @@ def _numbers_line(record: dict) -> str:
     return " | ".join(parts)
 
 
-def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
+def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
+                        role: str = "") -> dict:
     """The REAL seam table -- the default the driver uses when a caller
     passes no seams. Each callable is a thin wrapper over an EXISTING
     function/script (REUSE). The tests inject fakes here so a test never
@@ -6600,22 +6625,33 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
             out = _commit_rotation_record(
                 root, seat=seat, gen_before=_gen_b, gen_after=_gen_a)
         if (out.startswith("stop_commit: committed")
-                or out.startswith("rotation_record_commit: ")
-                and "SKIPPED" not in out):
+                or out.startswith("rotation_record_commit: committed")):
             return (True, "committed", out)
+        # a FAILED / SKIPPED record commit is a REFUSED step, named (the
+        # pre-fix prefix match reported a FAILED _commit_rotation_record as
+        # (True, 'committed')).
         return (False, "refused", out)
 
     def _g17_1_note():
         # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
         # numbers line / the where-it-stops>, via subprocess (REUSE: the
-        # existing write.py executable, no second note writer). Refuses by
-        # name on a non-zero exit.
+        # existing write.py executable, no second note writer). write.py's
+        # grammar is ONE script argument ('note <text>') -- never `note` and
+        # the text as two positionals (which parses 'note' with no arg and
+        # lets the text ride the unused slug slot, exiting rc 2). Resolves
+        # the project from root explicitly (--root + cwd), never the
+        # subprocess cwd. Refuses by name on a non-zero exit.
         binp = Path(__file__).with_name("write.py")
         text = _numbers_line(record)
+        argv = [sys.executable, str(binp), "goal:g17.1",
+                f"note {text}", "--root", str(root)]
+        if seat:
+            argv += ["--actor", seat]
+        if role:
+            argv += ["--role", role]
         try:
-            out = subprocess.run(
-                [sys.executable, str(binp), "goal:g17.1", "note", text],
-                capture_output=True, text=True, timeout=120)
+            out = subprocess.run(argv, capture_output=True, text=True,
+                                 timeout=120, cwd=str(root))
         except Exception as exc:  # noqa: BLE001
             return (False, "refused", f"g17_1_note could not run: {exc}")
         if out.returncode == 0:
@@ -6625,13 +6661,25 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
                 f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
 
     def _render():
+        # snapshot-goals.py --render with cwd=root AND the project root made
+        # explicit (--project), so a closeout run never resolves the project
+        # from the SUBPROCESS cwd (a worktree cwd would render the wrong
+        # tree); then --render --check, whose result is the verdict -- the
+        # note is only written if GOALS.md round-trips byte-identical.
         binp = Path(__file__).with_name("snapshot-goals.py")
         res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render"])
-        if res["ok"]:
-            return (True, "ok", "snapshot-goals.py --render")
-        return (False, "refused",
-                f"render refused: {res.get('detail') or res}")
+            root, [sys.executable, str(binp), "--render",
+                   "--project", str(root)], cwd=root)
+        if not res["ok"]:
+            return (False, "refused",
+                    f"render refused: {res.get('detail') or res}")
+        chk = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render", "--check",
+                   "--project", str(root)], cwd=root)
+        if chk["ok"]:
+            return (True, "ok", "snapshot-goals.py --render + --check clean")
+        return (False, "failed",
+                f"render --check refused: {chk.get('detail') or chk}")
 
     return {
         "post_verify": _verify,
@@ -6670,7 +6718,8 @@ def _closeout_run_steps(root: Path, seat: str, role: str = "parent",
     """
     steps = _closeout_step_list(role, template, worktree=worktree)
     if seams is None:
-        seams = _make_closeout_seams(root, record or {}, seat=seat)
+        seams = _make_closeout_seams(root, record or {}, seat=seat,
+                                     role=role)
     entries: list[dict] = []
     seen: set[str] = set()
     for step in steps:
@@ -11092,13 +11141,20 @@ def _claim_after_join(root, seat, record_path, performer,
     return None
 
 
-def _after_join_already_performed(record_path) -> bool:
+def _after_join_already_performed(record_path, *, stale_s=None, now=None) -> bool:
     """(goal:g15.25 SL7.72) the double-perform guard used by the rotate-self
     tail at step (6.4): re-read the rotation record at `record_path`; True when
     it ALREADY carries an `after_join` key — the heal watch won the race, so
     the tail must NOT perform a second time. Best-effort: absent / unreadable /
     malformed / unittestable reads False (the tail performs). Empty after_join
-    (`{}`) is still a performed key and guards too — `bool` on the value."""
+    (`{}`) is still a performed key and guards too — `bool` on the value.
+    (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    With `stale_s` (the claim staleness bound) the guard is STALE-AWARE: a
+    claim by another performer that DIED before writing results is not
+    "performed" — it returns False so the tail falls through and RE-CLAIMS it
+    through the SAME `_claim_is_stale` helper the watch path uses, its own
+    identity on the re-claim. A LIVE (fresh) claim still defers the tail; a
+    completed run (results) always guards."""
     if record_path is None:
         return False
     try:
@@ -11106,7 +11162,16 @@ def _after_join_already_performed(record_path) -> bool:
         if not rp.exists():
             return False
         rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
-        return isinstance(rec, dict) and bool(rec.get("after_join"))
+        if not isinstance(rec, dict) or not rec.get("after_join"):
+            return False
+        aj = rec["after_join"]
+        # a claim (no results), stale_s given, older than the bound -> the
+        # tail may RE-CLAIM (re-claimable), never a permanent perform-skip.
+        if (isinstance(aj, dict) and aj.get("claimed_at")
+                and "results" not in aj and stale_s is not None
+                and _claim_is_stale(aj, stale_s=stale_s, now=now)):
+            return False
+        return True
     except Exception:                                       # noqa: BLE001
         return False
 
@@ -11847,6 +11912,12 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     "delivery": delivery,
                     "dm_sender": dm_sender,
                     "dm_signed": dm_signed,
+                    # (goal:g15.25 SL7.105) PERSIST the engine HEAD that
+                    # performed this after_join INTO the record (the same
+                    # pathspec-committed write that lands results), so the
+                    # on-disk block — not just the returned dict — names the
+                    # bytes that ran it.
+                    "code_head": _code_head(root),
                 }
                 if isinstance(_prev_aj, dict):
                     for _k in ("claimed_at", "claim_key"):
@@ -12055,8 +12126,20 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                         "skipped": "no live session",
                         "age_s": age_s,
                     }
+                    # (hypothesis:l4-a-no-window-started-record-waits-the-
+                    # promised-delay...) the dead-seat marker is a REWRITE of a
+                    # committed record — write AND pathspec-commit it through
+                    # the SAME `_commit_after_join_record` the after_join
+                    # rewrite uses, with a `dead-seat` label, so MAIN never
+                    # reads `M` on the marker (a marker left local/uncommitted
+                    # made the next restart RE-see the record and re-skip). On
+                    # a gitless fixture the helper SKIPPEDs harmlessly.
                     rp.write_text(json.dumps(mark, indent=2) + "\n",
                                   encoding="utf-8")
+                    _commit_after_join_record(
+                        root, record=mark, record_path=str(path),
+                        seat=seat, performer=performer,
+                        commit_label="dead-seat")
             except (OSError, ValueError, json.JSONDecodeError):
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
@@ -12068,12 +12151,16 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # is NOT performed at delay 0 on an empty transcript: within
     # `after_join_max_wait_s` of the record the performer WAITS (returns
     # waiting, no perform, no dm); past the bound it performs once, every
-    # join-dependent entry refused by name (`join unresolved after <n>s`). A
-    # record with no window @id did no join and behaves exactly as before.
-    # The dead-seat skip above stays authoritative — a dead row skips, never
-    # waits and never performs.
+    # join-dependent entry refused by name (`join unresolved after <n>s`).
+    # (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    # ONE code path for BOTH record shapes: a started record with NO window
+    # @id never joined, so its `joined` is empty ({}) and `joined.found` is
+    # falsy exactly like a windowed record whose rejoin failed — it takes the
+    # SAME wait-then-refuse gate instead of performing at delay 0 (as if
+    # fresh) on an empty transcript. The dead-seat skip above stays
+    # authoritative — a dead row skips, never waits and never performs.
     _join_wait_s = None
-    if window_id and not joined.get("found"):
+    if not joined.get("found"):
         max_wait = int(startup.get("after_join_max_wait_s")
                        or DEFAULT_AFTER_JOIN_MAX_WAIT_S)
         # SL7.88 (fix B): the wait is anchored on a MEASURED age so a record
@@ -14515,9 +14602,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     rec_path, seat=seat, steps=steps_reached,
                     template_source=geom_src)
             _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
+            # (SL7.103) pass the in-progress rotation record to the captive
+            # driver so the Prime's numbers line / note is composed FROM it
+            # (never an empty {}/'' -- the pre-fix call passed no record=).
+            _co_record = {}
+            try:
+                _rp = Path(rec_path)
+                if _rp.exists():
+                    _co_record = json.loads(
+                        _rp.read_text(encoding="utf-8")) or {}
+            except Exception:  # noqa: BLE001
+                _co_record = {}
             _co_entries, _co_err = _closeout_run_steps(
                 cfg_root, seat, _co_role, template=_co_tmpl, seams=_co_seams,
-                worktree=row.get("worktree"))
+                record=_co_record, worktree=row.get("worktree"))
             if not args.dry_run and rec_path is not None:
                 _record_closeout(rec_path, _co_entries)
         print("(2.6) closeout captive steps: " + ", ".join(
@@ -15293,11 +15391,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     handoff inspection exactly as today
         #     (hypothesis:l4-the-predecessor-answers-continue-by-default-and-
         #     ask-diff-hands-the-successor-exactly-one-call).
+        # SL7.102 (hypothesis:l4-the-spawn-time-ack-carries-no-session-ref-...):
+        #     session_ref '' — the predecessor CANNOT know the successor's
+        #     harness ref at spawn (it only arrives when the successor names
+        #     it); the pre-F15 `succ_session_id` wrote a JOIN uuid no peer
+        #     can message into session_ref.
         _ack_answer = "diff-requested" if ask_diff else "continue"
         try:
             handover["ack_written"] = str(_write_ack(
                 root=root, seat=seat, gen_after=gen,
-                session_ref=succ_session_id, answer=_ack_answer))
+                session_ref="", answer=_ack_answer))
             if ask_diff:
                 print("(s6.3) --ask-diff: the successor's ONE wake call is:\n"
                       f"    python3 extensions/agi/bin/rotate.py ack --seat "
@@ -15606,8 +15709,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 root, seat, _load_record_best_effort(record_path)))
         # double-perform guard: the watch may have won the race since step (4)
         # (or this box runs the service inline). Re-read the record; if it
-        # ALREADY carries `after_join`, the tail does NOT perform a second time.
-        _performed_elsewhere = _after_join_already_performed(record_path)
+        # ALREADY carries a completed `after_join` (or a LIVE claim), the tail
+        # does NOT perform a second time. A STALE claim (no results, older
+        # than the bound) is NOT "performed" — the tail falls through and
+        # re-claims it through the SAME stale-aware helper the watch uses, its
+        # OWN identity on the re-claim.
+        _tail_stale = (
+            int((startup or {}).get("after_join_claim_stale_s")
+                or DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+            if isinstance(startup, dict) else DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+        _performed_elsewhere = _after_join_already_performed(
+            record_path, stale_s=_tail_stale)
         if _performed_elsewhere:
             print("(6.4) after_join already performed (by the watch); "
                   "rotate-self tail skips")

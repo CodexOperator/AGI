@@ -621,8 +621,11 @@ def test_g17_1_note_runner_drives_write_py_subprocess_seam(
     ok, result, detail = seams["g17_1_note"]()
     assert ok is True and result == "ok", detail
     assert recorded and str(recorded[0][1]).endswith("write.py")
-    assert recorded[0][2:4] == ["goal:g17.1", "note"]
-    assert recorded[0][4] == "42 | abc1234"   # the closeout numbers line
+    assert recorded[0][2] == "goal:g17.1"
+    # the ONE-arg note grammar: 'note <text>' as a SINGLE script argument
+    # (write.py rc-2 if <text> rides a second positional instead)
+    assert str(recorded[0][3]) == "note 42 | abc1234"   # the numbers line
+    assert "--root" in [str(a) for a in recorded[0]]
     # a non-zero exit REFUSES BY NAME
     def _refuse(argv, *a, **k):
         class _R:
@@ -1063,3 +1066,121 @@ def test_closeout_merge_up_refuses_an_unmeasurable_tree(tmp_path,
     ok2, res2, det2 = seams2["merge_up"]()
     assert ok2 is False and res2 == "refused"
     assert "could not be measured" in det2
+
+
+# ── SL7.103: the PRIME / MAIN-post closeout real runners on a fixture root ──
+# hypothesis:l4-the-prime-and-main-post-closeout-real-runners-are-driven-on-
+# a-fixture-root-and-the-g17-1-note-runner-uses-the-one-arg-note-grammar.
+# Each drives a REAL runner (write.py / snapshot-goals.py / the pathspec /
+# push wrappers) THROUGH the real code path on a tmp fixture root -- the
+# process-level subprocess, a real commit, a real render -- asserting the
+# observable, never a fake.
+
+def _closeout_goal_fixture(tmp_path):
+    """A minimal agi project (repo root + `.agi/` graph) with one
+    render-valid goal node: `origin: goals-doc` + `goal_id` + `heading_level`
+    (the fields snapshot-goals --render needs). Returns (repo_root, graph_root)."""
+    repo = tmp_path
+    graph = repo / ".agi"
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    (graph / "nodes" / "goal" / "g17.1.md").write_text(
+        '---\nid: "goal:g17.1"\ntype: goal\norigin: goals-doc\n'
+        'goal_id: G17.1\nheading_level: 3\nmint_id: deadbeef\n'
+        'title: "t"\nstatus: active\n---\nthe body\n', encoding="utf-8")
+    return repo, graph
+
+
+def test_g17_1_note_real_runner_writes_one_arg_note_on_a_fixture(tmp_path):
+    """(SL7.103) The g17_1_note REAL runner invokes write.py with the ONE-arg
+    'note <text>' grammar (--root/--actor/--role, cwd root) THROUGH the real
+    subprocess; the note lands on the goal:g17.1 node with the numbers line
+    composed from the record (never ''). write.py with the TWO-positional
+    form is the rc-2 regression this fixes."""
+    repo, graph = _closeout_goal_fixture(tmp_path)
+    record = {"facts": ["42"], "commit": "abc1234", "goals": ["g17.1 kept"]}
+    seams = rotate._make_closeout_seams(graph, record, seat="adv",
+                                        role="prime_director")
+    ok, result, detail = seams["g17_1_note"]()
+    assert ok is True and result == "ok", detail
+    body = (graph / "nodes" / "goal" / "g17.1.md").read_text(encoding="utf-8")
+    assert "## Agent Notes" in body
+    assert "42 | abc1234" in body and "g17.1 kept" in body
+    # the note text was composed from the record, never ''
+    assert body.split("## Agent Notes", 1)[1].strip()
+
+
+def test_write_py_two_positional_note_form_is_the_rc2_regression(tmp_path):
+    """(SL7.103) write.py's grammar is ONE script arg; `write.py <id> note
+    <text>` (two positionals -- the pre-fix `_g17_1_note` argv) is rc 2, and
+    the note text rides the unused slug slot. This pins the regression the
+    one-arg fix removes."""
+    import subprocess as sp
+    _repo, graph = _closeout_goal_fixture(tmp_path)
+    wp = Path(__file__).parent.parent / "bin" / "write.py"
+    old = sp.run(["python3", str(wp), "goal:g17.1", "note", "hi there",
+                  "--root", str(graph)], capture_output=True, text=True)
+    assert old.returncode == 2
+    assert "wrong arguments" in (old.stderr or "")
+    # the one-arg form succeeds and the note lands
+    new = sp.run(["python3", str(wp), "goal:g17.1", "note hi there",
+                  "--root", str(graph)], capture_output=True, text=True)
+    assert new.returncode == 0, new.stderr
+    body = (graph / "nodes" / "goal" / "g17.1.md").read_text(encoding="utf-8")
+    assert "hi there" in body
+
+
+def test_render_real_runner_renders_and_checks_from_root(tmp_path):
+    """(SL7.103) The render REAL runner runs snapshot-goals.py --render with
+    cwd=root and the project made explicit (--project), then --render --check,
+    and returns the CHECK's result -- on a fixture root (never a worktree/sub-
+    process cwd) so the rendered tree is the one the runner names."""
+    repo, graph = _closeout_goal_fixture(tmp_path)
+    seams = rotate._make_closeout_seams(graph, {})
+    ok, result, detail = seams["render"]()
+    assert ok is True and result == "ok", detail
+    goals = repo / "GOALS.md"
+    assert goals.exists(), "GOALS.md was not rendered at the project root"
+    assert "G17.1" in goals.read_text(encoding="utf-8")
+    # render --check on the SAME tree round-trips byte-identical (ok implies it)
+
+
+def test_pathspec_commit_refuses_naming_a_failed_record_commit(tmp_path):
+    """(SL7.103) A seat with NO card falls back to _commit_rotation_record;
+    when THAT cannot commit (no rotation record file on disk), the runner
+    REFUSES BY NAME (pre-fix reported a FAILED/SKIPPED record commit as
+    (True, 'committed'))."""
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"s1\", \"role\": \"parent\"}\n"
+        "---\n", encoding="utf-8")
+    import subprocess as sp
+    sp.run(["git", "-C", str(root), "init"], check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+           check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "config", "user.name", "t"],
+           check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "add", "agi-tree.config.json", "nodes"],
+           check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "commit", "-q", "-m", "fixture"],
+           check=True, capture_output=True)
+    # no card for s1 -> _commit_rotation_record path; no record file -> skip
+    seams = rotate._make_closeout_seams(root, {"gen_before": 0, "gen_after": 1},
+                                        seat="s1")
+    ok, result, detail = seams["pathspec_commit"]()
+    assert ok is False and result == "refused", detail
+    assert "rotation_record_commit" in detail
+
+
+def test_push_real_runner_refuses_by_name_on_a_gitless_fixture(tmp_path):
+    """(SL7.103) The push REAL runner, driven on a fixture root with no
+    resolvable MAIN, REFUSES BY NAME without attempting a push -- the named
+    refusal is the observable (a dry real-run drive of the shared runner
+    that the worktree-post list shares with the Prime/MAIN-post lists)."""
+    seams = rotate._make_closeout_seams(tmp_path, {})
+    ok, result, detail = seams["push"]()
+    assert ok is False and result == "refused"
+    assert "push" in detail and "MAIN" in detail

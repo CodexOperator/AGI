@@ -1317,18 +1317,21 @@ def _snippet(cmd: str, width: int) -> str:
 
 
 def _display_cmd(inp) -> str:
-    """The command column for a tool_use input: the first present key out of
-    command, file_path, pattern, path, notebook_path, to(+first 40 msg chars),
-    else a compact json dump; an empty input prints '-'. So a non-Bash tool
+    """The command column for a tool_use input: resolved by KEY PRESENCE,
+    not truthiness. The first present key out of command, file_path, pattern,
+    path, notebook_path wins (its string value), else `to` plus the first
+    40 chars of `message`, else a compact json dump; a missing/empty input
+    prints '-'. An EXPLICIT empty value (e.g. `{"command": ""}`) resolves by
+    key presence and prints '-' rather than a json dump, so a non-Bash tool
     call (Read/Grep/Glob/Write/ListAgents/SendMessage) never prints an empty
-    command column (hypothesis:l4-sensei-calls-...-names-non-bash-tool-inputs).
-    """
+    command column (hypothesis:l4-sensei-calls-...-names-non-bash-tool-
+    inputs)."""
     if not isinstance(inp, dict):
         return "-"
     for key in ("command", "file_path", "pattern", "path", "notebook_path"):
-        if inp.get(key):
-            return str(inp[key])
-    if inp.get("to"):
+        if key in inp:
+            return str(inp[key]) or "-"
+    if "to" in inp:
         base = str(inp["to"])
         msg = inp.get("message")
         if msg:
