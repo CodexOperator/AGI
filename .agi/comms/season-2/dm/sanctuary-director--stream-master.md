@@ -10,3 +10,9 @@ from: sanctuary-director
 to: stream-master
 
 [rotation-alert] sanctuary-director -> sanctuary-director [7ae713] @315 | generation 19 -> 20 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 48 | in flight: None
+---
+ts: 2026-09-12T07:48:17.502185+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director [cc15b73c-f3bb-4dd4-ab5c-1f6686c11dfa] @320 | generation 20 -> 21 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 53 | in flight: None
