@@ -5208,6 +5208,67 @@ def _diff_owns_row(diff: str, seat: str) -> bool:
     return False
 
 
+def _rstrip_lines(text: str) -> list[str]:
+    """Normalised comparison form of a text file: per-line TRAILING
+    whitespace stripped and the EOF newline folded away. Two texts whose ONLY
+    difference is trailing whitespace / a missing final newline compare EQUAL
+    here (claim 2: a whitespace-only delta reads CLEAN); any leading or
+    interior whitespace or a real byte still differs, so a genuine one-cell /
+    interior change is never collapsed to clean."""
+    return [ln.rstrip() for ln in text.splitlines()]
+
+
+def _blob_text(top: Path, rev: str) -> str | None:
+    """`git show <rev>` (a `HEAD:<path>` or `:<path>` index blob) as text, or
+    None on any failure (not a repo, an opaque refusal)."""
+    try:
+        run = subprocess.run(["git", "-C", str(top), "show", rev],
+                             capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if run.returncode != 0:
+        return None
+    return run.stdout
+
+
+def _diff_is_whitespace_only(root: Path, top: Path, rel: str,
+                             cached: bool) -> bool:
+    """True when the two trees `git diff [--cached] -- <rel>` is comparing
+    differ only in trailing whitespace / the EOF newline after per-line
+    trailing-strip normalisation (claim 2). cached -> index vs HEAD; uncached
+    -> index vs the working file. False on any unmeasurable read — a gate
+    must never mis-free a real delta on an opaque git answer."""
+    if cached:
+        a = _blob_text(top, f"HEAD:{rel}")
+        b = _blob_text(top, f":{rel}")
+    else:
+        a = _blob_text(top, f":{rel}")
+        try:
+            b = _ack_seats_path(root).read_text(encoding="utf-8")
+        except OSError:
+            return False
+    if a is None or b is None:
+        return False
+    return _rstrip_lines(a) == _rstrip_lines(b)
+
+
+def _path_delta_whitespace_only(root: Path, top: Path, path: str) -> bool:
+    """True when <path> (relative to `root`) differs from ITS committed HEAD
+    bytes only in trailing whitespace / the EOF newline. False when clean,
+    untracked (no HEAD blob), or unmeasurable — untracked files and real
+    deltas always stay dirty. Claim 2's prepare check 2 counterpart."""
+    abs_p = os.path.abspath(os.path.join(str(root), path))
+    rel_top = os.path.relpath(abs_p, str(top))
+    head = _blob_text(top, f"HEAD:{rel_top}")
+    if head is None:
+        return False
+    try:
+        work = Path(abs_p).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return _rstrip_lines(head) == _rstrip_lines(work)
+
+
 def _seats_diff_has_own_row(root: Path, top: Path, seat: str,
                             cached: bool = False) -> bool:
     """True when `git diff [--cached] -- <seats.md>` carries a hunk that
@@ -5223,6 +5284,16 @@ def _seats_diff_has_own_row(root: Path, top: Path, seat: str,
     except Exception:  # noqa: BLE001
         return False
     if out.returncode != 0 or not out.stdout.strip():
+        return False
+    # claim 2 (hypothesis:l4-one-serializer-...-reads-a-whitespace-only-
+    # delta-as-clean): a delta whose ONLY difference is trailing whitespace /
+    # a missing EOF newline reads CLEAN. Compare the two trees git is
+    # diffing under a per-line TRAILING-strip normalisation; equality means
+    # the seat's row is byte-unchanged in every interior cell, so the gate
+    # never refuses on whitespace-only. A real one-cell change is an interior
+    # byte and still differs, so the falsifier (never treat a real change as
+    # clean) holds.
+    if _diff_is_whitespace_only(root, top, rel, cached):
         return False
     return _diff_owns_row(out.stdout, seat)
 
@@ -8342,13 +8413,26 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
-def _prepare_dirty_paths(porcelain: list[str] | None) -> list[str]:
+def _prepare_dirty_paths(porcelain: list[str] | None,
+                         root: Path, top: Path | None) -> list[str]:
     """The NON-churn dirty/untracked paths `git status --porcelain` reports
     (cron-owned churn excluded exactly as `_prepare_churn_path`), in porcelain
-    order. These are the seat's own stranded modifications a dirty-tree
-    captive exists to name."""
-    return [_porcelain_path(ln) for ln in (porcelain or [])
-            if ln.strip() and not _prepare_churn_path(ln)]
+    order, EXCLUDING a path whose ONLY delta vs HEAD is trailing whitespace /
+    a missing EOF newline (claim 2: a whitespace-only delta reads CLEAN, never
+    a blocker). These are the seat's own stranded modifications a dirty-tree
+    captive exists to name. A real one-cell change is an interior byte and
+    still names a blocker (falsifier). `top` None (not a repo) -> every
+    non-churn path stays dirty, exactly as before."""
+    paths = []
+    for ln in (porcelain or []):
+        if ln.strip() and not _prepare_churn_path(ln):
+            path = _porcelain_path(ln)
+            if (top is not None and path
+                    and _path_delta_whitespace_only(root, top, path)):
+                # a whitespace-only delta is never the seat's dirt — skip it
+                continue
+            paths.append(path)
+    return paths
 
 
 def _merge_applies_clean(root: Path, sb: str) -> bool | None:
@@ -8555,7 +8639,21 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # and `.agi/sessions/rotations/sequence.json`; grid_sync commits both,
     # a worktree seat never sees them). Those paths are excluded by name.
     porcelain = _git_maybe(root, "status", "--porcelain")
-    dirty_paths = _prepare_dirty_paths(porcelain)
+    top = _git_toplevel(root)
+    dirty_paths = _prepare_dirty_paths(porcelain, root, top)
+    # claim 2 (one-serializer hypothesis): a dirty path whose ONLY delta vs
+    # HEAD is trailing whitespace / a missing EOF newline reads CLEAN — named
+    # on ONE benign (never-blocking, ok) line, never a dirty-tree blocker. A
+    # real one-cell change is an interior byte and still names a BLOCK.
+    ws_only: list[str] = []
+    if top is not None:
+        for ln in (porcelain or []):
+            if not ln.strip() or _prepare_churn_path(ln):
+                continue
+            p = _porcelain_path(ln)
+            if p and _path_delta_whitespace_only(root, top, p) \
+                    and p not in ws_only:
+                ws_only.append(p)
     if dirty_paths:
         shown = dirty_paths[:5]
         suffix = (f", +{len(dirty_paths) - 5} more"
@@ -8565,6 +8663,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         dirty_name = "dirty tree"
     checks.append((bool(dirty_paths), dirty_name,
                    "git commit -m '<msg>' -- <the files you changed>"))
+    # claim 2 benign naming: each whitespace-only-delta path is named on ONE
+    # never-blocking (ok) line so prepare both passes AND says why the path
+    # was not a blocker. Name relative to the repo top so the familiar
+    # `seats.md` / `posts.md` form appears.
+    for p in ws_only:
+        abs_p = os.path.abspath(os.path.join(str(root), p))
+        rel_top = os.path.relpath(abs_p, str(top))
+        checks.append((False, f"{rel_top}: whitespace-only delta, "
+                              f"treated as clean", ""))
 
     # 3 behind origin/season/sX (N commits) -- branch from the ladder via
     # season_branch, never a hardcoded season.
