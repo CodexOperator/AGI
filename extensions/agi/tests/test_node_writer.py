@@ -758,6 +758,39 @@ def test_a_list_of_mappings_round_trips_too():
     assert back["rows"] == [{"k": 1, "v": "a"}, {"k": 2, "v": "b"}]
 
 
+# L4 — YAML 1.1 line-break code points inside a list-of-dict entry
+# (hypothesis:l4-a-frontmatter-container-entry-escapes-the-yaml-
+# line-break-code-points-nel-ls-ps-explicitly). json.dumps with
+# ensure_ascii=False emits U+0085 (NEL), U+2028 (LS) and U+2029 (PS)
+# literally; YAML 1.1 reads NEL as a line break and folds it to a space on
+# the next read — one code point lost. The render site escapes these three
+# explicitly; every other non-ASCII code point stays literal.
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_list_of_dict_entry_escapes_yaml_line_break_cps(cp):
+    import yaml
+
+    fm = {"id": "x:y", "type": "t", "rows": [{"name": chr(cp)}]}
+    text = "\n".join(nw.render_frontmatter(fm))
+    back = yaml.safe_load(text)
+    assert back["rows"] == [{"name": chr(cp)}], \
+        f"U+{cp:04X} must survive the round trip byte-identical"
+    assert chr(cp) not in text, (f"U+{cp:04X} must be escaped in the rendered "
+                                  "frontmatter, never emitted literally inside "
+                                  "the JSON-in-YAML scalar")
+
+
+@pytest.mark.parametrize("cp,present", [(0x2014, chr(0x2014)),  # em-dash stays literal
+                                          (0x41, "A")])          # ASCII untouched
+def test_non_linebreak_cps_stay_literal(cp, present):
+    import yaml
+
+    fm = {"id": "x:y", "type": "t", "rows": [{"name": chr(cp)}]}
+    text = "\n".join(nw.render_frontmatter(fm))
+    assert present in text, f"U+{cp:04X} must render literally, not be re-escaped"
+    back = yaml.safe_load(text)
+    assert back["rows"] == [{"name": chr(cp)}]
+
+
 def test_scalars_and_empty_containers_are_unchanged_by_the_fix():
     """The fix must not move anything that already worked."""
     import yaml
