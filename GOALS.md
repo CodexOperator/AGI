@@ -6666,6 +6666,8 @@ SM.01 dispatched 23:40Z (a00-2d7d67b8; SM's brief on main: the after_join dm is 
 
 SL7.117 (SM 23:43Z): rotate_defaults = ONE top-level config:rotations map (timeout_s + closeout per role) replacing the 114/115 per-template reads write.py cannot nest; two proven 0a lines for the Prime — brief hypothesis:l4-rotate-defaults-is-one-top-level-map-the-prime-can-write-as-one-value-timeout-and-closeout-per-role
 
+SM.01 HARVESTED (a00-2d7d67b8; kid 1 lean_disproved:70 on the --seat alias, kid 2 proved 0.9): the after_join dm is one line per entry (label + exit), detail only on refusal or non-zero/timeout, the record named as rotate.py status --post <seat> --record latest, captive line untouched; after_join + rotate 342/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
