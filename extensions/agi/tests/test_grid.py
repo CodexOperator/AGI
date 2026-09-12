@@ -254,6 +254,19 @@ def test_sanitize_is_injective_over_adversarial_corpus():
 
 
 @functools.lru_cache(maxsize=None)
+def _git_component_result(component: str) -> subprocess.CompletedProcess:
+    """`git check-ref-format --allow-onelevel <c>`, cached by component. The
+    lru cache keys on the CompletedProcess (not just returncode) so a caller
+    on the failure path can NAME the stderr real git refused with — the
+    cached bool alone drops it and a red run has no message.
+    """
+    return subprocess.run(
+        ["git", "check-ref-format", "--allow-onelevel", component],
+        capture_output=True, text=True,
+    )
+
+
+@functools.lru_cache(maxsize=None)
 def _git_component_valid(component: str) -> bool:
     """Does REAL git accept `component` as a one-level refname component?
 
@@ -265,13 +278,9 @@ def _git_component_valid(component: str) -> bool:
     `goal/`, the mint-id suffixes, ...), which drops the suite's ~2974 real
     spawns to the distinct-component count. lru_cache is unbounded but the
     component space is exactly the ref component vocabulary, so it is small
-    and bounded in practice.
+    and bounded in practice. `_git_component_result` holds the bytes it judged.
     """
-    res = subprocess.run(
-        ["git", "check-ref-format", "--allow-onelevel", component],
-        capture_output=True, text=True,
-    )
-    return res.returncode == 0
+    return _git_component_result(component).returncode == 0
 
 
 def test_sanitize_output_is_a_valid_git_refname():
@@ -325,8 +334,10 @@ def test_sanitize_real_agi_tree_corpus_round_trips_distinctly():
     assert not collisions, f"non-injective on live corpus: {collisions[:5]}"
     for ref in seen:
         for component in ref.split("/"):
-            assert _git_component_valid(component), (
-                f"{component!r} invalid: real git check-ref-format refused it"
+            res = _git_component_result(component)
+            assert res.returncode == 0, (
+                f"{component!r} invalid: real git check-ref-format refused it: "
+                f"{res.stderr}"
             )
 
 
