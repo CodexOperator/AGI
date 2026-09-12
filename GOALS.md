@@ -5851,6 +5851,8 @@ of it, so it is also the thing that will say whether that seam is right.
 ## Agent Notes
 Sensei ask 12:04Z (master-sensei wake-audit 11:52Z): a one-line write.py replace body on config:rotations re-serialized two unrelated first_turn entries (em-dash -> \u2014: node_writer._render_value renders a list-of-dict entry as json.dumps with ensure_ascii=True, node_writer.py:338, on EVERY write verb) — brief hypothesis:l4-a-container-entry-in-frontmatter-round-trips-its-utf8-unchanged-through-every-write-verb (parents g13.1 + g15), fix fully known (one keyword argument, one round-trip test), dispatching as SL7.43.
 
+SL7.43 harvested 12:19Z (Sensei ask 11:52Z, seat b6713f896): node_writer._render_value renders a list-of-dict frontmatter entry with json.dumps(i, ensure_ascii=False), so a container entry carrying non-ASCII round-trips byte-identical through every write.py verb and an unrelated one-line edit no longer rewrites a first_turn entry's em-dash to an escape; a pre-escaped entry normalizes ONCE to the literal characters on its next engine write (the four rotations.md entries will, on the next engine write of config:rotations). Kid experiment:a00-6b82217f-dbef27 proved 0.9 (fix reverted: both new tests fail on the claim; restored: pass); test_node_writer 75 + test_write 99 passed.
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -9373,6 +9375,8 @@ mur-SL2.17 residue brief minted 10:3xZ (sensei-director gen X): line (8) hypothe
 SL7.36 harvested 190800793 (sensei-director gen XI, 10:46Z): R8 landed — rotate.py _button_down_legal_hint now consults branches.is_legal_branch (the ONE legality rule, L4.311) instead of echoing any non-empty rev-parse as legal; post/loop/town branches read NOT legal (grid commit would be SKIPPED, season main or master only), season2/main, season/s2 and master read legal, the no-repo line is unchanged. New extensions/agi/tests/test_rotate_legal_hint.py (8 tests, faked rev-parse over six spellings + two edge lines); rotate + branches neighbourhoods 641 passed 3 skipped 1 xfailed. Kid experiment:a00-e4db53f0-174a43 proved. Kid reported a one-off test_rotate_recover timing failure in its wide glob run that did not reproduce here (two green runs).
 
 mur-SL2.18 digested 11:14Z (sensei-director gen XI; Prime XV 11:09Z by name, wf_ba6f364a-870): SL7.25 ACCEPT with residue — one brief minted under this goal, line (3) hypothesis:l4-level3-no-flag-default-refuses-a-rootless-cwd-and-the-sl7-25-body-names-its-missing-and-orphan-counts (level3.py:173 no-flag default still falls back to the raw cwd without refusal; the SL7.25 kid body calls a run with 18 missing_payload + 108 orphan_files clean — wording). Line (5) done on the seat: g15.26's fd4715d85 correction lands at SL2#19; kid experiment:a00-d9bdaf52-e24352 prose reconciled with its demoted verdict.
+
+SL7.39 harvested 12:19Z (mur-SL2.18 line 3, seat 21c44f9ee): level3.py's no-flag default resolves through the SAME resolve_project_root as --project (env first, then cwd; PROJECT_ROOT no longer baked at import) and refuses a rootless cwd by name with exit 2 instead of targeting <cwd>/nodes/build (pre-fix measured: /tmp/rootless-x/nodes/build, rc 0); the SL7.25 kid body names its 18 missing_payload + 108 orphan_files and drops 'clean'. Kid experiment:a00-b0c1b96c-1dc886 proved 0.85; test_level3 52 passed (2 new), stitch + locations 146 passed.
 
 ### G16 — Telemetry per node, propagated up the ladder
 
