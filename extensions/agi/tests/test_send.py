@@ -6559,3 +6559,51 @@ def test_read_refuses_unknown_even_for_unknown_target(project: Path, capsys,
     err = capsys.readouterr().err
     assert rc == 2, rc
     assert "is not you ('unknown')" in err
+
+
+# ---- whois --key with --sig resolves the SIGNATURE row by PUBKEY (prefix,
+# ---- unique), never by name/session_ref (hypothesis:l4-prime-key-is-read-
+# ---- from-the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-
+# ---- pubkey). Before the fix the sig label went through _row_for_label on
+# ---- the KEY PREFIX placed in the session_ref slot, which matches no name/
+# ---- session_ref and read UNVERIFIABLE — a --key claim could never verify
+# ---- its signature. Now the row is the one the caller's pubkey named.
+# ---------------------------------------------------------------------------
+
+
+def test_whois_key_with_sig_verifies_pubkey_selected_row(project, monkeypatch):
+    """whois --key <prefix> --sig verifies the row whose PUBKEY matches the
+    prefix, even when two rows share a name/session_ref shape — the sig is
+    verified against the very row the caller's key named, and a row the key
+    did not select is refused."""
+    send_mod.keygen(project, "seat-a")
+    send_mod.keygen(project, "seat-b")          # a DIFFERENT key for the "other" row
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a",
+                                                     "recv", "key-selected sig")
+    pub_a = _seat_pubkey_hex(project, "seat-a")
+    pub_b = _seat_pubkey_hex(project, "seat-b")
+    assert pub_a[:8] != pub_b[:8], "distinct keys share an 8-hex prefix"
+    # two rows sharing a name/session_ref SHAPE but carrying DIFFERENT pubkeys
+    rows = [
+        {"name": "seat-a", "session_ref": "seat-a",
+         "sig_scheme": "ed25519", "pubkey": pub_a},
+        {"name": "seat-a", "session_ref": "seat-a",   # same shape, other key
+         "sig_scheme": "ed25519", "pubkey": pub_b},
+    ]
+    _stub_seat_rows(monkeypatch, rows)
+    # the caller's key names seat-a's row -> VERIFIED, never UNVERIFIABLE
+    rc, text = send_mod.whois(project, pub_a[:12], claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=canonical,
+                              target=("key", pub_a[:12]))
+    assert rc == send_mod.WHOIS_OK, rc
+    assert "by key: " in text
+    assert "VERIFIED seat-a" in text, text
+
+    # FALSIFIER: --key with the OTHER pubkey's prefix must refuse that row's
+    # sig (the sig is seat-a's; the key-selected row is seat-b) -> FORGED.
+    rc2, text2 = send_mod.whois(project, pub_b[:12], claim="seat-a",
+                                source="refs/x", do_fetch=False,
+                                sig_line=sig_line, msg_text=canonical,
+                                target=("key", pub_b[:12]))
+    assert "FORGED" in text2, text2
