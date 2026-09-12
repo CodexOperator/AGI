@@ -9276,6 +9276,52 @@ DEFAULT_AFTER_JOIN_TIMEOUT_S = 60
 DEFAULT_AFTER_JOIN_POLL_S = 1.0
 
 
+# (goal:g15.25 SL7.72) the heal.py watch loop's liveness heartbeat. The watch
+# writes `<sessions>/reaper.watch.json` ({pid, at}) once per PASS; rotate-self's
+# post-spawn tail reads it to decide whether an ALIVE watch will run the
+# captive after_join (defer) or whether rotate-self must perform it itself.
+# GRACE = 3 x the declared default poll (30 s), so one missed pass does not
+# misread a live-but-paused watch as dead.
+WATCH_HEARTBEAT_FILE = "reaper.watch.json"
+WATCH_HEARTBEAT_GRACE_S = 120
+
+
+def _watch_heartbeat_path(root: Path) -> Path:
+    """`<sessions>/reaper.watch.json` — resolved through the SAME shared
+    sessions resolver `_sessions_dir` uses (locations.shared_sessions_dir), so
+    a worktree seat and the main checkout agree on the ONE heartbeat."""
+    return _sessions_dir(root) / WATCH_HEARTBEAT_FILE
+
+
+def _watch_alive(root: Path, *, now: float | None = None) -> bool:
+    """True only when the heal.py watch loop is demonstrably ALIVE for this
+    box: a heartbeat file exists, names a LIVE pid, and was written within
+    `WATCH_HEARTBEAT_GRACE_S`. Absent / unparsable / stale / pid-dead => False.
+    The heartbeat is `_write_watch_heartbeat`'s dedicated file — NEVER the
+    reaper LOG's mtime, because send.py's `wake` writes that same shared log
+    (`_watch_log` delegates to `reaper_log.log`), so a fresh log mtime can come
+    from a non-watch writer and would read "watch alive" on a box whose watch
+    is dead (the near-miss the liveness mechanism exists to avoid)."""
+    now = time.time() if now is None else now
+    try:
+        data = json.loads(_watch_heartbeat_path(root).read_text(encoding="utf-8"))
+        pid = int(data.get("pid") or 0)
+        at = float(data.get("at") or 0)
+    except Exception:                                    # noqa: BLE001
+        return False
+    if pid <= 0 or at <= 0:
+        return False
+    if (now - at) > WATCH_HEARTBEAT_GRACE_S:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (PermissionError, OSError):
+        return True
+    return True
+
+
 def _inline_reaper_enabled(root: Path) -> bool:
     """True when `agent_dispatch.inline_reaper` is truthy — the reaper runs
     INSIDE dispatch, so NO separate persistent service exists and rotate-self
@@ -9305,8 +9351,14 @@ def _after_join_performer_armed(root: Path, *, forced: bool = False) -> bool:
     persistent heal.py watch unit is the performer (inline_reaper falsey AND
     `reaper.unit_enabled` is not false — the one-edit guard for a box whose
     unit is down; absent key reads true, matching the crons that arm it).
-    Missing/broken config reads armed (defensive: an absent config never
-    silently withholds a confirm a performer would do)."""
+    Missing/broken config reads NOT armed: `locations.config_path` None or a
+    config parse error returns False, so a box that cannot be read is never
+    declared to own the confirm (it is the rotate-self tail's turn — step (6.4)
+    decides the tail's own readiness via `_after_join_tail_should_perform`).
+    An absent `reaper.unit_enabled` key still reads true (matching the crons
+    that arm it); only a DECLARED `false` and a dead/stale watch read False.
+    (SL7.72: docstring aligned with the code that returns False on cfg_path
+    None and on a config parse exception.)"""
     if forced:
         return True
     if _inline_reaper_enabled(root):
@@ -9314,11 +9366,57 @@ def _after_join_performer_armed(root: Path, *, forced: bool = False) -> bool:
     try:
         cfg_path = locations.config_path(root) if root is not None else None
         if cfg_path is None:
-            return True
+            return False
         cfg = json.loads(cfg_path.read_text())
     except Exception:                                   # noqa: BLE001
+        return False
+    # (goal:g15.25 SL7.72) a persistent-service performer is armed only when
+    # the box DECLARES the unit (`reaper.unit_enabled` not false) AND the watch
+    # process is demonstrably alive (`_watch_alive` reads its per-pass
+    # heartbeat). An absent cfg / dead / stale watch reads NOT armed: the
+    # rotate-self tail performs at step (6.4), so a pre-turn deferral recorded
+    # here would be a lie about who owns the record. The tail's own readiness
+    # is decided IN step (6.4); this predicate is the SERVICE's arm state.
+    if not bool(((cfg or {}).get("reaper") or {}).get("unit_enabled", True)):
+        return False
+    return _watch_alive(root)
+
+
+def _after_join_tail_should_perform(root: Path, *, forced: bool = False,
+                                    inline_reaper: bool | None = None) -> bool:
+    """(goal:g15.25 SL7.72) whether rotate-self's own post-spawn tail performs
+    the captive after_join at step (6.4): whenever an ALIVE heal watch will NOT
+    do it — forced (`--after-join`), an inline reaper (no separate service), or
+    the watch is not demonstrably alive (`_watch_alive` reads its per-pass
+    heartbeat). Only an alive watch receives the deferral. `inline_reaper` is
+    test-injectable; absence reads `_inline_reaper_enabled`. This is the SAME
+    decision step (6.4) calls — production, not a test-only copy."""
+    if forced:
         return True
-    return bool(((cfg or {}).get("reaper") or {}).get("unit_enabled", True))
+    ir = (_inline_reaper_enabled(root) if inline_reaper is None
+          else inline_reaper)
+    if ir:
+        return True
+    return not _watch_alive(root)
+
+
+def _after_join_already_performed(record_path) -> bool:
+    """(goal:g15.25 SL7.72) the double-perform guard used by the rotate-self
+    tail at step (6.4): re-read the rotation record at `record_path`; True when
+    it ALREADY carries an `after_join` key — the heal watch won the race, so
+    the tail must NOT perform a second time. Best-effort: absent / unreadable /
+    malformed / unittestable reads False (the tail performs). Empty after_join
+    (`{}`) is still a performed key and guards too — `bool` on the value."""
+    if record_path is None:
+        return False
+    try:
+        rp = Path(record_path)
+        if not rp.exists():
+            return False
+        rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
+        return isinstance(rec, dict) and bool(rec.get("after_join"))
+    except Exception:                                       # noqa: BLE001
+        return False
 
 
 #: Per-placeholder human reason when an after_join entry USES a placeholder
@@ -9708,10 +9806,16 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                    send_dm=None, timeout_s: int | None = None,
                    byte_cap: int | None = None,
                    poll_interval: float | None = None,
-                   poll_turn_fn=None, confirm_model=None) -> dict:
+                   poll_turn_fn=None, confirm_model=None, performer: str = "watch") -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
+
+    `performer` names WHO ran this call for the record (`"watch"` — the heal.py
+    watch loop / the service entry — or `"tail"` — rotate-self's own post-spawn
+    tail when no watch is alive). Written into the record's `after_join` dict as
+    `performer` (and kept on the legacy `performed_by` key), so a reader can
+    tell which path owned the captive after_join and the key is never `{}`.
 
     Waits `startup.after_join_delay_s` (default 20; `delay_override` wins for
     tests so nothing waits), then runs the template `startup.after_join` list
@@ -9815,7 +9919,8 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                             if isinstance(model_confirm, dict) else None),
                         join_poll_secs=int(inter))
                 rec["after_join"] = {
-                    "performed_by": "service",
+                    "performer": performer,
+                    "performed_by": performer,
                     "delay_s": delay_s,
                     "results": results,
                     "dm": dm,
@@ -9875,7 +9980,8 @@ def _latest_rotate_record(root: Path, seat: str):
 
 
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
-                            sleep_impl=None, send_dm=None) -> dict | None:
+                            sleep_impl=None, send_dm=None,
+                            performer: str = "watch") -> dict | None:
     """The heal.py watch loop's per-seat action: discover the seat's latest
     rotation record that has NOT yet had its captive after_join run and whose
     `after_join_delay_s` has elapsed, and run it. Returns None when nothing is
@@ -9967,7 +10073,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     return run_after_join(
         root, seat=seat, gen=int(gen) if gen is not None else 0,
         startup=startup, values=values, record_path=str(path),
-        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0)
+        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
+        performer=performer)
 
 
 def _startup_step_list(startup) -> list:
@@ -13173,9 +13280,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     the fallback via `--after-join` (getattr) without touching config.
     aj = None
     _force_aj = bool(getattr(args, "after_join", False))
-    if not _inline_reaper_enabled(root) and not _force_aj:
+    # (goal:g15.25 SL7.72) the tail performs whenever an ALIVE watch will NOT
+    # do it (forced, inline reaper, or no alive watch — `_watch_alive` reads
+    # the heal watch's per-pass heartbeat, NEVER the shared reaper log's mtime
+    # that send.py `wake` also writes). Only an alive watch receives deferral.
+    if not _after_join_tail_should_perform(root, forced=_force_aj):
         print("(6.4) after_join deferred to the persistent service "
-              "(agent_dispatch.inline_reaper=false)")
+              "(agent_dispatch.inline_reaper=false, watch alive)")
     else:
         # joined facts re-resolved for the after_join values (the successor
         # identity is known only now).
@@ -13192,15 +13303,24 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                       or ""),
             succ_transcript=succ_transcript or "",
             tmux_session=tmux_session)
-        aj = run_after_join(
-            root, seat=seat, gen=gen, startup=startup or {},
-            values=aj_values, record_path=str(record_path),
-            delay_override=(0 if getattr(args, "window_path", None)
-                            is not None else None))
-        print(f"(6.4) after_join performed by rotate-self (fallback): "
-              f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
-              f"delay; record appended: {aj['appended']}, dm sent: "
-              f"{aj['sent']}")
+        # double-perform guard: the watch may have won the race since step (4)
+        # (or this box runs the service inline). Re-read the record; if it
+        # ALREADY carries `after_join`, the tail does NOT perform a second time.
+        _performed_elsewhere = _after_join_already_performed(record_path)
+        if _performed_elsewhere:
+            print("(6.4) after_join already performed (by the watch); "
+                  "rotate-self tail skips")
+        else:
+            aj = run_after_join(
+                root, seat=seat, gen=gen, startup=startup or {},
+                values=aj_values, record_path=str(record_path),
+                delay_override=(0 if getattr(args, "window_path", None)
+                                is not None else None),
+                performer="tail")
+            print(f"(6.4) after_join performed by rotate-self (own tail): "
+                  f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
+                  f"delay; record appended: {aj['appended']}, dm sent: "
+                  f"{aj['sent']}")
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill

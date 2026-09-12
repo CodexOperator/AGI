@@ -175,7 +175,8 @@ def test_record_receives_every_command_output():
         assert out["appended"] is True
         saved = json.loads(rec_path.read_text())
         aj = saved["after_join"]
-        assert aj["performed_by"] == "service"
+        assert aj["performer"] == "watch"  # (SL7.72) default = the watch
+        assert aj["performed_by"] == "watch"  # legacy key kept in lockstep
         assert [r["label"] for r in aj["results"]] == ["pin", "ack"]
         assert all("pin-op" in r["output"] or "ack-op" in r["output"]
                    for r in aj["results"])
@@ -202,7 +203,7 @@ def test_heal_service_calls_the_same_rotate_function():
     try:
         hrot._inline_reaper_enabled = lambda root: False
         hrot._load_seats = lambda root: [{"name": "seat-a"}, {"seat": "seat-b"}]
-        hrot.run_after_join_for_seat = lambda root, seat: (
+        hrot.run_after_join_for_seat = lambda root, seat, **kw: (
             called.append(seat) or {})
         heal._watch_log = lambda line: None
         heal._run_pending_after_joins(Path("."))
@@ -742,31 +743,42 @@ def test_fill_bootstrap_join_facts_unresolved_when_join_found_nothing(
 
 # ── goal:g15.25 (SL7.54 fix 4) — pre-turn probe defers only when armed ──
 def test_after_join_performer_armed_branches(tmp_path, monkeypatch):
-    """fix 4: a performer can run — deferred is truthful — exactly when the
-    fixture forces the fallback, OR inline_reaper is truthy (rotate-self is
-    the fallback performer), OR (inline_reaper off) the persistent heal watch
-    unit is armed (`reaper.unit_enabled` not false; absent reads armed). With
-    inline_reaper off AND the unit refused, NO performer can run."""
+    """fix 4: a SERVICE performer is armed exactly when the fixture forces the
+    fallback, OR inline_reaper is truthy (rotate-self is the fallback), OR the
+    box declares the unit (`reaper.unit_enabled` not false) AND the heal watch
+    is demonstrably alive (`_watch_alive` reads its per-pass heartbeat). With a
+    dead/absent/stale heartbeat the SERVICE is NOT armed — rotate-self's own
+    tail performs at step (6.4) instead."""
     import agi.bin.rotate as rot
     # forced: always armed
     assert rot._after_join_performer_armed(tmp_path, forced=True)
     # inline_reaper truthy -> rotate-self fallback performer
     monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: True)
     assert rot._after_join_performer_armed(tmp_path)
-    # inline_reaper off, no config -> unit armed by default
     monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    # the box declares the unit armed; only watch LIVENESS decides from here.
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
+    # inline_reaper off, NO heartbeat -> watch not alive -> no SERVICE armed
+    # (the rotate-self tail performs at (6.4); the pre-turn probe must not
+    #  record a deferral-to-service that nobody will honour)
+    assert not rot._after_join_performer_armed(tmp_path)
+    # a LIVE heartbeat -> unit armed, watch alive -> armed
+    _live_heartbeat(tmp_path, monkeypatch)
     assert rot._after_join_performer_armed(tmp_path)
-    # inline_reaper off, box declares the unit DOWN -> no performer.
-    # (config at the ROOT's own `agi-tree.config.json` legacy name so
-    # `locations.config_path(root)` resolves it on a bare tmp_path — the
-    # G11 graph dir resolves its `.agi/config.json` the same way.)
+    # unit refused -> no service performer (never reaches the alive check)
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"reaper": {"unit_enabled": False}}), encoding="utf-8")
     assert not rot._after_join_performer_armed(tmp_path)
-    # unit re-armed -> performer again
+    # unit re-armed, STALE heartbeat -> watch dead -> not armed
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
-    assert rot._after_join_performer_armed(tmp_path)
+    _live_heartbeat(tmp_path, monkeypatch,
+                    at=time.time() - rot.WATCH_HEARTBEAT_GRACE_S - 10)
+    assert not rot._after_join_performer_armed(tmp_path)
+    # unit re-armed, fresh heartbeat from a DEAD pid -> not armed
+    _live_heartbeat(tmp_path, monkeypatch, pid=999_999_999)
+    assert not rot._after_join_performer_armed(tmp_path)
 
 
 # ── goal:g15.25 (SL7.54 fix 5) — pushed-seats memo cleared per run ────────
@@ -1054,3 +1066,136 @@ def test_dm_prints_refused_and_refusal_line_for_empty_pred_pids():
     assert "no predecessor chain" in out["dm"], out["dm"]
     assert "skipped by name" in out["dm"], out["dm"]
     assert sent == [out["dm"]], "exactly ONE dm, the composed text"
+
+# ── goal:g15.25 (SL7.72) — after_join performed live vs by rotate-self tail ──
+def _live_heartbeat(root, monkeypatch, *, pid=None, at=None):
+    """Write a fresh heal-watch heartbeat (`<sessions>/reaper.watch.json`) with
+    a live pid (default: the test process) so `_watch_alive` reads it alive."""
+    import agi.bin.rotate as rot
+    sess = root / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / rot.WATCH_HEARTBEAT_FILE).write_text(json.dumps({
+        "pid": pid if pid is not None else os.getpid(),
+        "at": at if at is not None else time.time(),
+    }), encoding="utf-8")
+
+
+def _rotation_record(tmp_path, seat, *, recorded_at="2020-01-01T00:00:00.000000Z"):
+    """A due rotation record for `seat` under `<tmp>/sessions/rotations/`."""
+    rec_path = tmp_path / "sessions" / "rotations" / f"{seat}.20200101T000000Z.json"
+    rec_path.parent.mkdir(parents=True, exist_ok=True)
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": seat, "result": "success",
+        "gen_after": 1, "recorded_at": recorded_at,
+        "handover": {"join": {"window_id": "@1", "transcript": "/tmp/j.jsonl"}}}),
+        encoding="utf-8")
+    return rec_path
+
+
+def test_no_watcher_tail_performs(tmp_path, monkeypatch):
+    """(a) inline_reaper FALSE + no heartbeat file => `_after_join_performer_armed`
+    is False (no SERVICE armed) yet `_after_join_tail_should_perform` is True —
+    rotate-self's own post-spawn tail performs the captive after_join itself, so
+    a rotation never depends on a watcher that is not running. The record ends
+    with `after_join.performer == "tail"` (never absent, never {})."""
+    import agi.bin.rotate as rot
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    assert not rot._after_join_performer_armed(tmp_path)
+    assert rot._after_join_tail_should_perform(tmp_path)
+    rec_path = _rotation_record(tmp_path, "tail-seat")
+    tmpl = _startup(after_join=[{"label": "join", "cmd": "echo tail-ran"}],
+                    delay_s=0)
+    _fake_run(monkeypatch)
+    # the TAIL path performs with performer="tail" (step (6.4) passes this).
+    out = rot.run_after_join(
+        Path(tmp_path), seat="tail-seat", gen=1, startup=tmpl, values=VALUES,
+        record_path=str(rec_path), sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None, performer="tail")
+    rec = json.loads(rec_path.read_text())
+    aj = rec.get("after_join")
+    assert isinstance(aj, dict) and aj, "after_join must never be absent/{} on a tail-performed record"
+    assert aj.get("performer") == "tail", aj
+    assert aj.get("performed_by") == "tail", aj
+    assert aj.get("results"), "the tail's single command must be recorded"
+    assert out["appended"] is True
+
+
+def test_watch_alive_tail_skips(tmp_path, monkeypatch):
+    """(b) a FRESH heartbeat with a live pid => `_watch_alive` True and the
+    SERVICE is armed, so `_after_join_tail_should_perform` is False — the tail
+    does NOT run after_join (deferral to an alive watch is real, no double-
+    perform). The watch's own run_after_join_for_seat writes
+    `after_join.performer == "watch"` exactly once; a second call returns None."""
+    import agi.bin.rotate as rot
+    _live_heartbeat(tmp_path, monkeypatch)
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
+    assert rot._watch_alive(tmp_path)
+    assert rot._after_join_performer_armed(tmp_path)
+    assert not rot._after_join_tail_should_perform(tmp_path)
+
+    # the watch performs once on a real record; the tail/skip decision above
+    # already proved the tail would not run when the watch is alive.
+    rec_path = _rotation_record(tmp_path, "watch-seat")
+    tmpl = _startup(after_join=[], delay_s=0)  # empty list -> results []
+    def _lat(root, seat):
+        return json.loads(rec_path.read_text()), str(rec_path)
+    monkeypatch.setattr(rot, "_latest_rotate_record", _lat)
+    monkeypatch.setattr(rot, "_find_seat", lambda root, name: {"role": "parent"})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "_after_join_model_confirm", lambda *a, **k: None)
+    _fake_run(monkeypatch)
+    out1 = rot.run_after_join_for_seat(Path(tmp_path), "watch-seat",                                       now=1 << 60, performer="watch",
+                                       send_dm=lambda to, text: None)
+    assert out1 is not None
+    r1 = json.loads(rec_path.read_text())
+    assert r1.get("after_join") and r1["after_join"].get("performer") == "watch"
+    # a second call re-reads the file, sees after_join already present -> None
+    out2 = rot.run_after_join_for_seat(Path(tmp_path), "watch-seat",
+                                       now=1 << 60, performer="watch",
+                                       send_dm=lambda to, text: None)
+    assert out2 is None, "already performed: the second watch run must return None"
+
+
+def test_after_join_key_never_empty(tmp_path, monkeypatch):
+    """(c) a rotation with a ZERO-length after_join list still records
+    `after_join` with `performer` and `results == []` — never {}; and a record
+    that ALREADY carries `after_join` makes the tail skip (double-perform guard,
+    via the real production guard `_after_join_already_performed`)."""
+    import agi.bin.rotate as rot
+    # zero-length list -> after_join present, results []
+    rec_path = _rotation_record(tmp_path, "empty-seat")
+    tmpl = _startup(after_join=[], delay_s=0)
+    _fake_run(monkeypatch)
+    rot.run_after_join(
+        Path(tmp_path), seat="empty-seat", gen=1, startup=tmpl, values=VALUES,
+        record_path=str(rec_path), sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None, performer="tail")
+    aj = json.loads(rec_path.read_text()).get("after_join")
+    assert isinstance(aj, dict) and aj, "after_join must never be {}"
+    assert aj.get("performer") == "tail"
+    assert aj.get("results") == []
+
+    # already-performed record -> the tail's double-perform guard skips
+    done_path = _rotation_record(tmp_path, "done-seat")
+    done_rec = json.loads(done_path.read_text())
+    done_rec["after_join"] = {"performer": "watch", "results": []}
+    done_path.write_text(json.dumps(done_rec), encoding="utf-8")
+    assert rot._after_join_already_performed(str(done_path)) is True
+    hit = []
+    monkeypatch.setattr(
+        rot, "_after_join_tail_should_perform", lambda *a, **k: True)
+    monkeypatch.setattr(
+        rot, "run_after_join",
+        lambda *a, **kw: hit.append(1) or {})
+    # the (6.4)-shared sequence: decide, then guard, then (only if free) run
+    if rot._after_join_tail_should_perform(tmp_path):
+        if not rot._after_join_already_performed(str(done_path)):
+            rot.run_after_join(Path(tmp_path), seat="done-seat", gen=1,
+                               startup={}, values=VALUES,
+                               record_path=str(done_path), performer="tail")
+    assert not hit, "the tail must NOT call run_after_join on an already-\n            performed record"
