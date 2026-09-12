@@ -2020,6 +2020,131 @@ def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# hypothesis:l4-branches-follow-the-season-grammar — the stale-base guard
+# must resolve the town/integration branch CANONICAL-first with the one-season
+# legacy alias as fallback, so a pre-migration origin that has NOT been
+# renamed yet stays measurable instead of failing OPEN to "unchecked".
+# ---------------------------------------------------------------------------
+
+
+def _origin_bare(tmp_path, repo, only_refs, head_ref, repoint=None):
+    """A bare origin cloned from `repo`, then pruned to carry ONLY the branch
+    names in `only_refs`, HEAD pointed at `head_ref`. `repoint` maps a legacy
+    name to the target ref it should point at (so an origin can carry just the
+    OLD name at an AHEAD tip). Adds the origin remote to `repo`. Returns
+    (bare_path, _bare) so a caller can keep driving origin git ops."""
+    bare = tmp_path / "remote.git"
+    _git(repo, "clone", "--bare", "-q", ".", str(bare))
+
+    def _bare(*args):
+        return subprocess.run(["git", "-C", str(bare), *args],
+                              capture_output=True, text=True, check=True)
+
+    for name, target in (repoint or {}).items():
+        # exists in the clone (via another branch), so it resolves in the bare.
+        _bare("branch", "-f", name, target)
+    refs = _git(bare, "for-each-ref", "--format=%(refname)", "refs/heads")
+    for r in refs.stdout.splitlines():
+        name = r.split("refs/heads/", 1)[1]
+        if name not in only_refs:
+            _bare("branch", "-D", name)
+    _bare("symbolic-ref", "HEAD", f"refs/heads/{head_ref}")
+    _git(repo, "remote", "add", "origin", str(bare))
+    return bare, _bare
+
+
+def test_stale_base_loop_resolves_only_legacy_origin(tmp_path):
+    """THE regression this round exists for: on an origin carrying ONLY the
+    legacy `season/s2`, a spawner on a canonical core post/loop branch must
+    read a real fate (`behind`, by a known count) — NEVER `unchecked`.
+
+    Pre-fix, the town/integration branch (`season2/main`, resolved by
+    `_current_town_branch` from the post/loop) was fetched as the canonical
+    name ALONE; on a pre-migration origin that name 404s, `integration` stayed
+    None, and the guard failed OPEN to "unchecked" for EVERY nested spawn
+    until the live rename. The fix routes town_branch through
+    `branches.ref_candidates`, so the legacy `season/s2` resolves."""
+    repo = _git_repo(tmp_path, branch="season2/main")
+    _git(repo, "branch", "season/s2")
+    # Advance season/s2's TARGET past the loop base so the legacy origin is
+    # AHEAD by exactly one known commit once repointed onto it.
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "ahead of loop base")
+    _git(repo, "checkout", "-q", "season/s2")
+    _git(repo, "branch", "season2/loops/round-a00-abc123")
+    _git(repo, "checkout", "-q", "season2/loops/round-a00-abc123")
+    # HEAD is now the loop base; origin carries ONLY season/s2, at the ahead tip.
+    _origin_bare(tmp_path, repo, only_refs=["season/s2"],
+                 head_ref="season/s2", repoint={"season/s2": "season2/main"})
+    from dispatch import _current_town_branch
+    town_branch = _current_town_branch(repo, repo / ".agi" / "nodes")
+    assert town_branch == "season2/main", town_branch
+    out = dispatch._stale_base_spawn(repo, season=2, town_branch=town_branch)
+    assert "unchecked" not in out["status"], (
+        "a resolvable legacy origin must not fail open: " + str(out))
+    assert out["status"] == "behind" and out["behind"] == 1, out
+
+
+def test_stale_base_both_names_fetches_canonical_first(tmp_path):
+    """An origin carrying BOTH `season2/main` and `season/s2` must be fetched
+    via the CANONICAL name — the legacy alias is never consulted once the
+    canonical resolves (candidates are tried in order and we break on the
+    first success, so the legacy remote-tracking ref never materialises)."""
+    repo = _git_repo(tmp_path, branch="season2/main")
+    _git(repo, "branch", "season/s2")
+    _git(repo, "checkout", "-q", "season/s2")
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "legacy ahead")
+    _git(repo, "checkout", "-q", "season2/main")
+    _origin_bare(tmp_path, repo,
+                 only_refs=["season2/main", "season/s2"],
+                 head_ref="season2/main")
+    out = dispatch._stale_base_spawn(repo, season=2,
+                                     town_branch="season2/main")
+    assert out["status"] == "current", out  # even vs origin/season2/main
+    resolved = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify",
+         "origin/season2/main^{commit}"], capture_output=True, text=True)
+    assert resolved.returncode == 0, (resolved.stdout, resolved.stderr)
+    legacy = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+         "origin/season/s2^{commit}"], capture_output=True, text=True)
+    assert legacy.returncode != 0, (
+        "legacy must not be fetched when the canonical resolves")
+
+
+def test_stale_base_canonical_town_main_reaches_legacy_literal_origin(tmp_path):
+    """The ladder-town case: a town_branch supplied as the CANONICAL town main
+    (`season2/streaming-suite/season1/main` — what `_current_town_branch`
+    returns for a spawner on that town's canonical post/loop) must still
+    resolve on an origin that carries ONLY the literal `town/streaming-suite@s2`
+    legacy branch. That literal form is NOT what the grammar's ref_candidates
+    derives back (it yields `town/<t>/season/s<k>`), so the guard must also
+    try it — an unreachable-name 404 must never masquerade as "unchecked"."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _git(repo, "branch", "town/streaming-suite@s2")
+    _git(repo, "checkout", "-q", "town/streaming-suite@s2")
+    (repo / "README").write_text("x2")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "town main ahead")
+    _origin_bare(tmp_path, repo, only_refs=["town/streaming-suite@s2"],
+                 head_ref="town/streaming-suite@s2")
+    out = dispatch._stale_base_spawn(
+        repo, season=2,
+        town_branch="season2/streaming-suite/season1/main")
+    assert "unchecked" not in out["status"], out
+    resolved = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify",
+         "origin/town/streaming-suite@s2^{commit}"], capture_output=True,
+        text=True)
+    assert resolved.returncode == 0, (
+        "the legacy literal ref must have been fetched and resolved: "
+        f"{resolved.stdout} {resolved.stderr}")
+
+
+# ---------------------------------------------------------------------------
 # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the parent-kid
 # ceiling becomes a refusal, not just a printed number.
 # ---------------------------------------------------------------------------
