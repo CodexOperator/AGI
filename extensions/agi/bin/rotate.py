@@ -1729,9 +1729,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # seating dm + write the gen-1 seating record. Non-fatal — a failure
         # never fails the seating.
         ask_diff = bool(getattr(args, "ask_diff", False))
+        _seating_rec = None
         if seat is not None and root is not None:
             try:
-                _first_seating_announce(
+                _seating_rec = _first_seating_announce(
                     root, None,  # croot None -> resolved inside
                     seat=seat, role=_fs_role, source="cmd_spawn",
                     tmux_session=tmux_session,
@@ -1759,12 +1760,43 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     seat, tmux_session, getattr(args, "window_path", None))
             except Exception:                       # noqa: BLE001
                 _window_id = ""
+            # Claim (a) — the seating row commits the JOINED identity
+            # (hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-
+            # session-and-prints-its-row-commit-outcome): pid + session_id
+            # come from the first-seating join `_first_seating_announce`
+            # performed -- the registry record for the seated window @id, the
+            # same `_record_join` shape rotate-self writes -- NEVER from the
+            # spawner's `--pid` (that is the PREDECESSOR's or the launch
+            # script's pid, whatever the caller typed, never the seated
+            # window's own). A join that found nothing leaves the row's
+            # pid/session_id cells EMPTY and names it in ONE stderr line.
+            _jrec = _seating_rec if isinstance(_seating_rec, dict) else {}
+            _jpid = _jrec.get("pid")
+            _jsess = _jrec.get("session_id") or ""
+            if _jpid is None and not _jsess and _jrec.get("window_id"):
+                print(f"join: miss (seat {seat!r}: no registry record for "
+                      f"window @{str(_jrec['window_id']).lstrip('@')} within "
+                      f"the bounded join poll); the seating row commits "
+                      f"EMPTY pid/session_id -- never the spawner's --pid "
+                      f"({getattr(args, 'pid', None)!r})", file=sys.stderr)
+            # Claim (c) -- a join MISS must NOT leave the predecessor's stale
+            # pid/session_id in the seat's OWN committed row (falsifier: a
+            # registry MISS commits the predecessor's pid/session into the
+            # seating row as if they were the seated window's own). Pass the
+            # EMPTY sentinel (`pid 0`, the seed an empty row already holds)
+            # -- NEVER None -- so `_write_identity_cells`'s None-guard
+            # OVERWRITES the stale cells with empty rather than skipping
+            # them. `_successor_row_write`/`_commit_spawn_row` bodies stay
+            # unchanged; rotate-self's hit path (a real joined pid/session)
+            # is byte-identical because it never takes this branch.
+            if _jpid is None:
+                _jpid = 0
             try:
                 _fs_writes = _first_seating_spawn_writes(
                     root=root, seat=seat, generation=_spawn_gen,
                     ask_diff=ask_diff, role=_fs_role,
-                    session_id="", window=_window_id or "",
-                    pid=getattr(args, "pid", None))
+                    session_id=_jsess, window=_window_id or "",
+                    pid=_jpid)
             except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -1776,16 +1808,31 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # MAIN is left CLEAN after the hand seating (falsifier: "a
             # seating leaves seats.md dirty in MAIN"). Best-effort, never
             # fails the seating; a gitless root / clean-unmodified row skips.
+            _commit = ""
             try:
-                _commit_spawn_row(
+                _commit = _commit_spawn_row(
                     root, seat=seat, generation=_spawn_gen,
-                    session_id="",
+                    session_id=_jsess,
                     window=_window_id or "",
-                    pid=getattr(args, "pid", None),
+                    pid=_jpid,
                     verb="seating row")
             except Exception as exc:                # noqa: BLE001
-                print(f"warn: first-seating seating-row commit failed: {exc}",
-                      file=sys.stderr)
+                _commit = f"seating_row_commit: FAILED: {exc}"
+            # Claim (b) (hypothesis:l4-a-hand-seating-commits-the-joined-pid-
+            # and-session-and-prints-its-row-commit-outcome): the seating-row
+            # commit + push outcome is PRINTED as ONE stderr line and carried
+            # into the first-seating record (`handover.seating_row_commit`,
+            # trailing `\npush:` line and all), so a failed commit or a
+            # failed push is visible and the record carries the same outcome
+            # the key-swap gate weighs -- the seating mirror of rotate-self's
+            # `handover.spawn_row_commit`.
+            if _commit:
+                print(_commit, file=sys.stderr)
+                if isinstance(_seating_rec, dict):
+                    _seating_rec["handover"] = dict(
+                        _seating_rec.get("handover") or {})
+                    _seating_rec["handover"]["seating_row_commit"] = _commit
+                    _seating_record_merge_handover(root, _seating_rec)
     return 0
 
 
@@ -3703,6 +3750,55 @@ def _write_seating_record(root: Path, record: dict) -> Path:
     return path
 
 
+def _seating_record_merge_handover(root: Path, record: dict) -> str:
+    """Merge `record['handover']` into the ONE seating record already on
+    disk for the same seat and `recorded_at`, in place.
+
+    Claim (b) of hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-
+    session-and-prints-its-row-commit-outcome: a hand seating's
+    `_commit_spawn_row` outcome rides the seating record as
+    `handover.seating_row_commit` (the seating mirror of a rotation's
+    `handover.spawn_row_commit`), trailing `\npush:` line included, so the
+    commit/push history lives on the record any later reader opens. The first
+    seating's record is written by `_first_seating_announce` BEFORE the row
+    commit, so the outcome is merged back in here once it exists. Idempotent:
+    a record already carrying a handover is never double-merged; a missing or
+    unmatched record is left alone. Returns the written path or ''."""
+    seat = str(record.get("seat") or "")
+    stamp = record.get("recorded_at")
+    handover = record.get("handover") or {}
+    if not seat or not handover:
+        return ""
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return ""
+    target = None
+    for p in rot.glob(f"{seat}.*.seating.json"):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(rec, dict):
+            continue
+        if rec.get("recorded_at") != stamp or rec.get("handover"):
+            continue
+        if target is None or p.stat().st_mtime >= target.stat().st_mtime:
+            target = p
+    if target is None:
+        return ""
+    try:
+        rec = json.loads(target.read_text(encoding="utf-8", errors="replace"))
+        if not isinstance(rec, dict):
+            return ""
+        merged = dict(rec.get("handover") or {})
+        merged.update(handover)
+        rec["handover"] = merged
+        target.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    except (OSError, ValueError):
+        return ""
+    return str(target)
+
+
 def _seating_record_exists(root: Path, seat: str,
                            generation: int = FIRST_SEATING_GEN) -> bool:
     """True when a seating record for `seat` at `generation` already exists.
@@ -3830,7 +3926,13 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
     BOUNDED join when not already supplied (a freshly-seated window usually
     has its `<pid>.json` registry file within seconds); otherwise they stay
     absent/honest. Delivery failure never fails the seating — the record is
-    the proof, not a gate. Returns the recipients reached.
+    the proof, not a gate. Returns the SEATING RECORD dict that was written
+    (the same object `_announce_rotation` wrote as `<seat>.<ts>.seating.json`)
+    — the JOINED identity (window_id/pid/session_id/transcript_path) plus,
+    after `cmd_spawn` commits the seating row, the `handover.seating_row_commit`
+    outcome — so the seating block carries the joined identity and the commit
+    history exactly as a rotation's handover does. A caller that only needs
+    the announcement (cmd_ack / cmd_seats_launch) may discard it.
     """
     import send  # local: same dir
     if croot is None:
@@ -3851,7 +3953,7 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         pid=pid, session_id=session_id, transcript_path=transcript_path,
         first_turn=first_turn)
     in_flight = _seating_in_flight(first_turn)
-    return _announce_rotation(
+    _announce_rotation(
         root=root, croot=croot, seat=seat, successor=seat,
         gen_before=0, gen_after=FIRST_SEATING_GEN,
         trigger="first-seating",
@@ -3859,6 +3961,13 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         in_flight=in_flight, live_names=live_list,
         successor_ref=ref, successor_window=window_id or "",
         seating=seating, ask_diff=ask_diff)
+    # the seating record IS a seating's handover: it carries the JOINED
+    # identity (window_id/pid/session_id/transcript_path) and is where the
+    # seating-row commit outcome (`handover.seating_row_commit`, claim (b) of
+    # hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-session-and-
+    # prints-its-row-commit-outcome) rides. Return it so `cmd_spawn` can
+    # commit THAT identity and record the outcome into the same record.
+    return seating
 
 
 def _first_seating_spawn_writes(*, root: Path, seat: str,
@@ -3905,7 +4014,7 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     row = _successor_row_write(
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
-        session_id=session_id or None)
+        session_id=session_id)
     return {"meter_pin": mp, "ack_path": str(ap), "row": row}
 
 
