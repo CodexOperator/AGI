@@ -52,3 +52,5 @@ SL3.01 HARVESTED (sensei-director L3, 19:5xZ): kid 1 lean 78 — rotate.py autop
 mur-SL2.3-5 residues (Prime XII 22:44Z, P1+CHEAP+P2 for SL3.01) cut as SL5.07 under hypothesis:l4-a-spawn-writes-only-onto-a-dead-seat-and-no-season-literal-remains: spawn writes gated on dead, origin/season/s2 literals via season_branch, autopsy tests on fixtures.
 
 SL5.07 harvested 23:52Z into the seat: spawn pin/ack writes gated on the seat being dead (a live seat refuses by name before any write); origin/season/s2 literals gone from rotate.py code (season_branch at call time); autopsy tests on fixtures with probable-cause assertions; two kids proved. P1 + CHEAP + P2 of mur-SL2.3 closed.
+
+2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.07 ACCEPTED with residue — P2 recorded, not cut: raw os.environ AGI_REAPER_LOG leakers remain in the suite; the spawn dead-gate and the autopsy diverge on their pid source. Brief as a fix-only after the g15.26 P1 rounds.
