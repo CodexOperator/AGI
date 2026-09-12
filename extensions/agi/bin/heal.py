@@ -461,6 +461,16 @@ def _run_pending_after_joins(root: Path) -> None:
                 # dead seat with no live session — no record append, no dm.
                 _watch_log(f"after_join skipped for {seat!r}: "
                            f"{result['skipped']}")
+            elif result.get("deferred"):
+                # (goal:g15.25 SL7.8x) the record is already claimed/performed
+                # by another performer (own-tail vs watch) — run nothing.
+                _watch_log(f"after_join deferred for {seat!r}: "
+                           f"{result['deferred']}")
+            elif result.get("waiting"):
+                # (goal:g15.25 SL7.8x) the successor join has not landed
+                # within the upper bound — not performed yet.
+                _watch_log(f"after_join waiting for {seat!r}: "
+                           f"{result['waiting']}")
             else:
                 _watch_log(f"watch: after_join performed for seat {seat!r} "
                            f"({len(result.get('results') or [])} command(s); "
@@ -918,11 +928,95 @@ def _write_watch_heartbeat(root: Path) -> None:
         pass
 
 
+# --- hypothesis:l4-the-heal-watch-re-execs-itself-when-the-engine-code-it-
+# runs-changes-and-every-after-join-result-carries-code-head ---
+# A long-lived reaper process (`heal.py watch`, the systemd-unit main process)
+# imports rotate lazily and caches it in sys.modules, so six hours of fixes
+# can sit live in git and DEAD in a process that never restarted (the
+# belam.20260912T175150Z record proved it: old perform shapes, an rc-2 ack,
+# a full process-table reapproof — none refused by the code that now guards
+# them). The watch therefore re-reads its CODE IDENTITY every pass and
+# re-execs itself (same pid; systemd keeps the unit) when the engine HEAD
+# moved and heal.py/rotate.py are clean. Every after_join result is stamped
+# `code_head` in rotate.run_after_join_for_seat, so a record always names
+# which bytes performed it.
+
+_WATCH_SOURCES = ("heal.py", "rotate.py")
+
+
+def _watch_sources(root: Path) -> list[Path]:
+    """The two engine files `_watch` executes; their cleanliness gates the
+    re-exec (a mid-merge dirty touch on either is 'waiting', never a change)."""
+    bin_dir = Path(__file__).resolve().parent
+    return [bin_dir / s for s in _WATCH_SOURCES]
+
+
+def _code_identity(root: Path) -> dict:
+    """The watcher's CODE identity: engine HEAD sha7 plus mtime+size of the
+    two source files. Re-read every pass so a committed change with a clean
+    tree is detected. HEAD empty on any git refusal (non-repo test root)."""
+    head = ""
+    head_lines, _ = _git(["rev-parse", "HEAD"], root)
+    if head_lines and head_lines[0]:
+        head = head_lines[0][:7]
+    files: dict[str, tuple[int, int]] = {}
+    for p in _watch_sources(root):
+        try:
+            st = p.stat()
+            files[p.name] = (int(st.st_mtime), int(st.st_size))
+        except OSError:
+            files[p.name] = (0, 0)
+    return {"head": head, "files": files}
+
+
+def _code_files_clean(root: Path) -> bool:
+    """`git status --porcelain` on exactly heal.py + rotate.py empty => clean
+    tree (a mid-merge dirty touch is 'waiting', not a change). Best-effort:
+    a non-repo root (missing git) yields no lines -> clean."""
+    rel = [os.path.relpath(p, root) for p in _watch_sources(root)]
+    lines, _ = _git(["status", "--porcelain", "--"] + rel, root)
+    return not lines
+
+
+def _reexec(argv: list[str]) -> None:
+    """Re-exec the watcher: same script+args, same pid (systemd keeps the
+    main unit process). This is a module-level SEAM so the tests monkeypatch
+    it to assert the call instead of exec'ing. `--once` never reaches it."""
+    if argv:
+        os.execv(sys.executable, [sys.executable] + argv)
+
+
+def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
+    """Re-read the code identity each pass. A CHANGED identity with a CLEAN
+    tree for heal.py/rotate.py -> ONE '[watch] code changed <old>-><new>:
+    re-exec' line then re-exec. A dirty tree logs a 'waiting' line and does
+    NOT exec. Under `--once` the change is never acted on (a fresh process
+    per run; the seam is exercised by the tests). Always returns the newly-
+    read identity unless re-exec happened (then it is unreachable)."""
+    if once:
+        return identity
+    fresh = _code_identity(root)
+    if fresh == identity:
+        return fresh
+    old7 = identity.get("head") or "?"
+    new7 = fresh.get("head") or "?"
+    if _code_files_clean(root):
+        _watch_log(f"watch: code changed {old7}->{new7}: re-exec")
+        _reexec(sys.argv)
+        return fresh  # unreachable under real execv; the seam returns here
+    _watch_log(f"watch: code changed {old7}->{new7}: waiting (dirty)")
+    return fresh
+
+
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
     """
     adapter = _WatcherAdapter()
+    identity = _code_identity(root)
+    _watch_log(f"watch: code {identity.get('head') or '?'} "
+               f"heal.py {identity.get('files', {}).get('heal.py', (0, 0))[0]} "
+               f"rotate.py {identity.get('files', {}).get('rotate.py', (0, 0))[0]}")
     while True:
         _write_watch_heartbeat(root)
         rounds = _discover_rounds(root)
@@ -956,6 +1050,7 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # `git merge` still gets its residue cleaned by the persistent
         # watcher. Best-effort; never raises into the watch loop.
         _sweep_finished_worktrees(root)
+        identity = _check_code_change(root, identity, once)
         if once:
             break
         _watch_log(f"watch: pass complete over {len(rounds)} round(s); "

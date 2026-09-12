@@ -1672,6 +1672,119 @@ def test_c_pin_with_explicit_session_log_still_writes_stamps_and_prints(monkeypa
     assert "0.020" in out, out                      # fraction still printed
 
 
+# ---------------------------------------------------------------------------
+# hypothesis:l4-meter-pin-never-lowers-an-existing-pins-generation-for-the-
+# same-transcript-a-lagging-row-is-named-not-written -- the pin NEVER lowers
+# an existing generation for the SAME transcript. The row's generation and an
+# existing pin's generation are read from different trees at different
+# moments, and the LOWER one used to win because the write was unconditional.
+# The stamped generation is now max(pin gen, row gen); a row reading LOWER
+# than the pin is named in one stdout line and never written into the pin.
+# ---------------------------------------------------------------------------
+
+
+def _pin_write(tmp_path, seat, gen, transcript):
+    """Write a gen-bearing seat pin naming a transcript."""
+    p = _sessions_dir_of(tmp_path) / f"{seat}.meter"
+    p.write_text(f"{gen}\t{transcript}\n", encoding="utf-8")
+    return p
+
+
+def test_ga_pin_gen_kept_when_row_reads_lower(monkeypatch, tmp_path,
+                                              fake_ladder, capsys):
+    # (a) FALSIFIER: a lagging row must NOT overwrite a fresh pin's higher
+    # generation for the same transcript. pin '15<TAB>T' + row gen 14 +
+    # --session-log T -> pin STILL '15<TAB>T' (bytes unchanged) and ONE
+    # stdout line names 15, 14 and the root.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 15, pinned)
+    before = p.read_bytes()
+    rotate._write_handoff(tmp_path, "belam", 14)   # the lagging row
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert p.read_bytes() == before, p.read_text(encoding="utf-8")
+    assert p.read_text(encoding="utf-8").startswith("15\t"), \
+        p.read_text(encoding="utf-8")
+    assert "pin gen 15 kept: config row reads 14" in out, out
+    assert str(tmp_path) in out, out
+
+
+def test_gb_pin_raised_when_row_reads_higher(monkeypatch, tmp_path,
+                                             fake_ladder, capsys):
+    # (b) A row reading HIGHER still raises the pin (a genuine rotation
+    # advance must never regress into keeping a stale gen).
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 14, pinned)
+    rotate._write_handoff(tmp_path, "belam", 15)
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("15\t"), content      # raised to the row's gen
+    assert "kept" not in out, out                   # no lag line on a raise
+
+
+def test_gc_different_transcript_claims_with_row_gen(monkeypatch, tmp_path,
+                                                     fake_ladder, capsys):
+    # (c) A pin naming a DIFFERENT transcript is still claimed with the row's
+    # gen -- a new session taking over the seat is untouched by the guard.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    p = _pin_write(tmp_path, "belam", 15, pinned)   # pinned != foreign
+    rotate._write_handoff(tmp_path, "belam", 14)
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(foreign)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("14\t"), content      # row's gen, claimed
+    assert str(foreign) in content, content          # the new transcript
+    assert "kept" not in out, out                   # no lag line (different T)
+
+
+def test_gd_no_pin_written_with_row_gen(monkeypatch, tmp_path,
+                                        fake_ladder, capsys):
+    # (d) No pin -> written '<row gen><TAB>T' exactly as today.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    p = _sessions_dir_of(tmp_path) / "belam.meter"
+    code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    content = p.read_text(encoding="utf-8")
+    assert content.startswith("14\t"), content
+    assert str(pinned) in content, content
+
+
+def test_ge_meter_output_identical_across_lag_and_control(monkeypatch,
+                                                          tmp_path,
+                                                          fake_ladder,
+                                                          capsys):
+    # (e) The meter's OUTPUT line (fraction, tokens, source, threshold) is
+    # byte-identical whether the guard kept the pin gen or ran an equal-gen
+    # control -- the extra "pin gen ... kept" line rides stdout separately.
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+
+    p = _pin_write(tmp_path, "belam", 15, pinned)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    assert rotate.main(["meter", "--seat", "belam", "--pin", str(p),
+                        "--session-log", str(pinned)]) == 0
+    out_lag = capsys.readouterr().out
+    frac_lag = next(l for l in out_lag.splitlines() if "source=" in l)
+
+    p2 = _pin_write(tmp_path, "belam", 14, pinned)
+    rotate._write_handoff(tmp_path, "belam", 14)
+    assert rotate.main(["meter", "--seat", "belam", "--pin", str(p2),
+                        "--session-log", str(pinned)]) == 0
+    out_ctrl = capsys.readouterr().out
+    frac_ctrl = next(l for l in out_ctrl.splitlines() if "source=" in l)
+
+    assert frac_ctrl == frac_lag, (frac_lag, frac_ctrl)
+
+
 def test_d_agi_session_log_alone_still_permits_pin_write(monkeypatch, tmp_path, fake_ladder, capsys):
     # (d) $AGI_SESSION_LOG alone is a supplied identity: --pin still records it.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
@@ -3123,6 +3236,90 @@ def test_split_card_sections_unfenced_hash_heading_still_splits():
     assert [b for _, b in secs] == ["a\n\n", "b\n\n", "c\n"]
 
 
+def test_fence_items_shared_walker_agrees_across_readers():
+    """goal:g15.25 SL7.80 (a) — ONE fence-run walker serves the three card
+    readers. `_fence_items` yields the (line, in_fence) flags run-length
+    aware (the OUTER fence wins; an inner shorter fence is content), and
+    the splitter/subheader both read through it, so the fixtures the SL7.62
+    splitter and the SL7.48 stops scan already pin are unchanged by the
+    refactor to the shared walker."""
+    from agi.bin import rotate as _r
+    F3, F4 = "```", "````"
+    flags = [f for _, f in _r._fence_items(
+        ["a", F4, F3, "## fake", F4, "b", "### real", F3])]
+    # a | F4 opener | F3 inner (shorter=content) | ##fake | F4 closer | b
+    # | ###real | F3 opener
+    assert flags == [False, True, True, True, False, False, False, True]
+    # the SL7.62 fixture still rounds trip byte-identical through the
+    # shared-walker splitter
+    card = ("# title\n\n## Real A\nbefore\n\n" + F4 + "\n"
+            "## not a heading\ninside four-backtick fence\n" + F4 +
+            "\n\n## Real B\nafter\n")
+    preamble, secs = _r._split_card_sections(card)
+    assert [h for h, _ in secs] == ["## Real A", "## Real B"]
+    assert _r._render_card(preamble, secs) == card
+
+
+def test_subheader_in_body_ignores_fenced_heading():
+    """goal:g15.25 SL7.80 (b) FALSIFIER — `_subheader_in_body` is fence-run
+    aware: a `## ` heading QUOTED inside a code fence (a stops block quotes
+    headings verbatim) is content, never a subheader. On the pre-fix bytes
+    this returned the fenced `## fake where it stops` line's index (1); now
+    it skips the fence and finds the REAL subheader below it."""
+    from agi.bin import rotate as _r
+    body = ("````\n"
+            "## fake where it stops\n"
+            "quoted heading inside four-backtick fence\n"
+            "````\n"
+            "### the real where it stops\n"
+            "end\n")
+    idx = _r._subheader_in_body(body, "where it stops")
+    assert idx == 4                      # the REAL subheader, after the fence
+    assert "fake" not in body.splitlines()[idx]
+    assert _r._subheader_in_body(body, "no-such-token") is None
+
+
+def test_stops_write_fenced_heading_end_to_end(tmp_path):
+    """goal:g15.25 SL7.80 (c) FALSIFIER, END TO END — a card whose stops
+    block QUOTES a `## fake where it stops` heading line (the stops slot
+    quotes headings verbatim) is put through the REAL stops-slot writer
+    (`_write_stops_section`), re-read and re-split. The fenced fake line
+    must never resolve: `_locate_where_it_stops` keys on the REAL `###`
+    subheader (written, replaced) and on the re-read `_split_card_sections`
+    the card shows only its real `## ` sections. Pre-fix the fenced fake
+    resolved as the subheader and the writer targeted the wrong block."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text(
+        "# SESSION HANDOFF scratchpad\n\n"
+        "## Station\n"
+        "````\n"
+        "## fake where it stops\n"
+        "quoted inside four-backtick fence\n"
+        "````\n"
+        "### RED where it stops\n```md\nold command\n```\n"
+        "## Later\nkeep\n", encoding="utf-8")
+    secs_before = _r._split_card_sections(
+        card.read_text(encoding="utf-8"))[1]
+    # the fenced fake must NOT be the resolved slot pre-write: the resolve
+    # points at the REAL `### RED where it stops` subheader
+    sec_idx, sub = _r._locate_where_it_stops(secs_before)
+    slot_body = secs_before[sec_idx][1]
+    assert "fake" not in slot_body.splitlines()[sub]
+    body, slot = _r._write_stops_section(card, "s", "new command")
+    assert slot == "replaced"
+    out = card.read_text(encoding="utf-8")
+    assert "new command" in out
+    assert "old command" not in out       # the REAL slot block was replaced
+    secs_after = _r._split_card_sections(out)[1]
+    assert [h for h, _ in secs_after] == ["## Station", "## Later"]
+    # re-locate on the written card still resolves the REAL subheader
+    ai, aj = _r._locate_where_it_stops(secs_after)
+    assert "fake" not in secs_after[ai][1].splitlines()[aj]
+
+
+
 def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
     """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
     `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
@@ -3364,17 +3561,24 @@ def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
         ["git", "-C", str(tmp_path), "ls-files"],
         capture_output=True, text=True).stdout
     # the merge commit (+ the stops commit) were BOTH pushed before the
-    # spawn. The ONE unpushed commit at the end is only the record+sequence
-    # commit rotate-self leaves (goal:g15.25: a plain local commit, never
-    # pushed by the predecessor — the successor's tree to carry at merge).
+    # spawn. The THREE unpushed commits at the end are the rotate-self tail's
+    # own: the record+sequence commit, then the after_join CLAIM commit
+    # (SL7.8x, claim-before-run) and the completed after_join rewrite commit
+    # the service leaves (hypothesis:l4-the-after-join-record-rewrite-is-
+    # committed-by-pathspec... claim (a): a performed after_join rewrites the
+    # record IN PLACE and commits ITS OWN change by pathspec). All plain
+    # local commits, never pushed by the predecessor; F20 holds — none is a
+    # successor commit.
     unpushed = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-list", "--count", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
-    assert unpushed == "1", f"unpushed commits before spawn: {unpushed}"
+    assert unpushed == "3", f"unpushed commits before spawn: {unpushed}"
     un_log = subprocess.run(
         ["git", "-C", str(tmp_path), "log", "--format=%s", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
     assert "record + sequence" in un_log, un_log
+    assert "after_join record:" in un_log, un_log
+    assert "after_join claim:" in un_log, un_log
     # the spawn ran AFTER the push (last side effect) and exactly once
     assert win.read_text(encoding="utf-8").count("adv-alive") == 2
     # merge did not clobber the stops card
@@ -7813,3 +8017,116 @@ def test_ack_diff_accepted_on_diff_requested_pending(tmp_path,
     assert "REFUSED" not in capsys.readouterr().err
     # the successor's diff overwrote the pending ack with answer diff.
     assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] == "diff"
+
+
+# --- SL7.87 g15.25: no gen-0 ack file; check 6 names its evidence; a
+# continue ack at the row's gen is consumed (FIX-ONLY, hypothesis:l4-no-
+# gen-0-ack-file-the-stale-ack-prepare-check-names-its-evidence-and-a-
+# continue-ack-at-the-current-gen-is-consumed). -------------------------
+
+
+def _seat_cur_gen_fixture(tmp_path, name, generation):
+    """A minimal graph root whose seat's generation is measured from the
+    handoff header (the config:seats-row fallback path in
+    `_generation_measured`), so check 6's row-vs-ack comparison is live."""
+    root = _proj(tmp_path)
+    seats = rotate._seat_hands(root)
+    seats.mkdir(parents=True, exist_ok=True)
+    (seats / f"{name}.handoff.md").write_text(
+        f"seat: {name}\ngeneration: {generation}\n", encoding="utf-8")
+    return root
+
+
+def test_cmd_ack_refuses_gen0_before_any_write(tmp_path, monkeypatch, capsys):
+    """SL7.87 g15.25 claim (1): `ack --gen 0` is refused BY NAME before any
+    write — a generation is never 0, and a gen-0 ack would write a file that
+    prepare check 6 then refuses at the seat's next rotate-out. Nothing gets
+    written: no ack file, no row back-fill."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=0, ref="f52a4c", answer="continue", text=None),
+        root)
+    err = capsys.readouterr().err
+    assert code == 2
+    assert "--gen 0" in err and "never 0" in err
+    assert not rotate._ack_path(root, "belam").exists()
+
+
+def test_prepare_check6_stale_gen0_ack_names_evidence(tmp_path):
+    """SL7.87 g15.25 claim (2): check 6's refusal for a stale ack names the
+    evidence — gen_after, answer, source (or unknown), written-time (file
+    mtime UTC) and the row gen — so the Prime does not pay tool calls to
+    learn what the refusal already knew."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 0,
+                              "answer": "continue"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, clear = checks[-1]
+    assert blocker is True
+    assert "gen_after=0" in name and "answer=continue" in name
+    assert "source=unknown" in name
+    assert "written=" in name and "row gen=16" in name
+    assert f"rm {ap}" in clear
+
+
+def test_prepare_check6_continue_ack_at_cur_gen_consumed(tmp_path):
+    """SL7.87 g15.25 claim (3): a continue ack whose gen_after EQUALS the
+    row's gen is CONSUMED — check 6 passes and prints `ack consumed`, it does
+    not misreport a settled rotation as an open stale ack."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 16,
+                              "answer": "continue",
+                              "source": "predecessor"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, _ = checks[-1]
+    assert blocker is False
+    assert "ack consumed (gen 16 continue)" in name
+    assert "stale ack" not in name
+
+
+def test_prepare_check6_diff_ack_at_cur_gen_halts_as_today(tmp_path):
+    """SL7.87 g15.25 claim (3): a pending DIFF ack at the row's gen is NOT
+    consumed by check 6 — it stays a pass (no `ack consumed` line) and the
+    read-back's diff halt (which lives in cmd_rotate_self, not here) is
+    untouched, exactly as today."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 16,
+                              "answer": "diff",
+                              "source": "predecessor"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, _ = checks[-1]
+    assert blocker is False
+    assert "ack consumed" not in name
+
+# ── F15 (goal:g15.25 FIX-ONLY): cmd_ack refuses BY NAME a --ref equal to the
+# running seat's OWN session_id cell (the joined session uuid) ──────────────
+
+
+def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
+                                                          monkeypatch,
+                                                          capsys):
+    """A --ref equal to the seat's own session_id cell IS the session uuid
+    (the JOIN registers the same uuid in the row) — refused BY NAME as a
+    session id, never accepted and back-filled (F15: pre-fix _resolve_rows
+    ACCEPTED the exact session_id match as the seat's own row, so the uuid
+    slipped into session_ref and every peer read NO-MATCH). Nothing is
+    written: no ack file, no row write, rc != 0."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    uid = "c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2"
+    _write_seats_sheet(root, [{"name": "sanctuary-director",
+                               "role": "director",
+                               "session_id": uid}])
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="sanctuary-director", gen=7, ref=uid,
+        answer="continue", text=""), root)
+    assert code == 2
+    err = capsys.readouterr().err
+    assert "session id" in err and "F15" in err
+    assert uid in err
+    # nothing written: no ack file (and the row is untouched by a refusal).
+    assert not rotate._ack_path(root, "sanctuary-director").exists()
