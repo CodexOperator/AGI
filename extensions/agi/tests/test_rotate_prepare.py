@@ -147,6 +147,51 @@ def test_prepare_dirty_ignores_cron_owned_churn(prep_root, capsys,
     assert "[BLOCK] dirty tree" in out
 
 
+def test_prepare_dirty_names_the_non_churn_paths(prep_root, capsys,
+                                                 monkeypatch):
+    """g15.24 clause (3): a dirty non-churn path is NAMED in the BLOCK line
+    — never a bare 'dirty tree'. Up to FIVE paths then '+N more'; cron-owned
+    churn paths are excluded from both the count and the names so no caller
+    reads a bare 'dirty tree' and no churn path is falsely blamed."""
+    dirty = {("status", "--porcelain"): [
+        " M rotate.py", "?? tools/new.py", " M a.py", " M b.py", " M c.py",
+        " M d.py", " M e.py", " M f.py",
+        # cron-owned churn: excluded from the count AND the names
+        "?? .agi/comms/season-2/dm/x.md",
+        " M .agi/sessions/rotations/sequence.json"]}
+    ok = {("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({**dirty, **ok}))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree" in out
+    # the FIRST FIVE non-churn paths are named; nothing beyond is guessed
+    assert "rotate.py" in out and "tools/new.py" in out
+    assert "a.py" in out and "b.py" in out and "c.py" in out
+    # five shown, eight non-churn dirty -> three more, named count, not bare
+    assert ", +3 more" in out
+    # churn paths are never named, and the paths past the +N more cut
+    # (d.py, e.py, f.py) are NOT listed as separate dirty paths either.
+    assert "dm/x.md" not in out and "sequence.json" not in out
+    assert ", d.py" not in out and ", e.py" not in out and ", f.py" not in out
+
+
+def test_prepare_clean_names_no_paths(prep_root, capsys, monkeypatch):
+    """The naming never pollutes the clean case: no dirty path -> the check
+    names a plain '[ok] dirty tree', exactly as before."""
+    clean = {("status", "--porcelain"): [],
+             ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+             ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(clean))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] dirty tree" in out
+    assert "dirty tree:" not in out
+
+
 def test_prepare_card_check_reads_the_last_work_commit_only(
         prep_root, capsys, monkeypatch):
     """Sensei 18:29Z: two porcelain sync commits aged the card and blocked
