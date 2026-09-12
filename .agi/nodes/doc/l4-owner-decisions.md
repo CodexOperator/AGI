@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -693,3 +693,23 @@ owner 2026-09-12 15:4xZ (master-sensei pane), verbatim: 'You tried to run seats 
 OWNER, 2026-09-12 15:2xZ, VERBATIM (remote-control session, to Belam XVI, answering the §6 item 110 bank — the 403 weekly workspace cap at the L4.325 spawn, options (1) raise the weekly cap / (2) wait for the reset / (3) close after 47 + SL2#23 / (4) sonnet fallback): "I raised the cap" — APPLIED AS: item 110 CLOSED, option (1); dispatch resumed on pi 15:28Z (point: rung 3 re-cut as L4.327 + rung 4, ride 48; sensei-director: the nine mur-SL2.22 lines dispatched as SL7.58-66, ride SL2#24). The $1.00 account floor and the openrouter-only rail stand.
 
 owner 2026-09-12 16:4xZ (master-sensei pane), verbatim, relayed to the Prime: 'Can we also make sure that the standard close-out actions get bundled under rotate? Like change the rotation template so that it automatically does all the required doc updates, naming, checks, commit, push, merge, etc as needed for each role so the close out is all contained under one rotate command and is driven/captive and prompts each step from the LLM step-by-step for the closeout. Or even post an array of expected responses all at once arranged in an LLM friendly format and let the LLM fill it in to save tokens. Relay to Prime, let him make any modifications or improvements as he sees fit using visions.' Measured out-side today (drafts): card write by hand + hand suite polls + rotate-self = 2-5 calls per post; rotate-self --stops already merges origin, runs prepare checks and stamps the card header, but the card BODY, doc notes, naming and verify still sit in the model's hands.
+
+owner 2026-09-12 18:0xZ (remote-control session, to Belam XVII), verbatim: 'Btw the branch shuffle is still a bit off.
+
+Should be
+For core town/council:
+season_n > town_n > season_n > post_n > parent_n
+
+For other towns/councils:
+season_n > town_n > season_n > post_n > parent_n
+
+But remote should only have top-level branches: master, season1/main, season2/main, season3/main and so on. The rest should be derived and managed more locally so web view and app view aren't getting clogged up.
+
+Also I want to standardize things: let's give all three towns a top-level town node that is a super node combining all the vision nodes for each town. Even core becomes a town, which matches the branch structure I outlined above. In this way season_n/main becomes the prime's branch exclusively and each town council gets their own. We could also have live season_n branches pushed to web and for a specific live season, the remote could have season_n > town_n branches as well so each town could keep track of its state independently per season as needed. Or alternatively web view could be permitted to have
+
+tree > town_n (or tree > town_n >main if needed) branches always live as well as tree > season_n > main, and per season update remote to have
+tree > town_n > season_n for each town and update them per season.
+
+What do you think, does it make sense? Reduce clutter, and still keep things well separated and updated often.
+
+Which arrangement makes more sense? Use diagram descriptions in LLM friendly format where useful' — MEASURED at the ask (18:0xZ): origin refs/heads = 21 (9 intended: master, season1/main, season2/main, 3x season2/posts/*, 2x season2/<town>/season1/main, 1 season2/loops/*; 10 stale pre-rename names; 2 foreign), local refs/heads = 444 (114 season2/loops/* + ~320 loop/*@s2 — merged rounds never pruned), refs/grid = 3073 hidden refs (the precedent for a hidden namespace). APPLIED AS: the Prime answered 18:1xZ recommending arrangement (B), town-first — remote refs/heads fixed at the trunk+live-season pair per level (master + season_n/main; <town>/main + <town>/season_m/main), everything below (posts, loops) local-only and mirrored to origin under hidden refs/agi/* by grid_sync, merged loop branches pruned at harvest; a `town:` node type (core, streaming-suite, web-app-suite) whose cells derive the names; item (4) --delete-old + the cell re-spellings HELD so the reshuffle to the FINAL tree runs once. Ruling pending the owner's word (A or B).
