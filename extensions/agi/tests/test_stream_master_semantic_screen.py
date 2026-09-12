@@ -28,6 +28,11 @@ Acceptance (from the hypothesis's push_further):
 FIXTURES ONLY; the real model call as judge is in scope, no chat platform involved.
 The real-model test skips (reports the blocker) rather than fails when the judge
 cannot run, so a network-less box never reports a measured result it did not get.
+
+The ModelJudge real run is OPT-IN and OFF by default: it happens only under
+`AGI_REAL_JUDGE=1` (AND a present OPENROUTER_API_KEY). A key alone spends
+nothing. One-shot invocation of the real measurement:
+    AGI_REAL_JUDGE=1 python3 -m pytest tests/test_stream_master_semantic_screen.py
 """
 
 import pytest
@@ -37,6 +42,7 @@ from src.stream_master.semantic_screen import (
     HeuristicJudge, ModelJudge, screened_relay,
 )
 from tests.test_stream_master_blind_measure import BLIND_CORPUS
+from tests.conftest import real_judge_skip
 
 # Reused blindly — never re-authored. 10 novel + 2 KNOWN-CAUGHT control rows.
 _NOVEL = [r for r in BLIND_CORPUS if not r[0].startswith("caught-")]
@@ -93,11 +99,10 @@ def test_heuristic_is_honest_about_limits():
 # --- the REAL measured semantic screen: ModelJudge (actual model call) -----------
 
 _real_judge = ModelJudge()
+_REAL_JUDGE_SKIP = real_judge_skip()
 
 
-@pytest.mark.skipif(not _real_judge.available(),
-                    reason="ModelJudge has no OPENROUTER_API_KEY; real semantic "
-                           "measurement unavailable in this environment")
+@pytest.mark.skipif(_REAL_JUDGE_SKIP is not None, reason=_REAL_JUDGE_SKIP or "")
 class TestRealSemanticMeasurement:
     """The measured semantic result: real model judge on the reused blind corpus."""
 
