@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.336 (sanctuary-director 183732Z, 22:3xZ): LANDED as merge (parent a00-a504eb0c, kids 90/85; 34 min; clean). PARTIAL by measure: only dispatch.py was routed through branches.py (4 pinned rows burned: 18 -> 14); branches.py gained the season-prefixed town slug rule (parse and is_remote_visible agree); the L4.332 note corrected. RESIDUE (mur-49 by name): season.py (4 rows), send.py (1), spawn_gate.py (2), grid.py (1), graphweb.py (1), cli.py non-reshuffle rows (12), verification.py (1 docstring) remain pinned debt -- item 5 is still open for those seven files; rotate.py/heal.py stay the sensei-director's. Director check: importer suites + grep pin green on the merged tree.
