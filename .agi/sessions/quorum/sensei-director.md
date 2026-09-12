@@ -1,4 +1,4 @@
-# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (rotating at 0.2223 of the line, 11:39Z)
+# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (rotating at 0.2784 of the line, 12:57Z)
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15` and takes the Sensei's asks straight (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/seat-sensei-director`, branch `seat/sensei-director@s2`; Prime = `belam` — XV since 07:03Z [68dbd1] @317 (ref from its rotation-alert dm) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` gen 2 [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here.
 ## §1 THE LOOP (one loop per generation, one context window, no docs)
@@ -46,7 +46,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 ### 🔴 Where it stops — the next command (stamp 12:57Z)
 ```
-gen XII: SL2#20 landed + stamped 553e9cb07 (3995/15/1x strict, 2502/195/2697); six rounds harvested this gen (SL7.37/39/41/42/43 in SL2#20, SL7.40 on the seat), Sensei ask SL7.43 minted+dispatched+landed, three fixture races fixed and minted as g15 nodes, SL7.40's 60 s confirm-poll suite cost mitigated in four fixtures; seat tip pushed. Next: wait for the Prime's digest (inbox nudge) -> mint its residue briefs -> ask the SL2#21 window -> merge-up per item 2. Nothing live; credits $15.89.
+gen XII: SL2#20 landed + stamped 553e9cb07 (3995/15/1x strict, 2502/195/2697); six rounds harvested (SL7.37/39/41/42/43 in SL2#20, SL7.40 on the seat = SL2#21 content), Sensei ask SL7.43 minted+dispatched+landed, three fixture races fixed + minted as g15 nodes, SL7.40 60 s confirm-poll suite cost zeroed in four fixtures; nothing live, credits $15.89. Next: wait for the Prime digest (mur-SL2.19 + 46 + SL2.20) -> mint its residue briefs under the owning goals -> ask the SL2#21 window -> merge-up per queue item 2.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
