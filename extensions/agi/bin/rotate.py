@@ -5859,66 +5859,55 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
     def _merge_region(removed: list[str], added: list[str]) -> list[str]:
         """The staged splice of ONE replace/insert/delete opcode region.
         Each changed line is classified on its own by ROW IDENTITY (never by
-        index): an OWN removed line is DROPPED (own deletion), an OWN added
-        line is KEPT (own change / own write), a FOREIGN removed line is
-        RESTORED from HEAD, a FOREIGN added line is NEVER staged. Rows are
-        paired across removed/added by their `name` identity (diff never
-        reorders rows), so an own row and a foreign row edited in the SAME
-        replace opcode keep the own change and the foreign row byte-identical
-        to HEAD, whichever order they sit in. Non-row structural lines
-        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) are
-        matched positionally and likewise keep HEAD unless the work version is
-        an owned frontmatter stamp."""
+        index or positional key agreement): an OWN removed line is DROPPED
+        (own deletion), an OWN added line is KEPT (own change / own write), a
+        FOREIGN removed line is RESTORED from HEAD, a FOREIGN added line is
+        NEVER staged. Rows are paired across removed/added BY THEIR `name`
+        KEY, so progress never depends on the two sides sitting at the SAME
+        position — a physical SWAP of two rows (both edited, their order
+        crossed inside one replace opcode) still keeps the own row's WORK
+        bytes and restores the foreign row byte-identical to HEAD, instead of
+        falling through to a fail-safe that dropped the own added line
+        (mur-SL2.17 / goal:g15.24 (i)). Structured as: walk the REMOVED lines
+        in HEAD order, for each keyed row keep/restore/drop by identity using
+        the WORK version when the row survived; then flush any WORK-only
+        added lines (row inserts / structural additions) not already consumed,
+        staging each only when OWN. Non-row structural lines (frontmatter
+        `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) likewise keep HEAD
+        unless the work version is an owned frontmatter stamp."""
         rem = [(l, _key(l)) for l in removed]
         add = [(l, _key(l)) for l in added]
-        rkeys = {k for _, k in rem if k is not None}
-        akeys = {k for _, k in add if k is not None}
-        ri = ai = 0
+        add_by_key = {k: l for l, k in add if k is not None}
+        consumed: set[str] = set()
         out: list[str] = []
-        while ri < len(rem) or ai < len(add):
-            rl, rk = rem[ri] if ri < len(rem) else (None, None)
-            al, ak = add[ai] if ai < len(add) else (None, None)
-            if rl is not None and al is not None and rk == ak:
-                # the same slot on both sides: an own/foreign row edited in
-                # work, or an aligned structural line. Keep the WORK line when
-                # it is THIS seat's own, else restore HEAD.
-                out.append(al if _own(al) else rl)
-                ri += 1
-                ai += 1
-                continue
-            if rl is not None and rk is not None and rk not in akeys:
-                # a row DELETED from the work copy: restore it from HEAD unless
-                # it is this seat's OWN row (an own deletion is dropped).
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
-                continue
-            if al is not None and ak is not None and ak not in rkeys:
-                # a row INSERTED into the work copy: stage it only when OWN.
-                if _own(al):
-                    out.append(al)
-                ai += 1
-                continue
-            if rl is not None and rk is None:
-                # a structural line with no aligned work partner: keep HEAD
-                # (restored) unless it is an owned frontmatter stamp.
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
-                continue
-            if al is not None and ak is None:
-                # a structural line present only in work: stage only when OWN.
-                if _own(al):
-                    out.append(al)
-                ai += 1
-                continue
-            # fail-safe (should be unreachable): swallow the base line.
-            if rl is not None:
-                if not _own(rl):
-                    out.append(rl)
-                ri += 1
+        for rl, rk in rem:
+            if rk is not None:
+                al = add_by_key.get(rk)  # the work version of THIS row, if any
+                if al is not None:
+                    # the row survived on both sides (edited in work, or its
+                    # position crossed inside one opcode): keep WORK bytes
+                    # when this seat owns the row, else RESTORE HEAD.
+                    consumed.add(rk)
+                    out.append(al if _own(al) else rl)
+                else:
+                    # the row was DELETED from the work copy: restore it from
+                    # HEAD unless it is this seat's OWN row (own deletion).
+                    if not _own(rl):
+                        out.append(rl)
             else:
-                ai += 1
+                # a structural line in the removed region: keep HEAD unless it
+                # is an owned frontmatter stamp.
+                if not _own(rl):
+                    out.append(rl)
+        # flush any WORK-only added lines not consumed above (row
+        # inserts and structural additions): stage each only when OWN.
+        for al, ak in add:
+            if ak is None:
+                if _own(al):
+                    out.append(al)
+            elif ak not in consumed:
+                if _own(al):
+                    out.append(al)
         return out
 
     staged: list[str] = []
