@@ -1712,7 +1712,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         for ln in _compose_seating_base_block(
                 seat=seat, source="cmd_spawn", now=now,
                 pred_pid=pred_pid, pred_death=pred_death, seq=seq,
-                root=root):
+                root=root,
+                generation=(None if root is None else
+                            (_rowgen if _rowgen is not None
+                             else FIRST_SEATING_GEN))):
             print(ln)
         if root is not None:
             # capture worktree state BEFORE the announce/record writes churn
@@ -1740,7 +1743,9 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
                     registry_dir=getattr(args, "registry_dir", None),
-                    ask_diff=ask_diff)
+                    ask_diff=ask_diff,
+                    generation=(_rowgen if _rowgen is not None
+                                else FIRST_SEATING_GEN))
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
                       file=sys.stderr)
@@ -4355,18 +4360,33 @@ def _seating_worktree_lines(root: Path, season: str | None = None) -> list[str]:
 
 def _compose_seating_base_block(*, seat: str, source: str, now: str,
                                 pred_pid, pred_death: str, seq: int,
-                                root: Path | None = None) -> list[str]:
+                                root: Path | None = None,
+                                generation: int | None = None) -> list[str]:
     """The first `[seating]` line every seating prints (spawned-by, predecessor
     pid + death ts, record / wrapper) — the fact block a recovery successor
     otherwise reconstructs by hand (Sensei 175816Z calls 3-9).
 
     The `record:` line says the FILE STATE, never a hardcoded `none`: a first
-    seating announces (and WRITES) a gen-1 seating record moments after this
+    seating announces (and WRITES) a seating record moments after this
     line prints, so an unconditional `record: none` would read false to anyone
     who then finds the record on disk. With `root` given, `_seating_record_
     exists` decides `present` vs `none yet (this seating writes one)`; without
-    `root`, the honest pre-announce wording is used."""
-    if root is not None and _seating_record_exists(root, seat):
+    `root`, the honest pre-announce wording is used.
+
+    The `record:` check is at the SEAT'S OWN generation, never only gen 1
+    (hypothesis:l4-first-seating-tests-stub-the-real-tmux-list-windows-and-
+    the-seating-base-block-and-alert-read-one-resolved-generation claim (b)):
+    a RE-seated seat at gen N must not read as 'never seated' just because a
+    gen-1 record exists (or be masked by one when the N record is absent). A
+    caller that already resolved the gen (cmd_spawn's `_rowgen`) passes it to
+    avoid a second read; when `generation` is None the base block resolves the
+    seat row generation ONCE (gen 1 stays the first-seating default for an
+    absent / gen-less row) and checks at THAT generation."""
+    if generation is None:
+        _rg = _seat_row_generation(root, seat)
+        generation = _rg if _rg is not None else FIRST_SEATING_GEN
+    if root is not None and _seating_record_exists(
+            root, seat, generation=generation):
         rec = "record: present"
     else:
         rec = "record: none yet (this seating writes one)"
