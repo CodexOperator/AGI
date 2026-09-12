@@ -6658,6 +6658,8 @@ SL7.113 HARVESTED (a00-27c2fce2, proved 0.9): rotate-self pushes via _stops_push
 
 SL7.114 HARVESTED (a00-8badde4e; parent lean_disproved:60 on probe B = the claim's letter, seat re-cut by design): rotate-by-key resolvers _caller_post (env then worktree; must HOLD the key), _ranks/_rank/_rank_gate (ranks: else DEFAULT_RANKS; equal rank refused), _role_timeout (int or digit string else 600), _default_stops_text (card slot body); 11 tests. The Prime's config:rotations lines (ranks + timeout_s) are in the kid node body (0a pattern, grammar unverified). Next: SL7.115 = the bare rotate verb
 
+SL7.115 (owner order 22:2xZ, round 2 of 2): the bare rotate verb — rotate-self for the post whose key the caller holds, every flag an override through ONE flag-set definition, --post rank-gated downward only, closeout template-first (templates.<role>.rotate_defaults) — brief hypothesis:l4-rotate-py-rotate-is-rotate-self-for-the-post-whose-key-the-caller-holds-with-every-flag-an-override-and-post-rank-gated
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
