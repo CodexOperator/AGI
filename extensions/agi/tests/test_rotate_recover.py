@@ -588,6 +588,63 @@ def test_after_join_service_performs_recovered_seats_join_pin_ack(graph):
         _rotate.run_after_join = orig_run
 
 
+def test_recovered_top_level_window_id_fills_after_join_identity(graph):
+    """mur-SL2.13 part (6), falsifier closed: a crash-recovery respawned
+    record carries `window_id` (and the successor pid) at the TOP level, NOT
+    under `handover.join` — so `_record_join(rec)` must accept that shape and
+    `run_after_join_for_seat` must read the SAME accessor, giving a RECOVERED
+    post the identity fill (pid/session_id) exactly as a rotate-self record
+    would. A recovered post whose after_join dm lacks the identity fill is the
+    falsifier; this proves it is filled from a handover.join-less record."""
+    import rotate as _rotate
+    d = _rotations(graph)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    rec_path = d / f"seat-a.{stamp}.json"
+    # NO `handover.join` — the crash-recovery shape: top-level window_id.
+    rec_path.write_text(json.dumps({
+        "rotation": "crash-recovery", "seat": "seat-a",
+        "result": "respawned", "gen_after": 9,
+        "recorded_at": "2020-01-01T00:00:00Z",
+        "window_id": "@77",
+        "respawn_outcome": {"name": "seat-a", "window": "@77",
+                             "pid": 999},
+    }), encoding="utf-8")
+    orig_find = _rotate._find_seat
+    orig_tmpl = _rotate._resolve_template
+    orig_join = _rotate._join_successor
+    orig_ftv = _rotate._first_turn_values
+    orig_run = _rotate.run_after_join
+    got = {}
+    try:
+        _rotate._find_seat = lambda root, name: {"role": "director"}
+        _rotate._resolve_template = lambda root, role: (
+            {"startup": {"after_join": [
+                {"label": "join", "cmd": "echo join"}]}},
+            "director", "test")
+        # top-level window_id drives a registry rejoin -> pid/session_id.
+        _rotate._join_successor = lambda **k: {
+            "found": True, "window_id": "@77", "pid": 999,
+            "session_id": "sess-X", "transcript": "joined",
+            "name": "seat-a", "note": ""}
+        def fake_run(*a, **kw):
+            got["values"] = kw.get("values")
+            return {"appended": True}
+        _rotate.run_after_join = fake_run
+        out = _rotate.run_after_join_for_seat(graph, "seat-a")
+        assert out is not None
+        v = got.get("values") or {}
+        assert v.get("pid") == 999, \
+            "recovered post pid identity filled (falsifier closed)"
+        assert v.get("session_id") == "sess-X", \
+            "recovered post session identity filled (falsifier closed)"
+    finally:
+        _rotate._find_seat = orig_find
+        _rotate._resolve_template = orig_tmpl
+        _rotate._join_successor = orig_join
+        _rotate._first_turn_values = orig_ftv
+        _rotate.run_after_join = orig_run
+
+
 # --- L4.292 kid 2 (3)+(4): the seat tree + ONE writer, verified on a real
 #     linked git worktree ------------------------------------------------
 
