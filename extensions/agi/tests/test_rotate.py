@@ -2124,6 +2124,100 @@ def test_write_stops_section_stamps_rotating_header(tmp_path):
          == 1
 
 
+def test_locate_where_it_stops_never_numeral(tmp_path):
+    """The numeral fallback is DELETED: a card whose only where-it-stops
+    candidate is an untitled `## §3 …` header resolves to NONE (never the
+    §3 block), so the caller CREATES a titled slot instead of overwriting.
+    A titled header still resolves; two still refuse as ambiguous."""
+    from agi.bin import rotate as _r
+    secs = _r._split_card_sections(
+        "# s card\n\n## §3 FLOOR\nowner verbatim\n\n## Later\nkeep\n")[1]
+    assert _r._locate_where_it_stops(secs) is None
+    # a titled `## where it stops` header still resolves (-1 = the section)
+    secs2 = _r._split_card_sections(
+        "# s card\n\n## Where it stops\nnext\n")[1]
+    assert _r._locate_where_it_stops(secs2) == (0, -1)
+    # two titled headers are ambiguous, never guessed
+    secs3 = _r._split_card_sections(
+        "# s card\n\n## Where it stops\na\n\n## Next command\nb\n")[1]
+    assert _r._locate_where_it_stops(secs3) == "ambiguous"
+
+
+def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
+    """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
+    `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
+    byte-identical and a TITLED `### 🔴 Where it stops` slot is CREATED at
+    the card end (never a replace of the untitled block)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §3 FLOOR\nowner verbatim line\n",
+                    encoding="utf-8")
+    body, slot = _r._write_stops_section(card, "s", "new cmd")
+    assert slot == "created"
+    out = card.read_text(encoding="utf-8")
+    assert "## §3 FLOOR\nowner verbatim line" in out   # byte-identical
+    assert out.index("## §3 FLOOR") < out.index("### 🔴 Where it stops")
+    assert "### 🔴 Where it stops\nnew cmd" in out
+
+
+def test_write_stops_section_fenced_hash_line_not_a_heading(tmp_path):
+    """goal:g15.25 (c) — the end-of-block scan on the `###` path stops only
+    at a REAL markdown heading OUTSIDE a fence: a `# comment` inside a ```
+    fence is content, so the whole fenced block is replaced up to the next
+    real heading, never truncated at the fenced hash line."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text(
+        "# SESSION HANDOFF scratchpad\n\n"
+        "## §5 STATE\n\n"
+        "### 🔴 Where it stops\n```cmd\n"
+        "# comment inside fence — content, never a heading\n"
+        "old command\n"
+        "```\n"
+        "## Other\nkeep me\n", encoding="utf-8")
+    body, slot = _r._write_stops_section(card, "s", "new cmd")
+    assert slot == "replaced"
+    out = card.read_text(encoding="utf-8")
+    assert "new cmd" in out
+    assert "old command" not in out        # inside the replaced fenced block
+    assert "# comment inside fence" not in out  # block fully replaced
+    assert "## Other\nkeep me" in out      # next real heading carried verbatim
+
+
+def test_resolved_stops_slot_text_reports_replace_append_ambiguous(tmp_path):
+    """goal:g15.25 (b) --dry-run — `_resolved_stops_slot_text` prints the
+    resolved slot: a titled `###`-subheader reports its header + '(replace)';
+    a card with no titled slot reports 'none — will append at end'; an
+    untitled `## §3` only never resolves to a replace (title-keyed)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## Intro\nkeep\n", encoding="utf-8")
+    assert _r._resolved_stops_slot_text(card) == \
+        "stops slot: none — will append at end"
+    # a titled `## ` header slot reports that header + (replace)
+    card.write_text("# s card\n\n## Where it stops\nnext\n",
+                    encoding="utf-8")
+    assert _r._resolved_stops_slot_text(card) == \
+        "stops slot: ## Where it stops (replace)"
+    # a `###`-subheader slot reports its own header line + (replace)
+    card.write_text("# s card\n\n## §5 STATE\n\n### 🔴 Where it stops\nnext\n",
+                    encoding="utf-8")
+    assert _r._resolved_stops_slot_text(card) == \
+        "stops slot: ### 🔴 Where it stops (replace)"
+    # an untitled `## §3 …` only never resolves to a replace (title-keyed)
+    card.write_text("# s card\n\n## §3 FLOOR\nown\n", encoding="utf-8")
+    assert _r._resolved_stops_slot_text(card) == \
+        "stops slot: none — will append at end"
+    # two titled headers refuse as ambiguous
+    card.write_text("# s card\n\n## Where it stops\na\n\n## Next command\nb\n",
+                    encoding="utf-8")
+    assert _r._resolved_stops_slot_text(card) == \
+        "stops slot: AMBIGUOUS where-it-stops (replace refused)"
+
+
 def test_rotate_self_stops_stamps_header_once_in_commit(
         fake_ladder, tmp_path, monkeypatch, capsys):
     """goal:g15.25 (a) — ONE `rotate-self --stops` run stamps the card's own
