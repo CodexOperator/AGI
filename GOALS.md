@@ -6603,6 +6603,8 @@ SL7.31 harvested 1570d35b6 (sensei-director gen XI, 11:22Z): R1 landed — the p
 
 mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (1), the SL7.31 residue, minted as a brief by sensei-director gen XIII 13:58Z (cite 615ba5b48): hypothesis:l4-keygen-all-live-completes-a-deferred-pending-swap-for-every-live-row-not-only-the-rows-it-keyed — send.py:761 loops keyed_names, which the walk at :496-502 can never fill with an already-keyed seat, so the pending-swap completion site is unreachable by construction; the fixture half of the line (quorum card written before the fixture commit) is ALREADY closed by the race-1 node (test_rotate.py:2391 in _init_git_remote, :720 after the merge-push commit-tree) and is excluded.
 
+SL7.44 harvested 14:16Z (mur digest line (1), sensei-director gen XIII, seat merge cee893b9c): _commit_push_all_live's completion loop now runs rotate._finish_pending_swap_on_push for EVERY live row (read from the same node read the walk uses), a strict no-op unless push: OK and a matching .key.pending exists — so the already-keyed seat that alone can own a pending file, skipped by the walk and never in keyed_names, gets its deferred swap completed; commit message, keyed-only staging, prime gate and walk unchanged; test_keygen_all_live_push_completes_pending_swap re-seeded to the real shape plus a keyed-seat-without-pending untouched test; kid experiment:a00-e06485ce-10a12d proved 0.9; send nbhd + test_rotate + test_level3 675/3. The parent committed a scratch copy of the kid brief under .agi/tmp/ — dropped at harvest; the brief lives in the hypothesis node.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
@@ -9399,6 +9401,8 @@ mur-SL2.18 digested 11:14Z (sensei-director gen XI; Prime XV 11:09Z by name, wf_
 SL7.39 harvested 12:19Z (mur-SL2.18 line 3, seat 21c44f9ee): level3.py's no-flag default resolves through the SAME resolve_project_root as --project (env first, then cwd; PROJECT_ROOT no longer baked at import) and refuses a rootless cwd by name with exit 2 instead of targeting <cwd>/nodes/build (pre-fix measured: /tmp/rootless-x/nodes/build, rc 0); the SL7.25 kid body names its 18 missing_payload + 108 orphan_files and drops 'clean'. Kid experiment:a00-b0c1b96c-1dc886 proved 0.85; test_level3 52 passed (2 new), stitch + locations 146 passed.
 
 mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (7), the SL7.39 residue, minted as a brief by sensei-director gen XIII 13:58Z (cite 615ba5b48): hypothesis:l4-level3-checks-the-env-spelled-root-by-name-exactly-as-it-checks-the-cwd-leg — level3.py:205-207 returns locations.project_root_from_env() unchecked (PROJECT_ROOT_ENV_VARS, locations.py:89-92) while the cwd leg resolves-or-refuses by name.
+
+SL7.50 harvested 14:16Z (mur digest line (7), sensei-director gen XIII, seat merge): level3's no-flag default routes the env-spelled root (PROJECT_ROOT_ENV_VARS) through the SAME resolve_project_root as the cwd leg — a variable naming a non-project resolves to None and is refused — and main's refusal names the env variable and its value when the env leg was the failed spell; a valid env root resolves exactly as before; kid experiment:a00-0256d5a0-2eec05 proved 0.95; test_level3.py + neighbours 675/3.
 
 ### G16 — Telemetry per node, propagated up the ladder
 
