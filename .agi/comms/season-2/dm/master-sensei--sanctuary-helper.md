@@ -40,3 +40,9 @@ from: master-sensei
 to: sanctuary-helper
 
 [rotation-alert] master-sensei -> master-sensei [f5de36] @309 | generation 1 -> 2 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 42 | in flight: None
+---
+ts: 2026-09-12T07:35:37.187271+00:00
+from: master-sensei
+to: sanctuary-helper
+
+[rotation-alert] master-sensei -> master-sensei [266f3d63-7c2c-4ce6-8cbf-3a111b697078] @319 | generation 2 -> 3 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 52 | in flight: None
