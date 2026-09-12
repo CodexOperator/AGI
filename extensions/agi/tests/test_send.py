@@ -6,7 +6,6 @@ shows it; two senders interleave without loss.
 """
 from __future__ import annotations
 
-import hashlib
 import importlib.util
 import json
 import subprocess
@@ -45,78 +44,64 @@ def project(tmp_path: Path) -> Path:
     return root
 
 
-# ── leak detector: this module's tests must never write MAIN's real inbox ──
 # hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-
-# and-peek-stays-open, TESTS clause (b): a fixture that asserts the REAL
-# checkout's shared inbox dir is byte-unchanged by a run of this module's
-# tests. The positional `read`/`send`/`peek` dispatch resolves the project
-# root from cwd (`_project_root` -> locations.find_project_root(Path.cwd())),
-# so a test that forgets to chdir into a tmp project would write into the
-# REAL checkout's `.agi/sessions/inbox/` (or the shared main-checkout inbox)
-# instead of the tmp one — the exact leak the hypothesis's TESTS clause
-# demands protection against. `_in_project` (below) does the isolation per
-# test; this autouse SESSION fixture is the tripwire that turns a regression
-# (cwd-resolution drift, a dropped chdir, a new dispatch test written
-# without isolation) into a loud failure naming the offending path instead
-# of a silent leak into a live seat's mailbox.
+# and-peek-stays-open, TESTS clause (b): a guard that no test in this module
+# can touch the REAL checkout's shared inbox. The positional `read`/`send`/
+# `peek` dispatch resolves the project root from cwd (`_project_root` ->
+# locations.find_project_root(Path.cwd())), so a test that forgets to chdir
+# into a tmp project would write into the LIVE `.agi/sessions/inbox/` -- the
+# exact leak the hypothesis's TESTS clause demands protection against.
+# `_in_project` (below) does the isolation per test; this autouse fixture is
+# the tripwire that turns a regression (cwd-resolution drift, a dropped
+# chdir, a new dispatch test written without isolation) into a loud failure
+# naming the root it resolved from, instead of a silent leak into a live
+# seat's mailbox.
 #
 # Placement: HERE (test_send.py), not conftest.py, because it guards THIS
 # module's tests specifically. conftest.py's guards (tmux, provisioning,
-# suite lock) are project-wide seams every module shares; an "inbox is
-# untouched by THIS module's tests" assertion is a property of how the
-# comms dispatch tests isolate their I/O, so it belongs beside them, scoped
-# to this file's own session. It must never fail a run that starts from a
-# tmp project or a machine with no real inbox: an absent shared inbox is
-# recorded as a sentinel and asserted still-absent, never as a leak.
-_LIVE_INBOX_ABSENT = object()
+# suite lock) are project-wide seams every module shares; "no test here may
+# resolve the live inbox" is a property of how the comms dispatch tests
+# isolate their I/O, so it belongs beside them.
+@pytest.fixture(autouse=True)
+def _live_inbox_guard(monkeypatch):
+    """Per-test API tripwire: any call that RESOLVES the live shared inbox
+    (the real checkout's `.agi/sessions/inbox/`, via `send_mod._inbox_dir`)
+    fails at once, naming the root it was resolved from. Every writer and
+    reader in send.py builds its path through `_inbox_dir` (`_inbox_path`,
+    the nudge/quarantine paths), so a dispatch test that forgot to chdir
+    into a tmp project trips here before a byte lands in a live mailbox.
 
-
-def _live_inbox_manifest(root) -> object | dict:
-    """Digest of the LIVE shared inbox dir, {relpath: sha256}. Resolves via
-    `send_mod._inbox_dir` (the exact production resolver routing through
-    locations.shared_sessions_dir -> git_common_root), so it lands on the
-    MAIN checkout's inbox even when pytest runs from a git worktree. Returns
-    the _LIVE_INBOX_ABSENT sentinel when the dir does not exist -- a tmp
-    project root or a machine with no real inbox is a clean no-op, never a
-    failure."""
-    inbox = send_mod._inbox_dir(root)
-    if not inbox.is_dir():
-        return _LIVE_INBOX_ABSENT
-    manifest = {}
-    for p in sorted(inbox.rglob("*")):
-        if p.is_file():
-            manifest[str(p.relative_to(inbox))] = hashlib.sha256(
-                p.read_bytes()).hexdigest()
-    return manifest
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _live_inbox_leak_detector():
-    """Session-scoped autouse tripwire: snapshot the LIVE shared inbox before
-    this module's tests collect and assert it is byte-identical after. Fails
-    with the offending path(s) if any test wrote/removed/renamed a file
-    there. When the inbox did not exist at setup, asserts it still does not."""
+    Why not a filesystem snapshot: the first cut (SL7.13) was a
+    session-scoped before/after digest of the live inbox, and it fired at
+    the SL2#15 merge-up suite (06:22Z) on `master-sensei.md`,
+    `sensei-director.nudge`, ... -- files LIVE seats wrote during the
+    five-minute run. A snapshot cannot tell a test's write from a dm landing;
+    the resolver can. Runs as a no-op outside an agi project."""
     root = locations.find_project_root(Path(__file__).resolve())
     if root is None:
-        yield  # not inside an agi project -- nothing real to guard
+        yield
         return
-    before = _live_inbox_manifest(root)
+    real = send_mod._inbox_dir
+    try:
+        live = real(root).resolve()
+    except OSError:
+        live = real(root)
+
+    def guarded(r):
+        p = real(r)
+        try:
+            rp = p.resolve()
+        except OSError:
+            rp = p
+        if rp == live:
+            raise AssertionError(
+                f"leak: this test resolved the LIVE shared inbox {live} "
+                f"from root {r} -- dispatch tests must chdir into a tmp "
+                "project; nothing may touch the real checkout's inbox")
+        return p
+
+    monkeypatch.setattr(send_mod, "_inbox_dir", guarded)
     yield
-    after = _live_inbox_manifest(root)
-    if before is _LIVE_INBOX_ABSENT:
-        assert after is _LIVE_INBOX_ABSENT, (
-            "leak: a test created the LIVE shared inbox "
-            f"{send_mod._inbox_dir(root)} -- it must never exist for this "
-            "module's tests")
-        return
-    changed = {k for k in set(before) | set(after)
-               if before.get(k) != after.get(k)}
-    assert not changed, (
-        "leak detected: a test wrote into the LIVE shared inbox "
-        f"{send_mod._inbox_dir(root)}:\n  "
-        + "\n  ".join(sorted(changed))
-        + "\n-- dispatch tests must chdir into a tmp project; nothing may "
-        "write the real checkout's inbox")
 
 
 # ── red-first: send one message, read returns it once, peek still shows it ──
