@@ -173,9 +173,13 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     # DEFAULT-continue contract): it carries the machine identity AND is
     # already answered `continue, source: predecessor`, so the read-back
     # confirms the rotation with zero successor calls.
-    ack = json.loads(
-        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
-        .read_text(encoding="utf-8"))
+    # SL7.15 (goal:g15.25): a completed rotation ROTATES the ack — the live
+    # `adv-alive.ack.json` is renamed to `adv-alive.ack.gen1.json`, so the
+    # NEXT generation starts with NO live ack.
+    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    assert rot.exists()
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
+    ack = json.loads(rot.read_text(encoding="utf-8"))
     assert ack["gen_after"] == 1
     assert ack["answer"] == "continue"
     assert ack["source"] == "predecessor"
@@ -1183,9 +1187,13 @@ def test_rotate_self_ask_diff_writes_diff_requested_and_one_call(
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
 
-    ack = json.loads(
-        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
-        .read_text(encoding="utf-8"))
+    # SL7.15 (goal:g15.25): the completed rotation rotates the ack file — the
+    # live name is gone, the generation-stamped name carries the predecessor's
+    # written state.
+    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    assert rot.exists()
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
+    ack = json.loads(rot.read_text(encoding="utf-8"))
     assert ack["gen_after"] == 1
     assert ack["answer"] == "diff-requested"
     assert ack["source"] == "predecessor"
@@ -1218,9 +1226,13 @@ def test_rotate_self_default_ack_is_continue_wake_zero(
     # `continue` and confirms immediately — the wake-0 proof.
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    ack = json.loads(
-        (tmp_path / "sessions" / "seats" / "adv-alive.ack.json")
-        .read_text(encoding="utf-8"))
+    # SL7.15 (goal:g15.25): the completed rotation rotates the ack file — the
+    # live name is gone, the generation-stamped name carries the predecessor's
+    # own `continue` (the wake-0 proof, preserved verbatim by the rename).
+    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    assert rot.exists()
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
+    ack = json.loads(rot.read_text(encoding="utf-8"))
     assert ack["answer"] == "continue"
     assert ack["source"] == "predecessor"
     # the rotation record says success (not unwitnessed): the predecessor's
