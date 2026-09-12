@@ -19,7 +19,10 @@ contract is the claim.
 from __future__ import annotations
 
 import json
+import os
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -247,7 +250,7 @@ def test_rotate_self_fallback_reaches_the_same_function():
         )
         rot._find_seat = lambda root, name: {
             "role": "director", "session_ref": "row-ref-a"}
-        rot._resolve_template = lambda root, role: (tmpl, "director", "test")
+        rot._resolve_template = lambda root, role, explicit=None, **kw: (tmpl, "director", "test")
         rot._join_successor = lambda *a, **k: {
             "found": True, "window_id": "@42", "pid": 99,
             "session_id": "sess-live", "transcript": "/tmp/live.jsonl",
@@ -307,7 +310,7 @@ def test_after_join_seat_no_join_key_falls_back_to_record_transcript():
         rot._latest_rotate_record = lambda root, seat: (
             json.loads(rec_path.read_text()), rec_path)
         rot._find_seat = lambda root, name: {"role": "director"}
-        rot._resolve_template = lambda root, role: (tmpl, "director", "test")
+        rot._resolve_template = lambda root, role, explicit=None, **kw: (tmpl, "director", "test")
         rot._join_successor = lambda *a, **k: (joins.append(k) or {"found": True})
         rot.run_after_join = lambda *a, **kw: (
             record.append((a, kw)) or {"record_path": kw.get("record_path")})
@@ -511,7 +514,10 @@ def test_service_entry_run_after_join_for_seat_confirms_and_fills(tmp_path,
     after_join confirm — a real record + a real successor transcript carrying
     an assistant turn and a model_refusal_fallback event end with the record's
     handover.model_confirm overwritten by a real `after_join` verdict and the
-    bootstrap record's TWO join-only facts filled."""
+    bootstrap record's TWO join-only facts filled. NOW UNSTUBBED: it drives the
+    REAL `_resolve_template(root, role, None)` against a fixture rotation
+    template (SL7.54 — the old 2-arg call raised TypeError, so the reach was
+    only exercised through a lambda)."""
     tr = tmp_path / "succ.jsonl"
     tr.write_text(
         '{"type":"assistant","message":{"role":"assistant",'
@@ -544,9 +550,18 @@ def test_service_entry_run_after_join_for_seat_confirms_and_fills(tmp_path,
         rotate, "_find_seat",
         lambda root, seat: {"name": "seat-a", "model": "x",
                             "effort": "max", "role": "parent"})
-    monkeypatch.setattr(
-        rotate, "_resolve_template",
-        lambda root, role: ({}, "parent", "mem"))
+    # (goal:g15.25 SL7.54) the reach test drives run_after_join_for_seat
+    # through the REAL `_resolve_template(root, role, None)` against a fixture
+    # rotation template — the OLD 2-arg call raised TypeError here. The role
+    # default template declares an empty after_join list so no real command
+    # runs, but a real resolution + handover.model_confirm + fill occur.
+    td = tmp_path / "nodes" / ".geometry"
+    td.mkdir(parents=True, exist_ok=True)
+    (td / "rotations.md").write_text(
+        "---\ntemplates:\n  parent:\n    startup:\n      after_join: []\n---\n",
+        encoding="utf-8")
+    assert rotate._resolve_template(tmp_path, "parent", None) == (
+        {"startup": {"after_join": []}}, "parent", "role default (parent)")
     monkeypatch.setattr(
         rotate, "_join_successor",
         lambda root, seat, window_id, poll_secs: {
@@ -568,3 +583,226 @@ def test_service_entry_run_after_join_for_seat_confirms_and_fills(tmp_path,
         {"model": "claude-sonnet-5"})
     assert b["telemetry"]["model_refusal_fallback"].startswith(
         "ts=2026-09-12T09:00:00.000Z"), b["telemetry"]["model_refusal_fallback"]
+
+
+# ── goal:g15.25 (SL7.54) — recorded_at is UTC, never naive-local ─────────
+def test_after_join_due_check_reads_recorded_at_as_utc(tmp_path):
+    """A rotation record's `recorded_at` (isoformat + Z, a UTC instant) is
+    parsed as UTC, never as a naive LOCAL wall clock. Force the box into a
+    fixed non-UTC zone (EDT) and stamp a record 30 s before `now` in UTC with
+    DEFAULT_AFTER_JOIN_DELAY_S=20: it is genuinely DUE, but the OLD naive-local
+    parse reads its UTC wall-clock numbers as local time, shifting it 4 h into
+    the future so `run_after_join_for_seat` returns None (not due). The UTC
+    parse must let it through."""
+    import agi.bin.rotate as rot
+    # deterministically non-UTC local zone for the OLD naive-local path
+    old_tz = os.environ.get("TZ")
+    os.environ["TZ"] = "America/New_York"
+    has_tzset = hasattr(time, "tzset")
+    if has_tzset:
+        time.tzset()
+    try:
+        now = time.time()
+        rec_ts = datetime.fromtimestamp(now - 30, timezone.utc) \
+            .isoformat().replace("+00:00", "Z")  # 30 s ago, UTC
+        rec_path = tmp_path / "due.20260912T000000Z.json"
+        rec_path.write_text(json.dumps({
+            "rotation": "rotate-self", "seat": "s", "result": "success",
+            "gen_after": 2, "recorded_at": rec_ts,
+            "handover": {"join": {"window_id": "@1",
+                                   "transcript": "/tmp/s.jsonl"}}}))
+        orig_latest = rot._latest_rotate_record
+        orig_find = rot._find_seat
+        orig_tmpl = rot._resolve_template
+        orig_join = rot._join_successor
+        orig_aj = rot.run_after_join
+        record = []
+        tmpl = _startup(after_join=[], delay_s=20)
+        try:
+            rot._latest_rotate_record = lambda root, seat: (
+                json.loads(rec_path.read_text()), rec_path)
+            rot._find_seat = lambda root, name: {"role": "parent"}
+            rot._resolve_template = lambda root, role, explicit=None, **kw: (
+                tmpl, "parent", "test")
+            rot._join_successor = lambda *a, **k: {"found": True}
+            rot.run_after_join = lambda *a, **kw: (
+                record.append((a, kw)) or {"record_path": kw.get(
+                    "record_path"), "model_confirm": "ran"})
+            out = rot.run_after_join_for_seat(Path(tmp_path), "s", now=now)
+            assert record, \
+                "record stamped 30 s ago in UTC with delay 20 is DUE; the old " \
+                "naive-local parse shifted it 4 h into the future (EDT)"
+            assert out["model_confirm"] == "ran"
+        finally:
+            rot._latest_rotate_record = orig_latest
+            rot._find_seat = orig_find
+            rot._resolve_template = orig_tmpl
+            rot._join_successor = orig_join
+            rot.run_after_join = orig_aj
+    finally:
+        if old_tz is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = old_tz
+        if has_tzset:
+            time.tzset()
+
+
+# ── goal:g15.25 (SL7.54 fix 3) — join-facts rewrite is SURGICAL ──────────
+# kid 1 (a00-0f166884) claimed fixes (3)(4)(5) "already landed". NOT TRUE:
+# re-measured on HEAD 865b4d15, _fill_bootstrap_join_facts passed NO
+# join_poll_secs and its overrides carried ONLY the join facts, so every
+# OTHER fact was re-derived through _derive_bootstrap_fact (a measured ack
+# fact clobbered) and an unresolved join fact read the PRE-join
+# "pending: resolved after join" lie. These three tests prove the fix.
+
+def _seed_bootstrap_record(bpath, telemetry, measured_at):
+    bpath.parent.mkdir(parents=True, exist_ok=True)
+    bpath.write_text(json.dumps({
+        "shape": "v1", "seat": bpath.stem.replace(".bootstrap", ""),
+        "generation": 9, "written_by": "rotate-self", "commit": "abc111",
+        "measured_at": measured_at, "telemetry": telemetry,
+        "verification": {"ok": True},
+    }), encoding="utf-8")
+
+
+def test_fill_bootstrap_join_facts_touches_only_join_facts_byte_identical(
+        tmp_path):
+    """fix 3 (surgical): the fill rewrites ONLY the join facts — every
+    NON-join telemetry fact (incl. a MEASURED ack fact) keeps its
+    byte-identical value AND its measured_at stamp; it is never re-derived
+    through _derive_bootstrap_fact (which clobbered the ack) and never
+    restamped at this write's commit."""
+    import agi.bin.rotate as rot
+    bpath = tmp_path / "sessions" / "seats" / "seat-x.bootstrap.json"
+    tele = {
+        "ack": "continue (source predecessor, gen 9)",
+        "model": "claude-opus-5", "effort": "max",
+        "mail": "SKIPPED: m", "account": "SKIPPED: a",
+        "floor": "SKIPPED: f", "registry": "SKIPPED: r", "crons": "SKIPPED: c",
+        "successor_live_model": "pending: resolved after join",
+        "successor_address": "@7",
+        "model_refusal_fallback": "pending: resolved after join",
+    }
+    measured = {"ack": "acc1111111111", "model": "abcc2222222222",
+                "successor_live_model": "old-commit-1"}
+    _seed_bootstrap_record(bpath, dict(tele), dict(measured))
+    ok = rot._fill_bootstrap_join_facts(
+        tmp_path, seat="seat-x",
+        live_model='{"model": "claude-sonnet-5"}',
+        refusal_fallback="ts=2026-09-12T11:00:00.000Z category=safety "
+                          "requestId=req-3",
+        join_poll_secs=30)
+    assert ok
+    b = json.loads(bpath.read_text())
+    t = b["telemetry"]
+    # join facts (successor_address preserved, never clobbered)
+    assert t["successor_live_model"] == '{"model": "claude-sonnet-5"}', t
+    assert t["model_refusal_fallback"] == (
+        "ts=2026-09-12T11:00:00.000Z category=safety requestId=req-3"), t
+    assert t["successor_address"] == "@7", t
+    # every NON-join fact: value AND measured_at byte-identical
+    for k in ("ack", "model", "effort", "mail", "account",
+              "floor", "registry", "crons"):
+        assert t[k] == tele[k], (k, t[k])
+        assert b["measured_at"].get(k) == measured.get(k), \
+            (k, b["measured_at"], measured)
+    # the ack fact in particular — the kid-1-clobbered fact
+    assert t["ack"] == "continue (source predecessor, gen 9)", t
+    assert b["measured_at"]["ack"] == "acc1111111111", b["measured_at"]
+
+
+def test_fill_bootstrap_join_facts_unresolved_when_join_found_nothing(
+        tmp_path):
+    """fix 3 (unresolved): when the join RESOLVED NOTHING (no live model),
+    the threaded join_poll_secs writes `unresolved: join found nothing within
+    <N>s` for the unresolved join fact — never the PRE-join `pending: resolved
+    after join` lie that a future join will fix it."""
+    import agi.bin.rotate as rot
+    bpath = tmp_path / "sessions" / "seats" / "seat-y.bootstrap.json"
+    tele = {
+        "ack": "continue (source predecessor, gen 9)",
+        "model": "claude-opus-5", "effort": "max",
+        "successor_live_model": "pending: resolved after join",
+        "model_refusal_fallback": "pending: resolved after join",
+    }
+    _seed_bootstrap_record(bpath, dict(tele), {})
+    ok = rot._fill_bootstrap_join_facts(
+        tmp_path, seat="seat-y", live_model=None,
+        refusal_fallback=None, join_poll_secs=30)
+    assert ok
+    b = json.loads(bpath.read_text())
+    t = b["telemetry"]
+    assert t["successor_live_model"] == "unresolved: join found nothing within 30s", t
+    assert t["model_refusal_fallback"] == (
+        "unresolved: join found nothing within 30s"), t
+    for k in ("ack", "model", "effort"):
+        assert t[k] == tele[k], (k, t[k])
+
+
+# ── goal:g15.25 (SL7.54 fix 4) — pre-turn probe defers only when armed ──
+def test_after_join_performer_armed_branches(tmp_path, monkeypatch):
+    """fix 4: a performer can run — deferred is truthful — exactly when the
+    fixture forces the fallback, OR inline_reaper is truthy (rotate-self is
+    the fallback performer), OR (inline_reaper off) the persistent heal watch
+    unit is armed (`reaper.unit_enabled` not false; absent reads armed). With
+    inline_reaper off AND the unit refused, NO performer can run."""
+    import agi.bin.rotate as rot
+    # forced: always armed
+    assert rot._after_join_performer_armed(tmp_path, forced=True)
+    # inline_reaper truthy -> rotate-self fallback performer
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: True)
+    assert rot._after_join_performer_armed(tmp_path)
+    # inline_reaper off, no config -> unit armed by default
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    assert rot._after_join_performer_armed(tmp_path)
+    # inline_reaper off, box declares the unit DOWN -> no performer.
+    # (config at the ROOT's own `agi-tree.config.json` legacy name so
+    # `locations.config_path(root)` resolves it on a bare tmp_path — the
+    # G11 graph dir resolves its `.agi/config.json` the same way.)
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": False}}), encoding="utf-8")
+    assert not rot._after_join_performer_armed(tmp_path)
+    # unit re-armed -> performer again
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
+    assert rot._after_join_performer_armed(tmp_path)
+
+
+# ── goal:g15.25 (SL7.54 fix 5) — pushed-seats memo cleared per run ────────
+def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch):
+    """fix 5: run_after_join_for_seat clears the per-process pushed-seats
+    fetch memo (`_prime_rows_fetch_clear`) at the START of EVERY run — a
+    long-lived reaper process must not pin the first-fetched prime row across
+    Prime rotations. Two runs in one process each clear the memo."""
+    import agi.bin.rotate as rot
+    cleared = []
+    rec_path = tmp_path / "c.20200101T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "c", "result": "success",
+        "gen_after": 3, "recorded_at": "2020-01-01T00:00:00.000000Z",
+        "handover": {"join": {"window_id": "@1",
+                               "transcript": "/tmp/c.jsonl"}}}),
+        encoding="utf-8")
+    tmpl = _startup(after_join=[], delay_s=0)
+    monkeypatch.setattr(rot, "_prime_rows_fetch_clear",
+                        lambda: cleared.append(1))
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()),
+                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent"})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: {"model_confirm": "ran"})
+    out = rot.run_after_join_for_seat(Path(tmp_path), "c")
+    assert out is not None
+    assert len(cleared) == 1, cleared
+    # a SECOND run in the SAME process (the reaper loop) clears again
+    rot.run_after_join_for_seat(Path(tmp_path), "c")
+    assert len(cleared) == 2, cleared

@@ -1553,6 +1553,40 @@ def test_rotate_self_pre_turn_confirm_records_deferred_not_skipped(
         "a turn-less probe must read deferred, never a skipped verdict"
 
 
+def test_rotate_self_pre_turn_probe_skipped_when_no_performer_can_run(
+        _fix, tmp_path, monkeypatch):
+    """(goal:g15.25 SL7.54 fix 4) with the successor turn-less AND NO captive
+    after_join performer — inline_reaper off and the persistent heal watch
+    unit declared DOWN (`reaper.unit_enabled=false`) — the (s5) probe records
+    the honest `skipped: <reason>`, never a `deferred: after_join` LIE that a
+    future confirm will land on a record nobody will touch."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    monkeypatch.setattr(
+        rotate, "_confirm_successor_model",
+        lambda **k: "skipped: no assistant turn in the successor transcript")
+    # no fallback performer, persistent unit down -> nothing will run it
+    monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: False)
+    # the root's own legacy config declares the watch unit DOWN
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": False}}), encoding="utf-8")
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             session_ref=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    mc = rec["handover"]["model_confirm"]
+    assert isinstance(mc, str) and mc.startswith("skipped:"), mc
+    assert "no captive after_join performer" in mc, mc
+
+
 def test_rotate_self_fallback_after_join_overwrites_with_real_verdict_and_fills_bootstrap(
         _fix, tmp_path, monkeypatch):
     """gap (3): the rotate-self FALLBACK path (rotate.py ~12194) reaches the
