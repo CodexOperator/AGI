@@ -172,25 +172,60 @@ def test_ref_candidates_accepts_old_input_canonical_first():
 
 
 def test_ref_candidates_post_keeps_legacy_seat_alias():
-    # A POST's legacy spelling IS seat/<name>@s<n> (hypothesis:
-    # l4-branches-follow-the-season-grammar a1) — canonical first, old name
-    # kept as the one-season fallback, mirroring the loop branch case.
+    # A POST's candidates are canonical, INTERMEDIATE `post/<n>@s<n>`, and the
+    # legacy `seat/<name>@s<n>` spelling — in that order, deduped
+    # (hypothesis:l4-branches-follow-the-season-grammar a1 + the L4.319
+    # intermediate rule). Canonical first, the as-written canonical input is
+    # present in the list, legacy last, mirroring the loop branch case.
     assert b.ref_candidates("season2/posts/foo") == [
-        "season2/posts/foo", "seat/foo@s2"
+        "season2/posts/foo", "post/foo@s2", "seat/foo@s2"
     ]
 
 
 def test_ref_candidates_seat_alias_canonical_first():
     # Real seat branch name on this box (harvest-pinned): canonical first,
-    # old `seat/...@s<n>` spelling kept. A reader handed the canonical POST
-    # name on a pre-migration tree falls back to the live seat ref.
+    # the INTERMEDIATE `post/...@s<n>` spelling, old `seat/...@s<n>` spelled
+    # input kept last. A reader handed the canonical POST name on a
+    # pre-migration tree falls back through the intermediate to the live seat
+    # ref; a reader handed the live seat ref still finds all three.
     name = "seat/sanctuary-director@s2"
     cands = b.ref_candidates(name)
-    assert cands == ["season2/posts/sanctuary-director", name]
-    # and the canonical-first direction resolves to the same pair
-    assert b.ref_candidates("season2/posts/sanctuary-director") == [
-        "season2/posts/sanctuary-director", name
+    assert cands == [
+        "season2/posts/sanctuary-director",
+        "post/sanctuary-director@s2",
+        name,
     ]
+    # and the canonical-first direction resolves to the same triple
+    assert b.ref_candidates("season2/posts/sanctuary-director") == [
+        "season2/posts/sanctuary-director",
+        "post/sanctuary-director@s2",
+        name,
+    ]
+
+
+# --- L4.322 (hypothesis:
+# l4-an-empty-kinds-is-refused-by-name-and-ref-candidates-keeps-the-as-written-spelling)
+# The as-written input spelling must ALWAYS appear in its own returned
+# candidate list for ALL THREE input spellings of a post. Order is exactly
+# [canonical, intermediate, legacy]; dedupe keeps the list unique.
+
+
+@pytest.mark.parametrize("name", [
+    "season2/posts/foo",
+    "post/foo@s2",
+    "seat/foo@s2",
+])
+def test_ref_candidates_post_input_keeps_as_written_spelling(name):
+    cands = b.ref_candidates(name)
+    # the as-written input is never dropped from its own candidate list
+    assert name in cands
+    # exactly [canonical, intermediate, legacy]
+    assert cands == ["season2/posts/foo", "post/foo@s2", "seat/foo@s2"]
+    # canonical first, legacy last
+    assert cands[0] == "season2/posts/foo"
+    assert cands[-1] == "seat/foo@s2"
+    # dedupe keeps the list unique
+    assert len(cands) == len(set(cands))
 
 
 class _Sink:

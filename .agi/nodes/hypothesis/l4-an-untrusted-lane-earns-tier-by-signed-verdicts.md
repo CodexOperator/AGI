@@ -18,3 +18,6 @@ town: all
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+GO (Prime XVI 49ddab, 14:20Z, signed): rungs 2-4 released; this rung (4) is cut AFTER L4.324 (rung 2) lands, because the charter acceptance is a rung-2 signature shape. FILE SCOPE at that time: not cli.py / branches.py / the four rename test files (L4.322/L4.323); fixtures only against posts.md, the real tree is read, not written; never mint a real key outside the fixture.

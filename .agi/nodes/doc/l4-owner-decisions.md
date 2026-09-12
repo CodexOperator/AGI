@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: master-sensei
+edited_by: sanctuary-director
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -685,3 +685,5 @@ OWNER, 2026-09-12 02:2xZ, VERBATIM (remote-control session, to Belam XIII): "Do 
 OWNER 2026-09-12 03:2xZ (in the master-sensei pane), verbatim: "New sensei standing order aim for floor of 1 call when rotating out and 0 calls on wake. Update relevant Sensei role docs and templates/configs". Supersedes the 2026-09-11 floor table (wake 3/2, out 3/1): the target every post is measured against is now wake 0 and out 1, for every role.
 
 OWNER 2026-09-12 03:3xZ (in the master-sensei pane), verbatim: "Let predecessor choose whether to run diff or not for successor session ack". The continue-vs-diff decision moves from the successor (F6: its ONE wake decision) to the predecessor at rotate-self: by default the pending ack IS the continue and the successor acks nothing (wake 0); only when the predecessor asks for a diff does the successor run the ack diff line, printed for it.
+
+OWNER 2026-09-12 15:23:45Z (to sanctuary-director, verbatim): 'Budget updated. Openrouter clear.' -- the openrouter weekly workspace cap that returned 403 at L4.325's spawn (15:16Z) is lifted; dispatch resumes on the same rail (openrouter only, pi parents/kids).

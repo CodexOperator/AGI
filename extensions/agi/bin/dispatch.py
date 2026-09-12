@@ -1085,6 +1085,67 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
     return 0
 
 
+def _round_cut_fields(tier: str, role: str | None, target: str | None,
+                       level: str | None, iter_n: int) -> dict:
+    """The FULL round-cut decision fields a ring's signatures cover -- the
+    same bytes the gate signs, the round persists onto each spawned agent's
+    record, and a reader re-verifies (hypothesis:l4-a-ring-decision-carries-
+    m-of-n-signatures, HOLE 2: the signed bytes must cover the decision it
+    authorises, so a quorum for one target/tier/role/level/iter cannot replay
+    onto a different round). All values string-serialized (rings.json_field)
+    so the persisted record round-trips through JSON losslessly."""
+    from seatsig import rings as _rings  # noqa: PLC0415
+    return {
+        "tier": _rings.json_field(tier),
+        "role": _rings.json_field(role or ""),
+        "target": _rings.json_field(target or ""),
+        "level": _rings.json_field(level or ""),
+        "iter_n": _rings.json_field(iter_n),
+    }
+
+
+def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
+                        role: str | None, signatures: list,
+                        target: str | None = None, level: str | None = None,
+                        iter_n: int = 0) -> str | None:
+    """Rung 2 round-ring gate: refuse the round (every slot's spawn) when
+    its cut record lacks the named ring's m valid signatures. Returns the
+    refusal line (naming the m-of-n count) or None to admit. OPT-IN: a ring
+    the geometry does not name is not demanded. Verified through
+    seatsig/rings.py (the SAME Scheme interface send.py's verify labels
+    against), never this gate's own crypto."""
+    root = locations.find_project_root(Path(project_root).resolve())
+    try:
+        from seatsig import rings as _rings
+
+        rings_rows = _rings.load_rings(root)
+        ring = _rings.ring_by_name(rings_rows, ring_name)
+    except Exception:  # noqa: BLE001
+        ring = None
+    if ring is None:
+        return None  # no such ring declared -> opt-in means nothing demanded
+    canonical = _rings.canonical_bytes(
+        "round-cut", _round_cut_fields(tier, role, target, level, iter_n))
+
+    def resolver(post):
+        try:
+            rows = geometry_config.load_rows(root)
+        except Exception:  # noqa: BLE001
+            rows = []
+        for row in rows:
+            if row.get("name") == post:
+                return row.get("pubkey") or None
+        return None
+
+    res = _rings.verify_ring(ring, canonical, signatures or [],
+                             pubkey_for_post=resolver)
+    if res.ok:
+        return None
+    return (
+        f"round {ring_name!r} needs its ring quorum before spawning: "
+        f"{res.refused}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
@@ -1220,7 +1281,52 @@ def main() -> int:
              "holds arbitrary characters (quotes, newlines) that would break "
              "the command line.",
     )
+    ap.add_argument(
+        "--ring-gate",
+        default=None,
+        metavar="RING",
+        help="rung 2: name the ring whose quorum must approve this round "
+             "before any slot spawns (an approval record for the round cut); "
+             "short of m the round is REFUSED by name with the count -- "
+             "opt-in, never a default (seatsig/rings.py)",
+    )
+    ap.add_argument(
+        "--ring-sig",
+        dest="ring_sigs",
+        action="append",
+        default=[],
+        help="rung 2: repeatable; a `<post>:<scheme>:<sig_hex>` signature "
+             "over the round-cut record backing `--ring-gate` "
+             "(seatsig/rings.py)",
+    )
     args = ap.parse_args()
+
+    # RUNG 2 round-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures) -- now signed over the FULL round-cut decision (target,
+    # level, iter_n included; hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures HOLE 2). OPT-IN: only when `--ring-gate <name>` is given AND
+    # the geometry names that ring is the ROUND gated; a short-of-m round is
+    # REFUSED BY NAME with the m-of-n count and nothing spawns.
+    _round_ring_decision = None
+    if args.ring_gate:
+        refusal = _round_ring_refusal(
+            args.project_root, args.ring_gate,
+            args.tier, args.role, args.ring_sigs,
+            target=args.target, level=args.level, iter_n=args.iter_n)
+        if refusal is not None:
+            print(f"round-ring: {refusal}", file=sys.stderr)
+            return 3
+        # RUNG 2 claim (2): the admitted round-quorum signatures are persisted
+        # onto the ONE record the round already writes -- each spawned agent's
+        # manifest/agent.json entry -- so a later reader re-verifies m-of-n
+        # from disk, never argv. The canonical fields are the bytes the gate
+        # just signed.
+        from seatsig import rings as _ringslib  # noqa: PLC0415
+        _round_ring_decision = _ringslib.decision_cell(
+            args.ring_gate, "round-cut",
+            _round_cut_fields(args.tier, args.role, args.target,
+                              args.level, args.iter_n),
+            args.ring_sigs)
 
     # hypothesis:l3w3-advisor-brief addendum after L3.12 — thread the advisor's
     # pinned --goal into the assembled brief through the env (see
@@ -2014,6 +2120,11 @@ def main() -> int:
             # keeps the gate fail-open.
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
         }
+        if _round_ring_decision is not None:
+            # The round the ring approved cut this agent; its quorum proof
+            # (kind + signed fields + signatures) rides on the SAME record
+            # the round writes, so a reader re-verifies the round from disk.
+            agent_record["ring_decision"] = _round_ring_decision
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
             # base_branch is what season.py merge-up targets (ADDENDUM item
