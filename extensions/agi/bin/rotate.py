@@ -1813,6 +1813,39 @@ def _ack_path(root: Path, seat: str) -> Path:
     return _seat_hands(root) / f"{seat}.ack.json"
 
 
+def _rotate_ack_file(root: Path, seat: str, gen: int) -> str:
+    """ROTATE the seat's live ack out of the way when a generation completes.
+
+    goal:g15.25 (SL7.15): a predecessor `continue` left on disk at
+    `seats/<seat>.ack.json` is how a stale ack SILENCES the NEXT generation's
+    `ack --gen N+1 continue` (the gen-blind no-op, part (a)). After a
+    successful rotation (rotate-self) or before a crash-recovery spawn
+    (heal._recover_seat) the live ack is renamed to
+    `seats/<seat>.ack.gen<N>.json` — an ADDITIONAL name (F8's
+    `seats/<seat>.ack.json` `answer` contract unchanged), never a changed
+    shape, so the next generation starts with NO live ack. Returns a one-line
+    outcome ('' when there was no live ack to rotate, or it was already
+    consumed/rotated).
+    """
+    path = _ack_path(root, seat)
+    if not path.exists():
+        return ""
+    try:
+        old = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, ValueError):
+        old = {}
+    if isinstance(old, dict) and (old.get("consumed_at")
+                                  or str(path).endswith(".ack.gen")):
+        # already consumed/rotated — never double-rotate.
+        return "ack: already rotated"
+    rotated = path.with_name(f"{seat}.ack.gen{gen}.json")
+    try:
+        path.rename(rotated)
+    except OSError as exc:  # noqa: BLE001
+        return f"ack: rotate FAILED: {exc}"
+    return f"ack rotated: {rotated.name} (gen {gen})"
+
+
 def _resolve_seat_for_name(root: Path, session_name: str) -> str:
     """The SEAT for a session/window name, resolved through the seats row.
 
@@ -1918,6 +1951,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     if args.answer == "continue":
         _prev_src = None
         _prev_ans = None
+        _prev_gen = None
         try:
             _ap = Path(_ack_path(root, seat))
             if _ap.exists():
@@ -1925,12 +1959,25 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 if isinstance(_pa, dict):
                     _prev_src = _pa.get("source")
                     _prev_ans = _pa.get("answer")
+                    _prev_gen = _pa.get("gen_after")
         except (OSError, ValueError):
             pass
         if _prev_src == "predecessor" and _prev_ans == "continue":
-            print("ack: already answered continue by your predecessor -- "
-                  "nothing to run")
-            return 0
+            if _prev_gen == args.gen:
+                print("ack: already answered continue by your predecessor -- "
+                      "nothing to run")
+                return 0
+            # g15.25 (SL7.15): the older no-op was GEN-BLIND — it silenced
+            # a successor whose ack channel still carried a PREDECESSOR
+            # continue for a DIFFERENT generation, so a crash-recovered post
+            # (rotated at gen N, respawned at gen N+1) never took its
+            # identity. The read-back (`_read_ack`) already refuses a
+            # foreign gen_after; the no-op must too. A predecessor `continue`
+            # for ANY OTHER generation is STALE: print one line naming both
+            # generations and fall through to write the successor's OWN ack
+            # exactly as the pre-SL7.06 path did.
+            print(f"ack: stale predecessor answer for gen {_prev_gen}, this "
+                  f"is gen {args.gen} -- writing your continue")
     # r3+ (L4.1xx / hypothesis:l4-a-rotation-costs-the-live-seats-zero-calls-
     # and-the-successor-one): the successor's identity is the reason the row
     # wants a session_ref at all. A GIVEN --ref must be the BARE ref (a
@@ -6725,7 +6772,27 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
     if key in ("effort", "window", "worktree"):
         return ((str(row[key]) if row.get(key) else None),
                 (f"seat row carries no {key}" if not row.get(key) else None))
-    if key in ("ack", "prev_gen"):
+    if key == "ack":
+        # GOAL:g15.25 (SL7.15) — the ack fact derives from the ACK FILE, never
+        #     from the seat row (no writer ever fills a `row['ack']`, so the
+        #     old read printed `ack: SKIPPED: seat row carries no ack at HEAD`
+        #     for every seat while the truth sat in seats/<seat>.ack.json).
+        #     Shape: `ack: <answer> (source <source>, gen <gen_after>)` when a
+        #     live ack file exists, else `ack: none`. The staleness bound
+        #     (`head` as today) is applied by the caller, unchanged.
+        ack_path = _ack_path(root, seat)
+        try:
+            _a = (json.loads(ack_path.read_text(
+                encoding="utf-8", errors="replace"))
+                  if ack_path.exists() else None)
+        except (OSError, ValueError):
+            _a = None
+        if isinstance(_a, dict) and _a.get("answer"):
+            return (("ack: {} (source {}, gen {})".format(
+                _a.get("answer"), _a.get("source"), _a.get("gen_after"))),
+                    None)
+        return "ack: none", None
+    if key == "prev_gen":
         return ((str(row[key]) if row.get(key) is not None else None),
                 (f"seat row carries no {key} at HEAD"
                  if row.get(key) is None else None))
@@ -11217,6 +11284,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
         handover=handover, steps_reached=steps_reached), path=rec_path)
+
+    # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
+    #     file. The successor confirmed gen `gen`; that generation's live ack
+    #     (`seats/<seat>.ack.json`) is now RENAMED to `seats/<seat>.ack.gen
+    #     <gen>.json` so the NEXT generation (a fresh successor or a
+    #     crash-recovery respawn at gen+1) starts with NO live ack. A stale
+    #     predecessor `continue` left on disk is exactly what the gen-blind
+    #     no-op (part (a)) used to mistake for THIS successor's answer; the
+    #     rename makes that impossible by construction. F8's
+    #     `seats/<seat>.ack.json` `answer` contract is unchanged — the
+    #     rotated file is an ADDITIONAL name, never a changed shape.
+    _rot = _rotate_ack_file(root, seat, gen)
+    if _rot:
+        print(_rot)
 
     # (6.4) THE SERVICE performs the captive after_join first turn (0b-b owed
     #     (i)). rotate-self is the FALLBACK performer when NO persistent
