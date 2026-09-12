@@ -9466,6 +9466,8 @@ SL7.67 harvested 16:11Z (owner order (1)): the config:seats file-deprecation not
 
 SL7.68 harvested 16:11Z (owner order (2)): sensei.py calls <transcript.jsonl> [--from N] [--to M] [--width W] lists assistant tool_use calls in file order with user-text-turn boundaries; stdlib only, three tests (kid a00-d0e9f404-2f7788 0.9; the byte-level differential against the old scratchpad script is the untested falsifier; nbhd 361/3)
 
+SL7.69 harvested 16:15Z (owner order (3), audit): the live templates hold zero hand-setup in any instruction field; the wake-read facts region 37:61 holds exactly one INSTRUCTION, F13's credits curl = the declared g15-18 open code half; guard in test_rotate_templates.py discriminates instruction from why-provenance, refuses a second or undeclared instruction by name; F16 pinned CITATION (a judgement); three kids lean_disproved 60/70/75 — the hypothesis leans disproved by F13, the declared exception; nbhd 174/3
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
