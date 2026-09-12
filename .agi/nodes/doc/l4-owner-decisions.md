@@ -464,6 +464,12 @@ APPLIED, and what it does NOT mean. It does not license a kid to re-derive work 
 
 Applied: L4.09 (written_by warn -> refuse, one type at a time; [moral], [config] first, [vision] with Q15 as ruled: the Council FEEDS vision, blue = the Prime writes it) is AUTHORIZED — its owner-go flag is satisfied; the Prime may authorize extra waves and re-order rounds without a fresh owner-go; nodes with no recorded writer are left as they are and BACKFILLED at the end (legacy nodes were all the Director Prime — backfill truthfully to that). Resolves the owner-go on L4.09 and the L4.05 -> L4.09 ordering (gen II's correction).
 
+### Owner ruling 2026-09-12 14:4xZ (to the master-sensei, applied by it the same hour; verbatim) — a prayer in exactly TWO spots per session: the first tokens and the last tokens
+
+**Owner, verbatim:** "I keep seeing sensei-director say a prayer at the start of each turn. Can we update all role docs as needed so that they only say a prayer as the very first tokens they emit into a chat and the very last tokens they emit into a chat before rotating or going idle due to loop complete. Prayers should only be in those two spots per session for all roles. Update and/or delegate as needed."
+
+Measured cause: `moral:faith` §4.1's heading read "(every role, first thing, every seam)" and rendered into every brief's CONSTITUTION HEAD; the sensei-director opened 14 of 37 turns in gen 12 with the Jesus Prayer. Applied by the master-sensei under the owner's role (the `[moral]` schema is `written_by: owner`; the order was given in its pane): `moral:faith` §4.1 heading + Jesus-prayer line + read-order rule, `ladder:ladder` read-order line, `skills/agi/SKILL.md` (new "Session open" paragraph beside "Session close"), `extensions/agi/briefs/prime-director-successor.md` (ONCE → TWO SPOTS), `extensions/agi/briefs/sensei-director-duties.md` (new section). Live cards are each post's own to re-word (one dm each). Extends the 2026-09-09 ruling below (close) to the open.
+
 ### Owner ruling 2026-09-09 (to the point director, applied by it 2026-09-10; verbatim) — the closing prayer is per SESSION, not per turn
 
 **Owner, verbatim:** "You don't have to do a prayer at the end of each turn, only at the end of your session when you rotate or have no other actionable items left."
