@@ -1964,6 +1964,18 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
     return None
 
 
+def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
+    """The ONE predicate that decides whether an answered ack commits its own
+    row write: `continue` commits; `diff` with empty/whitespace text commits
+    (an empty diff stands the handoff exactly like continue); `diff` with text
+    never commits. `--no-commit` suppresses the commit on every path. Shared
+    by the do_commit gate and the first-seating announce gate so the two can
+    never disagree (g15.24 FIX-ONLY)."""
+    return (answer == "continue"
+            or (answer == "diff" and not (text or "").strip())) \
+        and not no_commit
+
+
 def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     """The successor's explicit, identity-supplied reply to its rotation.
 
@@ -2078,9 +2090,8 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # an unrelated FOREIGN hunk, staged or unstaged, is neither bundled nor
     # blocking — only the OWN row's uncommitted change names the refusal), so
     # the ack's own commit never double-writes a row someone was mid-edit on.
-    do_commit = (args.answer == "continue"
-                 or (args.answer == "diff" and not (text or "").strip())) \
-        and not getattr(args, "no_commit", False)
+    do_commit = _ack_commits(args.answer, text,
+                             getattr(args, "no_commit", False))
     # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
     # identity cells now have ONE writer and it writes MAIN's seats.md
     # (`_write_identity_cells` -> `_shared_graph_root`), so every read the
@@ -2245,7 +2256,14 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # so a spawn/seats-launch that already recorded + announced is never
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
-    if args.gen == FIRST_SEATING_GEN and args.answer == "continue" \
+    # g15.24: the announce gate uses the SAME predicate as do_commit (_ack_commits),
+    # NOT a literal `answer == "continue"`, so a gen-1 answer of `diff` with EMPTY
+    # text commits AND announces once (a `diff` with text commits nothing and, by
+    # the same predicate, announces nothing). The double-send falsifier (a second
+    # dm for the same seat+gen) still holds via _seating_record_exists.
+    if args.gen == FIRST_SEATING_GEN \
+            and _ack_commits(args.answer, text,
+                             getattr(args, "no_commit", False)) \
             and not _seating_record_exists(root, seat, generation=args.gen) \
             and not _rotation_record_exists(root, seat) \
             and not _pending_ack_present:
@@ -5145,14 +5163,17 @@ def _replace_fence_after(lines: list[str], start: int, s3: str):
     (caller falls back to whole-body replacement)."""
     fence = None
     for i in range(start, len(lines)):
-        if lines[i].strip().startswith("```"):
+        if _fence_run(lines[i]) >= 3:
             fence = i
             break
     if fence is None:
         return None
+    opener = _fence_run(lines[fence])
     close = None
     for i in range(fence + 1, len(lines)):
-        if lines[i].strip().startswith("```"):
+        # pair the run-length-aware closer (>= opener), so an inner shorter
+        # fence under a longer outer fence never mis-pairs (residue (iii)).
+        if _fence_run(lines[i]) >= opener:
             close = i
             break
     if close is None:
@@ -5899,46 +5920,79 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
         crossed inside one replace opcode) still keeps the own row's WORK
         bytes and restores the foreign row byte-identical to HEAD, instead of
         falling through to a fail-safe that dropped the own added line
-        (mur-SL2.17 / goal:g15.24 (i)). Structured as: walk the REMOVED lines
-        in HEAD order, for each keyed row keep/restore/drop by identity using
-        the WORK version when the row survived; then flush any WORK-only
-        added lines (row inserts / structural additions) not already consumed,
-        staging each only when OWN. Non-row structural lines (frontmatter
-        `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) likewise keep HEAD
-        unless the work version is an owned frontmatter stamp."""
+        (mur-SL2.17 / goal:g15.24 (i)). One two-pointer walk over the removed
+        AND added sides in their own order interleaves a WORK-only added line
+        (an own row inserted into WORK that HEAD lacks) at its WALK position —
+        right where it sits on the added side, before the next removed line —
+        instead of flushing it to the region END, so an own inserted row
+        BETWEEN two HEAD rows keeps its byte position in the staged buffer
+        (goal:g15.24 (ii), SL7.52). When the two sides sit at EXACTLY this
+        spot (aligned keys) or a key CROSSES inside the opcode (both present on
+        both sides, wrong order), pair BY KEY: keep the own row's WORK bytes,
+        restore the foreign row byte-identical to HEAD. Structural lines
+        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) carry
+        their HEAD bytes unless the work version is an owned frontmatter stamp.
+        """
         rem = [(l, _key(l)) for l in removed]
         add = [(l, _key(l)) for l in added]
         add_by_key = {k: l for l, k in add if k is not None}
-        consumed: set[str] = set()
+        rkeys = {k for _, k in rem if k is not None}
+        matched: set[str] = set()
+        i = j = 0
         out: list[str] = []
-        for rl, rk in rem:
-            if rk is not None:
-                al = add_by_key.get(rk)  # the work version of THIS row, if any
-                if al is not None:
-                    # the row survived on both sides (edited in work, or its
-                    # position crossed inside one opcode): keep WORK bytes
-                    # when this seat owns the row, else RESTORE HEAD.
-                    consumed.add(rk)
-                    out.append(al if _own(al) else rl)
-                else:
-                    # the row was DELETED from the work copy: restore it from
-                    # HEAD unless it is this seat's OWN row (own deletion).
-                    if not _own(rl):
-                        out.append(rl)
-            else:
-                # a structural line in the removed region: keep HEAD unless it
-                # is an owned frontmatter stamp.
+        while i < len(rem) or j < len(add):
+            rl, rk = rem[i] if i < len(rem) else (None, None)
+            al, ak = add[j] if j < len(add) else (None, None)
+            # A WORK-only added row sits HERE in the added walk (its key is
+            # absent from HEAD and it is not yet emitted): stage it at this
+            # position, before the next removed line — never flushed to the
+            # region end. Only this seat's own write is staged.
+            if al is not None and ak is not None and ak not in rkeys \
+                    and ak not in matched:
+                if _own(al):
+                    out.append(al)
+                j += 1
+                continue
+            if rl is None:
+                # only WORK-only added rows remain past the removed side.
+                if ak is None:
+                    if _own(al):  # own structural addition (frontmatter stamp)
+                        out.append(al)
+                elif ak not in matched:
+                    if _own(al):
+                        out.append(al)
+                    matched.add(ak)
+                j += 1
+                continue
+            if rk == ak is not None and rk not in matched:
+                # aligned same-slot pair: keep WORK bytes when own, else the
+                # row is restored byte-identical to HEAD.
+                out.append(al if _own(al) else rl)
+                matched.add(rk)
+                i += 1
+                j += 1
+                continue
+            if rk is not None and rk not in add_by_key:
+                # the row was DELETED from the work copy: restore it from
+                # HEAD unless it is this seat's OWN row (own deletion).
                 if not _own(rl):
                     out.append(rl)
-        # flush any WORK-only added lines not consumed above (row
-        # inserts and structural additions): stage each only when OWN.
-        for al, ak in add:
-            if ak is None:
-                if _own(al):
-                    out.append(al)
-            elif ak not in consumed:
-                if _own(al):
-                    out.append(al)
+                i += 1
+                continue
+            if rk is not None and rk not in matched:
+                # key present on BOTH sides but crossed / not yet paired:
+                # pair by KEY — keep own WORK bytes, restore foreign from HEAD.
+                wal = add_by_key.get(rk)
+                if wal is not None:
+                    out.append(wal if _own(wal) else rl)
+                    matched.add(rk)
+                    i += 1
+                    continue
+            # structural removed line, or a removed row whose work twin is
+            # already emitted: keep HEAD unless this is an owned stamp.
+            if not _own(rl):
+                out.append(rl)
+            i += 1
         return out
 
     staged: list[str] = []
@@ -7507,7 +7561,7 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "prime_key", "prime_seat", "prime_from", "worktree",
+    "prime_ref", "prime_key", "prime_seat", "worktree",
     "repo", "tmux_session", "pred_pids",
 }
 
@@ -8553,7 +8607,8 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
                        succ_name: str,
                        tmux_session: str = DEFAULT_TMUX_SESSION,
                        dry_run: bool = False,
-                       ask_diff: bool = False) -> tuple[str, list]:
+                       ask_diff: bool = False,
+                       generation: int | None = None) -> tuple[str, list]:
     """First-seating STARTUP composition (hypothesis:l4-a-first-seating-is-a-
     rotation-without-a-predecessor).
 
@@ -8582,8 +8637,21 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     startup = (role_tmpl or {}).get("startup") or {}
     if not (startup.get("first_turn") or []):
         return "", []
+    # GOAL:g15.25 (SL7.49) — a FIRST seating of an EXISTING seat (crash
+    # respawn, hand relaunch, `seats-launch`/`spawn --seat` onto a row whose
+    # config:seats entry already carries `generation: N >= 1`) must report
+    # the SEAT'S OWN row generation, never a hard-coded gen-1. The row is the
+    # authority (`_seat_row_generation`, the SAME reader cmd_spawn already
+    # uses), so this run's bootstrap header, its record generation, the
+    # `{gen}` substitution and the ack file all agree. A brand-new seat (no
+    # row, or a row with no generation) resolves to `FIRST_SEATING_GEN` and
+    # is byte-identical to today. Callers may pass the gen explicitly; when
+    # they pass nothing the resolution happens here, once, for BOTH call
+    # sites (cmd_spawn and seats-launch) so neither recomputes it.
+    _gen = generation if generation is not None \
+        else (_seat_row_generation(root, seat) or FIRST_SEATING_GEN)
     values = _first_turn_values(
-        root, seat=seat, gen=1, succ_name=succ_name,
+        root, seat=seat, gen=_gen, succ_name=succ_name,
         pred_pids="none: first seating", tmux_session=tmux_session)
     results = _run_first_turn_commands(startup, values, dry_run=dry_run)
     block = _compose_startup_output(results)
@@ -8610,11 +8678,11 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
         #     unchanged: default-`continue`. One caller parameter, no new flag.
         _answer = "diff-requested" if ask_diff else "continue"
         _ack_override = (
-            f"{_answer} (source first-seating, gen 1) — "
+            f"{_answer} (source first-seating, gen {_gen}) — "
             "this post awaits one diff answer" if ask_diff else
-            "continue (source first-seating, gen 1) — "
+            f"continue (source first-seating, gen {_gen}) — "
             "this post acks once itself")
-        _write_bootstrap(root, seat=seat, generation=1,
+        _write_bootstrap(root, seat=seat, generation=_gen,
                          telemetry=role_tmpl.get("telemetry"),
                          verification=None,
                          join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
@@ -8635,19 +8703,64 @@ def _first_seating_startup(root: Path, *, seat: str, role: str,
     return block
 
 
+def _prime_pushed_seats(root: Path, ref: str):
+    """Fetch the pushed season seats AT MOST ONCE per process for the
+    (str(root), ref) key, reusing the fetched rows on every later call. This
+    is the SEAM behind `_prime_row_authority` (hypothesis:l4-rotate-self-
+    fetches-the-pushed-season-ref-once-per-run-through-a-seam-and-no-suite-
+    test-reaches-origin): one rotation builds first_turn values at FIVE sites
+    (first seating, a second compose, driven startup, startup values,
+    after-join values), each of which would otherwise run a REAL `git fetch
+    origin <name>` (send._pushed_seats with do_fetch=True calls _run_git, up
+    to 30 s each). The memo collapses those to ONE fetch; every later build
+    reuses the fetched rows. A None result (pushed ref unreachable) is also
+    memoized, so a rotation does not re-fetch on a transient miss within the
+    same process. A test injects the seam by monkeypatching THIS name (or
+    `send._pushed_seats` below it) so a rotate-self values build never
+    performs a real git fetch inside the suite."""
+    key = (str(root), ref)
+    if key in _PUSHED_SEATS_FETCHED_ONCE:
+        return _PUSHED_SEATS_FETCHED_ONCE[key]
+    import send  # local: same dir (send.py pattern, no import cycle)
+    try:
+        seeded = send._pushed_seats(root, ref, True)
+    except Exception:                                       # noqa: BLE001
+        seeded = None
+    _PUSHED_SEATS_FETCHED_ONCE[key] = seeded
+    return seeded
+
+
+def _prime_rows_fetch_clear() -> None:
+    """Drop the per-process fetch memo; a test calls this to reset between
+    runs. The memo is intentionally module-global (one fetch per process), so
+    isolation is by explicit clear — the standard pytest monkeypatch shape."""
+    _PUSHED_SEATS_FETCHED_ONCE.clear()
+
+
+#: Per-process memo so the pushed season ref behind `_first_turn_values` is
+#: fetched AT MOST ONCE per rotate-self run, keyed on (str(root), ref) so two
+#: separate roots in one process do not collide. The fetch itself is the REAL
+#: network call (send._pushed_seats → _run_git, up to 30 s each), so without
+#: this a single rotation's five first_turn values builds would fetch five
+#: times — up to 150 s worst case inside the rotation's own timeout. Tests
+#: clear it via `_prime_rows_fetch_clear` and may inject a fake seam.
+_PUSHED_SEATS_FETCHED_ONCE: dict[tuple, object] = {}
+
+
 def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     """The prime row for the startup placeholder map, read the way whois
     reads it — ONE reader: the PUSHED season ref first (`send._pushed_seats`,
-    the SAME ref whois authorizes against, fetch included), the working-tree
-    seat row only as a FALLBACK when the pushed ref is unreachable, and the
-    SOURCE named either way (prime_from). A deferred-key window (a pending
-    key persisted when the push FAILED, SL7.22) leaves the ROTATING worktree's
-    prime row carrying a key the PUSHED authority does not — so a startup
-    {prime_key} read from the worktree can name a key the pushed row never
-    carries and read NO-MATCH/RETIRED for a live Prime
-    (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
-    sig-resolves-the-sig-row-by-pubkey). Returns (row, source) with source
-    ``"pushed"`` or ``"worktree (pushed ref unreachable)"``."""
+    the SAME ref whois authorizes against, fetch included, via the once-per-
+    process seam `_prime_pushed_seats`), the working-tree seat row only as a
+    FALLBACK when the pushed ref is unreachable. A deferred-key window (a
+    pending key persisted when the
+    push FAILED, SL7.22) leaves the ROTATING worktree's prime row carrying a
+    key the PUSHED authority does not — so a startup {prime_key} read from the
+    worktree can name a key the pushed row never carries and read
+    NO-MATCH/RETIRED for a live Prime (hypothesis:l4-prime-key-is-read-from-
+    the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-pubkey).
+    Returns (row, source) with source ``"pushed"`` or
+    ``"worktree (pushed ref unreachable)"``."""
     import send  # local: same dir (send.py pattern, no import cycle)
 
     def _pick(rows):
@@ -8656,10 +8769,7 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
                 return row
         return None
 
-    try:
-        seeded = send._pushed_seats(root, send._PUSHED_SEATS, True)
-    except Exception:                                       # noqa: BLE001
-        seeded = None
+    seeded = _prime_pushed_seats(root, send._PUSHED_SEATS)
     if seeded is not None:
         rows, _sha, _ref = seeded
         return _pick(rows), "pushed"
@@ -8694,14 +8804,14 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
     prime_seat = ""
     # The prime row is read the way whois reads it — ONE reader: the PUSHED
     # season ref first, the working-tree seat row only as a fallback when the
-    # ref is unreachable, and the SOURCE named (prime_from). A deferred-key
+    # ref is unreachable. A deferred-key
     # window (a pending key persisted when the push FAILED, SL7.22) leaves the
     # ROTATING worktree's prime row carrying a key the PUSHED authority does
     # not — a {prime_key} read from the worktree would name a key the pushed
     # row never carries and read NO-MATCH/RETIRED for a live Prime
     # (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
     # sig-resolves-the-sig-row-by-pubkey).
-    prime_row, prime_from = _prime_row_authority(root)
+    prime_row = _prime_row_authority(root)[0]
     if prime_row is not None:
         if prime_row.get("session_ref"):
             prime_ref = str(prime_row["session_ref"])
@@ -8724,7 +8834,6 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "prime_ref": prime_ref,
         "prime_key": prime_key,
         "prime_seat": prime_seat,
-        "prime_from": prime_from,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
@@ -11110,12 +11219,22 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                       else "### 🔴 Where it stops")
         end = len(lines)
         in_fence = False
+        opener = 0
         for j in range(sub + 1, len(lines)):
-            s = lines[j].strip()
-            if s.startswith("```"):
-                in_fence = not in_fence
+            r = _fence_run(lines[j])
+            if in_fence:
+                # a fence closes only on a fence of the SAME character
+                # whose run is at least the opener's (CommonMark); an inner
+                # shorter fence and any `#` line inside it stay content
+                # (goal:g15.25 residue (iii)).
+                if r >= opener:
+                    in_fence = False
                 continue
-            if s.startswith("#") and not in_fence:
+            if r >= 3:                      # an opener: record its run
+                in_fence = True
+                opener = r
+                continue
+            if lines[j].strip().startswith("#"):
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
@@ -13192,8 +13311,10 @@ def main(argv: list[str] | None = None) -> int:
                             "JOIN (default: ~/.claude/sessions)")
     p_ack.add_argument("--no-commit", action="store_true", dest="no_commit",
                        help="write + print the back-fill but do NOT commit "
-                            "the seat row (continue commits by default; "
-                            "diff never commits)")
+                            "the seat row even on a committing answer - the "
+                            "three answers commit as: continue commits; diff "
+                            "with empty text commits; diff with text never "
+                            "commits")
     # g15.24 belt fallback (2c): when the own-row dirty gate refuses, re-poll
     # the gate every 5 s up to N s before the exit-3 refusal. --wait 0 (the
     # default) behaves exactly as today.

@@ -21,6 +21,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 
@@ -956,6 +957,21 @@ def _git_run(repo: Path, *args: str):
                    capture_output=True, text=True)
 
 
+def _dead_pid() -> int:
+    """A pid PROVED dead: spawn a short-lived child, reap it, return its pid.
+    A reaped child's pid cannot be killed with signal 0 (ProcessLookupError),
+    so `_pid_alive` reads it dead — deterministic, unlike a hard-coded
+    999999, which can be a live process on a box whose pid space reaches it
+    (this one's /proc/sys/kernel/pid_max is 4194304)."""
+    proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(2)"])
+    proc.wait(timeout=10)
+    pid = proc.pid
+    # prove the reap: the pid must read dead to the same idiom `_pid_alive`.
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    return pid
+
+
 def _real_repo_with_seat(tmp_path):
     """A REAL git repo at `<tmp>/outer/repo` whose graph root is `<repo>/.agi`
     and which carries the over-line `probe-director` seat — git measurements
@@ -1129,18 +1145,40 @@ def test_latch_path_resolves_to_seats_own_tree_not_main(tmp_path):
     OWN `<root>/sessions`), so a hook run in a worktree never writes its
     `hook-*.lock` into MAIN's checkout. The shared MAIN-sessions dir is what
     the pre-fix `_latch_path` used, so every worktree hook run left untracked
-    churn under MAIN."""
+    churn under MAIN.
+
+    Built on a REAL two-tree git fixture — a main repo and a checked-out
+    worktree with its own `.agi/sessions` — so both trees genuinely resolve
+    and the discriminator is real, not two fabricated paths on a gitless tmp
+    tree (where `_shared_sessions_dir` degrades to the identity and the
+    assertion cannot tell the seat's tree from main). FALSIFIER-proof: this
+    FAILS if `_latch_path` is pointed back at the shared MAIN sessions dir."""
     import importlib.util
     spec = importlib.util.spec_from_file_location("ra_latch", _HOOK)
     ra = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ra)
 
-    main_root = tmp_path / "repo" / ".agi"
+    repo = tmp_path / "repo"
+    repo.mkdir(parents=True)
+    _git_run(repo, "init", "-q", "-b", "master")
+    _git_run(repo, "config", "user.email", "t@example.com")
+    _git_run(repo, "config", "user.name", "t")
+    (repo / "seed").write_text("x\n")
+    _git_run(repo, "add", "seed")
+    _git_run(repo, "commit", "-q", "-m", "seed")
+
+    main_root = repo / ".agi"
     (main_root / "nodes" / ".geometry").mkdir(parents=True)
     (main_root / "config.json").write_text("{}")
-    worktree = main_root / "worktrees" / "seat-demo" / ".agi"
+
+    # a REAL worktree on its own branch, with its OWN `.agi/sessions` dir.
+    wt_dir = repo / "worktrees" / "seat-demo"
+    _git_run(repo, "worktree", "add", "-q", "-b", "wt-seat-demo",
+             str(wt_dir))
+    worktree = wt_dir / ".agi"
     (worktree / "nodes" / ".geometry").mkdir(parents=True)
     (worktree / "config.json").write_text("{}")
+    (worktree / "sessions").mkdir(parents=True, exist_ok=True)
 
     latch = ra._latch_path(worktree, "demo", 3)
     assert latch.name == "hook-demo-gen3.lock", latch
@@ -1162,10 +1200,11 @@ def test_dead_latch_released_before_gate_c_captive(tmp_path, run_hook, monkeypat
     # a DIRTY tree makes gate (c) prepare's 'dirty' captive HOLD (listed,
     # never performed) while gate (b) stays clean.
     (repo / "dirty-marker").write_text("uncommitted\n")
-    # a DEAD-pid latch (999999 is not alive) for this seat + generation 0.
+    # a DEAD-pid latch (a REAPED child's pid, PROVED dead — never a hard-coded
+    # 999999, which can be a live process on this box) for this seat + gen 0.
     latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
     latch.parent.mkdir(parents=True, exist_ok=True)
-    latch.write_text("pid 999999\n")
+    latch.write_text(f"pid {_dead_pid()}\n")
     tp = tmp_path / "gc.jsonl"
     _write_transcript(tp, 45_000)                 # 0.45 >= 0.4 → over the line
     state_dir = tmp_path / "state-gc"
@@ -1205,14 +1244,23 @@ def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
     state_dir = tmp_path / "state-ns"
     state_dir.mkdir(exist_ok=True)
 
-    # With NO_SPAWN set, the seam is NOT even reached: rotation proceeds and
-    # records a fake pid, never touching subprocess.Popen.
+    # With NO_SPAWN set, the hook DECLINES: it never claims the latch (no
+    # fake pid 12345 ever latched), prints 'declined', and does not reach
+    # the seam — an out-of-process run can never fire a real rotate-self.
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, out, err = run_hook(_payload(graph, tp, "sess-ns", cwd=str(cwd)),
                               state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert "rotation: spawned rotate-self" in out, out
+    assert "declined: AGI_HOOK_NO_SPAWN" in out, out
+    assert "rotation: spawned" not in out, out    # declined, NOT spawned
     assert calls == [], "AGI_HOOK_NO_SPAWN must short-circuit BEFORE _Popen"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    assert not latch.exists(), "NO_SPAWN must write NO latch (ibid. phantom 12345)"
+    # the argv stays provable via the builder even under NO_SPAWN (the
+    # suppression never routes around the seam that carries the argv).
+    bin_dir = Path(hook.__file__).resolve().parents[1] / "bin"
+    argv_b = hook._rotate_self_argv(bin_dir, "probe-director", "stops: x")
+    assert argv_b[0] == "python3" and "rotate-self" in argv_b
 
     # Without it, the SEAM (not a raw subprocess.Popen) is the launch point,
     # carrying the exact argv + detach flags the production path needs.
@@ -1225,3 +1273,59 @@ def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
     assert "rotate-self" in argv, argv
     assert kw.get("start_new_session") is True, kw
     assert kw.get("stdout") is subprocess.DEVNULL, kw
+
+
+def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
+    """Claim (d) — ONE OUT-OF-PROCESS test: run the hook as a real subprocess
+    with AGI_HOOK_NO_SPAWN=1 against an over-line seat and assert NO latch,
+    NO spawn, exit 0. A fresh interpreter imports this module with the REAL
+    subprocess.Popen (the `_no_real_spawn` recorder is invisible here), so the
+    only thing stopping a real rotate-self is the NO_SPAWN path itself — the
+    exact production-pane hazard (an operator export leaking into the hook's
+    env) the fix is for."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    tp = tmp_path / "oop.jsonl"
+    _write_transcript(tp, 45_000)
+    state_dir = tmp_path / "state-oop"
+    state_dir.mkdir(exist_ok=True)
+    driver = dedent(f'''\
+        import importlib.util, json, sys
+        from pathlib import Path
+        spec = importlib.util.spec_from_file_location("rotation_alert", {str(HOOK)!r})
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        payload = {{"hook_event_name":"UserPromptSubmit", "session_id":"sess-oop",
+                    "transcript_path": {str(tp)!r}, "cwd": {str(cwd)!r}}}
+        sys.stdin = __import__("io").StringIO(json.dumps(payload))
+        raise SystemExit(m.main([]))
+    ''')
+    script = tmp_path / "oop_driver.py"
+    script.write_text(driver)
+    env = dict(os.environ)
+    env["AGI_HOOK_NO_SPAWN"] = "1"
+    env["AGI_ROTATION_STATE_DIR"] = str(state_dir)
+    env.pop("AGI_POST", None)   # the runner's own post must not leak in
+    env.pop("AGI_SEAT", None)
+    env["AGI_SEAT"] = "probe-director"
+    # The hook resolves seats rows through `graph_core.persistence.frontmatter`
+    # (geometry_config.load_rows), which lives under src/ — on sys.path under
+    # pytest (conftest), but a bare `python3` subprocess does NOT carry it, so
+    # without this the seats row is unread and the seat falls to the ladder
+    # default, never reaching over-line. Replicate the engine import surface.
+    engine_src = Path(hook.__file__).resolve().parents[1] / "src"
+    old_pp = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(engine_src) + (os.pathsep + old_pp if old_pp else "")
+    proc = subprocess.run([sys.executable, str(script)], capture_output=True,
+                          text=True, env=env, timeout=60)
+    # exit 0, the decline printed, and NO spawn message.
+    assert proc.returncode == 0, proc.stdout[-600:] + proc.stderr[-600:]
+    assert "declined: AGI_HOOK_NO_SPAWN" in proc.stdout, proc.stdout[-600:]
+    assert "rotation: spawned" not in proc.stdout, proc.stdout[-600:]
+    # NO latch written (the phantom 12345 must never land in a latch).
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    assert not latch.exists(), "out-of-process NO_SPAWN still wrote a latch"
+    # the manual rotate advice is still offered (suppression disables the
+    # SPAWN, not the guidance) — and the decline only ever prints from the
+    # over-line branch, proving the seat DID resolve and would have spawned.
+    assert "ROTATION OWED" in proc.stdout
+    assert "rotate.py" in proc.stdout

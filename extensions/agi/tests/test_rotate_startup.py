@@ -945,7 +945,8 @@ def _graph_root() -> Path:
     return Path(__file__).resolve().parents[3] / ".agi"
 
 
-def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node():
+def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node(
+        monkeypatch):
     # LIVE-CONFIG (the standing kid rule: a test of live config reads the
     # live node, never a copied list). Load `config:rotations` through the
     # SAME loader rotate.py uses (`_load_templates`), take the REAL
@@ -956,7 +957,22 @@ def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node():
     # <pubkey>`) and that the resolved whole command still passes the
     # producing allowlist. Asserts the RESOLVED SHAPE, not which path
     # produced it: if the live template has been re-cut to `--key
-    # {prime_key}` the test still passes. Skips (not fails) only when the
+    # {prime_key}` the test still passes.
+    #
+    # SEAM-INJECTED: `_first_turn_values` routes the pushed-prime read
+    # through `_prime_pushed_seats`, which is monkeypatched here with a
+    # canned PUSHED row so this LIVE-CONFIG test performs NO real
+    # `git fetch origin <name>` inside the offline suite
+    # (hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-once-per-run-
+    # through-a-seam-and-no-suite-test-reaches-origin). The row's pubkey is
+    # a stand-in; the claim under test is the LIVE TEMPLATE's by-key
+    # resolution, not the live seats value.
+    rotate._prime_rows_fetch_clear()
+    fake_key = "c0ffee" + "0" * 34
+    monkeypatch.setattr(rotate, "_prime_pushed_seats", lambda root, ref: (
+        [{"role": "prime_director", "name": "sanctuary-director",
+          "session_ref": "", "pubkey": fake_key}], "SHA", ref))
+    # Skips (not fails) only when the
     # graph/rotations node is genuinely absent so the hermetic suite stays
     # runnable off-repo; a PRESENT node that fails to resolve is a live drift
     # finding, not a skip.
@@ -1630,7 +1646,7 @@ _PUSHED_PRIME_ROW = {
 }
 
 
-def _prime_from_both_sources(monkeypatch, tmp_path, work_row, push_row):
+def _prime_dual_source_rows(monkeypatch, tmp_path, work_row, push_row):
     """Write a worktree seats row + stub the PUSHED reader, so the
     pushed row and the worktree row carry DIFFERENT pubkeys (the falsifier
     fixture)."""
@@ -1649,8 +1665,8 @@ def _prime_from_both_sources(monkeypatch, tmp_path, work_row, push_row):
 def test_first_turn_prime_key_reads_pushed_row_never_worktree(monkeypatch,
                                                               tmp_path):
     # FALSIFIER: worktree row and pushed row carry DIFFERENT pubkeys — the
-    # resolved {prime_key} must be the PUSHED row's, and prime_from says so.
-    _prime_from_both_sources(monkeypatch, tmp_path, _WORKTREE_PRIME_ROW,
+    # resolved {prime_key} must be the PUSHED row's.
+    _prime_dual_source_rows(monkeypatch, tmp_path, _WORKTREE_PRIME_ROW,
                              _PUSHED_PRIME_ROW)
     vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
                                      gen=7, succ_name="sd-next")
@@ -1658,13 +1674,12 @@ def test_first_turn_prime_key_reads_pushed_row_never_worktree(monkeypatch,
     assert vals["prime_key"] != "11112222deadbeef"
     assert vals["prime_seat"] == "belam"
     assert vals["prime_ref"] == ""                    # pushed prime's session_ref is empty here
-    assert vals["prime_from"] == "pushed"
 
 
 def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
                                                                tmp_path):
-    # Pushed authority unreachable: fall back to the working-tree row AND
-    # say so — never a silent worktree read, never an empty key.
+    # Pushed authority unreachable: fall back to the working-tree row
+    # (never a silent worktree read, never an empty key).
     import send as _send
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
@@ -1675,16 +1690,162 @@ def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
     vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
                                      gen=7, succ_name="sd-next")
     assert vals["prime_key"] == "11112222deadbeef"
-    assert "prime_from" in vals and "worktree" in vals["prime_from"]
-    assert "unreachable" in vals["prime_from"]
 
 
-def test_prime_from_is_a_startup_placeholder():
-    # `prime_from` is a CANONICAL placeholder: referencing it resolves and
-    # never refuses; a template author can surface WHERE the prime authority
-    # came from.
-    resolved = rotate._resolve_startup_placeholders(
-        "echo prime={prime_from} key={prime_key}",
-        dict(VALUES, prime_from="pushed", prime_key="aabbccdd1122334455"))
-    assert "prime=pushed" in resolved
-    assert "prime_key" in resolved or "aabbccdd1122334455" in resolved
+# ---- g15.25 (SL7.49): first seating gen follows the seat's ROW, not a      #
+# ---- hard-coded gen 1 (hypothesis:l4-a-first-seating-on-an-existing-seat-  #
+# ---- reports-the-rows-generation-not-a-hard-coded-gen-1)                  #
+
+
+def _fs_seats_sheet(root, rows):
+    """A config:seats node carrying the given rows (same shape the snapshot
+    and test_rotate_g1517 build)."""
+    nodes = root / "nodes" / ".geometry"
+    nodes.mkdir(parents=True, exist_ok=True)
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    (nodes / "seats.md").write_text(body, encoding="utf-8")
+
+
+def _fs_director_first_turn(root):
+    """A config:rotations node whose director template declares a
+    `startup.first_turn` probe that echoes `seat` and `gen` — the block a
+    first seating composes, so `{gen}` substitution is observable."""
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (root / "bin").mkdir(parents=True, exist_ok=True)
+    (root / "bin" / "probe_fs.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {brief_file: x.md, steps: [spawn], telemetry: [seat, ack],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_fs.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+
+
+def _fs_bootstrap(root, seat):
+    p = rotate._sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def test_first_seating_on_existing_seat_reports_row_gen_not_1(tmp_path):
+    """A RE-spawn onto a config:seats row that already carries
+    `generation: 4` records generation 4 in the bootstrap record, substitutes
+    `{gen}` = 4 into the composed STARTUP OUTPUT, and names `gen 4` in the
+    turn-one ack override — never a hard-coded `gen 1` (the pre-fix defect:
+    `_first_seating_run` built every gen-carrying value with `gen=1`)."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "generation": 4},
+    ])
+    _fs_director_first_turn(tmp_path)
+    block, results = rotate._first_seating_run(
+        tmp_path, seat="re-seated", role="director", succ_name="re-seated",
+        dry_run=False)
+
+    bs = _fs_bootstrap(tmp_path, "re-seated")
+    # the bootstrap record generation agrees with the row, never a hard-coded 1.
+    assert bs["generation"] == 4, \
+        f"bootstrap generation must follow the row, got {bs['generation']}"
+    # the turn-one ack override inside the record names gen 4, never gen 1.
+    ack_fact = bs["telemetry"]["ack"]
+    assert "gen 4" in ack_fact and "first-seating" in ack_fact, \
+        f"ack fact must name the row gen and source first-seating: {ack_fact}"
+    assert "gen 1" not in ack_fact, \
+        f"no stale hard-coded gen 1 anywhere in the ack fact: {ack_fact}"
+    # the {gen} placeholder inside the composed STARTUP OUTPUT is 4.
+    assert "gen=4" in block and "gen=1" not in block, \
+        f"composed block must substitute the row gen 4:\n{block}"
+    assert results, "first seating should compose a non-empty first_turn"
+
+
+def test_first_seating_ask_diff_ack_override_carries_row_gen(tmp_path):
+    """The ask-diff mode's ack override (answer `diff-requested`, source
+    `first-seating`) also names the row generation, byte-identical source
+    handling with the corrected gen."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "diff-seat", "role": "director", "generation": 7},
+    ])
+    _fs_director_first_turn(tmp_path)
+    _block, _results = rotate._first_seating_run(
+        tmp_path, seat="diff-seat", role="director", succ_name="diff-seat",
+        dry_run=False, ask_diff=True)
+    bs = _fs_bootstrap(tmp_path, "diff-seat")
+    assert bs["generation"] == 7
+    ack_fact = bs["telemetry"]["ack"]
+    assert "diff-requested" in ack_fact and "gen 7" in ack_fact, \
+        f"ask-diff ack fact must name diff-requested and gen 7: {ack_fact}"
+    assert "first-seating" in ack_fact, \
+        "ask-diff source stays first-seating, never predecessor"
+    assert "gen 1" not in ack_fact
+
+
+def test_first_seating_new_seat_still_records_gen_1(tmp_path):
+    """A BRAND-NEW seat (no row, or a gen-less row) is byte-identical to
+    today: generation 1, source first-seating, `{gen}` = 1. Guards the
+    regression that a gen-less first seating must not accidentally resolve to
+    a row generation of 0 or refuse."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "fresh-seat", "role": "director", "model": "m"},  # no gen
+    ])
+    _fs_director_first_turn(tmp_path)
+    block, _results = rotate._first_seating_run(
+        tmp_path, seat="fresh-seat", role="director", succ_name="fresh-seat",
+        dry_run=False)
+    bs = _fs_bootstrap(tmp_path, "fresh-seat")
+    assert bs["generation"] == 1, \
+        f"a brand-new seat stays at FIRST_SEATING_GEN=1, got {bs['generation']}"
+    assert "gen 1" in bs["telemetry"]["ack"]
+    assert "first-seating" in bs["telemetry"]["ack"]
+    assert "gen=1" in block, f"fresh-seat block must substitute gen 1:\n{block}"
+
+
+def test_first_seating_no_row_still_records_gen_1(tmp_path):
+    """A first seating with NO config:seats row at all (a throwaway seat)
+    also stays at gen 1 — the `_seat_row_generation` reader returns None and
+    the resolution falls back to FIRST_SEATING_GEN."""
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    _fs_director_first_turn(tmp_path)
+    block, _results = rotate._first_seating_run(
+        tmp_path, seat="throwaway", role="director", succ_name="throwaway",
+        dry_run=False)
+    bs = _fs_bootstrap(tmp_path, "throwaway")
+    assert bs["generation"] == 1
+    assert "gen 1" in bs["telemetry"]["ack"]
+    assert "gen=1" in block
+
+def test_prime_pushed_seats_fetches_once_per_process_across_values_builds(
+        monkeypatch, tmp_path):
+    # FALSIFIER for hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-
+    # once-per-run-through-a-seam-and-no-suite-test-reaches-origin: a rotate-
+    # self builds first_turn values at FIVE sites (first seating, a second
+    # compose, driven startup, startup, after-join), each routing through
+    # `_prime_pushed_seats`, which memoizes on (str(root), ref). Build the
+    # values map repeatedly — the multi-site shape — and assert the
+    # underlying `send._pushed_seats` (the REAL fetch) ran exactly ONCE.
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    fetch_calls = {"n": 0}
+
+    def fake_pushed(root, ref, do_fetch):
+        fetch_calls["n"] += 1
+        assert do_fetch is True
+        return ([{"role": "prime_director", "name": "sanctuary-director",
+                  "session_ref": "", "pubkey": "K" * 40}], "SHA", ref)
+
+    monkeypatch.setattr(_send, "_pushed_seats", fake_pushed)
+    rotate._prime_rows_fetch_clear()
+    try:
+        for gen in range(1, 6):
+            vals = rotate._first_turn_values(
+                tmp_path, seat="sanctuary-director", gen=gen,
+                succ_name="sd-next")
+            assert vals["prime_key"] == "K" * 40
+        assert fetch_calls["n"] == 1, (
+            f"pushed-seats fetch ran {fetch_calls['n']} times across a "
+            f"five-site values build; expected exactly once")
+    finally:
+        rotate._prime_rows_fetch_clear()

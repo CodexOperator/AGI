@@ -810,11 +810,14 @@ def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
     argv = _rotate_self_argv(bin_dir, seat, stops)
     if os.environ.get("AGI_HOOK_NO_SPAWN"):
-        # Out-of-process safety (c1f01e920): a pytest that runs the hook in a
-        # subprocess (fresh module, `_Popen` = real subprocess.Popen) must be
-        # able to suppress the spawn — a recorder pid, the argv still provable
-        # via `_rotate_self_argv`.
-        return 12345
+        # Out-of-process safety (c1f01e920) AND operator suppression — the
+        # DEFENSE-IN-DEPTH net under the gate (e) guard in `_gated_rotate`
+        # (which prints the decline and writes NO latch). If a caller reaches
+        # this seam directly under NO_SPAWN, return None — NEVER a recorder
+        # pid: a None is unlatched by the caller's spawn-failed path, so no
+        # phantom pid can ever land in a latch. The argv stays provable via
+        # the `_rotate_self_argv` builder (never reached, nothing lost).
+        return None
     try:
         proc = _Popen(argv, stdout=subprocess.DEVNULL,
                       stderr=subprocess.DEVNULL,
@@ -886,6 +889,23 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
               f"(latch {latch.name} held by a live rotate-self); re-check on "
               f"the next prompt.")
         return f"latch-gen-{gen}"
+
+    # gate (e) OPERATOR SUPPRESSION — AGI_HOOK_NO_SPAWN in the hook's env
+    # (an operator export leaking into the hook) must NEVER latch the seat
+    # against a phantom. Pre-fix the short-circuit lived inside
+    # `_spawn_rotate_self` and returned 12345 (a recorder pid), so the caller
+    # printed 'spawned' and wrote the once-per-generation latch as
+    # 'pid 12345' for a rotate-self that never started — latching the seat for
+    # the WHOLE generation against a fake. Here, FIRST, before any latch is
+    # claimed: print the decline, write NOTHING, and let a later prompt retry
+    # when the suppression lifts. The argv stays provable through the
+    # `_rotate_self_argv` builder.
+    if os.environ.get("AGI_HOOK_NO_SPAWN"):
+        print("rotation: declined: AGI_HOOK_NO_SPAWN — the hook will NOT "
+              f"spawn a rotate-self for {seat} (spawn suppressed by the "
+              "operator env). NO latch was written; the seat can retry on "
+              "the next prompt, or rotate manually.")
+        return "no-spawn"
 
     # claim the latch BEFORE spawning so a concurrent prompt cannot double it.
     try:
