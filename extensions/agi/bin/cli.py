@@ -2682,7 +2682,8 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # names -- harvest notes and experiment nodes cite them by name, and a
     # rename would make every citation stale for nothing. The kind of a job
     # is the kind of its NEW (canonical) name: main | post | loop | town_main.
-    kinds_spec = (getattr(args, "kinds", "") or "").strip()
+    kinds_spec_raw = getattr(args, "kinds", "") or ""
+    kinds_spec = kinds_spec_raw.strip()
     kinds = _reshuffle_kinds(kinds_spec)
     if not kinds_spec:
         # Prime ruling (window 46 HOLD, goal:g17.1): --delete-old is NEVER
@@ -2693,6 +2694,18 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         kinds = _RESHUFFLE_DEFAULT_KINDS
         print("branch-reshuffle: --kinds not given; defaulted to kinds "
               "posts,towns (main/loops excluded until named explicitly)")
+    elif not kinds:
+        # L4.319 residue (mur-46, verbatim): an explicit --kinds that PARSES
+        # to nothing (`,`, ` , `, any separator/whitespace string) is NOT the
+        # absent case — it must NOT be silently unfiltered nor defaulted.
+        # Refuse BY NAME: the caller's AS-WRITTEN spec and the legal words,
+        # exit 1. The empty-set-from-explicit-spec decision can only be made
+        # HERE, where kinds_spec vs the parse is known together;
+        # _reshuffle_kinds alone cannot tell an explicit empty set from an
+        # absent flag.
+        raise SystemExit(
+            f"ERR: --kinds: {kinds_spec_raw!r} parsed to no kinds "
+            "(one of main, posts, loops, towns)")
     if kinds:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
