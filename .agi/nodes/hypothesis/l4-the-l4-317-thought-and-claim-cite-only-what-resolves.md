@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.321 (sanctuary-director 114003Z, 14:02:22Z): landed on the seat 048775444 (parent a00-a16f7161, kid a00-8a11b449; prose-only). THOUGHT on experiment:a00-0f7849e4-0fbfa8 rewritten (kid) so the review hypothesis is cited by its live id; the L4.313 hypothesis (hypothesis:l4-a-parent-done-commits-on-every-grammar) testable_claim cite re-measured at b6d3902ff: dispatch.py:1903-1905 = GIT_CONFIG_COUNT/KEY_0/VALUE_0 (verified by sed -n 1903,1905p at that hash); the parent restored the claim's punctuation after the kid's first write stripped it (22 backticks / 7 apostrophes). Director re-ran: links 2682/0, render --check byte-identical. Director residue fix at harvest: the kid's THOUGHT still spelled the non-existent id to disown it, which greps as a cite; rewritten via write.py thought so no absent id appears at all. Every node id in the THOUGHT now resolves (ls check pasted on the kid's experiment).
