@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.314 (sanctuary-director 043918Z, 2026-09-12T05:52:14Z): merged a00-c4ab3885 (1 kid a00-1d3ba2e2, proved 0.95) at seat 13526faf1. send.py `_pushed_seats` returns (rows, sha, live_ref) -- the member of branches.ref_candidates that rev-parse accepted -- and whois prints live_ref (send.py whois print path); the UNVERIFIED branch names every candidate tried (canonical first, legacy fallback). The two `_pushed_seats` callers in send.py (2196, 3571) unpack the triple; test_post_rename.py:301/366 adapted to the tuple (the only out-of-scope touch, mechanical). Re-run on the merged seat: test_send.py + test_post_rename.py = 274 passed, 1 xfailed (SL7.09's declared strict-xfail). REAL TREE by the director: `send.py whois 92eda4 --claim belam` -> `IS-AUTHORIZED ... (verified against origin/season/s2 @ 146d971eb...)` -- the ref it read; origin still carries no season2/main. Line (b) LANDED.
