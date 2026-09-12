@@ -1831,6 +1831,32 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             "pid": pid, "window": window_id, "reason": "", "row": row_text}
 
 
+def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \
+        -> Path | None:
+    """The newest `rotation: crash-recovery` `result: detected` record file for
+    `seat` still inside `SEAT_DEAD_WINDOW_S`, or None. This is the dedupe key
+    (hypothesis:l4-a-rotation-alert-lands-in-the-inbox-..., clause 3): a seat
+    that stays dead and unrecoverable is re-scanned every poll (~30 s) and each
+    pass would otherwise mint a FRESH `<seat>.<stamp>.json`, the measured
+    nine-detected-records-per-seating defect. Reusing the existing detected
+    record's path keeps ONE record per death, updated in place."""
+    rot = _rotate._rotations_dir(root)
+    if not rot.is_dir():
+        return None
+    for path in sorted(rot.glob(f"{seat}.*.json"), reverse=True):
+        try:
+            rec = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if rec.get("rotation") != "crash-recovery" \
+                or rec.get("result") != "detected":
+            continue
+        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        if ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S:
+            return path
+    return None
+
+
 def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
                           _rotate, now: float, outcome: dict | None = None) \
         -> Path:
@@ -1838,7 +1864,13 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
     probable_cause AND the respawn outcome (`result: respawned` with the
     successor name/generation/pid/window when recovery landed, else `result:
     detected` so the next pass retries). Discoverable by
-    `rotate.py status --record latest <seat>` and the Sensei audit glob."""
+    `rotate.py status --record latest <seat>` and the Sensei audit glob.
+
+    DEDUPE (clause 3): a `detected` (recovery did not land) write is keyed to
+    the seat's newest EXISTING detected record inside `SEAT_DEAD_WINDOW_S` and
+    UPDATES THAT FILE IN PLACE, so one death stays one record no matter how
+    many polls re-scan the still-dead seat. A `respawned` write is always a
+    fresh file (it is a distinct, terminal outcome)."""
     res = "respawned" if (outcome and outcome.get("respawned")) else "detected"
     # The successor generation the after_join service will bind: `gen_after`
     # is the key `rotate._latest_rotate_record` / `run_after_join_for_seat`
@@ -1879,6 +1911,15 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
             "reason": outcome.get("reason") or "",
             "row": outcome.get("row") or "",
         }
+    if res == "detected":
+        # one record per death: update the existing detected record in place.
+        existing = _latest_detected_path(root, seat, _rotate, now)
+        if existing is not None:
+            path = _rotate._write_rotation_record(root, rec, path=existing)
+            _watch_log(f"watch: updated crash-recovery record for {seat}: "
+                       f"{Path(path).name} (probable_cause={cause} "
+                       "result=detected, deduped)")
+            return path
     path = _rotate._write_rotation_record(root, rec)
     _watch_log(f"watch: wrote crash-recovery record for {seat}: "
                f"{Path(path).name} (probable_cause={cause} result={res})")
