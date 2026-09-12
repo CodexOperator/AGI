@@ -45,6 +45,16 @@ def graph(tmp_path: Path) -> Path:
     return g
 
 
+# (SL7.03) leak detector: AGI_REAPER_LOG must never survive a test -- a raw
+# `os.environ[...] = ...` write would bleed a reaper-log path into later
+# tests' watch-loop logging. All writes go through monkeypatch.setenv.
+@pytest.fixture(scope="module", autouse=True)
+def _no_reaper_log_leak():
+    yield
+    assert "AGI_REAPER_LOG" not in os.environ, \
+        "AGI_REAPER_LOG leaked out of a test -- use monkeypatch.setenv"
+
+
 def _write_seats(graph: Path, rows: list[dict]) -> None:
     p = graph / "nodes" / ".geometry" / "seats.md"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -112,13 +122,13 @@ def _seats_md(graph: Path) -> Path:
 
 # --- detection --------------------------------------------------------------
 
-def test_dead_seat_one_naming_one_record_with_cause(graph, capsys):
+def test_dead_seat_one_naming_one_record_with_cause(graph, capsys, monkeypatch):
     """A single dead seat (pid gone + no window) -> exactly ONE naming on
     stderr + in the watch log, ONE crash-recovery record carrying the
     probable_cause from the seat log tail AND the respawn outcome (kid 2:
     recovery is a respawn, and the record states that it happened)."""
     logp = graph / "reaper.log"
-    os.environ["AGI_REAPER_LOG"] = str(logp)
+    monkeypatch.setenv("AGI_REAPER_LOG", str(logp))
     _write_seats(graph, [{"name": "seat-a", "role": "director",
                           "model": "claude-opus-5", "pid": 999999,
                           "window": "@50", "generation": 3}])

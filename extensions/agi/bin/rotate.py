@@ -1500,6 +1500,14 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     seat = getattr(args, "seat", None)
+    # pred_pid is derived ONCE for this spawn: `--pid` when given, else the
+    # seat row's pid when a seat is named. BOTH the g15.21 dead-gate below and
+    # the seating autopsy block read this single value, so a `--pid` naming a
+    # live process is refused exactly like a live row pid, and the gate can
+    # never disagree with the autopsy on which predecessor died
+    # (hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-
+    # gate-and-autopsy-share-one-pid). Never a second derivation.
+    _pred_pid = getattr(args, "pid", None)
     # A first seating is a rotation without a predecessor
     # (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor).
     # spawn RUNS the SAME role template `startup.first_turn` rotate-self runs
@@ -1522,29 +1530,33 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     if seat is not None:
         # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
-        # seat-and-no-season-literal-remains): the seat row's pid is still
-        # running, or a live tmux window is already up for the seat. The
-        # liveness read is the SAME one the autopsy block uses — the row pid
-        # via `_pid_gone` AND `_successor_window_id` for the live window —
-        # never a second derivation, so the gate and the autopsy agree.
+        # seat-and-no-season-literal-remains): a spawn onto a seat whose
+        # predecessor pid is still running, or where a live tmux window is
+        # already up for the seat, is refused. `_pred_pid` was derived once
+        # above (`--pid` when given, else the row); this gate and the autopsy
+        # block both read it — the liveness read is never a second derivation
+        # (hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-
+        # spawn-gate-and-autopsy-share-one-pid).
+        if _pred_pid is None and root is not None:
+            _pred_pid = (_find_seat(root, seat) or {}).get("pid")
         _alive_note = None
-        if root is not None:
-            _gpid = (_find_seat(root, seat) or {}).get("pid")
+        if root is not None and _pred_pid is not None:
+            try:
+                _gpid = int(_pred_pid)
+            except (TypeError, ValueError):
+                _gpid = None
             if _gpid is not None:
-                # the row names a predecessor pid: the seat is ALIVE iff the
-                # pid is still running, or a live window is up for the seat
-                # (test_rotate.py test_spawn_first_seating... proves a seat
-                # with NO row pid — a genuine first seating — is never gated).
-                try:
-                    if not _pid_gone(int(_gpid)):
-                        _alive_note = f"pid {_gpid}"
-                    else:
-                        _lwid = _successor_window_id(
-                            seat, tmux_session, args.window_path)
-                        if _lwid is not None:
-                            _alive_note = f"window {_lwid}"
-                except (TypeError, ValueError):
-                    _alive_note = None
+                # the pid names a predecessor process: the seat is ALIVE iff
+                # that pid is still running, or a live window is up for the
+                # seat (test_rotate.py test_spawn_first_seating... proves a
+                # seat with NO row pid — a genuine first seating — is never
+                # gated).
+                if not _pid_gone(_gpid):
+                    _alive_note = f"pid {_gpid}"
+                else:
+                    _lwid = _successor_window_id(seat, tmux_session, args.window_path)
+                    if _lwid is not None:
+                        _alive_note = f"window {_lwid}"
         if _alive_note is not None:
             print(f"ERR: seat {seat!r} is alive ({_alive_note}); refusing "
                   f"spawn — the seat is already up (goal:g15.21)",
@@ -1618,9 +1630,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # -autopsy` skips only the autopsy, never the block. Reads only.
         now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         seq = _current_sequence(root) if root is not None else 0
-        pred_pid = getattr(args, "pid", None)
-        if pred_pid is None and root is not None:
-            pred_pid = (_find_seat(root, seat) or {}).get("pid") if seat else None
+        pred_pid = _pred_pid  # the single value the dead-gate also read
         pred_death = "-"
         dead = False
         if pred_pid is not None:
@@ -1842,9 +1852,11 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             return 2
     # r3b: `continue` COMMITS its own row write (unless --no-commit); `diff`
     # never commits (the successor still edits). Only the commit path checks
-    # a pre-dirtied seats.md — a dirty config:seats BEFORE the ack (unrelated
-    # staged OR unstaged hunks in THAT file) is REFUSED BY NAME before any
-    # write, so the ack's own commit never bundles someone else's row change.
+    # a pre-dirtied seats.md — the SEAT'S OWN row pre-staged or pre-edited
+    # before the ack is REFUSED BY NAME before any write (SL6.09 own-row gate:
+    # an unrelated FOREIGN hunk, staged or unstaged, is neither bundled nor
+    # blocking — only the OWN row's uncommitted change names the refusal), so
+    # the ack's own commit never double-writes a row someone was mid-edit on.
     do_commit = args.answer == "continue" \
         and not getattr(args, "no_commit", False)
     # L4.291 director fix-up (sanctuary-director 195718Z harvest): the
@@ -8028,20 +8040,43 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     tmpl, _name, _src = _resolve_template(root, role)
     startup = (tmpl.get("startup") if tmpl else None) or {}
     gen = rec.get("gen_after")
-    values = _first_turn_values(
-        root, seat=seat, gen=int(gen) if gen is not None else 0,
-        succ_name=seat)
-    # succ_ref best-effort from the record's handover, so the ack writes a real
-    # ref when the join supplied one.
+    # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
+    # autopsy-share-one-pid) key the after_join successor on the RECORD's
+    # captured join window @id, re-joined through the SAME `_join_successor` so
+    # the after_join and the spawn gate/autopsy share one identity (poll =
+    # ONE poll interval = a single registry read over the already-up
+    # successor, never the bounded 60s wait; poll 0 reads zero times by the
+    # loop's shape, see the registry join deadline). A record with no window
+    # @id does NO join and behaves as before.
     hov = rec.get("handover") or {}
     join = hov.get("join") or {}
-    sref = join.get("session_id") or ""
-    if not sref:
-        sr = hov.get("successor_row")
-        if isinstance(sr, dict):
-            sref = sr.get("session_id") or ""
-    if sref:
-        values["succ_ref"] = str(sref)
+    window_id = join.get("window_id") or ""
+    joined = {}
+    if window_id:
+        joined = _join_successor(root=root, seat=seat, window_id=window_id,
+                                 poll_secs=REGISTRY_JOIN_POLL_S)
+    if joined.get("found"):
+        pid = joined.get("pid")
+        session_id = joined.get("session_id")
+        transcript = joined.get("transcript")
+    else:
+        pid = None
+        session_id = None
+        transcript = join.get("transcript") or ""
+    # succ_ref ONLY from the seat row's OWN session_ref cell (a harness ref,
+    # never a session id); an empty ref stays empty so the composed after_join
+    # dm prints `<your ListAgents ref>`, exactly as _compose_after_join_dm
+    # intends today.
+    sref = (row or {}).get("session_ref") or ""
+    values = _first_turn_values(
+        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        succ_name=seat, succ_ref=str(sref),
+        succ_transcript=str(transcript))
+    # pid/from the live join (never the stale record), informational on the
+    # values map for any startup template that reads them — unknown placeholders
+    # stay refused by _resolve_startup_placeholders regardless.
+    values["pid"] = pid
+    values["session_id"] = session_id
     return run_after_join(
         root, seat=seat, gen=int(gen) if gen is not None else 0,
         startup=startup, values=values, record_path=str(path),
