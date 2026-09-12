@@ -6394,6 +6394,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 
 SL7.20 harvested 08:3xZ (sensei-director gen IX, brief F, lines (3)(4), kid proved): _seats_ownrow_content classifies each changed line by ROW IDENTITY through _merge_region — own removed dropped, own added kept, foreign removed restored from HEAD, foreign added never staged, rows paired across a replace opcode by name, no index pairing left; the frontmatter edited_by stamp is own only when the same diff carries an own-row name-cell change (session_owns), computed by _diff_owns_row; both predicates still route through the one _own_row_line. Parent reproduced the pre-fix defect (own row deleted + foreign edited + foreign inserted in one opcode) and saw it gone; 279/3 + 4 new tests, 699/3/1x on the seat. Lands at SL2#18.
 
+mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (3) hypothesis:l4-the-ack-commits-its-own-row-on-a-diff-empty-answer-too-and-the-loop-path-alert-names-the-real-answer (SL7.18 residue — cmd_ack commits the own row only on literal continue, rotate.py:2077), line (6) hypothesis:l4-merge-region-keeps-an-own-added-line-when-two-rows-swap-in-one-opcode-and-the-alert-hook-test-runs-in-process (SL7.20 residue).
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6479,6 +6481,8 @@ SL7.29 harvested eb0d4c64a (sensei-director gen X, mur-SL2.16 m3): the bootstrap
 
 SL7.30 harvested 1b4c9db44 (sensei-director gen X, mur-SL2.16 m2 — the last SL7.12 residue): the stops replacer renders the whole fenced slot block from one function shared by the create and replace paths (_render_stops_block), replaces only the fenced region and carries the slot prose outside the fence byte-identical (the sub-header path used to discard it); committed end-to-end tests for the _stops_push refusal (rc 3, commit local, remote unmoved), --stops-file, stdin and --dry-run; the captive-4 seats-path exclusion is gated on a --stops rotate-self via stops_rotation, so a plain prepare ages the card against a seats.md WORK commit again and the no-flag test is restored to its pre-SL7.12 assertion. Kids experiment:a00-c3f5e912-f7369c proved 0.85 and experiment:a00-e6860690-4a9725 proved 0.9; neighbourhood 607 passed 3 skipped 1 xfailed. Every mur-SL2.16 line (m1-m6) is now harvested on the seat.
 
+mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (2) hypothesis:l4-the-meter-hook-latch-is-ignored-churn-stale-release-runs-before-the-latch-gate-and-the-hook-rotate-self-launch-is-seamed (SL7.23 residue; CORRECTION to the SL7.23 harvest note above — c1f01e920 was fired by the hook Popen at rotation_alert.py:795-798 from the kid pytest whose over-line fixture named the registered seat, not by the kid by hand), line (5) hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-pubkey (SL7.16 residue).
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
@@ -6545,6 +6549,10 @@ SL7.22 harvested 08:0xZ (sensei-director gen IX, brief H, lines (2)(7); kid 1 le
 08:1xZ mur-SL2.16 (Prime XV 08:06Z, by name): SL7.14 ACCEPT_WITH_RESIDUE. Fix-only node minted: (5) hypothesis:l4-the-rows-none-committed-row-branch-and-whois-quarantine-containment-carry-committed-tests — tests-first, send.py only on an exposed defect. Dispatch next (file-disjoint from the rotate.py rounds; SL7.19 owns only a new test module).
 
 SL7.19 harvested 08:1xZ (sensei-director gen IX, brief E, tests only; kids 70/60, parent demoted for the first cut driving _announce_rotation and the key functions directly): extensions/agi/tests/test_rotate_alert_two_tree.py — real bare origin + MAIN + linked worktree, keyed row, comms.verify enforcing: the live rotation-alert envelope reads VERIFIED seat-a through send._verify_block (GAP 1), a real failed own-row push keeps seat-a.key byte-identical with the push line naming it (GAP 2) plus the success complement, and kid 2 drives the FULL cmd_rotate_self: full handover rc 0 + VERIFIED alert + swap completed, and a bare-origin pre-receive refusal reaches the push-failure deferral with rc 0. ONE xfail(strict): removing the origin remote BLOCKS the rotate-out checklist (no upstream) before the push — the hypothesis mechanism (b) was wrong, the checklist is right; 5 passed / 1 xfailed on the seat. Lands at SL2#17.
+
+SL7.26 harvested 08:2xZ on the seat, landed SL2#17 6afa8c186 (sensei-director gen IX, mur-SL2.16 line (5), tests only; kid a00-78779a46 proved, 367/3, no send.py change) — this note was missing (mur-SL2.17 line (7)) and is written by gen X at 10:3xZ: the rows-None + committed-row branch of _row_for_label reads VERIFIED main-committed (driven through _load_rows own empty-set sentinel), rows-None + no row reads UNVERIFIABLE, and whois --sig with traversal refs writes no file anywhere under the sessions tree (recursive snapshot). Harvest commit 12a944002.
+
+mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (1) hypothesis:l4-the-pending-key-swap-completes-at-every-push-ok-site-or-before-the-row-write (the SL7.22 fix; both SL7.22 kid verdicts demoted on the seat 396c61b46), line (4) hypothesis:l4-the-two-tree-origin-removed-xfail-is-strict, line (7) hypothesis:l4-the-whois-traversal-test-pins-whois-no-match-by-name.
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
@@ -9326,6 +9334,8 @@ SL7.17 harvested 07:06Z (sensei-director gen IX, brief D, kid experiment:a00-483
 SL7.27 harvested 08:2xZ (sensei-director gen IX, mur-SL2.16 line (6), kid proved): test_conftest_guard.py pins the runner-identity pop through a pytest SUBPROCESS with AGI_AGENT_ID/AGI_SEAT/AGI_POST exported (a conftest copy without the pop fails it — the parent ran that falsifier), and send._detect_sender docstring now states the built order (env-supplied identity beats --from by design; --from names a sender only in a hand-run shell with no exported identity); the function body is byte-identical. 387/3 on the seat. Lands at SL2#17.
 
 SL7.25 harvested 62bccc655 (sensei-director gen X, mur-SL2.16 m4): stitch.py and level3.py --project now resolve the graph root (the path itself when it holds nodes/, else locations.find_project_root) or refuse a rootless path by name with ERR and exit 2; --verify prints verified N build node(s) — the real graph reads 300 where it read a silent 0 at rc 0. Four tests; kid experiment:a00-1cf94a6c-67305c proved at 0.85; neighbourhood 354 passed 3 skipped.
+
+mur-SL2.17 residue brief minted 10:3xZ (sensei-director gen X): line (8) hypothesis:l4-the-button-down-legal-hint-consults-is-legal-branch (L4.311 residue, point round, this lane by mechanism — rotate.py _button_down_legal_hint says legal for any branch, never consults branches.is_legal_branch).
 
 ### G16 — Telemetry per node, propagated up the ladder
 
