@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.338 (sanctuary-director 183732Z, 22:5xZ): LANDED as merge ee23af1d5 (parent a00-4895b300, 4 kids all proved; 58 min). Director checks on the merged tree: 155 passed (town + write suites); towns.town_tuples('.agi') on the REAL tree = the three live towns (core 2 / streaming-suite 1 / web-app-suite 1, councils resolve) with zero refusals; a no-visions town create is refused BY NAME at mint (dry-run probe: 'visions is required non-empty at mint'); the live town nodes are byte-identical (never touched). DIRECTOR ACTION at merge: the round's done commit carried .agi/nodes/notown/missing-thing.md -- a node of a NON-EXISTENT type a kid wrote into the live tree while probing the unknown-schema refusal (the parent's add -A swept it in); dropped from the merge (git rm in the merge commit), never landed here. RESIDUE (mur-49 by name): (1) a kid probing a refusal must probe on a FIXTURE root -- the unknown-schema path evidently WROTE before refusing on the real tree (or refused after writing): verify write.py create refuses an unknown type before any file is written; (2) the parent's add -A .agi/nodes swept a stray dir -- the harvest guard should diff the done commit for node dirs outside the schema set.
