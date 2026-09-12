@@ -296,6 +296,29 @@ def test_pre_commit_still_rejects_parent_on_loop_branch_in_wrong_repo(temp_repo:
     )
 
 
+def test_pre_commit_allows_parent_on_canonical_loop_branch(temp_repo: Path):
+    """hypothesis:l4-branches-follow-the-season-grammar — dispatch.py now
+    emits the CANONICAL loop branch name through branches.loop_branch(), i.e.
+    season<n>/loops/<slug>-<agent>, not the legacy loop/<slug>-<agent>@s<n>.
+    The ONE authorised parent commit must be allowed on the canonical name too
+    — red on the pre-fix hook, whose case pattern only matched `loop/*`."""
+    with_hook(temp_repo)
+    toplevel = repo_toplevel(temp_repo)
+    subprocess.run(["git", "checkout", "-b", "season2/loops/slug-a00-x"],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "file_canonical_loop.md").write_text("parent canonical loop commit")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", "loop: season2/loops/slug-a00-x -- accepted kid:n"],
+        cwd=temp_repo, capture_output=True, text=True,
+        env={**hook_env(), "AGI_TIER": "parent", "AGI_PROJECT_ROOT": toplevel},
+    )
+    assert result.returncode == 0, (
+        f"hook blocked the authorised parent commit on canonical loop branch: "
+        f"{result.stdout} / {result.stderr}"
+    )
+
+
 def test_pre_commit_still_rejects_kid_on_loop_branch(g11_repo: Path):
     """The loop/* allowance is for PARENT only. A KID on a loop/* branch in
     the project repo stays blocked -- kids commit nothing, ever."""

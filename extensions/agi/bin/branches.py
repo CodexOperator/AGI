@@ -18,7 +18,7 @@ Token set B (branches under a node, merged up into its main):
 
 Reserved leaves: main, posts, loops are NEVER a town name — refused.
 
-Old names (`master`, `season/s<N>`, `seat/<name>@s<N>`,
+Old names (`master`, `season/s<N>`, `seat/<name>@s<N>`, `loop/<slug>-<agent>@s<N>`,
 `town/<town>/season/s<k>`, `town/<town>@s<N>`) are accepted as a DEPRECATED
 alias for one season: parse() returns kind="alias" plus `canonical`, prints
 one line per process, never raises.
@@ -49,6 +49,7 @@ _warned = False
 
 _MAIN_RE = re.compile(r"^season/s(\d+)$")
 _SEAT_RE = re.compile(r"^seat/(.+?)@s(\d+)$")
+_LOOP_AT_RE = re.compile(r"^loop/(.+?)@s(\d+)$")
 _TOWN_S_RE = re.compile(r"^town/(.+?)/season/s(\d+)$")
 _TOWN_AT_RE = re.compile(r"^town/(.+?)@s(\d+)$")
 
@@ -105,7 +106,14 @@ def _canonical_to_old(name: str) -> str | None:
     m = re.fullmatch(r"season(\d+)/loops/(.+)", name)
     if m:
         return f"loop/{m.group(2)}@s{m.group(1)}"
-    # season<n>/posts/<name> -> no legacy spelling existed
+    # season<n>/posts/<name> -> seat/<name>@s<n>
+    # A `seat/<name>@s<N>` is the legacy spelling of a POST under that
+    # season's main (branches.py parse: _SEAT_RE keys on the post branch, not
+    # a town). Keep the old name so a reader handed a canonical POST name on
+    # a pre-migration tree still finds the live seat branch.
+    m = re.fullmatch(r"season(\d+)/posts/(.+)", name)
+    if m:
+        return f"seat/{m.group(2)}@s{m.group(1)}"
     return None
 
 
@@ -238,8 +246,13 @@ def _alias_canonical(name: str) -> str | None:
 
     m = _SEAT_RE.fullmatch(name)
     if m:
-        _check_town(m.group(1))
-        return f"season{int(m.group(2))}/{m.group(1)}"
+        # A `seat/<name>@s<N>` is a POST branch under that season's main.
+        return f"season{int(m.group(2))}/posts/{m.group(1)}"
+
+    m = _LOOP_AT_RE.fullmatch(name)
+    if m:
+        # A `loop/<slug>-<agent>@s<N>` is a LOOP branch under that main.
+        return f"season{int(m.group(2))}/loops/{m.group(1)}"
 
     m = _TOWN_S_RE.fullmatch(name)
     if m:
