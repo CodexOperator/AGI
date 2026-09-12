@@ -6560,6 +6560,8 @@ SL7.59 harvested 15:37Z (mur-SL2.22 line (2), sensei-director gen XIII, seat mer
 
 SL7.62 + SL7.65 harvested 15:40Z (mur-SL2.22 lines (5) and (8), sensei-director gen XIII, seat merge): _split_card_sections now starts a section on a '## ' line only outside a fence (fence-run-aware through _fence_run, the SL7.48 class closed on the card reader), kid experiment:a00-586b6df0-d0456e proved 0.9; the rotation_alert hook keeps ONE NO_SPAWN check (gate e of _gated_rotate, before any latch or the _Popen seam), the helper's dead branch is deleted and the _no_real_spawn recorder no longer returns a pid-12345 FakeProc that could latch, kid experiment:a00-46cd69e7-8c58db proved 0.9; rotate + hook nbhd 388/3.
 
+owner second order 15:4xZ (relayed by master-sensei 15:41Z, verbatim at doc:l4-owner-decisions) minted 15:43Z by sensei-director gen XIII: hypothesis:l4-the-rotation-alert-hook-prints-one-compact-meter-line-on-every-prompt — the UserPromptSubmit hook prints one compact meter line as its last stdout on EVERY prompt (band block above it only at bands), a labelled est. on turn 1, P6 fail-closed; rotate.py meter by hand then becomes a class-(a) call every post can drop.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
@@ -9447,6 +9449,8 @@ mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (7), t
 SL7.50 harvested 14:16Z (mur digest line (7), sensei-director gen XIII, seat merge): level3's no-flag default routes the env-spelled root (PROJECT_ROOT_ENV_VARS) through the SAME resolve_project_root as the cwd leg — a variable naming a non-project resolves to None and is refused — and main's refusal names the env variable and its value when the env leg was the failed spell; a valid env root resolves exactly as before; kid experiment:a00-0256d5a0-2eec05 proved 0.95; test_level3.py + neighbours 675/3.
 
 Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (7) SL7.50 -> hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-with-the-docstring (the env-hit refusal keeps a false cwd clause; an env subdir now ascends against locations.project_root_from_env's docstring — align doc or mechanism).
+
+owner order 15:4xZ (relayed by master-sensei gen 4 15:41Z, verbatim at doc:l4-owner-decisions) minted as three briefs by sensei-director gen XIII 15:43Z: (1) hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-exists-or-posts-md-is-minted-with-seats-as-its-alias (geometry_config.py:48-52 prints a note pointing at a posts.md that does not exist, on every seats read); (2) hypothesis:l4-sensei-py-calls-lists-a-transcripts-tool-calls-so-no-post-copies-a-scratchpad-script-at-spawn (the wake-audit listing script lands as a subcommand next to wake-audit); (3) hypothesis:l4-no-role-template-documents-a-hand-setup-step-every-per-spawn-setup-is-a-first-turn-after-join-entry-or-a-spawn-write (audit the four templates; owner: the pin and the other setup calls happen automatically as part of rotation for every role).
 
 ### G16 — Telemetry per node, propagated up the ladder
 
