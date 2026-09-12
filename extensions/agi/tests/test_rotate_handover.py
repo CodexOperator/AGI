@@ -403,7 +403,7 @@ def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, generation, window]}\n---\nbody\n",
+        "fields: [session_ref, session_name, generation, window]}\n---\nbody\n",
         encoding="utf-8")
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
@@ -652,7 +652,7 @@ def _recovered_root(tmp_path, *, seat="adv-s", window="@77", pid=999999,
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, pid]}\n"
         "---\nbody\n", encoding="utf-8")
     _write_seats_sheet(tmp_path, [{
         "name": seat, "role": "parent", "model": "x",
@@ -731,7 +731,11 @@ def test_ack_rotate_self_shaped_row_stays_byte_identical(_fix, tmp_path,
     # the pin was NOT overwritten
     assert (sess / "adv-s.meter").read_text(encoding="utf-8") == before
     out = capsys.readouterr().out
-    assert "back-filled session_ref=r1 into own row" in out
+    # session_ref is always reported; since the joined pid/sid EQUAL the row's,
+    # session_name (the only other new cell) is the extra detail — the cell
+    # was added by hypothesis:l4-a-post-row-carries-a-session-name-cell..., so
+    # assert the ref line + the pid/sid ABSENCE, not an exact ref-only string.
+    assert "back-filled session_ref=r1" in out
     assert "pid=" not in out
     assert "session_id=" not in out
 
@@ -840,7 +844,7 @@ def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, pid]}\n"
         "---\nbody\n", encoding="utf-8")
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent", "model": "x",

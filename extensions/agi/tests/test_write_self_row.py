@@ -28,7 +28,7 @@ import node_writer  # noqa: E402
 SELF_ROW_SCHEMA = """---
 name: config
 written_by: [owner, prime_director]
-self_row: {list_key: seats, match_key: name, fields: [session_ref, generation, window]}
+self_row: {list_key: seats, match_key: name, fields: [session_ref, session_name, generation, window]}
 ---
 config
 """
