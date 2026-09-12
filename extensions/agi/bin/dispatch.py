@@ -1086,34 +1086,45 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
 
 
 def _round_cut_fields(tier: str, role: str | None, target: str | None,
-                       level: str | None, iter_n: int) -> dict:
+                       level: str | None, iter_n: int, *,
+                       ts=None, nonce=None) -> dict:
     """The FULL round-cut decision fields a ring's signatures cover -- the
     same bytes the gate signs, the round persists onto each spawned agent's
     record, and a reader re-verifies (hypothesis:l4-a-ring-decision-carries-
     m-of-n-signatures, HOLE 2: the signed bytes must cover the decision it
     authorises, so a quorum for one target/tier/role/level/iter cannot replay
     onto a different round). All values string-serialized (rings.json_field)
-    so the persisted record round-trips through JSON losslessly."""
+    so the persisted record round-trips through JSON losslessly. FRESH (kid B):
+    the returned dict carries the reserved ``_fresh`` (ts|nonce) so a persisted
+    round-quorum does not replay across time; ts/nonce default to freshly
+    minted, pass them to fix the bytes the signer covered."""
     from seatsig import rings as _rings  # noqa: PLC0415
-    return {
+    return _rings.fresh_fields({
         "tier": _rings.json_field(tier),
         "role": _rings.json_field(role or ""),
         "target": _rings.json_field(target or ""),
         "level": _rings.json_field(level or ""),
         "iter_n": _rings.json_field(iter_n),
-    }
+    }, ts=ts, nonce=nonce)
 
 
 def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
                         role: str | None, signatures: list,
                         target: str | None = None, level: str | None = None,
-                        iter_n: int = 0) -> str | None:
+                        iter_n: int = 0, *, fields: dict | None = None,
+                        remember: bool = True
+                        ) -> str | None:
     """Rung 2 round-ring gate: refuse the round (every slot's spawn) when
     its cut record lacks the named ring's m valid signatures. Returns the
     refusal line (naming the m-of-n count) or None to admit. OPT-IN: a ring
     the geometry does not name is not demanded. Verified through
     seatsig/rings.py (the SAME Scheme interface send.py's verify labels
-    against), never this gate's own crypto."""
+    against), never this gate's own crypto. FRESH (kid B): when ``fields`` is
+    given it is the exact signed decision (never argv); when None the fields
+    are built fresh HERE, and an admitted round must also pass
+    freshness_refusal within its replay window. ``remember`` (kid D): when
+    False (a --dry-run), an admitted round reads the ledger (so a replayed
+    nonce still REFUSES) but never writes it -- a dry run records nothing."""
     root = locations.find_project_root(Path(project_root).resolve())
     try:
         from seatsig import rings as _rings
@@ -1124,8 +1135,9 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
         ring = None
     if ring is None:
         return None  # no such ring declared -> opt-in means nothing demanded
-    canonical = _rings.canonical_bytes(
-        "round-cut", _round_cut_fields(tier, role, target, level, iter_n))
+    fields = fields if fields is not None else \
+        _round_cut_fields(tier, role, target, level, iter_n)
+    canonical = _rings.canonical_bytes("round-cut", fields)
 
     def resolver(post):
         try:
@@ -1140,6 +1152,15 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
     res = _rings.verify_ring(ring, canonical, signatures or [],
                              pubkey_for_post=resolver)
     if res.ok:
+        # FRESH (kid B): the quorum is satisfied; the round must still sit
+        # inside its replay window and not carry a spent nonce.
+        seen, remember_fn = _rings.nonce_ledger(root)
+        fr = _rings.freshness_refusal(
+            fields,
+            max_age_s=_rings._effective_max_age_s(ring),
+            seen=seen, remember=remember_fn if remember else None)
+        if fr:
+            return (f"round {ring_name!r} refused: freshness {fr}")
         return None
     return (
         f"round {ring_name!r} needs its ring quorum before spawning: "
@@ -1291,6 +1312,24 @@ def main() -> int:
              "opt-in, never a default (seatsig/rings.py)",
     )
     ap.add_argument(
+        "--ring-fresh",
+        default=None,
+        metavar="TS|NONCE",
+        help="rung 2 freshness seam (kid D): pin the EXACT '<ts>|<nonce>' the "
+             "round-cut decision's `_fresh` field carries, so an "
+             "out-of-process signer computes the SAME canonical bytes and a "
+             "`--ring-gate` run admits at m>0. Absent -> the gate mints fresh "
+             "(a signer cannot predict it).",
+    )
+    ap.add_argument(
+        "--ring-fields",
+        action="store_true",
+        help="rung 2 signer's view (kid D): print the exact decision fields "
+             "and canonical bytes `--ring-gate` will verify for this argv "
+             "(+ `--ring-fresh`), then exit 0 -- never spawns, writes or "
+             "records a nonce.",
+    )
+    ap.add_argument(
         "--ring-sig",
         dest="ring_sigs",
         action="append",
@@ -1308,24 +1347,48 @@ def main() -> int:
     # the geometry names that ring is the ROUND gated; a short-of-m round is
     # REFUSED BY NAME with the m-of-n count and nothing spawns.
     _round_ring_decision = None
-    if args.ring_gate:
+    if args.ring_gate or args.ring_fields:
+        from seatsig import rings as _ringslib  # noqa: PLC0415
+        # FRESH seam (kid D): a caller-supplied `<ts>|<nonce>` pins the EXACT
+        # `_fresh` the gate builds, so an out-of-process signer computes the
+        # same canonical bytes (a bare mint-fresh nonce is unpredictable --
+        # the defect that made a `--ring-gate` run at m>0 impossible).
+        try:
+            _fresh = _ringslib.parse_ring_fresh(args.ring_fresh)
+        except ValueError as _ve:
+            print(f"round-ring: {_ve}", file=sys.stderr)
+            return 3
+        _t, _n = (_fresh if _fresh is not None else (None, None))
+        # FRESH (kid B): mint the round-cut decision ONCE (fresh ts|nonce) so
+        # the gate verifies, the quorum covers, and the persisted record all
+        # agree on the same bytes.
+        round_fields = _round_cut_fields(args.tier, args.role,
+                                         args.target, args.level,
+                                         args.iter_n, ts=_t, nonce=_n)
+        # SIGNER'S VIEW (kid D): print the exact bytes the gate will verify
+        # for this argv + --ring-fresh, then exit 0 -- never spawns, never
+        # records.
+        if args.ring_fields:
+            print(_ringslib.render_ring_fields(
+                "round-cut", round_fields,
+                _ringslib.canonical_bytes("round-cut", round_fields)))
+            return 0
         refusal = _round_ring_refusal(
             args.project_root, args.ring_gate,
             args.tier, args.role, args.ring_sigs,
-            target=args.target, level=args.level, iter_n=args.iter_n)
+            target=args.target, level=args.level, iter_n=args.iter_n,
+            fields=round_fields,
+            remember=not args.dry_run)
         if refusal is not None:
             print(f"round-ring: {refusal}", file=sys.stderr)
             return 3
         # RUNG 2 claim (2): the admitted round-quorum signatures are persisted
         # onto the ONE record the round already writes -- each spawned agent's
         # manifest/agent.json entry -- so a later reader re-verifies m-of-n
-        # from disk, never argv. The canonical fields are the bytes the gate
-        # just signed.
-        from seatsig import rings as _ringslib  # noqa: PLC0415
+        # from disk, never argv. The canonical fields (with the fresh ts|nonce
+        # the quorum covered) are the SAME bytes the gate just signed.
         _round_ring_decision = _ringslib.decision_cell(
-            args.ring_gate, "round-cut",
-            _round_cut_fields(args.tier, args.role, args.target,
-                              args.level, args.iter_n),
+            args.ring_gate, "round-cut", round_fields,
             args.ring_sigs)
 
     # hypothesis:l3w3-advisor-brief addendum after L3.12 — thread the advisor's
