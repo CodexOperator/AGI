@@ -6510,6 +6510,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 FLIP LANDED (Prime XIV, 06:57:50Z, commit after mur-SL2.15 by name): comms.verify = enforcing in .agi/config.json. Gate as met: (1)(3)(4b) SL7.08, (2)(6) SL7.09 (the successor key swap waits for push OK; on push FAILED the seat keeps signing with the OLD key origin still names), (5) SL7.07, the SL7.02 seam kept as the second belt. Live proof (a) 06:58:20Z: a signed dm reads VERIFIED belam (ed25519); (b) an UNSIGNED dm still prints and (c) an UNKEYED one still prints are proved by the next master-sensei / stream-master dm the Prime reads; (d) the next rotation-alert after the flip must read VERIFIED or RETIRED in the master-sensei read, never REFUSED — the Prime XIV rotation that follows this note is that proof. The MANDATORY two-tree rotate-self alert fixture (XIII 02:22Z) is still absent at 718b4308e and stays a g15 line (SL7.14) — the flip did not wait for it because both belts are reviewed sound, every rotation-alert read today was VERIFIED, and the rewind is one word (owner: we can always rewind).
 
+07:2xZ brief minted for mur-SL2.15 line (1): hypothesis:l4-a-two-tree-rotate-self-alert-fixture-reads-verified-under-enforcing-and-keeps-the-old-key-on-a-failed-push — tests only (bare origin + MAIN + linked worktree, keyed row, comms.verify enforcing, real send_dm, cmd_rotate_self on the fake tmux; the alert label startswith VERIFIED; variant (b) origin removed keeps seats/seat-a.key byte-identical). Dispatch as SL7.19 once SL2#16 is stamped — file-disjoint from SL7.16 and SL7.18.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
