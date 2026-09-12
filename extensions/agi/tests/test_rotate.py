@@ -5597,7 +5597,7 @@ def test_openrouter_key_none_when_neither_configured(tmp_path, monkeypatch):
     assert rotate._openrouter_key(graph_root) is None
 
 
-def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkeypatch):
+def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkeypatch, _no_pin_socket):
     # The bug being pinned: showing the key sub-cap alone reads as "all
     # there is". Both numbers must appear, and the key must read as a
     # sub-cap on ONE key (raisable), never as the account ceiling.
@@ -5621,7 +5621,7 @@ def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkey
     assert "account" in status, status
 
 
-def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch):
+def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch, _no_pin_socket):
     # A balance check must never fail a pin claim -- silent None, not a raise.
     graph_root = tmp_path / ".agi"
     graph_root.mkdir()
@@ -5630,14 +5630,14 @@ def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch):
     assert rotate.fresh_spend_status(graph_root) is None
 
 
-def test_fresh_spend_status_none_without_a_key(tmp_path, monkeypatch):
+def test_fresh_spend_status_none_without_a_key(tmp_path, monkeypatch, _no_pin_socket):
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     graph_root = tmp_path / ".agi"
     graph_root.mkdir()
     assert rotate.fresh_spend_status(graph_root) is None
 
 
-def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder, capsys, _no_pin_socket):
     # The actual owner ask: --pin (a fresh claim) shows spend, unprompted.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     monkeypatch.setattr(
@@ -5651,7 +5651,7 @@ def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder,
     assert "spend" in out and "9.26" in out and "16.23" in out, out
 
 
-def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_path, fake_ladder, capsys, _no_pin_socket):
     # Spend is only ever checked at CLAIM time (--pin), not on every plain
     # read -- a bare `meter --seat X` must not add a network call.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
