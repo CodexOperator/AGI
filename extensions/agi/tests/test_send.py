@@ -4525,13 +4525,35 @@ def test_whois_verified_under_enforcing_exit_unchanged(
         "a VERIFIED whois is never quarantined"
 
 
-def test_whois_forged_without_msg_not_refused_under_enforcing(
+def test_whois_forged_without_msg_still_refused_under_enforcing(
         tmp_path, monkeypatch):
-    """A FORGED label with NO --msg to withhold keeps today's behavior under
-    enforcing: the label is reported, the exit stays on the authority axis
-    (nothing traces to a ts/from, nothing is quarantined)."""
+    """A FORGED label with NO --msg to withhold is STILL refused (exit 2) under
+    enforcing: the refusal line names that there is no --msg, and no quarantine
+    file is fabricated (there were no bytes to withhold)."""
     project, sig_line, _ = _whois_forged_fixture(tmp_path, monkeypatch)
-    # give the tampered sig but no --msg -> label is FORGED yet nothing to withhold
+    # give the tampered sig but no --msg -> label is FORGED, nothing to withhold
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=None)
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
+    assert "REFUSED" in text
+    assert "FORGED" in text
+    assert "no --msg" in text, \
+        "the refusal names that there is no --msg to withhold"
+    assert not _quarantine_path(project, seat="seat-a").exists(), \
+        "no msg -> nothing quarantined (no fabricated file)"
+
+
+def test_whois_forged_without_msg_informational_not_refused(
+        tmp_path, monkeypatch):
+    """Under a NON-enforcing (informational) verify, a FORGED label with no
+    --msg keeps today's behavior: exit on the authority axis, FORGED line, no
+    refusal, nothing quarantined."""
+    project = _project_with_comms(tmp_path, {"verify": "informational"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
     rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
                               source="refs/x", do_fetch=False,
                               sig_line=sig_line, msg_text=None)
@@ -4539,7 +4561,66 @@ def test_whois_forged_without_msg_not_refused_under_enforcing(
     assert "FORGED" in text
     assert "REFUSED" not in text
     assert not _quarantine_path(project, seat="seat-a").exists(), \
-        "no msg -> no refusal, nothing quarantined"
+        "informational verify never refuses or quarantines"
+
+
+def test_whois_quarantine_filename_sanitized_against_traversal(
+        tmp_path, monkeypatch):
+    """A session_ref shaped like a traversal (`../../x`, `a/b`) can never pick
+    a path: the written file lands INSIDE <inbox>/quarantine with a sanitized
+    name, the raw ref survives as the record's first line, and the refusal line
+    names the raw ref."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    forged = canonical + "x"
+    # a traversal-shaped ref under a FORGED label (row for it won't resolve)
+    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
+    inbox = project / ".agi" / "sessions" / "inbox"
+    before = {p for p in inbox.iterdir()}
+    for raw in ("../../x", "a/b"):
+        rc, text = send_mod.whois(project, raw, claim="seat-a",
+                                  source="refs/x", do_fetch=False,
+                                  sig_line=sig_line, msg_text=forged)
+        assert rc == send_mod.WHOIS_NOT_AUTHORIZED, (raw, rc)
+        # the refusal names the RAW ref
+        assert repr(raw) in text, (raw, text)
+        # find the file this call wrote (sanitized name, inside quarantine)
+        sanitized = send_mod._sanitize_ref(raw)
+        q = qdir / f"{sanitized}.md"
+        assert q.is_file(), f"sanitized file {sanitized}.md missing"
+        assert q.resolve().parent == qdir.resolve(), \
+            f"{raw} escaped the quarantine dir"
+        body = q.read_text()
+        assert raw in body, "the RAW ref survives as the record's first line"
+        assert sig_line in body
+        assert forged in body
+    # no NEW file appeared OUTSIDE the quarantine dir
+    outside = [p for p in inbox.iterdir() if p not in before
+               and p.name != "quarantine" and p.is_file()]
+    assert outside == [], f"traversal-shaped ref escaped the quarantine: {outside}"
+
+
+def test_whois_quarantine_invalid_ref_when_sanitized_empty(
+        tmp_path, monkeypatch):
+    """A session_ref that sanitizes to empty (only stripped chars) is written
+    to `invalid-ref.md` -- never an empty or path-named file."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    forged = canonical + "x"
+    rc, text = send_mod.whois(project, "///", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=forged)
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
+    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
+    invalid = qdir / "invalid-ref.md"
+    assert invalid.is_file(), "empty-sanitized ref must land in invalid-ref.md"
+    assert "///" in invalid.read_text(), "raw ref survives in the record"
 
 
 def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
