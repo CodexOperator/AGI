@@ -697,3 +697,77 @@ def test_apply_and_delete_old_are_mutually_exclusive(repo):
     assert RESULT.returncode != 0, RESULT.stdout
     assert "mutually exclusive" in RESULT.stderr and \
         "separate final step" in RESULT.stderr, RESULT.stderr
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
+# true — L4.318 FIX-ONLY, Region A. The --dry-run step-3 pathspec is built by
+# the SAME code path --apply uses (the shared `_post_rename_commit_targets`),
+# carrying the staged-pending INDEX check, so the dry-run plan names exactly
+# the files --apply would commit for the same tree state. Before the fix the
+# dry-run HARDCODED `[dest, seats_rel]`; on a tree where the seats.md delete
+# was already committed it printed a `git commit -- posts.md seats.md` that
+# --apply would never run and that would ERROR verbatim (path not in index).
+# Both tests seed the state, capture the dry-run path set from the printed
+# step-3 line, run --apply on the same state, and assert plan == apply.
+# ---------------------------------------------------------------------------
+
+def _step3_paths(R, mode: str) -> list:
+    """The path list a commit-posts.md line names after its `--` pathspec
+    separator, for either the `DRY ` (--dry-run) or `APPLY` mode. Strips the
+    trailing rollback tail first so its `--soft`/`git mv` tokens are never read
+    as paths. The apply branch prints this SAME line with the targets it really
+    uses, so comparing dry-run vs apply pathspecs on one state proves the two
+    branches agree on what --apply would commit."""
+    line = next(
+        l for l in R.stdout.splitlines()
+        if l.startswith(f"[{mode}] commit posts.md:") and ' -- ' in l)
+    body = line.split("  -- rollback:", 1)[0]   # drop rollback tail
+    _, _, spec = body.partition(' -- ')
+    return sorted(spec.strip().split())
+
+
+def test_dry_run_names_both_while_seats_delete_pending(repo):
+    """(Region A/a) While the seats.md DELETE is still PENDING in the index
+    (as the git mv staged it), the --dry-run step-3 pathspec names BOTH
+    posts.md and seats.md — and the string --apply prints for the same state
+    names exactly those same two paths. Plan and apply agree."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    _git(repo, "mv", str(seats.relative_to(repo)),
+         str(posts.relative_to(repo)))   # stages: seats delete + posts add
+
+    plan = _step3_paths(_run_cli(g, "--dry-run"), "DRY ")
+    names = {p.rsplit("/", 1)[-1] for p in plan}
+    assert "seats.md" in names and "posts.md" in names, plan
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    applied = _step3_paths(R, "APPLY")
+    assert plan == applied, (f"dry-run plan {plan} != apply pathspec {applied}")
+
+
+def test_dry_run_names_only_posts_after_seats_delete_committed(repo):
+    """(Region A/b) Once the seats.md DELETE is already COMMITTED (mv + commit
+    done), the --dry-run step-3 pathspec names ONLY posts.md — never a stale
+    seats.md that would make `git commit -- ... seats.md` ERROR verbatim. With
+    a freshly staged posts.md edit, the string --apply prints for the same state
+    names exactly posts.md: plan and apply agree."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    _git(repo, "mv", str(seats.relative_to(repo)),
+         str(posts.relative_to(repo)))
+    _git(repo, "commit", "-qm", "seed: seats->posts rename")  # delete committed
+    posts.write_text("\n# touched-after-commit\n", encoding="utf-8")
+    _git(repo, "add", str(posts.relative_to(repo)))   # something to commit
+
+    plan = _step3_paths(_run_cli(g, "--dry-run"), "DRY ")
+    names = {p.rsplit("/", 1)[-1] for p in plan}
+    assert "posts.md" in names and "seats.md" not in names, plan
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    applied = _step3_paths(R, "APPLY")
+    assert plan == applied, (f"dry-run plan {plan} != apply pathspec {applied}")

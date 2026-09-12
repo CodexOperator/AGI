@@ -2036,6 +2036,26 @@ def _post_rename_upstream(repo: Path, branch: str) -> str:
     return (r.stdout or "").strip()
 
 
+def _post_rename_commit_targets(repo: Path, dest: Path,
+                                seats_rel: Path) -> list:
+    """The step-3 commit pathspec, shared by the --dry-run plan and --apply
+    (hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
+    true, Region A). The seats.md DELETE (staged by the git mv) stays in the
+    pathspec only while that staged delete is still PENDING in the index; once
+    a prior commit carries it, the path is gone from the index and a
+    `git commit -- ... seats.md` would ERROR instead of skipping. `git diff
+    --cached` reports the pending staged-delete cleanly (empty output when
+    absent), so a dry-run names exactly the files --apply would commit for the
+    same tree. Queries the index only -- never git mv -- so a dry-run changes
+    NOTHING and a dry-run tree stays byte-identical (pinned by the no-plan-file
+    / byte-identical test)."""
+    seats_pending = subprocess.run(
+        ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
+        cwd=repo, capture_output=True, text=True)
+    return ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
+            else [str(dest)])
+
+
 def cmd_post_rename(args: argparse.Namespace) -> int:
     """hypothesis:l4-a-seat-is-a-post-everywhere — clause 3: the live rename
     (migration script + fixture proof; L4.306 FIX-ONLY). Renames the seat
@@ -2148,9 +2168,10 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     #    while that staged delete is still pending, and the rollback is printed
     #    only when a commit was really created, never a stale HEAD~1 on a skip.)
     if not apply:
+        targets = _post_rename_commit_targets(repo, dest, seats_rel)
         commit_cmds = [f"git add {dest}",
                        f'git commit -m "post-rename: seats.md -> posts.md" -- '
-                       + " ".join([str(dest), str(seats_rel)])]
+                       + " ".join(targets)]
         if origin:
             commit_cmds.append(f"git push origin {cur}")
         _post_rename_print("commit posts.md", " && ".join(commit_cmds), apply,
@@ -2166,11 +2187,7 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
         # it, the path is gone from the index and a `git commit -- ... seats.md`
         # would ERROR instead of skipping; `git diff --cached` reports the
         # pending staged-delete cleanly (empty output when absent).
-        seats_pending = subprocess.run(
-            ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
-            cwd=repo, capture_output=True, text=True)
-        targets = ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
-                   else [str(dest)])
+        targets = _post_rename_commit_targets(repo, dest, seats_rel)
         pending = subprocess.run(
             ["git", "diff", "--cached", "--name-only", "--", *targets],
             cwd=repo, capture_output=True, text=True)
