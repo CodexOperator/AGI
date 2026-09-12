@@ -9615,6 +9615,24 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
         return False
 
 
+def _after_join_sender(root: Path, seat: str) -> str:
+    """The DECLARED sender for the service's after_join dm — ONE helper, shared
+    by the rotate-self tail and the heal watch (goal:g15.25, hypothesis:l4-the-
+    service-after-join-dm-is-sent-by-a-declared-signed-sender-never-from-
+    unknown). The custodian/OUTGOING seat when its key exists under
+    `<sessions>/seats/<seat>.key` (the performer rotating inside a seat's own
+    process — the tail — so the dm can SIGN), else the system sender `heal`
+    (the watch/reaper, which sends UNSIGNED-but-NAMED, never `from: unknown`;
+    `unknown` was the OLD default — send(root, to, text, None) -> _detect_sender
+    None when no seat env was exported). Deterministic from (root, seat) alone,
+    so the watch and the tail resolve the SAME sender for the same seat (the
+    falsifier — a divergent sender would mean a parallel driver crept in)."""
+    key = _sessions_dir(root) / "seats" / f"{seat}.key"
+    if key.is_file():
+        return seat
+    return "heal"
+
+
 def run_after_join(root, *, seat: str, gen: int, startup: dict,
                    values: dict, record_path: str | None = None,
                    dry_run: bool = False, sleep_impl=None,
@@ -9647,6 +9665,11 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
     timeout = timeout_s or (startup.get("first_turn_timeout_s")
                             or DEFAULT_AFTER_JOIN_TIMEOUT_S)
     cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
+    # (goal:g15.25) the declared sender for the service dm — ONE resolution,
+    # shared by the tail and the watch, recorded on the record AND used by the
+    # default send_dm so the delivered block can never read `from: unknown`.
+    sender = _after_join_sender(root, seat)
+    dm_signed = (_sessions_dir(root) / "seats" / f"{sender}.key").is_file()
     if not dry_run and delay_s > 0:
         if sleep_impl is None:
             time.sleep(delay_s)
@@ -9728,6 +9751,8 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                     "delay_s": delay_s,
                     "results": results,
                     "dm": dm,
+                    "dm_sender": sender,
+                    "dm_signed": dm_signed,
                 }
                 rp.write_text(json.dumps(rec, indent=2) + "\n",
                               encoding="utf-8")
@@ -9737,7 +9762,13 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
     if not dry_run and send_dm is None:
         def send_dm(to: str, text: str) -> None:
             import send as _send
-            _send.send(root, to, text, None)
+            # a NAMED sender (never None): send.py falls to `unknown` only when
+            # no --from flag AND no seat env is exported — the after_join dm
+            # now always passes a declared sender, so `from: unknown` cannot
+            # appear on a service dm. `heal` is an established system sender
+            # (heal.py sends its own alarms as "heal"); the seat signs when the
+            # helper resolved a keyed custodian.
+            _send.send(root, to, text, sender)
     sent = False
     if not dry_run and send_dm is not None:
         send_dm(seat, dm)
