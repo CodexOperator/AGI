@@ -473,3 +473,28 @@ def _suite_lock_guard():
                 lock_path.unlink()
             except OSError:
                 pass
+
+# --- real-judge (ModelJudge) opt-in gate (goal:g15, hypothesis:l4-real-judge-
+# tests-run-only-under-one-explicit-opt-in-env-flag-default-off-a-key-alone-
+# spends-nothing). Shared by test_stream_master_semantic_screen.py and
+# test_stream_master_blind_measure_v2.py -- ONE name, ONE helper, never two
+# spellings. A present OPENROUTER_API_KEY alone spends nothing: the suite is
+# fixture-only unless AGI_REAL_JUDGE=1 is set AND a key is present.
+
+REAL_JUDGE_FLAG = "AGI_REAL_JUDGE"
+
+
+def real_judge_skip():
+    """Return the skip reason if the real ModelJudge should NOT run, else None.
+
+    The real (paid, network) stream-master ModelJudge runs only under one
+    explicit opt-in env flag, AGI_REAL_JUDGE=1, AND a present
+    OPENROUTER_API_KEY. A key alone, or the flag alone, still spends nothing.
+    """
+    if os.environ.get(REAL_JUDGE_FLAG) != "1":
+        return (f"{REAL_JUDGE_FLAG} not set; the real semantic measurement is "
+                "opt-in and OFF by default (set AGI_REAL_JUDGE=1 to run it)")
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        return ("ModelJudge has no OPENROUTER_API_KEY; real semantic "
+                "measurement unavailable in this environment")
+    return None
