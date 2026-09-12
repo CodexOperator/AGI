@@ -6596,6 +6596,8 @@ SL7.79 harvested 17:40Z (Prime line (b)): first-seating tests stub the tmux seam
 
 SL7.83 harvested 17:40Z (Prime line (f)): the latch sweep's per-file line is appended to the seat's wrapper.log on the production launch path (empty sweep writes nothing) and the rotation record carries swept_latches: [] or names (kids 0.9 + built); nbhd 465/3 with SL7.79
 
+SL7.78 harvested 17:53Z (Prime line (a)): the after_join rewrite commits its own one-pathspec change from MAIN's toplevel (fail-soft, named on the record), a worktree seat's record rides the same commit with committed_by naming the performer — never left untracked; F20 holds (kid a00-0d1aac91-66fdb3 0.8; nbhd 382/3)
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
