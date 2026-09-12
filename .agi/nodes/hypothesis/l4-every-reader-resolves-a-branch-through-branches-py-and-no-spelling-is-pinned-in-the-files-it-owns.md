@@ -1,0 +1,21 @@
+---
+id: hypothesis:l4-every-reader-resolves-a-branch-through-branches-py-and-no-spelling-is-pinned-in-the-files-it-owns
+mint_id: 95902860bbea47bd8e949eb887083df8
+type: hypothesis
+parents:
+  - goal:g15
+  - hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-trunk-pair-per-level-reaches-origin
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 08da805aaffb0812
+season: 2
+testable_claim: "FIX-ONLY ROUND (g15) for item (5) of the Prime XVII I-3a order and the mur-48 by name residue (b), verbatim: \"L4.332 test_branch_spelling_grep pins hand-spelling COUNTS per file and is RED on season2/main since SL2#26 merged behind 48 (rotate.py moved) — the sensei-director re-pins test-only as its cut 2; the real fix = readers routed through branches.py (item 5), never pinned counts; also: plain --dry-run writes the plan file (falsifier says nothing), assert_remote_visible has no caller, parse() vs is_remote_visible disagree for a town slug starting with 'season', the harvest note names seat/sanctuary-master in the delete set but the computed set does not.\" Source: hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-trunk-pair-per-level-reaches-origin (L4.332). Anchors @61311b2c2: extensions/agi/tests/test_branch_spelling_grep.py PINNED (matched text per file; the sensei-director re-pins rotate.py's rows in its own cut -- do not fight it: this round BURNS the debt in the files it owns and shrinks the pin accordingly); branches.py ref_candidates/merge_target/parse/is_remote_visible/derive_names/_ALIASES; the hand-spelled readers: dispatch.py (18 rows), season.py (4), send.py (1), spawn_gate.py (2), grid.py (1), graphweb.py (1), cli.py (12, outside the reshuffle region), verification.py (1, docstring). CLAIM: every branch spelling a reader RESOLVES (a name it fetches, merges, pushes, compares or derives) in dispatch.py, season.py, send.py, spawn_gate.py, grid.py, graphweb.py, cli.py (non-reshuffle regions) and verification.py goes through branches.py (ref_candidates / merge_target / season_main / post_branch / loop_branch / derive_names / the alias table) -- a literal that is a docstring or a log message may stay and is listed by name; the pin for those files shrinks to the surviving literals; rotate.py and heal.py are OUT OF SCOPE (the sensei-director's lane, its cut 2) and their rows stay pinned as they are; parse() and is_remote_visible agree for a town slug beginning with 'season' (both refuse it by name, or both accept it -- one rule, one test); the L4.332 harvest note's 'seat/sanctuary-master in the delete set' sentence is corrected on the node by measuring the computed set on the real tree. FILE SCOPE: the eight reader files named (name-resolution seams ONLY), branches.py ONLY for the 'season'-prefixed town slug rule, test_branch_spelling_grep.py (shrink the pin for owned files only), the readers' tests. NOT: rotate.py, heal.py, cli.py's reshuffle region (L4.334), towns.py, ladder.md, any live node except the L4.332 node's note. LIVE INVARIANT: nothing on the live tree changes; every current name still resolves (the importers' suites test_dispatch/test_season/test_send/test_verification/test_grid green). KIDS (<=3, disjoint by file): A dispatch.py + spawn_gate.py; B season.py + send.py + grid.py + graphweb.py + verification.py; C cli.py non-reshuffle rows + the parse/is_remote_visible rule + the pin shrink + the note correction. PROOF: the grep pin for the owned files lists only docstring/log literals (each named); every importer suite green; a fixture where ref_candidates returns a v3 name proves each reader follows it; parse('seasonx/main') and is_remote_visible('seasonx/main') agree. DISPROOF: a reader still spelling a resolved name; rotate.py/heal.py touched; a current name that stops resolving."
+title: "I-3a item 5: every reader resolves a branch through branches.py; the spelling pin shrinks to docstring/log literals in the owned files; parse and is_remote_visible agree on a season-prefixed town slug"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-every-reader-resolves-a-branch-through-branches-py-and-no-spelling-is-pinned-in-the-files-it-owns
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
