@@ -230,9 +230,17 @@ class Level3Node:
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str] | None:
-    """Split a node file into (frontmatter dict, body). None if malformed."""
-    if not text.strip().startswith("---"):
-        return None
+    """Split a node file into (frontmatter dict, body). None if malformed.
+
+    Relies on `split_frontmatter` ALONE for the boundary — the old
+    `strip().startswith("---")` prose pre-check (the exact shape SL7.11
+    retired elsewhere) was a SECOND boundary rule in prose that let a
+    leading-blank-line file through to the anchored splitter, which then
+    refused it (harmless but redundant). Dropped so `frontmatter.py`'s
+    `_FM_LINE` is the ONE boundary (claim 6d, hypothesis:l4-prepare-check-2-
+    reads-the-index-blob-...). Byte-identical on every real node: a
+    well-formed node parses; a leading-blank-line / marker-not-on-line-1 /
+    empty input all return None exactly as before."""
     parts = split_frontmatter(text)
     if parts is None:
         return None

@@ -311,6 +311,16 @@ def pytest_cmdline_main(config):
     # as AGI_AGENT_SESSIONS_ROOT was already popped just above.
     for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
         os.environ.pop(_g, None)
+    # Strip the RUNNER'S sender identity too. `send._detect_sender` reads
+    # AGI_AGENT_ID, then AGI_POST/AGI_SEAT, AHEAD of an explicit --from, so a
+    # suite run from a rotate-self-spawned seat (which exports AGI_POST +
+    # AGI_SEAT since 18a09849d) or from a dispatched kid (AGI_AGENT_ID since
+    # L3.20) signs every test message under the runner's name: measured
+    # 2026-09-12 07:1xZ on the sensei-director seat, test_send.py 81 failed /
+    # 274 with AGI_SEAT set, 75 failed with AGI_AGENT_ID set, 274 passed with
+    # neither. A test that needs one sets it with monkeypatch AFTER this pop.
+    for _g in ("AGI_AGENT_ID", "AGI_SEAT", "AGI_POST"):
+        os.environ.pop(_g, None)
     if _effective_tier() != GATE_TIER:
         # Invisible at every tier other than kid (record-derived), and when
         # the tier is unset AND no running agent record matches an ancestor.
