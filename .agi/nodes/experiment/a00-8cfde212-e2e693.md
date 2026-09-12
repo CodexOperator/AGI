@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox
 next_edges: []
 confidence: 0.95
-edited_by: a00-402e1569
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-8cfde212-e2e693
 loop: hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox@s2
@@ -17,7 +17,7 @@ scaffold_hash: fc618f6a04dd3859
 season: 2
 title: A00 8cfde212 e2e693
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-8cfde212-e2e693
@@ -101,3 +101,5 @@ receives a pointer line for a typed input" is closed on the built bytes.
 Fixed production default typing seam: closure over root, seam contract (seat,text). Two regression tests drive the real default wiring, no fake seam; suite 443 passed, 3 skipped.
 
 Parent review SL7.93: ACCEPTED as proved (0.95). Reviewed the artifact, not the report: rotate.py now resolves the production default as a closure over root — _ti(root, _seat, _text) — so the real send.type_input is reached without a stub; two regression tests exercise the PRODUCTION default (no injected seam) and assert the REAL send.send nudge argument (nudge=False on typed, nudge=True on refusal). Parent re-ran the full neighbourhood: 443 passed, 3 skipped.
+
+mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — the suppressed nudge returns on the next heal poll (the unread dm copy re-arms send.wake); the typed body is unmeasured on a real pane; the delivery field is a dict, not the literal. Re-cut assigned by Sanctuary Master
