@@ -69,15 +69,31 @@ def test_line_with_two_closed_spans_reports_both():
     assert len(spans) == 2
 
 
-def test_real_handoff_section_has_no_open_spans():
-    """The live HANDOFF §6 at HEAD contains exactly one closed span (item 106)
-    and no open span — the trim guard must PASS against it (no phantom)."""
-    text = Path(__file__).resolve().parents[3] / "HANDOFF.md"
-    body = text.read_text()
-    if "## §6 Owner decisions" not in body:
-        # HANDOFF absent or reshaped in this tree; skip rather than fail the
-        # hermetic suite on an unrelated condition.
-        return
+def test_stray_closing_curly_quote_is_skipped_not_an_opener():
+    """A stray `”` BEFORE a real straight-quoted span is skipped, never an
+    opener — so only the one real span is reported (hypothesis:l4-trimguard-
+    never-reads-a-closing-quote-as-an-open-span)."""
+    line = 'foo” bar "this is a real owner quote of twenty-five plus"'
+    spans = collect(line)
+    assert "this is a real owner quote of twenty-five plus" in spans
+    assert len(spans) == 1
+
+
+def test_real_handoff_section_has_no_open_spans(tmp_path):
+    """A FIXTURE copy of the item-106 §6 shape (never the live HANDOFF.md)
+    contains exactly one closed span and no open span — the trim guard must
+    PASS against it (no phantom). Written under tmp_path so the hermetic
+    suite does not depend on the live HANDOFF bytes."""
+    fixture = tmp_path / "HANDOFF.md"
+    fixture.write_text(
+        "# SESSION HANDOFF — fixture\n"
+        "\n"
+        "## §6 Owner decisions\n"
+        f"{ITEM106}\n"
+        "Some trailing non-quoted line with more than enough words to fill "
+        "past the twenty-five character floor and prove no phantom opens.\n"
+    )
+    body = fixture.read_text()
     start = body.index("## §6 Owner decisions")
     spans = collect(body[start:])
     assert len(spans) == 1
