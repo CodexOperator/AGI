@@ -12,5 +12,5 @@ Transcript gen 4: `21497613-575f-4d0d-b4b0-cfb0c4bb2ba3.jsonl`, 93 tool calls, 2
 - STARTUP `[inbox]` carried the point's L4.327 correction — already agreed with the draft (parent a00-6b41b0ad); zero calls spent.
 
 ## Residue
-- `sensei.py calls --from N` printed nothing for N=92 on this transcript (the bare listing shows 93 rows) — one line to sensei-director with the next code batch, not now.
+- `sensei.py calls --from 92` looked empty only because I piped it through a `grep -o` that matched nothing — withdrawn 22:2xZ, tool correct.
 - `rotate.py status --record latest` shows `handover: {}` while `started` — join back-fills later; nothing to poll (F1).
