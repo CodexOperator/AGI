@@ -1927,9 +1927,12 @@ def _post_rename_jobs(root: Path) -> list:
     that is CURRENTLY on disk (post-first with the seats fallback, via
     geometry_config). Each job is {"name", "wt_rel"}: `name` is the seat name,
     `wt_rel` is the row's `worktree` cell (a repo-top-relative path whose
-    basename spells `seat-<name>`). Rows whose worktree cell is empty, or that
-    do not spell `seat-<name>`, are left alone (hypothesis:l4-a-seat-is-a-
-    post-everywhere — rename only what the config itself declares).
+    basename spells `seat-<name>` — or `post-<name>`, the spelling step 2 has
+    ALREADY rewritten it to on a half-migrated tree). Rows whose worktree
+    cell is empty, or that spell neither prefix, are left alone
+    (hypothesis:l4-a-seat-is-a-post-everywhere — rename only what the config
+    itself declares; and L4.315 fix option 2: a re-run over a PARTIALLY
+    rewritten tree still finds the jobs, so a half-applied rename completes).
 
     Parses the frontmatter directly (never node_writer, so a bare fixture node
     without parents/schema can be renamed) and never runs git.
@@ -1951,8 +1954,13 @@ def _post_rename_jobs(root: Path) -> list:
                 continue
             wt = row.get("worktree") or ""
             base = Path(str(wt)).name
-            if base.startswith("seat-") and len(base) > 5:
-                jobs.append({"name": base[5:], "wt_rel": str(wt)})
+            name = None
+            for prefix in ("seat-", "post-"):
+                if base.startswith(prefix) and len(base) > len(prefix):
+                    name = base[len(prefix):]
+                    break
+            if name:
+                jobs.append({"name": name, "wt_rel": str(wt)})
     except Exception:  # noqa: BLE001  (a malformed config never takes the rename down)
         return jobs
     return jobs
@@ -2118,29 +2126,60 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
 
     # 3. COMMIT + PUSH posts.md as its OWN step (L4.306 fix: the ack dirty-gate
     #    refuses every ack while the tree is dirty — commit posts.md so a
-    #    migrated tree is clean; push the current branch when origin exists)
-    commit_cmds = [f"git add {dest}",
-                   'git commit -m "post-rename: seats.md -> posts.md"']
-    if origin:
-        commit_cmds.append(f"git push origin {cur}")
-    _post_rename_print("commit posts.md", " && ".join(commit_cmds), apply,
-                       rollback="git reset --soft HEAD~1 && git mv posts.md seats.md")
+    #    migrated tree is clean; push the current branch when origin exists.
+    #    L4.315 fix: commit BY PATHSpec ONLY — `git commit -m msg -- <paths>` —
+    #    so another agent's already-staged files can never be swept in; the
+    #    seats.md DELETE (staged by the git mv) is included in the pathspec only
+    #    while that staged delete is still pending, and the rollback is printed
+    #    only when a commit was really created, never a stale HEAD~1 on a skip.)
+    if not apply:
+        commit_cmds = [f"git add {dest}",
+                       f'git commit -m "post-rename: seats.md -> posts.md" -- '
+                       + " ".join([str(dest), str(seats_rel)])]
+        if origin:
+            commit_cmds.append(f"git push origin {cur}")
+        _post_rename_print("commit posts.md", " && ".join(commit_cmds), apply,
+                           rollback="git reset --soft HEAD~1 && git mv posts.md seats.md")
     if apply and not step_done("commit_posts"):
         if not (posts_abs.exists() and not seats_abs.exists()):
             _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
             print("ERR: commit step reached before the git mv; aborting",
                   file=sys.stderr)
             return 1
-        r_add = subprocess.run(["git", "add", str(dest)], cwd=repo,
-                               capture_output=True, text=True)
-        r_com = subprocess.run(["git", "commit", "-m",
-                                "post-rename: seats.md -> posts.md"],
-                               cwd=repo, capture_output=True, text=True)
-        if r_com.returncode != 0 and "nothing to commit" not in r_com.stderr:
-            _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
-            print(f"ERR: git commit posts.md failed: {r_com.stderr.strip()}",
-                  file=sys.stderr)
-            return 1
+        # Include the seats.md DELETE in the pathspec only while it is still
+        # pending in the index (git mv staged it). Once a prior commit carries
+        # it, the path is gone from the index and a `git commit -- ... seats.md`
+        # would ERROR instead of skipping; `git diff --cached` reports the
+        # pending staged-delete cleanly (empty output when absent).
+        seats_pending = subprocess.run(
+            ["git", "diff", "--cached", "--name-status", "--", str(seats_rel)],
+            cwd=repo, capture_output=True, text=True)
+        targets = ([str(dest), str(seats_rel)] if seats_pending.stdout.strip()
+                   else [str(dest)])
+        pending = subprocess.run(
+            ["git", "diff", "--cached", "--name-only", "--", *targets],
+            cwd=repo, capture_output=True, text=True)
+        if not pending.stdout.strip():
+            # Nothing to commit for the migration paths — already committed.
+            _post_rename_print("commit posts.md",
+                               f"skip {dest} (nothing to commit)", apply)
+        else:
+            r_add = subprocess.run(["git", "add", str(dest)], cwd=repo,
+                                   capture_output=True, text=True)
+            r_com = subprocess.run(
+                ["git", "commit", "-m", "post-rename: seats.md -> posts.md",
+                 "--", *targets], cwd=repo, capture_output=True, text=True)
+            if r_com.returncode != 0:
+                _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+                print(f"ERR: git commit posts.md failed: {r_com.stderr.strip()}",
+                      file=sys.stderr)
+                return 1
+            _post_rename_print(
+                "commit posts.md",
+                f"git add {dest} && git commit -m \"post-rename: "
+                f"seats.md -> posts.md\" -- {' '.join(targets)}",
+                apply,
+                rollback="git reset --soft HEAD~1 && git mv posts.md seats.md")
         if origin:
             r_pu = subprocess.run(["git", "push", "origin", cur], cwd=repo,
                                   capture_output=True, text=True)
@@ -2150,10 +2189,14 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
                       file=sys.stderr)
         mark("commit_posts")
 
-    # 4. git worktree move each seat-<name> -> post-<name>
+    # 4. git worktree move each seat-<name> -> post-<name>. The source and
+    #    target derive from the NAME (not from a string replace of the cell),
+    #    so the step is correct whether the cell still spells seat-<name> (a
+    #    fresh tree) or already spells post-<name> (a half-rewritten re-run).
     for j in jobs:
-        old = j["wt_rel"]
-        new = old.replace("seat-" + j["name"], "post-" + j["name"])
+        name = j["name"]
+        old = str(Path(j["wt_rel"]).parent / f"seat-{name}")
+        new = str(Path(j["wt_rel"]).parent / f"post-{name}")
         skip = (repo / new).exists() and not (repo / old).exists()
         cmd = (f"git worktree move {old} {new}" if not skip
                else f"skip {old} (already {new})")

@@ -11560,7 +11560,7 @@ def main(argv: list[str] | None = None) -> int:
                              "remote-control debug log")
     p_meter.add_argument("--check", action="store_true",
                         help="exit 1 if fraction >= threshold; else 0")
-    p_meter.add_argument("--seat", "--post", default=None,
+    p_meter.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat name: read the seat-stable "
                              ".agi/sessions/<name>.meter pin over the "
                              "newest-mtime pin (hypothesis:l3w4-seat-registry)")
@@ -11592,7 +11592,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
-    p_spawn.add_argument("--seat", "--post", default=None,
+    p_spawn.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -11630,7 +11630,7 @@ def main(argv: list[str] | None = None) -> int:
         "autopsy",
         help="print a predecessor seat's death forensics from files only "
              "(read-only; never decides/kills/merges)")
-    p_ap.add_argument("--seat", "--post", required=True, help="seat name")
+    p_ap.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_ap.add_argument("--pid", type=int, default=None,
                       help="predecessor pid (default: the seat row's pid)")
     p_ap.add_argument("--registry-dir", default=None,
@@ -11659,7 +11659,7 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
-    p_loop.add_argument("--seat", "--post", default=None,
+    p_loop.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -11693,7 +11693,7 @@ def main(argv: list[str] | None = None) -> int:
                     "(<sessions>/seats/<seat>.ack.json); the predecessor writes "
                     "the ack in kid 2 (rotate self) -- kept callable for one "
                     "generation as a fallback only")
-    p_ack.add_argument("--seat", "--post", required=True,
+    p_ack.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True,
                        help="the successor's seat name", dest="seat")
     p_ack.add_argument("--gen", type=int, required=True, dest="gen",
                        help="the generation this ACK confirms (gen_after)")
@@ -11730,7 +11730,7 @@ def main(argv: list[str] | None = None) -> int:
     p_status.add_argument("--seats", action="store_true",
                           help="list registry seats instead (seat/generation/"
                                "fraction/age, one line per row)")
-    p_status.add_argument("--seat", "--post", default=None,
+    p_status.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                           help="seat name to read with --record")
     p_status.add_argument("--record", default=None,
                           help="print the LATEST durable rotation record for "
@@ -11751,7 +11751,7 @@ def main(argv: list[str] | None = None) -> int:
         "harvest-table",
         help="report each round's branch/worktree/diffstat-vs-merge-base/"
              "kid-experiment-ids/verdicts, from git + session manifests")
-    p_ht.add_argument("--seat", "--post", default=None,
+    p_ht.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                       help="only rounds dispatched_by this seat")
     p_ht.add_argument("--round", default=None,
                       help="only the named iter (accepts 'L4.236' or "
@@ -11794,7 +11794,7 @@ def main(argv: list[str] | None = None) -> int:
                      "seat, advancing only on a recorded success — the "
                      "DRIVEN operator half (hypothesis:l4-startup-is-one-\n"
                      "script-or-a-driven-prompt)")
-    p_next.add_argument("--seat", "--post", required=True, help="seat name")
+    p_next.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_next.add_argument("--role", default=None,
                         help="role tier to resolve the template (default: the "
                              "seat's registry row role)")
@@ -11834,7 +11834,7 @@ def main(argv: list[str] | None = None) -> int:
     p_h.add_argument("--driven", action="store_true",
                      help="driven mode: build §0, prompt for §3/§6 (the only "
                           "mode that exists today)")
-    p_h.add_argument("--seat", "--post", default=None, help="seat name")
+    p_h.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None, help="seat name")
     p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
                      help="field value source; FIELD is s3 or s6, SRC is a "
                           "filename or `-` for stdin (repeatable)")
@@ -11851,7 +11851,7 @@ def main(argv: list[str] | None = None) -> int:
                           "when nothing blocks, exit 3 otherwise "
                          "(hypothesis:l4-rotate-self-drives-the-handoff-and-"
                          "prepares-the-spawn)")
-    p_pr.add_argument("--seat", "--post", default="",
+    p_pr.add_argument("--seat", "--post", action=geometry_config.SeatAction, default="",
                       help="seat name (a seat-bound checklist: card path, "
                            "meter pin, ack file)")
     p_pr.add_argument("--perform", action="store_true",
@@ -11874,7 +11874,7 @@ def main(argv: list[str] | None = None) -> int:
                                 "the pre-filled row + ONE bounded prompt per "
                                 "open round; --answers replays the choice "
                                 "into the named next command (never run)")
-    p_fd.add_argument("--seat", "--post", required=True, help="seat name")
+    p_fd.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_fd.add_argument("--answers", default=None,
                       help="file of choices, one per open round in table "
                            "order: 'harvest <branch>' | 'cut <node-id>' | "
@@ -11976,7 +11976,7 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap-block", help="emit the bootstrap block for a seat "
                                  "successor, or REFUSE when absent/malformed "
                                  "(a stale fact is MARKED stale, still emitted)")
-    p_bb.add_argument("--seat", "--post", required=True, help="seat name")
+    p_bb.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_bb.add_argument("--root", default=None,
                       help="project root (default: resolve from cwd)")
     p_bb.add_argument("--commit", default=None,
@@ -12056,7 +12056,7 @@ def main(argv: list[str] | None = None) -> int:
         "launch-wrapper", help="signal-masking parent that wraps a seat's "
                                "claude argv and logs every process-sent "
                                "TERM/HUP/INT with its sender pid")
-    p_lw.add_argument("--seat", "--post", required=True,
+    p_lw.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True,
                       help="seat name (log attribution + default log path)")
     p_lw.add_argument("--log", default=None,
                       help="append wrapper lifecycle lines here (default: "

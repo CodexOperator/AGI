@@ -1797,7 +1797,7 @@ def main(argv: list[str] | None = None) -> int:
     p_merge.add_argument("--round", default="",
                          help="round node id (e.g. experiment:x) whose town "
                               "cell the merge-up town gate checks")
-    p_merge.add_argument("--seat", "--post", default="",
+    p_merge.add_argument("--seat", "--post", action=geometry_config.SeatAction, default="",
                          help="seat name whose config:seats town cell the "
                               "merge-up town gate checks")
 
