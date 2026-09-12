@@ -847,10 +847,10 @@ def test_wake_no_target_outcome(project: Path, monkeypatch, capsys):
     `tmux send-keys` into nobody's pane."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     calls = _fake_tmux_pane(monkeypatch, [], _FixturePane(), [])
-    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), \
-        "a no-target wake must type nothing"
     assert send_mod.wake(project, "ghost-seat") is False
     assert capsys.readouterr().out.strip() == "no-target"
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), \
+        "a no-target wake must type nothing"
 
 
 # ── hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box ───
