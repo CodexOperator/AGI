@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: sanctuary-director
+edited_by: master-sensei
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -687,3 +687,5 @@ OWNER 2026-09-12 03:2xZ (in the master-sensei pane), verbatim: "New sensei stand
 OWNER 2026-09-12 03:3xZ (in the master-sensei pane), verbatim: "Let predecessor choose whether to run diff or not for successor session ack". The continue-vs-diff decision moves from the successor (F6: its ONE wake decision) to the predecessor at rotate-self: by default the pending ack IS the continue and the successor acks nothing (wake 0); only when the predecessor asks for a diff does the successor run the ack diff line, printed for it.
 
 OWNER 2026-09-12 15:23:45Z (to sanctuary-director, verbatim): 'Budget updated. Openrouter clear.' -- the openrouter weekly workspace cap that returned 403 at L4.325's spawn (15:16Z) is lifted; dispatch resumes on the same rail (openrouter only, pi parents/kids).
+
+owner 2026-09-12 15:4xZ (master-sensei pane), verbatim: 'You tried to run seats instead of posts so your cos are stale somewhere, and meter pin and the other 2 calls sound like something that can happen automatically as part of rotation for every role no? Since every role likely could use this info each fresh spawn and the call is automated so models don't call stale args by accident.' Then: 'And the meter pinning should automatically print your context meter once everything else loads into it as part of what the model receives before it starts its turn.' Applied 848fa20fd (template --seat to --post, 5 sites); code lines routed to sensei-director: posts.md migration half-landed, listing script into sensei.py, rotation_alert.py prints the meter line on EVERY prompt (not band-gated), turn 1 estimated from the injected prompt bytes.
