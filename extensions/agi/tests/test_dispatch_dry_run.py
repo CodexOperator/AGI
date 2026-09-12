@@ -402,6 +402,106 @@ def _g15_project(tmp_path: Path) -> Path:
 
 
 
+def test_live_spawn_env_hooks_path_is_this_trees_hooks(tmp_path, monkeypatch):
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (2) -- the
+    VALUE of the spawn env, captured at the exact `Popen` that launches the
+    agent, NOT a source-string grep.
+
+    dispatch.py's `--dry-run` only exports GIT_CONFIG_COUNT (it never builds
+    GIT_CONFIG_VALUE_0 in the dry-run mirror), so the real hooksPath value is
+    reachable only on the LIVE spawn path. This test runs the REAL live spawn
+    machinery with `subprocess.Popen` captured (returning a stub child --
+    nothing is actually launched, budget/session/manifest all live under the
+    scratch tmp_path) and asserts the core.hooksPath value dispatch hands the
+    child resolves to `<this tree>/extensions/agi/hooks/agent-git` and that
+    that directory's pre-commit hook exists.
+
+    Why the old grep was insufficient (test_git_commit_guard.py):
+    `assert "agent-git" in src` passes if the string appears ANYWHERE in
+    dispatch.py -- even if the block never runs, or the assigned VALUE on the
+    next line points at a different directory. Here the hook path is read off
+    the env object actually passed to the spawned process, so a rewiring that
+    changes the value fails it.
+    """
+    # The box runs this repo's loop, so AGI_TREE_PROJECT_ROOT / AGI_PROJECT_ROOT
+    # are set in the inherited env and `child_working_graph` would override the
+    # passed scratch root with the real worktree -- a live run would write its
+    # session/manifest/budget into the shared tree. Drop them so the spawn is
+    # fully contained under the scratch project.
+    monkeypatch.delenv("AGI_TREE_PROJECT_ROOT", raising=False)
+    monkeypatch.delenv("AGI_PROJECT_ROOT", raising=False)
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({
+        "harnesses": {"pi": {"adapter": "pi", "provider": "fake",
+                             "models": {"parent": "glm"}}},
+        "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
+        # keep the live run fast and focused: no inline reaper loop
+        "agent_dispatch": {"inline_reaper": False},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n  - {tier: 1, role: parent, "
+        "harness: pi, model: glm}\n---\nbody")
+    # pin the secrets geometry to a nonexistent file so provisioning.available
+    # is False -> the live path never mints a credential or touches the network
+    (graph / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
+    # the target the live spawn zooms for
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n")
+
+    import importlib.util
+    import dispatch
+
+    captured: dict = {}
+    real_popen = subprocess.Popen
+
+    class _StubProc:
+        pid = 7777
+        def poll(self): return None
+        def wait(self, timeout=None): return 0
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def _patched_popen(popenargs, **kwargs):
+        env = kwargs.get("env") or {}
+        if env.get("GIT_CONFIG_VALUE_0"):
+            captured["env"] = env
+            return _StubProc()
+        return real_popen(popenargs, **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", _patched_popen)
+    monkeypatch.setattr(sys, "argv",
+                        [str(BIN / "dispatch.py"), str(tmp_path), "1",
+                         "--level", "small", "--harness", "pi",
+                         "--tier", "parent", "--target", "hypothesis:x"])
+
+    code = dispatch.main()
+    assert code == 0, (
+        "live dispatch of a scratch parent tier failed before the spawn: "
+        f"exit {code}")
+    assert "env" in captured, (
+        "dispatch live path never handed the GIT_CONFIG triple to a process; "
+        "the spawn env was not captured")
+
+    env = captured["env"]
+    assert env["GIT_CONFIG_COUNT"] == "1"
+    assert env["GIT_CONFIG_KEY_0"] == "core.hooksPath"
+    want_hooks = (BIN.parent / "hooks" / "agent-git").resolve()
+    assert env["GIT_CONFIG_VALUE_0"] == str(want_hooks), (
+        f"dispatch wired core.hooksPath at {env['GIT_CONFIG_VALUE_0']!r} "
+        f"but the dispatcher's own tree lives at {want_hooks}")
+    assert (want_hooks / "pre-commit").is_file(), (
+        f"the hook value points at {want_hooks} but pre-commit is absent")
+    assert env.get("AGI_PROJECT_ROOT") is not None
+
+
 def test_dispatch_threads_project_root_into_the_assembled_brief(
         project, monkeypatch, capsys):
     """dispatch.py hands its own resolved project root to brief.assemble as
