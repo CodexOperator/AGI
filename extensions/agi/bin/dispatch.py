@@ -252,7 +252,19 @@ def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -
     on origin, not whatever the local ref last happened to see.
     """
     if town_branch:
-        _ref_candidates = [town_branch]
+        # hypothesis:l4-branches-follow-the-season-grammar — the integration
+        # branch, however it reached us, must be tried CANONICAL-first with the
+        # old name as a one-season fallback, so a pre-migration tree that has
+        # NOT been renamed yet stays measurable: a fetch that 404s the new name
+        # must not silently become "unchecked" while the old name resolves.
+        # The town branch may already BE a legacy literal (an opaque ladder
+        # value such as `town/<t>@s2`), so the as-written name is tried too, and
+        # the grammar's ref_candidates yields canonical + the derived legacy; a
+        # town main carries a SECOND legacy spelling (`town/<t>@s<N>`) that
+        # ref_candidates does not derive back, added by _town_at_legacy.
+        _ref_candidates = _dedupe_ordered(
+            [town_branch] + branches.ref_candidates(town_branch)
+            + _town_at_legacy(town_branch))
     else:
         # Grammar-branch integration, canonical first then the old `season/s<N>`
         # as a one-season deprecated fallback, so a live tree that has NOT been
@@ -316,6 +328,44 @@ def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -
     except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
         files = []
     return {"status": "behind", "behind": behind, "files": files}
+
+
+def _dedupe_ordered(names: list[str]) -> list[str]:
+    """Order-preserving dedupe of candidate ref names, first occurrence kept."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            out.append(n)
+    return out
+
+
+def _town_at_legacy(town_branch: str) -> list[str]:
+    """The `town/<t>@s<N>` legacy spelling of a town main, or [] otherwise.
+
+    The grammar's `_canonical_to_old` derives the `town/<t>/season/s<k>` form
+    from a canonical town main but NOT this second legacy spelling, which is
+    the ACTUAL literal a pre-migration tree carries on origin. Listed here so
+    the stale guard can reach a not-yet-renamed town main through its real
+    remote name."""
+    try:
+        p = branches.parse(town_branch)
+    except ValueError:
+        return []
+    if p.get("kind") == "alias":
+        try:
+            p = branches.parse(p["canonical"])
+        except ValueError:
+            return []
+    if p.get("kind") != "town_main":
+        return []
+    season = p.get("season")
+    town = p.get("town")
+    if season is None or town is None:
+        return []
+    legacy = f"town/{town}@s{season}"
+    return [] if legacy == town_branch else [legacy]
 
 
 def _stale_base_record(stale: dict, season: int,
