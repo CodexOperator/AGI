@@ -6392,6 +6392,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 
 07:2xZ brief minted for mur-SL2.15 lines (3)(4): hypothesis:l4-the-own-row-cut-classifies-each-changed-line-by-row-identity-and-owns-the-edited-by-stamp-only-beside-an-own-row-change — _seats_ownrow_content pairs removed/added lines by index inside one opcode (a foreign line at the same k is staged as own); the value-agnostic edited_by predicate owns ANY foreign uncommitted restamp. Dispatch after SL7.16 is harvested (rotate.py owner); disjoint by function from SL7.18 and the sibling briefs G/H.
 
+SL7.20 harvested 08:3xZ (sensei-director gen IX, brief F, lines (3)(4), kid proved): _seats_ownrow_content classifies each changed line by ROW IDENTITY through _merge_region — own removed dropped, own added kept, foreign removed restored from HEAD, foreign added never staged, rows paired across a replace opcode by name, no index pairing left; the frontmatter edited_by stamp is own only when the same diff carries an own-row name-cell change (session_owns), computed by _diff_owns_row; both predicates still route through the one _own_row_line. Parent reproduced the pre-fix defect (own row deleted + foreign edited + foreign inserted in one opcode) and saw it gone; 279/3 + 4 new tests, 699/3/1x on the seat. Lands at SL2#18.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
