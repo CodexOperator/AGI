@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.323 (sanctuary-director 114003Z, 14:37:52Z): landed on the seat 2bc1c4e12 (parent a00-f1668349, kid a00-f65670eb proved; 7 min; one clean done commit). _post_rename_commit_targets(repo, dest, seats_rel, seats_abs): seats.md is in the pathspec when its delete is pending in the index OR seats_abs.exists() (the apply's git mv will stage it); both call sites pass seats_abs. Director re-ran on the real seat tree: 43 passed (test_post_rename + test_cli); cli.py post-rename --dry-run on this unmigrated live tree prints the step-3 commit as git commit -m ... -- .agi/nodes/.geometry/posts.md .agi/nodes/.geometry/seats.md (BOTH named) and dry-run: nothing changed, rc 0, tree clean. No residue found by the director.
