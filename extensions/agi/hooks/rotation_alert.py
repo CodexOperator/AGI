@@ -57,6 +57,7 @@
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -425,6 +426,469 @@ def _latest_usage(transcript_path: Path):
     return total, seen
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# goal:g15.25 line (4) — the meter hook ROTATES at threshold (rotate-out ZERO
+# calls), NEVER while a merge-up is in flight, and NEVER twice for one
+# generation. hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up.
+# A rotation landing mid-merge is worse than one extra tool call, and it is the
+# kind of thing that only fails under load (Prime XI 21:20Z, the GATE verbatim).
+# So when an over-line seat's state is clean the hook BACKGROUNDS
+# `rotate.py rotate-self --name <seat> --role director --timeout 900 --force
+# --stops '<one line>'` itself (rotate-out ZERO calls) and prints the card the
+# stops line lands on; when a gate HOLDS it prints its reason and does nothing,
+# re-checking on the next prompt. Every gate answers CLEAN when unmeasurable and
+# the hook never raises / never blocks / never delays the prompt (P7).
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: The rotate-self invocation the hook backgrounds at threshold. rotate-out ZERO
+#: calls: the hook IS the rotate-out, and `--stops` delivers the rotation line
+#: as a signed dm itself (goal:g15.25 line (3)). `--timeout 900` bounds the
+#: rotate-self; `--force` bypasses only the meter-due gate, never the captives.
+ROTATE_SELF = (
+    "python3 {bin}/rotate.py rotate-self --name {seat} --role director "
+    "--timeout 900 --force --stops {stops!r}"
+)
+
+#: The exact deferral headline the claim makes load-bearing wherever it prints.
+DEFER_PREFIX = "rotation deferred: merge-up in flight"
+
+
+def _git_maybe(cwd, *args: str) -> list[str] | None:
+    """git in `cwd`, stdout lines, or None on ANY failure (not a repo, a
+    missing ref, git unavailable). P7: never raises; a measurement that cannot
+    be taken reads as absent (clean), exactly as rotate.py's captives degrade."""
+    try:
+        out = subprocess.run(["git", "-C", str(cwd), *args],
+                             capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return None
+    if out.returncode != 0:
+        return None
+    return [ln for ln in out.stdout.splitlines()]
+
+
+def _git_toplevel(cwd) -> Path | None:
+    """The repo work-tree top for `cwd`, or None (not a repo / gitless)."""
+    lines = _git_maybe(cwd, "rev-parse", "--show-toplevel")
+    if not lines:
+        return None
+    try:
+        return Path(lines[0].strip())
+    except (ValueError, OSError):
+        return None
+
+
+def _git_count_maybe(cwd, *args: str) -> int | None:
+    """The first stdout line as an int, or None when git cannot answer."""
+    lines = _git_maybe(cwd, *args)
+    if not lines or not lines[0].strip():
+        return None
+    try:
+        return int(lines[0].strip())
+    except ValueError:
+        return None
+
+
+def _pid_alive(pid: int) -> bool:
+    """A pid with a live process — the dead-vs-live judgement the suite-lock
+    gate needs (a dead holder's lock is stale-broken, i.e. NOT held)."""
+    if not pid or pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True   # alive, owned by someone else
+    except OSError:
+        return False
+    return True
+
+
+def _shared_sessions_dir(root: Path) -> Path | None:
+    """The graph's ONE shared sessions dir (routed through the main checkout), or
+    None when rotate cannot be imported (P7). Reuses rotate's resolver so the
+    hook has no second copy of the path rule."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415, PLC0415
+        return Path(rotate._sessions_dir(root))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _season_branch_checked(root: Path) -> str:
+    """The season branch name, resolved through rotate's ONE resolver (never a
+    hardcoded `season/s2`), or '' when rotate cannot be imported (P7)."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415
+        return rotate.season_branch(root)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _read_generation(root: Path, seat: str) -> int:
+    """The seat's generation for the once-per-generation latch, 0 unmeasurable."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415
+        return int(rotate._read_generation(root, seat))
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def _merge_head_present(root: Path) -> bool:
+    """MAIN's `.git/MERGE_HEAD` present — a merge-up is being performed on the
+    main checkout RIGHT NOW. read on the MAIN root (`_main_root`), the exact
+    tree the claim's gate (b) names."""
+    main_root, _ = _main_root(root)
+    return bool(_git_maybe(main_root, "rev-parse", "-q", "--verify",
+                           "MERGE_HEAD"))
+
+
+def _suite_lock_held(root: Path) -> bool:
+    """A LIVE runner holds `<sessions>/verify-suite.lock` (verification.py). A
+    lock whose holder pid is dead (or unparseable/absent) is stale-broken — NOT
+    held — mirroring acquire_suite_lock's dead-pid break."""
+    s = _shared_sessions_dir(root)
+    if s is None:
+        return False
+    lock = s / "verify-suite.lock"
+    if not lock.exists():
+        return False
+    try:
+        holder = int(lock.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return False
+    return _pid_alive(holder)
+
+
+def _season_unpushed(root: Path) -> bool:
+    """An unpushed merge commit on the season branch: `origin/<season>..<season>`
+    is non-zero from the MAIN checkout. This is the `git status -sb` *ahead* the
+    claim names. Unmeasurable reads clean (P7); a season branch with no local
+    ref (not checked out) reads clean too — there is nothing to merge-up that is
+    not pushed."""
+    sb = _season_branch_checked(root)
+    main_root, _ = _main_root(root)
+    top = _git_toplevel(main_root)
+    if top is None or not sb:
+        return False
+    n = _git_count_maybe(top, "rev-list", "--count", f"origin/{sb}..{sb}")
+    return bool(n)
+
+
+def _merge_in_flight(root: Path) -> str | None:
+    """Which of the three merge-up signals holds, or None when clean. FIXED
+    order (hypothesis line (4) gate (b)): MAIN's MERGE_HEAD, the suite lock,
+    then a season unpushed merge commit. Returns the `(<which>)` label of the
+    FIRST that holds. Never raises (P7): an unmeasurable signal reads clean."""
+    if _merge_head_present(root):
+        return "merge in progress on MAIN"
+    if _suite_lock_held(root):
+        return "verify-suite lock live"
+    if _season_unpushed(root):
+        return "unpushed merge commit on the season branch"
+    return None
+
+
+def _card_path(root: Path, seat: str) -> Path:
+    """The seat card `.agi/sessions/quorum/<seat>.md` the hook must find fresh —
+    own worktree copy first, the shared main copy only when no own copy exists
+    (mirrors rotate._own_card_path, without its git routing)."""
+    for p in (root / "sessions" / "quorum" / f"{seat}.md",
+              root / ".agi" / "sessions" / "quorum" / f"{seat}.md"):
+        if p.exists():
+            return p
+    s = _shared_sessions_dir(root)
+    return (s / "quorum" / f"{seat}.md") if s is not None else \
+        root / "sessions" / "quorum" / f"{seat}.md"
+
+
+def _work_last_ts(top, card_rel: str | None, seats_rel: str | None) -> int | None:
+    """The last WORK commit's mtime at the repo top, or None when unmeasurable.
+    Mirrors rotate.py check 4's exclusion: comms dms, rotation records, the
+    card itself and the seat own-row seats are bookkeeping, NEVER WORK — so a
+    stops write can satisfy (not re-trigger) the card-age captive."""
+    spec = ["log", "-1", "--no-merges", "--format=%ct", "--", ".",
+            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
+    if card_rel:
+        spec.append(f":(exclude){card_rel}")
+    if seats_rel:
+        spec.append(f":(exclude){seats_rel}")
+    lines = _git_maybe(top, *spec)
+    if not lines or not lines[0].strip():
+        return None
+    try:
+        return int(lines[0].strip())
+    except ValueError:
+        return None
+
+
+def _card_stale_measure(root: Path, seat: str, card: Path) -> tuple[bool, str]:
+    """Card-age captive (gate (a)): `(stale, clear_line)`. The card must be
+    NEWER than the last WORK commit; when it is older the hook does NOT rotate
+    and prints the card line to write instead. Unmeasurable last-WORK (no git)
+    reads NOT stale — the same ok-unmeasurable rule rotate's captives use."""
+    top = _git_toplevel(root) or root
+    try:
+        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
+    except (ValueError, OSError):
+        card_rel = None
+    seats_rel = None
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415
+        sres = str(rotate._ack_seats_path(root).resolve()
+                   .relative_to(Path(top).resolve()))
+        seats_rel = sres
+    except Exception:  # noqa: BLE001
+        seats_rel = None
+    last_ts = _work_last_ts(top, card_rel, seats_rel)
+    stale = False
+    if last_ts is not None and card.exists():
+        try:
+            stale = card.stat().st_mtime < last_ts
+        except OSError:
+            stale = False   # an unstat-able card reads not-stale (P7)
+    return stale, f"rotate.py handoff --driven --seat {seat}"
+
+
+def _prepare_other_captives(root: Path, seat: str) -> list[tuple[str, str]]:
+    """Gate (c) — prepare's captives OTHER than card-age: behind / dirty / pin /
+    ack, LISTED with their clear commands. Runs `_prepare_checks(perform=False)`
+    so it LISTS and never performs (P7: the hook must not merge or mutate — the
+    spawned rotate-self --stops runs the same checklist itself, with --perform).
+    The card-age captive is already gated separately as (a)."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415
+        checks = rotate._prepare_checks(root, seat, perform=False)
+    except Exception:  # noqa: BLE001
+        return []
+    out: list[tuple[str, str]] = []
+    for blocker, name, clear in checks:
+        if not blocker:
+            continue
+        if name.startswith("card older than last commit"):
+            continue
+        out.append((name, clear))
+    return out
+
+
+def _last_signed_dm(root: Path) -> str:
+    """The first line (first 80 chars) of the newest signed dm for the project,
+    or '' when none can be read. Signed acts live under `<repo>/comms/*/dm/`.
+    Never raises (P7)."""
+    comms = root.parent / "comms"
+    best: Path | None = None
+    best_mt = -1.0
+    try:
+        for dmd in comms.glob("*/dm"):
+            for f in dmd.iterdir():
+                if not f.is_file():
+                    continue
+                try:
+                    mt = f.stat().st_mtime
+                except OSError:
+                    continue
+                if mt > best_mt:
+                    best_mt = mt
+                    best = f
+    except OSError:
+        return ""
+    if best is None:
+        return ""
+    try:
+        first = best.read_text(encoding="utf-8", errors="replace")
+        line = first.strip().splitlines()[0].strip() if first.strip() else ""
+        return line[:80]
+    except OSError:
+        return ""
+
+
+def _stops_line(root: Path, seat: str) -> str:
+    """`stops: <commit subject> | last dm: <first 80 chars>` — the seat's two
+    most recent signed acts (goal:g15.25 line (4) FALSIFIER: the stops text is
+    NEVER empty when a signed commit exists). An unmeasurable half degrades to
+    'n/a' so the line is always non-empty. Never raises (P7)."""
+    card = _card_path(root, seat)
+    top = _git_toplevel(root) or root
+    try:
+        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
+    except (ValueError, OSError):
+        card_rel = None
+    subject = "n/a"
+    for cand in (root, _main_root(root)[0]):
+        spec = ["log", "-1", "--no-merges", "--format=%s", "--", ".",
+                ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
+        if card_rel:
+            spec.append(f":(exclude){card_rel}")
+        lines = _git_maybe(cand, *spec)
+        if lines and lines[0].strip():
+            subject = lines[0].strip()
+            break
+    dm = _last_signed_dm(root)
+    return f"stops: {subject} | last dm: {dm[:80]}"
+
+
+#: once-per-generation latch dir, under the shared sessions dir. Keyed by
+#: seat + generation so a slow spawn is never doubled (gate (d)).
+_LATCH_SUBDIR = "rotations"
+
+
+def _latch_path(root: Path, seat: str, gen: int) -> Path:
+    s = _shared_sessions_dir(root)
+    base = s if s is not None else root
+    return base / _LATCH_SUBDIR / f"hook-{seat}-gen{gen}.lock"
+
+
+def _latch_holder_pid(latch: Path) -> int | None:
+    """The `pid <n>` recorded in a latch file, or None when it cannot be read.
+    The latch names the ROTATE-SELF process (never the hook's own, which exits
+    the instant it spawns), so a holder pid here is the process whose lifetime
+    the latch belongs to."""
+    try:
+        for ln in latch.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"pid\s+(\d+)", ln)
+            if m:
+                return int(m.group(1))
+    except (OSError, ValueError):
+        return None
+    return None
+
+
+def _latch_held(latch: Path) -> bool:
+    """A latch is HELD while a live process holds its lock. A dead holder — a
+    rotate-self that FAILED mid-flight, or one that COMPLETED (which bumps the
+    generation, so the next prompt reads a different latch key anyway) — leaves
+    a stale latch, and a stale latch is NOT held. The dead-vs-live judgement is
+    the same idiom as `_suite_lock_held` (and acquire_suite_lock's dead-pid
+    break): a lock whose holder is not alive must not silently block the thing
+    it guards for the rest of the generation."""
+    pid = _latch_holder_pid(latch)
+    if pid is None:
+        return False
+    return _pid_alive(pid)
+
+
+def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
+    """The full argv of the background rotate-self the hook spawns at threshold
+    (rotate-out ZERO calls — the hook IS the rotate-out). One builder, shared by
+    the production spawn and the test seam so the two can never disagree."""
+    return ["python3", str(bin_dir / "rotate.py"), "rotate-self",
+            "--name", seat, "--role", "director", "--timeout", "900",
+            "--force", "--stops", stops]
+
+
+def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
+    """Background `rotate.py rotate-self --stops <stops>` for `seat` (rotate-out
+    ZERO calls — the hook ITSELF is the rotate-out). Detached, devnull, so the
+    hook returns immediately and NEVER blocks the prompt (P7); `--timeout 900`
+    bounds the rotate-self. Returns the pid, or None on any failure (never
+    raises). This is the test seam: a fake seat over its line with a clean state
+    must show the hook calling this once with the full argv."""
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    argv = _rotate_self_argv(bin_dir, seat, stops)
+    try:
+        proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                                stdin=subprocess.DEVNULL,
+                                start_new_session=True)
+    except Exception:  # noqa: BLE001
+        return None
+    return proc.pid
+
+
+def _gated_rotate(root: Path, seat: str) -> str | None:
+    """goal:g15.25 line (4) — the hook's auto-rotation decision for an over-line
+    seat. Runs the FOUR gates IN ORDER; each gate that HOLDS prints its reason
+    and does NOTHING (re-check next prompt). Every gate clean → spawns the
+    background rotate-self and prints what it spawned. Returns the deferral
+    `<which>` reason when a gate held, else None (rotated). Prints its own
+    status lines; never raises (P7)."""
+    if not seat:
+        return "no-seat-identified"
+    card = _card_path(root, seat)
+
+    # gate (a) card-age captive
+    stale, clear_line = _card_stale_measure(root, seat, card)
+    if stale:
+        print("[rotation] card-age captive: the seat card is older than the "
+              "last WORK commit — the hook does not rotate a seat whose card "
+              "is stale. Write it, then re-check on the next prompt:")
+        print(f"  {clear_line}")
+        return "card-stale"
+
+    # gate (b) NO MERGE-UP IN FLIGHT — THE POINT of the node, tested first.
+    which = _merge_in_flight(root)
+    if which:
+        print(f"{DEFER_PREFIX} ({which}) — the hook does not rotate while a "
+              f"merge-up is in flight; re-check on the next prompt.")
+        return which
+
+    # gate (c) prepare's other captives — LISTED, never performed (P7).
+    blockers = _prepare_other_captives(root, seat)
+    if blockers:
+        for name, clear in blockers:
+            print(f"[rotation] prepare captive: {name} — {clear}")
+        return f"prepare:{blockers[0][0]}"
+
+    # gate (d) once-per-generation latch — a slow spawn is never doubled.
+    gen = _read_generation(root, seat)
+    latch = _latch_path(root, seat, gen)
+    if _latch_held(latch):
+        print(f"rotation deferred: already rotating {seat} gen {gen} "
+              f"(latch {latch.name} held by a live rotate-self); re-check on "
+              f"the next prompt.")
+        return f"latch-gen-{gen}"
+    if latch.exists():
+        # STALE-broken: the rotate-self that held this generation died (a
+        # mid-flight FAILURE — the exact hole — or completion, which bumped
+        # the generation so the seat now lives on a NEWER latch key). A stale
+        # latch must NOT lock this seat out of auto-retry for the rest of the
+        # generation, so release it and let a fresh spawn claim it (mirror of
+        # _suite_lock_held's dead-pid break).
+        try:
+            latch.unlink()
+        except OSError:
+            pass
+
+    # claim the latch BEFORE spawning so a concurrent prompt cannot double it.
+    try:
+        latch.parent.mkdir(parents=True, exist_ok=True)
+        latch.write_text(f"pid {os.getpid()} hook\n"
+                         f"seat {seat}\ngen {gen}\n", encoding="utf-8")
+    except OSError:
+        pass   # a latch we cannot write must not block the rotation (P7)
+
+    stops = _stops_line(root, seat)
+    pid = _spawn_rotate_self(root, seat, stops)
+    if pid is None:
+        try:
+            latch.unlink()   # a failed spawn must let a later prompt retry
+        except OSError:
+            pass
+        print(f"rotation: FAILED to spawn rotate-self for {seat} (no pid); "
+              f"rotate manually with the command below.")
+        return "spawn-failed"
+
+    # Record the ROTATE-SELF pid (not the hook's own, which exits the instant
+    # it returns here): the latch is then held only WHILE its rotate-self
+    # lives, so a mid-flight failure releases it on the next prompt (the latch-'
+    # on-failure hole, closed) rather than latching this generation forever.
+    try:
+        latch.write_text(f"pid {pid} rotate-self\n"
+                         f"seat {seat}\ngen {gen}\n", encoding="utf-8")
+    except OSError:
+        pass   # a latch we cannot rewrite must not fail the rotation (P7)
+    print(f"rotation: spawned rotate-self for {seat} in the background "
+          f"(rotate-out ZERO calls, pid {pid}); the stops line lands on "
+          f"the card: {card}")
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
@@ -548,10 +1012,24 @@ def main(argv: list[str] | None = None) -> int:
 
     if over_line:
         # Every firing at/over the line (P3). Do not consume band state.
+        # goal:g15.25 line (4) — the hook ROTATES at threshold (gated); when a
+        # gate holds it prints the deferral so the operator sees WHY an
+        # over-line seat has not rotated, and re-checks next prompt.
+        deferral = _gated_rotate(root, seat)
+        if deferral:
+            suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
+                      "rotating this seat while that holds; it re-checks on "
+                      "the next prompt.")
+        else:
+            suffix = ("\n\nRotation spawned in the background for this seat "
+                      "(rotate-out ZERO calls); the stops line is landing on "
+                      "its card. The command below inspects/rotates by hand "
+                      "if needed.")
         return _emit(AT_OR_OVER_TITLE,
                      f"This session is at or over its rotation line: "
                      f"{fraction:.4f} ≥ {threshold:.4f}. Rotate NOW. If you were "
-                     "mid-round, hand off cleanly first.")
+                     f"mid-round, hand off cleanly first."
+                     + suffix)
 
     if band < 0 or b_frac <= 0.0:
         # Below the lowest band: nothing has changed — stay silent (P3).
