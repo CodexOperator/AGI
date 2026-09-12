@@ -10334,6 +10334,15 @@ def _latest_rotate_record(root: Path, seat: str):
     return None
 
 
+def _code_head(root: Path) -> str:
+    """The engine tree's HEAD sha7, stamped `code_head` on every after_join
+    result so a record always names which bytes performed it
+    (hypothesis:l4-the-heal-watch-re-execs-itself...). Best-effort: empty on
+    any git refusal, never raising."""
+    lines = _git_maybe(root, "rev-parse", "HEAD")
+    return (lines[0][:7] if lines and lines[0] else "")
+
+
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
                             performer: str = "watch") -> dict | None:
@@ -10432,7 +10441,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
             except (OSError, ValueError, json.JSONDecodeError):
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
-                "late": bool(late), "record_path": str(path)}
+                "late": bool(late), "record_path": str(path),
+                "code_head": _code_head(root)}
 
     if joined.get("found"):
         pid = joined.get("pid")
@@ -10467,12 +10477,14 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # `age_s` (no as-if-fresh pretense) alongside the promised `delay_s` and
     # the measured `performed_after_s`.
     late = age_s is not None and age_s > max_age
-    return run_after_join(
+    result = run_after_join(
         root, seat=seat, gen=gen_str,
         startup=startup, values=values, record_path=str(path),
         sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
         performer=performer, late=late, performed_after_s=age_s,
         gen_unresolved_reason=gen_reason)
+    result["code_head"] = _code_head(root)
+    return result
 
 
 def _resolve_join_gen(rec: dict, row: dict | None, seat: str):
