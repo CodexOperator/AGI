@@ -1105,6 +1105,153 @@ def test_first_seating_named_value_runs_not_refusal():
     assert "first seating" in r.get("output", ""), r
 
 
+def test_derive_pred_pids_from_s12_chain():
+    """(a) SL7.98: `_derive_pred_pids` joins the record's
+    `s12_self_reap.chain` pid list (int or `{pid}` element forms) — the pids
+    THIS rotation reaped, the reap-proof's real predecessor set. Empty/missing
+    chain falls through to the row fallback, never raises."""
+    rec = {"s12_self_reap": {"chain": [111, 222, {"pid": 333}]}}
+    assert rotate._derive_pred_pids(Path("."), "s", rec) == "111 222 333"
+    rec2 = {"s12_self_reap": {"chain": [{"pid": "9"}, {"pid": 8}]}}
+    assert rotate._derive_pred_pids(Path("."), "s", rec2) == "9 8"
+
+
+def test_derive_pred_pids_from_predecessor_row(monkeypatch):
+    """(b) SL7.98: no s12 chain -> the predecessor ROW's pid (best-effort
+    `_find_seat`) is the fallback — the source the own tail reads before the
+    reap section is written. A row with no pid -> '' (the named refusal)."""
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, name: {"pid": "777"})
+    assert rotate._derive_pred_pids(Path("."), "s", None) == "777"
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, name: {"role": "parent"})
+    assert rotate._derive_pred_pids(Path("."), "s", {}) == ""
+
+
+def test_reap_proof_runs_with_derived_pred_pids_end_to_end(tmp_path,
+                                                           monkeypatch):
+    """(c) SL7.98: a record carrying an `s12_self_reap` chain performs its
+    reap-proof entry against the DERIVED pred_pids — the entry RUNS (rc
+    present, no refusal). Before this FIX every caller passed NO pred_pids, so
+    `{pred_pids}` resolved '' and the reap-proof was refused by name (`no
+    predecessor chain`) on every real rotation."""
+    import agi.bin.rotate as rot
+    rec_data = {"rotation": "rotate-self", "seat": "rp",
+                "result": "success", "gen_after": 3,
+                "recorded_at": "2020-01-01T00:00:00Z",
+                "s12_self_reap": {"chain": [911, 822]},
+                "handover": {"join": {"window_id": "@7",
+                                        "transcript": "/tmp/x.jsonl"}}}
+    rec_path = tmp_path / "rp.20200101T000000Z.json"
+    rec_path.write_text(json.dumps(rec_data), encoding="utf-8")
+    tmpl = {"startup": _startup(after_join=[
+        {"label": "reap-proof",
+         "cmd": "ps -e | grep -E '{pred_pids}'"}], delay_s=5)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw:
+                        (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True, "pid": os.getpid(),
+                                         "session_id": "live"})
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="911 822")
+    try:
+        out = rot.run_after_join_for_seat(
+            tmp_path, "rp", sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    assert out is not None
+    rp = [r for r in out["results"] if r["label"] == "reap-proof"]
+    assert rp and "refused" not in rp[0], rp
+    assert "911 822" in rp[0].get("output", "")
+
+
+def test_own_tail_records_late_age_performed_after_and_watch_defers(
+        tmp_path, monkeypatch):
+    """(d) SL7.98, hypothesis:l4-every-after-join-performer-... clause (2):
+    the OWN tail performs through the SAME run_after_join_for_seat the watch
+    uses (ONE liveness gate, ONE age budget — no second gate), so its record
+    carries late/age_s/performed_after_s + performer 'tail'; it passes its OWN
+    row + join result so the dead-seat skip cannot fire for the seat rotating
+    ITSELF; and a FOLLOWING watch pass on the same record defers by name (the
+    tail's SL7.88 claim is respected)."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="tl",
+                              recorded_at="2020-01-01T00:00:00Z")
+    tmpl = {"startup": _startup(after_join=[{"label": "ack",
+                                               "cmd": "echo tail-ran"}],
+                                delay_s=5)}
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw:
+                        (tmpl, "parent", "test"))
+    # the seat rotating ITSELF must NOT be dead-skipped: the tail passes its
+    # OWN row and its OWN (successful) join result into the shared gate.
+    own_row = {"role": "parent", "session_id": "live-session"}
+    own_joined = {"found": True, "pid": os.getpid(),
+                  "session_id": "live-session",
+                  "transcript": "/tmp/tl.jsonl"}
+    # the tail's OWN values, as the (6.4) block builds them: the ACKED ref
+    # (F15), tmux_session and the derived pred_pids.
+    own_values = dict(VALUES)
+    own_values["succ_ref"] = "def456"
+    own_values["tmux_session"] = "agi-x"
+    own_values["succ_name"] = "tl-next"
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="ok")
+    try:
+        out = rot.run_after_join_for_seat(
+            tmp_path, "tl", performer="tail", sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None,
+            _rec_pair=(json.loads(rec_path.read_text()), str(rec_path)),
+            _row=own_row, _joined=own_joined, _values=own_values,
+            _force_due=True, _delay_override=0)
+    finally:
+        rot.subprocess.run = real_run
+    # the shared gate ran (no defer, no skip): the seat rotating itself passes
+    # the liveness gate through its OWN join result.
+    assert out is not None, out
+    assert not (out.get("deferred") or out.get("skipped")
+                or out.get("waiting")), out
+    saved = json.loads(rec_path.read_text())
+    aj = saved.get("after_join")
+    assert isinstance(aj, dict) and aj, "after_join must never be {} on a tail record"
+    assert aj.get("performer") == "tail", aj
+    assert aj.get("performed_by") == "tail", aj
+    assert aj.get("late") is True, aj
+    assert aj.get("age_s") is not None and aj.get("age_s") > 0, \
+        "age_s is the MEASURED age of the old record: %r" % aj
+    assert aj.get("performed_after_s") == aj.get("age_s"), \
+        "performed_after_s is the same measured age: %r" % aj
+    # a FOLLOWING watch pass on the same record DEFERS BY NAME: the tail's
+    # SL7.88 claim is live, so the watch runs nothing and says who holds it.
+    claim = dict(saved)
+    claim["after_join"] = {"claimed_at": datetime.now(timezone.utc)
+                            .isoformat(),
+                            "performer": "tail",
+                            "claim_key": saved.get("recorded_at")}
+    claim_path = tmp_path / "claim.json"
+    claim_path.write_text(json.dumps(claim), encoding="utf-8")
+    watched = {"ran": 0}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda r, s: (claim, str(claim_path)))
+    monkeypatch.setattr(rot, "_find_seat", lambda r, n: own_row)
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: own_joined)
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **k: watched.__setitem__("ran", 1)
+                        or {"results": [], "appended": True})
+    out2 = rot.run_after_join_for_seat(tmp_path, "tl", performer="watch",
+                                       send_dm=lambda to, text: None)
+    assert watched["ran"] == 0, "a live tail claim defers the watch: run nothing"
+    assert out2 and "claimed by tail" in str(out2.get("deferred")), out2
+
+
 def test_empty_succ_ref_ack_refuses_named():
     """Generic to every after_join entry: the ack entry's empty `{succ_ref}`
     refuses by name (row session_ref empty), never run."""
