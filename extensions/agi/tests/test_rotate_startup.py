@@ -4,6 +4,7 @@ resolution, per-command timeout, byte-cap truncation, `## STARTUP OUTPUT`
 composition, and dry-run-runs-nothing. Hermetic — no graph, no real spawn, no
 tmux; subprocess.run is monkeypatched where a command must "hang" or "overflow"
 deterministically."""
+import json
 import os
 import subprocess
 import sys
@@ -1606,3 +1607,84 @@ def test_resolve_shell_vars_whole_string_gone():
     # and was DELETE-d; its name no longer binds in the module, so a future
     # reader cannot reintroduce a whole-string env round-trip.
     assert not hasattr(rotate, "_resolve_shell_vars")
+
+
+# ---- _first_turn_values reads the PRIME row from the PUSHED season ref,
+# ---- the way whois reads it, falling back to the working-tree row only
+# ---- when the ref is unreachable and SAYING SO (hypothesis:l4-prime-key-is-
+# ---- read-from-the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-
+# ---- by-pubkey). A deferred-key window (a pending key persisted when the
+# ---- push FAILED) leaves the ROTATING worktree's prime row carrying a key
+# ---- the pushed authority does not; a startup {prime_key} read from the
+# ---- worktree then names a key the pushed row never carries and reads
+# ---- NO-MATCH/RETIRED for a live Prime.
+# ---------------------------------------------------------------------------
+
+_WORKTREE_PRIME_ROW = {
+    "name": "belam", "role": "prime_director", "tier": 3,
+    "session_ref": "7902ac", "pubkey": "11112222deadbeef",
+}
+_PUSHED_PRIME_ROW = {
+    "name": "belam", "role": "prime_director", "tier": 3,
+    "session_ref": "", "pubkey": "aabbccdddeadbeef",  # deferred-key window: pushed row is the CURRENT one
+}
+
+
+def _prime_from_both_sources(monkeypatch, tmp_path, work_row, push_row):
+    """Write a worktree seats row + stub the PUSHED reader, so the
+    pushed row and the worktree row carry DIFFERENT pubkeys (the falsifier
+    fixture)."""
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    nodes = tmp_path / "nodes" / ".geometry"
+    nodes.mkdir(parents=True, exist_ok=True)
+    body = ("---\nid: config:seats\ntype: config\nseats:\n  - "
+            + json.dumps(work_row) + "\n---\n")
+    (nodes / "seats.md").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(_send, "_pushed_seats",
+                        lambda root, ref, do_fetch: ([push_row], "abc123",
+                                                     "origin/season/s2"))
+    return _send
+
+
+def test_first_turn_prime_key_reads_pushed_row_never_worktree(monkeypatch,
+                                                              tmp_path):
+    # FALSIFIER: worktree row and pushed row carry DIFFERENT pubkeys — the
+    # resolved {prime_key} must be the PUSHED row's, and prime_from says so.
+    _prime_from_both_sources(monkeypatch, tmp_path, _WORKTREE_PRIME_ROW,
+                             _PUSHED_PRIME_ROW)
+    vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
+                                     gen=7, succ_name="sd-next")
+    assert vals["prime_key"] == "aabbccdddeadbeef"   # pushed, never the worktree key
+    assert vals["prime_key"] != "11112222deadbeef"
+    assert vals["prime_seat"] == "belam"
+    assert vals["prime_ref"] == ""                    # pushed prime's session_ref is empty here
+    assert vals["prime_from"] == "pushed"
+
+
+def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
+                                                               tmp_path):
+    # Pushed authority unreachable: fall back to the working-tree row AND
+    # say so — never a silent worktree read, never an empty key.
+    import send as _send
+    nodes = tmp_path / "nodes" / ".geometry"
+    nodes.mkdir(parents=True, exist_ok=True)
+    body = ("---\nid: config:seats\ntype: config\nseats:\n  - "
+            + json.dumps(_WORKTREE_PRIME_ROW) + "\n---\n")
+    (nodes / "seats.md").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(_send, "_pushed_seats", lambda root, ref, do_fetch: None)
+    vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
+                                     gen=7, succ_name="sd-next")
+    assert vals["prime_key"] == "11112222deadbeef"
+    assert "prime_from" in vals and "worktree" in vals["prime_from"]
+    assert "unreachable" in vals["prime_from"]
+
+
+def test_prime_from_is_a_startup_placeholder():
+    # `prime_from` is a CANONICAL placeholder: referencing it resolves and
+    # never refuses; a template author can surface WHERE the prime authority
+    # came from.
+    resolved = rotate._resolve_startup_placeholders(
+        "echo prime={prime_from} key={prime_key}",
+        dict(VALUES, prime_from="pushed", prime_key="aabbccdd1122334455"))
+    assert "prime=pushed" in resolved
+    assert "prime_key" in resolved or "aabbccdd1122334455" in resolved

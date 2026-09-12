@@ -714,6 +714,10 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     err = _io.StringIO()
     args = _rotate_self_args(tmp_path, window_path=str(win),
                              session_ref="adv-alive-9")
+    # the season-ahead commit-tree above landed AFTER _init_git_remote's
+    # card refresh; refresh once more so the card captive measures the
+    # merge-push claim, not a second boundary (see _init_git_remote).
+    os.utime(quorum / "adv-alive.md", None)
     with _c.redirect_stderr(err):
         rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, err.getvalue()
@@ -2373,6 +2377,18 @@ def _init_git_remote(tmp_path, branch="master"):
                     "fixture"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(tmp_path), "push", "-u", "origin",
                     branch], check=True, capture_output=True)
+    # Every card a test wrote BEFORE this fixture commit is now older than
+    # it whenever the write and the commit straddle a whole-second boundary
+    # (the captive "card older than last commit" compares the card's float
+    # mtime against the commit's %ct, rotate.py _prepare_checks): a fixture
+    # race, likelier under suite load, that a live rotate-out never has
+    # because its stops write refreshes the card. Refresh every card here,
+    # bytes unchanged. A test that lays MORE commits after this fixture
+    # refreshes its card again before driving the checklist.
+    quorum = tmp_path / "sessions" / "quorum"
+    if quorum.is_dir():
+        for _card in quorum.glob("*.md"):
+            os.utime(_card, None)
     return bare
 
 
@@ -2409,6 +2425,164 @@ def test_write_stops_section_created_and_replaced(tmp_path):
     assert "now this" in txt2
     assert "diff requested: review the handoff" in txt2
     assert "keep this" in txt2
+
+
+def test_card_section_boundary_blank_lines_survive_stops_writes(tmp_path):
+    """goal:g15.25 (a) FALSIFIER — a card that round-trips through TWO
+    `_write_stops_section` calls keeps every section-boundary blank line
+    byte-identical: the blanks that separated the sections before the stops
+    slot, inside the stops section, and after it are all still there (the
+    split/rebuild is an exact inverse at section boundaries, so the stops
+    writer never strips them)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text(
+        "# SESSION HANDOFF scratchpad\n"
+        "\n"
+        "## §5 STATE\n"
+        "\n"
+        "### 🔴 Where it stops\n"
+        "```\n"
+        "old command\n"
+        "```\n"
+        "\n"
+        "## Other\n"
+        "keep me\n"
+        "\n"
+        "## Final\n"
+        "last line\n", encoding="utf-8")
+    # ONE write already loses nothing at the boundaries; TWO writes (the
+    # FALSIFIER's round-trip) must not either.
+    _, slot = _r._write_stops_section(card, "s", "new cmd")
+    assert slot == "replaced"
+    _, slot2 = _r._write_stops_section(card, "s", "second cmd")
+    assert slot2 == "replaced"
+    out = card.read_text(encoding="utf-8")
+    # the section-boundary blank lines are still present, so the sections
+    # are still separated (a re-join that stripped them would fuse lines).
+    assert "### 🔴 Where it stops\n```\nsecond cmd\n```\n\n## Other" in out
+    assert "## Other\nkeep me\n\n## Final" in out
+    assert "## §5 STATE\n\n### 🔴 Where it stops" in out
+    assert "keep me" in out and "last line" in out
+
+
+def test_ask_diff_line_written_once_second_write_replaces(tmp_path):
+    """goal:g15.25 (b) FALSIFIER — TWO `--ask-diff` writes leave exactly ONE
+    `diff requested:` line per slot: the second write REPLACES the first
+    gap, never appends a second one (residue (ii): repeated --ask-diff
+    writes accumulated lines)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n\n"
+                    "## Other\nkeep\n", encoding="utf-8")
+    _, slot = _r._write_stops_section(card, "s", "cmd one",
+                                      diff_gap="review the first")
+    assert slot == "replaced"
+    txt1 = card.read_text(encoding="utf-8")
+    assert txt1.count("diff requested:") == 1
+    assert "review the first" in txt1
+    _, slot2 = _r._write_stops_section(card, "s", "cmd two",
+                                       diff_gap="review the second")
+    assert slot2 == "replaced"
+    txt2 = card.read_text(encoding="utf-8")
+    assert txt2.count("diff requested:") == 1, txt2
+    assert "review the second" in txt2
+    assert "review the first" not in txt2
+    assert "cmd one" not in txt2 and "cmd two" in txt2
+    # WITHOUT --ask-diff the stale trailer is removed too, not left behind
+    _, _ = _r._write_stops_section(card, "s", "cmd three")
+    txt3 = card.read_text(encoding="utf-8")
+    assert "diff requested:" not in txt3
+    assert "cmd three" in txt3
+
+
+def test_stops_text_with_inner_fence_pairs_outer_on_next_write(tmp_path):
+    """goal:g15.25 (c) FALSIFIER — a stops text that itself carries a ```
+    fence is rendered inside a LONGER outer fence (four backticks, the
+    CommonMark rule), so on the NEXT write the fence scan pairs the OUTER
+    fence and reads the whole block — never a truncated mis-pair (residue
+    (iii))."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```\ninner block\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    out = card.read_text(encoding="utf-8")
+    for tok in ("step one", "inner block", "step two"):
+        assert tok in out, f"first write lost {tok!r}"
+    # second write: the scanner pairs the OUTER fence, so the whole inner-
+    # fenced stops text is replaced by the new one (never truncated)
+    _, slot2 = _r._write_stops_section(card, "s", "clean new cmd")
+    assert slot2 == "replaced"
+    out2 = card.read_text(encoding="utf-8")
+    assert out2.count("clean new cmd") == 1, out2
+    assert "inner block" not in out2   # fully replaced, not mis-paired
+    assert "step one" not in out2
+    assert "keep me" in out2           # the after-slot section survived
+
+
+def test_stops_push_real_refusal_branch_receive_fails(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 (d) FALSIFIER — the REAL `_stops_push` refusal branch (a
+    push that actually fails at the wire, not a fake) is driven through a
+    real local remote whose receive FAILS (a pre-receive hook exiting 1):
+    rc 3, the refusal line names why, the rotate-out commit stays LOCAL
+    (HEAD +1) and the remote branch did NOT move. This exercises the branch
+    the fake-only e2e could not reach."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n",
+                    encoding="utf-8")
+    bare = _init_git_remote(tmp_path)
+    # make the REAL remote refuse receives: a pre-receive hook that exits 1
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    hook.chmod(0o755)
+    local_before = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    remote_before = subprocess.run(
+        ["git", "--git-dir", str(bare), "rev-parse", "master"],
+        capture_output=True, text=True).stdout.strip()
+    assert local_before == remote_before
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self refused:" in err
+    # the commit landed LOCALLY (HEAD advanced exactly one) and nothing lost
+    adv = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-list", "--count",
+         f"{local_before}..HEAD"], capture_output=True, text=True
+    ).stdout.strip()
+    assert adv == "1", f"expected one local rotate-out commit, got {adv}"
+    assert "fix the merge" in card.read_text(encoding="utf-8")
+    # the remote branch did NOT move
+    remote_after = subprocess.run(
+        ["git", "--git-dir", str(bare), "rev-parse", "master"],
+        capture_output=True, text=True).stdout.strip()
+    assert remote_after == remote_before
 
 
 def test_commit_stops_row_commits_card_and_own_row_nothing_else(tmp_path):
@@ -2714,6 +2888,14 @@ def test_rotate_self_stops_dry_run_touches_nothing(
     card.write_text("# adv-alive card\n## 🔴 Where it stops\nold cmd\n",
                     encoding="utf-8")
     _init_git_remote(tmp_path)
+    # The card was written BEFORE the fixture commit above, and the captive
+    # "card older than last commit" compares the card's float mtime against
+    # the commit's whole-second %ct: when the write and the commit straddle a
+    # second boundary (likelier under suite load) the card reads stale and
+    # rotate-self refuses with rc 3 — a fixture race, not the claim under
+    # test. A dry-run never rewrites the card, so refresh its mtime here the
+    # way a live rotate-out's stops write would (bytes unchanged).
+    os.utime(card, None)
     win = tmp_path / "windows.txt"
     win.write_text("adv-alive\n", encoding="utf-8")
 
@@ -3925,6 +4107,62 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
     assert "diff --text" not in text
 
 
+def test_first_seating_bootstrap_ack_is_truthful_at_turn_one(tmp_path):
+    """GOAL:g15.25 (SL7.42) — a first seating's turn-one bootstrap `ack`
+    fact names the SOURCE `first-seating` (never `predecessor`) and is
+    supplied through the SAME `overrides` seam the rotation path uses, so the
+    record reads `ack: continue (source first-seating, gen 1) — this post
+    acks once itself` at turn one — never `ack: none` (no ack file yet) and
+    never a STALE prior-gen answer left in seats/<seat>.ack.json from an
+    earlier seating of the same seat name. Falsifiers: the bootstrap still
+    reads `ack: none`, or prints the stale `gen 5`/`source predecessor`
+    answer as current."""
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "",
+         "session_kind": "remote-control"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin" / "probe_fs_ack.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {steps: [spawn], telemetry: [seat, ack],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_fs_ack.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+    # a STALE prior-gen ack from an earlier seating of this same seat name:
+    (tmp_path / "sessions" / "seats").mkdir(parents=True, exist_ok=True)
+    (rotate._ack_path(tmp_path, "director-seat")).write_text(json.dumps({
+        "seat": "director-seat", "gen_after": 5, "answer": "continue",
+        "source": "predecessor", "session_ref": "", "ts": "T",
+        "text": "stale old answer"}) + "\n", encoding="utf-8")
+
+    block, results = rotate._first_seating_run(
+        tmp_path, seat="director-seat", role="director",
+        succ_name="director-seat", dry_run=False)
+    assert block, "first seating produced no STARTUP OUTPUT block"
+    assert results, "first seating ran no first_turn commands"
+    boot = (rotate._sessions_dir(tmp_path) / "seats"
+            / "director-seat.bootstrap.json")
+    doc = json.loads(boot.read_text(encoding="utf-8"))
+    ack = doc["telemetry"].get("ack")
+    # truthful value: names first-seating, gen 1, never the stale gen 5.
+    assert ack == ("continue (source first-seating, gen 1) — "
+                   "this post acks once itself"), ack
+    assert "gen 5" not in str(ack), "stale prior-gen answer leaked as current"
+    assert "source predecessor" not in str(ack), ack
+    # the block the successor reads at turn one renders it without doubling.
+    block2, reason = rotate._bootstrap_block(tmp_path, "director-seat")
+    assert reason is None, reason
+    assert ("- ack: continue (source first-seating, gen 1) — "
+            "this post acks once itself") in block2, block2
+    assert "ack: ack:" not in block2 and "ack: none" not in block2
+
+
 def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
         tmp_path, monkeypatch):
     """Claim (3) `--ask-diff`: the seating alert prints the exact
@@ -3966,6 +4204,78 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     assert "generation 0 -> 1" in text and "--gen 0" not in text
     assert ("rotate.py ack --seat director-seat --gen 1 "
             "--ref <your ListAgents ref> diff --text -") in text, text
+
+
+def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
+    """GOAL:g15.25 (SL7.42) — the first-seating turn-one bootstrap `ack`
+    fact tracks the `--ask-diff` MODE the same seating will actually have,
+    in BOTH modes, end to end through the real `cmd_spawn` path (spawn
+    writers included, not just `_first_seating_run`). The falsifier this
+    kills: `spawn --ask-diff` leaves the bootstrap ack saying `continue`
+    (the default override) while the ack file it opened says
+    `diff-requested` — the successor reads a lie at turn one. After the fix
+    the bootstrap ANSWER equals the ack file's answer in every mode, with
+    SOURCE `first-seating` (never `predecessor`)."""
+    import send as _send
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    # a rotations template that declares BOTH seat and ack telemetry, so the
+    # bootstrap record actually carries the ack fact (SL7.42 overrides).
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin" / "probe_first_seating.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {brief_file: x.md, steps: [spawn], telemetry: [seat, ack],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_first_seating.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender:
+                        sent.append((other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+
+    def _run(args):
+        rc = rotate.cmd_spawn(args, tmp_path)
+        assert rc == 0
+        ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+                         .read_text(encoding="utf-8"))
+        boot = (rotate._sessions_dir(tmp_path) / "seats"
+                / "director-seat.bootstrap.json")
+        doc = json.loads(boot.read_text(encoding="utf-8"))
+        return ack, doc["telemetry"].get("ack")
+
+    base = dict(name="director-seat", tier="director", prompt_file=None,
+                model=None, effort=None, settings=None, tmux_session="agi-rc",
+                window_path=str(wins), dry_run=False, successor_argv=None,
+                seat="director-seat", registry_dir=str(reg), pid=None)
+
+    # ask-diff mode: bootstrap answer must equal the ack file's answer.
+    ack_d, boot_d = _run(SimpleNamespace(**base, ask_diff=True))
+    assert ack_d["answer"] == "diff-requested", ack_d
+    assert boot_d.startswith("diff-requested (source first-seating, gen 1)"), \
+        boot_d
+    assert f"diff-requested" == ack_d["answer"], "bootstrap answer != ack answer"
+
+    # default mode (a fresh seat keeps the continue default): same equality.
+    ack_c, boot_c = _run(SimpleNamespace(**base, ask_diff=False))
+    assert ack_c["answer"] == "continue", ack_c
+    assert boot_c == ("continue (source first-seating, gen 1) — "
+                      "this post acks once itself"), boot_c
+    assert boot_c.startswith(ack_c["answer"].split()[0]),\
+        "bootstrap answer != ack answer (default mode)"
+    assert "gen 5" not in boot_d and "source predecessor" not in boot_d
+    assert "source predecessor" not in boot_c
 
 
 def _spawn_seat_args(reg, wins, pid_arg):
