@@ -9566,6 +9566,8 @@ SL7.95 HARVESTED 19:20Z on the sensei-director post: sensei.py calls prints one 
 
 SL7.97 HARVESTED 19:29Z on the sensei-director post (test-only): test_rotate_templates reads the live startup.delivery through rotate's own accessor and keys the F16 carve-out by fact id; all 18 Path('.') roots in test_after_join_service.py derive from tmp_path; six _read_ack payers poll at 0.05 s (the brief guessed eight and a 12 s drop — measured 13.0 s -> 6.3 s, hence lean 70); test_grid's failure message keeps git stderr; 609/3 with neighbours. Rides SL2#26
 
+SL7.92 HARVESTED 19:35Z on the sensei-director post: the closeout worktree-post REAL runners perform the merge-up in MAIN (_closeout_main via the shared graph root; merge --no-ff of the seat branch gated on season2/main checked out; wait_grant reads the SEAT's own inbox/dm for a signed first-word GRANT/GO with ts later than the ask; suite/grid/stamp run with cwd MAIN; push carries season2/main + refs/grid); kid proved 0.8; nbhd 528/3. RESIDUE for one FIX-ONLY brief (SL7.101): merge_up's clean-tree gate is git status --porcelain --untracked-files=no on MAIN, and MAIN's tracked tree carries cron-owned churn nearly always (.agi/comms/** dm logs + .agi/sessions/rotations/** — 9 modified files at 19:1xZ, F20 says the crons own them) — a live --closeout would refuse on that step; the gate must ignore the cron-owned prefixes (or check only the paths the merge touches). Until it lands the Prime's ruling stands: nobody rotates with --closeout
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
