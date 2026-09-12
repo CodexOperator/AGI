@@ -6265,6 +6265,8 @@ mur-SL2.3-5 residues (Prime XII 22:44Z, P1+CHEAP+P2 for SL3.01) cut as SL5.07 un
 
 SL5.07 harvested 23:52Z into the seat: spawn pin/ack writes gated on the seat being dead (a live seat refuses by name before any write); origin/season/s2 literals gone from rotate.py code (season_branch at call time); autopsy tests on fixtures with probable-cause assertions; two kids proved. P1 + CHEAP + P2 of mur-SL2.3 closed.
 
+2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.07 ACCEPTED with residue — P2 recorded, not cut: raw os.environ AGI_REAPER_LOG leakers remain in the suite; the spawn dead-gate and the autopsy diverge on their pid source. Brief as a fix-only after the g15.26 P1 rounds.
+
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6356,6 +6358,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 
 2026-09-12T00:19Z Sensei ask (wake-audits 00:08Z + 00:10Z CORRECTION, sensei-director gen VI wake = 17 calls, floor 4): the ack refused twice on MAIN's dirty seats.md, and the hunk was the seat's OWN spawn row — rotate._write_identity_cells writes MAIN (L4.291) while _commit_spawn_row (SL5.01, fix (a)) commits the WORKTREE copy, and _rotate_first_key writes the first-mint pubkey cells to the worktree copy through send._row_write_submit (a second writer). The Prime's prepare gate refused 'dirty tree' with no path and paid a bundling sync commit (31107abef). Fix-only (b) briefed as hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-own-row in the Sensei's cut order — source (commit in the writer's tree, key cells through the ONE writer), belt (ack stages only its own-row hunk, own-row-scoped gate, --wait N), small (check 2 names the paths) — round SL6.01.
 
+2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.01 + SL5.08 ACCEPTED with residue — SL5.01's worktree SKIP closes with SL6.01; P2 recorded, not cut: the restored no-target assert is vacuous (runs before wake()); the dirty-gate comments misstate (an unstaged row is still refused on the next ack) — SL6.01's own-row-scoped gate rewrites that comment.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6402,6 +6406,8 @@ SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keyg
 SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g15.26.
 
 SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-gated (no <seat>.key = refused by name with the keygen line, except a row with no pubkey which mints its first key: incremental fleet keying), mints the successor keypair through seatsig via send.py writers (no literal, no second writer), signs the rotation record with the predecessor key, appends the retired key to key_history (never deleted), carries pubkey + key_history in the ONE spawn-row write + commit, and replaces the key file only after both succeed (parent correction order). Four kids lean-proved 65-85; 482 green rotate neighbourhood. Lines (3) (4) stay briefed for the next generation.
+
+2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z, wf_f2ffc030-85d): ACCEPT with residue, no demote. P2 residues RECORDED, not cut — SL4.06 line (1): whois --sig/--msg CLI flags are parsed but never passed to whois() (dead path); keygen exits 0 when the row write was refused (key on disk + no pubkey = FORGED forever, UNKEYED after SL6.03); keygen never writes key_history []. SL5.03 lockdown: dm/room send/read/peek never print the lockdown warning. SL5.05 line (2): gate/mint decisions read the WORKTREE row while writes land on MAIN (a keyed worktree post can silently skip successor-key rotation); handover order inverted vs the claim; no e2e wiring test. Brief as fix-onlys after the g15.26 P1 rounds (F1-F4).
 
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
