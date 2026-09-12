@@ -5488,16 +5488,54 @@ def _path_delta_whitespace_only(root: Path, top: Path, path: str) -> bool:
     """True when <path> (relative to `root`) differs from ITS committed HEAD
     bytes only in trailing whitespace / the EOF newline. False when clean,
     untracked (no HEAD blob), or unmeasurable — untracked files and real
-    deltas always stay dirty. Claim 2's prepare check 2 counterpart."""
+    deltas always stay dirty. Claim 2's prepare check 2 counterpart.
+
+    Compares HEAD against BOTH the index blob (`:<rel>`) AND the working
+    file (claim 6a, hypothesis:l4-prepare-check-2-reads-the-index-blob-...):
+    a real delta in EITHER reads dirty, so a STAGED real edit whose working
+    copy was restored to HEAD bytes (porcelain `M ` / `MM` with a clean or
+    whitespace-only working delta) never reads whitespace-only and a rotation
+    never proceeds over an unrecorded staged edit."""
     abs_p = os.path.abspath(os.path.join(str(root), path))
     rel_top = os.path.relpath(abs_p, str(top))
     head = _blob_text(top, f"HEAD:{rel_top}")
     if head is None:
         return False
+    # the INDEX blob (`:<rel>`) — a staged real edit is head-vs-index, not
+    # head-vs-working, so it must be read too or it is invisible to a
+    # whitespace-only test that only compares the working file.
+    index = _blob_text(top, f":{rel_top}")
+    if index is not None and _rstrip_lines(index) != _rstrip_lines(head):
+        # the staged index differs from HEAD in real bytes -> not
+        # whitespace-only, read dirty (blocker) regardless of the working copy.
+        return False
     try:
         work = Path(abs_p).read_text(encoding="utf-8")
     except OSError:
         return False
+    return _rstrip_lines(head) == _rstrip_lines(work)
+
+
+def _index_staged_real_change(root: Path, top: Path, path: str) -> bool:
+    """True when <path>'s only REAL dirty delta vs HEAD is in the INDEX — a
+    staged real edit whose working copy matches HEAD bytes. Used to name an
+    index-only real change as 'staged change (index differs from HEAD)' in
+    prepare check 2 (claim 6a), so a rotation never proceeds over an
+    unrecorded staged edit."""
+    abs_p = os.path.abspath(os.path.join(str(root), path))
+    rel_top = os.path.relpath(abs_p, str(top))
+    head = _blob_text(top, f"HEAD:{rel_top}")
+    if head is None:
+        return False
+    index = _blob_text(top, f":{rel_top}")
+    if index is None or _rstrip_lines(index) == _rstrip_lines(head):
+        return False  # no real index change to name
+    try:
+        work = Path(abs_p).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    # working copy matches HEAD (clean or whitespace-only) -> the only real
+    # change is the staged index edit.
     return _rstrip_lines(head) == _rstrip_lines(work)
 
 
@@ -8973,7 +9011,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                     and p not in ws_only:
                 ws_only.append(p)
     if dirty_paths:
-        shown = dirty_paths[:5]
+        shown: list[str] = []
+        for p in dirty_paths:
+            if len(shown) >= 5:
+                break
+            # claim 6a: an index-only real change (staged edit, working copy
+            # restored to HEAD) is named 'staged change (index differs from
+            # HEAD)' — the unrecorded staged edit a rotation must not proceed
+            # over — rather than a bare path.
+            if _index_staged_real_change(root, top, p):
+                shown.append(f"{p}: staged change (index differs from HEAD)")
+            else:
+                shown.append(p)
         suffix = (f", +{len(dirty_paths) - 5} more"
                   if len(dirty_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
