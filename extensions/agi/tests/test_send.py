@@ -4110,6 +4110,86 @@ def test_signed_send_and_read_prints_verified(project, capsys, monkeypatch):
     assert "hello world" in out, "the label is never a drop"
 
 
+def test_deferred_pending_key_signs_verified_never_retired(project, capsys,
+                                                            monkeypatch):
+    """g15.26 claim (c): a seat in the DEFERRED swap -- a `.key.pending` whose
+    pub_hex matches the COMMITTED row's pubkey -- signs a dm with the pending
+    successor private key, so the dm reads VERIFIED against the row on origin
+    (pushed), NEVER RETIRED/FORGED. This is the falsifier of the clause: the
+    LIVE `<seat>.key` still holds the PREDECESSOR key, and signing with it
+    would label the dm RETIRED against a row that names the successor pubkey
+    (or FORGED). The preference routes the signature to the pending successor
+    key, closing it."""
+    import json as _j
+    import os as _os
+    # the live key holds the PREDECESSOR private key (the swap is deferred).
+    send_mod.keygen(project, "defer-a")
+    live = _seat_key_file(project, "defer-a")
+    # a NEW successor private key becomes the pending signing key.
+    scheme = send_mod.seatsig.get("ed25519")
+    succ_priv, succ_pub = scheme.keygen()
+    pend = live.parent / f"{live.name}.pending"
+    pend.write_text(_j.dumps({"scheme": "ed25519",
+                              "priv_hex": succ_priv.hex(),
+                              "pub_hex": succ_pub.hex(),
+                              "gen_after": 2, "minted_at": ""}))
+    _os.chmod(pend, 0o600)
+    row = {"name": "defer-a", "sig_scheme": "ed25519",
+           "pubkey": succ_pub.hex()}
+    # committed head AND origin-after-push both name the SUCCESSOR pubkey.
+    monkeypatch.setattr(send_mod, "_seats_committed_rows",
+                        lambda root: [row])
+    _stub_seat_rows(monkeypatch, [row])
+    send_mod.send(project, "recv", "deferred hello", "defer-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    assert "sig: ed25519:" in inbox.read_text()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED defer-a (ed25519)" in out, out
+    assert "RETIRED" not in out.split("deferred hello")[0], \
+        "must never read RETIRED across the deferred window"
+
+
+def test_pending_key_not_matching_committed_row_falls_back_to_live_key(
+        project, capsys, monkeypatch):
+    """g15.26 claim (c) PREFERENCE, not replacement: when a `.key.pending`
+    exists but its pub_hex does NOT match the COMMITTED row's pubkey (the
+    row still names the live key), the signer uses the LIVE `<seat>.key`
+    exactly as before -- an unmatched pending file never hijacks the
+    signature. A dm signed in that state verifies against a row naming the
+    live pubkey."""
+    import json as _j
+    majority = send_mod.seatsig.get("ed25519")
+    # live key is the AUTHORITY here.
+    send_mod.keygen(project, "steady-a")
+    live = _seat_key_file(project, "steady-a")
+    live_obj = _j.loads(live.read_text())
+    live_pub = majority.public_from_secret(
+        bytes.fromhex(live_obj["priv_hex"])).hex()
+    # an unmatched STALE pending file (its pub is NOT the row's pubkey).
+    stale_priv, stale_pub = majority.keygen()
+    pend = live.parent / f"{live.name}.pending"
+    pend.write_text(_j.dumps({"scheme": "ed25519",
+                              "priv_hex": stale_priv.hex(),
+                              "pub_hex": stale_pub.hex(),
+                              "gen_after": 2, "minted_at": ""}))
+    row = {"name": "steady-a", "sig_scheme": "ed25519",
+           "pubkey": live_pub}
+    monkeypatch.setattr(send_mod, "_seats_committed_rows",
+                        lambda root: [row])
+    _stub_seat_rows(monkeypatch, [row])
+    send_mod.send(project, "recv", "steady hello", "steady-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    assert "sig: ed25519:" in inbox.read_text()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED steady-a (ed25519)" in out, out
+    # the row names the LIVE pubkey and the dm read VERIFIED against it, so
+    # the signer used the LIVE key -- the stale unmatched pending file never
+    # hijacked the signature (had it signed with the stale key the dm would
+    # have read RETIRED/FORGED).
+
+
 def test_signed_bytes_are_exactly_ts_from_to_blank_text(project):
     send_mod.keygen(project, "seat-a")
     send_mod.send(project, "recv", "hello", "seat-a")

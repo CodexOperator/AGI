@@ -106,6 +106,11 @@ sessions/
 !.agi/sessions/handoff-sections/
 !.agi/sessions/handoff-sections/*
 
+# deferred key-rotation swap (g15.26): the pending successor key written on
+# a failed push (`<sessions>/seats/<seat>.key.pending`) holds a LIVE private
+# key, never commit (defensive; sessions/ above already ignores its dir).
+*.key.pending
+
 # repo-root scratch a kid's own measurement tooling lands in (e.g. a throwaway
 # venv for tiktoken) -- disposable, never a work product; see .agi/tmp/ for
 # the durable equivalent inside a worktree.
