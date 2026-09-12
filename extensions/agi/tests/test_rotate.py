@@ -7902,3 +7902,87 @@ def test_ack_diff_accepted_on_diff_requested_pending(tmp_path,
     assert "REFUSED" not in capsys.readouterr().err
     # the successor's diff overwrote the pending ack with answer diff.
     assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] == "diff"
+
+
+# --- SL7.87 g15.25: no gen-0 ack file; check 6 names its evidence; a
+# continue ack at the row's gen is consumed (FIX-ONLY, hypothesis:l4-no-
+# gen-0-ack-file-the-stale-ack-prepare-check-names-its-evidence-and-a-
+# continue-ack-at-the-current-gen-is-consumed). -------------------------
+
+
+def _seat_cur_gen_fixture(tmp_path, name, generation):
+    """A minimal graph root whose seat's generation is measured from the
+    handoff header (the config:seats-row fallback path in
+    `_generation_measured`), so check 6's row-vs-ack comparison is live."""
+    root = _proj(tmp_path)
+    seats = rotate._seat_hands(root)
+    seats.mkdir(parents=True, exist_ok=True)
+    (seats / f"{name}.handoff.md").write_text(
+        f"seat: {name}\ngeneration: {generation}\n", encoding="utf-8")
+    return root
+
+
+def test_cmd_ack_refuses_gen0_before_any_write(tmp_path, monkeypatch, capsys):
+    """SL7.87 g15.25 claim (1): `ack --gen 0` is refused BY NAME before any
+    write — a generation is never 0, and a gen-0 ack would write a file that
+    prepare check 6 then refuses at the seat's next rotate-out. Nothing gets
+    written: no ack file, no row back-fill."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=0, ref="f52a4c", answer="continue", text=None),
+        root)
+    err = capsys.readouterr().err
+    assert code == 2
+    assert "--gen 0" in err and "never 0" in err
+    assert not rotate._ack_path(root, "belam").exists()
+
+
+def test_prepare_check6_stale_gen0_ack_names_evidence(tmp_path):
+    """SL7.87 g15.25 claim (2): check 6's refusal for a stale ack names the
+    evidence — gen_after, answer, source (or unknown), written-time (file
+    mtime UTC) and the row gen — so the Prime does not pay tool calls to
+    learn what the refusal already knew."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 0,
+                              "answer": "continue"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, clear = checks[-1]
+    assert blocker is True
+    assert "gen_after=0" in name and "answer=continue" in name
+    assert "source=unknown" in name
+    assert "written=" in name and "row gen=16" in name
+    assert f"rm {ap}" in clear
+
+
+def test_prepare_check6_continue_ack_at_cur_gen_consumed(tmp_path):
+    """SL7.87 g15.25 claim (3): a continue ack whose gen_after EQUALS the
+    row's gen is CONSUMED — check 6 passes and prints `ack consumed`, it does
+    not misreport a settled rotation as an open stale ack."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 16,
+                              "answer": "continue",
+                              "source": "predecessor"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, _ = checks[-1]
+    assert blocker is False
+    assert "ack consumed (gen 16 continue)" in name
+    assert "stale ack" not in name
+
+
+def test_prepare_check6_diff_ack_at_cur_gen_halts_as_today(tmp_path):
+    """SL7.87 g15.25 claim (3): a pending DIFF ack at the row's gen is NOT
+    consumed by check 6 — it stays a pass (no `ack consumed` line) and the
+    read-back's diff halt (which lives in cmd_rotate_self, not here) is
+    untouched, exactly as today."""
+    root = _seat_cur_gen_fixture(tmp_path, "belam", 16)
+    ap = rotate._ack_path(root, "belam")
+    ap.write_text(json.dumps({"seat": "belam", "gen_after": 16,
+                              "answer": "diff",
+                              "source": "predecessor"}), encoding="utf-8")
+    checks = rotate._prepare_checks(root, "belam")
+    blocker, name, _ = checks[-1]
+    assert blocker is False
+    assert "ack consumed" not in name

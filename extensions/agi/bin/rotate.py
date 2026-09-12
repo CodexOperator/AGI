@@ -2016,6 +2016,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # g15.25 FIX-ONLY (SL7.87): a generation is NEVER < 1. cmd_ack writes
+    # gen_after straight from args.gen with no lower bound, so a `--gen 0`
+    # ack (the stale service ran exactly `ack --post belam --gen 0 --ref
+    # continue`) writes a gen-0 file that prepare check 6 then REFUSES at
+    # the seat's next rotate-out as a stale ack. Refuse by name BEFORE any
+    # write: no ack file, no row write, nothing back-filled.
+    if args.gen < 1:
+        print("ERR: --gen 0: a generation is never 0 (SL7.87); the ack "
+              "confirms the ROTATION generation the row records, so a "
+              "placeholder 0 can never match it.", file=sys.stderr)
+        return 2
     # claim (4): under the DEFAULT-continue contract the predecessor already
     # answered the ack channel (`answer: continue, source: predecessor`), so a
     # successor that runs `ack continue` out of the old habit is a one-line
@@ -11172,16 +11183,37 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # state. Same row-first generation, same unmeasured note as check 5.
     ack = _ack_path(root, seat)
     stale_ack = False
+    ack_line = f"stale ack ({seat}.ack.json) {gen_note}"
     if ack.exists():
         try:
             data = json.loads(ack.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             data = {}
         ga = data.get("gen_after")
-        if ga is not None and gen_measured and ga != cur_gen:
+        answer = data.get("answer")
+        # g15.25 FIX-ONLY (SL7.87): a CONTINUE ack whose gen_after EQUALS the
+        # row's gen is CONSUMED — check 6 passes and says it, so the next
+        # rotate-out does not misreport a settled rotation as an open handoff.
+        # (Nothing here DELETES the seat's own ack; this generation has Moved
+        # On and the prompt is the truth.)
+        if (answer == "continue" and gen_measured
+                and ga is not None and ga == cur_gen):
+            ack_line = f"ack consumed (gen {cur_gen} continue)"
+        elif ga is not None and gen_measured and ga != cur_gen:
             stale_ack = True
-    checks.append((stale_ack, f"stale ack ({seat}.ack.json) {gen_note}",
-                   f"rm {ack}"))
+            # Name the EVIDENCE so the Prime does not pay tool calls to learn
+            # what the refusal already knew: the file's gen_after, its answer,
+            # its source (or unknown), and its written-time (file mtime UTC).
+            try:
+                _written = datetime.fromtimestamp(
+                    ack.stat().st_mtime, tz=timezone.utc).strftime("%H:%MZ")
+            except OSError:
+                _written = "?"
+            ack_line = (f"stale ack ({seat}.ack.json): gen_after={ga} "
+                        f"answer={answer or '?'} "
+                        f"source={data.get('source') or 'unknown'} "
+                        f"written={_written}, row gen={cur_gen}")
+    checks.append((stale_ack, ack_line, f"rm {ack}"))
 
     return checks
 
