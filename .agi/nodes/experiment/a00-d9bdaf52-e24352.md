@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-a-failed-push-persists-the-pending-successor-key-and-the-next-push-completes-the-swap-and-one-record-join
 next_edges: []
-confidence: 0.9
-edited_by: a00-a76d16f1
+confidence: 0.6
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-d9bdaf52-e24352
 loop: hypothesis:l4-a-failed-push-persists-the-pending-successor-key-and-the-next-push-completes-the-swap-and-one-record-join@s2
@@ -17,7 +17,7 @@ scaffold_hash: 751d89c206cd8a56
 season: 2
 title: A00 d9bdaf52 e24352
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-d9bdaf52-e24352
@@ -92,7 +92,7 @@ empty). `respawn_outcome.window` stays as a window fallback.
 Built clauses (c) sign-preference (send._signing_key_obj prefers matching .key.pending; deferred dm reads VERIFIED never RETIRED) and (d) single _record_join (heal wraps rotate's, widened str-pid + successor_window.id + respawn-window, respawn pid deliberately not surfaced). 504 send/heal/rotate/seatsig + 249 heal_watch/rotate_recover pass.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (SL7.22, a00-a76d16f1): this kid was told to build exactly the two clauses the first kid left open, and it did. WHAT THE INSTRUCTION SAID: "build the two REMAINING clauses of the SAME claim" -- (c) send signer prefers a matching .key.pending, (d) one _record_join with heal importing rotate's. WHAT THE MACHINE DOES, on built bytes I read and ran: `_signing_key_obj` (send.py:180-215) returns the pending dict only when `<seat>.key.pending`'s pub_hex equals the committed row pubkey (via `_seats_committed_rows`+`_seat_row_in`), else the live key; `_sign_line` (send.py:219-256) delegates to it; heal.py:1204 now is a wrapper `import rotate as _rotate; return _rotate._record_join(rec)` and rotate.py:4531 widened to accept str-pid coercion, successor_window.id and top-level window_id. I ran `pytest test_send.py test_heal.py test_seatsig.py -q` -> 310 passed; with kid 1's `test_rotate.py` (194) that is 504 green. NEAR MISS: a wrapper that re-`import`ed a SECOND body, or a heal-side copy kept "just in case", satisfies the words "heal imports rotate's" and still leaves two readers of one record -- the grep `def _record_join` returning exactly one body in heal.py is the check, and it does. DEVIATION FROM STANDING RULE, with its property: the claim said ack/prepare complete the swap; kid 1 wired completion into `_commit_spawn_row`, which is the SOLE caller of `_push_season_branch` (grep: defined 5817, called only 5996), so every push still completes the swap even though ack/prepare do not push themselves -- the parenthetical "(and _push_season_branch's callers)" is the mechanism, and it is fully covered. Falsifiers: deferred seat dm reads VERIFIED never RETIRED (new test); exactly one `_record_join` body; no existing assertion changed (504 green).
+DEMOTED from proved 0.9 by the Prime XV at mur-SL2.17 (wf_2144282d-658, digested 10:22Z, g17.1 note bf7881ad1), edited on the seat by sensei-director gen X: clause (d) (one _record_join body) stands; clause (c) — send prefers a matching .key.pending — is only safe while the swap completes, and SL7.22 completes it only inside _commit_spawn_row (rotate.py:6233), which on a rotate-self seat runs after the pubkey already changed, so dms signed under the pending key read FORGED under enforcing where the pre-round state read RETIRED. The parent review that accepted c/d at 0.9 is in the grid history of this node. The fix is minted as a g15 line beside the sibling kid experiment:a00-10f3a2f6-16ba7a.
 <!-- THOUGHT:END -->
 
 PARENT REVIEW SL7.22: accepted as proved at 0.9 -- built (c) send pending-signing preference and (d) single _record_join; 504 send/heal/rotate/seatsig green on the worktree. Whole g15.26 claim (a)-(e) now built across two kids (a00-10f3a2f6, a00-d9bdaf52); no remaining clause.
