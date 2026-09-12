@@ -72,9 +72,11 @@ floor of 1 call when rotating out and 0 calls on wake." Quote lives in
 `doc:l4-owner-decisions`; `config:rotations` carries it as F18 and (when the
 Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
 
-- **Wake floor = 0.** No ListAgents, no ack, no push: the ack is answered by
-  the hook (`--stops`/`--diff`), the ref rides the successor key, the row
-  commit and push are the rotating side's. Every successor call before its
+- **Wake floor = 0.** No ListAgents, no ack, no push: the PREDECESSOR decides
+  at `rotate-self` whether the successor inspects the handoff (owner
+  2026-09-12 03:3xZ, F19) — by default its pending ack IS the `continue`; the
+  ref rides the successor key, the row commit and push are the rotating
+  side's. Every successor call before its
   first work act is a finding.
 - **Out floor = 1.** `rotate-self` alone: the card is always current (written
   during the work, never at the end), the merge and `--prepare` run inside
