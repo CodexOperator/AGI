@@ -34,3 +34,9 @@ from: belam
 to: sanctuary-director
 
 [rotation-alert] belam -> belam-S1-L4-XIV [92eda4] @314 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 47 | in flight: None
+---
+ts: 2026-09-12T07:04:08.030978+00:00
+from: belam
+to: sanctuary-director
+
+[rotation-alert] belam -> belam-S1-L4-XV [68dbd1] @317 | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 51 | in flight: None
