@@ -5988,6 +5988,25 @@ def cmd_closeout(args: argparse.Namespace, root: Path) -> int:
 #: anything else (origin/season/s2, a bare `main`) is REFUSED BY NAME.
 _CLOSEOUT_MERGE_TARGET = "season2/main"
 
+#: porcelain paths the checklist never counts as the seat's dirt: written by
+#: the comms layer and the rotation sequence as a side effect of every dm and
+#: every rotation, committed by grid_sync (not by any seat).
+PREPARE_CHURN_PREFIXES = (".agi/comms/",)
+#: the rotation records + sequence.json: written by rotate-self / the loop
+#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
+#: five uncommitted records blocked a rotate-self with 0 modified files).
+PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
+
+#: Path prefixes CRON owns and keeps dirty by design -- the comms dm files
+#: under `.agi/comms/`, the rotation records under `.agi/sessions/rotations/`
+#: (F20 `config:rotations` facts / `goal:s2` cron parity; grid_sync commits
+#: them). ONE literal: derived from the PREPARE constants above, so the
+#: closeout gate and the prepare churn filter can never disagree on what a
+#: cron-owned path IS (the claim's falsifier forbids two spellings). merge_up
+#: IGNORES these and blocks only on a non-cron dirty path the merge actually
+#: touches.
+CLOSEOUT_CRON_OWNED_PREFIXES = PREPARE_CHURN_PREFIXES + PREPARE_CHURN_DIRS
+
 #: worktree-post captive step list, IN ORDER (the claim's spelling). The
 #: driver runs exactly this list and logs each by name; a step absent here
 #: never runs, and a step present here is never silently skipped.
@@ -6216,13 +6235,44 @@ def _closeout_branch(cwd: Path) -> str:
     return br if (rc == 0 and br and br != "HEAD") else ""
 
 
-def _closeout_main_clean(main: Path) -> bool:
-    """MAIN's tracked-file tree is clean: `git status --porcelain
-    --untracked-files=no` yields nothing. Untracked files -- including
-    gitignored ones -- never count (the claim's 'untracked ignored'). A tree
-    git cannot measure is NOT clean (REFUSE)."""
-    rc, out, _ = _fd_git(main, "status", "--porcelain", "--untracked-files=no")
-    return rc == 0 and not out.strip()
+def _closeout_main_clean(main: Path, seat_branch: str):
+    """MAIN's dirty TRACKED paths judged against the merge: a dirty path
+    BLOCKS only when it is BOTH (a) NOT under a cron-owned prefix AND (b)
+    touched by the merge (`git diff --name-only <target>..<seat_branch>` --
+    git allows a merge that touches no dirty path). Returns `(clean,
+    blockers, ignored_count)`; `clean` is None when the tree cannot be
+    measured (git rc != 0) -- refuse with nothing to name."""
+    # Parse paths from the RAW porcelain -- `_fd_git` strips the whole blob, so
+    # a leading-space row (" M path") on the FIRST line loses a char. Use the
+    # ONE porcelain extractor (`_porcelain_path`, the same one the prepare
+    # churn captive uses) so a rename row (`R old -> new`) is judged on the
+    # NEW path and the churn filter and this gate always agree on what a
+    # line's path IS. Porcelain v1 is "XY path"; the path begins 3 chars in.
+    try:
+        r = subprocess.run(["git", "-C", str(main), "status", "--porcelain",
+                            "--untracked-files=no"], capture_output=True,
+                           text=True, timeout=10)
+    except OSError:
+        return None, [], 0
+    if r.returncode != 0:
+        return None, [], 0
+    dirty = [_porcelain_path(line) for line in r.stdout.splitlines()
+             if len(line) > 3]
+    if not dirty:
+        return True, [], 0
+    touched: set[str] = set()
+    trc, tout, _ = _fd_git(main, "diff", "--name-only",
+                           f"{_CLOSEOUT_MERGE_TARGET}..{seat_branch}")
+    if trc == 0:
+        touched = set(t for t in tout.splitlines() if t.strip())
+    blocked = [p for p in dirty
+               if not any(p.startswith(pre)
+                          for pre in CLOSEOUT_CRON_OWNED_PREFIXES)
+               and p in touched]
+    ignored = sum(1 for p in dirty
+                  if any(p.startswith(pre)
+                         for pre in CLOSEOUT_CRON_OWNED_PREFIXES))
+    return not blocked, blocked, ignored
 
 
 def _closeout_record_name(seat: str, record: dict) -> str:
@@ -6354,16 +6404,29 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
             return (False, "refused",
                     f"merge_up: MAIN is on {branch or '<detached>'!r}, not "
                     f"{_CLOSEOUT_MERGE_TARGET!r} -- merge refused by name")
-        if not _closeout_main_clean(main):
-            return (False, "refused",
-                    "merge_up: MAIN's tracked tree is dirty (git status "
-                    "--porcelain, untracked ignored) -- merge refused by name")
         seat_branch = (_fd_seat_branch(root, main, seat)
                        or _closeout_branch(root))
         if not seat_branch or seat_branch == "HEAD":
             return (False, "refused",
                     "merge_up: no resolvable seat branch -- merge refused "
                     "by name")
+        # Since MAIN's tracked tree, judged against the touch-set of this
+        # seat branch: cron-owned paths are ignored, and a dirty path blocks
+        # only when the merge touches it (git's own merge semantics).
+        clean, blockers, ignored = _closeout_main_clean(main, seat_branch)
+        if clean is None:
+            return (False, "refused",
+                    "merge_up: MAIN's tracked tree could not be measured "
+                    "(git status --porcelain, untracked ignored) -- merge "
+                    "refused by name")
+        if not clean:
+            named = ", ".join(blockers[:5])
+            return (False, "refused",
+                    "merge_up: MAIN tracked tree dirty on "
+                    f"{len(blockers)} path(s) the merge touches: {named}"
+                    + (f" ({ignored} cron-owned path(s) ignored)"
+                       if ignored else "")
+                    + " -- merge refused by name")
         _gn = record.get("gen_before")
         msg = (f"rotate-out closeout: merge {seat_branch} (seat {seat or '?'}, "
                f"gen {_gn if _gn is not None else '?'}, record "
@@ -6382,7 +6445,9 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
         head = lines[0].strip() if lines else "?"
         return (True, "merged",
                 f"merge --no-ff {seat_branch} into {_CLOSEOUT_MERGE_TARGET} "
-                f"in MAIN at {head}")
+                f"in MAIN at {head}"
+                + (f" ({ignored} cron-owned dirty path(s) ignored)"
+                   if ignored else ""))
 
     def _render_check():
         # run in MAIN (the tree the merge landed in) -- never the seat tree.
@@ -12038,16 +12103,6 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return int(lines[0].strip())
     except (ValueError, IndexError):
         return None
-
-
-#: porcelain paths the checklist never counts as the seat's dirt: written by
-#: the comms layer and the rotation sequence as a side effect of every dm and
-#: every rotation, committed by grid_sync (not by any seat).
-PREPARE_CHURN_PREFIXES = (".agi/comms/",)
-#: the rotation records + sequence.json: written by rotate-self / the loop
-#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
-#: five uncommitted records blocked a rotate-self with 0 modified files).
-PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
 
 
 def _porcelain_path(porcelain_line: str) -> str:
