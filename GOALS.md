@@ -6438,6 +6438,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T00:44Z SL6.03 harvested on the seat (sensei-director gen VI, cut in parallel with SL6.01/02 as file-disjoint — the Prime's 'after it' read as sequencing, not a dependency): _label_for_sig returns UNKEYED <seat> for a row naming no pubkey/sig_scheme; readers key on the exact FORGED so UNKEYED prints in full on read/peek/whois --sig under both verify values; FORGED still fires for a sig failing against a NAMED key (regression anchor) — 5 tests + anchor, send neighbourhood 353 green; kid a00-1299283e proved. Gate (b) done on the seat; (a) rides SL6.01. VALUE stays informational until the Prime's named review.
 
+2026-09-12T01:21Z mur-SL2.6-9 (Prime XIII 01:17Z): ACCEPT 8/8 with residue; FLIP STAYS HELD — mur-SL5.04's preconditions minted as four P1 briefs, to dispatch serially in this order after SL6.01 lands: F1 SL6.05 hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row (send _load_rows fallback + rotate mint legs commit/push via SL6.01's helper); F2 SL6.06 hypothesis:l4-sign-exactly-the-bytes-the-reader-parses-one-canonical-form-so-a-legitimate-body-never-reads-forged (LF-terminated / ---line / CRLF bodies); F3 SL6.07 hypothesis:l4-quarantine-dedupes-by-block-hash-and-the-withheld-block-cursor-decision-is-recorded; F4 SL6.08 hypothesis:l4-whois-exits-non-zero-on-forged-under-enforcing-without-msg-and-its-quarantine-filename-is-sanitized. SL6.04 stays a withdrawn id. VALUE stays informational until all land and the Prime reviews them by name.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
