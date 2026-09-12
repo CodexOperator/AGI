@@ -7561,7 +7561,7 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "prime_key", "prime_seat", "prime_from", "worktree",
+    "prime_ref", "prime_key", "prime_seat", "worktree",
     "repo", "tmux_session", "pred_pids",
 }
 
@@ -8703,19 +8703,64 @@ def _first_seating_startup(root: Path, *, seat: str, role: str,
     return block
 
 
+def _prime_pushed_seats(root: Path, ref: str):
+    """Fetch the pushed season seats AT MOST ONCE per process for the
+    (str(root), ref) key, reusing the fetched rows on every later call. This
+    is the SEAM behind `_prime_row_authority` (hypothesis:l4-rotate-self-
+    fetches-the-pushed-season-ref-once-per-run-through-a-seam-and-no-suite-
+    test-reaches-origin): one rotation builds first_turn values at FIVE sites
+    (first seating, a second compose, driven startup, startup values,
+    after-join values), each of which would otherwise run a REAL `git fetch
+    origin <name>` (send._pushed_seats with do_fetch=True calls _run_git, up
+    to 30 s each). The memo collapses those to ONE fetch; every later build
+    reuses the fetched rows. A None result (pushed ref unreachable) is also
+    memoized, so a rotation does not re-fetch on a transient miss within the
+    same process. A test injects the seam by monkeypatching THIS name (or
+    `send._pushed_seats` below it) so a rotate-self values build never
+    performs a real git fetch inside the suite."""
+    key = (str(root), ref)
+    if key in _PUSHED_SEATS_FETCHED_ONCE:
+        return _PUSHED_SEATS_FETCHED_ONCE[key]
+    import send  # local: same dir (send.py pattern, no import cycle)
+    try:
+        seeded = send._pushed_seats(root, ref, True)
+    except Exception:                                       # noqa: BLE001
+        seeded = None
+    _PUSHED_SEATS_FETCHED_ONCE[key] = seeded
+    return seeded
+
+
+def _prime_rows_fetch_clear() -> None:
+    """Drop the per-process fetch memo; a test calls this to reset between
+    runs. The memo is intentionally module-global (one fetch per process), so
+    isolation is by explicit clear — the standard pytest monkeypatch shape."""
+    _PUSHED_SEATS_FETCHED_ONCE.clear()
+
+
+#: Per-process memo so the pushed season ref behind `_first_turn_values` is
+#: fetched AT MOST ONCE per rotate-self run, keyed on (str(root), ref) so two
+#: separate roots in one process do not collide. The fetch itself is the REAL
+#: network call (send._pushed_seats → _run_git, up to 30 s each), so without
+#: this a single rotation's five first_turn values builds would fetch five
+#: times — up to 150 s worst case inside the rotation's own timeout. Tests
+#: clear it via `_prime_rows_fetch_clear` and may inject a fake seam.
+_PUSHED_SEATS_FETCHED_ONCE: dict[tuple, object] = {}
+
+
 def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     """The prime row for the startup placeholder map, read the way whois
     reads it — ONE reader: the PUSHED season ref first (`send._pushed_seats`,
-    the SAME ref whois authorizes against, fetch included), the working-tree
-    seat row only as a FALLBACK when the pushed ref is unreachable, and the
-    SOURCE named either way (prime_from). A deferred-key window (a pending
-    key persisted when the push FAILED, SL7.22) leaves the ROTATING worktree's
-    prime row carrying a key the PUSHED authority does not — so a startup
-    {prime_key} read from the worktree can name a key the pushed row never
-    carries and read NO-MATCH/RETIRED for a live Prime
-    (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
-    sig-resolves-the-sig-row-by-pubkey). Returns (row, source) with source
-    ``"pushed"`` or ``"worktree (pushed ref unreachable)"``."""
+    the SAME ref whois authorizes against, fetch included, via the once-per-
+    process seam `_prime_pushed_seats`), the working-tree seat row only as a
+    FALLBACK when the pushed ref is unreachable. A deferred-key window (a
+    pending key persisted when the
+    push FAILED, SL7.22) leaves the ROTATING worktree's prime row carrying a
+    key the PUSHED authority does not — so a startup {prime_key} read from the
+    worktree can name a key the pushed row never carries and read
+    NO-MATCH/RETIRED for a live Prime (hypothesis:l4-prime-key-is-read-from-
+    the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-pubkey).
+    Returns (row, source) with source ``"pushed"`` or
+    ``"worktree (pushed ref unreachable)"``."""
     import send  # local: same dir (send.py pattern, no import cycle)
 
     def _pick(rows):
@@ -8724,10 +8769,7 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
                 return row
         return None
 
-    try:
-        seeded = send._pushed_seats(root, send._PUSHED_SEATS, True)
-    except Exception:                                       # noqa: BLE001
-        seeded = None
+    seeded = _prime_pushed_seats(root, send._PUSHED_SEATS)
     if seeded is not None:
         rows, _sha, _ref = seeded
         return _pick(rows), "pushed"
@@ -8762,14 +8804,14 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
     prime_seat = ""
     # The prime row is read the way whois reads it — ONE reader: the PUSHED
     # season ref first, the working-tree seat row only as a fallback when the
-    # ref is unreachable, and the SOURCE named (prime_from). A deferred-key
+    # ref is unreachable. A deferred-key
     # window (a pending key persisted when the push FAILED, SL7.22) leaves the
     # ROTATING worktree's prime row carrying a key the PUSHED authority does
     # not — a {prime_key} read from the worktree would name a key the pushed
     # row never carries and read NO-MATCH/RETIRED for a live Prime
     # (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
     # sig-resolves-the-sig-row-by-pubkey).
-    prime_row, prime_from = _prime_row_authority(root)
+    prime_row = _prime_row_authority(root)[0]
     if prime_row is not None:
         if prime_row.get("session_ref"):
             prime_ref = str(prime_row["session_ref"])
@@ -8792,7 +8834,6 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "prime_ref": prime_ref,
         "prime_key": prime_key,
         "prime_seat": prime_seat,
-        "prime_from": prime_from,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
