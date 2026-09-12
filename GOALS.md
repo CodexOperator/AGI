@@ -9238,6 +9238,8 @@ for L4.287 (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-mai
 
 2026-09-12T04:33Z SL7.05 harvested on the seat (sensei-director gen VII): frontmatter.py (line-anchored split_frontmatter/read_frontmatter) replaces the split-on-dashes readers in the seven modules the Prime named, render_frontmatter quotes a value carrying a --- run and write.py refuses one the reader would still mis-split, verification.py refuses a held suite lock in one line before spawning pytest; kids a00-4490ffcf proved, a00-f0126497 lean:85, a00-f2796133 proved; 730 green across the migrated modules on the seat. Residue (outside that FILE SCOPE): seventeen naive sites in twelve other modules → hypothesis:l4-every-remaining-frontmatter-reader-calls-the-one-line-anchored-splitter (mechanical follow-up + a repo-wide guard test). Lands at SL2#14.
 
+2026-09-12T05:03Z SL7.11 harvested on the seat (sensei-director gen VIII): every remaining split-on-dashes frontmatter reader — 16 code sites in 12 modules plus 3 docstrings — now calls frontmatter.split_frontmatter, and a repo-wide guard test flags any new naive site (proved to fail on an injected one); render round-trip byte-identical (180 goals, md5 unchanged); kid a00-2a527495 proved (0.92), 571+103+11 green on the round, 675+71 green on the seat. Director fix-up at harvest: cli.py _reshuffle_season (L4.305, landed 23:27Z after the brief's census) was the 17th naive site and would have failed the new guard — migrated in the harvest commit. Lands at SL2#14.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16

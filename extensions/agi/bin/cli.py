@@ -2329,8 +2329,9 @@ def _reshuffle_season(root: Path, arg_season: int | None) -> int:
     try:
         import yaml
         text = (root / "nodes/.geometry/ladder.md").read_text(encoding="utf-8")
-        if text.startswith("---"):
-            fm = yaml.safe_load(text.split("---", 2)[1]) or {}
+        parted = frontmatter.split_frontmatter(text)
+        if parted is not None:
+            fm = yaml.safe_load(parted[0]) or {}
             return int(fm.get("current_season", 2))
     except Exception:  # noqa: BLE001 (missing/garbled ladder never blocks)
         pass
