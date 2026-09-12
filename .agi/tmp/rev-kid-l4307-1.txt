@@ -1,0 +1,50 @@
+PARENT DIRECTIVE — L4.307 kid 1, hypothesis:l4-branches-follow-the-season-grammar.
+
+SCOPE: clause (2) of the target claim, READERS ONLY, and of those only the
+sites that still BREAK after the rename. The grammar module
+`extensions/agi/bin/branches.py` already exists (kid 6888eabf). The group-A
+readers dispatch.py / heal.py / send.py / rotate.py are ALREADY wired
+(a00-d0c2697b, a00-85e315f7) — do NOT re-touch them. Your files:
+
+1. `extensions/agi/bin/grid.py` — the legal-branch rule at :867
+   `if not branch or (branch != "master" and not branch.startswith("season/")):`
+   BREAKS on the canonical grammar: `"season2/main".startswith("season/")` is
+   False (measured), so after the migration the 5-minute grid cron's
+   `grid.py commit --all` exits 2 on `season2/main`, `season2/posts/<x>`,
+   `season2/loops/<s>-<a>`. Fix it to accept every name the grammar module
+   admits and keep refusing anything else. grid.py already does
+   `sys.path.insert(0, <bin dir>)` at :67, so `import branches` works; use
+   `branches.parse(name)` (it raises ValueError on a name that is not in the
+   grammar, and returns kind=="alias" for the legacy spellings, which must
+   still be accepted for one season). Keep `master` accepted and keep
+   `--allow-branch` / session-commit behaviour unchanged.
+
+2. `extensions/agi/bin/season.py` — the `--branch` plan line at :986
+   `branch_name = f"season/s{new_season}"` emits the LEGACY literal; after the
+   rename that branch does not exist. Emit the canonical name via
+   `branches.season_main(new_season)` (season.py already inserts bin/ on
+   sys.path at :34). Update the stale help/doc text at :14, :868-870, :1748
+   only if it names the literal.
+
+3. `extensions/agi/bin/verification.py` — :222 `Core's branch (season/s2)` is
+   a stale docstring (the lookup itself reads the ladder's opaque
+   `town_branches`, so no code change). Fix the prose to name
+   `season2/main`. Do not change behaviour.
+
+4. `extensions/agi/tests/` — add tests: the grid legal-branch predicate (or
+   whatever helper you factor it into) accepts `season2/main`,
+   `season2/posts/x`, `season2/loops/a-b`,
+   `season2/web-app-suite/season1/main`, the legacy `season/s2` and `master`;
+   and REFUSES `feature/x`, `season2/weird`, detached HEAD. Plus one test that
+   season.py's branch step emits `season2/main`.
+
+EVIDENCE REQUIRED: paste the exact command and its real output for
+  (a) the pre-fix failure you are fixing — e.g. a one-liner showing the old
+      predicate returns False for `season2/main`;
+  (b) `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_branches.py -q`
+      and any test file you add/change, last line verbatim;
+  (c) the new predicate accepting + refusing the list above, run, not read.
+Do NOT run git. Do NOT edit refs/grid, CLAUDE.md, .agi/config.json,
+.agi/nodes/.geometry/ladder.md, .agi/nodes/.geometry/rotations.md,
+extensions/agi/bin/cli.py, or the group-A readers. Write only your node plus
+the four file scopes above.
