@@ -28,10 +28,17 @@ def test_warm_load_second_call_fast(tmp_path: Path) -> None:
     _seed(tmp_path, {f"n{i}.md": f"---\nid: n{i}\n---\n" for i in range(20)})
     cache = WarmLoadCache()
     cache.get(tmp_path)  # cold
-    t0 = time.perf_counter()
-    cache.get(tmp_path)  # warm
-    elapsed_ms = (time.perf_counter() - t0) * 1000
-    assert elapsed_ms < 5.0, f"warm load too slow: {elapsed_ms}ms"
+    # (SL2#24 merge-up) best-of-5: a single wall-clock sample is at the mercy
+    # of the scheduler — this assert went red at load average 13 with six
+    # kid parents live while passing 3/3 in isolation. A genuinely slow warm
+    # path fails all five samples; a preempted one does not fail the test.
+    samples_ms = []
+    for _ in range(5):
+        t0 = time.perf_counter()
+        cache.get(tmp_path)  # warm
+        samples_ms.append((time.perf_counter() - t0) * 1000)
+    elapsed_ms = min(samples_ms)
+    assert elapsed_ms < 5.0, f"warm load too slow: {samples_ms}ms"
 
 
 def test_modifying_file_invalidates_cache(tmp_path: Path) -> None:
