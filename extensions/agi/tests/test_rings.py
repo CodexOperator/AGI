@@ -846,12 +846,32 @@ def test_freshness_refused_never_burns_nonce(tmp_path):
 
 def test_nonce_ledger_round_trip(tmp_path):
     """remember writes the ledger; a SECOND nonce_ledger(root) call sees it
-    (fresh read each call, persists across calls)."""
+    (fresh read each call, persists across calls). The ledger lives under the
+    SHARED SESSIONS dir (<root>/sessions for a bare fixture), never under
+    <root>/nodes/.geometry (RUNG 2b clause 5: that dir is committed graph
+    content and would churn commits once a ring is live)."""
     seen1, remember1 = rings.nonce_ledger(tmp_path)
     remember1("n_roundtrip")
     seen2, _ = rings.nonce_ledger(tmp_path)
     assert "n_roundtrip" in seen2
-    assert (tmp_path / "nodes" / ".geometry" / "ring-nonces.json").exists()
+    # RUNG 2b clause 5: never under the committed geometry dir.
+    assert not (tmp_path / "nodes" / ".geometry" / "ring-nonces.json").exists()
+    # ..and it IS under the shared sessions dir.
+    assert (tmp_path / "sessions" / "ring-nonces.json").exists()
+
+
+def test_nonce_ledger_remember_raises_when_unwritable(tmp_path):
+    """RUNG 2b clause 3: remember() must FAIL LOUDLY (raise LedgerWriteError)
+    when the ledger cannot be written -- a nonce is never spent silently.
+    The sessions dir is a FILE here, so mkdir/write fails."""
+    (tmp_path / "sessions").write_text("not a dir", encoding="utf-8")
+    seen, remember = rings.nonce_ledger(tmp_path)
+    with pytest.raises(rings.LedgerWriteError) as ei:
+        remember("n_fail")
+    msg = str(ei.value)
+    assert "nonce ledger" in msg and "ring-nonces.json" in msg
+    # and the nonce was NOT remembered (nothing silently admitted).
+    assert "n_fail" not in seen
 
 
 # ---------------------------------------------------------------------------

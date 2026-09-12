@@ -1031,10 +1031,16 @@ def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
         # FRESH (kid B): the quorum is satisfied, so the decision must also
         # sit inside its replay window and not carry a spent nonce.
         seen, remember_fn = _rings.nonce_ledger(groot)
-        fr = _rings.freshness_refusal(
-            fields,
-            max_age_s=_rings._effective_max_age_s(ring),
-            seen=seen, remember=remember_fn if remember else None)
+        # RUNG 2b clause 3: a failed ledger write (LedgerWriteError) refuses
+        # BY NAME -- the nonce was not remembered, so the decision is not
+        # admitted (a nonce is never spent silently).
+        try:
+            fr = _rings.freshness_refusal(
+                fields,
+                max_age_s=_rings._effective_max_age_s(ring),
+                seen=seen, remember=remember_fn if remember else None)
+        except _rings.LedgerWriteError as le:
+            return (f"merge grant refused: {le}")
         if fr:
             return (f"merge grant refused: freshness {fr}")
         return None
