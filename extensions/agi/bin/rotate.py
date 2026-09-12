@@ -1074,7 +1074,33 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
             seat_for_gen = pinp.stem
         if seat_for_gen:
             cur_gen = _read_generation(root, seat_for_gen)
-            pinp.write_text(f"{cur_gen}\t{log_path}\n", encoding="utf-8")
+            # The pin NEVER LOWERS an existing generation for the SAME
+            # transcript (hypothesis:l4-meter-pin-never-lowers-an-existing-
+            # pins-generation...). The row's generation and an existing pin's
+            # generation can be read from different trees at different
+            # moments, and the LOWER one used to win because the write was
+            # unconditional -- a lagging row re-stamped a fresh pin back to
+            # its stale generation. When the pin already exists, parses as a
+            # record, names the SAME transcript being written (both sides
+            # resolved), and carries its own generation, the stamped
+            # generation is max(pin gen, row gen) -- never lower than the
+            # pin's. A row reading lower than the pin is named in ONE stdout
+            # line and is never written into the pin (whose bytes stay
+            # identical when the transcript is unchanged). A pin naming a
+            # DIFFERENT transcript is still claimed with the row's gen (a new
+            # session takes over the seat), and a no-pin / bare-transcript
+            # pin are stamped exactly as before.
+            new_gen = cur_gen
+            if pinp.exists():
+                pin_gen, pin_path_s = _parse_pin_record(pinp)
+                if (pin_gen is not None and pin_path_s
+                        and Path(pin_path_s).expanduser().resolve()
+                        == Path(str(log_path)).expanduser().resolve()
+                        and pin_gen > cur_gen):
+                    new_gen = pin_gen
+                    print(f"pin gen {pin_gen} kept: config row reads "
+                          f"{cur_gen} (lagging tree {root})")
+            pinp.write_text(f"{new_gen}\t{log_path}\n", encoding="utf-8")
         else:
             pinp.write_text(str(log_path) + "\n", encoding="utf-8")
 
