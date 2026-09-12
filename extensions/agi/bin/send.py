@@ -3802,7 +3802,7 @@ def main(argv: list[str] | None = None) -> int:
              "with --all-live, the prime keys every LIVE row that has no "
              "pubkey (hypothesis:l4-every-live-row-is-keyed...)",
         epilog=_LOCKDOWN_RESERVED_HELP)
-    p_keygen.add_argument("--seat", "--post", default=None, help="seat name")
+    p_keygen.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None, help="seat name")
     p_keygen.add_argument("--scheme", default=seatsig.DEFAULT_SCHEME,
                           help="swappable scheme name (default "
                                f"{seatsig.DEFAULT_SCHEME})")
