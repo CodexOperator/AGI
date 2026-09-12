@@ -9348,9 +9348,18 @@ def _prepare_merge_target(root: Path) -> str:
     return season_branch(root)
 
 
-def _prepare_checks(root: Path, seat: str, perform: bool = False
+def _prepare_checks(root: Path, seat: str, perform: bool = False,
+                    stops_rotation: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
+
+    `stops_rotation` marks a `rotate-self --stops/--stops-file` run. Only such
+    a run exempts the seat's ack seats path (seats.md/posts.md) from check 4's
+    "last WORK commit" scan: a --stops run's OWN card+seats commit must not
+    re-age the card (goal:g15.25 line (3)). A plain `prepare`, or a
+    `rotate-self --prepare` which delegates to it, must NOT carry the
+    exclusion (SL7.30) — seating bookkeeping on a non-stops run is still WORK
+    worth ageing the card against (SL7.12 had applied it unconditionally).
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
@@ -9549,13 +9558,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # (goal:g15.25 line (3)): seating/rotation bookkeeping is not WORK, the
     # same reasoning that excludes comms + rotation records — a pure
     # card+seats commit is fully invisible to this check, so the stops write
-    # satisfies this captive instead of re-triggering it.
-    try:
-        _sres = str(_ack_seats_path(root).resolve()
-                    .relative_to(Path(top).resolve()))
-        spec.append(f":(exclude){_sres}")
-    except (ValueError, OSError):
-        pass
+    # satisfies this captive instead of re-triggering it. SL7.30: this
+    # exclusion is CONDITIONAL on the run being a --stops rotate-self. A
+    # plain `prepare` (or rotate-self --prepare) must still let a seats.md
+    # WORK commit age the card — SL7.12 over-applied it to every prepare.
+    if stops_rotation:
+        try:
+            _sres = str(_ack_seats_path(root).resolve()
+                        .relative_to(Path(top).resolve()))
+            spec.append(f":(exclude){_sres}")
+        except (ValueError, OSError):
+            pass
     last_ts = _git_count_maybe(top, *spec)
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
@@ -10622,18 +10635,64 @@ def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
+    """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
+    holding the stops text, plus the optional `diff requested:` line AFTER
+    the fence -- as ONE unit. BOTH the CREATE and the REPLACE paths of
+    `_write_stops_section` build the slot's block from this single function,
+    so a slot written fresh and one filled over an existing block take an
+    identical shape, and the exterior prose of an existing slot that sits
+    OUTSIDE the fence is carried verbatim by the callers. The fence is
+    always part of the block, so a stops text that itself carries a ```
+    fence nests cleanly instead of being spliced between someone else's
+    delimiters (goal:g15.25 line (3))."""
+    out = "```\n" + stops_text.rstrip("\n") + "\n```"
+    if diff_gap:
+        out += f"\n\ndiff requested: {diff_gap}"
+    return out
+
+
+def _stops_replace_fenced_region(lines: list[str], block: str):
+    """Replace the fenced region of `lines` (the slot's content span) with
+    `block` -- the WHOLE fenced block written together -- carrying every
+    line OUTSIDE the fence (prose before it and after it) verbatim. Returns
+    the new line list, or None when `lines` carries no fence (the caller
+    then replaces the whole span). The whole region from the opening
+    delimiter to the matching closing delimiter is replaced by the single
+    rendered block, so the slot gains a fresh fence+prose unit instead of
+    splicing the stops text between pre-existing delimiters (which a stops
+    text carrying its own fence would interlock with)."""
+    fence_i = None
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("```"):
+            fence_i = i
+            break
+    if fence_i is None:
+        return None
+    close_i = None
+    for i in range(fence_i + 1, len(lines)):
+        if lines[i].strip().startswith("```"):
+            close_i = i
+            break
+    if close_i is None:
+        close_i = len(lines) - 1
+    return lines[:fence_i] + block.splitlines() + lines[close_i + 1:]
+
+
 def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                          diff_gap: str | None = None,
                          frac: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
     own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
     any header whose title `_locate_where_it_stops` keys on -- 'where it
-    stops' / 'next command'), replacing that section up to the next heading
-    and carrying everything else verbatim. When the card has no where-it-
-    stops slot at ALL, the slot is CREATED at the card's end as
-    `### 🔴 Where it stops`. When `--ask-diff <gap>` accompanies `--stops`,
-    the gap is ALSO written as `diff requested: <gap>` beneath the stops
-    body. Returns `(body, slot)` on success (slot in {'replaced', 'created'})
+    stops' / 'next command'), replacing only the slot's FENCED block (the
+    fence + the stops text together, rendered by `_render_stops_block`) and
+    carrying the slot's own prose OUTSIDE the fence -- before it and after
+    it -- byte-identical. When the card has no where-it-stops slot at ALL,
+    the slot is CREATED at the card's end as `### 🔴 Where it stops` using
+    the SAME render function. When `--ask-diff <gap>` accompanies `--stops`,
+    the gap is ALSO written as `diff requested: <gap>` after the fence.
+    Returns `(body, slot)` on success (slot in {'replaced', 'created'})
     or `(None, error)` when the where-it-stops slot is AMBIGUOUS (refused,
     never guessed). Never raises."""
     existing = (card_path.read_text(encoding="utf-8")
@@ -10644,9 +10703,8 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         return None, "ambiguous where-it-stops slot on the own card; " \
                      "refused (rotate-self --stops never guesses)"
     if stops is None:
-        extra = f"### 🔴 Where it stops\n{stops_text}"
-        if diff_gap:
-            extra += f"\n\ndiff requested: {diff_gap}"
+        extra = (f"### 🔴 Where it stops\n"
+                 + _render_stops_block(stops_text, diff_gap))
         full = _render_card(preamble, sections)
         full = full.rstrip("\n") + "\n\n" + extra + "\n"
         if frac is not None:
@@ -10677,15 +10735,15 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
-        block = sub_header + "\n" + stops_text
-        if diff_gap:
-            block += f"\n\ndiff requested: {diff_gap}"
-        new_body = "\n".join(keep + block.splitlines() + tail)
+        block = _render_stops_block(stops_text, diff_gap)
+        new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
+        if new_region is None:
+            new_region = block.splitlines()   # no fence: whole slot replaced
+        new_body = "\n".join(keep + [sub_header] + new_region + tail)
     else:
-        new_body = _replace_stops_body(body, stops_text, None)
-        if diff_gap:
-            new_body = (new_body.strip() + f"\n\ndiff requested: {diff_gap}"
-                        if new_body.strip() else f"diff requested: {diff_gap}")
+        block = _render_stops_block(stops_text, diff_gap)
+        new_region = _stops_replace_fenced_region(body.splitlines(), block)
+        new_body = block if new_region is None else "\n".join(new_region)
     sections[sec_idx] = (header, new_body)
     full = _render_card(preamble, sections)
     if frac is not None:
@@ -11014,7 +11072,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
     # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
     _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
-    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate,
+                                          stops_rotation=_stops_has)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
     # background tasks BEFORE it spawns, so it knows what to leave behind

@@ -206,11 +206,13 @@ def test_prepare_card_check_reads_the_last_work_commit_only(
     os.utime(card, (1000000000, 1000000000))   # long before any commit
     spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
             ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
-            ":(exclude)sessions/quorum/adv-alive.md",
-            # goal:g15.25 — the rotate-out stop commit may touch the seat
-            # row (seats.md/posts.md) *and* the card and is NOT work; the
-            # captives exclude that bookkeeping path too.
-            ":(exclude)nodes/.geometry/posts.md")
+            ":(exclude)sessions/quorum/adv-alive.md")
+    # SL7.30: the seats/posts exclusion is CONDITIONAL on a --stops
+    # rotate-self (test_stops_rotation_flag_controls_seats_exclusion below).
+    # A plain `prepare` carries NO seats exclusion — a seats.md WORK commit
+    # must still age the card (SL7.12 had edited THIS spec tuple to add
+    # `:(exclude)nodes/.geometry/posts.md` to every prepare; that over-
+    # application is the defect this round fixes).
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
@@ -229,6 +231,63 @@ def test_prepare_card_check_reads_the_last_work_commit_only(
     out = capsys.readouterr().out
     assert rc == 3, out
     assert "[BLOCK] card older than last commit" in out
+
+
+def test_stops_rotation_flag_controls_seats_exclusion(
+        prep_root, capsys, monkeypatch):
+    """SL7.30 — the seats/posts exclusion on check 4 ('card older than last
+    commit') is CONDITIONAL on the run being a --stops rotate-self
+    (goal:g15.25 line (3): the rotate-out's OWN card+seats commit must not
+    re-age the card). A plain prepare (stops_rotation=False) scans WITHOUT
+    the exclusion, so a pure seats.md WORK commit still ages the card and a
+    card older than it BLOCKS; a --stops rotate-self (stops_rotation=True)
+    carries the exclusion so that same commit is invisible and check 4 reads
+    ok. FALSIFIER for SL7.12, which appended the exclusion to EVERY prepare:
+    revert the conditionality and the plain case can no longer block on a
+    seats-only commit."""
+    import os
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
+    os.utime(card, (1000000000, 1000000000))   # older than any injected ts
+    ok = {("status", "--porcelain"): [],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    plain_spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+                  ":(exclude).agi/comms",
+                  ":(exclude).agi/sessions/rotations",
+                  ":(exclude)sessions/quorum/adv-alive.md")
+    stops_spec = plain_spec + (":(exclude)nodes/.geometry/posts.md",)
+    # a seats.md-only WORK commit (the plain scan sees it: ts > card); the
+    # stops scan EXCLUDES seats, so its 'last WORK commit' is older than the
+    # card (ts < card) — check 4 reads ok either way the mtime lands.
+    map_ = dict(ok)
+    map_[plain_spec] = ["9999999999"]
+    map_[stops_spec] = ["900000000"]
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(map_))
+    # plain prepare: no seats exclusion -> the seats-only commit ages the
+    # card -> BLOCK
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] card older than last commit" in out
+    # --stops rotate-self: carries the seats exclusion -> the seats-only
+    # commit is invisible to check 4 -> the card is NOT stale
+    checks = rotate._prepare_checks(prep_root, "adv-alive",
+                                    stops_rotation=True)
+    stale = [c for c in checks if c[1] == "card older than last commit"][0]
+    assert not stale[0], stale  # not blocked
+    # and the SAME fixture at stops must still read ok end-to-end; the
+    # flagged spec IS the one consulted
+    seen = []
+    def recorder(_cwd, *args):
+        if args and args[0] == "log":
+            seen.append(args)
+        return map_.get(args)
+    monkeypatch.setattr(rotate, "_git_maybe", recorder)
+    rotate._prepare_checks(prep_root, "adv-alive", stops_rotation=True)
+    assert stops_spec in seen, seen
+    assert plain_spec not in seen  # plain scan is what the OTHER path runs
+    rotate._prepare_checks(prep_root, "adv-alive")
+    assert plain_spec in seen, seen
 
 
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
