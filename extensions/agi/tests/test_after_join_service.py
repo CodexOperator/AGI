@@ -349,3 +349,222 @@ def test_dry_run_resolves_runs_nothing():
             "dry-run must never append to the record"
     finally:
         rec_path.unlink(missing_ok=True)
+
+# ── goal:g15.25 (SL7.40 (a)) — the after_join successor MODEL CONFIRM ──────
+# run_after_join performs _confirm_successor_model ONCE, after the successor
+# transcript carries its first assistant turn (polled, never a bare fixed
+# sleep), and writes the result into the SAME rotation record's
+# handover.model_confirm in place.
+
+def test_after_join_confirms_model_once_after_turn_lands_mid_wait(tmp_path):
+    """The successor's first assistant turn appears MID-poll: the transcript
+    goes from no-model to model between ticks. run_after_join confirms exactly
+    ONCE (not before the turn, not repeatedly), writes the result into the
+    SAME record's handover.model_confirm, and returns it."""
+    import agi.bin.rotate as rot
+    tr = tmp_path / "succ.jsonl"
+    tr.write_text('{"type":"user","message":{"content":[{"type":"text",'
+                  '"text":"hello"}]}}\n', encoding="utf-8")
+    rec_path = tmp_path / "seat.20260912T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 5,
+        "handover": {"successor_window": {"name": "s", "id": "@7"}},
+    }), encoding="utf-8")
+    startup = {"after_join_delay_s": 5,
+               "after_join": [{"label": "ack", "cmd": "echo {seat}"}]}
+    val = dict(VALUES)
+    val["succ_transcript"] = str(tr)
+    real_run = rotate.subprocess.run
+    rotate.subprocess.run = lambda cmd, **kw: _Rec(out=cmd[1])
+
+    def _sleep(secs):
+        # the successor's FIRST assistant turn lands while the poll waits
+        tr.write_text(
+            tr.read_text(encoding="utf-8")
+            + '{"type":"assistant","message":{"role":"assistant",'
+              '"content":[{"tool_use":{"name":"bash","input":{'
+              '"command":"echo hi"}}}]},"model":"claude-sonnet-5"}\n',
+            encoding="utf-8")
+    try:
+        out = rotate.run_after_join(
+            tmp_path, seat="s", gen=5, startup=startup, values=val,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=_sleep, poll_interval=1.0,
+            send_dm=lambda to, text: None)
+    finally:
+        rotate.subprocess.run = real_run
+    mc = out["model_confirm"]
+    assert isinstance(mc, dict), mc
+    assert mc.get("live") == {"model": "claude-sonnet-5"}, mc
+    assert mc.get("confirm_at") == "after_join", mc
+    saved = json.loads(rec_path.read_text())
+    assert saved["handover"]["model_confirm"] == mc, \
+        "the SAME record's handover.model_confirm is filled in place"
+    assert saved["handover"]["model_confirm"]["confirm_at"] == "after_join"
+
+
+def test_after_join_records_named_skip_when_no_turn_within_budget(tmp_path):
+    """No assistant turn ever lands within the poll budget: the confirm is
+    recorded as a NAMED `skipped: no assistant turn within <N>s`, never a
+    bare `skipped`, and the record carries it. The poll is turn-driven — it
+    sleeps exactly budget/poll_interval ticks and never a fixed once.""" 
+    import agi.bin.rotate as rot
+    tr = tmp_path / "succ.jsonl"
+    tr.write_text('{"type":"user","message":{"content":[{"type":"text",'
+                  '"text":"hello"}]}}\n', encoding="utf-8")
+    rec_path = tmp_path / "seat.20260912T000001Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 3, "handover": {}}), encoding="utf-8")
+    startup = {"after_join_delay_s": 5,
+               "after_join": [{"label": "ack", "cmd": "echo x"}]}
+    val = dict(VALUES)
+    val["succ_transcript"] = str(tr)
+    real_run = rotate.subprocess.run
+    rotate.subprocess.run = lambda cmd, **kw: _Rec(out=cmd[1])
+    sleeps = []
+    try:
+        out = rotate.run_after_join(
+            tmp_path, seat="s", gen=3, startup=startup, values=val,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: sleeps.append(s),
+            poll_interval=2.0, timeout_s=4,
+            send_dm=lambda to, text: None)
+    finally:
+        rotate.subprocess.run = real_run
+    mc = out["model_confirm"]
+    assert isinstance(mc, str) and "skipped: no assistant turn within 4s" in mc, mc
+    assert sleeps == [2.0, 2.0], \
+        "poll sleeps N=budget/interval ticks, never one fixed sleep"
+    saved = json.loads(rec_path.read_text())
+    assert saved["handover"]["model_confirm"] == mc
+
+
+# ── goal:g15.25 (SL7.40) — the after_join fills BOTH join-only facts ───────
+# The confirm result writes only `successor_live_model` in the prior cut;
+# `model_refusal_fallback` (the SECOND join-only fact the hypothesis names)
+# is filled from the successor transcript's last model_refusal_fallback
+# system event, BOTH through the existing `_write_bootstrap` overrides seam.
+
+def test_after_join_fills_both_join_facts_through_seam_preserves_resolved(
+        tmp_path):
+    """run_after_join fills `successor_live_model` AND `model_refusal_fallback`
+    in the pre-spawn bootstrap record through the existing overrides seam, and
+    preserves a join-only fact ANOTHER path already resolved (successor_address
+    set by rotate-self) instead of clobbering it back to `pending:`."""
+    tr = tmp_path / "succ.jsonl"
+    tr.write_text(
+        '{"type":"assistant","message":{"role":"assistant",'
+        '"content":[]},"model":"claude-sonnet-5"}\n'
+        '{"type":"system","subtype":"model_refusal_fallback",'
+        '"timestamp":"2026-09-12T00:00:00.000Z",'
+        '"apiRefusalCategory":"safety","requestId":"req-1"}\n',
+        encoding="utf-8")
+    bdir = tmp_path / "sessions" / "seats"
+    bdir.mkdir(parents=True)
+    (bdir / "s.bootstrap.json").write_text(json.dumps({
+        "shape": "v1", "seat": "s", "generation": 5,
+        "written_by": "rotate-self", "commit": None, "measured_at": {},
+        "telemetry": {
+            "commit": "abc", "seat_row": "{}", "model": "x",
+            "effort": "max", "ack": "none", "prev_gen": "4",
+            "successor_live_model": "pending: resolved after join",
+            "successor_address": "@7",
+            "model_refusal_fallback": "pending: resolved after join",
+            "mail": "SKIPPED: m", "account": "SKIPPED: a",
+            "floor": "SKIPPED: f", "registry": "SKIPPED: r",
+            "crons": "SKIPPED: c"},
+        "verification": {"ok": True},
+    }), encoding="utf-8")
+    rec_path = tmp_path / "s.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 5, "handover": {}}), encoding="utf-8")
+    val = dict(VALUES)
+    val["seat"] = "s"
+    val["succ_transcript"] = str(tr)
+    out = rotate.run_after_join(
+        tmp_path, seat="s", gen=5, startup={"after_join_delay_s": 5,
+                                              "after_join": []},
+        values=val, record_path=str(rec_path), delay_override=0,
+        poll_interval=1.0, sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None)
+    mc = out["model_confirm"]
+    assert isinstance(mc, dict) and mc.get("confirm_at") == "after_join", mc
+    tele = json.loads((bdir / "s.bootstrap.json").read_text())["telemetry"]
+    assert tele["successor_live_model"] == str({"model": "claude-sonnet-5"}), \
+        tele
+    assert tele["model_refusal_fallback"] == (
+        "ts=2026-09-12T00:00:00.000Z category=safety requestId=req-1"), \
+        tele
+    assert tele["successor_address"] == "@7", \
+        "a join fact already resolved (rotate-self) is preserved, never clobbered"
+    for k in ("successor_live_model", "model_refusal_fallback"):
+        assert not str(tele[k]).startswith("pending:"), (k, tele[k])
+
+
+def test_service_entry_run_after_join_for_seat_confirms_and_fills(tmp_path,
+                                                                  monkeypatch):
+    """gap (3): the PRODUCTION service entry `run_after_join_for_seat` (the
+    heal.py watch loop's per-seat action, rotate.py ~9094) reaches the ONE
+    after_join confirm — a real record + a real successor transcript carrying
+    an assistant turn and a model_refusal_fallback event end with the record's
+    handover.model_confirm overwritten by a real `after_join` verdict and the
+    bootstrap record's TWO join-only facts filled."""
+    tr = tmp_path / "succ.jsonl"
+    tr.write_text(
+        '{"type":"assistant","message":{"role":"assistant",'
+        '"content":[]},"model":"claude-sonnet-5"}\n'
+        '{"type":"system","subtype":"model_refusal_fallback",'
+        '"timestamp":"2026-09-12T09:00:00.000Z",'
+        '"apiRefusalCategory":"safety","requestId":"req-9"}\n',
+        encoding="utf-8")
+    bdir = tmp_path / "sessions" / "seats"
+    bdir.mkdir(parents=True)
+    (bdir / "seat-a.bootstrap.json").write_text(json.dumps({
+        "shape": "v1", "seat": "seat-a", "generation": 7,
+        "written_by": "rotate-self", "commit": None, "measured_at": {},
+        "telemetry": {"model": "x", "effort": "max",
+                       "successor_live_model": "pending: resolved after join",
+                       "model_refusal_fallback": "pending: resolved after join"},
+        "verification": {"ok": True},
+    }), encoding="utf-8")
+    rec_path = tmp_path / "seat-a.20200101T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "seat-a", "result": "success",
+        "gen_after": 7,
+        "recorded_at": "2020-01-01T00:00:00.000000Z",
+        "handover": {"join": {"window_id": "@42",
+                                "transcript": str(tr)}}}), encoding="utf-8")
+    monkeypatch.setattr(
+        rotate, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()), str(rec_path)))
+    monkeypatch.setattr(
+        rotate, "_find_seat",
+        lambda root, seat: {"name": "seat-a", "model": "x",
+                            "effort": "max", "role": "parent"})
+    monkeypatch.setattr(
+        rotate, "_resolve_template",
+        lambda root, role: ({}, "parent", "mem"))
+    monkeypatch.setattr(
+        rotate, "_join_successor",
+        lambda root, seat, window_id, poll_secs: {
+            "found": True, "pid": None, "session_id": None,
+            "transcript": str(tr)})
+    sleeps = []
+    out = rotate.run_after_join_for_seat(
+        tmp_path, "seat-a", sleep_impl=lambda s: sleeps.append(s),
+        send_dm=lambda to, text: None)
+    assert out is not None
+    mc = out["model_confirm"]
+    assert isinstance(mc, dict) and mc.get("confirm_at") == "after_join", mc
+    assert sleeps == [], f"turn present at tick 0 -> no real poll sleep: {sleeps}"
+    saved = json.loads(rec_path.read_text())
+    assert saved["handover"]["model_confirm"] == mc, \
+        "the production service entry reaches the confirm and writes the record"
+    b = json.loads((bdir / "seat-a.bootstrap.json").read_text())
+    assert b["telemetry"]["successor_live_model"] == str(
+        {"model": "claude-sonnet-5"})
+    assert b["telemetry"]["model_refusal_fallback"].startswith(
+        "ts=2026-09-12T09:00:00.000Z"), b["telemetry"]["model_refusal_fallback"]
