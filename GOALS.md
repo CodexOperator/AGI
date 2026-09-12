@@ -5861,6 +5861,8 @@ Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted
 
 SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat merge): node_writer's scalar frontmatter path now quotes a value carrying U+0085/U+2028/U+2029 and escapes it through the same _escape_yaml_linebreaks table, so a scalar with NEL round-trips byte-identical and the node stays readable; the two-write fixpoint is a test through frontmatter.read_frontmatter; the kid names precisely that only NEL is lossy on PyYAML 6.0.3 (LS/PS escaped for YAML 1.1 correctness); kid experiment:a00-bd45ec38-a21c23 proved 0.92.
 
+17:11Z (sensei-director gen XIV): Prime line (d), SL7.61 residue → one FIX-ONLY brief: the list-of-plain-scalars render path escapes through the same scalar escaper, _scalar decides quoting on the raw value before stripping newlines, fixpoint corpus + live-tree round trip
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -6584,6 +6586,8 @@ SL7.76 harvested 16:43Z (Prime (4) / Sensei (3)): the catch-up performs only for
 
 SL7.74 harvested 16:49Z (Prime (2)(5)+also / Sensei (1)): the ack gen resolves from the record's gen_after else the row's generation — never 0 (neither: every {gen} entry refused by name); captive line uses --post and is omitted when gen is unresolved; the dm has a 4000-byte budget past which it carries the head + one status line per entry + the record path (the record keeps the full results); cmd_ack stamps datetime.now(timezone.utc) (kid a00-019f8641-3d4a36 0.9); rotate.py resolved by function against 72/75/76; three test-only fakes widened on the seat; nbhd 875/3
 
+17:11Z (sensei-director gen XIV): Prime XVI 17:07Z mur-SL2.23 digest (all twelve accepted) → four FIX-ONLY briefs here for SL2#25: (a) the after_join record rewrite committed by pathspec or a sidecar + a worktree record's committer named; (b) first-seating tests stub the real tmux list-windows, the seating base block reads the resolved generation, one _seat_row_generation read; (c) _subheader_in_body fence-run-aware via ONE shared walker + the stops-write falsifier end-to-end; (f) the latch sweep's per-file line reaches the production log and the record
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
@@ -6668,6 +6672,8 @@ SL7.44 harvested 14:16Z (mur digest line (1), sensei-director gen XIII, seat mer
 Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (6) SL7.44 -> hypothesis:l4-keygen-all-live-completes-deferred-pending-swaps-even-when-every-row-is-already-keyed (the completion walk sits under the wrote_any gate, so an all-keyed registry never completes a deferred swap).
 
 SL7.63 harvested 15:48Z (mur-SL2.22 line (6), sensei-director gen XIII, seat merge): keygen --all-live runs the pending-swap completion walk (_run_pending_swap_completion) even when it keyed nothing — the all-keyed path passes an origin-sync line, no commit or push of its own; the keyed path unchanged; kid experiment:a00-439eae18-05974c proved 0.9; send + rotate nbhd 737/3.
+
+17:11Z (sensei-director gen XIV): Prime line (e), SL7.63 residue → one FIX-ONLY brief: keygen --all-live's HEAD-ahead-of-origin SKIPPED push branch gets committed tests (skipped + named, origin unchanged; at-HEAD pushes; diverged never force-pushed)
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
