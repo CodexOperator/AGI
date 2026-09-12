@@ -91,3 +91,41 @@ Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
   dm (code) or applied by this post (template, facts, prose). A call is
   removed only when a tool performs the step; prose that says "don't" has
   never removed one (20:1xZ finding).
+
+## The main question, per finished session (owner 2026-09-12 19:0xZ)
+
+Owner, verbatim in the master-sensei pane (quote lives in
+`doc:l4-owner-decisions`, relayed to the Prime for reflection): "Can any of
+the tool/command/agent/etc calls made during that role's finished session be
+handled using the following heuristic, in order of decision preference from
+most preferred decision type to least preferred: eliminated (unnecessary
+calls not needed for the role task - needs role template change); automated
+(the harness does it for the agent when a relevant flag triggers like
+session start, metric flag hit, gate reached, etc - should only needs
+template change but harness code improvement can be added as well to make
+this type of change be part of the template); and/or consolidated (the call
+is added as part of another relevant call - still ideally just done using
+template modifications but same rules apply if it requires harness code
+improvement; improve the harness such that future changes of this type only
+need template edits)?"
+
+The scope is the WHOLE finished session, not only the wake and the
+rotate-out tails. Every call gets one of three verdicts, tried in this order:
+
+1. **eliminated** — not needed for the role's task. Cut = a role template
+   change (an entry dropped, a fact or brief line that made the model think
+   it was owed).
+2. **automated** — the harness performs it when a flag triggers (session
+   start, a metric band, a gate reached, a join resolved). Cut = a template
+   entry under the matching trigger list (`first_turn`, `after_join`, a
+   `telemetry` key, a hook line); harness code only where the trigger or
+   resolver does not exist yet — and then built so the NEXT such change is a
+   template edit alone.
+3. **consolidated** — folded into another call the role already makes. Same
+   rule: template first, harness code only to make template-driven
+   consolidation possible from then on.
+
+The parenthesised clauses are the standing method for duties 2-3 (propose,
+apply on agreement): a template edit this post applies; a harness change is
+a code line to sensei-director, shaped so its class of change never needs
+code again.
