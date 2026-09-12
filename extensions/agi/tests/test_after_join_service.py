@@ -806,3 +806,102 @@ def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch)
     # a SECOND run in the SAME process (the reaper loop) clears again
     rot.run_after_join_for_seat(Path(tmp_path), "c")
     assert len(cleared) == 2, cleared
+
+
+# ── goal:g15.25 — the service dm is sent by a DECLARED SENDER, never ────────
+# `from: unknown` (hypothesis:l4-the-service-after-join-dm-is-sent-by-a-
+# declared-signed-sender-never-from-unknown). The default send_dm passed
+# send(root, to, text, None) — sender None → send.py falls to 'unknown' when
+# no seat env is exported, and `_sign_line` signed only when a key exists for
+# that (unknown) id. Now the default passes ONE declared sender resolved by
+# `_after_join_sender`: the custodian/outgoing seat when its key exists, else
+# the system sender `heal`. `unknown` can no longer appear; the record names
+# dm_sender + dm_signed.
+import types as _types
+
+
+def _stub_send(monkeypatch, module_name="send"):
+    """Register a stub `send` module (the name rotate.run_after_join's default
+    closure imports) and the table under test."""
+    stub = _types.ModuleType(module_name)
+    calls = []
+    stub.send = lambda root, to, text, sender: calls.append((to, sender))
+    monkeypatch.setitem(sys.modules, module_name, stub)
+    return calls
+
+
+def test_default_send_dm_names_heal_without_a_seat_key(tmp_path, monkeypatch):
+    """No `<sessions>/seats/<seat>.key` exists: the default send_dm passes the
+    SYSTEM sender `heal` (never None → never 'unknown'), the dm still sends,
+    and the record names dm_sender=heal + dm_signed=false (unsigned-but-named)."""
+    calls = _stub_send(monkeypatch)
+    rec_path = tmp_path / "s.json"
+    rec_path.write_text(json.dumps({"result": "success", "seat": "s"}),
+                        encoding="utf-8")
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    out = rotate.run_after_join(
+        tmp_path, seat="s", gen=2, startup=startup, values=VALUES,
+        record_path=str(rec_path), delay_override=0,
+        sleep_impl=lambda s: None)
+    assert calls == [("s", "heal")], \
+        "default closure passes ONE declared sender, never None: %r" % calls
+    assert out["sent"] is True, "the dm is still delivered, named"
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert aj["dm_sender"] == "heal", aj
+    assert aj["dm_signed"] is False, aj
+
+
+def test_default_send_dm_signs_when_the_custodian_seat_key_exists(
+        tmp_path, monkeypatch):
+    """The outgoing/custodian seat HAS a key under `<sessions>/seats/`: the
+    default send_dm passes that SEAT name (resolved by the ONE helper), so
+    send.py signs — and the record names dm_sender=<seat> + dm_signed=true."""
+    kdir = tmp_path / "sessions" / "seats"
+    kdir.mkdir(parents=True, exist_ok=True)
+    (kdir / "seat-a.key").write_text(
+        json.dumps({"scheme": "ed25519", "priv_hex": "ab" * 32}),
+        encoding="utf-8")
+    calls = _stub_send(monkeypatch)
+    rec_path = tmp_path / "sa.json"
+    rec_path.write_text(json.dumps({"result": "success", "seat": "seat-a"}),
+                        encoding="utf-8")
+    out = rotate.run_after_join(
+        tmp_path, seat="seat-a", gen=2,
+        startup=_startup(after_join=[{"label": "ack", "cmd": "echo x"}]),
+        values=VALUES, record_path=str(rec_path), delay_override=0,
+        sleep_impl=lambda s: None)
+    assert calls == [("seat-a", "seat-a")], calls
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert aj["dm_sender"] == "seat-a", aj
+    assert aj["dm_signed"] is True, aj
+
+
+def test_after_join_sender_resolves_deterministically(tmp_path):
+    """ONE helper, deterministic from (root, seat): a keyed seat resolves to
+    itself (the custodian that can SIGN); an unkeyed seat resolves to the
+    system sender `heal`. No input resolves to 'unknown' — so the watch and the
+    tail can never diverge on the same seat (the falsifier)."""
+    assert rotate._after_join_sender(tmp_path, "seat-a") == "heal", \
+        "unkeyed seat -> system sender heal"
+    kdir = tmp_path / "sessions" / "seats"
+    kdir.mkdir(parents=True, exist_ok=True)
+    (kdir / "seat-a.key").write_text("{}", encoding="utf-8")
+    assert rotate._after_join_sender(tmp_path, "seat-a") == "seat-a", \
+        "keyed seat -> the custodian seat itself"
+
+
+def test_after_join_dm_record_carries_sender_in_dry_run_too(tmp_path):
+    """The record fields dm_sender/dm_signed are populated by the same
+    resolution whether or not a send fires (a caller-injected send_dm still
+    records the DECLARED sender); and the dry-run resolves but never sends."""
+    rec_path = tmp_path / "dry.json"
+    rec_path.write_text(json.dumps({"result": "success"}), encoding="utf-8")
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    sent = []
+    out = rotate.run_after_join(
+        tmp_path, seat="s", gen=1, startup=startup, values=VALUES,
+        record_path=str(rec_path), dry_run=True, send_dm=lambda *a: sent.append(a))
+    assert sent == [], "dry-run never sends"
+    assert json.loads(rec_path.read_text()) == {"result": "success"}, \
+        "dry-run never appends sender fields to the record"
+    assert out["dm"], "dry-run still plans the captive dm"
