@@ -11,6 +11,7 @@ must also read MAIN (the same copy the writer wrote), never the worktree copy.
 """
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import subprocess
 
 import pytest
@@ -250,3 +251,53 @@ def test_heal_live_seat_row_takes_identity_from_main(tmp_path):
     assert got["pid"] == 200
     # non-identity cells stay live-first (from the worktree copy).
     assert got["pubkey"] == "livekey"
+
+def test_worktree_rotate_self_then_ack_continue_lands_in_main(tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2a) MANDATORY two-tree falsifier: a worktree post's
+    rotate-self (the ONE writer -> MAIN's seats.md, then _commit_spawn_row in
+    MAIN's tree) followed by the successor's `cmd_ack ... continue` returns
+    rc 0 WITH the ack commit landing in the fixture MAIN — and the worktree
+    copy is byte-unchanged through the whole round (never a second writer,
+    never a commit in the caller's tree)."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    wt_seats = wt / ".agi" / "nodes" / ".geometry" / "seats.md"
+    before_wt = wt_seats.read_bytes()
+
+    # rotate-self from the worktree: the ONE writer puts the row in MAIN and
+    # rotate-self commits its spawn row in MAIN's tree.
+    wrote = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="", generation=4, window="@NEW", pid=3200)
+    assert wrote.startswith("config:seats row")
+    outcome = rotate._commit_spawn_row(
+        wt / ".agi", seat=seat, generation=4, session_id="sess-2",
+        window="@NEW", pid=3200)
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    assert wt_seats.read_bytes() == before_wt
+
+    # the successor's wake act acks `continue` FROM the worktree; its own-row
+    # gate and commit resolve against MAIN (the tree the writer wrote).
+    monkeypatch.chdir(wt / ".agi")
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat=seat, gen=4, ref="new-ref", answer="continue", text="",
+        wait=0, registry_dir=None, window_path=None), wt / ".agi")
+    assert code == 0, capsys.readouterr().err
+    assert wt_seats.read_bytes() == before_wt, \
+        "a worktree ack must never write the worktree's own seats.md"
+
+    # MAIN's seat row carried the spawn row AND the ack's back-fill, clean.
+    row = next(r for r in rotate._load_seats(main / ".agi")
+               if r.get("name") == seat)
+    assert row["window"] == "@NEW"
+    assert row["session_ref"] == "new-ref"
+    st = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", "MAIN's seats.md must be clean after the ack"
+    log = subprocess.run(
+        ["git", "-C", str(main), "log", "--format=%h %s", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert log[0].endswith(
+        f"{seat} ack: gen 4, session_ref new-ref, window @NEW, pid 3200"), log
