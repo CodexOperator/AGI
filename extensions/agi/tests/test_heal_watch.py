@@ -793,6 +793,35 @@ def _write_success_record_nested(rot: Path, seat: str, before: int,
         json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
 
+def _write_success_record_identity(rot: Path, seat: str, *,
+                                   chain_pids, own_window, join_pid,
+                                   join_window, succ_window,
+                                   gen_before, gen_after, age_s) -> None:
+    """A real-rotate shape `success` record carrying the identity the dead-
+    seat watcher decides by: `s12_self_reap.chain[*].pid` (the RETIRED
+    predecessor's process chain) plus `handover.own_window.id` (the
+    predecessor's window), `handover.join.{pid,window_id}` and
+    `handover.successor_window.id` (the successor the rotate-self spawned and
+    joined). `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": gen_before, "gen_after": gen_after,
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s)),
+           "handover": {
+               "own_window": {"name": f"{seat}.genX", "id": own_window},
+               "successor_window": {"name": seat, "id": succ_window},
+               "join": {"found": True, "window_id": join_window,
+                          "pid": join_pid}},
+           "s12_self_reap": {"order": "deepest-first", "planned": True,
+                              "chain": [{"pid": p, "was_alive": True,
+                                           "termd": True, "gone_after": True}
+                                          for p in chain_pids]}}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
 def test_success_rotation_suppresses_false_dead(graph_project, tmp_path,
                                                 monkeypatch):
     """THE falsifier: a gen-4 row with a DEAD predecessor pid and gone @306,
@@ -854,20 +883,27 @@ def test_dead_with_no_success_record_still_dead(graph_project, tmp_path,
 
 def test_old_success_new_gen_still_suppresses(graph_project, tmp_path,
                                               monkeypatch):
-    """Condition (a): a success record older than the window whose gen_after
-    EXCEEDS the row generation still proves the row is the RETIRED predecessor
-    -- rotated, not dead, even outside the window."""
+    """A success record whose gen_after EXCEEDS the row generation still
+    proves the row is the RETIRED predecessor -- but ONLY through the record's
+    IDENTITY. The pred-identity arm has NO age bound, so a lagging row
+    carrying the predecessor's chain pid is still rotated even an hour later,
+    never DEAD. A no-identity record that old has no identity to prove
+    anything and must NOT suppress (unit case `d`)."""
     monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
     rot = tmp_path / "rotations"
-    row = _mk_dead_row("oldrot", gen=2)
+    row = _mk_dead_row("oldrot", gen=2, pid=9001)
     shim = _rot_shim(rot, rows=[row])
-    _write_success_record(rot, "oldrot", 1, 5, age_s=SEAT_DEAD_PLUS)
+    _write_success_record_identity(rot, "oldrot", chain_pids=[9001],
+                                   own_window="@9", join_pid=9002,
+                                   join_window="@10", succ_window="@10",
+                                   gen_before=1, gen_after=5,
+                                   age_s=SEAT_DEAD_PLUS)
     summary = heal._watch_one_seat(
         graph_project, row, [], shim, now=time.time(),
         pid_alive=lambda p: False, window_path=None,
         launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
         registry_dir=None)
-    assert summary == {}, "gen_after > row gen suppresses even outside window"
+    assert summary == {}, "pred-identity suppresses even outside the window"
 
 
 def test_nested_generation_record_names_4_to_5(graph_project, tmp_path,
@@ -914,35 +950,93 @@ def test_rotation_before_after_extraction(tmp_path):
 
 
 def test_success_record_rotated_unit(tmp_path):
-    """`_success_record_rotated` unit: (a) gen_after > row gen and (b) a
-    success inside the window both return the record; a started / absent /
-    same-gen-old record returns None."""
+    """`_success_record_rotated` decides by the record's IDENTITY first:
+    pred-identity returns the record with NO age bound; succ-dead returns
+    None so the successor's death is never masked; the gen/age fallbacks
+    fire ONLY for records with no identity fields and ONLY inside the
+    window. Returns `(record, arm)` -- arm names the deciding proof."""
     rot = tmp_path / "rotations"
     shim = _rot_shim(rot)
-    # (a) gen_after exceeds the row's generation
-    _write_success_record(rot, "a", 4, 5, age_s=SEAT_DEAD_PLUS)
-    got = heal._success_record_rotated(tmp_path, "a",
-                                       _mk_dead_row("a", gen=4), shim,
-                                       time.time())
-    assert got is not None and got.get("gen_after") == 5
-    # (b) success inside the window, same/any generation
+
+    def _mk(name, gen, pid=31337, window="@306"):
+        return _mk_dead_row(name, gen, pid=pid, window=window)
+
+    # pred-identity by CHAIN PID, record an HOUR old -> rotated, no age bound
+    _write_success_record_identity(rot, "a", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "a",
+                                            _mk("a", gen=3, pid=111), shim,
+                                            time.time())
+    assert got is not None and arm == "pred-identity" \
+        and got.get("gen_after") == 4
+    # pred-identity by own WINDOW, hour-old record -> rotated
+    _write_success_record_identity(rot, "aw", chain_pids=[999], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "aw",
+                                            _mk("aw", gen=3, window="@5"),
+                                            shim, time.time())
+    assert got is not None and arm == "pred-identity"
+    # succ-dead: row IS the successor (join pid), 60 s old -> None, never masked
+    _write_success_record_identity(rot, "s", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=60)
+    got, arm = heal._success_record_rotated(tmp_path, "s",
+                                            _mk("s", gen=4, pid=222), shim,
+                                            time.time())
+    assert got is None and arm == "succ-dead"
+    # succ-dead by successor WINDOW (60 s old) -> None
+    _write_success_record_identity(rot, "sw", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=60)
+    got, arm = heal._success_record_rotated(tmp_path, "sw",
+                                            _mk("sw", gen=4, window="@6"),
+                                            shim, time.time())
+    assert got is None and arm == "succ-dead"
+    # identity record matching NEITHER -> None (guard never lowered)
+    _write_success_record_identity(rot, "u", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "u",
+                                            _mk("u", gen=4, pid=777), shim,
+                                            time.time())
+    assert got is None and arm is None
+    # NO identity -> gen-fallback INSIDE the window (gen_after > row gen)
+    _write_success_record(rot, "g", 4, 5, age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "g",
+                                            _mk("g", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "gen-fallback"
+    # NO identity -> age-fallback INSIDE the window (any/same generation)
     _write_success_record(rot, "b", 4, 4, age_s=21)
-    got = heal._success_record_rotated(tmp_path, "b",
-                                       _mk_dead_row("b", gen=4), shim,
-                                       time.time())
-    assert got is not None, "success inside window -> rotated"
+    got, arm = heal._success_record_rotated(tmp_path, "b",
+                                            _mk("b", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "age-fallback"
+    # NO identity, OLDER than window -> None even when gen_after > row gen
+    _write_success_record(rot, "d", 3, 4, age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "d",
+                                            _mk("d", gen=4), shim,
+                                            time.time())
+    assert got is None and arm is None
     # a `started` record is never a success -> None
     _write_started_record(rot, "c", age_s=21)
-    got = heal._success_record_rotated(tmp_path, "c",
-                                       _mk_dead_row("c", gen=4), shim,
-                                       time.time())
-    assert got is None
-    # same generation, OLDER than window -> None
-    _write_success_record(rot, "d", 3, 4, age_s=SEAT_DEAD_PLUS)
-    got = heal._success_record_rotated(tmp_path, "d",
-                                       _mk_dead_row("d", gen=4), shim,
-                                       time.time())
-    assert got is None
+    got, arm = heal._success_record_rotated(tmp_path, "c",
+                                            _mk("c", gen=4), shim,
+                                            time.time())
+    assert got is None and arm is None
+    # a record MISSING handover / s12_self_reap never raises (fallback path)
+    _write_success_record(rot, "e", 4, 5, age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "e",
+                                            _mk("e", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "gen-fallback"
 
 
 def test_rotation_in_flight_honours_success(graph_project, tmp_path):
@@ -975,3 +1069,106 @@ def test_live_seat_row_takes_identity_from_main(monkeypatch, tmp_path):
     row = heal._live_seat_row(wt_dir, "dir", shim)
     assert row["generation"] == 5, \
         "IDENTITY cells must come from MAIN, not the worktree copy"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-
+# by-gen-order-or-age (goal:g15.23 fix-only #4): the dead-seat watcher proves
+# a rotation by the record's IDENTITY fields (predecessor chain pid / own
+# window; successor join pid / successor window), never by gen ordering or
+# record age alone. FALSIFIERS below.
+# --------------------------------------------------------------------------
+
+def test_successor_pid_dead_never_masked(graph_project, tmp_path, monkeypatch):
+    """FALSE-preventer (the SL2.11 P2 residue): a seat that ROTATED cleanly
+    and whose SUCCESSOR then died must be detected DEAD, not masked by the
+    600 s window. A row carrying the record's SUCCESSOR pid -- dead, with a
+    60 s old success record -- must STILL read DEAD (the record's succ-dead
+    arm returns None; the 600 s window never masks the successor's death)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, pid=222)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, \
+        "successor death must NOT be masked by the 600 s window"
+    assert summary.get("probable_cause") is not None
+
+
+def test_successor_window_dead_never_masked(graph_project, tmp_path,
+                                            monkeypatch):
+    """Same false-preventer by WINDOW: a dead successor row carrying the
+    record's successor window @id reads DEAD even with a 60 s old success
+    record (succ-dead arm)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, window="@6")
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, \
+        "successor-window death must NOT be masked by the 600 s window"
+    assert summary.get("probable_cause") is not None
+
+
+def test_lagging_chain_pid_row_still_rotated(graph_project, tmp_path,
+                                             monkeypatch):
+    """THE lagging-row protect: a stale row still carrying the RETIRED
+    predecessor's chain pid, with a record AN HOUR OLD, must read ROTATED
+    (pred-identity arm has NO age bound -- a lagging row is exactly what it
+    protects), never DEAD."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4, pid=111)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, \
+        "a lagging predecessor chain-pid row must read ROTATED, not DEAD"
+    assert launched == []
+
+
+def test_watch_log_names_deciding_arm(graph_project, tmp_path, monkeypatch):
+    """Clause (4): the `rotated seat` reaper line names the DECIDING ARM
+    (`arm=pred-identity|gen-fallback|age-fallback`), one word, so a reaper log
+    reads which proof was used."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4, pid=111)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=3, gen_after=4, age_s=21)
+    heal._watch_one_seat(graph_project, row, [], shim, now=time.time(),
+                         pid_alive=lambda p: False, window_path=None,
+                         launcher=lambda *a, **k: {}, pin_table={},
+                         seat_sessions=[], registry_dir=None)
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=pred-identity" in log, \
+        f"rotate-seat line must name arm=pred-identity; reaper:\n{log}"
