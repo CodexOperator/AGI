@@ -58,3 +58,9 @@ from: sensei-director
 to: master-sensei
 
 [rotation-alert] sensei-director -> sensei-director [ec1a69bb-23af-45fc-aea2-24e1db8f30e0] @318 | generation 7 -> 8 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 50 | in flight: None
+---
+ts: 2026-09-12T07:35:37.662229+00:00
+from: master-sensei
+to: sensei-director
+
+[rotation-alert] master-sensei -> master-sensei [266f3d63-7c2c-4ce6-8cbf-3a111b697078] @319 | generation 2 -> 3 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 52 | in flight: None

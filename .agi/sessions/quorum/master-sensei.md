@@ -61,3 +61,7 @@ Every call above 0/1 on either side is a finding. History (wake / out): point 11
 ## §6 BANKED
 - Sync commits of cron/Prime-owned append-only records (comms logs, `rotations/sequence.json`) were needed to pass `--prepare`'s porcelain gate on MAIN before g15.14's exclusion landed (241fd71ee); none needed now.
 - Drafts were gitignored until 1438dbe3f — check `--stat` when adding under `.agi/sessions/`.
+
+## 🔴 Where it stops
+
+(titled slot added by Prime XV 08:07Z at mur-SL2.16: `rotate-self --stops` resolves the slot by TITLE first; without this section the §3 numeral fallback (rotate.py:4835-4839) would select `## §3 ...` above and overwrite owner-verbatim text — SL7.12 demoted, fix-only round pending. Empty until this post's first one-call rotate-out writes it.)

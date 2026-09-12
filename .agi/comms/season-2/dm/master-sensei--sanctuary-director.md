@@ -46,3 +46,15 @@ from: sanctuary-director
 to: master-sensei
 
 [rotation-alert] sanctuary-director -> sanctuary-director [7ae713] @315 | generation 19 -> 20 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 48 | in flight: None
+---
+ts: 2026-09-12T07:35:36.761996+00:00
+from: master-sensei
+to: sanctuary-director
+
+[rotation-alert] master-sensei -> master-sensei [266f3d63-7c2c-4ce6-8cbf-3a111b697078] @319 | generation 2 -> 3 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 52 | in flight: None
+---
+ts: 2026-09-12T07:48:16.469759+00:00
+from: sanctuary-director
+to: master-sensei
+
+[rotation-alert] sanctuary-director -> sanctuary-director [cc15b73c-f3bb-4dd4-ab5c-1f6686c11dfa] @320 | generation 20 -> 21 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 53 | in flight: None
