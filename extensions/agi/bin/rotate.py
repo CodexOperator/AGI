@@ -4531,29 +4531,37 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
 def _record_join(rec: dict) -> dict:
     """ONE accessor for a rotation record's successor-join identity, accepting
     BOTH record shapes (mur-SL2.13 part 6):
-      - rotate-self:  `handover.join.{window_id,pid,session_id,transcript}`
-      - crash-recovery: TOP-LEVEL `window_id`/`pid`/`session_id` (the shape
-        `_write_crash_recovery` writes), with `respawn_outcome.{window,pid}`
-        as the *successor* fallback (the recovered seat's own window/pid).
+      - rotate-self:  `handover.join.{window_id,pid,session_id,transcript}`,
+        with `handover.successor_window.id` as the window_id fallback
+        (g15.26 (d): heal.py's widest read shape still resolves here).
+      - crash-recovery: TOP-LEVEL `window_id` (the shape `_write_crash_recovery`
+        writes), with `respawn_outcome.window` as the *successor-window*
+        fallback. `respawn_outcome` NEVER contributes a `pid`: heal's
+        `_rotation_identity` (which imports THIS accessor, g15.26 (d)) reads
+        succ_pids from the identity surface the producer actually writes —
+        top-level pid/session_id DO NOT exist on a real CRP, and the real
+        successor pid rides in `respawn_outcome` (not the identity surface),
+        so surfacing it would break heal's
+        test_crash_recovery_record_roundtrip_real_producer (succ_pids must
+        stay empty).
     Returns a flat dict of `{pid, window_id, session_id, transcript}` — keys
     present only when the record carries them — or {} for a record with no
-    join identity (an OLDER record). Never raises, never None members.
-    heal.py's `_rotation_identity` will read this same accessor by name
-    (SL7.10 coordinates, heal.py itself is NOT edited this round) so every
-    reader sees one canonical shape."""
+    join identity (an OLDER record). pids are STR-COERCED (heal.py's
+    `_rotation_identity` reads this same accessor and appends them as-is, so
+    an integer pid must surface as `"222"`, not `222`). Never raises, never
+    None members. heal.py imports THIS copy (g15.26 (d)) — ONE definition
+    serves both modules, no same-named twin."""
     out: dict = {}
-    # the recovered seat's own successor identity (crash-recovery respawn).
+    # the recovered seat's own successor window (crash-recovery respawn);
+    # never a pid -- that is NOT part of the identity surface (see docstring).
     ro = rec.get("respawn_outcome")
-    if isinstance(ro, dict):
-        if ro.get("pid") is not None:
-            out["pid"] = ro["pid"]
-        if ro.get("window"):
-            out["window_id"] = str(ro["window"])
+    if isinstance(ro, dict) and ro.get("window"):
+        out["window_id"] = str(ro["window"])
     # top-level fields: the crash-recovery record puts window_id at TOP level.
     if rec.get("window_id"):
         out["window_id"] = str(rec["window_id"])
     if rec.get("pid") is not None:
-        out["pid"] = rec["pid"]
+        out["pid"] = str(rec["pid"])
     if rec.get("session_id"):
         out["session_id"] = str(rec["session_id"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
@@ -4564,11 +4572,16 @@ def _record_join(rec: dict) -> dict:
             if jn.get("window_id"):
                 out["window_id"] = str(jn["window_id"])
             if jn.get("pid") is not None:
-                out["pid"] = jn["pid"]
+                out["pid"] = str(jn["pid"])
             if jn.get("session_id"):
                 out["session_id"] = str(jn["session_id"])
             if jn.get("transcript"):
                 out["transcript"] = str(jn["transcript"])
+        # heal.py's widest read shape: successor_window.id names the same
+        # successor window when handover.join carried no window_id.
+        sw = hov.get("successor_window")
+        if isinstance(sw, dict) and sw.get("id") is not None:
+            out.setdefault("window_id", str(sw.get("id")))
     return out
 
 
@@ -5994,7 +6007,19 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
-    return (f"spawn_row_commit: committed (sha {sha}) — seats.md own-row "
+    # g15.26 claim (b): a successful push means origin now carries the
+    # committed row -- so any deferred successor-key swap for this seat (a
+    # `.key.pending` written when an earlier push FAILED) COMPLETES now:
+    # the successor key is atomically put in place and the pending file
+    # deleted. Print the one-line outcome alongside the push line. Best-
+    # effort; `_complete_pending_key_swap` never raises.
+    if _push.startswith("push: OK"):
+        _done = _complete_pending_key_swap(root, seat)
+        if _done:
+            print(_done, file=sys.stderr)
+            return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
+                    f"own-row only: {msg}\npush: {_push}\n{_done}")
+    return (f"spawn_row_commit: committed (sha {sha}) -- seats.md own-row "
             f"only: {msg}\npush: {_push}")
 
 
@@ -10127,6 +10152,119 @@ def _apply_successor_key_pending(pending: dict) -> str:
             f"(0600, atomic replace)")
 
 
+def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
+    """g15.26 claim (a) -- PERSIST the pending successor key, not drop it.
+    Called by `_apply_successor_key_gated` when the row WAS written and
+    committed (so HEAD's committed row names the successor PUBKEY) but the
+    season-branch PUSH FAILED. Writes the successor private key to
+    `<sessions>/seats/<seat>.key.pending` (SEAT_KEY_MODE 0600, temp +
+    os.replace, never committed) as the JSON shape `{scheme, priv_hex,
+    pub_hex, gen_after, minted_at}`, derived from the rotation dict -- so a
+    later successful push of that row can complete the swap
+    (`_complete_pending_key_swap`). Without this file the successor private
+    key exists nowhere on disk (it lived only in the rotation dict before
+    this), and the seat would go on signing under a predecessor key origin's
+    row (once pushed) no longer names. Best-effort: if the file cannot be
+    written we still report the deferred swap (never raise). Returns ONE
+    line naming the pending path."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+    _pend = key_path.parent / f"{key_path.name}.pending"
+    _pend.parent.mkdir(parents=True, exist_ok=True)
+    _frag = {
+        "scheme": key_rotation.get("scheme")
+        or (key_rotation.get("pending_key") or {}).get("scheme"),
+        "priv_hex": (key_rotation.get("pending_key") or {}).get("priv_hex"),
+        "pub_hex": key_rotation.get("successor_pub"),
+        "gen_after": (key_rotation.get("retired") or {}).get("to"),
+        "minted_at": (key_rotation.get("note") or ""),
+    }
+    _tmp = _pend.parent / f".{_pend.name}.tmp"
+    try:
+        _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                      send.SEAT_KEY_MODE)
+        try:
+            with os.fdopen(_fd, "w") as _f:
+                _f.write(json.dumps(_frag))
+        except BaseException:  # noqa: BLE001
+            try:
+                os.close(_fd)
+            except OSError:
+                pass
+            raise
+        os.chmod(_tmp, send.SEAT_KEY_MODE)
+        os.replace(_tmp, _pend)
+    except (OSError, TypeError, ValueError):
+        return (f"key_replace: NOT applied -- push did not succeed; "
+                f"{key_path} left byte-identical; pending successor key "
+                f"could NOT be persisted to {_pend}"
+                f" (deferred swap on later join-origin)")
+    return (f"key_replace: NOT applied -- push did not succeed; "
+            f"{key_path} left byte-identical; pending successor key "
+            f"persisted to {_pend} (0600, deferred swap on a later "
+            f"successful push)")
+
+
+def _complete_pending_key_swap(root: Path, seat: str) -> str:
+    """g15.26 claim (b) -- COMPLETE a deferred successor-key swap at a later
+    successful push of that row. Callers invoke it AFTER `_push_season_branch`
+    reports a successful push (origin now carries the committed row). A
+    `<sessions>/seats/<seat>.key.pending` file (written by
+    `_persist_pending_key` when an earlier push FAILED) whose `pub_hex`
+    equals the seat's COMMITTED row pubkey (read fresh via `git show
+    HEAD`, never the dirty copy -- origin just received exactly this HEAD)
+    triggers the ONE deferred atomic replace of `<seat>.key` with the
+    pending private key, then deletes the pending file and prints one line
+    `key swap completed (deferred from gen N)`. If the pending file's
+    pub_hex does NOT match the committed row (the row still names the OLD
+    pubkey), the pending file is left alone -- the swap stays deferred, and
+    ONE line says so. Absent pending file / gitless root -> '' (nothing to
+    do, never a failure). Never raises."""
+    import send  # local: same dir (send.py pattern)
+    _key = send._seat_key_path(root, seat)
+    _pend = _key.parent / f"{_key.name}.pending"
+    if not _pend.is_file():
+        return ""
+    try:
+        _obj = json.loads(_pend.read_text())
+    except (ValueError, OSError):
+        return (f"key swap NOT completed -- unreadable pending file "
+                f"{_pend} (left as-is)")
+    _pend_pub = str(_obj.get("pub_hex") or "")
+    if not _pend_pub:
+        return (f"key swap NOT completed -- pending file {_pend} carries "
+                f"no pub_hex (left as-is)")
+    # HEAD's committed row is origin's row right now (the push just
+    # succeeded): only a full match flips the key.
+    _committed = send._seats_committed_rows(root)
+    _row = send._seat_row_in(_committed, seat) if _committed else None
+    _row_pub = str((_row or {}).get("pubkey") or "")
+    _gen = str(_obj.get("gen_after") or _obj.get("gen") or "?")
+    if not _row or _row_pub != _pend_pub:
+        return (f"key swap NOT completed -- committed row for {seat} still "
+                f"names the old pubkey (deferred, gen {_gen})")
+    try:
+        _tmp = _key.parent / f".{_key.name}.tmp"
+        _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                      send.SEAT_KEY_MODE)
+        try:
+            with os.fdopen(_fd, "w") as _f:
+                _f.write(json.dumps({"scheme": _obj.get("scheme"),
+                                     "priv_hex": _obj.get("priv_hex")}))
+        except BaseException:  # noqa: BLE001
+            try:
+                os.close(_fd)
+            except OSError:
+                pass
+            raise
+        os.chmod(_tmp, send.SEAT_KEY_MODE)
+        os.replace(_tmp, _key)
+        _pend.unlink()
+    except (OSError, ValueError):
+        return (f"key swap NOT completed -- could not replace {_key} "
+                f"(pending {_pend} left as-is)")
+    return f"key swap completed (deferred from gen {_gen})"
+
+
 def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
     """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
     into the on-disk <seat>.key ONLY when the successor spawn-row write, its
@@ -10168,11 +10306,17 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     else:
         _why = "push"
     # SL: on a push failure the swap is DEFERRED -- the ONE stderr line naming
-    # the deferred swap (the caller prints this return to stderr); a later
-    # rotate.py ack/prepare that finds this pending successor key with the
-    # row now on origin completes it (SL7.09 leaves that completion
-    # forward-look; the core falsifier -- a key on disk origin's row does not
-    # carry -- is closed here).
+    # the deferred swap (the caller prints this return to stderr). g15.26
+    # claim (a): unlike a row-write/commit failure (where NO successor pubkey
+    # reached a committed row, so there is nothing to complete), a push
+    # failure leaves HEAD's COMMITTED row naming the successor pubkey -- so
+    # the pending successor key is PERSISTED to <seat>.key.pending, not
+    # dropped with the return string, and a later successful push of that row
+    # (`_complete_pending_key_swap`) atomically completes the swap. The
+    # falsifier "after a failed push the minted key exists nowhere on disk"
+    # is closed here.
+    if _why == "push":
+        return _persist_pending_key(key_rotation, Path(_path))
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{_path} left byte-identical with the predecessor key, NO "
             f"successor key written (deferred swap on later join-origin) "

@@ -177,6 +177,41 @@ def _seat_key_path(root: Path, seat: str) -> Path:
     return _seats_dir(root) / f"{seat}.key"
 
 
+def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
+    """g15.26 (c) -- the signing key dict, with the PENDING-SUCCESSOR
+    preference. A `<seat>.key.pending` (persisted by
+    rotate._persist_pending_key when a push FAILED after the committed row
+    had already been switched to the successor pubkey) whose `pub_hex` EQUALS
+    the pubkey the COMMITTED row names for this seat is used to sign: the row
+    on origin (once pushed) names exactly that pubkey, so a dm signed with the
+    pending successor private key reads VERIFIED, never RETIRED/FORGED,
+    across the deferred-swap window (the falsifier of this clause).
+    This is a PREFERENCE, not a replacement: when no pending file exists, or
+    its pub_hex does NOT match the committed row, or the committed row cannot
+    be read, the signer falls back to the live `<seat>.key` and signs EXACTLY
+    as before -- a seat with no deferred swap never changes a byte. Returns
+    the JSON dict, or None when neither key yields a usable object (the
+    caller then emits an unsigned line, as today)."""
+    import json as _json
+    from pathlib import Path as _Path
+    _pend = _Path(key_file).parent / f"{_Path(key_file).name}.pending"
+    if _pend.is_file():
+        try:
+            _pobj = _json.loads(_pend.read_text())
+        except (ValueError, OSError):
+            _pobj = None
+        if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
+            _committed = _seats_committed_rows(root)
+            _row = _seat_row_in(_committed, seat) if _committed else None
+            _row_pub = str((_row or {}).get("pubkey") or "")
+            if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
+                return _pobj
+    try:
+        return _json.loads(_Path(key_file).read_text())
+    except (ValueError, OSError):
+        return None
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -197,18 +232,22 @@ def _sign_line(root: Path, from_id: str, ts: str, to: str,
                text: str) -> str | None:
     """The ``sig:`` header for one message, or None when unsigned.
 
-    Signs only when ``<sessions>/seats/<from_id>.key`` exists (a seat that has
-    generated a key). The line is ``sig: <scheme>:<fingerprint>:<sig_hex>`` --
-    scheme name, the short fingerprint (first 16 hex of sha256 of the public
-    key) for a human-readable handle, then the signature hex. The private seed
-    is used only to sign, never printed or logged.
+    Signs only when `<sessions>/seats/<from_id>.key` exists (a seat that has
+    generated a key). When the seat is in the DEFERRED successor swap (a
+    `<seat>.key.pending` whose pub_hex matches the COMMITTED row's pubkey),
+    the pending successor private key is used (g15.26 (c)) so the dm reads
+    VERIFIED against origin's pushed row, never RETIRED/FORGED; otherwise the
+    live `<seat>.key` signs exactly as before. The line is
+    ``sig: <scheme>:<fingerprint>:<sig_hex>`` -- scheme name, the short
+    fingerprint (first 16 hex of sha256 of the public key) for a
+    human-readable handle, then the signature hex. The private seed is used
+    only to sign, never printed or logged.
     """
     key_file = _seat_key_path(root, from_id)
     if not key_file.is_file():
         return None
-    try:
-        obj = json.loads(key_file.read_text())
-    except (ValueError, OSError):
+    obj = _signing_key_obj(root, from_id, key_file)
+    if obj is None:
         return None
     scheme_name = obj.get("scheme")
     priv_hex = obj.get("priv_hex")
