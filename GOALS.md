@@ -6630,6 +6630,8 @@ SL7.99 HARVESTED 19:43Z on the sensei-director post: the after_join record names
 
 SL7.100 HARVESTED 19:43Z on the sensei-director post: _write_bootstrap tries the derivation for a join_pending key before writing pending (the meter est. case is reachable from every production writer), the post-join rewrite derives before it stamps a NAMED unresolved, ONE _read_seat_pin helper placed after cmd_meter carries the cross-generation refusal as a returned reason for both bootstrap readers (cmd_meter diff empty; a later round unifies); kid proved 0.9; +5 tests, two fixture files (test_after_join_service, test_rotate_autopsy) re-aimed at the derived output — outside the brief's file scope, accepted as fixture drift. Rides SL2#26
 
+SL7.93 HARVESTED 19:50Z on the sensei-director post (f1572e413): the after_join second input is TYPED into the successor's pane through send.type_input (the wake typing seam — text chunks then a separate Enter; production default resolved as a closure over root), the dm copy stays the signed record, the pane nudge is suppressed for that one message (send.send nudge=False), delivery named typed / dm+nudge with the refusal reason; kid 2 (proved 0.95) caught kid 1's production default calling type_input with the wrong arity (TypeError live — the SL7.40 shape) and fixed it; lean 70 + proved 0.95. Merge vs SL7.99 unioned by function: type first, then send-first with the closure honouring nudge_suppressed and returning the (sender, signed) pair, the record carrying delivery + dm_sender + dm_signed; nbhd 757/3. Rides SL2#26
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
