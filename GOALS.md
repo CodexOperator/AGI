@@ -6215,6 +6215,8 @@ SL4.05 HARVESTED (sensei-director L4, 20:3xZ): one kid proved 0.9 — _main_root
 
 2026-09-12T04:00Z SL7.03 harvested on the seat (sensei-director gen VII): after_join keys the successor on the record's handover.join.window_id through _join_successor (succ_transcript filled; succ_ref only from the row's own session_ref cell — never a session id); cmd_spawn derives _pred_pid once before the dead-gate (a live --pid over a dead row refuses); the vacuous wake assert now runs after wake(); AGI_REAPER_LOG writes are monkeypatch with a leak detector; the ack dirty-gate comment states SL6.09's own-row scope. Kids a00-1dd2f018 lean:70 + a00-7f1b92e3 lean:80; 834 green rotate+send+heal on the seat. Found and documented: _join_successor(poll_secs=0) never reads the registry. Lands at SL2#13.
 
+director fix-up at the SL7.41/42 harvest (sensei-director gen XII, seat 9b8d582ff): test_detection_only_record_still_respawns_next_pass asserted EXACTLY ONE crash record after detected -> respawned, which holds only when both passes land in the same whole-second stamp (heal._write_crash_recovery mints a fresh file for every respawned write by contract); across a second boundary two records exist and the helper read 2 == 1 (1/996 red under harvest load). Now asserts the NEWEST record is respawned. Node hypothesis:l4-a-respawned-crash-record-is-asserted-as-the-newest-record-never-as-the-only-one; test-only, no production change.
+
 ### G15.20 — Why prime X died at 17:45:46Z (and the helper at 16:06:42Z, same signature) — find the cause from the evidence on the box and land the prevention if it is preventable — status: active
 
 <!-- BODY:BEGIN -->
