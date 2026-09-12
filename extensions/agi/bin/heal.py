@@ -1173,38 +1173,99 @@ def _rotation_before_after(rec: dict) -> tuple:
     return before, after
 
 
+def _rotation_identity(rec: dict) -> tuple[list, list, list, list]:
+    """Extract the rotation record's identity fields ONCE, nothing else:
+    returns `(pred_pids, pred_windows, succ_pids, succ_windows)`.
+    - pred_* : the RETIRED predecessor's identity -- `s12_self_reap.chain[*].pid`
+      (its process chain) and `handover.own_window.id` (its window @id).
+    - succ_* : the SUCCESSOR's identity -- `handover.join.pid` /
+      `handover.join.window_id` / `handover.successor_window.id` (the process
+      and window the rotate-self spawned and joined).
+    Missing or malformed `s12_self_reap`/`handover` never raises -- absent
+    identity simply yields empty lists (an OLDER record with no identity
+    fields), which the caller treats as the gen/age fallback."""
+    pred_pids: list = []
+    pred_windows: list = []
+    succ_pids: list = []
+    succ_windows: list = []
+    reap = rec.get("s12_self_reap")
+    if isinstance(reap, dict):
+        for c in reap.get("chain") or []:
+            if isinstance(c, dict) and c.get("pid") is not None:
+                pred_pids.append(str(c.get("pid")))
+    hand = rec.get("handover")
+    if isinstance(hand, dict):
+        ow = hand.get("own_window")
+        if isinstance(ow, dict) and ow.get("id") is not None:
+            pred_windows.append(str(ow.get("id")))
+        sw = hand.get("successor_window")
+        if isinstance(sw, dict) and sw.get("id") is not None:
+            succ_windows.append(str(sw.get("id")))
+        jn = hand.get("join")
+        if isinstance(jn, dict):
+            if jn.get("pid") is not None:
+                succ_pids.append(str(jn.get("pid")))
+            if jn.get("window_id") is not None:
+                succ_windows.append(str(jn.get("window_id")))
+    return pred_pids, pred_windows, succ_pids, succ_windows
+
+
 def _success_record_rotated(root: Path, seat: str, row: dict, _rotate,
-                            now: float) -> dict | None:
-    """hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-
-    record-before-declaring-a-crash clause (2)/(3): the seat's LATEST rotation
-    record -- via rotate._latest_rotation_record (crash-recovery records
-    EXCLUDED by construction) -- is a SUCCESS, and it proves the row's
-    pid/@id belong to the RETIRED predecessor rather than a dead seat.
-    Returns the record when EITHER
-      (a) the success's gen_after exceeds the generation on the watcher's row
-          (the rotation has already moved past this row), OR
-      (b) the success landed inside SEAT_DEAD_WINDOW_S of now while the row's
-          pid is dead (the caller has already established the pid is gone).
-    None otherwise -- a genuinely dead seat with no newer success record still
-    reads DEAD (the guard is NEVER lowered)."""
+                            now: float) -> tuple[dict | None, str | None]:
+    """hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-
+    never-by-gen-order-or-age: the seat's LATEST success rotation record
+    (crash-recovery records EXCLUDED by construction) proves the row by its
+    IDENTITY fields, never by gen ordering or record age alone. Returns
+    `(record, arm)` -- the record when the row is the RETIRED predecessor
+    (rotated, not dead), `(None, arm)` when the record proves the row is the
+    DEAD SUCCESSOR, else `(None, None)`.
+      pred-identity: row pid in `s12_self_reap.chain[*].pid` OR row window
+          == `handover.own_window.id` -- the row IS the retired predecessor;
+          NO age bound (a lagging row is exactly what this arm protects).
+      succ-dead:      row pid == `handover.join.pid` OR row window in
+          `handover.join.window_id` / `successor_window.id` -- the row is
+          ALREADY the successor's; if the caller has established that pid is
+          dead the death is NEVER masked by the 600 s window -> returns None.
+      gen-fallback / age-fallback: ONLY for records carrying NONE of those
+          identity fields (OLDER records): within SEAT_DEAD_WINDOW_S the
+          gen-ordering (gen_after > row gen) and the age arm survive exactly
+          as today; a record with no identity OLDER than the window proves
+          nothing (returns None). A record that CARRIES identity but matches
+          neither predecessor nor successor also returns None -- the guard is
+          NEVER lowered (when in doubt, None and the pid arm decides)."""
     try:
         rec = _rotate._latest_rotation_record(root, seat)
     except Exception:  # noqa: BLE001
-        return None
+        return None, None
     if not isinstance(rec, dict) or rec.get("result") != "success":
-        return None
+        return None, None
+    pred_pids, pred_windows, succ_pids, succ_windows = _rotation_identity(rec)
+    if pred_pids or pred_windows or succ_pids or succ_windows:
+        # the record carries identity -> identity decides, gen/age never
+        # reaches a record that has identity (only OLDER records fall back).
+        row_pid = str(row.get("pid") or 0)
+        row_win = str(row.get("window") or "")
+        if row_pid in pred_pids or row_win in pred_windows:
+            return rec, "pred-identity"
+        if row_pid in succ_pids or row_win in succ_windows:
+            return None, "succ-dead"
+        return None, None
+    # no identity fields -> OLDER record: gen/age fallback, window-bounded.
     row_gen = row.get("generation")
     _, gen_after = _rotation_before_after(rec)
+    ts = _parse_record_ts(rec.get("recorded_at", ""))
+    within = ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S
+    if not within:
+        # condition (a) gen_after > row gen is NOW ALSO bounded by the window:
+        # a no-identity record older than the window proves nothing.
+        return None, None
     if row_gen is not None and gen_after is not None:
         try:
             if int(gen_after) > int(row_gen):
-                return rec
+                return rec, "gen-fallback"
         except (TypeError, ValueError):
             pass
-    ts = _parse_record_ts(rec.get("recorded_at", ""))
-    if ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S:
-        return rec
-    return None
+    return rec, "age-fallback"
 
 
 def _rotation_in_flight(root: Path, seat: str, _rotate,
@@ -1220,9 +1281,9 @@ def _rotation_in_flight(root: Path, seat: str, _rotate,
         except Exception:  # noqa: BLE001
             rows = []
         row = next(((r for r in rows if (r.get("name") or "") == seat)), {})
-    if _success_record_rotated(root, seat, row, _rotate, now) is not None:
-        return True
     rot = _rotate._rotations_dir(root)
+    if _success_record_rotated(root, seat, row, _rotate, now)[0] is not None:
+        return True
     if not rot.is_dir():
         return False
     for path in sorted(rot.glob(f"{seat}.*.json")):
@@ -2083,12 +2144,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # not dead (hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-
     # rotation-record-before-declaring-a-crash). NAMED once, no crash-
     # recovery record, no launcher call, {} returned.
-    _rotated = _success_record_rotated(root, seat, row, _rotate, now)
+    _rotated, _arm = _success_record_rotated(root, seat, row, _rotate, now)
     if _rotated is not None:
         _gb, _ga = _rotation_before_after(_rotated)
         line = (f"rotated seat {seat}: success rotation record "
                 f"{_gb} -> {_ga} ({_rotated.get('recorded_at','')}) -- "
-                f"row pid {pid} belongs to the retired predecessor, not DEAD")
+                f"row pid {pid} belongs to the retired predecessor, not DEAD "
+                f"[arm={_arm}]")
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
         return {}
