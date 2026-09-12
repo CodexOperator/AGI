@@ -74,7 +74,6 @@ PINNED = {
     ],
     'dispatch.py': [
         'loop/…-<agent_id>@s2',
-        'season/s<',
         'season/s<N',
         'season/sN',
         'season/sN',
@@ -88,9 +87,6 @@ PINNED = {
         'season1/m',
         'town/<',
         'town/<',
-        'town/<',
-        'town/<',
-        'town/{',
     ],
     'graphweb.py': [
         'post/<name>@s2',
