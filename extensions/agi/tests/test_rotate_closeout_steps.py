@@ -9,19 +9,23 @@ naming itself and STOPPING the call).
 Every side-effecting step is driven through an INJECTABLE `seams` table --
 the test never spawns a child, never hits the network, never writes a node.
 The real seam table (`_make_closeout_seams`) is still exercised for the two
-steps that are grammatically testable hermetically: the merge target and the
-grant grammar.
+steps that are grammatically testable hermetically: the merge-up target (the
+real runner merges the seat branch into MAIN's checkouted season2/main with
+--no-ff, on a git fixture) and the grant grammar.
 
 1. The driver runs the WORKTREE-POST step list IN ORDER, logging each by name.
 2. A refused step (a runner returning `(False, ...)`) STOPS the call: the log
    ends at that step, the error names the STEP, and nothing after it runs.
 3. A step with NO runner is refused BY NAME (and stops).
-4. The merge-up runner targets `season2/main` -- NEVER `origin/season/s2` or
-   a bare `main`: it derives the season branch off the one constant and
-   refuses any other target.
-5. The grant grammar (`_prime_grant_present`) consumes ONLY a signed line
-   FROM the prime whose body matches GRANT|GO: an unsigned line, a non-prime
-   line, and a signed-prime line without GRANT/GO each never grant.
+4. The merge-up runner merges --no-ff of the seat branch into the CHECKED-OUT
+   season2/main IN MAIN -- NEVER the seat tree, NEVER `origin/season/s2` or
+   a bare `main`; it refuses by name when MAIN is on another branch, dirty,
+   or unresolvable.
+5. The grant grammar (`_grant_present_for_seat`) consumes ONLY a signed line
+   FROM the prime, read from the SEAT's OWN inbox or the seat<->prime dm
+   file, whose body's FIRST WORD is GRANT|GO and whose ts is LATER than the
+   ASK's send time: an unsigned line, a non-prime line, a substring-only
+   match, a stale block, or a block in the Prime's own inbox each never grant.
 6. The numbers line composes the five facts + the hash + one line per goal.
 7. Step order is the claim's spelling (post_verify first, numbers last).
 """
@@ -101,57 +105,78 @@ def test_unknown_step_refused_by_name():
     assert [e["step"] for e in entries] == ["post_verify", "nope"]
 
 
-def test_merge_target_is_season2_main_never_origin_season_s2(monkeypatch):
+def test_merge_up_refuses_without_resolvable_main_and_constant_is_season2_main():
+    """Re-aimed from the pre-fix merge-target test: the NEW merge_up
+    resolves MAIN (the shared graph root's git toplevel) and gates on MAIN's
+    checked-out branch/Main tree -- so a gitless fixture (no MAIN to resolve)
+    REFUSES BY NAME rather than stubbing a merge (the pre-fix test stubbed
+    `_perform_season_merge`, the sync-direction helper the claim retires).
+    The one-constant gate survives: season2/main, never origin/season/s2."""
     assert rotate._CLOSEOUT_MERGE_TARGET == "season2/main"
-    calls = []
-    monkeypatch.setattr(rotate, "_perform_season_merge",
-                        lambda root, sb: calls.append(sb) or "abc1234")
     seams = rotate._make_closeout_seams(Path("/tmp/co-root"), {})
     ok, result, detail = seams["merge_up"]()
-    assert ok is True and result == "merged"
-    assert calls == ["main"]                       # the season2/main branch
-    assert "season2/main" in detail and "merge --no-ff" in detail
-    # the runner is gated on the ONE constant: a tampered target is refused
-    rotate._CLOSEOUT_MERGE_TARGET = "origin/season/s2"
-    try:
-        ok, result, detail = seams["merge_up"]()
-        assert ok is False and result == "refused"
-        assert "season2/main" in detail
-    finally:
-        rotate._CLOSEOUT_MERGE_TARGET = "season2/main"
+    assert ok is False and result == "refused"
+    assert "merge_up" in detail and "MAIN" in detail and "refused" in detail
 
 
-def _write_inbox(root, prime, blocks):
-    inbox = root / "sessions" / "inbox" / f"{prime}.md"
+def _write_inbox(root, recipient, blocks):
+    inbox = root / "sessions" / "inbox" / f"{recipient}.md"
     inbox.parent.mkdir(parents=True, exist_ok=True)
     inbox.write_text("".join(blocks), encoding="utf-8")
 
 
-_MSG = "---\nts: 2026-09-12T00:00:00Z\nfrom: {frm}\nto: {to}\n"
-_SIGNED = _MSG + "env: v1\nsig: scheme:aa:bb\n"
+def _block_full(frm, to, ts, body, signed=True):
+    head = f"---\nts: {ts}\nfrom: {frm}\nto: {to}\n"
+    if signed:
+        head += "env: v1\nsig: scheme:aa:bb\n"
+    return head + f"\n{body}\n"
 
 
-def test_grant_grammar_only_signed_prime_grant_consumed():
-    prime = "prime"
-    # (a) unsigned prime line with GRANT -> no grant
-    _write_inbox(Path("/tmp/co-root"), prime, [
-        _MSG.format(frm=prime, to="x") + "\nGRANT\n"])
-    assert rotate._prime_grant_present(Path("/tmp/co-root"), prime) is False
-    # (b) signed NON-prime line with GRANT -> no grant
-    _write_inbox(Path("/tmp/co-root"), prime, [
-        _SIGNED.format(frm="someone-else", to="x") + "\nGRANT\n"])
-    assert rotate._prime_grant_present(Path("/tmp/co-root"), prime) is False
-    # (c) signed prime line WITHOUT GRANT|GO -> no grant
-    _write_inbox(Path("/tmp/co-root"), prime, [
-        _SIGNED.format(frm=prime, to="x") + "\nhold tight\n"])
-    assert rotate._prime_grant_present(Path("/tmp/co-root"), prime) is False
-    # (d) signed prime line with GRANT -> GRANTS
-    _write_inbox(Path("/tmp/co-root"), prime, [
-        _SIGNED.format(frm=prime, to="x") + "\npending PR is GO\n"])
-    assert rotate._prime_grant_present(Path("/tmp/co-root"), prime) is True
-    # (e) no inbox at all -> no grant
-    empty = Path("/tmp/co-root-none")
-    assert rotate._prime_grant_present(empty, prime) is False
+def test_grant_grammar_only_signed_prime_grant_in_seat_channels(tmp_path):
+    """Re-aimed from the pre-fix grant-grammar test: the grant is read from
+    the SEAT's OWN inbox or the seat<->prime dm file -- never the Prime's
+    inbox, never a bare-substring GRANT|GO, never a stale (pre-ask) block.
+    A signed Prime block whose body's FIRST WORD is GRANT or GO and whose ts
+    is LATER than the ASK's send time grants; each false channel/word/age
+    case does not."""
+    import send
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    seat, prime = "adv-alive", "prime"
+    since = "2026-09-12T00:00:30+00:00"        # the ASK's send time
+    T0 = "2026-09-12T00:00:00Z"                # BEFORE the ask (stale)
+    T1 = "2026-09-12T00:01:00Z"                # AFTER the ask (fresh)
+
+    def grant():
+        return rotate._grant_present_for_seat(root, seat, prime, since)
+
+    # (a) signed prime, FIRST WORD GRANT, after the ask -> GRANTS
+    _write_inbox(root, seat, [_block_full(prime, seat, T1, "GRANT now")])
+    assert grant() is True
+    # (b) `no GRANT yet`: first word is `no` -> NO grant (never a substring)
+    _write_inbox(root, seat, [_block_full(prime, seat, T1, "no GRANT yet")])
+    assert grant() is False
+    # (c) unsigned -> no grant
+    _write_inbox(root, seat,
+                 [_block_full(prime, seat, T1, "GRANT", signed=False)])
+    assert grant() is False
+    # (d) signed NON-prime -> no grant
+    _write_inbox(root, seat,
+                 [_block_full("someone-else", seat, T1, "GRANT")])
+    assert grant() is False
+    # (e) signed prime but STALE (before the ask) -> no grant
+    _write_inbox(root, seat, [_block_full(prime, seat, T0, "GRANT")])
+    assert grant() is False
+    # (f) a grant in the PRIME's OWN inbox never grants (the seat's channel,
+    # not the Prime's, is read) -- seat inbox still holds only the stale (e)
+    _write_inbox(root, prime, [_block_full(prime, seat, T1, "GRANT")])
+    assert grant() is False
+    # (g) the seat<->prime dm file is a second grant channel; GO counts too
+    croot = send.comms_root(root)
+    dm = send._dm_path(croot, seat, prime)
+    dm.parent.mkdir(parents=True, exist_ok=True)
+    dm.write_text(_block_full(prime, seat, T1, "GO ahead"), encoding="utf-8")
+    assert grant() is True
 
 
 def test_numbers_line_composes_five_facts_hash_and_goals():
@@ -608,3 +633,433 @@ def test_g17_1_note_runner_drives_write_py_subprocess_seam(
     monkeypatch.setattr(rotate.subprocess, "run", _refuse)
     ok, result, detail = seams["g17_1_note"]()
     assert ok is False and result == "refused" and "g17_1_note" in detail
+
+# ── REAL crosscheck-worktree runners (SL7.92): the merge-up in MAIN ───────
+# hypothesis:l4-closeout-worktree-post-...-the-merge-up-in-main. These prove
+# the REAL runners (on git fixtures only -- a bare origin + a MAIN clone on
+# season2/main + a linked seat worktree branch) do what the claim spells:
+# merge_up --no-ff's the seat branch into MAIN's checked-out season2/main (a
+# merge commit whose second parent is the seat tip) and refuses by name when
+# MAIN is elsewhere/dirty; the ask names seat/tip/target/record and is sent
+# AS the seat; suite/grid/stamp/render run with cwd=MAIN; push carries origin
+# season2/main THEN refs/grid. A pre-fix runner that ever runs a worktree
+# step in the SEAT tree, reads the Prime's own inbox, or omits refs/grid is
+# the falsifier -- each covered below.
+
+
+def _git_sole_repo(tmp_path):
+    """A single MAIN-like repo with a graph root (no worktree, no remote):
+    enough for `_closeout_main` to resolve and a runner whose subprocess is
+    seam-recorded to prove cwd/argv. Returns (graph_root, main)."""
+    import subprocess as sp
+    r = tmp_path / "m"
+    sp.run(["git", "init", "-q", str(r)], check=True)
+    sp.run(["git", "-C", str(r), "config", "user.email", "t@t"], check=True)
+    sp.run(["git", "-C", str(r), "config", "user.name", "t"], check=True)
+    (r / "f.txt").write_text("x\n", encoding="utf-8")
+    sp.run(["git", "-C", str(r), "add", "f.txt"], check=True)
+    sp.run(["git", "-C", str(r), "commit", "-q", "-m", "init"], check=True)
+    g = r / ".agi"
+    g.mkdir(parents=True)
+    (g / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    return g, r
+
+
+def _merge_fixture(tmp_path):
+    """A bare origin + a MAIN clone on season2/main + a linked seat worktree
+    on season2/posts/adv carrying a commit, with MAIN's graph root holding a
+    seats row whose worktree cell points at the linked worktree. Returns
+    (graph_root, main, seat, seat_branch). graph_root is what a rotate-self
+    call passes as cfg_root; main is MAIN's repo top."""
+    import subprocess as sp
+    origin = tmp_path / "origin.git"
+    sp.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    seed = tmp_path / "seed"
+    sp.run(["git", "init", "-q", str(seed)], check=True)
+    sp.run(["git", "-C", str(seed), "config", "user.email", "t@t"], check=True)
+    sp.run(["git", "-C", str(seed), "config", "user.name", "t"], check=True)
+    (seed / "a.txt").write_text("a\n", encoding="utf-8")
+    sp.run(["git", "-C", str(seed), "add", "a.txt"], check=True)
+    sp.run(["git", "-C", str(seed), "commit", "-q", "-m", "seed"], check=True)
+    sp.run(["git", "-C", str(seed), "checkout", "-q", "-b", "season2/main"],
+           check=True)
+    (seed / "b.txt").write_text("b\n", encoding="utf-8")
+    sp.run(["git", "-C", str(seed), "add", "b.txt"], check=True)
+    sp.run(["git", "-C", str(seed), "commit", "-q", "-m", "season"], check=True)
+    sp.run(["git", "-C", str(seed), "remote", "add", "origin", str(origin)],
+           check=True)
+    sp.run(["git", "-C", str(seed), "push", "-q", "origin", "season2/main"],
+           check=True)
+    sp.run(["git", "-C", str(seed), "push", "-q", "origin", "master"],
+           check=True)
+
+    main = tmp_path / "main"
+    sp.run(["git", "clone", "-q", str(origin), str(main)], check=True)
+    sp.run(["git", "-C", str(main), "config", "user.email", "t@t"], check=True)
+    sp.run(["git", "-C", str(main), "config", "user.name", "t"], check=True)
+    sp.run(["git", "-C", str(main), "checkout", "-q", "-b", "season2/main",
+            "origin/season2/main"], check=True)
+    g = main / ".agi"
+    g.mkdir(parents=True)
+    (g / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    gt = g / "nodes" / ".geometry"
+    gt.mkdir(parents=True)
+    wt = tmp_path / "wt-adv"
+    sp.run(["git", "-C", str(main), "worktree", "add", "-q", "-b",
+            "season2/posts/adv", str(wt), "season2/main"], check=True)
+    (wt / "card.md").write_text("# adv\n", encoding="utf-8")
+    sp.run(["git", "-C", str(wt), "add", "card.md"], check=True)
+    sp.run(["git", "-C", str(wt), "commit", "-q", "-m", "seat work"], check=True)
+    (gt / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"adv\", \"role\": \"parent\", "
+        f"\"worktree\": \"{wt}\"}}\n---\n", encoding="utf-8")
+    return g, main, "adv", "season2/posts/adv"
+
+
+def test_merge_up_real_runner_merges_seat_branch_into_season2_main_in_main(
+        tmp_path):
+    """(1) merge_up: --no-ff of the seat branch into MAIN's checked-out
+    season2/main (a merge commit whose SECOND parent is the seat tip), gated
+    on MAIN's branch + a clean tracked tree; refuses BY NAME when MAIN is on
+    another branch, dirtied ON a path the merge touches, or the one constant
+    is tampered away from season2/main. (A dirty path the merge does NOT
+    touch no longer blocks -- the claim's gate.)"""
+    import subprocess as sp
+    g, main, seat, seat_branch = _merge_fixture(tmp_path)
+    record = {"gen_before": 7, "gen_after": 8,
+              "recorded_at": "2026-09-12T09:00:00.123456Z"}
+    seams = rotate._make_closeout_seams(g, record, seat=seat)
+
+    # (a) MAIN dirty ON a path the merge TOUCHES -> refuse, naming it
+    sp.run(["git", "-C", str(main), "checkout", "-q", seat_branch, "--",
+            "card.md"], check=True)
+    (main / "card.md").write_text("# adv\nDIRTY\n", encoding="utf-8")
+    ok, result, detail = seams["merge_up"]()
+    assert ok is False and result == "refused"
+    assert "dirty" in detail and "merge_up" in detail
+    assert "card.md" in detail
+    sp.run(["git", "-C", str(main), "reset", "-q", "--hard"], check=True)
+
+    # (b) MAIN on another branch -> refuse by name (never a blind merge)
+    sp.run(["git", "-C", str(main), "checkout", "-q", "master"], check=True)
+    ok, result, detail = seams["merge_up"]()
+    assert ok is False and result == "refused"
+    assert "season2/main" in detail and "merge_up" in detail
+    sp.run(["git", "-C", str(main), "checkout", "-q", "season2/main"],
+           check=True)
+
+    # (c) the ONE-constant gate: tamper away from season2/main -> refused
+    rotate._CLOSEOUT_MERGE_TARGET = "origin/season/s2"
+    try:
+        ok, result, detail = seams["merge_up"]()
+        assert ok is False and result == "refused"
+        assert "season2/main" in detail
+    finally:
+        rotate._CLOSEOUT_MERGE_TARGET = "season2/main"
+
+    # (d) clean + on season2/main -> --no-ff merge, second parent = seat tip
+    seat_tip = sp.run(
+        ["git", "-C", str(main), "rev-parse", "season2/posts/adv"],
+        capture_output=True, text=True, check=True).stdout.strip()
+    ok, result, detail = seams["merge_up"]()
+    assert ok is True and result == "merged", detail
+    assert "season2/main" in detail and "MAIN" in detail
+    parents = sp.run(["git", "-C", str(main), "log", "-1", "--format=%P"],
+                     capture_output=True, text=True, check=True).stdout.split()
+    assert len(parents) == 2, f"expected a merge commit, got parents {parents}"
+    assert parents[1] == seat_tip      # the merge commit's second parent
+    # the merge happened in MAIN, NOT the seat worktree (seat HEAD unchanged)
+    wt_head = sp.run(["git", "-C", str(tmp_path / "wt-adv"),
+                      "rev-parse", "--short", "HEAD"],
+                     capture_output=True, text=True, check=True).stdout.strip()
+    assert wt_head  # no exception in the seat tree; the merge never ran there
+
+
+def test_wait_grant_polls_the_seats_own_channels_after_the_ask(tmp_path,
+                                                               monkeypatch):
+    """(2) wait_grant polls the SEAT's OWN channels (its inbox / the dm),
+    bounded AFTER the merge-up ASK's send time -- never the Prime's own
+    inbox, never without the ask. The ask is sent first (so the grant wait
+    is dated), then the wait consults the seat grammar with that send time."""
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    recorded = []
+
+    def fake_grant(r, seat_, prime, since_):
+        recorded.append((str(r), seat_, prime, since_))
+        return True
+    monkeypatch.setattr(rotate, "_grant_present_for_seat", fake_grant)
+    seams = rotate._make_closeout_seams(root, {}, seat="adv")
+    ok, res, det = seams["merge_up_ask"]()
+    assert ok is True and res == "sent", det
+    ok, res, det = seams["wait_grant"]()
+    assert ok is True and res == "granted", det
+    assert recorded, "wait_grant never polled the seat's channels"
+    _r, seat_, prime, since_ = recorded[0]
+    assert seat_ == "adv" and prime == "prime"
+    assert since_, "grant wait must be bounded AFTER the ask's send time"
+
+
+def test_merge_up_ask_names_seat_tip_target_record_and_is_sent_as_seat(
+        tmp_path, monkeypatch):
+    """(3) the merge-up ASK names the seat (never the placeholder <seat>),
+    the target, and the record file, and is sent AS the seat (sender=<seat>,
+    so it is signed when the seat is keyed)."""
+    import send
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    sent = []
+
+    def recorder(r, to, text, sender):
+        sent.append((str(r), to, text, sender))
+        return None
+    monkeypatch.setattr(send, "send", recorder)
+    record = {"recorded_at": "2026-09-12T09:00:00.123456Z"}
+    seams = rotate._make_closeout_seams(root, record, seat="adv")
+    ok, res, det = seams["merge_up_ask"]()
+    assert ok is True and res == "sent", det
+    assert sent, "merge-up ASK was never sent"
+    _, to, text, sender = sent[0]
+    assert to == "prime"
+    assert sender == "adv"                          # sent AS the seat
+    assert "for adv" in text and "season2/main" in text
+    assert "record adv.20260912T090000Z.json" in text  # the record file name
+
+
+def test_suite_grid_stamp_render_run_in_main_cwd(tmp_path, monkeypatch):
+    """(4) suite / grid_commit / verify_stamp / render_check spawn their
+    subprocess with cwd=MAIN (the tree the merge landed in), never the seat
+    tree; and the suite refuses BY NAME while another live runner holds the
+    verify-suite lock."""
+    import subprocess as _sp
+    g, main = _git_sole_repo(tmp_path)
+    (g / "sessions").mkdir(parents=True, exist_ok=True)
+    real_run = _sp.run
+    calls = []
+
+    def recorder(argv, **kw):
+        if argv and argv[0] == "git":
+            return real_run(argv, **kw)
+        calls.append(([str(a) for a in argv], kw.get("cwd")))
+        class _R:
+            returncode = 0
+            stdout = "ok"
+            stderr = ""
+        return _R()
+    monkeypatch.setattr(rotate.subprocess, "run", recorder)
+    seams = rotate._make_closeout_seams(g, {"commit": "abc1234"})
+
+    # a foreign live pid holding the lock -> suite refuses without spawning
+    lock = g / "sessions" / "verify-suite.lock"
+    lock.write_text("1\n", encoding="utf-8")
+    ok, res, det = seams["suite"]()
+    assert ok is False and res == "refused"
+    assert "suit" in det and "lock" in det
+    lock.unlink(missing_ok=True)
+
+    for step in ("suite", "grid_commit", "verify_stamp", "render_check"):
+        ok, res, det = seams[step]()
+        assert ok is True, f"{step} failed: {det}"
+    assert calls, "no post-merge subprocess was spawned"
+    for _argv, cwd in calls:
+        assert cwd == str(main), f"runner cwd {cwd!r} != MAIN {main!r}"
+        assert "rotate.py" not in " ".join(_argv)  # sanity: a bin script
+    # the four expected bins were each invoked once, all in MAIN
+    joined = " ".join(str(x) for _argv, _cwd in calls for x in _argv)
+    for script in ("snapshot-goals.py", "verification.py", "grid.py"):
+        assert script in joined
+
+
+def test_push_real_runner_pushes_season2_main_then_refgrids_from_main(
+        tmp_path, monkeypatch):
+    """(5) push runs TWO pushes in MAIN -- origin season2/main THEN origin
+    refs/grid/*:refs/grid/* -- and refuses BY NAME on the first non-zero rc
+    (a push that omits refs/grid, or pushes the seat branch from the seat
+    tree, is the falsifier)."""
+    import subprocess as _sp
+    g, main = _git_sole_repo(tmp_path)
+    real_run = _sp.run
+    pushed = []
+    first_fails = {"flag": False}
+
+    def recorder(argv, **kw):
+        if argv and argv[0] == "git" and len(argv) >= 4 and argv[3] == "push":
+            pushed.append([str(a) for a in argv])
+            class _R:
+                returncode = 1 if first_fails["flag"] else 0
+                stderr = "" if not first_fails["flag"] else "fatal: repo\n"
+                stdout = ""
+            return _R()
+        return real_run(argv, **kw)
+    monkeypatch.setattr(rotate.subprocess, "run", recorder)
+    seams = rotate._make_closeout_seams(g, {})
+
+    # first non-zero rc (here the refs/grid push, with season2/main ok in a
+    # prior call on the SAME seams below) refuses BY NAME -- so make BOTH
+    # fail to prove the FIRST one (season2/main) refuses too:
+    first_fails["flag"] = True
+    ok, res, det = seams["push"]()
+    assert ok is False and res == "refused"
+    assert "season2/main" in det and "push" in det
+    assert len(pushed) == 1, "push must stop at the first refused push"
+
+    # success: exactly two pushes, in order, both from MAIN
+    first_fails["flag"] = False
+    pushed.clear()
+    ok, res, det = seams["push"]()
+    assert ok is True and res == "ok", det
+    assert len(pushed) == 2, pushed
+    assert pushed[0][2] == str(main) and pushed[1][2] == str(main)  # -C MAIN
+    assert pushed[0][4:] == ["origin", "season2/main"]
+    assert pushed[1][4:] == ["origin", "refs/grid/*:refs/grid/*"]
+
+
+# --- hypothesis:l4-the-closeout-merge-up-gate-ignores-cron-owned-dirty- ---
+# paths-and-blocks-only-on-a-dirty-path-the-merge-touches: the merge_up
+# gate must (a) ignore cron-owned dirty paths, (b) block only on a dirty
+# path the MERGE actually TOUCHES (real `git diff --name-only`), (d) refuse
+# an unmeasurable tree, and (e) carry ONE spelling of the prefixes. The
+# "touched" set is decided by real git on the shared fixture, never a
+# hand-passed list.
+
+
+def test_closeout_cron_owned_prefixes_single_spelling():
+    """(e) ONE spelling of the cron-owned prefixes: the closeout constant is
+    DERIVED from the prepare churn constants, so a re-spelled literal breaks
+    this assert (the falsifier), and the value is what F20 names."""
+    assert rotate.CLOSEOUT_CRON_OWNED_PREFIXES == (
+        rotate.PREPARE_CHURN_PREFIXES + rotate.PREPARE_CHURN_DIRS)
+    assert rotate.CLOSEOUT_CRON_OWNED_PREFIXES == (
+        ".agi/comms/", ".agi/sessions/rotations/")
+
+
+def test_closeout_merge_up_rename_row_judged_on_new_path(tmp_path):
+    """A RENAME row (`R old -> new`) of a cron-owned path is judged on the
+    NEW path via _porcelain_path (the one extractor the prepare captive and
+    this gate share), so the renamed file stays cron-owned and is NOT a
+    blocker. Before the fix the raw `line[3:]` yielded 'old -> new', which
+    matches no prefix and no merge-touch path."""
+    import subprocess as sp
+    g, main, _seat, seat_branch = _merge_fixture(tmp_path)
+    comm = main / ".agi/comms/season-2/dm"
+    comm.mkdir(parents=True)
+    (comm / "x.md").write_text("hi\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", ".agi"], check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "cron files"],
+           check=True)
+    sp.run(["git", "-C", str(main), "mv",
+            ".agi/comms/season-2/dm/x.md",
+            ".agi/comms/season-2/dm/y.md"], check=True)
+    # the rename row is staged in the porcelain; the gate's extractor must
+    # reduce it to the NEW path so the prefix match still lands
+    clean, blockers, ignored = rotate._closeout_main_clean(main, seat_branch)
+    assert clean is True and blockers == [], (blockers, ignored)
+    assert ignored == 1
+
+
+def test_closeout_merge_up_ignores_cron_owned_dirty_paths_untouched_by_merge(
+        tmp_path):
+    """(a) two cron-owned dirty paths (.agi/comms/ dm file, .agi/sessions/
+    rotations/sequence.json), NEITHER touched by the merge -> merge_up RUNS
+    and its detail names the 2 cron-owned paths it ignored."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    comm = main / ".agi/comms/season-2/dm"
+    sess = main / ".agi/sessions/rotations"
+    comm.mkdir(parents=True)
+    sess.mkdir(parents=True)
+    (comm / "x.md").write_text("hi\n", encoding="utf-8")
+    (sess / "sequence.json").write_text("[]\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", ".agi"], check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "cron files"],
+           check=True)
+    # the cron writes them -- dirty, and the seat merge touches neither
+    (comm / "x.md").write_text("hi\ndirty\n", encoding="utf-8")
+    (sess / "sequence.json").write_text("[1]\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is True and res == "merged", det
+    assert "2 cron-owned dirty path(s) ignored" in det
+
+
+def test_closeout_merge_up_runs_on_dirty_path_untouched_by_merge(tmp_path):
+    """(b) a NON-cron dirty tracked path the merge does NOT touch -> merge_up
+    RUNS. x.py lives identically on BOTH branches (brought into the seat
+    branch so the seat-change diff excludes it), then is dirtied in MAIN."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    wt = tmp_path / "wt-adv"
+    xdir = main / "extensions/agi/bin"
+    xdir.mkdir(parents=True)
+    (xdir / "x.py").write_text("def x(): pass\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", "extensions/agi/bin/x.py"],
+           check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "x on main"],
+           check=True)
+    # bring x.py into the seat branch so `diff season2/main..seat` excludes it
+    sp.run(["git", "-C", str(wt), "merge", "-q", "-m", "sync x",
+            "season2/main"], check=True)
+    (main / "extensions/agi/bin/x.py").write_text(
+        "def x(): pass\nDIRTY\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is True and res == "merged", det
+
+
+def test_closeout_merge_up_refuses_naming_dirty_path_touched_by_merge(
+        tmp_path):
+    """(c) a NON-cron dirty path the merge DOES touch -> merge_up REFUSES
+    NAMING it (extensions/agi/bin/x.py, added on the seat branch and dirtied
+    in MAIN)."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    wt = tmp_path / "wt-adv"
+    xd = wt / "extensions/agi/bin"
+    xd.mkdir(parents=True)
+    (xd / "x.py").write_text("def x(): pass\n", encoding="utf-8")
+    sp.run(["git", "-C", str(wt), "add", "extensions/agi/bin/x.py"],
+           check=True)
+    sp.run(["git", "-C", str(wt), "commit", "-q", "-m", "touch x"],
+           check=True)
+    # x.py IS touched by the merge -- dirty it IN MAIN to force the refusal
+    sp.run(["git", "-C", str(main), "checkout", "-q", "season2/posts/adv",
+            "--", "extensions/agi/bin/x.py"], check=True)
+    (main / "extensions/agi/bin/x.py").write_text(
+        "def x(): pass\nDIRTY\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is False and res == "refused", det
+    assert "extensions/agi/bin/x.py" in det
+    assert "path(s) the merge touches" in det
+
+
+def test_closeout_merge_up_refuses_an_unmeasurable_tree(tmp_path,
+                                                     monkeypatch):
+    """(d) a tree git cannot measure REFUSES: at the seam,
+    _closeout_main_clean reports clean=None for a non-repo dir (git rc != 0);
+    at the seam table, an unresolvable/unmeasurable MAIN refuses merge_up by
+    name. The clean-is-None arm names that the tree could NOT be MEASURED
+    (claim 3: still refuses, with a truthful reason -- not "dirty")."""
+    import shutil
+    import subprocess as sp
+    not_repo = tmp_path / "not-a-repo"
+    not_repo.mkdir()
+    (not_repo / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    clean, blockers, ignored = rotate._closeout_main_clean(not_repo, "b")
+    assert clean is None and blockers == [] and ignored == 0
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    shutil.rmtree(main / ".git")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is False and res == "refused" and "merge_up" in det
+    # force the clean-is-None arm on a still-resolvable MAIN and assert the
+    # wording says it was not measurable, not that it is dirty
+    monkeypatch.setattr(rotate, "_closeout_main_clean", lambda *a: (None, [], 0))
+    g2, _m2, _s2, _sb2 = _merge_fixture(tmp_path / "second")
+    seams2 = rotate._make_closeout_seams(g2, {}, seat="adv")
+    ok2, res2, det2 = seams2["merge_up"]()
+    assert ok2 is False and res2 == "refused"
+    assert "could not be measured" in det2

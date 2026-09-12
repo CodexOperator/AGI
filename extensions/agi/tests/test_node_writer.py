@@ -1474,3 +1474,66 @@ def test_live_tree_corpus_round_trip_is_value_preserving():
     # The byte-diff count is reported in the experiment node (the tree evolves);
     # here we pin the invariant (every byte-diff node is value-preserving and
     # a fixpoint), not a specific count.
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-
+# live-tree-fixpoint-names-the-pending-representation-change — empty-string
+# list items. Pre-fix a bare `  - ` item (and a bare top-level `key: `) read
+# back as None, so `''` was lossy while None stayed None. The writer now
+# quotes empty (`""`), keeping the two distinct (claim 1).
+# ---------------------------------------------------------------------------
+
+
+def test_empty_string_list_item_round_trips_as_empty_string():
+    from frontmatter import read_frontmatter
+
+    for items in ([""], ["", None, "a b", "x:y"], ["plain", "", "tail"]):
+        text = "\n".join(nw.render_frontmatter(
+            {"id": "x:y", "type": "t", "items": items}))
+        back = read_frontmatter("---\n" + text + "\n---\n")
+        assert back is not None and back["items"] == items, \
+            f"empty-string list item did not round-trip: {items!r} -> {back!r}"
+        assert '  - ""' in text, "empty-string item must render QUOTED, never bare"
+
+
+def test_none_list_item_stays_none_and_is_distinct_from_empty_string():
+    from frontmatter import read_frontmatter
+
+    items = [None, "", None, "x"]
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "items": items}))
+    back = read_frontmatter("---\n" + text + "\n---\n")
+    assert back is not None and back["items"] == items, \
+        f"None vs empty-string lost: {items!r} -> {back!r}"
+
+
+def test_live_tree_round_trip_zero_drift_and_reports_byte_change_count():
+    """claim (2) — one pass over every live node: value drift MUST be 0, and
+    the number of nodes whose BYTES change (read->render) is a PROBED,
+    one-time representation change, not drift. Prints the count + node ids so
+    a run captures them into the node without pinning a tree that evolves."""
+    import frontmatter
+
+    checked = 0
+    drift = []
+    byte_changed = []
+    for p, text in _iter_live_node_files():
+        fm = frontmatter.read_frontmatter(text)
+        if fm is None:
+            continue
+        checked += 1
+        parts = frontmatter.split_frontmatter(text)
+        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
+        fm2 = frontmatter.read_frontmatter(rerendered)
+        if fm2 != fm:
+            drift.append((str(p), "top-level value drift"))
+            continue
+        if "\n".join(nw.render_frontmatter(fm)) != parts[0].strip("\n"):
+            byte_changed.append(fm.get("id", str(p)))
+    assert not drift, f"{len(drift)} live nodes drifted: {drift[:5]}"
+    assert checked > 1000, f"corpus walk unexpectedly small: {checked}"
+    print(f"LIVE_TREE checked={checked} value_drift=0 "
+          f"bytes_change={len(byte_changed)}")
+    print("BYTES_CHANGE_IDS=" + " ".join(
+        x for x in sorted(byte_changed)))

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-closeout-step-list-is-chosen-by-seat-kind-main-post-and-prime-lists-coded-never-the-worktree-list-by-default
 next_edges: []
 confidence: 0.9
-edited_by: a00-c5a9bd0a
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-22f6ce02-edd3ff
 loop: hypothesis:l4-closeout-step-list-is-chosen-by-seat-kind-main-post-and-prime-lists-coded-never-the-worktree-list-by-default@s2
@@ -17,7 +17,7 @@ scaffold_hash: cff1c49ea178fe7e
 season: 2
 title: The closeout captive-step list is chosen by SEAT KIND -- the fix lands (SL7.90)
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-22f6ce02-edd3ff
@@ -213,3 +213,5 @@ Not demoted. Not an orphan.
 <!-- THOUGHT:END -->
 
 PARENT ACCEPTED (a00-c5a9bd0a, SL7.90): seat-kind closeout lists land; evidence reproduced independently — 27 passed in the two closeout files, 809 passed in the rotate/session_start/after_join/bin_help neighbourhood; 0 existing tests changed. Documented deviation: worktree=None-as-unset plus raw row.get, because the brief's literal worktree=''/or '' form would break the pre-fix tests the same brief forbids touching. 17/17 real seat rows carry a worktree cell, so the production defect is fixed; the residual (absent-key row still served the worktree list) is handed to the next round.
+
+DEMOTED by mur-SL2.25 BY NAME (Prime XVII 20:5xZ, wf_d48284d2-6ca) from the merged bytes — verdict flipped proved -> inconclusive_lean_disproved by the sensei-director; the re-cut is a FIX-ONLY brief under the owning goal (SL7.90 re-cut), named in the goal note of 20:5xZ

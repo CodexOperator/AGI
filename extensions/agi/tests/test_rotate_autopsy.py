@@ -407,10 +407,11 @@ def test_spawn_failed_leaves_no_started_record(tmp_path, monkeypatch):
 
 def test_noop_join_bootstrap_prints_unresolved_not_pending(tmp_path):
     """(j) Prime XI line (7) second half: a POST-join bootstrap whose join
-    resolved nothing writes `unresolved: join found nothing within <N>s` for
-    the join-pending facts — never the pre-join `pending: resolved after
-    join`. The pre-join write (join_poll_secs None) still promises the future
-    join as before."""
+    resolved nothing writes `unresolved: <named reason>` (the derivation's
+    own reason) for the join-pending facts — never the pre-join
+    `pending: resolved after join`. The pre-join write (join_poll_secs None)
+    still promises the future join as before. (SL7.100: the named reason
+    comes from the derivation, not the bare old `join found nothing within`.)"""
     root = tmp_path
     out = rotate._write_bootstrap(
         root, seat="nopjoin", generation=1,
@@ -423,9 +424,9 @@ def test_noop_join_bootstrap_prints_unresolved_not_pending(tmp_path):
     doc = json.loads(Path(out).read_text(encoding="utf-8"))
     for key in ("successor_address", "successor_live_model",
                 "model_refusal_fallback"):
-        assert doc["telemetry"][key] == (
-            f"unresolved: join found nothing within "
-            f"{rotate.REGISTRY_JOIN_TIMEOUT_S}s"), key
+        _v, _r = rotate._derive_bootstrap_fact(
+            key, root=root, seat="nopjoin", seat_row={}, commit=None)
+        assert doc["telemetry"][key] == f"unresolved: {_r}", key
     # pre-join (join not yet attempted) keeps the old promise
     out2 = rotate._write_bootstrap(
         root, seat="prejoin", generation=1,

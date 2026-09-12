@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -1957,10 +1958,10 @@ def test_read_ack_matches_gen_after(tmp_path):
     ac.write_text(json.dumps({"seat": "s", "gen_after": 7,
                               "answer": "continue", "ts": "Z"}),
                   encoding="utf-8")
-    got = rotate._read_ack(str(ac), gen_after=7, timeout=5)
+    got = rotate._read_ack(str(ac), gen_after=7, timeout=5, poll_s=0.05)
     assert got is not None and got["answer"] == "continue"
     # wrong generation -> refused, not confirmed
-    assert rotate._read_ack(str(ac), gen_after=8, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=8, timeout=1, poll_s=0.05) is None
 
 
 def test_read_ack_polls_until_written(tmp_path):
@@ -1971,13 +1972,18 @@ def test_read_ack_polls_until_written(tmp_path):
     seat.mkdir()
     ac = seat / "s.ack.json"
     import threading
+    _writer_go = threading.Event()
     def _writer():
-        import time
-        time.sleep(1)
+        _writer_go.wait(5)  # hold until the reader has begun polling
         ac.write_text(json.dumps({"seat": "s", "gen_after": 9,
                                   "answer": "continue"}), encoding="utf-8")
     threading.Thread(target=_writer, daemon=True).start()
-    got = rotate._read_ack(str(ac), gen_after=9, timeout=20, poll_s=0.05)
+    def _reader_then_release(path, gen_after, timeout, poll_s=2.0):
+        # gates the writer on the reader having started, so the ack is written
+        # genuinely WHILE _read_ack is spinning (not before its first poll).
+        _writer_go.set()
+        return rotate._read_ack(path, gen_after, timeout, poll_s=poll_s)
+    got = _reader_then_release(str(ac), gen_after=9, timeout=20, poll_s=0.05)
     assert got is not None and got["answer"] == "continue"
 
 
@@ -1989,7 +1995,7 @@ def test_read_ack_ignores_unparsable(tmp_path, body):
     seat.mkdir()
     ac = seat / "s.ack.json"
     ac.write_text(body, encoding="utf-8")
-    assert rotate._read_ack(str(ac), gen_after=7, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=7, timeout=1, poll_s=0.05) is None
 
 
 def test_read_ack_absent_never_confirms(tmp_path):
@@ -1997,7 +2003,8 @@ def test_read_ack_absent_never_confirms(tmp_path):
     states: without the ack, the channel is silent)."""
     seat = tmp_path / "seats"
     seat.mkdir()
-    assert rotate._read_ack(str(seat / "s.ack.json"), gen_after=7, timeout=1) is None
+    assert rotate._read_ack(str(seat / "s.ack.json"), gen_after=7, timeout=1,
+                            poll_s=0.05) is None
 
 
 def test_loop_returns_success_when_successor_acks_continue(monkeypatch, tmp_path, capsys):
@@ -2187,7 +2194,7 @@ def test_loop_refuses_ack_with_wrong_gen_on_self_reader(tmp_path, monkeypatch):
     ac.write_text(json.dumps({"seat": "seat-x", "gen_after": 99,
                               "answer": "continue"}), encoding="utf-8")
     # reader spawned gen 3: gen 99 ack is refused
-    assert rotate._read_ack(str(ac), gen_after=3, timeout=1) is None
+    assert rotate._read_ack(str(ac), gen_after=3, timeout=1, poll_s=0.05) is None
 
 
 def test_cmd_ack_text_dash_reads_stdin(tmp_path, monkeypatch):
@@ -2411,6 +2418,41 @@ def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,
     assert seen["name"] == "adv-alive"          # plain, not adv-alive-II
     assert "generation: 1" in capsys.readouterr().out
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.handoff.md").exists()
+
+
+def test_rotate_self_dry_run_plan_prints_ack_post(fake_ladder, tmp_path,
+                                                  capsys, monkeypatch):
+    """goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-
+    sender-and-signature...): the rotate-self dry-run plan prints the ONE
+    captive ack grammar (`ack --post` — the live grammar the after_join
+    composer uses), never the `--seat` spelling, on its after_join dry-run
+    line. (Placed here, not test_after_join_service.py, because it drives
+    cmd_rotate_self and reuses this module's `_write_seats_sheet` /
+    `_rotate_self_args` / `fake_ladder` fixtures.)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    seen = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: seen.append(kw["name"]) or (0, "echo hi"))
+
+    def _tmpl(root, role, explicit=None, **kw):
+        return ({"startup": {"first_turn": ["echo hi"],
+                             "after_join_delay_s": 0,
+                             "after_join": [
+                                 {"label": "ack", "cmd": "echo {seat}"}]}},
+                "t", "test")
+
+    monkeypatch.setattr(rotate, "_resolve_template", _tmpl)
+    args = _rotate_self_args(tmp_path, dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "after_join dry-run" in out, out
+    assert re.search(r"ack --post \S+ --gen", out), out
+    ack_lines = [ln for ln in out.splitlines() if "rotate.py ack" in ln]
+    assert ack_lines, "the dry-run plan prints a captive ack line"
+    assert all("ack --seat" not in ln for ln in ack_lines), ack_lines
 
 
 def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkeypatch):
@@ -8130,3 +8172,86 @@ def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
     assert uid in err
     # nothing written: no ack file (and the row is untouched by a refusal).
     assert not rotate._ack_path(root, "sanctuary-director").exists()
+
+
+def test_seat_has_live_session_window_cell_and_dead_pid_over_join():
+    """(e) SL7.98: `_seat_has_live_session` reads the row's WINDOW cell
+    (accepting window_id as a legacy alias) — the spawn/join shape carries
+    `window`, not `window_id` — and a row carrying a DEAD pid is dead even
+    over a resolved join (the pid is judged BEFORE joined.found, matching the
+    docstring)."""
+    import agi.bin.rotate as rot
+    real_gone = rot._pid_gone
+    try:
+        # pid alive -> live (pid authority)
+        rot._pid_gone = lambda pid: False
+        assert rot._seat_has_live_session(
+            {"pid": 1234}, {"found": False}) is True
+        # window CELL honoured (the shape the spawn/join reader uses)
+        assert rot._seat_has_live_session(
+            {"window": "@9"}, {"found": False}) is True
+        # legacy window_id alias still honoured
+        assert rot._seat_has_live_session(
+            {"window_id": "@9"}, {"found": False}) is True
+        # DEAD pid + RESOLVED join -> DEAD (pid checked before joined.found)
+        rot._pid_gone = lambda pid: True
+        assert rot._seat_has_live_session(
+            {"pid": 987654}, {"found": True, "pid": 987654}) is False
+        # no pid, no join, no window -> dead
+        assert rot._seat_has_live_session({}, {"found": False}) is False
+        # no row at all -> dead
+        assert rot._seat_has_live_session(None, None) is False
+    finally:
+        rot._pid_gone = real_gone
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): the ack back-fill writes session_name (the joined harness name),
+# and status FLAGS a lingering 36-char uuid in session_ref as STALE. The
+# SL7.86 uuid refusal (test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid)
+# stays green above — session_ref is still written ONLY from an acked ref.
+# ---------------------------------------------------------------------------
+def test_ack_backfill_writes_session_name_from_joined_registry(
+        tmp_path, monkeypatch, capsys):
+    """(c) claim: cmd_ack's own-row back-fill writes session_name = the
+    harness name the registry join resolves (join['name'], e.g. agi-d7) —
+    F3's join key travels in the row from the ack too, alongside session_ref,
+    still never a session uuid."""
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
+                               "model": "x", "effort": "max", "settings": "",
+                               "session_ref": "", "session_id": "abc-def",
+                               "window": "@42"}])
+    reg = _seating_registry(tmp_path, raw="@42")
+    # the registry file that matches @42 carries a HARNESS NAME.
+    (reg / "999.json").write_text(json.dumps({
+        "window_id": "@42", "name": "agi-d7", "session_id": "2717-aaaa",
+        "transcript": "t.jsonl", "cwd": str(tmp_path)}), encoding="utf-8")
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref="f52a4c", answer="continue", text="",
+        registry_dir=str(reg)), root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    assert belam.get("session_name") == "agi-d7"
+
+
+def test_status_flags_uuid_session_ref_as_stale(tmp_path, capsys):
+    """(d) claim: `status --record latest --seat` FLAGS a 36-char session
+    uuid lingering in session_ref as STALE (a session id, pre-F15) — a row
+    written before SL7.86 still carries one, and nothing may read it as a
+    harness ref (send.whois reads a uuid as NO-MATCH for every peer). The
+    F3 join name is printed when present."""
+    uid = "c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2"
+    _write_seats_sheet(tmp_path, [{"name": "kid-1", "role": "director",
+                                   "session_ref": uid,
+                                   "session_name": "agi-d7"}])
+    rc = rotate.cmd_status(SimpleNamespace(record="latest", seat="kid-1"),
+                           tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert uid in out and "stale" in out and "session id" in out
+    assert "agi-d7" in out  # session_name printed when present
