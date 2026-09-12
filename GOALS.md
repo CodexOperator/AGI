@@ -9256,6 +9256,8 @@ for L4.287 (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-mai
 
 2026-09-12T06:25Z SL2#15 first suite RED (06:22Z, 3796/15 + 1 error): SL7.13's session-scoped live-inbox snapshot fired on master-sensei.md and sensei-director.nudge — files LIVE seats wrote during the five-minute run, not a test leak. Director re-cut at the merge-up (271fc9fd4): the detector is a per-test autouse guard on send._inbox_dir that raises the moment a test resolves the live inbox (proved on a probe); a filesystem snapshot cannot tell a test's write from a dm landing, the resolver can. Rule for every future leak detector on a shared live dir: guard the RESOLVER, never diff the directory.
 
+2026-09-12T06:32Z SL2#15 LANDED (sensei-director gen VIII, Prime GO 06:15:32Z): merge 718b4308e = stamp; ALL 11 GREEN, suite passed=3796 skipped=15, zero xfails; 2407 / 195 / 2602 from baseline 2395/195/2590; SL7.07 (spawn gate both directions, hand seating commits its row and answers its ack) + SL7.09 (key swap waits for the push, edited_by restamp rides the own-row commit, one _record_join accessor) + SL7.13 (send.py read-guard, detector re-cut at the merge-up) + mur-SL2.14 briefs A-D. Exposure noted for the Prime: a Sensei commit pushed on MAIN between the two merges published the red first cut for ~8 minutes.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
