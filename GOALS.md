@@ -6648,6 +6648,8 @@ SL7.105 HARVESTED 21:12Z on the sensei-director post: code_head is written into 
 
 SL7.104 HARVESTED 21:16Z on the sensei-director post: ONE join gate for both record shapes — a started record without a window_id waits the promised after_join_delay_s from recorded_at and performs once past after_join_max_wait_s with the join-dependent entries refused by name (never delay 0); the own tail re-claims a stale claim through the same helper the watch uses; the late dead-seat marker is written through _commit_after_join_record; kid lean 85 (+tests); nbhd 483/3. Rides SL2#27
 
+SL7.102 HARVESTED 21:22Z on the sensei-director post (SL7.86 re-cut): the predecessor's spawn-time ack carries session_ref '' (it cannot know the harness ref), the empty {succ_ref} after_join ack entry is refused by SL7.73's name, cmd_ack refuses ANY uuid-shaped --ref by name, the tail test reads a REAL predecessor-written ack file (stub deleted), status prints session_ref '' as unset; kid proved 0.9. Rides SL2#27
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
@@ -9601,6 +9603,8 @@ mur-SL2.25 digest applied 20:55Z (Prime XVII 20:5xZ): SL7.90 DEMOTED (experiment
 SL7.107 HARVESTED 21:12Z on the sensei-director post: cmd_spawn initialises _rowgen before the seat branch (no UnboundLocalError seat-less non-dry), sensei.py _display_cmd resolves the column by key presence (an explicit empty command prints '-'; docstring rewritten), _preserve_swept_latches never presents an inherited sweep list as measured (marked inherited); kid proved 0.9. Rides SL2#27
 
 SL7.106 HARVESTED 21:17Z on the sensei-director post (test-only): the AGI_REAL_JUDGE opt-in is captured before conftest's AGI_ strip and proved through a child pytest that really executes the strip (the old mechanism test was vacuous); every --pin test stubs fresh_spend_status under a socket guard so no test reaches OpenRouter; kids proved 0.9 x2. Rides SL2#27
+
+SL7.103 HARVESTED 21:22Z on the sensei-director post (SL7.90 re-cut): the PRIME / MAIN-post closeout real runners are driven by committed tests on a fixture root — g17_1_note invokes write.py with the ONE-arg 'note <text>' grammar, the live call site passes the rotation record, pathspec_commit reports a failed commit as failed, the render runner resolves the project from root; kid proved 0.85. With 92 + 101 + 103 on the post the Prime's no-closeout ruling can lift once they are on season2/main (92/101 in SL2#26, 103 in #27). Rides SL2#27
 
 ### G16 — Telemetry per node, propagated up the ladder
 
