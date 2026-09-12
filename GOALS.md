@@ -6608,6 +6608,8 @@ SL7.87 seat fix-up 18:29Z: its check-6 rewording left test_rotate_prepare.py::te
 
 SL7.86 harvested 18:32Z (Prime XVI 17:55Z, F15): the own-tail after_join path now passes the successor's ACKED harness ref or nothing — the one-line succ_session_id fallback at step 6.4 is deleted (it back-filled the join's session uuid into session_ref, NO-MATCH for every peer); cmd_ack refuses BY NAME a --ref equal to the running seat's own session_id cell (rc 2, no ack file, no row write); test_rotate.py append conflict with SL7.87 unioned; nbhd 690/3. Residue for the next digest: a uuid-shaped --ref that matches NO row is still accepted and back-filled.
 
+SL7.91 brief 18:41Z (FIX-ONLY; the gen 14->15 rotate-out refusal the Sensei's wake-audit named): hypothesis:l4-meter-pin-never-lowers-an-existing-pins-generation-for-the-same-transcript-a-lagging-row-is-named-not-written — measured: cmd_meter --pin re-stamps the pin from whatever row its cwd tree reads; my own first meter read at 18:30Z rewrote the successor pin 15 -> 14 because the worktree row lagged MAIN's spawn-row commit by 12 min (pin mtime 18:30Z), and check 5 would have refused this rotate-out too; pin re-stamped 15 at 18:39Z by the same command after the sync, row session_ref repaired to f8f194 by ONE re-ack (the pre-F15 tail had written the session uuid).
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
