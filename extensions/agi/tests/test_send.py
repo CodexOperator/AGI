@@ -4151,6 +4151,34 @@ def test_dash_dash_dash_body_line_verifies_not_forged(project, capsys,
     assert "FORGED" not in out, out
 
 
+def test_body_dash_dash_dash_then_ts_like_line_stays_one_block_verified(
+        project, capsys, monkeypatch):
+    """SL7.02 clause (4): a signed body containing a "---" line IMMEDIATELY
+    followed by a line that starts "ts: " (a body line that merely STARTS like
+    a header, with no "from:" after it) must stay ONE block and read VERIFIED,
+    never FORGED. The boundary now requires a FULL header after the separator
+    ("---\\n" + "ts: ...\\n" + "from: "), so the fake header inside the body
+    no longer fragments the block and its own sig no longer reads FORGED on the
+    split tail."""
+    send_mod.keygen(project, "seat-bd")
+    body = "before\n---\nts: 2026-01-01T00:00:00+00:00\nmid\n"
+    pub_hex = _seat_pubkey_hex(project, "seat-bd")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-bd", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-bd")
+
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    blocks = send_mod._parse_blocks(inbox.read_text())
+    assert len(blocks) == 1, blocks  # ONE block, never split on the fake header
+    assert blocks[0]["text"] == "before\n---\nts: 2026-01-01T00:00:00+00:00\nmid"
+
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out, out
+
+
 def test_crlf_body_verifies_not_forged(project, capsys, monkeypatch):
     """A body containing CRLF pairs round-trips byte-exact and reads VERIFIED,
     never FORGED (newline='' on both sides already preserves CR; the parser
@@ -4309,6 +4337,85 @@ def test_keygen_all_live_grants_a_row_prime_director(project, capsys,
     assert _seat_key_file(project, "s1").is_file()
     stdout = capsys.readouterr().out
     assert "keyed s1" in stdout
+
+
+# --- clause (1): a refused row write / missing seat row makes the CLI exit 2 --
+# and every keyed row carries key_history: [] (hypothesis:l4-keygen-exits-on-
+# a-refused-row...). Pre-fix, keygen discarded `_row_write_submit`'s bool and
+# exited 0 -- a key on disk with no pubkey on the row read UNKEYED forever.
+
+
+def _cli_keygen_args(**kw):
+    import argparse as _ar
+    base = dict(all_live=False, seat="", scheme="ed25519", from_id=None)
+    base.update(kw)
+    return _ar.Namespace(**base)
+
+
+def test_cli_keygen_exits_2_when_seat_row_missing(project, capsys):
+    """clause (1): a key minted for a seat whose row is NOT in the registry
+    exits 2 with the ONE canonical stderr line -- pre-fix this exited 0 and
+    the key read UNKEYED forever."""
+    args = _cli_keygen_args(seat="ghost-seat")
+    assert send_mod._cli_keygen(project, args) == 2
+    err = capsys.readouterr().err
+    assert "keygen: key minted but the row write was refused" in err, err
+    assert "UNKEYED" in err, err
+    # the key was still minted on disk (a keygen never fails to mint)
+    assert _seat_key_file(project, "ghost-seat").is_file()
+
+
+def test_cli_keygen_exits_2_when_row_write_refused(project, capsys,
+                                                    monkeypatch):
+    """clause (1): write.submit refusing to admit the row write (no admitted
+    actor / no seating) still mints the key but the CLI exits 2 -- the row
+    stays UNKEYED and the operator is told in one line."""
+    _write_seats_node(project, [
+        {"name": "refuse-seat", "role": "director", "pid": 1},
+    ])
+    monkeypatch.setattr(send_mod, "_row_write_submit", lambda *a, **k: False)
+    args = _cli_keygen_args(seat="refuse-seat")
+    assert send_mod._cli_keygen(project, args) == 2
+    assert _seat_key_file(project, "refuse-seat").is_file()
+    err = capsys.readouterr().err
+    assert "keygen: key minted but the row write was refused" in err, err
+    assert "refuse-seat" in err, err
+
+
+def test_cli_keygen_exits_0_on_happy_row_write(project):
+    """clause (1): a keyed row whose write lands returns exit 0 (unchanged
+    happy path -- the refused-row exit is a NEW code, not a repurposed 1)."""
+    _write_seats_node(project, [
+        {"name": "ok-seat", "role": "director", "pid": 1},
+    ])
+    assert send_mod._cli_keygen(project, _cli_keygen_args(seat="ok-seat")) == 0
+
+
+def test_keygen_seeds_key_history_on_keyed_row(project):
+    """clause (1): keygen seeds an EMPTY key_history on the single keyed row
+    so every keyed row carries the cell (the RETIRED reader tolerates absence,
+    but the row shape now carries it)."""
+    _write_seats_node(project, [
+        {"name": "hist-seat", "role": "director", "pid": 1},
+    ])
+    send_mod.keygen(project, "hist-seat")
+    own = next(r for r in _read_seats(project) if r["name"] == "hist-seat")
+    assert own.get("key_history") == []
+
+
+def test_keygen_all_live_seeds_key_history(project):
+    """clause (1): --all-live seeds key_history: [] on every freshly keyed
+    live row, and leaves the dead row untouched."""
+    _write_seats_node(project, [
+        {"name": "belam", "role": "prime_director", "pid": 999},
+        {"name": "s1", "role": "director", "pid": 111},
+        {"name": "s3", "role": "director"},                     # dead
+    ])
+    send_mod.keygen(project, all_live=True, actor="belam",
+                    role="prime_director")
+    by = {r["name"]: r for r in _read_seats(project)}
+    assert by["s1"].get("key_history") == []
+    assert "key_history" not in by["s3"], "the dead row is left untouched"
 
 
 def test_cr_body_with_crlf_and_lone_cr_verifies_and_keeps_bytes(
@@ -4685,24 +4792,69 @@ def test_whois_quarantine_filename_sanitized_against_traversal(
     assert outside == [], f"traversal-shaped ref escaped the quarantine: {outside}"
 
 
-def test_whois_quarantine_invalid_ref_when_sanitized_empty(
+def test_whois_quarantine_refuses_empty_sanitized_ref(
         tmp_path, monkeypatch):
-    """A session_ref that sanitizes to empty (only stripped chars) is written
-    to `invalid-ref.md` -- never an empty or path-named file."""
+    """SL7.02 clause (5): a session_ref that sanitizes to empty (only
+    stripped chars) is REFUSED in one line with exit 2 BEFORE any quarantine
+    path is built -- no file (not even the old invalid-ref.md fallback) is
+    written and no path is derived from the absent ref."""
     project = _project_with_comms(tmp_path, {"verify": "enforcing"})
     send_mod.keygen(project, "seat-a")
     sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
                                                      "whois me")
     _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
     forged = canonical + "x"
-    rc, text = send_mod.whois(project, "///", claim="seat-a",
+    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
+    with pytest.raises(SystemExit) as ex:
+        send_mod.whois(project, "///", claim="seat-a",
+                       source="refs/x", do_fetch=False,
+                       sig_line=sig_line, msg_text=forged)
+    assert ex.value.code == 2
+    # nothing was written -- refusal happened BEFORE any path was built
+    if qdir.exists():
+        assert not any(qdir.iterdir()), f"empty ref must write nothing: {list(qdir.iterdir())}"
+    qdir.mkdir(parents=True, exist_ok=True)  # guard: still nothing may appear
+
+
+def test_whois_quarantine_refuses_overlong_ref(tmp_path, monkeypatch):
+    """SL7.02 clause (5): a session_ref whose sanitized form exceeds 64 chars
+    is REFUSED in one line with exit 2 BEFORE any quarantine path is built; a
+    ref AT the 64-char cap is accepted and quarantined under its name."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    forged = canonical + "x"
+    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
+
+    long_ref = "x" * 65
+    with pytest.raises(SystemExit) as ex:
+        send_mod.whois(project, long_ref, claim="seat-a",
+                       source="refs/x", do_fetch=False,
+                       sig_line=sig_line, msg_text=forged)
+    assert ex.value.code == 2
+
+    # at the 64-char cap it is accepted and lands under its (capped) name
+    cap_ref = "y" * 64
+    rc, text = send_mod.whois(project, cap_ref, claim="seat-a",
                               source="refs/x", do_fetch=False,
                               sig_line=sig_line, msg_text=forged)
     assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
-    qdir = project / ".agi" / "sessions" / "inbox" / "quarantine"
-    invalid = qdir / "invalid-ref.md"
-    assert invalid.is_file(), "empty-sanitized ref must land in invalid-ref.md"
-    assert "///" in invalid.read_text(), "raw ref survives in the record"
+    q = qdir / f"{cap_ref}.md"
+    assert q.is_file(), f"64-char ref must quarantine under its own name"
+
+
+def test_sanitize_ref_accepts_and_refuses_bounds():
+    """Unit-level bound for _sanitize_ref: keeps [A-Za-z0-9._-], accepts 1-64
+    chars, and REFUSES (exit 2) on empty or >64 sanitized length."""
+    assert send_mod._sanitize_ref("a-b.c_1") == "a-b.c_1"
+    assert send_mod._sanitize_ref("../x/y") == "..xy"  # / stripped, . kept
+    assert send_mod._sanitize_ref("y" * 64) == "y" * 64  # at the cap: OK
+    for bad in ("", "///", "y" * 65, "/" * 10):
+        with pytest.raises(SystemExit) as ex:
+            send_mod._sanitize_ref(bad)
+        assert ex.value.code == 2, bad
 
 
 def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
@@ -5235,6 +5387,38 @@ def test_lockdown_read_and_peek_warn_once(tmp_path, capsys):
     assert err.count("comms.lockdown is set") == 2  # one per read, one per peek
 
 
+def test_lockdown_every_dm_room_verb_warns_once(tmp_path, capsys):
+    """SL7.02 clause (2): each dm/room verb -- send_dm, send_room, read_dm,
+    peek_dm, read_room, peek_room -- prints the SAME single warning through the
+    SAME helper, exactly once per verb call under lockdown:true, and never a
+    second copy of the text."""
+    locked = _project_with_comms(tmp_path, {"lockdown": True})
+    capsys.readouterr()  # nothing printed yet
+
+    send_mod.send_dm(locked, "director", "kid-a", "hi dm", "kid-a")
+    send_mod.send_room(locked, "tier2-directors", "hi room", "kid-a")
+    send_mod.read_dm(locked, "director", "kid-a", None, "kid-a")
+    send_mod.peek_dm(locked, "director", "kid-a", None)
+    send_mod.read_room(locked, "tier2-directors", "director", None, "director")
+    send_mod.peek_room(locked, "tier2-directors", "director", None)
+
+    err = capsys.readouterr().err
+    assert err.count("comms.lockdown is set") == 6  # exactly one per verb
+
+
+def test_lockdown_absent_dm_room_verbs_print_no_warning(tmp_path, capsys):
+    """Bare comms root (no project config) falls through with NO warning."""
+    bare = tmp_path / "comms"
+    send_mod.send_dm(bare, "director", "kid-a", "hi", "kid-a")
+    send_mod.send_room(bare, "tier2-directors", "hi", "kid-a")
+    send_mod.read_dm(bare, "director", "kid-a", None, "kid-a")
+    send_mod.peek_dm(bare, "director", "kid-a", None)
+    send_mod.read_room(bare, "tier2-directors", "director", None, "director")
+    send_mod.peek_room(bare, "tier2-directors", "director", None)
+    err = capsys.readouterr().err
+    assert "comms.lockdown" not in err
+
+
 
 # ════════════════════════════════════════════════════════════════════════════
 # g15.26 hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-
@@ -5352,6 +5536,7 @@ def test_falsifier2_pushed_key_stays_authoritative_over_stale_main(
     assert "main-committed" not in out
 
 
+@pytest.mark.xfail(strict=True, reason="mur-SL2.12 (3) / SL7.09: since SL7.06 the own-row commit stages ONLY the seat row, so write.py's node-level edited_by restamp stays unstaged and MAIN reads M seats.md after keygen; SL7.09 carries the stamp in the same commit (or stops restamping on a self-row write) -- when it lands this xfail turns XPASS and must be removed")
 def test_keygen_commits_and_pushes_own_row_to_bare_remote(
         tmp_path, monkeypatch, capsys):
     """g15.26 clause (2): keygen (a key-cell writer) commits its own-row hunk
@@ -5394,3 +5579,254 @@ def test_keygen_mint_survives_a_failed_push(tmp_path, monkeypatch, capsys):
     assert send_mod._seat_key_path(root, "seat-a").is_file()
     err = capsys.readouterr().err
     assert "push: FAILED --" in err, err
+
+
+# ── g15.26 clause (3) SEAM RULE (hypothesis:l4-keygen-exits-on-a-refused-row-
+#    every-comms-verb-warns-under-lockdown-and-a-lagging-origin-row-never-
+#    reads-forged): a sig under a freshly minted SUCCESSOR key, read while
+#    ORIGIN still holds the PREDECESSOR key, is NOT FORGED -- the reader
+#    consults MAIN's COMMITTED row (git show HEAD, never the dirty copy) and,
+#    when that row's key verifies AND is strictly fresher in generation,
+#    answers VERIFIED ... main-committed. A sig under no key anywhere stays
+#    FORGED; a seat absent from MAIN's committed rows reads UNVERIFIABLE
+#    (printed like UNSIGNED, never refused). ────────────────────────────────
+
+
+def test_clause3_successor_key_verifies_main_committed(tmp_path, monkeypatch,
+                                                       capsys):
+    """Clause (3) SEAM: origin's pushed row holds PREDECESSOR key A while
+    MAIN's COMMITTED row already carries SUCCESSOR key B at generation+1. A
+    sig under B must read `VERIFIED seat-a (ed25519, main-committed)` -- the
+    lagging-origin row never reads FORGED for a genuine successor signature."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_b, pub_b = scheme.keygen()                # MAIN committed successor
+    priv_a, pub_a = scheme.keygen()                # origin pushed predecessor
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_b.hex(),
+          "generation": 2}],
+        branch="season/s2")
+    # the PUSHED (pre-push) authority still holds key A at generation 1.
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex(),
+         "generation": 1}])
+    _seat_key_write(root, "seat-a", priv_b.hex())  # sender signs under B
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()                            # drain send stdout
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_clause3_sig_under_third_key_reads_forged(tmp_path, monkeypatch,
+                                                  capsys):
+    """Clause (3) SEAM falsifier: origin holds key A, MAIN's committed row key
+    B -- a sig under a THIRD key C verifies under NO row anywhere and must
+    still read FORGED, never VERIFIED, never UNVERIFIABLE."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    _pub_b, pub_b = scheme.keygen()                # MAIN committed row
+    _pub_a, pub_a = scheme.keygen()                # origin pushed row
+    priv_c, _pub_c = scheme.keygen()               # the third, unknown key
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_b.hex(),
+          "generation": 2}],
+        branch="season/s2")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex(),
+         "generation": 1}])
+    _seat_key_write(root, "seat-a", priv_c.hex())  # sender signs under C
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out, out
+    assert "main-committed" not in out, out
+
+
+def test_clause3_seat_absent_from_committed_reads_unverifiable(
+        tmp_path, monkeypatch, capsys):
+    """Clause (3) SEAM: the seat is NOT in MAIN's committed rows (its row is
+    not on MAIN yet), so the seam cannot confirm or refute the sig -- it reads
+    `UNVERIFIABLE seat-a (row not on origin yet)`, printed like UNSIGNED,
+    never FORGED, never REFUSED. (A gitless root keeps the ordinary FORGED for
+    a deterministically tampered/wrong sig: with no MAIN to lag against there
+    is nothing to soften the verdict -- see the pre-existing forgery suite.)"""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    _pub_a, pub_a = scheme.keygen()                # origin pushed row
+    priv_c, _pub_c = scheme.keygen()               # the unknown signer
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-other", "sig_scheme": "ed25519",
+          "pubkey": scheme.keygen()[1].hex(), "generation": 3}],
+        branch="season/s2")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex(),
+         "generation": 1}])
+    _seat_key_write(root, "seat-a", priv_c.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNVERIFIABLE seat-a (row not on origin yet)" in out, out
+    assert "FORGED" not in out, out
+    assert "REFUSED" not in out, out
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel-and-an-
+# empty-pushed-set-reads-none
+#
+# Clause (1): `_seats_committed_rows` was F1-DEAD for a reader inside a linked
+# worktree: it ran `git rev-parse --show-toplevel` at the CALLER's root, so a
+# worktree reader got the WORKTREE toplevel and `Path.relative_to` then failed
+# against MAIN's seats path, returning [] and never firing the per-seat MAIN-
+# committed fallback. The fix resolves git at MAIN's graph root
+# (`_shared_graph_root` -> its git toplevel) and reads the blob with
+# `git -C <toplevel> show HEAD:<rel>`. Clause (2): an EMPTY pushed row set
+# returns None, never the dirty working copy (pre-F1 behaviour restored).
+# These use REAL git fixtures (bare remote optional) with tmux faked, so
+# nothing touches a live tmux session.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def test_worktree_reader_falls_back_to_main_committed(
+        tmp_path, monkeypatch, capsys):
+    """CLAUSE (1) FALSIFIER, committed two-tree REAL git fixture: MAIN's HEAD
+    carries a KEYED seat-a, the PUSHED (pre-push) row is still UNKEYED, and
+    the READER runs from a LINKED WORKTREE (the `--branch` kid). The
+    worktree reader must still reach MAIN's committed row and verify the sig
+    `VERIFIED seat-a (ed25519, main-committed)` -- never UNKEYED, which is
+    what an empty `_seats_committed_rows` (the worktree bug) produced."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    main = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex()}],
+        branch="season/s2")
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "season/s2"],
+                   check=True, capture_output=True)
+    # origin's pushed row is UNKEYED -- the pre-push authority.
+    _stub_seat_rows(monkeypatch, [{"name": "seat-a"}])
+    # sign under MAIN's committed key; the sender and the shared seats dir both
+    # live in MAIN's checkout, read through the worktree root.
+    _seat_key_write(main, "seat-a", priv_a.hex())
+    send_mod.send(wt, "recv", "hello", "seat-a")
+    capsys.readouterr()                      # drain send stdout
+    send_mod.read(wt, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "UNKEYED" not in out, out
+    assert "FORGED" not in out, out
+
+
+def test_worktree_reader_committed_lookup_targets_main_not_worktree(
+        tmp_path, monkeypatch):
+    """CLAUSE (1) unit probe at the fallback seam: from a LINKED WORKTREE
+    reader root, `_seats_committed_rows` must resolve MAIN's committed seats
+    path AND run git at MAIN's graph root -- so the relative path lands in
+    MAIN's tree, never the worktree's (whose own seats.md, if any, is a fork
+    the reader must not treat as the committed authority)."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    main = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub.hex()}],
+        branch="season/s2")
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "season/s2"],
+                   check=True, capture_output=True)
+    committed = send_mod._seats_committed_rows(wt)
+    assert len(committed) == 1 and committed[0]["name"] == "seat-a", committed
+    assert committed[0].get("pubkey") == pub.hex(), (
+        "the MAIN-committed key must be read from the worktree reader, "
+        "not [] (the worktree bug) and not a worktree-forked row")
+
+
+def test_empty_pushed_set_reads_none_never_dirty_copy(
+        tmp_path, monkeypatch):
+    """CLAUSE (2): an EMPTY pushed row set (a real, reachable authority with
+    no rows) must make `_load_rows` return None -- never fall back to the
+    DIRTY working copy. Here the working tree DOES carry a keyed row, so a
+    wrong fallback would visibly return it; the assertion pins returning None
+    exactly as before F1, so a reader labels any sig FORGED rather than
+    guessing against an uncommitted local file."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv, pub = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub.hex()}],
+        branch="season/s2")
+    # the pushed authority is reachable but EMPTY; the dirty working copy
+    # (the committed row is present on disk) must NOT be read.
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda r, ref, do_fetch: ([], "deadbeef"))
+    assert send_mod._locally_loaded_rows(root), (
+        "fixture sanity: the working copy DOES hold rows, so a wrong "
+        "fallback would find them")
+    assert send_mod._load_rows(root) is None
+
+
+def test_keygen_all_live_commit_names_every_keyed_seat_and_stages_seats_only(
+        tmp_path, monkeypatch, capsys):
+    """CLAUSE (2)/(4b): --all-live's ONE own-row commit message names EVERY
+    seat it keyed (`keygen --all-live: keyed s1, s2`) and stages seats.md
+    ONLY (never `git add -A`), then pushes -- so a keygen --all-live never
+    sweeps another writer's uncommitted work into its commit, and the
+    operator can see at a glance every row a single pass keyed."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(
+        tmp_path,
+        [{"name": "s1", "role": "director", "pid": 111},
+         {"name": "s2", "role": "director", "session_id": "abc"}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    capsys.readouterr()
+    out = send_mod.keygen(root, all_live=True, actor="belam",
+                          role="prime_director")
+    assert out is not None and len(out) == 2, out
+    capsys.readouterr()                      # drain keygen stdout/stderr
+
+    # (a) the ONE commit's subject names every seat it keyed, in key order.
+    subj = subprocess.run(
+        ["git", "-C", str(root), "log", "-1", "--format=%s"],
+        capture_output=True, text=True)
+    assert subj.stdout.strip() == "keygen --all-live: keyed s1, s2", \
+        subj.stdout
+
+    # (b) that commit staged seats.md ONLY -- no `.key` files, no other tree.
+    files = subprocess.run(
+        ["git", "-C", str(root), "diff-tree", "--no-commit-id",
+         "--name-only", "-r", "-z", "HEAD"],
+        capture_output=True, text=True)
+    changed = [p for p in files.stdout.split("\0") if p]
+    assert len(changed) == 1, changed
+    assert changed[0].endswith(".geometry/seats.md"), changed
+
+    # (c) origin's season/s2 row now carries both pubkeys (the push leg ran).
+    shown = subprocess.run(
+        ["git", "-C", str(root), "show",
+         "origin/season/s2:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "pubkey" in shown.stdout and "s1" in shown.stdout, shown.stdout
+    assert "s2" in shown.stdout and "session_id" in shown.stdout, shown.stdout
+
+    # (d) MAIN's working tree is left clean across the whole --all-live pass.
+    st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout

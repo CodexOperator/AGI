@@ -37,6 +37,7 @@ import locations  # noqa: E402
 import branches  # noqa: E402
 import geometry_config  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the per-town
 # vision counting is ONE shared helper in spawn_gate.py that both the season
@@ -806,10 +807,10 @@ def _load_vision_sources(arg: str) -> list[dict]:
         # A `town:` cell in the source's frontmatter (if any) decides which
         # town the vision belongs to; default core. hypothesis:l4-towns-...
         if text.startswith("---"):
-            parts = text.split("---", 2)
-            if len(parts) >= 3:
+            parted = split_frontmatter(text)
+            if parted is not None:
                 import re
-                m = re.search(r"^town:\s*(\S+)", parts[1], re.M)
+                m = re.search(r"^town:\s*(\S+)", parted[0], re.M)
                 if m:
                     town = m.group(1)
         i = 0

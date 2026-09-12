@@ -62,6 +62,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import spawn_gate  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 # goal:s14 — a node gets its permanent id from whatever writes the file, not
 # from a backfill run afterwards. The ENGINE's graph_core, never a project's
@@ -269,6 +270,15 @@ def _needs_quoting(sval: str) -> bool:
         return False
     if ": " in sval or sval.endswith(":") or " #" in sval:
         return True
+    # A `---` run ANYWHERE (e.g. `the --- and --- again`) would split the
+    # frontmatter short for a reader that still splits on the substring, and
+    # must never present as a bare `---` line to the line-anchored shared
+    # reader (hypothesis:l4-one-line-anchored-frontmatter-reader-...).
+    # Quoting keeps the value a valid YAML scalar on one line and turns what
+    # would be a silent truncation into a detectable parse failure. `---`
+    # itself is a document marker and so MUST be quoted too.
+    if "---" in sval:
+        return True
     # Negative number (`-N` or `-N.N`): valid YAML plain scalar, no quoting.
     # Bare `-` or `- ` would be a block sequence indicator.
     if sval[0] == "-" and len(sval) > 1 and (sval[1].isdigit() or sval[1] == "."):
@@ -416,10 +426,10 @@ def _is_untouched_scaffold(text: str, scaffold_body: str) -> bool:
     what the branch was for. A malformed file with no closing marker is also
     fair game — there is nothing in it to lose.
     """
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    sp = split_frontmatter(text)
+    if sp is None:
         return True
-    return parts[2].strip() in scaffold_body.strip()
+    return sp[1].strip() in scaffold_body.strip()
 
 
 def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
@@ -659,7 +669,7 @@ def write_node(
     except Exception:
         pass
 
-    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + scaffold_body
+    text = _serialize_node(render_frontmatter(fm), scaffold_body)
 
     node_file.parent.mkdir(parents=True, exist_ok=True)
     node_file.write_text(text, encoding="utf-8")
@@ -844,6 +854,29 @@ def _absorb_leading_frontmatter(fm: dict, body: str) -> tuple[dict, str, list[st
     return merged, lead + remaining.lstrip("\n"), absorbed
 
 
+def _serialize_node(fm_lines: list[str], body: str) -> str:
+    """Serialize a node file to the ONE canonical shape.
+
+    hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline. The
+    frontmatter reader (`load_node_file`) strips the trailing newline when it
+    splits the body, so `text = frontmatter + nf.body` silently drops the
+    EOF newline of a file that ended `...content\n` -- a 1-byte whitespace
+    dirt that showed up after every rotate-self spawn-row write and refused
+    the ack's prepare gate (`_prepare_dirty_paths`) and `_ack_seats_dirty` on
+    a delta they read as dirty (the diff's no-newline-at-EOF marker).
+
+    ONE serializer, both write sites (update_node and repair_mint). The body's
+    trailing newlines are normalised to EXACTLY one -- never zero, never two
+    -- so a frontmatter-only (`set_fm`) edit reproduces the body
+    byte-identically including its EOF newline, and no writer can drop it.
+    Nothing but trailing newlines is touched: a body that legitimately ends
+    with two newlines is collapsed to one by the single-EOF rule, and
+    interior blank lines are preserved.
+    """
+    text = "\n".join(["---", *fm_lines, "---", ""]) + body
+    return text.rstrip("\n") + "\n"
+
+
 def update_node(
     root,
     node_id,
@@ -939,7 +972,7 @@ def update_node(
                           f"an update may not REMOVE a required field")
             return res
 
-    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + new_body
+    text = _serialize_node(render_frontmatter(fm), new_body)
     tmp = path.with_suffix(path.suffix + ".tmp")
     try:
         tmp.write_text(text, encoding="utf-8")
@@ -1015,7 +1048,7 @@ def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
     # complete, drift-safe against a future BODY_PROMPTS change.
     ph = f"\n# {node_id}\n\n" + BODY_PROMPTS.get(res.node_type, "")
     fm["scaffold_hash"] = scaffold_hash(ph)
-    text = "\n".join(["---", *render_frontmatter(fm), "---", ""]) + nf.body
+    text = _serialize_node(render_frontmatter(fm), nf.body)
     tmp = path.with_suffix(path.suffix + ".tmp")
     try:
         tmp.write_text(text, encoding="utf-8")

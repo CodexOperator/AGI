@@ -3811,6 +3811,89 @@ def _git_head(top):
                           capture_output=True, text=True).stdout.strip()
 
 
+def _rel(top, path):
+    return os.path.relpath(path, top)
+
+
+def test_spawn_row_write_end_to_end_leaves_seats_md_exactly_one_0a(
+        tmp_path, monkeypatch, capsys):
+    """CLAIM-4 END-TO-END INVARIANT on the LIVE seats flow.
+
+    `_successor_row_write` is a FRONTMATTER-ONLY identity-cell edit routed
+    through write.submit -> node_writer.update_node -> _serialize_node — the
+    exact shape that, before the ONE-serializer fix, DROPPED the EOF newline:
+    the working copy of seats.md ended `0x2e` while HEAD ended `0x0a` (a
+    1-byte whitespace-only dirt that refused prepare check 2
+    `_prepare_dirty_paths` and `_ack_seats_dirty` on every rotation until a
+    checkout restored HEAD). After the fix the spawn-row write must leave the
+    working copy ending EXACTLY ONE 0x0a (never 0x2e, never two), rotate-self
+    must commit its own spawn-row write in one tree (clean, no spurious
+    whitespace dirt survives for the successor's ack), and a REAL one-cell
+    row change must still read dirty until committed (falsifier: the
+    dirty-gates are never weakened)."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    seed = subprocess.run(
+        ["git", "-C", str(tmp_path), "show",
+         f"HEAD:{_rel(top, seats)}"],
+        capture_output=True, text=True).stdout
+    assert seed.endswith("\n")                  # seed committed ends 0x0a
+    # (1) the LIVE spawn-row write: set_fm-only identity cells.
+    out = rotate._successor_row_write(
+        root, actor="belam", seat="belam", role="prime_director",
+        session_ref="f52a4c", generation=7, window="")
+    assert "config:seats row" in out and "belam" in out
+    blob = seats.read_bytes()
+    assert blob and blob[-1] == 0x0a              # 0x0a, never 0x2e
+    assert not blob.endswith(b"\n\n")            # never two newlines
+    # a REAL one-cell row change still reads dirty (never treated as clean).
+    assert rotate._ack_seats_dirty(root, top, "belam") is not None
+    # (2) rotate-self commits its own spawn-row write in ONE tree (g15.24).
+    comm = rotate._commit_spawn_row(
+        root, seat="belam", generation=7, window="")
+    assert "spawn_row_commit: committed" in comm, comm
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == ""                # clean — no spurious dirt
+    # the successor's ack now finds seats.md clean (own row already committed).
+    assert rotate._ack_seats_dirty(root, top, "belam") is None
+    assert seats.read_bytes()[-1] == 0x0a
+
+
+def test_ack_gate_reads_whitespace_only_delta_clean(tmp_path, monkeypatch):
+    """CLAIM-2 ack gate (`_ack_seats_dirty` via `_seats_diff_has_own_row`):
+    a seats.md working copy whose ONLY delta vs HEAD is a missing EOF newline
+    (the one-serializer EOJ dirt) reads CLEAN — the gate returns None, never
+    refusing the successor's ack. FALSIFIER pair: a REAL one-cell row change
+    still reads dirty, and an INTERIOR whitespace change still reads dirty —
+    only trailing whitespace / the EOF newline is folded clean."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    assert seats.exists()
+    # (1) whitespace-only: drop ONLY the EOF newline from the working copy.
+    seats.write_bytes(seats.read_bytes().rstrip(b"\n"))
+    assert rotate._ack_seats_dirty(root, top, "belam") is None
+    # (2) a REAL one-cell change (interior content) stays dirty — never clean.
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"effort": "max"', '"effort": "low"'), encoding="utf-8")
+    assert rotate._ack_seats_dirty(root, top, "belam") is not None
+    # (3) an INTERIOR whitespace change on the OWN row line (mid-line, not
+    # line-trailing) stays dirty; only trailing whitespace / EOF newline is
+    # folded clean.
+    subprocess.run(["git", "-C", str(top), "checkout", "--", str(seats)],
+                   check=True)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"model": "x"', '"model":  "x"'), encoding="utf-8")
+    assert rotate._ack_seats_dirty(root, top, "belam") is not None
+    # (4) STAGED whitespace-only (index-vs-HEAD, the cached=true diff) is
+    # clean too.
+    subprocess.run(["git", "-C", str(top), "checkout", "--", str(seats)],
+                   check=True)
+    seats.write_bytes(seats.read_bytes().rstrip(b"\n"))
+    subprocess.run(["git", "-C", str(top), "add", str(seats)], check=True)
+    assert rotate._ack_seats_dirty(root, top, "belam") is None
+
+
 def test_ack_continue_commits_own_row_write(tmp_path, monkeypatch, capsys):
     """r3b falsifier 1: `continue` COMMITS the row it just back-filled — the
     tree is clean, exactly ONE new commit whose diff-tree lists seats.md only

@@ -128,6 +128,26 @@ def test_identity_and_completion_fields_are_refused(project):
             write.verb_unset(e, key)
 
 
+def test_verb_set_refuses_a_value_that_would_render_a_bare_dash_line():
+    """Writer-side belt, residue (2): a `--set` value whose only raw-emitted
+    shape (a list string item — scalars collapse their newlines in `_scalar`)
+    would land a line that is exactly `---` at column 0 in the frontmatter
+    must be refused, because the shared line-anchored reader
+    (`frontmatter.split_frontmatter`) would mistake it for the closing
+    marker and silently cut the file short."""
+    e = write.Edit("hypothesis:h1")
+    with pytest.raises(write.EditError, match="bare `---` line"):
+        write.verb_set(e, "parents", "[a\n---\nb]")
+    # A nested dict carrying such a list is caught too.
+    with pytest.raises(write.EditError, match="bare `---` line"):
+        write.verb_set(e, "rows", '[{"x": ["a\n---\nb"]}]')
+    # Harmless values still set.
+    write.verb_set(e, "status", "active")
+    write.verb_set(e, "title", "the --- and --- again")
+    assert e.set_fm["status"] == "active"
+    assert e.set_fm["title"] == "the --- and --- again"
+
+
 # --------------------------------------------------------------------------
 # The two callers run the identical operations
 # --------------------------------------------------------------------------
