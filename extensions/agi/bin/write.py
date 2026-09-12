@@ -63,6 +63,7 @@ import locations  # noqa: E402
 import node_writer  # noqa: E402
 import links  # noqa: E402
 import geometry_config  # noqa: E402
+import frontmatter  # noqa: E402  # the ONE line-anchored boundary rule
 
 #: Frontmatter keys this module stamps on every submitted edit.
 PROVENANCE_ACTOR = "edited_by"
@@ -167,25 +168,51 @@ class Edit:
 # agent on a command line. That is the constraint, not a coincidence.
 # --------------------------------------------------------------------------
 
-def _emits_bare_marker(v) -> bool:
-    """True when `v` would render a frontmatter line that is exactly `---`
-    (column 0), which the line-anchored shared reader would mistake for the
-    closing marker (hypothesis:l4-one-line-anchored-frontmatter-reader-...).
+def _marker_bad_line(line: str) -> bool:
+    """True when `line` is one the shared line-anchored reader would split
+    on: a line exactly `---` (frontmatter.py's `_FM_LINE` — the ONE boundary
+    rule, IMPORTED here, never re-spelled) or an open `<!-- THOUGHT:` marker
+    (the authored-region begin)."""
+    return (frontmatter._FM_LINE.match(line) is not None
+            or "<!-- THOUGHT:" in line)
 
-    Scalars collapse their newlines in `_scalar` (`.replace("\n", " ")`) and
-    are quoted when they carry a `---` run, so they cannot emit one; the only
-    shape whose newlines survive is a **list string item**, which
-    `_render_value` emits raw as `- <item>`."""
-    if isinstance(v, list):
-        for item in v:
+
+def _refuse_marker_value(key: str, value) -> str | None:
+    """Return a ONE-LINE refusal (naming `key`) when `value` would write a
+    frontmatter region the shared line-anchored reader (`frontmatter.py`) or
+    the thought extraction would mis-read — a line exactly `---` (the ONE
+    boundary rule, imported not re-spelled) or an open `<!-- THOUGHT:` marker.
+    None when the value is safe.
+
+    Used by BOTH `set` and `create --set` (claim 6b, hypothesis:
+    l4-prepare-check-2-reads-the-index-blob-...): a value the reader would
+    split on is refused by the writer identically through either verb, so
+    create never lands a bare-marker value the reader then mis-splits.
+    Scalars collapse their newlines (`_scalar`) and are quoted when they carry
+    a `---` run, so the shapes whose marker content survives rendering are
+    list-string items (emitted raw as `- <item>`) and the THOUGHT marker
+    substring in any string form."""
+    if isinstance(value, list):
+        for item in value:
             if isinstance(item, str):
-                if any(ln == "---" for ln in item.split("\n")[1:]):
-                    return True
-            elif _emits_bare_marker(item):
-                return True
-    elif isinstance(v, dict):
-        return any(_emits_bare_marker(x) for x in v.values())
-    return False
+                # a list item renders RAW as `- <item>`; lines after the
+                # first survive at column 0 (the danger lines).
+                if any(_marker_bad_line(ln)
+                       for ln in item.split("\n")[1:]):
+                    return (f"cannot set {key!r}: the value would render a "
+                            "bare `---` line or an open THOUGHT marker, "
+                            "which the shared line-anchored reader would "
+                            "mistake for the closing frontmatter marker")
+            else:
+                nested = _refuse_marker_value(key, item)
+                if nested:
+                    return nested
+    elif isinstance(value, dict):
+        return _refuse_marker_value(key, list(value.values()))
+    elif isinstance(value, str) and "<!-- THOUGHT:" in value:
+        return (f"cannot set {key!r}: the value carries an open "
+                "THOUGHT marker")
+    return None
 
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
@@ -197,11 +224,9 @@ def verb_set(edit: Edit, key: str, value: str) -> Edit:
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
     coerced = _coerce(value)
-    if _emits_bare_marker(coerced):
-        raise EditError(
-            f"cannot set {key!r}: the value would render a bare `---` line, "
-            f"which the shared line-anchored reader would mistake for the "
-            f"closing frontmatter marker")
+    refusal = _refuse_marker_value(key, coerced)
+    if refusal:
+        raise EditError(refusal)
     edit.set_fm[key] = coerced
     return edit
 
@@ -1823,7 +1848,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: --set expects k=v, got {pair!r}", file=sys.stderr)
                 return 2
             k, v = pair.split("=", 1)
-            set_fm[k.strip()] = _coerce(v.strip())
+            k, v = k.strip(), _coerce(v.strip())
+            # claim 6b: `create --set` runs the SAME marker guard as `set` —
+            # a value the shared reader would split on is refused here too
+            # (exit 2, one line naming the key), never landed into the
+            # frontmatter for the reader to mis-split.
+            refusal = _refuse_marker_value(k, v)
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
+            set_fm[k] = v
         if args.dry_run:
             print(f"create {args.script}:{args.slug}")
             print(f"  parents  {args.parents or '(none)'}")

@@ -122,14 +122,30 @@ def test_byte_identical_reads_on_twenty_real_nodes():
         assert frontmatter.read_frontmatter(text) == _legacy_read(text), p
 
 
-def test_spawn_gate_reads_the_dash_carrying_target():
-    """(c) live reproduction fixed: spawn_gate resolves the target node's id."""
+def test_spawn_gate_reads_a_dash_carrying_tmp_node(tmp_path):
+    """(c) claim 6c/SL7.17 (hypothesis:l4-prepare-check-2-reads-the-index-blob...):
+    the dash-carrying reproducer is a TMP node written by the test — never a
+    path under the LIVE nodes dir, so renaming or retiring a live node can
+    never break the suite. spawn_gate reads the tmp node's frontmatter with
+    the dashes intact (the guard test keeps its repo-wide grep; only the
+    fixture moves)."""
     from spawn_gate import _read_frontmatter  # noqa: E402
-    path = _live_nodes_dir() / "hypothesis" / "l4-one-line-anchored-frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-spawning.md"
-    assert path.exists(), f"target node missing: {path}"
-    fm = _read_frontmatter(path)
-    assert fm is not None, "spawn_gate._read_frontmatter still reads None — split still cuts the dashes"
+    node = tmp_path / "hypothesis" / "l4-dash-carrying-tmp-target.md"
+    node.parent.mkdir(parents=True)
+    node.write_text(
+        "---\n"
+        f"id: {TARGET_ID}\n"
+        "title: 'a --- run inside the title'\n"
+        "testable_claim: 'the --- and --- again'\n"
+        "---\n"
+        "body below\n",
+        encoding="utf-8")
+    assert node.exists(), f"tmp node missing: {node}"
+    fm = _read_frontmatter(node)
+    assert fm is not None, "spawn_gate._read_frontmatter read None — split still cuts the dashes"
     assert fm.get("id") == TARGET_ID, fm
+    assert fm.get("title") == "a --- run inside the title", fm
+    assert fm.get("testable_claim") == "the --- and --- again", fm
 
 
 def test_migrated_evidence_gate_reader_matches_legacy_on_real_nodes():
