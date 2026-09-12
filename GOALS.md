@@ -6634,6 +6634,8 @@ SL7.93 HARVESTED 19:50Z on the sensei-director post (f1572e413): the after_join 
 
 SL7.98 HARVESTED 19:54Z on the sensei-director post (4553ce08c): every after_join performer derives pred_pids through _derive_pred_pids (the record's s12 reap chain, else the predecessor row; the dry-run branch names the refusal instead of dry: True), the rotate-self own tail routes through run_after_join_for_seat's liveness/age gate (late / age_s / performed_after_s, performer tail, its own join passed so the dead-seat skip cannot fire, its own delay honoured), _seat_has_live_session reads the row's window cell pid-first; kids lean 60 + proved 0.9; one signature hunk vs SL7.93 unioned (type_input + the tail kwargs); nbhd 872/3. Rides SL2#26
 
+SL7.94 HARVESTED 20:04Z on the sensei-director post: rotation_alert.py runs the P7 outside-project check BEFORE the rc-3 no-transcript refusal (outside a project: exit 0, silent), prints no fraction when no post resolved (pin_missing = not seat or the canonical pin absent), estimates turn 1 from the payload's prompt field not the envelope, and imports rotate off the pin-only path (the band/ladder helpers keep their lazy import); kid proved 0.85; three existing tests amended to the new order, +tests; hook nbhd 116/3. Rides SL2#26
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
