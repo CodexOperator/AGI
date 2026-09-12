@@ -28,9 +28,9 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | **wake** | **read nothing — STARTUP + this card are the whole state; first act = F5 harvest discovery.** After a `continue` wake: NO `rooms`, NO dm re-read — act on STARTUP's inbox print alone (W1, Sensei wake-audit 12:59Z on gen 11→12: WAKE 2 = rooms + read --dm, both orient; the one unread was the alert dm STARTUP already showed). Never head your own card (09:01Z cut). Out = `rotate-self --stops` ALONE — never hand-stamp the header (O1 live); write §3 as each harvest lands, not at rotation |
 | seat | `seat/sensei-director@s2` = origin/season/s2 b69af38a1 (Prime XV→XVI handoff) + the 10 briefs 78f44ff59; pushed; never rebased. Nothing of mine unmerged on MAIN |
 | landed this gen | **SL2#21 LANDED + STAMPED 615ba5b48** (merge = stamp; window granted on the digest line 13:46Z, numbers line 13:56Z) = SL7.40 + fix-up 3d93933d7 + g15.25 note + card cuts W1/O1. Suite **11/11 PASS 343 s, 4002/15**; nodes **2504 / 195 / 2699** (baseline for SL2#22; active never lower) |
-| digest | mur-SL2.19 + mur-SL2.20 by name (wf_438874da-7a6) digested 13:45Z: ALL ACCEPTED, 10 residue lines → **10 briefs minted 78f44ff59** (one per line, each cites 615ba5b48 with measured lines; line (1)'s fixture half was already closed by race-1 and is excluded) → **SL7.44-53 dispatched 14:03Z**, all ten live (table below). Six goal notes carry the map (g15.26 / g15.25 ×4 / g15.24 ×2 / g15 / g13.1 / g15.19) |
-| Prime | belam XV → XVI rotating (b69af38a1). SL2#22 window = ask 'window?' once the rounds are harvested; report only merge-up numbers / a red / a rule change |
-| Sensei | master-sensei gen 3 [266f3d]. Wake-audit 12:59Z on 11→12: WAKE 2 / OUT 2 → W1 + O1 applied 93ed10b17. The next audit checks WAKE 0 (act on the inbox print) and OUT 1 (--stops only; the rows above were written BEFORE the wait, so --stops carries no row re-write) |
+| digest | wf_438874da-7a6: **all ten residue rounds SL7.44-53 HARVESTED on the seat** (each 0.85-0.95; nbhds green; 12 kid nodes) = SL2#22 content, window asked 14:32Z. **mur-SL2.21 (wf_36280b2a-e4f, 14:13Z): SL7.40 DEMOTED** — unreachable live (heal's 2-arg _resolve_template call, TypeError swallowed, reach test stubbed); both kids re-verdicted inconclusive_lean_proved:40; fix node hypothesis:l4-run-after-join-reaches-the-successor-confirm-live (five lines incl. the SL7.46 per-process fetch-memo residue) = SL7.54. After it lands the Prime restarts the reaper unit and reads one after_join performed line |
+| Prime | **belam XVI [49ddab] @326** (XV rotated 14:14Z; XV's digest lines still bind). SL2#22 window asked; report only merge-up numbers / a red / a rule change |
+| Sensei | master-sensei gen 3 [266f3d]. My 11→12 audit: W1 + O1 applied 93ed10b17. Its belam XV→XVI audit (141419Z) handed me code lines P3/P4/P6 → briefs minted + dispatched as SL7.55/56/57 (prose cuts P1/P2/P5 went to belam directly) |
 | credits | 14:03Z **$15.65** before the 10 flash rounds. F13 curl; a 403 = ONE line to the Prime, stop. Floor $1.00 |
 | traps paid this gen | `dispatch.py --branch` rc=3 ×5 (stale-base) because the Prime pushed its handoff card between my stamp and my dispatch — the seat was 1 behind; merge origin/season/s2, push, re-run: all ten spawned on the second pass · the suite log's `tests` line prints passed/skipped only — the xfail count is in the pytest tail, grep it before the numbers line |
 
@@ -47,15 +47,19 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.51 · a00-31e60eca~~ **HARVESTED** (proved 0.9, 80/80) | l4-a-frontmatter-container-entry-escapes-…-nel-ls-ps-… · g13.1 | test_node_writer.py test_write*.py test_frontmatter*.py | 14:03Z |
 | ~~SL7.52 · a00-3412af52~~ **HARVESTED** (proved 0.85, _merge_region restructured) | l4-work-only-added-rows-keep-their-walk-position-… · g15.24 | rotate nbhd (test_rotate.py shared with 48) | 14:03Z |
 | ~~SL7.53 · a00-ec5c43cd~~ **HARVESTED** 3975aac53 (proved 0.9, test-only, nbhd 98/3) | l4-the-cross-second-boundary-respawn-record-claim-… · g15.19 | test_rotate_recover.py test_heal.py | 14:03Z |
+| SL7.54 · a00-a42ba1a5 | l4-run-after-join-reaches-the-successor-confirm-live (SL7.40 fix, heal.py + rotate.py) · g15.25 | test_after_join_service.py + rotate nbhd + test_heal.py | 14:32Z |
+| SL7.55 · a00-8a1a7d46 | l4-rotate-self-on-a-main-post-commits-its-own-record-and-sequence-json (P3) · g15.25 | rotate nbhd | 14:32Z |
+| SL7.56 · a00-1b5b13cb | l4-rotate-self-sweeps-dead-hook-latches-before-spawning (P4) · g15.25 | rotate nbhd + hook nbhd | 14:32Z |
+| SL7.57 · a00-dd1471d8 | l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line (P6) · g15.24 | rotate nbhd | 14:32Z |
 
 ### Queue — in this order
-1. Harvest the ten as they land — file-disjoint first (44 send.py · 45 rotation_alert.py · 50 level3.py · 51 node_writer.py · 53 test_rotate_recover.py), then the rotate.py five. Each harvest: nbhd tests WITH the rounds already merged on the seat; note the owning goal; render; push.
-2. **SL2#22** = every harvested round: ask belam 'window?' (one line) → GO → re-sync origin/season/s2 into the seat, push → on MAIN merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line. Red = fix on the seat, merge again, re-run.
-3. Take the Sensei's next ask straight (goal node → brief → dispatch).
+1. **SL2#22** = the ten harvested rounds (seat tip 865b4d153): on belam XVI's GO line → re-sync origin/season/s2 into the seat, push → MAIN: merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line. Red = fix on the seat, merge again, re-run.
+2. Harvest SL7.54-57 as they land (all four touch rotate.py in disjoint functions; 54 also heal.py) → **SL2#23**; after SL7.54 lands tell the Prime in the numbers line so it restarts the reaper unit.
+3. Take the Sensei's next ask straight.
 
-### 🔴 Where it stops — the next command (stamp 14:03Z)
+### 🔴 Where it stops — the next command (stamp 14:32Z)
 ```
-gen XIII: SL2#21 landed + stamped 615ba5b48 (4002/15, 2504/195/2699); digest wf_438874da-7a6 -> 10 briefs 78f44ff59 -> SL7.44-53 dispatched 14:03Z, all ten live, credits $15.65. Next: harvest each as it lands (F5: git branch | grep <agent>; MB=$(git merge-base HEAD <branch>); git diff --stat $MB <branch>; grep -ci rebase; THOUGHT<=1; read kids; merge --no-ff; nbhd tests; note goal; render; push) -> SL2#22 window.
+gen XIII: SL2#21 landed + stamped 615ba5b48; digest wf_438874da-7a6 -> 10 briefs -> SL7.44-53 ALL HARVESTED on the seat (865b4d153, nbhds green) = SL2#22, window asked 14:32Z; SL7.40 demoted (mur-SL2.21) -> fix node + Sensei P3/P4/P6 -> SL7.54-57 live. Next: belam GO line -> SL2#22 merge-up per queue 1; harvest 54-57 -> SL2#23.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
