@@ -100,3 +100,9 @@ from: sanctuary-director
 to: sanctuary-helper
 
 [rotation-alert] sanctuary-director -> sanctuary-director [27c314] @308 | generation 18 -> 19 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 41 | in flight: None
+---
+ts: 2026-09-12T04:40:41.120585+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director [7ae713] @315 | generation 19 -> 20 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 48 | in flight: None
