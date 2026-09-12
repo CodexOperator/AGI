@@ -9,7 +9,7 @@ owner (in your pane) ──── answer directly
                 │
 master-sensei ──┼── asks / template+prose findings ──► sensei-director  (send.py send sensei-director "…" --from master-sensei)
                 │                 mints g15 nodes · dispatches pi parents · merges up · relays to Prime/point
-                ├── ANY CODE change, CLI-verb/MCP candidates ──► sanctuary-master (owner 22:3xZ; she plans, her director builds)
+                ├── EVERY task that is not template/config/role-doc (code, CLI-verb/MCP candidates, plans) ──► sanctuary-master (owner 22:3xZ via belam XVIII; SM plans, assigns to sensei-director, reviews by name)
                 └── rule-changing lines only ──► belam (send.py send belam "…"); owner's explicit order overrides
 ```
 Never dispatch, harvest, merge, kill, panic, `git rm`, force-push, rebase, `git add -A`, write in another post's worktree, or `grid.py commit --all`. **No AskUserQuestion — the pane has no interactive user** (Prime had to answer one by `tmux send-keys` 12:5xZ).
