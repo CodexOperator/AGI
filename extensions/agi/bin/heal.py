@@ -1201,14 +1201,64 @@ def _rotation_before_after(rec: dict) -> tuple:
     return before, after
 
 
+def _record_join(rec: dict) -> dict:
+    """The rotation record's JOIN (successor) identity, read ONCE through a
+    single accessor named the same as rotate.py's — SL7.09 adds rotate.py's
+    copy, same name, same shape; each module owns its own copy until a shared
+    home exists (`_rotation_identity` routes the succ identity through this).
+    Reads BOTH durable record shapes:
+      rotate-self:   `handover.join.{pid,window_id}` and
+                     `handover.successor_window.id`
+      crash-recovery: TOP-LEVEL `window_id` ONLY. `_write_crash_recovery`
+                     emits NO top-level `pid` and NO top-level `session_id`
+                     (the dead predecessor's pid/session ride in the nested
+                     `row`; the successor's real pid in `respawn_outcome`),
+                     so this branch reads exactly the one identity field the
+                     producer actually writes — earlier hand-rolled dicts
+                     with top-level pid/session_id satisfied the words, but
+                     no real record carries them (experiment:a00-8584ff07).
+    Missing/malformed fields never raise; absent join identity yields an
+    empty dict."""
+    join: dict = {}
+    if not isinstance(rec, dict):
+        return join
+    hand = rec.get("handover")
+    if isinstance(hand, dict):
+        jn = hand.get("join")
+        if isinstance(jn, dict):
+            if jn.get("pid") is not None:
+                join.setdefault("pid", str(jn.get("pid")))
+            if jn.get("window_id") is not None:
+                join.setdefault("window_id", str(jn.get("window_id")))
+        sw = hand.get("successor_window")
+        if isinstance(sw, dict) and sw.get("id") is not None:
+            join.setdefault("window_id", str(sw.get("id")))
+    # crash-recovery shape: TOP-LEVEL `window_id` only (the recovery-target
+    # window; the successor pid/session are NOT top-level — see docstring).
+    # UNREACHABLE from the watcher today: rotate._rotation_record_files
+    # excludes `rotation: crash-recovery` records and `_success_record_rotated`
+    # gates on result == "success" (a recovery record reads respawned/detected),
+    # so no production path feeds a crash-recovery record here. This branch
+    # exists for direct accessor tests and any future reader that bypasses
+    # the exclusion; do NOT lower the guard to make it reachable — a recovery
+    # record's successor is the RESPAWN TARGET, not a rotation predecessor
+    # (experiment:a00-8584ff07-645be9).
+    if join.get("window_id") is None and rec.get("window_id") is not None:
+        join["window_id"] = str(rec.get("window_id"))
+    return join
+
+
 def _rotation_identity(rec: dict) -> tuple[list, list, list, list]:
     """Extract the rotation record's identity fields ONCE, nothing else:
     returns `(pred_pids, pred_windows, succ_pids, succ_windows)`.
     - pred_* : the RETIRED predecessor's identity -- `s12_self_reap.chain[*].pid`
       (its process chain) and `handover.own_window.id` (its window @id).
-    - succ_* : the SUCCESSOR's identity -- `handover.join.pid` /
-      `handover.join.window_id` / `handover.successor_window.id` (the process
-      and window the rotate-self spawned and joined).
+    - succ_* : the SUCCESSOR's identity -- read through the single `_record_join`
+      accessor (`handover.join.pid` / `handover.join.window_id` /
+      `handover.successor_window.id` on a rotate-self record; a crash-recovery
+      record contributes its TOP-LEVEL `window_id` ONLY -- it carries no
+      top-level pid/session_id), so BOTH shapes yield what each actually
+      writes, nothing more.
     Missing or malformed `s12_self_reap`/`handover` never raises -- absent
     identity simply yields empty lists (an OLDER record with no identity
     fields), which the caller treats as the gen/age fallback."""
@@ -1226,15 +1276,11 @@ def _rotation_identity(rec: dict) -> tuple[list, list, list, list]:
         ow = hand.get("own_window")
         if isinstance(ow, dict) and ow.get("id") is not None:
             pred_windows.append(str(ow.get("id")))
-        sw = hand.get("successor_window")
-        if isinstance(sw, dict) and sw.get("id") is not None:
-            succ_windows.append(str(sw.get("id")))
-        jn = hand.get("join")
-        if isinstance(jn, dict):
-            if jn.get("pid") is not None:
-                succ_pids.append(str(jn.get("pid")))
-            if jn.get("window_id") is not None:
-                succ_windows.append(str(jn.get("window_id")))
+    jn = _record_join(rec)
+    if jn.get("pid") is not None:
+        succ_pids.append(jn["pid"])
+    if jn.get("window_id") is not None:
+        succ_windows.append(jn["window_id"])
     return pred_pids, pred_windows, succ_pids, succ_windows
 
 
@@ -2185,6 +2231,16 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # (1d) a rotation in flight is not a crash.
     if _rotation_in_flight(root, seat, _rotate, now, row=row):
         return {}
+    # (2b) the DEAD path still names WHY, even when the record was not a
+    # rotation: the record's succ-dead arm proved the row IS the successor
+    # the record joined, and that successor is gone. EVERY arm that decides
+    # reaches the log -- succ-dead was the one SL7.01 left invisible (its
+    # `None` return fell straight through to the generic DEAD line).
+    if _arm == "succ-dead":
+        line = (f"seat {seat}: DEAD — arm=succ-dead (row pid {pid} is the "
+                f"successor the record joined, and it is gone)")
+        print(line, file=sys.stderr)
+        _watch_log(f"watch: {line}")
 
     cause = _classify_death(_read_seat_log_tail(root, row, _rotate))
     recover = bool(row.get("recover", True))
