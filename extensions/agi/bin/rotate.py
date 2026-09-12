@@ -9320,12 +9320,39 @@ def _fd_seat_agent_ids(root: Path, main: Path, seat: str) -> set[str]:
 
 
 def _fd_agent_from_branch(branch: str) -> str:
-    """The agent id embedded in a round branch name, `loop/<slug>-a00-XXXXXX
-    XX@s<N>` — the `a00-<hex>` run immediately before the `@s<N>` season tag
-    (the dispatch convention, F5). Returns '' when the branch carries none,
+    """The agent id embedded in a round branch name, in EITHER spelling of
+    the dispatch convention (F5): canonical
+    `season<n>/loops/<slug>-a00-XXXX`, or legacy `loop/<slug>-a00-XXXX@s<N>`
+    — the trailing `a00-<hex>` run. Returns '' when the branch carries none,
     so a manually-cut branch is unresolvable and never credited."""
-    m = re.search(r"(a00-[0-9a-zA-Z]+)@s\d+$", branch)
+    seg = re.sub(r"@s\d+$", "", branch).rsplit("/", 1)[-1]
+    m = re.search(r"(a00-[0-9a-zA-Z]+)$", seg)
     return m.group(1) if m else ""
+
+
+def _branch_loop(short: str) -> tuple[bool, int | None]:
+    """(is_round, season) for a branch short name, classified through
+    branches.parse — the ONE branch-name grammar. A round is a branch whose
+    kind is loop in EITHER spelling: canonical
+    `season<n>/loops/<slug>-<agent>` (kind == "loop"), or the deprecated
+    `loop/<slug>-<agent>@s<n>` (which parse returns as an "alias" whose
+    canonical is the loop). Any other kind (main, post, town, alias to a
+    non-loop) yields (False, None); an unparseable foreign branch is
+    skipped, never refused."""
+    try:
+        parsed = branches.parse(short)
+    except ValueError:
+        return False, None
+    if parsed["kind"] == "loop":
+        return True, parsed["season"]
+    if parsed["kind"] == "alias":
+        try:
+            canon = branches.parse(parsed["canonical"])
+        except ValueError:
+            return False, None
+        if canon["kind"] == "loop":
+            return True, canon["season"]
+    return False, None
 
 
 def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict]:
@@ -9364,16 +9391,25 @@ def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict
     printed is exactly what the merge line harvests with."""
     m = re.search(r"@s(\d+)$", seat_branch)
     season = m.group(1) if m else "2"
-    rc, out, _ = _fd_git(main, "branch", "--list", f"loop/*@s{season}")
+    # Enumerate local refs ONCE and classify in Python through
+    # branches.parse (the ONE branch-name grammar) — NOT a second `loop/`
+    # `@s<N>` glob. A round is any branch whose kind is loop (canonical
+    # `season<n>/loops/<slug>-<agent>` OR the deprecated
+    # `loop/<slug>-<agent>@s<n>`) in THE SEAT's season. The eager
+    # `loop/*@s{season}` glob only ever matched the legacy spelling, so a
+    # round cut on the canonical grammar was invisible to first-decision.
+    rc, out, _ = _fd_git(main, "for-each-ref", "--format=%(refname:short)",
+                         "refs/heads")
     if rc != 0:
         return []
     own_ids = _fd_seat_agent_ids(root, main, seat)
     rounds = []
     for line in out.splitlines():
-        # `git branch --list` prefixes `*` (current) / `+` (checked out in a
-        # linked worktree); strip all of it before the loop/ check.
-        branch = line.strip().lstrip("*+").strip()
-        if not branch or not branch.startswith("loop/"):
+        branch = line.strip()
+        if not branch:
+            continue
+        is_loop, bseason = _branch_loop(branch)
+        if not is_loop or bseason is None or bseason != int(season):
             continue
         rc_a, _, _ = _fd_git(main, "merge-base", "--is-ancestor",
                              branch, seat_branch)
@@ -11067,12 +11103,16 @@ def _harvest_loop_branches(main: Path) -> dict[str, tuple[str, int]]:
     """
     mapping: dict[str, tuple[str, int]] = {}
     out = _git_out(main, "for-each-ref", "--format=%(refname:short)",
-                   "refs/heads/loop")
+                   "refs/heads")
     for ln in out.splitlines():
-        m = re.match(r"^(.*)-(a00-[0-9a-f]{8})@s(\d+)$", ln.strip())
-        if not m:
+        branch = ln.strip()
+        is_loop, season = _branch_loop(branch)
+        if not is_loop or season is None:
             continue
-        mapping.setdefault(m.group(2), (ln.strip(), int(m.group(3))))
+        agent = _fd_agent_from_branch(branch)
+        if not agent:
+            continue
+        mapping.setdefault(agent, (branch, season))
     return mapping
 
 
