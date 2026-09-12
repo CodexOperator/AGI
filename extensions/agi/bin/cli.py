@@ -2283,11 +2283,20 @@ def _post_rename_rewrite(text: str, names: list) -> str:
 # never the live tree unless --root is omitted (the Prime's job).
 # ---------------------------------------------------------------------------
 
-_RS_SEASON_RE = re.compile(r"^season/s(\d+)$")
-_RS_TOWN_RE = re.compile(r"^town/(.+?)/season/s(\d+)$")
-_RS_LOOP_RE = re.compile(r"^loop/(.+?)@s(\d+)$")
-_RS_SEAT_RE = re.compile(r"^seat/(.+?)@s(\d+)$")
-_RS_LEGACY_RE = re.compile(r"\b(season/s\d+|town/[^\s\"',:]+/season/s\d+|loop/[^\s\"',:]+@s\d+|seat/[^\s\"',:]+@s\d+)\b")
+# The ONE grammar owner is branches.py (hypothesis:l4-branches-follow-the-
+# season-grammar). These two regexes are NOT a second grammar: _RS_POST_RE is
+# the single escape hatch for post-rename's intermediate seat target
+# `post/<name>@s<N>` (which branches.py does not know, because post-rename is
+# a sibling migration), and _RS_TOKEN_RE only DETECTS legacy-looking tokens
+# inside prime-owned cell prose so _reshuffle_cell_edits can hand each one to
+# branches.parse for the actual canonicalisation. Every rename DECISION runs
+# through branches.parse.
+_RS_POST_RE = re.compile(r"^post/(.+?)@s(\d+)$")
+_RS_TOKEN_RE = re.compile(
+    r"\b(?:season/s\d+|town/[^\s\"',:]+(?:/season/s\d+|@s\d+)?"
+    r"|loop/[^\s\"',:]+@s\d+|seat/[^\s\"',:]+@s\d+"
+    r"|post/[^\s\"',:]+@s\d+)\b")
+
 
 # Cell files whose legacy branch spellings the migration PROPOSES to rewrite
 # but must never edit directly (Prime-owned graph cells).
@@ -2297,27 +2306,26 @@ _RS_CELL_FILES = [
 ]
 
 
-def _reshuffle_canonical(branch: str, season: int) -> str | None:
+def _reshuffle_canonical(branch: str, season: int = 0) -> str | None:
     """Canonical season-grammar name for a legacy `branch`, or None when it is
-    already canonical / not legacy. Each mapping is the inverse of
-    branches.py `_canonical_to_old`:
-      season/s<N>          -> season<N>/main
-      town/<t>/season/s<N> -> season<S>/<t>/season<N>/main   (S = root season)
-      loop/<slug>@s<N>     -> season<N>/loops/<slug>
-      seat/<name>@s<N>     -> season<N>/posts/<name>
-    None leaves a feature branch or an already-canonical name alone."""
-    m = _RS_SEASON_RE.match(branch)
+    already canonical / not a legacy alias. The ONE grammar owner is
+    branches.py: an alias is routed through parse(b)['canonical']. The only
+    name branches.py does not know is post-rename's own output
+    `post/<name>@s<N>` (the seat->post move's intermediate target), which is
+    finished here via post_branch so post-rename THEN branch-reshuffle COMPOSE
+    (hypothesis:l4-branches-follow-the-season-grammar, mur-44 defect 5).
+    `season` is retained for call-compatibility but is not consulted: the
+    alias grammar bakes the seasons in."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        p = branches.parse(branch)
+    except ValueError:
+        p = None
+    if p is not None and p.get("kind") == "alias" and p.get("canonical"):
+        return p["canonical"]
+    m = _RS_POST_RE.match(branch)
     if m:
-        return f"season{m.group(1)}/main"
-    m = _RS_TOWN_RE.match(branch)
-    if m:
-        return f"season{season}/{m.group(1)}/season{m.group(2)}/main"
-    m = _RS_LOOP_RE.match(branch)
-    if m:
-        return f"season{m.group(2)}/loops/{m.group(1)}"
-    m = _RS_SEAT_RE.match(branch)
-    if m:
-        return f"season{m.group(2)}/posts/{m.group(1)}"
+        return branches.post_branch(int(m.group(2)), m.group(1))
     return None
 
 
@@ -2402,7 +2410,7 @@ def _reshuffle_cell_edits(root: Path, season: int, jobs: list[dict]) -> list[str
         if not p.exists():
             continue
         for ln, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
-            for tok in _RS_LEGACY_RE.findall(line):
+            for tok in _RS_TOKEN_RE.findall(line):
                 new = _reshuffle_canonical(tok, season)
                 if new and new != tok:
                     edits.append(f"  {rel}:{ln}: {tok} -> {new}")
@@ -2445,16 +2453,56 @@ def _reshuffle_kind(canonical: str) -> str:
         return ""
 
 
+
+def _rs_plan_path(root: Path) -> Path:
+    """Resumability + origin-moved baseline for branch-reshuffle, under the
+    graph root's sessions/ dir (gitignored scratch, mirrors
+    post-rename-plan.json)."""
+    return Path(root) / "sessions" / "branch-reshuffle-plan.json"
+
+
+def _rs_save_plan(root: Path, data: dict) -> None:
+    """Atomically (write-then-rename) persist the plan file."""
+    p = _rs_plan_path(root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    tmp.replace(p)
+
+
+def _rs_load_plan(root: Path) -> dict:
+    """The {jobs: {old: {new, origin_sha}}} baseline, or {} when absent."""
+    try:
+        data = _rs_plan_path(root).read_text(encoding="utf-8")
+        loaded = json.loads(data)
+        return loaded if isinstance(loaded, dict) else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _rs_ls_remote_sha(repo: Path, old: str) -> str:
+    """The current origin tip sha of refs/heads/<old>, or '' when origin has
+    no such ref (so a not-yet-pushed baseline never asserts 'moved')."""
+    r = subprocess.run(["git", "ls-remote", "origin", f"refs/heads/{old}"],
+                       cwd=repo, capture_output=True, text=True)
+    line = (r.stdout or "").strip()
+    return line.split("\t")[0] if line else ""
+
+
+
 def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     """hypothesis:l4-branches-follow-the-season-grammar clause 3 — the one
-    migration script. --dry-run prints exactly what it WOULD do and touches
-    nothing (the default when neither --apply nor --delete-old is given).
-    --apply performs the local renames, pushes the new remote branch, and
-    re-points every post worktree; it NEVER implies the remote delete. The
-    remote delete is the separate --delete-old step, which refuses unless a
-    green suite stamp exists. The ladder/rotations cell re-spellings are
-    printed as proposals, never written. All git runs are cwd at `repo`
-    derived from --root, so an --apply against a fixture is hermetic."""
+    migration script. --dry-run prints exactly what it WOULD do and writes
+    only the gitignored sessions/branch-reshuffle-plan.json baseline (the
+    default when neither --apply nor --delete-old is given).
+    --apply performs the local renames, pushes the new remote branch,
+    re-points every post worktree, and sets each renamed branch's upstream to
+    the NEW remote name; it NEVER implies the remote delete. The remote delete
+    is the separate --delete-old step, which REFUSES unless a green suite
+    stamp exists and actually performs the deletes. The ladder/rotations cell
+    re-spellings are printed as proposals, never written. All git runs are cwd
+    at `repo` derived from --root, so an --apply against a fixture is
+    hermetic."""
     root = Path(args.root).resolve() if args.root else _find_root()
     repo = root.parent if root.name == ".agi" else root
     season = _reshuffle_season(root, args.season)
@@ -2476,19 +2524,37 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
         print("branch-reshuffle: no legacy branches to reshuffle")
-        print("dry-run: nothing changed" if not (apply or delete_old) else "")
+        if not (apply or delete_old):
+            print("dry-run: nothing changed")
         return 0
 
     grid_before = _reshuffle_refs_grid(repo)
 
+    # resumability + origin-moved baseline: record each old branch's current
+    # origin tip so an --apply re-run can refuse BY NAME when origin moved
+    # since this baseline was taken. Mirrors post-rename-plan.json.
+    prev_plan = _rs_load_plan(root).get("jobs") or {}
+    remotes = subprocess.run(["git", "remote"], cwd=repo,
+                             capture_output=True, text=True).stdout.split()
+    has_origin = "origin" in remotes
+    if not delete_old:
+        jobs_map = {}
+        for j in jobs:
+            sha = _rs_ls_remote_sha(repo, j["old"]) if has_origin else ""
+            jobs_map[j["old"]] = {"new": j["new"], "origin_sha": sha}
+        _rs_save_plan(root, {"jobs": jobs_map})
+
     # worktree re-points (post worktrees on a renamed branch)
     wts = _reshuffle_worktrees(repo)
     rename = {j["old"]: j["new"] for j in jobs}
-    # ---- step 1: local rename + push new + worktree re-points
+
+    # ---- step 1: local rename + push new + upstream + worktree re-points
     print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)")
     for j in jobs:
         _post_rename_print("branch rename (local)", f"git branch -m {j['old']} {j['new']}", apply)
         _post_rename_print("branch push (new)", f"git push origin {j['new']}", apply)
+        _post_rename_print("branch upstream",
+                           f"git branch --set-upstream-to origin/{j['new']} {j['new']}", apply)
     for wt in wts:
         new = rename.get(wt["branch"])
         if new:
@@ -2497,9 +2563,10 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
 
     # ---- ladder + rotations cell proposals (Prime-owned: print, never write)
     print("  cell re-spellings (PRINTED ONLY, Prime applies them):")
-    for e in _reshuffle_cell_edits(root, season, jobs):
+    edits = _reshuffle_cell_edits(root, season, jobs)
+    for e in edits:
         print(e)
-    if not _reshuffle_cell_edits(root, season, jobs):
+    if not edits:
         print("  (no legacy spellings found in ladder/rotations cells)")
 
     # ---- the remote delete is a SEPARATE step, never implied by --apply
@@ -2513,31 +2580,62 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             print(f"ERR: --delete-old refuses: no green suite stamp at {stamp}",
                   file=sys.stderr)
             return 3
+        # defect 1: --delete-old EXECUTES the deletes it listed, one branch
+        # per APPLY line, in the refs/heads/<old> namespace.
         for j in jobs:
-            _post_rename_print("branch delete (remote)",
-                               f"git push origin --delete {j['old']}", True)
+            print(f"[APPLY] branch delete (remote): git push origin --delete {j['old']}")
+            r = subprocess.run(["git", "push", "origin", "--delete", j["old"]],
+                               cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git push origin --delete {j['old']} failed: "
+                      f"{r.stderr.strip()}", file=sys.stderr)
+                return 1
         print("delete-old: remote legacy branches removed")
         return 0
 
     if apply:
-        # perform the local renames
+        # defect 2: --apply is RESUMABLE and refuses origin moves BY NAME.
         for j in jobs:
-            r = subprocess.run(["git", "branch", "-m", j["old"], j["new"]],
+            old, new = j["old"], j["new"]
+            base_sha = (prev_plan.get(old) or {}).get("origin_sha") or ""
+            if base_sha and has_origin:
+                now_sha = _rs_ls_remote_sha(repo, old)
+                if now_sha and now_sha != base_sha:
+                    print(f"ERR: --apply REFUSES {old}: origin tip moved since "
+                          f"the plan was taken (was {base_sha[:12]}, now "
+                          f"{now_sha[:12]}); re-run --dry-run to re-baseline",
+                          file=sys.stderr)
+                    return 1
+            # an already-renamed branch (old gone, new present) is a finished
+            # job on a resumed run, not a git branch -m failure
+            if not _post_rename_has_branch(repo, old) \
+                    and _post_rename_has_branch(repo, new):
+                print(f"[APPLY] branch rename (local): git branch -m {old} {new}"
+                      "  -- already renamed")
+                continue
+            r = subprocess.run(["git", "branch", "-m", old, new],
                                cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
-                print(f"ERR: git branch -m {j['old']} failed: {r.stderr.strip()}",
+                print(f"ERR: git branch -m {old} failed: {r.stderr.strip()}",
                       file=sys.stderr)
                 return 1
-            # push the new branch to origin if origin exists
-            rem = subprocess.run(["git", "remote"], cwd=repo,
-                                 capture_output=True, text=True)
-            if "origin" in rem.stdout.split():
-                pr = subprocess.run(["git", "push", "origin", j["new"]],
+            if has_origin:
+                pr = subprocess.run(["git", "push", "origin", new],
                                     cwd=repo, capture_output=True, text=True)
                 if pr.returncode != 0:
-                    print(f"ERR: git push origin {j['new']} failed: "
+                    print(f"ERR: git push origin {new} failed: "
                           f"{pr.stderr.strip()}", file=sys.stderr)
                     return 1
+                # defect 3: re-point the upstream to the NEW remote name after
+                # the push (git branch -m alone leaves the old upstream)
+                if not _post_rename_upstream(repo, new):
+                    sr = subprocess.run(["git", "branch", "--set-upstream-to",
+                                         f"origin/{new}", new],
+                                        cwd=repo, capture_output=True, text=True)
+                    if sr.returncode != 0:
+                        print(f"ERR: git branch --set-upstream-to origin/{new} "
+                              f"failed: {sr.stderr.strip()}", file=sys.stderr)
+                        return 1
         # re-point worktrees
         for wt in wts:
             new = rename.get(wt["branch"])
@@ -2556,7 +2654,11 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
               "branches NOT deleted (see --delete-old)")
         return 0
 
+    # defect 5 contract owed to the crons region (KID D): the LAST line of
+    # --dry-run must be the runbook note, kept to one line.
     print("dry-run: nothing changed")
+    print("runbook: a rename needs one `crons.py apply` within the 5-min "
+          "grid_sync window, else `branch_push` keeps pushing the old name")
     return 0
 
 
