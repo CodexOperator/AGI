@@ -1518,6 +1518,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     # at FIRST_SEATING_GEN.
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
+    _srow = None
     if seat is not None:
         # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
@@ -1568,11 +1569,23 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
                 tmux_session=tmux_session, dry_run=args.dry_run)
+    # The SEAT ROW is the model source for a seated spawn, the flags only an
+    # override — the same precedence rotate-self (`cmd_rotate_self`), the
+    # reaper's crash-recovery respawn (heal.py) and seats-launch already use.
+    # Before this, `spawn --seat X` with no --model built the LADDER default
+    # for the tier flag (prime_director -> claude-fable-5-1) against a row
+    # that said claude-sonnet-5: the stream-master's first seating dry-run,
+    # 2026-09-12 00:2xZ. Owner, verbatim (doc:l4-owner-decisions): "Make sure
+    # it only uses sonnet max on rotate and next session spawn. No surprise
+    # fable please." A seat-less spawn (no row) is byte-identical to before.
     rc, _ = spawn_window(
-        name=name, tier=args.tier,
+        name=name, tier=(_fs_role if _srow is not None else args.tier),
         prompt_file=args.prompt_file,
-        model=args.model, effort=args.effort,
-        settings=json.loads(args.settings) if args.settings else None,
+        model=args.model or ((_srow.get("model") if _srow else None) or None),
+        effort=args.effort or ((_srow.get("effort") if _srow else None) or None),
+        settings=(json.loads(args.settings) if args.settings
+                  else _normalize_settings(_srow.get("settings") if _srow
+                                           else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
         successor_argv=getattr(args, "successor_argv", None),
