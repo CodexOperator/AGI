@@ -1268,6 +1268,25 @@ def _on_branch(root, branch):
                     "-m", f"init {branch}"], capture_output=True, check=True)
 
 
+# Every non-MAIN branch the season grammar can produce — a post, loop or town
+# branch in EITHER spelling (canonical and its legacy one-season alias) plus a
+# feature branch — must be refused by commit --all without --allow-branch.
+@pytest.fixture(params=[
+    "season2/posts/x",                       # canonical post
+    "season2/loops/a-b",                     # canonical loop
+    "season2/web-app-suite/season1/main",    # canonical town main
+    "seat/x@s2",                             # legacy post spelling
+    "loop/a-b@s2",                           # legacy loop spelling
+    "town/web-app-suite/season/s1",          # legacy town/main spelling
+    "town/x@s2",                             # legacy town spelling
+    "season/ideas/flock",                    # loose non-grammar season name
+    "feature/x",                             # feature branch
+])
+def season_live_branch(request):
+    return request.param
+
+
+
 def test_commit_all_refuses_on_non_master_branch(guard_project):
     """commit --all on a non-master branch exits 2 and writes no ref."""
     _on_branch(guard_project, "work")
@@ -1709,6 +1728,21 @@ def test_commit_all_still_refuses_plain_non_master_branch(guard_project):
     with pytest.raises(SystemExit) as exc:
         grid.cmd_commit(guard_project, [], do_all=True, session=None)
     assert exc.value.code == 2
+
+
+def test_commit_all_refuses_every_live_worktree_branch(
+        guard_project, capsys, season_live_branch):
+    """commit --all is refused — exit 2 naming the branch and --allow-branch —
+    on every non-MAIN worktree branch: a post, loop or town branch in EITHER
+    spelling (canonical and legacy) is not the grid's write surface.
+    (hypothesis:l4-commit-all-is-legal-on-the-season-main-only)"""
+    _on_branch(guard_project, season_live_branch)
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert season_live_branch in err
+    assert "--allow-branch" in err
 
 
 # --- hypothesis:l3-grid-lock-doubled-path — the grid lock must NOT double .agi
