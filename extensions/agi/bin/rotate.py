@@ -4392,10 +4392,56 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
         return None
 
 
+def _record_join(rec: dict) -> dict:
+    """ONE accessor for a rotation record's successor-join identity, accepting
+    BOTH record shapes (mur-SL2.13 part 6):
+      - rotate-self:  `handover.join.{window_id,pid,session_id,transcript}`
+      - crash-recovery: TOP-LEVEL `window_id`/`pid`/`session_id` (the shape
+        `_write_crash_recovery` writes), with `respawn_outcome.{window,pid}`
+        as the *successor* fallback (the recovered seat's own window/pid).
+    Returns a flat dict of `{pid, window_id, session_id, transcript}` — keys
+    present only when the record carries them — or {} for a record with no
+    join identity (an OLDER record). Never raises, never None members.
+    heal.py's `_rotation_identity` will read this same accessor by name
+    (SL7.10 coordinates, heal.py itself is NOT edited this round) so every
+    reader sees one canonical shape."""
+    out: dict = {}
+    # the recovered seat's own successor identity (crash-recovery respawn).
+    ro = rec.get("respawn_outcome")
+    if isinstance(ro, dict):
+        if ro.get("pid") is not None:
+            out["pid"] = ro["pid"]
+        if ro.get("window"):
+            out["window_id"] = str(ro["window"])
+    # top-level fields: the crash-recovery record puts window_id at TOP level.
+    if rec.get("window_id"):
+        out["window_id"] = str(rec["window_id"])
+    if rec.get("pid") is not None:
+        out["pid"] = rec["pid"]
+    if rec.get("session_id"):
+        out["session_id"] = str(rec["session_id"])
+    # rotate-self shape: the RICHER handover.join.* wins when present.
+    hov = rec.get("handover")
+    if isinstance(hov, dict):
+        jn = hov.get("join")
+        if isinstance(jn, dict):
+            if jn.get("window_id"):
+                out["window_id"] = str(jn["window_id"])
+            if jn.get("pid") is not None:
+                out["pid"] = jn["pid"]
+            if jn.get("session_id"):
+                out["session_id"] = str(jn["session_id"])
+            if jn.get("transcript"):
+                out["transcript"] = str(jn["transcript"])
+    return out
+
+
 def _handoff_record_facts(rec: dict) -> dict:
     """The four facts STEP 1 names the record for: gen (before/after), the
     successor's window @id, its pid, and the model_confirm verdict. Each
-    degrades to None when the record does not hold it."""
+    degrades to None when the record does not hold it. The successor window
+    + pid come through `_record_join` so a crash-recovery record (top-level
+    window_id) yields them exactly as a rotate-self record would."""
     facts: dict[str, object] = {"gen_before": None, "gen_after": None,
                                 "window": None, "pid": None,
                                 "model_confirm": None}
@@ -4404,13 +4450,13 @@ def _handoff_record_facts(rec: dict) -> dict:
     if isinstance(gen, dict):
         facts["gen_before"] = gen.get("before")
         facts["gen_after"] = gen.get("after")
-    handover = rec.get("handover") or {}
-    if isinstance(handover, dict):
-        join = handover.get("join") or {}
-        if isinstance(join, dict):
-            facts["window"] = join.get("window_id")
-            facts["pid"] = join.get("pid")
-        mc = handover.get("model_confirm") or {}
+    join = _record_join(rec)
+    if join:
+        facts["window"] = join.get("window_id")
+        facts["pid"] = join.get("pid")
+    hov = rec.get("handover")
+    if isinstance(hov, dict):
+        mc = hov.get("model_confirm") or {}
         if isinstance(mc, dict):
             facts["model_confirm"] = mc.get("verdict")
     return facts
@@ -5252,15 +5298,36 @@ def _own_row_line(line: str, seat: str) -> bool:
     row sits on ONE JSON line, so the row-cell `name` cell ALONE keys the
     row — an `"edited_by": ...` cell on a FOREIGN row must never count. BUT
     `write.submit` also restamps a FRONTMATTER provenance line
-    (`edited_by: <seat>`, YAML form, no quotes) on the same write, and that
+    (`edited_by: <writer>`, YAML form, no quotes) on the same write, and that
     line has no `name` cell; a row write owns it too, so the ack commits it
-    with the own row and the tree stays clean. Kept together so
+    with the own row and the tree stays clean. The FRONTMATTER line is owned
+    BY VALUE-INDEPENDENT POSITION, not by the seat name it happens to carry
+    (SL7.09 clause (4)): write.submit restamps `edited_by:` to the WRITER'S
+    resolved actor (`actor or _default_actor()`, e.g. the dispatch agent id),
+    which is usually NOT the seat's own name — keying the own-row cut on
+    `edited_by: <seat>` left that frontmatter line revertable, so MAIN read
+    `M seats.md` after every keygen/spawn-row write. The whole-node stamp is
+    part of the SAME write that produced the own row, so it is carried in
+    the own-row commit and the tree stays clean. Kept together so
     `_diff_owns_row` and `_seats_ownrow_content` can never drift."""
     name_cell = f'"name": "{seat}"'
-    # JSON row-cell vs YAML frontmatter: `edited_by: <seat>` (space after
-    # the colon, no quotes) is the OWN frontmatter provenance; a foreign
-    # row's `"edited_by": ...` cell is quoted JSON and never matches.
-    return name_cell in line or f"edited_by: {seat}" in line
+    # JSON row-cell vs YAML frontmatter: the top-level `edited_by:` YAML line
+    # (space after the colon, no quotes) is the whole-node stamp the self-row
+    # write owns, whatever actor it names. A FOREIGN row's `"edited_by": ...`
+    # cell is quoted JSON inside an indented `  - {...}` row line, which never
+    # starts with `edited_by: `, so it can never count as own here.
+    return name_cell in line or _is_frontmatter_edited_by(line)
+
+
+def _is_frontmatter_edited_by(line: str) -> bool:
+    """Whether a seats.md CHANGED line is the top-level YAML frontmatter
+    provenance stamp `edited_by: <writer>` that `write.submit` restamps on
+    the same self-row write. Value-agnostic (the writer's actor, not the
+    seat's name). Accepts the optional unified-diff `+`/`-` prefix
+    `_diff_owns_row` passes it, so the own-row GATE and the commit-content
+    cut read the SAME predicate."""
+    stripped = line.lstrip("+- ")
+    return stripped.startswith("edited_by: ") or stripped == "edited_by:"
 
 
 def _diff_owns_row(diff: str, seat: str) -> bool:
@@ -5743,10 +5810,17 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
         sha = ""
     # clause (2): the own-row commit is followed by the season-branch PUSH --
     # best-effort, one printed line, never fails the rotation (the helper
-    # prints its own outcome to stderr).
-    _push_season_branch(root)
+    # prints its own outcome to stderr). The push OUTCOME is surfaced on a
+    # trailing line (``\npush: <line>``) so `_apply_successor_key_gated` can
+    # gate the successor-<seat>.key swap on it: a push FAILED keeps the
+    # predecessor key on disk until a later ack/prepare completes the swap.
+    # Early returns above (no-git / commit-failed / byte-identical) carry NO
+    # push line, so push reads as unknown -> never a push failure -> the key
+    # may flip exactly as before (a commit SKIPPED / gitless case is not a
+    # push failure).
+    _push = _push_season_branch(root)
     return (f"spawn_row_commit: committed (sha {sha}) — seats.md own-row "
-            f"only: {msg}")
+            f"only: {msg}\npush: {_push}")
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -8298,9 +8372,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # successor, never the bounded 60s wait; poll 0 reads zero times by the
     # loop's shape, see the registry join deadline). A record with no window
     # @id does NO join and behaves as before.
-    hov = rec.get("handover") or {}
-    join = hov.get("join") or {}
-    window_id = join.get("window_id") or ""
+    join = _record_join(rec)
+    window_id = str(join.get("window_id") or "")
     joined = {}
     if window_id:
         joined = _join_successor(root=root, seat=seat, window_id=window_id,
@@ -9752,16 +9825,22 @@ def _apply_successor_key_pending(pending: dict) -> str:
 
 def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
     """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
-    into the on-disk <seat>.key ONLY when the successor spawn-row write and
-    its ONE commit SUCCEEDED. ``key_rotation`` is `_rotate_successor_key`'s
-    dict (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome``
-    is the `_successor_row_write` return (starts ``config:seats row`` on
+    into the on-disk <seat>.key ONLY when the successor spawn-row write, its
+    ONE commit, AND the season-branch PUSH all SUCCEEDED (mur-SL2.13 (2): the
+    swap waits for the push -- a push FAILED still yields the join, but the
+    key is deferred and NOT swapped, so a key on disk never disagrees with
+    what origin holds). ``key_rotation`` is `_rotate_successor_key`'s dict
+    (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome`` is
+    the `_successor_row_write` return (starts ``config:seats row`` on
     success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
-    ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure). Any other
-    combination -- row write failed, commit failed, or the write never ran --
-    leaves the predecessor key file BYTE-IDENTICAL and records the refusal,
-    never replacing it. Never raises. Returns one line for the handover's
-    ``key_replace``."""
+    ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure; carries a trailing
+    ``\npush: <line>`` when the push leg ran). A push line starting ``push:
+    FAILED`` defers the swap with ONE stderr line naming it; a SKIPPED or
+    absent push is NOT a failure (a gitless / byte-identical case flips the
+    key exactly as before). Any other combination -- row write failed, commit
+    failed, or the write never ran -- leaves the predecessor key file
+    BYTE-IDENTICAL and records the refusal, never replacing it. Never raises.
+    Returns one line for the handover's ``key_replace``."""
     if not key_rotation or not key_rotation.get("pending_key"):
         return ""
     _path = key_rotation["pending_key"]["path"]
@@ -9769,13 +9848,32 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     _commit = str(commit_outcome or "")
     _commit_failed = _commit.startswith(("spawn_row_commit: FAILED",
                                          "FAILED:"))
-    if _row_ok and not _commit_failed:
+    # the push outcome rides the commit string's trailing line, if present:
+    # ``\npush: push: FAILED -- ...``. Absent (early-return paths never
+    # reached the push) or SKIPPED is NOT a failure -- only ``push: FAILED``.
+    _push_line = _commit.rpartition("\npush: ")[2]
+    # rpartition keeps the helper's own ``push: ...`` prefix on _push_line.
+    _push = _push_line
+    _push_failed = _push.startswith("push: FAILED")
+    if _row_ok and not _commit_failed and not _push_failed:
         return _apply_successor_key_pending(key_rotation["pending_key"])
-    _why = "row write" if not _row_ok else "commit"
+    if not _row_ok:
+        _why = "row write"
+    elif _commit_failed:
+        _why = "commit"
+    else:
+        _why = "push"
+    # SL: on a push failure the swap is DEFERRED -- the ONE stderr line naming
+    # the deferred swap (the caller prints this return to stderr); a later
+    # rotate.py ack/prepare that finds this pending successor key with the
+    # row now on origin completes it (SL7.09 leaves that completion
+    # forward-look; the core falsifier -- a key on disk origin's row does not
+    # carry -- is closed here).
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
-            f"{_path} left byte-identical with the predecessor key, no "
-            f"successor key written "
-            f"(row={str(row_outcome)!r} commit={_commit!r})")
+            f"{_path} left byte-identical with the predecessor key, NO "
+            f"successor key written (deferred swap on later join-origin) "
+            f"(row={str(row_outcome)!r} commit={_commit!r} "
+            f"push={_push!r})")
 
 
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:

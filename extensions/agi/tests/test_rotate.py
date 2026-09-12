@@ -212,6 +212,58 @@ def test_rotate_successor_key_gate_leaves_pred_key_on_failed_row_write(tmp_path)
     assert rotate._apply_successor_key_gated(None, "x", "y") == ""
 
 
+def test_rotate_successor_key_gate_defers_on_push_failure(tmp_path):
+    """mur-SL2.13 (2): the <seat>.key swap waits for the PUSH, not just the
+    own-row commit. When `_commit_spawn_row` reports a trailing ``\npush:
+    push: FAILED -- ...`` line, `_apply_successor_key_gated` DEFERS the
+    replacement: the predecessor key stays byte-identical, the deferred swap
+    is named, and a key on disk never disagrees with what origin holds. A
+    SKIPPED or ABSENT push is NOT a failure (the gitless / byte-identical
+    case flips the key exactly as before)."""
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s3")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "helper"}
+    out = rotate._rotate_successor_key(tmp_path, "s3", row,
+                                       gen_before=1, gen_after=2)
+
+    # (a) row ok + commit ok + push FAILED -> NOT applied, byte-identical,
+    #     deferred swap named (ONE stderr line: the return is printed).
+    r = rotate._apply_successor_key_gated(
+        out, "config:seats row s3: ...",
+        "spawn_row_commit: committed (sha abc1234)\n"
+        "push: push: FAILED -- remote: permission denied")
+    assert "NOT applied" in r and "deferred swap" in r
+    assert key_path.read_text() == before  # predecessor key stays put
+
+    # (b) commit FAILED (no push line) still refuses, as before.
+    r2 = rotate._apply_successor_key_gated(
+        out, "config:seats row s3: ...", "spawn_row_commit: FAILED -- git")
+    assert "NOT applied" in r2
+    assert key_path.read_text() == before
+
+    # (c) push SKIPPED is NOT a failure -> the key flips (gitless case).
+    r3 = rotate._apply_successor_key_gated(
+        out, "config:seats row s3: ...",
+        "spawn_row_commit: committed (sha abc1234)\n"
+        "push: push: SKIPPED -- no git repo")
+    assert "key_replace: wrote" in r3
+    assert (json.loads(key_path.read_text())["priv_hex"]
+            == out["pending_key"]["priv_hex"])
+
+    # (d) push OK -> the key flips, and the loop-closing falsifier is met:
+    #     only a FAILED push defers.
+    key_path2, _ = _mk_seat_key(tmp_path, "s4")
+    before2 = key_path2.read_text()
+    out2 = rotate._rotate_successor_key(tmp_path, "s4",
+                                        {"pubkey": "x", "role": "p"},
+                                        gen_before=1, gen_after=2)
+    r4 = rotate._apply_successor_key_gated(
+        out2, "config:seats row s4: ...",
+        "spawn_row_commit: committed (sha def5678)\npush: push: OK -- master")
+    assert "key_replace: wrote" in r4
+    assert key_path2.read_text() != before2
+
+
 def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
     """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
     must fail under a corrupted record (the signature is specific)."""
