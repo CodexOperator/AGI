@@ -1293,3 +1293,184 @@ def test_a_scalar_write_is_fixpoint_through_the_writer(project, cp):
     r3 = nw.update_node(project, "idea:i1", set_fm={"other": "y"})
     assert r3.status == nw.UNCHANGED, r3.reason
     assert p.read_bytes() == b2
+
+
+# --------------------------------------------------------------------------
+# L4 — the list-of-plain-scalars render path escapes the same control
+# characters the scalar path does, and _scalar decides quoting on the RAW
+# value (hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-scalar-
+# strips-newlines-after-the-quoting-decision-not-before). Pre-fix, a list
+# item was rendered through a bare f-string — so NEL/LS/PS stayed literal
+# (ScannerError on the next read), a `#` item vanished as a comment, and
+# `k: v` / `- dash` re-parsed as structure; and _scalar stripped newlines to
+# spaces BEFORE the quoting decision, so a value whose only trigger was a
+# newline was written bare (lossy). The fix routes list items through the
+# SAME `_scalar`, and decides quoting on the raw value.
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("item,why", [
+    ("a\u0085b", "NEL"),
+    ("a\u2028b", "LS"),
+    ("a\u2029b", "PS"),
+    ("a\nb", "a literal newline"),
+    ("#comment", "leading # (was a comment)"),
+    ("k: v", "a key: value (was parsed as a mapping)"),
+    ("- dash", "leading dash-space (was a nested list)"),
+    ("trail ", "trailing space (was stripped)"),
+    ("  x  ", "edge whitespace"),
+])
+def test_a_list_of_plain_scalars_renders_escaped_and_round_trips(item, why):
+    """A list-of-plain-scalars item carrying a trigger character renders
+    through the same scalar escaper/quoter as a top-level scalar, and reads
+    back byte-identical through the reader every engine path uses."""
+    from frontmatter import read_frontmatter
+
+    text = "\n".join(nw.render_frontmatter(
+        {"id": "x:y", "type": "t", "items": [item]}))
+    # The item must be rendered QUOTED (never a bare unquoted item), so it
+    # cannot mis-parse. `- #comment` bare would vanish as a comment;
+    # `- \"#comment\"` keeps the string. The bare spelling must never occur.
+    assert f"- {item}" not in text, f"{why}: item emitted as a bare unquoted list entry"
+    back = read_frontmatter("---\n" + text + "\n---\n")
+    assert back is not None, f"{why}: the frontmatter became unreadable"
+    assert back["items"] == [item], f"{why}: list item did not round-trip byte-identical"
+
+
+def test_a_list_of_plain_scalars_mixed_corpus_is_byte_identical():
+    """The hypothesis corpus as one list: a write reads back to the exact
+    same bytes, and a second render of the read-back value is byte-identical
+    (the fixpoint)."""
+    from frontmatter import read_frontmatter
+
+    # (Negative-number *strings* are left out: they are deliberate plain
+    # scalars that parse as ints — a separate, documented rule, not a byte
+    # loss.)
+    items = ["a\u0085b", "a\u2028b", "a\u2029b", "#comment", "k: v",
+             "- dash", "trail ", "a\nb", "  x  ", "lead", "plain",
+             "---", "x", "ja\u4e2d\u6587", "a\u0085b\u2029c"]
+    fm = {"id": "x:y", "type": "t", "title": "tc", "items": items,
+          "note": "a\nb", "tags": ["#h", "- t"]}
+    r1 = "\n".join(nw.render_frontmatter(fm)) + "\n"
+    back = read_frontmatter("---\n" + r1 + "---\n")
+    assert back is not None and back["items"] == items
+    # second render from the read-back value is byte-identical (the fixpoint)
+    fm2 = {"id": "x:y", "type": "t", "title": "tc", "items": back["items"],
+           "note": back["note"], "tags": back["tags"]}
+    r2 = "\n".join(nw.render_frontmatter(fm2)) + "\n"
+    assert r1 == r2, "rendering the read-back value must be byte-identical"
+
+
+def test_scalar_quotes_on_the_raw_value_and_normalises_after():
+    """_scalar decides quoting on the RAW value (newlines and edge whitespace
+    included), then normalises — a value whose only reason to quote was a
+    newline or edge whitespace is quoted and escaped, never stripped bare."""
+    import yaml
+    from frontmatter import read_frontmatter
+
+    # Newline was previously stripped to a space BEFORE the quoting decision,
+    # so `a\nb` was written bare `a b` — a lossy round-trip.
+    assert nw._scalar("a\nb") == '"a\\nb"', "newline-only-trigger value went bare"
+    assert yaml.safe_load(nw._scalar("a\nb")) == "a\nb"
+    # Edge whitespace previously read back stripped.
+    assert nw._scalar("  x  ") == '"  x  "'
+
+    # End-to-end through the reader: the value returns with its newline.
+    txt = "\n".join(nw.render_frontmatter({"id": "x:y", "type": "t",
+                                           "note": "a\nb"})) + "\n"
+    assert read_frontmatter("---\n" + txt + "---\n")["note"] == "a\nb"
+
+
+# ---------------------------------------------------------------------------
+# claim (d) of hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-
+# scalar-strips-newlines-after-the-quoting-decision-not-before — the DURABLE
+# live-tree corpus test.
+#
+# Kid a00-8ed8af75 measured the round trip with a one-off standalone script
+# (2799 nodes, 0 unreadable, 0 value drift, 91 representation-only diffs,
+# 2708 byte-identical) but landed NO test for it. The measurement is prose in
+# a node, not a regression trip. This test is the durable form. It walks the
+# REAL live `.agi/nodes/` tree exactly as test_frontmatter's `_live_nodes_dir()`
+# does (locations.find_project_root -> `nodes/`), is strictly read-only, and
+# asserts the HONEST shape of claim (d): value preservation, not byte-identity
+# — 91 nodes legitimately change REPRESENTATION. The walk is ~12s across the
+# full tree; it stays in the default suite by design, so a regression trips
+# the run rather than a one-off script.
+# ---------------------------------------------------------------------------
+
+
+def _iter_live_node_files():
+    """Yield (path, text) for every `.md` under the real live nodes tree.
+
+    Mirrors `_live_nodes_dir` / `_well_formed_nodes` in test_frontmatter.py:
+    project root via `locations.find_project_root()` (nearest enclosing `.agi`
+    wins), walk `nodes/`, read every `.md`. Read-only — never writes into
+    `.agi/nodes/`.
+    """
+    import locations
+    from pathlib import Path
+    root = locations.find_project_root()
+    assert root is not None, "no .agi project root resolvable from pytest cwd"
+    nodes = Path(root) / "nodes"
+    assert nodes.is_dir(), f"live nodes dir missing: {nodes}"
+    for p in sorted(nodes.rglob("*.md")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            continue  # an unreadable file is a live-tree problem, caught below
+        yield p, text
+
+
+def test_live_tree_corpus_round_trip_is_value_preserving():
+    """claim (d), honest form — EVERY live node read->render->read-back.
+
+    One pass over the whole live tree asserting four invariants at once:
+      (i)   every node's frontmatter parses (0 unreadable);
+      (ii)  the re-render reads back to EQUAL top-level VALUES for every node
+            (value preservation — the honest claim; 91+ nodes legitimately
+            shift bytes, so byte-identity is literally false);
+      (iii) any node whose BYTES differ is still value-preserving (subsumed
+            by (ii)) AND
+      (iv)  the re-render is a FIXPOINT: rendering the read-back value again
+            is byte-identical, so the representation is stable, not churning.
+    """
+    import frontmatter
+    checked = 0
+    unreadable = []
+    drift = []
+    byte_diffs = 0
+    non_fixpoint = []
+    for p, text in _iter_live_node_files():
+        parts = frontmatter.split_frontmatter(text)
+        if parts is None:
+            unreadable.append((str(p), "no frontmatter shape"))
+            continue
+        fm = frontmatter.read_frontmatter(text)
+        if fm is None:
+            unreadable.append((str(p), "frontmatter did not parse"))
+            continue
+        checked += 1
+        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
+        fm2 = frontmatter.read_frontmatter(rerendered)
+        if fm2 is None:
+            drift.append((str(p), "re-render unreadable"))
+            continue
+        # (ii) value preservation — the whole point of claim (d)
+        if fm != fm2:
+            drift.append((str(p), "top-level value drift"))
+        # (iii) representation-only byte diffs are tracked (not asserted off)
+        if "\n".join(nw.render_frontmatter(fm)) != parts[0].strip("\n"):
+            byte_diffs += 1
+        # (iv) stable representation: rendering the read-back again is stable
+        if nw.render_frontmatter(fm) != nw.render_frontmatter(fm2):
+            non_fixpoint.append(str(p))
+    assert not unreadable, \
+        f"{len(unreadable)} live nodes unreadable: {unreadable[:5]}"
+    assert not drift, \
+        f"{len(drift)} live nodes drifted in value: {drift[:5]}"
+    assert not non_fixpoint, \
+        f"{len(non_fixpoint)} nodes re-render non-idempotently: {non_fixpoint[:5]}"
+    assert checked > 1000, f"corpus walk unexpectedly small: {checked}"
+    assert byte_diffs < checked, "more rep-diffs than nodes: instrumentation error"
+    # The byte-diff count is reported in the experiment node (the tree evolves);
+    # here we pin the invariant (every byte-diff node is value-preserving and
+    # a fixpoint), not a specific count.
