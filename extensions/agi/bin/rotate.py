@@ -9082,6 +9082,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
             ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
     if card_rel:
         spec.append(f":(exclude){card_rel}")
+    # a rotate-out stops commit touching seats.md must not re-age the card
+    # (goal:g15.25 line (3)): seating/rotation bookkeeping is not WORK, the
+    # same reasoning that excludes comms + rotation records — a pure
+    # card+seats commit is fully invisible to this check, so the stops write
+    # satisfies this captive instead of re-triggering it.
+    try:
+        _sres = str(_ack_seats_path(root).resolve()
+                    .relative_to(Path(top).resolve()))
+        spec.append(f":(exclude){_sres}")
+    except (ValueError, OSError):
+        pass
     last_ts = _git_count_maybe(top, *spec)
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
@@ -9966,6 +9977,210 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
             f"push={_push!r})")
 
 
+def _write_stops_section(card_path: Path, seat: str, stops_text: str,
+                         diff_gap: str | None = None):
+    """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
+    own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
+    any header whose title `_locate_where_it_stops` keys on -- 'where it
+    stops' / 'next command'), replacing that section up to the next heading
+    and carrying everything else verbatim. When the card has no where-it-
+    stops slot at ALL, the slot is CREATED at the card's end as
+    `### 🔴 Where it stops`. When `--ask-diff <gap>` accompanies `--stops`,
+    the gap is ALSO written as `diff requested: <gap>` beneath the stops
+    body. Returns `(body, slot)` on success (slot in {'replaced', 'created'})
+    or `(None, error)` when the where-it-stops slot is AMBIGUOUS (refused,
+    never guessed). Never raises."""
+    existing = (card_path.read_text(encoding="utf-8")
+                if card_path.exists() else "")
+    preamble, sections = _split_card_sections(existing)
+    stops = _locate_where_it_stops(sections)
+    if stops == "ambiguous":
+        return None, "ambiguous where-it-stops slot on the own card; " \
+                     "refused (rotate-self --stops never guesses)"
+    if stops is None:
+        extra = f"### 🔴 Where it stops\n{stops_text}"
+        if diff_gap:
+            extra += f"\n\ndiff requested: {diff_gap}"
+        full = _render_card(preamble, sections)
+        full = full.rstrip("\n") + "\n\n" + extra + "\n"
+        card_path.parent.mkdir(parents=True, exist_ok=True)
+        card_path.write_text(full, encoding="utf-8")
+        return full, "created"
+    sec_idx, sub = stops
+    header, body = sections[sec_idx]
+    if sub is not None and sub >= 0:
+        # a `###`-level subheader INSIDE a `## ` section: replace only the
+        # subheader + its block up to the next heading (or EOF), carrying
+        # everything ABOVE the subheader in the section verbatim (the claim:
+        # 'replacing that section up to the next heading').
+        lines = body.splitlines()
+        keep = lines[:sub]
+        sub_header = (lines[sub] if sub < len(lines)
+                      else "### 🔴 Where it stops")
+        end = len(lines)
+        for j in range(sub + 1, len(lines)):
+            if lines[j].strip().startswith("#"):
+                end = j
+                break
+        tail = lines[end:] if end < len(lines) else []
+        block = sub_header + "\n" + stops_text
+        if diff_gap:
+            block += f"\n\ndiff requested: {diff_gap}"
+        new_body = "\n".join(keep + block.splitlines() + tail)
+    else:
+        new_body = _replace_stops_body(body, stops_text, None)
+        if diff_gap:
+            new_body = (new_body.strip() + f"\n\ndiff requested: {diff_gap}"
+                        if new_body.strip() else f"diff requested: {diff_gap}")
+    sections[sec_idx] = (header, new_body)
+    full = _render_card(preamble, sections)
+    card_path.parent.mkdir(parents=True, exist_ok=True)
+    card_path.write_text(full, encoding="utf-8")
+    return full, "replaced"
+
+
+def _commit_stops_row(root: Path, seat: str, card_path: Path,
+                      msg: str) -> str:
+    """goal:g15.25 line (3) -- the ONE rotate-out commit: the stop text's
+    own card + the seat's OWN seats.md row, and NOTHING else, as ONE
+    pathspec commit. NEVER `git add -A`: the card is staged by blob from the
+    working tree and the seats.md row by the own-row content
+    (`_seats_ownrow_content`), both into a throwaway index seeded from HEAD,
+    so a foreign dirty seats.md row or any other dirty path never rides the
+    rotate-out. The commit lands in the tree the card lives in (`_git_toplevel
+    (root)` -- the seat's own worktree, where `_own_card_path` resolves). A
+    seat with no own-row seats change commits the card ALONE (still one
+    rotate-out commit, still 'nothing outside card + seats.md'). Never
+    raises. Returns a one-line outcome for the caller to print."""
+    if card_path is None or not card_path.exists():
+        return "stop_commit: SKIPPED — no own card to commit"
+    top = _git_toplevel(root)
+    if top is None:
+        return "stop_commit: SKIPPED — no git repo (gitless fixture/root)"
+    card_rel = os.path.relpath(card_path, top)
+    if card_rel.startswith(".."):
+        return "stop_commit: SKIPPED — own card sits outside the repo top"
+    seats = _ack_seats_path(root)
+    seats_rel = os.path.relpath(seats, top)
+    own = _seats_ownrow_content(root, top, seat)
+    _stage_seats = None
+    if own is not None:
+        _hs = subprocess.run(["git", "-C", str(top), "show",
+                              f"HEAD:{seats_rel}"], capture_output=True,
+                             text=True, timeout=10)
+        if _hs.returncode != 0 or _hs.stdout != own:
+            _stage_seats = own   # the own row actually differs from HEAD
+    import tempfile  # noqa: PLC0415  (mirrors _ack_commit_seats / spawn_row)
+    fd, tmp_index = tempfile.mkstemp(prefix="stoprow-idx-")
+    os.close(fd)
+    env = dict(os.environ)
+    env["GIT_INDEX_FILE"] = tmp_index
+
+    def _tg(parts, **kw):
+        return subprocess.run(["git", "-C", str(top)] + parts,
+                              capture_output=True, text=True, env=env, **kw)
+
+    try:
+        seed = _tg(["read-tree", "HEAD"])
+        if seed.returncode != 0:
+            seed = _tg(["read-tree", "--empty"])
+            if seed.returncode != 0:
+                return (f"stop_commit: FAILED — git read-tree: "
+                        f"{seed.stderr.strip()}")
+        cb = _tg(["hash-object", "-w", "--stdin"],
+                 input=card_path.read_text(encoding="utf-8"))
+        if cb.returncode != 0 or not cb.stdout.strip():
+            return "stop_commit: FAILED — card hash-object"
+        upd = _tg(["update-index", "--add", "--cacheinfo",
+                   f"100644,{cb.stdout.strip()},{card_rel}"])
+        if upd.returncode != 0:
+            return (f"stop_commit: FAILED — card update-index: "
+                    f"{upd.stderr.strip()}")
+        if _stage_seats is not None:
+            sb = _tg(["hash-object", "-w", "--stdin"], input=_stage_seats)
+            if sb.returncode != 0 or not sb.stdout.strip():
+                return "stop_commit: FAILED — seats hash-object"
+            u2 = _tg(["update-index", "--add", "--cacheinfo",
+                      f"100644,{sb.stdout.strip()},{seats_rel}"])
+            if u2.returncode != 0:
+                return (f"stop_commit: FAILED — seats update-index: "
+                        f"{u2.stderr.strip()}")
+        rc = _tg(["commit", "-q", "-m", msg])
+        if rc.returncode != 0:
+            return (f"stop_commit: FAILED — git commit: "
+                    f"{rc.stderr.strip()}")
+        # point the REAL index's card (and own-row seats) entry at the
+        # committed blob — the same sync `_ack_commit_seats` does for its own
+        # row — so the rotate-out leaves `git status` CLEAN (the claim's
+        # proof target). WITHOUT this the temp-index commit advances HEAD but
+        # leaves the real index stale: the card+seats show staged+unstaged
+        # modified, and a later only-behind season merge that re-touches
+        # either path is REFUSED by git ("local changes would be
+        # overwritten") — which is exactly the push-line-2 merge the captive
+        # checklist performs before the spawn. Sync is best-effort and never
+        # fails the commit (the tree is already committed; a refused sync
+        # only reprints them dirty).
+        subprocess.run(
+            ["git", "-C", str(top), "update-index", "--add",
+             "--cacheinfo", f"100644,{cb.stdout.strip()},{card_rel}"],
+            capture_output=True, text=True)
+        if _stage_seats is not None:
+            subprocess.run(
+                ["git", "-C", str(top), "update-index", "--add",
+                 "--cacheinfo", f"100644,{sb.stdout.strip()},{seats_rel}"],
+                capture_output=True, text=True)
+    finally:
+        try:
+            os.unlink(tmp_index)
+        except OSError:
+            pass
+    sha = ""
+    try:
+        out = subprocess.run(["git", "-C", str(top), "rev-parse",
+                              "--short", "HEAD"], capture_output=True,
+                             text=True, timeout=10)
+        sha = (out.stdout or "").strip()
+    except Exception:  # noqa: BLE001
+        sha = ""
+    _touched = card_rel + (f", {seats_rel}" if _stage_seats is not None else "")
+    return (f"stop_commit: committed {_touched} (ONE rotate-out commit "
+            f"@{sha or '?'})")
+
+
+def _stops_push(root: Path, label: str = "stops") -> str | None:
+    """goal:g15.25 line (3) -- push the branch a rotate-out commit landed on.
+    Returns None on success (one push line printed to stderr) or a NAMING
+    refusal line on failure: a refused push is a BLOCK (exit 3, nothing
+    rotated). Never a force-push, never a second commit. `label` names which
+    rotate-out push this is -- `stops` for push line 1 (right after the
+    stops commit) and `merge` for push line 2 (the only-behind merge commit
+    the captive checklist performs); ONE helper, both pushes, never a third
+    implementation."""
+    top = _git_toplevel(root)
+    if top is None:
+        return "no git repo to push (gitless fixture/root)"
+    try:
+        out = subprocess.run(["git", "-C", str(top), "rev-parse",
+                              "--abbrev-ref", "HEAD"], capture_output=True,
+                             text=True, timeout=10)
+        branch = (out.stdout or "").strip()
+    except Exception as exc:  # noqa: BLE001
+        return f"could not resolve the branch: {exc}"
+    if not branch or branch == "HEAD":
+        return "detached HEAD, nothing to push"
+    try:
+        push = subprocess.run(["git", "-C", str(top), "push", "origin",
+                               branch], capture_output=True, text=True,
+                              timeout=60)
+    except Exception as exc:  # noqa: BLE001
+        return f"push refused: {exc}"
+    if push.returncode != 0:
+        return (f"push refused out: "
+                f"{push.stderr.strip() or push.stdout.strip()}")
+    print(f"{label} push: OK -- {branch}", file=sys.stderr)
+    return None
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -10046,6 +10261,72 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+
+    # goal:g15.25 line (3) -- the rotate-OUT is ONE call. When `--stops`
+    # (`--stops-file F`, `--stops -` reads stdin) is given, write the stops
+    # text into the seat's OWN card's where-it-stops section, commit card +
+    # the seat's own seats.md row as ONE pathspec commit, push the seat
+    # branch, and print the rotation line -- the post's out-count is ONE
+    # call, no separate send.py (the [rotation-alert] dm IS the rotation
+    # line). This runs BEFORE the captive checklist so captives 1 (unpushed),
+    # 2 (dirty) and 4 (card mtime vs the last WORK commit) are satisfied BY
+    # this write+commit+push, then the checklist runs unchanged. A refused
+    # push is a BLOCK (exit 3, nothing rotated). `--dry-run` prints the stops
+    # write, the commit message and BOTH push lines and touches nothing.
+    # Without `--stops`/`--stops-file` the flow is byte-identical to today.
+    _stops_src = getattr(args, "stops", None)
+    _stops_file = getattr(args, "stops_file", None)
+    _stops_has = _stops_src is not None or _stops_file is not None
+    if _stops_has:
+        _stops_text: str | None = None
+        _stops_err = None
+        if _stops_file is not None and _stops_src is None:
+            try:
+                _stops_text = Path(_stops_file).read_text(encoding="utf-8")
+            except OSError as e:
+                _stops_err = f"cannot read --stops-file {_stops_file!r}: {e}"
+        elif _stops_src == "-":
+            _stops_text = sys.stdin.read()
+        elif _stops_src is not None:
+            _stops_text = _stops_src
+        if _stops_err or (_stops_text is None or not _stops_text.strip()):
+            print(f"ERR: rotate-self --stops: "
+                  f"{_stops_err or 'refuses an EMPTY stops text'}",
+                  file=sys.stderr)
+            return 2
+        _gb = _read_generation(root, seat)
+        _stops_gap = getattr(args, "ask_diff", False)
+        _gap = _stops_gap if isinstance(_stops_gap, str) and _stops_gap \
+            else None
+        _first = _stops_text.strip().splitlines()[0][:80]
+        _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
+        _card = _own_card_path(root, seat)
+        if args.dry_run:
+            print(f"(--stops) would write where-it-stops into {_card}")
+            print(f"(--stops) commit: {_msg!r} "
+                  f"(card + the seat's own seats.md row, nothing else)")
+            print("(--stops) push: the seat branch (push line 1); the "
+                  "only-behind merge commit push (push line 2) before the "
+                  "spawn")
+            print("rotation line: delivered as the [rotation-alert] dm to "
+                  "<prime> (no send.py call needed; --dry-run, nothing "
+                  "written)")
+        else:
+            _full, _slot = _write_stops_section(
+                _card, seat, _stops_text, diff_gap=_gap)
+            if _full is None:
+                print(f"ERR: rotate-self --stops: {_slot}", file=sys.stderr)
+                return 2
+            print(_commit_stops_row(root, seat, _card, _msg),
+                  file=sys.stderr)
+            _perr = _stops_push(root)
+            if _perr:
+                print(f"rotate-self refused: {_perr} — clear it, then "
+                      f"re-run (nothing rotated).", file=sys.stderr)
+                return 3
+            print("rotation line: delivered as the [rotation-alert] dm "
+                  "to <prime> (no send.py call needed)")
+
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
     # side effect (the started record, the handoff, the own-window rename,
     # the spawn). THIS is the one implementation: `rotate.py prepare` prints
@@ -10063,6 +10344,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # The gate performs the only-behind merge UNLESS we are dry-running
     # (--dry-run prints everything and touches nothing: a merge is a touch).
     _perform_gate = not bool(getattr(args, "dry_run", False))
+    # push line 2 bookend: capture HEAD right before the checklist so the
+    # merge-push below can tell a checklist-performed only-behind merge from
+    # an untouched branch. The stoppable flow already pushed (line 1); a
+    # clean-at-start non-stops branch is unpushed-zero here too. Only check
+    # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
+    # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
+    _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
     _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
@@ -10077,6 +10365,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               "re-run (rotate.py prepare --seat <S> lists them).",
               file=sys.stderr)
         return 3
+
+    # goal:g15.25 line (3) -- the ONLY-BEHIND MERGE COMMIT push (push line
+    # 2), right after the checklist and BEFORE any side effect (the key
+    # mint, the handoff, the rename, the spawn). The checklist PERFORMS
+    # check 3's only-behind merge when it is clean; that merge lands as a
+    # NEW commit AFTER the stops push already ran (or after a clean-at-start
+    # non-stops branch), and nothing pushed it before the spawn -- today the
+    # live flow ran ONE push while the dry-run printed two. When HEAD moved
+    # during the checklist the merge commit is sitting unpushed: push it NOW
+    # (the second push line), and a refused push is a BLOCK (exit 3, nothing
+    # rotated) -- the same discipline as the stops push, via the SAME helper
+    # (never a third push implementation). `--dry-run` never merges, so HEAD
+    # provably cannot move and this is a no-op there (the dry-run already
+    # prints both push lines in the stops block above, and a merge is a
+    # touch dry-run must not perform).
+    _head_after_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
+    if (_head_before_checks and _head_after_checks
+            and _head_before_checks[0] != _head_after_checks[0]):
+        _mperr = _stops_push(root, label="merge")
+        if _mperr:
+            print(f"rotate-self refused: {_mperr} — clear it, then "
+                  f"re-run (nothing rotated).", file=sys.stderr)
+            return 3
 
     # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
     # rotate without its own signing key file; the gate refuses BY NAME and
@@ -11886,10 +12197,13 @@ def main(argv: list[str] | None = None) -> int:
     # --text -` -- so the rotation halts for handoff inspection exactly as a
     # manual `diff` does today.
     p_rs.add_argument("--ask-diff", "--successor-diff",
-                      action="store_true",
+                      nargs="?", const=True, default=False,
                       help="write the ack as `diff-requested` (source: "
                            "predecessor) and hand the successor exactly one "
-                           "diff call, instead of pre-answering `pending`")
+                           "diff call, instead of pre-answering `pending`; "
+                           "a value (`--ask-diff '<gap>'`) is ALSO written "
+                           "into the stops section as `diff requested: "
+                           "<gap>` when `--stops` accompanies it")
     # ++ L4.114 handover: identity is SUPPLIED by the registry JOIN by the
     # successor's WINDOW @id, not by a --session-ref flag (that flag is
     # GONE; tests inject the seam into the Namespace directly). --registry-dir
@@ -11928,6 +12242,21 @@ def main(argv: list[str] | None = None) -> int:
     p_rs.add_argument("--in-flight", default=None,
                       help="one line of what is in flight, for peers to know "
                            "if their round is orphaned")
+    # goal:g15.25 line (3) -- the rotate-OUT is ONE call. `--stops 'text'`
+    # (or `--stops-file F`; `--stops -` reads stdin) writes <text> as the
+    # body of the seat's own card's `### 🔴 Where it stops` section, and the
+    # ONE rotate-out commit (card + the seat's own seats.md row, nothing
+    # else) + push + the rotation line all happen INSIDE rotate-self -- the
+    # post's out-count is ONE call, no separate send.py.
+    p_rs.add_argument("--stops", default=None,
+                      help="what the seat leaves behind: written into the '"
+                           "seat's own card's `### 🔴 Where it stops` section "
+                           "at rotate-out (`-` reads stdin); commits it with "
+                           "the seat's own seats.md row in ONE pathspec "
+                           "commit and pushes")
+    p_rs.add_argument("--stops-file", default=None,
+                      help="read the stops text from FILE instead of "
+                           "--stops (mutually the rotate-out stops write)")
     p_rs.set_defaults(func=cmd_rotate_self)
 
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
