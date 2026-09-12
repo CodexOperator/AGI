@@ -1969,6 +1969,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     _clean_stale_layout_locks(root, row)
 
     dbg = str(_rotate._sessions_dir(root) / f"{seat}.log")
+
+    # GOAL:g15.25 (SL7.15) — a crash-recovery respawn at gen `gen` must start
+    #     with NO live ack. The seat was rotated (or last acked) at some
+    #     earlier generation; a predecessor `continue` still sitting at
+    #     `seats/<seat>.ack.json` would otherwise SILENCE the recovered post's
+    #     `ack --gen N+1 continue` via the gen-blind no-op in cmd_ack (part
+    #     (a)) and it would never take its identity. Rotate the stale ack to
+    #     `seats/<seat>.ack.gen<gen>.json` BEFORE spawning, so this seat's
+    #     recovered post writes its own ack fresh. None/no-op when there is
+    #     no live ack.
+    _rot = _rotate._rotate_ack_file(root, seat, gen)
+    if _rot:
+        print(_rot, file=sys.stderr)
+
     prompt_file = None
     if role == "prime_director":
         # the prime resumes on the standing prime brief.
