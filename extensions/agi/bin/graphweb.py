@@ -338,20 +338,21 @@ def graph_version(graph_root: Path) -> str:
 # Seats / agents / live                                                        #
 # --------------------------------------------------------------------------- #
 def load_seats(graph_root: Path) -> list:
-    """config:seats rows (`.geometry/seats.md` frontmatter `seats:`), else [].
+    """config:posts / config:seats rows (post-first, one-season seats
+    fallback), else [].
 
-    Falls back to config.json's (legacy) `seats` list when seats.md is absent,
-    so a project that keeps its registry in the config still resolves.
+    Falls back to config.json's (legacy) `seats` list when the geometry file
+    is absent, so a project that keeps its registry in the config still
+    resolves.
     """
-    p = Path(graph_root) / "nodes" / ".geometry" / "seats.md"
-    if p.is_file():
-        try:
-            fm = parse_frontmatter(p.read_text(encoding="utf-8"))
-        except Exception:                                         # noqa: BLE001
-            fm = {}
-        rows = fm.get("seats") or []
-        if isinstance(rows, list):
-            return [dict(r) for r in rows if isinstance(r, dict)]
+    try:
+        import geometry_config as _gc  # same bin dir (locations pattern)
+    except Exception:                                             # noqa: BLE001
+        _gc = None
+    if _gc is not None:
+        rows = _gc.load_rows(graph_root)
+        if rows:
+            return [dict(r) for r in rows]
     cfg = load_config(graph_root)
     rows = cfg.get("seats") or []
     if isinstance(rows, list):

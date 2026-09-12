@@ -16,10 +16,10 @@ meter --pin <meter> --session-log <your .jsonl>  (🔴 `--seat` refuses cross-ge
 git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sanctuary-director` (every seam)
 ```
 
-- **PRIME = XII `agi-1b [fda770]` @305.** Standing: pin-reap **STAYS NOT ARMED** (mur-41 blockers = round-2 items 1-3 + predecessor pins KEEP=9/UNPINNED=0 + owner GO; reaper unit NOT restarted for mur-41); the merge-up window is STATE (`ls /home/ubuntu/work/agi/.agi/sessions/verify-suite.lock` + inbox before ANY MAIN merge); a role is RESOLVED, never typed.
+- **PRIME = XIII `ff648e` @311 gen 13 (whois IS-AUTHORIZED 00:54Z; dms signed ed25519).** mur-42 verdict 00:20Z: ACCEPT 11/11, no demote; reaper restarted 00:09:31Z onto 42's bytes; P1 lines cut (301-303), P2 residues recorded on the nodes. **Account $10.73 remaining at 00:33Z (floor $1.00).** Standing: pin-reap **STAYS NOT ARMED** (mur-41 blockers = round-2 items 1-3 + predecessor pins KEEP=9/UNPINNED=0 + owner GO; reaper unit NOT restarted for mur-41); the merge-up window is STATE (`ls /home/ubuntu/work/agi/.agi/sessions/verify-suite.lock` + inbox before ANY MAIN merge); a role is RESOLVED, never typed.
 - **sensei-director** `seat-sensei-director-aa [588897]` @306 (`SL<n>.<nn>`; owns rotate.py spawn/first_turn/bootstrap/handoff + the ack-dirty fix SL5.01). **master-sensei** `agi-88 [516457]` @292: node ids only. **Helper** `seat-sanctuary-helper-88 [5f209b]` @307: L4.257-259 on `seat/sanctuary-helper@s2` tip 3779d727c ride mur-42 as Nb; told 22:2xZ (cut-off, seat→post, its trim pass); only pi parents; floor $1.00.
 - **OWNER 21:4xZ horizon** (`vision:web-app-suite` db436e1f1): the Sanctuary = an MCP app with a web app layer; eight rungs; "Rungs 1-4 are live as goal lines under goal:g15 at the Sanctuary director" — NO rung lines exist yet (g15.1-24 checked); rung 1 = SL4.06 (sensei-director). Propose rungs 2-4 as g15 lines at the close report — next season's field.
-- **Tree:** season/s2 = MAIN. mur-41 = `13de8c37e`, 11/11, 3468/14, stamp 2266/195/2461. Seat pushed at every step; 0 behind at 22:21Z. **Free ids: L4.299+.**
+- **Tree:** season/s2 = MAIN. **mur-42 = MERGE `8d7edd265` + Nb `e4509304d` (pushed tip), 11/11 twice, 3539/14, stamp 2300/195/2495 @ e4509304d.** Seat = tip at 23:19Z. **Free ids: L4.300+.**
 - **UNIT:** reaper `heal.py watch` from MAIN (restarted 19:56Z; every heal.py change since is dead in the live watcher until the Prime restarts it).
 - **Helpers in `$S` (`/tmp/claude-1001/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<session-id>/scratchpad`, die with the session; ~12 lines each, rewrite them first):** `note.py <node> <file>` · `mint.py <spec.json>` (`{slug,parents,title,testable_claim,town}`) · `claim_append.py <node> <file>` (APPENDS to `testable_claim` = the assignment). write.Edit/create + submit, actor sanctuary-director role director, `@@TS@@` → `date -u`.
 
@@ -40,15 +40,19 @@ git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sa
 | L4.297 `a00-32df852f` pid 2245516 | F `hypothesis:l4-trimguard-never-reads-a-closing-quote-as-an-open-span` | cli.py + tests | HARVESTED 22:31Z (proved 0.95) |
 | L4.295 | A+B `hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested` | rotate.py + tests | HARVESTED 22:43Z (proved 0.92; stray `4242` removed) |
 | L4.298 | E `hypothesis:l4-the-sweep-names-every-refusal-and-has-one-terminal-body` | heal.py + tests | HARVESTED 22:42Z (proved 0.9; twins live in cli.py) |
-| H (after mur-42) | `hypothesis:l4-a-seat-is-a-post-everywhere` | readers/flags/schema/prose + `cli.py post-rename` | MINTED; cut on a quiet tree |
-| I (after H) | `hypothesis:l4-branches-follow-the-season-grammar` | grammar module + every branch reader + `cli.py branch-reshuffle` | MINTED; cut on a quiet tree |
+| L4.299 `a00-5e500992` pid 2715570 | H `hypothesis:l4-a-seat-is-a-post-everywhere` (3 kids) | readers/flags/schema/prose + `cli.py post-rename` | HARVESTED 00:32Z (4 kids, suite 3563/7; residue = identity writer + whois + self_row list key -> L4.300) |
+| L4.300 `a00-4b0f2740` pid 3395961 | H residue fix-only (same node) | rotate.py writer, send.py whois path, write.py list key | HARVESTED 00:53Z (lean 92; 333 tests; real whois via fallback) |
+| L4.301 `a00-5af55508` | P1(1) run-key leading token (`l4-a-workflow-run-is-named-not-numbered`) | workflow.py | HARVESTED 00:52Z |
+| L4.302 `a00-3cf95563` | P1(2) Clause A test red on pre-fix (`l4-a-join-matches-...`) | test_rotate_handover.py | HARVESTED 00:52Z |
+| L4.303 `a00-4d8ade12` | P1(3) trimguard curly opener + fixture test (`l4-trimguard-never-reads-...`) | cli.py + test | HARVESTED 00:52Z |
+| L4.304 `a00-4467e507` pid 3549440 | I `hypothesis:l4-branches-follow-the-season-grammar` (5 kids) | grammar module + every branch reader + `cli.py branch-reshuffle` | LIVE 00:53Z; branch `loop/hypothesis-l4-branches-follow-*-a00-4467e507@s2` |
 
 - Harvest shape per round: `status --iter L4.NNN --wait --timeout 540` → `git -C /home/ubuntu/work/agi/.agi/worktrees/<agent> status --short` (staged-uncommitted kid work = commit under the kid's authorship) → `git branch --list 'loop/*<agent>@s2'` → diff vs merge-base → merge `--no-ff -F` → run the claim's command on the REAL tree → `note.py` → commit+push.
 - **NEXT SEASON (Prime 22:14Z cut):** L4.291 residue (twice-rotation falsifier; worktree-local row readers incl. meter `--seat`; own-chain reap without a pid named in the record) · argv cap `l4-a-rotation-record-caps-the-reaped-chains-argv` (helper-proposed) · pin-reap round 2 (C) · helper's `l4-heal-reads-the-freshest-seat-row-not-live-first` · seat→post CODE rename (heads the list) · rungs 2-4 g15 lines · 0a/0c-cert/seatsig.
 
-## §3 🔴 NEXT COMMAND (stamped 22:45Z)
+## §3 🔴 NEXT COMMAND (stamped 00:56Z)
 
-**mur-42 WINDOW REQUESTED 22:44Z (seat tip 17e7d62e7, 39 ahead/0 behind; verify 9/10; 2291/195/2486). Waiting on the Prime's reply (lock state + tip + baseline) — `send.py peek sanctuary-director` mtime loop, then the MERGE-UP RECIPE below (mine first, then helper Nb `seat/sanctuary-helper@s2` 3779d727c), then cut H on the quiet tree → harvest → cut I → mur-43 → close report.** Every branch is pushed; no kid worktree of mine holds uncommitted work.
+**mur-43 WINDOW REQUESTED 00:55Z (seat tip eadf65f32, 19/0; verify 9/10; 2330/195/2525) — wait for the Prime's grant (inbox loop comparing `stat -c '%Y %s'`), then the MERGE-UP RECIPE (mine only; no Nb this time), report five numbers + hash. In parallel `spawn_budget.py status --iter L4.304 --wait --timeout 540` (I, 5 kids, ~1 h) → harvest I (check every kid worktree; whole suite `-x`; fixture `branch-reshuffle --apply` transcript) → request mur-44 → close report.** Every branch is pushed.
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes they came from)
 
@@ -60,6 +64,7 @@ git fetch; merge origin/season/s2 if behind; push ──► ONE `send.py read sa
 - 🔴 **`-F <file>` for every commit/merge/dm message** — `-m`/double quotes run backticks; notes/dms ride `<<'EOF'` files. `git merge` needs the EXACT branch name (`git branch --list 'loop/*<agent>@s2' | tr -d ' +*'`).
 - 🔴 **A parent can exit `done` with the kid's work staged-uncommitted in the KID's worktree** — check every kid worktree's `git status --short`; commit under the kid's authorship. **A kid may make unrelated global edits** — diff the deletions.
 - 🔴 **Never `cat` a manifest raw** (`jq '.agents[] | {id,status,pid,fail_reason}'`); never print a claude argv; the rotation record's `ps_before` is the predecessor's whole prompt (~50 KB) — grep `"result"`/`termd` only.
+- 🔴 **An inbox mtime loop misses a dm that lands in the SAME SECOND as your read** (the 22:54:39Z grant: 9 min lost) — compare size too (`stat -c '%Y %s'`). **`ls <lock> 2>&1 | grep -c lock` counts the ERROR line** — `test -f` the lock. **The `:07` branch_push cron publishes a merge held in MAIN mid-suite** (8d7edd265 at 23:07Z) — a window that spans :07 is public before its suite reads.
 - 🔴 **Timestamps from `date -u` in the same call** — the predecessor's "21:5xZ" were estimates; `ls -la` prints local time (UTC-4).
 - **Never `test_provisioning.py` / full-suite pytest with `--basetemp` under the repo** (mints a REAL key). **Never hand-poll `spawn_budget.py status`** — `--wait` is the wait. `[agi-nudge]`/`iter=… verdict=…` lines are machine nudges. **`crons.py` refuses from a worktree**; `crontab -l | grep agi-crons`. **`grep -v grep` hides your own claude process.** `cut` is shadowed on this box.
 

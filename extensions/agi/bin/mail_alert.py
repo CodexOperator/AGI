@@ -171,7 +171,7 @@ def build_alert(root: Path, me: str,
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="emit a mail alert for a seat")
-    ap.add_argument("--seat", default="",
+    ap.add_argument("--seat", "--post", default="",
                     help="recipient id (default: AGI_AGENT_ID)")
     ap.add_argument("--comms-root", dest="comms_root", default=None,
                     help="override comms root (tests)")

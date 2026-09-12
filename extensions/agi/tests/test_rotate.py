@@ -2354,6 +2354,63 @@ def test_spawn_first_seating_appends_startup_output_when_seat_owned(
         "a seat-less generic spawn must stay byte-identical (no STARTUP OUTPUT)"
 
 
+def test_spawn_seat_row_is_the_model_source_flags_only_override(
+        tmp_path, monkeypatch):
+    """`spawn --seat S` with no --model/--effort/--settings builds the SEAT
+    ROW's model, effort, settings and role — the precedence rotate-self, the
+    reaper's respawn and seats-launch already use — never the ladder default
+    of the `--tier` flag. Measured hole: the stream-master row (claude-sonnet-5,
+    max) dry-ran as `--model claude-fable-5-1` from the prime_director tier
+    default on 2026-09-12 00:2xZ (owner: "No surprise fable please."). Flags
+    still override the row; a seat-less spawn is byte-identical to before.
+    """
+    _write_first_seating_rotations(tmp_path)
+    _write_seats_sheet(tmp_path, [
+        {"name": "stream-master", "role": "director", "model": "claude-sonnet-5",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+    ])
+    calls = []
+    def fake_spawn(**kw):
+        calls.append(kw)
+        return 0, "echo ok"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+
+    # no flags -> the row's cells and the row's role, not the tier flag's
+    args = SimpleNamespace(name="stream-master", tier="prime_director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=True, successor_argv=None,
+                           seat="stream-master")
+    assert rotate.cmd_spawn(args, tmp_path) == 0
+    kw = calls[-1]
+    assert kw["model"] == "claude-sonnet-5"
+    assert kw["effort"] == "max"
+    assert kw["settings"] is None          # "" -> no --settings flag (no ultracode)
+    assert kw["tier"] == "director"        # the row's role, not prime_director
+
+    # explicit flags override the row
+    args2 = SimpleNamespace(name="stream-master", tier="prime_director",
+                            prompt_file=None, model="claude-opus-5",
+                            effort="high", settings='{"ultracode": true}',
+                            tmux_session="agi-rc", window_path=None,
+                            dry_run=True, successor_argv=None,
+                            seat="stream-master")
+    assert rotate.cmd_spawn(args2, tmp_path) == 0
+    kw2 = calls[-1]
+    assert kw2["model"] == "claude-opus-5" and kw2["effort"] == "high"
+    assert kw2["settings"] == {"ultracode": True}
+
+    # seat-less generic spawn: nothing from any row, tier flag as before
+    args3 = SimpleNamespace(name="belam-X", tier="kid", prompt_file=None,
+                            model=None, effort=None, settings=None,
+                            tmux_session="agi-rc", window_path=None,
+                            dry_run=True, successor_argv=None, seat=None)
+    assert rotate.cmd_spawn(args3, tmp_path) == 0
+    kw3 = calls[-1]
+    assert kw3["model"] is None and kw3["effort"] is None
+    assert kw3["settings"] is None and kw3["tier"] == "kid"
+
+
 # ── first-seating alert (hypothesis:l4-a-first-seating-sends-the-sensei-the-
 # same-alert-a-rotation-does, goal:g15.17): a first seating emits the SAME
 # [rotation-alert] dm a rotation does (trigger: first-seating, generation

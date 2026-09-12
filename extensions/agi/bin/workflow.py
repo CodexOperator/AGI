@@ -106,6 +106,22 @@ def _config_key_for(name: str) -> str:
 # multi-word key abbreviates to the initials of its hyphen-separated words.
 
 
+def _leading_token(value: object) -> str:
+    """The slug of everything up to the first whitespace or `(`, so a
+    descriptor cell like `42 (point, mur-42 window)` slugs as `42`, exactly
+    like the bare integer `42` — and the two dedupe together. `SL2#2` has no
+    whitespace or paren, so it keeps its full shape (`sl2-2` after the slug);
+    a cell whose token starts with a paren or whitespace yields an empty
+    string, i.e. contributes nothing."""
+    s = str(value).strip()
+    cut = len(s)
+    for i, ch in enumerate(s):
+        if ch.isspace() or ch == "(":
+            cut = i
+            break
+    return s[:cut]
+
+
 def _slugify_token(value: object) -> str:
     """`SL1#2` -> `sl1-2`, `39` -> `39` — lowercased, runs of non-alnum to
     ONE `-`, collapsed. Empty when nothing alnum survives."""
@@ -148,7 +164,14 @@ def _run_arg_tokens(args: dict) -> list[str]:
                         cell = item.get("key")
                     if cell is None or isinstance(cell, (dict, list, bool)):
                         continue
-                    raw.append(str(cell))
+                    # the LEADING token of the cell: `42 (point, ...)` slugs as
+                    # `42`, exactly like the bare integer 42, so descriptor
+                    # cells dedupe with their bare form instead of defeating
+                    # the dedupe (mur-42 window, mur-42 P1 line -- 57-char key)
+                    tok = _leading_token(cell)
+                    if not tok:
+                        continue
+                    raw.append(tok)
                 else:
                     raw.append(str(item))
         else:
