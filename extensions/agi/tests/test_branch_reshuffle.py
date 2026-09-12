@@ -112,14 +112,21 @@ def test_dry_run_changes_nothing_and_names_jobs(repo: Path):
     assert res.returncode == 0, res.stderr
     out = res.stdout
 
-    # every branch-rename job named
+    # prime ruling window-46 (goal:g17.1): an unfiltered --dry-run DEFAULTS to
+    # posts,towns, so only the post and town jobs are planned, and the default
+    # is PRINTED in the plan (a reader of the dry-run sees the filter applied).
+    assert "defaulted to kinds posts,towns" in out, out
     for old, new in [
-        ("season/s2", "season2/main"),
         ("seat/post-a@s2", "season2/posts/post-a"),
-        ("loop/x@s2", "season2/loops/x"),
         ("town/core/season/s2", "season2/core/season2/main"),
     ]:
         assert old in out and new in out, (old, new, out)
+    # main and loop are NOT planned under the default (substring-safe: check
+    # the exact rename command line, not the bare branch token)
+    for old, new in [("season/s2", "season2/main"),
+                     ("loop/x@s2", "season2/loops/x")]:
+        assert f"[DRY ] branch rename (local): git branch -m {old} {new}" \
+            not in out, (old, new, out)
 
     # worktree re-point proposed for a worktree on a legacy branch
     assert "checkout season2/posts/post-a" in out
@@ -139,7 +146,9 @@ def test_dry_run_changes_nothing_and_names_jobs(repo: Path):
 def test_apply_renames_pushes_repoints_and_keeps_grid_identical(repo: Path):
     grid_before = _refs_grid(repo)
 
-    res = _run_cli(repo / ".agi", "--apply")
+    # explicit all-four kinds preserves the FULL coverage that the old
+    # unfiltered default used to give (ruling: explicit list means all four)
+    res = _run_cli(repo / ".agi", "--apply", "--kinds", "main,posts,towns,loops")
     assert res.returncode == 0, res.stderr
     out = res.stdout
 
@@ -229,20 +238,60 @@ def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
     (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (repo / ".agi/sessions/verified.stamp").write_text("green")
 
+    # prime ruling window-46: an UNFILTERED --delete-old defaults to
+    # posts,towns — it touches NO loop and NO main/master branch, the default
+    # is printed, and the delete set equals posts,towns.
     res = _run_cli(repo / ".agi", "--delete-old")
     assert res.returncode == 0, res.stderr
+    assert "defaulted to kinds posts,towns" in res.stdout, res.stdout
     origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
-    for old in ["season/s2", "seat/post-a@s2", "loop/x@s2",
-                "town/core/season/s2"]:
+    for old in ["seat/post-a@s2", "town/core/season/s2"]:
         assert f"origin/{old}" not in origin, (old, origin)
+    # loop and main are NOT delete jobs under the default
+    assert "origin/loop/x@s2" in origin, "default must NOT delete the loop"
+    assert "origin/season/s2" in origin, "default must NOT delete the main"
     # remote-only: local legacy branches stay (a later decide renames those)
     local = _git(repo, "branch", "--format=%(refname:short)").stdout
     assert "season/s2" in local and "seat/post-a@s2" in local
 
 
+# ---- prime ruling window-46: --kinds loops is the ONLY way a loop deletes --
+def test_delete_old_loop_deletes_only_under_explicit_loops(repo: Path):
+    (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (repo / ".agi/sessions/verified.stamp").write_text("green")
+
+    # `--kinds loops` lists ONLY the loop for deletion (no post/town/main)
+    res = _run_cli(repo / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode == 0, res.stderr
+    assert "origin --delete loop/x@s2" in res.stdout, res.stdout
+    assert "origin --delete seat/post-a@s2" not in res.stdout, res.stdout
+    assert "origin --delete town/core/season/s2" not in res.stdout, res.stdout
+    assert "origin --delete season/s2" not in res.stdout, res.stdout
+    origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
+    assert "origin/loop/x@s2" not in origin
+    for kept in ["origin/seat/post-a@s2", "origin/town/core/season/s2",
+                 "origin/season/s2"]:
+        assert kept in origin, kept
+
+    # the explicit full list still means ALL FOUR (ruling forbids the
+    # UNFILTERED default, not an explicit full list)
+    res4 = _run_cli(repo / ".agi", "--dry-run", "--kinds",
+                    "main,posts,towns,loops")
+    assert res4.returncode == 0, res4.stderr
+    assert "defaulted to kinds posts,towns" not in res4.stdout, res4.stdout
+    for old, new in [("season/s2", "season2/main"),
+                     ("seat/post-a@s2", "season2/posts/post-a"),
+                     ("loop/x@s2", "season2/loops/x"),
+                     ("town/core/season/s2", "season2/core/season2/main")]:
+        assert f"[DRY ] branch rename (local): git branch -m {old} {new}" \
+            in res4.stdout, (old, new, res4.stdout)
+
+
 # ---- defect 2: --apply is RESUMABLE + defect 3: upstream re-pointed ----
 def test_apply_sets_upstream_and_is_resumable(repo: Path):
-    res = _run_cli(repo / ".agi", "--apply")
+    # explicit all-four kinds so season/s2 (kind main) is an apply job
+    res = _run_cli(repo / ".agi", "--apply", "--kinds",
+                   "main,posts,towns,loops")
     assert res.returncode == 0, res.stderr
     for old, new in [("season/s2", "season2/main"),
                      ("seat/post-a@s2", "season2/posts/post-a")]:
@@ -252,7 +301,8 @@ def test_apply_sets_upstream_and_is_resumable(repo: Path):
     # re-running --apply after a full apply RESUMES: origin still lists the
     # legacy names (delete-old is separate), so each job is skipped BY NAME as
     # already renamed -- never a hard fail on git branch -m.
-    res2 = _run_cli(repo / ".agi", "--apply")
+    res2 = _run_cli(repo / ".agi", "--apply", "--kinds",
+                    "main,posts,towns,loops")
     assert res2.returncode == 0, res2.stderr
     assert "already renamed" in res2.stdout
 
@@ -260,8 +310,10 @@ def test_apply_sets_upstream_and_is_resumable(repo: Path):
 def test_apply_refuses_origin_moved_by_name(tmp_path: Path):
     r = _build_repo(tmp_path)
     root = r / ".agi"
+    # explicit all-four kinds so season/s2 (kind main) is a job under the ruling
+    kinds = ["main,posts,towns,loops"]
     # baseline the dry-run plan (records each old branch's origin tip)
-    res_dry = _run_cli(root, "--dry-run")
+    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds)
     assert res_dry.returncode == 0, res_dry.stderr
     # move origin's season/s2 tip externally
     _write(r, "moved", "x\n")
@@ -269,7 +321,7 @@ def test_apply_refuses_origin_moved_by_name(tmp_path: Path):
     _git(r, "commit", "-qm", "move origin tip")
     _git(r, "push", "-q", "origin", "HEAD:refs/heads/season/s2")
 
-    res = _run_cli(root, "--apply")
+    res = _run_cli(root, "--apply", "--kinds", *kinds)
     assert res.returncode == 1, res.stdout
     assert "REFUSES season/s2" in res.stderr, res.stderr
     # the refused branch was not renamed; the tree was not swept wholesale
@@ -322,7 +374,8 @@ def test_delete_old_orders_posts_towns_mains_and_keeps_master(tmp_path: Path):
     (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (r / ".agi/sessions/verified.stamp").write_text("green")
 
-    res = _run_cli(r / ".agi", "--delete-old")
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
     assert res.returncode == 0, res.stderr
     out = res.stdout
     # delete order is post(s) -> town(s) -> main(s) -> loop(s), by OLD name
@@ -354,7 +407,8 @@ def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
     # out-of-band, so `git push origin --delete loop/x@s2` is refused.
     _git(r, "push", "origin", "--delete", "loop/x@s2")
 
-    res = _run_cli(r / ".agi", "--delete-old")
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
     assert res.returncode == 1, res.stdout
     assert "loop/x@s2" in res.stderr, res.stderr
     # the run did NOT abort at the refusal: earlier + later jobs were deleted
@@ -371,7 +425,8 @@ def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
 def test_apply_refuses_origin_moved_a_second_time_same_branch(tmp_path: Path):
     r = _build_repo(tmp_path)
     root = r / ".agi"
-    res_dry = _run_cli(root, "--dry-run")
+    kinds = ["main,posts,towns,loops"]
+    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds)
     assert res_dry.returncode == 0, res_dry.stderr
     # move origin's season/s2 tip externally, AFTER the baseline was taken
     _write(r, "moved", "x\n")
@@ -379,13 +434,13 @@ def test_apply_refuses_origin_moved_a_second_time_same_branch(tmp_path: Path):
     _git(r, "commit", "-qm", "move origin tip")
     _git(r, "push", "-q", "origin", "HEAD:refs/heads/season/s2")
 
-    res1 = _run_cli(root, "--apply")
+    res1 = _run_cli(root, "--apply", "--kinds", *kinds)
     assert res1.returncode == 1, res1.stdout
     assert "REFUSES season/s2" in res1.stderr, res1.stderr
 
     # a SECOND --apply must be refused the SAME way: --apply never
     # overwrote the baseline, so it still compares against the pre-move shas.
-    res2 = _run_cli(root, "--apply")
+    res2 = _run_cli(root, "--apply", "--kinds", *kinds)
     assert res2.returncode == 1, res2.stdout
     assert "REFUSES season/s2" in res2.stderr, res2.stderr
     # the twice-refused branch was never locally renamed
@@ -401,3 +456,22 @@ def test_dry_run_last_line_is_runbook_note(repo: Path):
     assert nonempty, "dry-run output empty"
     assert nonempty[-1].startswith("runbook:"), nonempty[-1]
 
+
+
+# ---- L4.319 (KID B): a `post/<n>@s2` intermediate branch maps to season2/posts/<n> ----
+# branches.py now parses the `post/<name>@s<N>` intermediate spelling (the
+# seat->post rename's mid-point). A dry-run plan over a `post/post-y@s2` branch
+# must NAME the canonical `season2/posts/post-y` target with NO-MATCH absent
+# and no wrong kind (hypothesis:l4-reshuffle-delete-old-is-never-unfiltered-and-
+# post-n-maps-to-season2-posts). --dry-run only — never --apply.
+def test_dry_run_plans_intermediate_post_at_to_canonical(tmp_path: Path):
+    r = _build_repo(tmp_path)
+    _git(r, "branch", "post/post-y@s2")
+    _git(r, "push", "-q", "origin", "post/post-y@s2")
+    _git(r, "fetch", "-q", "origin")
+    res = _run_cli(r / ".agi", "--dry-run")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert "post/post-y@s2" in out
+    assert "season2/posts/post-y" in out
+    assert "NO-MATCH" not in out
