@@ -33,7 +33,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` — in sync with origin/season/s2 at 692dbec5c (merged, never rebased); pushed |
+| seat | `seat/sensei-director@s2` — synced with origin/season/s2 at 01:22Z (29 behind → merged clean, never rebased); SL6.02 + SL6.03 harvested on the seat, unmerged-up |
 | merge-ups this loop | **SL2#10 LANDED 00:28Z** 6e484c126 (SL5.06 g15.14 prepare P1+P2 · SL5.09 g15.23 alert path #2), ALL 11 GREEN 3590/14, **2322/195/2517**, stamp on the Prime's 692dbec5c; Prime-verified PASS 10/10 on b6f93d971, floor raised; MAIN's sensei-director row now carries pubkey b3a8e407 |
 | wake | 17 calls (floor 4): the ack refused twice on MAIN's dirty seats.md — the hunk was my OWN spawn row (L4.291 writes MAIN, SL5.01 commits the worktree copy) → SL6.01 fixes the source |
 | graph | goals **180** · 0 broken links · GOALS.md byte-identical · +6 experiment +3 hypothesis this loop |
@@ -49,13 +49,15 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | Prime XIII (b): sig against an unkeyed row reads UNKEYED, never FORGED | `goal:g15.26` gate | `hypothesis:l4-a-sig-against-a-row-with-no-key-on-file-reads-unkeyed-never-forged` | **SL6.03** a00-fd7ca60b · `loop/hypothesis-l4-a-sig-against-a-ro-a00-fd7ca60b@s2` | HARVESTED 00:45Z on the seat (353 green, 1 kid proved) — lands at SL2#11. RULING: comms.verify stays informational until (a)+(b) land AND a mur-SL2.x reviews them by name — never flip |
 | Prime XIII 00:33Z P2: cmd_spawn --seat ignores the row's model/effort/settings (owner: 'No surprise fable please.') | `goal:g15.15` | `hypothesis:l4-cmd-spawn-with-a-seat-takes-the-rows-model-effort-and-settings-never-the-tier-default` | SL6.04 WITHDRAWN | LANDED by the Prime at 6463e6aef (owner's order); record `experiment:l4-record-cmd-spawn-seat-row-is-the-model-source-landed-by-the-prime-at-6463e6aef` proved |
 | g15.19 P2 (recorded, not cut): run_after_join_for_seat feeds an empty succ_transcript/succ_ref — key on the record's window_id | `goal:g15.19` | — | — | brief after the P1 rounds land |
-| g15.25 lines (3) (4) | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | → SL6.04 / SL6.05 | queued behind SL6.01-03 (line (3) touches the ack path SL6.01 owns — cut only after SL6.01 lands) |
+| Prime XIII mur-SL2.6-9 (01:17Z): ACCEPT 8/8, flip HELD — mur-SL5.04's four preconditions | `goal:g15.26` P1 | F1 `hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row` · F2 `hypothesis:l4-sign-exactly-the-bytes-the-reader-parses-one-canonical-form-so-a-legitimate-body-never-reads-forged` · F3 `hypothesis:l4-quarantine-dedupes-by-block-hash-and-the-withheld-block-cursor-decision-is-recorded` · F4 `hypothesis:l4-whois-exits-non-zero-on-forged-under-enforcing-without-msg-and-its-quarantine-filename-is-sanitized` | F1 → **SL6.05** (after SL6.01: reuse its own-row-hunk helper) · **SL6.06** a00-961fcf90 `loop/hypothesis-l4-sign-exactly-the-b-a00-961fcf90@s2` · **SL6.07** a00-582de6e2 `loop/hypothesis-l4-quarantine-dedupes-a00-582de6e2@s2` · **SL6.08** a00-545e0673 `loop/hypothesis-l4-whois-exits-non-ze-a00-545e0673@s2` | SL6.06-08 RUNNING 01:23Z in parallel (send.py, disjoint scopes — deviation recorded on g15.26); harvest = send neighbourhood; seams between them: union by hand, name in the merge message |
+| mur-SL2.6-9 P2 residues | g15.25 (SL4.06/5.03/5.05) · g15.21 (SL5.07) · g15.24 (SL5.08) | — | — | RECORDED as notes 01:19Z; brief after the g15.26 P1 rounds |
+| g15.25 lines (3) (4) | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | → SL6.09 / SL6.10 | queued behind SL6.05-08 (line (3) touches the ack path SL6.01 owns — cut only after SL6.01 lands) |
 | Prime owes | mur-SL2.6-10 reviews by name (SL5.01-09) | — | — | findings → fix-only briefs, measured on the merge-up commit it names |
 
 ### 🔴 Where it stops — the next command (stamp 00:31Z)
 
 ```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL6.0[123]"   # a parent gone = harvest (SL6.01 rotate.py · SL6.02 heal.py · SL6.03 send.py)
+python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL6.0[1678]"   # a parent gone = harvest (SL6.01 rotate.py · SL6.06/07/08 send.py)
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read
 ```
 Then harvest each landed round (§1 shape), merge origin/season/s2 first, ask belam "window?" for SL2#11 → cut lines (3)(4) → card → rotate at 0.4.
