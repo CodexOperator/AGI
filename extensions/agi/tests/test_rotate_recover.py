@@ -668,7 +668,10 @@ def test_after_join_service_performs_recovered_seats_join_pin_ack(graph):
     orig_run = _rotate.run_after_join
     got = {}
     try:
-        _rotate._find_seat = lambda root, name: {"role": "director"}
+        # (SL7.76 harvest) the row carries a LIVE pid — SL7.76's liveness gate
+        # skips a dead row before run_after_join is reached.
+        _rotate._find_seat = lambda root, name: {"role": "director",
+                                                 "pid": os.getpid()}
         _rotate._resolve_template = lambda root, role, explicit=None, **kw: (
             {"startup": {"after_join": [
                 {"label": "join", "cmd": "echo join"},
@@ -729,7 +732,10 @@ def test_recovered_top_level_window_id_fills_after_join_identity(graph):
     orig_run = _rotate.run_after_join
     got = {}
     try:
-        _rotate._find_seat = lambda root, name: {"role": "director"}
+        # (SL7.76 harvest) the row carries a LIVE pid — SL7.76's liveness gate
+        # skips a dead row before run_after_join is reached.
+        _rotate._find_seat = lambda root, name: {"role": "director",
+                                                 "pid": os.getpid()}
         _rotate._resolve_template = lambda root, role, explicit=None, **kw: (
             {"startup": {"after_join": [
                 {"label": "join", "cmd": "echo join"}]}},

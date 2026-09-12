@@ -1579,7 +1579,8 @@ def test_for_seat_gen_resolves_from_row_when_record_lacks_gen_after(tmp_path,
 
     def _fake_run_after_join(root, *, seat, gen, startup, values,
                              record_path, sleep_impl, send_dm,
-                             delay_override, gen_unresolved_reason=None):
+                             delay_override, gen_unresolved_reason=None,
+                             **kw):  # SL7.72/76 add performer/late/age kwargs
         calls["gen"] = gen
         calls["gen_unresolved_reason"] = gen_unresolved_reason
         return {"gen": gen}
@@ -1596,7 +1597,8 @@ def test_for_seat_gen_resolves_from_row_when_record_lacks_gen_after(tmp_path,
                             str(rec_path)))
     monkeypatch.setattr(
         rot, "_find_seat",
-        lambda root, name: {"role": "parent", "generation": 9})
+        lambda root, name: {"role": "parent", "generation": 9,
+                            "pid": os.getpid()})  # live under SL7.76's gate
     monkeypatch.setattr(
         rot, "_resolve_template",
         lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
@@ -1618,7 +1620,8 @@ def test_for_seat_gen_refused_when_neither_record_nor_row(tmp_path,
 
     def _fake_run_after_join(root, *, seat, gen, startup, values,
                              record_path, sleep_impl, send_dm,
-                             delay_override, gen_unresolved_reason=None):
+                             delay_override, gen_unresolved_reason=None,
+                             **kw):  # SL7.72/76 add performer/late/age kwargs
         calls["gen"] = gen
         calls["gen_unresolved_reason"] = gen_unresolved_reason
         return {"gen": gen}
@@ -1634,7 +1637,8 @@ def test_for_seat_gen_refused_when_neither_record_nor_row(tmp_path,
                             str(rec_path)))
     monkeypatch.setattr(
         rot, "_find_seat",
-        lambda root, name: {"role": "parent"})  # no generation cell
+        lambda root, name: {"role": "parent",
+                            "pid": os.getpid()})  # live under SL7.76's gate  # no generation cell
     monkeypatch.setattr(
         rot, "_resolve_template",
         lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
