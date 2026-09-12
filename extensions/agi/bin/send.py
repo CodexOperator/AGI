@@ -2483,6 +2483,38 @@ def _row_for_label(root: Path, rows: list | None, name: str) -> dict | None:
     return tagged
 
 
+def _row_for_pubkey(root: Path, rows: list | None, prefix: str) -> dict | None:
+    """The ONE row a whois ``--key`` + ``--sig`` verifies a signature against:
+    the UNIQUE row whose CURRENT ``pubkey`` cell starts with ``prefix``
+    (min ``WHOIS_MIN_KEY_PREFIX`` hex, uniqueness enforced — never a guess),
+    in the pushed set first then MAIN's committed row, else None. Mirrors
+    :func:`_row_for_label` but selects by KEY (hypothesis:l4-prime-key-is-read-
+    from-the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-pubkey):
+    a ``--key`` claim's signature is verified against the very row the caller's
+    pubkey named, never a row picked by name/session_ref — before this, the
+    key prefix landed in the session_ref slot of :func:`_row_for_label`, which
+    matches no name/session_ref and the sig read UNVERIFIABLE forever."""
+    def _pick(rows):
+        if len(prefix) < WHOIS_MIN_KEY_PREFIX or not all(
+                c in "0123456789abcdefABCDEF" for c in prefix):
+            return None
+        hits = [r for r in (rows or [])
+                if (r.get("pubkey") or "").startswith(prefix)]
+        if len(hits) == 1:
+            return hits[0]
+        return None
+    if rows is not None:
+        row = _pick(rows)
+        if row is not None:
+            return row
+    crow = _pick(_seats_committed_rows(root))
+    if crow is None:
+        return None
+    tagged = dict(crow)
+    tagged["_main_committed"] = True
+    return tagged
+
+
 def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
                    msg: bytes, seat_name: str) -> str:
     """The ONE label for a parsed sig against ONE seat row.
@@ -3792,7 +3824,8 @@ def _whois_enforced_refusal(root: Path, session_ref: str, label: str | None,
 
 
 def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
-                     sig_line: str | None, msg_text: str | None) -> str | None:
+                     sig_line: str | None, msg_text: str | None,
+                     target: tuple | None = None) -> str | None:
     """The signature label for a whois call, or None when no signature was
     given (nothing to verify). INFORMATIONAL only: the caller (whois) reports
     this in the text but NEVER keys its exit code on it (Prime ruling A).
@@ -3800,6 +3833,13 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
     ``UNSIGNED`` when no signed line was given; otherwise resolve the row for
     ``session_ref`` through the ONE shared resolver (:func:`_row_for_label` --
     pushed row first, then MAIN's committed row, then UNVERIFIABLE) and answer
+    exactly as the inbox writer does. WITH ``target`` a ("key", prefix) tuple
+    (from ``--key``), the row is the one whose PUBKEY matches the prefix
+    (:func:`_row_for_pubkey`, unique, min WHOIS_MIN_KEY_PREFIX) -- so a by-
+    key claim's signature is verified against the row the caller's pubkey
+    named, never a row picked by name/session_ref
+    (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
+    sig-resolves-the-sig-row-by-pubkey). And answer
     ``VERIFIED`` / ``FORGED`` / ``RETIRED:<fp>`` / ``UNVERIFIABLE (no row:
     <name>)`` exactly as the inbox writer does (:func:`_label_for_sig`), so
     whois and the speaker agree byte-for-byte. A row missing from NEITHER the
@@ -3813,9 +3853,17 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
         sig_bytes = bytes.fromhex(sig_hex)
     except (ValueError, TypeError):
         return "FORGED"
-    row = _row_for_label(root, rows, session_ref)
-    if row is None:
-        return f"UNVERIFIABLE (no row: {session_ref})"
+    if target is not None and target[0] == "key":
+        # --key --sig: the signature row is the one the caller's PUBKEY named
+        # (unique prefix, min WHOIS_MIN_KEY_PREFIX), never a name/session_ref
+        # pick -- a by-key claim's sig MUST verify against its own row.
+        row = _row_for_pubkey(root, rows, target[1])
+        if row is None:
+            return f"UNVERIFIABLE (no row: key {target[1]})"
+    else:
+        row = _row_for_label(root, rows, session_ref)
+        if row is None:
+            return f"UNVERIFIABLE (no row: {session_ref})"
     # --msg IS the exact canonical message bytes the sig covers; the caller
     # reconstructs them (ts\nfrom\nto\n\ntext), because only the ONE canonical
     # shape can verify. We do not re-derive it here.
@@ -3878,7 +3926,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
         text = (f"UNVERIFIED {session_ref}: pushed ref(s) {tried} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
-        label = _whois_sig_label(root, local, session_ref, sig_line, msg_text)
+        label = _whois_sig_label(root, local, session_ref, sig_line, msg_text,
+                                 target=target)
         if label is not None:
             text += f"\n{label}"
         # A forged sig is refused even on the unproven path: 2 outranks 1,
@@ -3898,7 +3947,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
     text = f"{answer}  (verified against {live_ref} @ {sha})"
     # INFORMATIONAL signature label: never part of the exit decision -- EXCEPT
     # clause (3)'s enforced FORGED refusal, checked below.
-    label = _whois_sig_label(root, rows, session_ref, sig_line, msg_text)
+    label = _whois_sig_label(root, rows, session_ref, sig_line, msg_text,
+                             target=target)
     if label is not None:
         text += f"\n{label}"
     refusal = _whois_enforced_refusal(root, session_ref, label,
