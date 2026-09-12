@@ -769,18 +769,22 @@ def _quorum_caller() -> bool:
 
 
 def _detect_sender(from_flag: str | None) -> str:
-    """Sender: AGI_AGENT_ID env, then AGI_SEAT, then --from, then "unknown".
+    """Sender order, as built: AGI_AGENT_ID env, then AGI_SEAT, then --from,
+    then "unknown".
 
-    The agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message
-    even when the caller forgot a flag; next a SEAT name (AGI_SEAT, exported
-    by rotate-self / spawn / seats-launch / recovery) signs under the seat
-    name; then an explicit --from beats both fallbacks; then "unknown" — an
-    honest absence, not a confident wrong name (hypothesis:l3-send-comms-
-    root, extended by hypothesis:l4-send-py-same-sender-stranded-line-and-
-    the-swallowed-wake clause c: so every AGI_SEAT-exporting path dms under
-    its seat name, never "from: unknown"). The tmux window NAME is never an
-    identity — a window name is a seat, not an agent (hypothesis:l3-agent-
-    id-never-exported).
+    Identity is SUPPLIED by the harness env, never CLAIMED by a flag
+    (hypothesis:l4-authority-verified-against-the-graph-not-the-message): the
+    agent's own id (AGI_AGENT_ID, exported by dispatch) signs a message even
+    when the caller forgot a flag; next a SEAT name (AGI_SEAT, exported by
+    rotate-self / spawn / seats-launch / recovery) signs under the seat name;
+    an explicit --from does NOT beat either env fallback — a flag may only
+    name a sender in a hand-run shell with no exported identity; then
+    "unknown" — an honest absence, not a confident wrong name
+    (hypothesis:l3-send-comms-root, extended by hypothesis:l4-send-py-same-
+    sender-stranded-line-and-the-swallowed-wake clause c: so every
+    AGI_SEAT-exporting path dms under its seat name, never "from: unknown").
+    The tmux window NAME is never an identity — a window name is a seat, not
+    an agent (hypothesis:l3-agent-id-never-exported).
     """
     env = os.environ.get("AGI_AGENT_ID", "").strip()
     if env:
