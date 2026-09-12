@@ -4907,6 +4907,101 @@ def test_quarantine_appends_never_truncates(tmp_path, capsys, monkeypatch):
         "quarantine appends both RAW blocks, never truncating"
 
 
+# ── g15.26 P1 (F3): quarantine DEDUPES by the sha256 of the block's raw
+# ── bytes (hypothesis:l4-quarantine-dedupes-by-block-hash...). peek never
+# ── advances the read cursor, so a repeated peek of one FORGED block must
+# ── NOT grow the quarantine by one identical copy per call -- the quarantine
+# ── is the durable RECORD of what was withheld, not an append event log.
+# ── One distinct block is kept once; the REFUSED line still prints every
+# ── event; and `read` still advances the cursor past a withheld block (the
+# ── inbox drains; the quarantine holds the copy).
+
+
+def test_peek_enforcing_n_peeks_of_one_forged_leave_one_copy(
+        tmp_path, capsys, monkeypatch):
+    """N peeks of one FORGED block keep EXACTLY ONE copy in the quarantine
+    (deduped by block hash), while every peek still prints its REFUSED line
+    and pins the SAME withheld path."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    path_str = None
+    for _ in range(5):
+        send_mod.peek(project, "recv", wrap=160)
+        out = capsys.readouterr().out
+        assert "tampered!!" not in out, "a FORGED body never prints"
+        assert f"REFUSED FORGED from seat-a " in out, \
+            "every peek still refuses the block"
+        assert "withheld to " in out
+        if path_str is None:
+            path_str = out.split("withheld to ")[1].strip()
+        else:
+            assert out.split("withheld to ")[1].strip() == path_str, \
+                "the refusal names the SAME withheld path every peek"
+    q = _quarantine_path(project)
+    qtext = q.read_text()
+    assert qtext.count(send_mod.MSG_SEP) == 1, \
+        "N peeks of one block leave exactly one copy in quarantine"
+    assert qtext.count("tampered!!") == 1
+    assert qtext == inbox_text, \
+        "the retained copy is the block's inbox bytes verbatim"
+    # the sidecar index holds exactly one hash line (append-only, one hex).
+    hashes = _quarantine_path(project).with_suffix(".hashes")
+    lines = hashes.read_text().splitlines()
+    assert len(lines) == 1
+    assert len(lines[0]) == 64, "the sidecar holds one sha256 hex per line"
+
+
+def test_quarantine_distinct_forged_blocks_still_all_kept(
+        tmp_path, capsys, monkeypatch):
+    """Dedupe is by BYTES, not by quarantine slot: two DIFFERENT FORGED
+    blocks (different hashes) are BOTH kept -- the never-lose guarantee of
+    test_quarantine_appends_never_truncates is unchanged, only repeats of
+    the SAME block are collapsed."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    _forged_inbox_with_rows(project, monkeypatch, body="first forged")
+    inbox_path = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    send_mod.send(project, "recv", "second message", "seat-a")
+    inbox_path.write_text(
+        inbox_path.read_text().replace("second message", "second forged"))
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    capsys.readouterr()
+    q = _quarantine_path(project)
+    qtext = q.read_text()
+    assert qtext.count("first forged") == 1
+    assert qtext.count("second forged") == 1
+    assert qtext.count(send_mod.MSG_SEP) == 2
+    hashes = _quarantine_path(project).with_suffix(".hashes")
+    assert len(hashes.read_text().splitlines()) == 2, \
+        "two distinct blocks record two hashes"
+
+
+def test_read_advances_cursor_past_withheld_block_copy_remains(
+        tmp_path, capsys, monkeypatch):
+    """Cursor decision, recorded (hypothesis clause (2)): `read` ADVANCES
+    past a withheld FORGED block -- the inbox drains so the same bytes are
+    never re-refused/re-appended on the next read, while the quarantine keeps
+    the one copy as the durable record. A second read reports empty and does
+    not grow the quarantine."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert f"REFUSED FORGED from seat-a " in out
+    q = _quarantine_path(project)
+    assert q.read_text().count(send_mod.MSG_SEP) == 1
+    # the read consumed the withheld block: a second read sees an empty inbox
+    send_mod.read(project, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "empty" in out2, "read advanced past the withheld block"
+    assert q.read_text().count(send_mod.MSG_SEP) == 1, \
+        "the second read does not re-append the already-whithheld block"
+    assert q.read_text() == inbox_text, \
+        "the one retained copy is still the exact inbox bytes"
+
+
 def test_lockdown_requirements_named_seam():
     """The requirement list is the reserved seam -- named, asserts nothing is
     built yet."""
