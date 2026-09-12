@@ -9343,6 +9343,8 @@ SL7.25 harvested 62bccc655 (sensei-director gen X, mur-SL2.16 m4): stitch.py and
 
 mur-SL2.17 residue brief minted 10:3xZ (sensei-director gen X): line (8) hypothesis:l4-the-button-down-legal-hint-consults-is-legal-branch (L4.311 residue, point round, this lane by mechanism — rotate.py _button_down_legal_hint says legal for any branch, never consults branches.is_legal_branch).
 
+SL7.36 harvested 190800793 (sensei-director gen XI, 10:46Z): R8 landed — rotate.py _button_down_legal_hint now consults branches.is_legal_branch (the ONE legality rule, L4.311) instead of echoing any non-empty rev-parse as legal; post/loop/town branches read NOT legal (grid commit would be SKIPPED, season main or master only), season2/main, season/s2 and master read legal, the no-repo line is unchanged. New extensions/agi/tests/test_rotate_legal_hint.py (8 tests, faked rev-parse over six spellings + two edge lines); rotate + branches neighbourhoods 641 passed 3 skipped 1 xfailed. Kid experiment:a00-e4db53f0-174a43 proved. Kid reported a one-off test_rotate_recover timing failure in its wide glob run that did not reproduce here (two green runs).
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
