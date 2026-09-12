@@ -9321,6 +9321,55 @@ def _after_join_performer_armed(root: Path, *, forced: bool = False) -> bool:
     return bool(((cfg or {}).get("reaper") or {}).get("unit_enabled", True))
 
 
+#: Per-placeholder human reason when an after_join entry USES a placeholder
+#: whose value resolves EMPTY: the entry is refused BY NAME and never executed
+#: on the empty slot (hypothesis:l4-an-after-join-entry-whose-placeholder-
+#: resolves-empty-is-refused-by-name...). A MAIN post with no predecessor
+#: chain (`{pred_pids}` = '') used to run `grep -E ''`, match every line, and
+#: dump the whole process table into the rotation record and the successor's
+#: dm. A placeholder with no mapped reason still refuses, naming the
+#: placeholder (`value empty`) — never an invented silent pass.
+_AFTER_JOIN_EMPTY_REASONS = {
+    "pred_pids": "no predecessor chain",
+    "succ_ref": "row session_ref empty",
+    "gen": "no generation resolved",
+}
+
+
+#: The placeholder shape `_resolve_startup_placeholders` walks (tmux `#{k}`
+#: literals pass through; a bare `{k}` is a startup placeholder).
+_PLACEHOLDER_RE = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def _after_join_empty_refusal(cmd: str, values: dict, fallback: str):
+    """Return the rich NAMED refusal string for the first placeholder the
+    after_join command USES whose value resolves EMPTY and cannot be
+    fallback-resolved, else ``None``. First_turn's precedence is mirrored:
+    a usable per-entry ``fallback`` wins, then the code map
+    ``_STARTUP_FALLBACKS``; when neither names a usable fragment the refusal
+    stands (named, with a per-placeholder reason), so a placeholder never runs
+    empty here. A `#{...}` tmux literal stays untouched."""
+    for m in _PLACEHOLDER_RE.finditer(cmd):
+        if m.start() > 0 and cmd[m.start() - 1] == "#":
+            continue
+        key = m.group(1)
+        if key not in STARTUP_PLACEHOLDERS:
+            return None  # unknown key — `_resolve_startup_placeholders` names it
+        if str(values.get(key, "")):
+            continue
+        frag = fallback or _STARTUP_FALLBACKS.get(key, "")
+        if frag:
+            try:
+                _resolve_fallback_fragment(frag, key, values)
+                continue  # usable fallback — resolves, not a refusal
+            except ValueError:
+                pass  # unusable fallback — fall through to the named refusal
+        reason = _AFTER_JOIN_EMPTY_REASONS.get(key, "value empty")
+        return (f"placeholder {{{key}}} empty: {reason} "
+                "— skipped by name")
+    return None
+
+
 def _run_after_join_command(entry, values: dict, timeout_s: int,
                             byte_cap: int) -> dict:
     """Resolve + run ONE after_join command through the no-shell executor,
@@ -9329,17 +9378,36 @@ def _run_after_join_command(entry, values: dict, timeout_s: int,
     at the merge-up so the WHOLE templates value passes the L4.234 gate), so it
     is NOT re-run through the producing allowlist — only placeholder-resolved,
     tokenized, and executed no-shell (a placeholder value can never inject a
-    stage outside `_command_units`' grammar, and `_operator_refusal` is checked
-    so no unmodeled `&&`/`||` survives).`"""
+    stage outside `_command_units`' grammar, and `_operator_refusal` is
+    checked so no unmodeled `&&`/`||` survives).
+
+    An after_join entry that USES a placeholder whose value resolves EMPTY is
+    REFUSED BY NAME and never executed (no `rc`, no `output`) — never run a
+    command on the empty slot (hypothesis:l4-an-after-join-entry-whose-
+    placeholder-resolves-empty-is-refused-by-name-and-skipped-never-run-on-
+    the-empty-slot). This is generic to EVERY after_join entry, not a reap-
+    proof special case: the ack entry's empty `{succ_ref}` refuses the SAME
+    way. Fallback is honored with first_turn's precedence (usable per-entry
+    `fallback:` wins, else the code map), so an emptied placeholder with a
+    usable fallback resolves through it instead of refusing. A first seeding's
+    NAMED value (`none: first seating`) is a NON-empty string and still runs."""
     if not isinstance(entry, dict):
         entry = {"label": str(entry), "cmd": str(entry)}
     label = entry.get("label", "")
     cmd = entry.get("cmd", "")
+    fallback = entry.get("fallback", "")
+    refusal = _after_join_empty_refusal(cmd, values, fallback)
+    if refusal:
+        return {"label": label, "cmd": cmd, "refused": refusal}
     try:
-        record_cmd = _resolve_startup_placeholders(cmd, values,
-                                                   refuse_empty=False)
+        record_cmd = _resolve_startup_placeholders(
+            cmd, values, refuse_empty=True, fallback=fallback)
     except ValueError as exc:
+        # A residual empty `_after_join_empty_refusal` could not name (a code-
+        # fallback path that failed, or an unknown key) — the NAMED resolver
+        # refusal is the honest surface.
         return {"label": label, "cmd": cmd, "refused": str(exc)}
+
     try:
         exec_cmd = _resolve_shell_vars_per_token(record_cmd)
     except (_StartupParseError, ValueError) as exc:
