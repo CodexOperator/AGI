@@ -8553,7 +8553,8 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
                        succ_name: str,
                        tmux_session: str = DEFAULT_TMUX_SESSION,
                        dry_run: bool = False,
-                       ask_diff: bool = False) -> tuple[str, list]:
+                       ask_diff: bool = False,
+                       generation: int | None = None) -> tuple[str, list]:
     """First-seating STARTUP composition (hypothesis:l4-a-first-seating-is-a-
     rotation-without-a-predecessor).
 
@@ -8582,8 +8583,21 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     startup = (role_tmpl or {}).get("startup") or {}
     if not (startup.get("first_turn") or []):
         return "", []
+    # GOAL:g15.25 (SL7.49) — a FIRST seating of an EXISTING seat (crash
+    # respawn, hand relaunch, `seats-launch`/`spawn --seat` onto a row whose
+    # config:seats entry already carries `generation: N >= 1`) must report
+    # the SEAT'S OWN row generation, never a hard-coded gen-1. The row is the
+    # authority (`_seat_row_generation`, the SAME reader cmd_spawn already
+    # uses), so this run's bootstrap header, its record generation, the
+    # `{gen}` substitution and the ack file all agree. A brand-new seat (no
+    # row, or a row with no generation) resolves to `FIRST_SEATING_GEN` and
+    # is byte-identical to today. Callers may pass the gen explicitly; when
+    # they pass nothing the resolution happens here, once, for BOTH call
+    # sites (cmd_spawn and seats-launch) so neither recomputes it.
+    _gen = generation if generation is not None \
+        else (_seat_row_generation(root, seat) or FIRST_SEATING_GEN)
     values = _first_turn_values(
-        root, seat=seat, gen=1, succ_name=succ_name,
+        root, seat=seat, gen=_gen, succ_name=succ_name,
         pred_pids="none: first seating", tmux_session=tmux_session)
     results = _run_first_turn_commands(startup, values, dry_run=dry_run)
     block = _compose_startup_output(results)
@@ -8610,11 +8624,11 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
         #     unchanged: default-`continue`. One caller parameter, no new flag.
         _answer = "diff-requested" if ask_diff else "continue"
         _ack_override = (
-            f"{_answer} (source first-seating, gen 1) — "
+            f"{_answer} (source first-seating, gen {_gen}) — "
             "this post awaits one diff answer" if ask_diff else
-            "continue (source first-seating, gen 1) — "
+            f"continue (source first-seating, gen {_gen}) — "
             "this post acks once itself")
-        _write_bootstrap(root, seat=seat, generation=1,
+        _write_bootstrap(root, seat=seat, generation=_gen,
                          telemetry=role_tmpl.get("telemetry"),
                          verification=None,
                          join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
