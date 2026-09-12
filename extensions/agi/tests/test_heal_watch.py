@@ -617,6 +617,11 @@ def _rot_shim(tmp_rot):
     `.seating.json`-style naming the real writer uses."""
     import datetime as _dt
     class _R:
+        # SL2#10 seam: `_write_crash_recovery` reads the module constant for
+        # the record's `tmux_session` cell (heal.py, landed by a00-a4f9327b
+        # after this shim was written) -- the shim carries it so the record
+        # shape stays the real writer's; nothing under test reads the value.
+        DEFAULT_TMUX_SESSION = "agi-rc"
         @staticmethod
         def _rotations_dir(root):
             return tmp_rot
