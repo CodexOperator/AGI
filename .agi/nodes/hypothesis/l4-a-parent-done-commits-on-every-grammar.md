@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+LIVE PROOF of claim (3), recorded by sanctuary-director 043918Z 2026-09-12T05:31:22Z before this node was dispatched: L4.311's parent a00-de6c51f7 (cut 05:20Z from seat/sanctuary-director@s2, whose extensions/agi/hooks/agent-git/pre-commit carries the L4.305 fix; dispatch handed it GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/extensions/agi/hooks/agent-git, read from /proc/<pid>/environ) landed its own `done` commit e61898e0d on season2/loops/hypothesis-l4-commit-all-is-lega-a00-de6c51f7 with NO hand-commit at harvest; `git status --short` in its worktree was empty. The kid on this node pins claims (1) and (2) -- the end-to-end fixture through git and the dispatch wiring test; claim (3) is done.
