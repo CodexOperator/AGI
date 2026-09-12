@@ -55,7 +55,7 @@
       "skipped": "no successor window @id captured to re-point view-adv-alive to"
     },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/adv-alive.bootstrap.json",
-    "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort"
+    "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 0s) \u2014 successor has not answered"
   },
   "s12_self_reap": {
     "order": "deepest-first",
@@ -63,5 +63,11 @@
     "chain": [],
     "reap_source": "SKIPPED: no pane pid (source: $TMUX_PANE %273 gave no pane pid; TMUX_PANE absent, no seam); the live predecessor chain is reaped externally by PID (Belam cap / prime)",
     "skipped": "SKIPPED: no pane pid (source: $TMUX_PANE %273 gave no pane pid; TMUX_PANE absent, no seam); the live predecessor chain is reaped externally by PID (Belam cap / prime)"
+  },
+  "after_join": {
+    "performed_by": "service",
+    "delay_s": 0,
+    "results": [],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --seat adv-alive --gen 0 --ref <your ListAgents ref> diff --text -"
   }
 }
