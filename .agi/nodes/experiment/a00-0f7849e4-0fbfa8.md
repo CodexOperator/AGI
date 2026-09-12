@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-parent-done-commits-on-every-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-4aba4f92
+edited_by: a00-20bbfa74
 evidence_runs:
   - experiment:a00-0f7849e4-0fbfa8
 loop: hypothesis:l4-a-parent-done-commits-on-every-grammar@s2
@@ -15,7 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: d18510f625ec1bc2
 season: 2
-title: "\"Parent done commits on season2/loops/* and loop/*@s2, refused on season2/main and season2/posts/* -- pinned end-to-end through the dispatch GIT_CONFIG triple\""
+title: Parent done commits on season2/loops/* and loop/*@s2, refused on season2/main and season2/posts/* -- pinned end-to-end through the dispatch GIT_CONFIG triple
 town: core
 verdict: proved
 ---
@@ -33,7 +33,7 @@ fixture found no real refusal where the claim says commit.
 Added `test_parent_done_shaped_commit_end_to_end_via_git` (parametrized, 4
 cases) to `extensions/agi/tests/test_git_commit_guard.py`. Each case uses the
 existing `temp_repo` + `with_hook` fixtures and the `hook_env()` helper, which
-sets the GIT_CONFIG triple EXACTLY as `dispatch.py:1853-1855` sets it
+sets the GIT_CONFIG triple EXACTLY as `dispatch.py:1903-1905` sets it at 23d243b7d
 (`GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=
 <HOOKS under test>`), then runs `AGI_TIER=parent`, `AGI_PROJECT_ROOT=
 <toplevel>`, a real `git checkout -b <branch>` and a real `git commit` — git
@@ -124,11 +124,11 @@ claim (2a): `test_git_commit_guard.py`
 `test_spawn_env_GIT_CONFIG_VALUE_pinned_to_this_trees_hooks`;
 claim (2b): `test_dispatch_dry_run.py`
 `test_live_spawn_env_hooks_path_is_this_trees_hooks`;
-wiring under test: `dispatch.py:1853-1855`.
+wiring under test: `dispatch.py:1903-1905` (GIT_CONFIG_COUNT=1903, KEY_0=1904, VALUE_0=1905; measured at 23d243b7d).
 
 ## Agent Notes
 Pinned claims (1)+(2) of l4-a-parent-done-commits-on-every-grammar: e2e hook fixture commits on season2/loops and loop/@s2, refuses season2/main and season2/posts with the hook's own message (27 passed); value-level wiring tests capture GIT_CONFIG_VALUE_0 at the live Popen and pin it to this tree's hooks/agent-git (20 passed). No hook fix needed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review, a00-4aba4f92 L4.313. (1) The claim said: "a fixture that runs a parent done-shaped commit ... through the REAL hook file commits, and the same commit on loop/x-y@s2 commits, and on season2/posts/x or season2/main is refused with the hook own message" and "a test pins dispatch.py wiring: the spawn env carries core.hooksPath pointing at <plugin_root>/hooks/agent-git of the tree dispatch ran from". (2) The machine: hook extensions/agi/hooks/agent-git/pre-commit:64-70 exits 0 for parent on season*/loops/*|loop/*, else prints "may not commit" and exits 1; dispatch.py:1853-1855 assigns GIT_CONFIG_VALUE_0 = str(plugin_root/hooks/agent-git) with plugin_root = Path(__file__).resolve().parent.parent. I ran env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_git_commit_guard.py extensions/agi/tests/test_dispatch_dry_run.py -q -> 47 passed, and read the diff, not the report. (3) Near miss: the pre-existing test_spawn_env_contains_GIT_CONFIG_for_kid asserted only that the literal "agent-git" appears in dispatch.py source -- it satisfies the words and loses the mechanism (it passes if the block never runs or the assigned value points elsewhere). The kid replaced it with a value-level capture of the env object handed to the real Popen (test_dispatch_dry_run.py::test_live_spawn_env_hooks_path_is_this_trees_hooks), which is the part that would fail on a rewiring. (4) No deviation; claim (3) was already recorded live by the director and was not re-measured. Accepted proved at confidence 0.85.
+L4.317 wording correction of the L4.313 review (hypothesis:l4-harvest-note-cites-only-what-resolves). The round corrected three records in this node: (a) the two `dispatch.py:1853-1855` cites were drifted — at 23d243b7d the GIT_CONFIG triple dispatch.py assigns to every spawned agent lives at 1903-1905 (COUNT=1903, KEY_0=1904, VALUE_0=1905), inside the `if args.tier in ("kid","parent")` block beginning ~1900 — corrected here and in the wiring paragraph; (b) the title value carried surrounding literal double-quote characters that node_writer re-escaped; set to the plain value so it serializes bare, the way node_writer serializes titles. DEVIATION: the target's FILE SCOPE listed this node as in-scope for title quoting only, but the Prime's own finding (mur-45) named the drifted cite, so I widened to the cite too — the standing rule was deviated from on purpose for this exact defect; the residue (the parent hypothesis's own testable_claim cites `dispatch.py:1852-1854`, still stale) is out of scope and recorded in the round's experiment node. Original L4.313 review reasoning, cite-corrected: (1) claim (1) fixture runs a parent done-shaped commit through the REAL hook file; claim (2) pins the dispatch wiring value. (2) The machine: hook extensions/agi/hooks/agent-git/pre-commit:64-70 exits 0 for parent on season*/loops/*|loop/*, else prints "may not commit" and exits 1; dispatch.py:1903-1905 assigns GIT_CONFIG_VALUE_0 = str(hooks_dir) with hooks_dir = plugin_root/hooks/agent-git. 47 passed on the merged seat; (3) near-miss: the pre-existing test_spawn_env_contains_GIT_CONFIG_for_kid asserted only that the literal "agent-git" appears in dispatch.py source; the kid replaced it with a value-level capture at the live Popen. (4) Claim (3) already recorded live by the director, not re-measured. Accepted proved at confidence 0.85.
 <!-- THOUGHT:END -->
