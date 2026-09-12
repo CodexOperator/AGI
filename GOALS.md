@@ -9618,6 +9618,8 @@ SL7.111 HARVESTED (a00-51a9cacc, proved 0.85): zoom.py --tier parent renders a P
 
 SL7.109 HARVESTED (a00-00ab0971, proved 0.9 x2): zoom.py --tier parent renders the target full + goal chain + claim conjuncts + own kids (no sibling dump); off --level small it refuses by name; dispatch passes the tier. Unioned with SL7.111 at harvest: one --tier, 111's parent prose inside 109's PARENT SLOT
 
+SL7.112 HARVESTED (a00-928a039a; proved 0.9 + lean_proved:70): dispatch.py exits 4 scaffolded-but-unregistered and deprecates its own scaffold when the Popen registration fails; the ProvisioningError and KeyError/NotImplementedError seams share the ONE reporter. Residue: a child that dies after Popen but before it registers still returns 0 — measured out of scope, on experiment:a00-eee66150-01712e
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
