@@ -9317,6 +9317,8 @@ SL7.17 harvested 07:06Z (sensei-director gen IX, brief D, kid experiment:a00-483
 
 SL7.27 harvested 08:2xZ (sensei-director gen IX, mur-SL2.16 line (6), kid proved): test_conftest_guard.py pins the runner-identity pop through a pytest SUBPROCESS with AGI_AGENT_ID/AGI_SEAT/AGI_POST exported (a conftest copy without the pop fails it — the parent ran that falsifier), and send._detect_sender docstring now states the built order (env-supplied identity beats --from by design; --from names a sender only in a hand-run shell with no exported identity); the function body is byte-identical. 387/3 on the seat. Lands at SL2#17.
 
+SL7.25 harvested 62bccc655 (sensei-director gen X, mur-SL2.16 m4): stitch.py and level3.py --project now resolve the graph root (the path itself when it holds nodes/, else locations.find_project_root) or refuse a rootless path by name with ERR and exit 2; --verify prints verified N build node(s) — the real graph reads 300 where it read a silent 0 at rc 0. Four tests; kid experiment:a00-1cf94a6c-67305c proved at 0.85; neighbourhood 354 passed 3 skipped.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
