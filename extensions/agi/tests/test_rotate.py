@@ -4743,3 +4743,50 @@ def test_status_record_latest_skips_detected_record(tmp_path, capsys):
     assert detected.name not in out, \
         f"status must not surface the detected record: {out}"
     assert "crash-recovery" not in out, out
+
+
+# --- hypothesis:l4-branches-follow-the-season-grammar clause (5) ---
+# The `prepare` merge target (`_prepare_merge_target`) must resolve a seat's
+# post/loop branch through the grammar module's `merge_target`, so a town
+# seat merges its OWN town main, never a literal core main.
+
+
+def _repo_on_branch(tmp_path: Path, branch: str) -> Path:
+    """git-init a throwaway repo checked out on `branch` with one commit, so
+    `rev-parse --abbrev-ref HEAD` names the real branch (an unborn HEAD reads
+    as HEAD/error)."""
+    repo = tmp_path / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
+
+
+def test_prepare_merge_target_town_loop_targets_town_main(tmp_path):
+    # A seat on a canonical town loop branch merges that TOWN's main, not the
+    # core season main the old `season_branch` fallback would have named.
+    repo = _repo_on_branch(tmp_path,
+                           "season2/web-app-suite/season1/loops/xx-yy")
+    assert rotate._prepare_merge_target(repo) == \
+        "season2/web-app-suite/season1/main"
+
+
+def test_prepare_merge_target_town_post_targets_town_main(tmp_path):
+    repo = _repo_on_branch(tmp_path,
+                           "season2/streaming-suite/season1/posts/foo")
+    assert rotate._prepare_merge_target(repo) == \
+        "season2/streaming-suite/season1/main"
+
+
+def test_prepare_merge_target_season_loop_targets_season_main(tmp_path):
+    # A loop directly under season<N>/main resolves to the core season main.
+    repo = _repo_on_branch(tmp_path, "season2/loops/xx-yy")
+    assert rotate._prepare_merge_target(repo) == "season2/main"
