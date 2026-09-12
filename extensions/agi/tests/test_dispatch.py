@@ -184,6 +184,22 @@ def test_zoom_command_small_without_target_omits_the_flag(tmp_path):
     assert "--target" not in cmd
 
 
+def test_zoom_command_threads_the_tier_but_stays_byte_identical_for_kid(tmp_path):
+    """hypothesis:l4-a-parents-zoom-is-its-target-goal-... — dispatch passes
+    the --tier it received into zoom, but only when it is a tier zoom has a
+    distinct shape for. A kid spawn (the default) does NOT grow a --tier
+    flag, so every existing kid render stays byte-identical to today."""
+    kid = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="kid")
+    assert "--tier" not in kid
+    base = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x")
+    assert kid == base
+    par = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="parent")
+    assert par[par.index("--tier") + 1] == "parent"
+    # a foreign tier value must never break the zoom invocation
+    odd = dispatch.zoom_command(tmp_path, 3, "a00", "small", "idea:x", tier="untrusted")
+    assert "--tier" not in odd
+
+
 # --- aiming a slot: `--target` vs attractiveness scoring -------------------
 #
 # `_pick_targets` short-circuits at `n <= 1` to ("big", None, "explore_new"),

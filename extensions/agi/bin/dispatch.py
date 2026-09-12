@@ -182,7 +182,7 @@ def _redact_env_map(env: dict) -> dict:
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
                  level: str, target: str | None, push_further: bool = False,
-                 tier: str | None = None) -> list[str]:
+                 tier: str = "kid") -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -199,6 +199,13 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     """
     cmd = ["python3", str(ZOOM_PY), str(root), str(iter_n), agent_id,
            "--level", level, "--runtime", "pi"]
+    if tier in ("parent", "director"):
+        # hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+        # and-own-kids-never-the-sibling-hypothesis-dump — pass the tier
+        # dispatch already received through to zoom so a parent gets the
+        # compact parent shape, not the 75-90 KB sibling dump. kid is zoom's
+        # default, so a kid spawn stays byte-identical to today.
+        cmd.extend(["--tier", tier])
     if level == "small" and target:
         cmd.extend(["--target", target])
     if push_further:
@@ -206,13 +213,8 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
         # id so a continuation kid composes from the parent's push_further
         # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
         cmd.append("--push-further")
-    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
-    # zoom.py's small composer keys its "Your Task" PARENT section on a --tier
-    # arg that did not exist on this base, so a --tier parent spawn threads its
-    # tier through here; any other tier (or absence) leaves the kid text
-    # byte-identical (SL7.109 may later land its own keying).
-    if tier:
-        cmd.extend(["--tier", tier])
+    # (SL7.111 threaded --tier here too, for the parent "Your Task" prose;
+    # SL7.109's block above is the ONE pass-through -- unioned at harvest.)
     return cmd
 
 
