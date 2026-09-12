@@ -739,9 +739,16 @@ _LATCH_SUBDIR = "rotations"
 
 
 def _latch_path(root: Path, seat: str, gen: int) -> Path:
-    s = _shared_sessions_dir(root)
-    base = s if s is not None else root
-    return base / _LATCH_SUBDIR / f"hook-{seat}-gen{gen}.lock"
+    """The once-per-generation latch, keyed to the seat's OWN tree's sessions
+    dir — NOT the shared MAIN-sessions dir — so a worktree seat's transient
+    hook latch NEVER lands under MAIN's checkout (a live git-status churn
+    source and a cross-tree name collision). `root` here is the GRAPH root
+    (the `.agi/` itself, per `_project_root`), so its OWN sessions dir sits
+    directly under it: `<root>/sessions` — identity for a non-worktree seat,
+    whose own tree IS the shared graph, so nothing changes on MAIN. Durable
+    rotation records in `rotations/` stay tracked; only this transient
+    `hook-*.lock` is ignored (see .gitignore)."""
+    return root / "sessions" / _LATCH_SUBDIR / f"hook-{seat}-gen{gen}.lock"
 
 
 def _latch_holder_pid(latch: Path) -> int | None:
@@ -782,20 +789,37 @@ def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
             "--force", "--stops", stops]
 
 
+#: The ONE launch seam every background rotate-self Popen goes through. Tests
+#: replace THIS module attribute with a recorder (never patch the whole
+#: function) — an out-of-process run imports this module freshly, so a function
+#: patch is invisible there and a REAL rotate.py rotate-self can still fire,
+#: which is exactly how c1f01e920 happened: a live rotate-self --stops for the
+#: sensei-director seat launched from a kid's pytest. A test that goes through
+#: this seam proves the argv on the built bytes without ever reaching
+#: subprocess.Popen.
+_Popen = subprocess.Popen
+
 def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
     """Background `rotate.py rotate-self --stops <stops>` for `seat` (rotate-out
     ZERO calls — the hook ITSELF is the rotate-out). Detached, devnull, so the
     hook returns immediately and NEVER blocks the prompt (P7); `--timeout 900`
     bounds the rotate-self. Returns the pid, or None on any failure (never
-    raises). This is the test seam: a fake seat over its line with a clean state
-    must show the hook calling this once with the full argv."""
+    raises). Launch goes through the ONE seam `_Popen` (see above); sets an
+    env-var short-circuit so an out-of-process test (fresh interpreter, seam
+    not patchable) can never fire a REAL rotate-self from a pytest."""
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
     argv = _rotate_self_argv(bin_dir, seat, stops)
+    if os.environ.get("AGI_HOOK_NO_SPAWN"):
+        # Out-of-process safety (c1f01e920): a pytest that runs the hook in a
+        # subprocess (fresh module, `_Popen` = real subprocess.Popen) must be
+        # able to suppress the spawn — a recorder pid, the argv still provable
+        # via `_rotate_self_argv`.
+        return 12345
     try:
-        proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL,
-                                stdin=subprocess.DEVNULL,
-                                start_new_session=True)
+        proc = _Popen(argv, stdout=subprocess.DEVNULL,
+                      stderr=subprocess.DEVNULL,
+                      stdin=subprocess.DEVNULL,
+                      start_new_session=True)
     except Exception:  # noqa: BLE001
         return None
     return proc.pid
@@ -828,6 +852,25 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
               f"merge-up is in flight; re-check on the next prompt.")
         return which
 
+    # ----- stale-latch release: runs BEFORE gate (c), so a latch whose holder
+    # pid is DEAD is released even on a prompt where a LATER captive holds the
+    # rotation. Gate (c) used to return first, stranding the dead latch so it
+    # blocked every later rotation until a human removed it by hand.
+    gen = _read_generation(root, seat)
+    latch = _latch_path(root, seat, gen)
+    if latch.exists() and not _latch_held(latch):
+        # STALE-broken: the rotate-self that held this generation died (a
+        # mid-flight FAILURE — the exact hole — or completion, which bumped
+        # the generation so the seat now lives on a NEWER latch key). A stale
+        # latch must NOT lock this seat out of auto-retry for the rest of the
+        # generation, so release it and let a fresh spawn claim it (mirror of
+        # _suite_lock_held's dead-pid break). Done here, before gate (c), so
+        # the release is never skipped by a captive that holds below.
+        try:
+            latch.unlink()
+        except OSError:
+            pass
+
     # gate (c) prepare's other captives — LISTED, never performed (P7).
     blockers = _prepare_other_captives(root, seat)
     if blockers:
@@ -835,25 +878,14 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
             print(f"[rotation] prepare captive: {name} — {clear}")
         return f"prepare:{blockers[0][0]}"
 
-    # gate (d) once-per-generation latch — a slow spawn is never doubled.
-    gen = _read_generation(root, seat)
-    latch = _latch_path(root, seat, gen)
+    # gate (d) once-per-generation latch — HELD test only now (the stale
+    # release for this generation already ran BEFORE gate (c)); a slow spawn
+    # is never doubled.
     if _latch_held(latch):
         print(f"rotation deferred: already rotating {seat} gen {gen} "
               f"(latch {latch.name} held by a live rotate-self); re-check on "
               f"the next prompt.")
         return f"latch-gen-{gen}"
-    if latch.exists():
-        # STALE-broken: the rotate-self that held this generation died (a
-        # mid-flight FAILURE — the exact hole — or completion, which bumped
-        # the generation so the seat now lives on a NEWER latch key). A stale
-        # latch must NOT lock this seat out of auto-retry for the rest of the
-        # generation, so release it and let a fresh spawn claim it (mirror of
-        # _suite_lock_held's dead-pid break).
-        try:
-            latch.unlink()
-        except OSError:
-            pass
 
     # claim the latch BEFORE spawning so a concurrent prompt cannot double it.
     try:
