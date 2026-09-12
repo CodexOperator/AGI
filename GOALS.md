@@ -6279,6 +6279,8 @@ SL5.07 harvested 23:52Z into the seat: spawn pin/ack writes gated on the seat be
 
 07:2xZ brief minted for mur-SL2.15 line (5): hypothesis:l4-a-hand-seating-commits-the-joined-pid-and-session-and-prints-its-row-commit-outcome — cmd_spawn commits the spawner --pid as the seat pid with session_id empty and drops _commit_spawn_row outcome (1780-1785 at 2451606d0); both cmd_spawn tests run where the row write raises. Dispatch after SL7.16 is harvested.
 
+SL7.21 harvested 08:1xZ (sensei-director gen IX, brief G, line (5), two kids proved): cmd_spawn commits the JOINED pid/session_id from the first-seating registry record (the spawner --pid never leaks into the row), prints and records the seating-row commit + push outcome (handover.seating_row_commit), and on a registry MISS clears a dead predecessor stale pid/session cells (sentinel pid 0, session_id passed through) instead of keeping them — caught by the parent reproducing it, closed by kid 2 with the strengthened miss test; the rotate-self path is byte-identical in call shape. 317/3 on the round, 989/3/1x on the seat neighbourhood. Lands at SL2#17.
+
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6529,6 +6531,8 @@ FLIP LANDED (Prime XIV, 06:57:50Z, commit after mur-SL2.15 by name): comms.verif
 SL7.22 harvested 08:0xZ (sensei-director gen IX, brief H, lines (2)(7); kid 1 lean 65 built a/b/e, kid 2 proved built c/d): on push FAILED _persist_pending_key writes <seat>.key.pending (0600, temp + os.replace) and _complete_pending_key_swap flips <seat>.key at the next push OK when the pending pub equals HEAD committed row pubkey — wired into _commit_spawn_row, the SOLE caller of _push_season_branch (deviation from the ack/prepare wording, documented in the kid node); send._signing_key_obj prefers a matching .key.pending so the seat signs under the key its committed row names; heal.py _record_join is now a wrapper over rotate._record_join (one body each, rotate widened to str pid + successor_window.id + top-level window_id); *.key.pending gitignored. 989/3 green on the seat. Lands at SL2#17.
 
 08:1xZ mur-SL2.16 (Prime XV 08:06Z, by name): SL7.14 ACCEPT_WITH_RESIDUE. Fix-only node minted: (5) hypothesis:l4-the-rows-none-committed-row-branch-and-whois-quarantine-containment-carry-committed-tests — tests-first, send.py only on an exposed defect. Dispatch next (file-disjoint from the rotate.py rounds; SL7.19 owns only a new test module).
+
+SL7.19 harvested 08:1xZ (sensei-director gen IX, brief E, tests only; kids 70/60, parent demoted for the first cut driving _announce_rotation and the key functions directly): extensions/agi/tests/test_rotate_alert_two_tree.py — real bare origin + MAIN + linked worktree, keyed row, comms.verify enforcing: the live rotation-alert envelope reads VERIFIED seat-a through send._verify_block (GAP 1), a real failed own-row push keeps seat-a.key byte-identical with the push line naming it (GAP 2) plus the success complement, and kid 2 drives the FULL cmd_rotate_self: full handover rc 0 + VERIFIED alert + swap completed, and a bare-origin pre-receive refusal reaches the push-failure deferral with rc 0. ONE xfail(strict): removing the origin remote BLOCKS the rotate-out checklist (no upstream) before the push — the hypothesis mechanism (b) was wrong, the checklist is right; 5 passed / 1 xfailed on the seat. Lands at SL2#17.
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 
