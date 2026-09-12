@@ -6247,18 +6247,18 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     _push = _push_season_branch(root)
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
-    # `.key.pending` written when an earlier push FAILED) COMPLETES now:
-    # the successor key is atomically put in place and the pending file
-    # deleted. Print the one-line outcome alongside the push line. Best-
-    # effort; `_complete_pending_key_swap` never raises.
-    if _push.startswith("push: OK"):
-        _done = _complete_pending_key_swap(root, seat)
-        if _done:
-            print(_done, file=sys.stderr)
-            return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
-                    f"own-row only: {msg}\npush: {_push}\n{_done}")
-    return (f"spawn_row_commit: committed (sha {sha}) -- seats.md own-row "
-            f"only: {msg}\npush: {_push}")
+    # `.key.pending` written when an earlier push FAILED) COMPLETES now
+    # through the ONE shared helper (`_finish_pending_swap_on_push`): the
+    # successor key is atomically put in place and the pending file
+    # deleted. Best-effort; `_finish_pending_swap_on_push` never raises
+    # (and returns '' -- no extra line -- when there is no push OK or no
+    # pending swap to complete).
+    _done = _finish_pending_swap_on_push(root, seat, _push)
+    if _done:
+        return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
+                f"own-row only: {msg}\npush: {_push}\n{_done}")
+    return (f"spawn_row_commit: committed (sha {sha}) -- "
+            f"own-row only: {msg}\npush: {_push}")
 
 
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
@@ -10561,6 +10561,25 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     return f"key swap completed (deferred from gen {_gen})"
 
 
+def _finish_pending_swap_on_push(root: Path, seat: str,
+                                 push_line: str | None) -> str:
+    """g15.26 claim (b) -- ONE helper every push-OK site calls to complete a
+    deferred `<seat>.key.pending` swap. It completes the swap exactly when
+    ``push_line`` reports a successful push (starts ``push: OK``): that is the
+    exact gate `_commit_spawn_row` used to stock locally, lifted into a
+    single call so a future push site (ack/prepare/cron/keygen --all-live)
+    cannot drift into completing a swap on a FAILED push. Returns the one-line
+    outcome ('' when there is no push OK, no pending file, or the committed
+    row still names the old pubkey) and prints the completed-swap line to
+    stderr. Never raises."""
+    if not str(push_line or "").startswith("push: OK"):
+        return ""
+    _done = _complete_pending_key_swap(root, seat)
+    if _done:
+        print(_done, file=sys.stderr)
+    return _done
+
+
 def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
     """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
     into the on-disk <seat>.key ONLY when the successor spawn-row write, its
@@ -11057,6 +11076,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 print(f"rotate-self refused: {_perr} — clear it, then "
                       f"re-run (nothing rotated).", file=sys.stderr)
                 return 3
+            # g15.26 claim (b): this rotate-out PUSH succeeded, so origin
+            # now carries the seat's committed row -- a deferred
+            # `.key.pending` swap from an earlier failed push COMPLETES
+            # through the ONE shared helper (only when the committed row
+            # matches the pending key).
+            _finish_pending_swap_on_push(root, seat, "push: OK")
             print("rotation line: delivered as the [rotation-alert] dm "
                   "to <prime> (no send.py call needed)")
 
@@ -11122,6 +11147,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             print(f"rotate-self refused: {_mperr} — clear it, then "
                   f"re-run (nothing rotated).", file=sys.stderr)
             return 3
+        # g15.26 claim (b): the merge commit's HEAD now names the seat's
+        # committed pubkey and this push succeeded -- complete any deferred
+        # pending swap through the ONE shared helper.
+        _finish_pending_swap_on_push(root, seat, "push: OK")
 
     # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
     # rotate without its own signing key file; the gate refuses BY NAME and
@@ -11239,6 +11268,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # row write / commit leaves the predecessor key file BYTE-IDENTICAL.
     # `--dry-run` reports what it would do and touches nothing. The row
     # cells are consumed at s6.1 via `_key_rotation`.
+    # g15.26 claim (a): COMPLETE any deferred `<seat>.key.pending` swap
+    # BEFORE `_rotate_successor_key` mints a new successor generation. On a
+    # seat that already carries a `.key.pending` (a prior push FAILED after
+    # the spawn-row write committed), the committed HEAD row already names
+    # the pending successor pubkey -- so flipping `.key` now (when the
+    # committed row matches) resolves the old gen N->N+1 swap BEFORE this
+    # rotation mints N+1->N+2, instead of orphaning the old pending key and
+    # double-counting key_history once the spawn-row commit runs. The mint
+    # below then reads a `.key` that already agrees with HEAD. Never on a
+    # dry-run (the swap is a real write; dry-run touches nothing).
+    if not getattr(args, "dry_run", False):
+        _done = _complete_pending_key_swap(root, seat)
+        if _done:
+            print(_done, file=sys.stderr)
     _key_rotation = _rotate_successor_key(
         root, seat, row, gen_before=gen_before, gen_after=gen,
         dry_run=bool(getattr(args, "dry_run", False)))
