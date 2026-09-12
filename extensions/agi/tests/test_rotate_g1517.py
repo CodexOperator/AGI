@@ -238,3 +238,24 @@ def test_rotate_self_plain_no_startup_still_spawns(tmp_path, monkeypatch,
                            successor_argv=None, role="parent")
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, f"a plain no-startup template must still rotate, rc {rc}"
+
+def test_spawn_seat_no_project_root_non_dry_run_does_not_crash(
+        tmp_path, monkeypatch):
+    """Regression (girl-scout build): the non-dry root-less spawn MUST NOT
+    UnboundLocalError on the base-block `_rowgen` — `_rowgen` is only bound
+    inside the `else` (root is not None) branch of cmd_spawn, but the base
+    block's `generation=` guarded on `_rowgen` unconditionally at 8-space
+    indent, so a real root-less `spawn --seat X` seated the window and then
+    crashed. Dry-run tests did not catch it because the block only runs when
+    `not args.dry_run`. Now the base-block generation degrades to None when
+    root is None (the honest 'record: none yet' line)."""
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (0, "echo ok"))
+    args = SimpleNamespace(name="dir-x", tier="kid", prompt_file=None,
+                           model=None, effort=None, settings=None,
+                           tmux_session="agi-rc", window_path=None,
+                           dry_run=False, successor_argv=None, seat="dir-x",
+                           pid=None, no_autopsy=True,
+                           registry_dir=None, ask_diff=False)
+    rc = rotate.cmd_spawn(args, None)          # root = None, NON-dry
+    assert rc == 0, f"root-less non-dry spawn --seat must exit 0, got {rc}"
