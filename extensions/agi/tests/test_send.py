@@ -6846,3 +6846,29 @@ def test_whois_key_with_sig_verifies_pubkey_selected_row(project, monkeypatch):
                                 sig_line=sig_line, msg_text=canonical,
                                 target=("key", pub_b[:12]))
     assert "FORGED" in text2, text2
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-  ──
+# sender-and-signature-the-send-returned...) — send.send reports the pair it
+# actually used: the sender after _detect_sender and whether the envelope was
+# signed (a usable key -> signed; a key file present but MALFORMED -> not).
+def test_send_returns_sender_signed_pair(project: Path):
+    """send.send returns (sender_used, signed). A usable key reports SIGNED; a
+    key file present but MALFORMED (no priv_hex) reports UNSIGNED — a key-file
+    existence check alone would lie about the envelope (the running fix makes
+    run_after_join record its dm's sender/signed FROM this pair)."""
+    scheme = send_mod.seatsig.get("ed25519")
+    priv, _pub = scheme.keygen()
+    who = "kid-signed"
+    _seat_key_write(project, who, priv.hex())
+    sender, signed = send_mod.send(project, "director", "hello world", who)
+    assert sender == who, sender
+    assert signed is True, "a usable key signs"
+
+    bad = "kid-bad"
+    badf = send_mod._seat_key_path(project, bad)
+    badf.parent.mkdir(parents=True, exist_ok=True)
+    badf.write_text(json.dumps({"scheme": "ed25519"}))  # no priv_hex -> unusable
+    sender2, signed2 = send_mod.send(project, "director", "hello world", bad)
+    assert sender2 == bad, sender2
+    assert signed2 is False, "a present-but-malformed key does NOT sign"

@@ -946,10 +946,21 @@ import types as _types
 
 def _stub_send(monkeypatch, module_name="send"):
     """Register a stub `send` module (the name rotate.run_after_join's default
-    closure imports) and the table under test."""
+    closure imports) and the table under test. The stub's `send` returns the
+    (sender_used, signed) pair -- the NEW send.py contract -- where `signed`
+    is true when the seat's key file exists under `<root>/sessions/seats/`
+    (mirroring send.py: it signs when a usable key is present). So the record
+    fields come FROM the send's return, never from a key-file read inside
+    run_after_join."""
     stub = _types.ModuleType(module_name)
     calls = []
-    stub.send = lambda root, to, text, sender: calls.append((to, sender))
+
+    def _send(root, to, text, sender):
+        calls.append((to, sender))
+        keyf = Path(root) / "sessions" / "seats" / f"{sender}.key"
+        return (sender, keyf.is_file())
+
+    stub.send = _send
     monkeypatch.setitem(sys.modules, module_name, stub)
     return calls
 
@@ -2129,3 +2140,65 @@ def test_unparseable_recorded_at_not_wedged_performs_once(tmp_path,
     out2 = rot.run_after_join_for_seat(Path(tmp_path), "w")
     assert called == [], "already performed -> not re-performed"
     assert out2 is None, out2
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-  ──
+# sender-and-signature-the-send-returned...) — the record names what the
+# SEND returned, never a key-file existence check; the over-budget trim
+# keeps the head + the CAPTIVE ack line; the cap counts UTF-8 bytes; the
+# rotate-self dry-run plan prints the ONE `ack --post` grammar.
+def test_after_join_record_names_send_returned_pair(tmp_path):
+    """A fake send returning (sender, signed) names the record's dm_sender /
+    dm_signed FROM THAT RETURN — and a SEAT KEY PRESENT ON DISK is IGNORED
+    when the send reports unsigned (a present-but-malformed key still sends
+    unsigned; the record must not claim signed from the file system)."""
+    kdir = tmp_path / "sessions" / "seats"
+    kdir.mkdir(parents=True, exist_ok=True)
+    # a REAL key for the seat EXISTS — the old key-file read would say signed
+    (kdir / "s.key").write_text(
+        json.dumps({"scheme": "ed25519", "priv_hex": "ab" * 32}),
+        encoding="utf-8")
+    rec_path = tmp_path / "z.json"
+    rec_path.write_text(json.dumps({"result": "success"}), encoding="utf-8")
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    rotate.run_after_join(
+        tmp_path, seat="s", gen=2, startup=startup, values=VALUES,
+        record_path=str(rec_path), delay_override=0,
+        sleep_impl=lambda s: None,
+        send_dm=lambda to, text: ("heal", False))
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert aj["dm_sender"] == "heal", aj
+    assert aj["dm_signed"] is False, \
+        "the record names what the SEND returned, not the on-disk key"
+
+
+def test_after_join_trim_keeps_head_and_captive_ack_line(tmp_path):
+    """Over the byte budget, the dm keeps the HEAD + ONE status line per entry
+    + the CAPTIVE `ack --post` line, trims the MIDDLE with ONE marker line,
+    and drops the per-command output."""
+    huge = "y" * 5000
+    results = [{"label": "ack", "cmd": "echo boom", "rc": 0,
+                "output": huge}]
+    out = rotate._compose_after_join_dm(
+        "seat-a", 2, "ref123", results,
+        dm_byte_cap=1500, record_path="/tmp/rec.json")
+    assert out.count("… [trimmed") == 1, out
+    assert out.startswith("## AFTER_JOIN OUTPUT"), out
+    assert "[ack] exit 0" in out, out
+    assert "full output: /tmp/rec.json" in out, out
+    assert "ack --post seat-a --gen 2 --ref ref123 diff --text -" in out, \
+        "the CAPTIVE ack line survives the trim"
+    assert huge not in out, "the per-command output is trimmed"
+    assert len(out.encode("utf-8")) <= 1500, len(out.encode("utf-8"))
+
+
+def test_after_join_byte_cap_counts_utf8_bytes():
+    """1000 two-byte chars = 2000 UTF-8 bytes: over a 1500-byte cap it is
+    TRIMMED even though it is only 1000 code points (a code-point cap would
+    wrongly keep it under)."""
+    results = [{"label": "ack", "cmd": "echo x", "rc": 0,
+                "output": "\u00e9" * 1000}]
+    out = rotate._compose_after_join_dm(
+        "s", 1, "r", results, dm_byte_cap=1500, record_path="/tmp/r.json")
+    assert "… [trimmed" in out, \
+        "byte-cap trimmed; a code-point cap (1000 < 1500) would not have"
