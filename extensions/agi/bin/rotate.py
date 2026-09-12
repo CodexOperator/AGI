@@ -11865,6 +11865,12 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     "delivery": delivery,
                     "dm_sender": dm_sender,
                     "dm_signed": dm_signed,
+                    # (goal:g15.25 SL7.105) PERSIST the engine HEAD that
+                    # performed this after_join INTO the record (the same
+                    # pathspec-committed write that lands results), so the
+                    # on-disk block — not just the returned dict — names the
+                    # bytes that ran it.
+                    "code_head": _code_head(root),
                 }
                 if isinstance(_prev_aj, dict):
                     for _k in ("claimed_at", "claim_key"):
