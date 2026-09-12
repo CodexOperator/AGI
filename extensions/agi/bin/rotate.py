@@ -5995,11 +5995,15 @@ PRIME_CLOSEOUT_STEPS = [
     "push",        # push origin the checked-out branch
 ]
 
-#: Grant-wait policy: a line from the Prime's own inbox whose `from:` is the
-#: prime, that carries a `sig:` header (signed), whose body matches
-#: GRANT|GO. Bounded by _CLOSEOUT_GRANT_TIMEOUT seconds. A wait that times
-#: out is a REFUSED step (names itself, stops the call).
-_CLOSEOUT_GRANT_RE = re.compile(r"\b(?:GRANT|GO)\b", re.IGNORECASE)
+#: Grant-wait policy: a signed line FROM the Prime whose body's FIRST WORD
+#: (after optional leading punctuation) is GRANT or GO, read from the SEAT's
+#: OWN channels -- the seat's inbox OR the seat<->prime dm file -- never the
+#: Prime's inbox (the Prime's inbox holds lines TO the Prime; a grant the
+#: Prime sends the seat lands in the seat's inbox or the dm). A STALE grant
+#: (written before the merge-up ASK was sent) never counts. Bounded by
+#: _CLOSEOUT_GRANT_TIMEOUT seconds. A wait that times out is a REFUSED step
+#: (names itself, stops the call).
+_CLOSEOUT_GRANT_FIRST_WORD_RE = re.compile(r"^\W*([A-Za-z]+)", re.IGNORECASE)
 _CLOSEOUT_GRANT_TIMEOUT = 300.0
 _CLOSEOUT_GRANT_POLL = 2.0
 
@@ -6065,14 +6069,19 @@ def _closeout_send_file(root: Path) -> Path:
     return p
 
 
-def _closeout_pop_and_run(root: Path, argv: list[str], timeout: int = 120) -> dict:
+def _closeout_pop_and_run(root: Path, argv: list[str], timeout: int = 120,
+                        cwd: Path | None = None) -> dict:
     """Run ONE existing-command subprocess (verification.py, snapshot-goals.py,
     grid.py, verify-suite...) and return a small summary dict. Never raises:
     a non-zero exit / absent binary records {ok: False, detail: ...} so the
     driver can REFUSE BY NAME -- the caller decides whether a step is a hard
-    blocker (merge, suite) or a soft one (verify-skip)."""
+    blocker (merge, suite) or a soft one (verify-skip). `cwd` is the
+    subprocess working dir; the worktree-post post-merge runners pass MAIN
+    (the tree the merge landed in) so a script that resolves its project
+    root from the process cwd reads the merge-up tree, never the seat tree."""
     try:
-        out = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        out = subprocess.run(argv, capture_output=True, text=True, timeout=timeout,
+                             cwd=str(cwd) if cwd is not None else None)
     except Exception as exc:  # noqa: BLE001 -- FileNotFound, TimeoutExpired, ...
         return {"ok": False, "detail": f"could not run {' '.join(str(a) for a in argv)}: {exc}"}
     return {
@@ -6082,31 +6091,124 @@ def _closeout_pop_and_run(root: Path, argv: list[str], timeout: int = 120) -> di
     }
 
 
-def _prime_grant_present(root: Path, prime: str) -> bool:
-    """The grant-wait GRAMMAR, real and test-driveable: is there a block in
-    the Prime's inbox that is (a) from the prime, (b) signed (carries a
-    `sig:` header), and (c) whose body matches GRANT|GO? An unsigned or
-    non-Prime block NEVER counts -- the falsifier of the claim. Verified-by-
-   -check is deliberately NOT pulled in here: `sig:` presence is the gate
-    (a forged inverse that strips `sig:` cannot pass), matching the phase-1
-    quote-refusal posture of refusing the ABSENT, detectable case rather
-    than silently trusting it.
+def _grant_block_later_than(ts: str, since_ts: str) -> bool:
+    """True when a block's `ts:` header is LATER than the ask's send time. An
+    ISO-8601 UTC string compares chronologically with a ``Z``<->``+00:00``
+    normalization; input fromisoformat cannot parse falls back to a plain
+    string compare -- a STALE grant must never pass on a parse hiccup."""
+    def _norm(s: str) -> str:
+        return (s or "").replace("Z", "+00:00")
+    def _as_dt(s: str):
+        try:
+            return datetime.fromisoformat(_norm(s).strip())
+        except ValueError:
+            return None
+    a, b = _as_dt(ts), _as_dt(since_ts)
+    if a is not None and b is not None:
+        return a > b
+    return _norm(ts) > _norm(since_ts)
+
+
+def _grant_body_first_word(body: str) -> bool:
+    """The grant grammar's BODY gate: the body's FIRST WORD (after optional
+    leading punctuation/whitespace) is GRANT or GO, case-insensitive. NEVER a
+    bare substring -- a signed Prime line reading `no GRANT yet` must NOT
+    grant (the pre-fix regex matched the word anywhere in the body)."""
+    m = _CLOSEOUT_GRANT_FIRST_WORD_RE.match(body or "")
+    return bool(m and m.group(1).upper() in ("GRANT", "GO"))
+
+
+def _grant_present_for_seat(root: Path, seat: str, prime: str,
+                            since_ts: str = "") -> bool:
+    """The grant-wait GRAMMAR, real and test-driveable: is there a block,
+    in the SEAT'S OWN inbox or the seat<->prime dm file, that is (a) FROM
+    the prime, (b) signed (carries a `sig:` header), (c) whose body's FIRST
+    WORD is GRANT|GO, and (d) written AFTER the merge-up ASK was sent
+    (`since_ts`; a stale grant written before the ask never counts)? An
+    unsigned block, a non-Prime block, a `no GRANT yet` block, or a block
+    older than the ask each never grant. The Prime's OWN inbox is
+    deliberately NOT read: it holds lines TO the Prime, never a grant the
+    Prime sends the seat (which lands in the seat's own inbox or the dm).
+    Verified-by-check is deliberately NOT pulled in here: `sig:` presence is
+    the gate (a forged inverse that strips `sig:` cannot pass), matching the
+    phase-1 quote-refusal posture of refusing the ABSENT, detectable case
+    rather than silently trusting it.
     """
     import send  # local: same dir (send.py pattern, no import cycle)
-    inbox = send._inbox_path(root, prime)
-    if not inbox.is_file():
+
+    def _grant_in_blocks(blocks) -> bool:
+        for head, body in blocks:
+            head = dict(head) if head else {}
+            if str(head.get("from") or "") != prime:
+                continue                      # only the PRIME's OWN line grants
+            if not head.get("sig"):
+                continue                      # unsigned line never grants
+            if not _grant_body_first_word(body):
+                continue          # first WORD GRANT|GO -- never a substring
+            if since_ts and not _grant_block_later_than(
+                    str(head.get("ts") or ""), since_ts):
+                continue       # a STALE (pre-ask) grant never counts
+            return True
         return False
-    blocks = send._scan_messages(inbox)[0]
-    for block in blocks:
-        head, body = send._parse_block(block)
-        head = dict(head) if head else {}
-        if str(head.get("from") or "") != prime:
-            continue                       # only the PRIME's own line grants
-        if not head.get("sig"):
-            continue                       # unsigned line never grants
-        if _CLOSEOUT_GRANT_RE.search(body or ""):
+
+    seat_in = send._inbox_path(root, seat)
+    if seat_in.is_file():
+        raw = send._scan_messages(seat_in)[0]
+        if _grant_in_blocks([send._parse_block(b) for b in raw]):
+            return True
+    # The seat<->prime dm file -- a second channel a Prime may reply on.
+    dm = send._dm_path(send.comms_root(root), seat, prime)
+    if dm.is_file():
+        with open(dm, encoding="utf-8", newline="") as fh:
+            text = fh.read()
+        blocks = [send._parse_block(b) for b in
+                  send._MSG_BOUNDARY_RE.split(text) if b.strip()]
+        if _grant_in_blocks(blocks):
             return True
     return False
+
+
+def _closeout_main(root: Path) -> Path | None:
+    """MAIN = the shared graph root's git toplevel -- the tree a worktree
+    closeout MERGES INTO, and the cwd every post-merge runner operates on
+    (hypothesis:l4-closeout-worktree-post-...the-merge-up-in-main). For a
+    worktree seat, `root` is the seat's own tree; climbing through
+    `_shared_graph_root` reaches MAIN's graph, and `git rev-parse
+    --show-toplevel` there is MAIN itself. From a MAIN (non-worktree)
+    caller the result is MAIN. None when unresolvable (a gitless
+    fixture/root) -- every runner that needs MAIN REFUSES BY NAME. Never
+    raises."""
+    g = _shared_graph_root(root)
+    return _git_toplevel(g)
+
+
+def _closeout_branch(cwd: Path) -> str:
+    """The checked-out branch of `cwd` ('' when detached or unreadable) --
+    the `:12135` idiom, one wrapper. merge_up gates MAIN's branch on it; the
+    ask names the seat branch through it."""
+    rc, br, _ = _fd_git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
+    return br if (rc == 0 and br and br != "HEAD") else ""
+
+
+def _closeout_main_clean(main: Path) -> bool:
+    """MAIN's tracked-file tree is clean: `git status --porcelain
+    --untracked-files=no` yields nothing. Untracked files -- including
+    gitignored ones -- never count (the claim's 'untracked ignored'). A tree
+    git cannot measure is NOT clean (REFUSE)."""
+    rc, out, _ = _fd_git(main, "status", "--porcelain", "--untracked-files=no")
+    return rc == 0 and not out.strip()
+
+
+def _closeout_record_name(seat: str, record: dict) -> str:
+    """Best-effort rotation-record FILE name, named in the merge-up ASK so
+    the Prime can go read it: `<seat>.<YYYYMMDDTHHMMSSZ>.json` from the
+    record's `recorded_at` when present (the live naming), else `<seat>.json`
+    (or `run.json` when even the seat is unknown)."""
+    rat = str(record.get("recorded_at") or "")
+    if rat and seat:
+        stamp = re.sub(r"[^\w]", "", rat)[:15] or "run"
+        return f"{seat}.{stamp}Z.json"
+    return f"{seat or 'run'}.json"
 
 
 def _numbers_line(record: dict) -> str:
@@ -6136,10 +6238,22 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
       unsigned grant timeout) -- the driver STOPS and names the step.
       ok True with result "skip" is a soft ok (a verify with no graph), for
       the steps the claim allows to be skipped.
-    `seat` names the rotating seat (the MAIN-post pathspec_commit runner
-    commits the seat's OWN card + row through `_commit_stops_row`).
+    `seat` names the rotating seat (the merge-up works the SEAT branch into
+    MAIN; the MAIN-post pathspec_commit runner commits the seat's OWN card +
+    row through `_commit_stops_row`).
+
+    The worktree-post runners operate on MAIN -- the shared graph root's git
+    toplevel -- NOT the seat tree: merge_up merges INTO MAIN's checked-out
+    season2/main, wait_grant reads the SEAT's OWN inbox/dm for a signed
+    Prime line, and suite/grid/stamp/render run with cwd=MAIN. Every doubt
+    (MAIN unresolvable, on another branch, dirty, a grant read elsewhere, a
+    push that omits refs/grid) REFUSES BY NAME.
     """
     import send  # local: same dir
+
+    # The merge-up ASK's send time, shared with wait_grant: a grant written
+    # BEFORE the ask (a STALE one) never counts (the claim's clause).
+    ask_state = {"sent_at": ""}
 
     def _verify():
         res = _run_verification(root)
@@ -6151,56 +6265,126 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
         return (False, "failed", f"post verify failed at {level}: {res}")
 
     def _ask():
+        # merge-up ASK: ONE line TO the Prime naming the seat, the seat
+        # branch tip sha7, the target, and the record file -- sent AS the
+        # seat (sender=<seat>) so it is SIGNED when the seat is keyed (the
+        # pre-fix line carried the literal placeholder `<seat>` and sender
+        # None, so it was never attributable to the seat).
         prime = _closeout_prime_seat(root)
-        line = (f"CLOSEOUT merge-up request for <seat>: merge into "
-                f"{_CLOSEOUT_MERGE_TARGET}? reply GRANT if clear.")
+        main = _closeout_main(root)
+        seat_branch = (_fd_seat_branch(root, main, seat) if main
+                       else _closeout_branch(root)) or "<branch>"
+        tip = ""
+        if main and not seat_branch.startswith("<"):
+            lines = _git_maybe(main, "rev-parse", "--short", seat_branch)
+            tip = lines[0].strip() if lines else ""
+        tip_part = f" ({tip})" if tip else ""
+        recname = _closeout_record_name(seat, record)
+        line = (f"CLOSEOUT merge-up request for {seat or '?'}: merge "
+                f"{seat_branch}{tip_part} into {_CLOSEOUT_MERGE_TARGET}? "
+                f"record {recname}; reply GRANT if clear.")
         try:
-            send.send(root, prime, line, sender=None)
+            send.send(root, prime, line, sender=seat or None)
         except Exception as exc:  # noqa: BLE001
             return (False, "failed", f"merge-up ASK could not be sent: {exc}")
-        return (True, "sent", f"merge-up ASK line sent to <prime> ({prime})")
+        ask_state["sent_at"] = send._now()
+        return (True, "sent",
+                f"merge-up ASK line sent as {seat or '?'} to {prime}")
 
     def _wait_grant():
+        # Poll the SEAT's OWN channels -- its inbox and the seat<->prime dm
+        # file -- for a signed Prime line whose body's FIRST WORD is
+        # GRANT|GO, written AFTER the ask (never the Prime's inbox, never a
+        # bare-substring match, never a stale grant).
         prime = _closeout_prime_seat(root)
+        since = ask_state.get("sent_at") or ""
         deadline = time.monotonic() + _CLOSEOUT_GRANT_TIMEOUT
         while True:
-            if _prime_grant_present(root, prime):
+            if _grant_present_for_seat(root, seat, prime, since):
                 return (True, "granted",
-                        f"signed Prime GRANT|GO read in {prime} inbox")
+                        f"signed Prime GRANT|GO read in {seat or '?'} "
+                        f"inbox/dm")
             if time.monotonic() >= deadline:
                 return (False, "refused",
-                        f"no signed Prime GRANT|GO in {prime} inbox within "
-                        f"{int(_CLOSEOUT_GRANT_TIMEOUT)}s")
+                        f"no signed Prime GRANT|GO in {seat or '?'} inbox/"
+                        f"dm within {int(_CLOSEOUT_GRANT_TIMEOUT)}s")
             time.sleep(_CLOSEOUT_GRANT_POLL)
 
     def _merge_up():
-        # Thin wrapper over the only-behind merge helper, gated on the ONE
-        # named target -- NEVER origin/season/s2, NEVER a bare `main`.
-        if _CLOSEOUT_MERGE_TARGET != "season2/main":
+        # merge --no-ff of the SEAT branch into the CHECKED-OUT season2/main
+        # IN MAIN -- NEVER the seat tree, NEVER `git merge origin/<sb>` (the
+        # pre-fix sync direction, which synced the SEAT from origin/main, a
+        # ref that does not exist on this remote, so a live run refused at
+        # merge_up every time). Gate on the ONE constant, MAIN's checked-out
+        # branch, and a clean MAIN tracked tree. Non-zero merge rc ABORTS and
+        # refuses.
+        main = _closeout_main(root)
+        if main is None:
             return (False, "refused",
-                    f"merge target {_CLOSEOUT_MERGE_TARGET!r} is not "
-                    f"season2/main")
-        sb = _CLOSEOUT_MERGE_TARGET.split("/", 1)[1]   # "main"
-        head = _perform_season_merge(root, sb)
-        if head is None:
+                    "merge_up: could not resolve MAIN (the shared graph "
+                    "root's git toplevel) -- merge refused by name")
+        branch = _closeout_branch(main)
+        if branch != _CLOSEOUT_MERGE_TARGET:
             return (False, "refused",
-                    f"merge into season2/main failed/conflicted (aborted)")
-        return (True, "merged", f"merge --no-ff into season2/main at {head}")
+                    f"merge_up: MAIN is on {branch or '<detached>'!r}, not "
+                    f"{_CLOSEOUT_MERGE_TARGET!r} -- merge refused by name")
+        if not _closeout_main_clean(main):
+            return (False, "refused",
+                    "merge_up: MAIN's tracked tree is dirty (git status "
+                    "--porcelain, untracked ignored) -- merge refused by name")
+        seat_branch = (_fd_seat_branch(root, main, seat)
+                       or _closeout_branch(root))
+        if not seat_branch or seat_branch == "HEAD":
+            return (False, "refused",
+                    "merge_up: no resolvable seat branch -- merge refused "
+                    "by name")
+        _gn = record.get("gen_before")
+        msg = (f"rotate-out closeout: merge {seat_branch} (seat {seat or '?'}, "
+               f"gen {_gn if _gn is not None else '?'}, record "
+               f"{_closeout_record_name(seat, record)}) into "
+               f"{_CLOSEOUT_MERGE_TARGET}")
+        proc = _git_proc(main, "merge", "--no-ff", seat_branch, "-m", msg)
+        if proc is None or proc.returncode != 0:
+            _git_maybe(main, "merge", "--abort")
+            _err = (proc.stderr or proc.stdout or "nonzero exit").strip() \
+                if proc is not None else "merge could not run"
+            return (False, "refused",
+                    f"merge_up: merge --no-ff {seat_branch} into "
+                    f"{_CLOSEOUT_MERGE_TARGET} refused/conflicted (aborted): "
+                    f"{_err}")
+        lines = _git_maybe(main, "rev-parse", "--short", "HEAD")
+        head = lines[0].strip() if lines else "?"
+        return (True, "merged",
+                f"merge --no-ff {seat_branch} into {_CLOSEOUT_MERGE_TARGET} "
+                f"in MAIN at {head}")
 
     def _render_check():
+        # run in MAIN (the tree the merge landed in) -- never the seat tree.
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "render_check: could not resolve MAIN")
         binp = Path(__file__).with_name("snapshot-goals.py")
         res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render", "--check"])
+            root, [sys.executable, str(binp), "--render", "--check"],
+            cwd=main)
         if res["ok"]:
             return (True, "ok", "render --check clean")
         return (False, "failed", "render --check refused")
 
     def _suite():
         # verify-suite = verification.py's opt-in pytest (`--suite`), logged
-        # to a file and WAITED in-process (REUSE: the existing executable,
-        # no second suite implementation). --suite is opt-in and orthogonal
-        # to level; the driver waits on its real rc, never a background fork.
-        sink = Path(root) / "sessions" / \
+        # to a file under MAIN's sessions dir and WAITED in-process (REUSE:
+        # the existing executable, no second suite implementation). Runs with
+        # cwd=MAIN and REFUSES BY NAME while another live runner holds the
+        # verify-suite lock (verification._suite_lock_guard).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "suite: could not resolve MAIN")
+        import verification  # local: same dir (its suite lock)
+        held = verification._suite_lock_guard(_shared_graph_root(root))
+        if held:
+            return (False, "refused", f"suite: {held}")
+        sink = Path(_sessions_dir(root)) / \
             f"closeout-suite-{record.get('commit') or 'run'}.log"
         try:
             sink.parent.mkdir(parents=True, exist_ok=True)
@@ -6211,7 +6395,8 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
             with open(sink, "a", encoding="utf-8") as fh:
                 out = subprocess.run(
                     [sys.executable, str(binp), "--level", "quick", "--suite"],
-                    capture_output=True, text=True, timeout=1800)
+                    capture_output=True, text=True, timeout=1800,
+                    cwd=str(main))
                 fh.write(out.stdout or "")
                 fh.write(out.stderr or "")
         except Exception as exc:  # noqa: BLE001
@@ -6221,28 +6406,56 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
         return (False, "failed", f"verify-suite failed; log {sink}")
 
     def _grid_commit():
+        # grid commit --all in MAIN (the tree the merge landed in).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "grid_commit: could not resolve MAIN")
         binp = Path(__file__).with_name("grid.py")
         res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "commit", "--all"])
+            root, [sys.executable, str(binp), "commit", "--all"], cwd=main)
         if res["ok"]:
             return (True, "ok", "grid commit --all")
         return (False, "failed", "grid commit --all refused")
 
     def _push():
-        # push origin season2/main, then refs/grid. Thin over the existing
-        # push helper (REUSE), which never force-pushes and never adds commits.
-        err = _stops_push(root, label="merge")
-        if err:
-            return (False, "refused", err)
-        return (True, "ok", "push origin season2/main")
+        # push origin season2/main THEN origin refs/grid/*:refs/grid/*, both
+        # FROM MAIN -- never a force push, never a second commit; a push that
+        # omits refs/grid is the falsifier. First non-zero rc refuses by
+        # name. (The pre-fix runner pushed the SEAT's checked-out branch from
+        # the seat tree and never carried refs/grid.)
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "push: could not resolve MAIN")
+        p1 = _git_proc(main, "push", "origin", _CLOSEOUT_MERGE_TARGET)
+        if p1 is None or p1.returncode != 0:
+            _e = (p1.stderr or p1.stdout or "nonzero exit").strip() \
+                if p1 is not None else "push could not run"
+            return (False, "refused",
+                    f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
+        p2 = _git_proc(main, "push", "origin", "refs/grid/*:refs/grid/*")
+        if p2 is None or p2.returncode != 0:
+            _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
+                if p2 is not None else "push could not run"
+            return (False, "refused",
+                    "push: push origin refs/grid/*:refs/grid/* refused: "
+                    f"{_e}")
+        return (True, "ok",
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + refs/grid from MAIN")
 
     def _verify_stamp():
+        # verification --level rotation --stamp in MAIN (cwd).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused",
+                    "verify_stamp: could not resolve MAIN")
         binp = Path(__file__).with_name("verification.py")
         res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--level", "rotation", "--stamp"])
+            root, [sys.executable, str(binp), "--level", "rotation",
+                   "--stamp"], cwd=main)
         if res["ok"]:
             return (True, "ok", "verification --level rotation --stamp")
-        return (False, "failed", "verification --level rotation --stamp refused")
+        return (False, "failed",
+                "verification --level rotation --stamp refused")
 
     def _numbers():
         line = _numbers_line(record)
