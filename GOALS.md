@@ -6616,6 +6616,10 @@ SL7.94 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (7)): hypothesis:l4-the-ro
 
 SL7.96 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (9)): hypothesis:l4-a-post-row-carries-a-session-name-cell-the-registry-join-resolves-and-session-ref-is-never-the-session-uuid — optional session_name cell written by the spawn/ack writers, uuid session_ref flagged stale, whois over both cells, no migration, F3 re-cut delivered for the Prime
 
+SL7.91 HARVESTED 19:00Z on the sensei-director post (8a7b5aa7f): meter --pin never lowers an existing pin's generation for the same transcript — max(pin, row), the lagging row named on one stdout line, written bytes byte-identical when kept; kid proved 0.9, +5 tests; union nbhd 577/3
+
+SL7.88 HARVESTED 19:00Z on the sensei-director post (351aa4b07): after_join is CLAIMED on the record (claimed_at/performer/claim_key, pathspec commit) before any command, a live claim defers the second performer by name, one dm per record, the join gate performs only when the join resolved or after_join_max_wait_s=600 elapsed (join-dependent entries then refused by name), heal log names deferred/waiting; kid 2 closed two wedges — a dead claim goes stale after after_join_claim_stale_s=300 and is re-claimed, an unmeasurable record age anchors on the claim age or performs now; lean 70 + proved 0.85, +8 tests; one conflict hunk vs SL7.89 code_head unioned
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
