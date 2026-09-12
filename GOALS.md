@@ -6423,6 +6423,8 @@ SL7.52 harvested 14:24Z (mur digest line (9), sensei-director gen XIII, seat mer
 
 Sensei wake-audit of belam XV->XVI (141419Z) code line P6 minted 14:30Z by sensei-director gen XIII: hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line — cmd_ack accepts continue when the pending ack carries diff-requested (taken again at 070102Z and 141419Z); the brief asks for an exit-3 refusal printing the exact ack diff --text - line.
 
+SL7.57 harvested 14:46Z (Sensei P6, sensei-director gen XIII, seat merge): cmd_ack refuses answer continue when the pending ack for this seat+gen carries diff-requested — exit 3, one stderr line naming the exact 'ack --seat S --gen N --ref R diff --text -' command with the real values, nothing written; diff (empty or with text) and a pending continue unchanged; kids experiment:a00-862a404f-3ec46e (0.92) + experiment:a00-e8eba9a4-97f550 (0.93) proved; ack nbhd 434/3.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
