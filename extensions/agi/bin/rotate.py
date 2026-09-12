@@ -5234,13 +5234,21 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     `_ack_seats_dirty` stays exactly as written (it still refuses a
     pre-dirtied seats.md from ANOTHER seat by name).
 
-    ONE plain `git commit` in the seat worktree's toplevel
-    (`_git_toplevel(root)`): `git add -- <seats.md rel>` then
+    ONE plain `git commit` in the tree the ONE writer wrote: the toplevel
+    of `_shared_graph_root(root)` (MAIN's graph; `_git_toplevel(main_root)`)
+    and the seats.md under it (`main_root/nodes/.geometry/seats.md`, the
+    exact path `write._load_seats`/`_write_identity_cells` read and write):
+    `git add -- <seats.md rel>` then
     `git commit -q -m '<seat> spawn row: gen <N>, session_id <uuid>,
     window <@id>, pid <pid>' -- <rel>`, touching seats.md ONLY (mirror
     `_ack_commit_seats` 4978-5022): same toplevel resolution, same
     'seats.md only' pathspec, NEVER `git add -A`, never a grid commit,
-    never a push.
+    never a push. A worktree rotation's identity write lands in MAIN's
+    seats.md, so the commit must run against MAIN's tree (the caller's
+    worktree copy was never touched and would SKIP), or MAIN's dirty row
+    would ride uncommitted to the next merge-up (hypothesis:l4-the-spawn-
+    row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-
+    its-own-row clause (1)). From MAIN itself this is unchanged.
 
     A rotate-self on a root with no git repo (`_git_toplevel` -> None), or
     whose seats.md is already clean after the write (the row was
@@ -5248,12 +5256,15 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     one line and commits nothing. NEVER raises, never fails the rotation.
     Returns a one-line outcome for the handover's `spawn_row_commit`.
     """
-    top = _git_toplevel(root)
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
     if top is None:
         return ("spawn_row_commit: SKIPPED — no git repo; the spawn-row "
                 "write stays in the tree, never committed (gitless "
                 "fixture/root)")
-    seats = _ack_seats_path(root)
+    # the file the ONE writer wrote: the seats.md under _shared_graph_root,
+    # the exact path write._load_seats / _write_identity_cells read/write.
+    seats = main_root / "nodes" / ".geometry" / "seats.md"
     rel = os.path.relpath(seats, top)
     add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                          capture_output=True, text=True, timeout=10)
@@ -8972,16 +8983,25 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
     try:
-        graph = send._graph_root(root)
-        rows = send._seats_rows(graph)
-        new_rows = [dict(r) for r in rows]
-        own = next((r for r in new_rows if r.get("name") == seat), None)
-        if own is not None:
-            own["pubkey"] = pub.hex()
-            own["sig_scheme"] = own.get("sig_scheme") or scheme
-            own["enc_scheme"] = own.get("enc_scheme") or "none"
-            send._row_write_submit(graph, new_rows, actor=seat,
-                                   role=str(row.get("role") or ""))
+        # The three identity cells (pubkey / sig_scheme / enc_scheme) ride
+        # the ONE identity writer (_write_identity_cells) into MAIN's
+        # seats.md (resolved via _shared_graph_root), NEVER
+        # send._row_write_submit on the caller's graph -- a worktree post's
+        # first mint would otherwise write its OWN worktree copy, a second
+        # writer of the seat's own row (hypothesis:l4-the-spawn-row-write-
+        # and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-
+        # own-row clause (1), Prime XIII ask (a)). Best-effort, exactly as
+        # before: a refused / unadmitted row write never fails the rotation
+        # (the key file is still minted; the note says which half landed).
+        import write as _w  # local: same dir (send.py pattern, no cycle)
+        _cur = next((r for r in _w._load_seats(_shared_graph_root(root))
+                     if r.get("name") == seat), {})
+        if _write_identity_cells(
+                root, seat=seat, actor=seat,
+                role=str(row.get("role") or ""),
+                cells={"pubkey": pub.hex(),
+                       "sig_scheme": _cur.get("sig_scheme") or scheme,
+                       "enc_scheme": _cur.get("enc_scheme") or "none"}):
             note += f"; row {seat!r} keyed"
     except Exception as exc:  # noqa: BLE001
         note += f"; row write not admitted ({exc})"
