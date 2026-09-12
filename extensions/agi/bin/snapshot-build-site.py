@@ -26,6 +26,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # hyphenated filename can still reach its importable siblings.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 #: This file is the sharp one: it unlinks every `origin: build-site` node it
 #: does not re-derive on that run (H0i). Its own copy of the walk resolved
@@ -148,9 +149,9 @@ def load_existing_nodes() -> dict:
         try:
             text = md_path.read_text(encoding="utf-8")
             if text.strip().startswith("---"):
-                parts = text.split("---", 2)
-                if len(parts) >= 3:
-                    fm = yaml.safe_load(parts[1]) or {}
+                parted = split_frontmatter(text)
+                if parted is not None:
+                    fm = yaml.safe_load(parted[0]) or {}
                     node_id = fm.get("id", "")
                     if node_id:
                         nodes[node_id] = {

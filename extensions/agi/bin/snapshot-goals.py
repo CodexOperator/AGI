@@ -84,6 +84,7 @@ _graph_core_src = str(PLUGIN_ROOT / "src")
 if _graph_core_src not in sys.path:
     sys.path.insert(0, _graph_core_src)
 from graph_core.identity import mint_permanent_id, is_valid_mint_id  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 
 def ensure_mint_id(fm: dict) -> dict:
@@ -433,9 +434,9 @@ def load_existing_nodes() -> dict:
     Each value: {path: Path, origin: str, fm: dict, body: str}
 
     `body` was added for goal:g6.9 — rendering `GOALS.md` back out of the nodes
-    needs the prose, not just the frontmatter. `split("---", 2)` caps at three
-    parts, so a body containing its own `---` (the preamble has two) stays
-    intact in the third.
+    needs the prose, not just the frontmatter. The line-anchored reader keeps a
+    body containing its own `---` (the preamble has two) intact past the
+    closing marker.
     """
     nodes = {}
     if not NODES_DIR.exists():
@@ -444,16 +445,16 @@ def load_existing_nodes() -> dict:
         try:
             text = md_path.read_text(encoding="utf-8")
             if text.strip().startswith("---"):
-                parts = text.split("---", 2)
-                if len(parts) >= 3:
-                    fm = yaml.safe_load(parts[1]) or {}
+                parted = split_frontmatter(text)
+                if parted is not None:
+                    fm = yaml.safe_load(parted[0]) or {}
                     node_id = fm.get("id", "")
                     if node_id:
                         nodes[node_id] = {
                             "path": md_path,
                             "origin": fm.get("origin", ""),
                             "fm": fm,
-                            "body": parts[2],
+                            "body": parted[1],
                         }
         except Exception:
             pass
