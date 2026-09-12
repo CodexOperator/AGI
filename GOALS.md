@@ -6364,6 +6364,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 
 2026-09-12T01:34Z 01:28Z OpenRouter 403 (workspace monthly cap) killed SL6.01's parent + kid 3 mid-belt; owner approved a new budget 01:4xZ (Prime XIII GO 01:31Z). Clause (1) SOURCE salvaged from the staged index and harvested on the seat (kids a00-4e91144c + a00-70cc82d2 lean:70, rotate 516 green): _commit_spawn_row commits under the ONE writer's tree (MAIN), _rotate_first_key's key cells ride _write_identity_cells. Clauses (2) belt + (3) small re-cut as SL6.09 on the same brief; kid 3's partial belt diff kept as a patch for it.
 
+2026-09-12T03:04Z SL6.09 harvested on the seat (sensei-director gen VI): clauses (2)+(3) built — the ack commits only its own row (index-only content from HEAD; pre-staged or edited_by-only foreign hunks neither bundled nor blocking — kid 3 reproduced and closed the index-base hole with a reversal-proved test), own-row-scoped gate, ack --wait N, check 2 names the dirty paths; the mandatory two-tree chain test lands; kids a00-ccefdf6f lean:80, a00-39998e00 lean:75, a00-906fdebb proved; rotate+send 768 green. mur-SL2.11 fold (i)-(iv) arrived after the parent read the brief — carried into SL6.05 (F1) as its rotate.py leg, reusing _seats_ownrow_content for the spawn-row commit and the key-cell writers. Lands at SL2#12.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
