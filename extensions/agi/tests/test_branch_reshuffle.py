@@ -221,6 +221,49 @@ def test_reshuffle_kinds_parses_aliases_and_refuses_unknown():
         cli._reshuffle_kinds("bogus")
 
 
+# ---- L4.319 residue (mur-46, verbatim): an explicit --kinds that parses ----
+# ---- to the EMPTY set (`,`, ` , `, any separator/whitespace string) is ----
+# ---- NOT the absent case. It refuses BY NAME, exit 1, never unfiltered. ---
+def test_explicit_empty_kinds_refuses_by_name_and_lists_nothing(repo: Path):
+    for spec in [",", " , ", ",,,"]:
+        res = _run_cli(repo / ".agi", "--dry-run", "--kinds", spec)
+        assert res.returncode == 1, (spec, res.stdout, res.stderr)
+        assert f"--kinds: {spec!r} parsed to no kinds" in res.stderr, \
+            (spec, res.stderr)
+        assert "one of main, posts, loops, towns" in res.stderr, res.stderr
+        # no jobs listed, no defaulting line, nothing about a default
+        assert "branch rename" not in res.stdout, (spec, res.stdout)
+        assert "defaulted to kinds" not in res.stdout, (spec, res.stdout)
+        assert res.stdout.strip() == "", (spec, res.stdout)
+
+
+def test_explicit_empty_kinds_refuses_under_delete_old(repo: Path):
+    # --delete-old is where the UNFILTERED hazard is worst; the empty set
+    # must refuse there too, before any delete step is considered.
+    res = _run_cli(repo / ".agi", "--delete-old", "--kinds", ",")
+    assert res.returncode == 1, (res.stdout, res.stderr)
+    assert "--kinds: ',' parsed to no kinds" in res.stderr, res.stderr
+    assert "defaulted to kinds" not in res.stdout, res.stdout
+
+
+def test_unknown_kind_still_refuses_by_name(repo: Path):
+    # L4.319 behaviour, unchanged: an UNKNOWN word is refused inside
+    # _reshuffle_kinds, before any plan is produced.
+    res = _run_cli(repo / ".agi", "--dry-run", "--kinds", "posts,bogus")
+    assert res.returncode == 1, (res.stdout, res.stderr)
+    assert "--kinds: unknown kind 'bogus'" in res.stderr, res.stderr
+    assert "branch rename" not in res.stdout, res.stdout
+
+
+def test_absent_kinds_still_defaults_and_prints(repo: Path):
+    # L4.319 behaviour, unchanged: an ABSENT --kinds defaults to posts,towns
+    # and PRINTS the defaulting line.
+    res = _run_cli(repo / ".agi", "--dry-run")
+    assert res.returncode == 0, res.stderr
+    assert "defaulted to kinds posts,towns" in res.stdout, res.stdout
+    assert "--kinds" not in res.stderr, res.stderr
+
+
 def test_reshuffle_kind_of_canonical_names():
     assert cli._reshuffle_kind("season2/main") == "main"
     assert cli._reshuffle_kind("season2/posts/foo") == "post"
