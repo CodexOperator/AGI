@@ -178,6 +178,111 @@ def test_detection_only_record_still_respawns_next_pass(graph):
         "pass 2 recorded the respawn outcome as the newest record"
 
 
+# --- RACE-2 COMMITTED STAMPS (hypothesis:l4-the-cross-second-boundary-) -----
+# The writer seam: `_rotate._write_rotation_record` (rotate.py:_write_rotation_record)
+# names a fresh file from `datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')` where
+# `datetime` is rotate's own import. Patching `rotate.datetime.utcnow` is the
+# narrowest seam the writer offers -- heal keeps its OWN `import datetime` for
+# `recorded_at`, so the patch never touches the detection timestamp. No test
+# sleeps: the two-file / one-file shapes are owned by the clock, not by wall
+# time.
+
+
+def _advancing_clock(first_second: int = 1):
+    """A fake `rotate.datetime` whose `utcnow()` advances one second per call,
+    so two writes land on two distinct `<seat>.<stamp>.json` files."""
+    state = {"n": first_second - 1}
+
+    class _Stamp:
+        def __init__(self, n):
+            self.n = n
+
+        def strftime(self, _fmt):
+            return f"20260912T00000{self.n:02d}Z"
+
+    class _FakeDT:
+        @staticmethod
+        def utcnow():
+            state["n"] += 1
+            return _Stamp(state["n"])
+    return _FakeDT
+
+
+def _frozen_clock(stamp: str = "20260912T000001Z"):
+    """A fake `rotate.datetime` locked to ONE stamp, so two writes land on the
+    SAME filename and the second overwrites the first."""
+    class _Stamp:
+        def strftime(self, _fmt):
+            return stamp
+
+    class _FakeDT:
+        @staticmethod
+        def utcnow():
+            return _Stamp()
+    return _FakeDT
+
+
+def test_two_distinct_stamp_records_detected_then_respawned(graph, monkeypatch):
+    """RACE-2 (SL7.53): force pass 1 and pass 2 to straddle a whole-second
+    boundary through the record writer's clock -- NEVER a real sleep. Pass 1
+    detects (writes `result: detected`), pass 2 respawns (writes a fresh
+    file); two distinct forced stamps give TWO files. The older reads
+    `detected`, the newest reads `respawned`. A regression to 'assert exactly
+    one record' would FAIL here precisely because the two stamps are forced --
+    this is the committed test that owns the two-file shape a same-second
+    coalescing test never exercises."""
+    import rotate
+    monkeypatch.setattr(rotate, "datetime", _advancing_clock())
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242, "window": "@50",
+                          "role": "director", "generation": 1}])
+    fail_recs: list = []
+    pass1 = _scan(graph, launcher=_failing_launcher(fail_recs),
+                  window_names=("", "@1 other"))
+    assert len(pass1) == 1 and pass1[0]["respawned"] is False
+    ok_recs: list = []
+    pass2 = _scan(graph, launcher=_working_launcher(ok_recs),
+                  window_names=("", "@1 other"))
+    assert len(pass2) == 1 and pass2[0]["respawned"] is True
+    recs = _crash_records(graph, "seat-a")
+    assert len(recs) == 2, \
+        "two forced distinct second-stamps -> TWO files; hiding pass 1's " \
+        "detected record behind an exactly-one assertion is the regression " \
+        "this test exists to catch"
+    assert recs[0].name != recs[-1].name, "two files carry two stamps"
+    older = json.loads(recs[0].read_text())
+    newest = json.loads(recs[-1].read_text())
+    assert older["result"] == "detected", "the older record still reads detected"
+    assert newest["result"] == "respawned", "the newest record carries respawned"
+
+
+def test_equal_stamp_records_newest_still_respawned(graph, monkeypatch):
+    """RACE-2, frozen-clock side (SL7.53): when both passes land in the SAME
+    second, pass 2's fresh respawned write OVERWRITES pass 1's detected file
+    (same stamp -> same filename), so ONE record remains and it reads
+    `respawned`. The claim is the NEWEST record, never the count -- an
+    exactly-one assertion is only valid here BECAUSE the clock is frozen, and
+    this test proves the respawned outcome is still the newest (the only)
+    record."""
+    import rotate
+    monkeypatch.setattr(rotate, "datetime", _frozen_clock())
+    _write_seats(graph, [{"name": "seat-b", "pid": 424242, "window": "@50",
+                          "role": "director", "generation": 1}])
+    fail_recs: list = []
+    _scan(graph, launcher=_failing_launcher(fail_recs),
+          window_names=("", "@1 other"))
+    ok_recs: list = []
+    pass2 = _scan(graph, launcher=_working_launcher(ok_recs),
+                  window_names=("", "@1 other"))
+    assert pass2 and pass2[0]["respawned"] is True
+    recs = _crash_records(graph, "seat-b")
+    assert len(recs) == 1, \
+        "same stamp -> same filename -> one coalesced record under a frozen " \
+        "clock"
+    newest = json.loads(recs[0].read_text())
+    assert newest["result"] == "respawned", \
+        "the equal-stamp coalesced record still reads respawned (the newest)"
+
+
 def test_respawned_record_suppresses_next_pass(graph):
     """Once the respawn landed, its `result: respawned` record IS the guard:
     a second pass does nothing — two passes never spawn twice."""
