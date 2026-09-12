@@ -944,3 +944,56 @@ def test_grid_version_beyond_history_is_reported_not_silently_the_tip(
                            from_grid=True, grid_version=9)
     assert stats["written"] == 0
     assert stats["skipped_missing"] == [node_id]
+
+
+# --- --project resolution (goal:g15, hypothesis:l4-stitch-and-level3-project-
+# --- resolve-the-graph-root-or-refuse-by-name-and-verify-prints-its-count) --
+
+
+def _g11_project(tmp_path: Path, rel: str = "extensions/agi/bin/foo.py",
+                 ) -> tuple[Path, Path]:
+    """A G11-layout graph: the project REPO ROOT holds `.agi/` (with a config
+    and `nodes/build/`), never a top-level `nodes/`. Returns (repo_root, engine)."""
+    repo = tmp_path / "repo"
+    graph = repo / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}\n")
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / rel).write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    mint_node(engine, graph, rel)
+    return repo, engine
+
+
+def test_verify_project_resolves_the_g11_graph_root_and_counts(tmp_path):
+    """CLAIM — `--project <repo root>` (G11: graph at `<repo>/.agi`) resolves
+    through `locations` to the graph root and `--verify` prints the node
+    count it verified, so one node reads as one, never a silent zero."""
+    repo, engine = _g11_project(tmp_path)
+    result = run(repo, engine, "--verify")          # pass the REPO ROOT, not .agi
+    assert result.returncode == 0
+    assert "verified 1 build node(s)" in result.stdout
+    # the resolution reached the graph under .agi, not a literal <repo>/nodes
+    assert not (repo / "nodes").exists()
+
+
+def test_verify_accepts_the_graph_dir_itself_when_it_holds_nodes(tmp_path):
+    """CLAIM — passing the graph root itself (`<repo>/.agi`, holding `nodes/`)
+    also resolves, under `--project`."""
+    repo, engine = _g11_project(tmp_path)
+    result = run(repo / ".agi", engine, "--verify")
+    assert result.returncode == 0
+    assert "verified 1 build node(s)" in result.stdout
+
+
+def test_verify_refuses_a_rootless_path_by_name(tmp_path):
+    """CLAIM — a path that resolves to no graph root (no `.agi/` at or above,
+    no `nodes/` at the path) is REFUSED by name, exit 2 — never a silent
+    zero-node clean."""
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()  # a real dir, but a graphless one
+    result = run(nowhere, None, "--verify")
+    assert result.returncode == 2
+    assert f"no graph root at or above {nowhere}" in result.stderr
+    assert "no .agi/ and no nodes/" in result.stderr
