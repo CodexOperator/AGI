@@ -7093,7 +7093,24 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "worktree", "repo", "tmux_session", "pred_pids",
+    "prime_ref", "prime_key", "prime_seat", "worktree", "repo",
+    "tmux_session", "pred_pids",
+}
+
+#: Per-placeholder CODE fallbacks: a used `{key}` whose value is EMPTY is
+#: replaced by this WHOLE FRAGMENT (each `{...}` inside it resolved fresh
+#: against the spawn values) instead of refusing, when the entry names no
+#: `fallback:` of its own. `{prime_ref}` falls back to the by-key whois form:
+#: the prime row's session_ref is EMPTY for a whole generation under SL7.06's
+#: default, but its pubkey is filled at every rotation — so prime authority
+#: resolves by key, never by a refusal that leaves F3's by-ref channel without
+#: a ref (goal:g15.25 line (4); hypothesis:l4-prime-authority-resolves-by-key-
+#: when-the-prime-rows-session-ref-is-empty...). The fragment must carry the
+#: `--key` FLAG itself: substituting only the pubkey VALUE would land it in
+#: the POSITIONAL session_ref slot, where whois resolves by session_ref and
+#: answers NO-MATCH, never IS-AUTHORIZED.
+_STARTUP_FALLBACKS = {
+    "prime_ref": "--key {prime_key}",
 }
 
 #: Per-command timeout and output cap defaults when the template's startup
@@ -7868,8 +7885,35 @@ def _scrub_injected_refusal(message: str, record_cmd: str) -> str:
     return f"{label} {trailer}" if label else trailer
 
 
+def _resolve_fallback_fragment(frag: str, emptied_key: str,
+                               values: dict) -> str:
+    """Resolve every `{k}` inside a fallback FRAGMENT fresh against
+    ``values``. Fail closed -- unknown key, a key whose value is EMPTY, or a
+    key that IS the emptied placeholder (a fragment must not substitute
+    itself) all raise a named ValueError. A `#{...}` tmux format form stays
+    literal, byte-for-byte."""
+    def _fsub(m):
+        if m.start() > 0 and frag[m.start() - 1] == "#":
+            return m.group(0)
+        fk = m.group(1)
+        if fk not in STARTUP_PLACEHOLDERS:
+            raise ValueError(f"unknown startup placeholder {{{fk}}}")
+        if fk == emptied_key:
+            raise ValueError(
+                f"startup fallback {{{fk}}} references the empty placeholder "
+                "it substitutes")
+        fv = values.get(fk, "")
+        if not str(fv):
+            raise ValueError(
+                f"startup fallback {{{fk}}} empty at spawn "
+                f"(placeholder {{{emptied_key}}} is empty)")
+        return str(fv)
+    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _fsub, frag)
+
+
 def _resolve_startup_placeholders(command: str, values: dict, *,
-                                  refuse_empty: bool = False) -> str:
+                                  refuse_empty: bool = False,
+                                  fallback: str = "") -> str:
     """Substitute `{key}` placeholders; REFUSE (raise ValueError, naming the
     key) on any key not in the canonical STARTUP_PLACEHOLDERS set, so an
     unknown/unresolved placeholder is never silently left in the command.
@@ -7879,7 +7923,21 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     command that runs on an empty slot and dumps a usage error. Other callers
     (the driven `next` walk, bootstrap) leave `refuse_empty` False: for them
     an empty placeholder may be legitimate, and they must not be forced to
-    fall over on it."""
+    fall over on it.
+
+    ``fallback`` (a WHOLE FRAGMENT string, from a per-entry ``fallback:`` on
+    the first_turn template) supplies the substitution
+    (hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+    session-ref-is-empty...): when an emptied placeholder WOULD refuse, the
+    fragment -- each `{...}` inside it resolved fresh against ``values`` -- is
+    substituted INSTEAD. ``{prime_ref}`` empty falls back to the by-key form
+    ``--key {prime_key}``. When the entry names NO fallback, the per-
+    placeholder code map ``_STARTUP_FALLBACKS`` supplies one, so the CURRENT
+    director template resolves prime authority by key without a template
+    edit. When neither names a usable fallback (or the fallback's own
+    placeholder is empty or references the emptied placeholder) the refusal
+    stands (named), so a placeholder never runs empty and never silently
+    self-declares a fallback."""
     def _sub(m):
         # A `{name}` that is part of tmux's OWN format syntax is LITERAL and
         # must pass through byte-for-byte: it is immediately preceded by `#`
@@ -7895,6 +7953,9 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
             raise ValueError(f"unknown startup placeholder {{{key}}}")
         value = values.get(key, "")
         if refuse_empty and not str(value):
+            frag = fallback or _STARTUP_FALLBACKS.get(key, "")
+            if frag:
+                return _resolve_fallback_fragment(frag, key, values)
             raise ValueError(f"placeholder {{{key}}} empty at spawn")
         return str(value)
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
@@ -7928,6 +7989,18 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        # A per-entry `fallback:` (e.g. "fallback: --key {prime_key}") names a
+        # WHOLE FRAGMENT substituted when a USED placeholder is EMPTY -- so a
+        # prime-authority entry whose {prime_ref} is empty resolves by the
+        # prime row's pubkey (by-key form, flags included), not by a bare
+        # value dropped into the positional slot
+        # (hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+        # session-ref-is-empty-and-a-placeholder-with-a-fallback-never-
+        # refuses). An entry with NO fallback of its own still resolves
+        # through the per-placeholder code map `_STARTUP_FALLBACKS` (so the
+        # CURRENT director template works without a template edit); an empty
+        # or unresolvable fallback fails closed too: the refusal names it.
+        fallback = str(entry.get("fallback") or "")
         env_refusal = _env_prefix_refusal(cmd, env_allow)
         if env_refusal:
             results.append({"label": label, "cmd": cmd,
@@ -7939,8 +8012,8 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "refused": f"not on startup.allow: {refusal}"})
             continue
         try:
-            record_cmd = _resolve_startup_placeholders(cmd, values,
-                                                       refuse_empty=True)
+            record_cmd = _resolve_startup_placeholders(
+                cmd, values, refuse_empty=True, fallback=fallback)
         except ValueError as exc:
             results.append({"label": label, "cmd": cmd, "refused": str(exc)})
             continue
@@ -8142,9 +8215,21 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         except Exception:  # noqa: BLE001
             repo = str(worktree)
     prime_ref = ""
+    prime_key = ""
+    prime_seat = ""
     for row in _load_seats(root):
-        if row.get("role") == "prime_director" and row.get("session_ref"):
-            prime_ref = str(row["session_ref"])
+        if row.get("role") == "prime_director":
+            if row.get("session_ref"):
+                prime_ref = str(row["session_ref"])
+            # The prime row's pubkey and name ARE filled at every rotation
+            # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are
+            # the by-key fallback axes a startup entry with an EMPTY prime
+            # session_ref declares (hypothesis:l4-prime-authority-resolves-by-
+            # key-when-the-prime-rows-session-ref-is-empty...).
+            if row.get("pubkey"):
+                prime_key = str(row["pubkey"])
+            if row.get("name"):
+                prime_seat = str(row["name"])
             break
     return {
         "seat": seat,
@@ -8154,6 +8239,8 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "pin_ref": str(_sessions_dir(root) / f"{seat}.meter"),
         "gen": str(gen),
         "prime_ref": prime_ref,
+        "prime_key": prime_key,
+        "prime_seat": prime_seat,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
