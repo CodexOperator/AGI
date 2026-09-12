@@ -293,6 +293,54 @@ def test_frontmatter_is_valid_yaml_for_every_type(project):
         assert fm["parents"] == parents
 
 
+def test_every_write_ends_with_exactly_one_newline(project):
+    """hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline.
+
+    The frontmatter reader splits the body and drops its trailing newline, so
+    a frontmatter-only (`set_fm`) edit that re-serializes `nf.body` silently
+    dropped the EOF newline of a file that ended `...content\n` -- a 1-byte
+    whitespace dirt (`\\ No newline at end of file`) that showed up after
+    rotate-self's spawn-row write and refused the ack's prepare/ack gates on
+    a delta they read as dirty. ONE serializer now guarantees EXACTLY one
+    trailing `\n` (never zero, never two).
+    """
+    res = nw.write_node(project, "goal", "eofprobe", [],
+                        extra_fm={"title": "P", "body": "x"}, bypass=True)
+    path = res.path
+
+    def write_body(body: str):
+        from graph_core.persistence import frontmatter as _fm
+        fm = dict(_fm.load_node_file(path).frontmatter)
+        open(path, "w", encoding="utf-8").write(
+            "\n".join(["---", *nw.render_frontmatter(fm), "---", ""]) + body)
+
+    # The original defect: a body ending `...content\n` (one newline, no
+    # blank line). A set_fm-only edit must NOT drop it.
+    write_body("# goal:eofprobe\n\nsome text\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u"})
+    assert path.read_bytes().endswith(b"\n"), \
+        "set_fm-only edit must not drop the EOF newline"
+    assert not path.read_bytes().endswith(b"\n\n"), \
+        "file must end with exactly one newline"
+
+    # Canonical invariant through every writer: zero trailing newlines gets
+    # one added; two trailing newlines collapses to one.
+    write_body("# goal:eofprobe\n\nno trailing nl")
+    nw.update_node(project, res.node_id, set_fm={"status": "u2"})
+    assert path.read_bytes().endswith(b"\n")
+
+    write_body("# goal:eofprobe\n\ntwo trailing\n\n\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u3"})
+    data = path.read_bytes()
+    assert data.endswith(b"\n") and not data.endswith(b"\n\n")
+
+    # Body is preserved byte-identically across a frontmatter-only edit once
+    # canonical: only the EOF newline is normalized, nothing interior.
+    write_body("# goal:eofprobe\n\n## Facts\n\ngolden fact\n")
+    nw.update_node(project, res.node_id, set_fm={"status": "u4"})
+    assert b"## Facts\n\ngolden fact\n" in path.read_bytes()
+
+
 # --------------------------------------------------------------------------
 # on_exists — dispatch.py's re-scaffold rule, preserved
 # --------------------------------------------------------------------------
