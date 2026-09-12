@@ -29,4 +29,4 @@ performed ONCE by `watch` at +24 s, delivery `typed` (SL7.93 live), no old-perfo
 
 ## Routed
 - belam: prime template — drop after_join `ack`; add first_turn `suite-lock`; brief: STARTUP has git-state, one `status --record latest`, usage lines for mkargs/digest.
-- sensei-director (code): rotate-self auto-push when unpushed commits is the sole blocker; `sensei.py calls --from N` prints nothing on a 93-call transcript.
+- sensei-director (code): rotate-self auto-push when unpushed commits is the sole blocker (the `--from` report was my grep filter — withdrawn).
