@@ -645,3 +645,289 @@ def test_cmd_status_no_overdue_mark_without_overdue_since(tmp_path, monkeypatch,
     out = capsys.readouterr().out
     assert "status=running" in out
     assert "(overdue)" not in out
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-verdict-without-
+# one-parent-run-negative-probe-per-claim-conjunct
+# --------------------------------------------------------------------------
+
+def _parent_probe_project(tmp_path, tier="parent"):
+    """A minimal project root whose agent record runs at `tier` and whose
+    `hypothesis:target` carries four numbered claim items (conjuncts 1-4)."""
+    import json as _json
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "hypothesis" / "target.md").write_text(
+        "---\nid: hypothesis:target\ntype: hypothesis\ntitle: Target\n"
+        "testable_claim: \"(1) first leg; (2) second leg; (3) third leg; "
+        "(4) fourth leg\"\n---\n\n# hypothesis:target\n\nBody.\n")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\ntitle: Backer\n"
+        "mint_id: backermint\nparents:\n- hypothesis:target\n---\n\nbody\n")
+    (graph / "sessions" / "iter-001" / "a00-p").mkdir(parents=True)
+    rec = (graph / "sessions" / "iter-001" / "a00-p" / "agent.json")
+    rec.write_text(_json.dumps({"id": "a00-p", "tier": tier,
+                                "status": "running"}))
+    return graph, rec
+
+
+def _probe_args(**over):
+    import argparse
+    base = dict(
+        iter_n=1, agent_id="a00-p", verdict="proved", confidence=0.9,
+        node_id="experiment:backer", parent="hypothesis:target", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    base.update(over)
+    return argparse.Namespace(**base)
+
+
+def test_done_parent_refuses_proved_without_probes_naming_conjuncts(
+        tmp_path, monkeypatch, capsys):
+    """A tier-parent `done` recording `proved` with no probes is refused with
+    a non-zero exit and the missing conjunct numbers named; nothing is written
+    to the record."""
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None)
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "claim conjunct(s): 1, 2, 3, 4" in err, err
+    assert 'status": "running"' in rec.read_text(), \
+        "refusal must not write a done status"
+
+
+def test_done_parent_accepted_with_one_probe_per_conjunct(tmp_path, monkeypatch):
+    """A tier-parent `proved` carrying one probe per claim conjunct is accepted,
+    and the probes are recorded like evidence_runs (same record, same commit),
+    reaching both the agent record and the node frontmatter."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    probes = _json.dumps([
+        {"conjunct": 1, "class": "auth", "cmd": "no-id call",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 2, "class": "gate", "cmd": "other leg",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 3, "class": "wire", "cmd": "cli path",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 4, "class": "wire", "cmd": "dry-run",
+         "expected": "no write", "observed": "no write", "result": "passed"},
+    ])
+    args = _probe_args(probes=probes)
+
+    assert cli.cmd_done(args) == 0
+
+    rec_fm = _json.loads(rec.read_text())
+    assert rec_fm["status"] == "done"
+    assert {p["conjunct"] for p in rec_fm["probes"]} == {1, 2, 3, 4}, \
+        "probes must be recorded on the agent record like evidence_runs"
+    node_text = (graph / "nodes" / "experiment" / "backer.md").read_text()
+    assert '"conjunct": 1' in node_text and '"conjunct": 4' in node_text, \
+        "probes must reach the node frontmatter like evidence_runs"
+
+
+def test_done_parent_lean_below_50_needs_no_probe(tmp_path, monkeypatch):
+    """A tier-parent verdict below inconclusive_lean_proved:50 asserts nothing
+    to prove, so it is accepted with no probes."""
+    cli = _load_cli()
+    graph, _rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(verdict="inconclusive_lean_proved:40", node_id=None)
+
+    assert cli.cmd_done(args) == 0
+
+
+def test_done_kid_tier_unchanged_by_probe_gate(tmp_path, monkeypatch):
+    """The probe gate applies to `tier parent` only: a kid's `proved` with no
+    probes is accepted unchanged."""
+    cli = _load_cli()
+    graph, _rec = _parent_probe_project(tmp_path, tier="kid")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id="experiment:backer")
+
+    assert cli.cmd_done(args) == 0
+
+
+def test_done_parent_dry_run_prints_gate_without_writing(tmp_path, monkeypatch,
+                                                        capsys):
+    """`--dry-run` prints the probe gate's refusal and returns success without
+    writing a done status to the record."""
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, dry_run=True)
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "[dry-run]" in out and "1, 2, 3, 4" in out, out
+    assert 'status": "running"' in rec.read_text(), \
+        "dry-run must not write a done status"
+
+
+def test_done_parent_dry_run_pass_path_never_writes(tmp_path, monkeypatch,
+                                                   capsys):
+    """DEFECT 1: `--dry-run` on a PASSING probe gate must print the gate's
+    decision and return 0 BEFORE any write -- record still running, node bytes
+    unchanged, no verdict stamp. A dry-run flag that mutates on the pass path
+    is the one command a cautious parent runs first, so it must be inert."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    node = graph / "nodes" / "experiment" / "backer.md"
+    node_before = node.read_text()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    probes = _json.dumps([
+        {"conjunct": 1, "class": "auth", "cmd": "no-id call",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 2, "class": "gate", "cmd": "other leg",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 3, "class": "wire", "cmd": "cli path",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 4, "class": "wire", "cmd": "dry-run",
+         "expected": "no write", "observed": "no write", "result": "passed"},
+    ])
+    args = _probe_args(probes=probes, dry_run=True)
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "[dry-run]" in out and "PASS" in out and "1, 2, 3, 4" in out, out
+    assert 'status": "running"' in rec.read_text(), \
+        "dry-run pass path must not mark the record done"
+    assert '"verdict"' not in rec.read_text(), \
+        "dry-run pass path must not stamp a verdict on the record"
+    assert node.read_text() == node_before, \
+        "dry-run pass path must not touch the node bytes"
+
+
+def test_done_dry_run_inactive_gate_disproved_never_writes(tmp_path, monkeypatch,
+                                                           capsys):
+    """DEFECT 2: `--dry-run` with an INACTIVE probe gate (parent + disproved,
+    no probes) must exit 0 and print the gate not-applicable -- never fall
+    through to a write. The record stays `{"status": "running"}` exactly and
+    the node bytes are untouched. A dry-run flag that mutates on the
+    not-applicable path is the path a cautious parent hits first."""
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)  # tier parent
+    node = graph / "nodes" / "experiment" / "backer.md"
+    node_before = node.read_text()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(verdict="disproved", node_id=None, dry_run=True)
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "[dry-run]" in out and "not applicable" in out, out
+    assert "verdict=disproved" in out, out
+    assert rec.read_text() == '{"id": "a00-p", "tier": "parent", "status": "running"}', \
+        "dry-run on an inactive gate must leave the record byte-identical"
+    assert "\"status\": \"running\"" in rec.read_text()
+    assert "verdict" not in rec.read_text(), \
+        "dry-run on an inactive gate must not stamp a verdict"
+    assert node.read_text() == node_before, \
+        "dry-run on an inactive gate must not touch the node bytes"
+
+
+def test_done_dry_run_inactive_gate_kid_tier_never_writes(tmp_path, monkeypatch,
+                                                          capsys):
+    """DEFECT 2: `--dry-run` with an INACTIVE probe gate at kid tier must exit
+    0 and print the gate not-applicable -- record still running exactly, node
+    bytes unchanged, no verdict stamp."""
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path, tier="kid")
+    node = graph / "nodes" / "experiment" / "backer.md"
+    node_before = node.read_text()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id="experiment:backer", dry_run=True)  # proved
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "[dry-run]" in out and "not applicable" in out, out
+    assert "tier=kid" in out, out
+    assert rec.read_text() == '{"id": "a00-p", "tier": "kid", "status": "running"}', \
+        "dry-run on an inactive gate must leave the record byte-identical"
+    assert "\"status\": \"running\"" in rec.read_text()
+    assert "verdict" not in rec.read_text(), \
+        "dry-run on an inactive gate must not stamp a verdict"
+    assert node.read_text() == node_before, \
+        "dry-run on an inactive gate must not touch the node bytes"
+
+
+def test_done_parent_probe_missing_result_does_not_cover(tmp_path, monkeypatch,
+                                                         capsys):
+    """DEFECT 2: a probe missing any of the six fields does NOT count as
+    covering its conjunct; the refusal names the malformed probe so the parent
+    knows which one to fix."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    # A bare conjunct key still covers nothing; the missing `result` probe is
+    # named in the refusal.
+    probes = _json.dumps([
+        {"conjunct": 1, "class": "auth", "cmd": "no-id call",
+         "expected": "refuse", "observed": "refused"},  # no `result`
+        {"conjunct": 2, "class": "gate", "cmd": "other leg",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 3, "class": "wire", "cmd": "cli path",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 4, "class": "wire", "cmd": "dry-run",
+         "expected": "no write", "observed": "no write", "result": "passed"},
+    ])
+    args = _probe_args(probes=probes)
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "claim conjunct(s): 1" in err, err
+    assert "missing key(s): result" in err, err
+    assert 'status": "running"' in rec.read_text(), \
+        "refusal must not write a done status"
+
+
+def test_done_parent_probe_bad_class_does_not_cover(tmp_path, monkeypatch,
+                                                    capsys):
+    """DEFECT 2: a probe whose `class` is not auth/gate/wire does not cover
+    its conjunct either, and the refusal names it."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    probes = _json.dumps([
+        {"conjunct": 1, "class": "auth", "cmd": "no-id",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 2, "class": "gate", "cmd": "leg",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 3, "class": "wire", "cmd": "cli",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+        {"conjunct": 4, "class": "bash", "cmd": "shell",
+         "expected": "refuse", "observed": "refused", "result": "passed"},
+    ])
+    args = _probe_args(probes=probes)
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "claim conjunct(s): 4" in err, err
+    assert "invalid class" in err and "bash" in err, err
+
+
+def test_done_parent_bare_conjunct_probe_covers_nothing(tmp_path, monkeypatch,
+                                                        capsys):
+    """DEFECT 2 letter-case: `--probes '[{"conjunct":1}]'` -- the exact shape
+    the gate used to accept that loses the whole mechanism -- now refuses, since
+    the bare probe covers no conjunct and every conjunct is missing."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _parent_probe_project(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(probes=_json.dumps([{"conjunct": 1}]))
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "claim conjunct(s): 1, 2, 3, 4" in err, err
+    assert "missing key(s)" in err, err
