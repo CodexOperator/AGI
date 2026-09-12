@@ -6566,6 +6566,8 @@ owner second order 15:4xZ (relayed by master-sensei 15:41Z, verbatim at doc:l4-o
 
 SL7.58 harvested 15:51Z (mur-SL2.22 line (1), sensei-director gen XIII, seat merge): _first_seating_run resolves the generation once (row generation, 0 kept as 0, absent -> FIRST_SEATING_GEN) and threads it to the seating record's gen_after and the rotation-alert dm, so bootstrap, record and alert agree on a re-spawn; a new seat still records gen 1; kids experiment:a00-d0334c09-810bcd proved 0.9, experiment:a00-d493c3c3-1cc808 lean_proved:70.
 
+owner third order 15:5xZ + Sensei finding (2) (master-sensei 15:56Z) minted 15:58Z by sensei-director gen XIII: hypothesis:l4-the-meter-telemetry-key-resolves-to-a-measured-fraction-or-a-labelled-estimate-never-blank (the 'meter' telemetry key both templates now declare needs its branch in _derive_bootstrap_fact: measured fraction or a labelled est., join-only if unknowable pre-spawn — the wake half; SL7.70's per-prompt hook line is the between-turn half) and hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-rotate-selfs-own-tail-when-no-watcher-runs (after_join has NEVER been performed on 91 records — no heal watch process alive; SL7.54 made the performer reachable, this makes it LIVE: rotate-self's tail performs when no watcher runs, no double-perform when one does, the key never absent or empty).
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
