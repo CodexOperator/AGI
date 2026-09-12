@@ -56,6 +56,7 @@ import adapters  # noqa: E402  -- owns the model/provider namespace guard,
 # and the shared (tier, role, harness) ladder resolver (l4-one-write)
 import spawn_gate  # noqa: E402  -- reads ladder roles for the same resolver
 import locations as _loc  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
 
@@ -262,12 +263,12 @@ def _load_geometry_node(project_root: Path) -> dict:
     if not text.strip().startswith("---"):
         raise WorkflowsNodeError(
             f"{path}: no YAML frontmatter (expected a leading `---`)")
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         raise WorkflowsNodeError(
             f"{path}: unterminated frontmatter block (only one `---`)")
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError as exc:
         raise WorkflowsNodeError(
             f"{path}: malformed YAML frontmatter — {exc}") from exc

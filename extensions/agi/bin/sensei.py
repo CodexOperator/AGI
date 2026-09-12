@@ -33,11 +33,14 @@ from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
     from . import locations, node_writer, rotate, send as _send
+    from .frontmatter import split_frontmatter
+
 except ImportError:  # runs as a plain script from a checkout
     import locations  # type: ignore
     import node_writer  # type: ignore
     import rotate  # type: ignore
     import send as _send  # type: ignore
+    from frontmatter import split_frontmatter  # type: ignore
 
 SENSEI = "master-sensei"
 ROOM_QUORUM = "tier3-quorum"  # the one room that reaches the prime's seat
@@ -66,7 +69,8 @@ def load_seats(root: Path) -> list[dict]:
     if nf is None:
         return []
     text = nf.read_text(encoding="utf-8")
-    fm = text.split("---", 2)[1] if text.startswith("---") else ""
+    parted = split_frontmatter(text)
+    fm = parted[0] if parted else ""
     in_seats = False
     rows: list[dict] = []
     for line in fm.splitlines():
@@ -275,7 +279,8 @@ def _read_rotations(root: Path) -> tuple[str, str]:
     if nf is None:
         return "", ""
     text = nf.read_text(encoding="utf-8")
-    fm = text.split("---", 2)[1] if text.startswith("---") else ""
+    parted = split_frontmatter(text)
+    fm = parted[0] if parted else ""
     # facts section: everything under `## facts` up to the next `## ` heading
     body = text.split("<!-- BODY:BEGIN -->", 1)[-1] if "<!-- BODY:BEGIN -->" in text else text
     facts = ""
