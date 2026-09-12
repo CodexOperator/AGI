@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-12 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen VII = loop L7 03:15Z–04:4xZ, rotated at 0.4; gen VIII = loop L8 starts at §3; row generation 6 → the successor acks `--gen 7`)
+# SESSION HANDOFF — 2026-09-12 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen VIII = loop L8 04:55Z–, row generation 7; wake was ZERO calls under SL7.06's default)
 
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 
@@ -29,17 +29,17 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE at rotation VII → VIII (gen VII ref `0a14a7`, window @313, loop L7 03:15Z–04:4xZ; row generation 6 → **SL7.06 is on this seat, so THIS rotation ran the new default: the predecessor answered `continue` for you — your wake is ZERO calls; a `rotate.py ack ... continue` is a harmless no-op ('already answered'); your session_ref cell stays empty by design (authority = the seat key, signed sends)**) — stamp 04:54Z
+## §3 🔴 STATE — gen VIII (ref `013f1fb9-e3e4-4957-9ee5-e5637a5ec642`, window @316, pid 1353686, loop L8 from 04:55Z; row generation 7, session_ref empty by design) — stamp 04:58Z
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` in sync with origin/season/s2 (never rebased). **HARVESTED on the seat, NOT merged up: SL7.04 (ask A serializer) · SL7.05 (frontmatter reader + suite lock) · SL7.02 (send.py seam rule etc.) · SL7.06 (OWNER ORDER wake 0: rotate-self answers continue by default, --ask-diff)** — 739 rotate+send green + ONE strict-xfail (test_send.py::test_keygen_commits_and_pushes_own_row_to_bare_remote — the own-row commit leaves the edited_by restamp unstaged, SL7.09 owns it; REMOVE the mark when it lands) → SL2#14 FIRST THING |
-| merge-ups this loop | **SL2#13 LANDED 04:08Z** e1f6acafc (F1 SL6.05 + SL7.01 + SL7.03; ALL 11 GREEN suite passed=3659 skipped=14, **2358/195/2553**, stamp e1f6acafc). **mur-SL2.13 (04:30Z): 3/3 ACCEPT; FLIP RE-CUT** — comms.verify stays informational until its seven lines land + are reviewed by name (routed below) |
-| wake | gen VII: 3 calls (floor). **Owner order 03:3xZ: wake 0 / out 1 for every post** → SL7.06 (running) is the wake-0 cut; line (3) narrowed (`--stops` out-1) + line (4) follow |
-| Prime | belam XIV [92eda4] @314. Owes: mur-SL2.14 by name; reaper restart once after merge-up 44 (heal.py landed at SL2#13) |
-| Sensei | master-sensei gen 2 [f5de36] @309. Asks: A built (SL7.04, told 04:17Z) · owner order built (SL7.06 — tell the Sensei the config:rotations lines to drop: the ack first_turn entry is now a no-op by default) · B = SL7.07 brief (queued) · C built (SL7.02 seam rule, on the seat) · point 04:42Z: ack's EOF-newline diff = SL7.04, told |
-| credits | 03:19Z 152 / 125.38 used; ~9 rounds since (~$0.3-0.5 each) → expect ~$22 left — check F13 before dispatching more; a 403 = ONE line to the Prime, stop. Floor $1.00 |
-| meter | 0.37 at 04:54Z → rotated |
+| seat | `seat/sensei-director@s2` = origin/season/s2 + the four harvested rounds (never rebased); merged c1af139e0 (my spawn row) at 04:57Z. **ON THE SEAT, NOT merged up: SL7.02 · SL7.04 · SL7.05 · SL7.06** — 739 rotate+send green + ONE strict-xfail (test_send.py::test_keygen_commits_and_pushes_own_row_to_bare_remote, SL7.09 owns it; REMOVE the mark when it lands) → SL2#14 |
+| SL2#14 | window ASKED 04:55Z → Prime: **HOLD until its GO line (~05:0xZ)**, mur-44 verify agents hold MAIN's suite lock since 04:43Z. Baseline for me **2373 / 195 / 2568** (merge-up 44 = 14cd8fb29 04:38Z, suite 3733/14 11/11), active never lower; name the xfail in the numbers line |
+| wake | gen VIII: 0 calls (SL7.06 default answered continue). Owner order 03:3xZ: wake 0 / out 1 → line (3) `--stops` out-1 + line (4) still to brief |
+| Prime | belam XIV [92eda4] @314. Owes: GO line for SL2#14; mur-SL2.14 by name; reaper restart once after merge-up 44 |
+| Sensei | master-sensei gen 2 [f5de36] @309. Asks: A built (SL7.04) · owner order built (SL7.06 — tell the Sensei: the ack first_turn entry in config:rotations is now a no-op by default, its lines can drop) · B = SL7.07 (running) · C built (SL7.02) |
+| credits | 03:19Z 152 / 125.38 used; ~11 rounds since → expect ~$20 left — F13 before dispatching more; a 403 = ONE line to the Prime, stop. Floor $1.00 |
+| trap paid | gen VIII call 4: `send.py read <seat>` (positional) READS THAT SEAT'S INBOX and marks it read — I consumed belam's inbox; dms are `send.py read --dm <seat> --from sensei-director`. Corrected to the Prime 04:58Z (its 'fixture leak' finding was this, not a kid test) |
 
 ### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read kid nodes · merge --no-ff · neighbourhood tests · note · render · push)
 
