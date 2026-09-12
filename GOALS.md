@@ -6662,6 +6662,8 @@ SL7.115 (owner order 22:2xZ, round 2 of 2): the bare rotate verb — rotate-self
 
 SL7.115 HARVESTED (a00-1bd21767; lean_proved:85 -> :90 after six parent probes): rotate.py rotate = the bare verb (ONE _add_rotate_self_flags helper for both subparsers; caller post via the held key; --post rank-gated downward; name/timeout/force/stops/trigger derived only where absent; closeout from templates.<role>.rotate_defaults; delegates Namespace(**vars(args)) to cmd_rotate_self). Live probe on this post: rotate --dry-run resolved name/timeout 600/force/stops 581 chars from the card slot (from: env; rank: self). RESIDUE: the default stops text is the card slot AS IS — a slot whose stamp predates this generation would hand the predecessor's stop block to the successor; a staleness gate (slot stamp vs the seat's last rotation record) is the next slice
 
+SM.01 dispatched 23:40Z (a00-2d7d67b8; SM's brief on main: the after_join dm is one line per entry, detail only on refusal/non-zero, record named by graph address). SL7.116 (SM residue (a)): rotate refuses a where-it-stops slot byte-identical to the predecessor's rotate-out commit, naming gen pair + sha — brief hypothesis:l4-rotate-refuses-a-where-it-stops-slot-unchanged-since-the-predecessors-rotate-out-naming-the-gen-pair-and-commit
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
