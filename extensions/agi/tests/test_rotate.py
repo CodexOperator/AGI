@@ -5717,3 +5717,152 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "continue" and ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
+
+
+def _two_row_git_root(tmp_path):
+    """A committed git root whose seats.md carries TWO adjacent rows: belam
+    (the seat under test) then `other` (foreign). Returns (root, top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "project marker"], check=True, capture_output=True)
+    _write_seats_sheet(root, [
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        {"name": "other", "role": "director", "model": "x",
+         "effort": "max", "settings": ""},
+    ])
+    rel = os.path.relpath(rotate._ack_seats_path(root), tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", rel],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    return root, tmp_path
+
+
+def test_own_row_cut_classifies_by_row_identity_not_index(tmp_path):
+    """mur-SL2.15 clause (a): `_seats_ownrow_content` pairs each changed line
+    by ROW IDENTITY (the `name` cell), never by index. An OWN row and a
+    FOREIGN row edited in the SAME replace opcode (adjacent rows, both
+    edited) — in BOTH orders — must stage exactly the own row's change with
+    the foreign row byte-identical to HEAD: no foreign k-pair rides the
+    staged content. This was the defect: per-index pairing made `is_own` true
+    from EITHER side of a pair, so an own/foreign pair at the same k staged
+    the foreign added line as own."""
+    own_role_new, foreign_ed = '"role": "p2"', '"edited_by": "x"'
+    for i, (own_at, foreign_at) in enumerate(
+            (("belam", "other"), ("other", "belam"))):
+        root, top = _two_row_git_root(tmp_path / f"ord{i}")
+        seats = rotate._ack_seats_path(root)
+        work = seats.read_text(encoding="utf-8")
+        if own_at == "belam":
+            work = work.replace('"name": "belam", "role": "prime_director"',
+                                '"name": "belam"' + own_role_new)
+            work = work.replace('"name": "other", "role": "director"',
+                                '"name": "other"' + foreign_ed)
+        else:
+            work = work.replace('"name": "other", "role": "director"',
+                                '"name": "other"' + foreign_ed)
+            work = work.replace('"name": "belam", "role": "prime_director"',
+                                '"name": "belam"' + own_role_new)
+        seats.write_text(work, encoding="utf-8")
+        staged = rotate._seats_ownrow_content(root, top, own_at)
+        assert staged is not None, "an own-row change must build content"
+        if own_at == "belam":
+            assert '"name": "belam"' + own_role_new in staged, staged
+            assert '"name": "other", "role": "director"' in staged, staged
+            assert foreign_ed not in staged, \
+                "foreign `edited_by` cell must never be staged as own"
+        else:
+            assert '"name": "other"' + foreign_ed in staged, staged
+            assert '"name": "belam", "role": "prime_director"' in staged, \
+                staged
+            assert own_role_new not in staged, \
+                "belam is foreign here — its role change must be reverted"
+        # the FOREIGN row is byte-identical to HEAD (base blob).
+        rel = os.path.relpath(os.fspath(seats), os.fspath(top))
+        head_blob = subprocess.run(
+            ["git", "-C", str(top), "show", f"HEAD:{rel}"],
+            capture_output=True, text=True).stdout
+        foreign_head_line = next(
+            l for l in head_blob.splitlines() if f'"name": "{foreign_at}"' in l)
+        assert foreign_head_line in staged, \
+            "the foreign row must appear byte-identical to HEAD"
+
+
+def test_own_row_cut_own_deletion_plus_foreign_change_and_insert(tmp_path):
+    """mur-SL2.15 clause (a) pre-fix defect shape: an OWN row DELETED, a
+    FOREIGN row CHANGED and a FOREIGN row INSERTED all in one working copy.
+    The legendary per-index pairing staged the foreign `edited_by` change as
+    own; the cut by row identity must stage: own deletion dropped, foreign
+    changed row RESTORED to HEAD bytes, foreign inserted row never staged."""
+    root, top = _two_row_git_root(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    foreign_changed = {"name": "other", "role": "director",
+                       "edited_by": "x"}
+    third_inserted = {"name": "third", "role": "director"}
+    work = ("---\nid: config:seats\ntype: config\nseats:\n"
+            + "  - " + json.dumps(foreign_changed) + "\n"
+            + "  - " + json.dumps(third_inserted) + "\n---\n")
+    seats.write_text(work, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "own-deletion of belam is still an own change"
+    assert '"name": "belam"' not in staged, staged
+    assert '"name": "other"' in staged and '"role": "director"' in staged, \
+        staged
+    assert '"edited_by": "x"' not in staged, \
+        "foreign changed line must be restored to HEAD, never staged"
+    assert '"name": "third"' not in staged, \
+        "a foreign inserted row must never be staged"
+
+
+def test_own_row_cut_foreign_only_frontmatter_restamp_reads_foreign(tmp_path):
+    """mur-SL2.15 clause (b): the frontmatter `edited_by:` provenance stamp is
+    own ONLY when the SAME diff also carries an own-row `name`-cell change.
+    A seats.md whose ONLY change is a FOREIGN `edited_by:` restamp reads
+    FOREIGN: the ack's dirty GATE does not fire as own and the commit-content
+    cut stages nothing of it (`_diff_owns_row` False, `_seats_ownrow_content`
+    None). This was the SL6.09 residue: the stamp was owned value-agnostically,
+    so every seat's ack staged a foreign restamp as its own."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    # plant a FOREIGN frontmatter restamp: the ONLY change vs HEAD.
+    seats.write_text(text.replace("type: config",
+                                  "type: config\nedited_by: some-foreign"),
+                     encoding="utf-8")
+    rel = os.path.relpath(os.fspath(seats), os.fspath(top))
+    diff = subprocess.run(
+        ["git", "-C", str(top), "diff", "HEAD", "--", rel],
+        capture_output=True, text=True).stdout
+    assert rotate._diff_owns_row(diff, "belam") is False, \
+        "the gate must read a foreign-only frontmatter restamp as NOT own"
+    assert rotate._seats_ownrow_content(root, top, "belam") is None, \
+        "the commit-content cut must stage nothing of a foreign-only restamp"
+
+
+def test_own_row_cut_own_write_keeps_its_frontmatter_stamp(tmp_path):
+    """mur-SL2.15 clause (b) POSITIVE + SL7.09 clause (4) regression guard: an
+    own-row `name`-cell change TOGETHER with the write's own frontmatter
+    `edited_by:` restamp stages BOTH — the whole-node stamp is part of the
+    same write that produced the own row, so the ack carries it and MAIN reads
+    clean (never `M seats.md` after a keygen/spawn-row write)."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    work = seats.read_text(encoding="utf-8")
+    work = work.replace("type: config",
+                        "type: config\nedited_by: belam")
+    work = work.replace('"settings": ""', '"settings": "s"')
+    seats.write_text(work, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None
+    assert "edited_by: belam" in staged, \
+        "the write's own frontmatter stamp must ride the own-row commit"
+    assert '"settings": "s"' in staged
