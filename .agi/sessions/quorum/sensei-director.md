@@ -69,11 +69,11 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.76 · a00-161ff998~~ **HARVESTED** (proved 0.86; rotate.py by function vs 72; two fakes given attributes; nbhd 600/3) | D: dead-seat skip + late bound + promised-vs-measured delay (Prime (4) / Sensei (3)) · g15.25 | test_after_join_service + test_heal | 16:24Z |
 | ~~SL7.77 · a00-a049d291~~ **HARVESTED** (lean_proved 70/60; ~150 s = real OpenRouter judge calls when a key is present — BANKED for the Prime; test_grid memo; _read_ack poll_s; nbhd 423/3) | suite creep measured + seams (Prime 16:2xZ) · g15 | test_grid + test_rotate | 16:27Z |
 | SL7.78 · a00-bc12073a | (a) after_join record rewrite committed by pathspec/sidecar + worktree record committer · g15.25 | test_after_join_service + selfreap/heal | 17:13Z |
-| SL7.79 · a00-c98eb2a4 | (b) first-seating tests stub tmux; base block at resolved gen; one generation read · g15.25 | test_rotate_startup | 17:13Z |
+| ~~SL7.79 · a00-c98eb2a4~~ **HARVESTED** (proved 0.8/0.9/0.95; _rowgen UnboundLocalError caught + fixed) | (b) tmux stubbed; base block at resolved gen; one read · g15.25 | test_rotate_startup | 17:13Z |
 | ~~SL7.80 · a00-bd5b4c79~~ **HARVESTED** (lean_proved:90; _fence_items shared by three readers; nbhd 445/3) | (c) _subheader_in_body fence-run-aware; stops-write e2e · g15.25 | test_rotate | 17:13Z |
 | SL7.81 · a00-6ce183dd | (d) list-of-plain-scalars escaped; _scalar raw-value quoting; fixpoint + live-tree round trip · g13.1 | test_node_writer + test_frontmatter* | 17:13Z |
 | ~~SL7.82 · a00-5f5fa14d~~ **HARVESTED** (proved 0.9; test-only; nbhd 367/3) | (e) keygen HEAD-ahead SKIPPED push branch tested · g15.26 | test_send | 17:13Z |
-| SL7.83 · a00-01f59b24 | (f) latch sweep per-file line reaches the production log + record key · g15.25 | test_rotate (+ latch) | 17:13Z |
+| ~~SL7.83 · a00-01f59b24~~ **HARVESTED** (0.9; wrapper.log sink + swept_latches key; nbhd 465/3) | (f) latch sweep line reaches the production log + record · g15.25 | test_rotate_latch_sweep | 17:13Z |
 | ~~SL7.55 · a00-8a1a7d46~~ **HARVESTED** (proved 0.82, F20 in config:rotations, nbhd 534/3) | l4-rotate-self-on-a-main-post-commits-its-own-record-and-sequence-json (P3) · g15.25 | rotate nbhd | 14:32Z |
 | ~~SL7.56 · a00-1b5b13cb~~ **HARVESTED** (0.9 + lean:80, both dirs swept, nbhd 673/3/1x) | l4-rotate-self-sweeps-dead-hook-latches-before-spawning (P4) · g15.25 | rotate nbhd + hook nbhd | 14:32Z |
 | ~~SL7.57 · a00-dd1471d8~~ **HARVESTED** (proved 0.92/0.93, ack nbhd 434/3) | l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line (P6) · g15.24 | rotate nbhd | 14:32Z |

@@ -6590,6 +6590,10 @@ SL7.74 harvested 16:49Z (Prime (2)(5)+also / Sensei (1)): the ack gen resolves f
 
 SL7.80 harvested 17:28Z (Prime line (c)): one shared fence-run walker (_fence_items) serves _subheader_in_body, _split_card_sections and the stops end-of-slot scan — a fenced heading is content in all three; pre-fix _locate_where_it_stops targeted a fenced fake; the stops-write falsifier runs end-to-end through the real writer (kid a00-f5fd307b-0b3793 lean_proved:90; nbhd 445/3)
 
+SL7.79 harvested 17:40Z (Prime line (b)): first-seating tests stub the tmux seam; the seating base block checks the record at the resolved row generation; _first_seating_announce takes the caller's generation (zero reads when passed, one on None); an UnboundLocalError of _rowgen at rotate.py:1716 caught by the parent and fixed with a pre-fix-failing test (kids 0.8/0.9/0.95)
+
+SL7.83 harvested 17:40Z (Prime line (f)): the latch sweep's per-file line is appended to the seat's wrapper.log on the production launch path (empty sweep writes nothing) and the rotation record carries swept_latches: [] or names (kids 0.9 + built); nbhd 465/3 with SL7.79
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
