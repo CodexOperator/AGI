@@ -673,8 +673,10 @@ def test_delete_old_removes_old_remote_refs_only_after_gate_green(repo):
 
 def test_delete_old_refuses_names_branch_and_deletes_nothing(repo):
     """(B-refuse) --delete-old REFUSES (non-zero, naming the offending
-    branch) when ANY renamed branch's upstream is not origin/post/<name>@s2,
-    and deletes NOTHING — not even the well-gated branches."""
+    branch) when a renamed branch's upstream is not origin/post/<name>@s2. B4
+    (L4.320): it no longer ABORTS at the first refusal — it deletes what IS
+    gated green and lists the refusals, returning non-zero only because some
+    were refused."""
     g = _migrate_with_origin(repo)
     # sabotage ONE branch's upstream back to the old name; b stays correct.
     _git(repo, "branch", "--set-upstream-to", "origin/seat/b@s2", "post/b@s2")
@@ -682,11 +684,57 @@ def test_delete_old_refuses_names_branch_and_deletes_nothing(repo):
     RESULT = _run_cli(g, "--delete-old")
     assert RESULT.returncode != 0, RESULT.stdout + RESULT.stderr
     assert "post/b@s2" in RESULT.stderr, RESULT.stderr
+    # the GREEN a was deleted; the un-pointed b was NOT
+    has_a = _git(repo, "ls-remote", "origin",
+                 "refs/heads/seat/a@s2").stdout.strip()
+    assert has_a == "", "origin/seat/a@s2 should have been deleted (it was green)"
+    has_b = _git(repo, "ls-remote", "origin",
+                 "refs/heads/seat/b@s2").stdout.strip()
+    assert has_b != "", "origin/seat/b@s2 must survive (it was refused)"
+
+
+def test_delete_old_is_resumeable_second_run_exits_zero(repo):
+    """(B4-resume) After a first run deleted the green a and refused the
+    un-pointed b, a SECOND run (once b is re-pointed) deletes ONLY what
+    remains (b) and exits 0. With nothing left, a THIRD run exits 0 too."""
+    g = _migrate_with_origin(repo)
+    # sabotage b's upstream so the FIRST run refuses it
+    _git(repo, "branch", "--set-upstream-to", "origin/seat/b@s2", "post/b@s2")
+    R1 = _run_cli(g, "--delete-old")
+    assert R1.returncode != 0 and "post/b@s2" in R1.stderr, R1.stderr
+    assert _git(repo, "ls-remote", "origin",
+                "refs/heads/seat/a@s2").stdout.strip() == ""
+    assert _git(repo, "ls-remote", "origin",
+                "refs/heads/seat/b@s2").stdout.strip() != ""
+
+    # re-point b onto the new name, then a second run deletes only b
+    _git(repo, "branch", "--set-upstream-to", "origin/post/b@s2", "post/b@s2")
+    R2 = _run_cli(g, "--delete-old")
+    assert R2.returncode == 0, R2.stdout + R2.stderr
+    assert _git(repo, "ls-remote", "origin",
+                "refs/heads/seat/b@s2").stdout.strip() == ""
+    # already-pointed a was skipped (resume), not re-deleted
+    assert "origin/seat/a@s2" not in R2.stdout, R2.stdout
+
+    # nothing remains: a THIRD run exits 0 with no deletes
+    R3 = _run_cli(g, "--delete-old")
+    assert R3.returncode == 0, R3.stdout + R3.stderr
+
+
+def test_delete_old_dry_run_prints_and_runs_none(repo):
+    """(B3) --dry-run --delete-old prints every delete as a `[DRY ]` line,
+    runs NONE, needs no green upstream gate, and leaves the remote holding
+    every old ref."""
+    g = _migrate_with_origin(repo)
+    RESULT = _run_cli(g, "--dry-run", "--delete-old")
+    assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
+    assert "dry-run: nothing changed" in RESULT.stdout, RESULT.stdout
     for name in ("a", "b"):
+        assert f"[DRY ] branch delete (remote): git push origin --delete " \
+               f"seat/{name}@s2" in RESULT.stdout, (name, RESULT.stdout)
         has_old = _git(repo, "ls-remote", "origin",
                        f"refs/heads/seat/{name}@s2").stdout.strip()
-        assert has_old != "", \
-            f"origin/seat/{name}@s2 was deleted despite the refusal"
+        assert has_old != "", f"origin/seat/{name}@s2 was deleted by a dry run"
 
 
 def test_apply_and_delete_old_are_mutually_exclusive(repo):
