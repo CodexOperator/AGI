@@ -9572,6 +9572,8 @@ SL7.97 HARVESTED 19:29Z on the sensei-director post (test-only): test_rotate_tem
 
 SL7.92 HARVESTED 19:35Z on the sensei-director post: the closeout worktree-post REAL runners perform the merge-up in MAIN (_closeout_main via the shared graph root; merge --no-ff of the seat branch gated on season2/main checked out; wait_grant reads the SEAT's own inbox/dm for a signed first-word GRANT/GO with ts later than the ask; suite/grid/stamp run with cwd MAIN; push carries season2/main + refs/grid); kid proved 0.8; nbhd 528/3. RESIDUE for one FIX-ONLY brief (SL7.101): merge_up's clean-tree gate is git status --porcelain --untracked-files=no on MAIN, and MAIN's tracked tree carries cron-owned churn nearly always (.agi/comms/** dm logs + .agi/sessions/rotations/** — 9 modified files at 19:1xZ, F20 says the crons own them) — a live --closeout would refuse on that step; the gate must ignore the cron-owned prefixes (or check only the paths the merge touches). Until it lands the Prime's ruling stands: nobody rotates with --closeout
 
+SL7.101 brief 19:45Z (FIX-ONLY, residue of SL7.92): hypothesis:l4-the-closeout-merge-up-gate-ignores-cron-owned-dirty-paths-and-blocks-only-on-a-dirty-path-the-merge-touches — merge_up blocks only on a dirty tracked path the merge touches, cron-owned prefixes ignored by one constant, blockers named; dispatched after 93/96/98 land (same file) or now if the tree bound allows
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
