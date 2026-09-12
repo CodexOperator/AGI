@@ -7,7 +7,7 @@ parents:
   - build:bin-heal
 next_edges: []
 confidence: 0.7
-edited_by: sanctuary-director
+edited_by: sensei-director
 goal_id: G15.19
 goal_kind: subgoal
 heading_level: 3
@@ -42,3 +42,5 @@ town: core
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 OWNER 2026-09-11 17:5xZ, verbatim to sanctuary-director after prime X died: 'add doing graceful recovery in case of crashes. Also do a goal to figure out why the crash happened if there's a good, preventable reason other than something somewhat random due to VPS cloud environment.' and 'Make sure both the goals I just shared go as subgoals under g15'.
 <!-- THOUGHT:END -->
+
+2026-09-12T00:33Z P2 recorded, not cut (Prime XIII 00:20Z, L4.292 residue 1): run_after_join_for_seat feeds the service's pin/ack an EMPTY succ_transcript/succ_ref — the join must key on the record's window_id. Brief when the P1 rounds (SL6.01-03) land; measure run_after_join_for_seat and the record's window_id on the merge-up commit that carries them.
