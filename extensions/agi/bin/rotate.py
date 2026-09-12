@@ -2315,7 +2315,8 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 session_id=(srow.get("session_id") or "") if srow else "",
                 transcript_path=((srow.get("transcript_path") or "")
                                  if srow else ""),
-                registry_dir=getattr(args, "registry_dir", None))
+                registry_dir=getattr(args, "registry_dir", None),
+                generation=args.gen)
         except Exception as exc:                        # noqa: BLE001
             print(f"warn: first-seating announcement failed: {exc}",
                   file=sys.stderr)
@@ -3673,13 +3674,19 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         # share a single record (hypothesis:l4-a-first-seating-sends-the-
         # sensei-the-same-alert-a-rotation-does, g15.17 item 3).
         _write_seating_record(root, seating)
+        # The alert dm names the SAME gen_after the record just wrote
+        # (goal:g15.25): a re-spawn's record and its alert can never disagree,
+        # because the dm is composed FROM the record it shares.
         text = _compose_seating_announcement(
             seat=seat, window_id=seating.get("window_id") or "",
             ref=seating.get("ref") or "",
             pid=seating.get("pid"),
             session_id=seating.get("session_id") or "",
             transcript_path=seating.get("transcript_path") or "",
-            seq=seq, in_flight=in_flight, ask_diff=ask_diff)
+            seq=seq, in_flight=in_flight, ask_diff=ask_diff,
+            generation=(seating.get("gen_after")
+                        if seating.get("gen_after") is not None
+                        else FIRST_SEATING_GEN))
     else:
         text = _compose_announcement(
             seat=seat, successor=successor, gen_before=gen_before,
@@ -3775,10 +3782,16 @@ FIRST_SEATING_JOIN_POLL_S = 3
 def _seating_record(*, seat: str, role: str, source: str,
                     window_id: str | None, ref: str,
                     pid, session_id: str, transcript_path,
-                    first_turn) -> dict:
+                    first_turn,
+                    generation: int = FIRST_SEATING_GEN) -> dict:
     """One durable JSON seating record (rotation: 'seating'), generation
-    `0 -> 1`, `trigger: first-seating`, carrying the nullable live fields a
+    `0 -> N`, `trigger: first-seating`, carrying the nullable live fields a
     peer needs and the first_turn results — the record the alert shares.
+
+    `generation` is the GEN_AFTER the record reports. A BRAND-NEW seat
+    (default) is byte-identical to FIRST_SEATING_GEN=1; a RE-spawn of an
+    existing seat passes the seat's own row generation (goal:g15.25), so
+    the record agrees with the bootstrap and the alert dm.
     """
     rec = {
         "rotation": "seating",
@@ -3787,7 +3800,7 @@ def _seating_record(*, seat: str, role: str, source: str,
         "source": source,
         "recorded_at": datetime.utcnow().isoformat() + "Z",
         "gen_before": 0,
-        "gen_after": FIRST_SEATING_GEN,
+        "gen_after": generation,
         "trigger": "first-seating",
     }
     if window_id:
@@ -3944,8 +3957,13 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
                                   transcript_path: str = "",
                                   seq: int = 0,
                                   in_flight: str = "",
-                                  ask_diff: bool = False) -> str:
+                                  ask_diff: bool = False,
+                                  generation: int = FIRST_SEATING_GEN) -> str:
     """The first-seating `[rotation-alert]` payload — one message, never more.
+
+    `generation` is the GEN_AFTER the alert names (default FIRST_SEATING_GEN);
+    a RE-spawn of an existing seat names the seat's OWN row generation
+    (goal:g15.25), byte-identical to the seating record the alert shares.
 
     Carries seat, window @id, ref (when the join has it, else the NAMED
     `ref: (pending ack)` — never a silently-dropped address a peer could not
@@ -3970,14 +3988,14 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
         addr += " ref: (pending ack)"
     pid_s = str(pid) if pid is not None else "-"
     body = (f"{ROTATION_ALERT_TAG} first seating {addr} | "
-            f"generation 0 -> {FIRST_SEATING_GEN} | "
+            f"generation 0 -> {generation} | "
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
             f"transcript: {transcript_path or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
     if ask_diff:
         _ref = ref or "<your ListAgents ref>"
-        body += (f"\nrotate.py ack --seat {seat} --gen {FIRST_SEATING_GEN} "
+        body += (f"\nrotate.py ack --seat {seat} --gen {generation} "
                  f"--ref {_ref} diff --text -")
     return body
 
@@ -3989,10 +4007,19 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
                             live_names=None, registry_dir=None,
                             pid=None, session_id: str = "",
                             transcript_path: str = "",
-                            ask_diff: bool = False) -> list[str]:
+                            ask_diff: bool = False,
+                            generation: int | None = None) -> list[str]:
     """Write the ONE seating record and emit the SAME rotation-alert dm a
     rotation emits (trigger: first-seating) to the derived live recipients.
 
+    The generation is the SEAT'S OWN row generation when it has one (0 is
+    kept as 0; only an absent row / gen-less row falls back to
+    FIRST_SEATING_GEN), resolved ONCE here and threaded to the seating record
+    AND the alert dm so the two agree byte-for-byte WITH the bootstrap
+    `_first_seating_run` already wrote (goal:g15.25 / hypothesis:l4-one-
+    resolved-generation-for-the-seating-record-the-alert-and-the-bootstrap-
+    on-a-re-spawn). A caller may pass `generation` explicitly (the ack path
+    passes its own declared gen).
     The window @id comes from `_successor_window_id` (the registry JOIN key,
     reused never re-implemented); live pid/session/transcript are taken from a
     BOUNDED join when not already supplied (a freshly-seated window usually
@@ -4020,14 +4047,17 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
             pid = join.get("pid")
             session_id = join.get("session_id") or ""
             transcript_path = join.get("transcript") or ""
+    if generation is None:
+        _rg = _seat_row_generation(root, seat)
+        generation = _rg if _rg is not None else FIRST_SEATING_GEN
     seating = _seating_record(
         seat=seat, role=role, source=source, window_id=window_id, ref=ref,
         pid=pid, session_id=session_id, transcript_path=transcript_path,
-        first_turn=first_turn)
+        first_turn=first_turn, generation=generation)
     in_flight = _seating_in_flight(first_turn)
     _announce_rotation(
         root=root, croot=croot, seat=seat, successor=seat,
-        gen_before=0, gen_after=FIRST_SEATING_GEN,
+        gen_before=0, gen_after=generation,
         trigger="first-seating",
         handoff_path="first seating: no predecessor handoff",
         in_flight=in_flight, live_names=live_list,
@@ -8915,8 +8945,16 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     # is byte-identical to today. Callers may pass the gen explicitly; when
     # they pass nothing the resolution happens here, once, for BOTH call
     # sites (cmd_spawn and seats-launch) so neither recomputes it.
-    _gen = generation if generation is not None \
-        else (_seat_row_generation(root, seat) or FIRST_SEATING_GEN)
+    # GOAL:g15.25 (SL7.58) — a row generation of 0 must be KEPT as 0, never
+    # coerced to 1 by `or`: only an absent row / gen-less row falls back to
+    # FIRST_SEATING_GEN, matching cmd_spawn's `_spawn_gen` (which already
+    # keeps 0). One resolution here, threaded to the bootstrap, the seating
+    # record and the alert dm.
+    if generation is not None:
+        _gen = generation
+    else:
+        _rg = _seat_row_generation(root, seat)
+        _gen = _rg if _rg is not None else FIRST_SEATING_GEN
     values = _first_turn_values(
         root, seat=seat, gen=_gen, succ_name=succ_name,
         pred_pids="none: first seating", tmux_session=tmux_session)
