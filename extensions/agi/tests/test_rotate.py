@@ -6828,3 +6828,48 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     assert "VERIFIED a (ed25519)" in out2, out2
     assert "FORGED" not in out2.split("alllive hello")[0]
     assert "RETIRED" not in out2.split("alllive hello")[0]
+
+
+def test_own_row_cut_swapped_pair_keeps_own_added_line(tmp_path):
+    """mur-SL2.17 / goal:g15.24 (i) THE falsifier: a genuine PHYSICAL SWAP
+    of two edited rows inside ONE replace opcode. HEAD has `belam` (the seat
+    under test) FIRST then `other` (foreign); the WORK COPY has `other`
+    edited and written FIRST and `belam` edited and written SECOND, so the
+    removed/added keys CROSS inside a single difflib opcode and neither key
+    is absent from the other side. The pre-fix `_merge_region` could only
+    make progress on `rk == ak` or on a key missing from the other side, so
+    it fell through to the fail-safe and SWALLOWED the own added line — the
+    own edit VANISHED from the staged buffer and only the foreign row came
+    back from HEAD. The cut must classify EACH line by row identity and by
+    row KEY: stage the own row's WORK bytes (added line kept), restore the
+    foreign row byte-identical to HEAD, and stage neither the foreign added
+    line nor the own removed line."""
+    for i in range(2):  # foreign-first / own-first writing order, same swap
+        root, top = _two_row_git_root(tmp_path / f"swap{i}")
+        seats = rotate._ack_seats_path(root)
+        rows = [
+            {"name": "other", "role": "director", "edited_by": "x"},
+            {"name": "belam", "role": "p2"},
+        ]
+        if i == 1:
+            rows.reverse()
+        body = "---\nid: config:seats\ntype: config\nseats:\n"
+        for r in rows:
+            body += "  - " + json.dumps(r) + "\n"
+        body += "---\n"
+        seats.write_text(body, encoding="utf-8")
+        staged = rotate._seats_ownrow_content(root, top, "belam")
+        assert staged is not None, "an own-row change must build content"
+        # the OWN added line is KEPT (WORK bytes) — must not be swallowed.
+        assert '"name": "belam", "role": "p2"' in staged, staged
+        assert '"edited_by": "x"' not in staged, \
+            "a foreign added line must never be staged"
+        # the FOREIGN row is byte-identical to HEAD (base blob).
+        rel = os.path.relpath(os.fspath(seats), os.fspath(top))
+        head_blob = subprocess.run(
+            ["git", "-C", str(top), "show", f"HEAD:{rel}"],
+            capture_output=True, text=True).stdout
+        foreign_head = next(
+            l for l in head_blob.splitlines() if '"name": "other"' in l)
+        assert foreign_head in staged, \
+            "the foreign row must appear byte-identical to HEAD"
