@@ -5564,30 +5564,36 @@ def _ack_seats_path(root: Path) -> Path:
 
 
 
-def _own_row_line(line: str, seat: str) -> bool:
+def _own_row_line(line: str, seat: str, session_owns: bool = False) -> bool:
     """Whether a seats.md CHANGED line belongs to `seat`'s OWN write. One
     row sits on ONE JSON line, so the row-cell `name` cell ALONE keys the
-    row — an `"edited_by": ...` cell on a FOREIGN row must never count. BUT
-    `write.submit` also restamps a FRONTMATTER provenance line
-    (`edited_by: <writer>`, YAML form, no quotes) on the same write, and that
-    line has no `name` cell; a row write owns it too, so the ack commits it
-    with the own row and the tree stays clean. The FRONTMATTER line is owned
-    BY VALUE-INDEPENDENT POSITION, not by the seat name it happens to carry
-    (SL7.09 clause (4)): write.submit restamps `edited_by:` to the WRITER'S
-    resolved actor (`actor or _default_actor()`, e.g. the dispatch agent id),
-    which is usually NOT the seat's own name — keying the own-row cut on
-    `edited_by: <seat>` left that frontmatter line revertable, so MAIN read
-    `M seats.md` after every keygen/spawn-row write. The whole-node stamp is
-    part of the SAME write that produced the own row, so it is carried in
-    the own-row commit and the tree stays clean. Kept together so
-    `_diff_owns_row` and `_seats_ownrow_content` can never drift."""
+    row — an `"edited_by": ...` cell on a FOREIGN row must never count. A
+    row line is own when (and only when) it carries this seat's OWN `name`
+    cell; that decision is made on the line alone, NEVER by pairing it with a
+    changed line beside it (SL4/6.09 residue, mur-SL2.15: per-INDEX pairing
+    staged a foreign adjacent line as own — the cut classifies each changed
+    line by ROW IDENTITY, not by index).
+
+    The FRONTMATTER provenance line (`edited_by: <writer>`, YAML form, no
+    quotes) has no `name` cell, but `write.submit` restamps it on the SAME
+    write that produces the own row; the whole-node stamp is part of that
+    write, so it is owned WITH the own row and the tree stays clean (SL7.09
+    clause (4): value-agnostic, because write.submit names the WRITER'S
+    resolved actor, usually not the seat's own name). It counts as own ONLY
+    when the SAME diff also carries an own-row `name`-cell change
+    (`session_owns`); frontmatter alone never owns. Kept together so
+    `_diff_owns_row` and `_seats_ownrow_content` read the SAME predicate and
+    can never drift."""
     name_cell = f'"name": "{seat}"'
+    if name_cell in line:
+        return True
     # JSON row-cell vs YAML frontmatter: the top-level `edited_by:` YAML line
     # (space after the colon, no quotes) is the whole-node stamp the self-row
-    # write owns, whatever actor it names. A FOREIGN row's `"edited_by": ...`
-    # cell is quoted JSON inside an indented `  - {...}` row line, which never
-    # starts with `edited_by: `, so it can never count as own here.
-    return name_cell in line or _is_frontmatter_edited_by(line)
+    # write owns, whatever actor it names — but only when this diff carries an
+    # own row. A FOREIGN row's `"edited_by": ...` cell is quoted JSON inside
+    # an indented `  - {...}` row line, which never starts with `edited_by: `,
+    # so it can never count as own here.
+    return session_owns and _is_frontmatter_edited_by(line)
 
 
 def _is_frontmatter_edited_by(line: str) -> bool:
@@ -5602,12 +5608,16 @@ def _is_frontmatter_edited_by(line: str) -> bool:
 
 
 def _diff_owns_row(diff: str, seat: str) -> bool:
-    """True when any CHANGED line (`+`/`-` content, never `+++`/`---` headers
-    or context) of a unified diff carries THIS seat's OWN row or the OWN
-    frontmatter provenance line (`edited_by: <seat>`) — see `_own_row_line`.
-    A hunk whose changed lines name another seat (or another row's
-    `edited_by` cell) is FOREIGN and does not own the row."""
+    """True when a unified diff's CHANGED lines (`+`/`-` content, never
+    `+++`/`---` headers or context) carry THIS seat's OWN row (a changed line
+    whose `name` cell keys the seat). The frontmatter `edited_by:` provenance
+    line is owned ONLY when the SAME diff also carries an own-row `name`-cell
+    change — so a seats.md whose ONLY change is a foreign `edited_by:`
+    restamp reads FOREIGN: the gate (SL7.09 clause (4) tie-in) does not fire
+    as own and the commit stages nothing of it. One definition, shared with
+    `_seats_ownrow_content` (both call `_own_row_line`; none re-spells it)."""
     in_hunk = False
+    changed: list[str] = []
     for ln in diff.splitlines():
         if ln.startswith("@@"):
             in_hunk = True
@@ -5617,9 +5627,11 @@ def _diff_owns_row(diff: str, seat: str) -> bool:
         if ln.startswith(("+++", "---")):
             continue
         if ln.startswith(("+", "-")):
-            if _own_row_line(ln, seat):
-                return True
-    return False
+            changed.append(ln)
+    # session_owns: does this diff carry an own-row `name`-cell change? The
+    # frontmatter stamp counts only beside that; alone it stays FOREIGN.
+    session_owns = any(_own_row_line(l, seat) for l in changed)
+    return any(_own_row_line(l, seat, session_owns) for l in changed)
 
 
 def _rstrip_lines(text: str) -> list[str]:
@@ -5789,35 +5801,118 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
     base_lines = run.stdout.splitlines()
     work_lines = work.splitlines()
 
-    def _own(l: str) -> bool:
+
+    name_re = re.compile(r'"name":\s*"([^"]*)"')
+
+    def _key(line: str) -> str | None:
+        """A line's ROW IDENTITY: the `"name": "..."` cell (the row the line
+        is), or None for a frontmatter / structural line. Own/foreign is
+        decided PER LINE on this cell, never by index-pairing with a
+        neighbour (mur-SL2.15: a per-index pair staged a foreign line as
+        own)."""
+        m = name_re.search(line)
+        return m.group(1) if m else None
+
+    def _own(line: str) -> bool:
         # shared with `_diff_owns_row`: the row-cell `name` keys the OWN row,
         # plus the OWN frontmatter `edited_by: <seat>` provenance write.submit
-        # adds; a FOREIGN row's `"edited_by": ...` JSON cell never matches, so
-        # a foreign provenance restamp is never bundled as own.
-        return _own_row_line(l, seat)
+        # adds — but the frontmatter stamp counts only beside an own-row
+        # `name`-cell change in this SAME diff (_session_owns). A FOREIGN
+        # row's `"edited_by": ...` JSON cell never matches, so a foreign
+        # provenance restamp is never bundled as own.
+        return _own_row_line(line, seat, _session_owns)
+
+    # session_owns (clause (b)): the whole-diff context. Gather every changed
+    # line (removed + added) and decide whether an own-row `name`-cell change
+    # appears anywhere; the frontmatter stamp is owned only when it does.
+    sm = difflib.SequenceMatcher(None, base_lines, work_lines,
+                                 autojunk=False)
+    _changed: list[str] = []
+    for _tag, _i1, _i2, _j1, _j2 in sm.get_opcodes():
+        if _tag == "equal":
+            continue
+        _changed.extend(base_lines[_i1:_i2])
+        _changed.extend(work_lines[_j1:_j2])
+    _session_owns = any(_own_row_line(_l, seat) for _l in _changed)
+
+    def _merge_region(removed: list[str], added: list[str]) -> list[str]:
+        """The staged splice of ONE replace/insert/delete opcode region.
+        Each changed line is classified on its own by ROW IDENTITY (never by
+        index): an OWN removed line is DROPPED (own deletion), an OWN added
+        line is KEPT (own change / own write), a FOREIGN removed line is
+        RESTORED from HEAD, a FOREIGN added line is NEVER staged. Rows are
+        paired across removed/added by their `name` identity (diff never
+        reorders rows), so an own row and a foreign row edited in the SAME
+        replace opcode keep the own change and the foreign row byte-identical
+        to HEAD, whichever order they sit in. Non-row structural lines
+        (frontmatter `edited_by:` stamp, `---`, `id:`/`type:`/`seats:`) are
+        matched positionally and likewise keep HEAD unless the work version is
+        an owned frontmatter stamp."""
+        rem = [(l, _key(l)) for l in removed]
+        add = [(l, _key(l)) for l in added]
+        rkeys = {k for _, k in rem if k is not None}
+        akeys = {k for _, k in add if k is not None}
+        ri = ai = 0
+        out: list[str] = []
+        while ri < len(rem) or ai < len(add):
+            rl, rk = rem[ri] if ri < len(rem) else (None, None)
+            al, ak = add[ai] if ai < len(add) else (None, None)
+            if rl is not None and al is not None and rk == ak:
+                # the same slot on both sides: an own/foreign row edited in
+                # work, or an aligned structural line. Keep the WORK line when
+                # it is THIS seat's own, else restore HEAD.
+                out.append(al if _own(al) else rl)
+                ri += 1
+                ai += 1
+                continue
+            if rl is not None and rk is not None and rk not in akeys:
+                # a row DELETED from the work copy: restore it from HEAD unless
+                # it is this seat's OWN row (an own deletion is dropped).
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+                continue
+            if al is not None and ak is not None and ak not in rkeys:
+                # a row INSERTED into the work copy: stage it only when OWN.
+                if _own(al):
+                    out.append(al)
+                ai += 1
+                continue
+            if rl is not None and rk is None:
+                # a structural line with no aligned work partner: keep HEAD
+                # (restored) unless it is an owned frontmatter stamp.
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+                continue
+            if al is not None and ak is None:
+                # a structural line present only in work: stage only when OWN.
+                if _own(al):
+                    out.append(al)
+                ai += 1
+                continue
+            # fail-safe (should be unreachable): swallow the base line.
+            if rl is not None:
+                if not _own(rl):
+                    out.append(rl)
+                ri += 1
+            else:
+                ai += 1
+        return out
 
     staged: list[str] = []
-    b = w = 0
     any_own = False
-    sm = difflib.SequenceMatcher(None, base_lines, work_lines, autojunk=False)
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        staged.extend(base_lines[b:i1])
-        removed = base_lines[i1:i2]
-        added = work_lines[j1:j2]
-        for k in range(max(len(removed), len(added))):
-            old = removed[k] if k < len(removed) else None
-            new = added[k] if k < len(added) else None
-            is_own = ((old is not None and _own(old))
-                      or (new is not None and _own(new)))
-            if is_own:
+        if tag == "equal":
+            # unchanged context: carry HEAD's lines verbatim. (`base_lines[
+            # b:i1]` is always empty here — opcodes tile the sequences
+            # contiguously — so equal lines must be emitted explicitly.)
+            staged.extend(base_lines[i1:i2])
+        else:
+            splice = _merge_region(base_lines[i1:i2], work_lines[j1:j2])
+            if any(_own(_l) for _l in base_lines[i1:i2] + work_lines[j1:j2]):
                 any_own = True
-                if new is not None:
-                    staged.append(new)   # own change: keep working line
-                # else: own deletion — append nothing
-            elif old is not None:
-                staged.append(old)        # foreign change: keep committed line
-        b, w = i2, j2
-    staged.extend(base_lines[b:])
+            staged.extend(splice)
     if not any_own:
         return None
     return "\n".join(staged) + "\n"
