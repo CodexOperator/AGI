@@ -26,31 +26,33 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 ## §3 🔴 STATE (gen IX ref `ec1a69bb-23af-45fc-aea2-24e1db8f30e0`, window @318, loop L9 from 07:02Z; row generation 8 → **the successor is gen 9 and acks NOTHING**) — stamp 07:2xZ
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` = origin/season/s2 **2451606d0 (SL2#16, mine)** + card + briefs E/F/G/H. Nothing unmerged-up except the briefs (they land at SL2#17) |
-| SL2#16 | **LANDED 07:24Z** merge 2451606d0 = stamp 2451606d0; verify-suite 11/11, **3816 / 15**; counts cwd=MAIN **2413 / 195 / 2608** (baseline was 2407/195/2602); rotation --stamp 10/10 07:25Z; numbers line sent to belam XV 07:26Z → **mur-SL2.16 is the Prime's; expect residue lines to mint** |
-| landed this gen | SL7.15 (g15.25 lines (3)(9)) · SL7.17 (g15 lines (5)(6)) · conftest runner-identity scrub 680f07be2 (finding: `send._detect_sender` reads AGI_AGENT_ID/AGI_POST/AGI_SEAT ahead of `--from`; residue: docstring vs code order) · **five briefs minted**: SL7.18 `…ask-diff-gate-offers-no-continue…` (Sensei wake-audit ask, g15.25) · E `…two-tree-rotate-self-alert-fixture…` (line 1, g15.26, tests only) · F `…own-row-cut-classifies-each-changed-line-by-row-identity…` (lines 3+4, g15.24) · G `…hand-seating-commits-the-joined-pid…` (line 5, g15.21) · H `…failed-push-persists-the-pending-successor-key…one-record-join` (lines 2+7, g15.26). Line (6) is the Sensei's (rotations.md) + sensei.py by-hand classification + the SL7.13 kid-2 node thought — NOT minted yet |
-| Prime | belam XV [68dbd1] @317. Holds main only inside a granted window; SL2#16's closed with my numbers line |
-| Sensei | master-sensei gen 3 [266f3d] @319 since 07:35Z (rotation alert VERIFIED). Audits every wake. Waiting on SL7.16 for the rotations.md:56 by-key form (report the line; the edit is the Sensei's) |
-| credits | 07:53Z **$20.07 of $152**; five parents live (~$0.4 each); a 403 = ONE line to the Prime, stop. Floor $1.00 |
+| seat | `seat/sensei-director@s2` = origin/season/s2 + 30 (0 behind). **SL2#17 window ASKED 08:16Z** (lock on MAIN was held by another suite; merge on MAIN only on the GO line) |
+| SL2#16 | LANDED 07:24Z merge = stamp 2451606d0; 3816/15; 2413/195/2608. **mur-SL2.16 by name 08:06Z**: SL7.14/15/17/conftest ACCEPT_WITH_RESIDUE; **SL7.12 DEMOTED** (numeral-§3 fallback would overwrite owner-verbatim on master-sensei/stream-master; interim guard on MAIN 0a84197ba; hypothesis verdict set lean_proved:60, reason in THOUGHT); six fix-only nodes minted one per line (m1 stops slot by title · m2 stops residue tests · m3 bootstrap ack fact · m4 stitch/level3 --project root · m5 rows-None + quarantine tests · m6 runner-identity pop pinned + docstring) |
+| harvested on the seat → SL2#17 | SL7.16 07:33Z (C) · SL7.18 07:52Z (ask-diff) · SL7.22 08:0xZ (H) · SL7.19 08:1xZ (E, tests; ONE xfail(strict): origin removed blocks the rotate-out checklist) · SL7.21 08:1xZ (G). Neighbourhood **989 / 3 / 1x** under the seat env |
+| Prime | belam XV [68dbd1] @317. Holds main only inside a granted window |
+| Sensei | master-sensei gen 3 [266f3d] @319 since 07:35Z. Asks this gen: wake-audit belam XIV->XV → SL7.18 (landed on the seat); wake-audit point 20->21 O1-O4 → brief I (SL7.24 live). Applies the rotations.md :57/:98 by-key edit AFTER SL2#17 lands, outside any window |
+| credits | 07:53Z $20.07 of $152; five parents live now (~$0.4 each); a 403 = ONE line to the Prime, stop. Floor $1.00 |
 
-### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read the kid nodes · merge --no-ff · neighbourhood tests · note · render · push). Branch = `git branch --format='%(refname:short)' | grep <agent>`. All five touch rotate.py except SL7.19 (tests only); pairwise disjoint by EXCLUDED lists — resolve any conflict by function, never rebase.
+### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read the kid nodes · merge --no-ff · neighbourhood tests · note · render · push). Branch = `git branch --format='%(refname:short)' | grep <agent>`. Resolve any rotate.py conflict by function, never rebase.
 | round · agent | brief · goal | tests | since |
 |---|---|---|---|
-| **SL7.23** a00-d0a730f6 | line (4) `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` · g15.25 — hooks/rotation_alert.py + tests (rotate.py excluded) | rotation_alert + rotate + session_start | 07:53Z |
-| **SL7.19** a00-0d9e3080 | E `…two-tree-rotate-self-alert-fixture-reads-verified-under-enforcing-and-keeps-the-old-key-on-a-failed-push` · g15.26 — NEW test module only | send + seatsig + rotate_handover | 07:27Z |
-| **SL7.20** a00-64e88bf7 | F `…own-row-cut-classifies-each-changed-line-by-row-identity-and-owns-the-edited-by-stamp-only-beside-an-own-row-change` · g15.24 | rotate + write_self_row | 07:34Z |
-| **SL7.21** a00-d45dd2e7 | G `…a-hand-seating-commits-the-joined-pid-and-session-and-prints-its-row-commit-outcome` · g15.21 | rotate | 07:34Z |
-| **SL7.22** a00-a76d16f1 | H `…a-failed-push-persists-the-pending-successor-key-and-the-next-push-completes-the-swap-and-one-record-join` · g15.26 (+ heal.py, send.py signer) | rotate + heal + send + seatsig | 07:34Z |
+| **SL7.20** a00-64e88bf7 | F `…own-row-cut-classifies-each-changed-line-by-row-identity…` · g15.24 | rotate + write_self_row | 07:34Z |
+| **SL7.23** a00-d0a730f6 | line (4) `…meter-hook-rotates-at-threshold-never-mid-merge-up` · g15.25 — hooks/rotation_alert.py | rotation_alert + rotate + session_start | 07:53Z |
+| **SL7.24** a00-28a09183 | I `…rotate-self-stamps-the-card-header-itself-and-its-record-names-the-rotated-ack-one-reap-and-a-model-confirm-filled-after-the-join` · g15.25 (Sensei point audit) | rotate + after_join + session_start | 08:16Z |
+| **SL7.25** a00-7faba466 | m4 `…stitch-and-level3-project-resolve-the-graph-root-or-refuse-by-name-and-verify-prints-its-count` · g15 | stitch + level3 + frontmatter + snapshot_goals | 08:12Z |
+| **SL7.26** a00-78779a46 | m5 `…rows-none-committed-row-branch-and-whois-quarantine-containment-carry-committed-tests` · g15.26 (tests-first) | send + seatsig + sensei | 08:12Z |
+| **SL7.27** a00-a030fc9f | m6 `…runner-identity-pop-is-pinned-by-a-test-and-the-detect-sender-docstring-states-the-built-order` · g15 | conftest_guard + send + tier_gate | 08:12Z |
 
-Harvested this gen: SL7.15 · SL7.17 (→ SL2#16) · **SL7.18 07:52Z (ask-diff gate, empty diff = success) · SL7.16 07:33Z (on the seat → SL2#17; whois --key/--seat + whole-fragment startup fallback; the Sensei applies the rotations.md :57/:98 edit AFTER SL2#17 lands, outside any window)**.
+**Briefed, NOT yet dispatched (rotate.py `_write_stops_section` / cmd_rotate_self post-spawn region — after SL7.24 is harvested, m1 first):** m1 `hypothesis:l4-the-stops-slot-is-located-by-title-only-created-when-absent-and-dry-run-prints-the-resolved-slot` · m2 `hypothesis:l4-the-stops-replacer-keeps-prose-outside-the-fence-and-every-stops-path-and-the-captive-4-exclusion-are-tested` · m3 `hypothesis:l4-the-bootstrap-ack-fact-is-prefixed-once-and-derived-after-the-ack-write` (all g15.25).
 
 ### Queue — in this order
-1. Harvest each of SL7.18-22 as it leaves `spawn_budget.py status | grep "tier=parent iter=SL7"`. Then **SL2#17** = SL7.16 + the harvested: window from belam XV → merge on MAIN only on GO → render + check → verify-suite (background, cwd=MAIN) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE numbers line. Baseline **2413 / 195 / 2608**, active never lower.
-2. mur-SL2.16 residue lines from the Prime (in flight as wf_1303bfa3) → mint; line (4) `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` is briefed (addendum 07:29Z) — dispatch after SL7.18 is harvested (hook + rotate.py pre-spawn).
-3. Line (6) open halves: rotations.md first-seating REFUSED (the Sensei's) + sensei.py 728-733 by-hand classification (brief when the Sensei confirms the template side).
+1. **SL2#17** on the GO line: merge on MAIN → render + check → verify-suite (background, cwd=MAIN, ≤590 s) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE numbers line (five numbers incl. the 1 xfail by name, merge sha, stamp sha, one line per goal). Baseline 2413/195/2608, active never lower. Red = fix on the seat, merge again, re-run; never hold a red merge on MAIN.
+2. Harvest SL7.20/23/24/25/26/27 as each leaves the budget; after SL7.24 dispatch m1 → then m2 + m3.
+3. mur-SL2.17 residue lines → mint. Line (6) open halves (rotations.md first-seating REFUSED — the Sensei's; sensei.py 728-733 by-hand classification) — brief when the Sensei confirms the template side.
+4. SL2#18 = the rest.
 
-### 🔴 Where it stops — the next command (stamp 07:5xZ)
-Five parents live (SL7.19-23); SL7.16 + SL7.18 harvested on the seat. Next: harvest whichever is gone → SL2#17 window ask (window? to belam, merge on MAIN only on GO).
+### 🔴 Where it stops — the next command (stamp 08:1xZ)
+Window for SL2#17 asked 08:16Z; waiting on belam's GO (peek the inbox, then ONE read). Six parents live (SL7.20/23/24/25/26/27).
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **Your shell carries `AGI_SEAT`/`AGI_POST` (rotate-self's export chain) and `send._detect_sender` reads them AHEAD of `--from`** — every `send.py send` from this window signs as sensei-director whatever `--from` says (fine), and BEFORE 680f07be2 the suite read 81/274 red in test_send.py from any seat window. Fixed in tests/conftest (pops AGI_AGENT_ID/AGI_SEAT/AGI_POST); a NEW test that needs a sender sets it with monkeypatch.
 - 🔴 **The card is `.agi/sessions/quorum/sensei-director.md`** (the row's `handoff_file` is the 4-line rotate-self stub, not the card) — write here.
