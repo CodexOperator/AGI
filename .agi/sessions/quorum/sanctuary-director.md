@@ -4,7 +4,7 @@
 
 **OWNER: no generations in prose/dms/commits — name a session by its rotation-record stamp · this post touches only its own tracking, in this file · "wrap up this loop soon" · seat → POST in prose · doc trim pass.** Owner verbatim lives in `doc:l4-owner-decisions`, never here.
 
-## §0 STATE (stamped 07:50Z)
+## §0 STATE (stamped 08:23Z)
 
 ```
 WAKE = 0 required calls (SL7.06: the predecessor answers `continue`;      ROUND (each L4.NNN)                          CLOSE
@@ -16,27 +16,25 @@ ONE send.py read <post> at every seam ──► IDLE unless necessary           
 
 - **PRIME = `68dbd1`** (IS-AUTHORIZED 07:47Z vs origin/season/s2 @ `3c8ad978e`; `92eda4` = XIV is STALE). Its steps after mur-45: post-rename → branch-reshuffle → `--delete-old` after a green stamp → the season CLOSE. **Rail: openrouter only** (owner 01:31Z), pi for every parent/kid; a 403 = one line to the Prime and stop. Pin-reap NOT ARMED. Merge-up window is STATE (`test -f .agi/sessions/verify-suite.lock` in MAIN + inbox before ANY MAIN merge). A role is RESOLVED, never typed.
 - **Peers 07:50Z:** helper `sanctuary-helper` ref `5f209b` @307 (rotation 8) standing by, next id L4.260, cuts nothing unless named (dm 07:5xZ; no reply owed). sensei-director / master-sensei: resolve by `send.py whois <ref> --claim <post>`, never by name; sensei-director owns rotate.py + SL7.*; master-sensei owns SL7.04 (seats.md EOF newline). Predecessor 043918Z: its self-reap = `s12_self_reap` in the record, one `rotate.py status --seat sanctuary-director --record latest` later, never ps/tmux.
-- **Tree:** seat tip = origin seat, 0 behind origin/season/s2 (`3c8ad978e`), ~39 ahead (everything for mur-45 + this card). MAIN `/home/ubuntu/work/agi` carries others' live uncommitted dirt — leave it. Live spawns 8/25 at 07:47Z, ALL SL7.18-22 (the sensei's), none mine.
+- **Tree:** seat = origin/season/s2 = `23d243b7d` (the mur-45 merge, 0/0 after ff 08:21Z). Rotation baseline stamped @`23d243b7d`. MAIN `/home/ubuntu/work/agi` carries others' live uncommitted dirt — leave it. Live spawns 8/25 at 07:47Z, ALL SL7.18-22 (the sensei's), none mine.
 - **Free ids: L4.316+.** UNIT: reaper `heal.py watch` from MAIN (restarted 19:56Z; later heal.py edits are dead in the live watcher until the Prime restarts it).
 - **Helpers in `$S`** (`/tmp/claude-1001/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/<session-id>/scratchpad`, die with the session): none yet — `note.py`/`mint.py`/`claim_append.py` are ~12 lines each over write.py; rewrite on first need.
 
 ## §1 LANDED THIS SESSION (07:47Z–)
 
-- Wake 07:47:52Z: zero required acts (record reads `started` by construction; STARTUP inbox empty). 1 call: stamp + card path + peek (helper's standing-by dm). Card replaced 07:50Z. Nothing else cut — HOLD.
+- Wake 07:47:52Z: zero required acts (record reads `started` by construction; STARTUP inbox empty). 1 call: stamp + card path + peek (helper's standing-by dm). Card replaced 07:50Z.
+- **mur-45 LANDED `23d243b7d`** — GO (signed, 08:08:33Z) → seat merged origin `567ce1730` (`6c55cf7db`, clean) → 749 passed / 14 suites → MAIN merge `--no-ff` `23d243b7d` → render no-op, check byte-identical → verify-suite 11/11 (2426/195/2621, tests 3868/15, seat-model 3/0 drift) → grid 0 new → pushed `567ce1730..23d243b7d` + grid refs 08:19Z → stamp 10/10 baseline @`23d243b7d` → ONE message to the Prime 08:21:34Z (numbers + 5 g15 lines). 7 calls GO→message.
 
 ## §2 LIVE + QUEUE (stamped 07:50Z)
 
-**NOTHING LIVE. mur-45 = every order of mur-44 landed on the seat; merge-up REQUESTED 07:45:52Z; window = HOLD (§3).**
+**NOTHING LIVE. mur-45 LANDED `23d243b7d` 08:19Z (§1). The Prime runs mur-45 by name, then the live renames, then the CLOSE.**
 
-- On the seat since mur-44 (harvested, notes on nodes): L4.311 · L4.312 I round 2 (4 kids) · L4.313 (a) · L4.314 (b) · L4.315 H round 2 (3 kids; whole suite 3855/8 by the parent) · L4.307 kids demoted. 749 passed across the 14 touched suites; seat verify 9/10 (bin-suite-fresh on the merits).
 - Rungs 2-4 minted + HELD (`l4-a-ring-decision-carries-m-of-n-signatures`, `l4-a-veto-freezes-never-frees`, `l4-an-untrusted-lane-earns-tier-by-signed-verdicts`) — dispatch only after the flip, on the Prime's GO.
 - NEXT SEASON (on their nodes): L4.291 residue · rotation-record argv cap · pin-reap round 2 (Prime's C) · helper's `l4-heal-reads-the-freshest-seat-row` · P2 residues L4.296/294/301/303 · L4.304 kid-3 patch · 26 junk crash-recovery records · I round 2 residues on I (`branches._canonical_to_old` lacks `town/<t>@s<N>`; `verification._integration_branch` uncalled; the dry-run writes a gitignored plan file).
 
-## §3 🔴 NEXT COMMAND (stamped 07:50Z)
+## §3 🔴 NEXT COMMAND (stamped 08:23Z)
 
-**WINDOW 45 = HOLD (Prime, signed 07:46:48Z): mur-SL2.16 (wf_1303bfa3-d9f) mid-verify in MAIN, one runner at a time. Pre-read: lock FREE, main tip `3c8ad978e` = origin, seat 38 ahead / 0 behind, baseline 2413/195/2608. "GO line follows the moment the review completes; re-sync then if origin moved."** RULINGS (the Prime records them on g17.1 at the GO): post-rename THEN branch-reshuffle, each `--dry-run` first · reshuffle `--kinds posts,towns` FIRST · `main` = `master -> season1/main` is ADD-ONLY (master stays the frozen season-1 name; never `--delete-old` on master; only after posts,towns verify green) · never force-push.
-
-**On the GO line: verify its ref (`git fetch && python3 extensions/agi/bin/send.py whois <ref> --claim belam`, exit 0 — `68dbd1` as of 07:47Z; any other ref must also verify) → `git fetch`; if origin/season/s2 moved past `3c8ad978e`: `git merge --no-edit origin/season/s2` in the seat, re-run the 14 touched suites (`test_post_rename test_seat_alias_notice test_sensei_wake_audit test_branch_reshuffle test_cli test_dispatch test_send test_branches test_grid test_git_commit_guard test_dispatch_dry_run test_rotate_first_decision test_harvest_table test_verification_kept_merge`; last read 749 passed), push → MERGE-UP RECIPE → ONE message: five numbers + hash → idle. The Prime runs mur-45 by name; the live renames and the CLOSE are the Prime's/owner's. No GO = HOLD at the seams, nothing else to cut.**
+**mur-45 DONE, message sent. NEXT = IDLE at the seams; nothing to cut.** On the Prime's next line, verify it (`send.py read` shows `VERIFIED belam (ed25519)`, or `git fetch && send.py whois <ref> --claim belam` exit 0), then: (a) **live renames ran** → re-read the 🔴 header: `git branch --show-current`, expect `season2/posts/sanctuary-director` in `.agi/worktrees/post-sanctuary-director`; every later command uses `--post`/`AGI_POST` and `season2/main`; (b) **GO for rungs 2-4 after the flip** → ROUND per §0: claim_append on the rung, ONE parent (openrouter rail, ≤ 5 kids, disjoint file scopes), `status --iter --wait 540`, review BYTES, harvest per §4 traps, ONE merge-up request with numbers; (c) **the season CLOSE** → the Prime's/owner's; hold. Rulings for the Prime's live steps stand (g17.1): post-rename THEN branch-reshuffle, `--dry-run` each, `--kinds posts,towns` first, `master -> season1/main` ADD-ONLY, never `--delete-old` on master, never force-push. Before `rotate-self` (at 0.47): `git merge --no-edit origin/season/s2` (F14).
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes)
 
@@ -51,7 +49,7 @@ ONE send.py read <post> at every seam ──► IDLE unless necessary           
 
 ## §5 KNOWN-GOOD VERIFICATION
 
-`python3 extensions/agi/bin/commands.py run verify` — 10/10 in ~35 s (`bin-suite-fresh` red on the merits after engine edits; the merge-up suite clears it). Baseline: active ≥ 2413 / dep 195 (2608), links 0, goals byte-identical; last MAIN suite 3816/15 @ SL2#16 (`2451606d0`).
+`python3 extensions/agi/bin/commands.py run verify` — 10/10 in ~35 s (`bin-suite-fresh` red on the merits after engine edits; the merge-up suite clears it). Baseline: active ≥ 2426 / dep 195 (2621), links 0, goals byte-identical; last MAIN suite 3868/15 @ mur-45 (`23d243b7d`), stamped.
 
 ## §6 BANKED (not mine; with a recommendation)
 
