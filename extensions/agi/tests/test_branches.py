@@ -221,3 +221,44 @@ def test_seat_merge_target_is_season_main():
 
 def test_loop_alias_merge_target_is_season_main():
     assert b.merge_target("loop/opt-auth-a1@s2") == "season2/main"
+
+
+# --- grid legal-branch predicate (hypothesis:l4-branches-follow-the-season-grammar) ---
+# The predicate the 5-min grid cron's commit --all gate uses. Must accept every
+# canonical season-n name plus the legacy master/season/s<N> aliases, and
+# refuse feature branches, malformed season names, and detached HEAD.
+
+
+def test_legal_branch_accepts_canonical_season_main():
+    assert b.is_legal_branch("season2/main")
+
+
+def test_legal_branch_accepts_canonical_post():
+    assert b.is_legal_branch("season2/posts/x")
+
+
+def test_legal_branch_accepts_canonical_loop():
+    assert b.is_legal_branch("season2/loops/a-b")
+
+
+def test_legal_branch_accepts_canonical_town_main():
+    assert b.is_legal_branch("season2/web-app-suite/season1/main")
+
+
+def test_legal_branch_accepts_legacy_alias():
+    # season/s<N> and master must stay accepted for one season.
+    assert b.is_legal_branch("season/s2")
+    assert b.is_legal_branch("master")
+
+
+def test_legal_branch_refuses_feature_branch():
+    assert not b.is_legal_branch("feature/x")
+
+
+def test_legal_branch_refuses_malformed_season_name():
+    assert not b.is_legal_branch("season2/weird")
+
+
+def test_legal_branch_refuses_detached_head():
+    assert not b.is_legal_branch("")
+    assert not b.is_legal_branch(None)

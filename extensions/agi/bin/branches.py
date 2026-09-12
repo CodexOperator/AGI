@@ -39,6 +39,7 @@ __all__ = [
     "parse",
     "merge_target",
     "ref_candidates",
+    "is_legal_branch",
     "RESERVED",
 ]
 
@@ -68,6 +69,25 @@ def _warn(line: str) -> None:
 def _check_town(town: str) -> None:
     if town in RESERVED:
         raise ValueError(f"reserved leaf {town!r} cannot be a town name")
+
+
+def is_legal_branch(name: str) -> bool:
+    """True for `master` or any name the season grammar admits; else False.
+
+    A single predicate replacing the old `branch == "master" or
+    branch.startswith("season/")` rule, which broke on the canonical spelling
+    (`"season2/main".startswith("season/")` is False). Accepts master and
+    every canonical/legacy-alias name parse() admits; refuses feature
+    branches, malformed season names, and empty/detached-HEAD names via the
+    ValueError parse() raises.
+    """
+    if name == "master":
+        return True
+    try:
+        parse(name)
+        return True
+    except ValueError:
+        return False
 
 
 def ref_candidates(branch: str) -> list[str]:
