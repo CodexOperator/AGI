@@ -6,6 +6,7 @@ shows it; two senders interleave without loss.
 """
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import subprocess
@@ -16,6 +17,8 @@ import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
+
+import locations  # noqa: E402  (resolves through BIN, already on sys.path)
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -40,6 +43,80 @@ def project(tmp_path: Path) -> Path:
         {"metric_primary": "outcome_coverage"}))
     (root / "sessions" / "inbox").mkdir(parents=True)
     return root
+
+
+# ── leak detector: this module's tests must never write MAIN's real inbox ──
+# hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-
+# and-peek-stays-open, TESTS clause (b): a fixture that asserts the REAL
+# checkout's shared inbox dir is byte-unchanged by a run of this module's
+# tests. The positional `read`/`send`/`peek` dispatch resolves the project
+# root from cwd (`_project_root` -> locations.find_project_root(Path.cwd())),
+# so a test that forgets to chdir into a tmp project would write into the
+# REAL checkout's `.agi/sessions/inbox/` (or the shared main-checkout inbox)
+# instead of the tmp one — the exact leak the hypothesis's TESTS clause
+# demands protection against. `_in_project` (below) does the isolation per
+# test; this autouse SESSION fixture is the tripwire that turns a regression
+# (cwd-resolution drift, a dropped chdir, a new dispatch test written
+# without isolation) into a loud failure naming the offending path instead
+# of a silent leak into a live seat's mailbox.
+#
+# Placement: HERE (test_send.py), not conftest.py, because it guards THIS
+# module's tests specifically. conftest.py's guards (tmux, provisioning,
+# suite lock) are project-wide seams every module shares; an "inbox is
+# untouched by THIS module's tests" assertion is a property of how the
+# comms dispatch tests isolate their I/O, so it belongs beside them, scoped
+# to this file's own session. It must never fail a run that starts from a
+# tmp project or a machine with no real inbox: an absent shared inbox is
+# recorded as a sentinel and asserted still-absent, never as a leak.
+_LIVE_INBOX_ABSENT = object()
+
+
+def _live_inbox_manifest(root) -> object | dict:
+    """Digest of the LIVE shared inbox dir, {relpath: sha256}. Resolves via
+    `send_mod._inbox_dir` (the exact production resolver routing through
+    locations.shared_sessions_dir -> git_common_root), so it lands on the
+    MAIN checkout's inbox even when pytest runs from a git worktree. Returns
+    the _LIVE_INBOX_ABSENT sentinel when the dir does not exist -- a tmp
+    project root or a machine with no real inbox is a clean no-op, never a
+    failure."""
+    inbox = send_mod._inbox_dir(root)
+    if not inbox.is_dir():
+        return _LIVE_INBOX_ABSENT
+    manifest = {}
+    for p in sorted(inbox.rglob("*")):
+        if p.is_file():
+            manifest[str(p.relative_to(inbox))] = hashlib.sha256(
+                p.read_bytes()).hexdigest()
+    return manifest
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _live_inbox_leak_detector():
+    """Session-scoped autouse tripwire: snapshot the LIVE shared inbox before
+    this module's tests collect and assert it is byte-identical after. Fails
+    with the offending path(s) if any test wrote/removed/renamed a file
+    there. When the inbox did not exist at setup, asserts it still does not."""
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:
+        yield  # not inside an agi project -- nothing real to guard
+        return
+    before = _live_inbox_manifest(root)
+    yield
+    after = _live_inbox_manifest(root)
+    if before is _LIVE_INBOX_ABSENT:
+        assert after is _LIVE_INBOX_ABSENT, (
+            "leak: a test created the LIVE shared inbox "
+            f"{send_mod._inbox_dir(root)} -- it must never exist for this "
+            "module's tests")
+        return
+    changed = {k for k in set(before) | set(after)
+               if before.get(k) != after.get(k)}
+    assert not changed, (
+        "leak detected: a test wrote into the LIVE shared inbox "
+        f"{send_mod._inbox_dir(root)}:\n  "
+        + "\n  ".join(sorted(changed))
+        + "\n-- dispatch tests must chdir into a tmp project; nothing may "
+        "write the real checkout's inbox")
 
 
 # ── red-first: send one message, read returns it once, peek still shows it ──
@@ -5536,7 +5613,6 @@ def test_falsifier2_pushed_key_stays_authoritative_over_stale_main(
     assert "main-committed" not in out
 
 
-@pytest.mark.xfail(strict=True, reason="mur-SL2.12 (3) / SL7.09: since SL7.06 the own-row commit stages ONLY the seat row, so write.py's node-level edited_by restamp stays unstaged and MAIN reads M seats.md after keygen; SL7.09 carries the stamp in the same commit (or stops restamping on a self-row write) -- when it lands this xfail turns XPASS and must be removed")
 def test_keygen_commits_and_pushes_own_row_to_bare_remote(
         tmp_path, monkeypatch, capsys):
     """g15.26 clause (2): keygen (a key-cell writer) commits its own-row hunk
@@ -5830,3 +5906,145 @@ def test_keygen_all_live_commit_names_every_keyed_seat_and_stages_seats_only(
     st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
                         capture_output=True, text=True)
     assert st.stdout.strip() == "", st.stdout
+
+
+# ── hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender ──
+
+
+@pytest.fixture
+def clear_identity(monkeypatch):
+    """The positional read gate keys on the RESOLVED sender, which reads
+    AGI_AGENT_ID then AGI_SEAT (via `_detect_sender` -> geometry_config.
+    resolved_seat_env) before --from, and AGI_POST is the OLDER alias that
+    resolved_seat_env checks FIRST. Strip all three env vars so a test can
+    pin identity deterministically with --from — even on a host where the
+    session-start hook already exported the seat transport (AGI_POST /
+    AGI_SEAT), which otherwise resolves a real seat name and breaks the
+    'unknown' sender carve-out this fixture exists to pin."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
+
+
+def _send_to(project, target, text="msg", sender="a00-x"):
+    send_mod.send(project, target, text, sender)
+
+
+def _read_marker(root: Path, target: str) -> str:
+    inbox = root / ".agi" / "sessions" / "inbox" / f"{target}.md"
+    return inbox.read_text() if inbox.is_file() else None
+
+
+def _in_project(monkeypatch, project: Path):
+    """The positional `read`/`peek` dispatch resolves the project root from
+    cwd (`_project_root`), never from --comms-root. chdir into the tmp project
+    so a dispatch test reads the tmp inbox, never the real .agi of the
+    checkout the suite runs from (the leak the hypothesis demands we protect
+    against in tests too)."""
+    monkeypatch.chdir(project)
+
+
+def test_read_refuses_a_target_that_is_not_you(project: Path, capsys,
+                                               clear_identity, monkeypatch):
+    """Claim 1: `send.py read <target>` REFUSES (exit 2, one stderr line
+    naming both) when `<target>` != the resolved sender, and touches no file
+    -- the marker is unchanged and the inbox bytes are identical."""
+    _in_project(monkeypatch, project)
+    _send_to(project, "belam")
+    before = _read_marker(project, "belam")
+
+    # Resolved sender is 'sensei-director' (--from); target 'belam' differs.
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(project / ".agi" / "sessions"),
+                        "read", "belam"])
+    err = capsys.readouterr().err
+    assert rc == 2, rc
+    assert "belam" in err and "sensei-director" in err
+    assert "read: target 'belam' is not you ('sensei-director')" in err
+    assert "send.py read sensei-director" in err
+    assert "send.py peek belam" in err
+    assert "--dm belam" in err
+    # one stderr line -- exactly one newline outside the trailing one
+    assert err.count("\n") == 1, repr(err)
+
+    after = _read_marker(project, "belam")
+    assert after == before, "marker must be untouched by the refusal"
+
+
+def test_read_your_own_inbox_still_works(project: Path, capsys,
+                                         clear_identity, monkeypatch):
+    """The gate must not fire for a target equal to the resolved sender
+    (claim FALSIFIER: the refusal fires under any resolution source)."""
+    _in_project(monkeypatch, project)
+    _send_to(project, "sensei-director", "for me")
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(project / ".agi" / "sessions"),
+                        "read", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "for me" in out  # consumed, not refused
+
+
+def test_peek_stays_open_to_any_target(project: Path, capsys, clear_identity,
+                                   monkeypatch):
+    """Claim 2: peek never writes, so it stays open to ANY target -- a
+    foreign peek must print the message and leave the marker untouched."""
+    _in_project(monkeypatch, project)
+    _send_to(project, "belam", "peek me")
+    before = _read_marker(project, "belam")
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(project / ".agi" / "sessions"),
+                        "peek", "belam"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "peek me" in out
+    assert _read_marker(project, "belam") == before, \
+        "peek never writes the marker, even for a foreign target"
+
+
+def test_read_dm_and_room_untouched(project: Path, capsys, clear_identity,
+                                   monkeypatch):
+    """Claim 2: --dm/--room read positions are keyed by `me` and are NOT
+    gated -- reading a dm partner is the only legal way to look at a foreign
+    conversation."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.main(["--from", "sensei-director", "--comms-root", str(croot),
+                   "send", "--to", "belam", "dm line"])
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot),
+                        "read", "--dm", "belam"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "dm line" in out
+
+
+def test_read_unknown_sender_refused_with_from_hint(project: Path, capsys,
+                                                    clear_identity,
+                                                    monkeypatch):
+    """Claim 3: a resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_SEAT,
+    no --from) refuses EVERY positional target, with the '--from' hint."""
+    _in_project(monkeypatch, project)
+    _send_to(project, "belam", "lonely")
+    rc = send_mod.main(["--comms-root",
+                        str(project / ".agi" / "sessions"),
+                        "read", "belam"])
+    err = capsys.readouterr().err
+    assert rc == 2, rc
+    assert "is not you ('unknown')" in err
+    assert "pass --from <seat> if you are that seat" in err
+
+
+def test_read_refuses_unknown_even_for_unknown_target(project: Path, capsys,
+                                                      clear_identity,
+                                                      monkeypatch):
+    """Claim 3: 'unknown' refuses for every positional target, even one
+    named 'unknown' can never be read by a senderless process."""
+    _in_project(monkeypatch, project)
+    _send_to(project, "unknown", "ghost")
+    rc = send_mod.main(["--comms-root",
+                        str(project / ".agi" / "sessions"),
+                        "read", "unknown"])
+    err = capsys.readouterr().err
+    assert rc == 2, rc
+    assert "is not you ('unknown')" in err
