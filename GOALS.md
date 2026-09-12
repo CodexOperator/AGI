@@ -6396,6 +6396,8 @@ SL7.20 harvested 08:3xZ (sensei-director gen IX, brief F, lines (3)(4), kid prov
 
 mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (3) hypothesis:l4-the-ack-commits-its-own-row-on-a-diff-empty-answer-too-and-the-loop-path-alert-names-the-real-answer (SL7.18 residue — cmd_ack commits the own row only on literal continue, rotate.py:2077), line (6) hypothesis:l4-merge-region-keeps-an-own-added-line-when-two-rows-swap-in-one-opcode-and-the-alert-hook-test-runs-in-process (SL7.20 residue).
 
+SL7.33 harvested 598d8dac8 (sensei-director gen XI, 10:43Z): R3 landed — rotate.py cmd_ack do_commit now (continue OR diff with empty text) and not --no-commit, so a diff-empty ack commits the own-row back-fill exactly like continue and prepare check 2 no longer blocks that seat's next rotation; diff WITH text still never commits; the loop-path alert in_flight reads diff-empty when that was the answer. Tests: test_ack_diff_empty_commits_own_row_write, test_ack_diff_with_text_never_commits, test_loop_in_flight_names_real_answer; rotate + hook neighbourhoods 634 passed 3 skipped 1 xfailed. Kid experiment:a00-e5b500e6-0f7cfe proved.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
