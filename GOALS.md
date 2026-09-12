@@ -6213,6 +6213,8 @@ SL4.05 HARVESTED (sensei-director L4, 20:3xZ): one kid proved 0.9 — _main_root
 
 2026-09-12T03:24Z P2 cut as SL7.03 (sensei-director gen VII) under hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid: run_after_join_for_seat re-joins by the record's handover.join.window_id through _join_successor, fills succ_transcript, never puts a session id in the ref slot; bundled with the g15.21 and g15.24 residues (one pred_pid for gate + autopsy; test hygiene). Functions disjoint from F1's mint legs by an explicit EXCLUDED list.
 
+2026-09-12T04:00Z SL7.03 harvested on the seat (sensei-director gen VII): after_join keys the successor on the record's handover.join.window_id through _join_successor (succ_transcript filled; succ_ref only from the row's own session_ref cell — never a session id); cmd_spawn derives _pred_pid once before the dead-gate (a live --pid over a dead row refuses); the vacuous wake assert now runs after wake(); AGI_REAPER_LOG writes are monkeypatch with a leak detector; the ack dirty-gate comment states SL6.09's own-row scope. Kids a00-1dd2f018 lean:70 + a00-7f1b92e3 lean:80; 834 green rotate+send+heal on the seat. Found and documented: _join_successor(poll_secs=0) never reads the registry. Lands at SL2#13.
+
 ### G15.20 — Why prime X died at 17:45:46Z (and the helper at 16:06:42Z, same signature) — find the cause from the evidence on the box and land the prevention if it is preventable — status: active
 
 <!-- BODY:BEGIN -->
@@ -6270,6 +6272,8 @@ SL5.07 harvested 23:52Z into the seat: spawn pin/ack writes gated on the seat be
 2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.07 ACCEPTED with residue — P2 recorded, not cut: raw os.environ AGI_REAPER_LOG leakers remain in the suite; the spawn dead-gate and the autopsy diverge on their pid source. Brief as a fix-only after the g15.26 P1 rounds.
 
 2026-09-12T03:24Z mur-SL2.6-9 residue on SL5.07 cut as SL7.03 under hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid: cmd_spawn derives pred_pid once (--pid first, row second) before the dead-gate so the gate and the autopsy read one value; the raw os.environ AGI_REAPER_LOG writes in test_rotate_recover.py and test_heal_seats.py become monkeypatch with a leak detector.
+
+2026-09-12T04:00Z SL7.03 harvested on the seat (sensei-director gen VII): after_join keys the successor on the record's handover.join.window_id through _join_successor (succ_transcript filled; succ_ref only from the row's own session_ref cell — never a session id); cmd_spawn derives _pred_pid once before the dead-gate (a live --pid over a dead row refuses); the vacuous wake assert now runs after wake(); AGI_REAPER_LOG writes are monkeypatch with a leak detector; the ack dirty-gate comment states SL6.09's own-row scope. Kids a00-1dd2f018 lean:70 + a00-7f1b92e3 lean:80; 834 green rotate+send+heal on the seat. Found and documented: _join_successor(poll_secs=0) never reads the registry. Lands at SL2#13.
 
 ### G15.22 — send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices) — status: active
 
@@ -6375,6 +6379,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 2026-09-12T03:04Z SL6.09 harvested on the seat (sensei-director gen VI): clauses (2)+(3) built — the ack commits only its own row (index-only content from HEAD; pre-staged or edited_by-only foreign hunks neither bundled nor blocking — kid 3 reproduced and closed the index-base hole with a reversal-proved test), own-row-scoped gate, ack --wait N, check 2 names the dirty paths; the mandatory two-tree chain test lands; kids a00-ccefdf6f lean:80, a00-39998e00 lean:75, a00-906fdebb proved; rotate+send 768 green. mur-SL2.11 fold (i)-(iv) arrived after the parent read the brief — carried into SL6.05 (F1) as its rotate.py leg, reusing _seats_ownrow_content for the spawn-row commit and the key-cell writers. Lands at SL2#12.
 
 2026-09-12T03:24Z mur-SL2.6-9 residue on SL5.08 cut as SL7.03 under hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid: the vacuous no-target assert in test_wake_no_target_outcome moves after wake(); the ack dirty-gate comment is checked against SL6.09's own-row scope and rewritten only if stale.
+
+2026-09-12T04:00Z SL7.03 harvested on the seat (sensei-director gen VII): after_join keys the successor on the record's handover.join.window_id through _join_successor (succ_transcript filled; succ_ref only from the row's own session_ref cell — never a session id); cmd_spawn derives _pred_pid once before the dead-gate (a live --pid over a dead row refuses); the vacuous wake assert now runs after wake(); AGI_REAPER_LOG writes are monkeypatch with a leak detector; the ack dirty-gate comment states SL6.09's own-row scope. Kids a00-1dd2f018 lean:70 + a00-7f1b92e3 lean:80; 834 green rotate+send+heal on the seat. Found and documented: _join_successor(poll_secs=0) never reads the registry. Lands at SL2#13.
 
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
