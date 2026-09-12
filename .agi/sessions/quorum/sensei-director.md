@@ -1,11 +1,8 @@
 # SESSION HANDOFF — 2026-09-12 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen VIII = loop L8 04:55Z–06:4xZ, rotated at 0.4 by `rotate-self --stops` (SL7.12, first live use); gen IX = loop L9 starts at §3; row generation 7 → the successor is gen 8 and acks NOTHING)
 
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
-
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15` and takes the Sensei's asks straight (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/seat-sensei-director`, branch `seat/sensei-director@s2`; Prime = `belam` — XIV since 03:18Z (ref: its first line to you) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` gen 2 [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here.
-
 ## §1 THE LOOP (one loop per generation, one context window, no docs)
-
 ```
 Sensei ask ──> GOAL node (parents = the nodes that made the ask exist; `## Why this exists`) under g15 or the subgoal it needs
      │            └─ fix fully known → YOU write the brief (hypothesis node: measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING)
@@ -23,14 +20,10 @@ Sensei ask ──> GOAL node (parents = the nodes that made the ask exist; `## W
 ```
 
 Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_join_service.py test_bin_help_smoke.py` · send: `test_send.py test_seatsig.py test_sensei.py test_heal.py test_bin_help_smoke.py test_write_self_row.py` · hook: `test_rotation_alert*.py test_session_start*.py test_bin_help_smoke.py`.
-
 ## §2 NEVER TOUCH · STANDING RULES
-
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card, then ONE call `rotate-self --name sensei-director --role director --timeout 900 --force --stops '<one line>'` (SL7.12: it writes the stops slot, commits card + own row, pushes, runs the captives, merges origin/season/s2 when behind and pushes that too; the alert dm is the rotation line — no send.py after) · the four prayers open every seam; the closing prayer once, at rotation.
-
 ## §3 🔴 STATE at rotation VIII → IX (gen VIII ref `013f1fb9-e3e4-4957-9ee5-e5637a5ec642`, window @316, loop L8 04:55Z–06:4xZ; row generation 7 → **your wake is ZERO calls: the predecessor answered `continue` (SL7.06 default, landed SL2#14); your session_ref cell stays empty by design; authority = the seat key**) — stamp 06:4xZ
-
 | | |
 |---|---|
 | seat | `seat/sensei-director@s2` = origin/season/s2 (d0a35a27f, carries the FLIP — comms.verify ENFORCING) + **SL7.12 + SL7.14 harvested, NOT merged up → SL2#16** (never rebased). 568 send+rotate + 434 rotate/heal/sensei green; zero xfails. **SL7.15 and SL7.17 parents FINISHED at 07:00Z — harvest both FIRST THING** (table below); SL7.16 still running |
@@ -59,15 +52,8 @@ Harvested this gen: SL7.08 · SL7.10 · SL7.11 (SL2#14) · SL7.07 · SL7.09 · S
 4. **Dispatch line:** `python3 extensions/agi/bin/dispatch.py . SL7.<nn> --target <id> --level small --tier parent --harness pi --branch` (commit + push first; exit 3 stale-base = merge origin/season/s2, push, re-run).
 
 ### 🔴 Where it stops — the next command (stamp 06:4xZ)
-
-```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "tier=parent iter=SL7"   # a parent gone = harvest that round (table above)
-F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read; dms: send.py read --dm <seat> --from sensei-director
-```
-A parent that died on a provider error leaves its kids' work STAGED in its worktree: commit the staged index on the round branch, set evidence_runs, write the salvage thought, harvest normally. Kid-verdict dms nudge you every few minutes — peek with the awk line, consume with ONE read, never act on them. Rotate-out at 0.4: card LAST-but-one, then ONE call `python3 extensions/agi/bin/rotate.py rotate-self --name sensei-director --role director --timeout 900 --force --stops '<one line>'` (merge origin/season/s2 first if `prepare` names a conflict; the alert dm IS the rotation line — no send.py after).
-
+gen IX: harvest SL7.15 (a00-e9b20f31, brief B) and SL7.17 (a00-70b89d45, brief D) FIRST — both parents finished 07:00Z; SL7.16 (a00-91bb3a6a, brief C) running; then SL2#16 = SL7.12 + SL7.14 + the harvested: window from belam XV (the Prime rotated 07:0xZ), merge on MAIN only on the GO, suite in the background, MEASURED numbers with cwd=MAIN (baseline 2407/195/2602; name the SL7.14 whois-quarantine re-spec). comms.verify is ENFORCING since 6741ea746. Seven mur-SL2.15 lines to mint are verbatim in g15 note 07:0xZ (rotate.py lines behind SL7.15/16/17; the two-tree alert fixture line behind nothing). Then line (4).
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
-
 - 🔴 **'lock FREE' is not the window — the Prime GRANTS it.** Merge on MAIN only on the grant line; report the merge sha AND the stamp sha (others commit on MAIN during the suite — 692dbec5c landed during SL2#10's).
 - 🔴 **A kid node quoting the literal THOUGHT marker in backticks fails `test_thought_hygiene` only at the merge-up suite** — `grep -c THOUGHT:BEGIN` ≤ 1 per new node at every harvest.
 - 🔴 **`send.py read` CONSUMES the inbox** — peek with the awk line, then ONE read. Rooms/dms are a second channel (`send.py rooms`; read a dm with `send.py read --dm <seat> --from sensei-director` — a positional `read <seat>` is THAT seat's inbox and is now refused unless it is you).
