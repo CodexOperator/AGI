@@ -264,6 +264,105 @@ def test_rotate_successor_key_gate_defers_on_push_failure(tmp_path):
     assert key_path2.read_text() != before2
 
 
+def test_rotate_successor_key_gate_persists_pending_on_push_failure(tmp_path):
+    """g15.26 claim (a): on `push: FAILED` the pending successor key is
+    PERSISTED to `<sessions>/seats/<seat>.key.pending` (0600), not dropped
+    with the return string -- so the minted key exists on disk after a
+    failed push (the main falsifier), and a later successful push can
+    complete the swap. The predecessor <seat>.key stays byte-identical, the
+    return still names the deferred swap (existing assertions unchanged),
+    and the pending file carries the exact spawned-private-key JSON shape
+    `{scheme,priv_hex,pub_hex,gen_after,minted_at}`."""
+    import send as bin_send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s9")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "helper"}
+    out = rotate._rotate_successor_key(tmp_path, "s9", row,
+                                       gen_before=1, gen_after=2)
+    r = rotate._apply_successor_key_gated(
+        out, "config:seats row s9: ...",
+        "spawn_row_commit: committed (sha abc1234)\n"
+        "push: push: FAILED -- remote: permission denied")
+    # existing assertions still hold: deferred + NOT applied.
+    assert "NOT applied" in r and "deferred swap" in r
+    assert key_path.read_text() == before  # predecessor key stays put
+    # (a) the pending successor key IS persisted, 0600, exact shape.
+    pend = bin_send._seats_dir(tmp_path) / "s9.key.pending"
+    assert pend.is_file(), "pending successor key must survive a failed push"
+    assert oct(os.stat(pend).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(pend.read_text())
+    assert obj["scheme"] == "ed25519"
+    assert obj["priv_hex"] == out["pending_key"]["priv_hex"]
+    assert obj["pub_hex"] == out["successor_pub"]
+    assert obj["gen_after"] == 2
+    assert "persisted to" in r and ".key.pending" in r
+    # a push-SKIPPED / push-OK / row-failed case persists nothing.
+    key_path2, _ = _mk_seat_key(tmp_path, "s10")
+    out2 = rotate._rotate_successor_key(tmp_path, "s10",
+                                        {"pubkey": "x", "role": "p"},
+                                        gen_before=1, gen_after=2)
+    rotate._apply_successor_key_gated(out2, "config:seats row s10: ...",
+                                      "spawn_row_commit: committed (a)\n"
+                                      "push: push: OK -- master")
+    assert not (bin_send._seats_dir(tmp_path) / "s10.key.pending").exists()
+    key_path3, _ = _mk_seat_key(tmp_path, "s11")
+    out3 = rotate._rotate_successor_key(tmp_path, "s11",
+                                        {"pubkey": "y", "role": "p"},
+                                        gen_before=1, gen_after=2)
+    rotate._apply_successor_key_gated(out3, "FAILED: write boom", "")
+    assert not (bin_send._seats_dir(tmp_path) / "s11.key.pending").exists()
+
+
+def test_rotate_complete_pending_key_swap(tmp_path, monkeypatch):
+    """g15.26 claim (b): a later successful push of the row completes the
+    deferred swap. A `.key.pending` whose `pub_hex` matches the seat's
+    COMMITTED row pubkey triggers the ONE atomic replace of <seat>.key with
+    the pending private key and deletes the pending file; when the row still
+    names the OLD pubkey the pending file is left alone (still deferred).
+    rotate's local `import send` is the top-level bin module, so patch that
+    object (the frame stream's own send is `agi.bin.send`, a different one)."""
+    import send as bin_send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s12")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    pend = bin_send._seats_dir(tmp_path) / "s12.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    # no pending file -> nothing to do, '' (never a failure)
+    assert rotate._complete_pending_key_swap(tmp_path, "s13") == ""
+
+    def _fake_committed(root):
+        return [{"name": "s12", "pubkey": succ_pub.hex(),
+                 "role": "helper"}]
+
+    monkeypatch.setattr(bin_send, "_seats_committed_rows", _fake_committed)
+    r = rotate._complete_pending_key_swap(tmp_path, "s12")
+    assert r == "key swap completed (deferred from gen 2)"
+    assert not pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] == succ_priv.hex()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+
+    # row still names the OLD pubkey -> pending left alone, still deferred.
+    key_path2, _ = _mk_seat_key(tmp_path, "s14")
+    pend2 = bin_send._seats_dir(tmp_path) / "s14.key.pending"
+    pend2.write_text(json.dumps({"scheme": "ed25519",
+                                 "priv_hex": succ_priv.hex(),
+                                 "pub_hex": succ_pub.hex(),
+                                 "gen_after": 3, "minted_at": ""}))
+
+    def _fake_old(root):
+        return [{"name": "s14", "pubkey": pred_pub.hex(),
+                 "role": "helper"}]
+
+    monkeypatch.setattr(bin_send, "_seats_committed_rows", _fake_old)
+    r2 = rotate._complete_pending_key_swap(tmp_path, "s14")
+    assert "NOT completed" in r2 and "deferred" in r2
+    assert pend2.exists()
+    assert json.loads(key_path2.read_text())["priv_hex"] != succ_priv.hex()
+
+
 def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
     """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
     must fail under a corrupted record (the signature is specific)."""
