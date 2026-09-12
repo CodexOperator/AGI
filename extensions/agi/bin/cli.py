@@ -26,6 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
 import locations  # noqa: E402
 import node_writer  # noqa: E402
@@ -238,11 +239,10 @@ def _node_evidence_runs_raw(root: Path, node_id: str | None):
     if not nf or not nf.exists():
         return None
     try:
-        import yaml
         text = nf.read_text()
-        if not text.startswith("---"):
+        fm = frontmatter.read_frontmatter(text)
+        if fm is None:
             return None
-        fm = yaml.safe_load(text.split("---", 2)[1]) or {}
     except Exception:
         return None
     return fm.get("evidence_runs")
@@ -274,13 +274,14 @@ def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
     """
     import yaml
 
-    if not text.startswith("---"):
-        return False, None, "missing opening `---` delimiter"
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parts = frontmatter.split_frontmatter(text)
+    if parts is None:
+        first = text.split("\n", 1)[0]
+        if first.rstrip() != "---":
+            return False, None, "missing opening `---` delimiter"
         return False, None, "unterminated `---` block (no closing delimiter)"
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parts[0])
     except Exception as exc:
         return False, None, f"frontmatter YAML parse failure: {exc}"
     if not isinstance(fm, dict):
@@ -368,11 +369,9 @@ def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
     # from the start of the body, and a repair might swallow the kid's work.
     body = None
     header = None
-    if text.startswith("---"):
-        parts = text.split("---", 2)
-        if len(parts) == 3:
-            body = parts[2]
-            header = parts[1]
+    sp = frontmatter.split_frontmatter(text)
+    if sp is not None:
+        header, body = sp
     if body is None:
         if _BODY_BEGIN not in text:
             return False, (
@@ -897,10 +896,10 @@ def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) 
             if not content.startswith("---"):
                 return False, f"no frontmatter in {node_file}"
 
-            parts = content.split("---", 2)
-            if len(parts) < 3:
+            parts = frontmatter.split_frontmatter(content)
+            if parts is None:
                 return False, f"malformed frontmatter in {node_file}"
-            fm_text, body = parts[1], parts[2]
+            fm_text, body = parts
 
             try:
                 fm = yaml.safe_load(fm_text) or {}
@@ -950,12 +949,9 @@ def _detect_stale(root: Path, threshold_seconds: int) -> list[dict]:
     for nf in sorted(nodes_dir.rglob("*.md")):
         try:
             content = nf.read_text()
-            if not content.startswith("---"):
+            fm = frontmatter.read_frontmatter(content)
+            if fm is None:
                 continue
-            parts = content.split("---", 2)
-            if len(parts) < 2:
-                continue
-            fm = yaml.safe_load(parts[1]) or {}
             if fm.get("claimed_by") and fm.get("claimed_at"):
                 age = now - int(fm["claimed_at"])
                 if age > threshold_seconds:
@@ -1943,11 +1939,10 @@ def _post_rename_jobs(root: Path) -> list:
     if path is None or not Path(path).exists():
         return jobs
     try:
-        import yaml
         text = Path(path).read_text(encoding="utf-8")
-        if not text.startswith("---"):
+        fm = frontmatter.read_frontmatter(text)
+        if fm is None:
             return jobs
-        fm = yaml.safe_load(text.split("---", 2)[1]) or {}
         rows = fm.get(key) or []
         if not isinstance(rows, list):
             return jobs

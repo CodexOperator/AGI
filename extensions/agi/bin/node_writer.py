@@ -62,6 +62,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import spawn_gate  # noqa: E402
+from frontmatter import split_frontmatter  # noqa: E402
 
 # goal:s14 — a node gets its permanent id from whatever writes the file, not
 # from a backfill run afterwards. The ENGINE's graph_core, never a project's
@@ -269,6 +270,15 @@ def _needs_quoting(sval: str) -> bool:
         return False
     if ": " in sval or sval.endswith(":") or " #" in sval:
         return True
+    # A `---` run ANYWHERE (e.g. `the --- and --- again`) would split the
+    # frontmatter short for a reader that still splits on the substring, and
+    # must never present as a bare `---` line to the line-anchored shared
+    # reader (hypothesis:l4-one-line-anchored-frontmatter-reader-...).
+    # Quoting keeps the value a valid YAML scalar on one line and turns what
+    # would be a silent truncation into a detectable parse failure. `---`
+    # itself is a document marker and so MUST be quoted too.
+    if "---" in sval:
+        return True
     # Negative number (`-N` or `-N.N`): valid YAML plain scalar, no quoting.
     # Bare `-` or `- ` would be a block sequence indicator.
     if sval[0] == "-" and len(sval) > 1 and (sval[1].isdigit() or sval[1] == "."):
@@ -416,10 +426,10 @@ def _is_untouched_scaffold(text: str, scaffold_body: str) -> bool:
     what the branch was for. A malformed file with no closing marker is also
     fair game — there is nothing in it to lose.
     """
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    sp = split_frontmatter(text)
+    if sp is None:
         return True
-    return parts[2].strip() in scaffold_body.strip()
+    return sp[1].strip() in scaffold_body.strip()
 
 
 def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:

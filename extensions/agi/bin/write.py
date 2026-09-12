@@ -167,6 +167,27 @@ class Edit:
 # agent on a command line. That is the constraint, not a coincidence.
 # --------------------------------------------------------------------------
 
+def _emits_bare_marker(v) -> bool:
+    """True when `v` would render a frontmatter line that is exactly `---`
+    (column 0), which the line-anchored shared reader would mistake for the
+    closing marker (hypothesis:l4-one-line-anchored-frontmatter-reader-...).
+
+    Scalars collapse their newlines in `_scalar` (`.replace("\n", " ")`) and
+    are quoted when they carry a `---` run, so they cannot emit one; the only
+    shape whose newlines survive is a **list string item**, which
+    `_render_value` emits raw as `- <item>`."""
+    if isinstance(v, list):
+        for item in v:
+            if isinstance(item, str):
+                if any(ln == "---" for ln in item.split("\n")[1:]):
+                    return True
+            elif _emits_bare_marker(item):
+                return True
+    elif isinstance(v, dict):
+        return any(_emits_bare_marker(x) for x in v.values())
+    return False
+
+
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
     """`set <key> <value>` — one frontmatter field."""
     if key in PROTECTED:
@@ -175,7 +196,13 @@ def verb_set(edit: Edit, key: str, value: str) -> Edit:
             f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
-    edit.set_fm[key] = _coerce(value)
+    coerced = _coerce(value)
+    if _emits_bare_marker(coerced):
+        raise EditError(
+            f"cannot set {key!r}: the value would render a bare `---` line, "
+            f"which the shared line-anchored reader would mistake for the "
+            f"closing frontmatter marker")
+    edit.set_fm[key] = coerced
     return edit
 
 
