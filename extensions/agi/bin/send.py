@@ -525,6 +525,16 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
             # staging seats.md ONLY, then the clause-(2) push leg. Best-effort;
             # never fails the keygen.
             _commit_push_all_live(root, keyed_names)
+        else:
+            # g15.26 claim (the all-keyed steady state, wrote_any False):
+            # a pass that keyed NOTHING still runs the pending-swap
+            # completion walk, but commits and pushes NOTHING of its own --
+            # it confirms origin already carries HEAD's committed rows (a
+            # fetch + rev-parse READ, never a push) and only then reports
+            # `push: OK`, so a deferred `.key.pending` swap whose successor
+            # row origin truly holds completes. Best-effort; never raises.
+            _run_pending_swap_completion(
+                root, _all_live_origin_sync_line(root))
         return results
     minted = _mint_seat_key(root, seat, scheme_name)
     if minted is None:
@@ -765,15 +775,78 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         # so looping every live row is safe and idempotent: a keyed seat
         # with no pending file, and a freshly-keyed seat, both keep their
         # `.key` byte-identical. Best-effort; never raises.
-        for _row in _seats_rows(_graph_root(root)):
-            _live_name = str(_row.get("name") or "")
-            if _live_name and _live_row(_row):
-                rotate._finish_pending_swap_on_push(root, _live_name, push)
+        _run_pending_swap_completion(root, push)
         return _l
     except Exception as exc:  # noqa: BLE001
         _l = f"note: {note} row commit/push skipped ({exc})"
         print(_l, file=sys.stderr)
         return _l
+
+
+def _run_pending_swap_completion(root: Path, push: str) -> None:
+    """g15.26 claim (b) -- run rotate's ONE shared pending-swap completion
+    walk over every live row. Strict NO-OP unless ``push`` starts
+    ``push: OK`` AND a pending file exists whose pub_hex matches the COMMITTED
+    row, so looping every live row is safe and idempotent: a keyed seat with
+    no pending file, and a freshly-keyed seat, both keep their `.key`
+    byte-identical. Best-effort; never raises."""
+    if not str(push or "").startswith("push: OK"):
+        return
+    import rotate  # local (send.py pattern)
+    for _row in _seats_rows(_graph_root(root)):
+        _live_name = str(_row.get("name") or "")
+        if _live_name and _live_row(_row):
+            rotate._finish_pending_swap_on_push(root, _live_name, push)
+
+
+def _all_live_origin_sync_line(root: Path) -> str:
+    """g15.26 claim (b) -- the push-like line the NO-WRITE --all-live path
+    feeds the pending-swap completion walk. An ALL-KEYED registry (the
+    steady state: every live row already keyed, wrote_any False) never
+    commits or pushes of its own: it only confirms origin already carries
+    HEAD's committed rows (a fetch + rev-parse READ, never a push) and
+    reports ``push: OK`` only when origin is exactly at HEAD -- that is what
+    makes completing a deferred swap against the already-pushed state safe.
+    Any other outcome yields a non-``push: OK`` line so the walk stays a
+    strict NO-OP (a deferred swap stays deferred until origin truly holds the
+    committed successor row). Never raises."""
+    import rotate  # local (send.py pattern)
+    main_root = _shared_graph_root(root)
+    top = rotate._git_toplevel(main_root)
+    if top is None:
+        return ("push: SKIPPED -- no git repo (gitless fixture/root); "
+                "nothing to complete")
+    try:
+        branch_out = subprocess.run(
+            ["git", "-C", str(top), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        return "push: SKIPPED -- could not resolve the branch"
+    branch = (branch_out.stdout or "").strip()
+    if not branch or branch == "HEAD":
+        return "push: SKIPPED -- detached HEAD, nothing to complete"
+    try:
+        fetch = subprocess.run(
+            ["git", "-C", str(top), "fetch", "origin", branch],
+            capture_output=True, text=True, timeout=60)
+    except Exception as exc:  # noqa: BLE001
+        return f"push: SKIPPED -- fetch failed ({exc}); cannot verify origin"
+    if fetch.returncode != 0:
+        return ("push: SKIPPED -- fetch failed, cannot verify origin carries "
+                "the committed rows")
+    try:
+        head = subprocess.run(
+            ["git", "-C", str(top), "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+        oref = subprocess.run(
+            ["git", "-C", str(top), "rev-parse", f"origin/{branch}"],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+    except Exception:  # noqa: BLE001
+        return "push: SKIPPED -- could not compare HEAD to origin"
+    if head and oref and head == oref:
+        return f"push: OK -- {branch} (origin already carries HEAD)"
+    return (f"push: SKIPPED -- origin {oref or '?'} is not at HEAD "
+            f"{head or '?'}; a deferred swap stays deferred")
 
 
 def _quorum_caller() -> bool:

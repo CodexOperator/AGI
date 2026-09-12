@@ -1651,6 +1651,7 @@ def _prime_dual_source_rows(monkeypatch, tmp_path, work_row, push_row):
     pushed row and the worktree row carry DIFFERENT pubkeys (the falsifier
     fixture)."""
     import send as _send  # the SAME top-level module rotate's lazy import binds to
+    rotate._prime_rows_fetch_clear()  # memo cleared, so it can never shadow this stub
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
     body = ("---\nid: config:seats\ntype: config\nseats:\n  - "
@@ -1681,6 +1682,7 @@ def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
     # Pushed authority unreachable: fall back to the working-tree row
     # (never a silent worktree read, never an empty key).
     import send as _send
+    rotate._prime_rows_fetch_clear()   # memo cleared, so the None stub is not shadowed
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
     body = ("---\nid: config:seats\ntype: config\nseats:\n  - "
@@ -1710,10 +1712,29 @@ def _fs_seats_sheet(root, rows):
     (nodes / "seats.md").write_text(body, encoding="utf-8")
 
 
-def _fs_director_first_turn(root):
+def _fs_prime_pushed_patch(monkeypatch):
+    """Stub the pushed-seats SEAM (`rotate._prime_pushed_seats`) so a
+    first-seating build never performs a REAL `git fetch origin <name>`
+    inside the suite (pre-fix: the four test_first_seating_* tests
+    reached `_prime_pushed_seats` UNSTUBBED = 8 real fetch attempts per
+    file run — the Prime's measured falsifier for hypothesis:l4-the-
+    first-seating-tests-stub-the-pushed-seats-seam-and-a-none-miss-is-not-
+    pinned-for-the-process). Clears the per-process memo first so an earlier
+    test's memoized value can never shadow this stub. The canned row is
+    irrelevant to the gen assertions; it only keeps `_prime_row_authority`
+    from the worktree fallback."""
+    rotate._prime_rows_fetch_clear()
+    monkeypatch.setattr(rotate, "_prime_pushed_seats", lambda root, ref: (
+        [{"role": "prime_director", "name": "sanctuary-director",
+          "session_ref": "", "pubkey": "K" * 40}], "SHA", ref))
+
+
+def _fs_director_first_turn(root, monkeypatch):
     """A config:rotations node whose director template declares a
     `startup.first_turn` probe that echoes `seat` and `gen` — the block a
-    first seating composes, so `{gen}` substitution is observable."""
+    first seating composes, so `{gen}` substitution is observable. Also
+    stubs the pushed-seats seam so no real git fetch is attempted."""
+    _fs_prime_pushed_patch(monkeypatch)
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
     (root / "bin").mkdir(parents=True, exist_ok=True)
@@ -1732,7 +1753,8 @@ def _fs_bootstrap(root, seat):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def test_first_seating_on_existing_seat_reports_row_gen_not_1(tmp_path):
+def test_first_seating_on_existing_seat_reports_row_gen_not_1(
+        monkeypatch, tmp_path):
     """A RE-spawn onto a config:seats row that already carries
     `generation: 4` records generation 4 in the bootstrap record, substitutes
     `{gen}` = 4 into the composed STARTUP OUTPUT, and names `gen 4` in the
@@ -1742,7 +1764,7 @@ def test_first_seating_on_existing_seat_reports_row_gen_not_1(tmp_path):
         {"name": "re-seated", "role": "director", "model": "m",
          "effort": "max", "settings": "", "generation": 4},
     ])
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     block, results = rotate._first_seating_run(
         tmp_path, seat="re-seated", role="director", succ_name="re-seated",
         dry_run=False)
@@ -1763,14 +1785,15 @@ def test_first_seating_on_existing_seat_reports_row_gen_not_1(tmp_path):
     assert results, "first seating should compose a non-empty first_turn"
 
 
-def test_first_seating_ask_diff_ack_override_carries_row_gen(tmp_path):
+def test_first_seating_ask_diff_ack_override_carries_row_gen(
+        monkeypatch, tmp_path):
     """The ask-diff mode's ack override (answer `diff-requested`, source
     `first-seating`) also names the row generation, byte-identical source
     handling with the corrected gen."""
     _fs_seats_sheet(tmp_path, [
         {"name": "diff-seat", "role": "director", "generation": 7},
     ])
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     _block, _results = rotate._first_seating_run(
         tmp_path, seat="diff-seat", role="director", succ_name="diff-seat",
         dry_run=False, ask_diff=True)
@@ -1784,7 +1807,8 @@ def test_first_seating_ask_diff_ack_override_carries_row_gen(tmp_path):
     assert "gen 1" not in ack_fact
 
 
-def test_first_seating_new_seat_still_records_gen_1(tmp_path):
+def test_first_seating_new_seat_still_records_gen_1(monkeypatch,
+                                                 tmp_path):
     """A BRAND-NEW seat (no row, or a gen-less row) is byte-identical to
     today: generation 1, source first-seating, `{gen}` = 1. Guards the
     regression that a gen-less first seating must not accidentally resolve to
@@ -1792,7 +1816,7 @@ def test_first_seating_new_seat_still_records_gen_1(tmp_path):
     _fs_seats_sheet(tmp_path, [
         {"name": "fresh-seat", "role": "director", "model": "m"},  # no gen
     ])
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     block, _results = rotate._first_seating_run(
         tmp_path, seat="fresh-seat", role="director", succ_name="fresh-seat",
         dry_run=False)
@@ -1804,12 +1828,13 @@ def test_first_seating_new_seat_still_records_gen_1(tmp_path):
     assert "gen=1" in block, f"fresh-seat block must substitute gen 1:\n{block}"
 
 
-def test_first_seating_no_row_still_records_gen_1(tmp_path):
+def test_first_seating_no_row_still_records_gen_1(monkeypatch,
+                                               tmp_path):
     """A first seating with NO config:seats row at all (a throwaway seat)
     also stays at gen 1 — the `_seat_row_generation` reader returns None and
     the resolution falls back to FIRST_SEATING_GEN."""
     (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     block, _results = rotate._first_seating_run(
         tmp_path, seat="throwaway", role="director", succ_name="throwaway",
         dry_run=False)
@@ -1817,6 +1842,145 @@ def test_first_seating_no_row_still_records_gen_1(tmp_path):
     assert bs["generation"] == 1
     assert "gen 1" in bs["telemetry"]["ack"]
     assert "gen=1" in block
+
+
+def test_first_seating_respawn_record_and_alert_carry_row_gen(
+        monkeypatch, tmp_path):
+    """A RE-spawn onto an EXISTING seat whose config:seats row carries
+    `generation: 4` threads that ONE resolved generation to the seating
+    RECORD (gen_after) AND the rotation-alert dm (which names `generation
+    0 -> 4`), byte-for-byte with the bootstrap `_first_seating_run` already
+    wrote — never a hard-coded gen-1 (hypothesis:l4-one-resolved-generation-
+    for-the-seating-record-the-alert-and-the-bootstrap-on-a-re-spawn)."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 4},
+    ])
+    _fs_director_first_turn(tmp_path, monkeypatch)
+    # the bootstrap writer resolves the row gen to 4.
+    _block, _results = rotate._first_seating_run(
+        tmp_path, seat="re-seated", role="director", succ_name="re-seated",
+        dry_run=False)
+    assert _fs_bootstrap(tmp_path, "re-seated")["generation"] == 4
+    captured = {}
+    monkeypatch.setattr(
+        rotate, "_announce_rotation",
+        lambda *a, **kw: captured.update(kw) or [])
+    rotate._first_seating_announce(
+        tmp_path, None, seat="re-seated", role="director", source="test",
+        tmux_session="t", live_names=[])
+    seating = captured["seating"]
+    # the ONE record the alert shares reports gen_after 4, never a hard-coded 1.
+    assert seating["gen_after"] == 4, \
+        f"seating record gen_after must follow the row (4), got {seating['gen_after']}"
+    assert seating["gen_before"] == 0
+    # the same gen_after was threaded to the announce rotation call.
+    assert captured["gen_after"] == 4, \
+        f"_announce_rotation gen_after must be 4, got {captured['gen_after']}"
+    # the ALERT dm names the same generation — `generation 0 -> 4`, never 1.
+    text = rotate._compose_seating_announcement(
+        seat="re-seated", ref=seating.get("ref") or "",
+        pid=seating.get("pid"), in_flight="",
+        generation=seating.get("gen_after") or 1, ask_diff=True)
+    assert "generation 0 -> 4" in text, \
+        f"alert dm must name generation 0 -> 4:\n{text}"
+    assert "generation 0 -> 1" not in text
+    assert "--gen 4" in text, f"alert ack line must name gen 4:\n{text}"
+
+
+def test_first_seating_row_generation_zero_is_kept_as_zero(
+        monkeypatch, tmp_path):
+    """A row generation of 0 must be KEPT as 0 across the bootstrap, the
+    seating record and the alert dm — never coerced to 1 by an `or
+    FIRST_SEATING_GEN` (the pre-fix defect at `_first_seating_run`'s gen
+    resolution). Only an absent / gen-less row falls back to gen 1."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "zero-seat", "role": "director", "generation": 0},
+    ])
+    _fs_director_first_turn(tmp_path, monkeypatch)
+    block, _results = rotate._first_seating_run(
+        tmp_path, seat="zero-seat", role="director", succ_name="zero-seat",
+        dry_run=False)
+    bs = _fs_bootstrap(tmp_path, "zero-seat")
+    assert bs["generation"] == 0, \
+        f"a row generation of 0 must stay 0, got {bs['generation']}"
+    assert "gen 0" in bs["telemetry"]["ack"] and "gen 1" not in bs["telemetry"]["ack"]
+    assert "gen=0" in block and "gen=1" not in block, \
+        f"block must substitute a kept 0:\n{block}"
+    captured = {}
+    monkeypatch.setattr(
+        rotate, "_announce_rotation",
+        lambda *a, **kw: captured.update(kw) or [])
+    rotate._first_seating_announce(
+        tmp_path, None, seat="zero-seat", role="director", source="test",
+        tmux_session="t", live_names=[])
+    assert captured["seating"]["gen_after"] == 0, \
+        f"seating record must keep a row gen 0, got {captured['seating']['gen_after']}"
+    assert captured["gen_after"] == 0
+    text = rotate._compose_seating_announcement(
+        seat="zero-seat", in_flight="",
+        generation=captured["gen_after"])
+    assert "generation 0 -> 0" in text, \
+        f"alert dm must name generation 0 -> 0:\n{text}"
+    assert "generation 0 -> 1" not in text
+
+
+def _run_real_announce(monkeypatch, tmp_path, seat, gen_after):
+    """Drive the REAL `_announce_rotation` first-seating branch with a
+    seating record carrying `gen_after`, capturing the alert dm text it
+    ACTUALLY emits. Only the delivery/transport calls (`send.send`,
+    `send.send_dm`, `send.wake`) are stubbed -- `_announce_rotation` and its
+    composer run for real, so rotate.py:3676 (the `or FIRST_SEATING_GEN`
+    coercion) is exercised. Returns the captured dm texts."""
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    # a second live seat so _derive_receivers yields a (non-prime) recipient.
+    _fs_seats_sheet(tmp_path, [
+        {"name": seat, "role": "director", "generation": gen_after},
+        {"name": "other-seat", "role": "director"},
+    ])
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    seating = {"seat": seat, "gen_before": 0, "gen_after": gen_after,
+               "window_id": "w", "ref": "abc", "pid": 123,
+               "session_id": "s1", "transcript_path": "t.json",
+               "in_flight": ""}
+    sent = []
+    monkeypatch.setattr(_send, "send",
+                        lambda root, recv, text, sender=None: sent.append(text))
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, s, recv, text, sender=None: sent.append(text))
+    monkeypatch.setattr(_send, "wake", lambda root, recv: None)
+    deliv = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path, seat=seat, successor="x",
+        gen_before=0, gen_after=gen_after, trigger="first-seating",
+        handoff_path="", in_flight="", live_names=[seat, "other-seat"],
+        seating=seating, ask_diff=True)
+    assert deliv == ["other-seat"], \
+        f"should deliver to other-seat, got {deliv}"
+    assert sent, "the real alert composer must have produced dm text"
+    return sent
+
+
+def test_first_seating_alert_real_announce_keeps_gen0(monkeypatch, tmp_path):
+    """The REAL `_announce_rotation` first-seating branch names a KEPT 0 in
+    the alert dm -- `generation 0 -> 0`, never `or`-coerced to 1 (the exact
+    falsifier at rotate.py:3676 `seating.get('gen_after') or
+    FIRST_SEATING_GEN`). Delivery is stubbed; the composer is NOT."""
+    sent = _run_real_announce(monkeypatch, tmp_path, "zero-seat", 0)
+    for text in sent:
+        assert "generation 0 -> 0" in text, \
+            f"alert dm must keep gen 0 (was or-coerced to 1):\n{text}"
+        assert "generation 0 -> 1" not in text, \
+            f"no or-coercion to 1 in the alert dm:\n{text}"
+        assert "--gen 0" in text, f"alert ack line must name gen 0:\n{text}"
+
+
+def test_first_seating_alert_real_announce_keeps_gen4(monkeypatch, tmp_path):
+    """Same real-path check for a gen-4 row: the alert dm names 0 -> 4."""
+    sent = _run_real_announce(monkeypatch, tmp_path, "re-seated", 4)
+    for text in sent:
+        assert "generation 0 -> 4" in text, \
+            f"alert dm must name gen 4:\n{text}"
+        assert "--gen 4" in text, f"alert ack line must name gen 4:\n{text}"
+
 
 def test_prime_pushed_seats_fetches_once_per_process_across_values_builds(
         monkeypatch, tmp_path):
@@ -1849,3 +2013,70 @@ def test_prime_pushed_seats_fetches_once_per_process_across_values_builds(
             f"five-site values build; expected exactly once")
     finally:
         rotate._prime_rows_fetch_clear()
+
+def test_prime_pushed_seats_none_miss_retries_once_then_pins(monkeypatch,
+                                                             tmp_path):
+    # hypothesis:l4-the-first-seating-tests-stub-the-pushed-seats-seam-and-
+    # a-none-miss-is-not-pinned-for-the-process: a None result (pushed ref
+    # unreachable) is NOT memoized on its first miss — the next build RETRIES
+    # the real fetch once — so one transient fetch failure on the FIRST build
+    # never pins the worktree fallback for every later build in the process.
+    # A SECOND consecutive miss for the same (root, ref) pins None (a
+    # genuinely-dead pushed ref is fetched at most twice per process, not on
+    # every one of the five values-build sites).
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    fetch_calls = {"n": 0}
+    # a pushed ref that always yields None (unreachable)
+    def missing(root, ref, do_fetch):
+        fetch_calls["n"] += 1
+        return None
+    monkeypatch.setattr(_send, "_pushed_seats", missing)
+    rotate._prime_rows_fetch_clear()
+    try:
+        # first miss: not memoized.
+        assert rotate._prime_pushed_seats(tmp_path, "refX") is None
+        assert fetch_calls["n"] == 1
+        # second build RETRIES (the first miss was not pinned).
+        assert rotate._prime_pushed_seats(tmp_path, "refX") is None
+        assert fetch_calls["n"] == 2
+        # third build: the second consecutive miss IS pinned.
+        assert rotate._prime_pushed_seats(tmp_path, "refX") is None
+        assert fetch_calls["n"] == 2, (
+            f"a pinned None miss must not re-fetch, got {fetch_calls['n']} "
+            f"calls after the second miss; expected 2")
+    finally:
+        rotate._prime_rows_fetch_clear()
+
+
+def test_first_seating_family_reaches_no_origin_fetch(monkeypatch, tmp_path):
+    # FALSIFIER for the same hypothesis, backstopped on the PRIME-seam side:
+    # with the `_fs_*` fixture stubbing `rotate._prime_pushed_seats`, a real
+    # `send._pushed_seats` (the origin fetch) must be reached ZERO times by
+    # the four seat shapes. The Prime measured 8 real `git fetch origin`
+    # attempts across this family pre-fix; this test pins the count at 0.
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    seen = {"n": 0}
+    def counting(root, ref, do_fetch):
+        seen["n"] += 1
+        raise AssertionError(
+            f"first seating reached the real origin fetch ({ref}); the "
+            f"_fs_* fixture must stub rotate._prime_pushed_seats")
+    monkeypatch.setattr(_send, "_pushed_seats", counting)
+    rotate._prime_rows_fetch_clear()
+    try:
+        for seat, gen in (("re-seated", 4), ("fresh-seat", 1),
+                          ("throwaway", 1)):
+            _fs_seats_sheet(tmp_path, [
+                {"name": seat, "role": "director", "generation": gen},
+            ])
+            (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+            _fs_director_first_turn(tmp_path, monkeypatch)
+            block, results = rotate._first_seating_run(
+                tmp_path, seat=seat, role="director", succ_name=seat,
+                dry_run=False)
+            assert block and results
+    finally:
+        rotate._prime_rows_fetch_clear()
+    assert seen["n"] == 0, (
+        f"first-seating family reached the origin fetch {seen['n']} times; "
+        f"expected 0 with the seam stubbed")
