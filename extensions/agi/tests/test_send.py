@@ -3622,6 +3622,114 @@ def test_whois_unknown_ref_is_no_not_error(monkeypatch):
     assert send_mod.WHOIS_NO_MATCH != send_mod.WHOIS_NOT_AUTHORIZED
 
 
+# ── hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+# session-ref-is-empty... ──────────────────────────────────────────────────
+# whois --key / --seat resolve a row by a UNIQUE pubkey prefix or by name
+# (the prime row's pubkey is filled at every rotation when its session_ref is
+# empty), and the answer names the axis that found it, so a prime authority
+# check on an empty prime session_ref still resolves — by key, not by refusal.
+# ---------------------------------------------------------------------------
+KEY_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac",
+     "pubkey": "aabbccdd1122334455667788", "window": "@123"},
+    {"name": "sanctuary-helper", "role": "director", "tier": 1,
+     "session_ref": "dc94bb",
+     "pubkey": "eeff0011aabbccdd", "window": "@246"},
+]
+
+
+def test_whois_by_key_unique_prefix_is_authorized(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    assert "by key: aabbccdd" in text
+    assert "belam" in text
+    # clause (b): the by-key answer carries the row's CURRENT window so F3's
+    # SendMessage address is still derivable in one call.
+    assert "window @123" in text
+
+
+def test_whois_by_key_ambiguous_prefix_is_no_match(monkeypatch):
+    rows = [
+        {"name": "a", "role": "director", "tier": 1, "session_ref": "111111",
+         "pubkey": "deadbeef0000"},
+        {"name": "b", "role": "director", "tier": 1, "session_ref": "222222",
+         "pubkey": "deadbeef1111"},
+    ]
+    _stub_pushed(monkeypatch, (rows, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "deadbeef", claim="a",
+                              target=("key", "deadbeef"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "ambiguous" in text
+
+
+def test_whois_by_key_short_or_nonhex_prefix_is_no_match(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    # too short (7 chars < WHOIS_MIN_KEY_PREFIX 8)
+    rc, text = send_mod.whois(Path("."), "aabbccc", claim="belam",
+                              target=("key", "aabbccc"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "too short" in text
+    # non-hex is refused, never a guess
+    rc, text = send_mod.whois(Path("."), "zzzzzzzz", claim="belam",
+                              target=("key", "zzzzzzzz"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+
+
+def test_whois_by_key_never_matches_key_history(monkeypatch):
+    # the FALSIFIER: --key matches `pubkey` ONLY, never `key_history`.
+    rows = [
+        {"name": "belam", "role": "prime_director", "tier": 3,
+         "session_ref": "7902ac",
+         "pubkey": "aabbccdd1122334455667788",
+         "key_history": [{"pubkey": "99999999deadbeef"}]},
+    ]
+    _stub_pushed(monkeypatch, (rows, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "99999999", claim="belam",
+                              target=("key", "99999999"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    # and the live pubkey still resolves
+    rc, text = send_mod.whois(Path("."), "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_OK
+
+
+def test_whois_by_seat_name_is_authorized(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "sanctuary-helper",
+                              claim="sanctuary-helper",
+                              target=("seat", "sanctuary-helper"))
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    assert "by name: sanctuary-helper" in text
+    assert "window @246" in text
+    # a name that matches no row is NO-MATCH, never a guess
+    rc, text = send_mod.whois(Path("."), "nobody-here", claim="belam",
+                              target=("seat", "nobody-here"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH by name" in text
+
+
+def test_whois_by_key_unreachable_is_unverified(monkeypatch, tmp_path):
+    # an unreachable pushed authority labels a by-key answer UNVERIFIED and
+    # exits non-zero, exactly like the positional path.
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: None)
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda root: KEY_ROWS)
+    rc, text = send_mod.whois(tmp_path, "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_UNVERIFIED
+    assert "UNVERIFIED" in text
+
+
 def test_whois_unreachable_is_unverified_nonzero(tmp_path, monkeypatch):
     """Pushed ref unreachable → UNVERIFIED label AND a non-zero exit. Assert
     on the exit code, not only on the text."""
@@ -4045,6 +4153,86 @@ def test_signed_send_and_read_prints_verified(project, capsys, monkeypatch):
     out = capsys.readouterr().out
     assert "VERIFIED seat-a (ed25519)" in out
     assert "hello world" in out, "the label is never a drop"
+
+
+def test_deferred_pending_key_signs_verified_never_retired(project, capsys,
+                                                            monkeypatch):
+    """g15.26 claim (c): a seat in the DEFERRED swap -- a `.key.pending` whose
+    pub_hex matches the COMMITTED row's pubkey -- signs a dm with the pending
+    successor private key, so the dm reads VERIFIED against the row on origin
+    (pushed), NEVER RETIRED/FORGED. This is the falsifier of the clause: the
+    LIVE `<seat>.key` still holds the PREDECESSOR key, and signing with it
+    would label the dm RETIRED against a row that names the successor pubkey
+    (or FORGED). The preference routes the signature to the pending successor
+    key, closing it."""
+    import json as _j
+    import os as _os
+    # the live key holds the PREDECESSOR private key (the swap is deferred).
+    send_mod.keygen(project, "defer-a")
+    live = _seat_key_file(project, "defer-a")
+    # a NEW successor private key becomes the pending signing key.
+    scheme = send_mod.seatsig.get("ed25519")
+    succ_priv, succ_pub = scheme.keygen()
+    pend = live.parent / f"{live.name}.pending"
+    pend.write_text(_j.dumps({"scheme": "ed25519",
+                              "priv_hex": succ_priv.hex(),
+                              "pub_hex": succ_pub.hex(),
+                              "gen_after": 2, "minted_at": ""}))
+    _os.chmod(pend, 0o600)
+    row = {"name": "defer-a", "sig_scheme": "ed25519",
+           "pubkey": succ_pub.hex()}
+    # committed head AND origin-after-push both name the SUCCESSOR pubkey.
+    monkeypatch.setattr(send_mod, "_seats_committed_rows",
+                        lambda root: [row])
+    _stub_seat_rows(monkeypatch, [row])
+    send_mod.send(project, "recv", "deferred hello", "defer-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    assert "sig: ed25519:" in inbox.read_text()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED defer-a (ed25519)" in out, out
+    assert "RETIRED" not in out.split("deferred hello")[0], \
+        "must never read RETIRED across the deferred window"
+
+
+def test_pending_key_not_matching_committed_row_falls_back_to_live_key(
+        project, capsys, monkeypatch):
+    """g15.26 claim (c) PREFERENCE, not replacement: when a `.key.pending`
+    exists but its pub_hex does NOT match the COMMITTED row's pubkey (the
+    row still names the live key), the signer uses the LIVE `<seat>.key`
+    exactly as before -- an unmatched pending file never hijacks the
+    signature. A dm signed in that state verifies against a row naming the
+    live pubkey."""
+    import json as _j
+    majority = send_mod.seatsig.get("ed25519")
+    # live key is the AUTHORITY here.
+    send_mod.keygen(project, "steady-a")
+    live = _seat_key_file(project, "steady-a")
+    live_obj = _j.loads(live.read_text())
+    live_pub = majority.public_from_secret(
+        bytes.fromhex(live_obj["priv_hex"])).hex()
+    # an unmatched STALE pending file (its pub is NOT the row's pubkey).
+    stale_priv, stale_pub = majority.keygen()
+    pend = live.parent / f"{live.name}.pending"
+    pend.write_text(_j.dumps({"scheme": "ed25519",
+                              "priv_hex": stale_priv.hex(),
+                              "pub_hex": stale_pub.hex(),
+                              "gen_after": 2, "minted_at": ""}))
+    row = {"name": "steady-a", "sig_scheme": "ed25519",
+           "pubkey": live_pub}
+    monkeypatch.setattr(send_mod, "_seats_committed_rows",
+                        lambda root: [row])
+    _stub_seat_rows(monkeypatch, [row])
+    send_mod.send(project, "recv", "steady hello", "steady-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    assert "sig: ed25519:" in inbox.read_text()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED steady-a (ed25519)" in out, out
+    # the row names the LIVE pubkey and the dm read VERIFIED against it, so
+    # the signer used the LIVE key -- the stale unmatched pending file never
+    # hijacked the signature (had it signed with the stale key the dm would
+    # have read RETIRED/FORGED).
 
 
 def test_signed_bytes_are_exactly_ts_from_to_blank_text(project):
@@ -4934,6 +5122,103 @@ def test_whois_sig_overlong_ref_reads_unverifiable(tmp_path, monkeypatch):
 
 
 
+def test_rows_none_committed_row_keyed_verifies_main_committed(
+        tmp_path, monkeypatch, capsys):
+    """SL7.26 (a) FALSIFIER, rows-is-None branch positive case: the PUSHED
+    set reads an EMPTY list, so `_load_rows` yields None and `_verify_block`
+    runs `_row_for_label(root, None, ...)` -- the branch no committed test
+    drove before (SL7.14's two-tree test carried a NON-EMPTY lagging pushed
+    set). MAIN's COMMITTED row IS keyed, so the signed block reads
+    `VERIFIED seat-a (ed25519, main-committed)` -- never FORGED, never
+    UNVERIFIABLE. (g15.26 clause (3) main-committed tag rides the fallback.)"""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519",
+          "pubkey": pub_a.hex(), "generation": 2}],
+        branch="season/s2")
+    # the PUSHED authority carries NO rows -> `_load_rows` returns None.
+    _stub_pushed(monkeypatch, ([], "deadbeef"))
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "FORGED" not in out, out
+    assert "UNVERIFIABLE" not in out, out
+
+
+def test_rows_none_and_no_committed_row_reads_unverifiable(
+        tmp_path, monkeypatch, capsys):
+    """SL7.26 (a) FALSIFIER, rows-is-None branch sibling case: the PUSHED set
+    reads EMPTY (rows None) AND MAIN's committed rows hold no seat-a -- the
+    signed block reads `UNVERIFIABLE (no row: seat-a)`, NEVER FORGED. This is
+    the missing negative for the rows-None branch: prior tests only drove an
+    explicit single-row pushed set into `_row_for_label`."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, _pub_a = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-other", "generation": 9}],
+        branch="season/s2")
+    _stub_pushed(monkeypatch, ([], "deadbeef"))
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNVERIFIABLE (no row: seat-a)" in out, out
+    assert "FORGED" not in out, out
+    assert "REFUSED" not in out, out
+
+
+def _recursive_session_snapshot(project):
+    """Every file under `<proj>/.agi/sessions`, path -> raw bytes. THE
+    RECURSIVE view the old `inbox.iterdir()` (SL7.14) could not give: a file
+    written one directory down (e.g. under `inbox/quarantine/`) is caught, and
+    so is a file planted anywhere else in the sessions tree."""
+    base = project / ".agi" / "sessions"
+    out = {}
+    if not base.exists():
+        return out
+    for p in sorted(base.rglob("*")):
+        if p.is_file():
+            out[str(p.relative_to(base))] = p.read_bytes()
+    return out
+
+
+def test_whois_sig_unresolvable_path_traversal_refs_write_nothing_recursive(
+        tmp_path, monkeypatch):
+    """SL7.26 (b) ONE integration test that drives `whois --sig` with an
+    unresolvable session_ref carrying path-traversal bytes -- `../`, a NUL
+    byte, and a 300-char name. Each reads `UNVERIFIABLE (no row: <ref>)`,
+    never FORGED, never REFUSED; and a RECURSIVE before/after diff of the
+    whole sessions tree is EMPTY (nothing written, neither under
+    `inbox/quarantine/` nor anywhere else in the tree)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    refs = ("../../x", "z\x00ploit", "x" * 300)
+    for raw in refs:
+        before = _recursive_session_snapshot(project)
+        rc, text = send_mod.whois(project, raw, claim="seat-a",
+                                  source="refs/x", do_fetch=False,
+                                  sig_line=sig_line, msg_text=canonical)
+        after = _recursive_session_snapshot(project)
+        assert f"UNVERIFIABLE (no row: {raw})" in text, (raw, text)
+        assert "FORGED" not in text, (raw, text)
+        assert "REFUSED" not in text, (raw, text)
+        assert rc != 2, (raw, rc)   # no FORGED refusal => never the hard exit
+        assert before == after, \
+            f"an unresolvable traversal ref writes nothing: {raw}"
+
+
 def test_sanitize_ref_accepts_and_refuses_bounds():
     """Unit-level bound for _sanitize_ref: keeps [A-Za-z0-9._-], accepts 1-64
     chars, and REFUSES (exit 2) on empty or >64 sanitized length."""
@@ -4951,9 +5236,10 @@ def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
     whois function (they were declared and never threaded before clause 3)."""
     seen = {}
     def capturing(root, ref, claim, source, do_fetch,
-                  sig_line=None, msg_text=None):
+                  sig_line=None, msg_text=None, target=None):
         seen["sig"] = sig_line
         seen["msg"] = msg_text
+        seen["target"] = target
         return (0, "x")
     monkeypatch.setattr(send_mod, "whois", capturing)
     rc = send_mod.main(["whois", "--no-fetch", "7902ac",
@@ -4962,6 +5248,27 @@ def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
     assert rc == 0
     assert seen["sig"] == "ed25519:aa11:bb22"
     assert seen["msg"] == "line1\nline2\nline3\n\ntext"
+
+
+def test_whois_cli_key_threads_target_and_rejects_dual_axis(monkeypatch, capsys):
+    # --key reaches the whois function as a ("key", prefix) target, and the
+    # CLI refuses (exit 1, no resolution) when more than one axis is given.
+    seen = {}
+    def capturing(root, ref, claim, source, do_fetch,
+                  sig_line=None, msg_text=None, target=None):
+        seen["ref"] = ref
+        seen["target"] = target
+        return (0, "ok")
+    monkeypatch.setattr(send_mod, "whois", capturing)
+    rc = send_mod.main(["whois", "--no-fetch", "--key", "aabbccdd",
+                        "--claim", "belam"])
+    assert rc == 0
+    assert seen["target"] == ("key", "aabbccdd")
+    assert seen["ref"] == "aabbccdd"
+    capsys.readouterr()
+    rc = send_mod.main(["whois", "--no-fetch", "7902ac", "--key", "aabbccdd"])
+    assert rc == 1
+    assert "exactly one" in capsys.readouterr().err
 
 
 def test_whois_cli_forged_under_enforcing_exits_2(tmp_path, monkeypatch, capsys):
