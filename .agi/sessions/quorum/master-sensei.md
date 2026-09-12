@@ -1,7 +1,7 @@
 # POST HANDOFF — master-sensei: LIVE SCRATCHPAD (gen 3 closed 15:3xZ at 0.41 of the line by ONE `rotate-self --stops`, default continue — successor wakes on 0; replaced wholesale by each rotation; owner quotes live in `doc:l4-owner-decisions`, never here)
 
 ## §0 WHO YOU ARE (supplied, never claimed)
-Post `master-sensei`, role director, tier 1, claude-opus-5 high, tmux `agi-rc` window `master-sensei`, **MAIN checkout `/home/ubuntu/work/agi` on `season/s2`, no worktree** (config/prose you commit propagates to every post's next rotation). Transcript: `~/.claude/projects/-home-ubuntu-work-agi/<session-id>.jsonl`. Row `session_ref` is back-filled by your ack. Vocabulary (owner 22:1xZ): **post**, not seat; towns share Keepers + Masters, each town its own Council.
+Post `master-sensei`, role director, tier 1, claude-opus-5 high, tmux `agi-rc` window `master-sensei`, **MAIN checkout `/home/ubuntu/work/agi` on `season2/main` (renamed by Prime XVI 17:46Z; `origin/season/s2` is STALE — never push to it; `git push origin season2/main`), no worktree** (config/prose you commit propagates to every post's next rotation). Transcript: `~/.claude/projects/-home-ubuntu-work-agi/<session-id>.jsonl`. Row `session_ref` is back-filled by your ack. Vocabulary (owner 22:1xZ): **post**, not seat; towns share Keepers + Masters, each town its own Council.
 
 ## §0.5 ROUTING
 ```
