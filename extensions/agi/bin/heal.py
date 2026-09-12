@@ -1152,10 +1152,76 @@ def _crash_recovery_recorded(root: Path, seat: str, _rotate,
     return False
 
 
+def _rotation_before_after(rec: dict) -> tuple:
+    """The (before, after) generation on a rotation record, ONE shared
+    extraction. Prefers top-level `gen_before`/`gen_after`, falling back to
+    the NESTED `observations.b_generation.before/after` (the real incident
+    shape -- sensei-director.20260912T000346Z.json carries its generation
+    ONLY nested; top-level gens are null). NEVER a second inline copy of the
+    fallback (hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-
+    rotation-record-before-declaring-a-crash)."""
+    before = rec.get("gen_before")
+    after = rec.get("gen_after")
+    if before is None or after is None:
+        obs = rec.get("observations") or {}
+        bg = obs.get("b_generation") if isinstance(obs, dict) else None
+        if isinstance(bg, dict):
+            if before is None:
+                before = bg.get("before")
+            if after is None:
+                after = bg.get("after")
+    return before, after
+
+
+def _success_record_rotated(root: Path, seat: str, row: dict, _rotate,
+                            now: float) -> dict | None:
+    """hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-
+    record-before-declaring-a-crash clause (2)/(3): the seat's LATEST rotation
+    record -- via rotate._latest_rotation_record (crash-recovery records
+    EXCLUDED by construction) -- is a SUCCESS, and it proves the row's
+    pid/@id belong to the RETIRED predecessor rather than a dead seat.
+    Returns the record when EITHER
+      (a) the success's gen_after exceeds the generation on the watcher's row
+          (the rotation has already moved past this row), OR
+      (b) the success landed inside SEAT_DEAD_WINDOW_S of now while the row's
+          pid is dead (the caller has already established the pid is gone).
+    None otherwise -- a genuinely dead seat with no newer success record still
+    reads DEAD (the guard is NEVER lowered)."""
+    try:
+        rec = _rotate._latest_rotation_record(root, seat)
+    except Exception:  # noqa: BLE001
+        return None
+    if not isinstance(rec, dict) or rec.get("result") != "success":
+        return None
+    row_gen = row.get("generation")
+    _, gen_after = _rotation_before_after(rec)
+    if row_gen is not None and gen_after is not None:
+        try:
+            if int(gen_after) > int(row_gen):
+                return rec
+        except (TypeError, ValueError):
+            pass
+    ts = _parse_record_ts(rec.get("recorded_at", ""))
+    if ts is not None and (now - ts) <= SEAT_DEAD_WINDOW_S:
+        return rec
+    return None
+
+
 def _rotation_in_flight(root: Path, seat: str, _rotate,
-                        now: float) -> bool:
+                        now: float, row: dict | None = None) -> bool:
     """(1d) a rotation record for the seat is `started` within the last
-    10 minutes -> a rotation in flight, not a crash."""
+    10 minutes OR the latest record proves the seat already ROTATED (a
+    success record newer than the row, clause (3)) -> a rotation in flight,
+    not a crash. ONE helper -- `_success_record_rotated` -- is shared with
+    `_watch_one_seat` (clause (2)); the comparison is never duplicated."""
+    if row is None:
+        try:
+            rows = _rotate._load_seats(root) or []
+        except Exception:  # noqa: BLE001
+            rows = []
+        row = next(((r for r in rows if (r.get("name") or "") == seat)), {})
+    if _success_record_rotated(root, seat, row, _rotate, now) is not None:
+        return True
     rot = _rotate._rotations_dir(root)
     if not rot.is_dir():
         return False
@@ -1338,7 +1404,7 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
             verdict = "KEEP"
         elif bool(row.get("protected")):
             verdict = "PROTECTED"
-        elif _rotation_in_flight(root, seat, _rotate, now):
+        elif _rotation_in_flight(root, seat, _rotate, now, row=row):
             verdict = "IN-FLIGHT"
         elif belam_pref and not pred_complete:
             verdict = "BELAM-UNPINNED"
@@ -2012,8 +2078,22 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         _watch_log(f"watch: {line}")
         return {"seat": seat, "probable_cause": "stale-row",
                 "recorded": False, "stale_row": True, "alive_pid": _pp}
+    # (2) a SUCCESS rotation record newer than the row means the row's
+    # pid/@id belong to the RETIRED predecessor -- the seat ROTATED, it is
+    # not dead (hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-
+    # rotation-record-before-declaring-a-crash). NAMED once, no crash-
+    # recovery record, no launcher call, {} returned.
+    _rotated = _success_record_rotated(root, seat, row, _rotate, now)
+    if _rotated is not None:
+        _gb, _ga = _rotation_before_after(_rotated)
+        line = (f"rotated seat {seat}: success rotation record "
+                f"{_gb} -> {_ga} ({_rotated.get('recorded_at','')}) -- "
+                f"row pid {pid} belongs to the retired predecessor, not DEAD")
+        print(line, file=sys.stderr)
+        _watch_log(f"watch: {line}")
+        return {}
     # (1d) a rotation in flight is not a crash.
-    if _rotation_in_flight(root, seat, _rotate, now):
+    if _rotation_in_flight(root, seat, _rotate, now, row=row):
         return {}
 
     cause = _classify_death(_read_seat_log_tail(root, row, _rotate))
