@@ -2293,14 +2293,27 @@ def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
 # ── verbs ─────────────────────────────────────────────────────────────────
 
 
-def send(root: Path, to: str, text: str, sender: str | None) -> None:
-    """Append one message block to the recipient's inbox.
+def send(root: Path, to: str, text: str, sender: str | None) -> tuple[str, bool]:
+    """Append one message block to the recipient's inbox; return the pair
+    ``(sender_used, signed)`` the block actually carried.
+
+    ``sender_used`` is the sender AFTER ``_detect_sender`` resolution (one of
+    AGI_AGENT_ID / seat env / ``sender`` / ``"unknown"``) -- the id that
+    actually signs and is written on the ``from:`` line, which may differ from
+    the ``sender`` passed when the harness env exports an identity. ``signed``
+    is whether an envelope sig was WRITTEN (true only when a well-formed key
+    actually produced a signature; a key file present but malformed / empty
+    still sends UNSIGNED). Additive: every existing caller ignores the return
+    (goal:g15.25 FIX-ONLY -- hypothesis:l4-the-after-join-record-names-the-
+    sender-and-signature-the-send-returned..., where run_after_join records
+    its dm's sender/signature FROM this pair, never from key-file existence).
 
     Signs the message -- one ``sig: <scheme>:<fingerprint>:<sig_hex>`` line
-    after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists. Without a
-    key the block is byte-identical to the unsigned form (every existing
-    test_send.py test stays green untouched). The signed bytes are exactly
-    ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`).
+    after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists AND yields
+    a usable key. Without a usable key the block is byte-identical to the
+    unsigned form (every existing test_send.py test stays green untouched).
+    The signed bytes are exactly ``ts\nfrom\nto\n\ntext``
+    (:func:`_canonical_msg`).
     """
     _lockdown_warn(root)
     inbox = _inbox_path(root, to)
@@ -2327,6 +2340,7 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     _nudge_window(root, to)
 
     print(inbox.resolve())
+    return (from_id, sig_line is not None)
 
 
 def _scan_messages(inbox: Path) -> tuple[list[str], int]:

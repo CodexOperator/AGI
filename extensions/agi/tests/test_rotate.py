@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -2411,6 +2412,41 @@ def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,
     assert seen["name"] == "adv-alive"          # plain, not adv-alive-II
     assert "generation: 1" in capsys.readouterr().out
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.handoff.md").exists()
+
+
+def test_rotate_self_dry_run_plan_prints_ack_post(fake_ladder, tmp_path,
+                                                  capsys, monkeypatch):
+    """goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-
+    sender-and-signature...): the rotate-self dry-run plan prints the ONE
+    captive ack grammar (`ack --post` — the live grammar the after_join
+    composer uses), never the `--seat` spelling, on its after_join dry-run
+    line. (Placed here, not test_after_join_service.py, because it drives
+    cmd_rotate_self and reuses this module's `_write_seats_sheet` /
+    `_rotate_self_args` / `fake_ladder` fixtures.)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    seen = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: seen.append(kw["name"]) or (0, "echo hi"))
+
+    def _tmpl(root, role, explicit=None, **kw):
+        return ({"startup": {"first_turn": ["echo hi"],
+                             "after_join_delay_s": 0,
+                             "after_join": [
+                                 {"label": "ack", "cmd": "echo {seat}"}]}},
+                "t", "test")
+
+    monkeypatch.setattr(rotate, "_resolve_template", _tmpl)
+    args = _rotate_self_args(tmp_path, dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "after_join dry-run" in out, out
+    assert re.search(r"ack --post \S+ --gen", out), out
+    ack_lines = [ln for ln in out.splitlines() if "rotate.py ack" in ln]
+    assert ack_lines, "the dry-run plan prints a captive ack line"
+    assert all("ack --seat" not in ln for ln in ack_lines), ack_lines
 
 
 def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkeypatch):

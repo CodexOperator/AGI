@@ -10671,11 +10671,21 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
     is unresolved (no gen_after on the record and no generation on the row)
     there is no runnable ack, so the copy-paste line is omitted entirely.
 
-    (goal:g15.25 SL7.74) the dm has a TOTAL byte budget (`dm_byte_cap`,
-    default `startup.dm_byte_cap` / DEFAULT_AFTER_JOIN_DM_BYTE_CAP): a post
-    over budget carries the head, ONE status line per entry, and
-    `full output: <record path>` — the record keeps the full per-command-
-    capped results, so cutting the dm never loses the bytes (F10 class)."""
+    POLICY (goal:g15.25, sensei-director XVII 19:0xZ under delegated
+    authority): the heal WATCH signs the after_join dm with the SEAT's private
+    key, because the watch is that seat's own rotation tail performed LATE, on
+    the same box and in the same trust domain; the record's performer field
+    and the dm body already name the performer. NO separate heal key is
+    minted.
+
+    (goal:g15.25 SL7.74 + FIX-ONLY) the dm has a TOTAL byte budget
+    (`dm_byte_cap`, default `startup.dm_byte_cap` /
+    DEFAULT_AFTER_JOIN_DM_BYTE_CAP), counted in UTF-8 BYTES (a body of 1000
+    two-byte characters is over a 1500-byte cap, even though it is 1000 code
+    points). A post over budget keeps the HEAD + ONE status line per entry +
+    the CAPTIVE ack line (pinned), trimming the MIDDLE with ONE marker line
+    `… [trimmed N bytes] …`; the record keeps the full per-command-capped
+    results, so cutting the dm never loses the bytes (F10 class)."""
     cap = (dm_byte_cap if dm_byte_cap is not None
            else DEFAULT_AFTER_JOIN_DM_BYTE_CAP)
     lines = [
@@ -10711,8 +10721,10 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                      f"ack --post {seat} --gen {gen} "
                      f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
     full = "\n".join(lines)
-    if cap and len(full) > cap and record_path:
-        trimmed = [
+    if cap and len(full.encode("utf-8")) > cap and record_path:
+        # over budget: keep HEAD + one status line per entry + the CAPTIVE ack
+        # line (pinned); trim the MIDDLE with ONE marker line. Byte-counted.
+        kept = [
             "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join "
             "for you; you ran nothing)",
             "This is your SECOND input, delivered `after_join_delay_s` after "
@@ -10726,10 +10738,21 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                 status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
             else:
                 status = f"exit {r.get('rc')}"
-            trimmed.append(f"[{r.get('label', '')}] {status}")
-        trimmed.append("")
-        trimmed.append(f"full output: {record_path}")
-        return "\n".join(trimmed)
+            kept.append(f"[{r.get('label', '')}] {status}")
+        kept.append("")
+        kept.append(f"full output: {record_path}")
+        ack = []
+        if gen not in (None, ""):
+            ack = [
+                "Where a decision remains (only a `diff` against the "
+                "handoff), emit EXACTLY this copy-paste line:",
+                "python3 extensions/agi/bin/rotate.py "
+                f"ack --post {seat} --gen {gen} "
+                f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -",
+            ]
+        n = len(full.encode("utf-8")) - len(
+            "\n".join(kept + ack).encode("utf-8"))
+        return "\n".join(kept + [f"… [trimmed {n} bytes] …"] + ack)
     return full
 
 
@@ -11048,11 +11071,14 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     timeout = timeout_s or (startup.get("first_turn_timeout_s")
                             or DEFAULT_AFTER_JOIN_TIMEOUT_S)
     cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
-    # (goal:g15.25) the declared sender for the service dm — ONE resolution,
-    # shared by the tail and the watch, recorded on the record AND used by the
-    # default send_dm so the delivered block can never read `from: unknown`.
+    # (goal:g15.25) the sender the record names is the one the SEND RETURNED,
+    # never a key-file existence check (a key file present but malformed still
+    # sends UNSIGNED -- send.py's send now returns the (sender, signed) pair
+    # it actually used). The DECLARED sender is the fallback when no send
+    # fires (dry-run) or an injected send_dm returns nothing to read.
     sender = _after_join_sender(root, seat)
-    dm_signed = (_sessions_dir(root) / "seats" / f"{sender}.key").is_file()
+    dm_sender = sender
+    dm_signed = False
     if not dry_run and delay_s > 0:
         if sleep_impl is None:
             time.sleep(delay_s)
@@ -11122,6 +11148,29 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         dm_byte_cap=(dm_byte_cap if dm_byte_cap is not None
                      else startup.get("dm_byte_cap")),
         record_path=record_path)
+    # (goal:g15.25 FIX-ONLY) SEND FIRST so the record can name what the send
+    # actually RETURNED. The default closure returns send.py's (sender, signed)
+    # pair; an injected send_dm may return the same pair (or nothing -- the
+    # record then keeps the DECLARED sender, unsigned). The record NEVER reads
+    # a key file for dm_signed (hypothesis:l4-the-after-join-record-names-the-
+    # sender-and-signature-the-send-returned...).
+    sent = False
+    if not dry_run and send_dm is None:
+        def send_dm(to: str, text: str):
+            import send as _send
+            # a NAMED sender (never None): send.py falls to `unknown` only when
+            # no --from flag AND no seat env is exported — the after_join dm
+            # now always passes a declared sender, so `from: unknown` cannot
+            # appear on a service dm. `heal` is an established system sender
+            # (heal.py sends its own alarms as "heal"); the seat signs when the
+            # helper resolved a keyed custodian.
+            return _send.send(root, to, text, sender)
+    if not dry_run and send_dm is not None:
+        _dm_ret = send_dm(seat, dm)
+        sent = True
+        if (isinstance(_dm_ret, tuple) and len(_dm_ret) == 2
+                and isinstance(_dm_ret[0], str)):
+            dm_sender, dm_signed = _dm_ret
     appended = False
     record_commit = None
     if not dry_run and record_path is not None:
@@ -11167,7 +11216,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     "delay_s": promised_delay_s,
                     "results": results,
                     "dm": dm,
-                    "dm_sender": sender,
+                    "dm_sender": dm_sender,
                     "dm_signed": dm_signed,
                 }
                 if isinstance(_prev_aj, dict):
@@ -11202,20 +11251,6 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                 appended = True
             except (OSError, ValueError, json.JSONDecodeError) as exc:
                 appended = False
-    if not dry_run and send_dm is None:
-        def send_dm(to: str, text: str) -> None:
-            import send as _send
-            # a NAMED sender (never None): send.py falls to `unknown` only when
-            # no --from flag AND no seat env is exported — the after_join dm
-            # now always passes a declared sender, so `from: unknown` cannot
-            # appear on a service dm. `heal` is an established system sender
-            # (heal.py sends its own alarms as "heal"); the seat signs when the
-            # helper resolved a keyed custodian.
-            _send.send(root, to, text, sender)
-    sent = False
-    if not dry_run and send_dm is not None:
-        send_dm(seat, dm)
-        sent = True
     return {"delay_s": delay_s, "results": results, "dm": dm,
             "appended": appended, "sent": sent,
             "record_commit": record_commit,
@@ -14344,7 +14379,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     else "dry-run"
                 print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
             print("    captive dm decision line (the successor's SECOND input):")
-            print(f"    python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+            print(f"    python3 extensions/agi/bin/rotate.py ack --post {seat} "
                   f"--gen {gen} --ref <your ListAgents ref> diff --text -")
         return 0
 
