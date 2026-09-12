@@ -298,7 +298,7 @@ def test_pre_migration_write_path_still_resolves_seats(tmp_path):
     # (b) send._pushed_seats resolves the pushed rows from the seats.md
     # fallback path of the post-first list reader (posts.md absent here).
     import send  # noqa: PLC0415
-    rows, sha = send._pushed_seats(r, "HEAD", do_fetch=False)
+    rows, sha, _ref = send._pushed_seats(r, "HEAD", do_fetch=False)
     names = [x.get("name") for x in rows]
     assert "a" in names and "b" in names, names
     assert sha
@@ -363,7 +363,7 @@ def test_post_migrated_ack_shaped_self_row_write_and_foreign_refused(tmp_path):
     assert row["session_ref"] == "ref-post" and row["generation"] == 9
 
     # (b) send._pushed_seats resolves the pushed rows from posts.md.
-    rows, sha = send._pushed_seats(r, "HEAD", do_fetch=False)
+    rows, sha, _ref = send._pushed_seats(r, "HEAD", do_fetch=False)
     names = [x.get("name") for x in rows]
     assert "a" in names and "b" in names, names
     # posts.md is the authority; seats.md is gone from the tree entirely.
