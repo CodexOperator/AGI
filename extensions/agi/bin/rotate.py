@@ -3581,7 +3581,8 @@ def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
 def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
                                gen_after: int | None = None,
-                               template_source: str | None = None) -> None:
+                               template_source: str | None = None,
+                               stops_sha256: str | None = None) -> None:
     """Write/refresh the IN-PROGRESS rotate-self record.
 
     `result` stays `started` until the rotation reaches an outcome (success or
@@ -3592,6 +3593,10 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     `template_source` names which TREE the rotation template came from (the
     worktree's own, or the integration tree served because the worktree's
     geometry was stale) — mechanism 3, so a spawn is attributable.
+    `stops_sha256` is sha256 of the STRIPPED where-it-stops text the rotation
+    carries (goal:g15.25 SL7.116) so a future staleness gate can read the
+    RECORD instead of git — READ BY NOTHING YET, written where the record is
+    composed.
     """
     rec: dict = {
         "rotation": "rotate-self",
@@ -3602,6 +3607,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     }
     if template_source is not None:
         rec["template_source"] = template_source
+    if stops_sha256 is not None:
+        rec["stops_sha256"] = stops_sha256
     if gen_before is not None:
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
@@ -3611,8 +3618,25 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     # (SL7.84) nor the phase-3 closeout captive-step log
     #     (`closeout: [...]`), which rides every rewrite of the SAME file.
     _preserve_closeout(rec, path)
+    # (SL7.116) nor the stops_sha256 a rewrite seals, once written.
+    _preserve_stops_sha(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _preserve_stops_sha(rec: dict, existing_path: Path | None) -> None:
+    """(SL7.116) merge `stops_sha256` back from the on-disk started record,
+    so a LATER rewrite of the SAME file never drops what the open sealed (the
+    same mechanism (A) pattern the swept-latch and closeout preserves use)."""
+    if "stops_sha256" in rec or existing_path is None:
+        return
+    try:
+        if existing_path.exists():
+            _old = json.loads(existing_path.read_text(encoding="utf-8"))
+            if _old.get("stops_sha256"):
+                rec["stops_sha256"] = _old["stops_sha256"]
+    except Exception:                        # noqa: BLE001
+        pass
 
 
 def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
@@ -14454,6 +14478,96 @@ def _default_stops_text(root: Path, seat: str) -> tuple[str | None, str]:
     return text.strip(), header
 
 
+def _stops_body_text(body: str, sub: int | None) -> str | None:
+    """The where-it-stops SLOT text inside a `## ` section body — the exact
+    slice `_default_stops_text` computes from `_locate_where_it_stops`,
+    lifted so the staleness gate can apply the SAME locator to a card at an
+    OLD commit. Returns stripped text, or None when the slice is empty."""
+    lines = body.splitlines()
+    if sub is not None and sub >= 0:
+        start, end = sub + 1, len(lines)
+        for j, (ln, in_fence) in enumerate(_fence_items(lines[start:]),
+                                           start=start):
+            if not in_fence and ln.strip().startswith("#"):
+                end = j
+                break
+        text = "\n".join(lines[start:end])
+    else:
+        text = body
+    if not text.strip():
+        return None
+    return text.strip()
+
+
+def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
+    """EXIT-2 refusal when `text` — the DERIVED default where-it-stops text
+    for `seat` — is byte-identical (after strip) to the same slot's text on
+    the card AT the seat's most recent rotate-out commit (goal:g15.25,
+    SL7.116).
+
+    A slot the seat never rewrote during its own generation still holds the
+    PREDECESSOR's stop block at the rotate-out commit, and handing that stale
+    block to the successor as fresh is the residue this gate refuses. The
+    rotate-out commit is found by
+    `git log -1 --grep='^<seat> rotate-out gen ' -- <card>` (the message
+    shape `_commit_stops_row` writes); the slot is re-located with the SAME
+    locator `_default_stops_text` uses, so a successor committing the card
+    for its own table WITHOUT touching the slot still reads STALE — the
+    falsifier of keying on mtime/last commit.
+
+    Returns None when not stale, or when staleness cannot be PROVEN (no git
+    repo — a gitless fixture/root; no such commit — a first seating; an
+    unresolvable slot at that commit). Else a refusal NAMING BOTH the gen
+    pair and the short sha + date, plus the fix. Called ONLY on the derived
+    default — never on an explicit --stops/--stops-file/--closeout (the
+    caller gates the call)."""
+    top = _git_toplevel(root)
+    if top is None:
+        return None                       # gitless root/fixture: never stale
+    card = _own_card_path(root, seat)
+    if not card or not card.exists():
+        return None
+    rel = os.path.relpath(card, top)
+    if rel.startswith(".."):
+        return None
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(top), "log", "-1", "--format=%H|%cs|%s",
+             "--grep", f"^{seat} rotate-out gen ", "--", rel],
+            capture_output=True, text=True, timeout=10)
+    except Exception:                      # noqa: BLE001
+        return None
+    if out.returncode != 0 or not out.stdout.strip():
+        return None                       # no rotate-out commit (first seating)
+    try:
+        _sha, _date, _subj = out.stdout.strip().split("|", 2)
+    except ValueError:
+        return None
+    try:
+        blob = subprocess.run(
+            ["git", "-C", str(top), "show", f"{_sha}:{rel}"],
+            capture_output=True, text=True, timeout=10)
+    except Exception:                      # noqa: BLE001
+        return None
+    if blob.returncode != 0:
+        return None
+    _preamble, sections = _split_card_sections(blob.stdout)
+    slot = _locate_where_it_stops(sections)
+    if slot == "ambiguous" or slot is None:
+        return None
+    sec_idx, sub = slot
+    _header, body = sections[sec_idx]
+    committed = _stops_body_text(body, sub)
+    if committed is None or committed != text.strip():
+        return None                       # rewritten during this generation
+    _m = re.search(r"gen (\d+)->(\d+)", _subj)
+    _gp = f" gen {_m.group(1)}->{_m.group(2)}" if _m else ""
+    return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
+            f"{_gp} @ {_sha[:8]} {_date}): the slot still holds the "
+            f"predecessor's stop block; write the card where-it-stops section "
+            f"or pass --stops")
+
+
 def _rotate_human_gate(root: Path, seat: str,
                        actor: str | None = None) -> tuple[str | None, dict | None]:
     """RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
@@ -14529,6 +14643,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # lives in the SAME file the spawn/outcome write later.
     rec_path = None
     steps_reached: list[str] = []
+    # (SL7.116) the stops text's sha256 rides the started record when the bare
+    #     verb set it; READ BY NOTHING YET (a future gate may read the record
+    #     instead of git). Never raises: absent stays absent.
+    _ss = getattr(args, "stops_sha256", None)
     # goal:g15.14 STEP 2 -- `rotate-self --prepare` is the same captive
     # checklist the `prepare` subcommand prints, on the SAME 
     # `_prepare_checks`: one implementation, two spellings. Its branch guard
@@ -14769,7 +14887,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 rec_path = _rotate_self_started_path(root, seat)
                 _write_rotate_self_started(
                     rec_path, seat=seat, steps=steps_reached,
-                    template_source=geom_src)
+                    template_source=geom_src, stops_sha256=_ss)
             _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
             # (SL7.103) pass the in-progress rotation record to the captive
             # driver so the Prime's numbers line / note is composed FROM it
@@ -15047,7 +15165,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _write_rotate_self_started(
             rec_path, seat=seat, steps=steps_reached,
             gen_before=gen_before, gen_after=gen,
-            template_source=geom_src)
+            template_source=geom_src, stops_sha256=_ss)
 
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
@@ -15057,7 +15175,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "handoff", "1")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src)
+                                   template_source=geom_src, stops_sha256=_ss)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
@@ -15073,7 +15191,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
-                                       template_source=geom_src)
+                                       template_source=geom_src,
+                                       stops_sha256=_ss)
         print(f"(2) own-window rename: SKIPPED for numeral-chain seat "
               f"{seat!r} (`.genN` applies only to plain-named seats; the "
               f"own-window reap is GATED OFF at step (8) on a numeral- "
@@ -15086,7 +15205,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
-                                       template_source=geom_src)
+                                       template_source=geom_src,
+                                       stops_sha256=_ss)
         print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
@@ -15237,7 +15357,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src)
+                                   template_source=geom_src, stops_sha256=_ss)
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
@@ -15648,7 +15768,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "handover", "4.5")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src)
+                                   template_source=geom_src, stops_sha256=_ss)
     elif joined is not None and not joined["found"]:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
@@ -15670,7 +15790,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "readback", "4")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src)
+                                   template_source=geom_src, stops_sha256=_ss)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -16732,6 +16852,17 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
                   f"pass --stops (nothing delegated)", file=sys.stderr)
             return 2
         args.stops = _stext
+        # (SL7.116) a DERIVED default that is byte-identical to the slot at
+        # the seat's most recent rotate-out commit is a STALE predecessor
+        # block, never fresh: refuse BY NAME (exit 2, NOTHING delegated). The
+        # gate runs ONLY on the derived default -- an explicit --stops /
+        # --stops-file / --closeout never reaches it. A --dry-run that would
+        # rotate on a stale block prints the SAME refusal and still returns 2.
+        _stale = _stops_slot_is_stale(root, target, _stext)
+        if _stale:
+            print(f"rotate refused: {_stale} (nothing delegated)",
+                  file=sys.stderr)
+            return 2
     # (5) --dry-run prints the ONE resolved line, then delegates (rotate-self's
     # own dry-run does the rest, touching nothing). The stops token is truthful
     # to the SOURCE actually set: the derived text (or -) when --stops/--closeout
@@ -16755,6 +16886,17 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # (6) delegation: the Namespace carries EVERY rotate-self attribute (built
     # from the parsed args -- never a hand-built subset).
     ns = argparse.Namespace(**vars(args))
+    # (SL7.116) the started record seals the stops text's sha256 so a future
+    #     gate can read the RECORD instead of git (READ BY NOTHING YET).
+    try:
+        if getattr(ns, "stops", None):
+            import hashlib  # noqa: PLC0415
+            ns.stops_sha256 = hashlib.sha256(
+                str(ns.stops).strip().encode()).hexdigest()
+        else:
+            ns.stops_sha256 = None
+    except Exception:                        # noqa: BLE001  (never blocks rotate)
+        ns.stops_sha256 = None
     return cmd_rotate_self(ns, root)
 
 
