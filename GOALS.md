@@ -6650,6 +6650,8 @@ SL7.104 HARVESTED 21:16Z on the sensei-director post: ONE join gate for both rec
 
 SL7.102 HARVESTED 21:22Z on the sensei-director post (SL7.86 re-cut): the predecessor's spawn-time ack carries session_ref '' (it cannot know the harness ref), the empty {succ_ref} after_join ack entry is refused by SL7.73's name, cmd_ack refuses ANY uuid-shaped --ref by name, the tail test reads a REAL predecessor-written ack file (stub deleted), status prints session_ref '' as unset; kid proved 0.9. Rides SL2#27
 
+SL7.113 (Sensei 22:12Z (1)): rotate-self pushes and continues when the ONLY prepare blocker is unpushed commits — brief hypothesis:l4-rotate-self-pushes-and-continues-when-the-only-prepare-blocker-is-unpushed-commits; belam XVII paid 2 calls at 21:59Z for a push the refusal already named
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
