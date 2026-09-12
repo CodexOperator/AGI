@@ -1302,11 +1302,41 @@ def _user_turn_lines(path: Path) -> set[int]:
 
 
 def _snippet(cmd: str, width: int) -> str:
-    """First `width` chars of the command; a trailing `…` marks truncation."""
+    """First `width` chars of the command; a trailing `…` marks truncation.
+
+    Every run of whitespace (newline / carriage return / tab / multiple spaces)
+    is collapsed to ONE space BEFORE cutting, so a multi-line command always
+    prints as a single table row (hypothesis
+    :l4-sensei-calls-flattens-multi-line-commands-...).
+    """
     cmd = cmd or ""
+    cmd = " ".join(str(cmd).split())
     if width is None or width <= 0 or len(cmd) <= width:
         return cmd
     return cmd[:max(0, width - 1)] + "…"
+
+
+def _display_cmd(inp) -> str:
+    """The command column for a tool_use input: the first present key out of
+    command, file_path, pattern, path, notebook_path, to(+first 40 msg chars),
+    else a compact json dump; an empty input prints '-'. So a non-Bash tool
+    call (Read/Grep/Glob/Write/ListAgents/SendMessage) never prints an empty
+    command column (hypothesis:l4-sensei-calls-...-names-non-bash-tool-inputs).
+    """
+    if not isinstance(inp, dict):
+        return "-"
+    for key in ("command", "file_path", "pattern", "path", "notebook_path"):
+        if inp.get(key):
+            return str(inp[key])
+    if inp.get("to"):
+        base = str(inp["to"])
+        msg = inp.get("message")
+        if msg:
+            base += " " + str(msg)[:40]
+        return base
+    if not inp:
+        return "-"
+    return json.dumps(inp, separators=(",", ":"))
 
 
 def cmd_calls(args) -> int:
@@ -1333,6 +1363,10 @@ def cmd_calls(args) -> int:
     user_no = 0      # user-turn counter
     for line, tool, inp, ts in calls:
         n += 1
+        # the hi bound closes the window BEFORE any boundary is printed, so a
+        # user-turn boundary after the last printed call never appears
+        if hi is not None and n > hi:
+            break
         # a user text turn opened between the previous call and this one, and
         # only when the window is open (n within/near the --from boundary)
         if lo is None or n >= lo:
@@ -1342,11 +1376,8 @@ def cmd_calls(args) -> int:
         last_line = line
         if lo is not None and n < lo:
             continue
-        if hi is not None and n > hi:
-            break
-        cmd = inp.get("command", "") if isinstance(inp, dict) else ""
         ts = ts if ts is not None else "-"
-        print(f"{n} · {ts} · {tool} · {_snippet(cmd, width)}")
+        print(f"{n} · {ts} · {tool} · {_snippet(_display_cmd(inp), width)}")
     return 0
 
 
