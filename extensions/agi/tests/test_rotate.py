@@ -7167,23 +7167,30 @@ def test_own_row_cut_own_write_keeps_its_frontmatter_stamp(tmp_path):
 
 
 def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
-                                                     capsys):
-    """g15.26 claim (b) -- the send.py `--all-live` push-OK site: a keygen
-    --all-live pass that PUSHES the season branch completes a deferred
-    `<seat>.key.pending` swap for a seat whose committed row names exactly the
-    pending successor pubkey (origin just received it), via rotate's ONE shared
-    helper. A second seat's keyed change supplies the `--all-live` commit so
-    the push is real; the pending seat's committed row already carrying its own
-    pubkey means the completion is the pending swap, not a fresh mint."""
+                                                 capsys):
+    """g15.26 claim (b) -- RE-SEEDED to the REAL shape (SL7.44). The pending
+    seat `a` is ALREADY KEYED in HEAD's row (a live seat, so it OWNS a
+    `<seat>.key.pending` written when an earlier own-row push FAILED) and is
+    therefore SKIPPED by the `--all-live` walk -- it is NOT in the
+    keyed_names handed to `_commit_push_all_live` (only the freshly-keyed
+    seat `b` is). Pre-fix, the completion loop iterated `keyed_names` only,
+    so `a`'s deferred swap never completed and the pending file survived the
+    push. Post-fix, the completion loop runs rotate's ONE shared helper for
+    EVERY live row -- the already-keyed seat `a` -- and its deferred swap
+    completes even though this pass did not key it."""
     import send as bin_send
-    # seat `a` holds the deferred pending swap (HEAD row names pending pub).
+    # seat `a` holds the deferred pending swap and is ALREADY KEYED (live,
+    # committed row names the successor pubkey). seat `b` is the row this
+    # --all-live pass actually keys (fresh mint, keyed_names below).
     _ka, pred_pub = _mk_seat_key(tmp_path, "a")
     succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
     _write_seats_sheet(tmp_path, [
         {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
          "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
         {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
          "sig_scheme": "ed25519", "pubkey": pred_pub.hex()}])
     _init_git_remote(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "a.key.pending"
@@ -7195,13 +7202,18 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     # dirt seat `b`'s working row so the all-live commit has content to push.
     _write_seats_sheet(tmp_path, [
         {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
          "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
         {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
          "sig_scheme": "ed25519", "pubkey": succ_pub.hex()}])
-    out = bin_send._commit_push_all_live(tmp_path, ["a", "b"])
+    # the REAL shape: `a` is already keyed so it is NOT in keyed_names --
+    # only the freshly-keyed seat `b` is (production never hands `a` here).
+    out = bin_send._commit_push_all_live(tmp_path, ["b"])
     assert "push: OK" in out, out
-    # the pending swap completed through the all-live push-OK site.
+    # the deferred swap completed through the all-live push-OK site even
+    # though seat `a` was not keyed by this pass.
     assert not pend.exists()
     assert json.loads(bin_send._seat_key_path(tmp_path, "a").read_text())["priv_hex"] \
         == succ_priv.hex()
@@ -7213,6 +7225,41 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     assert "VERIFIED a (ed25519)" in out2, out2
     assert "FORGED" not in out2.split("alllive hello")[0]
     assert "RETIRED" not in out2.split("alllive hello")[0]
+
+
+def test_keygen_all_live_no_pending_never_touches_key(tmp_path):
+    """g15.26 claim (b) FALSIFIER guard: a live keyed seat with NO
+    `.key.pending` file is UNTOUCHED by the all-live push -- its `.key` bytes
+    are identical before and after. The completion loop runs rotate's helper
+    for EVERY live row, but that helper is a strict NO-OP ('' and not a byte
+    flipped) when no pending file exists, so looping a live row that neither
+    deferred a swap nor was keyed by this pass must leave its key exactly as
+    it was."""
+    import send as bin_send
+    _ka, pred_pub = _mk_seat_key(tmp_path, "a")
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()}])
+    _init_git_remote(tmp_path)
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "session_id": "s-a",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "session_id": "s-b",
+         "sig_scheme": "ed25519",
+         "pubkey": bin_send.seatsig.get("ed25519").keygen()[1].hex()}])
+    key_a = bin_send._seat_key_path(tmp_path, "a")
+    before = key_a.read_bytes()
+    out = bin_send._commit_push_all_live(tmp_path, ["b"])
+    assert "push: OK" in out, out
+    assert key_a.read_bytes() == before, \
+        "a live keyed seat without a pending file must be byte-identical " \
+        "after the all-live push"
 
 
 def test_own_row_cut_swapped_pair_keeps_own_added_line(tmp_path):
