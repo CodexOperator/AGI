@@ -6360,6 +6360,8 @@ SL5.08 harvested 23:52Z into the seat: a failed ack commit (git add or git commi
 
 2026-09-12T01:18Z mur-SL2.6-9 (Prime XIII 01:17Z): SL5.01 + SL5.08 ACCEPTED with residue — SL5.01's worktree SKIP closes with SL6.01; P2 recorded, not cut: the restored no-target assert is vacuous (runs before wake()); the dirty-gate comments misstate (an unstaged row is still refused on the next ack) — SL6.01's own-row-scoped gate rewrites that comment.
 
+2026-09-12T01:34Z 01:28Z OpenRouter 403 (workspace monthly cap) killed SL6.01's parent + kid 3 mid-belt; owner approved a new budget 01:4xZ (Prime XIII GO 01:31Z). Clause (1) SOURCE salvaged from the staged index and harvested on the seat (kids a00-4e91144c + a00-70cc82d2 lean:70, rotate 516 green): _commit_spawn_row commits under the ONE writer's tree (MAIN), _rotate_first_key's key cells ride _write_identity_cells. Clauses (2) belt + (3) small re-cut as SL6.09 on the same brief; kid 3's partial belt diff kept as a patch for it.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
