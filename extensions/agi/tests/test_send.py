@@ -5077,6 +5077,103 @@ def test_whois_sig_overlong_ref_reads_unverifiable(tmp_path, monkeypatch):
 
 
 
+def test_rows_none_committed_row_keyed_verifies_main_committed(
+        tmp_path, monkeypatch, capsys):
+    """SL7.26 (a) FALSIFIER, rows-is-None branch positive case: the PUSHED
+    set reads an EMPTY list, so `_load_rows` yields None and `_verify_block`
+    runs `_row_for_label(root, None, ...)` -- the branch no committed test
+    drove before (SL7.14's two-tree test carried a NON-EMPTY lagging pushed
+    set). MAIN's COMMITTED row IS keyed, so the signed block reads
+    `VERIFIED seat-a (ed25519, main-committed)` -- never FORGED, never
+    UNVERIFIABLE. (g15.26 clause (3) main-committed tag rides the fallback.)"""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519",
+          "pubkey": pub_a.hex(), "generation": 2}],
+        branch="season/s2")
+    # the PUSHED authority carries NO rows -> `_load_rows` returns None.
+    _stub_pushed(monkeypatch, ([], "deadbeef"))
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "FORGED" not in out, out
+    assert "UNVERIFIABLE" not in out, out
+
+
+def test_rows_none_and_no_committed_row_reads_unverifiable(
+        tmp_path, monkeypatch, capsys):
+    """SL7.26 (a) FALSIFIER, rows-is-None branch sibling case: the PUSHED set
+    reads EMPTY (rows None) AND MAIN's committed rows hold no seat-a -- the
+    signed block reads `UNVERIFIABLE (no row: seat-a)`, NEVER FORGED. This is
+    the missing negative for the rows-None branch: prior tests only drove an
+    explicit single-row pushed set into `_row_for_label`."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, _pub_a = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-other", "generation": 9}],
+        branch="season/s2")
+    _stub_pushed(monkeypatch, ([], "deadbeef"))
+    _seat_key_write(root, "seat-a", priv_a.hex())
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNVERIFIABLE (no row: seat-a)" in out, out
+    assert "FORGED" not in out, out
+    assert "REFUSED" not in out, out
+
+
+def _recursive_session_snapshot(project):
+    """Every file under `<proj>/.agi/sessions`, path -> raw bytes. THE
+    RECURSIVE view the old `inbox.iterdir()` (SL7.14) could not give: a file
+    written one directory down (e.g. under `inbox/quarantine/`) is caught, and
+    so is a file planted anywhere else in the sessions tree."""
+    base = project / ".agi" / "sessions"
+    out = {}
+    if not base.exists():
+        return out
+    for p in sorted(base.rglob("*")):
+        if p.is_file():
+            out[str(p.relative_to(base))] = p.read_bytes()
+    return out
+
+
+def test_whois_sig_unresolvable_path_traversal_refs_write_nothing_recursive(
+        tmp_path, monkeypatch):
+    """SL7.26 (b) ONE integration test that drives `whois --sig` with an
+    unresolvable session_ref carrying path-traversal bytes -- `../`, a NUL
+    byte, and a 300-char name. Each reads `UNVERIFIABLE (no row: <ref>)`,
+    never FORGED, never REFUSED; and a RECURSIVE before/after diff of the
+    whole sessions tree is EMPTY (nothing written, neither under
+    `inbox/quarantine/` nor anywhere else in the tree)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    refs = ("../../x", "z\x00ploit", "x" * 300)
+    for raw in refs:
+        before = _recursive_session_snapshot(project)
+        rc, text = send_mod.whois(project, raw, claim="seat-a",
+                                  source="refs/x", do_fetch=False,
+                                  sig_line=sig_line, msg_text=canonical)
+        after = _recursive_session_snapshot(project)
+        assert f"UNVERIFIABLE (no row: {raw})" in text, (raw, text)
+        assert "FORGED" not in text, (raw, text)
+        assert "REFUSED" not in text, (raw, text)
+        assert rc != 2, (raw, rc)   # no FORGED refusal => never the hard exit
+        assert before == after, \
+            f"an unresolvable traversal ref writes nothing: {raw}"
+
+
 def test_sanitize_ref_accepts_and_refuses_bounds():
     """Unit-level bound for _sanitize_ref: keeps [A-Za-z0-9._-], accepts 1-64
     chars, and REFUSES (exit 2) on empty or >64 sanitized length."""
