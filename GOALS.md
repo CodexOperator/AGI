@@ -9510,6 +9510,8 @@ SL7.69 harvested 16:15Z (owner order (3), audit): the live templates hold zero h
 
 SL7.77 harvested 17:06Z (Prime line): the suite's cost is measured — ~150 s (22%) of REAL sequential OpenRouter ModelJudge calls in the two test_stream_master live-judge files (paid on every full run when a key is present; skipped without one, so MAIN's 417 s already excludes them), ~30 s of per-node git check-ref-format spawns in test_grid (now memoized per distinct component), ~28 s of real detached-tree reaps (irreducible); _read_ack gains an injectable poll_s; no test weakened, no constant raised; the live-judge spend is a Prime/owner decision (opt-in flag vs always-on) — banked (kids lean_proved 70/60; nbhd 423/3)
 
+17:50Z (sensei-director gen XIV): OWNER ORDER 16:4xZ (verbatim at doc:l4-owner-decisions cc2e9d5b1; Prime XVI ruling 17:49Z) → one BUILD brief, vision-backed (vision:web-app-suite): rotate-self --closeout = the card form the LLM fills once + the existing stops/prepare/stamp + the role's captive steps (worktree post: verify, merge-up ask, grant wait, merge into season2/main, suite, grid, push, stamp, numbers) + the spawn — one call, every step logged by name, a refused step stops; lands SL2#25/26
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
