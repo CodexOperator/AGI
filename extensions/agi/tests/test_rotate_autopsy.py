@@ -473,6 +473,31 @@ def test_spawn_refuses_live_pid_and_leaves_pin_ack_untouched(
     assert ack.read_text(encoding="utf-8") == "SENTINEL-ACK"
 
 
+def test_spawn_refuses_live_pid_over_dead_row(tmp_path, monkeypatch, capsys):
+    """CLAIM (2) — the gate reads the SINGLE pred_pid (`--pid` when given,
+    else the row). A `--pid` naming a LIVE process is refused by the gate even
+    when the seat row's pid is DEAD — the gate and the autopsy share one
+    source and cannot disagree (hypothesis:l4-after-join-keys-on-the-records-
+    window-id-and-the-spawn-gate-and-autopsy-share-one-pid). Before the fix the
+    gate read only the dead row pid and let the live `--pid` through."""
+    root, reg, _tp = _fixture(tmp_path, seat="pidseat")  # row pid is DEAD_PID
+    _run_fake_git(monkeypatch)
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **k: (_ for _ in ()).throw(
+            AssertionError("spawn_window must never run for a live --pid")))
+
+    base = dict(name="pidseat", tier="parent", prompt_file=None, model=None,
+                effort=None, settings=None, successor_argv=None, seat="pidseat",
+                tmux_session="t", window_path=None, dry_run=False,
+                registry_dir=str(reg), no_autopsy=False, pid=os.getpid())
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "pidseat" in err and "alive" in err
+    assert f"pid {os.getpid()}" in err
+
+
 def test_spawn_refuses_alive_window_for_seat(tmp_path, monkeypatch, capsys):
     """A dead row pid but a LIVE tmux window for the seat (window_path seam)
     is the SAME liveness read the autopsy uses — refused by name before any

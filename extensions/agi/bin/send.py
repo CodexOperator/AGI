@@ -424,6 +424,7 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
                 "passed)", file=sys.stderr)
             return None
         results: list[Path] = []
+        keyed_names: list[str] = []
         new_rows = [dict(r) for r in rows]
         wrote_any = False
         for row in rows:
@@ -446,9 +447,17 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
                     nr["enc_scheme"] = nr.get("enc_scheme") or "none"
             print(f"keyed {name} {seatsig.fingerprint(pub)}")
             results.append(path)
+            keyed_names.append(name)
             wrote_any = True
         if wrote_any:
             _row_write_submit(graph, new_rows, actor=actor, role=role)
+            # clause (2): each keyed row's own-hunk commit + push through
+            # SL6.01's helper; the first commit lands the whole write, the
+            # rest skip (already clean). Never fails the keygen.
+            _by = {r["name"]: r for r in new_rows if r.get("name")}
+            for keyed in keyed_names:
+                _commit_push_seat_row(root, _by.get(keyed, {}) or {},
+                                      keyed, "keygen --all-live")
         return results
     minted = _mint_seat_key(root, seat, scheme_name)
     if minted is None:
@@ -471,7 +480,42 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
         own["sig_scheme"] = scheme_name
         own["enc_scheme"] = own.get("enc_scheme") or "none"
         _row_write_submit(graph, new_rows, actor=actor, role=role)
+        # clause (2): keygen commits its own-row hunk and pushes, like every
+        # key-cell writer, through SL6.01's `_commit_spawn_row` + the push
+        # leg. Best-effort; a refused commit/push never fails the mint.
+        _commit_push_seat_row(root, own, seat, "keygen")
     return _path
+
+
+def _commit_push_seat_row(root: Path, row: dict, seat: str,
+                          origin: str) -> None:
+    """CLAUSE (2) commit+push for a key-cell writer's own-row write.
+    Commits the seat's own-row hunk as ONE pathspec commit on MAIN's season
+    branch through SL6.01's `rotate._commit_spawn_row` (never a second copy)
+    and pushes that branch via its push leg. Best-effort, never raises,
+    never fails the mint: a refused commit or push prints one note line to
+    stderr and the key stays minted."""
+    try:
+        import rotate  # local: same dir (send.py pattern, no import cycle)
+    except Exception as exc:  # noqa: BLE001
+        print(f"note: {origin} row commit/push skipped ({exc})",
+              file=sys.stderr)
+        return
+    def _int(v):
+        try:
+            return int(v or 0)
+        except (TypeError, ValueError):
+            return 0
+    try:
+        out = rotate._commit_spawn_row(
+            root, seat=seat, generation=_int(row.get("generation")),
+            session_id=str(row.get("session_id") or ""),
+            window=str(row.get("window") or ""),
+            pid=_int(row.get("pid")))
+        print(f"note: {out.splitlines()[0]}", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001
+        print(f"note: {origin} row commit/push skipped ({exc})",
+              file=sys.stderr)
 
 
 def _quorum_caller() -> bool:
@@ -2048,13 +2092,96 @@ def _load_rows(root: Path) -> list | None:
     """The seat rows, through the SAME resolver whois uses: the PUSHED ref
     first, then the working-tree rows as the fallback. Returns None when
     neither yields any rows -- a reader then labels any sig FORGED rather
-    than guessing."""
+    than guessing.
+
+    hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row...
+    CLAUSE (1): a PUSHED row that names NO key cell (no ``pubkey`` or no
+    ``sig_scheme``) falls back per-seat to the SAME seat's COMMITTED row in
+    MAIN's HEAD (``git show HEAD:<seats.md>`` at the shared graph root --
+    never the dirty working copy, never ``_locally_loaded_rows``), so a
+    freshly keyed/rotated post's signed dms verify instead of reading
+    UNKEYED/FORGED until the hourly push. A pushed row that DOES name a key
+    stays authoritative (a stale MAIN key never overrides origin)."""
     seeded = _pushed_seats(root, _PUSHED_SEATS, True)
     if seeded is not None:
         rows, _sha = seeded
+        if rows:
+            return _merge_main_committed_keys(root, rows)
+        rows = _locally_loaded_rows(root)
         return rows or None
     rows = _locally_loaded_rows(root)
     return rows or None
+
+
+def _in_git_repo(root: Path) -> bool:
+    """Filesystem-only probe (NEVER a subprocess — the send test guard
+    forbids non-tmux subprocess calls under test): True when ``root``'s tree
+    is inside a git work tree (a ``.git`` file or dir walking up). Exists so
+    the committed-row fallback short-circuits on a gitless root/fixture
+    without spawning git."""
+    cur = Path(root)
+    while True:
+        if (cur / ".git").exists():
+            return True
+        parent = cur.parent
+        if parent == cur:
+            return False
+        cur = parent
+
+
+def _seats_committed_rows(root: Path) -> list:
+    """MAIN's COMMITTED seat rows -- ``git show HEAD:<seats.md>`` at MAIN's
+    graph root. The per-seat fallback authority for a PUSHED row that names
+    no key cell. Reads the BLOB from HEAD (never the dirty working copy),
+    so a key that is committed but not yet pushed is still the authority
+    for an unkeyed pushed row. Returns [] when the committed content cannot
+    be read (no repo, no blob, not a path git addresses)."""
+    if not _in_git_repo(root):
+        return []
+    seats = _shared_seats_path(root)
+    top = _run_git(root, ["rev-parse", "--show-toplevel"])
+    if top is None or top.returncode != 0:
+        return []
+    try:
+        top_path = Path(top.stdout.strip())
+        rel = seats.resolve().relative_to(top_path.resolve())
+    except (ValueError, OSError):
+        return []
+    shown = _run_git(root, ["show", f"HEAD:{rel}"])
+    if shown is None or shown.returncode != 0:
+        return []
+    return _load_seats_rows(shown.stdout)
+
+
+def _merge_main_committed_keys(root: Path, pushed: list) -> list:
+    """CLAUSE (1) merge: a pushed row that names no key cell (no ``pubkey``
+    or no ``sig_scheme``) inherits the key cells of the SAME seat's COMMITTED
+    row in MAIN's HEAD -- per-seat, never the dirty working copy. A pushed
+    row that DOES name a key stays authoritative. The inheriting row is
+    tagged ``_main_committed`` so the label site can name the authority
+    (clause 3). Never raises."""
+    committed = _seats_committed_rows(root)
+    if not committed:
+        return pushed
+    by_name = {r.get("name"): r for r in committed if r.get("name")}
+    if not by_name:
+        return pushed
+    out: list = []
+    for r in pushed:
+        nr = dict(r)
+        nr.pop("_main_committed", None)
+        name = nr.get("name")
+        if not (nr.get("pubkey") and nr.get("sig_scheme")) and name:
+            main_row = by_name.get(name)
+            if main_row:
+                for cell in ("pubkey", "sig_scheme", "enc_scheme",
+                             "key_history"):
+                    if not nr.get(cell) and main_row.get(cell):
+                        nr[cell] = main_row[cell]
+                if nr.get("pubkey") or nr.get("sig_scheme"):
+                    nr["_main_committed"] = True
+        out.append(nr)
+    return out
 
 
 def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
@@ -2143,8 +2270,20 @@ def _verify_block(root: Path, rows: list | None,
         return "FORGED"
     msg = _canonical_msg(meta.get("ts", ""), meta.get("from", ""),
                          meta.get("to", ""), text).encode()
-    return _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
-                          row.get("name", meta.get("from", "?")))
+    label = _label_for_sig(row, sig_scheme, fp, sig_bytes, msg,
+                           row.get("name", meta.get("from", "?")))
+    # Clause (3): when `_load_rows` fell back to MAIN's COMMITTED row for an
+    # unkeyed pushed row, name the authority on the VERIFIED line. The
+    # `_label_for_sig` verdict logic itself is untouched (SL6.03); this only
+    # appends the provenance tag the merge recorded.
+    if row.get("_main_committed") and label.startswith("VERIFIED"):
+        # the authority tag sits INSIDE the scheme parens (clause 3: a
+        # ``VERIFIED <seat> (<scheme>, main-committed)`` label).
+        if label.endswith(")"):
+            label = label[:-1] + ", main-committed)"
+        else:
+            label += ", main-committed"
+    return label
 
 
 def _labels_for_blocks(root: Path, blocks: list[str]) -> list[str]:
