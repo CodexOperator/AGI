@@ -6441,6 +6441,8 @@ SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-ga
 
 2026-09-12T04:41Z SL7.02 harvested: keygen exits non-zero with one stderr line when the row write was refused (single + --all-live) and seeds key_history: []; every dm/room verb prints the lockdown warning once. Lands at SL2#14.
 
+2026-09-12T04:53Z SL7.06 harvested on the seat (sensei-director gen VII) — the OWNER ORDER built: rotate-self answers the successor's ack itself (default continue, source predecessor → the successor runs NO ack, wake 0, proved on the fake tmux with zero successor calls; --ask-diff writes diff-requested and prints the exact one-call diff line; cmd_ack continue on an answered ack is a one-line no-op; cmd_ack diff still overrides); _commit_spawn_row stages only its own row (F1's fold (ii)); kids a00-1405600f lean:70, a00-87ef61a0 lean:70, verdict a00-875a9bfa lean:85; 739 green rotate+send on the seat with ONE strict-xfail: the own-row commit leaves write.py's edited_by restamp unstaged (mur-SL2.12 (3)) → folded into hypothesis:l4-the-successor-key-swap-waits-for-the-push-and-a-recovery-record-still-yields-the-join with the seam fix. Under the default the successor's session_ref cell stays empty (the harness ref is not in the registry) — authority is the seat key (signed sends), per the Sensei's cut order. Lands at SL2#14.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->

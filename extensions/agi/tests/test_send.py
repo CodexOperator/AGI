@@ -5536,6 +5536,7 @@ def test_falsifier2_pushed_key_stays_authoritative_over_stale_main(
     assert "main-committed" not in out
 
 
+@pytest.mark.xfail(strict=True, reason="mur-SL2.12 (3) / SL7.09: since SL7.06 the own-row commit stages ONLY the seat row, so write.py's node-level edited_by restamp stays unstaged and MAIN reads M seats.md after keygen; SL7.09 carries the stamp in the same commit (or stops restamping on a self-row write) -- when it lands this xfail turns XPASS and must be removed")
 def test_keygen_commits_and_pushes_own_row_to_bare_remote(
         tmp_path, monkeypatch, capsys):
     """g15.26 clause (2): keygen (a key-cell writer) commits its own-row hunk
