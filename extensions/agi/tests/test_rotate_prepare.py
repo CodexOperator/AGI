@@ -19,6 +19,7 @@ versa) fails these tests.
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -227,6 +228,7 @@ def test_rotate_self_refuses_on_dirty_with_same_line(
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **unpushed, **ok}))
     _stale_pin(prep_root)
+    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
     rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
     err = capsys.readouterr().err
     assert rc == 3
@@ -329,6 +331,38 @@ def test_prepare_check5_clear_line_names_pin_file_and_clears_when_run(
     assert "[ok] meter pin stale" in out3
 
 
+def test_prepare_check5_clear_line_prefers_row_transcript_over_stale_pin(
+        prep_root, capsys, monkeypatch):
+    """P1-d falsifier: when check 5 BLOCKS (a STALE pin — another
+    generation's by definition), the clear line names the config:seats ROW's
+    transcript (resolved the way the meter does, from session_id + cwd), and
+    NEVER the stale pin's recorded written_path. The old order filled
+    known_transcript from the pin FIRST, so a predecessor's stale pin named
+    the WRONG transcript for the re-point."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    row = {"name": "adv-alive", "role": "parent", "generation": 3,
+           "worktree": "", "cwd": str(prep_root / "seat-hub"),
+           "session_id": "row-sess-001"}
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        encoding="utf-8")
+    # the pin is STALE: records generation 2, the row owns generation 3
+    pin = prep_root / "sessions" / "adv-alive.meter"
+    pin.write_text("2\t/some/predecessor.jsonl\n", encoding="utf-8")
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] meter pin stale" in out
+    # row-derived transcript, never the stale pin's predecessor path
+    row_transcript = rotate.transcript_from_registry_dict(row)
+    assert row_transcript
+    assert "/some/predecessor.jsonl" not in out
+    assert row_transcript in out
+    assert "--session-log" in out
+
+
 def test_prepare_blocks_when_ack_is_from_older_generation(
         prep_root, capsys, monkeypatch):
     """Same row-first authority for the ack: row generation 2 while the ack
@@ -372,6 +406,7 @@ def test_rotate_self_still_refuses_with_window_path_set(
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **ok}))
+    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
     rc = rotate.cmd_rotate_self(_rotate_self_args(window_path="/tmp/fake.txt"),
                                 prep_root)
     err = capsys.readouterr().err
@@ -599,7 +634,9 @@ def test_rotate_self_perform_merge_during_prepare_gate(
     """rotate-self's own `--prepare` is the SAME checklist but with `--perform`
     DEFAULTED ON (rotate-self's gate performs the only-behind merge). A clean,
     behind-by-2 tree through the rotate-self path prints the performed line
-    and exit 0 — the mechanical merge costs zero tool calls."""
+    and exit 0 — the mechanical merge costs zero tool calls. The seat must be
+    REGISTERED (R1 registry gate in the --prepare path)."""
+    _seat_row(prep_root, 3)            # R1 registry gate needs a registered seat
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map(_merge_seam(prep_root)))
     monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
@@ -609,3 +646,199 @@ def test_rotate_self_perform_merge_during_prepare_gate(
     out = capsys.readouterr().out
     assert rc == 0, out
     assert "[ok] behind origin/season/s2 (2) — merged abc1234" in out
+
+
+# =====================================================================
+# P2-a (SL5.06): the real merge gate + abort path on a LIVE git fixture.
+# `_merge_applies_clean` / `_merge_conflict_paths` / `_perform_season_merge`
+# are patched out in every committed test; these run the REAL merge-tree
+# gate and the REAL merge against a real two-branch repo -- nothing about
+# the merge is monkeypatched. The assertions are on what actually merged
+# (HEAD advanced past the season commit, the season file is present), so a
+# gate patched out fails them.
+# =====================================================================
+
+
+def _git(cwd, *args):
+    """Run git in the fixture repo; raise on failure."""
+    return subprocess.run(["git", "-C", str(cwd), *args],
+                          check=True, capture_output=True, text=True)
+
+
+def _real_repo(prep_root, conflict):
+    """A REAL git worktree whose only-behind branch (`origin/season/s2`)
+    merges into the checked-out `seat/x` branch CLEANLY (conflict=False) or
+    with a conflict on `f.txt` (conflict=True). The merge-tree gate, the
+    merge, the refs and the abort all run against the LIVE repo -- the
+    fixture graph seed (meter pin, card, handoff) is committed in the base
+    commit and the card is re-touched after the last commit so its mtime is
+    fresh (check 4). Returns the repo root."""
+    root = prep_root
+    _git(root, "init", "-q")
+    _git(root, "config", "user.email", "test@example.com")
+    _git(root, "config", "user.name", "test")
+    _git(root, "config", "commit.gpgsign", "false")
+    (root / "base.txt").write_text("base\n", encoding="utf-8")
+    _git(root, "add", "-A")          # base.txt + the fixture graph seed
+    _git(root, "commit", "-qm", "base")
+    base = _git(root, "rev-parse", "HEAD").stdout.strip()
+    # season/s2 — ONE commit ahead of the merge-base
+    _git(root, "checkout", "-qb", "season/s2", base)
+    if conflict:
+        (root / "f.txt").write_text("season\n", encoding="utf-8")
+    else:
+        (root / "season.txt").write_text("season\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "season work")
+    _git(root, "update-ref", "refs/remotes/origin/season/s2", "HEAD")
+    # seat/x — ONE commit ahead of the merge-base, diverged
+    _git(root, "checkout", "-qb", "seat/x", base)
+    (root / "seat.txt").write_text("seat\n", encoding="utf-8")
+    if conflict:
+        (root / "f.txt").write_text("seat\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "seat work")
+    _git(root, "update-ref", "refs/remotes/origin/seat/x", "HEAD")
+    _git(root, "config", "branch.seat/x.remote", "origin")
+    _git(root, "config", "branch.seat/x.merge", "refs/heads/seat/x")
+    # the card must be NEWER than the last commit (check 4)
+    (root / "sessions" / "quorum" / "adv-alive.md").write_text(
+        "# SESSION HANDOFF — fixture\n\n## §3 🔴 NEXT COMMAND\nbash next\n",
+        encoding="utf-8")
+    return root
+
+
+def test_prepare_perform_merge_same_ref_clean_real_fixture(
+        prep_root, capsys):
+    """P2-a clean: `prepare --perform` on a real repo where the only-behind
+    branch merges cleanly runs the REAL merge-tree gate and MERGES the freshly-
+    fetched SAME ref: the line names the merged sha, exit 0, HEAD advanced
+    past the season commit and the season file is in the tree."""
+    root = _real_repo(prep_root, conflict=False)
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] behind origin/season/s2 (1) — merged" in out
+    assert "[BLOCK]" not in out
+    # the merge actually landed: HEAD moved past the seat-work commit and
+    # the season file is present (a patched-out gate fails these)
+    assert _git(root, "rev-parse", "HEAD").stdout.strip() \
+        != _git(root, "rev-parse", "origin/seat/x").stdout.strip()
+    assert "season.txt" in _git(root, "ls-files").stdout
+    assert _git(root, "status", "--porcelain").stdout.strip() == ""
+
+
+def test_prepare_perform_conflict_blocks_real_fixture(prep_root, capsys):
+    """P2-a conflict: `prepare --perform` on a real repo where the only-behind
+    branch conflicts on `f.txt` runs the REAL merge-tree gate -> BLOCK naming
+    f.txt, exit 3, and NO merge was started (working tree untouched, no
+    MERGING state, HEAD did not move)."""
+    root = _real_repo(prep_root, conflict=True)
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] behind origin/season/s2 (1) — merge conflicts:"
+            " f.txt") in out
+    assert "merged" not in out
+    # no half-merge: no MERGING state, no conflict markers left, HEAD unmoved
+    assert "MERGING" not in _git(root, "status").stdout
+    assert _git(root, "diff", "--name-only").stdout.strip() == ""
+    assert _git(root, "log", "-1", "--format=%s").stdout.strip() \
+        == "seat work"
+
+
+def test_prepare_perform_season_merge_aborts_live_conflict(prep_root):
+    """P2-a abort path: the REAL `_perform_season_merge` on the conflicting
+    repo — the actual `git merge` CONFLICTS, so the function must run
+    `git merge --abort` and return None, leaving the tree clean (never a
+    half-merge). No gate is monkeypatched."""
+    root = _real_repo(prep_root, conflict=True)
+    sha = rotate._perform_season_merge(root, "season/s2")
+    assert sha is None                     # the merge did not land
+    # the half-merge was aborted: no MERGING state, no conflict markers
+    assert "MERGING" not in _git(root, "status").stdout
+    assert _git(root, "diff", "--name-only").stdout.strip() == ""
+    assert _git(root, "log", "-1", "--format=%s").stdout.strip() \
+        == "seat work"
+
+
+def _master_with_season_repo(prep_root):
+    """A REAL git repo CHECKED OUT ON `master` with a `season/s2` branch
+    present ONE commit ahead — the state the branch guard MUST refuse a
+    `--perform` on, rather than merge season INTO master. (The process cwd
+    branches the guard on, so the caller chdir's into it.)"""
+    root = prep_root
+    _git(root, "init", "-q")
+    _git(root, "config", "user.email", "test@example.com")
+    _git(root, "config", "user.name", "test")
+    _git(root, "config", "commit.gpgsign", "false")
+    (root / "base.txt").write_text("base\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "base")
+    base = _git(root, "rev-parse", "HEAD").stdout.strip()
+    # season/s2 — ONE commit ahead; master stays checked out
+    _git(root, "checkout", "-qb", "season/s2", base)
+    (root / "season.txt").write_text("season\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "season work")
+    _git(root, "checkout", "-q", "master")
+    return root
+
+
+def test_prepare_perform_refuses_on_master_before_merge(
+        prep_root, capsys, monkeypatch):
+    """P1-b falsifier: `prepare --perform` on a repo checked out on master
+    with a season branch present REFUSES with the branch-guard text and exit
+    1 BEFORE any merge — it must never MERGE season INTO master. The guard
+    reads the process cwd's branch, so we chdir into the fixture."""
+    root = _master_with_season_repo(prep_root)
+    monkeypatch.chdir(root)
+    head_before = _git(root, "rev-parse", "HEAD").stdout.strip()
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "rotate refuses to run on master" in err
+    assert "season/s2" in err
+    # no merge: HEAD on master did not advance, the season file is absent
+    assert _git(root, "rev-parse", "HEAD").stdout.strip() == head_before
+    assert "season.txt" not in _git(root, "ls-files").stdout
+
+
+def test_rotate_self_unregistered_name_refuses_without_merge(
+        prep_root, capsys, monkeypatch):
+    """P1-c falsifier: rotate-self `--name <unregistered>` on a behind,
+    mergeable repo refuses `no seat` with exit 1 and NO merge performed — the
+    registry gate runs BEFORE the prepare/perform step, so a behind worktree
+    does not merge a commit as a side effect before refusing. The fixture has
+    NO `nodes/.geometry/seats.md`, so every name incl. `ghost` is unregistered."""
+    root = _real_repo(prep_root, conflict=False)  # on seat/x, season/s2 behind, clean merge
+    monkeypatch.chdir(root)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(name="ghost"), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "no seat 'ghost'" in err
+    # no merge landed: HEAD did not move and the season file is absent
+    assert "season.txt" not in _git(root, "ls-files").stdout
+    assert _git(root, "status", "--porcelain").stdout.strip() == ""
+
+
+def test_rotate_self_prepare_unregistered_name_refuses_without_merge(
+        prep_root, capsys, monkeypatch):
+    """R1 falsifier: `rotate-self --prepare --name <unregistered>` on a
+    behind, mergeable repo REFUSES `no seat` BEFORE any merge. cmd_prepare
+    (which the --prepare path delegates to) has NO registry check of its own,
+    and --prepare sets perform = not dry_run — so without a registry gate in
+    the --prepare path an unregistered name would MERGE a commit as a side
+    effect before refusing. The fixture has NO seats.md, so `ghost` is
+    unregistered; the clean behind branch would merge if the gate were absent."""
+    root = _real_repo(prep_root, conflict=False)
+    monkeypatch.chdir(root)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(name="ghost", prepare=True),
+                                root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "no seat 'ghost'" in err
+    # no merge landed: HEAD did not move and the season file is absent
+    assert "season.txt" not in _git(root, "ls-files").stdout
+    assert _git(root, "status", "--porcelain").stdout.strip() == ""
+
