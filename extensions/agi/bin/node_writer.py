@@ -297,6 +297,27 @@ def _scalar(v) -> str:
     return sval
 
 
+# YAML 1.1 treats these three code points as line breaks. Inside the
+# JSON-in-YAML double-quoted string that a list-of-dict entry renders to,
+# json.dumps(..., ensure_ascii=False) emits U+0085 (NEL), U+2028 (LINE
+# SEPARATOR) and U+2029 (PARAGRAPH SEPARATOR) LITERALLY, and PyYAML folds
+# NEL to a space on the next read — one code point lost through a serializer
+# that is lossless for every other non-ASCII character. JSON does not require
+# these to be escaped (they are valid inside a JSON string), but `\u0085`,
+# `\u2028`, `\u2029` are equally valid JSON escapes, stay inside the one
+# scalar, and read back to the same code points. Escape only these three;
+# every other non-ASCII code point stays literal.
+_YAML_LINEBREAK_ESCAPES = {chr(0x85): "\\u0085", chr(0x2028): "\\u2028", chr(0x2029): "\\u2029"}
+
+
+def _escape_yaml_linebreaks(jtext: str) -> str:
+    """Post-process a json.dumps output so no YAML line-break code point is
+    emitted literally inside the scalar."""
+    for cp, esc in _YAML_LINEBREAK_ESCAPES.items():
+        jtext = jtext.replace(cp, esc)
+    return jtext
+
+
 def _render_value(key: str, v, indent: str = "") -> list[str]:
     """One `key: value` entry, recursing into lists and **mappings**.
 
@@ -334,8 +355,10 @@ def _render_value(key: str, v, indent: str = "") -> list[str]:
             if isinstance(i, (dict, list, tuple)):
                 # A list of containers has no single-line spelling here, and
                 # inventing one would be another silent lossy branch. JSON is
-                # valid YAML and round-trips exactly.
-                out.append(f"{indent}  - {json.dumps(i, ensure_ascii=False)}")
+                # valid YAML and round-trips exactly — but YAML 1.1 reads
+                # U+0085/U+2028/U+2029 as line breaks, so they are escaped
+                # explicitly inside the JSON rather than emitted literally.
+                out.append(f"{indent}  - {_escape_yaml_linebreaks(json.dumps(i, ensure_ascii=False))}")
             else:
                 out.append(f"{indent}  -" if i is None
                            else f"{indent}  - {i}")
