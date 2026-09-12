@@ -4856,8 +4856,9 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     The preamble is every line before the first `## ` header (the single-`#`
     title, a carried owner rule, blank lines) — CARRIED VERBATIM, never
     dropped. Sections split on lines starting with `## `; each header keeps
-    its `## ` prefix and its body is the lines below up to the next `## `
-    (leading/trailing blank trimmed)."""
+    its `## ` prefix and its body is the exact raw span of lines below it up
+    to the next `## ` (`_section_body`), so a re-join loses NO section-
+    boundary blank line (goal:g15.25 residue (i))."""
     preamble: list[str] = []
     sections: list[tuple[str, str]] = []
     header: str | None = None
@@ -4865,7 +4866,7 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     for ln in text.splitlines():
         if ln.startswith("## "):
             if header is not None:
-                sections.append((header, "\n".join(body).strip()))
+                sections.append((header, _section_body(body)))
             header = ln
             body = []
         else:
@@ -4874,8 +4875,37 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
             else:
                 body.append(ln)
     if header is not None:
-        sections.append((header, "\n".join(body).strip()))
+        sections.append((header, _section_body(body)))
     return "\n".join(preamble), sections
+
+
+def _section_body(raw_lines: list[str]) -> str:
+    """The EXACT raw span of a `## ` section's body from its collected lines.
+
+    `raw_lines` is the line list between this header and the next `## `
+    header (or EOF): blank LINE separators are `""` entries, and the EOL
+    newline that always precedes the next header line is the trailing
+    `"\n"` this appends. This makes `_split_card_sections` + `_render_card`
+    an EXACT inverse at section boundaries, so the stops writer re-emits
+    the blank line(s) that separated sections instead of stripping them
+    (goal:g15.25 residue (i)). An `""`-only span (a blank line between two
+    headers with no body) decodes back to ONE blank via `splitlines()`
+    below, and an empty section stays empty."""
+    return "\n".join(raw_lines) + "\n"
+
+
+def _join_body(lines: list[str]) -> str:
+    """Join a rebuilt section-body line list back into a body STRING,
+    keeping a trailing blank line (a final `""` element) visible to
+    `_render_card`'s `body.splitlines()` — the inverse of `_section_body`.
+    A bare `"\n".join` flattens a terminal `""` to a single newline, so a
+    section's trailing blank (the separator before the next `## ` header)
+    would otherwise be lost on replace; this restores it (goal:g15.25
+    residue (i), the `###`-path and `##`-path rebuilds)."""
+    body = "\n".join(lines)
+    if lines and lines[-1] == "":
+        body += "\n"
+    return body
 
 
 def _render_card(preamble: str,
@@ -10647,6 +10677,40 @@ def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _fence_run(ln: str) -> int:
+    """Length of the backtick fence run on `ln`, or 0 when it is not a
+    CommonMark fence line. A fence line is optional leading whitespace then
+    a run of >= 3 backticks (the opener may carry a trailing info string,
+    the closer is backticks alone). Returns the run length so a length-aware
+    scan can pair the OUTER fence and let an inner (shorter) fence survive
+    as content (goal:g15.25 residue (iii))."""
+    s = ln.strip()
+    if not s.startswith("`"):
+        return 0
+    n = 0
+    for ch in s:
+        if ch == "`":
+            n += 1
+        else:
+            break
+    return n if n >= 3 else 0
+
+
+def _fence_for(stops_text: str) -> str:
+    """The fence string that wraps `stops_text`: a run of backticks LONGER
+    than every code fence already inside it, three by default. CommonMark
+    closes a fence with the next run >= the opener, so an inner fence one
+    shorter never closes the block (goal:g15.25 residue (iii)) — a stops
+    text carrying its own ``` nests inside a four-backtick (or longer)
+    outer fence and pairs correctly on the next write."""
+    inner = 3
+    for ln in stops_text.splitlines():
+        n = _fence_run(ln)
+        if n >= inner:
+            inner = n + 1        # outer must EXCEED every inner fence run
+    return "`" * inner
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -10655,10 +10719,12 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     so a slot written fresh and one filled over an existing block take an
     identical shape, and the exterior prose of an existing slot that sits
     OUTSIDE the fence is carried verbatim by the callers. The fence is
-    always part of the block, so a stops text that itself carries a ```
-    fence nests cleanly instead of being spliced between someone else's
-    delimiters (goal:g15.25 line (3))."""
-    out = "```\n" + stops_text.rstrip("\n") + "\n```"
+    always part of the block; a stops text that itself carries a ```
+    fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
+    rule) so the inner fence is content, never a delimiter (goal:g15.25
+    line (3), residue (iii))."""
+    fence = _fence_for(stops_text)
+    out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
         out += f"\n\ndiff requested: {diff_gap}"
     return out
@@ -10676,18 +10742,32 @@ def _stops_replace_fenced_region(lines: list[str], block: str):
     text carrying its own fence would interlock with)."""
     fence_i = None
     for i, ln in enumerate(lines):
-        if ln.strip().startswith("```"):
+        if _fence_run(ln) >= 3:
             fence_i = i
             break
     if fence_i is None:
         return None
+    opener = _fence_run(lines[fence_i])
     close_i = None
+    # CommonMark closes on the first fence run >= the opener — so with a
+    # longer outer fence the inner (shorter) fences are content and only the
+    # real closer (run >= opener) pairs (goal:g15.25 residue (iii)).
     for i in range(fence_i + 1, len(lines)):
-        if lines[i].strip().startswith("```"):
+        if _fence_run(lines[i]) >= opener:
             close_i = i
             break
     if close_i is None:
         close_i = len(lines) - 1
+    # the rendered block trails a `diff requested:` line after the close
+    # fence; a re-write must REPLACE (never stack) the previous block's
+    # trailer, so extend the replaced region over an optional blank + one
+    # such trailer line (goal:g15.25 residue (ii)).
+    tail = close_i + 1
+    if tail < len(lines) and lines[tail].strip() == "":
+        tail += 1
+    if (tail < len(lines)
+            and lines[tail].lstrip().startswith("diff requested:")):
+        close_i = tail
     return lines[:fence_i] + block.splitlines() + lines[close_i + 1:]
 
 
@@ -10751,11 +10831,11 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
         if new_region is None:
             new_region = block.splitlines()   # no fence: whole slot replaced
-        new_body = "\n".join(keep + [sub_header] + new_region + tail)
+        new_body = _join_body(keep + [sub_header] + new_region + tail)
     else:
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(body.splitlines(), block)
-        new_body = block if new_region is None else "\n".join(new_region)
+        new_body = block if new_region is None else _join_body(new_region)
     sections[sec_idx] = (header, new_body)
     full = _render_card(preamble, sections)
     if frac is not None:

@@ -2032,6 +2032,164 @@ def test_write_stops_section_created_and_replaced(tmp_path):
     assert "keep this" in txt2
 
 
+def test_card_section_boundary_blank_lines_survive_stops_writes(tmp_path):
+    """goal:g15.25 (a) FALSIFIER — a card that round-trips through TWO
+    `_write_stops_section` calls keeps every section-boundary blank line
+    byte-identical: the blanks that separated the sections before the stops
+    slot, inside the stops section, and after it are all still there (the
+    split/rebuild is an exact inverse at section boundaries, so the stops
+    writer never strips them)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text(
+        "# SESSION HANDOFF scratchpad\n"
+        "\n"
+        "## §5 STATE\n"
+        "\n"
+        "### 🔴 Where it stops\n"
+        "```\n"
+        "old command\n"
+        "```\n"
+        "\n"
+        "## Other\n"
+        "keep me\n"
+        "\n"
+        "## Final\n"
+        "last line\n", encoding="utf-8")
+    # ONE write already loses nothing at the boundaries; TWO writes (the
+    # FALSIFIER's round-trip) must not either.
+    _, slot = _r._write_stops_section(card, "s", "new cmd")
+    assert slot == "replaced"
+    _, slot2 = _r._write_stops_section(card, "s", "second cmd")
+    assert slot2 == "replaced"
+    out = card.read_text(encoding="utf-8")
+    # the section-boundary blank lines are still present, so the sections
+    # are still separated (a re-join that stripped them would fuse lines).
+    assert "### 🔴 Where it stops\n```\nsecond cmd\n```\n\n## Other" in out
+    assert "## Other\nkeep me\n\n## Final" in out
+    assert "## §5 STATE\n\n### 🔴 Where it stops" in out
+    assert "keep me" in out and "last line" in out
+
+
+def test_ask_diff_line_written_once_second_write_replaces(tmp_path):
+    """goal:g15.25 (b) FALSIFIER — TWO `--ask-diff` writes leave exactly ONE
+    `diff requested:` line per slot: the second write REPLACES the first
+    gap, never appends a second one (residue (ii): repeated --ask-diff
+    writes accumulated lines)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n\n"
+                    "## Other\nkeep\n", encoding="utf-8")
+    _, slot = _r._write_stops_section(card, "s", "cmd one",
+                                      diff_gap="review the first")
+    assert slot == "replaced"
+    txt1 = card.read_text(encoding="utf-8")
+    assert txt1.count("diff requested:") == 1
+    assert "review the first" in txt1
+    _, slot2 = _r._write_stops_section(card, "s", "cmd two",
+                                       diff_gap="review the second")
+    assert slot2 == "replaced"
+    txt2 = card.read_text(encoding="utf-8")
+    assert txt2.count("diff requested:") == 1, txt2
+    assert "review the second" in txt2
+    assert "review the first" not in txt2
+    assert "cmd one" not in txt2 and "cmd two" in txt2
+    # WITHOUT --ask-diff the stale trailer is removed too, not left behind
+    _, _ = _r._write_stops_section(card, "s", "cmd three")
+    txt3 = card.read_text(encoding="utf-8")
+    assert "diff requested:" not in txt3
+    assert "cmd three" in txt3
+
+
+def test_stops_text_with_inner_fence_pairs_outer_on_next_write(tmp_path):
+    """goal:g15.25 (c) FALSIFIER — a stops text that itself carries a ```
+    fence is rendered inside a LONGER outer fence (four backticks, the
+    CommonMark rule), so on the NEXT write the fence scan pairs the OUTER
+    fence and reads the whole block — never a truncated mis-pair (residue
+    (iii))."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s card\n\n## §5 STATE\n\n"
+                    "### 🔴 Where it stops\n```\nold\n```\n"
+                    "## Other\nkeep me\n", encoding="utf-8")
+    _stops = "step one\n\n```\ninner block\n```\n\nstep two"
+    _, slot = _r._write_stops_section(card, "s", _stops)
+    assert slot == "replaced"
+    out = card.read_text(encoding="utf-8")
+    for tok in ("step one", "inner block", "step two"):
+        assert tok in out, f"first write lost {tok!r}"
+    # second write: the scanner pairs the OUTER fence, so the whole inner-
+    # fenced stops text is replaced by the new one (never truncated)
+    _, slot2 = _r._write_stops_section(card, "s", "clean new cmd")
+    assert slot2 == "replaced"
+    out2 = card.read_text(encoding="utf-8")
+    assert out2.count("clean new cmd") == 1, out2
+    assert "inner block" not in out2   # fully replaced, not mis-paired
+    assert "step one" not in out2
+    assert "keep me" in out2           # the after-slot section survived
+
+
+def test_stops_push_real_refusal_branch_receive_fails(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 (d) FALSIFIER — the REAL `_stops_push` refusal branch (a
+    push that actually fails at the wire, not a fake) is driven through a
+    real local remote whose receive FAILS (a pre-receive hook exiting 1):
+    rc 3, the refusal line names why, the rotate-out commit stays LOCAL
+    (HEAD +1) and the remote branch did NOT move. This exercises the branch
+    the fake-only e2e could not reach."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n",
+                    encoding="utf-8")
+    bare = _init_git_remote(tmp_path)
+    # make the REAL remote refuse receives: a pre-receive hook that exits 1
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    hook.chmod(0o755)
+    local_before = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    remote_before = subprocess.run(
+        ["git", "--git-dir", str(bare), "rev-parse", "master"],
+        capture_output=True, text=True).stdout.strip()
+    assert local_before == remote_before
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self refused:" in err
+    # the commit landed LOCALLY (HEAD advanced exactly one) and nothing lost
+    adv = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-list", "--count",
+         f"{local_before}..HEAD"], capture_output=True, text=True
+    ).stdout.strip()
+    assert adv == "1", f"expected one local rotate-out commit, got {adv}"
+    assert "fix the merge" in card.read_text(encoding="utf-8")
+    # the remote branch did NOT move
+    remote_after = subprocess.run(
+        ["git", "--git-dir", str(bare), "rev-parse", "master"],
+        capture_output=True, text=True).stdout.strip()
+    assert remote_after == remote_before
+
+
 def test_commit_stops_row_commits_card_and_own_row_nothing_else(tmp_path):
     """The rotate-out commit stages the card + the seat's OWN seats row and
     NOTHING else: a foreign seats row change and a stray untracked file never
