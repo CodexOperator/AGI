@@ -6148,6 +6148,20 @@ def _push_season_branch(root: Path) -> str:
     <branch>`` on success and ``push: SKIPPED -- ...`` when there is nothing
     to push. Never a force-push, never a second commit. Returns the same
     one line it prints (for callers that log the outcome)."""
+    # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): a merge-
+    # up push is a GATED Prime-scope act. While a council+Keep veto (or an
+    # owner-written human_gate) shows the scope FROZEN, the push WAITS --
+    # refused by name, and never auto-released.
+    try:
+        from seatsig import veto as _veto
+
+        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        if _frozen:
+            _l = f"push: HELD -- merge-up push is a gated act; {_why}"
+            print(_l, file=sys.stderr)
+            return _l
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+        pass
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
     if top is None:
@@ -11399,6 +11413,60 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     return None
 
 
+def _rotate_human_gate(root: Path, seat: str,
+                       actor: str | None = None) -> tuple[str | None, dict | None]:
+    """RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
+    ANOTHER post is a GATED Prime-scope act. While a council+Keep veto (or an
+    owner-written human_gate) shows the ``prime`` scope FROZEN, a rotation whose
+    target ``seat`` is NOT the caller's own post is refused BY NAME and never
+    auto-released -- no timeout, no restart, no rotation frees it, only an owner
+    answer in the veto room (the claim's freeze-never-frees).
+
+    A rotation of the caller's OWN post (the ``self_row`` carve-out) is NEVER
+    gated. The actor defaults to ``$AGI_SEAT`` -- the identity a seat carries
+    when it was spawned; an IDENTIFIED caller who tries to rotate another seat
+    is gated when frozen, and an unidentified caller is treated as gated too
+    (an unknown actor cannot claim the self carve-out).
+
+    Returns ``(held_line, freeze_dict)`` -- ``held_line``/``freeze_dict`` both
+    None means the rotation may proceed; otherwise the line names the HELD act
+    and the dict carries the freeze (scope + why) for the ROTATION RECORD, so a
+    reader of the record sees the freeze without asking viewport --live.
+    """
+    if actor is None:
+        actor = os.environ.get("AGI_SEAT") or ""
+    if actor and seat and actor == seat:
+        return None, None  # the caller's OWN post is never gated (self_row)
+    try:
+        from seatsig import veto as _veto
+
+        _groot = _shared_graph_root(root)
+        _frozen, _why = _veto.is_frozen(_groot, "prime")
+        if _frozen:
+            held = (f"rotation: HELD -- rotating another post {seat!r} is a "
+                    f"gated Prime-scope act; {_why}")
+            _gate = None
+            try:
+                _gate = _veto.active_gate(_veto.read(_groot), "prime")
+            except Exception:  # noqa: BLE001  (the frozen verdict still stands)
+                _gate = None
+            freeze = {
+                "scope": "prime",
+                "hold_reason": _why,
+                "auto_released": False,
+                "note": "an unanswered human gate freezes, never frees; "
+                        "only an owner answer in the veto room clears it",
+            }
+            if _gate:
+                for _k in ("veto_ref", "since", "reason"):
+                    if _gate.get(_k):
+                        freeze[_k] = _gate[_k]
+            return held, freeze
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+        pass
+    return None, None
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -11443,6 +11511,24 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # calls if prompted instead. A --dry-run inspection still NEVER merges.
         args.perform = not bool(getattr(args, "dry_run", False))
         return cmd_prepare(args, root)
+    # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
+    # ANOTHER post is a GATED Prime-scope act. While the prime scope is FROZEN,
+    # refuse BY NAME before ANY side effect (stops write, started record,
+    # handoff, rename, spawn); a rotation of the caller's OWN post (self_row)
+    # is never gated. The freeze is made VISIBLE IN THE ROTATION RECORD, so a
+    # reader sees scope+why without asking viewport --live (claim (3)).
+    _hgate, _hfreeze = _rotate_human_gate(root, args.name)
+    if _hgate:
+        _write_rotation_record(root, {
+            "rotation": "rotate-self",
+            "seat": args.name,
+            "recorded_at": datetime.utcnow().isoformat() + "Z",
+            "result": "held",
+            "refusal_reason": _hgate,
+            "human_gate": _hfreeze,
+        })
+        print(_hgate, file=sys.stderr)
+        return 3
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
