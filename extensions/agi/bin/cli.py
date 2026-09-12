@@ -1895,15 +1895,19 @@ def _collect_owner_spans(sec: str) -> set:
     trim on a fully-quoted line (HEADOFF §6 item 106).
     """
     MARK = re.compile(r"\s*\*?\(\d+ quotes? archived\)\*?\s*$")
+    OPEN = '"“'   # what may OPEN a span
+    CLOSE = '"”'  # what may CLOSE a span
     spans = set()
     for line in sec.splitlines():
         line = MARK.sub("", line)
         i, n = 0, len(line)
         while i < n:
-            if line[i] in '"“”':
-                # a quote: find the far edge of the span it bounds
+            # A closing curly quote `”` outside a span is SKIPPED, never an
+            # opener (hypothesis:l4-trimguard...). Only `"` and `“` open.
+            if line[i] in OPEN:
+                # a real opening quote: find the far edge of the span it bounds
                 j = i + 1
-                while j < n and line[j] not in '"“”':
+                while j < n and line[j] not in CLOSE:
                     j += 1
                 if j < n:
                     s = line[i + 1:j].strip().strip("*").strip()
