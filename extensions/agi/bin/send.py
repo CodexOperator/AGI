@@ -45,6 +45,7 @@ from __future__ import annotations
 import argparse
 import fcntl
 import hashlib
+import re
 import json
 import os
 import subprocess
@@ -80,6 +81,16 @@ SEAT_KEY_MODE = 0o600
 
 #: Separator between messages in the inbox file.
 MSG_SEP = "---\n"
+
+# The block boundary is the separator IMMEDIATELY followed by a header line
+# ("ts:"), never a body line that happens to equal "---" -- a signed body that
+# contains a "---" line must stay ONE block, or its own sig reads FORGED on the
+# split tail (SL6.06, hypothesis:l4-sign-exactly-the-bytes-the-reader-parses...).
+# (?m)^ anchors the separator at a fresh line (blocks are concatenated with a
+# trailing \\n, so the next block ALWAYS starts a new line). Only "---\n" is
+# consumed; the following "ts: " is a lookahead so the header stays on the
+# block. One canonical split used by the inbox scan AND the conversation reader.
+_MSG_BOUNDARY_RE = re.compile(r"(?m)^---\n(?=ts: )")
 
 #: Marker line placed after the last read message. Everything before this line
 #: has been "read"; everything after is "unread".
@@ -576,7 +587,7 @@ def _parse_blocks(text: str) -> list[dict]:
     free-text body. Returns [{ts, from, to, text}] in file order.
     """
     out: list[dict] = []
-    for b in text.split(MSG_SEP):
+    for b in _MSG_BOUNDARY_RE.split(text):
         b = b.strip().lstrip("#").strip()
         if not b:
             continue
@@ -1964,8 +1975,11 @@ def _scan_messages(inbox: Path) -> tuple[list[str], int]:
     else:
         unread_text = text
 
-    # Split into blocks by the message separator.
-    blocks = [b for b in unread_text.split(MSG_SEP) if b.strip()]
+    # Split into blocks by the message separator -- only where a separator is
+    # followed by a "ts:" header, so a body line equal to "---" cannot fragment
+    # one signed block into two (a split tail would verify against nothing and
+    # read FORGED).
+    blocks = [b for b in _MSG_BOUNDARY_RE.split(unread_text) if b.strip()]
     return blocks, marker_index
 
 
@@ -1999,11 +2013,16 @@ def _parse_block(block: str) -> tuple[dict, str]:
             k, _, v = line.partition(":")
             meta[k] = v.lstrip()
         i += 1
-    # Reassemble the body on "\n", then strip exactly the ONE separator the
-    # writer appends (`block = head + f"\n{text}\n"`). rstrip("\n") stops at a
-    # "\r", so a TRAILING CR in the body content survives. This is the exact
-    # inverse of the writer's store, and it reproduces the signed bytes.
-    text = "\n".join(lines[i + 1:]).rstrip("\n")
+    # Reassemble the body on "\n", then strip EXACTLY the ONE trailing "\n"
+    # the writer appends (`block = head + f"\n{text}\n"`) -- never rstrip,
+    # which would strip a GENUINE trailing LF from a legitimate body and drive
+    # its own signature to FORGED, and would also eat the "\n" of a trailing
+    # CRLF (leaving a lone "\r"). text[:-1] removes exactly one byte, so a
+    # trailing CR survives. This is the exact inverse of the writer's store, and
+    # it reproduces the signed bytes (SL6.06).
+    text = "\n".join(lines[i + 1:])
+    if text.endswith("\n"):
+        text = text[:-1]
     return meta, text
 
 
