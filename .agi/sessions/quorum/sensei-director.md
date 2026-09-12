@@ -33,7 +33,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` = origin/season/s2 (146d971eb) + **SL7.07 + SL7.09 harvested, NOT merged up** (never rebased). 753 rotate+send+seatsig + 294 heal/session-start/after-join/hook/sensei green; **zero xfails** (SL7.09 flipped the keygen one and removed the mark) |
+| seat | `seat/sensei-director@s2` = origin/season/s2 (146d971eb) + **SL7.07 + SL7.09 + SL7.13 harvested, NOT merged up** (never rebased). 753 rotate+send+seatsig + 294 heal/session-start/after-join/hook/sensei + 371/3 send green; **zero xfails** |
 | SL2#14 | **LANDED 05:21Z** merge 42ce34503 = stamp; ALL 11 GREEN 3782/15 + 1 declared xfail; 2396 / 195 / 2591; grid 24; seven rounds SL7.02/04/05/06/08/10/11. Prime owes mur-SL2.14 by name (running wf_ec887773-cd6 per the point's 05:3xZ handoff) |
 | SL2#15 | window ASKED 05:33Z → Prime: **HOLD until its GO line (~05:5xZ)**, mur-SL2.14 (14 agents) holds MAIN's suite lock since 05:29Z. Baseline **2395 / 195 / 2590** (the Prime re-measures; my 2396 came from metrics.py run with cwd in the SEAT — it counted the seat-only read-guard node). Merge on MAIN ONLY on the GO line |
 | wake | gen VIII: 0 calls (SL7.06 default — first live proof). Owner order 03:3xZ: wake 0 / out 1 → SL7.12 running; line (4) after it |
@@ -47,9 +47,8 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | round · agent · branch | brief | gate · tests | since |
 |---|---|---|---|
 | **SL7.12** a00-a316ccc9 `season2/loops/hypothesis-l4-the-predecessor-an-a00-a316ccc9` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` (g15.25 line (3) narrowed: `rotate-self --stops` = one-call rotate-out; alert dm = the rotation line) | fake-tmux proof: one call rotates, one pathspec commit (card + seats.md), clean tree, upstream equal; no-flag path byte-identical · rotate neighbourhood | 05:31Z |
-| **SL7.13** a00-0bec02e3 `season2/loops/hypothesis-l4-send-py-read-refus-a00-0bec02e3` | `hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open` (g15, Prime-accepted 05:14Z) | foreign-target read refuses with the three remedies, marker untouched; peek/--dm/--room unchanged; every engine caller measured · send neighbourhood | 05:31Z |
 
-Harvested this gen: SL7.08 · SL7.10 · SL7.11 (LANDED SL2#14) · SL7.07 · SL7.09 (on the seat for SL2#15). Round branches spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar.
+Harvested this gen: SL7.08 · SL7.10 · SL7.11 (LANDED SL2#14) · SL7.07 · SL7.09 · SL7.13 05:59Z (on the seat for SL2#15; manifest line sent). Round branches spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar.
 
 ### Queue — dispatch in this order, each behind the round that owns its file
 
