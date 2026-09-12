@@ -3584,6 +3584,114 @@ def test_whois_unknown_ref_is_no_not_error(monkeypatch):
     assert send_mod.WHOIS_NO_MATCH != send_mod.WHOIS_NOT_AUTHORIZED
 
 
+# ── hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+# session-ref-is-empty... ──────────────────────────────────────────────────
+# whois --key / --seat resolve a row by a UNIQUE pubkey prefix or by name
+# (the prime row's pubkey is filled at every rotation when its session_ref is
+# empty), and the answer names the axis that found it, so a prime authority
+# check on an empty prime session_ref still resolves — by key, not by refusal.
+# ---------------------------------------------------------------------------
+KEY_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac",
+     "pubkey": "aabbccdd1122334455667788", "window": "@123"},
+    {"name": "sanctuary-helper", "role": "director", "tier": 1,
+     "session_ref": "dc94bb",
+     "pubkey": "eeff0011aabbccdd", "window": "@246"},
+]
+
+
+def test_whois_by_key_unique_prefix_is_authorized(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    assert "by key: aabbccdd" in text
+    assert "belam" in text
+    # clause (b): the by-key answer carries the row's CURRENT window so F3's
+    # SendMessage address is still derivable in one call.
+    assert "window @123" in text
+
+
+def test_whois_by_key_ambiguous_prefix_is_no_match(monkeypatch):
+    rows = [
+        {"name": "a", "role": "director", "tier": 1, "session_ref": "111111",
+         "pubkey": "deadbeef0000"},
+        {"name": "b", "role": "director", "tier": 1, "session_ref": "222222",
+         "pubkey": "deadbeef1111"},
+    ]
+    _stub_pushed(monkeypatch, (rows, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "deadbeef", claim="a",
+                              target=("key", "deadbeef"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "ambiguous" in text
+
+
+def test_whois_by_key_short_or_nonhex_prefix_is_no_match(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    # too short (7 chars < WHOIS_MIN_KEY_PREFIX 8)
+    rc, text = send_mod.whois(Path("."), "aabbccc", claim="belam",
+                              target=("key", "aabbccc"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    assert "too short" in text
+    # non-hex is refused, never a guess
+    rc, text = send_mod.whois(Path("."), "zzzzzzzz", claim="belam",
+                              target=("key", "zzzzzzzz"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+
+
+def test_whois_by_key_never_matches_key_history(monkeypatch):
+    # the FALSIFIER: --key matches `pubkey` ONLY, never `key_history`.
+    rows = [
+        {"name": "belam", "role": "prime_director", "tier": 3,
+         "session_ref": "7902ac",
+         "pubkey": "aabbccdd1122334455667788",
+         "key_history": [{"pubkey": "99999999deadbeef"}]},
+    ]
+    _stub_pushed(monkeypatch, (rows, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "99999999", claim="belam",
+                              target=("key", "99999999"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH" in text
+    # and the live pubkey still resolves
+    rc, text = send_mod.whois(Path("."), "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_OK
+
+
+def test_whois_by_seat_name_is_authorized(monkeypatch):
+    _stub_pushed(monkeypatch, (KEY_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "sanctuary-helper",
+                              claim="sanctuary-helper",
+                              target=("seat", "sanctuary-helper"))
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    assert "by name: sanctuary-helper" in text
+    assert "window @246" in text
+    # a name that matches no row is NO-MATCH, never a guess
+    rc, text = send_mod.whois(Path("."), "nobody-here", claim="belam",
+                              target=("seat", "nobody-here"))
+    assert rc == send_mod.WHOIS_NO_MATCH
+    assert "NO-MATCH by name" in text
+
+
+def test_whois_by_key_unreachable_is_unverified(monkeypatch, tmp_path):
+    # an unreachable pushed authority labels a by-key answer UNVERIFIED and
+    # exits non-zero, exactly like the positional path.
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda root, ref, do_fetch: None)
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda root: KEY_ROWS)
+    rc, text = send_mod.whois(tmp_path, "aabbccdd", claim="belam",
+                              target=("key", "aabbccdd"))
+    assert rc == send_mod.WHOIS_UNVERIFIED
+    assert "UNVERIFIED" in text
+
+
 def test_whois_unreachable_is_unverified_nonzero(tmp_path, monkeypatch):
     """Pushed ref unreachable → UNVERIFIED label AND a non-zero exit. Assert
     on the exit code, not only on the text."""
@@ -4906,9 +5014,10 @@ def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
     whois function (they were declared and never threaded before clause 3)."""
     seen = {}
     def capturing(root, ref, claim, source, do_fetch,
-                  sig_line=None, msg_text=None):
+                  sig_line=None, msg_text=None, target=None):
         seen["sig"] = sig_line
         seen["msg"] = msg_text
+        seen["target"] = target
         return (0, "x")
     monkeypatch.setattr(send_mod, "whois", capturing)
     rc = send_mod.main(["whois", "--no-fetch", "7902ac",
@@ -4917,6 +5026,27 @@ def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
     assert rc == 0
     assert seen["sig"] == "ed25519:aa11:bb22"
     assert seen["msg"] == "line1\nline2\nline3\n\ntext"
+
+
+def test_whois_cli_key_threads_target_and_rejects_dual_axis(monkeypatch, capsys):
+    # --key reaches the whois function as a ("key", prefix) target, and the
+    # CLI refuses (exit 1, no resolution) when more than one axis is given.
+    seen = {}
+    def capturing(root, ref, claim, source, do_fetch,
+                  sig_line=None, msg_text=None, target=None):
+        seen["ref"] = ref
+        seen["target"] = target
+        return (0, "ok")
+    monkeypatch.setattr(send_mod, "whois", capturing)
+    rc = send_mod.main(["whois", "--no-fetch", "--key", "aabbccdd",
+                        "--claim", "belam"])
+    assert rc == 0
+    assert seen["target"] == ("key", "aabbccdd")
+    assert seen["ref"] == "aabbccdd"
+    capsys.readouterr()
+    rc = send_mod.main(["whois", "--no-fetch", "7902ac", "--key", "aabbccdd"])
+    assert rc == 1
+    assert "exactly one" in capsys.readouterr().err
 
 
 def test_whois_cli_forged_under_enforcing_exits_2(tmp_path, monkeypatch, capsys):
