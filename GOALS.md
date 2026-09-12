@@ -5848,6 +5848,9 @@ landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
 of it, so it is also the thing that will say whether that seam is right.
 **`goal:s31`** is the first defect it should be able to fix from the inside.
 
+## Agent Notes
+Sensei ask 12:04Z (master-sensei wake-audit 11:52Z): a one-line write.py replace body on config:rotations re-serialized two unrelated first_turn entries (em-dash -> \u2014: node_writer._render_value renders a list-of-dict entry as json.dumps with ensure_ascii=True, node_writer.py:338, on EVERY write verb) — brief hypothesis:l4-a-container-entry-in-frontmatter-round-trips-its-utf8-unchanged-through-every-write-verb (parents g13.1 + g15), fix fully known (one keyword argument, one round-trip test), dispatching as SL7.43.
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
