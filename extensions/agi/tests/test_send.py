@@ -5234,3 +5234,163 @@ def test_lockdown_read_and_peek_warn_once(tmp_path, capsys):
     err = capsys.readouterr().err
     assert err.count("comms.lockdown is set") == 2  # one per read, one per peek
 
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# g15.26 hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-
+# and-every-key-cell-writer-commits-and-pushes-its-own-row
+#
+# Clause (1): _load_rows falls back per-seat to MAIN's COMMITTED row (git show
+# HEAD) when the PUSHED row names no key; a pushed row WITH a key stays
+# authoritative. Clause (2): every key-cell writer (keygen) commits its own-row
+# hunk through _commit_spawn_row and pushes the season branch; a failed push
+# never fails the mint. Clause (3): the VERIFIED label names main-committed.
+# These use REAL git fixtures (a bare remote for the push leg) -- send.py's own
+# subprocess is restored to the real one while tmux stays faked, so nothing
+# touches a live tmux session.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+class _GitAllowFakeTmux:
+    """Allows REAL git subprocess (clause-1 committed-row read + clause-2
+    commit/push) while faking tmux exactly as `_no_real_tmux` does, so no test
+    runs a live tmux command. Overrides the autouse `send_mod.subprocess`
+    stand-in (LIFO) only for the tests that need git."""
+    TimeoutExpired = subprocess.TimeoutExpired
+
+    def run(self, cmd, *a, **k):
+        if isinstance(cmd, list) and cmd[:1] == ["tmux"]:
+            return subprocess.CompletedProcess(cmd, 1)
+        return subprocess.run(cmd, *a, **k)
+
+
+def _git_project(tmp_path, rows, branch="season/s2", comms=None):
+    """A REAL git repo (top = root) whose graph root carries a COMMITTED
+    posts.md row set — MAIN's HEAD authority. Returns the project root, the
+    root the send/read/client code resolves (has `.agi/config.json`)."""
+    root = tmp_path / "proj"
+    (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    cfg = {"metric_primary": "x"}
+    if comms is not None:
+        cfg["comms"] = comms
+    (root / ".agi" / "config.json").write_text(json.dumps(cfg))
+    (root / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md(rows))
+    (root / ".agi" / "sessions" / "inbox").mkdir(parents=True, exist_ok=True)
+    (root / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", "-b", branch, str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "t"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m",
+                    "committed seats seed"], check=True)
+    return root
+
+
+def _seat_key_write(root, seat, priv_hex):
+    """Write a seat key file directly (so a test can control WHICH private key
+    signs), in send.py's exact JSON shape."""
+    kp = send_mod._seat_key_path(root, seat)
+    kp.parent.mkdir(parents=True, exist_ok=True)
+    kp.write_text(json.dumps({"scheme": "ed25519", "priv_hex": priv_hex}))
+
+
+def test_falsifier1_rotation_alert_verifies_main_committed_under_enforcing(
+        tmp_path, capsys, monkeypatch):
+    """g15.26 clause (1) FALSIFIER + ROTATION-ALERT, real git fixture: a
+    freshly first-minted post's row on origin is still UNKEYED (the hourly
+    push has not run), but MAIN's COMMITTED row IS keyed. Its signed
+    rotation-alert must read `VERIFIED seat-a (ed25519, main-committed)`
+    under comms.verify=enforcing on the RECIPIENT side -- never UNKEYED,
+    never FORGED, never REFUSED, never withheld."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root = _git_project(tmp_path, [{"name": "seat-a"}], branch="season/s2",
+                        comms={"verify": "enforcing"})
+    # first-mint: the unkeyed row mints its key AND commits it onto MAIN's
+    # HEAD (clause 2) -- so HEAD is keyed while origin is still unkeyed.
+    path = send_mod.keygen(root, "seat-a")
+    assert path is not None, "the first mint must succeed"
+    # origin's pushed row is still UNKEYED -- the pre-push authority.
+    _stub_seat_rows(monkeypatch, [{"name": "seat-a"}])
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.send(root, "recv", "rotation-alert", "seat-a")
+    capsys.readouterr()                      # drain send stdout
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "rotation-alert" in out, "the alert prints in full, never withheld"
+    assert "REFUSED" not in out and "withheld" not in out
+
+
+def test_falsifier2_pushed_key_stays_authoritative_over_stale_main(
+        tmp_path, capsys, monkeypatch):
+    """g15.26 clause (1) FALSIFIER: a pushed row that DOES name a key stays
+    authoritative -- MAIN's committed row names a DIFFERENT key B, but a sig
+    under B must NOT verify (the pushed key A wins), so B's sig reads FORGED.
+    A stale MAIN key never overrides origin, and no `main-committed` tag fires
+    because the fallback did not."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    priv_b, pub_b = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_b.hex()}],
+        branch="season/s2")
+    # the PUSHED (authoritative) row names key A -- it has a key, so no
+    # fallback to MAIN (which names key B).
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex()}])
+    _seat_key_write(root, "seat-a", priv_b.hex())   # sender signs under B
+    send_mod.send(root, "recv", "hello", "seat-a")
+    capsys.readouterr()                      # drain send stdout
+    send_mod.read(root, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out, out
+    assert "main-committed" not in out
+
+
+def test_keygen_commits_and_pushes_own_row_to_bare_remote(
+        tmp_path, monkeypatch, capsys):
+    """g15.26 clause (2): keygen (a key-cell writer) commits its own-row hunk
+    onto MAIN's season branch and PUSHES it -- after keygen on a bare-remote
+    fixture, ORIGIN's row carries the pubkey and MAIN's working tree is not
+    dirty."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(tmp_path, [{"name": "seat-a"}], branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    capsys.readouterr()
+    path = send_mod.keygen(root, "seat-a")
+    assert path is not None
+    capsys.readouterr()                      # drain keygen stdout/stderr
+    # origin's season/s2 row now carries the pubkey.
+    shown = subprocess.run(
+        ["git", "-C", str(root), "show",
+         "origin/season/s2:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "pubkey" in shown.stdout and "seat-a" in shown.stdout, shown.stdout
+    # MAIN is not left dirty (sessions/ is gitignored).
+    st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout
+
+
+def test_keygen_mint_survives_a_failed_push(tmp_path, monkeypatch, capsys):
+    """g15.26 clause (2): a failed push must NOT abort the mint -- with no
+    origin remote, the push leg prints ONE line naming the remote error
+    (to stderr) and keygen still returns the minted key path."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root = _git_project(tmp_path, [{"name": "seat-a"}], branch="season/s2")
+    capsys.readouterr()
+    path = send_mod.keygen(root, "seat-a")
+    assert path is not None, "a failed push must not abort the mint"
+    assert send_mod._seat_key_path(root, "seat-a").is_file()
+    err = capsys.readouterr().err
+    assert "push: FAILED --" in err, err
