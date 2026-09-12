@@ -154,6 +154,42 @@ def test_measured_contradiction_season_first_town_main_vs_v3_remote():
     assert b.parse("season2/core/season1/main")["kind"] == "town_main"
     assert b.is_remote_visible("season2/core/season1/main") is False
 
+
+# --- parse() and is_remote_visible() AGREE on a season-prefixed town slug ---
+# (hypothesis:l4-every-reader-resolves-a-branch-through-branches-py-and-no-
+# spelling-is-pinned-in-the-files-it-owns, lane 1). parse() used to gate its
+# season-first grammar on `parts[0].startswith("season")`, so a town slug
+# merely PREFIXED with "season" (seasonx, season) was swallowed by the
+# season-first rules and _season_num raised, even though is_remote_visible's
+# _V3_TOWN_MAIN_RE accepted it and derive_names/_check_town agreed. The gate
+# is now an exact `season\d+` fullmatch, so those slugs fall through to the v3
+# TOWN-FIRST shapes and every current name still resolves (nothing on the live
+# tree is a season-prefixed town, so this adds reach, never removes it).
+
+def test_parse_and_remote_agree_on_season_prefixed_town_slug():
+    # A real season main stays a season main.
+    assert b.parse("season2/main")["kind"] == "main"
+    assert b.is_remote_visible("season2/main") is True
+    # A town merely prefixed with "season" parses as a v3 town main and is
+    # remote-visible, exactly as _check_town and derive_names already allowed.
+    assert b.parse("seasonx/main")["kind"] == "v3_town_main"
+    assert b.parse("seasonx/main")["town"] == "seasonx"
+    assert b.is_remote_visible("seasonx/main") is True
+    assert b.parse("season/season2/main")["kind"] == "v3_town_season_main"
+    assert b.parse("season/season2/main")["town"] == "season"
+    assert b.is_remote_visible("season/season2/main") is True
+    # The ordinary town-first shapes agree too.
+    assert b.parse("core/main")["kind"] == "v3_town_main"
+    assert b.is_remote_visible("core/main") is True
+    assert b.parse("core/season2/main")["kind"] == "v3_town_season_main"
+    assert b.is_remote_visible("core/season2/main") is True
+    # And every name the pair agrees on is reachable through ref_candidates
+    # (canonical-first, no exception for a season-prefixed town slug).
+    assert b.parse("seasonx/main")
+    assert b.ref_candidates("seasonx/main")[0] == "seasonx/main"
+    assert b.ref_candidates("season/season2/main")[0] == \
+        "season/season2/main"
+
 # --- (f) ref_candidates resolves the v3 TOWN-FIRST names (region D section 1).
 # The ONE resolver must not strand a reader handed a v3 name: alongside the
 # as-written v3 spelling it must ALSO try the season-first spelling(s) the

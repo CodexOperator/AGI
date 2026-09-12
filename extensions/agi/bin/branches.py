@@ -401,12 +401,13 @@ def parse(name: str) -> dict:
     parts = name.split("/")
 
     # season<n>/main
-    if len(parts) == 2 and parts[0].startswith("season") and parts[1] == "main":
+    if len(parts) == 2 and re.fullmatch(r"season\d+", parts[0]) \
+            and parts[1] == "main":
         n = _season_num(parts[0])
         return {"kind": "main", "season": n, "name": parts[0]}
 
     # season<n>/posts/<name>  |  season<n>/loops/<slug>-<agent>
-    if len(parts) == 3 and parts[0].startswith("season"):
+    if len(parts) == 3 and re.fullmatch(r"season\d+", parts[0]):
         n = _season_num(parts[0])
         if parts[1] == "posts":
             return {"kind": "post", "season": n, "name": parts[2]}
@@ -414,8 +415,8 @@ def parse(name: str) -> dict:
             return {"kind": "loop", "season": n, "name": parts[2]}
 
     # season<n>/<town>/season<k>/main
-    if len(parts) == 4 and parts[0].startswith("season") and parts[3] == "main" \
-            and parts[2].startswith("season"):
+    if len(parts) == 4 and re.fullmatch(r"season\d+", parts[0]) \
+            and parts[3] == "main" and re.fullmatch(r"season\d+", parts[2]):
         n = _season_num(parts[0])
         k = _season_num(parts[2])
         _check_town(parts[1])
@@ -424,7 +425,8 @@ def parse(name: str) -> dict:
 
     # season<n>/<town>/season<k>/posts/<name>
     # season<n>/<town>/season<k>/loops/<slug>-<agent>
-    if len(parts) == 5 and parts[0].startswith("season") and parts[2].startswith("season"):
+    if len(parts) == 5 and re.fullmatch(r"season\d+", parts[0]) \
+            and re.fullmatch(r"season\d+", parts[2]):
         n = _season_num(parts[0])
         k = _season_num(parts[2])
         _check_town(parts[1])
@@ -440,25 +442,29 @@ def parse(name: str) -> dict:
     # shadow the season-first rules above. New kinds so the existing
     # `kind == "main"` contract (is_legal_branch, verification's
     # _integration_branch_candidates) is untouched.
-    if len(parts) == 2 and parts[1] == "main" and not parts[0].startswith("season"):
+    if len(parts) == 2 and parts[1] == "main" \
+            and not re.fullmatch(r"season\d+", parts[0]):
         _check_town(parts[0])
         return {"kind": "v3_town_main", "town": parts[0], "name": parts[0]}
-    if len(parts) == 3 and parts[2] == "main" and parts[1].startswith("season") \
-            and not parts[0].startswith("season"):
+    if len(parts) == 3 and parts[2] == "main" \
+            and re.fullmatch(r"season\d+", parts[1]) \
+            and not re.fullmatch(r"season\d+", parts[0]):
         m = re.fullmatch(r"season(\d+)", parts[1])
         if m:
             _check_town(parts[0])
             return {"kind": "v3_town_season_main", "town": parts[0],
                     "town_season": int(m.group(1)), "name": parts[0]}
     if len(parts) == 5 and parts[4] == "main" and parts[2] == "posts" \
-            and parts[1].startswith("season") and not parts[0].startswith("season"):
+            and re.fullmatch(r"season\d+", parts[1]) \
+            and not re.fullmatch(r"season\d+", parts[0]):
         m = re.fullmatch(r"season(\d+)", parts[1])
         if m:
             _check_town(parts[0])
             return {"kind": "v3_post", "town": parts[0], "name": parts[3],
                     "town_season": int(m.group(1))}
     if len(parts) == 7 and parts[2] == "posts" and parts[4] == "loops" \
-            and parts[1].startswith("season") and not parts[0].startswith("season"):
+            and re.fullmatch(r"season\d+", parts[1]) \
+            and not re.fullmatch(r"season\d+", parts[0]):
         m = re.fullmatch(r"season(\d+)", parts[1])
         if m:
             _check_town(parts[0])
