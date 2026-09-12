@@ -65,7 +65,7 @@ def _build_repo(tmp_path):
     g.mkdir(parents=True)
     (g / "seats.md").write_text(_seats_md())
     (r / "README").write_text("hi\n")
-    (r / ".gitignore").write_text(".agi/worktrees/\n")
+    (r / ".gitignore").write_text(".agi/worktrees/\n.agi/sessions/\n")
     _git(r, "add", "-A")
     _git(r, "commit", "-qm", "seed")
 
@@ -371,3 +371,106 @@ def test_post_migrated_ack_shaped_self_row_write_and_foreign_refused(tmp_path):
         ["git", "cat-file", "-e", "HEAD:.agi/nodes/.geometry/seats.md"],
         cwd=r, capture_output=True).returncode
     assert gone != 0
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-a-seat-is-a-post-everywhere — L4.306 FIX-ONLY. The migration
+# must (1) set an upstream after each branch rename, (2) commit + push posts.md
+# as its own step so --apply leaves a CLEAN tree, (3) be resumable/idempotent
+# so a second --apply is a no-op, (4) still leave a --dry-run byte-identical
+# with no plan file written. All against the throwaway fixture, never the tree.
+# ---------------------------------------------------------------------------
+
+def _add_origin(repo):
+    """A bare origin in tmp to receive pushes, seeded with master + seat refs."""
+    bare = repo.parent / "bare.git"
+    _git(repo, "init", "--bare", "-q", str(bare))
+    _git(repo, "remote", "add", "origin", str(bare))
+    _git(repo, "push", "-q", "origin", "master")
+    for name in ("a", "b"):
+        _git(repo, "push", "-q", "origin", f"seat/{name}@s2")
+    return bare
+
+
+def test_apply_sets_upstream_and_commits_posts_clean(repo):
+    """(a)+(b) With an origin, --apply: commits posts.md as its own step so
+    `git status` for it is clean, pushes the current branch (master, carrying
+    the posts.md commit) to origin, and sets each renamed branch's upstream to
+    origin/post/<n>@s2."""
+    _add_origin(repo)
+    g = repo / ".agi"
+    RESULT = _run_cli(g, "--apply")
+    assert RESULT.returncode == 0, RESULT.stdout + RESULT.stderr
+
+    # (b) posts.md is COMMITTED: clean status for it, and it is at HEAD
+    st = _git(repo, "status", "--porcelain",
+              "--", ".agi/nodes/.geometry/posts.md")
+    assert st.stdout.strip() == "", f"posts.md left dirty:\n{st.stdout}"
+    head = _git(repo, "show", "--format=%H", "--name-only", "HEAD")
+    assert ".agi/nodes/.geometry/posts.md" in head.stdout
+    # the current branch was PUSHED with that commit (local == origin)
+    local = _git(repo, "rev-parse", "master").stdout.strip()
+    remote = _git(repo, "rev-parse", "origin/master").stdout.strip()
+    assert local and local == remote, f"master not pushed: {local} != {remote}"
+
+    # (a) upstream set on each renamed branch
+    for name in ("a", "b"):
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"post/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/post/{name}@s2", f"upstream for {name}: {up!r}"
+
+
+def test_apply_second_run_is_idempotent_noop(repo):
+    """(c) A second --apply after a full first one is a no-op: still exits 0,
+    the tree stays clean, and refs/upstreams are unchanged."""
+    _add_origin(repo)
+    g = repo / ".agi"
+    assert _run_cli(g, "--apply").returncode == 0
+    first_status = _git(repo, "status", "--porcelain").stdout
+    first_refs = _git(repo, "rev-parse", "master", "post/a@s2").stdout
+
+    R2 = _run_cli(g, "--apply")
+    assert R2.returncode == 0, R2.stdout + R2.stderr
+    assert "rename applied" in R2.stdout, R2.stdout
+    assert _git(repo, "status", "--porcelain").stdout == first_status
+    assert _git(repo, "rev-parse", "master", "post/a@s2").stdout == first_refs
+    for name in ("a", "b"):
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"post/{name}@s2@{{upstream}}").stdout.strip()
+        assert up == f"origin/post/{name}@s2"
+
+
+def test_dry_run_writes_no_plan_file_and_leaves_bytes_same(repo):
+    """(d) --dry-run still changes NOTHING (git status clean, no posts.md) and
+    writes NO plan file — resumability state only ever appears under --apply."""
+    g = repo / ".agi"
+    before = _git(repo, "status", "--porcelain").stdout
+    R = _run_cli(g, "--dry-run")
+    assert R.returncode == 0, R.stdout + R.stderr
+    assert not (g / "sessions" / "post-rename-plan.json").exists(), (
+        "dry-run must not write the plan file")
+    assert _git(repo, "status", "--porcelain").stdout == before
+    assert (g / "nodes" / ".geometry" / "seats.md").exists()
+    assert not (g / "nodes" / ".geometry" / "posts.md").exists()
+
+
+def test_apply_records_plan_and_rerun_resumes(repo):
+    """(c) Resumability: --apply records every finished step in the plan file,
+    and a re-run skips the already-done git mv (posts.md present, seats.md
+    gone) — still exits 0 cleanly on a fully-migrated tree."""
+    g = repo / ".agi"
+    R1 = _run_cli(g, "--apply")          # no origin: pure local migration
+    assert R1.returncode == 0, R1.stdout + R1.stderr
+    plan = g / "sessions" / "post-rename-plan.json"
+    assert plan.exists(), "apply must write the plan file"
+    done = json.loads(plan.read_text()).get("steps", {})
+    for key in ("git_mv", "commit_posts", "worktree_move",
+                "branch_rename", "branch_push", "branch_upstream"):
+        assert done.get(key) is True, f"step {key} not recorded done: {done}"
+
+    R2 = _run_cli(g, "--apply")
+    assert R2.returncode == 0, R2.stdout + R2.stderr
+    # migrated tree: seats.md gone, posts.md committed, worktrees moved
+    assert not (g / "nodes" / ".geometry" / "seats.md").exists()
+    assert (g / "nodes" / ".geometry" / "posts.md").exists()
+    assert (g / "worktrees" / "post-a").is_dir()

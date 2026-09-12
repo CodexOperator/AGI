@@ -1134,7 +1134,7 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     if seat is not None:
         wrap = " ".join(shlex.quote(c) for c in (
             _launch_wrapper_argv(seat, claude_cmd)))
-        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + wrap
+        cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
@@ -8622,7 +8622,8 @@ def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
       1. the checked-out HEAD of the seat's worktree, from the config:seats
          `worktree` field (resolved against the MAIN checkout, so a relative
          `.agi/worktrees/seat-<S>` resolves like the live rows),
-      2. a local `seat/<seat>@s<s>` branch (convention fallback),
+      2. a local `post/<seat>@s<s>` / `season<n>/posts/<seat>` branch (with
+         the deprecated `seat/<seat>@s<s>` alias as a fallback),
       3. None.
 
     A worktree seat works on its own checked-out branch; the seat's open
@@ -8637,14 +8638,20 @@ def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
             rc, br, _ = _fd_git(cand, "rev-parse", "--abbrev-ref", "HEAD")
             if rc == 0 and br and br != "HEAD":
                 return br
-    rc, out, _ = _fd_git(main, "branch", "--list", "seat/*")
-    if rc == 0:
-        for line in out.splitlines():
-            # `git branch --list` prefixes `*` for the current branch and `+`
-            # for a branch checked out in a linked worktree; strip all of it.
-            name = line.strip().lstrip("*+").strip()
-            if name.startswith(f"seat/{seat}@s"):
-                return name
+    # Convention fallback, resolved in rename order (hypothesis:l4-a-seat-is-
+    # a-post-everywhere): post/<seat>@s* first, then the canonical
+    # season<n>/posts/<seat>, then the deprecated seat/<seat>@s* alias. Return
+    # the ACTUAL spelling git reports.
+    for pat in (f"post/{seat}@s*", f"season*/posts/{seat}",
+                f"seat/{seat}@s*"):
+        rc, out, _ = _fd_git(main, "branch", "--list", pat)
+        if rc == 0:
+            for line in out.splitlines():
+                # `git branch --list` prefixes `*` for the current branch and
+                # `+` for a branch checked out in a linked worktree; strip all.
+                name = line.strip().lstrip("*+").strip()
+                if name:
+                    return name
     return None
 
 
@@ -8693,9 +8700,10 @@ def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
     """The seat's OWN worktree directory, resolved in strict order:
 
       1. the config:seats `worktree` field (resolved against the MAIN
-         checkout, so a relative `.agi/worktrees/seat-<S>` resolves like the
-         live rows) when it is a directory,
-      2. the convention `.agi/worktrees/seat-<S>` under the main checkout,
+         checkout, so a relative `.agi/worktrees/seat-<S>` / `post-<S>`
+         resolves like the live rows) when it is a directory,
+      2. the convention `.agi/worktrees/post-<S>` (else the deprecated
+         `seat-<S>`) under the main checkout,
       3. None.
 
     Mirrors how `_fd_seat_branch` resolves the worktree; the seat's dispatch
@@ -8708,6 +8716,12 @@ def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
         cand = p if p.is_absolute() else (main / wt)
         if cand.is_dir():
             return cand
+    # Convention fallback (hypothesis:l4-a-seat-is-a-post-everywhere): a
+    # post-renamed seat lives at `.agi/worktrees/post-<seat>`; accept that
+    # beside the deprecated `seat-<seat>` name, preferring post-.
+    post = main / ".agi" / "worktrees" / f"post-{seat}"
+    if post.is_dir():
+        return post
     conv = main / ".agi" / "worktrees" / f"seat-{seat}"
     return conv if conv.is_dir() else None
 
@@ -8893,8 +8907,9 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     main = locations.git_common_root(root)
     seat_branch = _fd_seat_branch(root, main, seat)
     if not seat_branch:
-        print(f"ERR: no worktree branch or seat/{seat}@s* branch resolves "
-              f"for seat {seat!r}.", file=sys.stderr)
+        print(f"ERR: no worktree branch or post/{seat}@s* (alias "
+              f"seat/{seat}@s*) branch resolves for seat {seat!r}.",
+              file=sys.stderr)
         return 1
     rows = _fd_rounds(root, main, seat, seat_branch)
     _fd_print_table(rows)
@@ -10388,9 +10403,15 @@ def _harvest_round_dirs(main: Path, seat: str | None = None) -> list[Path]:
     if wt_root.is_dir():
         # The named seat's own copy first.
         if seat:
-            s = wt_root / f"seat-{seat}" / ".agi" / "sessions"
-            if s.is_dir():
-                for d in sorted(s.iterdir()):
+            # The named seat's own copy (hypothesis:l4-a-seat-is-a-post-
+            # everywhere): accept `.agi/worktrees/post-<seat>` beside the
+            # deprecated `seat-<seat>`, reading whichever exists and
+            # preferring post- when both are present.
+            owned = wt_root / f"post-{seat}" / ".agi" / "sessions"
+            if not owned.is_dir():
+                owned = wt_root / f"seat-{seat}" / ".agi" / "sessions"
+            if owned.is_dir():
+                for d in sorted(owned.iterdir()):
                     _absorb(d, 1)
         # Then any worktree manifest that still carries a parent-tier record
         # (parent worktrees and the other seats), so a parent-named round is
@@ -10561,11 +10582,19 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
 
     # The seat branch the claim names as the diff base, when --seat is given
     # and that ref exists (hypothesis:harvest-table-subcommand item (d)).
-    seat_base = (f"seat/{want_seat}@s{season}" if (want_seat and season)
-                 else "")
-    if seat_base and not _git_out(main, "rev-parse", "--verify", "--quiet",
-                                  seat_base).strip():
-        seat_base = ""
+    # The seat ref named as the diff base, resolved to its ACTUAL spelling
+    # (hypothesis:l4-a-seat-is-a-post-everywhere): post/<seat>@s<n> first,
+    # then the canonical season<n>/posts/<seat>, then the deprecated
+    # seat/<seat>@s<n> alias.
+    seat_base = ""
+    if want_seat and season:
+        for cand in (f"post/{want_seat}@s{season}",
+                     f"season{season}/posts/{want_seat}",
+                     f"seat/{want_seat}@s{season}"):
+            if _git_out(main, "rev-parse", "--verify", "--quiet",
+                        cand).strip():
+                seat_base = cand
+                break
 
     header = ("round | agent | branch | worktree | diffstat-vs-merge-base | "
               "kids | verdicts")

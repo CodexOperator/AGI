@@ -231,7 +231,7 @@ fi
 # other optional section of this hook. rotate.py returns 0+block on emit,
 # 1+silence on refuse — SILENCE is the safe direction (no stale state, no
 # banner on a non-seat session).
-BOOTSTRAP_SEAT="${AGI_SEAT:-}"
+BOOTSTRAP_SEAT="${AGI_POST:-${AGI_SEAT:-}}"
 if [[ -n "$BOOTSTRAP_SEAT" ]]; then
   BOOTSTRAP_BLOCK="$(AGI_PROJECT_ROOT="$PROJECT_ROOT" python3 \
     "$PLUGIN_ROOT/bin/rotate.py" bootstrap-block --seat "$BOOTSTRAP_SEAT" \
