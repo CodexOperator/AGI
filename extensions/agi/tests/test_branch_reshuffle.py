@@ -186,3 +186,27 @@ def test_delete_old_refuses_without_green_stamp(repo: Path):
     assert origin_before == _git(repo, "branch", "-r",
                                  "--format=%(refname:short)").stdout
     assert _refs_grid(repo) == grid_before
+
+
+sys.path.insert(0, str(BIN))
+import cli  # noqa: E402
+
+
+# --- --kinds filter (Prime XIV ruling at the mur-44 window, 04:18Z): ---
+# `--kinds main,posts,towns` runs FIRST; the dead loop/* branches keep the
+# names harvest notes and experiment nodes cite.
+
+def test_reshuffle_kinds_parses_aliases_and_refuses_unknown():
+    assert cli._reshuffle_kinds("") == set()
+    assert cli._reshuffle_kinds("main,posts,towns") == {"main", "post", "town_main"}
+    assert cli._reshuffle_kinds("loops") == {"loop"}
+    with pytest.raises(SystemExit):
+        cli._reshuffle_kinds("bogus")
+
+
+def test_reshuffle_kind_of_canonical_names():
+    assert cli._reshuffle_kind("season2/main") == "main"
+    assert cli._reshuffle_kind("season2/posts/foo") == "post"
+    assert cli._reshuffle_kind("season2/loops/x-a00-12345678") == "loop"
+    assert cli._reshuffle_kind("season2/web-app-suite/season1/main") == "town_main"
+    assert cli._reshuffle_kind("not/a/grammar/name/at/all/@@") == ""

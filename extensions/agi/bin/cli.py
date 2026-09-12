@@ -2422,6 +2422,33 @@ def _reshuffle_refs_grid(repo: Path) -> str:
     return "\n".join(sorted(r.stdout.splitlines())) + "\n"
 
 
+_RESHUFFLE_KIND_ALIASES = {"main": "main", "mains": "main", "post": "post",
+                           "posts": "post", "loop": "loop", "loops": "loop",
+                           "town": "town_main", "towns": "town_main",
+                           "town_main": "town_main"}
+
+
+def _reshuffle_kinds(spec: str) -> set[str]:
+    """`--kinds main,posts,towns` -> {"main", "post", "town_main"}; empty
+    spec -> empty set (no filter). An unknown word is refused by name."""
+    kinds: set[str] = set()
+    for word in (w.strip().lower() for w in spec.split(",") if w.strip()):
+        if word not in _RESHUFFLE_KIND_ALIASES:
+            raise SystemExit(f"ERR: --kinds: unknown kind {word!r} "
+                             f"(one of main, posts, loops, towns)")
+        kinds.add(_RESHUFFLE_KIND_ALIASES[word])
+    return kinds
+
+
+def _reshuffle_kind(canonical: str) -> str:
+    """The grammar kind of a canonical branch name ('' when unparseable)."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        return str(branches.parse(canonical).get("kind") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     """hypothesis:l4-branches-follow-the-season-grammar clause 3 — the one
     migration script. --dry-run prints exactly what it WOULD do and touches
@@ -2443,6 +2470,14 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         return 1
 
     jobs = _reshuffle_jobs(repo, season)
+    # Prime XIV ruling (mur-44 window, 04:18Z): `--kinds main,posts,towns`
+    # runs FIRST and leaves the ~312 dead loop/* branches on their old
+    # names -- harvest notes and experiment nodes cite them by name, and a
+    # rename would make every citation stale for nothing. The kind of a job
+    # is the kind of its NEW (canonical) name: main | post | loop | town_main.
+    kinds = _reshuffle_kinds(getattr(args, "kinds", "") or "")
+    if kinds:
+        jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
         print("branch-reshuffle: no legacy branches to reshuffle")
         print("dry-run: nothing changed" if not (apply or delete_old) else "")
@@ -2696,6 +2731,11 @@ def main() -> int:
         "--root", default=None,
         help="the graph root (.agi dir) to act on — required to run --apply "
              "against a fixture repo; default resolves the live tree normally.")
+    p_rs.add_argument(
+        "--kinds", default="",
+        help="comma list of kinds to reshuffle (main, posts, towns, loops); "
+             "empty = every legacy branch. Prime ruling: --kinds "
+             "main,posts,towns FIRST, dead loop/* keep their cited names")
     p_rs.add_argument(
         "--season", type=int, default=None,
         help="root season for town-main renames (default: ladder "
