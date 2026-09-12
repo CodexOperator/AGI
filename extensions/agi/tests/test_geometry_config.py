@@ -3,8 +3,10 @@
 
 Proves, on fixture graphs only (never the live tree):
   * a `posts.md` graph resolves post-first with NO deprecated-alias notice;
-  * a `seats.md`-only graph resolves via fallback and prints the alias notice
-    AT MOST ONCE per process;
+  * a `seats.md`-only graph resolves via the SILENT fallback with NO
+    file-deprecation notice (the notice was a lie on exactly the trees where
+    it fired, hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-
+    exists);
   * `--seat <name>` still works on a CLI and `--post <name>` is accepted on
     the SAME CLI (argparse dest unchanged -> no call site breaks);
   * `AGI_POST` wins over `AGI_SEAT` when both are set.
@@ -87,7 +89,7 @@ def _resolver(root: Path, args: str) -> subprocess.CompletedProcess:
 
 
 # --------------------------------------------------------------------------- #
-# reader half: posts-first, seats fallback, notice ONCE per process            #
+# reader half: posts-first, seats fallback, file notice SILENT             #
 # --------------------------------------------------------------------------- #
 def test_posts_md_resolves_post_first_no_notice(tmp_path):
     g = _graph(tmp_path)
@@ -110,19 +112,31 @@ def test_posts_wins_over_seats_when_both_files(tmp_path):
     assert "deprecated" not in r.stderr, r.stderr
 
 
-def test_seats_only_fallback_resolves_and_notices_exactly_once(tmp_path):
-    """Only seats.md exists: resolve twice in one process and the alias notice
-    must print exactly ONCE (the once-per-process flag), with rows read."""
+def test_seats_only_fallback_resolves_silently(tmp_path):
+    """Only seats.md exists: resolve() returns the seats rows and prints NO
+    file-deprecation notice (hypothesis:l4-the-config-posts-note-is-silent-
+    until-posts-md-exists). The notice named a migration target (posts.md)
+    that is absent by construction on this branch, so it could only fire
+    where its advice was untakeable — it is deleted outright. Resolve twice
+    in one process to prove the rows themselves (not just a count) and the
+    absence of the notice."""
     g = _graph(tmp_path)
     _write_seats(g)
     r = _resolver(g, (
+        "import json\n"
         "print(gc.resolve(ROOT)[0].name)\n"
-        "print(len(gc.load_rows(ROOT)))\n"
+        "print(json.dumps(gc.load_rows(ROOT)))\n"
+        "print(json.dumps(gc.load_rows(ROOT)))\n"
     ))
     assert r.returncode == 0, r.stderr
-    assert r.stdout.splitlines()[0] == "seats.md"
-    assert r.stdout.splitlines()[1] == "2"
-    assert r.stderr.count("deprecated") == 1, r.stderr
+    lines = r.stdout.splitlines()
+    assert lines[0] == "seats.md", lines
+    rows = json.loads(lines[1])
+    assert rows == SEATS_ROWS, rows     # byte-for-byte identity with today
+    assert json.loads(lines[2]) == SEATS_ROWS, lines
+    # the file-deprecation notice is SILENT on a seats-only tree
+    assert "deprecated" not in r.stderr, r.stderr
+    assert "note:" not in r.stderr, r.stderr
 
 
 def test_missing_geometry_config_returns_empty(tmp_path):
@@ -413,3 +427,68 @@ def test_viewport_anchor_index_falls_back_to_seats_md(tmp_path):
     )
     assert r.returncode == 0, r.stderr
     assert r.stdout.strip() == "2", r.stdout
+
+
+# --------------------------------------------------------------------------- #
+# GUARD (kid SL7.67, Gap 2): no reader RE-emits the file-deprecation notice  #
+# on the seats-only fallback (hypothesis:l4-the-config-posts-note-is-silent- #
+# until-posts-md-exists). See the test's docstring for the counterfactual it #
+# avoids.                                                                    #
+# --------------------------------------------------------------------------- #
+def test_no_reader_reemits_file_notice_on_seats_tree(tmp_path):
+    """GUARD — an integration assertion across the reader modules that open
+    the geometry config. On a seeds-only tree every reader reaches the
+    resolver through the SILENT seats fallback (the file-deprecation notice
+    was deleted, not silenced: hypothesis:l4-the-config-posts-note-is-silent-
+    until-posts-md-exists).
+
+    Chosen over the resolver-only alternative because of the counterfactual:
+    a test that only calls `geometry_config.resolve()` directly proves the
+    RESOLVER is silent but would still pass if a reader module re-added its
+    OWN file-deprecation print — the notice could return through any of the
+    ten readers and that guard would not see it. This guard instead drives
+    EACH reader's own entry point twice on a seeds-only tree and asserts
+    (1) it returns the two seats rows (so a module that never reads the
+    geometry config cannot pass trivially: it would report [],absent and
+    fail), and (2) the whole subprocess emits NO `note:`/`deprecated`
+    file-notice on stderr. A `note: ... is deprecated` file-notice print put
+    back on ANY reader's seats path lands on stderr and fails here; a hook-level run
+    (option a) is separately covered by test_hook_alias_notice.py's notice-
+    family test.
+    """
+    g = _graph(tmp_path)
+    _write_seats(g)
+    r = _py(
+        "import hierarchy, sensei, seat_status, viewport\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        # every reader that opens the geometry config, run TWICE on a
+        # seeds-only tree: rows must come back (reaches the fallback) and
+        # nothing may reach stderr.
+        "print('h1', [x.get('name') for x in hierarchy.load_seats(ROOT)])\n"
+        "print('h2', len(hierarchy.load_seats(ROOT)))\n"
+        "print('se1', [x.get('name') for x in sensei.load_seats(ROOT)])\n"
+        "print('se2', len(sensei.load_seats(ROOT)))\n"
+        "_, p = seat_status._load_registry_rows(ROOT); print('ss1', p)\n"
+        "_, p2 = seat_status._load_registry_rows(ROOT); print('ss2', p2)\n"
+        "v1, pv = viewport.load_seat_rows(ROOT, {}); print('vp', pv, len(v1))\n"
+        "v2, pv2 = viewport.load_seat_rows(ROOT, {}); print('vp2', pv2, len(v2))\n"
+        "a1 = viewport._anchor_index(ROOT, {})\n"
+        "a2 = viewport._anchor_index(ROOT, {})\n"
+        "print('an1', len(a1.anchored) + len(a1.unanchored))\n"
+        "print('an2', len(a2.anchored) + len(a2.unanchored))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    lines = r.stdout.splitlines()
+    expected = [
+        "h1 ['seatA', 'seatB']", "h2 2",
+        "se1 ['seatA', 'seatB']", "se2 2",
+        "ss1 True", "ss2 True",
+        "vp True 2", "vp2 True 2",
+        "an1 2", "an2 2",
+    ]
+    assert lines == expected, lines
+    # the file-deprecation notice is SILENT through every reader on a
+    # seeds-only tree
+    assert "note:" not in r.stderr, r.stderr
+    assert "deprecated" not in r.stderr, r.stderr
