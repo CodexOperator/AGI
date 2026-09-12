@@ -1522,6 +1522,89 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     return
 
 
+def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
+    """The CREATE half of a schema's field-level refusal annotations.
+
+    A node is born through `create`, and until this gate existed nothing on
+    that path consulted the schema's field `refuse:` annotation — so a cell
+    the loader bans at READ time (the town `branches:` cell, whose schema
+    field carries `refuse: "DERIVED, never a cell …"`) could be WRITTEN by
+    `create --set`, and only refused rounds later when a reader hit the node.
+    This gate closes the gap: for any schema declaring a field-level
+    `refuse:` OR a declared `int` type, `create --set` refuses BY NAME at
+    mint — GENERICALLY, driven by the schema itself, never a town-shaped
+    special case.
+
+    Two rules, both data-driven:
+      (1) a `--set <key>` where the schema's field `<key>` carries a `refuse:`
+          annotation is refused by name, quoting the annotation's ground;
+      (2) a `--set <key>` where the schema declares `<key>: int` but the
+          value is not an integer (`season=abc`, `season=true`) is refused by
+          name, never a traceback.
+      (3) a field on the schema's `validation.required_nonempty` list that
+          `--set` leaves EMPTY or ABSENT is refused by name. This is the
+          schema-DECLARED own of goal:s31's missing-required warn-and-write:
+          a scaffold is born valid and a READER refuses, so `validation.
+          required` alone stays a SCHEMA-WARNING and the node is written — but
+          a type that declares `required_nonempty` opts OUT of that for those
+          specific fields and refuses at MINT (a town with no `visions` would
+          otherwise be born only for `towns.load_towns` to refuse it at READ,
+          the round's exact disproof). A schema declaring no such list keeps
+          its current warn-and-write behaviour.
+
+    Returns a ONE-LINE refusal or None when every `--set` value passes. A
+    schema that does not exist, or a `set_fm` whose keys the schema does not
+    declare, gates nothing (unknown keys fall through to the schema's own
+    seed/validation machinery).
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return None
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return None
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return None
+    if schema is None:
+        return None
+    fields = schema.fields or {}
+    vt = (schema.frontmatter.get("validation") or {}).get("types") or {}
+    required_nonempty = ((schema.frontmatter.get("validation") or {})
+                         .get("required_nonempty") or [])
+    for key in set_fm:
+        field = fields.get(key)
+        if isinstance(field, dict) and field.get("refuse"):
+            ground = str(field.get("refuse"))
+            return (f"create {node_type} refused by name: {key!r} is not a "
+                    f"settable cell — {ground}"
+                    f" (schema field-level `refuse:`, enforced generically "
+                    f"at mint)")
+        declared_int = (vt.get(key) == "int"
+                        or (isinstance(field, dict) and field.get("type") == "int"))
+        if declared_int:
+            v = set_fm[key]
+            if isinstance(v, bool) or not isinstance(v, int):
+                return (f"create {node_type} refused by name: {key!r} must "
+                        f"be an integer at mint, got {v!r}"
+                        f" (schema declares {key}: int)")
+    for key in required_nonempty:
+        if key not in set_fm:
+            return (f"create {node_type} refused by name: {key!r} is required "
+                    f"non-empty at mint and was NOT set — a node born without "
+                    f"it would be refused at read (schema "
+                    f"validation.required_nonempty)")
+        v = set_fm[key]
+        if v is None or (hasattr(v, "__len__") and len(v) == 0):
+            return (f"create {node_type} refused by name: {key!r} is required "
+                    f"non-empty at mint, got {v!r} (empty) — a node born with "
+                    f"an empty {key} would be refused at read (schema "
+                    f"validation.required_nonempty)")
+    return None
+
+
 def _resolve_replace_text(edit: Edit) -> None:
     """The ONE resolver that turns `replace_from` into `replace_text`.
 
@@ -2217,6 +2300,17 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
             set_fm[k] = v
+        # hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-
+        # and-every-vision-id-must-exist — the schema's field-level `refuse:`/
+        # declared-`int` rules are a GATE the create path enforces GENERICALLY,
+        # before the dry-run short-circuit (a dry run simulates the mint, so it
+        # refuses what the real mint would refuse). A town `branches:` cell and
+        # a non-int `season` both refuse BY NAME by exit 2 here — never a
+        # traceback, never a node born only for a later reader to reject.
+        refusal = _enforce_create_schema_gate(root, args.script, set_fm)
+        if refusal:
+            print(f"ERR: {refusal}", file=sys.stderr)
+            return 2
         if args.dry_run:
             print(f"create {args.script}:{args.slug}")
             print(f"  parents  {args.parents or '(none)'}")
