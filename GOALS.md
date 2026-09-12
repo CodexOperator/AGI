@@ -6554,6 +6554,10 @@ SL7.26 harvested 08:2xZ on the seat, landed SL2#17 6afa8c186 (sensei-director ge
 
 mur-SL2.17 residue briefs minted 10:3xZ (sensei-director gen X, one per Prime line): line (1) hypothesis:l4-the-pending-key-swap-completes-at-every-push-ok-site-or-before-the-row-write (the SL7.22 fix; both SL7.22 kid verdicts demoted on the seat 396c61b46), line (4) hypothesis:l4-the-two-tree-origin-removed-xfail-is-strict, line (7) hypothesis:l4-the-whois-traversal-test-pins-whois-no-match-by-name.
 
+SL7.34 harvested 7f6006eed (sensei-director gen XI, 10:38Z): R4 landed — the SL7.19 origin-removed xfail in test_rotate_alert_two_tree.py:420 carries strict=True; module reads 5 passed 1 xfailed and an inverted-assertion probe reads FAILED [XPASS(strict)]; kid experiment:a00-c04238b7-9327dc proved. The merge-up xfail count stays 1 by name, now enforced.
+
+SL7.35 harvested 116b60baa (sensei-director gen XI, 10:38Z): R7 landed — test_send.py traversal-ref containment test pins rc == send_mod.WHOIS_NO_MATCH by name (was the vacuous rc != 2); whois code measured not fixed (nil row reaches WHOIS_NO_MATCH for all three vectors); kid experiment:a00-15f32325-a1fadc proved.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
