@@ -603,7 +603,7 @@ class TestRolloverGenesis:
         assert result.returncode == 0, f"stderr: {result.stderr}"
         assert "season_names[1] = genesis" in result.stdout
         assert "Bump ladder current_season: 1 → 2" in result.stdout
-        assert "git checkout -b season/s2" in result.stdout
+        assert "git checkout -b season2/main" in result.stdout
 
     def test_dry_run_changes_nothing(self, season_py, temp_graph, tmp_path):
         """Even with every flag, --dry-run writes no node and no ladder field."""
@@ -641,7 +641,7 @@ class TestRolloverGenesis:
 
     def test_real_run_mints_visions_names_ladder_and_opens_branch(self, season_py, temp_graph, tmp_path):
         """The real run performs the plan: minted vision nodes with verbatim
-        bodies, ladder renamed and bumped, and the season/s2 branch opened."""
+        bodies, ladder renamed and bumped, and the season2/main branch opened."""
         import locations
         from graph_core.persistence import frontmatter
         root = locations.find_project_root(temp_graph)
@@ -660,7 +660,7 @@ class TestRolloverGenesis:
         assert result.returncode == 0, f"stderr: {result.stderr}"
         assert "minted vision:all-is-one" in result.stdout
         assert "season_names[1] = genesis written" in result.stdout
-        assert "opened branch season/s2" in result.stdout
+        assert "opened branch season2/main" in result.stdout
 
         # The minted vision: season 2, five moral parents, verbatim body.
         vision = frontmatter.load_node_file(root / "nodes" / "vision" / "all-is-one.md")
@@ -681,7 +681,7 @@ class TestRolloverGenesis:
         # Branch opened and never pushed.
         br = subprocess.run(["git", "-C", str(tmp_path), "branch", "--show-current"],
                             capture_output=True, text=True)
-        assert br.stdout.strip() == "season/s2"
+        assert br.stdout.strip() == "season2/main"
 
     def test_second_rollover_names_its_own_season_and_attributes_each_write(
             self, season_py, temp_graph, tmp_path):
