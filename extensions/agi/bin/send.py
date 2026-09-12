@@ -2065,12 +2065,16 @@ def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
                 return f"RETIRED:{fp}"
         except Exception:                                          # noqa: BLE001
             continue
-    # LIVE path: the row declares what it accepts -- a sig under a scheme the
-    # row does not name is a forgery even if the bytes are genuine.
+    # LIVE path: the row declares what it accepts. A row that NAMES no key
+    # (no pubkey, no sig_scheme) cannot refute anything -- a signed block
+    # from such a row reads UNKEYED <seat> (printed in full, never withheld,
+    # never REFUSED), NOT FORGED: FORGED is reserved for a signature that
+    # FAILS against a key the row NAMES (hypothesis:l4-a-sig-against-a-row-
+    # with-no-key-on-file-reads-unkeyed-never-forged).
     row_scheme = row.get("sig_scheme") or ""
     row_pub = row.get("pubkey") or ""
     if not row_scheme or not row_pub:
-        return "FORGED"
+        return f"UNKEYED {seat_name}"
     if row_scheme != sig_scheme:
         return "FORGED"
     try:
@@ -2088,13 +2092,17 @@ def _verify_block(root: Path, rows: list | None,
 
     ``VERIFIED <seat> (<scheme>)`` when a ``sig`` line is present and verifies
     against the from-seat's row (pubkey + sig_scheme matched); ``UNSIGNED``
-    when there is no sig line; ``FORGED`` when a sig is present and fails any
-    check (bad shape, unknown scheme, unknown sender, a row with no
-    pubkey/sig_scheme, a scheme the row does not name, or a signature that
-    does not verify); ``RETIRED:<fp>`` when the sig's fingerprint matches a
-    key_history entry of the from-seat and verifies under that retired pub.
-    The label is NEVER a drop -- the caller prints the block in full under all
-    four.
+    when there is no sig line; ``UNKEYED <seat>`` when a sig is present but the
+    from-seat's row NAMES no pubkey or no sig_scheme (nothing to refute it --
+    readers print UNKEYED like UNSIGNED, never withheld, never REFUSED);
+    ``FORGED`` when a sig is present and fails a check AGAINST A KEY THE ROW
+    NAMES (bad shape, unknown scheme, unknown sender, a scheme the row does
+    not name, or a signature that does not verify -- but NOT a row with no
+    pubkey/sig_scheme, which is UNKEYED); ``RETIRED:<fp>`` when the sig's
+    fingerprint matches a key_history entry of the from-seat and verifies
+    under that retired pub. The label is NEVER a drop -- the caller prints
+    the block in full under all labels, and under comms.verify==enforcing only
+    the EXACT label FORGED is refused.
     """
     sig = meta.get("sig")
     if not sig:
@@ -2139,8 +2147,9 @@ def _wrap_body(text: str, width: int) -> str:
     needs no wrap prints byte-identical (indent, internal runs of spaces,
     trailing spaces all included) because folding touches ONLY lines longer
     than `width` and breaks only at a single space outside the indent, never
-    inside a node id, sha, path, URL or [VERIFIED|UNSIGNED|FORGED] label (an
-    over-width token stays whole on its own line). `width <= 0` returns the
+    inside a node id, sha, path, URL or [VERIFIED|UNSIGNED|UNKEYED|FORGED]
+    label (an over-width token stays whole on its own line). `width <= 0`
+    returns the
     text unchanged.
     """
     if width <= 0:
