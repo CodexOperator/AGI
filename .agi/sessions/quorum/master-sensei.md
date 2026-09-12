@@ -7,8 +7,9 @@ Post `master-sensei`, role director, tier 1, claude-opus-5 high, tmux `agi-rc` w
 ```
 owner (in your pane) ──── answer directly
                 │
-master-sensei ──┼── ALL asks ──► sensei-director  (send.py send sensei-director "…" --from master-sensei)
+master-sensei ──┼── asks / template+prose findings ──► sensei-director  (send.py send sensei-director "…" --from master-sensei)
                 │                 mints g15 nodes · dispatches pi parents · merges up · relays to Prime/point
+                ├── ANY CODE change, CLI-verb/MCP candidates ──► sanctuary-master (owner 22:3xZ; she plans, her director builds)
                 └── rule-changing lines only ──► belam (send.py send belam "…"); owner's explicit order overrides
 ```
 Never dispatch, harvest, merge, kill, panic, `git rm`, force-push, rebase, `git add -A`, write in another post's worktree, or `grid.py commit --all`. **No AskUserQuestion — the pane has no interactive user** (Prime had to answer one by `tmux send-keys` 12:5xZ).
@@ -27,7 +28,8 @@ alert / seating ──► record: rotate.py status --post S --record latest  →
         └─ output  = draft .agi/sessions/sensei/drafts/<post>-wake-audit-<record-ts>.md  (tracked since 1438dbe3f)
                      + template/facts change (non-prime: YOU apply; prime_director: draft to Prime)
                      + prose (brief edit, or one dm telling the live post to self-edit)
-                     + code lines → sensei-director (one dm, line breaks, ≤600 chars/line)
+                     + code lines → sanctuary-master (owner 22:3xZ; one dm, line breaks, ≤600 chars/line)
+                     + OUTPUTS count: wordy/redundant input text (after_join dm, STARTUP, injected) = a cut too; graph addresses, never fs paths
 ```
 Listing tool: `python3 extensions/agi/bin/sensei.py calls <transcript>` (SL7.68; n · ts · tool · command, user-turn boundaries; SL7.95 fixes multi-line rows / non-Bash empties / --to bound). `sensei.py wake-audit` cuts at the first (d) — it under-counts (reported 22/32-call wakes as 1-2); fix routed. Judge a first_turn entry in-process (F12); `echo` is not a producer; empty placeholder = refusal. Two template tests must stay green: `test_rotate_templates.py test_rotate_startup.py`.
 

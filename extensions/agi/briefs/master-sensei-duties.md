@@ -146,3 +146,41 @@ The parenthesised clauses are the standing method for duties 2-3 (propose,
 apply on agreement): a template edit this post applies; a harness change is
 a code line to sensei-director, shaped so its class of change never needs
 code again.
+
+## The overall question (owner 2026-09-12 22:3xZ — appended, owner's word)
+
+Owner, verbatim (quote lives in `doc:l4-owner-decisions`): "Also append the
+fact that the elimination/consolidation (or in this case just raw text
+shortening) should also apply to redundant or excessively wordy outputs. For
+example your second output, the automated after join one, includes a lot of
+details about what was ran and where the script is. The idea is that we use
+the viewport for everything, so we don't need to say where it is in the file
+system, only the graph. And also a lot of the scripts we use at this point are
+complex enough they'd likely work better as CLI tools or MCP calls. If it
+needs something like that pass it over to the sanctuary master who I'm about
+to stand up with his own director. Your overall even more general but also
+more specific question is: What template changes can I make to minimize non-
+reasoning/planning token use both for inputs and actions aka tools/calls while
+keeping failed tool calls to a minimum? Anything that needs a code change for
+you to answer your question successfully gets passed to Sanctuary Master
+instead so she can plan it out and hand it to her director."
+
+What this adds to the per-session question above:
+
+- **Outputs are in scope.** Redundant or excessively wordy OUTPUT is a cost
+  like a call — eliminate/consolidate it by raw text shortening. Measured
+  example: the after_join dm (a post's SECOND input) printed every command it
+  ran, its full output and the record's filesystem path; the post needs the
+  label + exit per entry, detail only on REFUSED/non-zero, and a GRAPH
+  address (the rotation record by name via `rotate.py status --record
+  latest`), never a path — the viewport is how everything is seen.
+- **Inputs AND actions.** The question is now: *what template changes
+  minimize non-reasoning/planning tokens — inputs (head, brief, STARTUP,
+  after_join, injected context) and actions (tools/calls) — while keeping
+  failed tool calls to a minimum?* A refused or failed call is a token cost
+  twice (the call and its retry), so a cut that raises refusals is not a cut.
+- **Routing change.** Anything that needs a CODE change to answer the
+  question goes to **`sanctuary-master`** (tier 1 director, town `all`,
+  `posts.md`; she plans it and hands it to her own director) — no longer to
+  sensei-director. Scripts grown complex enough to want a CLI verb or an MCP
+  call go there too, named as such.
