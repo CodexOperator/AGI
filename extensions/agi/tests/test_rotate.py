@@ -363,6 +363,384 @@ def test_rotate_complete_pending_key_swap(tmp_path, monkeypatch):
     assert json.loads(key_path2.read_text())["priv_hex"] != succ_priv.hex()
 
 
+def test_finish_pending_swap_on_push_fires_only_on_push_ok(tmp_path, monkeypatch):
+    """g15.26 claim (b) gate: the ONE shared helper `_finish_pending_swap_on_push`
+    completes a deferred swap exactly on a ``push: OK`` line and is a no-op on a
+    FAILED/absent push -- so no push-OK site can drift into completing a swap it
+    must not (and a push-FAILED site calling the helper cannot accidentally
+    flip the key)."""
+    import send as bin_send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s31")
+    _succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    pend = bin_send._seats_dir(tmp_path) / "s31.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": _succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "s31", "pubkey": succ_pub.hex()}])
+    # a FAILED push must NOT complete the swap -- pending stays, key unchanged.
+    r_fail = rotate._finish_pending_swap_on_push(tmp_path, "s31",
+                                                 "push: FAILED -- boom")
+    assert r_fail == ""
+    assert pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] != _succ_priv.hex()
+    # an ABSENT push line must NOT complete it either.
+    assert rotate._finish_pending_swap_on_push(tmp_path, "s31", "") == ""
+    assert pend.exists()
+    # a ``push: OK`` line completes the swap and deletes the pending file.
+    r_ok = rotate._finish_pending_swap_on_push(tmp_path, "s31",
+                                               "push: OK -- master")
+    assert r_ok == "key swap completed (deferred from gen 2)"
+    assert not pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] == _succ_priv.hex()
+
+
+def test_rotate_self_completes_pending_swap_before_minting(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """g15.26 claim (a) -- the CENTRE of the claim, end-to-end with a real git
+    push: a seat carrying `<seat>.key.pending` (a prior rotate-self push FAILED
+    after its spawn-row write committed) runs ANOTHER rotate-self on a real
+    git+bare-origin fixture. The deferred swap COMPLETES BEFORE the fresh
+    `_rotate_successor_key` mints a new successor generation -- so the mint
+    reads a `.key` that already agrees with the committed row, key_history is
+    NOT double-counted, no `.key.pending` is orphaned, and a dm signed by the
+    seat reads VERIFIED under enforcing (never FORGED / never RETIRED)."""
+    import send as bin_send
+    import io as _io
+    import contextlib as _c
+    # the failed-push state: HEAD's committed seats.md row names the gen-N+1
+    # successor pubkey (the spawn-row write committed), the push failed, so
+    # the successor private key lives ONLY in .key.pending; on-disk .key is
+    # still the gen-N predecessor.
+    _pred_key, pred_pub = _mk_seat_key(tmp_path, "adv-alive")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max",
+                                   "sig_scheme": "ed25519",
+                                   "pubkey": succ_pub.hex(),
+                                   "key_history": [{"retired": "I", "to": 1,
+                                                   "pub": pred_pub.hex()}]}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    (quorum / "adv-alive.md").write_text(
+        "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
+    # make tmp a valid AGI project graph root so `write.submit`'s descend-
+    # only root gate accepts it (written BEFORE _init_git_remote so the
+    # upstream prepare check 2 finds a CLEAN tree, never a blocker).
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _init_git_remote(tmp_path)            # commits
+    pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    # the REAL mint runs (gap: kid 1 stubbed it to return None, so the mint
+    # never contributed key_history and the double-count was never exercised).
+    # Patch only to RECORD what the real mint retired and saw on disk -- the
+    # behavioural claim stays on the real code path.
+    real_mint = rotate._rotate_successor_key
+    minted = {}
+
+    def recording_mint(root, seat, row, **kw):
+        out = real_mint(root, seat, row, **kw)
+        kp = bin_send._seat_key_path(root, seat)
+        minted["key_priv_at_mint"] = json.loads(
+            kp.read_text())["priv_hex"]
+        minted["pending_gone_at_mint"] = not (
+            kp.parent / f"{kp.name}.pending").exists()
+        minted["retired"] = (out or {}).get("retired")
+        minted["successor_pub"] = (out or {}).get("successor_pub")
+        return out
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    monkeypatch.setattr(rotate, "_rotate_successor_key", recording_mint)
+    err = _io.StringIO()
+    # the internal session_ref seam makes `identity_available` true so the
+    # spawn-row write (s6.1) actually runs and the committed row is the one
+    # the claim is about -- without it the rotation would succeed but never
+    # write/commit the successor pubkey + key_history cells.
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             session_ref="adv-alive-9")
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, err.getvalue()
+    # (a) the swap completed BEFORE the real mint read the key: the mint
+    # read `.key` = the completed successor (gen N+1), pending gone, and
+    # retired THAT successor -- it never re-read the on-disk predecessor.
+    assert minted["key_priv_at_mint"] == succ_priv.hex()
+    assert minted["pending_gone_at_mint"] is True
+    assert minted["retired"] and minted["retired"]["pub"] == succ_pub.hex()
+    assert "key swap completed (deferred from gen 2)" in err.getvalue()
+    assert not pend.exists()
+    # (b) the EXACT committed seats.md row after the rotate-self: pubkey is
+    # the freshly-minted successor (gen N+2) and key_history carries EACH
+    # generation's retired key exactly ONCE -- the failed-push entry (pred,
+    # gen N) and this rotation's (succ, gen N+1) -- NO duplicate generation
+    # (this is the assertion kid 1's stubbed mint could never reach).
+    import write as _w
+    rows_after = _w._load_seats(tmp_path)
+    own = next(r for r in rows_after if r.get("name") == "adv-alive")
+    assert own["pubkey"] == minted["successor_pub"]
+    hist = [h for h in own["key_history"] if isinstance(h, dict)]
+    hist_pubs = [h.get("pub") for h in hist]
+    assert hist_pubs.count(pred_pub.hex()) == 1, hist
+    assert hist_pubs.count(succ_pub.hex()) == 1, hist
+    assert len(hist) == 2, hist
+    # (c) a dm signed by the seat after the swap reads VERIFIED under
+    # enforcing -- the signed key matches the committed row, never FORGED.
+    bin_send.send(tmp_path, "recv", "pending hello", "adv-alive")
+    out = capsys.readouterr().out
+    bin_send.read(tmp_path, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "FORGED" not in out2.split("pending hello")[0]
+    assert "RETIRED" not in out2.split("pending hello")[0]
+
+
+def test_rotate_self_stops_push_completes_pending_swap_site(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """g15.26 claim (b) SITE 1 (rotate.py:11072) -- the rotate-out STOP-PUSH
+    call site, end-to-end over a real git+bare-origin push. A seat carrying a
+    deferred `.key.pending` (a prior push FAILED after its row committed)
+    runs ANOTHER rotate-self `--stops <msg>`. The stops write+commit (push
+    line 1) succeeds, and `_finish_pending_swap_on_push` fires AT the stops
+    push site with `push: OK` to COMPLETE the deferred swap -- before the
+    top-of-rotate complete (a no-op then) can. After the full rotation:
+    `.key`'s private key derives the COMMITTED row's pubkey, `.key.pending`
+    is gone (never orphaned), and a dm signed by the seat reads VERIFIED
+    under enforcing (never FORGED). The merge-push site (11141) is the
+    harder leaf (it needs an only-behind merge to land in the checklist) and
+    stays covered by the same shared helper's unit test + this stops site."""
+    import send as bin_send
+    import io as _io
+    import contextlib as _c
+    _pred_key, pred_pub = _mk_seat_key(tmp_path, "adv-alive")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max",
+                                   "sig_scheme": "ed25519",
+                                   "pubkey": succ_pub.hex(),
+                                   "key_history": [{"pub": pred_pub.hex()}]}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    (quorum / "adv-alive.md").write_text(
+        "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _init_git_remote(tmp_path)
+    pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    calls = []
+    real_finish = rotate._finish_pending_swap_on_push
+
+    def rec_finish(root, seat, push_line):
+        kp = bin_send._seat_key_path(root, seat)
+        before = (kp.parent / f"{kp.name}.pending").exists()
+        r = real_finish(root, seat, push_line)
+        after = (kp.parent / f"{kp.name}.pending").exists()
+        if before:
+            calls.append((push_line, r != "", after))
+        return r
+
+    monkeypatch.setattr(rotate, "_finish_pending_swap_on_push", rec_finish)
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    # REAL mint runs (the stops-push completed the deferred swap FIRST, so
+    # the mint retires the completed successor -- not a second predecessor).
+    err = _io.StringIO()
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             session_ref="adv-alive-9", stops="fix handover")
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, err.getvalue()
+    # the STOPS-push site fired the shared helper with push: OK and the swap
+    # completed there (pending file existed BEFORE, gone AFTER on that call).
+    assert calls, "the pending swap never reached _finish_pending_swap_on_push"
+    assert calls[0][0] == "push: OK", calls
+    assert calls[0][1] is True and calls[0][2] is False, calls
+    assert not pend.exists()
+    # .key's private key derives the COMMITTED row's pubkey -- the swap
+    # state, not the stale predecessor.
+    import write as _w
+    rows_after = _w._load_seats(tmp_path)
+    own = next(r for r in rows_after if r.get("name") == "adv-alive")
+    _sch = bin_send.seatsig.get("ed25519")
+    kp = bin_send._seat_key_path(tmp_path, "adv-alive")
+    key_priv = json.loads(kp.read_text())["priv_hex"]
+    derived = _sch.public_from_secret(bytes.fromhex(key_priv)).hex()
+    assert own["pubkey"] == derived, "on-disk key != committed row pubkey"
+    # a dm signed by the seat reads VERIFIED under enforcing, never FORGED.
+    bin_send.send(tmp_path, "recv", "pending hello", "adv-alive")
+    capsys.readouterr()
+    bin_send.read(tmp_path, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "FORGED" not in out2.split("pending hello")[0]
+    assert "RETIRED" not in out2.split("pending hello")[0]
+
+
+def test_rotate_self_merge_push_completes_pending_swap_site(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """g15.26 claim (b) SITE 2 (rotate.py:11141) -- the ONLY-BEHIND MERGE
+    push call site, end-to-end over a real git+bare-origin. A seat with a
+    deferred `.key.pending` rotates while its season branch is measurably
+    BEHIND origin; the captive checklist (check 3) performs the mechanical
+    only-behind merge, HEAD moves, and push line 2 fires `_finish_pending_swap_on_push`
+    with `push: OK` AT the merge-push site -- completing the deferred swap
+    (the pending file exists at that call, gone after). Top-of-rotate runs
+    later and is then a no-op. After the full rotation: `.key`'s private key
+    derives the COMMITTED row's pubkey, `.key.pending` is gone, and a dm
+    signed by the seat reads VERIFIED under enforcing (never FORGED)."""
+    import send as bin_send
+    import io as _io
+    import contextlib as _c
+    import tempfile as _tf
+    _pred_key, pred_pub = _mk_seat_key(tmp_path, "adv-alive")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max",
+                                   "sig_scheme": "ed25519",
+                                   "pubkey": succ_pub.hex(),
+                                   "key_history": [{"pub": pred_pub.hex()}]}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    (quorum / "adv-alive.md").write_text(
+        "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    bare = _init_git_remote(tmp_path)
+    # layer an AHEAD commit onto origin/season/s2 (the ladder's season
+    # branch, `_prepare_merge_target`'s fallback for a non-post branch) so
+    # the checklist check-3 sees `HEAD..origin/season/s2` = 1 and performs a
+    # mechanical merge -- moving HEAD and arming the merge-push site. The
+    # new file conflicts with nothing in master, so the merge applies clean.
+    subprocess.run(["git", "-C", str(tmp_path), "fetch", "origin"],
+                   check=True, capture_output=True)
+    fd, idx = _tf.mkstemp()
+    env = dict(os.environ, GIT_INDEX_FILE=idx)
+    try:
+        subprocess.run(["git", "-C", str(tmp_path), "read-tree",
+                        "origin/master"], env=env, check=True,
+                       capture_output=True)
+        blob = subprocess.run(
+            ["git", "-C", str(tmp_path), "hash-object", "-w", "--stdin"],
+            env=env, input="season helper\n", capture_output=True, text=True,
+            check=True).stdout.strip()
+        subprocess.run(["git", "-C", str(tmp_path), "update-index",
+                        "--add", "--cacheinfo",
+                        f"100644,{blob},season-helper.txt"], env=env,
+                       check=True, capture_output=True)
+        tree = subprocess.run(["git", "-C", str(tmp_path), "write-tree"],
+                              env=env, capture_output=True, text=True,
+                              check=True).stdout.strip()
+        ahead = subprocess.run(
+            ["git", "-C", str(tmp_path), "commit-tree", tree, "-p",
+             "origin/master", "-m", "season ahead"], env=env,
+            capture_output=True, text=True, check=True).stdout.strip()
+    finally:
+        os.unlink(idx)
+    subprocess.run(["git", "-C", str(tmp_path), "update-ref",
+                    "refs/heads/season-ahead", ahead], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "push", "origin",
+                    "season-ahead:season/s2"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "update-ref", "-d",
+                    "refs/heads/season-ahead"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "fetch", "origin",
+                    "season/s2"], check=True, capture_output=True)
+    behind = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-list", "--count",
+         "HEAD..origin/season/s2"], capture_output=True, text=True,
+        check=True).stdout.strip()
+    assert behind == "1", f"expected the season branch 1 ahead, got {behind}"
+    pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    calls = []
+    real_finish = rotate._finish_pending_swap_on_push
+
+    def rec_finish(root, seat, push_line):
+        kp = bin_send._seat_key_path(root, seat)
+        before = (kp.parent / f"{kp.name}.pending").exists()
+        r = real_finish(root, seat, push_line)
+        after = (kp.parent / f"{kp.name}.pending").exists()
+        if before:
+            calls.append((push_line, r != "", after))
+        return r
+
+    monkeypatch.setattr(rotate, "_finish_pending_swap_on_push", rec_finish)
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    err = _io.StringIO()
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             session_ref="adv-alive-9")
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, err.getvalue()
+    assert calls, "the deferred swap never reached _finish_pending_swap_on_push"
+    # "push: OK" (not the helper's own `push: OK -- <branch>` line) is
+    # uniquely the MERGE-PUSH site's hardcoded argument -- 11141, not the
+    # spawn-row helper. It fired with the pending file PRESENT and gone.
+    assert calls[0][0] == "push: OK", calls
+    assert calls[0][1] is True and calls[0][2] is False, calls
+    assert not pend.exists()
+    import write as _w
+    rows_after = _w._load_seats(tmp_path)
+    own = next(r for r in rows_after if r.get("name") == "adv-alive")
+    _sch = bin_send.seatsig.get("ed25519")
+    kp = bin_send._seat_key_path(tmp_path, "adv-alive")
+    key_priv = json.loads(kp.read_text())["priv_hex"]
+    derived = _sch.public_from_secret(bytes.fromhex(key_priv)).hex()
+    assert own["pubkey"] == derived, "on-disk key != committed row pubkey"
+    bin_send.send(tmp_path, "recv", "pending hello", "adv-alive")
+    capsys.readouterr()
+    bin_send.read(tmp_path, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "FORGED" not in out2.split("pending hello")[0]
+    assert "RETIRED" not in out2.split("pending hello")[0]
+
+
 def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
     """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
     must fail under a corrupted record (the signature is specific)."""
@@ -1981,7 +2359,8 @@ def _init_git_remote(tmp_path, branch="master"):
     # file) out of `git status` so the captive dirty-tree check sees only
     # real work — exactly what a live seat branch has.
     (tmp_path / ".gitignore").write_text(
-        "remote.git/\nwindows.txt\n", encoding="utf-8")
+        "remote.git/\nwindows.txt\n"
+        "sessions/seats/\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(tmp_path), "remote", "add",
                     "origin", str(bare)], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
@@ -6400,3 +6779,52 @@ def test_own_row_cut_own_write_keeps_its_frontmatter_stamp(tmp_path):
     assert "edited_by: belam" in staged, \
         "the write's own frontmatter stamp must ride the own-row commit"
     assert '"settings": "s"' in staged
+
+
+def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
+                                                     capsys):
+    """g15.26 claim (b) -- the send.py `--all-live` push-OK site: a keygen
+    --all-live pass that PUSHES the season branch completes a deferred
+    `<seat>.key.pending` swap for a seat whose committed row names exactly the
+    pending successor pubkey (origin just received it), via rotate's ONE shared
+    helper. A second seat's keyed change supplies the `--all-live` commit so
+    the push is real; the pending seat's committed row already carrying its own
+    pubkey means the completion is the pending swap, not a fresh mint."""
+    import send as bin_send
+    # seat `a` holds the deferred pending swap (HEAD row names pending pub).
+    _ka, pred_pub = _mk_seat_key(tmp_path, "a")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
+         "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "sig_scheme": "ed25519", "pubkey": pred_pub.hex()}])
+    _init_git_remote(tmp_path)
+    pend = bin_send._seats_dir(tmp_path) / "a.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    # dirt seat `b`'s working row so the all-live commit has content to push.
+    _write_seats_sheet(tmp_path, [
+        {"name": "a", "role": "parent", "model": "x", "effort": "max",
+         "sig_scheme": "ed25519", "pubkey": succ_pub.hex(),
+         "key_history": [{"retired": "I", "to": 1, "pub": pred_pub.hex()}]},
+        {"name": "b", "role": "helper", "model": "x", "effort": "max",
+         "sig_scheme": "ed25519", "pubkey": succ_pub.hex()}])
+    out = bin_send._commit_push_all_live(tmp_path, ["a", "b"])
+    assert "push: OK" in out, out
+    # the pending swap completed through the all-live push-OK site.
+    assert not pend.exists()
+    assert json.loads(bin_send._seat_key_path(tmp_path, "a").read_text())["priv_hex"] \
+        == succ_priv.hex()
+    # a dm signed by seat `a` now reads VERIFIED against the committed row.
+    bin_send.send(tmp_path, "recv", "alllive hello", "a")
+    capsys.readouterr()
+    bin_send.read(tmp_path, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "VERIFIED a (ed25519)" in out2, out2
+    assert "FORGED" not in out2.split("alllive hello")[0]
+    assert "RETIRED" not in out2.split("alllive hello")[0]
