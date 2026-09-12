@@ -1033,8 +1033,12 @@ def test_dm_prints_refused_and_refusal_line_for_empty_pred_pids():
     vals = dict(VALUES)
     vals["pred_pids"] = ""
     import agi.bin.rotate as rot
-    real_run = rot.subprocess.run
-    rot.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(
+    # (SL7.73 harvest) the thrower guards the ONE executor of an after_join
+    # command, `_run_units_no_shell` — not `subprocess.run` wholesale, which
+    # SL7.75's `_after_join_sender` -> `_sessions_dir` -> git also reaches for
+    # the sender resolution (a merge interaction, not a defect of either).
+    real_run = rot._run_units_no_shell
+    rot._run_units_no_shell = lambda *a, **k: (_ for _ in ()).throw(
         AssertionError("refused entry must NEVER run"))
     sent = []
     try:
@@ -1043,7 +1047,7 @@ def test_dm_prints_refused_and_refusal_line_for_empty_pred_pids():
             delay_override=0, sleep_impl=lambda s: None,
             send_dm=lambda to, text: sent.append(text))
     finally:
-        rot.subprocess.run = real_run
+        rot._run_units_no_shell = real_run
     r = out["results"][0]
     assert "refused" in r and "rc" not in r and "output" not in r, r
     assert "REFUSED" in out["dm"], out["dm"]
