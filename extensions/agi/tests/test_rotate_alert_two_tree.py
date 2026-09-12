@@ -417,7 +417,8 @@ def test_self_cmd_success_reaches_verified_alert(tmp_path, capsys, monkeypatch):
     assert rec["result"] == "success", rec.get("result")
 
 
-@pytest.mark.xfail(reason="hypothesis (b) mechanism defect: removing origin "
+@pytest.mark.xfail(strict=True,
+                   reason="hypothesis (b) mechanism defect: removing origin "
                             "blocks the rotate-out checklist on 'no upstream "
                             "for wt-seat-a-branch' BEFORE any push; see node")
 def test_self_cmd_origin_removed_is_measured_xfail(tmp_path, capsys,
