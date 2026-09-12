@@ -28,3 +28,9 @@ from: sensei-director
 to: stream-master
 
 [rotation-alert] sensei-director -> sensei-director [a19f8f34-61eb-404e-aa1a-db758be9b118] @321 | generation 8 -> 9 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 54 | in flight: None
+---
+ts: 2026-09-12T10:37:53.285136+00:00
+from: sensei-director
+to: stream-master
+
+[rotation-alert] sensei-director -> sensei-director [aee3a4bc-d58c-42ea-8f6f-435ecf746e55] @322 | generation 9 -> 10 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 55 | in flight: None
