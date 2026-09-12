@@ -398,6 +398,18 @@ def _first_turn_label(cmd: str, seat: str, entries: list[dict]) -> str | None:
 
 _FACT_LABEL_RE = re.compile(r"^-\s*(F\d+)\b", re.IGNORECASE)
 
+#: The one-season geometry config's two live filename spellings and its two
+#: node-id spellings. A migrated tree is posts.md / config:posts (the
+#: one-season `posts:` list); a one-season tree is seats.md / config:seats
+#: (`seats:` alias). The wake-audit classifier matches BOTH for one season so
+#: a post-first tree is recognised the same way a seats tree is
+#: (hypothesis:l4-a-seat-is-a-post-everywhere) — the audit must keep finding
+#: rows on a fixture where only posts.md exists AND on one where only seats.md
+#: does. Kept as module literals so a future reader can widen the set in one
+#: place.
+_CFG_FILE_SPELLINGS = ("seats.md", "posts.md")
+_CFG_ID_SPELLINGS = ("config:seats", "config:posts")
+
 #: Bare tool tokens a `## facts` bullet may cite as a whole command shape.
 _BARE_FACT_TOOLS = ("ps", "tmux", "whois", "git", "ls", "cat",
                     "grep", "sed", "rg", "find", "tail", "head")
@@ -721,7 +733,7 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
         return True
     if re.search(r"sessions/rotations|claude/projects", nc):
         return True
-    if re.search(r"(ls|cat|sed|grep)\b.*(sessions|rotations|bootstrap|\.ack\.json|\.meter|seats\.md)", nc):
+    if re.search(r"(ls|cat|sed|grep)\b.*(sessions|rotations|bootstrap|\.ack\.json|\.meter|(?:seats|posts)\.md)", nc):
         return True
     if re.search(r"rotate\.py ack|rotate\.py meter --pin", nc):
         return True
@@ -738,7 +750,7 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
     # is a by-hand read, never real work (master-sensei proposal (e) first
     # half). Config .md nodes are NOT source/logs, so this never reaches c.
     if re.search(r"\b(grep|rg|sed|awk|cat|git show)\b", nc) and re.search(
-            r"(seats\.md|config:seats)", nc):
+            r"(seats\.md|posts\.md|config:seats|config:posts)", nc):
         return True
     return False
 
@@ -862,9 +874,11 @@ def _hand_read_paths(entries: list[dict], facts, seat: str) -> set:
         # a rotate-self RECORD read — the seat's OWN record file is derived at
         # the bottom from the seat identity (`sessions/rotations/<seat>`), never
         # as a bare generic directory that would match every seat's record.
-        # the seat REGISTRY a whois / seats.md read touches
-        if re.search(r"\bwhois\b", low) or "seats.md" in low:
-            signals.add("seats.md")
+        # the seat REGISTRY a whois / seats.md (or posts.md) read touches
+        if re.search(r"\bwhois\b", low) or any(
+                sp in low for sp in _CFG_FILE_SPELLINGS):
+            signals.update(_CFG_FILE_SPELLINGS)
+            signals.update(_CFG_ID_SPELLINGS)
         # (the successor's transcript path is SESSION-id based, not seat-
         # derivable here, so no generic `claude/projects` signal is emitted —
         # the bare-substring falsifier of item 6 must stay empty)
@@ -1078,9 +1092,11 @@ def _is_ack_cmd(cmd: str) -> bool:
 
 def _is_row_commit(cmd: str) -> bool:
     """Whether a Bash command is the row commit that seals a seating: a
-    `git commit` whose command names `seats.md` (the seat row)."""
+    `git commit` whose command names the seat row (seats.md, or posts.md on
+    a post-first / migrated tree)."""
     nc = _norm_cmd(cmd)
-    return bool(re.search(r"\bgit\s+commit\b", nc)) and "seats.md" in nc
+    return bool(re.search(r"\bgit\s+commit\b", nc)) and any(
+        sp in nc for sp in _CFG_FILE_SPELLINGS)
 
 
 def wake_audit(root: Path, seat: str, gen: int | None,
@@ -1628,7 +1644,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("wake-audit",
                         help="classify a rotation wake's tool calls")
-    p.add_argument("--seat", "--post", required=True)
+    p.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     p.add_argument("--gen", type=int, default=None,
                    help="rotation-record generation to audit (default: the "
                         "seat's LATEST rotation record; the transcript comes "
@@ -1643,7 +1659,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
-    p.add_argument("--seat", "--post", required=True)
+    p.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     p.add_argument("--gen", type=int, default=None,
                    help="generation that ROTATED OUT (default: the latest "
                         "record's b_generation.before)")

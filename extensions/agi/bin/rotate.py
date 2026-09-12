@@ -9844,12 +9844,39 @@ def _fd_seat_agent_ids(root: Path, main: Path, seat: str) -> set[str]:
 
 
 def _fd_agent_from_branch(branch: str) -> str:
-    """The agent id embedded in a round branch name, `loop/<slug>-a00-XXXXXX
-    XX@s<N>` — the `a00-<hex>` run immediately before the `@s<N>` season tag
-    (the dispatch convention, F5). Returns '' when the branch carries none,
+    """The agent id embedded in a round branch name, in EITHER spelling of
+    the dispatch convention (F5): canonical
+    `season<n>/loops/<slug>-a00-XXXX`, or legacy `loop/<slug>-a00-XXXX@s<N>`
+    — the trailing `a00-<hex>` run. Returns '' when the branch carries none,
     so a manually-cut branch is unresolvable and never credited."""
-    m = re.search(r"(a00-[0-9a-zA-Z]+)@s\d+$", branch)
+    seg = re.sub(r"@s\d+$", "", branch).rsplit("/", 1)[-1]
+    m = re.search(r"(a00-[0-9a-zA-Z]+)$", seg)
     return m.group(1) if m else ""
+
+
+def _branch_loop(short: str) -> tuple[bool, int | None]:
+    """(is_round, season) for a branch short name, classified through
+    branches.parse — the ONE branch-name grammar. A round is a branch whose
+    kind is loop in EITHER spelling: canonical
+    `season<n>/loops/<slug>-<agent>` (kind == "loop"), or the deprecated
+    `loop/<slug>-<agent>@s<n>` (which parse returns as an "alias" whose
+    canonical is the loop). Any other kind (main, post, town, alias to a
+    non-loop) yields (False, None); an unparseable foreign branch is
+    skipped, never refused."""
+    try:
+        parsed = branches.parse(short)
+    except ValueError:
+        return False, None
+    if parsed["kind"] == "loop":
+        return True, parsed["season"]
+    if parsed["kind"] == "alias":
+        try:
+            canon = branches.parse(parsed["canonical"])
+        except ValueError:
+            return False, None
+        if canon["kind"] == "loop":
+            return True, canon["season"]
+    return False, None
 
 
 def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict]:
@@ -9888,16 +9915,25 @@ def _fd_rounds(root: Path, main: Path, seat: str, seat_branch: str) -> list[dict
     printed is exactly what the merge line harvests with."""
     m = re.search(r"@s(\d+)$", seat_branch)
     season = m.group(1) if m else "2"
-    rc, out, _ = _fd_git(main, "branch", "--list", f"loop/*@s{season}")
+    # Enumerate local refs ONCE and classify in Python through
+    # branches.parse (the ONE branch-name grammar) — NOT a second `loop/`
+    # `@s<N>` glob. A round is any branch whose kind is loop (canonical
+    # `season<n>/loops/<slug>-<agent>` OR the deprecated
+    # `loop/<slug>-<agent>@s<n>`) in THE SEAT's season. The eager
+    # `loop/*@s{season}` glob only ever matched the legacy spelling, so a
+    # round cut on the canonical grammar was invisible to first-decision.
+    rc, out, _ = _fd_git(main, "for-each-ref", "--format=%(refname:short)",
+                         "refs/heads")
     if rc != 0:
         return []
     own_ids = _fd_seat_agent_ids(root, main, seat)
     rounds = []
     for line in out.splitlines():
-        # `git branch --list` prefixes `*` (current) / `+` (checked out in a
-        # linked worktree); strip all of it before the loop/ check.
-        branch = line.strip().lstrip("*+").strip()
-        if not branch or not branch.startswith("loop/"):
+        branch = line.strip()
+        if not branch:
+            continue
+        is_loop, bseason = _branch_loop(branch)
+        if not is_loop or bseason is None or bseason != int(season):
             continue
         rc_a, _, _ = _fd_git(main, "merge-base", "--is-ancestor",
                              branch, seat_branch)
@@ -12064,12 +12100,16 @@ def _harvest_loop_branches(main: Path) -> dict[str, tuple[str, int]]:
     """
     mapping: dict[str, tuple[str, int]] = {}
     out = _git_out(main, "for-each-ref", "--format=%(refname:short)",
-                   "refs/heads/loop")
+                   "refs/heads")
     for ln in out.splitlines():
-        m = re.match(r"^(.*)-(a00-[0-9a-f]{8})@s(\d+)$", ln.strip())
-        if not m:
+        branch = ln.strip()
+        is_loop, season = _branch_loop(branch)
+        if not is_loop or season is None:
             continue
-        mapping.setdefault(m.group(2), (ln.strip(), int(m.group(3))))
+        agent = _fd_agent_from_branch(branch)
+        if not agent:
+            continue
+        mapping.setdefault(agent, (branch, season))
     return mapping
 
 
@@ -12329,7 +12369,7 @@ def main(argv: list[str] | None = None) -> int:
                              "remote-control debug log")
     p_meter.add_argument("--check", action="store_true",
                         help="exit 1 if fraction >= threshold; else 0")
-    p_meter.add_argument("--seat", "--post", default=None,
+    p_meter.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat name: read the seat-stable "
                              ".agi/sessions/<name>.meter pin over the "
                              "newest-mtime pin (hypothesis:l3w4-seat-registry)")
@@ -12361,7 +12401,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
-    p_spawn.add_argument("--seat", "--post", default=None,
+    p_spawn.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -12399,7 +12439,7 @@ def main(argv: list[str] | None = None) -> int:
         "autopsy",
         help="print a predecessor seat's death forensics from files only "
              "(read-only; never decides/kills/merges)")
-    p_ap.add_argument("--seat", "--post", required=True, help="seat name")
+    p_ap.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_ap.add_argument("--pid", type=int, default=None,
                       help="predecessor pid (default: the seat row's pid)")
     p_ap.add_argument("--registry-dir", default=None,
@@ -12428,7 +12468,7 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--timeout", type=int, default=120,
                         help="seconds to wait for the successor reply "
                              "(default: 120)")
-    p_loop.add_argument("--seat", "--post", default=None,
+    p_loop.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
                              "hook copy can fire at turn one. Absent -> launch line "
@@ -12462,7 +12502,7 @@ def main(argv: list[str] | None = None) -> int:
                     "(<sessions>/seats/<seat>.ack.json); the predecessor writes "
                     "the ack in kid 2 (rotate self) -- kept callable for one "
                     "generation as a fallback only")
-    p_ack.add_argument("--seat", "--post", required=True,
+    p_ack.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True,
                        help="the successor's seat name", dest="seat")
     p_ack.add_argument("--gen", type=int, required=True, dest="gen",
                        help="the generation this ACK confirms (gen_after)")
@@ -12499,7 +12539,7 @@ def main(argv: list[str] | None = None) -> int:
     p_status.add_argument("--seats", action="store_true",
                           help="list registry seats instead (seat/generation/"
                                "fraction/age, one line per row)")
-    p_status.add_argument("--seat", "--post", default=None,
+    p_status.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                           help="seat name to read with --record")
     p_status.add_argument("--record", default=None,
                           help="print the LATEST durable rotation record for "
@@ -12520,7 +12560,7 @@ def main(argv: list[str] | None = None) -> int:
         "harvest-table",
         help="report each round's branch/worktree/diffstat-vs-merge-base/"
              "kid-experiment-ids/verdicts, from git + session manifests")
-    p_ht.add_argument("--seat", "--post", default=None,
+    p_ht.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                       help="only rounds dispatched_by this seat")
     p_ht.add_argument("--round", default=None,
                       help="only the named iter (accepts 'L4.236' or "
@@ -12563,7 +12603,7 @@ def main(argv: list[str] | None = None) -> int:
                      "seat, advancing only on a recorded success — the "
                      "DRIVEN operator half (hypothesis:l4-startup-is-one-\n"
                      "script-or-a-driven-prompt)")
-    p_next.add_argument("--seat", "--post", required=True, help="seat name")
+    p_next.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_next.add_argument("--role", default=None,
                         help="role tier to resolve the template (default: the "
                              "seat's registry row role)")
@@ -12603,7 +12643,7 @@ def main(argv: list[str] | None = None) -> int:
     p_h.add_argument("--driven", action="store_true",
                      help="driven mode: build §0, prompt for §3/§6 (the only "
                           "mode that exists today)")
-    p_h.add_argument("--seat", "--post", default=None, help="seat name")
+    p_h.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None, help="seat name")
     p_h.add_argument("--field", action="append", nargs=2, metavar=("FIELD", "SRC"),
                      help="field value source; FIELD is s3 or s6, SRC is a "
                           "filename or `-` for stdin (repeatable)")
@@ -12620,7 +12660,7 @@ def main(argv: list[str] | None = None) -> int:
                           "when nothing blocks, exit 3 otherwise "
                          "(hypothesis:l4-rotate-self-drives-the-handoff-and-"
                          "prepares-the-spawn)")
-    p_pr.add_argument("--seat", "--post", default="",
+    p_pr.add_argument("--seat", "--post", action=geometry_config.SeatAction, default="",
                       help="seat name (a seat-bound checklist: card path, "
                            "meter pin, ack file)")
     p_pr.add_argument("--perform", action="store_true",
@@ -12643,7 +12683,7 @@ def main(argv: list[str] | None = None) -> int:
                                 "the pre-filled row + ONE bounded prompt per "
                                 "open round; --answers replays the choice "
                                 "into the named next command (never run)")
-    p_fd.add_argument("--seat", "--post", required=True, help="seat name")
+    p_fd.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_fd.add_argument("--answers", default=None,
                       help="file of choices, one per open round in table "
                            "order: 'harvest <branch>' | 'cut <node-id>' | "
@@ -12763,7 +12803,7 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap-block", help="emit the bootstrap block for a seat "
                                  "successor, or REFUSE when absent/malformed "
                                  "(a stale fact is MARKED stale, still emitted)")
-    p_bb.add_argument("--seat", "--post", required=True, help="seat name")
+    p_bb.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="seat name")
     p_bb.add_argument("--root", default=None,
                       help="project root (default: resolve from cwd)")
     p_bb.add_argument("--commit", default=None,
@@ -12843,7 +12883,7 @@ def main(argv: list[str] | None = None) -> int:
         "launch-wrapper", help="signal-masking parent that wraps a seat's "
                                "claude argv and logs every process-sent "
                                "TERM/HUP/INT with its sender pid")
-    p_lw.add_argument("--seat", "--post", required=True,
+    p_lw.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True,
                       help="seat name (log attribution + default log path)")
     p_lw.add_argument("--log", default=None,
                       help="append wrapper lifecycle lines here (default: "

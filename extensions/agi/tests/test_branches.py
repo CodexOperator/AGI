@@ -237,32 +237,46 @@ def test_loop_alias_merge_target_is_season_main():
     assert b.merge_target("loop/opt-auth-a1@s2") == "season2/main"
 
 
-# --- grid legal-branch predicate (hypothesis:l4-branches-follow-the-season-grammar) ---
-# The predicate the 5-min grid cron's commit --all gate uses. Must accept every
-# canonical season-n name plus the legacy master/season/s<N> aliases, and
-# refuse feature branches, malformed season names, and detached HEAD.
+# --- grid legal-branch predicate (hypothesis:l4-commit-all-is-legal-on-the-season-main-only) ---
+# The predicate the 5-min grid cron's commit --all gate uses. commit --all runs
+# unattended and writes the same ref namespace from any worktree, so it may only
+# run on master or the season MAIN (canonical season<N>/main or its one-season
+# alias season/s<N>). A post, loop or town name in EITHER spelling is refused.
 
 
 def test_legal_branch_accepts_canonical_season_main():
     assert b.is_legal_branch("season2/main")
 
 
-def test_legal_branch_accepts_canonical_post():
-    assert b.is_legal_branch("season2/posts/x")
+def test_legal_branch_refuses_canonical_post():
+    assert not b.is_legal_branch("season2/posts/x")
 
 
-def test_legal_branch_accepts_canonical_loop():
-    assert b.is_legal_branch("season2/loops/a-b")
+def test_legal_branch_refuses_canonical_loop():
+    assert not b.is_legal_branch("season2/loops/a-b")
 
 
-def test_legal_branch_accepts_canonical_town_main():
-    assert b.is_legal_branch("season2/web-app-suite/season1/main")
+def test_legal_branch_refuses_canonical_town_main():
+    assert not b.is_legal_branch("season2/web-app-suite/season1/main")
 
 
-def test_legal_branch_accepts_legacy_alias():
+def test_legal_branch_accepts_season_aliases():
     # season/s<N> and master must stay accepted for one season.
     assert b.is_legal_branch("season/s2")
     assert b.is_legal_branch("master")
+
+
+def test_legal_branch_refuses_legacy_post_spelling():
+    assert not b.is_legal_branch("seat/x@s2")
+
+
+def test_legal_branch_refuses_legacy_loop_spelling():
+    assert not b.is_legal_branch("loop/a-b@s2")
+
+
+def test_legal_branch_refuses_legacy_town_spellings():
+    assert not b.is_legal_branch("town/web-app-suite/season/s1")
+    assert not b.is_legal_branch("town/x@s2")
 
 
 def test_legal_branch_refuses_feature_branch():

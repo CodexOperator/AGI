@@ -349,6 +349,101 @@ def test_stamp_with_no_smoke_number_skips_and_never_writes(tmp_path, monkeypatch
         "a SKIP with no number must not touch the state file")
 
 
+# --- the two-spelling read (L4.312): the stamp survives the season rename -----
+# The ladder may declare EITHER spelling while the tree is checked out on
+# either — the read must resolve canonical-first with the legacy spelling as a
+# one-season fallback, so the baseline keeps stamping across the flip.
+
+
+def _init_fixture_split(tmp_path: Path, declared: str, checked_out: str) -> Path:
+    """Fixture project on `checked_out`, ladder declaring `core: {declared}`,
+    HEAD pushed to origin/{checked_out} — the two can DIFFER, which is the
+    rename window the defect failed in (ladder still legacy, tree canonical)."""
+    root = tmp_path / "repo"
+    (root / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (root / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        _ladder(declared))
+    sp = subprocess.run
+    sp(["git", "init", "-b", checked_out], cwd=root, check=True,
+       capture_output=True, text=True)
+    sp(["git", "config", "user.email", "t@t"], cwd=root, check=True)
+    sp(["git", "config", "user.name", "t"], cwd=root, check=True)
+    sp(["git", "add", "-A"], cwd=root, check=True, capture_output=True, text=True)
+    sp(["git", "commit", "-m", "init"], cwd=root, check=True,
+       capture_output=True, text=True)
+    sp(["git", "init", "--bare", str(tmp_path / "origin.git")], cwd=tmp_path,
+       check=True, capture_output=True, text=True)
+    sp(["git", "remote", "add", "origin", str(tmp_path / "origin.git")],
+       cwd=root, check=True, capture_output=True, text=True)
+    sp(["git", "push", "-u", "origin", checked_out], cwd=root, check=True,
+       capture_output=True, text=True)
+    return root
+
+
+def test_kept_stamp_survives_rename_ladder_legacy_tree_canonical(tmp_path):
+    """THE defect (L4.312-8): the ladder still declares the legacy `season/s2`
+    but the tree has been renamed and is checked out on the canonical
+    `season2/main`. The old `_integration_branch` returned `season/s2` verbatim
+    and `_stamp_context`'s `cur != branch` refused on `season2/main` — the
+    baseline silently stopped stamping. Fixed: the read resolves canonical-
+    first, so the kept merge still stamps."""
+    root = _init_fixture_split(tmp_path, "season/s2", "season2/main")
+    groot = root / ".agi"
+    r = verification.compare_count(groot, CURRENT)
+    assert r.status == "PASS"
+    assert "baseline recorded" in r.note, r.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE)
+                       .read_text())
+    assert state["active"] == CURRENT["active"]
+    assert state["reason"].startswith("kept"), state["reason"]
+
+
+def test_kept_stamp_works_legacy_declared_legacy_checked_out(tmp_path):
+    """Pre-rename steady state: ladder declares `season/s2` and the tree IS on
+    `season/s2` (pushed). The read must still stamp under the legacy spelling
+    — the acquire-while-you-can window is accepted, never refused."""
+    root = _init_fixture(tmp_path, "season/s2")  # declared == checked out == legacy
+    groot = root / ".agi"
+    r = verification.compare_count(groot, CURRENT)
+    assert r.status == "PASS"
+    assert "baseline recorded" in r.note, r.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE)
+                       .read_text())
+    assert state["active"] == CURRENT["active"]
+    assert state["reason"].startswith("kept")
+
+
+def test_kept_stamp_works_canonical_declared_canonical_checked_out(tmp_path):
+    """Post-flip steady state: ladder declares the canonical `season2/main` and
+    the tree is on `season2/main` (pushed). The read must also stamp under the
+    canonical spelling."""
+    root = _init_fixture(tmp_path, "season2/main")
+    groot = root / ".agi"
+    r = verification.compare_count(groot, CURRENT)
+    assert r.status == "PASS"
+    assert "baseline recorded" in r.note, r.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE)
+                       .read_text())
+    assert state["active"] == CURRENT["active"]
+    assert state["reason"].startswith("kept")
+
+
+def test_kept_stamp_works_renamed_ladder_canonical_tree_legacy(tmp_path):
+    """The reverse rename window: ladder already declares the canonical
+    `season2/main` while the tree (not yet flipped) is still checked out on the
+    legacy `season/s2` and pushed there. The legacy fallback must resolve, so
+    a pre-flip tree under an already-updated ladder still stamps."""
+    root = _init_fixture_split(tmp_path, "season2/main", "season/s2")
+    groot = root / ".agi"
+    r = verification.compare_count(groot, CURRENT)
+    assert r.status == "PASS"
+    assert "baseline recorded" in r.note, r.note
+    state = json.loads((groot / "sessions" / verification.STATE_FILE)
+                       .read_text())
+    assert state["active"] == CURRENT["active"]
+    assert state["reason"].startswith("kept")
+
+
 # --- old 3-key state files still read --------------------------------------
 
 

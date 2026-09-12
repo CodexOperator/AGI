@@ -34,6 +34,7 @@ BIN = Path(__file__).resolve().parent
 sys.path.insert(0, str(BIN))
 
 import send  # noqa: E402  (reuse rooms(), _scan_messages, comms_root)
+import geometry_config  # noqa: E402
 
 #: State lives under the comms root: `<comms>/mail-alert/alerts.json`, keyed
 #: seat -> thread -> {count, alerted_at}.
@@ -171,7 +172,7 @@ def build_alert(root: Path, me: str,
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="emit a mail alert for a seat")
-    ap.add_argument("--seat", "--post", default="",
+    ap.add_argument("--seat", "--post", action=geometry_config.SeatAction, default="",
                     help="recipient id (default: AGI_AGENT_ID)")
     ap.add_argument("--comms-root", dest="comms_root", default=None,
                     help="override comms root (tests)")

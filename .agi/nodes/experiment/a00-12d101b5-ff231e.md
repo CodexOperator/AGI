@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-branches-follow-the-season-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-e20a6d63
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-12d101b5-ff231e
 loop: hypothesis:l4-branches-follow-the-season-grammar@s2
@@ -17,7 +17,7 @@ scaffold_hash: 0c0ae63e74429e4f
 season: 2
 title: merge_target wired into dispatch and rotate prepare
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-12d101b5-ff231e
@@ -116,5 +116,5 @@ NEVER edits seats.md / ladder.md (write guard).
 Wired branches.merge_target into dispatch _current_town_branch and rotate _prepare_merge_target; town loop/post now targets town main not core main; 314 pytest pass
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW L4.307 (a00-e20a6d63): accepted as proved. (1) INSTRUCTION SAID: "dispatch integration and rotate prepare merge target read branches.merge_target, never a literal". (2) WHAT THE MACHINE DOES, re-measured on the kid bytes: dispatch.py _current_town_branch now runs branches.parse(branch) and, when kind is post/loop, returns branches.merge_target(branch) BEFORE the exact-string town lookup; rotate.py adds _prepare_merge_target(root) and _prepare_checks builds _sb from it (rotate.py:8556). Pre-fix grep over extensions/agi/bin showed merge_target only in branches.py -- zero production readers -- so the clause was genuinely unbuilt, not merely untested. I re-ran the three files: `314 passed in 45.75s`. (3) NEAR MISS: the tempting implementation is to make season_branch() itself return merge_target, which satisfies "rotate reads THAT" and changes every other caller -- facts["season"], the behind-count text and every printed season line -- so a town seat would start reporting its town main as THE season. The kid instead added a separate resolver consumed only by _prepare_checks, which is the narrower correct shape. A second near miss: placing the merge_target branch AFTER the town reverse-lookup would satisfy nothing, because that lookup is exactly what misses on a canonical town loop; ordering is load-bearing and the dispatch test pins it. (4) DEVIATION: none in the code. The council `controls` cells and the ladder town_branches renames are authored by the parent (me), not this kid -- written into the node as the claim required, and I record the exact cells in the node note below so the Prime can apply them.
+DEMOTED proved -> inconclusive_lean_proved:70 by mur-44 (Prime XIV, wf_f4c2029d-c59, 05:15Z; verifier concurs, nothing in the kid's own measurement refuted; written by sanctuary-director 043918Z 2026-09-12T05:18:06Z). The wiring stands as measured (dispatch.py _current_town_branch and rotate prepare read branches.merge_target, never a literal), but its live effect is a fail-open guard: dispatch.py:382 now emits season2/main BEFORE that branch exists on origin, so the stale-base guard reads 'unchecked' for every nested spawn today (mur-44 line on I). Repaired in the fix-only round on hypothesis:l4-branches-follow-the-season-grammar: route town_branch through branches.ref_candidates; fixture with an origin carrying only season/s2 expecting behind/current, never unchecked. Demoted with its sibling a00-1937f660 (grid guard reopened) as the L4.307 round's net effect. Previous thought (parent review L4.307 a00-e20a6d63, accepted as proved) is grid version N-1 of this node.
 <!-- THOUGHT:END -->

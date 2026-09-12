@@ -298,7 +298,7 @@ def test_pre_migration_write_path_still_resolves_seats(tmp_path):
     # (b) send._pushed_seats resolves the pushed rows from the seats.md
     # fallback path of the post-first list reader (posts.md absent here).
     import send  # noqa: PLC0415
-    rows, sha = send._pushed_seats(r, "HEAD", do_fetch=False)
+    rows, sha, _ref = send._pushed_seats(r, "HEAD", do_fetch=False)
     names = [x.get("name") for x in rows]
     assert "a" in names and "b" in names, names
     assert sha
@@ -363,7 +363,7 @@ def test_post_migrated_ack_shaped_self_row_write_and_foreign_refused(tmp_path):
     assert row["session_ref"] == "ref-post" and row["generation"] == 9
 
     # (b) send._pushed_seats resolves the pushed rows from posts.md.
-    rows, sha = send._pushed_seats(r, "HEAD", do_fetch=False)
+    rows, sha, _ref = send._pushed_seats(r, "HEAD", do_fetch=False)
     names = [x.get("name") for x in rows]
     assert "a" in names and "b" in names, names
     # posts.md is the authority; seats.md is gone from the tree entirely.
@@ -474,3 +474,97 @@ def test_apply_records_plan_and_rerun_resumes(repo):
     assert not (g / "nodes" / ".geometry" / "seats.md").exists()
     assert (g / "nodes" / ".geometry" / "posts.md").exists()
     assert (g / "worktrees" / "post-a").is_dir()
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-a-seat-is-a-post-everywhere — L4.315 FIX-ONLY (resumability +
+# pathspec). (1) `_post_rename_jobs` now ALSO accepts `post-<name>` cells (the
+# spelling step 2 already rewrote to), so a re-run over a HALF-renamed tree
+# still derives the jobs and completes steps 4-7 instead of finding nothing to
+# do; the step-4 worktree move derives source/target from the NAME so it works
+# whether the cell says seat- or post-. (2) step 3 commits BY pathspec ONLY
+# (`git commit -m msg -- <paths>`), so another agent's already-staged files are
+# never swept in, and prints a real rollback only when a commit was actually
+# created (a bare HEAD~1 rollback on a "nothing to commit" skip would destroy
+# an unrelated commit).
+# ---------------------------------------------------------------------------
+
+def test_apply_pathspec_commit_names_only_the_geometry_file(repo):
+    """(2) With a foreign file already STAGED by another agent, --apply's step-3
+    commit names ONLY the geometry file — the foreign staged file is left staged
+    and uncommitted, so the migration cannot sweep an unrelated index in."""
+    g = repo / ".agi"
+    foreign = g / "nodes" / "foreign-agent.txt"
+    foreign.write_text("someone else's staged work\n")
+    rel = str(foreign.relative_to(repo))
+    _git(repo, "add", rel)
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+
+    # the step-3 commit named ONLY the geometry path (the rename)
+    names = _git(repo, "show", "--format=", "--name-only", "HEAD").stdout.split()
+    assert ".agi/nodes/.geometry/posts.md" in names, names
+    assert "foreign-agent.txt" not in names, names
+
+    # and the foreign file is still staged (index has it), not consumed
+    st = _git(repo, "status", "--porcelain").stdout
+    assert rel.split("/")[-1] in st, f"foreign file vanished from index:\n{st}"
+    # no stray seats.md in the commit either (the rename is one clean commit)
+    assert not _git(repo, "ls-files", ".agi/nodes/.geometry/seats.md").stdout.strip()
+
+
+def test_apply_resumes_hand_rewritten_cells_without_plan(repo):
+    """(1) A re-run over a tree whose cells ALREADY spell `post-<name>` — one
+    where step 2's rewrite already ran, with NO plan file (e.g. the scratch
+    plan was lost, or a human hand-rewrote the cells) — still derives the jobs
+    and COMPLETES the remaining steps (worktree move + branch renames), instead
+    of finding nothing to do. Simulated by migrating seats.md->posts.md BY HAND
+    and committing it, leaving the worktree dirs and branches at seat-."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    _git(repo, "mv", ".agi/nodes/.geometry/seats.md",
+         ".agi/nodes/.geometry/posts.md")
+    text = posts.read_text(encoding="utf-8")
+    text = text.replace("id: config:seats", "id: config:posts")
+    text = text.replace("seats:", "posts:", 1)
+    text = text.replace('".agi/worktrees/seat-a"', '".agi/worktrees/post-a"')
+    text = text.replace('".agi/worktrees/seat-b"', '".agi/worktrees/post-b"')
+    posts.write_text(text, encoding="utf-8")
+    _git(repo, "add", ".agi/nodes/.geometry/posts.md")
+    _git(repo, "commit", "-qm", "hand post-rename")
+    # the worktree DIRS and branches stay at seat-, and there is NO plan file.
+    assert (g / "worktrees" / "seat-a").is_dir()
+    assert _git(repo, "branch", "--list", "seat/a@s2").stdout.strip() != ""
+    assert not (g / "sessions" / "post-rename-plan.json").exists()
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    # remaining steps completed: worktree dirs moved, branches renamed, clean
+    assert (g / "worktrees" / "post-a").is_dir()
+    assert (g / "worktrees" / "post-b").is_dir()
+    assert not (g / "worktrees" / "seat-a").exists()
+    assert _git(repo, "branch", "--list", "post/a@s2").stdout.strip() != ""
+    assert _git(repo, "branch", "--list", "seat/a@s2").stdout.strip() == ""
+    assert not (g / "nodes" / ".geometry" / "seats.md").exists()
+    assert _git(repo, "status", "--porcelain").stdout.strip() == ""
+
+
+def test_apply_second_run_prints_its_skips_no_duplicate_commit(repo):
+    """(1)+(2) On a FINISHED fixture a second --apply is a clean no-op: it
+    prints what it SKIPS, leaves the tree byte-clean, and does NOT mint a second
+    post-rename commit."""
+    _add_origin(repo)
+    g = repo / ".agi"
+    assert _run_cli(g, "--apply").returncode == 0
+
+    R2 = _run_cli(g, "--apply")
+    assert R2.returncode == 0, R2.stdout + R2.stderr
+    out = R2.stdout
+    assert "skip" in out, f"re-run must print skip markers, not redo work:\n{out}"
+    assert "git commit" not in out, out   # commit step fully skipped (no re-commit)
+    assert _git(repo, "status", "--porcelain").stdout.strip() == ""
+    # exactly ONE post-rename commit ever on master (no duplicate)
+    msgs = _git(repo, "log", "--format=%s", "master").stdout.splitlines()
+    assert msgs.count("post-rename: seats.md -> posts.md") == 1, msgs
