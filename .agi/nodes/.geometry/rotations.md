@@ -24,6 +24,8 @@ fact_bounds:
   crons: head
   ack: head
   model_refusal_fallback: head
+floor_out: 1
+floor_wake: 0
 locations: {}
 scaffold_hash: c15eeda9b6db679a
 season: 2
