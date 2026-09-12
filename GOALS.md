@@ -6664,6 +6664,8 @@ SL7.115 HARVESTED (a00-1bd21767; lean_proved:85 -> :90 after six parent probes):
 
 SM.01 dispatched 23:40Z (a00-2d7d67b8; SM's brief on main: the after_join dm is one line per entry, detail only on refusal/non-zero, record named by graph address). SL7.116 (SM residue (a)): rotate refuses a where-it-stops slot byte-identical to the predecessor's rotate-out commit, naming gen pair + sha — brief hypothesis:l4-rotate-refuses-a-where-it-stops-slot-unchanged-since-the-predecessors-rotate-out-naming-the-gen-pair-and-commit
 
+SL7.117 (SM 23:43Z): rotate_defaults = ONE top-level config:rotations map (timeout_s + closeout per role) replacing the 114/115 per-template reads write.py cannot nest; two proven 0a lines for the Prime — brief hypothesis:l4-rotate-defaults-is-one-top-level-map-the-prime-can-write-as-one-value-timeout-and-closeout-per-role
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
