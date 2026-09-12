@@ -2539,6 +2539,12 @@ _RESHUFFLE_KIND_ALIASES = {"main": "main", "mains": "main", "post": "post",
                            "town": "town_main", "towns": "town_main",
                            "town_main": "town_main"}
 
+# Prime ruling (window-46 HOLD, recorded on goal:g17.1): --delete-old is NEVER
+# unfiltered. An unfiltered run MUST default to a safe kind set (posts,towns
+# here) and say so; a loop/* or main/master branch is a delete job ONLY when
+# --kinds names it explicitly.
+_RESHUFFLE_DEFAULT_KINDS = {"post", "town_main"}
+
 
 def _reshuffle_kinds(spec: str) -> set[str]:
     """`--kinds main,posts,towns` -> {"main", "post", "town_main"}; empty
@@ -2639,7 +2645,17 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # names -- harvest notes and experiment nodes cite them by name, and a
     # rename would make every citation stale for nothing. The kind of a job
     # is the kind of its NEW (canonical) name: main | post | loop | town_main.
-    kinds = _reshuffle_kinds(getattr(args, "kinds", "") or "")
+    kinds_spec = (getattr(args, "kinds", "") or "").strip()
+    kinds = _reshuffle_kinds(kinds_spec)
+    if not kinds_spec:
+        # Prime ruling (window 46 HOLD, goal:g17.1): --delete-old is NEVER
+        # unfiltered. No explicit --kinds -> default to posts,towns (main and
+        # loop excluded), and PRINT the default so a --dry-run / --delete-old
+        # reader sees the filter that was applied. An explicit full list
+        # (--kinds main,posts,towns,loops) still means all four.
+        kinds = _RESHUFFLE_DEFAULT_KINDS
+        print("branch-reshuffle: --kinds not given; defaulted to kinds "
+              "posts,towns (main/loops excluded until named explicitly)")
     if kinds:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
@@ -2979,8 +2995,9 @@ def main() -> int:
     p_rs.add_argument(
         "--kinds", default="",
         help="comma list of kinds to reshuffle (main, posts, towns, loops); "
-             "empty = every legacy branch. Prime ruling: --kinds "
-             "main,posts,towns FIRST, dead loop/* keep their cited names")
+             "empty = DEFAULTS to posts,towns (NEVER unfiltered: main and "
+             "loop are delete/rename jobs only when named explicitly, per "
+             "the Prime ruling)")
     p_rs.add_argument(
         "--season", type=int, default=None,
         help="root season for town-main renames (default: ladder "
