@@ -166,8 +166,16 @@ def test_detection_only_record_still_respawns_next_pass(graph):
     assert len(pass2) == 1, "a detected-only record must not stop the retry"
     assert pass2[0]["respawned"] is True
     assert len(ok_recs) == 1, "pass 2 respawned the still-dead seat"
-    assert _crash_record(graph, "seat-a")["result"] == "respawned", \
-        "pass 2 overwrote detection with the respawn outcome"
+    # A `respawned` write is ALWAYS a fresh `<seat>.<stamp>.json` (heal.py
+    # _write_crash_recovery: only a `detected` re-write dedupes in place), so
+    # after detected -> respawned the seat legitimately carries TWO records
+    # whenever the two passes straddle a whole-second stamp boundary — and
+    # ONE only when they land in the same second and the fresh file happens
+    # to overwrite pass 1's. The claim is about the NEWEST record, never the
+    # count (an exactly-one assertion here flaked 1/996 under suite load).
+    newest = json.loads(_crash_records(graph, "seat-a")[-1].read_text())
+    assert newest["result"] == "respawned", \
+        "pass 2 recorded the respawn outcome as the newest record"
 
 
 def test_respawned_record_suppresses_next_pass(graph):
