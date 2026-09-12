@@ -2021,6 +2021,27 @@ def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
     return bool((r.stdout or "").strip())
 
 
+def _post_rename_remote_ref_state(repo: Path, ref: str) -> str:
+    """Returncode-honest state of `ref` on origin: 'present' (rc 0, non-empty
+    stdout), 'absent' (rc 0, empty stdout -- the ref genuinely does not exist),
+    or 'failed' (rc != 0 -- ls-remote could not reach/query origin, so the ref
+    state is UNKNOWN and must never be read as 'absent'). This is the delete-old
+    resume-skip probe (hypothesis:l4-the-reshuffle-plan-prints-what-apply-does-
+    and-both-delete-old-passes-resume-rc-honestly): a FAILED ls-remote (e.g. a
+    bogus/unreachable origin URL) must refuse the delete by name and exit
+    non-zero, never silently read as 'already deleted' on a resuming run.
+    `_post_rename_ls_remote` keeps its boolean contract for its --apply resume
+    caller (the push it precedes has its own rc gate), so this probe is a NEW
+    helper rather than a mutation under an unrelated caller."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref], cwd=repo,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return "failed"
+    if (r.stdout or "").strip():
+        return "present"
+    return "absent"
+
+
 def _post_rename_upstream(repo: Path, branch: str) -> str:
     """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset.
     Returncode-honest: on a non-zero git rc (a dead upstream makes rev-parse
@@ -2368,8 +2389,13 @@ def _post_rename_delete_old(repo: Path, jobs: list, dry_run: bool = False) -> in
         if not dry_run and new_b in unpointed:
             continue  # refused above; never delete a stranded branch
         old_b = f"seat/{j['name']}@s2"
-        ref = f"refs/heads/{old_b}"
-        if not _post_rename_ls_remote(repo, ref):
+        state = _post_rename_remote_ref_state(repo, f"refs/heads/{old_b}")
+        if state == "failed":
+            print(f"ERR: ls-remote origin {old_b} failed; cannot confirm it "
+                  f"is already deleted — NOT deleted", file=sys.stderr)
+            refused.append(old_b)
+            continue
+        if state == "absent":
             continue  # already deleted on a resuming run
         print(f"[{'DRY ' if dry_run else 'APPLY'}] branch delete (remote): "
               f"git push origin --delete {old_b}")
@@ -2615,6 +2641,303 @@ def _reshuffle_delete_order(jobs: list[dict]) -> list[dict]:
         _reshuffle_kind(j["new"]), 99))
 
 
+def _rs_origin_heads(repo: Path) -> list[str] | None:
+    """Every `refs/heads/<name>` short name currently on origin, listed with
+    `git ls-remote --heads origin` — the same remote-probe family as
+    `_rs_ls_remote_sha`, and the ONE live view of what a remote delete would
+    actually hit. NEVER a local/renamed guess: a branch that migrated locally
+    but still holds on origin is a delete target; a name only present locally
+    is not. Returns None when the probe FAILS (origin unreachable): the
+    caller must then refuse BY NAME rather than silently matching zero heads
+    — an rc-honest reader never mistakes 'cannot reach origin' for 'nothing
+    to delete'. (hypothesis:l4-every-branch-name-derives-from-one-tuple-and-
+    only-the-trunk-pair-per-level-reaches-origin.)"""
+    r = subprocess.run(["git", "ls-remote", "--heads", "origin"],
+                       cwd=repo, capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    names: list[str] = []
+    for line in (r.stdout or "").splitlines():
+        parts = line.split("\t")
+        if len(parts) == 2 and parts[1].startswith("refs/heads/"):
+            names.append(parts[1][len("refs/heads/"):])
+    return names
+
+
+def _rs_delete_kind(name: str) -> str:
+    """The delete-pass kind of one origin head. Legacy aliases route through
+    the rename grammar (their canonical kind); v3 town-first sub-top-level
+    names (which the legacy-alias rename set does not know) read their kind
+    from the grammar's own directory segments. The ONE shape source stays
+    branches.py — this helper never invents a second stale-name list."""
+    canon = _reshuffle_canonical(name, 0)
+    if canon and canon != name:
+        return _reshuffle_kind(canon)
+    # /loops/ is tested BEFORE /posts/ — a v3 town-first loop branch
+    # `<town>/season<m>/posts/<post>/loops/<round>/<agent>` CONTAINS /posts/
+    # (it lives under a post), so posts-first would classify every loop branch
+    # as a post and the loop name could never be reached (measured defect,
+    # L4.332: the DEFAULT --kinds set deleted loop branches as posts and
+    # --kinds loops found nothing). Segment ORDER is not segment precedence:
+    # no v3 loop shape lacks /posts/, so loops-first still resolves.
+    if f"/loops/" in f"/{name}":
+        return "loop"
+    if f"/posts/" in f"/{name}":
+        return "post"
+    if name.endswith("/main"):
+        return "town_main"
+    return ""
+
+
+def _reshuffle_delete_set(heads: list[str], kinds: set[str]) -> list[dict]:
+    """The origin-head delete set for `--delete-old`, DERIVED from the ONE
+    remote-visibility predicate (branches.is_remote_visible) plus the two
+    never-delete carve-outs — never a hand-spelled stale-name list
+    (hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-
+    trunk-pair-per-level-reaches-origin). `heads` is the live origin refs/heads
+    listing from `_rs_origin_heads`. For every name, one job {old, new, kind}
+    is returned when ALL hold:
+      * not branches.is_remote_visible(name)            <- the rule
+      * not foreign (collaborator-branch, copilot/*)    <- untouched
+      * not "master" — asserted, because master is already excluded by the
+                       rule and no explicit exclusion may be what saves it
+    `kinds` (already-resolved kind set) narrows the set exactly like it does
+    the rename jobs. `new` is the canonical rename target for a legacy alias
+    (so the B2 upstream gate still applies to migrated branches) and None for
+    a v3 sub-top-level name (no rename target exists — directly deletable).
+    Ordered post -> town -> main -> loop by kind."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    jobs: list[dict] = []
+    for name in heads:
+        if branches.is_remote_visible(name):
+            continue
+        if name == "collaborator-branch" or name.startswith("copilot/"):
+            continue
+        # master must already be excluded BY THE RULE above; if one ever
+        # reaches here the predicate regressed, never an explicit carve-out.
+        if name == "master":
+            raise AssertionError(
+                f"master reached the delete set; expected is_remote_visible "
+                f"to exclude it first")
+        k = _rs_delete_kind(name)
+        if k not in kinds:
+            continue
+        jobs.append({"old": name, "new": _reshuffle_canonical(name, 0),
+                     "kind": k})
+    return sorted(jobs, key=lambda j: _RS_DELETE_ORDER.get(j["kind"], 99))
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-trunk-
+# pair-per-level-reaches-origin — `loop-prune`. A v3 town-first loop branch
+# `<town>/season<m>/posts/<post>/loops/<round>/<agent>` merges up into the
+# post branch of the SAME tuple, `<town>/season<m>/posts/<post>/main`
+# (branches.derive_names). It is pruned iff MERGED: its commit an ancestor of
+# the post main (`git merge-base --is-ancestor` rc 0). Unmerged (rc 1) is
+# NEVER pruned; any other rc (probe failure / unresolvable ref) is a refusal,
+# never a guess. Never --force, never a master/remote-visible name.
+# ---------------------------------------------------------------------------
+
+# The v3 town-first loop SHAPE. Recognised here (a loop name cannot be
+# re-derived backward from a single post tuple without its /loops/<round>
+# /<agent> suffix form), but the POST branch it merges up into is NEVER
+# hand-spelled a second time — it is DERIVED through branches.derive_names
+# from the same tuple.
+_V3_LOOP_RE = re.compile(
+    r"^(?P<town>[^/]+)/season(?P<season>\d+)/posts/(?P<post>[^/]+)"
+    r"/loops/[^/]+/[^/]+$")
+
+
+def _v3_loop_post_main(name: str) -> str | None:
+    """The v3 town-first POST MAIN a v3 loop branch merges up into, DERIVED
+    through branches.derive_names from the SAME tuple the loop named — the
+    ONE shape source (hypothesis:l4-every-branch-name-derives-from-one-tuple-
+    and-only-the-trunk-pair-per-level-reaches-origin). Returns None when
+    `name` is not a v3 town-first loop branch."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    m = _V3_LOOP_RE.fullmatch(name)
+    if not m:
+        return None
+    try:
+        return branches.derive_names(
+            m.group("town"), int(m.group("season")), m.group("post")
+        )["post_main"]
+    except ValueError:
+        return None
+
+
+def _loop_refs(repo: Path) -> tuple[set[str], set[str]]:
+    """(local, origin) short branch names at `repo` — the two ref-namespace
+    views a prune can act on, split so a delete lands in the right namespace
+    (`git branch -d` for a local branch, `git push origin --delete` for an
+    origin leg). Read-only enumeration, never a mutation."""
+    r = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname:short)", "refs/heads"],
+        cwd=repo, capture_output=True, text=True)
+    local = {b for b in r.stdout.split() if b}
+    r = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname:short)", "refs/remotes"],
+        cwd=repo, capture_output=True, text=True)
+    origin: set[str] = set()
+    for b in r.stdout.split():
+        if b.startswith("origin/") and len(b) > len("origin/"):
+            origin.add(b[len("origin/"):])
+    return local, origin
+
+
+def _loop_sha(repo: Path, is_local: bool, name: str) -> str:
+    """The commit sha of a branch ref, '' when unresolvable. Resolves LOCAL
+    for a local branch and origin/<name> for an origin leg — a ref.git rev-
+    parse probe; a non-zero exit (ref absent) yields '' so the caller can
+    REFUSE BY NAME rather than guess a sha."""
+    ref = name if is_local else f"origin/{name}"
+    r = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        cwd=repo, capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def cmd_loop_prune(args: argparse.Namespace) -> int:
+    """hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-
+    trunk-pair-per-level-reaches-origin — prune a v3 town-first loop branch
+    `<town>/season<m>/posts/<post>/loops/<round>/<agent>` iff it is MERGED
+    into its post main `<town>/season<m>/posts/<post>/main` (derived through
+    branches.derive_names — never hand-spelled a second time).
+
+    The rule, exactly:
+      * a loop branch's post branch is the post_main of the SAME tuple;
+      * `git merge-base --is-ancestor <loop-sha> <post-sha>` rc 0 => merged
+        => PRUNE;
+      * rc 1 (unmerged) => NEVER prune, and say so per branch;
+      * rc > 1 / probe failure => refuse, never guess.
+
+    Dry-run (the DEFAULT when --apply is absent) prints the plan and WRITES
+    NOTHING — no `git branch -d`, no `push --delete`, no ref change. --apply
+    performs the deletes, always non-force (`git branch -d` for a local,
+    `git push origin --delete` for an origin leg), and never a delete of
+    master or any remote-visible name (branches.is_remote_visible over the
+    surviving refs is asserted in the tests). --root points at a fixture .agi
+    so --apply is hermetic; the live tree prunes only when --root is omitted
+    (the Prime's job, mirroring branch-reshuffle)."""
+    root = Path(args.root).resolve() if args.root else _find_root()
+    repo = root.parent if root.name == ".agi" else root
+    apply = bool(args.apply)
+
+    import branches  # noqa: PLC0415
+
+    local, origin = _loop_refs(repo)
+    all_names = sorted(local | origin)
+    merged: list[tuple[str, str]] = []      # (name, post_main) may prune
+    unmerged: list[tuple[str, str, str]] = []  # (name, post_main, state)
+    refused: list[tuple[str, str]] = []     # (name, reason)
+
+    for name in all_names:
+        post = _v3_loop_post_main(name)
+        if post is None:
+            continue  # not a v3 town-first loop branch — not this verb's job
+        is_loc = name in local
+        is_org = name in origin
+        # sha resolution: local leg -> local ref, origin leg -> origin/<name>;
+        # an unresolvable ref is a refusal, never a guess.
+        loop_sha = _loop_sha(repo, True, name) if is_loc else ""
+        if not loop_sha and is_org:
+            loop_sha = _loop_sha(repo, False, name)
+        post_sha = ""
+        post_is_loc = post in local
+        post_is_org = post in origin
+        if post_is_loc:
+            post_sha = _loop_sha(repo, True, post)
+        elif post_is_org:
+            post_sha = _loop_sha(repo, False, post)
+        if not loop_sha or not post_sha:
+            refused.append((name, f"cannot resolve a ref for loop or post "
+                                  f"({post})"))
+            continue
+        r = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", loop_sha, post_sha],
+            cwd=repo, capture_output=True, text=True)
+        if r.returncode == 0:
+            merged.append((name, post))
+        elif r.returncode == 1:
+            unmerged.append((name, post, "commit is not an ancestor of post "
+                                      f"{post}"))
+        else:
+            refused.append((name, f"merge-base --is-ancestor rc "
+                                  f"{r.returncode}: {r.stderr.strip()}"))
+
+    # plan, one line per branch — the falsifier: unmerged/refused branches
+    # are NAMED and never touched.
+    for name, post in merged:
+        is_loc = name in local
+        is_org = name in origin
+        if is_loc:
+            print(f"[{'DRY ' if not apply else 'APPLY'}] branch prune "
+                  f"(local): git branch -d {name}")
+        if is_org:
+            print(f"[{'DRY ' if not apply else 'APPLY'}] branch prune "
+                  f"(remote): git push origin --delete {name}")
+    for name, post, why in unmerged:
+        print(f"unmerged: {name} -> NOT pruned: {why}")
+    for name, reason in refused:
+        print(f"REFUSE: {name} -> {reason}", file=sys.stderr)
+
+    if not apply:
+        print("dry-run: nothing changed")
+        return 0 if not refused else 1
+
+    # --apply: perform only the MERGED deletes, always non-force. A remote
+    # local branch is deleted with `git branch -d` (refuses unmerged — a
+    # second net behind the ancestry check), an origin leg with
+    # `git push origin --delete`. master / remote-visible names are never
+    # reached: the only delete targets are v3 loop-shaped branches, which
+    # is_remote_visible excludes by construction (asserted in the tests).
+    failed: list[str] = []
+    for name, post in merged:
+        if name in local:
+            r = subprocess.run(["git", "branch", "-d", name], cwd=repo,
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git branch -d {name} failed: {r.stderr.strip()}",
+                      file=sys.stderr)
+                failed.append(name)
+        if name in origin:
+            r = subprocess.run(
+                ["git", "push", "origin", "--delete", name], cwd=repo,
+                capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"ERR: git push origin --delete {name} failed: "
+                      f"{r.stderr.strip()}", file=sys.stderr)
+                failed.append(name)
+    if refused or failed:
+        print(f"loop-prune: {len(failed)} prune(s) failed, "
+              f"{len(refused)} refused", file=sys.stderr)
+        return 1
+    print("loop-prune: merged loop branches pruned")
+    return 0
+
+
+def _rs_delete_known(repo: Path, kinds: set[str]) -> list[str]:
+    """The candidate delete names discoverable WITHOUT origin — the union of
+    local heads and origin-tracking legs (`_reshuffle_branches`), filtered by
+    the same ONE predicate + carve-outs. Used ONLY to NAME refusals when the
+    origin heads probe FAILS (origin unreachable): it never defines the
+    delete set (which is always origin-heads-derived); it exists so an
+    rc-honest failure says what it could not confirm rather than succeeding
+    silently (prior art hypothesis:l4-sweep/l4-330 rc-honesty)."""
+    import branches  # noqa: PLC0415
+    out: list[str] = []
+    for b in _reshuffle_branches(repo):
+        if branches.is_remote_visible(b):
+            continue
+        if b == "collaborator-branch" or b.startswith("copilot/"):
+            continue
+        if b == "master":
+            continue
+        if _rs_delete_kind(b) in kinds:
+            out.append(b)
+    return out
+
+
 
 def _rs_plan_path(root: Path) -> Path:
     """Resumability + origin-moved baseline for branch-reshuffle, under the
@@ -2675,6 +2998,14 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         print("ERR: --apply and --delete-old are mutually exclusive; "
               "--delete-old is the separate final step", file=sys.stderr)
         return 1
+    if apply and dry:
+        # L4.330 (KID A): --dry-run and --apply are REFUSED BY NAME. --dry-run
+        # prints a plan, --apply performs one; they cannot compose. Before
+        # this guard the pair fell through to the --apply branch and APPLIED.
+        print("ERR: --dry-run and --apply are mutually exclusive; "
+              "--dry-run prints a plan, --apply performs one; pick one",
+              file=sys.stderr)
+        return 1
 
     jobs = _reshuffle_jobs(repo, season)
     # Prime XIV ruling (mur-44 window, 04:18Z): `--kinds main,posts,towns`
@@ -2682,10 +3013,11 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # names -- harvest notes and experiment nodes cite them by name, and a
     # rename would make every citation stale for nothing. The kind of a job
     # is the kind of its NEW (canonical) name: main | post | loop | town_main.
-    kinds_spec_raw = getattr(args, "kinds", "") or ""
-    kinds_spec = kinds_spec_raw.strip()
-    kinds = _reshuffle_kinds(kinds_spec)
-    if not kinds_spec:
+    # L4.331 (mur-47): the --kinds argparse entry defaults to None so ABSENT
+    # is told apart from an explicit empty string. A blank explicit spec is
+    # refused by name; only a truly absent flag defaults to posts,towns.
+    kinds_spec_raw = getattr(args, "kinds", None)
+    if kinds_spec_raw is None:
         # Prime ruling (window 46 HOLD, goal:g17.1): --delete-old is NEVER
         # unfiltered. No explicit --kinds -> default to posts,towns (main and
         # loop excluded), and PRINT the default so a --dry-run / --delete-old
@@ -2694,21 +3026,32 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         kinds = _RESHUFFLE_DEFAULT_KINDS
         print("branch-reshuffle: --kinds not given; defaulted to kinds "
               "posts,towns (main/loops excluded until named explicitly)")
-    elif not kinds:
-        # L4.319 residue (mur-46, verbatim): an explicit --kinds that PARSES
-        # to nothing (`,`, ` , `, any separator/whitespace string) is NOT the
-        # absent case — it must NOT be silently unfiltered nor defaulted.
-        # Refuse BY NAME: the caller's AS-WRITTEN spec and the legal words,
-        # exit 1. The empty-set-from-explicit-spec decision can only be made
-        # HERE, where kinds_spec vs the parse is known together;
-        # _reshuffle_kinds alone cannot tell an explicit empty set from an
-        # absent flag.
-        raise SystemExit(
-            f"ERR: --kinds: {kinds_spec_raw!r} parsed to no kinds "
-            "(one of main, posts, loops, towns)")
+    else:
+        kinds_spec = kinds_spec_raw.strip()
+        if not kinds_spec:
+            # L4.331 (mur-47, verbatim): a whitespace-only/empty EXPLICIT
+            # --kinds ('' or '  ') is NOT the absent case — it must not be
+            # defaulted nor unfiltered. Refuse BY NAME exactly like ',':
+            # name the AS-WRITTEN spec, exit 1, zero jobs, no defaulting line.
+            raise SystemExit(
+                f"ERR: --kinds: {kinds_spec_raw!r} is blank; explicitly name "
+                "one or more of main, posts, loops, towns")
+        kinds = _reshuffle_kinds(kinds_spec)
+        if not kinds:
+            # L4.319 residue (mur-46, verbatim): an explicit --kinds that
+            # PARSES to nothing (`,`, ` , `, any separator/whitespace string)
+            # is NOT the absent case — it must NOT be silently unfiltered nor
+            # defaulted. Refuse BY NAME: the caller's AS-WRITTEN spec and the
+            # legal words, exit 1. The empty-set-from-explicit-spec decision
+            # can only be made HERE, where kinds_spec vs the parse is known
+            # together; _reshuffle_kinds alone cannot tell an explicit empty
+            # set from an absent flag.
+            raise SystemExit(
+                f"ERR: --kinds: {kinds_spec_raw!r} parsed to no kinds "
+                "(one of main, posts, loops, towns)")
     if kinds:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
-    if not jobs:
+    if not jobs and not delete_old:
         print("branch-reshuffle: no legacy branches to reshuffle")
         if not (apply or delete_old):
             print("dry-run: nothing changed")
@@ -2742,10 +3085,20 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # ---- step 1: local rename + push new + upstream + worktree re-points
     print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)")
     for j in jobs:
-        _post_rename_print("branch rename (local)", f"git branch -m {j['old']} {j['new']}", apply)
-        _post_rename_print("branch push (new)", f"git push origin {j['new']}", apply)
+        old, new = j["old"], j["new"]
+        if old == "master":
+            # L4.330 (KID A): a main-kind job is ADD-ONLY in the plan too.
+            # master is the frozen season-1 name: it is NEVER `git branch
+            # -m`'d; the new remote name is pushed FROM master's tip. This is
+            # byte-for-byte what --apply runs for a master job (a push of
+            # `old:new`, then it continues — no rename, no upstream re-point).
+            _post_rename_print("branch push (new)",
+                               f"git push origin {old}:{new}", apply)
+            continue
+        _post_rename_print("branch rename (local)", f"git branch -m {old} {new}", apply)
+        _post_rename_print("branch push (new)", f"git push origin {new}", apply)
         _post_rename_print("branch upstream",
-                           f"git branch --set-upstream-to origin/{j['new']} {j['new']}", apply)
+                           f"git branch --set-upstream-to origin/{new} {new}", apply)
     for wt in wts:
         new = rename.get(wt["branch"])
         if new:
@@ -2780,12 +3133,43 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # (or with no upstream at all) is refused BY NAME and NOTHING is
         # deleted (all-or-nothing, non-zero) -- a delete would strand a branch
         # that never pointed at its new name.
-        djobs = _reshuffle_delete_order(jobs)
+        # The delete set DERIVES from origin's ACTUAL refs/heads, filtered by
+        # the ONE predicate branches.is_remote_visible (plus the never-delete
+        # foreign/master carve-outs) — never from the rename set, which would
+        # silently MISS the v3 town-first sub-top-level names (core/season2/
+        # posts/.../main et al) that were never legacy aliases.
+        # hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-
+        # trunk-pair-per-level-reaches-origin.
+        heads = _rs_origin_heads(repo)
+        if heads is None:
+            # rc-honest (prior art L4.330): origin is unreachable, so we
+            # cannot confirm the refs/heads state. NEVER mistake that for
+            # 'nothing to delete': refuse non-zero, NAMING the candidates we
+            # could not confirm (discovered without origin), and delete nothing.
+            known = _rs_delete_known(repo, kinds)
+            if known:
+                print(f"ERR: --delete-old REFUSED: origin unreachable (git "
+                      f"ls-remote --heads origin failed); cannot confirm the "
+                      f"state of {len(known)} candidate branch(es): "
+                      f"{', '.join(sorted(known))}; nothing deleted — refused",
+                      file=sys.stderr)
+            else:
+                print("ERR: --delete-old REFUSED: origin unreachable (git "
+                      "ls-remote --heads origin failed); nothing deleted — "
+                      "refused", file=sys.stderr)
+            return 1
+        djobs = _reshuffle_delete_set(heads, kinds)
+        # master is ADD-ONLY by rule: it is remote-visible so it is excluded
+        # by the predicate, and its remote name is KEPT. Print the standing
+        # notice whenever master still holds on origin.
+        if "master" in heads:
+            print("  master: add-only, remote name kept (frozen season-1 "
+                  "name); not deleted")
         if not dry:
             unpointed = []
             for j in djobs:
-                old, new = j["old"], j["new"]
-                if old == "master":
+                new = j["new"]
+                if not new:  # v3 sub-top-level: no rename target, direct delete
                     continue
                 if _post_rename_upstream(repo, new) != f"origin/{new}":
                     unpointed.append(new)
@@ -2802,12 +3186,25 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         refused: list[str] = []
         for j in djobs:
             old = j["old"]
-            # master -> season1/main is ADD-ONLY: master stays the frozen
-            # season-1 name, so its remote name is KEPT, never a delete target.
-            if old == "master":
-                print("  master: add-only, remote name kept (frozen season-1 "
-                      "name); not deleted")
-                continue
+            if not dry:
+                # rc-honest resume-skip: before deleting origin/<old>, probe
+                # refs/heads/<old> and distinguish the ref genuinely GONE
+                # (rc 0, empty stdout) from ls-remote FAILED (rc != 0, e.g. a
+                # bogus origin). On failure the state is UNKNOWN — refuse by
+                # name and never read 'absent' (a failed probe would let a
+                # resuming run report success while deleting nothing).
+                state = _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{old}")
+                if state == "failed":
+                    print(f"ERR: ls-remote origin {old} failed; cannot "
+                          f"confirm it is already deleted — NOT deleted",
+                          file=sys.stderr)
+                    refused.append(old)
+                    continue
+                if state == "absent":
+                    print(f"  skip: origin/{old} already absent (resumed "
+                          f"run)")
+                    continue
             print(f"[{'DRY ' if dry else 'APPLY'}] branch delete (remote): "
                   f"git push origin --delete {old}")
             if dry:
@@ -3088,16 +3485,37 @@ def main() -> int:
         help="the graph root (.agi dir) to act on — required to run --apply "
              "against a fixture repo; default resolves the live tree normally.")
     p_rs.add_argument(
-        "--kinds", default="",
+        "--kinds", default=None,
         help="comma list of kinds to reshuffle (main, posts, towns, loops); "
-             "empty = DEFAULTS to posts,towns (NEVER unfiltered: main and "
+             "absent = DEFAULTS to posts,towns (NEVER unfiltered: main and "
              "loop are delete/rename jobs only when named explicitly, per "
-             "the Prime ruling)")
+             "the Prime ruling); an explicit empty/whitespace value is "
+             "refused by name")
     p_rs.add_argument(
         "--season", type=int, default=None,
         help="root season for town-main renames (default: ladder "
              "current_season).")
     p_rs.set_defaults(func=cmd_branch_reshuffle)
+
+    p_lp = sub.add_parser(
+        "loop-prune",
+        help="hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-"
+             "the-trunk-pair-per-level-reaches-origin — prune a v3 town-first "
+             "loop branch iff it is MERGED into its post main. Dry-run "
+             "(the DEFAULT) prints the plan and writes nothing; --apply "
+             "performs the deletes, non-force, against --root (fixture) or "
+             "the live tree only when --root is omitted.",
+    )
+    p_lp.add_argument(
+        "--apply", action="store_true",
+        help="perform the merged-loop deletes (`git branch -d` local, "
+             "`git push origin --delete` origin). NEVER --force/-f; dry-run "
+             "is the default when this is absent.")
+    p_lp.add_argument(
+        "--root", default=None,
+        help="the graph root (.agi dir) to act on — required to run --apply "
+             "against a fixture repo; default resolves the live tree normally.")
+    p_lp.set_defaults(func=cmd_loop_prune)
 
     args = ap.parse_args()
     return args.func(args)

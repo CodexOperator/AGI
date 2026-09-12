@@ -155,6 +155,7 @@ def test_ref_candidates_town_trunk():
     assert b.ref_candidates("season2/web-app-suite/season1/main") == [
         "season2/web-app-suite/season1/main",
         "town/web-app-suite/season/s1",
+        "town/web-app-suite@s2",
     ]
 
 
@@ -226,6 +227,70 @@ def test_ref_candidates_post_input_keeps_as_written_spelling(name):
     assert cands[-1] == "seat/foo@s2"
     # dedupe keeps the list unique
     assert len(cands) == len(set(cands))
+
+
+# --- L4.331 (hypothesis:
+# l4-an-empty-or-blank-explicit-kinds-is-refused-and-every-branch-spelling-
+# is-in-its-own-ref-candidates) — every input spelling appears in its own
+# candidate list, not just the post/loop ones. `master` and the town
+# one-season alias `town/<t>@s<N>` were absent from their own lists; the
+# docstring claim "as-written input always appears in the result" is now
+# true. Add the missing REVERSE rows to _canonical_to_old, canonical first,
+# deduped, post/loop order untouched.
+
+
+@pytest.mark.parametrize("name,expected", [
+    # core season-1 main bears BOTH old spellings; `master` is legal
+    # (is_legal_branch) and must be its own list.
+    ("season1/main", ["season1/main", "season/s1", "master"]),
+    ("master", ["season1/main", "season/s1", "master"]),
+    ("season/s1", ["season1/main", "season/s1", "master"]),
+    # a town main with town_season==1 bears town/<t>/season/s<1> AND the
+    # one-season alias town/<t>@s<n>.
+    ("town/core@s2", ["season2/core/season1/main", "town/core/season/s1", "town/core@s2"]),
+    ("town/core/season/s1", ["season2/core/season1/main", "town/core/season/s1", "town/core@s2"]),
+    ("season2/core/season1/main", ["season2/core/season1/main", "town/core/season/s1", "town/core@s2"]),
+    # the already-true post/loop/season lists stay byte-identical
+    ("season/s2", ["season2/main", "season/s2"]),
+    ("loop/y-a00@s2", ["season2/loops/y-a00", "loop/y-a00@s2"]),
+    ("post/foo@s2", ["season2/posts/foo", "post/foo@s2", "seat/foo@s2"]),
+    ("seat/foo@s2", ["season2/posts/foo", "post/foo@s2", "seat/foo@s2"]),
+])
+def test_ref_candidates_every_input_kind_in_own_list(name, expected):
+    cands = b.ref_candidates(name)
+    # the as-written input spelling is never dropped from its own list
+    assert name in cands
+    # canonical first, deduped, exact expected row
+    assert cands == expected
+    assert cands[0] == expected[0]
+    assert len(cands) == len(set(cands))
+
+
+def test_ref_candidates_master_is_legal_branch():
+    # `master` is accepted by the grammar (is_legal_branch -> True) and now
+    # appears in its own candidate list.
+    assert b.is_legal_branch("master") is True
+    assert "master" in b.ref_candidates("master")
+
+
+def test_town_alias_reverse_row_derives_back():
+    # The one-season town alias round-trips: town/<t>@s<N> parses to
+    # season<N>/<t>/season1/main, and a town main with town_season==1 now
+    # derives BOTH old spellings back (town/<t>/season/s<k> and town/<t>@s<n>).
+    assert b.parse("town/core@s2")["canonical"] == "season2/core/season1/main"
+    assert b._canonical_to_old("season2/core/season1/main") == [
+        "town/core/season/s1", "town/core@s2"]
+    # a town main whose town_season is NOT 1 has no town@ reverse (town/<t>@s<n>
+    # only means season<n>/<t>/season1/main).
+    assert b._canonical_to_old("season2/core/season3/main") == [
+        "town/core/season/s3"]
+
+
+def test_master_reverse_only_for_season1_main():
+    # `master` is the pre-rename spelling of ONLY the core season-1 main;
+    # a later season main carries only its season/s<n> alias.
+    assert b._canonical_to_old("season1/main") == ["season/s1", "master"]
+    assert b._canonical_to_old("season2/main") == ["season/s2"]
 
 
 class _Sink:
@@ -346,7 +411,7 @@ def test_post_at_round_trips_through_canonical():
     # parse(post/<n>@s2) -> canonical season2/posts/<n>; the reverse of that
     # canonical yields the INTERMEDIATE spelling back.
     d = b.parse("post/foo@s2")
-    assert b._canonical_to_old(d["canonical"]) == "post/foo@s2"
+    assert b._canonical_to_old(d["canonical"]) == ["post/foo@s2"]
     assert b.ref_candidates(d["canonical"])[0] == "season2/posts/foo"
 
 
@@ -354,8 +419,8 @@ def test_post_at_reverse_keeps_legacy_seat_under_flag():
     # The DEPRECATED seat/<name>@s<N> spelling stays reachable for a reader of
     # a pre-migration tree (ref_candidates pins it); the intermediate post/
     # spelling is the new default.
-    assert b._canonical_to_old("season2/posts/foo") == "post/foo@s2"
-    assert b._canonical_to_old("season2/posts/foo", legacy_seat=True) == "seat/foo@s2"
+    assert b._canonical_to_old("season2/posts/foo") == ["post/foo@s2"]
+    assert b._canonical_to_old("season2/posts/foo", legacy_seat=True) == ["seat/foo@s2"]
 
 
 def test_seat_alias_still_resolves_after_post_at_rule():
