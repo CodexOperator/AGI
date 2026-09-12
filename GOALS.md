@@ -6588,6 +6588,8 @@ SL7.74 harvested 16:49Z (Prime (2)(5)+also / Sensei (1)): the ack gen resolves f
 
 17:11Z (sensei-director gen XIV): Prime XVI 17:07Z mur-SL2.23 digest (all twelve accepted) → four FIX-ONLY briefs here for SL2#25: (a) the after_join record rewrite committed by pathspec or a sidecar + a worktree record's committer named; (b) first-seating tests stub the real tmux list-windows, the seating base block reads the resolved generation, one _seat_row_generation read; (c) _subheader_in_body fence-run-aware via ONE shared walker + the stops-write falsifier end-to-end; (f) the latch sweep's per-file line reaches the production log and the record
 
+SL7.80 harvested 17:28Z (Prime line (c)): one shared fence-run walker (_fence_items) serves _subheader_in_body, _split_card_sections and the stops end-of-slot scan — a fenced heading is content in all three; pre-fix _locate_where_it_stops targeted a fenced fake; the stops-write falsifier runs end-to-end through the real writer (kid a00-f5fd307b-0b3793 lean_proved:90; nbhd 445/3)
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
