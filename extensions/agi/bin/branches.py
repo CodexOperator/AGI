@@ -255,8 +255,15 @@ def _alias_canonical(name: str) -> str | None:
 
 
 if __name__ == "__main__":
+    import argparse as _argparse
     import json as _json
-    for arg in sys.argv[1:]:
+
+    _p = _argparse.ArgumentParser(
+        prog="branches.py",
+        description="Parse branch names into the season grammar (node JSON per arg).")
+    _p.add_argument("names", nargs="*", help="branch names to parse")
+    _a = _p.parse_args()
+    for arg in _a.names:
         try:
             print(_json.dumps(parse(arg)))
         except ValueError as exc:

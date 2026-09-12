@@ -405,3 +405,35 @@ def test_season_resolved_seat_ref_is_the_diff_base(tmp_path: Path) -> None:
     assert "experiment:a00-kid" in out   # the round's OWN kid is present
     assert ".agi/nodes/experiment/a00-kid.md" in out  # git-diff names the node
     assert "seat-owned.txt" not in out   # the seat's own file NEVER leaks in
+
+
+def test_post_seat_ref_is_the_diff_base(tmp_path: Path) -> None:
+    """hypothesis:l4-a-seat-is-a-post-everywhere — the seasonal seat ref,
+    once renamed to a POST, is still resolved as the round's diff base. The
+    seat ref is created as `post/<S>@s2` (the seat- spelling is the deprecated
+    alias); the diff-base resolver must find the ACTUAL `post/` spelling and
+    never fall back to a wrong ancestor base_branch."""
+    repo = make_project_repo(tmp_path)
+    post_ref = f"post/{SEAT}@s2"
+    _git(repo, "branch", post_ref, "master")
+    _git(repo, "checkout", post_ref)
+    (repo / ".agi" / "seat-owned.txt").write_text(
+        "only the seat owns this", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "-c", "core.hooksPath=/dev/null", "commit",
+         "-m", "seat own commit")
+    _git(repo, "checkout", "master")
+    wt = repo / ".agi" / "worktrees" / PARENT
+    _git(repo, "worktree", "add", "-b", BRANCH, str(wt), post_ref)
+    commit_kid_node(wt)
+    # base_branch is a lie: master is an ancestor, not the round's real base.
+    # Only the post/ spelling of the seat ref names the true base.
+    write_seat_manifest(repo, "95", status="done", base_branch=post_ref)
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "95")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert BRANCH in out
+    assert "experiment:a00-kid" in out
+    assert ".agi/nodes/experiment/a00-kid.md" in out
+    assert "seat-owned.txt" not in out   # the seat's own file NEVER leaks in

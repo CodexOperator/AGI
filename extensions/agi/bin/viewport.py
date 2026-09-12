@@ -896,11 +896,15 @@ def hierarchy_markdown(anchors: AnchorIndex) -> list:
 
 
 def _anchor_index(root: Path, fm_by_id: dict) -> AnchorIndex:
-    """Build an `AnchorIndex` for the live map from `config:seats`. Read-only;
-    the Sanctuary Master owns the registry -- we only read it."""
+    """Build an `AnchorIndex` for the live map from `config:posts` (the
+    renamed geometry config; `config:seats`/`seats` is the one-season alias).
+    Read-only; the Sanctuary Master owns the registry -- we only read it."""
     try:
         gf = zoom._frontmatter_for(root, ".geometry")
-        rows = (gf.get("config:seats") or {}).get("seats") or []
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        rows = rows or []
     except Exception:                                   # noqa: BLE001
         rows = []
     return build_anchor_index(rows, fm_by_id)

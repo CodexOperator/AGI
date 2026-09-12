@@ -171,7 +171,9 @@ def test_shell_cmd_seat_wraps_no_seat_byte_identical():
                        "&& claude --remote-control s -prompt")
     seated = rotate._shell_cmd(cli, None, seat="belam-X")
     assert "launch-wrapper" in seated
-    assert "export AGI_SEAT=belam-X &&" in seated
+    # a seat exports BOTH AGI_POST and AGI_SEAT so either spelling resolves
+    # (hypothesis:l4-a-seat-is-a-post-everywhere).
+    assert "export AGI_POST=belam-X AGI_SEAT=belam-X &&" in seated
     # the raw claude argv rides after the wrapper's `--` separator.
     assert " -- claude --remote-control s -prompt" in seated
     assert seated.index("launch-wrapper") < seated.index("claude")

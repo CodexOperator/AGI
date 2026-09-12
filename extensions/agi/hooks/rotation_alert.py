@@ -79,43 +79,54 @@ ROTATE_CMD_NO_SEAT = "python3 {bin}/rotate.py meter --session-log {transcript}"
 
 
 def _seat_from_cwd(cwd: str) -> str | None:
-    """The seat name for a seat worktree, or None.
+    """The seat (post) name for a worktree, or None.
 
-    A seat runs in `<repo>/.agi/worktrees/seat-<name>`, so the name is
-    derivable without reading any registry. None when the caller is not in a
-    seat worktree — in which case we print the command WITHOUT `--pin`
+    A seat runs in `<repo>/.agi/worktrees/seat-<name>`; worktrees are being
+    renamed `post-<name>`, so BOTH spellings resolve during the alias season
+    (hypothesis:l4-a-seat-is-a-post-everywhere). None when the caller is not
+    in a seat worktree — in which case we print the command WITHOUT `--pin`
     rather than guess a pin path, because guessing which pin belongs to you
     is the original defect this whole chain is about.
     """
     for part in Path(cwd).resolve().parts:
-        if part.startswith("seat-"):
-            return part[len("seat-"):] or None
+        for prefix in ("seat-", "post-"):
+            if part.startswith(prefix):
+                return part[len(prefix):] or None
     return None
 
-def _seat_rows(root: Path) -> list:
-    """Rows of the `config:seats` node — `.agi/nodes/.geometry/seats.md`.
+def _config_label(root: Path) -> str:
+    """'config:posts' or 'config:seats' — the ACTUAL geometry config file this
+    root resolves, so the emitted source label names the file the row came
+    from instead of a hardcoded 'config:seats' (hypothesis:l4-a-seat-is-a-
+    post-everywhere: the live file is posts.md after the rename)."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import geometry_config  # noqa: PLC0415 — lazy, engine-optional (P7).
+        _, key = geometry_config.resolve(root)
+        return f"config:{key}"
+    except Exception:
+        return "config:seats"
 
-    The node's frontmatter carries a YAML `seats:` key whose values are inline
-    JSON objects, one per seat. We read what `dispatch.py --seat` and
-    `rotate.py meter --seat` read — no second copy of the registry.
+
+def _seat_rows(root: Path) -> list:
+    """Rows of the `config:posts` geometry node, post-first.
+
+    `config:seats` is renamed `config:posts` (hypothesis:l4-a-seat-is-a-post-
+    everywhere): the SHARED resolver (`geometry_config.py`) reads
+    `nodes/.geometry/posts.md` + `posts:` and falls back to the deprecated
+    `seats.md`/`seats:` for one season. We route through that ONE resolver so
+    this hook has no second copy of the registry — a literal `seats.md` stat
+    would read absent/empty the moment the live file is `posts.md`.
     """
-    path = root / "nodes" / ".geometry" / "seats.md"
-    if not path.is_file():
+    if root is None:
         return []
     try:
-        text = path.read_text(encoding="utf-8")
-    except OSError:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import geometry_config  # noqa: PLC0415 — lazy, the hook must not
+        #   hard-depend on the engine being importable (P7).
+        return geometry_config.load_rows(root)
+    except Exception:
         return []
-    rows = []
-    for line in text.splitlines():
-        s = line.strip()
-        if not s.startswith("- "):
-            continue
-        try:
-            rows.append(json.loads(s[2:]))
-        except (json.JSONDecodeError, ValueError):
-            continue
-    return rows
 
 
 def _main_root(root: Path):
@@ -184,7 +195,15 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     guard is intact (0 must never become a 0.0 threshold, or
     `fraction/threshold` in `_emit` divides by zero).
     """
-    seat = os.environ.get("AGI_SEAT")
+    # AGI_POST wins over AGI_SEAT (the deprecated alias) for one season —
+    # hypothesis:l4-a-seat-is-a-post-everywhere. The shared resolver owns the
+    # post-first / seat-fallback order and the once-per-process notice.
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import geometry_config  # noqa: PLC0415 — lazy, engine-optional (P7).
+        seat = geometry_config.resolved_seat_env()
+    except Exception:
+        seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat is None:
         seat = _seat_from_cwd(cwd)
         if seat is None:
@@ -253,7 +272,8 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
             # tree.
             if rt > 0:
                 return (seat, rt,
-                        f"config:seats {seat}.rotate_at ({tree_label})")
+                        f"{_config_label(cand_root)} {seat}.rotate_at "
+                        f"({tree_label})")
             return seat, ladder_default, "ladder.director_rotate_at"
     return seat, ladder_default, "ladder.director_rotate_at"
 
