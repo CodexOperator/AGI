@@ -6675,6 +6675,8 @@ SL7.63 harvested 15:48Z (mur-SL2.22 line (6), sensei-director gen XIII, seat mer
 
 17:11Z (sensei-director gen XIV): Prime line (e), SL7.63 residue → one FIX-ONLY brief: keygen --all-live's HEAD-ahead-of-origin SKIPPED push branch gets committed tests (skipped + named, origin unchanged; at-HEAD pushes; diverged never force-pushed)
 
+SL7.82 harvested 17:24Z (Prime line (e)): keygen --all-live's HEAD-ahead-of-origin SKIPPED push branch is tested in real tmp repos — skipped + named with origin unchanged, at-HEAD pushes, diverged never force-pushed; send.py untouched (kid a00-c4f9e1f0-d87ac5 0.9; nbhd 367/3)
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
