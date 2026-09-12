@@ -6660,6 +6660,8 @@ SL7.114 HARVESTED (a00-8badde4e; parent lean_disproved:60 on probe B = the claim
 
 SL7.115 (owner order 22:2xZ, round 2 of 2): the bare rotate verb — rotate-self for the post whose key the caller holds, every flag an override through ONE flag-set definition, --post rank-gated downward only, closeout template-first (templates.<role>.rotate_defaults) — brief hypothesis:l4-rotate-py-rotate-is-rotate-self-for-the-post-whose-key-the-caller-holds-with-every-flag-an-override-and-post-rank-gated
 
+SL7.115 HARVESTED (a00-1bd21767; lean_proved:85 -> :90 after six parent probes): rotate.py rotate = the bare verb (ONE _add_rotate_self_flags helper for both subparsers; caller post via the held key; --post rank-gated downward; name/timeout/force/stops/trigger derived only where absent; closeout from templates.<role>.rotate_defaults; delegates Namespace(**vars(args)) to cmd_rotate_self). Live probe on this post: rotate --dry-run resolved name/timeout 600/force/stops 581 chars from the card slot (from: env; rank: self). RESIDUE: the default stops text is the card slot AS IS — a slot whose stamp predates this generation would hand the predecessor's stop block to the successor; a staleness gate (slot stamp vs the seat's last rotation record) is the next slice
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
