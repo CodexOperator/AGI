@@ -2167,7 +2167,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         "session_ref": ref,
         "answer": args.answer,
         "text": text or "",
-        "ts": datetime.utcnow().isoformat() + "Z",
+        "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
     path = _ack_path(root, seat)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -7967,6 +7967,10 @@ _STARTUP_FALLBACKS = {
 #: block does not declare them.
 DEFAULT_FIRST_TURN_TIMEOUT_S = 60
 DEFAULT_STARTUP_BYTE_CAP = 4000
+#: The total after_join dm byte budget (goal:g15.25 SL7.74): a service dm
+#: over this cap is cut to head + one status line per entry + a pointer to the
+#: rotation record (which keeps the full per-command-capped results).
+DEFAULT_AFTER_JOIN_DM_BYTE_CAP = 4000
 
 #: The default startup allowlist (executable basenames). A producing command
 #: whose executable is NOT here is refused and its label named. `python` is
@@ -9192,7 +9196,7 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
-def _first_turn_values(root: Path, *, seat: str, gen: int,
+def _first_turn_values(root: Path, *, seat: str, gen: int | str,
                        succ_name: str, succ_ref: str = "",
                        succ_transcript: str = "",
                        tmux_session: str = DEFAULT_TMUX_SESSION,
@@ -9562,12 +9566,27 @@ def _run_after_join_command(entry, values: dict, timeout_s: int,
             "truncated": truncated, "byte_cap": byte_cap}
 
 
-def _compose_after_join_dm(seat: str, gen: int, succ_ref: str,
-                           results: list) -> str:
+def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
+                           results: list, *,
+                           dm_byte_cap: int | None = None,
+                           record_path: str | None = None) -> str:
     """The successor's SECOND input — one captioned block naming the service
     as the performer, every after_join command's label+output, and the ONE
     CAPTIVE copy-paste line for the single remaining decision (`diff` against
-    the handoff). Pure formatting; runs and sends nothing."""
+    the handoff). Pure formatting; runs and sends nothing.
+
+    (goal:g15.25 SL7.74) the captive line uses `--post` (the live grammar, F6)
+    and the RESOLVED gen — never `--seat`, and never a blank `--gen`. When gen
+    is unresolved (no gen_after on the record and no generation on the row)
+    there is no runnable ack, so the copy-paste line is omitted entirely.
+
+    (goal:g15.25 SL7.74) the dm has a TOTAL byte budget (`dm_byte_cap`,
+    default `startup.dm_byte_cap` / DEFAULT_AFTER_JOIN_DM_BYTE_CAP): a post
+    over budget carries the head, ONE status line per entry, and
+    `full output: <record path>` — the record keeps the full per-command-
+    capped results, so cutting the dm never loses the bytes (F10 class)."""
+    cap = (dm_byte_cap if dm_byte_cap is not None
+           else DEFAULT_AFTER_JOIN_DM_BYTE_CAP)
     lines = [
         "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for "
         "you; you ran nothing)",
@@ -9593,13 +9612,34 @@ def _compose_after_join_dm(seat: str, gen: int, succ_ref: str,
             out = (r.get("output") or "").strip()
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
-    lines.append("")
-    lines.append("Where a decision remains (only a `diff` against the "
-                 "handoff), emit EXACTLY this copy-paste line:")
-    lines.append("python3 extensions/agi/bin/rotate.py "
-                 f"ack --seat {seat} --gen {gen} "
-                 f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
-    return "\n".join(lines)
+    if gen not in (None, ""):
+        lines.append("")
+        lines.append("Where a decision remains (only a `diff` against the "
+                     "handoff), emit EXACTLY this copy-paste line:")
+        lines.append("python3 extensions/agi/bin/rotate.py "
+                     f"ack --post {seat} --gen {gen} "
+                     f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
+    full = "\n".join(lines)
+    if cap and len(full) > cap and record_path:
+        trimmed = [
+            "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join "
+            "for you; you ran nothing)",
+            "This is your SECOND input, delivered `after_join_delay_s` after "
+            "spawn. The full output is in the rotation record.",
+            "",
+        ]
+        for r in results:
+            if r.get("refused"):
+                status = "REFUSED"
+            elif r.get("timed_out_after_s"):
+                status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
+            else:
+                status = f"exit {r.get('rc')}"
+            trimmed.append(f"[{r.get('label', '')}] {status}")
+        trimmed.append("")
+        trimmed.append(f"full output: {record_path}")
+        return "\n".join(trimmed)
+    return full
 
 
 def _transcript_live_model(transcript) -> str | None:
@@ -9828,7 +9868,8 @@ def _after_join_sender(root: Path, seat: str) -> str:
     return "heal"
 
 
-def run_after_join(root, *, seat: str, gen: int, startup: dict,
+def run_after_join(root, *, seat: str, gen: str | int = "",
+                   startup: dict,
                    values: dict, record_path: str | None = None,
                    dry_run: bool = False, sleep_impl=None,
                    delay_override: float | None = None,
@@ -9838,7 +9879,9 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                    poll_turn_fn=None, confirm_model=None,
                    performer: str = "watch",
                    late: bool = False,
-                   performed_after_s: float | None = None) -> dict:
+                   performed_after_s: float | None = None,
+                   gen_unresolved_reason: str | None = None,
+                   dm_byte_cap: int | None = None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -9907,9 +9950,28 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
             sleep_impl=sleep_impl, poll_turn_fn=poll_turn_fn,
             confirm_model=confirm_model)
     results: list = []
+    if gen_unresolved_reason:
+        # (goal:g15.25 SL7.74) an unresolved gen (no gen_after on the record
+        # and no generation on the row) REFUSES the ack ENTRY by name — 0 is
+        # never substituted for {gen} and never run. Any entry whose command
+        # references {gen} is refused; the rest run normally (the refusal is a
+        # pre-run gate, then the normal execute path for the survivors).
+        def _refuse_gen(e):
+            entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+            if "{gen}" in entry.get("cmd", ""):
+                return {"label": entry.get("label", ""),
+                        "cmd": entry.get("cmd", ""),
+                        "refused": gen_unresolved_reason}
+            return None
+    else:
+        _refuse_gen = lambda e: None  # noqa: E731
     if dry_run:
         for e in entries:
             entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+            pre = _refuse_gen(entry)
+            if pre is not None:
+                results.append(pre)
+                continue
             try:
                 cmd = _resolve_startup_placeholders(
                     entry.get("cmd", ""), values, refuse_empty=False)
@@ -9921,9 +9983,15 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                                 "refused": str(exc)})
     else:
         for e in entries:
-            results.append(_run_after_join_command(e, values, timeout, cap))
+            entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+            pre = _refuse_gen(entry)
+            results.append(pre if pre is not None
+                           else _run_after_join_command(e, values, timeout, cap))
     dm = _compose_after_join_dm(
-        seat, gen, values.get("succ_ref", ""), results)
+        seat, gen, values.get("succ_ref", ""), results,
+        dm_byte_cap=(dm_byte_cap if dm_byte_cap is not None
+                     else startup.get("dm_byte_cap")),
+        record_path=record_path)
     appended = False
     if not dry_run and record_path is not None:
         rp = Path(record_path)
@@ -10141,8 +10209,14 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # dm prints `<your ListAgents ref>`, exactly as _compose_after_join_dm
     # intends today.
     sref = (row or {}).get("session_ref") or ""
+    # (goal:g15.25 SL7.74) the ack gen resolves from the RECORD's gen_after
+    # (write-owner of the real generation), else the seat row's OWN
+    # `generation` cell (the successor's row is written at spawn, F8) —
+    # NEVER 0. Neither present => the ack ENTRY is refused by name and no
+    # --gen 0 / blank --gen reaches the entry or the captive line.
+    gen_str, gen_reason = _resolve_join_gen(rec, row, seat)
     values = _first_turn_values(
-        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        root, seat=seat, gen=gen_str,
         succ_name=seat, succ_ref=str(sref),
         succ_transcript=str(transcript))
     # pid/from the live join (never the stale record), informational on the
@@ -10156,10 +10230,27 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # the measured `performed_after_s`.
     late = age_s is not None and age_s > max_age
     return run_after_join(
-        root, seat=seat, gen=int(gen) if gen is not None else 0,
+        root, seat=seat, gen=gen_str,
         startup=startup, values=values, record_path=str(path),
         sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
-        performer=performer, late=late, performed_after_s=age_s)
+        performer=performer, late=late, performed_after_s=age_s,
+        gen_unresolved_reason=gen_reason)
+
+
+def _resolve_join_gen(rec: dict, row: dict | None, seat: str):
+    """The after_join ack generation: the rotation record's `gen_after` first
+    (the write-owner of the real generation), else the seat row's own
+    `generation` cell (the successor's row is written at spawn, F8). NEVER 0:
+    returns `(gen_str, reason)` where `reason` is the named refusal when
+    neither source carries a generation (goal:g15.25 SL7.74)."""
+    rec_gen = rec.get("gen_after")
+    if rec_gen is not None and str(rec_gen) != "":
+        return rec_gen, None
+    row_gen = (row or {}).get("generation")
+    if row_gen is not None and str(row_gen) != "":
+        return row_gen, None
+    return "", (f"gen unresolved for {seat}: no gen_after on the record and "
+                "no generation on the row")
 
 
 def _startup_step_list(startup) -> list:

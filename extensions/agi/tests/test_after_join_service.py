@@ -149,9 +149,105 @@ def test_dm_carries_captive_copy_paste_line():
     dm = out["dm"]
     assert "## AFTER_JOIN OUTPUT" in dm
     line = ("python3 extensions/agi/bin/rotate.py "
-            "ack --seat sanctuary-director --gen 9 "
+            "ack --post sanctuary-director --gen 9 "
             "--ref abc123 diff --text -")
-    assert line in dm, "captive copy-paste line must appear verbatim"
+    assert line in dm, "captive copy-paste line must appear verbatim (--post, the live grammar)"
+
+
+def test_dm_captive_line_omitted_and_gen_refused_when_unresolved(tmp_path):
+    """(a)+(b) run_after_join_for_seat: a record with NO gen_after and a row
+    with NO generation refuses the ack ENTRY by name (`gen unresolved for
+    <seat>: ...`) and the dm carries NO captive ack line and NO `--gen 0` —
+    0 is never passed to an ack and never printed in a captive line. (goal:g15.25
+    SL7.74)"""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="ack")
+    startup = _startup(after_join=[{"label": "ack",
+                                    "cmd": "echo {gen}"}])
+    try:
+        rec_path = _write_rotation_record(
+            tmp_path,
+            {"rotation": "rotate-self", "seat": "s",
+             "result": "success", "recorded_at": "2020-01-01T00:00:00.000000Z"})
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen="", startup=startup,
+            values=dict(VALUES, gen=""), record_path=str(rec_path),
+            delay_override=0, sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None, gen_unresolved_reason=(
+                "gen unresolved for s: no gen_after on the record and "
+                "no generation on the row"))
+    finally:
+        rot.subprocess.run = real_run
+    ack = [r for r in out["results"] if r["label"] == "ack"][0]
+    assert ack["refused"], "ack entry must be refused when gen unresolved"
+    assert "gen unresolved for s" in ack["refused"]
+    assert "--gen 0" not in out["dm"]
+    assert "ack --post s --gen " not in out["dm"], \
+        "no blank/gen-0 captive line when gen unresolved"
+
+
+def test_dm_carries_byte_budget_cut_with_full_output_pointer(tmp_path):
+    """(d) a service dm over the byte budget carries the head, ONE status line
+    per entry, and `full output: <record path>` — while the record keeps the
+    full per-command-capped results. (goal:g15.25 SL7.74)"""
+    startup = _startup(after_join=[
+        {"label": "ack", "cmd": "echo x"},
+    ])
+    rec_path = tmp_path / "rec.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 7, "recorded_at": "2020-01-01T00:00:00.000000Z"}))
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="y" * 4300)
+    try:
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen=7, startup=startup, values=VALUES,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    dm = out["dm"]
+    assert len(dm) <= rotate.DEFAULT_AFTER_JOIN_DM_BYTE_CAP, len(dm)
+    assert "full output:" in dm
+    assert str(rec_path) in dm
+    # the record keeps the full per-command-capped results (4000)
+    written = json.loads(rec_path.read_text())
+    assert written["after_join"]["results"][0]["rc"] == 0
+    assert "y" * 3000 in written["after_join"]["results"][0]["output"]
+
+
+def test_dm_not_cut_when_under_budget(tmp_path):
+    """(d) under the byte budget the dm is NOT cut — the full output and the
+    captive line stay present. (goal:g15.25 SL7.74)"""
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo hi"}])
+    rec_path = tmp_path / "rec.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 7, "recorded_at": "2020-01-01T00:00:00.000000Z"}))
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="hi")
+    try:
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen=7, startup=startup, values=VALUES,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    assert "full output:" not in out["dm"]
+    assert "ack --post s --gen 7 " in out["dm"]
+
+
+def _write_rotation_record(tmp_path: Path, payload: dict) -> Path:
+    """A throwaway rotation record under the test's `tmp_path` — NEVER the
+    CWD: the first cut wrote `./_tmp_rec.json`, so running the suite left a
+    repo-root scratch file that the loop's `git add -A` would sweep into the
+    round's commit (goal:g15.25 SL7.74, parent review)."""
+    rec_path = Path(tmp_path) / "_tmp_rec.json"
+    rec_path.write_text(json.dumps(payload))
+    return rec_path
 
 
 def test_record_receives_every_command_output():
@@ -1433,3 +1529,120 @@ def test_delay_s_is_template_promise_performed_after_s_is_measured(
     assert aj["performed_after_s"] >= 0, aj
     assert abs(aj["performed_after_s"] - 120) < 5, \
         f"performed_after_s should be ~120 s measured: {aj}"
+
+
+def test_ack_stamp_emits_no_utcnow_deprecation(tmp_path, monkeypatch):
+    """(e) the ack stamp uses datetime.now(timezone.utc) — cmd_ack emits NO
+    DeprecationWarning. (goal:g15.25 SL7.74)
+
+    PARENT REVIEW: the first cut asserted this under
+    `warnings.simplefilter("error", DeprecationWarning)`, which does NOT
+    discriminate on this box — `datetime.utcnow()` is a DeprecationWarning
+    only from Python 3.12, and the interpreter here is 3.11.15, where
+    `-W error::DeprecationWarning` and the simplefilter both pass on the
+    PRE-FIX code too (measured: `python3 -W error::DeprecationWarning -c
+    'datetime.utcnow()'` exits 0). The real falsifier is to make `utcnow`
+    ASSERT its own call: a `datetime` subclass whose `utcnow` raises replaces
+    the module-level `rotate.datetime` for the WHOLE cmd_ack path, so ANY
+    utcnow reached from the ack — today or later in the same call tree —
+    fails the test on every Python."""
+    import warnings
+
+    class _NoUtcnowDatetime(datetime):
+        @classmethod
+        def utcnow(cls):  # pragma: no cover - only runs on a regression
+            raise AssertionError(
+                "cmd_ack reached datetime.utcnow() — use datetime.now(timezone.utc)")
+
+    ack_path = rotate._ack_path(tmp_path, "s")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rotate, "datetime", _NoUtcnowDatetime)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="s", gen=1, ref="abc123", answer="continue", text=""),
+            tmp_path)
+    assert code == 0, f"cmd_ack failed under -W error::DeprecationWarning: {code}"
+    assert Path(ack_path).exists()
+    ack = json.loads(ack_path.read_text(encoding="utf-8"))
+    assert ack["ts"].endswith("Z"), ack["ts"]
+
+
+def test_for_seat_gen_resolves_from_row_when_record_lacks_gen_after(tmp_path,
+                                                                    monkeypatch):
+    """(a) run_after_join_for_seat (the PRODUCTION service entry) resolves the
+    ack gen from the SEAT ROW's generation cell when the record has no
+    gen_after (a pre-key record / crash-recovery record), not 0. (goal:g15.25
+    SL7.74)"""
+    import agi.bin.rotate as rot
+    calls = {}
+
+    def _fake_run_after_join(root, *, seat, gen, startup, values,
+                             record_path, sleep_impl, send_dm,
+                             delay_override, gen_unresolved_reason=None):
+        calls["gen"] = gen
+        calls["gen_unresolved_reason"] = gen_unresolved_reason
+        return {"gen": gen}
+
+    rec_path = Path(tmp_path) / "s.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        # no gen_after on purpose
+        "recorded_at": "2020-01-01T00:00:00.000000Z"}), encoding="utf-8")
+    tmpl = _startup(after_join=[], delay_s=0)
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()),
+                            str(rec_path)))
+    monkeypatch.setattr(
+        rot, "_find_seat",
+        lambda root, name: {"role": "parent", "generation": 9})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join", _fake_run_after_join)
+    rot.run_after_join_for_seat(Path(tmp_path), "s")
+    assert calls["gen"] == 9, calls
+    assert calls["gen_unresolved_reason"] is None
+
+
+def test_for_seat_gen_refused_when_neither_record_nor_row(tmp_path,
+                                                          monkeypatch):
+    """(a) run_after_join_for_seat passes gen_unresolved_reason (which refuses
+    the ack ENTRY) when the record lacks gen_after AND the row lacks a
+    generation cell — 0 is never passed. (goal:g15.25 SL7.74)"""
+    import agi.bin.rotate as rot
+    calls = {}
+
+    def _fake_run_after_join(root, *, seat, gen, startup, values,
+                             record_path, sleep_impl, send_dm,
+                             delay_override, gen_unresolved_reason=None):
+        calls["gen"] = gen
+        calls["gen_unresolved_reason"] = gen_unresolved_reason
+        return {"gen": gen}
+
+    rec_path = Path(tmp_path) / "s.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "recorded_at": "2020-01-01T00:00:00.000000Z"}), encoding="utf-8")
+    tmpl = _startup(after_join=[], delay_s=0)
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()),
+                            str(rec_path)))
+    monkeypatch.setattr(
+        rot, "_find_seat",
+        lambda root, name: {"role": "parent"})  # no generation cell
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join", _fake_run_after_join)
+    rot.run_after_join_for_seat(Path(tmp_path), "s")
+    assert calls["gen"] == "", calls
+    assert calls["gen_unresolved_reason"] == (
+        "gen unresolved for s: no gen_after on the record and "
+        "no generation on the row"), calls
