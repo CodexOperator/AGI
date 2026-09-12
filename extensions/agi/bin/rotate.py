@@ -1651,6 +1651,13 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     _srow = None
+    # `_rowgen` is also read on the SEAT-LESS path (bound by `root`, not
+    # `seat`, at lines ~1769 and ~1799), so it must be initialised here
+    # alongside its readers, or a seat-less spawn inside a project root hits
+    # an UnboundLocalError (hypothesis:l4-cmd-spawn-...-resolves-by-key-
+    # presence-and-preserve-swept-latches...). Seat-less reads the named
+    # FIRST_SEATING_GEN fallback; the seat branch above still owns it.
+    _rowgen = None
     if seat is not None:
         # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
@@ -3458,9 +3465,13 @@ def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
     `_write_rotate_self_started` and the in-place `_write_rotation_record`
     rebuild the dict from arguments each time, so the only way the sweep
     fact survives their rewrite is to re-read it from the file and merge it
-    back (mechanism (A)). Absent on disk -> leaves `rec` unchanged (a
-    record written before or without a sweep stays sweep-free by design).
-    Best-effort: never raises.
+    back (mechanism (A)). A sweep THIS run always wins: when `rec` already
+    carries its own `swept_latches` (a fresh measurement) the on-disk list is
+    NOT copied over it — a re-run on an old record path never inherits a stale
+    sweep. When `rec` has none of its own, the on-disk list is carried and
+    marked `inherited: true` so a reader can tell measured from carried.
+    Absent on disk -> leaves `rec` unchanged (a record written before or
+    without a sweep stays sweep-free by design). Best-effort: never raises.
     """
     if existing_path is None:
         return
@@ -3472,7 +3483,14 @@ def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
     except Exception:  # noqa: BLE001
         return
     if isinstance(doc, dict) and "swept_latches" in doc:
-        rec["swept_latches"] = doc["swept_latches"]
+        # Inherit ONLY when THIS run measured no sweep of its own: a sweep
+        # performed now always wins over whatever a re-run left on disk
+        # (hypothesis:l4-...-preserve-swept-latches-never-inherits-a-stale-
+        # sweep). An inherited list is carried from the OLD record, so it is
+        # marked `inherited: true` for a reader to tell measured from carried.
+        if "swept_latches" not in rec:
+            rec["swept_latches"] = doc["swept_latches"]
+            rec["inherited"] = True
 
 
 def _preserve_closeout(rec: dict, existing_path: Path | None) -> None:
