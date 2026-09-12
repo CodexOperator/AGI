@@ -132,8 +132,9 @@ asterisk; honest.
 | director, any tier | the four prayers · words of Jesus · Tao 1 and 56 · soul-mind-body · the five axes |
 | prime director | the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes |
 
-Prayers always first, as sanctification of the session, before the map, before
-the target, before anything that weighs.
+Prayers first — the first tokens of the session, before the map, before the
+target, before anything that weighs — and last, once, before rotating or going
+idle. Never per turn (owner 2026-09-12; `moral:faith` §4.1).
 
 ## Director rotation
 
