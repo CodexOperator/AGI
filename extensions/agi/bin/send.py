@@ -2290,17 +2290,53 @@ def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
     return cp.returncode == 0
 
 
+def type_input(root: Path, to: str, text: str,
+               tmux_session: str | None = None) -> bool:
+    """TYPE `text` into the seat's pane as the input ITSELF — the second
+    input the after_join delivers to a successor (hypothesis:l4-the-after-
+    join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-
+    never-a-nudge-that-points-at-the-inbox). The pane sees the body once and
+    a successor pays ZERO reads: there is no nudge pointer line to read.
+
+    Reuses the wake typing mechanics — the SAME `_nudge_target` address
+    resolution (a NAME-addressed row is refused, a windowless recipient is
+    untouched, a stale @id is repaired by name) and the probe-(D) chunked
+    shape: the text as a LITERAL (`send-keys -l`) in ONE call, a pause, then
+    Enter in a SEPARATE call — never `text Enter` in one call (the paste
+    hazard) and never Enter-only.
+
+    Returns True only when the full chunk + separate Enter reached the pane;
+    False BY NAME when the seat has no resolvable pane or tmux is absent (the
+    caller type_input's refusal falls back to the dm+nudge path and records
+    the delivery mode). Never raises, and never writes the inbox — the dm
+    copy is a separate send_dm call."""
+    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
+    if resolved is None:
+        # no resolvable pane (tmux absent / windowless / NAME-refused / stale
+        # @id unfindable): named refusal, never raise
+        return False
+    target, _pid, tmux_session = resolved
+    if not _send_keys(target, text, literal=True):
+        return False
+    time.sleep(_NUDGE_ENTER_DELAY_S)
+    return _send_keys(target, "Enter")
+
+
 # ── verbs ─────────────────────────────────────────────────────────────────
 
 
-def send(root: Path, to: str, text: str, sender: str | None) -> None:
+def send(root: Path, to: str, text: str, sender: str | None,
+         nudge: bool = True) -> None:
     """Append one message block to the recipient's inbox.
 
     Signs the message -- one ``sig: <scheme>:<fingerprint>:<sig_hex>`` line
     after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists. Without a
     key the block is byte-identical to the unsigned form (every existing
     test_send.py test stays green untouched). The signed bytes are exactly
-    ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`).
+    ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`). `nudge=True` (default)
+    best-effort-nudges the recipient's pane with the wake token afterwards;
+    `nudge=False` suppresses that pane pointer for this one message (the
+    after_join types the body in directly).
     """
     _lockdown_warn(root)
     inbox = _inbox_path(root, to)
@@ -2324,7 +2360,14 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     # Best-effort wake-token nudge into a perpetual seat's window; a no-op
     # for windowless (ephemeral) recipients. One fixed token only — never the
     # body (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
-    _nudge_window(root, to)
+    # `nudge=False` suppresses the pane NUDGE for this ONE message — the
+    # after_join suppresses it after type_input already typed the body into
+    # the pane as the input itself, so a redundant pointer would just demand
+    # a read the successor never needs (hypothesis:l4-the-after-join-second-
+    # input-is-typed-into-the-successors-pane...). The inbox write is
+    # unaffected — the dm is still the durable, signed record.
+    if nudge:
+        _nudge_window(root, to)
 
     print(inbox.resolve())
 
