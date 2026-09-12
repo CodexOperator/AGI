@@ -8665,6 +8665,7 @@ STARTUP_DONE_LINE = ("## STARTUP DONE — every startup step has a "
 
 DEFAULT_AFTER_JOIN_DELAY_S = 20
 DEFAULT_AFTER_JOIN_TIMEOUT_S = 60
+DEFAULT_AFTER_JOIN_POLL_S = 1.0
 
 
 def _inline_reaper_enabled(root: Path) -> bool:
@@ -8771,12 +8772,172 @@ def _compose_after_join_dm(seat: str, gen: int, succ_ref: str,
     return "\n".join(lines)
 
 
+def _transcript_live_model(transcript) -> str | None:
+    """The FIRST `"model":"..."` value in the successor transcript path,
+    else None. The ONE parse the after_join model-confirm poll shares with
+    `_confirm_successor_model` — a transcript that carries an assistant turn
+    carries a model line, and that is the signal the poll waits on."""
+    if not transcript:
+        return None
+    p = Path(str(transcript)).expanduser()
+    if not p.exists():
+        return None
+    for ln in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        m = re.search(r'"model"\s*:\s*"([^"]+)"', ln)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _transcript_refusal_fallback(transcript) -> str | None:
+    """The LAST `model_refusal_fallback` SYSTEM event in the successor
+    transcript (jsonl), as a one-line readable string, else None. The ONE
+    parse that fills the bootstrap `model_refusal_fallback` join-only fact
+    after join — DIFFERENT from `_transcript_live_model` (assistant-turn
+    model), this reads the `subtype: model_refusal_fallback` system event the
+    SAME way verification.check_seat_model's scan does (timestamp +
+    apiRefusalCategory + requestId), so the bootstrap fact carries the same
+    truth the seat-model check would surface. Only the LAST event is kept,
+    matching verification's read. Unparseable lines are skipped, never
+    raised."""
+    if not transcript:
+        return None
+    p = Path(str(transcript)).expanduser()
+    if not p.exists():
+        return None
+    fb = None
+    for ln in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        ln = ln.strip()
+        if not ln:
+            continue
+        try:
+            o = json.loads(ln)
+        except ValueError:
+            continue
+        if not isinstance(o, dict):
+            continue
+        if o.get("subtype") != "model_refusal_fallback":
+            continue
+        ts = o.get("timestamp")
+        fb = (f"ts={ts} category={o.get('apiRefusalCategory')} "
+              f"requestId={o.get('requestId')}"
+              if ts is not None else "present")
+    return fb
+
+
+def _after_join_model_confirm(root: Path, *, seat: str, values: dict,
+                              poll_interval: float, budget_s: float,
+                              sleep_impl=None, poll_turn_fn=None,
+                              confirm_model=None):
+    """goal:g15.25 (SL7.40 (a)) — perform `_confirm_successor_model` ONCE, in
+    the after_join, after the successor transcript carries its first assistant
+    turn. POLL the transcript (turn-driven, never a bare fixed sleep) for up to
+    `budget_s` in `poll_interval` ticks; when a turn appears early the confirm
+    runs at that tick, else the record NAMES the skip `skipped: no assistant
+    turn within <budget>s`. `poll_turn_fn(transcript) -> live_model|None`
+    (default `_transcript_live_model`), `confirm_model(**kw)` (default
+    `_confirm_successor_model`) and `sleep_impl` are the fixture seams so a
+    fake transcript can gain an assistant turn mid-wait without real sleep.
+    Returns the confirm result (dict, or a named skip string)."""
+    if poll_turn_fn is None:
+        poll_turn_fn = _transcript_live_model
+    if confirm_model is None:
+        confirm_model = _confirm_successor_model
+    row = _find_seat(root, seat) or {}
+    pid = values.get("pid")
+    transcript = values.get("succ_transcript") or ""
+    waited = 0.0
+    if transcript:
+        steps = int(budget_s // poll_interval) if poll_interval > 0 else 0
+        for _ in range(steps):
+            if poll_turn_fn(transcript):
+                break
+            if sleep_impl is not None:
+                sleep_impl(poll_interval)
+            else:
+                time.sleep(poll_interval)
+            waited += poll_interval
+    mc = confirm_model(
+        seat=seat,
+        expected_model=((row.get("model") if row else None)
+                        or values.get("expected_model")),
+        expected_effort=((row.get("effort") if row else None)
+                         or values.get("expected_effort")),
+        pid=pid, transcript=transcript)
+    if isinstance(mc, str):
+        return (f"skipped: no assistant turn within {int(budget_s)}s "
+                f"(after_join poll waited {int(waited)}s) — "
+                "successor has not answered")
+    mc["confirm_at"] = "after_join"
+    return mc
+
+
+def _fill_bootstrap_join_facts(root: Path, *, seat: str,
+                               live_model: str | None,
+                               refusal_fallback: str | None) -> bool:
+    """(goal:g15.25 SL7.40 (a)) fill the pre-spawn bootstrap record's TWO
+    join-only facts the after_join confirm can now supply —
+    `successor_live_model` and `model_refusal_fallback` — THROUGH the existing
+    `_write_bootstrap` `overrides` seam: the SAME post-join rewrite rotate-self
+    uses to resolve the join-only facts in place (never a new record, never a
+    re-mint). run_after_join holds no template/verification/generation (the
+    service-layer caller owns only the record file), so the record's own
+    telemetry / verification / generation are reconstructed from the existing
+    file to reach the seam; any OTHER join-only fact already resolved in that
+    record (e.g. `successor_address` set by rotate-self before it handed
+    after_join to the service) is carried through as an override so the
+    rewrite never clobbers a value another path already resolved.
+    No-op (False) when there is no live model, no bootstrap file, or the
+    record will not parse — never raises."""
+    if not live_model:
+        return False
+    bpath = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
+    try:
+        if not bpath.exists():
+            return False
+        b = json.loads(bpath.read_text(encoding="utf-8", errors="replace"))
+        if not isinstance(b, dict):
+            return False
+        tele = b.get("telemetry")
+        if not tele:
+            return False
+        # carry already-resolved join facts through the seam so a rewrite never
+        # clobbers a value rotate-self already put in the record
+        overrides: dict = {}
+        if isinstance(tele, dict):
+            for k in BOOTSTRAP_JOIN_ONLY_FACTS:
+                v = tele.get(k)
+                if (v is not None
+                        and not (isinstance(v, str)
+                                 and v.startswith(("pending:", "unresolved:",
+                                                  "SKIPPED:")))):
+                    overrides[k] = v
+        overrides["successor_live_model"] = str(live_model)
+        if refusal_fallback:
+            overrides["model_refusal_fallback"] = refusal_fallback
+        verification = b.get("verification")
+        if not isinstance(verification, dict):
+            verification = None
+        _write_bootstrap(
+            root, seat=seat,
+            generation=b.get("generation"),
+            telemetry=tele,
+            verification=verification,
+            overrides=overrides,
+            join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)))
+        return True
+    except (OSError, ValueError):
+        return False
+
+
 def run_after_join(root, *, seat: str, gen: int, startup: dict,
                    values: dict, record_path: str | None = None,
                    dry_run: bool = False, sleep_impl=None,
                    delay_override: float | None = None,
                    send_dm=None, timeout_s: int | None = None,
-                   byte_cap: int | None = None) -> dict:
+                   byte_cap: int | None = None,
+                   poll_interval: float | None = None,
+                   poll_turn_fn=None, confirm_model=None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -8806,6 +8967,27 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
             time.sleep(delay_s)
         else:
             sleep_impl(delay_s)
+    # (goal:g15.25 SL7.40 (a)) successor MODEL CONFIRM — performed ONCE here,
+    # in the after_join, after the successor transcript carries its first
+    # assistant turn (poll, never a bare fixed sleep; turn-driven within the
+    # existing after_join timeout). The rotate-self pre-turn call (which, on
+    # a real rotation, runs before the successor has answered) now records
+    # `deferred: after_join`; THIS is the one confirm that actually fires.
+    # Written into the SAME rotation record's `handover.model_confirm` in
+    # place (never a new record, never a re-mint), and `successor_live_model`
+    # is filled into the pre-spawn bootstrap record best-effort. Only runs
+    # for a call that owns a rotation record to update (the service/performer
+    # path with a resolved successor identity).
+    model_confirm = None
+    if not dry_run and record_path is not None:
+        budget = timeout
+        inter = (poll_interval if poll_interval is not None
+                 else float(DEFAULT_AFTER_JOIN_POLL_S))
+        model_confirm = _after_join_model_confirm(
+            root, seat=seat, values=values,
+            poll_interval=inter, budget_s=float(budget or 0),
+            sleep_impl=sleep_impl, poll_turn_fn=poll_turn_fn,
+            confirm_model=confirm_model)
     results: list = []
     if dry_run:
         for e in entries:
@@ -8832,6 +9014,19 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                 rec = json.loads(rp.read_text())
                 if not isinstance(rec, dict):
                     raise ValueError("record not an object")
+                if model_confirm is not None:
+                    hov = rec.get("handover")
+                    if not isinstance(hov, dict):
+                        hov = {}
+                    hov["model_confirm"] = model_confirm
+                    rec["handover"] = hov
+                    if (isinstance(model_confirm, dict)
+                            and model_confirm.get("live")):
+                        _fill_bootstrap_join_facts(
+                            root, seat=seat,
+                            live_model=str(model_confirm["live"]),
+                            refusal_fallback=_transcript_refusal_fallback(
+                                values.get("succ_transcript") or ""))
                 rec["after_join"] = {
                     "performed_by": "service",
                     "delay_s": delay_s,
@@ -8853,6 +9048,7 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
         sent = True
     return {"delay_s": delay_s, "results": results, "dm": dm,
             "appended": appended, "sent": sent,
+            "model_confirm": model_confirm,
             "record_path": str(record_path) if record_path else None}
 
 
@@ -11942,12 +12138,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     successor transcript. Never a read of the transcript before a first
     #     turn (the X->XI record said `skipped: no assistant turn`). The live
     #     model is one of the join-resolved bootstrap facts.
-    handover["model_confirm"] = _confirm_successor_model(
+    # (s5) model_confirm — the PRE-TURN probe (goal:g15.25 SL7.40 (b)). On a
+    #     real rotation the successor has produced NO assistant turn yet at
+    #     this point (this runs before the own-window kill), so the confirm
+    #     would always come back skipped and the record would LIE that no
+    #     model was confirmed even after the successor answers. The probe
+    #     stays (cheap, and on a fixture it may already have a turn) but a
+    #     skip is recorded DEFERRED `after_join` — the ONE real confirm runs
+    #     in run_after_join once the successor transcript carries a turn, and
+    #     overwrites THIS in place. A reader can tell pre-turn deferral from
+    #     a real verdict: `deferred:` is a non-verdict, never `skipped:`.
+    _mc = _confirm_successor_model(
         seat=seat,
         expected_model=((row.get("model") if row else None) or args.model),
         expected_effort=((row.get("effort") if row else None)
                          or args.effort),
         pid=succ_pid, transcript=succ_transcript)
+    if isinstance(_mc, str):
+        handover["model_confirm"] = (
+            "deferred: after_join — no assistant turn yet at rotate-self; "
+            "run_after_join confirms once the successor transcript carries one")
+    else:
+        _mc["confirm_at"] = "rotate-self"
+        handover["model_confirm"] = _mc
 
     overrides: dict = {}
     succ_wid = handover.get("successor_window", {}).get("id")
