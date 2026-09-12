@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -436,22 +437,21 @@ def main() -> int:
              "the project config has a cc_dispatch block, else 'pi' (goal:s8).",
     )
     ap.add_argument(
+        "--tier",
+        choices=["kid", "parent", "director"],
+        default="kid",
+        help="hypothesis:l4-a-parents-zoom-is-its-target-goal-... -- which shape "
+             "to render for --level small. kid/director = today's 2-hop dump "
+             "byte-identically; parent = the target hypothesis full, its goal "
+             "chain, claim conjuncts and own kids' nodes, no siblings. Default "
+             "kid keeps every existing caller byte-identical.",
+    )
+    ap.add_argument(
         "--push-further",
         action="store_true",
         help="hypothesis:l3w4-push-further-loops — prepend the target node's "
              "push_further text above 'Extend or fork from' so a continuation "
              "kid composes from the prior run's instruction.",
-    )
-    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
-    # SL7.109 has NOT landed on this base (no --tier exists in zoom.py's argparse
-    # today), so this is the MINIMAL tier keying: a `--tier parent` spawn renders
-    # the parent PARENT section in the small composer's "Your Task"; any other
-    # value (or absence) renders the historical kid text byte-identical.
-    ap.add_argument(
-        "--tier",
-        default=None,
-        help="spawn tier. 'parent' swaps the small-level 'Your Task' body for the "
-             "PARENT review section; absent or any other value keeps the kid text.",
     )
     args = ap.parse_args()
 
@@ -495,6 +495,23 @@ def main() -> int:
     sess_dir.mkdir(parents=True, exist_ok=True)
     out_path = sess_dir / "context.md"
 
+    # hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+    # and-own-kids-never-the-sibling-hypothesis-dump -- tier is a SMALL-zoom
+    # shape. `--tier parent` served on any other level has no parent shape and
+    # zoom.py never silently drops a requested grain (see _unavailable_message):
+    # refuse by name, naming tier and level, rather than serving the numeric
+    # view under a parent label. kid/director are byte-identical to the default
+    # shape on every level, so only `parent` needs the guard.
+    if raw_level != "small" and args.tier == "parent":
+        print(
+            f"ERR: --tier parent has no shape at --level {raw_level}; the "
+            f"parent shape only exists on the --level small path. Refusing "
+            f"to serve the level-{raw_level} view under the parent tier label "
+            f"instead of the requested shape.",
+            file=sys.stderr,
+        )
+        return 1
+
     if raw_level in ("4", "5"):
         print(_unavailable_message(int(raw_level)), file=sys.stderr)
         return 1
@@ -511,7 +528,10 @@ def main() -> int:
             if not args.target:
                 print("ERR: --target required for --level small", file=sys.stderr)
                 return 1
-            content = _compose_small(root, args)
+            if args.tier == "parent":
+                content = _compose_parent(root, args)
+            else:
+                content = _compose_small(root, args)
         else:
             content = _render_level(root, args, int(raw_level))
     except ZoomUnavailable as e:
@@ -671,36 +691,6 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         f"Extend or fork from `{target}`. Stay tight — don't wander to other chains.",
         "Acceptable: spawn one child node (hyp from idea, exp from hyp, verdict from exp, mvp from verdict, outcome from mvp).",
     ])
-    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
-    # TIER-KEYED PARENT section: only a `--tier parent` spawn gets it. The parent
-    # runs a loop and reviews kids, so its "Your Task" carries the DIFF/probe
-    # duty instead of the kid's spawn-one-node contract. All six counted words
-    # (bytes, probe, refute, adversarial, harvest, re-run) are authored here.
-    if getattr(args, "tier", None) == "parent":
-        lines.extend([
-            "",
-            "PARENT — you review kids, you do not write the node:",
-            "- A kid's tests are its CLAIM, not your evidence. Your job is to",
-            "  refute them with adversarial eyes, never to trust the result file",
-            "  a kid hands you as if it were finding.",
-            "- You are handed each kid's DIFF (git diff merge-base..kid-branch —",
-            "  the changed BYTES), never its result file. Read the bytes that",
-            "  moved, not the summary that describes them.",
-            "- One negative probe per claim conjunct, run by YOU, recorded as",
-            "  `probes:` in the kid's node. Three probe classes, one example each:",
-            "    - absent-input — invoke the command with NO input where the",
-            "      claim needs one.",
-            "    - wrong-input-type — hand the probe a type the claim never",
-            "      names (a path where a number belongs).",
-            "    - boundary — push the input to its extreme edge, past where the",
-            "      claim says it works.",
-            "- A kid that passes its own tests and fails your probe is",
-            "  `lean_disproved`, with the probe NAMED — the falsifying case you",
-            "  ran, not its own passing suite.",
-            "- You do not re-run a kid's suite as evidence, and you do not let a",
-            "  surfaced edge case ride until a later harvest: your probe either",
-            "  holds or the kid is lean_disproved now.",
-        ])
     if getattr(args, "push_further", False):
         pf = _push_further_text(root, target)
         if pf:
@@ -715,6 +705,201 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
         "",
         "If stuck >2 attempts → write `pending` verdict and stop.",
     ])
+    return "\n".join(lines) + "\n"
+
+
+def _node_fm(root: Path, nid: str) -> dict:
+    """One node's frontmatter dict (title, testable_claim, ...) or {}.
+
+    Best-effort by design: a graph node with no file on disk still renders;
+    it just renders without its enriched fields. graph_core must already be
+    on the path (callers come after `_load_wired_graph`).
+    """
+    try:
+        f = node_writer.find_node_file(root, nid)
+    except Exception:
+        return {}
+    if not f:
+        return {}
+    try:
+        from graph_core.persistence.frontmatter import load_node_file, FrontmatterError
+        return load_node_file(f, body=False).frontmatter or {}
+    except Exception:
+        return {}
+
+
+def _first_body_line(root: Path, nid: str) -> str:
+    """The goal chain's 'why this exists': the first meaningful body line.
+
+    Goal nodes carry no stable `why:` frontmatter key, so we take the first
+    non-heading, non-comment, non-blank paragraph of the body (truncated).
+    Never the full body — the parent shape stays small on purpose.
+    """
+    try:
+        f = node_writer.find_node_file(root, nid)
+        if not f:
+            return ""
+        text = f.read_text(encoding="utf-8")
+    except Exception:
+        return ""
+    body = re.split(r'^---$', text, flags=re.M)[2:]  # everything after frontmatter
+    text = "\n".join(body)
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            continue
+        if line.startswith("<!--"):
+            continue
+        if line.startswith("```"):
+            continue
+        return line[:140]
+    return ""
+
+
+def _split_conjuncts(claim: str) -> list[str]:
+    """The claim's enumerated conjuncts as a list, or [] when none.
+
+    `testable_claim` bodies carry `CLAIM: (1) ... (2) ...` enumerations.
+    We take everything past `CLAIM:` and split on each `(N)` marker so the
+    parent sees the conjuncts as a numbered list (requested shape item 3).
+    Falling back to the whole claim is the renderer's job, not this helper's;
+    returning [] when fewer than two segments exist means 'not enumerated'.
+    """
+    if not claim:
+        return []
+    m = re.search(r"CLAIM:\s*", claim, re.IGNORECASE)
+    seg = claim[m.end():] if m else claim
+    parts = re.split(r"\(\d+\)", seg)
+    items = [p.strip() for p in parts if p.strip()]
+    # only trust the enumeration when the claim actually marks a numbered set
+    return items if len(items) >= 2 else []
+
+
+def _compose_parent(root: Path, args: argparse.Namespace) -> str:
+    """Tier-parent shape for --level small: the target, its goal chain, the
+    claim conjuncts and the target's OWN kids — never sibling hypotheses.
+
+    hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-and-
+    own-kids-never-the-sibling-hypothesis-dump -- a parent-tier context
+    today is a ~75-90 KB 2-hop dump of sibling hypotheses around the target, of
+    which the parent needs ~5%. A parent's zoom is its target hypothesis full,
+    the title+why of the goals above it, the claim conjuncts as a numbered list
+    and its own children — nothing else. (Sibling rounds SL7.110/SL7.111 own the
+    cli-done contract and the parent 'Your Task' prose; this shape only keys the
+    slot.)
+    """
+    g, _loaded = _load_wired_graph(root)
+    target = args.target
+    if not g.has_node(target):
+        raise ZoomUnavailable(_target_not_found(root, target))
+    tn = g.get_node(target)
+    t_fm = _node_fm(root, target)
+
+    lines = [
+        f"# autoresearch-tree iteration {args.iter_n} — agent {args.agent_id}",
+        "",
+        f"## TIER PARENT — target hypothesis shape (level small)",
+        f"Target node: **{target}**",
+        "",
+        "## Target Hypothesis",
+    ]
+    title = t_fm.get("title")
+    if title:
+        lines += ["", f"**{title}**"]
+    claim = t_fm.get("testable_claim")
+    if claim:
+        lines += ["", "### Testable claim", "", claim]
+    if not title and not claim:
+        lines.append(f"_(target {target} has no title or testable_claim)_")
+
+    lines += ["", "## Goal chain (why this exists)", ""]
+    chain: list[str] = []
+    seen: set[str] = set()
+    cur = target
+    while cur and cur not in seen:
+        seen.add(cur)
+        n = g.get_node(cur)
+        if n is None or not n.parents:
+            break
+        nxt = sorted(n.parents)[0]
+        chain.append(nxt)
+        cur = nxt
+    if not chain:
+        lines.append("_(the target has no parents — it is a root.)_")
+    for pnid in reversed(chain):
+        n = g.get_node(pnid)
+        pfm = _node_fm(root, pnid)
+        ntype = n.type if n else "?"
+        lines.append(f"- `{pnid}` ({ntype})")
+        if pfm.get("title"):
+            lines.append(f"    title: {pfm['title']}")
+        why = _first_body_line(root, pnid)
+        if why:
+            lines.append(f"    why: {why}")
+
+    lines += ["", "## Claim conjuncts", ""]
+    items = _split_conjuncts(claim or "")
+    if items:
+        for i, it in enumerate(items, 1):
+            lines.append(f"{i}. {it}")
+    else:
+        lines.append(
+            "_(no numbered enumeration found in the testable_claim — "
+            "the full claim above is the conjunct set.)_"
+        )
+
+    lines += ["", "## This node's kids (the target's own children)", ""]
+    kids = sorted(tn.children) if tn and tn.children else []
+    if not kids:
+        lines.append("_(none yet — the target has no child nodes.)_")
+    for knid in kids:
+        n = g.get_node(knid)
+        kfm = _node_fm(root, knid)
+        ntype = n.type if n else "?"
+        line = f"- `{knid}` ({ntype})"
+        if kfm.get("title"):
+            line += f" — {kfm['title']}"
+        lines.append(line)
+
+    lines += [
+        "",
+        "## Your Task — PARENT SLOT",
+        f"Work within `{target}`'s chain as the parent brief directs: extend, "
+        "run, judge, or fork one child node.",
+        # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-
+        # and-hands-the-parent-the-kid-diff-not-its-result-file (SL7.111): the
+        # parent prose -- unioned into SL7.109's slot at harvest; the kid text
+        # in _compose_small stays byte-identical.
+        "",
+        "PARENT — you review kids, you do not write the node:",
+        "- A kid's tests are its CLAIM, not your evidence. Your job is to",
+        "  refute them with adversarial eyes, never to trust the result file",
+        "  a kid hands you as if it were finding.",
+        "- You are handed each kid's DIFF (git diff merge-base..kid-branch —",
+        "  the changed BYTES), never its result file. Read the bytes that",
+        "  moved, not the summary that describes them.",
+        "- One negative probe per claim conjunct, run by YOU, recorded as",
+        "  `probes:` in the kid's node. Three probe classes, one example each:",
+        "    - absent-input — invoke the command with NO input where the",
+        "      claim needs one.",
+        "    - wrong-input-type — hand the probe a type the claim never",
+        "      names (a path where a number belongs).",
+        "    - boundary — push the input to its extreme edge, past where the",
+        "      claim says it works.",
+        "- A kid that passes its own tests and fails your probe is",
+        "  `lean_disproved`, with the probe NAMED — the falsifying case you",
+        "  ran, not its own passing suite.",
+        "- You do not re-run a kid's suite as evidence, and you do not let a",
+        "  surfaced edge case ride until a later harvest: your probe either",
+        "  holds or the kid is lean_disproved now.",
+    ]
+    lines += completion_contract(args.runtime, args.iter_n, args.agent_id, target)
+    lines += [
+        "",
+        "If stuck >2 attempts → write `pending` verdict and stop.",
+    ]
     return "\n".join(lines) + "\n"
 
 
