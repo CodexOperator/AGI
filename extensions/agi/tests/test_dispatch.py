@@ -1079,12 +1079,15 @@ def _git_repo(tmp_path: Path, branch: str = "init") -> Path:
 
 def test_loop_branch_name_carries_slug_agent_and_season():
     """ADDENDUM item 3: the agent id rides in the branch name so nested layers
-    never collide; the slug tells a human which aim the branch carries."""
+    never collide; the slug tells a human which aim the branch carries. The
+    branch shape is the grammar's `season<N>/loops/<slug>-<agent>`."""
     assert (dispatch.loop_branch_name("hypothesis:l3w4-x", "a00-abc8", 2)
-            == "loop/hypothesis-l3w4-x-a00-abc8@s2")
+            == "season2/loops/hypothesis-l3w4-x-a00-abc8")
     # colon flattened, explore fallback, season stamped
-    assert dispatch.loop_branch_name(None, "a00-x", 1) == "loop/explore-a00-x@s1"
-    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) == "loop/mvp-g-kid1@s3"
+    assert dispatch.loop_branch_name(None, "a00-x", 1) \
+        == "season1/loops/explore-a00-x"
+    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) \
+        == "season3/loops/mvp-g-kid1"
 
 
 def test_spawner_base_branch_returns_the_checked_out_branch(tmp_path):
@@ -1889,7 +1892,7 @@ def test_stale_base_record_is_structured_with_actions(tmp_path, monkeypatch):
     rec = dispatch._stale_base_record(stale, season=2)
     assert rec["issue"] == "stale-base"
     assert rec["behind"] == 3
-    assert rec["integration"] == "season/s2"
+    assert rec["integration"] == "season2/main"
     ids = [a["id"] for a in rec["actions"]]
     assert "sync" in ids and "override" in ids and "abort" in ids, (
         "the must-pick floor: a re-invocation carries one of these — a "
@@ -1983,7 +1986,7 @@ def test_town_branch_behind_season_not_stale_against_own_branch(
     assert fallback["status"] == "behind", fallback
     assert fallback["behind"] == 1, fallback
     rec = dispatch._stale_base_record(fallback, season=2)
-    assert rec["integration"] == "season/s2", rec
+    assert rec["integration"] == "season2/main", rec
     # The town-path record names the town branch, and its sync target too.
     trec = dispatch._stale_base_record(out, season=2,
                                        town_branch="town/streaming-suite@s2")

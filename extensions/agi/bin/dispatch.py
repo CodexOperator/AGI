@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import locations  # noqa: E402
 import geometry_config  # noqa: E402
+import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
@@ -250,21 +251,31 @@ def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -
     The fetch is run first so `behind` is measured against what is actually
     on origin, not whatever the local ref last happened to see.
     """
-    integration = f"origin/season/s{season}"
-    fetch_ref = f"season/s{season}"
     if town_branch:
-        integration = f"origin/{town_branch}"
-        fetch_ref = town_branch
-    try:
-        fr = subprocess.run(
-            ["git", "-C", str(root), "fetch", "origin", fetch_ref],
-            capture_output=True, text=True, timeout=60)
-        if fr.returncode != 0:
-            # A failed fetch means the remote tip is unknowable -> we cannot
-            # call anyone stale on evidence. fail-open, per the claim.
-            return {"status": "unchecked", "behind": 0, "files": []}
-    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        _ref_candidates = [town_branch]
+    else:
+        # Grammar-branch integration, canonical first then the old `season/s<N>`
+        # as a one-season deprecated fallback, so a live tree that has NOT been
+        # renamed yet stays measurable: a fetch that 404s the new name must not
+        # silently become "unchecked" while the old name still resolves.
+        _ref_candidates = branches.ref_candidates(
+            branches.season_main(season))
+    integration = None
+    for fetch_ref in _ref_candidates:
+        try:
+            fr = subprocess.run(
+                ["git", "-C", str(root), "fetch", "origin", fetch_ref],
+                capture_output=True, text=True, timeout=60)
+        except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+            continue
+        if fr.returncode == 0:
+            integration = f"origin/{fetch_ref}"
+            break
+    if not integration:
+        # A failed fetch means the remote tip is unknowable -> we cannot
+        # call anyone stale on evidence. fail-open, per the claim.
         return {"status": "unchecked", "behind": 0, "files": []}
+
     # Belt-and-suspenders: the stale claim must rest on a resolvable remote
     # ref, not on a fetch that printed success through a warning. If the
     # remote tip does not resolve, the gap is unknowable -> unchecked.
@@ -321,9 +332,10 @@ def _stale_base_record(stale: dict, season: int,
         "issue": "stale-base",
         "behind": stale.get("behind", 0),
         "files": stale.get("files", []),
-        "integration": town_branch or f"season/s{season}",
+        "integration": town_branch or branches.season_main(season),
         "actions": [
-            {"id": "sync", "cmd": f"git merge origin/{town_branch or f'season/s{season}'}"},
+            {"id": "sync",
+             "cmd": f"git merge origin/{town_branch or branches.season_main(season)}"},
             {"id": "override", "cmd": "dispatch ... --allow-stale-base <reason>"},
             {"id": "abort"},
         ],
@@ -362,17 +374,20 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
 
 
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
-    """`loop/<slug>-<agent8>@s<N>` — the per-agent branch name.
+    """`season<N>/loops/<slug>-<agent>` — the per-agent branch name (grammar).
 
-    ADDENDUM item 3: the agent id rides in the branch name so nested layers
-    never collide — a director, a parent and a kid each cut branches carrying
-    their own id, and the `loop/` prefix keeps them off the tier branches
-    (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF §6 item
-    7). The slug is the target's id with the `:` flattened, so a human can
-    tell which aim the branch carries.
+    The OLD shape `loop/<slug>-<agent8>@s<N>` is the deprecated alias; heal.py's
+    `_sweep_season` still parses both (the legacy @s<N> suffix is the one-season
+    fallback, so an old round's worktree is never dropped for a spelling
+    change). ADDENDUM item 3: the agent id rides in the branch name so nested
+    layers never collide — a director, a parent and a kid each cut branches
+    carrying their own id, and the `loop/` prefix keeps them off the tier
+    branches (`tier<N>/<name>` stays reserved for directors/prime per HANDOFF
+    §6 item 7). The slug is the target's id with the `:` flattened, so a human
+    can tell which aim the branch carries.
     """
     slug = (target or "explore").replace(":", "-")[:32]
-    return f"loop/{slug}-{agent_id}@s{season}"
+    return branches.loop_branch(season, slug, agent_id)
 
 
 def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
@@ -1623,7 +1638,7 @@ def main() -> int:
                 return 3  # must-pick: no resolving choice, no spawn
             elif stale["status"] == "unchecked":
                 print(f"note {agent_id} slot={slot}: freshness of base "
-                      f"unchecked (origin season/s{current_season} "
+                      f"unchecked (origin/{branches.season_main(current_season)} "
                       f"unreachable); spawn proceeds", file=sys.stderr)
             branch = loop_branch_name(target, agent_id, current_season)
             try:
