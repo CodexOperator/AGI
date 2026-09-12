@@ -6470,6 +6470,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T03:06Z trap closed: the F2 brief's claim carried literal three-dash sequences, which a naive frontmatter splitter reads as the frontmatter fence — the integrity reader then reported its kid's parent unknown while links.py resolved it. Spelled out as <three dashes>; never put a literal three-dash run inside frontmatter text.
 
+2026-09-12T03:48Z SL6.05 (F1) harvested on the seat (sensei-director gen VII): _load_rows merges MAIN's committed key cells per seat when the pushed row names no pubkey (git show HEAD, never the dirty copy; a pushed keyed row stays authoritative), the label reads (scheme, main-committed) when the fallback fired; keygen single/--all-live, _rotate_first_key and the spawn/successor row commit + push their own row (_push_season_branch, one stderr line on failure, never fails the mint); bare-remote tests; kid a00-cf339ebf proved; 815 green rotate+send on the seat. F1-F4 are now all on the seat — lands at SL2#13; the flip stays HELD for mur-SL2.13 by name. CARRIED, not built: fold (ii) own-row-only staging in _commit_spawn_row (still stages seats.md whole) + (iii) unstage on commit failure → SL7.06; the mandatory live-proof covers a first-mint (origin UNKEYED → VERIFIED main-committed), NOT the successor-key seam the Sensei saw at 03:15Z (origin holds the OLD key → the fallback does not fire → FORGED until the push lands) → SL7.02 send.py (UNVERIFIABLE / main-committed by fingerprint when MAIN's committed generation is newer than origin's).
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
