@@ -945,7 +945,8 @@ def _graph_root() -> Path:
     return Path(__file__).resolve().parents[3] / ".agi"
 
 
-def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node():
+def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node(
+        monkeypatch):
     # LIVE-CONFIG (the standing kid rule: a test of live config reads the
     # live node, never a copied list). Load `config:rotations` through the
     # SAME loader rotate.py uses (`_load_templates`), take the REAL
@@ -956,7 +957,22 @@ def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node():
     # <pubkey>`) and that the resolved whole command still passes the
     # producing allowlist. Asserts the RESOLVED SHAPE, not which path
     # produced it: if the live template has been re-cut to `--key
-    # {prime_key}` the test still passes. Skips (not fails) only when the
+    # {prime_key}` the test still passes.
+    #
+    # SEAM-INJECTED: `_first_turn_values` routes the pushed-prime read
+    # through `_prime_pushed_seats`, which is monkeypatched here with a
+    # canned PUSHED row so this LIVE-CONFIG test performs NO real
+    # `git fetch origin <name>` inside the offline suite
+    # (hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-once-per-run-
+    # through-a-seam-and-no-suite-test-reaches-origin). The row's pubkey is
+    # a stand-in; the claim under test is the LIVE TEMPLATE's by-key
+    # resolution, not the live seats value.
+    rotate._prime_rows_fetch_clear()
+    fake_key = "c0ffee" + "0" * 34
+    monkeypatch.setattr(rotate, "_prime_pushed_seats", lambda root, ref: (
+        [{"role": "prime_director", "name": "sanctuary-director",
+          "session_ref": "", "pubkey": fake_key}], "SHA", ref))
+    # Skips (not fails) only when the
     # graph/rotations node is genuinely absent so the hermetic suite stays
     # runnable off-repo; a PRESENT node that fails to resolve is a live drift
     # finding, not a skip.
@@ -1630,7 +1646,7 @@ _PUSHED_PRIME_ROW = {
 }
 
 
-def _prime_from_both_sources(monkeypatch, tmp_path, work_row, push_row):
+def _prime_dual_source_rows(monkeypatch, tmp_path, work_row, push_row):
     """Write a worktree seats row + stub the PUSHED reader, so the
     pushed row and the worktree row carry DIFFERENT pubkeys (the falsifier
     fixture)."""
@@ -1649,8 +1665,8 @@ def _prime_from_both_sources(monkeypatch, tmp_path, work_row, push_row):
 def test_first_turn_prime_key_reads_pushed_row_never_worktree(monkeypatch,
                                                               tmp_path):
     # FALSIFIER: worktree row and pushed row carry DIFFERENT pubkeys — the
-    # resolved {prime_key} must be the PUSHED row's, and prime_from says so.
-    _prime_from_both_sources(monkeypatch, tmp_path, _WORKTREE_PRIME_ROW,
+    # resolved {prime_key} must be the PUSHED row's.
+    _prime_dual_source_rows(monkeypatch, tmp_path, _WORKTREE_PRIME_ROW,
                              _PUSHED_PRIME_ROW)
     vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
                                      gen=7, succ_name="sd-next")
@@ -1658,13 +1674,12 @@ def test_first_turn_prime_key_reads_pushed_row_never_worktree(monkeypatch,
     assert vals["prime_key"] != "11112222deadbeef"
     assert vals["prime_seat"] == "belam"
     assert vals["prime_ref"] == ""                    # pushed prime's session_ref is empty here
-    assert vals["prime_from"] == "pushed"
 
 
 def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
                                                                tmp_path):
-    # Pushed authority unreachable: fall back to the working-tree row AND
-    # say so — never a silent worktree read, never an empty key.
+    # Pushed authority unreachable: fall back to the working-tree row
+    # (never a silent worktree read, never an empty key).
     import send as _send
     nodes = tmp_path / "nodes" / ".geometry"
     nodes.mkdir(parents=True, exist_ok=True)
@@ -1675,19 +1690,6 @@ def test_first_turn_prime_key_falls_back_to_worktree_with_note(monkeypatch,
     vals = rotate._first_turn_values(tmp_path, seat="sanctuary-director",
                                      gen=7, succ_name="sd-next")
     assert vals["prime_key"] == "11112222deadbeef"
-    assert "prime_from" in vals and "worktree" in vals["prime_from"]
-    assert "unreachable" in vals["prime_from"]
-
-
-def test_prime_from_is_a_startup_placeholder():
-    # `prime_from` is a CANONICAL placeholder: referencing it resolves and
-    # never refuses; a template author can surface WHERE the prime authority
-    # came from.
-    resolved = rotate._resolve_startup_placeholders(
-        "echo prime={prime_from} key={prime_key}",
-        dict(VALUES, prime_from="pushed", prime_key="aabbccdd1122334455"))
-    assert "prime=pushed" in resolved
-    assert "prime_key" in resolved or "aabbccdd1122334455" in resolved
 
 
 # ---- g15.25 (SL7.49): first seating gen follows the seat's ROW, not a      #
@@ -1815,3 +1817,35 @@ def test_first_seating_no_row_still_records_gen_1(tmp_path):
     assert bs["generation"] == 1
     assert "gen 1" in bs["telemetry"]["ack"]
     assert "gen=1" in block
+
+def test_prime_pushed_seats_fetches_once_per_process_across_values_builds(
+        monkeypatch, tmp_path):
+    # FALSIFIER for hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-
+    # once-per-run-through-a-seam-and-no-suite-test-reaches-origin: a rotate-
+    # self builds first_turn values at FIVE sites (first seating, a second
+    # compose, driven startup, startup, after-join), each routing through
+    # `_prime_pushed_seats`, which memoizes on (str(root), ref). Build the
+    # values map repeatedly — the multi-site shape — and assert the
+    # underlying `send._pushed_seats` (the REAL fetch) ran exactly ONCE.
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    fetch_calls = {"n": 0}
+
+    def fake_pushed(root, ref, do_fetch):
+        fetch_calls["n"] += 1
+        assert do_fetch is True
+        return ([{"role": "prime_director", "name": "sanctuary-director",
+                  "session_ref": "", "pubkey": "K" * 40}], "SHA", ref)
+
+    monkeypatch.setattr(_send, "_pushed_seats", fake_pushed)
+    rotate._prime_rows_fetch_clear()
+    try:
+        for gen in range(1, 6):
+            vals = rotate._first_turn_values(
+                tmp_path, seat="sanctuary-director", gen=gen,
+                succ_name="sd-next")
+            assert vals["prime_key"] == "K" * 40
+        assert fetch_calls["n"] == 1, (
+            f"pushed-seats fetch ran {fetch_calls['n']} times across a "
+            f"five-site values build; expected exactly once")
+    finally:
+        rotate._prime_rows_fetch_clear()
