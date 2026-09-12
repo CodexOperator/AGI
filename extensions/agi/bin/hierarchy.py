@@ -5,8 +5,11 @@
 The command structure is declared EXACTLY ONCE, in machine-readable
 frontmatter:
 
-  * config:seats  (.agi/nodes/.geometry/seats.md)  `seats:`  — the instance
-    registry. Authoritative for anything that HAS a seat.
+  * config:posts  (.agi/nodes/.geometry/posts.md)  `posts:`  — the instance
+    registry (config:seats / .agi/nodes/.geometry/seats.md `seats:` is the
+    one-season alias; post-first via geometry_config.resolve,
+    hypothesis:l4-a-seat-is-a-post-everywhere). Authoritative for anything
+    that HAS a seat.
   * ladder:ladder (.agi/nodes/.geometry/ladder.md) `roles:`  — the CLASS
     default table. Authoritative only where no seat exists.
 

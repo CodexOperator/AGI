@@ -707,7 +707,20 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     seat = _resolve_seat(root, actor)
     if seat is None:
         return None  # not a seated writer; the caller's written_by gate decides
-    list_key = sr.get("list_key")
+    # The list key is resolved POST-FIRST from the live geometry config
+    # (hypothesis:l4-a-seat-is-a-post-everywhere): `posts` when posts.md
+    # exists, else `seats` when only seats.md exists. The schema's declared
+    # `list_key` is used ONLY as the fallback when the resolver finds neither
+    # file, so a migrated tree (posts.md) admits ack-shaped `set_fm["posts"]`
+    # writes instead of refusing them as a foreign top-level field. The
+    # schema's `list_key: seats` spelling stays as the one-season deprecated
+    # alias.
+    lst_path, resolved_key = geometry_config.resolve(root)
+    if lst_path is not None and Path(lst_path).exists() and resolved_key in (
+            "posts", "seats"):
+        list_key = resolved_key
+    else:
+        list_key = sr.get("list_key")
     match_key = sr.get("match_key")
     fields = [str(f) for f in (sr.get("fields") or [])]
     if not list_key or not match_key:

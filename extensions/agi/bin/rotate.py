@@ -4959,19 +4959,25 @@ def _shared_graph_root(root: Path) -> Path:
 
 def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
                           cells: dict) -> str:
-    """The ONE writer of a seat's identity cells in config:seats.
+    """The ONE writer of a seat's identity cells in config:posts.
 
     `generation`/`window`/`pid`/`session_ref`/`session_id` — every cell that
     a rotation moves — are written through here, into the MAIN checkout's
-    `nodes/.geometry/seats.md` (resolved via `_shared_graph_root`), never the
-    caller's worktree copy (hypothesis:l4-a-seats-identity-cell-has-one-
-    writer-and-it-writes-main). A worktree seat's rotation reaches MAIN where
-    every sender reads, and the worktree copy is never written on these
-    cells — nothing to diverge, nothing to conflict at merge-up. From MAIN
-    itself the path is unchanged. Admission is the `self_row` declaration as
-    today (the `seat` is the actor's own row). Returns a truthy one-line
-    outcome when the write landed, or '' when the seat has no registry row
-    (the caller prints its own skip message)."""
+    `nodes/.geometry/posts.md` (resolved via `_shared_graph_root` and
+    `geometry_config.resolve`; `config:seats`/`seats.md` is the one-season
+    alias until the rename settles), never the caller's worktree copy
+    (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-main).
+    A worktree seat's rotation reaches MAIN where every sender reads, and the
+    worktree copy is never written on these cells — nothing to diverge,
+    nothing to conflict at merge-up. From MAIN itself the path is unchanged.
+    The node id and frontmatter list key come from `geometry_config.resolve`
+    (`config:posts`/`posts` when posts.md exists, else
+    `config:seats`/`seats`), so a migrated tree's own acks write posts.md.
+    Admission is the `self_row` declaration as today (the `seat` is the
+    actor's own row). Returns a truthy one-line outcome when the write
+    landed, or '' when the seat has no registry row (the caller prints its
+    own skip message)."""
+    import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
     import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
     rows = write._load_seats(main_root)
@@ -4989,10 +4995,12 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
             new_rows.append(r)
     if not found:
         return ""
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
+    _, list_key = geometry_config.resolve(main_root)
+    node_id = f"config:{list_key}"
+    edit = write.Edit(node_id=node_id)
+    edit.set_fm[list_key] = new_rows
     write.submit(main_root, edit, actor=actor, role=role)
-    return f"wrote identity cells for seat {seat!r} into MAIN seats.md"
+    return f"wrote identity cells for seat {seat!r} into MAIN {list_key}.md"
 
 
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
@@ -5009,7 +5017,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     [session_ref, session_id, generation, window, pid]).
 
     The row edit itself moves into `_write_identity_cells`, which resolves the
-    seats node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
+    posts node to the MAIN checkout's graph root (hypothesis:l4-a-seats-
     identity-cell-has-one-writer-and-it-writes-main); `_backfill_session_ref`
     routes through the SAME writer, so a seat's identity cells have one
     writer and it writes MAIN. The successor reuses the PLAIN seat name, so
