@@ -2021,6 +2021,27 @@ def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
     return bool((r.stdout or "").strip())
 
 
+def _post_rename_remote_ref_state(repo: Path, ref: str) -> str:
+    """Returncode-honest state of `ref` on origin: 'present' (rc 0, non-empty
+    stdout), 'absent' (rc 0, empty stdout -- the ref genuinely does not exist),
+    or 'failed' (rc != 0 -- ls-remote could not reach/query origin, so the ref
+    state is UNKNOWN and must never be read as 'absent'). This is the delete-old
+    resume-skip probe (hypothesis:l4-the-reshuffle-plan-prints-what-apply-does-
+    and-both-delete-old-passes-resume-rc-honestly): a FAILED ls-remote (e.g. a
+    bogus/unreachable origin URL) must refuse the delete by name and exit
+    non-zero, never silently read as 'already deleted' on a resuming run.
+    `_post_rename_ls_remote` keeps its boolean contract for its --apply resume
+    caller (the push it precedes has its own rc gate), so this probe is a NEW
+    helper rather than a mutation under an unrelated caller."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref], cwd=repo,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return "failed"
+    if (r.stdout or "").strip():
+        return "present"
+    return "absent"
+
+
 def _post_rename_upstream(repo: Path, branch: str) -> str:
     """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset.
     Returncode-honest: on a non-zero git rc (a dead upstream makes rev-parse
@@ -2368,8 +2389,13 @@ def _post_rename_delete_old(repo: Path, jobs: list, dry_run: bool = False) -> in
         if not dry_run and new_b in unpointed:
             continue  # refused above; never delete a stranded branch
         old_b = f"seat/{j['name']}@s2"
-        ref = f"refs/heads/{old_b}"
-        if not _post_rename_ls_remote(repo, ref):
+        state = _post_rename_remote_ref_state(repo, f"refs/heads/{old_b}")
+        if state == "failed":
+            print(f"ERR: ls-remote origin {old_b} failed; cannot confirm it "
+                  f"is already deleted — NOT deleted", file=sys.stderr)
+            refused.append(old_b)
+            continue
+        if state == "absent":
             continue  # already deleted on a resuming run
         print(f"[{'DRY ' if dry_run else 'APPLY'}] branch delete (remote): "
               f"git push origin --delete {old_b}")
@@ -2675,6 +2701,14 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         print("ERR: --apply and --delete-old are mutually exclusive; "
               "--delete-old is the separate final step", file=sys.stderr)
         return 1
+    if apply and dry:
+        # L4.330 (KID A): --dry-run and --apply are REFUSED BY NAME. --dry-run
+        # prints a plan, --apply performs one; they cannot compose. Before
+        # this guard the pair fell through to the --apply branch and APPLIED.
+        print("ERR: --dry-run and --apply are mutually exclusive; "
+              "--dry-run prints a plan, --apply performs one; pick one",
+              file=sys.stderr)
+        return 1
 
     jobs = _reshuffle_jobs(repo, season)
     # Prime XIV ruling (mur-44 window, 04:18Z): `--kinds main,posts,towns`
@@ -2742,10 +2776,20 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # ---- step 1: local rename + push new + upstream + worktree re-points
     print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)")
     for j in jobs:
-        _post_rename_print("branch rename (local)", f"git branch -m {j['old']} {j['new']}", apply)
-        _post_rename_print("branch push (new)", f"git push origin {j['new']}", apply)
+        old, new = j["old"], j["new"]
+        if old == "master":
+            # L4.330 (KID A): a main-kind job is ADD-ONLY in the plan too.
+            # master is the frozen season-1 name: it is NEVER `git branch
+            # -m`'d; the new remote name is pushed FROM master's tip. This is
+            # byte-for-byte what --apply runs for a master job (a push of
+            # `old:new`, then it continues — no rename, no upstream re-point).
+            _post_rename_print("branch push (new)",
+                               f"git push origin {old}:{new}", apply)
+            continue
+        _post_rename_print("branch rename (local)", f"git branch -m {old} {new}", apply)
+        _post_rename_print("branch push (new)", f"git push origin {new}", apply)
         _post_rename_print("branch upstream",
-                           f"git branch --set-upstream-to origin/{j['new']} {j['new']}", apply)
+                           f"git branch --set-upstream-to origin/{new} {new}", apply)
     for wt in wts:
         new = rename.get(wt["branch"])
         if new:
@@ -2808,6 +2852,25 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                 print("  master: add-only, remote name kept (frozen season-1 "
                       "name); not deleted")
                 continue
+            if not dry:
+                # rc-honest resume-skip: before deleting origin/<old>, probe
+                # refs/heads/<old> and distinguish the ref genuinely GONE
+                # (rc 0, empty stdout) from ls-remote FAILED (rc != 0, e.g. a
+                # bogus origin). On failure the state is UNKNOWN — refuse by
+                # name and never read 'absent' (a failed probe would let a
+                # resuming run report success while deleting nothing).
+                state = _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{old}")
+                if state == "failed":
+                    print(f"ERR: ls-remote origin {old} failed; cannot "
+                          f"confirm it is already deleted — NOT deleted",
+                          file=sys.stderr)
+                    refused.append(old)
+                    continue
+                if state == "absent":
+                    print(f"  skip: origin/{old} already absent (resumed "
+                          f"run)")
+                    continue
             print(f"[{'DRY ' if dry else 'APPLY'}] branch delete (remote): "
                   f"git push origin --delete {old}")
             if dry:
