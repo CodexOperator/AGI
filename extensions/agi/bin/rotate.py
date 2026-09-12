@@ -2101,6 +2101,22 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 2
     rows = send._locally_loaded_rows(root)
+    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-own-tail-after-join-...):
+    # the ListAgents ref is harness-only and is NEVER the row's session uuid.
+    # A --ref equal to the RUNNING seat's own session_id cell IS the session
+    # id-as-ref defect — the JOIN registers the same uuid in the row, so the
+    # own-tail ack that back-filled it (rotate.py step 6.4 pre-F15) poisoned
+    # session_ref with a value send.whois reads as NO-MATCH for every peer.
+    # Refuse BY NAME and write NOTHING (no ack file, no row write, rc != 0);
+    # _resolve_rows below would otherwise ACCEPT it as the seat's own row
+    # (an exact session_id match), which is exactly what let the uuid in.
+    _own_session_id = next(
+        ((r.get("session_id") or "") for r in rows
+         if r.get("name") == seat or r.get("role") == seat), "")
+    if ref and _own_session_id and ref == _own_session_id:
+        print(f"ERR: --ref {ref!r} is a session id, not your ListAgents ref "
+              "(F15): pass the bare ref or omit --ref.", file=sys.stderr)
+        return 2
     # Director fix-up at the SL1.06 harvest (sensei-director L2), measured on
     # the live rotation 20260911T172702Z: the ListAgents ref (`caa927`) is
     # NOT a prefix of the row's session_id (the Claude session uuid
@@ -13714,10 +13730,19 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # (window_path seam) has no live successor to wait on, so its delay
         # is 0 — the default 20 s sleep ran for real in five selfreap
         # fixtures (115 s of suite time) before this line.
+        #
+        # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-own-tail-after-join-
+        # passes-the-successors-acked-harness-ref-or-nothing...): the OWN-TAIL
+        # path must mirror the watch path — `{succ_ref}` is the successor's
+        # ACKED harness ref when it acked with one, else EMPTY (so the DM
+        # prints `<your ListAgents ref>` and the whois --key fallback fires).
+        # The `or succ_session_id` fallback (deleted: one line) back-filled a
+        # JOIN's session UUID into session_ref, which send.whois reads as the
+        # row's identity — a UUID there is NO-MATCH for every peer (F15, see
+        # the two poisoned records the hypothesis cites).
         aj_values = _first_turn_values(
             root, seat=seat, gen=gen, succ_name=spawn_name,
-            succ_ref=((ack or {}).get("session_ref") or succ_session_id
-                      or ""),
+            succ_ref=(ack or {}).get("session_ref") or "",
             succ_transcript=succ_transcript or "",
             tmux_session=tmux_session)
         # double-perform guard: the watch may have won the race since step (4)
