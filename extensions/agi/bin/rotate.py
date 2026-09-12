@@ -4903,24 +4903,35 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
 
 def _seat_has_live_session(row: dict | None, joined: dict | None) -> bool:
     """True when a seat still has a LIVE session to run its after_join
-    against (goal:g15.25 SL7.76 (a)): either the registry join resolved one
-    (`joined.found`), or the ROW itself carries a live handle — an ALIVE pid,
-    else a session_id/window_id. A row with NO pid AND NO session_id AND NO
-    window_id, and no join result, is a DEAD seat: the after_join has nothing
-    live to run against and must be skipped (never performed as-if-fresh, no
-    dm, no fabricated pid). A pid present but no longer alive / unparseable is
-    dead even if a session/window id lingers."""
-    if joined and joined.get("found"):
-        return True
+    against (goal:g15.25 SL7.76 (a)): a row that NAMES a pid is judged on
+    that pid first (dead pid -> dead seat even over a resolved join); else
+    the registry join resolved one (`joined.found`); else the ROW itself
+    carries a live handle — a session_id/window/window_id. A row with NO
+    pid AND NO session_id AND NO window/window_id, and no join result, is a
+    DEAD seat: the after_join has nothing live to run against and must be
+    skipped (never performed as-if-fresh, no dm, no fabricated pid). A pid
+    present but no longer alive / unparseable is dead even if a
+    session/window id lingers."""
     if not row:
         return False
+    # (SL7.98) a row that NAMES a pid carries the authority: check it BEFORE
+    # trusting a resolved join — a pid present but no longer alive /
+    # unparseable is dead even if a resolved join, session id or window
+    # lingers (what the docstring always promised; the code used to trust a
+    # resolved join first).
     pid = row.get("pid")
     if pid not in (None, ""):
         try:
             return not _pid_gone(int(pid))
         except (TypeError, ValueError):
             return False
-    return bool(row.get("session_id") or row.get("window_id"))
+    if joined and joined.get("found"):
+        return True
+    # (SL7.98) the row carries the cell WINDOW (the spawn/join reader uses
+    # `row.get('window')`), not `window_id` — read `window`, accepting
+    # `window_id` as a legacy alias.
+    return bool(row.get("session_id") or row.get("window")
+                or row.get("window_id"))
 
 
 def _record_join(rec: dict) -> dict:
@@ -10520,6 +10531,68 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
+def _derive_pred_pids(root: Path, seat: str,
+                      record: dict | None) -> str:
+    """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
+    space-joined pid list this rotation REAPED, else the predecessor row's own
+    `pid`, else ''. ONE reader, shared by every after_join performer
+    (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-performer-derives-
+    pred-pids...): the watch/service, the rotate-self own tail and the
+    dry-run plan. Before this helper each caller passed NO pred_pids, so the
+    placeholder resolved '' and the reap-proof entry was refused with the
+    named `no predecessor chain` on EVERY real rotation instead of running
+    against the reaped chain.
+
+    Order:
+      1. the record's `s12_self_reap.chain` — the pids THIS rotation just
+         reaped (the live reap-proof source; the same chain heal's
+         `_rotation_identity` reads as the retired predecessor's identity).
+         Written AFTER the own tail performs (step 7 vs the tail's 6.4), so
+         the service/watch path is where it fires; earlier a chain element is
+         an int or a `{pid}` dict, both accepted.
+      2. the predecessor ROW's own `pid` (best-effort `_find_seat`; at
+         rotate-self tail time the s12 section is not yet written, so the row
+         is what gives the tail a non-empty value).
+      3. '' — which the startup placeholder mech refuses BY NAME
+         (`no predecessor chain`), never running `grep -E ''` over the whole
+         process table.
+    """
+    if record is not None:
+        reap = record.get("s12_self_reap")
+        if isinstance(reap, dict):
+            pids = []
+            for c in reap.get("chain") or []:
+                pid = c.get("pid") if isinstance(c, dict) else c
+                if pid is not None and str(pid).lstrip("-").isdigit():
+                    pids.append(str(pid))
+            if pids:
+                return " ".join(pids)
+    try:
+        row = _find_seat(root, seat)
+    except Exception:  # noqa: BLE001  best-effort source
+        row = None
+    if row is not None:
+        pid = row.get("pid")
+        if pid is not None and str(pid).lstrip("-").isdigit():
+            return str(pid)
+    return ""
+
+
+def _load_record_best_effort(record_path) -> dict | None:
+    """Read a rotation record file as a dict, or None when absent/unreadable.
+    Best-effort — never raises; callers deriving pred_pids for the dry-run
+    plan or the own tail pass an existing record path when they have one."""
+    if not record_path:
+        return None
+    try:
+        p = Path(record_path)
+        if not p.exists():
+            return None
+        return json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, json.JSONDecodeError, TypeError):  # noqa: BLE001
+        return None
+
+
 def _first_turn_values(root: Path, *, seat: str, gen: int | str,
                        succ_name: str, succ_ref: str = "",
                        succ_transcript: str = "",
@@ -11723,7 +11796,10 @@ def _code_head(root: Path) -> str:
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
                             type_input=None,
-                            performer: str = "watch") -> dict | None:
+                            performer: str = "watch",
+                            _rec_pair=None, _row=None, _joined=None,
+                            _values=None, _force_due=False,
+                            _delay_override=None) -> dict | None:
     """The heal.py watch loop's per-seat action: discover the seat's latest
     rotation record that has NOT yet had its captive after_join run and whose
     `after_join_delay_s` has elapsed, and run it. Returns None when nothing is
@@ -11731,10 +11807,19 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     Reads the startup template through `_resolve_template` for the seat's role
     so the SAME `after_join` list + delay the rotate-self caller would run is
     the one the service runs."""
-    pair = _latest_rotate_record(root, seat)
-    if pair is None:
-        return None
-    rec, path = pair
+    # (SL7.98) the rotate-self OWN TAIL routes through THIS SAME function so
+    # its record inherits the shared liveness gate + age budget (one gate, no
+    # second afterlife). The tail injects its OWN record pair (it already
+    # holds the rotation record it just wrote), row, join result and values
+    # via the private `_*` kwargs; the watch path passes none and discovers
+    # everything exactly as before.
+    if _rec_pair is not None:
+        rec, path = _rec_pair
+    else:
+        pair = _latest_rotate_record(root, seat)
+        if pair is None:
+            return None
+        rec, path = pair
     # (SL7.76) resolve the role template UP FRONT so the age budget, the
     # promised delay, the JOIN upper bound and the CLAIM staleness bound all
     # come from the SAME `startup` block the after_join runs — the live-claim
@@ -11747,7 +11832,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # prime row change read the new row (the first/first_turn values build
     # below refetches). `_prime_rows_fetch_clear` had NO production caller.
     _prime_rows_fetch_clear()
-    row = _find_seat(root, seat)
+    row = _row if _row is not None else _find_seat(root, seat)
     role = (row or {}).get("role") or "parent"
     # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
     # (None = role default) so `_resolve_template(root, role, None)` matches
@@ -11797,7 +11882,10 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         if ts is not None:
             now = now if now is not None else time.time()
             age_s = max(0.0, now - ts.timestamp())
-            if (ts.timestamp() + delay_s) > now:
+            # (SL7.98) a caller that just WROTE the record (the own tail) is
+            # force-due: the tail owns the delay itself inside run_after_join,
+            # so the age-based due gate must not skip it.
+            if (ts.timestamp() + delay_s) > now and not _force_due:
                 return None  # not yet due
     # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
     # autopsy-share-one-pid) key the after_join successor on the RECORD's
@@ -11809,10 +11897,16 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # @id does NO join and behaves as before.
     join = _record_join(rec)
     window_id = str(join.get("window_id") or "")
-    joined = {}
-    if window_id:
+    # (SL7.98) the own tail injects its OWN join result (_joined) so the
+    # dead-seat skip cannot fire for the seat rotating ITSELF; the watch path
+    # re-joins through the same `_join_successor` as before.
+    if _joined is not None:
+        joined = _joined
+    elif window_id:
         joined = _join_successor(root=root, seat=seat, window_id=window_id,
                                  poll_secs=REGISTRY_JOIN_POLL_S)
+    else:
+        joined = {}
     if not _seat_has_live_session(row, joined):
         # (SL7.76 (a)(b)) a seat with NO live session is SKIPPED — no record
         # perform, no dm, exactly one log line (heal logs `after_join skipped
@@ -11870,34 +11964,41 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                     "record_path": str(path)}
         _join_wait_s = int(wait_s)
 
-    if joined.get("found"):
-        pid = joined.get("pid")
-        session_id = joined.get("session_id")
-        transcript = joined.get("transcript")
-    else:
-        pid = None
-        session_id = None
-        transcript = join.get("transcript") or ""
-    # succ_ref ONLY from the seat row's OWN session_ref cell (a harness ref,
-    # never a session id); an empty ref stays empty so the composed after_join
-    # dm prints `<your ListAgents ref>`, exactly as _compose_after_join_dm
-    # intends today.
-    sref = (row or {}).get("session_ref") or ""
-    # (goal:g15.25 SL7.74) the ack gen resolves from the RECORD's gen_after
-    # (write-owner of the real generation), else the seat row's OWN
-    # `generation` cell (the successor's row is written at spawn, F8) —
-    # NEVER 0. Neither present => the ack ENTRY is refused by name and no
-    # --gen 0 / blank --gen reaches the entry or the captive line.
     gen_str, gen_reason = _resolve_join_gen(rec, row, seat)
-    values = _first_turn_values(
-        root, seat=seat, gen=gen_str,
-        succ_name=seat, succ_ref=str(sref),
-        succ_transcript=str(transcript))
-    # pid/from the live join (never the stale record), informational on the
-    # values map for any startup template that reads them — unknown placeholders
-    # stay refused by _resolve_startup_placeholders regardless.
-    values["pid"] = pid
-    values["session_id"] = session_id
+    if _values is not None:
+        # (SL7.98) the own tail supplies its OWN values (the ACKED harness
+        # ref F15 resolves, tmux_session, and the derived pred_pids), so the
+        # shared gate runs against the SAME values the tail would have built.
+        values = _values
+    else:
+        if joined.get("found"):
+            pid = joined.get("pid")
+            session_id = joined.get("session_id")
+            transcript = joined.get("transcript")
+        else:
+            pid = None
+            session_id = None
+            transcript = join.get("transcript") or ""
+        # succ_ref ONLY from the seat row's OWN session_ref cell (a harness
+        # ref, never a session id); an empty ref stays empty so the composed
+        # after_join dm prints `<your ListAgents ref>`, exactly as
+        # _compose_after_join_dm intends today.
+        sref = (row or {}).get("session_ref") or ""
+        # (SL7.98) the performer derives pred_pids from the RECORD's
+        # s12_self_reap chain (else the predecessor row, else '') so the
+        # reap-proof entry runs against the REAL reaped pids and is never
+        # refused for an empty placeholder on a live rotation.
+        values = _first_turn_values(
+            root, seat=seat, gen=gen_str,
+            succ_name=seat, succ_ref=str(sref),
+            succ_transcript=str(transcript),
+            pred_pids=_derive_pred_pids(root, seat, rec))
+        # pid/from the live join (never the stale record), informational on
+        # the values map for any startup template that reads them — unknown
+        # placeholders stay refused by _resolve_startup_placeholders
+        # regardless.
+        values["pid"] = pid
+        values["session_id"] = session_id
     # (SL7.76 (b)) a LIVE seat long past its age budget is performed EXACTLY
     # ONCE, the record's after_join carrying `late: true` and the measured
     # `age_s` (no as-if-fresh pretense) alongside the promised `delay_s` and
@@ -11906,7 +12007,12 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     result = run_after_join(
         root, seat=seat, gen=gen_str,
         startup=startup, values=values, record_path=str(path),
-        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
+        sleep_impl=sleep_impl, send_dm=send_dm,
+        # (SL7.98) the service (watch) already consumed the delay via the age-
+        # based due gate, so it passes 0; the own tail passes its OWN
+        # delay_override so run_after_join sleeps the promised delay exactly
+        # as pre-SL7.98 (a fixture passes 0 again).
+        delay_override=(_delay_override if _delay_override is not None else 0),
         performer=performer, late=late, performed_after_s=age_s,
         gen_unresolved_reason=gen_reason,
         join_unresolved_wait_s=_join_wait_s,
@@ -14797,8 +14903,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # after spawn. The captive copy-paste line is printed as the decision
         # the successor would receive.
         if startup:
+            # (SL7.98) the dry-run derives pred_pids the SAME way the live
+            # performers do (the record at rec_path when one exists — in a dry
+            # run of a NEW rotation none does — else the predecessor row), so
+            # a reap-proof entry is planned against the derived pids, or the
+            # NAMED refusal when '' — never `dry: True` over an unresolved
+            # placeholder.
+            aj_values = dict(startup_values)
+            aj_values["pred_pids"] = _derive_pred_pids(
+                root, seat, _load_record_best_effort(rec_path))
             plan = run_after_join(root, seat=seat, gen=gen,
-                                  startup=startup, values=startup_values,
+                                  startup=startup, values=aj_values,
                                   dry_run=True,
                                   record_path=str(rec_path) if rec_path else None)
             print(f"(9) after_join dry-run: {len(plan['results'])} command(s) "
@@ -15288,7 +15403,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             root, seat=seat, gen=gen, succ_name=spawn_name,
             succ_ref=(ack or {}).get("session_ref") or "",
             succ_transcript=succ_transcript or "",
-            tmux_session=tmux_session)
+            tmux_session=tmux_session,
+            pred_pids=_derive_pred_pids(
+                root, seat, _load_record_best_effort(record_path)))
         # double-perform guard: the watch may have won the race since step (4)
         # (or this box runs the service inline). Re-read the record; if it
         # ALREADY carries `after_join`, the tail does NOT perform a second time.
@@ -15297,16 +15414,51 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             print("(6.4) after_join already performed (by the watch); "
                   "rotate-self tail skips")
         else:
-            aj = run_after_join(
-                root, seat=seat, gen=gen, startup=startup or {},
-                values=aj_values, record_path=str(record_path),
-                delay_override=(0 if getattr(args, "window_path", None)
-                                is not None else None),
-                performer="tail")
-            print(f"(6.4) after_join performed by rotate-self (own tail): "
-                  f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
-                  f"delay; record appended: {aj['appended']}, dm sent: "
-                  f"{aj['sent']}")
+            # (SL7.98, hypothesis:l4-every-after-join-performer-...) the OWN
+            # TAIL performs through the SAME run_after_join_for_seat the watch
+            # uses — ONE liveness gate, ONE age budget — so this record
+            # carries `late`/`age_s`/`performed_after_s` + `performer: tail`
+            # exactly like a watch-performed one (no second gate). It injects
+            # its OWN row + join result (`joined` from step (4)) so the
+            # dead-seat skip cannot fire for the seat rotating ITSELF, its
+            # OWN values (the ACKED harness ref F15 resolves, tmux_session,
+            # derived pred_pids) and force-due (the promised delay is
+            # run_after_join's own sleep via `_delay_override`, never the
+            # age-based due gate on a just-written record).
+            _tail_rec = (_load_record_best_effort(record_path)
+                         if record_path else {})
+            if _tail_rec:
+                # the tail's OWN join result: a successful rotation is live by
+                # construction (the successor joined and acked, step (4)), so
+                # the liveness gate must never dead-skip the seat rotating
+                # ITSELF. Prefer the real resolved join; the seam/identity
+                # path (no registry join) degrades to a success marker naming
+                # the captured successor session id.
+                _tail_join = (
+                    joined if (joined or {}).get("found")
+                    else {"found": True,
+                          "session_id": (succ_session_id
+                                          or (row or {}).get("session_id")
+                                          or "")})
+                aj = run_after_join_for_seat(
+                    root, seat=seat, performer="tail",
+                    _rec_pair=(dict(_tail_rec), str(record_path)),
+                    _row=row, _joined=_tail_join, _values=aj_values,
+                    _force_due=True,
+                    _delay_override=(0 if getattr(args, "window_path", None)
+                                     is not None else None))
+            else:
+                aj = None
+            if aj and aj.get("results"):
+                print(f"(6.4) after_join performed by rotate-self (own tail): "
+                      f"{len(aj['results'])} command(s) after a "
+                      f"{aj['delay_s']}s delay; record appended: "
+                      f"{aj['appended']}, dm sent: {aj['sent']}")
+            elif aj:
+                _tail_note = (aj.get("deferred") or aj.get("skipped")
+                              or aj.get("waiting") or aj)
+                print("(6.4) after_join NOT performed by rotate-self own "
+                      f"tail: {_tail_note}.")
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
