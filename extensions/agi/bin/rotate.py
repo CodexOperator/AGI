@@ -14398,8 +14398,10 @@ def _rank_gate(caller_row: dict, target_row: dict, ranks: list[str]) -> str | No
 
 
 def _role_timeout(root: Path, role: str) -> int:
-    """templates.<role>.timeout_s (config:rotations) when an int, else 600
-    (the CLI default -- say so in the docstring, it does)."""
+    """templates.<role>.timeout_s (config:rotations) when an int -- or a
+    digit-only string, the shape a QUOTED yaml cell yields (seat re-cut at
+    the SL7.114 harvest: accepted by design, not by accident) -- else 600
+    (the CLI default)."""
     tmpl = _load_templates(root).get(role) or {}
     t = tmpl.get("timeout_s")
     if isinstance(t, bool):

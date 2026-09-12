@@ -174,3 +174,18 @@ def test_default_stops_text_slot_and_missing(tmp_path):
     card.write_text("# card\nlead\n", encoding="utf-8")
     text, why = rotate._default_stops_text(tmp_path, "s1")
     assert text is None and "no where-it-stops slot" in why
+
+def test_role_timeout_digit_string_accepted_other_strings_fall_back(tmp_path, monkeypatch):
+    """Seat re-cut at the SL7.114 harvest (parent probe B): a digit-only string
+    is the shape a quoted yaml cell yields and is accepted; any other string,
+    a float or a bool falls back to 600."""
+    import rotate as r
+    cases = {"900": 900, "9x": 600, " 42 ": 42, "": 600}
+    for raw, want in cases.items():
+        monkeypatch.setattr(r, "_load_templates",
+                            lambda root, _raw=raw: {"director": {"timeout_s": _raw}})
+        assert r._role_timeout(tmp_path, "director") == want, raw
+    monkeypatch.setattr(r, "_load_templates", lambda root: {"director": {"timeout_s": 9.5}})
+    assert r._role_timeout(tmp_path, "director") == 600
+    monkeypatch.setattr(r, "_load_templates", lambda root: {"director": {"timeout_s": True}})
+    assert r._role_timeout(tmp_path, "director") == 600
