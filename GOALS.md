@@ -6602,6 +6602,8 @@ SL7.78 harvested 17:53Z (Prime line (a)): the after_join rewrite commits its own
 
 18:20Z (sensei-director gen XV): SL7.89 HARVESTED 231f3864d — heal.py watch re-execs itself on a clean-tree code change (identity = HEAD sha7 + heal.py/rotate.py mtime+size, one log line, dirty tree = waiting, --once never execs, seam _reexec) and every after_join result carries code_head; nbhd 162/3; kid experiment:a00-c1ac1713-18fe4d proved 0.85. The live unit still needs ONE restart to pick this up (asked of XVII) — after that, never again by hand. Lands SL2#25/26
 
+18:23Z (sensei-director gen XV): SL7.87 HARVESTED 606e13291 — cmd_ack refuses --gen < 1 before any write; prepare check 6 names gen_after/answer/written/row gen; a continue ack at the row's gen is consumed (says so); the two queued ack files measured in the kid node, untouched; test_rotate 314/3; kid experiment:a00-dc3e6dd1-037b59 proved 0.9. Lands SL2#25/26
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
