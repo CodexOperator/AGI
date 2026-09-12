@@ -201,3 +201,22 @@ def test_deprecated_sibling_still_read(tmp_path):
     t = loaded[0]
     assert t.mint_id.startswith("oldmint")
     assert t.council == "council-core"
+
+def test_cli_imports_outside_pytest_and_accepts_either_root(tmp_path):
+    """Director regression (L4.333 harvest): the merged towns.py imported
+    graph_core without the bin modules' sys.path inserts, so
+    `python3 extensions/agi/bin/towns.py <root> --tuples` raised
+    ModuleNotFoundError outside pytest; and a project root (the dir holding
+    .agi/) read as "no towns" instead of resolving to its graph dir."""
+    import subprocess
+    import sys as _sys
+    g = _graph(tmp_path)
+    _three_towns(g)
+    cli = Path(towns.__file__).resolve()
+    for root in (g, tmp_path):
+        r = subprocess.run([_sys.executable, str(cli), str(root), "--tuples"],
+                           capture_output=True, text=True, cwd=str(tmp_path),
+                           env={"PATH": "/usr/bin:/bin"})
+        assert r.returncode == 0, r.stderr
+        assert "'town': 'core'" in r.stdout and "'season': 2" in r.stdout
+    assert towns.town_tuples(tmp_path) == towns.town_tuples(g)
