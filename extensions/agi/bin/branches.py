@@ -109,11 +109,17 @@ def is_legal_branch(name: str) -> bool:
 
 
 def ref_candidates(branch: str) -> list[str]:
-    """The ref names a reader should try, CANONICAL FIRST then the old name as
-    a one-season deprecated fallback, for a `branch` that may be either new or
+    """The ref names a reader should try, CANONICAL FIRST then the legacy
+    one-season spellings, for a `branch` that may be new, intermediate, or
     old. Old names are accepted, never refused: a live tree that has NOT been
-    renamed yet must remain reachable under its legacy spelling. Returns
-    ``[canonical]`` alone when no legacy spelling exists."""
+    renamed yet must remain reachable under its legacy spelling. For a POST
+    the candidates are, in order and deduped: the canonical
+    ``season<n>/posts/<n>``, the INTERMEDIATE as-written ``post/<n>@s<n>``,
+    and the legacy deprecated ``seat/<n>@s<n>``. The as-written input always
+    appears in the result (it is one of the three spellings for every input
+    kind). For main/loop/town the intermediate and legacy spellings are the
+    same single old name, deduped to one. Returns ``[canonical]`` alone when
+    no legacy spelling exists."""
     canonical = branch
     try:
         p = parse(branch)
@@ -121,10 +127,17 @@ def ref_candidates(branch: str) -> list[str]:
         return [branch]
     if p.get("kind") == "alias":
         canonical = p["canonical"]
-    old = _canonical_to_old(canonical, legacy_seat=True)
-    if old is None or old == canonical:
-        return [canonical]
-    return [canonical, old]
+    # intermediate is the as-written post/<n>@s<n> for a post (g17.1 ruling);
+    # legacy is the even-older seat/<n>@s<n> deprecated spelling. Both dedupe
+    # to one for main/loop/town, where they are the same old name.
+    inter = _canonical_to_old(canonical)
+    legacy = _canonical_to_old(canonical, legacy_seat=True)
+    out = []
+    for cand in (canonical, inter, legacy):
+        if cand is None or cand in out:
+            continue
+        out.append(cand)
+    return out or [canonical]
 
 
 def _canonical_to_old(name: str, *, legacy_seat: bool = False) -> str | None:

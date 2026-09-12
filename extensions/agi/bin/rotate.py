@@ -1964,16 +1964,25 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
     return None
 
 
-def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
-    """The ONE predicate that decides whether an answered ack commits its own
-    row write: `continue` commits; `diff` with empty/whitespace text commits
-    (an empty diff stands the handoff exactly like continue); `diff` with text
-    never commits. `--no-commit` suppresses the commit on every path. Shared
-    by the do_commit gate and the first-seating announce gate so the two can
-    never disagree (g15.24 FIX-ONLY)."""
+def _ack_stands(answer: str, text: str | None) -> bool:
+    """Whether an answered ack STANDS the handoff: `continue` always does;
+    `diff` with empty/whitespace text does (an empty diff stands the handoff
+    exactly like continue); `diff` with text never does. Deliberately does NOT
+    look at `--no-commit`: an ack either stands the handoff or it does not,
+    and that decision is independent of whether the own-row write is COMMITTED
+    (g15.24 FIX-ONLY)."""
     return (answer == "continue"
-            or (answer == "diff" and not (text or "").strip())) \
-        and not no_commit
+            or (answer == "diff" and not (text or "").strip()))
+
+
+def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
+    """Whether an answered ack COMMITS its own row write: exactly `_ack_stands`
+    when the commit is not suppressed, and False under `--no-commit`. Shared by
+    the do_commit gate and (formerly) the first-seating announce gate. The
+    announce gate now calls `_ack_stands` directly so that `--no-commit` no
+    longer suppresses the announce/record, which have nothing to do with
+    committing (g15.24 FIX-ONLY)."""
+    return _ack_stands(answer, text) and not no_commit
 
 
 def cmd_ack(args: argparse.Namespace, root: Path) -> int:
@@ -2022,6 +2031,29 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                     _prev_gen = _pa.get("gen_after")
         except (OSError, ValueError):
             pass
+        # g15.24 FIX-ONLY (hypothesis:l4-ack-continue-is-refused-on-an-ask-
+        # diff-path-with-the-exact-diff-line): someone rotated with
+        # `--ask-diff` and left `answer: diff-requested` WITH the exact
+        # `rotate.py ack ... diff --text -` line in the STARTUP alert. The
+        # writer is the predecessor rotation AND the FIRST-SEATING
+        # --ask-diff path (rotate.py:4049 sets `answer: diff-requested`,
+        # `source: seating`) — both leave the identical pending state, so the
+        # gate must NOT be source-qualified or a hand-seated successor that
+        # skims past the STARTUP line acks continue, the diff is never
+        # inspected. A successor that answers `continue` was previously
+        # ACCEPTED (SL7.41-era make empty-diff stand continue, but the
+        # reverse never refused) and the handoff was never inspected.
+        # REFUSE: exit 3, ONE stderr line carrying the real seat/gen/ref and
+        # the exact diff command the successor must run instead; NOTHING is
+        # written (this gate is before the ack write below). Source-agnostic:
+        # any pending `diff-requested` for this seat+gen refuses a continue.
+        if (_prev_ans == "diff-requested" and _prev_gen == args.gen):
+            _ref = args.ref or "<your ListAgents ref>"
+            print("REFUSED: the predecessor asked for a diff \u2014 run: "
+                  f"python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+                  f"--gen {args.gen} --ref {_ref} diff --text -",
+                  file=sys.stderr)
+            return 3
         if _prev_src == "predecessor" and _prev_ans == "continue":
             if _prev_gen == args.gen:
                 print("ack: already answered continue by your predecessor -- "
@@ -2256,14 +2288,16 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # so a spawn/seats-launch that already recorded + announced is never
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
-    # g15.24: the announce gate uses the SAME predicate as do_commit (_ack_commits),
-    # NOT a literal `answer == "continue"`, so a gen-1 answer of `diff` with EMPTY
-    # text commits AND announces once (a `diff` with text commits nothing and, by
-    # the same predicate, announces nothing). The double-send falsifier (a second
-    # dm for the same seat+gen) still holds via _seating_record_exists.
+    # g15.24 FIX-ONLY: the announce gate uses `_ack_stands` -- NOT `_ack_commits`,
+    # which would fold `--no-commit` in and wrongly suppress the announce/record.
+    # The first-seating announce and its ONE seating record have nothing to do
+    # with committing: a gen-1 answer that stands the handoff (continue, or diff
+    # with empty text) announces + records once even under --no-commit, while a
+    # diff with text (which does not stand the handoff) announces nothing. The
+    # commit leg gates on `_ack_commits` separately and unchanged. The double-send
+    # falsifier (a second dm for the same seat+gen) still holds via _seating_record_exists.
     if args.gen == FIRST_SEATING_GEN \
-            and _ack_commits(args.answer, text,
-                             getattr(args, "no_commit", False)) \
+            and _ack_stands(args.answer, text) \
             and not _seating_record_exists(root, seat, generation=args.gen) \
             and not _rotation_record_exists(root, seat) \
             and not _pending_ack_present:
@@ -2281,7 +2315,8 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 session_id=(srow.get("session_id") or "") if srow else "",
                 transcript_path=((srow.get("transcript_path") or "")
                                  if srow else ""),
-                registry_dir=getattr(args, "registry_dir", None))
+                registry_dir=getattr(args, "registry_dir", None),
+                generation=args.gen)
         except Exception as exc:                        # noqa: BLE001
             print(f"warn: first-seating announcement failed: {exc}",
                   file=sys.stderr)
@@ -3639,13 +3674,19 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         # share a single record (hypothesis:l4-a-first-seating-sends-the-
         # sensei-the-same-alert-a-rotation-does, g15.17 item 3).
         _write_seating_record(root, seating)
+        # The alert dm names the SAME gen_after the record just wrote
+        # (goal:g15.25): a re-spawn's record and its alert can never disagree,
+        # because the dm is composed FROM the record it shares.
         text = _compose_seating_announcement(
             seat=seat, window_id=seating.get("window_id") or "",
             ref=seating.get("ref") or "",
             pid=seating.get("pid"),
             session_id=seating.get("session_id") or "",
             transcript_path=seating.get("transcript_path") or "",
-            seq=seq, in_flight=in_flight, ask_diff=ask_diff)
+            seq=seq, in_flight=in_flight, ask_diff=ask_diff,
+            generation=(seating.get("gen_after")
+                        if seating.get("gen_after") is not None
+                        else FIRST_SEATING_GEN))
     else:
         text = _compose_announcement(
             seat=seat, successor=successor, gen_before=gen_before,
@@ -3741,10 +3782,16 @@ FIRST_SEATING_JOIN_POLL_S = 3
 def _seating_record(*, seat: str, role: str, source: str,
                     window_id: str | None, ref: str,
                     pid, session_id: str, transcript_path,
-                    first_turn) -> dict:
+                    first_turn,
+                    generation: int = FIRST_SEATING_GEN) -> dict:
     """One durable JSON seating record (rotation: 'seating'), generation
-    `0 -> 1`, `trigger: first-seating`, carrying the nullable live fields a
+    `0 -> N`, `trigger: first-seating`, carrying the nullable live fields a
     peer needs and the first_turn results — the record the alert shares.
+
+    `generation` is the GEN_AFTER the record reports. A BRAND-NEW seat
+    (default) is byte-identical to FIRST_SEATING_GEN=1; a RE-spawn of an
+    existing seat passes the seat's own row generation (goal:g15.25), so
+    the record agrees with the bootstrap and the alert dm.
     """
     rec = {
         "rotation": "seating",
@@ -3753,7 +3800,7 @@ def _seating_record(*, seat: str, role: str, source: str,
         "source": source,
         "recorded_at": datetime.utcnow().isoformat() + "Z",
         "gen_before": 0,
-        "gen_after": FIRST_SEATING_GEN,
+        "gen_after": generation,
         "trigger": "first-seating",
     }
     if window_id:
@@ -3910,8 +3957,13 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
                                   transcript_path: str = "",
                                   seq: int = 0,
                                   in_flight: str = "",
-                                  ask_diff: bool = False) -> str:
+                                  ask_diff: bool = False,
+                                  generation: int = FIRST_SEATING_GEN) -> str:
     """The first-seating `[rotation-alert]` payload — one message, never more.
+
+    `generation` is the GEN_AFTER the alert names (default FIRST_SEATING_GEN);
+    a RE-spawn of an existing seat names the seat's OWN row generation
+    (goal:g15.25), byte-identical to the seating record the alert shares.
 
     Carries seat, window @id, ref (when the join has it, else the NAMED
     `ref: (pending ack)` — never a silently-dropped address a peer could not
@@ -3936,14 +3988,14 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
         addr += " ref: (pending ack)"
     pid_s = str(pid) if pid is not None else "-"
     body = (f"{ROTATION_ALERT_TAG} first seating {addr} | "
-            f"generation 0 -> {FIRST_SEATING_GEN} | "
+            f"generation 0 -> {generation} | "
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
             f"transcript: {transcript_path or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
     if ask_diff:
         _ref = ref or "<your ListAgents ref>"
-        body += (f"\nrotate.py ack --seat {seat} --gen {FIRST_SEATING_GEN} "
+        body += (f"\nrotate.py ack --seat {seat} --gen {generation} "
                  f"--ref {_ref} diff --text -")
     return body
 
@@ -3955,10 +4007,19 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
                             live_names=None, registry_dir=None,
                             pid=None, session_id: str = "",
                             transcript_path: str = "",
-                            ask_diff: bool = False) -> list[str]:
+                            ask_diff: bool = False,
+                            generation: int | None = None) -> list[str]:
     """Write the ONE seating record and emit the SAME rotation-alert dm a
     rotation emits (trigger: first-seating) to the derived live recipients.
 
+    The generation is the SEAT'S OWN row generation when it has one (0 is
+    kept as 0; only an absent row / gen-less row falls back to
+    FIRST_SEATING_GEN), resolved ONCE here and threaded to the seating record
+    AND the alert dm so the two agree byte-for-byte WITH the bootstrap
+    `_first_seating_run` already wrote (goal:g15.25 / hypothesis:l4-one-
+    resolved-generation-for-the-seating-record-the-alert-and-the-bootstrap-
+    on-a-re-spawn). A caller may pass `generation` explicitly (the ack path
+    passes its own declared gen).
     The window @id comes from `_successor_window_id` (the registry JOIN key,
     reused never re-implemented); live pid/session/transcript are taken from a
     BOUNDED join when not already supplied (a freshly-seated window usually
@@ -3986,14 +4047,17 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
             pid = join.get("pid")
             session_id = join.get("session_id") or ""
             transcript_path = join.get("transcript") or ""
+    if generation is None:
+        _rg = _seat_row_generation(root, seat)
+        generation = _rg if _rg is not None else FIRST_SEATING_GEN
     seating = _seating_record(
         seat=seat, role=role, source=source, window_id=window_id, ref=ref,
         pid=pid, session_id=session_id, transcript_path=transcript_path,
-        first_turn=first_turn)
+        first_turn=first_turn, generation=generation)
     in_flight = _seating_in_flight(first_turn)
     _announce_rotation(
         root=root, croot=croot, seat=seat, successor=seat,
-        gen_before=0, gen_after=FIRST_SEATING_GEN,
+        gen_before=0, gen_after=generation,
         trigger="first-seating",
         handoff_path="first seating: no predecessor handoff",
         in_flight=in_flight, live_names=live_list,
@@ -4877,12 +4941,39 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     dropped. Sections split on lines starting with `## `; each header keeps
     its `## ` prefix and its body is the exact raw span of lines below it up
     to the next `## ` (`_section_body`), so a re-join loses NO section-
-    boundary blank line (goal:g15.25 residue (i))."""
+    boundary blank line (goal:g15.25 residue (i)).
+
+    FENCE-RUN AWARE (goal:g15.25 residue (iii), SL7.62): a `## ` line
+    starts a section ONLY outside a Markdown code fence. The scan tracks
+    fences by backtick-run length (`_fence_run`): it enters on an opener
+    (run >= 3) and leaves on a closer whose run >= the opener's, so a `## `
+    heading QUOTED inside a fenced block (a stops block, a fenced example)
+    is content and never splits the card there — the same class SL7.48
+    fixed on the stops end-of-slot scan, now fixed on the card reader."""
     preamble: list[str] = []
     sections: list[tuple[str, str]] = []
     header: str | None = None
     body: list[str] = []
+    in_fence = False
+    opener_run = 0
     for ln in text.splitlines():
+        run = _fence_run(ln)
+        if in_fence:
+            if run >= opener_run:
+                in_fence = False   # closer (run >= opener's) ends the fence
+            if header is None:
+                preamble.append(ln)
+            else:
+                body.append(ln)
+            continue
+        if run > 0:
+            in_fence = True        # opener (run >= 3) starts the fence
+            opener_run = run
+            if header is None:
+                preamble.append(ln)
+            else:
+                body.append(ln)
+            continue
         if ln.startswith("## "):
             if header is not None:
                 sections.append((header, _section_body(body)))
@@ -5949,6 +6040,30 @@ def _seats_ownrow_content(root: Path, top: Path, seat: str) -> str | None:
             # region end. Only this seat's own write is staged.
             if al is not None and ak is not None and ak not in rkeys \
                     and ak not in matched:
+                # When a FOREIGN row that HEAD deletes meets this WORK-only
+                # added row at one slot (the removed pointer's key is absent
+                # from the added side AND not own), the row is emitted in the
+                # tree's own order: the foreign row FIRST, restored
+                # byte-identical to HEAD, then the WORK row — the WORK row must
+                # not race ahead of the slot it is replacing (SL7.66).
+                if (rl is not None and rk is not None
+                        and rk not in add_by_key and rk not in matched
+                        and not _own(rl)):
+                    out.append(rl)
+                    i += 1
+                    continue
+                if _own(al):
+                    out.append(al)
+                j += 1
+                continue
+            # A KEYLESS WORK-only line (no `"name"` cell — a structural line
+            # this seat's write added, e.g. the malformed `edited_by:` stamp
+            # the own row write leaves beside the rows) also sits at its WALK
+            # position: emitted HERE, before the next removed line, past the
+            # same `_own` gate the region-end branch applies — never deferred
+            # to the region end (SL7.66). A FOREIGN keyless added line is
+            # never staged.
+            if al is not None and ak is None:
                 if _own(al):
                     out.append(al)
                 j += 1
@@ -6335,6 +6450,79 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
             f"own-row only: {msg}\npush: {_push}")
 
 
+def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
+                            gen_after: int,
+                            record_path: Path | None = None) -> str:
+    """goal:g15.25 — rotate-self COMMITS its OWN rotation record AND
+    `sequence.json` as ONE plain pathspec commit, right after both are
+    written, so the rotation's proof (and the rotation-alert counter that
+    rides it) land on the tree instead of lurking UNTRACKED under the
+    PREPARE_CHURN captive exemption (`sessions/rotations/*.json` —
+    rotate.py:9549-9553, the reason nothing commits them today). It runs on
+    a MAIN-checkout post ONLY (`_commit_spawn_row`'s tree: `_git_toplevel`
+    of `_shared_graph_root(root)`); a WORKTREE seat keeps `_button_down` and
+    adds no commit here (`_shared_graph_root` resolves MAIN even from a
+    worktree, so `main_root != root` identifies a worktree seat).
+
+    Staging is as narrow as git allows: `git add -- <record> <seq>` then
+    `git commit -q -m ... -- <both>` — NEVER `git add -A`, never a grid
+    commit, never a push, nothing outside the two paths. `.agi/comms/**`
+    dm-log appends stay cron-owned churn, out of scope by construction.
+
+    The commit runs AFTER the final record write (the ack-rename rewrite /
+    after_join / s12 append all happen earlier and mutate the SAME path in
+    place), so the committed bytes ARE the final record, never an interim
+    one. Best-effort: on ANY failure print ONE stderr line and return a
+    one-line outcome — never raises, never fails the rotation (mirror
+    `_commit_spawn_row`'s fail-soft contract). Returns the sha or the
+    reason nothing committed.
+    """
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return ("rotation_record_commit: SKIPPED — no git repo; the record "
+                "+ sequence stay in the tree, never committed (gitless "
+                "fixture/root)")
+    if main_root != root:
+        return ("rotation_record_commit: SKIPPED — worktree seat; the record "
+                "+ sequence commit runs only on a MAIN checkout "
+                "(_button_down handles the grid commit)")
+    if record_path is None or not Path(record_path).exists():
+        return ("rotation_record_commit: SKIPPED — no rotation record file "
+                "to commit")
+    rec = Path(record_path)
+    seq = _seq_file(main_root)
+    rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
+    try:
+        add = subprocess.run(["git", "-C", str(top), "add", "--"] + rels,
+                             capture_output=True, text=True, timeout=30)
+        if add.returncode != 0:
+            raise RuntimeError(add.stderr.strip())
+        msg = (f"rotate-self {seat} gen {gen_before}->{gen_after}: "
+               "record + sequence")
+        cm = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--"] + rels,
+                            capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            subprocess.run(["git", "-C", str(top), "reset", "-q", "--"]
+                           + rels, capture_output=True, text=True, timeout=30)
+            raise RuntimeError(cm.stderr.strip())
+    except Exception as exc:  # noqa: BLE001
+        line = f"rotation_record_commit: FAILED — {exc}"
+        print(line, file=sys.stderr)
+        return line
+    sha = ""
+    try:
+        out = subprocess.run(["git", "-C", str(top), "rev-parse",
+                              "--short", "HEAD"], capture_output=True,
+                             text=True, timeout=10)
+        sha = (out.stdout or "").strip()
+    except Exception:  # noqa: BLE001
+        sha = ""
+    return (f"rotation_record_commit: committed (sha {sha}) — record + "
+            f"sequence.json: {' + '.join(rels)}")
+
+
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
                          transcript: str) -> str:
     """Pin the successor's meter at ITS transcript (kid-2 step 4).
@@ -6359,6 +6547,105 @@ def _pid_alive(pid: int) -> bool:
     except (PermissionError, OSError):
         return True
     return True
+
+
+def _latch_holder_pid_read(latch: Path) -> int | None:
+    """The `pid <n>` recorded in a hook latch file, or None when unreadable.
+
+    The latch names the ROTATE-SELF process it spawned (never the hook's own,
+    which exits the instant it spawns). One implementation, duplicated in
+    rotate.py because the hooks dir is not importable from bin (the hook's
+    `_latch_holder_pid` in rotation_alert.py is the same two-line read, kept
+    in lockstep with this). A latch content that is not `pid <n>` (empty,
+    malformed, unreadable) returns None."""
+    try:
+        for ln in latch.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"pid\s+(\d+)", ln)
+            if m:
+                return int(m.group(1))
+    except (OSError, ValueError):
+        return None
+    return None
+
+
+def _hook_latch_path(root: Path, seat: str, gen: int) -> Path:
+    """A once-per-generation `hook-<seat>-gen<gen>.lock` latch path under the
+    seat's OWN tree's rotations dir -- the exact shape the rotation_alert hook
+    writes (rotation_alert.py `_latch_path`, same `rotations/` subdir),
+    duplicated here because the hook module is not importable from bin (the
+    sweep needs to find the latches the hook left).
+
+    The hook keys the latch to the seat's OWN tree's sessions dir --
+    `root / "sessions"` -- explicitly NOT the shared MAIN-sessions dir
+    (rotation_alert._latch_path docstring), so a linked-worktree seat's dead
+    latch must be swept from its own tree, not the shared room.
+    """
+    return root / "sessions" / ROTATIONS_DIR_NAME / f"hook-{seat}-gen{gen}.lock"
+
+
+def _latches_dirs(root: Path, seat: str) -> list[Path]:
+    """Both dirs a `hook-<seat>-gen*.lock` latch can sit in, deduped.
+
+    The hook writes its transient latch to the seat's OWN tree
+    (`root/sessions/rotations`, `_hook_latch_path`); `_rotations_dir(root)`
+    routes through the SHARED MAIN sessions dir. For a linked-worktree seat
+    these are TWO physical dirs and a dead latch may be left in either; for
+    the main checkout they are the SAME dir and one is enough. A latch is
+    swept exactly once, so dedupe by resolved path.
+    """
+    own = _hook_latch_path(root, seat, 0).parent  # gen does not move the dir
+    shared = _rotations_dir(root)
+    dirs: list[Path] = []
+    seen: set[Path] = set()
+    for d in (own, shared):
+        try:
+            key = Path(os.path.realpath(d))
+        except OSError:  # pragma: no cover -- realpath is best-effort
+            key = d
+        if key in seen:
+            continue
+        seen.add(key)
+        dirs.append(d)
+    return dirs
+
+
+def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
+    """Sweep the seat's dead `hook-<seat>-gen*.lock` latches before spawning
+    the successor (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-
+    spawning).
+
+    A latch left by a rotate-self that DIED (or whose pid was reused) holds a
+    dead pid: it blocks nothing (the hook's own release fires only on the
+    hook's NEXT run, and a completed rotation bumps the generation so the next
+    prompt reads a new latch key anyway), but it sits there until the hook
+    fires again -- and a Prime that notices it spends a WAKE call removing it
+    by hand (the P4 code-line edit the sensei made by hand at belam XV->XVI
+    141419Z). The sweep therefore unlinks every `hook-<seat>-gen*.lock` for
+    THIS seat whose holder pid is not alive (`_pid_alive` fails, or the pid is
+    unparseable/None), printing ONE stderr line naming each swept file. A
+    latch whose holder pid IS alive is left alone (its rotate-self is still
+    mid-flight). Best-effort: a read or unlink failure NEVER refuses the
+    rotation and never raises.
+
+    Returns the number of latches swept. Matches the hook's own dead-vs-live
+    judgement (`_latch_held`), kept in lockstep so the sweep and the hook's
+    release can never disagree."""
+    swept = 0
+    for latch_dir in _latches_dirs(root, seat):
+        latches = sorted(latch_dir.glob(f"hook-{seat}-gen*.lock"))
+        for latch in latches:
+            pid = _latch_holder_pid_read(latch)
+            holder = "unreadable" if pid is None else str(pid)
+            if pid is not None and _pid_alive(pid):
+                continue  # a live rotate-self still holds it; leave it alone
+            try:
+                latch.unlink()
+                swept += 1
+                print(f"swept dead hook latch {latch.name} (holder {holder})",
+                      file=sys.stderr)
+            except OSError:
+                pass  # an unlink we cannot do must not refuse the rotation
+    return swept
 
 
 def _short_ps(pid: int) -> str:
@@ -7239,7 +7526,9 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                      commit: str | None = None,
                      join_pending: set | None = None,
                      overrides: dict | None = None,
-                     join_poll_secs: int | None = None) -> str:
+                     join_poll_secs: int | None = None,
+                     prior_measured_at: dict | None = None,
+                     keep_measured: set | None = None) -> str:
     """s10 — write the successor's bootstrap record.
 
     `<sessions>/seats/<seat>.bootstrap.json` carries the template telemetry
@@ -7272,6 +7561,13 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
     `pending: resolved after join`, which would lie that a future join will
     fix it. None (the pre-join first-seating write) keeps `pending: resolved
     after join`.
+
+    `prior_measured_at` seeds the new `measured_at` map (a rewrite preserves
+    the record's existing stamps instead of dropping them); `keep_measured`
+    names the keys whose stamp is carried through UNCHANGED rather than
+    restamped at this commit — the surgical only-join-facts rewrite uses both
+    so every NON-join fact keeps its byte-identical value AND its original
+    measured_at, while the newly-resolved join facts are stamped here.
     """
     if commit is None:
         commit = _git_head(root)
@@ -7279,6 +7575,7 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
 
     join_pending = join_pending or set()
     overrides = overrides or {}
+    keep_measured = keep_measured or set()
     keys = []
     if isinstance(telemetry, list):
         keys = list(telemetry)
@@ -7289,11 +7586,11 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
             keys.append(k)
 
     tele: dict = {}
-    measured_at: dict = {}
+    measured_at: dict = dict(prior_measured_at) if prior_measured_at else {}
     for key in keys:
         if key in overrides:
             tele[key] = overrides[key]
-            if commit:
+            if commit and key not in keep_measured:
                 measured_at[key] = commit
             continue
         if key in join_pending:
@@ -8648,8 +8945,16 @@ def _first_seating_run(root: Path, *, seat: str, role: str,
     # is byte-identical to today. Callers may pass the gen explicitly; when
     # they pass nothing the resolution happens here, once, for BOTH call
     # sites (cmd_spawn and seats-launch) so neither recomputes it.
-    _gen = generation if generation is not None \
-        else (_seat_row_generation(root, seat) or FIRST_SEATING_GEN)
+    # GOAL:g15.25 (SL7.58) — a row generation of 0 must be KEPT as 0, never
+    # coerced to 1 by `or`: only an absent row / gen-less row falls back to
+    # FIRST_SEATING_GEN, matching cmd_spawn's `_spawn_gen` (which already
+    # keeps 0). One resolution here, threaded to the bootstrap, the seating
+    # record and the alert dm.
+    if generation is not None:
+        _gen = generation
+    else:
+        _rg = _seat_row_generation(root, seat)
+        _gen = _rg if _rg is not None else FIRST_SEATING_GEN
     values = _first_turn_values(
         root, seat=seat, gen=_gen, succ_name=succ_name,
         pred_pids="none: first seating", tmux_session=tmux_session)
@@ -8713,11 +9018,16 @@ def _prime_pushed_seats(root: Path, ref: str):
     after-join values), each of which would otherwise run a REAL `git fetch
     origin <name>` (send._pushed_seats with do_fetch=True calls _run_git, up
     to 30 s each). The memo collapses those to ONE fetch; every later build
-    reuses the fetched rows. A None result (pushed ref unreachable) is also
-    memoized, so a rotation does not re-fetch on a transient miss within the
-    same process. A test injects the seam by monkeypatching THIS name (or
-    `send._pushed_seats` below it) so a rotate-self values build never
-    performs a real git fetch inside the suite."""
+    reuses the fetched rows. A None result (pushed ref unreachable) is NOT
+    memoized on its first miss (hypothesis:l4-the-first-seating-tests-stub-
+    the-pushed-seats-seam-and-a-none-miss-is-not-pinned-for-the-process):
+    the next build RETRIES the real fetch once, so a transient miss never
+    pins the worktree fallback for the whole process; only a SECOND
+    consecutive miss for the same (root, ref) memoizes None, so a genuinely-
+    dead pushed ref is fetched at most twice per process. A test injects the
+    seam by monkeypatching THIS name (or `send._pushed_seats` below it) so a
+    rotate-self values build never performs a real git fetch inside the
+    suite."""
     key = (str(root), ref)
     if key in _PUSHED_SEATS_FETCHED_ONCE:
         return _PUSHED_SEATS_FETCHED_ONCE[key]
@@ -8726,6 +9036,19 @@ def _prime_pushed_seats(root: Path, ref: str):
         seeded = send._pushed_seats(root, ref, True)
     except Exception:                                       # noqa: BLE001
         seeded = None
+    if seeded is None:
+        # first miss: NOT memoized -- the next build in this process RETRIES
+        # the real fetch once, so a single transient fetch failure can never
+        # pin the worktree fallback for every later build (hypothesis:l4-the-
+        # first-seating-tests-stub-the-pushed-seats-seam-and-a-none-miss-is-
+        # not-pinned-for-the-process). Only a SECOND consecutive miss for
+        # this (root, ref) pins None, so a genuinely-dead pushed ref is
+        # fetched at most twice per process, not on every one of the five
+        # values-build sites (up to 30 s each).
+        miss_n = _PUSHED_SEATS_MISSES.get(key, 0) + 1
+        _PUSHED_SEATS_MISSES[key] = miss_n
+        if miss_n < 2:
+            return None
     _PUSHED_SEATS_FETCHED_ONCE[key] = seeded
     return seeded
 
@@ -8735,6 +9058,7 @@ def _prime_rows_fetch_clear() -> None:
     runs. The memo is intentionally module-global (one fetch per process), so
     isolation is by explicit clear — the standard pytest monkeypatch shape."""
     _PUSHED_SEATS_FETCHED_ONCE.clear()
+    _PUSHED_SEATS_MISSES.clear()
 
 
 #: Per-process memo so the pushed season ref behind `_first_turn_values` is
@@ -8745,6 +9069,11 @@ def _prime_rows_fetch_clear() -> None:
 #: times — up to 150 s worst case inside the rotation's own timeout. Tests
 #: clear it via `_prime_rows_fetch_clear` and may inject a fake seam.
 _PUSHED_SEATS_FETCHED_ONCE: dict[tuple, object] = {}
+
+#: Per-key count of consecutive None misses; see `_prime_pushed_seats`. A
+#: None result is intentionally NOT memoized on its first miss (retry once);
+#: only the second consecutive miss pins None for the process.
+_PUSHED_SEATS_MISSES: dict[tuple, int] = {}
 
 
 def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
@@ -8900,6 +9229,33 @@ def _inline_reaper_enabled(root: Path) -> bool:
         return True
     ad = (cfg or {}).get("agent_dispatch") or {}
     return bool(ad.get("inline_reaper", True))
+
+
+def _after_join_performer_armed(root: Path, *, forced: bool = False) -> bool:
+    """(goal:g15.25 SL7.54 fix 4) True when SOMEONE will perform the captive
+    after_join for this rotation, so a pre-turn confirm skip is a truthful
+    `deferred: after_join` (a real confirm will land later) rather than a lie
+    that a future confirm will fix a record nobody will touch. A performer
+    runs when rotate-self is the fallback (`agent_dispatch.inline_reaper`
+    truthy — this very process runs after_join in step 6.4), when the fixture
+    forces the fallback (`forced` = the `--after-join` cloak), or when the
+    persistent heal.py watch unit is the performer (inline_reaper falsey AND
+    `reaper.unit_enabled` is not false — the one-edit guard for a box whose
+    unit is down; absent key reads true, matching the crons that arm it).
+    Missing/broken config reads armed (defensive: an absent config never
+    silently withholds a confirm a performer would do)."""
+    if forced:
+        return True
+    if _inline_reaper_enabled(root):
+        return True
+    try:
+        cfg_path = locations.config_path(root) if root is not None else None
+        if cfg_path is None:
+            return True
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:                                   # noqa: BLE001
+        return True
+    return bool(((cfg or {}).get("reaper") or {}).get("unit_enabled", True))
 
 
 def _run_after_join_command(entry, values: dict, timeout_s: int,
@@ -9090,7 +9446,8 @@ def _after_join_model_confirm(root: Path, *, seat: str, values: dict,
 
 def _fill_bootstrap_join_facts(root: Path, *, seat: str,
                                live_model: str | None,
-                               refusal_fallback: str | None) -> bool:
+                               refusal_fallback: str | None,
+                               join_poll_secs: int | None = None) -> bool:
     """(goal:g15.25 SL7.40 (a)) fill the pre-spawn bootstrap record's TWO
     join-only facts the after_join confirm can now supply —
     `successor_live_model` and `model_refusal_fallback` — THROUGH the existing
@@ -9099,14 +9456,20 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
     re-mint). run_after_join holds no template/verification/generation (the
     service-layer caller owns only the record file), so the record's own
     telemetry / verification / generation are reconstructed from the existing
-    file to reach the seam; any OTHER join-only fact already resolved in that
-    record (e.g. `successor_address` set by rotate-self before it handed
-    after_join to the service) is carried through as an override so the
-    rewrite never clobbers a value another path already resolved.
-    No-op (False) when there is no live model, no bootstrap file, or the
-    record will not parse — never raises."""
-    if not live_model:
-        return False
+    file to reach the seam.
+
+    SURGICAL (SL7.54 fix 3): the rewrite touches ONLY the join facts. Every
+    NON-join telemetry fact is carried through as an override, so its value is
+    written byte-identical and its `measured_at` stamp is preserved
+    (`prior_measured_at` + `keep_measured`) — never re-derived and never
+    restamped. A join fact this confirm cannot resolve (no live model, no
+    refusal, or a join fact another path owns such as rotate-self's
+    `successor_address`) stays in `join_pending`; with the caller's
+    `join_poll_secs` threaded through, such a key is written `unresolved: join
+    found nothing within <N>s` — never the PRE-join `pending: resolved after
+    join` lie that a future join will fix it.
+    No-op (False) when there is no bootstrap file or the record will not
+    parse — never raises."""
     bpath = _sessions_dir(root) / "seats" / f"{seat}.bootstrap.json"
     try:
         if not bpath.exists():
@@ -9115,32 +9478,43 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
         if not isinstance(b, dict):
             return False
         tele = b.get("telemetry")
-        if not tele:
+        if not isinstance(tele, dict):
             return False
-        # carry already-resolved join facts through the seam so a rewrite never
-        # clobbers a value rotate-self already put in the record
-        overrides: dict = {}
-        if isinstance(tele, dict):
-            for k in BOOTSTRAP_JOIN_ONLY_FACTS:
-                v = tele.get(k)
-                if (v is not None
-                        and not (isinstance(v, str)
-                                 and v.startswith(("pending:", "unresolved:",
-                                                  "SKIPPED:")))):
-                    overrides[k] = v
-        overrides["successor_live_model"] = str(live_model)
-        if refusal_fallback:
-            overrides["model_refusal_fallback"] = refusal_fallback
         verification = b.get("verification")
         if not isinstance(verification, dict):
             verification = None
+        measured = b.get("measured_at")
+        if not isinstance(measured, dict):
+            measured = {}
+        # resolve the join-only facts THIS confirm can supply
+        overrides: dict = {}
+        if live_model:
+            overrides["successor_live_model"] = str(live_model)
+        if refusal_fallback:
+            overrides["model_refusal_fallback"] = refusal_fallback
+        # carry EVERY other fact through byte-identically (value AND
+        # measured_at): only the join facts may change on this rewrite. A
+        # join-only fact ANOTHER path already resolved (rotate-self's
+        # successor_address) is preserved, never clobbered back to pending.
+        for k, v in tele.items():
+            if k not in BOOTSTRAP_JOIN_ONLY_FACTS:
+                overrides[k] = v
+            elif (v is not None
+                  and not (isinstance(v, str)
+                           and v.startswith(("pending:", "unresolved:",
+                                             "SKIPPED:")))):
+                overrides[k] = v
         _write_bootstrap(
             root, seat=seat,
             generation=b.get("generation"),
             telemetry=tele,
             verification=verification,
             overrides=overrides,
-            join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)))
+            join_pending=(set(BOOTSTRAP_JOIN_ONLY_FACTS) - set(overrides)),
+            join_poll_secs=join_poll_secs,
+            prior_measured_at=measured,
+            keep_measured={k for k in tele
+                           if k not in BOOTSTRAP_JOIN_ONLY_FACTS})
         return True
     except (OSError, ValueError):
         return False
@@ -9236,13 +9610,24 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                         hov = {}
                     hov["model_confirm"] = model_confirm
                     rec["handover"] = hov
-                    if (isinstance(model_confirm, dict)
-                            and model_confirm.get("live")):
-                        _fill_bootstrap_join_facts(
-                            root, seat=seat,
-                            live_model=str(model_confirm["live"]),
-                            refusal_fallback=_transcript_refusal_fallback(
-                                values.get("succ_transcript") or ""))
+                    # (SL7.54 fix 3) fill/annotate the bootstrap join facts
+                    # when a join WAS attempted — even when the confirm
+                    # resolved NO live model, so an unresolved join fact reads
+                    # `unresolved: join found nothing within <inter>s`, never
+                    # the PRE-join `pending: resolved after join` lie that a
+                    # future join will fix it. Thread the effective poll
+                    # (`inter`) through as join_poll_secs.
+                    _confirm = (model_confirm if isinstance(model_confirm, dict)
+                                else {})
+                    _live = _confirm.get("live")
+                    _fill_bootstrap_join_facts(
+                        root, seat=seat,
+                        live_model=(str(_live) if _live else None),
+                        refusal_fallback=(
+                            _transcript_refusal_fallback(
+                                values.get("succ_transcript") or "")
+                            if isinstance(model_confirm, dict) else None),
+                        join_poll_secs=int(inter))
                 rec["after_join"] = {
                     "performed_by": "service",
                     "delay_s": delay_s,
@@ -9310,6 +9695,13 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     rec, path = pair
     if rec.get("after_join"):
         return None  # already performed
+    # (goal:g15.25 SL7.54 fix 5) the pushed-seats fetch memo is per-PROCESS
+    # (`_PUSHED_SEATS_FETCHED_ONCE`, keyed on (root, ref)); a long-lived
+    # reaper process pins the FIRST-fetched prime row across Prime rotations.
+    # Clear it at the START of every run so two runs in one process after a
+    # prime row change read the new row (the first/first_turn values build
+    # below refetches). `_prime_rows_fetch_clear` had NO production caller.
+    _prime_rows_fetch_clear()
     delay_s = int((rec.get("after_join") or {}).get("delay_s")
                   or DEFAULT_AFTER_JOIN_DELAY_S)
     rec_ts = rec.get("recorded_at", "")
@@ -9321,13 +9713,25 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                 ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%SZ")
             except ValueError:
                 ts = None
+        # (goal:g15.25 SL7.54) a rotation record's `recorded_at` is a UTC
+        # instant (isoformat + trailing Z), never a naive LOCAL wall clock.
+        # strptime's literal `Z` yields a NAIVE datetime; timestamp() then
+        # interprets it in the box's local zone — a 4 h skew on an EDT host —
+        # so a record stamped within its delay in UTC read not-due until
+        # hours later. Stamp it UTC explicitly, then compare in UTC.
+        if ts is not None and ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
         if ts is not None:
             now = now if now is not None else time.time()
             if (ts.timestamp() + delay_s) > now:
                 return None  # not yet due
+
     row = _find_seat(root, seat)
     role = (row or {}).get("role") or "parent"
-    tmpl, _name, _src = _resolve_template(root, role)
+    # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
+    # (None = role default) so `_resolve_template(root, role, None)` matches
+    # its 4-arg signature — the old 2-arg call raised TypeError every run.
+    tmpl, _name, _src = _resolve_template(root, role, None)
     startup = (tmpl.get("startup") if tmpl else None) or {}
     gen = rec.get("gen_after")
     # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
@@ -11924,6 +12328,19 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
             overrides={"ack": f"{_ack_answer} (source predecessor, gen {gen})"})
 
+    # (2.8) SWEEP the seat's dead hook-*.lock latches before the spawn
+    #     (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-spawning).
+    #     A latch left by a rotate-self that DIED (or whose pid was reused)
+    #     sits under sessions/rotations until the hook fires again; a Prime
+    #     that notices it spends a wake call removing it BY HAND instead of
+    #     the mechanism (the P4 line a sensei edited by hand). rotate-self
+    #     unlinks every hook-<seat>-gen*.lock whose holder pid is not alive
+    #     BEFORE spawning the successor. Best-effort: never refuses the
+    #     rotation, and a dry-run touches nothing (no real spawn to sweep
+    #     around).
+    if not args.dry_run:
+        _sweep_dead_hook_latches(root, seat)
+
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -12474,9 +12891,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                          or args.effort),
         pid=succ_pid, transcript=succ_transcript)
     if isinstance(_mc, str):
-        handover["model_confirm"] = (
-            "deferred: after_join — no assistant turn yet at rotate-self; "
-            "run_after_join confirms once the successor transcript carries one")
+        # (goal:g15.25 SL7.54 fix 4) `deferred: after_join` only when SOMEONE
+        # will actually perform the after_join confirm — the rotate-self
+        # fallback (`inline_reaper` truthy, or the fixture forces it) or the
+        # persistent heal.py watch unit. When NO performer can run, the honest
+        # record is the real non-verdict `skipped: <reason>` — never a lie
+        # that a future confirm will land.
+        if _after_join_performer_armed(
+                root, forced=bool(getattr(args, "after_join", False))):
+            handover["model_confirm"] = (
+                "deferred: after_join — no assistant turn yet at rotate-self; "
+                "run_after_join confirms once the successor transcript carries one")
+        else:
+            handover["model_confirm"] = (
+                f"skipped: {_mc} — no captive after_join performer (reaper "
+                f"unit off and agent_dispatch.inline_reaper=false)")
     else:
         _mc["confirm_at"] = "rotate-self"
         handover["model_confirm"] = _mc
@@ -12763,6 +13192,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print(f"    predecessor window list: "
               f"{_observed_windows(tmux_session, args.window_path)['names']!r}")
     print(f"rotation recorded: {record_path}")
+    # (goal:g15.25 SL7.55) rotate-self COMMITS its OWN rotation record +
+    # sequence.json as ONE pathspec commit on a MAIN-checkout post, so the
+    # rotation's proof is not left untracked under the PREPARE_CHURN captive
+    # exemption ({sessions/rotations/*.json}). Runs AFTER every in-place
+    # record rewrite (ack-rename / after_join / s12 append), so the committed
+    # bytes are the FINAL record. Best-effort + fail-soft: on any failure it
+    # prints ONE stderr line and the rotation still succeeds (falsifier 4).
+    # Worktree seats are unchanged (_button_down owns their grid commit).
+    handover["rotation_record_commit"] = _commit_rotation_record(
+        root, seat=seat, gen_before=gen_before, gen_after=gen,
+        record_path=record_path)
     _restore_shield_signals(_shield_old)
     return 0
 

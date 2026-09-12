@@ -2750,8 +2750,19 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
     assert ("rotation line: delivered as the [rotation-alert] dm "
             "to <prime> (no send.py call needed)") in out
     top = tmp_path
-    names = subprocess.run(
+    # NEW behavior (goal:g15.25): the LATEST commit is now the record+sequence
+    # commit — rotate-self commits its OWN record. The rotate-out (stops)
+    # card commit is the one that named card + seats only, so scope the
+    # read to the card's own commit.
+    latest = subprocess.run(
         ["git", "-C", str(top), "log", "-1", "--name-only", "--format="],
+        capture_output=True, text=True).stdout.splitlines()
+    latest = [n for n in latest if n.strip()]
+    assert latest and all(n.startswith("sessions/rotations/")
+                          for n in latest), latest
+    names = subprocess.run(
+        ["git", "-C", str(top), "log", "-1", "--name-only", "--format=",
+         "--", "sessions/quorum/adv-alive.md"],
         capture_output=True, text=True).stdout.splitlines()
     names = [n for n in names if n.strip()]
     assert names, "rotate-out commit committed nothing"
@@ -3051,6 +3062,67 @@ def test_locate_where_it_stops_never_numeral(tmp_path):
     assert _r._locate_where_it_stops(secs3) == "ambiguous"
 
 
+def test_split_card_sections_fenced_hash_heading_not_a_section():
+    """goal:g15.25 (iii) FALSIFIER — a `## ` line QUOTED inside a four-
+    backtick code fence is CONTENT, never a section header: the splitter is
+    fence-run aware (the SL7.48 fix ported from the stops scan to the card
+    reader), so a card with one fenced `## ` yields exactly its REAL
+    heading count, and the fenced heading stays inside its section's body.
+    On the pre-fix bytes the fenced `## ` split the card, giving one MORE
+    section than the real headings."""
+    from agi.bin import rotate as _r
+    card = (
+        "# title\n\n"
+        "## Real A\n"
+        "before\n\n"
+        "````\n"
+        "## not a heading\n"
+        "inside four-backtick fence\n"
+        "````\n\n"
+        "## Real B\n"
+        "after\n"
+    )
+    preamble, secs = _r._split_card_sections(card)
+    headers = [h for h, _ in secs]
+    assert headers == ["## Real A", "## Real B"]     # the 2 REAL headings
+    # the fenced `## ` stays inside section A's body, never a section header
+    assert "## not a heading\ninside four-backtick fence" in secs[0][1]
+    assert preamble == "# title\n"
+
+
+def test_split_card_sections_fenced_heading_round_trips_byte_identical():
+    """goal:g15.25 (iii) — a card whose fenced block contains a `## `
+    heading round-trips through split + `_render_card` BYTE-IDENTICAL, and
+    the round-trip does NOT change the card (the splitter never dropped or
+    invented a section boundary)."""
+    from agi.bin import rotate as _r
+    card = (
+        "# title\n\n"
+        "## Real A\n"
+        "before\n\n"
+        "```\n"
+        "## quoted\n"
+        "inside\n"
+        "```\n\n"
+        "## Real B\n"
+        "after\n"
+    )
+    preamble, secs = _r._split_card_sections(card)
+    assert _r._render_card(preamble, secs) == card    # byte-identical
+
+
+def test_split_card_sections_unfenced_hash_heading_still_splits():
+    """goal:g15.25 (iii) guard — the fence tracking only SUPPRESSES `## `
+    lines inside a fence; an ordinary unfenced `## ` header MUST still
+    split the card exactly as before (the existing split semantics are
+    unchanged)."""
+    from agi.bin import rotate as _r
+    preamble, secs = _r._split_card_sections(
+        "# t\n\n## One\na\n\n## Two\nb\n\n## Three\nc\n")
+    assert [h for h, _ in secs] == ["## One", "## Two", "## Three"]
+    assert [b for _, b in secs] == ["a\n\n", "b\n\n", "c\n"]
+
+
 def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
     """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
     `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
@@ -3158,10 +3230,13 @@ def test_rotate_self_stops_stamps_header_once_in_commit(
                              stops="fix the merge on seat-3")
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, capsys.readouterr().out
-    # git log -1 --stat names the card EXACTLY ONCE
+    # git log -1 --stat names the card EXACTLY ONCE, in the card's OWN
+    # commit (the rotating record+sequence commit is now the LATEST per
+    # goal:g15.25, so scope the read to the card's commit).
     names = subprocess.run(
         ["git", "-C", str(tmp_path), "log", "-1", "--name-only",
-         "--format="], capture_output=True, text=True).stdout.splitlines()
+         "--format=", "--", "sessions/quorum/adv-alive.md"],
+        capture_output=True, text=True).stdout.splitlines()
     names = [n for n in names if n.strip()]
     assert names.count("sessions/quorum/adv-alive.md") == 1, names
     committed = subprocess.run(
@@ -3289,11 +3364,17 @@ def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
         ["git", "-C", str(tmp_path), "ls-files"],
         capture_output=True, text=True).stdout
     # the merge commit (+ the stops commit) were BOTH pushed before the
-    # spawn: HEAD equals its upstream, unpushed count is ZERO
+    # spawn. The ONE unpushed commit at the end is only the record+sequence
+    # commit rotate-self leaves (goal:g15.25: a plain local commit, never
+    # pushed by the predecessor — the successor's tree to carry at merge).
     unpushed = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-list", "--count", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
-    assert unpushed == "0", f"unpushed commits before spawn: {unpushed}"
+    assert unpushed == "1", f"unpushed commits before spawn: {unpushed}"
+    un_log = subprocess.run(
+        ["git", "-C", str(tmp_path), "log", "--format=%s", "@{u}..HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    assert "record + sequence" in un_log, un_log
     # the spawn ran AFTER the push (last side effect) and exactly once
     assert win.read_text(encoding="utf-8").count("adv-alive") == 2
     # merge did not clobber the stops card
@@ -4601,6 +4682,68 @@ def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     assert sent == [], \
         f"a gen-1 diff-with-text must NOT announce a seating: {sent}"
     assert not list(rotate._rotations_dir(tmp_path).glob("diff-t.*.seating.json"))
+
+
+def test_ack_gen1_continue_no_commit_still_announces_and_records(tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-the-first-seating-announce-and-record-do-not-depend-on-
+    the-ack-commit-flag (g15.24 FIX-ONLY) — the gen-1 first-seating announce
+    gate calls `_ack_stands`, NOT `_ack_commits`, so `--no-commit` no longer
+    suppresses the announce/record. A gen-1 `continue` UNDER --no-commit sends
+    ONE dm, writes ONE seating record (both have nothing to do with committing)
+    and commits nothing (HEAD unchanged, no push, no committed line). Fails on
+    the pre-fix bytes, which folded --no-commit in and produced dms=0 recs=0."""
+    import send as _send
+    rows = [{"name": "noct-seat", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["noct-seat", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="noct-seat", gen=1, ref="n1",
+                                        answer="continue", text=None,
+                                        no_commit=True), tmp_path)
+    assert rc == 0
+    assert len(sent) == 1, \
+        f"a gen-1 continue WITH --no-commit must announce the first seating once: {sent}"
+    _to, text = sent[0]
+    assert "first seating noct-seat" in text
+    assert "trigger: first-seating" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("noct-seat.*.seating.json"))
+    assert len(recs) == 1, \
+        f"exactly ONE seating record even under --no-commit, got {recs}"
+    out = capsys.readouterr().out
+    assert "git -C" not in out or "push" not in out, \
+        f"--no-commit must commit nothing: {out}"
+
+
+def test_ack_gen1_diff_with_text_no_commit_still_sends_nothing(tmp_path, monkeypatch):
+    """hypothesis:l4-the-first-seating-announce-and-record-do-not-depend-on-
+    the-ack-commit-flag falsifier — `--no-commit` changes the announce gate's
+    INPUT (the handoff decision), never the outcome: a gen-1 `diff` WITH text
+    still does NOT stand the handoff, so it sends no dm and writes no seating
+    record even under --no-commit."""
+    import send as _send
+    rows = [{"name": "diff-nc", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-nc", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-nc", gen=1, ref="d3",
+                                        answer="diff", text="- a\n+ b",
+                                        no_commit=True), tmp_path)
+    assert rc == 0
+    assert sent == [], \
+        f"a gen-1 diff-with-text must NOT announce a seating even with --no-commit: {sent}"
+    assert not list(rotate._rotations_dir(tmp_path).glob("diff-nc.*.seating.json"))
 
 
 def test_ack_help_names_diff_empty_commits(capsys):
@@ -7425,6 +7568,90 @@ def test_own_row_cut_work_only_added_row_keeps_walk_position(tmp_path):
         "a foreign row's role change must be reverted"
 
 
+def test_own_row_cut_keyless_work_only_line_keeps_walk_position(tmp_path):
+    """SL7.66 / goal:g15.24 falsifier: a KEYLESS WORK-only line — a changed
+    line with NO `"name"` cell that this seat's write added (here the
+    `edited_by:` frontmatter-stamp line the own-row write leaves BETWEEN the
+    row lines), in the SAME opcode as keyed rows — is emitted at its WALK
+    position, right where it sits on the added side, past the same `_own`
+    gate the region-end branch applies. Pre-fix it never took the in-place
+    emission branch (that branch was gated on `ak is not None`), so it was
+    flushed to the REGION END, after the next HEAD row. FALSIFIER: the
+    keyless line lands after `other` instead of preceding it."""
+    root, top = _empty_row_git_root(tmp_path, ["alpha", "other"])
+    seats = rotate._ack_seats_path(root)
+    rows = [
+        {"name": "alpha", "role": "p2", "model": "x", "effort": "max",
+         "settings": ""},
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        # keyless structural line the own-row write adds between the rows
+        {"name": "other", "role": "director", "edited_by": "x",
+         "model": "x", "effort": "max", "settings": ""},
+    ]
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows[0:2]:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "edited_by: belam\n"
+    body += "  - " + json.dumps(rows[2]) + "\n"
+    body += "---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row write must build content"
+    lines = staged.splitlines()
+    # the KEYLESS own line is staged at its WALK position — before the next
+    # HEAD row (`other`), not flushed to the region end (the SL7.66 defect).
+    key_i = next(i for i, l in enumerate(lines)
+                 if l.strip() == "edited_by: belam")
+    assert key_i < next(i for i, l in enumerate(lines)
+                        if '"name": "other"' in l), \
+        "the keyless own line must precede the next HEAD row, not the end"
+    # the OWN inserted row still sits at its walk position beside it.
+    assert next(i for i, l in enumerate(lines)
+                if '"name": "belam"' in l) < key_i, \
+        "the own inserted row must precede the keyless line"
+    # FOREIGN edits around them are reverted byte-identical to HEAD.
+    assert '"name": "alpha", "role": "director"' in staged, \
+        "alpha's role change must be reverted to HEAD"
+    assert '"edited_by": "x"' not in staged, \
+        "the foreign `edited_by` cell must never be staged as own"
+    assert '"role": "p2"' not in staged, \
+        "a foreign row's role change must be reverted"
+
+
+def test_own_row_cut_foreign_deleted_row_precedes_own_added_at_same_slot(tmp_path):
+    """SL7.66 / goal:g15.24 falsifier: when a FOREIGN row that HEAD deletes
+    meets a WORK-only added row at ONE slot (HEAD has `other`, the WORK copy
+    deletes it and inserts the OWN row `belam` there), the staged order must
+    match the tree's own file: the foreign row FIRST — restored byte-identical
+    to HEAD — then the WORK row. Pre-fix the in-place emission raced the WORK
+    row ahead of the slot it replaces, so `belam` came before the restored
+    `other`. FALSIFIER: the restored foreign row appears after the WORK row."""
+    root, top = _empty_row_git_root(tmp_path, ["other"])
+    seats = rotate._ack_seats_path(root)
+    body = "---\nid: config:seats\ntype: config\nseats:\n" + \
+        "  - " + json.dumps({"name": "belam", "role": "prime_director",
+                            "model": "x", "effort": "max",
+                            "settings": ""}) + "\n---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row write must build content"
+    lines = staged.splitlines()
+    work_i = next(i for i, l in enumerate(lines) if '"name": "belam"' in l)
+    foreign_i = next(i for i, l in enumerate(lines) if '"name": "other"' in l)
+    assert foreign_i < work_i, \
+        "the restored foreign row must precede the WORK-only row"
+    # the FOREIGN row is byte-identical to HEAD.
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    head_blob = subprocess.run(
+        ["git", "-C", str(top), "show", f"HEAD:{rel}"],
+        capture_output=True, text=True).stdout
+    foreign_head_line = next(
+        l for l in head_blob.splitlines() if '"name": "other"' in l)
+    assert foreign_head_line in staged, \
+        "the foreign row must appear byte-identical to HEAD"
+
+
 def _empty_row_git_root(tmp_path, names):
     """A committed git root whose seats.md carries the rows NAMED in `names`
     (all foreign to the seat under test, which is ABSENT — the seat's own row
@@ -7449,3 +7676,140 @@ def _empty_row_git_root(tmp_path, names):
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "rows"], check=True, capture_output=True)
     return root, tmp_path
+
+
+def test_ack_continue_refused_on_diff_requested_pending(tmp_path,
+                                                        monkeypatch, capsys):
+    """CLAIM (hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-with-
+    the-exact-diff-line): a predecessor that rotated with `--ask-diff` leaves
+    the pending ack carrying `answer: diff-requested, source: predecessor`
+    and the exact `rotate.py ack ... diff --text -` line in its STARTUP.
+    FALSIFIER 1 was MEASURED on the pre-fix seat tip: a successor answering
+    `continue` on that pending file was ACCEPTED (exit 0), overwrote the ack,
+    back-filled session_ref and printed the committed\n
+    row — the handoff never inspected. After the fix: `ack continue` exits 3,
+    prints ONE stderr line carrying the REAL seat/gen/ref and the exact diff
+    command, and writes NOTHING (no ack overwrite, no back-fill, no commit)."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    # the predecessor rotated with --ask-diff: write the exact pending ack
+    # rotate-self --ask-diff leaves (rotate.py _answer = "diff-requested").
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "diff-requested", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    before_head = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 3, capsys.readouterr().err
+    err = capsys.readouterr().err
+    # ONE stderr line, exact command, real values filled.
+    assert "REFUSED: the predecessor asked for a diff" in err
+    assert ("python3 extensions/agi/bin/rotate.py ack --seat belam "
+            "--gen 7 --ref f52a4c diff --text -") in err
+    assert err.count("REFUSED") == 1
+    # NOTHING written: ack file untouched (still diff-requested),
+    # row not back-filled, no commit.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] \
+        == "diff-requested"
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    assert _git_head(top) == before_head
+    out = capsys.readouterr().out
+    assert out.strip() == "", "refusal must not write anything to stdout"
+
+
+def test_ack_continue_refused_when_diff_requested_is_from_seating(tmp_path,
+                                                                  monkeypatch,
+                                                                  capsys):
+    """CLAIM (hypothesis:l4-ack-continue-is-refused-on-an-ask-diff-path-
+    with-the-exact-diff-line): the FIRST-SEATING --ask-diff writer
+    (rotate.py:4049 `_answer = "diff-requested" ... ask_diff else`,
+    passed with source="seating" at :4051) leaves the IDENTICAL pending
+    state the predecessor rotation does — same `answer: diff-requested`, same
+    one-line `rotate.py ack ... diff --text -` command in the STARTUP alert.
+    The gate must NOT be source-qualified: a hand-seated successor that
+    skims past that line and answers `continue` must be refused exactly like
+    the predecessor case, or the diff is never inspected. FALSIFIER 1 was
+    MEASURED on the source-qualified (predecessor-only) gate: seeding
+    `source: seating` and answering continue returned EXIT 0, overwrote the
+    ack, back-filled the row and printed "announced first seating". After
+    the source-agnostic fix: exit 3, ONE stderr line, nothing written."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 1, "session_ref": "",
+        "answer": "diff-requested", "source": "seating",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    before_head = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=1, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 3, capsys.readouterr().err
+    err = capsys.readouterr().err
+    # ONE stderr line, exact command, real values filled, same as predecessor.
+    assert "REFUSED: the predecessor asked for a diff" in err
+    assert ("python3 extensions/agi/bin/rotate.py ack --seat belam "
+            "--gen 1 --ref f52a4c diff --text -") in err
+    assert err.count("REFUSED") == 1
+    # NOTHING written: ack file untouched, row not back-filled, no commit.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] \
+        == "diff-requested"
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == ""
+    assert _git_head(top) == before_head
+    out = capsys.readouterr().out
+    assert out.strip() == "", "refusal must not write anything to stdout"
+
+
+def test_ack_continue_accepted_on_pending_continue(tmp_path,
+                                                   monkeypatch, capsys):
+    """CLAIM falsifier guard: a predecessor that rotated with the DEFAULT
+    (no --ask-diff) leaves `answer: continue` — the successor's `ack continue`
+    is the existing one-line NO-OP (nothing to run, exit 0) UNCHANGED; the
+    new refusal must never fire on the default-continue path."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "continue", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
+        root)
+    assert code == 0, capsys.readouterr().err
+    assert "already answered continue by your predecessor" in \
+        capsys.readouterr().out
+    assert capsys.readouterr().err == ""
+
+
+def test_ack_diff_accepted_on_diff_requested_pending(tmp_path,
+                                                     monkeypatch, capsys):
+    """CLAIM: a predecessor diff-request pending is the SUCCESSOR'S call to
+    answer with `diff --text -` — the diff (empty or with text) proceeds
+    exactly as today and is NEVER refused by the new gate."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    ack_path = rotate._ack_path(root, "belam")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    ack_path.write_text(json.dumps({
+        "seat": "belam", "gen_after": 7, "session_ref": "",
+        "answer": "diff-requested", "source": "predecessor",
+        "ts": "2026-09-12T00:00:00Z"}) + "\n", encoding="utf-8")
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="diff",
+        text="the successor needs a change"),
+        root)
+    assert code == 0, capsys.readouterr().err
+    assert "REFUSED" not in capsys.readouterr().err
+    # the successor's diff overwrote the pending ack with answer diff.
+    assert json.loads(ack_path.read_text(encoding="utf-8"))["answer"] == "diff"
