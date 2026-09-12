@@ -1,0 +1,109 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-12T11:40:37.985675Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sensei-director",
+      "windows": [
+        "belam-S1-L4-XI",
+        "sanctuary-director.gen22",
+        "stream-master",
+        "master-sensei",
+        "sensei-director",
+        "belam-S1-L4-XII",
+        "sensei-director.gen11",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 10,
+      "after": 11
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 7109198,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sensei-director.gen11",
+      "windows": [
+        "belam-S1-L4-XI",
+        "sanctuary-director.gen22",
+        "stream-master",
+        "master-sensei",
+        "sensei-director",
+        "belam-S1-L4-XII",
+        "sensei-director.gen11",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sensei-director.gen11",
+      "id": "@322"
+    },
+    "successor_window": {
+      "name": "sensei-director",
+      "id": "@323"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@323",
+      "pid": 741899,
+      "session_id": "5187498e-4be6-42bc-8299-07af9d636068",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sensei-director/5187498e-4be6-42bc-8299-07af9d636068.jsonl",
+      "name": "seat-sensei-director-10",
+      "path": "/home/ubuntu/.claude/sessions/741899.json",
+      "note": "joined by @323 in registry file 741899.json"
+    },
+    "successor_row": "config:seats row 'sensei-director': session_ref= session_id=5187498e-4be6-42bc-8299-07af9d636068 pid=741899 generation=11 window='@323' source=registry pubkey=d8985b42d57543c9... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha cfcc80994) -- own-row only: sensei-director spawn row: gen 11, session_id 5187498e-4be6-42bc-8299-07af9d636068, window @323, pid 741899\npush: push: OK -- season/s2",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen11.json",
+    "own_authority_released": "generation 10 of seat 'sensei-director' retired; successor generation 11 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch seat/sensei-director@s2",
+    "livestream_repoint": {
+      "session": "view-sensei-director",
+      "target": "@323",
+      "skipped": "view session view-sensei-director absent"
+    },
+    "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.json"
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      102243,
+      102245,
+      102256,
+      102257
+    ],
+    "reap_source": "derived from own window @id @322 pane 102243: chain [102243, 102245, 102256, 102257] (deepest-first; authority row pid 102257)"
+  }
+}
