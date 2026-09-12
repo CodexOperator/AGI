@@ -423,3 +423,57 @@ def test_rotate_holds_another_post_record_carries_freeze(tmp_path, monkeypatch,
     assert hg["auto_released"] is False
     assert rec["refusal_reason"].startswith("rotation: HELD")
 
+
+
+# ---- kid B: FRESHNESS on a ring-authorized veto (opt-in) ----------------
+def _veto_cell_fresh(ck, scope, reason, ts, nonce):
+    """A signed veto DECISION CELL whose fields carry the reserved `_fresh`
+    (ts|nonce) -- a producer opting into a finite signature-replay life."""
+    import time as _time
+    from seatsig import rings
+    base = veto.veto_fields(scope, reason)
+    fields = rings.fresh_fields(base, ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("veto", fields)
+    sigs = []
+    for post in ("council-core", "keep-prime"):
+        scheme = get("fixture")
+        sigs.append(
+            f"{post}:fixture:{scheme.sign(ck['signers'][post], canonical).hex()}")
+    return rings.decision_cell("council-and-keep", "veto", fields, sigs)
+
+
+def test_veto_fresh_fields_opt_in_admits(council_and_keep, geom):
+    """A veto decision carrying a FRESH `_fresh` is accepted (the opt-in
+    read-side guard is a no-op on a within-window fresh veto)."""
+    import time as _time
+    from seatsig import rings
+    cell = _veto_cell_fresh(
+        council_and_keep, "prime", "opt-in fully scripted",
+        ts=rings._now_iso(), nonce="vnow1")
+    refusal, new = veto.evaluate_veto(
+        geom, "prime", cell, ring=council_and_keep["ring"],
+        pubkey_for_post=council_and_keep["resolve"])
+    assert refusal is None
+    assert len(new["active_gates"]) == 1
+
+
+def test_veto_fresh_stale_refused_by_name(council_and_keep, geom):
+    """A veto decision carrying a STALE `_fresh` (past its replay window) is
+    refused BY NAME on freshness -- it can neither set a gate nor log."""
+    import time as _time
+    from seatsig import rings
+    stale_ts = rings._now_iso()  # would be a real old ts below; use far past:
+    from datetime import datetime, timedelta, timezone
+    stale_ts = (datetime.now(timezone.utc) - timedelta(seconds=5000)
+                ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    cell = _veto_cell_fresh(
+        council_and_keep, "prime", "stale fresh", ts=stale_ts, nonce="vold1")
+    refusal, new = veto.evaluate_veto(
+        geom, "prime", cell, ring=council_and_keep["ring"],
+        pubkey_for_post=council_and_keep["resolve"])
+    assert refusal is not None
+    assert "freshness" in refusal
+    assert "stale" in refusal
+      # nothing froze, nothing logged
+    assert new["active_gates"] == []
+    assert new["vetoes"] == []
