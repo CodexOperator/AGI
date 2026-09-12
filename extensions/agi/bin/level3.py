@@ -199,12 +199,20 @@ def default_project_root() -> Path | None:
     orphan-counts): the env override first (it may descend into `.agi/` — see
     `locations.project_root_from_env`), else the cwd. Env-first is deliberate:
     a caller that already exported a project root is never overridden by the
-    directory the run happens to start in. None reaches `main`, which refuses
-    by name rather than scan a stray `<cwd>/nodes/...` tree as authoritative.
+    directory the run happens to start in. The env value passes through the
+    SAME resolve-or-refuse as the cwd leg, never accepted unchecked
+    (hypothesis:l4-level3-checks-the-env-spelled-root-by-name-exactly-as-it-
+    checks-the-cwd-leg): a variable pointing at a directory that is not a
+    project root resolves to None and is refused by name — it must not be
+    scanned as an authoritative stray tree. A valid env root — a graph root or
+    a repo root, either of which `locations.project_root_from_env` may already
+    descend into `.agi/` — resolves exactly as before. None reaches `main`,
+    which refuses by name rather than scan a stray `<cwd>/nodes/...` tree as
+    authoritative.
     """
     env_root = locations.project_root_from_env()
     if env_root is not None:
-        return env_root
+        return resolve_project_root(env_root)
     return resolve_project_root(Path.cwd())
 
 
@@ -1197,12 +1205,25 @@ def main(argv: list[str] | None = None) -> int:
     else:
         # No `--project`: resolve through the SAME resolver as the flag, and
         # refuse by name when it finds no graph — never scan the raw cwd's
-        # `<cwd>/nodes` tree as authoritative (goal:g15).
+        # `<cwd>/nodes` tree as authoritative (goal:g15). When an env override
+        # was the spell that failed, the refusal names the variable and its
+        # value, exactly as the cwd message names the directory
+        # (hypothesis:l4-level3-checks-the-env-spelled-root-by-name-exactly-as-
+        # it-checks-the-cwd-leg).
         resolved = default_project_root()
         if resolved is None:
-            print(f"ERR: no graph root at or above "
-                  f"{Path.cwd().resolve()}"
-                  f" (no .agi/ and no nodes/)", file=sys.stderr)
+            env_hit = next((v for v in locations.PROJECT_ROOT_ENV_VARS
+                            if os.environ.get(v)), None)
+            if env_hit:
+                print(f"ERR: no graph root at or above "
+                      f"{Path.cwd().resolve()}"
+                      f" (no .agi/ and no nodes/) — env {env_hit}="
+                      f"{os.environ[env_hit]} does not resolve to a project root",
+                      file=sys.stderr)
+            else:
+                print(f"ERR: no graph root at or above "
+                      f"{Path.cwd().resolve()}"
+                      f" (no .agi/ and no nodes/)", file=sys.stderr)
             return 2
         _set_project_root(resolved)
     project_root = PROJECT_ROOT
