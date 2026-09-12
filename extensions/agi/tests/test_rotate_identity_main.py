@@ -362,3 +362,89 @@ def test_worktree_rotate_self_then_ack_continue_lands_in_main(tmp_path, monkeypa
         capture_output=True, text=True).stdout.splitlines()
     assert log[0].endswith(
         f"{seat} ack: gen 4, session_ref new-ref, window @NEW, pid 3200"), log
+
+
+def _write_fake_rotation(root, seat):
+    """Drop one fake rotation record + advance sequence.json in MAIN's tree."""
+    rot = root / ".agi" / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    rec = rot / f"{seat}.20260912T000000Z.json"
+    rec.write_text(json.dumps({"seat": seat, "result": "started"}) + "\n",
+                   encoding="utf-8")
+    rotate._next_sequence(root / ".agi")   # writes sequence.json
+    return rec
+
+
+def test_rotate_self_commits_record_and_sequence_on_main(tmp_path):
+    """g15.25 — a MAIN-checkout post's rotate-self COMMITS its OWN rotation
+    record + sequence.json as ONE pathspec commit. FALSIFIER 1: after it, the
+    two paths no longer show in `git status`; FALSIFIER 2: the commit touches
+    nothing outside them (the tree is clean)."""
+    main, _wt, seat = _make_main_and_worktree(tmp_path)
+    rec = _write_fake_rotation(main, seat)
+    # PRE-FIX: both files are untracked (the PREPARE_CHURN captive exemption
+    # is exactly why nothing commits them today).
+    pre = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/sessions/rotations/"],
+        capture_output=True, text=True).stdout
+    assert pre, "PRE-FIX: the rotation record + sequence ride untracked"
+
+    out = rotate._commit_rotation_record(
+        main / ".agi", seat=seat, gen_before=3, gen_after=4,
+        record_path=rec)
+    assert out.startswith("rotation_record_commit: committed"), out
+    # FALSIFIER 1: the two paths are now committed (clean) for the outer tree.
+    st = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", f"after the record commit the MAIN tree must be clean: {st}"
+    # FALSIFIER 2: exactly ONE new commit (over the seed) naming both paths.
+    log = subprocess.run(
+        ["git", "-C", str(main), "log", "--format=%h %s"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert len(log) == 2, log
+    assert log[0].endswith(
+        f"rotate-self {seat} gen 3->4: record + sequence"), log
+    both = subprocess.run(
+        ["git", "-C", str(main), "show", "--stat", "--format=", "HEAD"],
+        capture_output=True, text=True).stdout
+    assert ".json" in both and "sessions/rotations/" in both, both
+
+
+def test_rotate_self_record_commit_skipped_on_worktree(tmp_path):
+    """FALSIFIER 3: a worktree seat's rotate-self grows NO new plain commit —
+    it keeps `_button_down` and the record commit reports SKIPPED."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    rec = _write_fake_rotation(main, seat)
+    out = rotate._commit_rotation_record(
+        wt / ".agi", seat=seat, gen_before=3, gen_after=4, record_path=rec)
+    assert out.startswith("rotation_record_commit: SKIPPED"), out
+    assert "worktree seat" in out, out
+    # only the seed commit exists in MAIN — nothing was grown.
+    log = subprocess.run(
+        ["git", "-C", str(main), "log", "--format=%h %s"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert len(log) == 1, log
+
+
+def test_rotate_self_record_commit_failure_is_best_effort(
+        tmp_path, monkeypatch, capsys):
+    """FALSIFIER 4: when the commit step raises, rotate-self does NOT refuse —
+    the helper returns FAILED, prints ONE stderr line, never raises."""
+    main, _wt, seat = _make_main_and_worktree(tmp_path)
+    rec = _write_fake_rotation(main, seat)
+    real_run = rotate.subprocess.run
+
+    def _boom(args, **kw):
+        if any(a == "commit" for a in args):
+            raise RuntimeError("injected boom")
+        return real_run(args, **kw)
+
+    monkeypatch.setattr(rotate.subprocess, "run", _boom)
+    out = rotate._commit_rotation_record(
+        main / ".agi", seat=seat, gen_before=3, gen_after=4,
+        record_path=rec)
+    assert out.startswith("rotation_record_commit: FAILED"), out
+    err = capsys.readouterr().err
+    assert "rotation_record_commit: FAILED" in err, err

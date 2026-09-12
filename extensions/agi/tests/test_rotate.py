@@ -2750,8 +2750,19 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
     assert ("rotation line: delivered as the [rotation-alert] dm "
             "to <prime> (no send.py call needed)") in out
     top = tmp_path
-    names = subprocess.run(
+    # NEW behavior (goal:g15.25): the LATEST commit is now the record+sequence
+    # commit — rotate-self commits its OWN record. The rotate-out (stops)
+    # card commit is the one that named card + seats only, so scope the
+    # read to the card's own commit.
+    latest = subprocess.run(
         ["git", "-C", str(top), "log", "-1", "--name-only", "--format="],
+        capture_output=True, text=True).stdout.splitlines()
+    latest = [n for n in latest if n.strip()]
+    assert latest and all(n.startswith("sessions/rotations/")
+                          for n in latest), latest
+    names = subprocess.run(
+        ["git", "-C", str(top), "log", "-1", "--name-only", "--format=",
+         "--", "sessions/quorum/adv-alive.md"],
         capture_output=True, text=True).stdout.splitlines()
     names = [n for n in names if n.strip()]
     assert names, "rotate-out commit committed nothing"
@@ -3158,10 +3169,13 @@ def test_rotate_self_stops_stamps_header_once_in_commit(
                              stops="fix the merge on seat-3")
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, capsys.readouterr().out
-    # git log -1 --stat names the card EXACTLY ONCE
+    # git log -1 --stat names the card EXACTLY ONCE, in the card's OWN
+    # commit (the rotating record+sequence commit is now the LATEST per
+    # goal:g15.25, so scope the read to the card's commit).
     names = subprocess.run(
         ["git", "-C", str(tmp_path), "log", "-1", "--name-only",
-         "--format="], capture_output=True, text=True).stdout.splitlines()
+         "--format=", "--", "sessions/quorum/adv-alive.md"],
+        capture_output=True, text=True).stdout.splitlines()
     names = [n for n in names if n.strip()]
     assert names.count("sessions/quorum/adv-alive.md") == 1, names
     committed = subprocess.run(
@@ -3289,11 +3303,17 @@ def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
         ["git", "-C", str(tmp_path), "ls-files"],
         capture_output=True, text=True).stdout
     # the merge commit (+ the stops commit) were BOTH pushed before the
-    # spawn: HEAD equals its upstream, unpushed count is ZERO
+    # spawn. The ONE unpushed commit at the end is only the record+sequence
+    # commit rotate-self leaves (goal:g15.25: a plain local commit, never
+    # pushed by the predecessor — the successor's tree to carry at merge).
     unpushed = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-list", "--count", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
-    assert unpushed == "0", f"unpushed commits before spawn: {unpushed}"
+    assert unpushed == "1", f"unpushed commits before spawn: {unpushed}"
+    un_log = subprocess.run(
+        ["git", "-C", str(tmp_path), "log", "--format=%s", "@{u}..HEAD"],
+        capture_output=True, text=True).stdout.strip()
+    assert "record + sequence" in un_log, un_log
     # the spawn ran AFTER the push (last side effect) and exactly once
     assert win.read_text(encoding="utf-8").count("adv-alive") == 2
     # merge did not clobber the stops card
