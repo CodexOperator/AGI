@@ -181,7 +181,8 @@ def _redact_env_map(env: dict) -> dict:
 
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None, push_further: bool = False) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False,
+                 tier: str = "kid") -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -198,6 +199,13 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     """
     cmd = ["python3", str(ZOOM_PY), str(root), str(iter_n), agent_id,
            "--level", level, "--runtime", "pi"]
+    if tier in ("parent", "director"):
+        # hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+        # and-own-kids-never-the-sibling-hypothesis-dump — pass the tier
+        # dispatch already received through to zoom so a parent gets the
+        # compact parent shape, not the 75-90 KB sibling dump. kid is zoom's
+        # default, so a kid spawn stays byte-identical to today.
+        cmd.extend(["--tier", tier])
     if level == "small" and target:
         cmd.extend(["--target", target])
     if push_further:
@@ -1955,7 +1963,7 @@ def main() -> int:
         engine_paths = child_engine_paths(child_graph)
 
         zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
-                               push_further=args.push_further)
+                               push_further=args.push_further, tier=args.tier)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
