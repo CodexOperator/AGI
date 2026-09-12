@@ -395,9 +395,16 @@ function render3D() {
   renderer.domElement = renderer.domElement || {};
   stage.appendChild(renderer.domElement);
 
+  // The default orientation, used at start AND by R (reset): face-on -- the
+  // camera on the +z axis (el 1.45 = the clamp), az 0, close enough that the
+  // web fills the frame (dist 480: the old 1500 after ~9 effective wheel-in
+  // clicks at 0.88 -- measured against the kiosk view the owner approved, not
+  // computed). Owner order 2026-09-12 00:1xZ: "Make current orientation be
+  // default view for graph anytime it starts or restarts."
+  const CAM_DEFAULT = { az: 0, el: 1.45, dist: 480 };
   const cam = {
     target: new THREE.Vector3(0, 0, layerz / 2),
-    az: 0.62, el: 0.55, dist: 1500,
+    az: CAM_DEFAULT.az, el: CAM_DEFAULT.el, dist: CAM_DEFAULT.dist,
   };
   camera = new THREE.PerspectiveCamera(60, W / H, 1, 50000);
   camera.position.set(cam.dist, cam.dist * 0.6, cam.dist * 0.6);
@@ -499,7 +506,7 @@ function render3D() {
     camera.updateMatrixWorld();
   }
   function resetCam() {
-    cam.target.set(0, 0, layerz / 2); cam.az = 0.62; cam.el = 0.55; cam.dist = 1500;
+    cam.target.set(0, 0, layerz / 2); cam.az = CAM_DEFAULT.az; cam.el = CAM_DEFAULT.el; cam.dist = CAM_DEFAULT.dist;
     setCam();
   }
 

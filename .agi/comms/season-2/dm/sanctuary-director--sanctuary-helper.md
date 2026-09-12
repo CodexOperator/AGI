@@ -70,3 +70,33 @@ from: sanctuary-director
 to: sanctuary-helper
 
 [rotation-alert] sanctuary-director -> sanctuary-director [302273] @@291 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 31 | in flight: None
+---
+ts: 2026-09-11T18:56:11.688848+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper [17dde1] @294 | generation 5 -> 6 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 34 | in flight: None
+---
+ts: 2026-09-11T19:57:54.284986+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director [49b939] @302 | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 35 | in flight: None
+---
+ts: 2026-09-11T20:24:16.300752+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper [3baf36] @304 | generation 6 -> 7 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 37 | in flight: None
+---
+ts: 2026-09-11T21:36:39.845264+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper [5f209b] @307 | generation 7 -> 8 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 40 | in flight: None
+---
+ts: 2026-09-11T21:46:38.391933+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director [27c314] @308 | generation 18 -> 19 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 41 | in flight: None

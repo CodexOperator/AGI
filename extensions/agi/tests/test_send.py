@@ -181,7 +181,28 @@ class _FixturePane:
             # the old fixture invented. Because the signal lives in the footer
             # under the box, a region narrowed to drop the box also drops it:
             # the busy test is only honest against this real shape.
-            return _fixture_text("claude_pane_busy.txt")
+            busy = _fixture_text("claude_pane_busy.txt")
+            if not self.input:
+                # empty-typed busy pane: byte-for-byte the committed fixture.
+                return busy
+            # A line stranded in a busy pane is a REAL part of the capture: it
+            # sits in the box body. Rebuild box + separator + footer from the
+            # fixture's constant parts and put the wrapped input in the box
+            # line, the same way the idle path renders it.
+            prefix, box_and_rest = busy.split("\u276f", 1)
+            footer_and_blanks = box_and_rest[box_and_rest.index("\n"):]
+            box = []
+            if self.cell:
+                for raw in self.input.split("\n"):
+                    chunked = [raw[i:i + self.width]
+                               for i in range(0, len(raw), self.width)] or [""]
+                    box.append("\u276f " + chunked[0])
+                    box.extend("  " + c for c in chunked[1:])
+            else:
+                wrapped = textwrap.wrap(self.input, self.width) or [""]
+                box.append("\u276f " + wrapped[0])
+                box.extend("  " + w for w in wrapped[1:])
+            return prefix + "\n".join(box) + footer_and_blanks
         lines = []
         body = []
         if self.cell:
@@ -474,6 +495,70 @@ def test_read_clears_announced_so_new_state_types(project: Path, monkeypatch,
     assert len(_typed(calls)) == 2, calls
 
 
+def test_two_inbox_alerts_ten_seconds_apart_produce_two_wakes(
+        project: Path, monkeypatch, capsys):
+    """Clause (2) falsifier (hypothesis:l4-a-rotation-alert-lands-in-the-
+    inbox-...): two rotation alerts 10 s apart -> TWO inbox blocks AND TWO
+    wakes. The SECOND `send` lands inside the 30 s coalesce window, so its
+    bare nudge coalesces (nothing typed) -- the coalesced alert's OWN wake
+    is owed AFTER the window closes. `heal._repair_stranded_wakes` polls
+    every seat each pass via `send.wake`, and `wake` gates on the unread
+    digest, so a heal-style wake once the window lapses MUST type the second
+    token. Assert the typed `-l` calls, not a return value."""
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    # ALERT 1: writes block 1 AND types the first wake token
+    send_mod.send(project, seat, "ALERT rotation a", sender="master")
+    assert len(_typed(calls)) == 1, calls
+    capsys.readouterr()                        # clear the coalesce stderr
+
+    # ALERT 2 ten seconds later: inside the window -> coalesced, NOT typed
+    send_mod.send(project, seat, "ALERT rotation b", sender="master")
+    assert len(_typed(calls)) == 1, \
+        "the second alert's nudge coalesces inside the 30s window"
+    assert "nudge: coalesced" in capsys.readouterr().err
+    # the inbox now carries TWO blocks (the alert is in the INBOX, clause 1)
+    assert len(send_mod._scan_messages(inbox)[0]) == 2
+
+    # heal polls after the window lapses: the coalesced alert's wake appears
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+    assert capsys.readouterr().out.strip() == "typed-token"
+
+
+def test_two_dms_ten_seconds_apart_still_wake_twice(project: Path,
+                                                    monkeypatch, capsys):
+    """Clause (2) for the DM path: two dms 10 s apart -- the second, inside
+    the coalesce window, is counted (`(+N more)`) not typed, and the heal-
+    style wake after the window lapses still produces the second wake. The
+    DM body is in the log (record); the coalesced wake is the deliverable."""
+    seat = "sanctuary-director"
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+
+    assert send_mod._nudge_window(project, seat, body="dm one") is True
+    assert len(_typed(calls)) == 1, calls
+    capsys.readouterr()
+    # second dm inside the window: counted as pending, not typed
+    assert send_mod._nudge_window(project, seat, body="dm two") is False
+    assert len(_typed(calls)) == 1
+    assert "nudge: coalesced" in capsys.readouterr().err
+    assert send_mod._pending_more(project, seat) == 1
+
+    send_mod._nudge_marker_path(project, seat).write_text(
+        "2020-01-01T00:00:00+00:00\n")
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 2, calls
+
+
 # ── a consuming read clears the coalesced nudge count ──
 # (hypothesis:l4-a-read-clears-the-coalesced-nudge-count): the count is
 # "how many sends coalesced into the one token", and a read drains them
@@ -560,13 +645,13 @@ def test_read_preserves_a_bump_made_during_the_read(
     real_print = send_mod._print_blocks_with_labels
     bumped = []
 
-    def _bump_during_consume(root, blocks, wrap=160):
+    def _bump_during_consume(root, me, blocks, wrap=160):  # SL2#8 seam: SL5.04 added `me` (quarantine path)
         # a send coalesces in the middle of the read's consume step, after
         # the read already observed the count: bump exactly once.
         if not bumped:
             send_mod._bump_pending(project, seat)
             bumped.append(True)
-        real_print(root, blocks, wrap=wrap)
+        real_print(root, me, blocks, wrap=wrap)
 
     monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
                         _bump_during_consume)
@@ -758,9 +843,12 @@ def test_wake_busy_outcome(project: Path, monkeypatch, capsys):
 
 def test_wake_no_target_outcome(project: Path, monkeypatch, capsys):
     """Clause (2): a seat with no addressable window -> the ONE `no-target`
-    outcome (exit 1)."""
+    outcome (exit 1), and NOTHING is typed -- a no-target wake must not send
+    `tmux send-keys` into nobody's pane."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
     calls = _fake_tmux_pane(monkeypatch, [], _FixturePane(), [])
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), \
+        "a no-target wake must type nothing"
     assert send_mod.wake(project, "ghost-seat") is False
     assert capsys.readouterr().out.strip() == "no-target"
 
@@ -878,6 +966,35 @@ def test_wake_no_box_pending_is_nothing_pending(project: Path, monkeypatch,
     assert len(lines) == 1 and "idle nothing-pending" in lines[0], lines
 
 
+# clause (2) send-side: a dm nudged into a box-less, footer-less capture is
+# a COALESCE (`no rendered box`) -- deferred, never typed.
+
+
+def test_dm_coalesces_no_rendered_box_and_defers_the_body(
+        project: Path, monkeypatch, capsys):
+    """hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and-
+    three-tests-assert-what-they-claim (P2b): `send_dm` to a seat whose
+    capture is a NON-BLANK, box-less, footer-less transcript (no `\u276f`,
+    no `esc to interrupt`) is the clause-(2) `(no rendered box)` COALESCE:
+    ZERO `tmux send-keys`, the ONE `nudge: coalesced (no rendered box)`
+    stderr line, and the dm body DEFERRED (carried by `_read_deferred`) for
+    an idle retry -- never typed into a capture that cannot be a box."""
+    seat = "sanctuary-helper"
+    capture = ("[agi-nudge] unread for sanctuary-director:"
+               " send.py read sanctuary-director\n"
+               "some transcript body scrolled above the box\n")
+    assert "\u276f" not in capture and "esc to interrupt" not in capture
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    calls = _fake_tmux(monkeypatch, [seat], capture_text=capture)
+    send_mod.send_dm(project, "sanctuary-director", seat, "the dm body",
+                     "sanctuary-director")
+    assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
+    assert "nudge: coalesced (no rendered box)" in capsys.readouterr().err
+    assert send_mod._read_deferred(project / ".agi", seat) \
+        == {"sender": "sanctuary-director", "body": "the dm body"}, \
+        "the unrenderable dm must be deferred for an idle retry, not dropped"
+
+
 # clause (3): the typed token names its path, prefix stays byte-identical
 
 
@@ -968,9 +1085,14 @@ def test_wake_main_exit_code_honest(project: Path, monkeypatch):
 
 def test_stranded_token_in_a_busy_pane_gets_no_enter(project: Path,
                                                      monkeypatch, capsys):
-    """The heal never types into a mid-turn pane: busy wins over stranded."""
+    """The heal never types into a mid-turn pane: busy wins over stranded.
+    The busy fixture actually HOLDS the stranded token (its box renders the
+    typed line) -- busy must still win even with a stranded line in the box."""
     pane = _FixturePane(busy=True)
     pane.send_keys(["-t", "w", _OLD_TOKEN, "Enter"])
+    cap = pane.capture()
+    assert send_mod._nudge_token_head(_OLD_TOKEN) in cap, \
+        "the busy fixture must actually hold the stranded token in its box"
     calls = _fake_tmux_pane(monkeypatch, ["director"], pane, [])
     send_mod.send(project, "director", "the body", "kid")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls)
@@ -4333,6 +4455,127 @@ def test_whois_forged_label_does_not_gate_exit(project, monkeypatch):
     assert forged_rc == send_mod.WHOIS_OK, forged_rc
 
 
+# ── clause (3): whois --sig under comms.verify=="enforcing" refuses a FORGED
+# ── label (hypothesis:l4-a-reader-refuses-a-forged-block-under-enforcing-and-
+# ── the-value-flips-after-a-named-review). Enforcement is the ONE exception to
+# ── Prime ruling A: only an EXACTLY-FORGED label + a canonical --msg to
+# ── withhold + the config saying "enforcing" turns the exit to 2. Everything
+# ── else stays byte-identical to today.
+
+
+def _seat_a_pub_rows(project, seat="seat-a"):
+    """The stub rows whois needs to resolve `seat` both as a session_ref and
+    resolve its row for the sig label (name == session_ref == seat)."""
+    return [{"name": seat, "session_ref": seat,
+             "sig_scheme": "ed25519", "pubkey": _seat_pubkey_hex(project, seat)}]
+
+
+def _whois_forged_fixture(tmp_path, monkeypatch):
+    """An enforcing project + a signed whois sig/canonical whose msg is
+    tampered so the label is FORGED. Returns (project, forgeline, forged_msg)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    # keygen FIRST (the send signs under the seat's key), THEN stub the rows
+    # with the now-real pubkey, so whois can resolve the sig.
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "whois me")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    return project, sig_line, canonical + "x"
+
+
+def test_whois_forged_under_enforcing_exits_2_and_quarantines(
+        tmp_path, monkeypatch, capsys):
+    """Clause (3): a whois --sig whose label is FORGED under verify=="enforcing"
+    exits WHOIS_NOT_AUTHORIZED (2) EVEN on a positive authority answer, prints
+    the SAME refusal line shape as clause (1), and appends the sig+msg to
+    <inbox>/quarantine/<session_ref>.md (same append semantics)."""
+    project, sig_line, forged_msg = _whois_forged_fixture(tmp_path, monkeypatch)
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=forged_msg)
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
+    assert "REFUSED FORGED from seat-a " in text
+    assert "withheld to " in text
+    fp = sig_line.split(":", 2)[1]
+    assert f"fp {fp}:" in text, "the refusal names the sig fingerprint"
+    q = _quarantine_path(project, seat="seat-a")
+    assert q.is_file()
+    assert sig_line in q.read_text(), \
+        "the quarantine record carries the --sig line verbatim"
+    assert forged_msg in q.read_text(), \
+        "the quarantine record carries the canonical --msg whois was handed"
+
+
+def test_whois_verified_under_enforcing_exit_unchanged(
+        tmp_path, monkeypatch):
+    """A non-FORGED label (VERIFIED) under enforcing never changes the exit: it
+    returns the normal authority code and nothing is quarantined."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    _stub_seat_rows(monkeypatch, _seat_a_pub_rows(project))
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a", "recv",
+                                                     "ok claim")
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=canonical)
+    assert rc == send_mod.WHOIS_OK, rc
+    assert "VERIFIED" in text
+    assert "REFUSED" not in text
+    assert not _quarantine_path(project, seat="seat-a").exists(), \
+        "a VERIFIED whois is never quarantined"
+
+
+def test_whois_forged_without_msg_not_refused_under_enforcing(
+        tmp_path, monkeypatch):
+    """A FORGED label with NO --msg to withhold keeps today's behavior under
+    enforcing: the label is reported, the exit stays on the authority axis
+    (nothing traces to a ts/from, nothing is quarantined)."""
+    project, sig_line, _ = _whois_forged_fixture(tmp_path, monkeypatch)
+    # give the tampered sig but no --msg -> label is FORGED yet nothing to withhold
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=None)
+    assert rc == send_mod.WHOIS_OK, rc
+    assert "FORGED" in text
+    assert "REFUSED" not in text
+    assert not _quarantine_path(project, seat="seat-a").exists(), \
+        "no msg -> no refusal, nothing quarantined"
+
+
+def test_whois_cli_threads_sig_and_msg(monkeypatch, capsys):
+    """The --sig/--msg flags declared on the whois subparser actually reach the
+    whois function (they were declared and never threaded before clause 3)."""
+    seen = {}
+    def capturing(root, ref, claim, source, do_fetch,
+                  sig_line=None, msg_text=None):
+        seen["sig"] = sig_line
+        seen["msg"] = msg_text
+        return (0, "x")
+    monkeypatch.setattr(send_mod, "whois", capturing)
+    rc = send_mod.main(["whois", "--no-fetch", "7902ac",
+                        "--sig", "ed25519:aa11:bb22",
+                        "--msg", "line1\nline2\nline3\n\ntext"])
+    assert rc == 0
+    assert seen["sig"] == "ed25519:aa11:bb22"
+    assert seen["msg"] == "line1\nline2\nline3\n\ntext"
+
+
+def test_whois_cli_forged_under_enforcing_exits_2(tmp_path, monkeypatch, capsys):
+    """End-to-end: `send.py whois --sig <forged> --msg <tampered>` under an
+    enforcing config returns 2 through the CLI, not only via the module fn."""
+    project, sig_line, forged_msg = _whois_forged_fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    capsys.readouterr()                      # drain keygen/send stdout
+    rc = send_mod.main(["whois", "--no-fetch", "seat-a",
+                        "--claim", "seat-a",
+                        "--sig", sig_line, "--msg", forged_msg])
+    out = capsys.readouterr().out
+    assert rc == send_mod.WHOIS_NOT_AUTHORIZED, rc
+    assert "REFUSED FORGED" in out
+    assert "withheld to " in out
+    assert _quarantine_path(project, seat="seat-a").is_file()
+
+
 # ── comms.lockdown reserved flag (hypothesis:l4-lockdown-is-a-reserved-
 # ── boolean-that-warns-and-encrypts-nothing-until-it-is-built) ──────────
 
@@ -4379,6 +4622,182 @@ def test_comms_config_reads_block(project: Path):
     assert cfg["lockdown"] is True
     assert cfg["verify"] == "enforcing"
     assert "future_unknown" not in cfg
+
+
+# ── g15.26 flip: reader refuses a FORGED block under comms.verify==
+# ── "enforcing" (hypothesis:l4-a-reader-refuses-a-forged-block-under-
+# ── enforcing-and-the-value-flips-after-a-named-review). The ONE delivery
+# ── path `_print_blocks_with_labels` enforces for BOTH read and peek; only a
+# ── label EXACTLY == "FORGED" is refused, and the block's RAW inbox bytes are
+# ── appended (never rewritten/truncated) to `<inbox>/quarantine/<seat>.md`
+# ── with `newline=""` so CR bytes survive.
+
+
+def _forged_inbox_with_rows(project, monkeypatch, body="tampered!!"):
+    """Build a one-block inbox whose block reads FORGED: sign a message,
+    then tamper the BODY on disk so the sig no longer verifies (header
+    ts/from/sig untouched — the same recipe as
+    test_body_altered_on_disk_is_forged). Returns (inbox_path,
+    inbox_bytes_before_read, sig_fp)."""
+    send_mod.keygen(project, "seat-a")
+    scheme = send_mod.seatsig.get("ed25519")
+    obj = json.loads(_seat_key_file(project, "seat-a").read_text())
+    pub_hex = scheme.public_from_secret(
+        bytes.fromhex(obj["priv_hex"])).hex()
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "hello world", "seat-a")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    inbox_text = inbox.read_text().replace("hello world", body)
+    inbox.write_text(inbox_text)
+    block = inbox_text.split(send_mod.MSG_SEP)[1]
+    meta, _ = send_mod._parse_block(block)   # sig key -> "ed25519:<fp>:<hex>"
+    fp = meta["sig"].split(":", 2)[1]
+    return inbox, inbox_text, fp
+
+
+def _quarantine_path(project, seat="recv"):
+    return (project / ".agi" / "sessions" / "inbox"
+            / "quarantine" / f"{seat}.md")
+
+
+def test_enforcing_refuses_forged_and_quarantines_raw_bytes(
+        tmp_path, capsys, monkeypatch):
+    """Under verify:"enforcing" a FORGED block prints ONE refusal line
+    INSTEAD of the body, and its RAW inbox bytes land VERBATIM in the
+    quarantine file."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "tampered!!" not in out, \
+        "a FORGED body must NOT print under enforcing"
+    assert f"REFUSED FORGED from seat-a " in out
+    assert f"fp {fp}:" in out, "the refusal names the sig fingerprint"
+    assert "withheld to " in out
+    # the quarantine file holds the EXACT inbox bytes of the refused block
+    q = _quarantine_path(project)
+    assert q.is_file()
+    assert q.read_text() == inbox_text, \
+        "quarantine must equal the block's inbox bytes verbatim"
+
+
+def test_peek_enforcing_refuses_forged_too(tmp_path, capsys, monkeypatch):
+    """peek uses the SAME delivery path, so it refuses a FORGED block too
+    (one place, both verbs)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.peek(project, "recv", wrap=160)
+    out = capsys.readouterr().out
+    assert "tampered!!" not in out
+    assert f"REFUSED FORGED from seat-a " in out
+    assert _quarantine_path(project).read_text() == inbox_text
+
+
+def test_enforcing_prints_verified_and_unsigned_in_full(
+        tmp_path, capsys, monkeypatch):
+    """VERIFIED and UNSIGNED blocks print in FULL under enforcing — nothing
+    but a FORGED label is withheld."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    # VERIFIED: sign seat-b with its own correct row
+    send_mod.keygen(project, "seat-b")
+    pub_hex = _seat_pubkey_hex(project, "seat-b")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-b", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "verified hello", "seat-b")
+    # UNSIGNED: a seat with no key file
+    send_mod.send(project, "recv", "unsigned hello", "no-key-seat")
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-b (ed25519)" in out
+    assert "verified hello" in out
+    assert "UNSIGNED" in out
+    assert "unsigned hello" in out
+    assert "REFUSED" not in out
+    assert not _quarantine_path(project).exists(), \
+        "no quarantine for a non-FORGED block"
+
+
+def test_enforcing_prints_retired_in_full(tmp_path, capsys, monkeypatch):
+    """RETIRED is a GOOD signature under a retired key — under enforcing it
+    prints in FULL and is never refused (the carve-out refuses nothing but
+    FORGED)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-old")
+    send_mod.keygen(project, "seat-new")
+    new_pub = _seat_pubkey_hex(project, "seat-new")
+    old_pub = _seat_pubkey_hex(project, "seat-old")
+    old_fp = _fp(project, "seat-old")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-old", "sig_scheme": "ed25519",
+         "pubkey": new_pub,
+         "key_history": [{"pub": old_pub, "fp": old_fp,
+                           "from": "t0", "to": "t1",
+                           "rotated_by_sig": "sig"}]},
+    ])
+    send_mod.send(project, "recv", "retired hello", "seat-old")
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert f"RETIRED:{old_fp}" in out
+    assert "retired hello" in out, "RETIRED prints in full, never withheld"
+    assert "REFUSED" not in out
+    assert not _quarantine_path(project).exists()
+
+
+def test_absent_and_informational_print_identical_bytes(
+        tmp_path, capsys, monkeypatch):
+    """Clause (4): the SAME inbox under a comms block ABSENT and under
+    verify:"informational" prints byte-identical output (both identical to
+    today). The flip cannot change a byte until enforcing."""
+    # pin ts so the two peeks carry identical timestamps.
+    monkeypatch.setattr(send_mod, "_now",
+                        lambda: "2026-09-11T00:00:00+00:00")
+    project = _project_with_comms(tmp_path, None)   # abscomms block first
+    _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.peek(project, "recv", wrap=160)        # absent block
+    absent_out = capsys.readouterr().out
+    # flip the SAME project to verify:"informational" and peek again; peek
+    # never advances the read cursor, so the inbox is byte-identical.
+    (project / ".agi" / "config.json").write_text(json.dumps({
+        "metric_primary": "outcome_coverage",
+        "comms": {"verify": "informational", "lockdown": False},
+    }))
+    send_mod.peek(project, "recv", wrap=160)        # informational
+    info_out = capsys.readouterr().out
+    assert absent_out == info_out, \
+        "informational must be byte-identical to an absent comms block"
+    assert "tampered!!" in absent_out, \
+        "informational prints the FORGED body in full, like today"
+    assert "REFUSED" not in absent_out
+
+
+def test_quarantine_appends_never_truncates(tmp_path, capsys, monkeypatch):
+    """Two refused blocks append to the SAME quarantine file — each is a
+    fresh mode "a" open, never a rewrite, so nothing is ever lost."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    _forged_inbox_with_rows(project, monkeypatch, body="first forged")
+    # a second forged block appended to the same unread inbox
+    inbox_path = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    send_mod.send(project, "recv", "second message", "seat-a")
+    inbox_path.write_text(
+        inbox_path.read_text().replace("second message", "second forged"))
+    # one read: BOTH blocks are unread (no marker yet), so both are refused
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    capsys.readouterr()
+    q = _quarantine_path(project)
+    qtext = q.read_text()
+    assert qtext.count("first forged") == 1
+    assert qtext.count("second forged") == 1
+    assert qtext.count(send_mod.MSG_SEP) == 2, \
+        "quarantine appends both RAW blocks, never truncating"
 
 
 def test_lockdown_requirements_named_seam():

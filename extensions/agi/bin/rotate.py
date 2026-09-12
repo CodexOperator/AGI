@@ -1519,6 +1519,36 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     if seat is not None:
+        # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
+        # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
+        # seat-and-no-season-literal-remains): the seat row's pid is still
+        # running, or a live tmux window is already up for the seat. The
+        # liveness read is the SAME one the autopsy block uses — the row pid
+        # via `_pid_gone` AND `_successor_window_id` for the live window —
+        # never a second derivation, so the gate and the autopsy agree.
+        _alive_note = None
+        if root is not None:
+            _gpid = (_find_seat(root, seat) or {}).get("pid")
+            if _gpid is not None:
+                # the row names a predecessor pid: the seat is ALIVE iff the
+                # pid is still running, or a live window is up for the seat
+                # (test_rotate.py test_spawn_first_seating... proves a seat
+                # with NO row pid — a genuine first seating — is never gated).
+                try:
+                    if not _pid_gone(int(_gpid)):
+                        _alive_note = f"pid {_gpid}"
+                    else:
+                        _lwid = _successor_window_id(
+                            seat, tmux_session, args.window_path)
+                        if _lwid is not None:
+                            _alive_note = f"window {_lwid}"
+                except (TypeError, ValueError):
+                    _alive_note = None
+        if _alive_note is not None:
+            print(f"ERR: seat {seat!r} is alive ({_alive_note}); refusing "
+                  f"spawn — the seat is already up (goal:g15.21)",
+                  file=sys.stderr)
+            return 1
         if root is None:
             # goal:g15.17 (a): a caller that OWNS a seat but stands OUTSIDE
             # any project root cannot compose a role template (no
@@ -1934,7 +1964,19 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
             # (write + print, no commit). Nothing written -> nothing to
             # commit.
             if do_commit and not already:
-                print(_ack_commit_seats(id_root, seat, args, ref))
+                # SL2#9 seam: L4.291's id_root (the identity root, MAIN) with
+                # SL5.08's failure path (stderr + unstage + exit 3).
+                _ok, _out = _ack_commit_seats(id_root, seat, args, ref)
+                if _ok:
+                    print(_out)
+                else:
+                    # a failed ack commit (git add OR git commit) printed its
+                    # error here, on STDERR, and UNSTAGED the row; cmd_ack
+                    # exits 3 so the failure is visible and the NEXT ack's
+                    # dirty gate (_ack_seats_dirty) finds seats.md clean
+                    # again, not staged.
+                    print(_out, file=sys.stderr)
+                    return 3
         except Exception as exc:  # noqa: BLE001
             print(f"warn: session_ref back-fill failed: {exc}",
                   file=sys.stderr)
@@ -2183,8 +2225,7 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         if root is None:
             print("ERR: --record needs an agi project root", file=sys.stderr)
             return 1
-        rot_dir = _rotations_dir(root)
-        files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
+        files = _rotation_record_files(root, seat)
         latest = files[-1] if files else None
         wait = int(getattr(args, "wait", 0) or 0)
         if wait > 0:
@@ -2196,8 +2237,7 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             if latest is None:
                 # wait for a record to APPEAR within the same deadline
                 while True:
-                    files = (sorted(rot_dir.glob(f"{seat}.*.json"))
-                             if rot_dir.exists() else [])
+                    files = _rotation_record_files(root, seat)
                     if files:
                         latest = files[-1]
                         break
@@ -3323,7 +3363,17 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     declared = "first seating" if seating is not None else "rotation"
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
+        # CLAUSE 1 (hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
+        # coalesced-nudge-still-wakes-and-detected-records-dedupe): the room
+        # is NOT the petition's inbox -- `send.py read` reads
+        # `<sessions>/inbox/<seat>.md`, a different file -- so a prime-specific
+        # write is needed for the alert to satisfy "lands in the inbox". The
+        # prime is inbox-only, but send.send() imposes no prime restriction
+        # (only dm/room do), so it is the exact inbox-only path: land the SAME
+        # [rotation-alert] block in the prime's OWN inbox in addition to the
+        # shared alert-room post.
         try:
+            send.send(root, seat, text, sender=seat)
             path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
                                   sender=seat)
             print(f"announced {declared} -> {ROTATION_ALERT_ROOM} ({path})",
@@ -3336,6 +3386,17 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     delivered = []
     for recv in receivers:
         try:
+            # CLAUSE 1: land the SAME [rotation-alert] block in the
+            # recipient's INBOX (`<sessions>/inbox/<recv>.md`, the writer
+            # `send.send` uses -- the reader `send.py read <recv>` shows)
+            # IN ADDITION to the pairwise dm log, so an alert is never
+            # absent from a recipient's inbox and nothing depends on the
+            # nudge (it is delivery, the inbox is the record). send() also
+            # physically types its own wake; send_dm adds the dm-log block
+            # plus its own pane line. A `send.py send` to the prime would be
+            # rejected downstream but send() itself has no prime restriction,
+            # so this stays the non-prime loop.
+            send.send(root, recv, text, sender=seat)
             send.send_dm(croot, seat, recv, text, sender=seat)
             delivered.append(recv)
         except SystemExit as exc:
@@ -3809,13 +3870,21 @@ def _reaper_lines_for(pid: int, sources: list[tuple[str, Path | None]]) -> list[
     return out
 
 
-def _seating_worktree_lines(root: Path, season: str = "origin/season/s2") -> list[str]:
+def _seating_worktree_lines(root: Path, season: str | None = None) -> list[str]:
     """The three worktree-state facts read for BOTH every `[seating]` block and
     the autopsy — one helper, two callers (cmd_spawn tags the line `[seating]`,
     the autopsy re-tags it `{AUTOPSY_TAG}`). Reads only: `behind N` (rev-list
     count), `unresolved merge: yes|no` (`MERGE_HEAD` present), `dirty: <n>
     paths` (porcelain, cron churn excluded exactly as `_prepare_churn_path`
-    does). Returns a single rendered line carrying all three facts."""
+    does). Returns a single rendered line carrying all three facts. The season
+    is never a literal: the default resolves through `season_branch(root)` at
+    call time and is addressed as the remote ref `origin/{season}` (the same
+    shape every other season reader in rotate.py uses), so a season change is
+    ONLY the ladder's `current_season` (hypothesis:l4-the-prepare-captives-
+    measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam)."""
+    if season is None:
+        season = season_branch(root)
+    season = f"origin/{season}"
     behind = _git_count_maybe(root, "rev-list", "--count", f"HEAD..{season}")
     merge_head = _git_maybe(root, "rev-parse", "-q", "--verify", "MERGE_HEAD")
     unresolved = bool(merge_head)
@@ -3855,11 +3924,14 @@ def _compose_seating_base_block(*, seat: str, source: str, now: str,
 
 
 def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
-                 root: Path, season: str = "origin/season/s2") -> list[str]:
+                 root: Path, season: str | None = None) -> list[str]:
     """Render the full autopsy block for a predecessor `pid` of `seat`. Prints
     FROM FILES ONLY and runs read-only commands only. Returns the `[autopsy]`
     lines (the caller may tag them into the `[seating]` block or print them as
-    `rotate.py autopsy`)."""
+    `rotate.py autopsy`). The worktree season default resolves through
+    `season_branch(root)` — never a hardcoded season literal."""
+    if season is None:
+        season = season_branch(root)
     lines: list[str] = []
     data = _registry_read(registry_dir, pid)
     alive = not _pid_gone(pid)
@@ -4173,15 +4245,37 @@ def _git_maybe(cwd: Path, *args: str) -> list[str] | None:
     return [ln for ln in out.stdout.splitlines() if ln]
 
 
+def _rotation_record_files(root: Path, seat: str) -> list:
+    """Every `<seat>.*.json` ROTATION record, newest-first in name order
+    (filenames carry `YYYYMMDDTHHMMSSZ`), EXCLUDING `rotation:
+    crash-recovery` records (hypothesis:l4-a-rotation-alert-lands-in-the-
+    inbox-..., clause 3: status must never read a detected record — or any
+    crash-recovery record — as a rotation). Files that do not parse are kept
+    best-effort, exactly as the pre-existing reader behaved."""
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return []
+    out = []
+    for p in sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            out.append(p)      # unparseable: keep (best-effort, as before)
+            continue
+        if isinstance(rec, dict) and rec.get("rotation") == "crash-recovery":
+            continue           # a crash-recovery is NEVER a rotation
+        out.append(p)
+    return out
+
+
 def _latest_rotation_record(root: Path, seat: str) -> dict | None:
     """The newest durable rotation record for `seat`
     (`<sessions>/rotations/<seat>.*.json`), or None when the seat has no
     record yet. Record filenames carry the stamp `YYYYMMDDTHHMMSSZ`, which
-    sorts lexically, so the max by name is the newest."""
-    rot = _rotations_dir(root)
-    if not rot.is_dir():
-        return None
-    files = sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name)
+    sorts lexically, so the max by name is the newest. Crash-recovery records
+    (a heal outcome, never a rotation) are EXCLUDED — clause 3: a `detected`
+    record must never be read as the seat's rotation."""
+    files = _rotation_record_files(root, seat)
     if not files:
         return None
     try:
@@ -4904,7 +4998,8 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
 def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
-                         session_id: str | None = None) -> str:
+                         session_id: str | None = None,
+                         key_rotation: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`generation`/`window`/
@@ -4923,20 +5018,52 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     every other row and every prime-only field byte-identical). Admission
     lives in write.py's `_enforce_written_by` reading the schema's `self_row`
     data; nothing here names `seats` in a branch. Returns a one-line outcome
-    string."""
+    string.
+
+    `key_rotation` (goal:g15.25 line (2), hypothesis l4-rotate-self-is-key-
+    gated...): the dict returned by `_rotate_successor_key`. When present
+    (a KEYED seat rotated and minted a successor key), the SAME ONE row
+    write additionally sets the seat's `pubkey` to the successor pub and
+    APPENDS the retired-predecessor `key_history` entry — never deletes or
+    shrinks existing history, never a second submit (SL2#8 harvest seam:
+    the cells ride `_write_identity_cells` like every other identity cell,
+    so they land in MAIN too). `pubkey`/`key_history`/`sig_scheme` are
+    declared self_row fields, so admission holds."""
     cells: dict = {"session_ref": session_ref, "generation": generation,
                    "window": window}
     if session_id is not None:
         cells["session_id"] = session_id
     if pid is not None:
         cells["pid"] = pid
+    # goal:g15.25 line (2): the successor half's cells ride the SAME one row
+    # write -- the successor pubkey into the seat's own row and the retired-
+    # predecessor key_history entry APPENDED (never shrink existing history).
+    # The current history is read from the row the ONE writer will write
+    # (MAIN's), so the append is against the live list, not a worktree copy.
+    if key_rotation:
+        import write  # local: same dir (send.py pattern, no import cycle)
+        _cur = next((r for r in write._load_seats(_shared_graph_root(root))
+                     if r.get("name") == seat), {})
+        _ret = key_rotation.get("retired")
+        cells["pubkey"] = key_rotation.get("successor_pub")
+        cells["sig_scheme"] = (_cur.get("sig_scheme")
+                               or key_rotation.get("scheme"))
+        _hist = list(_cur.get("key_history") or [])
+        if _ret and not any(h.get("from") == _ret.get("from")
+                            and h.get("to") == _ret.get("to")
+                            for h in _hist if isinstance(h, dict)):
+            _hist.append(_ret)
+        cells["key_history"] = _hist
     if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
                                  cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
+    _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
+              f"key_history={len(key_rotation['retired'])}"
+              if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_id={session_id} pid={pid} generation={generation} "
-            f"window={window!r} source=registry")
+            f"window={window!r} source=registry{_extra}")
 
 
 def _ref_shape_issue(ref: str, seat: str) -> str | None:
@@ -5019,7 +5146,7 @@ def _ack_seats_dirty(root: Path, top: Path) -> str | None:
 
 
 def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
-                      ref: str) -> str:
+                      ref: str) -> tuple[bool, str]:
     """r3b — `rotate.py ack ... continue` (no `--no-commit`) COMMITS the
     row rewrite it just back-filled: `git add` seats.md + ONE commit whose
     message is a single line
@@ -5029,22 +5156,31 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     the successor never re-reads. A back-fill that changed nothing (the row
     already carried the ref) commits nothing and says so in one line. The
     last printed line is the exact `git push` command — printed, never run.
-    Returns one multi-line outcome string (or "" when it did nothing)."""
+
+    Returns (ok, out). ok True -> out is the multi-line success string for
+    STDOUT and the row is committed. ok False -> EITHER `git add` OR
+    `git commit` failed: the row was UNSTAGED with `git reset -q -- <rel>`
+    (the working tree keeps the back-filled row) and out is the error line
+    the caller must PRINT TO STDERR and pair with a non-zero (3) exit: a
+    failed ack commit must never leave seats.md staged — that is exactly
+    the dirt that would refuse the NEXT ack."""
     top = _git_toplevel(root)
     if top is None:
-        return ("ack: no git repo — row written, not committed "
+        return (True, "ack: no git repo — row written, not committed "
                 "(a gitless worktree has no commit to make)")
     seats = _ack_seats_path(root)
     rel = os.path.relpath(seats, top)
     add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        return f"ERR: git add {rel!r} failed: {add.stderr.strip()}"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git add {rel!r} failed: {add.stderr.strip()}")
     cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
                              "--", rel], capture_output=True, text=True)
     diff = cached.stdout if cached.returncode == 0 else ""
     if not diff.strip():
-        return "ack: no change to seats.md — nothing committed"
+        return (True, "ack: no change to seats.md — nothing committed")
     lines = []
     for ln in diff.splitlines():
         if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
@@ -5060,9 +5196,11 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     rc = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
                          msg, "--", rel], capture_output=True, text=True)
     if rc.returncode != 0:
-        return f"ERR: git commit failed: {rc.stderr.strip()}"
-    return "ack: committed own row write (" + str(rel) + "):\n" + \
-        "\n".join(lines) + f"\ngit -C {top} push"
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True)
+        return (False, f"ERR: git commit failed: {rc.stderr.strip()}")
+    return (True, "ack: committed own row write (" + str(rel) + "):\n"
+            + "\n".join(lines) + f"\ngit -C {top} push")
 
 
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
@@ -7922,22 +8060,34 @@ def _merge_conflict_paths(root: Path, sb: str) -> str:
 
 
 def _perform_season_merge(root: Path, sb: str) -> str | None:
-    """Perform the only-behind merge: `git fetch origin <sb>` then
-    `git merge --no-edit origin/<sb>`. Returns the resulting HEAD sha (short
-    form), or None when the merge did NOT land (git returned non-zero, or an
-    opaque refusal) — a merge git aborted must never be reported as merged.
-    The MERGE returncode is the one thing that gates the success line: a
-    merge that ABORTS still leaves HEAD where it was, so reporting
+    """Perform the only-behind merge: `git merge --no-edit origin/<sb>`.
+    Returns the resulting HEAD sha (short form), or None when the merge did
+    NOT land (git returned non-zero, or an opaque refusal) — a merge git
+    aborted must never be reported as merged. On any non-zero merge rc (a
+    REFUSED merge or a CONFLICT) this ABORTS the merge (`git merge --abort`)
+    so the tree is never left half-merged (P1-a: never a half-merge). The
+    MERGE returncode is the one thing that gates the success line: a merge
+    that ABORTS still leaves HEAD where it was, so reporting
     `merged <sha>` on it is a false ok that lets rotate-self proceed on a
-    stale branch. The tree is left exactly as git left it — a partially
-    applied merge is never rolled back by force. A failed fetch alone need
-    not abort: `origin/<sb>` may already be current, and a merge against it
+    stale branch.
+
+    **This measures and merges ONE ref**: the CALLER (`_prepare_checks`
+    --perform block) fetches first and then runs the conflict-free gate
+    (`_merge_applies_clean`) on the refreshed `origin/<sb>`; there is NO
+    fetch here, because re-fetching could pull a NEWER ref than the one
+    measured clean and turn a measured-clean merge into a different,
+    conflicting one (the divergence P1-a closes). A failed fetch need not
+    abort: `origin/<sb>` may already be current, and a merge against it
     either succeeds or the merge's own rc catches the problem. Callers reach
     this ONLY after the conflict-free gate (`_merge_applies_clean`) agreed
     there are zero conflicts and check 2 (dirty tree) passed."""
-    _git_maybe(root, "fetch", "origin", sb)     # tolerate a failed fetch
     proc = _git_proc(root, "merge", "--no-edit", f"origin/{sb}")
     if proc is None or proc.returncode != 0:
+        # the merge REFUSED or CONFLICTED (non-zero rc — git leaves conflict
+        # markers in the tree on a conflict). Undo any half-merge so the
+        # working tree is never left mid-merge (P1-a). `git merge --abort`
+        # with no merge in progress is a harmless no-op.
+        _git_maybe(root, "merge", "--abort")
         return None                              # refused — never "merged <sha>"
     lines = _git_maybe(root, "rev-parse", "--short", "HEAD")
     if not lines:
@@ -7992,7 +8142,15 @@ def _background_tasks(root: Path, seat: str) -> str:
       * the seat's own Monitor/background-Bash CHILDREN — counted by the
         /proc ppid chain from the config:seats row's `pid` when the row names
         one (`_proc_children`);
-      * a `.claude/tasks` directory's file count, when it exists.
+
+    goal:g15.14 P2-b — the `.claude/tasks` reader is GONE. It counted
+    `Path(root)/.claude/tasks`: a path that NEVER exists under a worktree
+    (the harness writes per-session task state to the GLOBAL
+    `~/.claude/tasks/<uuid>/`, keyed by uuid, with no per-seat stable
+    meaning). A reader that never reads is a lie in the listing, so it was
+    deleted rather than re-pointed — no per-seat stable path exists to point
+    it at, and re-pointing it at a global dir would fabricate a per-seat
+    meaning that is not there.
 
     Returns a short spec naming what was counted, or `unmeasured` when no
     source measured anything. This line is a LISTING, never a blocker — it
@@ -8005,12 +8163,6 @@ def _background_tasks(root: Path, seat: str) -> str:
         try:
             parts.append(f"{_proc_children(int(pid))} proc")
         except (TypeError, ValueError):
-            pass
-    tdir = Path(root) / ".claude" / "tasks"
-    if tdir.is_dir():
-        try:
-            parts.append(f"{len(list(tdir.iterdir()))} tasks-dir")
-        except OSError:
             pass
     return ", ".join(parts) if parts else "unmeasured"
 
@@ -8100,21 +8252,27 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         # and we are measurably behind. PERFORM the merge ONLY if it is
         # mechanical -- zero conflicts. A conflicting merge is exactly the
         # judgement-free-not case: stays a BLOCK naming the paths.
+        # MEASURE AND MERGE THE SAME REF (P1-a): fetch FIRST so the local
+        # `origin/<sb>` is fresh, then measure the conflict-free gate and
+        # merge THAT SAME ref. Measuring against a stale local ref and then
+        # merging the refreshed one was a DIFFERENT merge with no abort path.
+        _git_maybe(root, "fetch", "origin", _sb)
         cf = _merge_applies_clean(root, _sb)
         if cf is True:
             merged = _perform_season_merge(root, _sb)
             if merged is None:
-                # the mechanical merge was attempted and REFUSED by git
-                # (non-zero rc — e.g. the accepted churn exclusion let an
+                # the mechanical merge was attempted and did NOT land (non-
+                # zero rc — e.g. the accepted churn exclusion let an
                 # untracked/modified churn file through check 2, and the
-                # merge wants to overwrite it while git refuses). Report a
-                # BLOCK, never a false ok: rotate-self must not proceed on a
-                # stale branch. The tree is left as git left it (never a
-                # force rollback), and the clear command still names the
-                # manual merge.
+                # merge wants to overwrite it while git refuses, or the
+                # merge CONFLICTED). `_perform_season_merge` ABORTS any
+                # half-merge so the tree is never left mid-merge (P1-a).
+                # Report a BLOCK, never a false ok: rotate-self must not
+                # proceed on a stale branch. The clear command still names
+                # the manual merge.
                 checks.append((True,
                                f"behind origin/{_sb} ({behind}) — merge "
-                               f"attempted, refused by git",
+                               f"attempted, refused by git (aborted)",
                                behind_clear))
             else:
                 checks.append((False,
@@ -8189,17 +8347,26 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # placeholder -- never --seat (which trips the cross-generation read
     # refusal).
     known_transcript = None
+    pin_transcript = None
     if pin is not None:
         written_gen, written_path = _parse_pin_record(pin)
         if written_gen is not None and gen_measured and written_gen != cur_gen:
             stale_pin = True
-        known_transcript = written_path or None
-    if known_transcript is None and root is not None:
+        pin_transcript = written_path or None
+    # goal:g15.14 P1-d — when check 5 BLOCKS (stale_pin) the pin is another
+    # generation's BY DEFINITION, so preferring its written_path would name
+    # the WRONG transcript the clear line must re-point the meter at. Prefer
+    # the config:seats ROW's transcript first (resolved the way the meter
+    # itself resolves it, via transcript_from_registry_dict), and fall back
+    # to the pin's written_path ONLY when the row carries none.
+    if root is not None:
         seat_row = _find_seat(root, seat)
         if seat_row:
             known_transcript = (seat_row.get("transcript_path")
                                 or transcript_from_registry_dict(seat_row))
             known_transcript = known_transcript or None
+    if known_transcript is None:
+        known_transcript = pin_transcript
     clear5 = (f"rotate.py meter --pin {_seat_pin_path(root, seat)} "
               f"--session-log {known_transcript or '<transcript>'}")
     checks.append((stale_pin,
@@ -8236,6 +8403,18 @@ def cmd_prepare(args: argparse.Namespace, root: Path) -> int:
     refuse BY NAME before it spawns."""
     seat = getattr(args, "seat", None) or ""
     perform = getattr(args, "perform", False)
+    # goal:g15.14 P1-b — the branch guard runs FIRST, before `_prepare_checks`
+    # and ANY merge. `prepare --perform` merges the only-behind season branch
+    # into the checked-out branch; on master (with season/* branches present)
+    # that would MERGE season INTO master, which the seasons-as-branches
+    # mapping forbids. Refuse BY NAME before any side effect. rotate-self's
+    # own prepare path delegates to THIS function, so one guard here gates
+    # both callers. (Falsifier: a `--prepare --perform` on a fixture master
+    # branch must refuse with the guard text BEFORE the merge lands.)
+    guard = _check_branch_guard(root)
+    if guard:
+        print(guard, file=sys.stderr)
+        return 1
     checks = _prepare_checks(root, seat, perform=perform)
     blocks = [c for c in checks if c[0]]
     for blocker, name, clear in checks:
@@ -8699,6 +8878,266 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     return 0
 
 
+def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
+    """rotate-self is KEY-GATED (hypothesis:l4-rotate-self-is-key-gated...
+    piece 1). A KEYED seat -- its row already names a ``pubkey`` -- must hold
+    its own signing key file before it rotates: a rotation whose successor
+    wakes without the key cannot sign its own first message. Returns an error
+    line (the ``keygen`` recovery) when the gate holds, None when it passes.
+
+    The ONE exception is a seat whose row carries NO pubkey yet -- an
+    incrementally-keyed seat mints its own first key in the same step (that
+    minting half is out of this slice's scope; the gate only *refuses*). A
+    throwaway seat (``row`` is an empty dict / None) is never keyed and never
+    refused here.
+    """
+    if not row or not row.get("pubkey"):
+        return None
+    import send  # local: same dir, no import cycle (send.py pattern)
+    key_path = send._seat_key_path(root, seat)
+    if key_path.exists():
+        return None
+    return (f"rotate-self refused: seat {seat!r} carries a pubkey but no "
+            f"signing key at {key_path} -- run `send.py keygen {seat}` "
+            f"first (rotate-self is key-gated: a keyed seat must hold its "
+            f"own signing key to rotate).")
+
+
+def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
+                      dry_run: bool = False) -> str:
+    """rotate-self KEY-GATING, line (1) MINTING half (hypothesis
+    l4-rotate-self-is-key-gated...): the ONE gate exception -- a REAL row
+    whose cell carries NO pubkey yet (an incrementally-keyed fleet seat)
+    mints its own FIRST key IN THE SAME rotate-self step, so its successor
+    wakes with a signing key it can use (Prime 21:20Z (b)).
+
+    REUSES ``send._mint_seat_key`` -- the one key writer, no second path, no
+    ed25519 literal -- and then CLOSES the line-(1) loop by writing the
+    ``pubkey`` / ``sig_scheme`` / ``enc_scheme`` cells into the seat's OWN row
+    through ``send._row_write_submit`` (best-effort, exactly like ``keygen``:
+    a refused / unadmitted row write NEVER fails the rotation -- the key file
+    is still minted, and the note says which half landed). A row that is
+    already keyed, a THROWAWAY/rehearsal row (never written to seats.md), and
+    the case where the key already exists (idempotent re-rotate) are all left
+    alone -- returns '' then. Returns a one-line note when it mints.
+
+    ``--dry-run`` (ORDER 1, SL5.05): touches nothing -- no key file, no row
+    write. It still REPORTS what it would do (a one-line ``(dry-run)`` note
+    naming the mint it would perform) so a caller on an unkeyed real row sees
+    the refusal/mint plan without a side effect.
+    """
+    if not row or row.get("pubkey"):
+        return ""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    scheme = row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME
+    if dry_run:
+        # dry-run is a planning check: report what an unkeyed real row would
+        # do, but mint NOTHING and write NO row cell. Already-keyed rows
+        # (above) and idempotent re-rotates (key file already exists, so the
+        # live path would mint nothing) both return '' -- nothing to report.
+        if send._seat_key_path(root, seat).exists():
+            return ""
+        return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
+                f"key at {send._seat_key_path(root, seat)} (0600) and write "
+                f"its pubkey cells -- NOTHING done")
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is None:
+        # a key file already exists though the row is unkeyed -- idempotent
+        # re-rotate; leave it, the next rotation sees the row still unkeyed
+        # and re-passing the gate. Nothing to do here.
+        return ""
+    _path, pub = minted
+    note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
+            f"{_path} (incremental fleet keying) -- "
+            f"{send.seatsig.fingerprint(pub)}")
+    try:
+        graph = send._graph_root(root)
+        rows = send._seats_rows(graph)
+        new_rows = [dict(r) for r in rows]
+        own = next((r for r in new_rows if r.get("name") == seat), None)
+        if own is not None:
+            own["pubkey"] = pub.hex()
+            own["sig_scheme"] = own.get("sig_scheme") or scheme
+            own["enc_scheme"] = own.get("enc_scheme") or "none"
+            send._row_write_submit(graph, new_rows, actor=seat,
+                                   role=str(row.get("role") or ""))
+            note += f"; row {seat!r} keyed"
+    except Exception as exc:  # noqa: BLE001
+        note += f"; row write not admitted ({exc})"
+    return note
+
+
+def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
+                          gen_before: int, gen_after: int,
+                          dry_run: bool = False) -> dict | None:
+    """goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
+    is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-
+    history, pieces (2)-(4)): a KEYED seat (its row names a ``pubkey``)
+    mints its successor keypair at rotation handover, RETIRES its own
+    (predecessor) key into the row's ``key_history`` -- NEVER deleted --
+    signing the retirement with the PREDECESSOR key BEFORE the handover, and
+    hands the successor the new private key at ``<sessions>/seats/<seat>.key``
+    (0600, atomic replace) with the successor ``pubkey`` written into the
+    seat's OWN row.
+
+    Returns a dict the caller rides onto the ONE existing spawn-row write
+    (s6.1 ``_successor_row_write`` / its ONE ``_commit_spawn_row`` commit --
+    never a second commit): ``{successor_pub, scheme, retired, note,
+    pending_key}``. None when there is nothing to retire -- an unkeyed row,
+    a THROWAWAY/empty row, or a keyed row with no key file (the gate
+    refused that earlier).
+
+    SL5.05 handover-order fix: the function mints + signs EARLY (while the
+    PREDECESSOR private key is still on disk) but does NOT flip ``<seat>.key``
+    itself -- it returns the successor private key in ``pending_key`` and the
+    actual `os.replace` is DEFERRED (by `_apply_successor_key_gated`) until
+    after the successor spawn-row write and its ONE commit have SUCCEEDED.
+    A failed spawn / row write / commit therefore leaves the predecessor key
+    file BYTE-IDENTICAL, never a successor key out of step with the row that
+    names it.
+
+    Reuses the seatsig registry and send's key-file shape/mode -- no
+    ed25519 literal, no second key-writer. ``send._mint_seat_key`` is NOT
+    usable here on purpose: it REFUSES when ``<seat>.key`` already exists
+    (the protection that makes a retirement a REPLACE, not a mint), so the
+    successor key is generated through the SAME ``seatsig.get(scheme)`` the
+    one writer uses and the file is atomically replaced in the same shape.
+
+    ``--dry-run`` mints nothing, replaces nothing, writes nothing: it
+    returns a ``{dry_run: True, note}`` dict that names the retirement it
+    would perform.
+    """
+    if not row or not row.get("pubkey"):
+        return None
+    import send  # local: same dir (send.py pattern, no import cycle)
+    scheme_name = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
+    scheme = send.seatsig.get(scheme_name)  # KeyError names an unknown scheme
+    key_path = send._seat_key_path(root, seat)
+    if not key_path.is_file():
+        return None
+    if dry_run:
+        _fp = send.seatsig.fingerprint(
+            bytes.fromhex(str(row.get("pubkey"))))
+        return {
+            "dry_run": True,
+            "scheme": scheme_name,
+            "note": (f"(dry-run) seat {seat!r} is keyed; would mint its "
+                     f"successor key at {key_path} (0600, atomic replace), "
+                     f"retire {_fp} (gen {gen_before}->{gen_after}) into "
+                     f"key_history and write the successor pubkey -- "
+                     f"NOTHING done"),
+        }
+    # (a) read the PREDECESSOR private key (to sign the retirement) BEFORE
+    #     the atomic replace destroys the file on disk.
+    try:
+        _obj = json.loads(key_path.read_text())
+        _pred_priv = bytes.fromhex(str(_obj.get("priv_hex") or ""))
+        _pred_pub = scheme.public_from_secret(_pred_priv)
+    except (ValueError, OSError, TypeError):
+        return None
+    # (b) mint the SUCCESSOR keypair through the SAME registry.
+    _succ_priv, _succ_pub = scheme.keygen()
+    # (c) sign the retirement record with the PREDECESSOR key BEFORE the
+    #     handover; the retired pub must verify this signature. The payload
+    #     is the canonical retirement fact, reconstructible by a verifier:
+    #     ``<seat>\nretire\n<from>\n<to>\n<successor pub hex>``.
+    _record = (f"{seat}\nretire\n{gen_before}\n{gen_after}\n"
+               f"{_succ_pub.hex()}")
+    _sig = scheme.sign(_pred_priv, _record.encode()).hex()
+    # (d) SL5.05 handover-order fix -- DEFER the <seat>.key REPLACE. The
+    #     successor private key travels back in ``pending_key`` instead of
+    #     being written here, and the actual atomic `os.replace` happens in
+    #     cmd_rotate_self ONLY after the successor spawn-row write
+    #     (`_successor_row_write`) and its ONE commit (`_commit_spawn_row`)
+    #     have SUCCEEDED. A failed spawn (the `rc != 0` return after
+    #     spawn_window), a failed row write, or a failed commit therefore
+    #     leaves <seat>.key BYTE-IDENTICAL holding the PREDECESSOR key -- no
+    #     successor key is ever written out of step with the row that names
+    #     it. send's exact JSON shape + SEAT_KEY_MODE 0600 are re-applied by
+    #     `_apply_successor_key_pending`.
+    _retired = {
+        "pub": _pred_pub.hex(),
+        "fp": send.seatsig.fingerprint(_pred_pub),
+        "from": gen_before,
+        "to": gen_after,
+        "rotated_by_sig": _sig,
+    }
+    return {
+        "successor_pub": _succ_pub.hex(),
+        "scheme": scheme_name,
+        "retired": _retired,
+        "pending_key": {
+            "path": str(key_path),
+            "scheme": scheme_name,
+            "priv_hex": _succ_priv.hex(),
+        },
+        "note": (f"retired seat {seat!r}'s key {_retired['fp']} "
+                 f"(gen {gen_before}->{gen_after}); successor key minted "
+                 f"but NOT yet written (defers to the post-row-write "
+                 f"commit); rotated_by_sig verifies under the retired pub"),
+    }
+
+
+def _apply_successor_key_pending(pending: dict) -> str:
+    """SL5.05 handover-order fix -- perform the ONE deferred <seat>.key
+    atomic replace that `_rotate_successor_key` now defers. ``pending`` is
+    the ``pending_key`` dict the rotation returned (``{path, scheme,
+    priv_hex}``). Writes send's exact JSON key-file shape at SEAT_KEY_MODE
+    0600 via a temp + `os.replace` (no second key-writer format). Called by
+    `_apply_successor_key_gated` ONLY after the successor spawn-row write and
+    its ONE commit have SUCCEEDED. Returns a one-line outcome."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+    key_path = Path(pending["path"])
+    payload = json.dumps({"scheme": pending["scheme"],
+                          "priv_hex": pending["priv_hex"]})
+    _dir = key_path.parent
+    _dir.mkdir(parents=True, exist_ok=True)
+    _tmp = _dir / f".{key_path.name}.tmp"
+    _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                  send.SEAT_KEY_MODE)
+    try:
+        with os.fdopen(_fd, "w") as _f:
+            _f.write(payload)
+    except BaseException:  # noqa: BLE001
+        try:
+            os.close(_fd)
+        except OSError:
+            pass
+        raise
+    os.chmod(_tmp, send.SEAT_KEY_MODE)
+    os.replace(_tmp, key_path)
+    return (f"key_replace: wrote successor key to {key_path} "
+            f"(0600, atomic replace)")
+
+
+def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str:
+    """SL5.05 handover-order gate -- turn a rotation's DEFERRED successor key
+    into the on-disk <seat>.key ONLY when the successor spawn-row write and
+    its ONE commit SUCCEEDED. ``key_rotation`` is `_rotate_successor_key`'s
+    dict (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome``
+    is the `_successor_row_write` return (starts ``config:seats row`` on
+    success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
+    ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure). Any other
+    combination -- row write failed, commit failed, or the write never ran --
+    leaves the predecessor key file BYTE-IDENTICAL and records the refusal,
+    never replacing it. Never raises. Returns one line for the handover's
+    ``key_replace``."""
+    if not key_rotation or not key_rotation.get("pending_key"):
+        return ""
+    _path = key_rotation["pending_key"]["path"]
+    _row_ok = str(row_outcome or "").startswith("config:seats row")
+    _commit = str(commit_outcome or "")
+    _commit_failed = _commit.startswith(("spawn_row_commit: FAILED",
+                                         "FAILED:"))
+    if _row_ok and not _commit_failed:
+        return _apply_successor_key_pending(key_rotation["pending_key"])
+    _why = "row write" if not _row_ok else "commit"
+    return (f"key_replace: NOT applied -- {_why} did not succeed; "
+            f"{_path} left byte-identical with the predecessor key, no "
+            f"successor key written "
+            f"(row={str(row_outcome)!r} commit={_commit!r})")
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -8716,11 +9155,27 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         return 1
     # goal:g15.14 STEP 2 -- `rotate-self --prepare` is the same captive
     # checklist the `prepare` subcommand prints, on the SAME 
-    # `_prepare_checks`: one implementation, two spellings. It is READ-ONLY
-    # and therefore runs before the branch guard, so a seat can ask what
-    # blocks it from wherever it stands.
+    # `_prepare_checks`: one implementation, two spellings. Its branch guard
+    # lives in `cmd_prepare` (P1-b): the guard fires there FIRST, before any
+    # merge, so a `--prepare --perform` on master cannot MERGE season INTO
+    # master. A seat on a refusing branch asks the guard, then what blocks it.
     if getattr(args, "prepare", False):
         args.seat = args.name
+        # goal:g15.14 R1 (P1-c one spelling over) — the REGISTRY gate runs in
+        # the `--prepare` path too, BEFORE any merge. `cmd_prepare` (which
+        # this path delegates to) has NO registry check of its own, and
+        # `--prepare` sets `perform = not dry_run` — so without this gate
+        # `rotate-self --prepare --name <unregistered>` on a behind clean
+        # worktree would MERGE a commit before refusing `no seat`. Same rule
+        # as P1-c in the non-prepare path: the seat must exist in
+        # config:seats unless --throwaway (a rehearsal-only registration that
+        # never writes seats.md).
+        if not getattr(args, "throwaway", False):
+            _prow = _find_seat(root, args.seat)
+            if _prow is None:
+                print(f"ERR: no seat {args.seat!r} in the seats registry "
+                      f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+                return 1
         # rotate-self's own gate performs the only-behind merge by DEFAULT
         # (hypothesis:...-prepare-performs-the-only-behind-merge...) -- a
         # clean, zero-conflict season merge is mechanical and costs 2-4 tool
@@ -8743,6 +9198,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print(geom_src, file=sys.stderr)
         return 1
     seat = args.name
+    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
+    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
+    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
+    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
+    # exist in the registry FIRST, and an unregistered name refuses with NO
+    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # override) is a rehearsal-only registration that NEVER writes seats.md:
+    # it skips this registry gate and builds a default row instead (role from
+    # --role, default parent; model/effort/settings resolved from the ladder
+    # inside spawn_window). Without --throwaway the gate holds exactly as
+    # before — an unregistered name errors `no seat`.
+    row = None
+    if not getattr(args, "throwaway", False):
+        row = _find_seat(cfg_root, seat)
+        if row is None:
+            print(f"ERR: no seat {seat!r} in the seats registry "
+                  f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
+            return 1
+    else:
+        row = {}  # default row; never consulted against seats.md
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
     # side effect (the started record, the handoff, the own-window rename,
     # the spawn). THIS is the one implementation: `rotate.py prepare` prints
@@ -8774,21 +9249,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               "re-run (rotate.py prepare --seat <S> lists them).",
               file=sys.stderr)
         return 3
-    row = None
-    # A THROWAWAY seat (hypothesis:l3-rotate-self-successor-override) is a
-    # rehearsal-only registration that NEVER writes seats.md: it skips the
-    # registry gate the Sanctuary Master owns and builds a default row instead
-    # (role from --role, default parent; model/effort/settings resolved from
-    # the ladder inside spawn_window). Without --throwaway the gate holds
-    # exactly as before — an unregistered name errors `no seat`.
-    if not getattr(args, "throwaway", False):
-        row = _find_seat(cfg_root, seat)
-        if row is None:
-            print(f"ERR: no seat {seat!r} in the seats registry "
-                  f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
-            return 1
-    else:
-        row = {}  # default row; never consulted against seats.md
+
+    # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
+    # rotate without its own signing key file; the gate refuses BY NAME and
+    # runs BEFORE any side effect (started record, handoff, rename, spawn).
+    _key_err = _rotate_key_gate(root, seat, row)
+    if _key_err:
+        print(_key_err, file=sys.stderr)
+        return 1
+    # goal:g15.25 line (1) minting half -- an UNKEYED real row mints its own
+    # first key in this SAME step (incremental fleet keying), so its
+    # successor wakes keyed. Best-effort row write; never fails the rotation.
+    _mint_note = _rotate_first_key(
+        root, cfg_root, seat, row,
+        dry_run=bool(getattr(args, "dry_run", False)))
+    if _mint_note:
+        print(_mint_note, file=sys.stderr)
 
     # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
     # BEFORE any side effect (the started record, the handoff, the own-window
@@ -8872,6 +9348,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # happens without it — the newest `.jsonl` in the sessions dir never
     # supplies identity.
     session_ref = (getattr(args, "session_ref", None) or "").strip()
+
+    # goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
+    # is-key-gated...): a KEYED seat mints its successor keypair at rotation
+    # handover and signs the retirement with its own (predecessor) key BEFORE
+    # this point (the predecessor private key is read while still on disk).
+    # The actual atomic replace of <sessions>/seats/<seat>.key is DEFERRED
+    # (SL5.05 handover-order fix) until AFTER the successor spawn-row write
+    # (s6.1 `_successor_row_write`) and its ONE commit (g15.24
+    # `_commit_spawn_row`) succeed -- the successor pubkey + key_history
+    # cells ride that ONE write (never a second commit). A failed spawn /
+    # row write / commit leaves the predecessor key file BYTE-IDENTICAL.
+    # `--dry-run` reports what it would do and touches nothing. The row
+    # cells are consumed at s6.1 via `_key_rotation`.
+    _key_rotation = _rotate_successor_key(
+        root, seat, row, gen_before=gen_before, gen_after=gen,
+        dry_run=bool(getattr(args, "dry_run", False)))
+    if _key_rotation:
+        _kn = _key_rotation.get("note")
+        if _kn:
+            print(_kn, file=sys.stderr)
 
     # A rotate-self rotation opens ONE record file up front (a `started`
     # record) and updates it IN PLACE through every step, so an interruption
@@ -9301,7 +9797,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 # cell stays EMPTY — never the uuid.
                 session_ref="",
                 pid=succ_pid, session_id=succ_session_id,
-                generation=gen)
+                generation=gen,
+                # goal:g15.25 line (2): the successor pubkey + key_history
+                # cells ride this ONE spawn-row write (and the ONE
+                # `_commit_spawn_row` below) -- never a second submit.
+                key_rotation=_key_rotation)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
         # (g15.24, Sensei's pick, fix (a)): rotate-self COMMITS the s6.1
@@ -9326,6 +9826,18 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     pid=succ_pid)
             except Exception as exc:  # noqa: BLE001
                 handover["spawn_row_commit"] = f"FAILED: {exc}"
+        # SL5.05 handover-order fix: the actual <seat>.key REPLACE happens
+        # HERE and only here -- after the successor spawn-row write and its
+        # ONE commit have SUCCEEDED (never a second commit). `_rotate_successor_key`
+        # minted + signed EARLY but DEFERRED the os.replace; a failed spawn
+        # (the rc return above), row write, or commit leaves the predecessor
+        # key file BYTE-IDENTICAL and records the refusal in the handover.
+        handover["key_replace"] = _apply_successor_key_gated(
+            _key_rotation,
+            handover.get("successor_row"),
+            handover.get("spawn_row_commit"))
+        if handover["key_replace"]:
+            print(handover["key_replace"], file=sys.stderr)
         # (s5, deferred to the post-ack success path — r1): model_confirm
         # runs AFTER the ack confirms a successor ASSISTANT TURN exists, or
         # reads argv only — NEVER a read of the successor transcript before
