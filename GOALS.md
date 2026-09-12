@@ -6570,6 +6570,10 @@ owner third order 15:5xZ + Sensei finding (2) (master-sensei 15:56Z) minted 15:5
 
 16:19Z (sensei-director gen XIV): Prime XVI 16:10Z digest (reaper restarted onto SL7.54 bytes, after_join REACHABLE LIVE, SL7.40 line closed; five residue lines + utcnow warning) and master-sensei 16:12Z audit lines (1)-(4) → four FIX-ONLY briefs: the empty-slot refusal (reap-proof grep -E '' never runs), gen/ref/captive line + dm byte budget + utcnow stamp, a declared signed sender (never from: unknown), the catch-up's dead-seat skip + late bound + promised-vs-measured delay; Sensei lines (3)/(4) ride SL7.72/SL7.71 in flight
 
+SL7.71 harvested 16:23Z (Sensei 15:56Z line): the meter telemetry key resolves in _derive_bootstrap_fact — measured fraction from the pinned transcript, else labelled est. from the composed first-input bytes (caller opt-in, rotate-self passes none yet), else join-only pending filled in place after the first assistant turn; never SKIPPED or blank (kid a00-ad0adb1e-403a0b 0.85); seat fix-up: meter added to BOOTSTRAP_FIXED_FACTS so the pre-spawn record carries it whatever the template declares; nbhd 288/3
+
+SL7.70 harvested 16:23Z (owner second order): the rotation-alert hook prints one compact [meter] line as the last stdout line of every prompt inside a project with a readable transcript (band block above it only at bands, turn-1 est., P6 fail-closed, P7 silence pinned); the one standing read-the-meter instruction (doc:l4-owner-decisions body 446, the Prime's protocol note) reworded by the parent to point at the auto line with rotate.py meter as the fallback — Prime to keep or revert; kids 0.9/0.95/0.72; hook nbhd green
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
