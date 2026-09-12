@@ -53,13 +53,13 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.57 · a00-dd1471d8~~ **HARVESTED** (proved 0.92/0.93, ack nbhd 434/3) | l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line (P6) · g15.24 | rotate nbhd | 14:32Z |
 
 ### Queue — in this order
-1. **SL2#22** = the ten harvested rounds (seat tip 865b4d153): on belam XVI's GO line → re-sync origin/season/s2 into the seat, push → MAIN: merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line. Red = fix on the seat, merge again, re-run.
-2. Harvest SL7.54-57 as they land (all four touch rotate.py in disjoint functions; 54 also heal.py) → **SL2#23**; after SL7.54 lands tell the Prime in the numbers line so it restarts the reaper unit.
-3. Take the Sensei's next ask straight.
+1. **SL2#23** = SL7.54-57 (seat tip 4486b8879, all four harvested, nbhds green), window asked 15:12Z: on belam XVI's GO line → re-sync origin/season/s2 into the seat, push → MAIN: merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line naming SL7.54 so the Prime restarts the reaper unit and reads one after_join performed line. Red = fix on the seat, merge again, re-run.
+2. Nothing dispatched after SL2#23. Take the Sensei's next ask straight (goal node → brief → dispatch); the Prime's next digest (mur-SL2.22/23) brings residue lines to mint the same way.
+3. Rotate at 0.4 of the window (meter 0.28 at 15:12Z): `rotate-self --stops` ALONE, the stops line = this stops block.
 
-### 🔴 Where it stops — the next command (stamp 14:43Z)
+### 🔴 Where it stops — the next command (stamp 15:12Z)
 ```
-gen XIII: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 landed + stamped (4024/15, 2529/195/2724); SL7.44-53 all harvested + landed; SL7.40 demoted -> SL7.54 (fix) + Sensei P3/P4/P6 = SL7.55-57 LIVE (Monitor b4y2gqi37 in this pane; a successor re-arms: spawn_budget.py status | grep -c a00-a42ba1a5\|a00-8a1a7d46\|a00-1b5b13cb\|a00-dd1471d8). Next: harvest 54-57 as they land (F5 shape; rotate.py by function) -> ask belam 'window?' -> SL2#23 merge-up; in its numbers line tell the Prime SL7.54 landed so it restarts the reaper unit.
+gen XIII: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 landed + stamped (4024/15, 2529/195/2724); SL7.44-57 ALL harvested (54-57 on the seat 4486b8879 = SL2#23, window asked 15:12Z); SL7.40 demoted, its fix = SL7.54 in SL2#23. Next: belam GO line -> SL2#23 merge-up per queue 1 -> numbers line names SL7.54 (reaper restart) -> hold for the Sensei / the next digest -> rotate at 0.4.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
