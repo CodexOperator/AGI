@@ -5865,6 +5865,8 @@ SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat mer
 
 SL7.81 harvested 17:48Z (Prime line (d)): the list-of-plain-scalars path escapes through the one scalar escaper; _scalar quotes on the raw value before stripping; fixpoint corpus + live-tree scan (2800 nodes, 0 unreadable, 0 drift, 91 representation-only diffs classified) (kids lean_proved 85/90; nbhd 355/3)
 
+mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-live-tree-fixpoint-names-the-pending-representation-change — '' list item read back as null after SL7.81; 91 live nodes carry a pending one-time representation change (0 value drift)
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -6637,6 +6639,8 @@ SL7.98 HARVESTED 19:54Z on the sensei-director post (4553ce08c): every after_joi
 SL7.94 HARVESTED 20:04Z on the sensei-director post: rotation_alert.py runs the P7 outside-project check BEFORE the rc-3 no-transcript refusal (outside a project: exit 0, silent), prints no fraction when no post resolved (pin_missing = not seat or the canonical pin absent), estimates turn 1 from the payload's prompt field not the envelope, and imports rotate off the pin-only path (the band/ladder helpers keep their lazy import); kid proved 0.85; three existing tests amended to the new order, +tests; hook nbhd 116/3. Rides SL2#26
 
 SL7.96 HARVESTED 20:18Z on the sensei-director post (7ad74f576): a config:posts row carries an optional session_name cell (schema [config].md self_row, written by _write_identity_cells at spawn and the ack back-fill = the registry name the join resolved, '' when unjoined), rotate.py status flags a 36-char uuid in session_ref as stale, send.py whois resolves session_ref OR session_name; no migration — other rows untouched; the F3 re-cut sentence sits in the kid node experiment:a00-5ddf1181-b5edec under 'F3 re-cut' for the Prime to apply; kids lean 60 + proved 0.8 (kid 2 lifted stale test fixtures to the live schema); three test-append hunks unioned; nbhd 971/3. Rides SL2#26
+
+mur-SL2.25 digest applied 20:55Z (Prime XVII 20:5xZ, wf_d48284d2-6ca): SL7.86 DEMOTED (experiment:a00-d053f342-92413c -> inconclusive_lean_disproved; the live uuid source is the spawn-time _write_ack) -> re-cut SL7.102 hypothesis:l4-the-spawn-time-ack-carries-no-session-ref-cmd-ack-refuses-any-uuid-shaped-ref-and-the-tail-test-reads-a-real-ack-file; residues (a)(f) -> SL7.104 hypothesis:l4-a-no-window-started-record-waits-the-promised-delay-the-own-tail-re-claims-a-stale-claim-and-the-dead-seat-marker-is-pathspec-committed; (b) -> SL7.105 hypothesis:l4-code-head-is-persisted-on-the-after-join-record-and-the-heal-watch-guards-execv-and-re-execs-only-on-a-changed-head-with-a-clean-tree
 
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
@@ -9583,6 +9587,8 @@ SL7.92 HARVESTED 19:35Z on the sensei-director post: the closeout worktree-post 
 SL7.101 brief 19:45Z (FIX-ONLY, residue of SL7.92): hypothesis:l4-the-closeout-merge-up-gate-ignores-cron-owned-dirty-paths-and-blocks-only-on-a-dirty-path-the-merge-touches — merge_up blocks only on a dirty tracked path the merge touches, cron-owned prefixes ignored by one constant, blockers named; dispatched after 93/96/98 land (same file) or now if the tree bound allows
 
 SL7.101 HARVESTED 20:18Z on the sensei-director post: the closeout merge_up gate blocks only on a dirty TRACKED path the merge itself touches, never on a cron-owned prefix — ONE constant CLOSEOUT_CRON_OWNED_PREFIXES = PREPARE_CHURN_PREFIXES + PREPARE_CHURN_DIRS (kid 2 found the prefixes spelled in three places and unified them), blockers + ignored count named, an unmeasurable tree still refuses; kids lean 70 + proved 0.93; closeout nbhd green in 971/3. With 92 + 101 on the post a live --closeout can reach merge_up on a MAIN carrying cron churn — the Prime's no-closeout ruling can lift after SL2#26 lands. Rides SL2#26
+
+mur-SL2.25 digest applied 20:55Z (Prime XVII 20:5xZ): SL7.90 DEMOTED (experiment:a00-22f6ce02-edd3ff -> inconclusive_lean_disproved; g17_1_note runner two positionals = write.py rc 2, no record at the call site, failed commit reported committed, render from cwd) -> re-cut SL7.103 hypothesis:l4-the-prime-and-main-post-closeout-real-runners-are-driven-on-a-fixture-root-and-the-g17-1-note-runner-uses-the-one-arg-note-grammar; residues (c)(e) -> SL7.106 hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-conftest-env-strip-and-the-pin-tests-never-open-a-socket; (d)(h)(i) -> SL7.107 hypothesis:l4-cmd-spawn-initialises-rowgen-display-cmd-resolves-by-key-presence-and-preserve-swept-latches-never-inherits-a-stale-sweep. The no-closeout ruling stands until SL7.92 + SL7.101 (harvested) + SL7.103 land. BANKED g15 candidate (the Prime): a harvest-table subcommand for F5 — harvest subjects went verb-first, review args needed two mkargs passes
 
 ### G16 — Telemetry per node, propagated up the ladder
 
