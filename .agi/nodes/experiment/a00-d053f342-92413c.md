@@ -17,7 +17,7 @@ scaffold_hash: 46fc799d46ee3445
 season: 2
 title: A00 d053f342 92413c
 town: core
-verdict: inconclusive_lean_disproved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-d053f342-92413c
