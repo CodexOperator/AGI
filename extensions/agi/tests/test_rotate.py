@@ -3546,6 +3546,62 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
     assert "diff --text" not in text
 
 
+def test_first_seating_bootstrap_ack_is_truthful_at_turn_one(tmp_path):
+    """GOAL:g15.25 (SL7.42) — a first seating's turn-one bootstrap `ack`
+    fact names the SOURCE `first-seating` (never `predecessor`) and is
+    supplied through the SAME `overrides` seam the rotation path uses, so the
+    record reads `ack: continue (source first-seating, gen 1) — this post
+    acks once itself` at turn one — never `ack: none` (no ack file yet) and
+    never a STALE prior-gen answer left in seats/<seat>.ack.json from an
+    earlier seating of the same seat name. Falsifiers: the bootstrap still
+    reads `ack: none`, or prints the stale `gen 5`/`source predecessor`
+    answer as current."""
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "",
+         "session_kind": "remote-control"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin" / "probe_fs_ack.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {steps: [spawn], telemetry: [seat, ack],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_fs_ack.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+    # a STALE prior-gen ack from an earlier seating of this same seat name:
+    (tmp_path / "sessions" / "seats").mkdir(parents=True, exist_ok=True)
+    (rotate._ack_path(tmp_path, "director-seat")).write_text(json.dumps({
+        "seat": "director-seat", "gen_after": 5, "answer": "continue",
+        "source": "predecessor", "session_ref": "", "ts": "T",
+        "text": "stale old answer"}) + "\n", encoding="utf-8")
+
+    block, results = rotate._first_seating_run(
+        tmp_path, seat="director-seat", role="director",
+        succ_name="director-seat", dry_run=False)
+    assert block, "first seating produced no STARTUP OUTPUT block"
+    assert results, "first seating ran no first_turn commands"
+    boot = (rotate._sessions_dir(tmp_path) / "seats"
+            / "director-seat.bootstrap.json")
+    doc = json.loads(boot.read_text(encoding="utf-8"))
+    ack = doc["telemetry"].get("ack")
+    # truthful value: names first-seating, gen 1, never the stale gen 5.
+    assert ack == ("continue (source first-seating, gen 1) — "
+                   "this post acks once itself"), ack
+    assert "gen 5" not in str(ack), "stale prior-gen answer leaked as current"
+    assert "source predecessor" not in str(ack), ack
+    # the block the successor reads at turn one renders it without doubling.
+    block2, reason = rotate._bootstrap_block(tmp_path, "director-seat")
+    assert reason is None, reason
+    assert ("- ack: continue (source first-seating, gen 1) — "
+            "this post acks once itself") in block2, block2
+    assert "ack: ack:" not in block2 and "ack: none" not in block2
+
+
 def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
         tmp_path, monkeypatch):
     """Claim (3) `--ask-diff`: the seating alert prints the exact
@@ -3587,6 +3643,78 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     assert "generation 0 -> 1" in text and "--gen 0" not in text
     assert ("rotate.py ack --seat director-seat --gen 1 "
             "--ref <your ListAgents ref> diff --text -") in text, text
+
+
+def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
+    """GOAL:g15.25 (SL7.42) — the first-seating turn-one bootstrap `ack`
+    fact tracks the `--ask-diff` MODE the same seating will actually have,
+    in BOTH modes, end to end through the real `cmd_spawn` path (spawn
+    writers included, not just `_first_seating_run`). The falsifier this
+    kills: `spawn --ask-diff` leaves the bootstrap ack saying `continue`
+    (the default override) while the ack file it opened says
+    `diff-requested` — the successor reads a lie at turn one. After the fix
+    the bootstrap ANSWER equals the ack file's answer in every mode, with
+    SOURCE `first-seating` (never `predecessor`)."""
+    import send as _send
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    # a rotations template that declares BOTH seat and ack telemetry, so the
+    # bootstrap record actually carries the ack fact (SL7.42 overrides).
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "bin" / "probe_first_seating.py").write_text(
+        "import sys\nprint(','.join(sys.argv[1:]))\n", encoding="utf-8")
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  director: {brief_file: x.md, steps: [spawn], telemetry: [seat, ack],\n"
+        "    startup: {first_turn: [{label: probe, "
+        "cmd: \"python3 {repo}/bin/probe_first_seating.py {seat} gen={gen}\"}]}}\n"
+        "---\n\nbody\n", encoding="utf-8")
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender:
+                        sent.append((other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+
+    def _run(args):
+        rc = rotate.cmd_spawn(args, tmp_path)
+        assert rc == 0
+        ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+                         .read_text(encoding="utf-8"))
+        boot = (rotate._sessions_dir(tmp_path) / "seats"
+                / "director-seat.bootstrap.json")
+        doc = json.loads(boot.read_text(encoding="utf-8"))
+        return ack, doc["telemetry"].get("ack")
+
+    base = dict(name="director-seat", tier="director", prompt_file=None,
+                model=None, effort=None, settings=None, tmux_session="agi-rc",
+                window_path=str(wins), dry_run=False, successor_argv=None,
+                seat="director-seat", registry_dir=str(reg), pid=None)
+
+    # ask-diff mode: bootstrap answer must equal the ack file's answer.
+    ack_d, boot_d = _run(SimpleNamespace(**base, ask_diff=True))
+    assert ack_d["answer"] == "diff-requested", ack_d
+    assert boot_d.startswith("diff-requested (source first-seating, gen 1)"), \
+        boot_d
+    assert f"diff-requested" == ack_d["answer"], "bootstrap answer != ack answer"
+
+    # default mode (a fresh seat keeps the continue default): same equality.
+    ack_c, boot_c = _run(SimpleNamespace(**base, ask_diff=False))
+    assert ack_c["answer"] == "continue", ack_c
+    assert boot_c == ("continue (source first-seating, gen 1) — "
+                      "this post acks once itself"), boot_c
+    assert boot_c.startswith(ack_c["answer"].split()[0]),\
+        "bootstrap answer != ack answer (default mode)"
+    assert "gen 5" not in boot_d and "source predecessor" not in boot_d
+    assert "source predecessor" not in boot_c
 
 
 def _spawn_seat_args(reg, wins, pid_arg):
