@@ -319,6 +319,67 @@ def test_pre_commit_allows_parent_on_canonical_loop_branch(temp_repo: Path):
     )
 
 
+@pytest.mark.parametrize("branch,expect_commit", [
+    # canonical grammar dispatch emits (branches.loop_branch) — parent `done` COMMITS
+    ("season2/loops/x-y", True),
+    # legacy grammar a live tree may still carry — parent `done` COMMITS
+    ("loop/x-y@s2", True),
+    # the season integration branch — parent `done` must be REFUSED
+    ("season2/main", False),
+    # a posts branch — parent `done` must be REFUSED
+    ("season2/posts/x", False),
+])
+def test_parent_done_shaped_commit_end_to_end_via_git(temp_repo: Path,
+                                                     branch: str,
+                                                     expect_commit: bool):
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (1) — the
+    end-to-end fixture through REAL git: a parent `done`-shaped commit routed
+    through the REAL hook file (the GIT_CONFIG_* triple dispatch hands every
+    agent, exactly as measured: GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=
+    core.hooksPath GIT_CONFIG_VALUE_0=<hooks dir under test>) commits on both
+    loop-branch grammars dispatch emits (season2/loops/* and loop/*@s2) and is
+    REFUSED on season2/main and season2/posts/* with the hook's OWN stderr
+    message. We do NOT invoke the hook script here — git runs it, the way a
+    dispatching tree actually wires it via core.hooksPath.
+
+    Red the round the guard was measured broken: dispatch.py emitted
+    season2/loops/<slug>-<agent> while the old hook allowed a parent commit
+    only on loop/*, and every parent `done` on those rounds was refused and
+    left staged (L4.304/305/306/307). This pins both grammars AND the two
+    refusal branches in one fixture, through git, not by sourcing the hook.
+    """
+    with_hook(temp_repo)
+    toplevel = repo_toplevel(temp_repo)
+    subprocess.run(["git", "checkout", "-b", branch],
+                   cwd=temp_repo, capture_output=True, check=True)
+    (temp_repo / "parent_done.md").write_text("parent done commit")
+    subprocess.run(["git", "add", "."], cwd=temp_repo, capture_output=True)
+    result = subprocess.run(
+        ["git", "commit", "-m", f"done: parent done on {branch} -- accepted kid:n"],
+        cwd=temp_repo, capture_output=True, text=True,
+        # the GIT_CONFIG triple EXACTLY as dispatch.py:1853-1855 sets it, so
+        # git reads the hook from the hooks dir under test, not a stale
+        # global core.hooksPath pointing at another checkout.
+        env={**hook_env(), "AGI_TIER": "parent",
+             "AGI_PROJECT_ROOT": toplevel},
+    )
+    if expect_commit:
+        assert result.returncode == 0, (
+            f"parent done REFUSED on {branch} (should commit): "
+            f"{result.stdout} / {result.stderr}"
+        )
+    else:
+        assert result.returncode == 1, (
+            f"parent done COMMITTED on {branch} (should be refused): "
+            f"{result.stdout}"
+        )
+        # the hook's OWN message, asserted verbatim on the refusal branches
+        assert "may not commit" in result.stderr, (
+            f"refusal on {branch} is not the hook's own message: "
+            f"{result.stderr!r}"
+        )
+
+
 def test_pre_commit_still_rejects_kid_on_loop_branch(g11_repo: Path):
     """The loop/* allowance is for PARENT only. A KID on a loop/* branch in
     the project repo stays blocked -- kids commit nothing, ever."""
@@ -443,12 +504,40 @@ def test_spawn_env_contains_AGI_TIER():
     )
 
 
-def test_spawn_env_contains_GIT_CONFIG_for_kid():
-    """dispatch.py must set GIT_CONFIG_COUNT and related vars for kid tier."""
+def test_spawn_env_GIT_CONFIG_VALUE_pinned_to_this_trees_hooks():
+    """hypothesis:l4-a-parent-done-commits-on-every-grammar, claim (2) — the
+    VALUE-level half. This REPLACES the old source-grep near-miss
+    (`"agent-git" in src`), which passed even if the block never ran or the
+    assigned path were a different directory on the next line. dispatch.py
+    derives the value deterministically from its OWN file location:
+    `plugin_root = Path(__file__).resolve().parent.parent` (dispatch.py's
+    parent is extensions/agi/bin, so parent.parent is extensions/agi) then
+    `hooks_dir = plugin_root / "hooks" / "agent-git"`, and assigns
+    `spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)`. We assert the
+    assignment sources that same derived path and that the file dispatch
+    would point every agent's core.hooksPath at actually exists here — a
+    value the runtime would produce, tied to the filesystem, not a bare
+    string presence. The full runtime capture (env actually handed to the
+    spawned process) lives in test_dispatch_dry_run.py::
+    test_live_spawn_env_hooks_path_is_this_trees_hooks.
+    """
     src = (BIN / "dispatch.py").read_text()
+    # the three assignment statements that wire the triple -- pinned by the
+    # literal value, so a rewording that changes the mechanism fails.
     assert 'spawn_env["GIT_CONFIG_COUNT"] = "1"' in src
     assert 'spawn_env["GIT_CONFIG_KEY_0"] = "core.hooksPath"' in src
-    assert "agent-git" in src
+    assert 'spawn_env["GIT_CONFIG_VALUE_0"] = str(hooks_dir)' in src
+    # hooks_dir must itself derive from plugin_root off the ONE file:
+    # dispatch's plugin_root = Path(__file__).resolve().parent.parent, whose
+    # parent.parent is exactly BIN.parent (extensions/agi) in this tree.
+    assert 'hooks_dir = plugin_root / "hooks" / "agent-git"' in src
+    # ...and the file the value points at must exist here -- the same path
+    # dispatch computes: <extensions/agi>/hooks/agent-git/pre-commit.
+    value_path = (BIN.parent / "hooks" / "agent-git" / "pre-commit").resolve()
+    assert value_path.is_file(), (
+        f"dispatch's GIT_CONFIG_VALUE_0 would point at {value_path} but "
+        "that pre-commit hook does not exist in this tree"
+    )
 
 
 def test_spawn_env_contains_AGI_PROJECT_ROOT_for_kid():

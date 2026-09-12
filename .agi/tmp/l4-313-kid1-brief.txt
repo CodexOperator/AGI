@@ -1,0 +1,82 @@
+TARGET: hypothesis:l4-a-parent-done-commits-on-every-grammar
+You are the ONE kid on this target (parent a00-4aba4f92, iter L4.313). Read the
+target node in full first: .agi/nodes/hypothesis/l4-a-parent-done-commits-on-every-grammar.md
+
+WHAT IS ALREADY DONE — DO NOT RE-DERIVE:
+Claim (3), the live-tree proof, is DONE and recorded in that node's Agent Notes:
+L4.311's parent a00-de6c51f7 landed its own `done` commit e61898e0d on
+season2/loops/hypothesis-l4-commit-all-is-lega-a00-de6c51f7 with an empty
+`git status --short`. Do not touch it, do not re-measure it.
+
+WHAT YOU OWE (claims (1) and (2) of testable_claim, quoted):
+
+Claim (1): "a fixture that runs a parent `done`-shaped commit (`AGI_TIER=parent`,
+the GIT_CONFIG_* triple exactly as dispatch sets it, a repo whose HEAD is
+season2/loops/x-y) through the REAL hook file commits, and the same commit on
+loop/x-y@s2 commits, and on season2/posts/x or season2/main is refused with the
+hook's own message -- end-to-end through git, not by invoking the script".
+
+Claim (2): "a test pins dispatch.py's wiring: the spawn env carries
+core.hooksPath pointing at `<plugin_root>/hooks/agent-git` of the tree dispatch
+ran from".
+
+WHAT THE MACHINE ACTUALLY DOES TODAY (verify each yourself against file:line;
+do not trust this brief, it is a pointer, not evidence):
+  - extensions/agi/hooks/agent-git/pre-commit:64-70 — parent tier exits 0 on
+    `season*/loops/*|loop/*`; every other branch falls through to
+    "... may not commit ..." then exit 1.
+  - extensions/agi/tests/test_git_commit_guard.py already covers: parent on
+    legacy loop/* (test_pre_commit_allows_parent_on_loop_branch, :251) and
+    parent on canonical season2/loops/* (:299), plus a generic refusal on the
+    default `master` branch (:236). MISSING: the refusal on season2/main and on
+    season2/posts/<n> through the same GIT_CONFIG triple, and an assertion that
+    the refusal is the hook's OWN message.
+  - extensions/agi/bin/dispatch.py:1849-1855 builds the GIT_CONFIG triple and
+    points GIT_CONFIG_VALUE_0 at `<plugin_root>/hooks/agent-git`.
+  - extensions/agi/tests/test_git_commit_guard.py:446-452,
+    test_spawn_env_contains_GIT_CONFIG_for_kid, is a SOURCE-STRING GREP of
+    dispatch.py. THIS IS THE NEAR MISS: a grep satisfies the words of claim (2)
+    and loses the mechanism -- it passes if the string is present anywhere in
+    the file, even if the block never runs, even if the path value were changed
+    to something else on the next line. The test must assert on the VALUE of
+    the built spawn env, not on source text.
+
+DELIVERABLE:
+1. In extensions/agi/tests/test_git_commit_guard.py add an end-to-end fixture
+   through real git (subprocess `git commit`) that, for AGI_TIER=parent and
+   AGI_PROJECT_ROOT = the fixture repo's own toplevel, and with the GIT_CONFIG
+   triple exactly as dispatch sets it (GIT_CONFIG_COUNT=1,
+   GIT_CONFIG_KEY_0=core.hooksPath, GIT_CONFIG_VALUE_0=<hooks dir under test>):
+     - COMMITS on season2/loops/x-y (canonical) and on loop/x-y@s2 (legacy);
+     - is REFUSED on season2/main and on season2/posts/x, asserting the hook's
+       own stderr message ("may not commit").
+   Do not invoke the hook script directly; run git and let the hook fire. If
+   the fixture finds a REAL refusal where the claim says commit (i.e. a defect
+   in the hook), fix extensions/agi/hooks/agent-git/pre-commit and say so.
+   Note: claim (1) says the commit on season2/loops/x-y "commits" — that is
+   already the behavior the hook implements; if it does NOT, that is the finding.
+2. For claim (2): make the test assert the real value. Preferred: call the real
+   spawn-env-building code path (if dispatch.py exposes a callable builder) OR
+   run `python3 extensions/agi/bin/dispatch.py <root> <iter> --dry-run ...` and
+   parse the exported env it prints, then assert the hooksPath value resolves to
+   `<this tree's plugin_root>/hooks/agent-git` and that this file exists. If
+   neither path exposes the env for a value-level assertion, write the strongest
+   value-level assertion the code allows and NAME in your node exactly why the
+   source-grep was insufficient. Run the dispatch test file you touch.
+3. Write your result as an EXPERIMENT node under the target:
+   type: experiment, parents: [hypothesis:l4-a-parent-done-commits-on-every-grammar].
+   Body: the exact commands, the pasted pytest counts, the refusal messages you
+   observed, and the file:line for each claim. Set verdict honestly in your
+   done call.
+
+FILE SCOPE (nothing else): extensions/agi/tests/test_git_commit_guard.py,
+extensions/agi/tests/test_dispatch*.py (the wiring test only),
+extensions/agi/hooks/agent-git/pre-commit ONLY if your fixture finds a real
+refusal. Never edit dispatch.py itself, never touch refs/grid, never commit.
+
+RUN: `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q`
+plus the dispatch test file you touched; paste the counts.
+
+Signal done with cli.py done ... --node-id <your experiment node> --parent
+hypothesis:l4-a-parent-done-commits-on-every-grammar --evidence-runs <that same
+experiment node>.
