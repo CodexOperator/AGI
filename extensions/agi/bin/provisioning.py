@@ -507,6 +507,42 @@ def settings(cfg: dict) -> tuple[float, int]:
     return limit, ttl
 
 
+def post_limit_usd(post: str | None, cfg: dict,
+                   root: Path | str | None = None) -> float | None:
+    """The per-key budget cap for a post whose config:posts row tier is
+    'untrusted' -- the row's `budget` cell, else None.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (c): the untrusted lane's per-spawn key cap is the row's
+    `budget` cell instead of the configured default. Reading taken: `budget`
+    IS the mint `limit_usd` (one cell, the owner's 'per-key budget'); a row
+    that is not untrusted, or an untrusted row with NO budget cell, keeps
+    today's default exactly (returns None). None on an absent post or an
+    unreadable config -- fails open, never a surplus gate.
+    """
+    if not post:
+        return None
+    try:
+        import geometry_config
+
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("name") != post:
+            continue
+        if row.get("tier") != "untrusted":
+            return None
+        b = row.get("budget")
+        if b is None:
+            return None
+        try:
+            return float(b)
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
 def workspace(cfg: dict) -> str | None:
     """`spawn.credential.workspace_id`, or None to use the account default.
 

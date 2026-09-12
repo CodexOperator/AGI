@@ -281,3 +281,112 @@ def test_calls_empty_transcript_prints_zero_lines_exits_zero(tmp_path,
     assert sensei.cmd_calls(args) == 0
     out = capsys.readouterr().out
     assert out == ""  # no tool calls → no listing lines at all
+
+
+# ── sensei.py calls flat/window — hypothesis:l4-sensei-calls-flattens- ──
+# multi-line-commands-names-non-bash-tool-inputs-and-prints-the-boundary-only-
+# inside-the-window
+def _asst_inp(ts, tool, inp):
+    content = [{"type": "tool_use", "name": tool, "input": inp}]
+    return json.dumps({"type": "assistant", "timestamp": ts,
+                       "message": {"role": "assistant", "content": content}})
+
+
+def test_calls_a_multiline_bash_command_prints_one_flattened_row(tmp_path,
+                                                                 capsys):
+    p = tmp_path / "t.jsonl"
+    _write_transcript(p, [
+        _asst_line("2026-09-12T00:00:01Z", "Bash", "echo a\nsleep 1\npwd"),
+    ])
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert len(out) == 1                      # one row, never 3
+    assert out[0] == "1 · 2026-09-12T00:00:01Z · Bash · echo a sleep 1 pwd"
+    assert "\n" not in out[0]                 # explicit newline falsifier
+
+
+def test_calls_b_nonbash_tools_name_input_slots(tmp_path, capsys):
+    p = tmp_path / "t.jsonl"
+    _write_transcript(p, [
+        _asst_inp("2026-09-12T00:00:01Z", "Read", {"file_path": "a/b.py"}),
+        _asst_inp("2026-09-12T00:00:02Z", "Grep", {"pattern": "def main"}),
+        _asst_inp("2026-09-12T00:00:03Z", "SendMessage",
+                  {"to": "director", "message": "hey, watch the log"}),
+        _asst_inp("2026-09-12T00:00:04Z", "Write", {}),
+        _asst_inp("2026-09-12T00:00:05Z", "ToolX",
+                  {"z": 1, "y": "v"}),
+    ])
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert len(out) == 5
+    assert out[0] == "1 · 2026-09-12T00:00:01Z · Read · a/b.py"
+    assert out[1].endswith("Grep · def main")
+    assert out[2].endswith("SendMessage · director hey, watch the log")
+    assert out[3].endswith("Write · -")                       # empty input → '-'
+    assert out[4].endswith("ToolX · {\"z\":1,\"y\":\"v\"}")    # compact json dump
+
+
+def test_calls_c_boundary_after_to_never_prints_inside_prints_once(tmp_path,
+                                                                  capsys):
+    p = tmp_path / "t.jsonl"
+    lines = [
+        _asst_line("2026-09-12T00:00:01Z", "Bash", "one"),
+        _user_line("2026-09-12T00:00:02Z", "go on"),
+        _asst_line("2026-09-12T00:00:03Z", "Bash", "two"),
+        _user_line("2026-09-12T00:00:04Z", "again"),
+        _asst_line("2026-09-12T00:00:05Z", "Bash", "three"),
+    ]
+    _write_transcript(p, lines)
+    args = _Args(transcript=str(p), from_=None, to=2, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    # calls 1 and 2 + the ONE boundary between them; the boundary after call 2
+    # (before call 3) and call 3 itself are outside the --to window
+    assert len(out) == 3
+    assert out[0].endswith("Bash · one")
+    assert out[1] == "── user turn 1 ──"
+    assert out[2].endswith("Bash · two")
+    assert "user turn 2" not in out          # boundary after window never prints
+
+
+def test_calls_d_bash_only_golden_byte_identical(tmp_path, capsys):
+    p = tmp_path / "t.jsonl"
+    lines = [
+        _asst_line("2026-09-12T00:00:01Z", "Bash", "ls -la"),
+        _tool_result_line("2026-09-12T00:00:02Z"),
+        _asst_line("2026-09-12T00:00:03Z", "Bash", "git status"),
+    ]
+    _write_transcript(p, lines)
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    golden = ("1 · 2026-09-12T00:00:01Z · Bash · ls -la\n"
+              "2 · 2026-09-12T00:00:03Z · Bash · git status")
+    assert capsys.readouterr().out.strip() == golden  # unchanged Bash rendering
+
+
+def test_calls_e_empty_input_prints_dash_not_empty_column(tmp_path, capsys):
+    p = tmp_path / "t.jsonl"
+    _write_transcript(p, [
+        _asst_line("2026-09-12T00:00:01Z", "ToolX"),   # empty input dict
+    ])
+    args = _Args(transcript=str(p), from_=None, to=None, width=150)
+    assert sensei.cmd_calls(args) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert len(out) == 1
+    assert out[0].endswith("ToolX · -")
+
+
+def test_display_cmd_empty_command_resolves_by_key_and_prints_dash():
+    """(h) `_display_cmd` resolves by KEY PRESENCE, not truthiness:
+    `{"command": ""}` (an explicit empty command) prints '-', NOT a json dump
+    — every value is falsy but the KEY is present. Fails on the pre-fix code,
+    which fell through to `json.dumps` and printed `{"command":""}`."""
+    assert sensei._display_cmd({"command": ""}) == "-"
+
+
+def test_display_cmd_non_empty_mapping_unchanged():
+    """(h) a non-empty value still prints as before when its key is present."""
+    assert sensei._display_cmd({"file_path": "/tmp/x"}) == "/tmp/x"
+    assert sensei._display_cmd({"command": "git log"}) == "git log"

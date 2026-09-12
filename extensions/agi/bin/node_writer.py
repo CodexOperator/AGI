@@ -266,8 +266,13 @@ def _needs_quoting(sval: str) -> bool:
     instead of `tier: -1`, a lossy round-trip for negative ints that broke
     schema validation ([task].md declares `tier: {type: int}`).
     """
-    if not sval:
-        return False
+    # Empty string is a real scalar, distinct from None. YAML renders a bare
+    # `- ` / `key: ` as null, so `''` must be written quoted (`- ""`) to
+    # round-trip as the empty string instead of collapsing into None. None
+    # itself is handled by its own explicit branches (`key:` / `  -`) before
+    # _scalar is ever reached, so there is no ambiguity between the two here.
+    if sval == "":
+        return True
     if ": " in sval or sval.endswith(":") or " #" in sval:
         return True
     # A `---` run ANYWHERE (e.g. `the --- and --- again`) would split the
@@ -288,6 +293,19 @@ def _needs_quoting(sval: str) -> bool:
     # left to the plain form untouched.
     if any(c in sval for c in _YAML_LINEBREAK_ESCAPES):
         return True
+    # A literal newline (0x0A) in a bare scalar would split or fold across
+    # lines on read; it must be quoted with the newline escaped to round-trip.
+    # The quoting decision is on the RAW value — the strip used to happen
+    # BEFORE this decision, so a value whose only trigger was the newline was
+    # written bare (hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-
+    # scalar-strips-newlines-after-the-quoting-decision-not-before).
+    if "\n" in sval:
+        return True
+    # Edge whitespace: a plain scalar cannot carry leading/trailing spaces
+    # (`key:  x ` reads back as `x`), so a value with edge whitespace must be
+    # quoted to survive byte-identical.
+    if sval != sval.strip():
+        return True
     # Negative number (`-N` or `-N.N`): valid YAML plain scalar, no quoting.
     # Bare `-` or `- ` would be a block sequence indicator.
     if sval[0] == "-" and len(sval) > 1 and (sval[1].isdigit() or sval[1] == "."):
@@ -296,18 +314,33 @@ def _needs_quoting(sval: str) -> bool:
 
 
 def _scalar(v) -> str:
-    """One frontmatter scalar, quoted if it needs to be."""
+    """One frontmatter scalar, quoted if it needs to be.
+
+    The quoting decision is made on the RAW value — newlines and edge
+    whitespace included — and only then is the normalised form emitted. A
+    value whose only reason to quote was a newline (0x0A) or a YAML line-break
+    code point is quoted with that byte escaped, never stripped bare
+    (hypothesis:l4-a-list-of-plain-scalars-renders-escaped-and-scalar-strips-
+    newlines-after-the-quoting-decision-not-before).
+    """
     if isinstance(v, bool):
         return str(v).lower()
-    sval = str(v).replace("\n", " ").strip()
-    if _needs_quoting(sval):
-        esc = sval.replace("\\", "\\\\").replace('"', '\\"')
+    raw = str(v)
+    if _needs_quoting(raw):
+        esc = raw.replace("\\", "\\\\").replace('"', '\\"')
+        # A literal newline inside a double-quoted scalar must be the `\n`
+        # escape to stay on one line and read back to the same byte.
+        esc = esc.replace("\n", "\\n")
         # The ONE shared escape table (also used by the container path) —
         # `\u0085`/`\u2028`/`\u2029` are valid YAML double-quoted escapes
         # that read back to the exact code points.
         esc = _escape_yaml_linebreaks(esc)
-        sval = f'"{esc}"'
-    return sval
+        return f'"{esc}"'
+    # Not needing quoting: the historical normalisation (collapse newlines to
+    # spaces, trim edge whitespace) is safe here, because a raw value that
+    # carried a newline or edge whitespace would have been caught by the quote
+    # triggers above. Empty reached the quote trigger, so it never lands here.
+    return raw.replace("\n", " ").strip()
 
 
 # YAML 1.1 treats these three code points as line breaks. Inside the
@@ -373,8 +406,16 @@ def _render_value(key: str, v, indent: str = "") -> list[str]:
                 # explicitly inside the JSON rather than emitted literally.
                 out.append(f"{indent}  - {_escape_yaml_linebreaks(json.dumps(i, ensure_ascii=False))}")
             else:
+                # A list of plain scalars renders through the SAME scalar
+                # escaper/quoter as a top-level scalar — one function, no
+                # second escaping table. A bare f-string here left NEL/LS/PS
+                # literal (ScannerError on the next read), let a `#` item
+                # vanish as a comment, and let `k: v` / `- dash` re-parse as
+                # structure (hypothesis:l4-a-list-of-plain-scalars-renders-
+                # escaped-and-scalar-strips-newlines-after-the-quoting-
+                # decision-not-before).
                 out.append(f"{indent}  -" if i is None
-                           else f"{indent}  - {i}")
+                           else f"{indent}  - {_scalar(i)}")
         return out
     if v is None:
         return [f"{indent}{key}:"]

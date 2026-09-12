@@ -216,7 +216,9 @@ def test_static_scan_reports_site_count_and_names():
     """Document the current whole-tree census: how many `--seat` add_argument
     sites bin/ registers and where. The count is asserted so a NEW seat-aware
     site surfaces here (this test is the pointer, the parametrized scan below
-    is the gate; both must be updated together)."""
+    is the gate; both must be updated together). 22 since SL7.84 (goal:g15,
+    the rotate-self --closeout form's own subparser registers `--seat`
+    through the same SeatAction — SL2#25 merge-up 58e94015c measured it)."""
     sites = []
     for f in sorted(BIN.glob("*.py")):
         try:
@@ -232,7 +234,7 @@ def test_static_scan_reports_site_count_and_names():
                         and isinstance(a.value, str)]
                 if "--seat" in opts:
                     sites.append(f"{f.name}:{node.lineno}")
-    assert len(sites) == 21, sites
+    assert len(sites) == 22, sites
 
 
 @pytest.mark.parametrize("fname", _seat_modules())

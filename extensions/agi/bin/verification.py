@@ -968,23 +968,39 @@ def render_json(level: str, suite: bool, results: list[CheckResult],
     }
 
 
-def _suite_grant_fields(groot: Path, level: str, ring_name: str) -> dict:
+def _suite_grant_fields(groot: Path, level: str, ring_name: str,
+                        *, ts=None, nonce=None) -> dict:
     """The FULL suite-grant decision fields a ring's signatures cover -- the
     same bytes the gate signs, the suite persists, and a reader re-verifies
     (hypothesis:l4-a-ring-decision-carries-m-of-n-signatures, HOLE 2: the
     signed bytes must cover the decision it authorises, so a quorum for one
-    level/groot/ring cannot replay onto another).
+    level/groot/ring cannot replay onto another). FRESH (kid B): the returned
+    dict carries the reserved ``_fresh`` (ts|nonce) via rings.fresh_fields, so
+    a persisted quorum does NOT replay across time -- the SAME bytes a producer
+    signs and the gate verifies. ts/nonce default to freshly minted here; pass
+    them to keep the sign side and the gate deterministic (fixtures do).
     """
-    return {"level": level, "root": str(groot), "ring": ring_name}
+    from seatsig import rings as _rings  # noqa: PLC0415
+    return _rings.fresh_fields(
+        {"level": level, "root": str(groot), "ring": ring_name},
+        ts=ts, nonce=nonce)
 
 
 def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
-                       signatures: list) -> str | None:
+                       signatures: list, *, fields: dict | None = None,
+                       remember: bool = True
+                       ) -> str | None:
     """Rung 2 suite-ring gate: refuse the suite/merge grant when its record
     lacks the named ring's m valid signatures. Returns the refusal line (naming
     the m-of-n count) or None to admit. OPT-IN: a ring the geometry does not
     name is not demanded. Verified through seatsig/rings.py (the SAME Scheme
-    interface send.py's verify labels against), never this gate's own crypto."""
+    interface send.py's verify labels against), never this gate's own crypto.
+    FRESH (kid B): when ``fields`` is given it is the exact decision signed
+    (never argv); when None the fields are built fresh HERE, and an admitted
+    grant must also pass freshness_refusal (within its replay window, nonce
+    not already spent) against the on-disk nonce ledger. ``remember`` (kid D):
+    when False, an admitted grant READS the ledger (a replayed nonce still
+    refuses) but never writes it -- a dry/preview run records nothing."""
     try:
         from seatsig import rings as _rings
 
@@ -994,8 +1010,9 @@ def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
         ring = None
     if ring is None:
         return None  # no such ring declared -> opt-in means nothing demanded
-    canonical = _rings.canonical_bytes(
-        "suite-grant", _suite_grant_fields(groot, level, ring_name))
+    fields = fields if fields is not None else \
+        _suite_grant_fields(groot, level, ring_name)
+    canonical = _rings.canonical_bytes("suite-grant", fields)
 
     def resolver(post):
         try:
@@ -1011,6 +1028,15 @@ def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
     res = _rings.verify_ring(ring, canonical, signatures or [],
                              pubkey_for_post=resolver)
     if res.ok:
+        # FRESH (kid B): the quorum is satisfied, so the decision must also
+        # sit inside its replay window and not carry a spent nonce.
+        seen, remember_fn = _rings.nonce_ledger(groot)
+        fr = _rings.freshness_refusal(
+            fields,
+            max_age_s=_rings._effective_max_age_s(ring),
+            seen=seen, remember=remember_fn if remember else None)
+        if fr:
+            return (f"merge grant refused: freshness {fr}")
         return None
     return (f"merge grant short of {ring_name!r} ring quorum: {res.refused}")
 
@@ -1050,6 +1076,17 @@ def main(argv: list[str] | None = None) -> int:
                     help="rung 2: repeatable; a `<post>:<scheme>:<sig_hex>` "
                          "signature over the suite-grant record backing "
                          "`--suite-ring` (seatsig/rings.py)")
+    ap.add_argument("--ring-fresh", default=None, metavar="TS|NONCE",
+                    help="rung 2 freshness seam (kid D): pin the EXACT "
+                         "'<ts>|<nonce>' the suite-grant decision's `_fresh` "
+                         "carries, so an out-of-process signer computes the "
+                         "SAME canonical bytes and a `--suite-ring` run admits "
+                         "at m>0. Absent -> the gate mints fresh (unpredictable).")
+    ap.add_argument("--ring-fields", action="store_true",
+                    help="rung 2 signer's view (kid D): print the exact suite-"
+                         "grant fields and canonical bytes `--suite-ring` will "
+                         "verify for this argv (+ `--ring-fresh`), then exit 0 -- "
+                         "never runs the suite, records a nonce, or calls pytest.")
     args = ap.parse_args(argv)
 
     groot = locations.find_project_root(Path(args.root).resolve())
@@ -1107,19 +1144,40 @@ def main(argv: list[str] | None = None) -> int:
     # short-of-m grant is REFUSED BY NAME with the m-of-n count and the suite
     # never runs.
     if args.suite and args.suite_ring:
+        from seatsig import rings as _rings  # noqa: PLC0415
+        # FRESH seam (kid D): a caller-supplied `<ts>|<nonce>` pins the EXACT
+        # `_fresh` so an out-of-process signer computes the same bytes.
+        try:
+            _fresh = _rings.parse_ring_fresh(args.ring_fresh)
+        except ValueError as _ve:
+            print(f"suite-ring: {_ve}")
+            return 1
+        _t, _n = (_fresh if _fresh is not None else (None, None))
+        # FRESH (kid B): compute the decision ONCE (fresh ts/nonce) so the
+        # gate verifies, the signatures cover, and the persisted record all
+        # agree on the same bytes -- freshness never minted twice.
+        grant_fields = _suite_grant_fields(groot, args.level, args.suite_ring,
+                                           ts=_t, nonce=_n)
+        # SIGNER'S VIEW (kid D): print the exact bytes the gate will verify
+        # for this argv + --ring-fresh, then exit 0 -- never runs the suite.
+        if args.ring_fields:
+            print(_rings.render_ring_fields(
+                "suite-grant", grant_fields,
+                _rings.canonical_bytes("suite-grant", grant_fields)))
+            return 0
         refusal = _ring_gate_refusal(groot, args.suite_ring,
-                                     args.level, args.ring_sigs)
+                                     args.level, args.ring_sigs,
+                                     fields=grant_fields)
         if refusal is not None:
             print(f"suite-ring: {refusal}")
             return 1
         # RUNG 2 claim (2): the admitted suite-grant signatures are persisted
         # onto the ONE record the suite already writes (see _record_suite_ts)
         # so a later reader re-verifies m-of-n from disk, never argv. The
-        # canonical fields are the same bytes the gate just signed.
-        from seatsig import rings as _rings  # noqa: PLC0415
+        # canonical fields are the same bytes the gate just signed (with the
+        # fresh ts|nonce the quorum covered).
         _suite_decision = _rings.decision_cell(
-            args.suite_ring, "suite-grant",
-            _suite_grant_fields(groot, args.level, args.suite_ring),
+            args.suite_ring, "suite-grant", grant_fields,
             args.ring_sigs)
     else:
         _suite_decision = None

@@ -203,7 +203,12 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     assert ack["gen_after"] == 1
     assert ack["answer"] == "continue"
     assert ack["source"] == "predecessor"
-    assert ack["session_ref"] == "00000000-0000-4000-8000-000000000000"
+    # SL7.102 FIX-ONLY: the spawn-time ack is written with session_ref '' —
+    # the PREDECESSOR cannot know the successor's ListAgents harness ref at
+    # spawn time, so it must never carry the JOIN's session uuid here (a uuid
+    # in session_ref is NO-MATCH for every peer); the ref only arrives when
+    # the successor names it via `ack --ref`.
+    assert ack["session_ref"] == ""
 
     # the record shows each handover step.
     rec = _latest_record(tmp_path, "adv-alive")
@@ -403,7 +408,7 @@ def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, generation, window]}\n---\nbody\n",
+        "fields: [session_ref, session_name, generation, window]}\n---\nbody\n",
         encoding="utf-8")
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
@@ -652,7 +657,7 @@ def _recovered_root(tmp_path, *, seat="adv-s", window="@77", pid=999999,
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, pid]}\n"
         "---\nbody\n", encoding="utf-8")
     _write_seats_sheet(tmp_path, [{
         "name": seat, "role": "parent", "model": "x",
@@ -731,7 +736,11 @@ def test_ack_rotate_self_shaped_row_stays_byte_identical(_fix, tmp_path,
     # the pin was NOT overwritten
     assert (sess / "adv-s.meter").read_text(encoding="utf-8") == before
     out = capsys.readouterr().out
-    assert "back-filled session_ref=r1 into own row" in out
+    # session_ref is always reported; since the joined pid/sid EQUAL the row's,
+    # session_name (the only other new cell) is the extra detail — the cell
+    # was added by hypothesis:l4-a-post-row-carries-a-session-name-cell..., so
+    # assert the ref line + the pid/sid ABSENCE, not an exact ref-only string.
+    assert "back-filled session_ref=r1" in out
     assert "pid=" not in out
     assert "session_id=" not in out
 
@@ -840,7 +849,7 @@ def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, pid]}\n"
         "---\nbody\n", encoding="utf-8")
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent", "model": "x",

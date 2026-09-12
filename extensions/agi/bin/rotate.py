@@ -1074,7 +1074,33 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
             seat_for_gen = pinp.stem
         if seat_for_gen:
             cur_gen = _read_generation(root, seat_for_gen)
-            pinp.write_text(f"{cur_gen}\t{log_path}\n", encoding="utf-8")
+            # The pin NEVER LOWERS an existing generation for the SAME
+            # transcript (hypothesis:l4-meter-pin-never-lowers-an-existing-
+            # pins-generation...). The row's generation and an existing pin's
+            # generation can be read from different trees at different
+            # moments, and the LOWER one used to win because the write was
+            # unconditional -- a lagging row re-stamped a fresh pin back to
+            # its stale generation. When the pin already exists, parses as a
+            # record, names the SAME transcript being written (both sides
+            # resolved), and carries its own generation, the stamped
+            # generation is max(pin gen, row gen) -- never lower than the
+            # pin's. A row reading lower than the pin is named in ONE stdout
+            # line and is never written into the pin (whose bytes stay
+            # identical when the transcript is unchanged). A pin naming a
+            # DIFFERENT transcript is still claimed with the row's gen (a new
+            # session takes over the seat), and a no-pin / bare-transcript
+            # pin are stamped exactly as before.
+            new_gen = cur_gen
+            if pinp.exists():
+                pin_gen, pin_path_s = _parse_pin_record(pinp)
+                if (pin_gen is not None and pin_path_s
+                        and Path(pin_path_s).expanduser().resolve()
+                        == Path(str(log_path)).expanduser().resolve()
+                        and pin_gen > cur_gen):
+                    new_gen = pin_gen
+                    print(f"pin gen {pin_gen} kept: config row reads "
+                          f"{cur_gen} (lagging tree {root})")
+            pinp.write_text(f"{new_gen}\t{log_path}\n", encoding="utf-8")
         else:
             pinp.write_text(str(log_path) + "\n", encoding="utf-8")
 
@@ -1133,6 +1159,32 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
             return 1
         return 0
     return 0
+
+
+def _read_seat_pin(root: Path, seat: str, cur_gen: int | None) -> tuple[Path | None, str | None]:
+    """A seat's meter pin with the cross-generation refusal built in (SL7.100).
+    Returns `(transcript_path | None, reason | None)`. `cur_gen` is the
+    caller's own generation; a pin naming a DIFFERENT generation is a
+    predecessor's stale pin never re-pointed on rotation — the same
+    `seat_pin-stale:<written>:<current>` wording cmd_meter prints, RETURNED as
+    the reason (never printed) so a bootstrap fact line stamps the refusal
+    instead of a confident number for a session that ended. `cur_gen=None`
+    (a derivation call that predates the generation bound) keeps the legacy
+    read; a gen-less legacy pin has nothing to compare and passes through.
+    cmd_meter itself is untouched (SL7.91) — the helper is extracted NEXT TO it."""
+    pin = _seat_pin_path(root, seat)
+    if not pin.is_file():
+        return None, None
+    written_gen, target_s = _parse_pin_record(pin)
+    if not target_s:
+        return None, None
+    lp = Path(target_s).expanduser().resolve()
+    if not lp.exists():
+        return None, None
+    if (cur_gen is not None and written_gen is not None
+            and written_gen != cur_gen):
+        return None, f"seat_pin-stale:{written_gen}:{cur_gen}"
+    return lp, None
 
 
 # --- spawn subcommand -----------------------------------------------------
@@ -1599,6 +1651,13 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     _fs_role = args.tier
     _spawn_gen = FIRST_SEATING_GEN
     _srow = None
+    # `_rowgen` is also read on the SEAT-LESS path (bound by `root`, not
+    # `seat`, at lines ~1769 and ~1799), so it must be initialised here
+    # alongside its readers, or a seat-less spawn inside a project root hits
+    # an UnboundLocalError (hypothesis:l4-cmd-spawn-...-resolves-by-key-
+    # presence-and-preserve-swept-latches...). Seat-less reads the named
+    # FIRST_SEATING_GEN fallback; the seat branch above still owns it.
+    _rowgen = None
     if seat is not None:
         # goal:g15.21 — a spawn onto a LIVE seat refuses BY NAME before any
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
@@ -1712,7 +1771,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         for ln in _compose_seating_base_block(
                 seat=seat, source="cmd_spawn", now=now,
                 pred_pid=pred_pid, pred_death=pred_death, seq=seq,
-                root=root):
+                root=root,
+                generation=(None if root is None else
+                            (_rowgen if _rowgen is not None
+                             else FIRST_SEATING_GEN))):
             print(ln)
         if root is not None:
             # capture worktree state BEFORE the announce/record writes churn
@@ -1740,7 +1802,9 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
                     registry_dir=getattr(args, "registry_dir", None),
-                    ask_diff=ask_diff)
+                    ask_diff=ask_diff,
+                    generation=(_rowgen if _rowgen is not None
+                                else FIRST_SEATING_GEN))
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
                       file=sys.stderr)
@@ -2011,6 +2075,17 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # g15.25 FIX-ONLY (SL7.87): a generation is NEVER < 1. cmd_ack writes
+    # gen_after straight from args.gen with no lower bound, so a `--gen 0`
+    # ack (the stale service ran exactly `ack --post belam --gen 0 --ref
+    # continue`) writes a gen-0 file that prepare check 6 then REFUSES at
+    # the seat's next rotate-out as a stale ack. Refuse by name BEFORE any
+    # write: no ack file, no row write, nothing back-filled.
+    if args.gen < 1:
+        print("ERR: --gen 0: a generation is never 0 (SL7.87); the ack "
+              "confirms the ROTATION generation the row records, so a "
+              "placeholder 0 can never match it.", file=sys.stderr)
+        return 2
     # claim (4): under the DEFAULT-continue contract the predecessor already
     # answered the ack channel (`answer: continue, source: predecessor`), so a
     # successor that runs `ack continue` out of the old habit is a one-line
@@ -2096,6 +2171,22 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
               file=sys.stderr)
         return 2
     rows = send._locally_loaded_rows(root)
+    # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-spawn-time-ack-carries-no-
+    # session-ref-cmd-ack-refuses-any-uuid-shaped-ref-...): the ListAgents ref
+    # is harness-only and is NEVER a session uuid. A --ref that IS a 36-char
+    # uuid shape is refused BY NAME (`_looks_like_session_uuid` on the value
+    # itself, not only equality with the seat's OWN session_id) and NOTHING is
+    # written (no ack file, no row write, rc != 0). The pre-F15 join registered
+    # the same uuid in the row, so an own-tail or cmd_ack that back-filled a
+    # uuid-shaped --ref (matching the seat's own session_id OR any foreign
+    # one) poisoned session_ref with a value send.whois reads as NO-MATCH for
+    # every peer; `_resolve_rows` below would otherwise ACCEPT the own uuid as
+    # the seat's own row (an exact session_id match), which is exactly what
+    # let the uuid in.
+    if ref and _looks_like_session_uuid(ref):
+        print(f"ERR: --ref {ref!r} is a session id, not your ListAgents ref "
+              "(F15): pass the bare ref or omit --ref.", file=sys.stderr)
+        return 2
     # Director fix-up at the SL1.06 harvest (sensei-director L2), measured on
     # the live rotation 20260911T172702Z: the ListAgents ref (`caa927`) is
     # NOT a prefix of the row's session_id (the Claude session uuid
@@ -2237,7 +2328,9 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 # L4.288 harvest). A hit appends the @id it joined by.
                 line = _backfill_session_ref(
                     root, seat=seat, role="parent", ref=ref, pid=back_pid,
-                    session_id=back_sid)
+                    session_id=back_sid,
+                    session_name=((join or {}).get("name", "")
+                                  if (join and join.get("found")) else ""))
                 if join.get("found") and line.endswith("(source: ack)"):
                     line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
                 print(line)
@@ -2596,6 +2689,24 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
             print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+            # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-
+            # name-cell...): status FLAGS a 36-char session uuid lingering in
+            # session_ref as STALE (a session id, pre-F15) — a row written
+            # before SL7.86 can still carry one, and nothing should read it
+            # as a harness ref (send.whois reads a uuid as NO-MATCH for every
+            # peer). session_name (the F3 join key) is printed when present.
+            _sref = (row.get("session_ref") or "")
+            if _looks_like_session_uuid(_sref):
+                print(f"session_ref: {_sref} (stale: a session id, never a "
+                      "harness ref — pass the bare ListAgents ref)")
+            elif not _sref:
+                # SL7.102 FIX-ONLY: empty session_ref is the NORMAL pre-ack
+                # state (the spawn ack carries none) — name it, don't omit.
+                print("session_ref: unset (awaits the ack)")
+            else:
+                print(f"session_ref: {_sref}")
+            if row.get("session_name"):
+                print(f"session_name: {row['session_name']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
         # call left above the wake floor was a fetch + behind check, because
         # F9's "the refusal IS the behind check" was not trusted. The record
@@ -3351,6 +3462,68 @@ def _observed_windows(tmux_session: str, window_path: str | None = None) -> dict
     return {"names": names, "source": source}
 
 
+def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
+    """Carry the pre-spawn `swept_latches` fact from the on-disk rotation
+    record into a FRESH dict about to overwrite it, so a later in-place
+    rewrite never clobbers the fact the successor's STARTUP reads
+    (hypothesis:l4-the-per-file-latch-sweep-stderr-line-reaches-the-
+    production-launch-path-never-discarded, part (b): never absent). Both
+    `_write_rotate_self_started` and the in-place `_write_rotation_record`
+    rebuild the dict from arguments each time, so the only way the sweep
+    fact survives their rewrite is to re-read it from the file and merge it
+    back (mechanism (A)). A sweep THIS run always wins: when `rec` already
+    carries its own `swept_latches` (a fresh measurement) the on-disk list is
+    NOT copied over it — a re-run on an old record path never inherits a stale
+    sweep. When `rec` has none of its own, the on-disk list is carried and
+    marked `inherited: true` so a reader can tell measured from carried.
+    Absent on disk -> leaves `rec` unchanged (a record written before or
+    without a sweep stays sweep-free by design). Best-effort: never raises.
+    """
+    if existing_path is None:
+        return
+    p = Path(existing_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    if isinstance(doc, dict) and "swept_latches" in doc:
+        # Inherit ONLY when THIS run measured no sweep of its own: a sweep
+        # performed now always wins over whatever a re-run left on disk
+        # (hypothesis:l4-...-preserve-swept-latches-never-inherits-a-stale-
+        # sweep). An inherited list is carried from the OLD record, so it is
+        # marked `inherited: true` for a reader to tell measured from carried.
+        if "swept_latches" not in rec:
+            rec["swept_latches"] = doc["swept_latches"]
+            rec["inherited"] = True
+
+
+def _preserve_closeout(rec: dict, existing_path: Path | None) -> None:
+    """Carry the phase-3 closeout captive-step log from the on-disk rotation
+    record into a FRESH dict about to overwrite it, so a later in-place
+    rewrite (every started/outcome write rebuilds the dict from arguments)
+    never drops `closeout: [{step, result, detail}]` after phase 3 of the
+    one-call closeout has run (hypothesis:...-every-step-logged-by-name).
+    Both `_write_rotate_self_started` and `_write_rotation_record` rebuild
+    the dict from arguments each time, so the only way the closeout log
+    survives their rewrite is to re-read it from the file and merge it back
+    (mechanism (A), same as `_preserve_swept_latches`). Absent on disk ->
+    leaves `rec` unchanged. Best-effort: never raises.
+    """
+    if existing_path is None:
+        return
+    p = Path(existing_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    if isinstance(doc, dict) and "closeout" in doc:
+        rec["closeout"] = doc["closeout"]
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -3369,6 +3542,12 @@ def _write_rotation_record(root: Path, record: dict,
     if path is None:
         stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
         path = rot / f"{seat}.{stamp}.json"
+    # (SL7.83) in-place outcome rewrite of a rotate-self STARTED record must
+    #     also keep the pre-spawn sweep fact the successor's STARTUP reads.
+    _preserve_swept_latches(record, path)
+    # (SL7.84) an in-place OUTCOME rewrite of a closeout rotation must also
+    #     keep the phase-3 captive-step log (`closeout: [...]`).
+    _preserve_closeout(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -3426,6 +3605,12 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     if gen_before is not None:
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
+    # (SL7.83) a later rebuild of this same file must not drop the pre-spawn
+    #     sweep fact: merge it back from the on-disk doc (mechanism (A)).
+    _preserve_swept_latches(rec, path)
+    # (SL7.84) nor the phase-3 closeout captive-step log
+    #     (`closeout: [...]`), which rides every rewrite of the SAME file.
+    _preserve_closeout(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
@@ -4117,6 +4302,11 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
         session_id=session_id)
+    # goal:g15.25 FIX-ONLY: a first seating has NO join to resolve a harness
+    # name from, so session_name stays '' — the cell is still written (as
+    # empty) from the seat's first spawn write, and a later ack back-fill
+    # fills it when it joins (hypothesis:l4-a-post-row-carries-a-session-
+    # name-cell...).
     return {"meter_pin": mp, "ack_path": str(ap), "row": row}
 
 
@@ -4355,18 +4545,33 @@ def _seating_worktree_lines(root: Path, season: str | None = None) -> list[str]:
 
 def _compose_seating_base_block(*, seat: str, source: str, now: str,
                                 pred_pid, pred_death: str, seq: int,
-                                root: Path | None = None) -> list[str]:
+                                root: Path | None = None,
+                                generation: int | None = None) -> list[str]:
     """The first `[seating]` line every seating prints (spawned-by, predecessor
     pid + death ts, record / wrapper) — the fact block a recovery successor
     otherwise reconstructs by hand (Sensei 175816Z calls 3-9).
 
     The `record:` line says the FILE STATE, never a hardcoded `none`: a first
-    seating announces (and WRITES) a gen-1 seating record moments after this
+    seating announces (and WRITES) a seating record moments after this
     line prints, so an unconditional `record: none` would read false to anyone
     who then finds the record on disk. With `root` given, `_seating_record_
     exists` decides `present` vs `none yet (this seating writes one)`; without
-    `root`, the honest pre-announce wording is used."""
-    if root is not None and _seating_record_exists(root, seat):
+    `root`, the honest pre-announce wording is used.
+
+    The `record:` check is at the SEAT'S OWN generation, never only gen 1
+    (hypothesis:l4-first-seating-tests-stub-the-real-tmux-list-windows-and-
+    the-seating-base-block-and-alert-read-one-resolved-generation claim (b)):
+    a RE-seated seat at gen N must not read as 'never seated' just because a
+    gen-1 record exists (or be masked by one when the N record is absent). A
+    caller that already resolved the gen (cmd_spawn's `_rowgen`) passes it to
+    avoid a second read; when `generation` is None the base block resolves the
+    seat row generation ONCE (gen 1 stays the first-seating default for an
+    absent / gen-less row) and checks at THAT generation."""
+    if generation is None:
+        _rg = _seat_row_generation(root, seat)
+        generation = _rg if _rg is not None else FIRST_SEATING_GEN
+    if root is not None and _seating_record_exists(
+            root, seat, generation=generation):
         rec = "record: present"
     else:
         rec = "record: none yet (this seating writes one)"
@@ -4741,24 +4946,35 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
 
 def _seat_has_live_session(row: dict | None, joined: dict | None) -> bool:
     """True when a seat still has a LIVE session to run its after_join
-    against (goal:g15.25 SL7.76 (a)): either the registry join resolved one
-    (`joined.found`), or the ROW itself carries a live handle — an ALIVE pid,
-    else a session_id/window_id. A row with NO pid AND NO session_id AND NO
-    window_id, and no join result, is a DEAD seat: the after_join has nothing
-    live to run against and must be skipped (never performed as-if-fresh, no
-    dm, no fabricated pid). A pid present but no longer alive / unparseable is
-    dead even if a session/window id lingers."""
-    if joined and joined.get("found"):
-        return True
+    against (goal:g15.25 SL7.76 (a)): a row that NAMES a pid is judged on
+    that pid first (dead pid -> dead seat even over a resolved join); else
+    the registry join resolved one (`joined.found`); else the ROW itself
+    carries a live handle — a session_id/window/window_id. A row with NO
+    pid AND NO session_id AND NO window/window_id, and no join result, is a
+    DEAD seat: the after_join has nothing live to run against and must be
+    skipped (never performed as-if-fresh, no dm, no fabricated pid). A pid
+    present but no longer alive / unparseable is dead even if a
+    session/window id lingers."""
     if not row:
         return False
+    # (SL7.98) a row that NAMES a pid carries the authority: check it BEFORE
+    # trusting a resolved join — a pid present but no longer alive /
+    # unparseable is dead even if a resolved join, session id or window
+    # lingers (what the docstring always promised; the code used to trust a
+    # resolved join first).
     pid = row.get("pid")
     if pid not in (None, ""):
         try:
             return not _pid_gone(int(pid))
         except (TypeError, ValueError):
             return False
-    return bool(row.get("session_id") or row.get("window_id"))
+    if joined and joined.get("found"):
+        return True
+    # (SL7.98) the row carries the cell WINDOW (the spawn/join reader uses
+    # `row.get('window')`), not `window_id` — read `window`, accepting
+    # `window_id` as a legacy alias.
+    return bool(row.get("session_id") or row.get("window")
+                or row.get("window_id"))
 
 
 def _record_join(rec: dict) -> dict:
@@ -4955,6 +5171,29 @@ def _compose_card_s0(seat: str, facts: dict) -> str:
     return "\n".join(out)
 
 
+def _fence_items(lines: list[str]):
+    """Yield `(line, in_fence)` for each line, tracking Markdown code
+    fences by backtick-run length (`_fence_run`), run-length aware (the
+    OUTER fence wins; an inner shorter fence stays content — goal:g15.25
+    residue (iii)). This is the ONE shared fence-run walker that the card
+    readers `_split_card_sections`, `_subheader_in_body` and the stops
+    end-of-slot scan all use, so the three agree on where a fence is
+    (goal:g15.25 SL7.80). A fence opener reports in_fence True; a closer
+    reports False; any line in between (a `## ` heading quoted in the
+    block, an inner shorter fence) reports True."""
+    in_fence = False
+    opener = 0
+    for ln in lines:
+        run = _fence_run(ln)
+        if in_fence:
+            if run >= opener:      # closer (run >= opener's) ends the fence
+                in_fence = False
+        elif run > 0:              # opener (run >= 3) starts the fence
+            in_fence = True
+            opener = run
+        yield ln, in_fence
+
+
 def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     """Split a card into `(preamble, [(header, body), ...])`.
 
@@ -4976,21 +5215,8 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     sections: list[tuple[str, str]] = []
     header: str | None = None
     body: list[str] = []
-    in_fence = False
-    opener_run = 0
-    for ln in text.splitlines():
-        run = _fence_run(ln)
+    for ln, in_fence in _fence_items(text.splitlines()):
         if in_fence:
-            if run >= opener_run:
-                in_fence = False   # closer (run >= opener's) ends the fence
-            if header is None:
-                preamble.append(ln)
-            else:
-                body.append(ln)
-            continue
-        if run > 0:
-            in_fence = True        # opener (run >= 3) starts the fence
-            opener_run = run
             if header is None:
                 preamble.append(ln)
             else:
@@ -5090,8 +5316,16 @@ def _subheader_in_body(body: str, token: str) -> int | None:
     """Line index of the first header line at ANY depth (`###`, etc.) in
     `body` whose text contains `token` (case-insensitive), or None.
     Subsections live inside a `## ` section's body (`_split_card_sections`
-    splits only on `## `), so `### 🔴 Where it stops` is found here."""
-    for i, ln in enumerate(body.splitlines()):
+    splits only on `## `), so `### 🔴 Where it stops` is found here.
+
+    FENCE-RUN AWARE (goal:g15.25 SL7.80): a header line QUOTED inside a
+    code fence (a stops block quotes headings verbatim) is content and is
+    never resolved as a subheader — the shared `_fence_items` walker, the
+    same fix SL7.48 applied to the stops end-of-slot scan and SL7.62 to
+    `_split_card_sections`, now applied to this third card reader."""
+    for i, (ln, in_fence) in enumerate(_fence_items(body.splitlines())):
+        if in_fence:
+            continue
         s = ln.strip()
         if s.startswith("#") and token.lower() in s.lower():
             return i
@@ -5510,6 +5744,1068 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+# --- closeout CARD FORM (hypothesis:l4-rotate-self-closeout-is-one-call-
+#     a-card-form-the-llm-fills-once-then-stops-prepare-role-captive-steps-
+#     and-the-spawn-every-step-logged-by-name — phase 1) -------------------
+#
+# The ONE JSON-array card form. `rotate.py closeout --seat S [--role R]`
+# prints the slots the role template's `closeout.slots` declares (coded
+# DEFAULT when the template lacks the block), each `{slot, prompt,
+# current_value}` read from the seat's own card; the LLM fills the array in
+# ONE reply (value `keep` carries the current_value); `rotate.py closeout
+# --seat S --form FILE|-` applies it BY CODE — the same section
+# splitters/writers rotate-self already uses (`_split_card_sections`,
+# `_render_card`, `_locate_where_it_stops`, `_write_stops_section`), never a
+# hand-stamped header — running the trim guard (HANDOFF_CARD_LIMIT_LINES)
+# and the owner-quote check (a node reference in a value that does not
+# resolve from the graph is refused BY SLOT NAME). §3 (where-it-stops) is
+# routed through the EXISTING `_write_stops_section`, so a `rotate-self
+# --closeout` reuses the whole phase-2 stops merge/commit/push path with no
+# second implementation. Phase 3 (captive role steps) and phase 4 (the
+# spawn) are OUT of scope for this phase-1 slice and are named as such.
+
+CLOSEOUT_DEFAULT_SLOTS = [
+    ("s0", "§0 STATE — measured rows; keep unless the LLM corrects a value"),
+    ("s1", "§1 PLAN — this round's plan, each item marked done/next/blocked"),
+    ("s2", "§2 LANDED — what landed this round, one line each"),
+    ("s3", "§3 WHERE IT STOPS — the one next command"),
+    ("s4", "§4 TRAPS — traps hit this session"),
+    ("s5", "§5 VERIFICATION — the known-good verify sequence"),
+    ("s6", "§6 BANKED — decisions needing the owner"),
+]
+
+#: slot -> the token that keys the slot's section header (case-insensitive
+#: substring). §3 is special-cased (routed through `_write_stops_section`).
+_CLOSEOUT_SLOT_TOKENS = {
+    "s0": "state", "s1": "plan", "s2": "landed",
+    "s4": "traps", "s5": "verification", "s6": "banked",
+}
+
+
+#: node cross-reference shapes the owner-quote check refuses when the target
+#: is absent from the graph (`<type>:<slug>` ids and rooted `.md` paths).
+_CLOSEOUT_REF_RE = re.compile(
+    r"(?P<id>\b(?:goal|hypothesis|build|idea|experiment|verdict|mvp|outcome)"
+    r":[A-Za-z0-9_.:-]+|(?:nodes/[A-Za-z]+/[A-Za-z0-9_.-]+\.md))")
+
+
+def _closeout_slots(root: Path, role: str, template: dict | None) -> list[dict]:
+    """The slot list for `role`: the template's `closeout.slots` block when
+    it is a non-empty list of {slot, prompt} objects, else the coded DEFAULT
+    (rotations.md is owner/prime-written, so the default must be safe).
+    `root` is kept for signature symmetry with the template resolver callers.
+    """
+    if template and isinstance(template.get("closeout"), dict):
+        slots = template["closeout"].get("slots")
+        if (isinstance(slots, list) and slots
+                and all(isinstance(x, dict) and x.get("slot")
+                        for x in slots)):
+            return slots
+    return [{"slot": k, "prompt": p}
+            for k, p in CLOSEOUT_DEFAULT_SLOTS]
+
+
+_CLOSEOUT_SLOT_TITLES = {
+    "s0": "## §0 STATE", "s1": "## §1 PLAN", "s2": "## §2 LANDED",
+    "s3": "## §3", "s4": "## §4 TRAPS", "s5": "## §5 VERIFICATION",
+    "s6": "## §6 BANKED",
+}
+
+
+def _closeout_card_current(card_path: Path, slot: str) -> str:
+    """The CURRENT value of `slot` from the seat's own card — the body of the
+    first top-level `## ` section whose header contains the slot's token,
+    stripped. `s3` prefers the `###`-level where-it-stops subheader when one
+    exists. Absent card/section -> ""."""
+    if not card_path.exists():
+        return ""
+    existing = card_path.read_text(encoding="utf-8")
+    if not existing.strip():
+        return ""
+    preamble, sections = _split_card_sections(existing)
+    if slot == "s3":
+        st = _locate_where_it_stops(sections)
+        if st and st != "ambiguous":
+            sec_idx, sub = st
+            body = sections[sec_idx][1]
+            if sub is not None and sub >= 0:
+                return "\n".join(body.splitlines()[sub + 1:]).strip()
+            return body.strip()
+    tok = _CLOSEOUT_SLOT_TOKENS.get(slot, slot)
+    for _h, _b in sections:
+        if tok in _h.lower():
+            return _b.strip()
+    return ""
+
+
+def _closeout_form_json(root: Path, seat: str, role: str,
+                        template: dict | None) -> str:
+    """The printed form: ONE JSON array of `{slot, prompt, current_value}`
+    for every declared/default slot. The LLM edits `current_value` (or sets
+    it to `keep`) and returns the array in ONE reply."""
+    card = _own_card_path(root, seat)
+    out = []
+    for ent in _closeout_slots(root, role, template):
+        slot = ent["slot"]
+        out.append({
+            "slot": slot,
+            "prompt": ent.get("prompt", ""),
+            "current_value": _closeout_card_current(card, slot),
+        })
+    return json.dumps(out, ensure_ascii=False, indent=2)
+
+
+def _closeout_parse_form(text: str):
+    """Parse a filled form into `{slot: value}`; returns `(filled, None)` or
+    `(None, error)` where error names the bad entry. `keep` is allowed and
+    handled by the applier (carry the card's current value)."""
+    try:
+        arr = json.loads(text)
+    except ValueError as e:  # noqa: BLE001
+        return None, f"form is not valid JSON: {e}"
+    if not isinstance(arr, list):
+        return None, "form must be a JSON array of slot objects"
+    out: dict[str, str] = {}
+    for item in arr:
+        if not isinstance(item, dict):
+            return None, "a form entry must be an object"
+        slot = item.get("slot")
+        value = item.get("value")
+        if not slot:
+            return None, "a form entry lacks a `slot`"
+        if not isinstance(value, str):
+            return None, f"slot {slot!r} value must be a string (\"keep\" or body)"
+        out[str(slot)] = value
+    return out, None
+
+
+def _closeout_quote_refused(root: Path, value: str) -> str | None:
+    """The owner-quote check: when `value` cites a node reference (an
+    `<type>:<slug>` id or a `nodes/...md` path), that target must resolve
+    from the graph. Returns the offending ref, or None when none is cited or
+    every cited ref resolves. A plain value with no node reference passes.
+    """
+    nodes_dir = Path(root) / "nodes"
+    for m in _CLOSEOUT_REF_RE.finditer(value):
+        ref = m.group("id")
+        if ".md" in ref:
+            # rooted node path: resolve against the graph's nodes dir
+            rel = ref.split(".md", 1)[0]
+            if not (nodes_dir / rel).exists():
+                return ref
+        else:
+            typ, slug = ref.split(":", 1)
+            if not (nodes_dir / typ / f"{slug}.md").exists():
+                return ref
+    return None
+
+
+def _closeout_apply(root: Path, seat: str, role: str,
+                    filled: dict[str, str], template: dict | None):
+    """Apply a filled form to the seat's own card BY CODE. Non-§3 slots
+    replace their section's BODY (header kept), `keep` carries the current
+    value, and a missing section is appended; §3 is NOT written here — its
+    value is returned so the caller routes it through `_write_stops_section`
+    (phase 2 reuse). Runs the trim guard and the owner-quote check. Returns
+    `(applied_full, s3_value|None, None)` on success, or
+    `(None, None, error)` on a refusal (nothing written on refusal).
+    """
+    known = [ent["slot"] for ent in _closeout_slots(root, role, template)]
+    for slot in filled:
+        if slot not in known:
+            return None, None, (
+                f"refused: slot {slot!r} is not in the closeout form "
+                f"({', '.join(known)})")
+    card = _own_card_path(root, seat)
+    existing = card.read_text(encoding="utf-8") if card.exists() else ""
+
+    # owner-quote check: every node reference in every value must resolve.
+    for slot in known:
+        value = filled.get(slot)
+        if value in (None, "keep"):
+            continue
+        bad = _closeout_quote_refused(root, value)
+        if bad:
+            return None, None, (
+                f"refused by slot {slot}: owner quote {bad!r} is not found "
+                f"in the graph; a quote not found in a node is refused")
+
+    preamble, sections = _split_card_sections(existing)
+    s3_value: str | None = None
+    new_sections = list(sections)
+    for slot in known:
+        if slot == "s3":
+            v = filled.get("s3")
+            if v and v != "keep":
+                s3_value = v
+            continue
+        v = filled.get(slot)
+        if v in (None, "keep"):
+            continue
+        tok = _CLOSEOUT_SLOT_TOKENS.get(slot, slot)
+        header = _CLOSEOUT_SLOT_TITLES.get(slot, f"## {slot}")
+        target = next((i for i, (h, _) in enumerate(new_sections)
+                       if tok in h.lower()), None)
+        if target is None:
+            new_sections.append((header, v))
+        else:
+            new_sections[target] = (new_sections[target][0], v)
+
+    full = _render_card(preamble, new_sections)
+    line_count = full.count("\n")
+    if line_count > HANDOFF_CARD_LIMIT_LINES:
+        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        return None, None, (
+            f"composed card is {line_count} lines, over the "
+            f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
+            f"section ({biggest})")
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text(full, encoding="utf-8")
+    return full, s3_value, None
+
+
+def cmd_closeout(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py closeout [--print-form | --form FILE|-] --seat S
+    [--role R] [--root ...]`.
+
+    No `--form`: prints the ONE JSON array form (phase 1 slot prompt) and
+    exits 0. With `--form FILE`/`--form -`: reads the filled array, applies
+    it by code to the seat's own card (trim guard + owner-quote check,
+    nothing written on refusal), prints the derived where-it-stops so a
+    `rotate-self --closeout` reuses it, and exits 0.
+    """
+    if root is None:
+        print("ERR: closeout needs an agi project root.", file=sys.stderr)
+        return 1
+    seat = args.seat
+    if not seat:
+        print("ERR: closeout needs --seat S.", file=sys.stderr)
+        return 2
+    role = args.role or "parent"
+    tmpl = None
+    try:
+        tmpl, _name, src = _resolve_template(root, role, args.template,
+                                             where="closeout")
+        if tmpl is None:
+            # no templates / unresolvable role: fall back to coded defaults
+            tmpl = None
+        else:
+            tmpl = tmpl
+    except Exception:  # noqa: BLE001
+        tmpl = None
+    if args.form is None:
+        print(_closeout_form_json(root, seat, role, tmpl))
+        return 0
+    if args.form == "-":
+        text = sys.stdin.read()
+    else:
+        try:
+            text = Path(args.form).read_text(encoding="utf-8")
+        except OSError as e:
+            print(f"ERR: closeout: cannot read --form {args.form!r}: {e}",
+                  file=sys.stderr)
+            return 2
+    filled, perr = _closeout_parse_form(text)
+    if perr:
+        print(f"ERR: closeout: {perr}", file=sys.stderr)
+        return 2
+    full, s3_value, aerr = _closeout_apply(root, seat, role, filled, tmpl)
+    if aerr:
+        print(f"ERR: closeout: {aerr} (nothing written)", file=sys.stderr)
+        return 2
+    if s3_value:
+        print(f"where-it-stops: {s3_value.splitlines()[0][:80]}")
+    print(f"applied closeout form to {_own_card_path(root, seat)} "
+          f"({len(filled)} slot(s) resolved).")
+    return 0
+
+
+# --- closeout CAPTIVE STEPS (phase 3) --------------------------------------
+# hypothesis:l4-rotate-self-closeout-is-one-call-a-card-form-the-llm-fills-
+# once-then-stops-prepare-role-captive-steps-and-the-spawn-every-step-logged-
+# by-name, phase 3: the DRIVER that runs a role's captive closeout steps as a
+# LIST LOGGED BY NAME in the rotation record's
+# `closeout: [{step, result, detail}]`, a refused step naming itself and
+# STOPPING the call (non-zero exit, nothing after it runs). Step RUNNERS are
+# THIN WRAPPERS over EXISTING functions/scripts (verification.py,
+# _perform_season_merge, send.py, snapshot-goals.py, grid.py) --
+# REUSE, never a second implementation.
+#
+# Every side-effecting runner is reachable through an injectable `seams`
+# table so the TEST never spawns and never hits the network, and proves:
+# step order, stop-on-refusal with a fake step, the merge target is
+# season2/main (never origin/season/s2), the grant wait consumes only a
+# signed Prime line, and the numbers line.
+
+#: The only-behind merge-up target for a worktree-post close-out. This is
+#: the ONE constant the merge step is gated on -- a runner asked to merge
+#: anything else (origin/season/s2, a bare `main`) is REFUSED BY NAME.
+_CLOSEOUT_MERGE_TARGET = "season2/main"
+
+#: porcelain paths the checklist never counts as the seat's dirt: written by
+#: the comms layer and the rotation sequence as a side effect of every dm and
+#: every rotation, committed by grid_sync (not by any seat).
+PREPARE_CHURN_PREFIXES = (".agi/comms/",)
+#: the rotation records + sequence.json: written by rotate-self / the loop
+#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
+#: five uncommitted records blocked a rotate-self with 0 modified files).
+PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
+
+#: Path prefixes CRON owns and keeps dirty by design -- the comms dm files
+#: under `.agi/comms/`, the rotation records under `.agi/sessions/rotations/`
+#: (F20 `config:rotations` facts / `goal:s2` cron parity; grid_sync commits
+#: them). ONE literal: derived from the PREPARE constants above, so the
+#: closeout gate and the prepare churn filter can never disagree on what a
+#: cron-owned path IS (the claim's falsifier forbids two spellings). merge_up
+#: IGNORES these and blocks only on a non-cron dirty path the merge actually
+#: touches.
+CLOSEOUT_CRON_OWNED_PREFIXES = PREPARE_CHURN_PREFIXES + PREPARE_CHURN_DIRS
+
+#: worktree-post captive step list, IN ORDER (the claim's spelling). The
+#: driver runs exactly this list and logs each by name; a step absent here
+#: never runs, and a step present here is never silently skipped.
+WORKTREE_POST_CLOSEOUT_STEPS = [
+    "post_verify",   # nbhd / verification --level quick
+    "merge_up_ask",  # send.py: one merge-up ASK line to the Prime
+    "wait_grant",    # poll the inbox for a signed Prime GRANT|GO, bounded
+    "merge_up",      # merge --no-ff into season2/main in MAIN
+    "render_check",  # render --check
+    "suite",         # verify-suite, logged to a file, waited in-process
+    "grid_commit",   # grid commit --all
+    "push",          # push origin season2/main and refs/grid
+    "verify_stamp",  # verification --level rotation --stamp
+    "numbers",       # the numbers line
+]
+
+#: MAIN-POST closeout list (hypothesis:l4-closeout-step-list-is-chosen-by-
+#: seat-kind-...): a seat row whose worktree cell is EMPTY (a MAIN checkout)
+#: owns only its own card + row, so it pathspec-commits its stop and pushes;
+#: it NEVER merges MAIN into MAIN / asks itself for a grant / runs the suite.
+MAIN_POST_CLOSEOUT_STEPS = [
+    "pathspec_commit",  # the card + the seat's OWN seats.md row, no -A
+    "push",             # push origin the seat branch (the ONE _stops_push)
+]
+
+#: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
+#: it lands its g17.1 note, renders the goals, and pushes.
+PRIME_CLOSEOUT_STEPS = [
+    "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
+    "render",      # snapshot-goals.py --render
+    "push",        # push origin the checked-out branch
+]
+
+#: Grant-wait policy: a signed line FROM the Prime whose body's FIRST WORD
+#: (after optional leading punctuation) is GRANT or GO, read from the SEAT's
+#: OWN channels -- the seat's inbox OR the seat<->prime dm file -- never the
+#: Prime's inbox (the Prime's inbox holds lines TO the Prime; a grant the
+#: Prime sends the seat lands in the seat's inbox or the dm). A STALE grant
+#: (written before the merge-up ASK was sent) never counts. Bounded by
+#: _CLOSEOUT_GRANT_TIMEOUT seconds. A wait that times out is a REFUSED step
+#: (names itself, stops the call).
+_CLOSEOUT_GRANT_FIRST_WORD_RE = re.compile(r"^\W*([A-Za-z]+)", re.IGNORECASE)
+_CLOSEOUT_GRANT_TIMEOUT = 300.0
+_CLOSEOUT_GRANT_POLL = 2.0
+
+
+def _closeout_step_list(role: str, template: dict | None, *,
+                        worktree: str | None = None) -> list[str]:
+    """The captive step list for `role` on the seat described by `worktree`
+    (the seat row's worktree cell; "" for a MAIN checkout, None when the
+    caller does not know the seat kind). The template's `closeout.steps`
+    block wins when present (a role's card may override the coded default).
+    Otherwise the list is chosen by SEAT KIND:
+      - role in {"prime", "prime_director"} -> PRIME_CLOSEOUT_STEPS
+      - an EXPLICIT EMPTY worktree cell ("" -- a MAIN post) ->
+        MAIN_POST_CLOSEOUT_STEPS
+      - otherwise -> WORKTREE_POST_CLOSEOUT_STEPS (a worktree row, or a
+        caller that did not name a kind -- the pre-fix worktree default,
+        which the pre-fix driver tests still pin).
+    A role is NEVER served another kind's list: a Prime is not asked for a
+    grant, a MAIN post never merges MAIN into MAIN, a worktree row keeps the
+    full merge/suite/post list it lands on main with. Explicit seat kind
+    (``cells) is what makes the distinction: "" is the MAIN-post sentinel
+    passed by cmd_rotate_self from the row's worktree cell; None leaves the
+    legacy default for callers that predate seat-kind. `role` is kept in the
+    signature (the call sites and tests pass it) so a template-less PRIME
+    with a worktree cell still resolves by ROLE first.
+    """
+    if template and isinstance(template.get("closeout"), dict):
+        steps = template["closeout"].get("steps")
+        if isinstance(steps, list) and steps:
+            return [str(s) for s in steps]
+    if str(role) in ("prime", "prime_director"):
+        return list(PRIME_CLOSEOUT_STEPS)
+    if worktree is not None and not str(worktree).strip():
+        return list(MAIN_POST_CLOSEOUT_STEPS)
+    return list(WORKTREE_POST_CLOSEOUT_STEPS)
+
+
+def _closeout_prime_seat(root: Path) -> str:
+    """The Prime seat to ASK and to read the grant from: the authority prime
+    row's name when present, else a seat literally named `prime`/`prime_...`
+    from the working tree, else the literal fallback `prime` (a fixture root
+    with no seats yields the fallback, which is exactly what the grant-grammar
+    test needs to read FORGED/unsigned blocks against)."""
+    try:
+        row, _src = _prime_row_authority(root)
+        if row and row.get("name"):
+            return str(row["name"])
+    except Exception:  # noqa: BLE001 -- a fixture root degrades to fallback
+        pass
+    for cand in ("prime", "prime_director"):
+        r = _find_seat(root, cand)
+        if r and r.get("name"):
+            return str(r["name"])
+    return "prime"
+
+
+def _closeout_send_file(root: Path) -> Path:
+    """Find send.py and return its path (the thin wrapper invokes the EXISTING
+    executable). Raises FileNotFoundError when absent."""
+    p = Path(__file__).with_name("send.py")
+    if not p.exists():
+        raise FileNotFoundError(p)
+    return p
+
+
+def _closeout_pop_and_run(root: Path, argv: list[str], timeout: int = 120,
+                        cwd: Path | None = None) -> dict:
+    """Run ONE existing-command subprocess (verification.py, snapshot-goals.py,
+    grid.py, verify-suite...) and return a small summary dict. Never raises:
+    a non-zero exit / absent binary records {ok: False, detail: ...} so the
+    driver can REFUSE BY NAME -- the caller decides whether a step is a hard
+    blocker (merge, suite) or a soft one (verify-skip). `cwd` is the
+    subprocess working dir; the worktree-post post-merge runners pass MAIN
+    (the tree the merge landed in) so a script that resolves its project
+    root from the process cwd reads the merge-up tree, never the seat tree."""
+    try:
+        out = subprocess.run(argv, capture_output=True, text=True, timeout=timeout,
+                             cwd=str(cwd) if cwd is not None else None)
+    except Exception as exc:  # noqa: BLE001 -- FileNotFound, TimeoutExpired, ...
+        return {"ok": False, "detail": f"could not run {' '.join(str(a) for a in argv)}: {exc}"}
+    return {
+        "ok": out.returncode == 0,
+        "rc": out.returncode,
+        "tail": (out.stderr or out.stdout or "").strip().splitlines()[-1:],
+    }
+
+
+def _grant_block_later_than(ts: str, since_ts: str) -> bool:
+    """True when a block's `ts:` header is LATER than the ask's send time. An
+    ISO-8601 UTC string compares chronologically with a ``Z``<->``+00:00``
+    normalization; input fromisoformat cannot parse falls back to a plain
+    string compare -- a STALE grant must never pass on a parse hiccup."""
+    def _norm(s: str) -> str:
+        return (s or "").replace("Z", "+00:00")
+    def _as_dt(s: str):
+        try:
+            return datetime.fromisoformat(_norm(s).strip())
+        except ValueError:
+            return None
+    a, b = _as_dt(ts), _as_dt(since_ts)
+    if a is not None and b is not None:
+        return a > b
+    return _norm(ts) > _norm(since_ts)
+
+
+def _grant_body_first_word(body: str) -> bool:
+    """The grant grammar's BODY gate: the body's FIRST WORD (after optional
+    leading punctuation/whitespace) is GRANT or GO, case-insensitive. NEVER a
+    bare substring -- a signed Prime line reading `no GRANT yet` must NOT
+    grant (the pre-fix regex matched the word anywhere in the body)."""
+    m = _CLOSEOUT_GRANT_FIRST_WORD_RE.match(body or "")
+    return bool(m and m.group(1).upper() in ("GRANT", "GO"))
+
+
+def _grant_present_for_seat(root: Path, seat: str, prime: str,
+                            since_ts: str = "") -> bool:
+    """The grant-wait GRAMMAR, real and test-driveable: is there a block,
+    in the SEAT'S OWN inbox or the seat<->prime dm file, that is (a) FROM
+    the prime, (b) signed (carries a `sig:` header), (c) whose body's FIRST
+    WORD is GRANT|GO, and (d) written AFTER the merge-up ASK was sent
+    (`since_ts`; a stale grant written before the ask never counts)? An
+    unsigned block, a non-Prime block, a `no GRANT yet` block, or a block
+    older than the ask each never grant. The Prime's OWN inbox is
+    deliberately NOT read: it holds lines TO the Prime, never a grant the
+    Prime sends the seat (which lands in the seat's own inbox or the dm).
+    Verified-by-check is deliberately NOT pulled in here: `sig:` presence is
+    the gate (a forged inverse that strips `sig:` cannot pass), matching the
+    phase-1 quote-refusal posture of refusing the ABSENT, detectable case
+    rather than silently trusting it.
+    """
+    import send  # local: same dir (send.py pattern, no import cycle)
+
+    def _grant_in_blocks(blocks) -> bool:
+        for head, body in blocks:
+            head = dict(head) if head else {}
+            if str(head.get("from") or "") != prime:
+                continue                      # only the PRIME's OWN line grants
+            if not head.get("sig"):
+                continue                      # unsigned line never grants
+            if not _grant_body_first_word(body):
+                continue          # first WORD GRANT|GO -- never a substring
+            if since_ts and not _grant_block_later_than(
+                    str(head.get("ts") or ""), since_ts):
+                continue       # a STALE (pre-ask) grant never counts
+            return True
+        return False
+
+    seat_in = send._inbox_path(root, seat)
+    if seat_in.is_file():
+        raw = send._scan_messages(seat_in)[0]
+        if _grant_in_blocks([send._parse_block(b) for b in raw]):
+            return True
+    # The seat<->prime dm file -- a second channel a Prime may reply on.
+    dm = send._dm_path(send.comms_root(root), seat, prime)
+    if dm.is_file():
+        with open(dm, encoding="utf-8", newline="") as fh:
+            text = fh.read()
+        blocks = [send._parse_block(b) for b in
+                  send._MSG_BOUNDARY_RE.split(text) if b.strip()]
+        if _grant_in_blocks(blocks):
+            return True
+    return False
+
+
+def _closeout_main(root: Path) -> Path | None:
+    """MAIN = the shared graph root's git toplevel -- the tree a worktree
+    closeout MERGES INTO, and the cwd every post-merge runner operates on
+    (hypothesis:l4-closeout-worktree-post-...the-merge-up-in-main). For a
+    worktree seat, `root` is the seat's own tree; climbing through
+    `_shared_graph_root` reaches MAIN's graph, and `git rev-parse
+    --show-toplevel` there is MAIN itself. From a MAIN (non-worktree)
+    caller the result is MAIN. None when unresolvable (a gitless
+    fixture/root) -- every runner that needs MAIN REFUSES BY NAME. Never
+    raises."""
+    g = _shared_graph_root(root)
+    return _git_toplevel(g)
+
+
+def _closeout_branch(cwd: Path) -> str:
+    """The checked-out branch of `cwd` ('' when detached or unreadable) --
+    the `:12135` idiom, one wrapper. merge_up gates MAIN's branch on it; the
+    ask names the seat branch through it."""
+    rc, br, _ = _fd_git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
+    return br if (rc == 0 and br and br != "HEAD") else ""
+
+
+def _closeout_main_clean(main: Path, seat_branch: str):
+    """MAIN's dirty TRACKED paths judged against the merge: a dirty path
+    BLOCKS only when it is BOTH (a) NOT under a cron-owned prefix AND (b)
+    touched by the merge (`git diff --name-only <target>..<seat_branch>` --
+    git allows a merge that touches no dirty path). Returns `(clean,
+    blockers, ignored_count)`; `clean` is None when the tree cannot be
+    measured (git rc != 0) -- refuse with nothing to name."""
+    # Parse paths from the RAW porcelain -- `_fd_git` strips the whole blob, so
+    # a leading-space row (" M path") on the FIRST line loses a char. Use the
+    # ONE porcelain extractor (`_porcelain_path`, the same one the prepare
+    # churn captive uses) so a rename row (`R old -> new`) is judged on the
+    # NEW path and the churn filter and this gate always agree on what a
+    # line's path IS. Porcelain v1 is "XY path"; the path begins 3 chars in.
+    try:
+        r = subprocess.run(["git", "-C", str(main), "status", "--porcelain",
+                            "--untracked-files=no"], capture_output=True,
+                           text=True, timeout=10)
+    except OSError:
+        return None, [], 0
+    if r.returncode != 0:
+        return None, [], 0
+    dirty = [_porcelain_path(line) for line in r.stdout.splitlines()
+             if len(line) > 3]
+    if not dirty:
+        return True, [], 0
+    touched: set[str] = set()
+    trc, tout, _ = _fd_git(main, "diff", "--name-only",
+                           f"{_CLOSEOUT_MERGE_TARGET}..{seat_branch}")
+    if trc == 0:
+        touched = set(t for t in tout.splitlines() if t.strip())
+    blocked = [p for p in dirty
+               if not any(p.startswith(pre)
+                          for pre in CLOSEOUT_CRON_OWNED_PREFIXES)
+               and p in touched]
+    ignored = sum(1 for p in dirty
+                  if any(p.startswith(pre)
+                         for pre in CLOSEOUT_CRON_OWNED_PREFIXES))
+    return not blocked, blocked, ignored
+
+
+def _closeout_record_name(seat: str, record: dict) -> str:
+    """Best-effort rotation-record FILE name, named in the merge-up ASK so
+    the Prime can go read it: `<seat>.<YYYYMMDDTHHMMSSZ>.json` from the
+    record's `recorded_at` when present (the live naming), else `<seat>.json`
+    (or `run.json` when even the seat is unknown)."""
+    rat = str(record.get("recorded_at") or "")
+    if rat and seat:
+        stamp = re.sub(r"[^\w]", "", rat)[:15] or "run"
+        return f"{seat}.{stamp}Z.json"
+    return f"{seat or 'run'}.json"
+
+
+def _numbers_line(record: dict) -> str:
+    """THE numbers line: `<five facts> | <hash> | <one line per goal>`,
+    composed from the rotation record. `facts` is an ordered list of the
+    five numbers/values, `commit` the hash, `goals` one summary per goal.
+    Absent pieces simply drop, so a record-less caller still gets a
+    well-formed (short) line."""
+    facts = record.get("facts") or []
+    commit = record.get("commit")
+    goals = record.get("goals") or []
+    parts = [str(f) for f in list(facts)[:5]]
+    if commit:
+        parts.append(str(commit))
+    for g in goals:
+        parts.append(str(g))
+    return " | ".join(parts)
+
+
+def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
+                        role: str = "") -> dict:
+    """The REAL seam table -- the default the driver uses when a caller
+    passes no seams. Each callable is a thin wrapper over an EXISTING
+    function/script (REUSE). The tests inject fakes here so a test never
+    spawns and never touches the network. Each runner returns
+    `(ok: bool, result: str, detail: str)`:
+      ok False holds a hard blocker (merge/suite/push) or a refusal (an
+      unsigned grant timeout) -- the driver STOPS and names the step.
+      ok True with result "skip" is a soft ok (a verify with no graph), for
+      the steps the claim allows to be skipped.
+    `seat` names the rotating seat (the merge-up works the SEAT branch into
+    MAIN; the MAIN-post pathspec_commit runner commits the seat's OWN card +
+    row through `_commit_stops_row`).
+
+    The worktree-post runners operate on MAIN -- the shared graph root's git
+    toplevel -- NOT the seat tree: merge_up merges INTO MAIN's checked-out
+    season2/main, wait_grant reads the SEAT's OWN inbox/dm for a signed
+    Prime line, and suite/grid/stamp/render run with cwd=MAIN. Every doubt
+    (MAIN unresolvable, on another branch, dirty, a grant read elsewhere, a
+    push that omits refs/grid) REFUSES BY NAME.
+    """
+    import send  # local: same dir
+
+    # The merge-up ASK's send time, shared with wait_grant: a grant written
+    # BEFORE the ask (a STALE one) never counts (the claim's clause).
+    ask_state = {"sent_at": ""}
+
+    def _verify():
+        res = _run_verification(root)
+        level = res.get("level") or "quick"
+        if res.get("ok"):
+            return (True, "ok", f"post verify passed at {level}")
+        if res.get("skipped"):
+            return (True, "skip", str(res["skipped"]))
+        return (False, "failed", f"post verify failed at {level}: {res}")
+
+    def _ask():
+        # merge-up ASK: ONE line TO the Prime naming the seat, the seat
+        # branch tip sha7, the target, and the record file -- sent AS the
+        # seat (sender=<seat>) so it is SIGNED when the seat is keyed (the
+        # pre-fix line carried the literal placeholder `<seat>` and sender
+        # None, so it was never attributable to the seat).
+        prime = _closeout_prime_seat(root)
+        main = _closeout_main(root)
+        seat_branch = (_fd_seat_branch(root, main, seat) if main
+                       else _closeout_branch(root)) or "<branch>"
+        tip = ""
+        if main and not seat_branch.startswith("<"):
+            lines = _git_maybe(main, "rev-parse", "--short", seat_branch)
+            tip = lines[0].strip() if lines else ""
+        tip_part = f" ({tip})" if tip else ""
+        recname = _closeout_record_name(seat, record)
+        line = (f"CLOSEOUT merge-up request for {seat or '?'}: merge "
+                f"{seat_branch}{tip_part} into {_CLOSEOUT_MERGE_TARGET}? "
+                f"record {recname}; reply GRANT if clear.")
+        try:
+            send.send(root, prime, line, sender=seat or None)
+        except Exception as exc:  # noqa: BLE001
+            return (False, "failed", f"merge-up ASK could not be sent: {exc}")
+        ask_state["sent_at"] = send._now()
+        return (True, "sent",
+                f"merge-up ASK line sent as {seat or '?'} to {prime}")
+
+    def _wait_grant():
+        # Poll the SEAT's OWN channels -- its inbox and the seat<->prime dm
+        # file -- for a signed Prime line whose body's FIRST WORD is
+        # GRANT|GO, written AFTER the ask (never the Prime's inbox, never a
+        # bare-substring match, never a stale grant).
+        prime = _closeout_prime_seat(root)
+        since = ask_state.get("sent_at") or ""
+        deadline = time.monotonic() + _CLOSEOUT_GRANT_TIMEOUT
+        while True:
+            if _grant_present_for_seat(root, seat, prime, since):
+                return (True, "granted",
+                        f"signed Prime GRANT|GO read in {seat or '?'} "
+                        f"inbox/dm")
+            if time.monotonic() >= deadline:
+                return (False, "refused",
+                        f"no signed Prime GRANT|GO in {seat or '?'} inbox/"
+                        f"dm within {int(_CLOSEOUT_GRANT_TIMEOUT)}s")
+            time.sleep(_CLOSEOUT_GRANT_POLL)
+
+    def _merge_up():
+        # merge --no-ff of the SEAT branch into the CHECKED-OUT season2/main
+        # IN MAIN -- NEVER the seat tree, NEVER `git merge origin/<sb>` (the
+        # pre-fix sync direction, which synced the SEAT from origin/main, a
+        # ref that does not exist on this remote, so a live run refused at
+        # merge_up every time). Gate on the ONE constant, MAIN's checked-out
+        # branch, and a clean MAIN tracked tree. Non-zero merge rc ABORTS and
+        # refuses.
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused",
+                    "merge_up: could not resolve MAIN (the shared graph "
+                    "root's git toplevel) -- merge refused by name")
+        branch = _closeout_branch(main)
+        if branch != _CLOSEOUT_MERGE_TARGET:
+            return (False, "refused",
+                    f"merge_up: MAIN is on {branch or '<detached>'!r}, not "
+                    f"{_CLOSEOUT_MERGE_TARGET!r} -- merge refused by name")
+        seat_branch = (_fd_seat_branch(root, main, seat)
+                       or _closeout_branch(root))
+        if not seat_branch or seat_branch == "HEAD":
+            return (False, "refused",
+                    "merge_up: no resolvable seat branch -- merge refused "
+                    "by name")
+        # Since MAIN's tracked tree, judged against the touch-set of this
+        # seat branch: cron-owned paths are ignored, and a dirty path blocks
+        # only when the merge touches it (git's own merge semantics).
+        clean, blockers, ignored = _closeout_main_clean(main, seat_branch)
+        if clean is None:
+            return (False, "refused",
+                    "merge_up: MAIN's tracked tree could not be measured "
+                    "(git status --porcelain, untracked ignored) -- merge "
+                    "refused by name")
+        if not clean:
+            named = ", ".join(blockers[:5])
+            return (False, "refused",
+                    "merge_up: MAIN tracked tree dirty on "
+                    f"{len(blockers)} path(s) the merge touches: {named}"
+                    + (f" ({ignored} cron-owned path(s) ignored)"
+                       if ignored else "")
+                    + " -- merge refused by name")
+        _gn = record.get("gen_before")
+        msg = (f"rotate-out closeout: merge {seat_branch} (seat {seat or '?'}, "
+               f"gen {_gn if _gn is not None else '?'}, record "
+               f"{_closeout_record_name(seat, record)}) into "
+               f"{_CLOSEOUT_MERGE_TARGET}")
+        proc = _git_proc(main, "merge", "--no-ff", seat_branch, "-m", msg)
+        if proc is None or proc.returncode != 0:
+            _git_maybe(main, "merge", "--abort")
+            _err = (proc.stderr or proc.stdout or "nonzero exit").strip() \
+                if proc is not None else "merge could not run"
+            return (False, "refused",
+                    f"merge_up: merge --no-ff {seat_branch} into "
+                    f"{_CLOSEOUT_MERGE_TARGET} refused/conflicted (aborted): "
+                    f"{_err}")
+        lines = _git_maybe(main, "rev-parse", "--short", "HEAD")
+        head = lines[0].strip() if lines else "?"
+        return (True, "merged",
+                f"merge --no-ff {seat_branch} into {_CLOSEOUT_MERGE_TARGET} "
+                f"in MAIN at {head}"
+                + (f" ({ignored} cron-owned dirty path(s) ignored)"
+                   if ignored else ""))
+
+    def _render_check():
+        # run in MAIN (the tree the merge landed in) -- never the seat tree.
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "render_check: could not resolve MAIN")
+        binp = Path(__file__).with_name("snapshot-goals.py")
+        res = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render", "--check"],
+            cwd=main)
+        if res["ok"]:
+            return (True, "ok", "render --check clean")
+        return (False, "failed", "render --check refused")
+
+    def _suite():
+        # verify-suite = verification.py's opt-in pytest (`--suite`), logged
+        # to a file under MAIN's sessions dir and WAITED in-process (REUSE:
+        # the existing executable, no second suite implementation). Runs with
+        # cwd=MAIN and REFUSES BY NAME while another live runner holds the
+        # verify-suite lock (verification._suite_lock_guard).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "suite: could not resolve MAIN")
+        import verification  # local: same dir (its suite lock)
+        held = verification._suite_lock_guard(_shared_graph_root(root))
+        if held:
+            return (False, "refused", f"suite: {held}")
+        sink = Path(_sessions_dir(root)) / \
+            f"closeout-suite-{record.get('commit') or 'run'}.log"
+        try:
+            sink.parent.mkdir(parents=True, exist_ok=True)
+        except OSError:  # noqa: BLE001
+            pass
+        binp = Path(__file__).with_name("verification.py")
+        try:
+            with open(sink, "a", encoding="utf-8") as fh:
+                out = subprocess.run(
+                    [sys.executable, str(binp), "--level", "quick", "--suite"],
+                    capture_output=True, text=True, timeout=1800,
+                    cwd=str(main))
+                fh.write(out.stdout or "")
+                fh.write(out.stderr or "")
+        except Exception as exc:  # noqa: BLE001
+            return (False, "failed", f"suite could not run: {exc}")
+        if out.returncode == 0:
+            return (True, "ok", f"verify-suite passed; log {sink}")
+        return (False, "failed", f"verify-suite failed; log {sink}")
+
+    def _grid_commit():
+        # grid commit --all in MAIN (the tree the merge landed in).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "grid_commit: could not resolve MAIN")
+        binp = Path(__file__).with_name("grid.py")
+        res = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "commit", "--all"], cwd=main)
+        if res["ok"]:
+            return (True, "ok", "grid commit --all")
+        return (False, "failed", "grid commit --all refused")
+
+    def _push():
+        # push origin season2/main THEN origin refs/grid/*:refs/grid/*, both
+        # FROM MAIN -- never a force push, never a second commit; a push that
+        # omits refs/grid is the falsifier. First non-zero rc refuses by
+        # name. (The pre-fix runner pushed the SEAT's checked-out branch from
+        # the seat tree and never carried refs/grid.)
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused", "push: could not resolve MAIN")
+        p1 = _git_proc(main, "push", "origin", _CLOSEOUT_MERGE_TARGET)
+        if p1 is None or p1.returncode != 0:
+            _e = (p1.stderr or p1.stdout or "nonzero exit").strip() \
+                if p1 is not None else "push could not run"
+            return (False, "refused",
+                    f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
+        p2 = _git_proc(main, "push", "origin", "refs/grid/*:refs/grid/*")
+        if p2 is None or p2.returncode != 0:
+            _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
+                if p2 is not None else "push could not run"
+            return (False, "refused",
+                    "push: push origin refs/grid/*:refs/grid/* refused: "
+                    f"{_e}")
+        return (True, "ok",
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + refs/grid from MAIN")
+
+    def _verify_stamp():
+        # verification --level rotation --stamp in MAIN (cwd).
+        main = _closeout_main(root)
+        if main is None:
+            return (False, "refused",
+                    "verify_stamp: could not resolve MAIN")
+        binp = Path(__file__).with_name("verification.py")
+        res = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--level", "rotation",
+                   "--stamp"], cwd=main)
+        if res["ok"]:
+            return (True, "ok", "verification --level rotation --stamp")
+        return (False, "failed",
+                "verification --level rotation --stamp refused")
+
+    def _numbers():
+        line = _numbers_line(record)
+        return (True, "ok", line)
+
+    def _pathspec_commit():
+        # The MAIN-post closeout commit: the seat's OWN card + records row
+        # as ONE pathspec commit, through the EXISTING stops-commit helper
+        # (REUSE -- never a second commit implementation, never `git add -A`
+        # -- which stages card + own seats.md row by blob/own-row content,
+        # so a foreign dirty path never rides). A seat with NO card falls
+        # back to the rotation-record commit helper.
+        card = _own_card_path(root, seat)
+        if card.exists():
+            msg = (f"{seat} closeout: card + own row "
+                   f"(rotate-out closeout pathspec commit)")
+            out = _commit_stops_row(root, seat, card, msg)
+        else:
+            _gen_b = int(record.get("gen_before") or 0)
+            _gen_a = int(record.get("gen_after") or (_gen_b + 1))
+            out = _commit_rotation_record(
+                root, seat=seat, gen_before=_gen_b, gen_after=_gen_a)
+        if (out.startswith("stop_commit: committed")
+                or out.startswith("rotation_record_commit: committed")):
+            return (True, "committed", out)
+        # a FAILED / SKIPPED record commit is a REFUSED step, named (the
+        # pre-fix prefix match reported a FAILED _commit_rotation_record as
+        # (True, 'committed')).
+        return (False, "refused", out)
+
+    def _g17_1_note():
+        # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
+        # numbers line / the where-it-stops>, via subprocess (REUSE: the
+        # existing write.py executable, no second note writer). write.py's
+        # grammar is ONE script argument ('note <text>') -- never `note` and
+        # the text as two positionals (which parses 'note' with no arg and
+        # lets the text ride the unused slug slot, exiting rc 2). Resolves
+        # the project from root explicitly (--root + cwd), never the
+        # subprocess cwd. Refuses by name on a non-zero exit.
+        binp = Path(__file__).with_name("write.py")
+        text = _numbers_line(record)
+        argv = [sys.executable, str(binp), "goal:g17.1",
+                f"note {text}", "--root", str(root)]
+        if seat:
+            argv += ["--actor", seat]
+        if role:
+            argv += ["--role", role]
+        try:
+            out = subprocess.run(argv, capture_output=True, text=True,
+                                 timeout=120, cwd=str(root))
+        except Exception as exc:  # noqa: BLE001
+            return (False, "refused", f"g17_1_note could not run: {exc}")
+        if out.returncode == 0:
+            return (True, "ok", "g17.1 note written (closeout numbers)")
+        return (False, "refused",
+                f"g17_1_note refused: "
+                f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
+
+    def _render():
+        # snapshot-goals.py --render with cwd=root AND the project root made
+        # explicit (--project), so a closeout run never resolves the project
+        # from the SUBPROCESS cwd (a worktree cwd would render the wrong
+        # tree); then --render --check, whose result is the verdict -- the
+        # note is only written if GOALS.md round-trips byte-identical.
+        binp = Path(__file__).with_name("snapshot-goals.py")
+        res = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render",
+                   "--project", str(root)], cwd=root)
+        if not res["ok"]:
+            return (False, "refused",
+                    f"render refused: {res.get('detail') or res}")
+        chk = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render", "--check",
+                   "--project", str(root)], cwd=root)
+        if chk["ok"]:
+            return (True, "ok", "snapshot-goals.py --render + --check clean")
+        return (False, "failed",
+                f"render --check refused: {chk.get('detail') or chk}")
+
+    return {
+        "post_verify": _verify,
+        "merge_up_ask": _ask,
+        "wait_grant": _wait_grant,
+        "merge_up": _merge_up,
+        "render_check": _render_check,
+        "suite": _suite,
+        "grid_commit": _grid_commit,
+        "push": _push,
+        "verify_stamp": _verify_stamp,
+        "numbers": _numbers,
+        "pathspec_commit": _pathspec_commit,
+        "g17_1_note": _g17_1_note,
+        "render": _render,
+    }
+
+
+def _closeout_run_steps(root: Path, seat: str, role: str = "parent",
+                        *, template: dict | None = None,
+                        record: dict | None = None,
+                        seams: dict | None = None,
+                        worktree: str | None = None):
+    """Run the role's captive closeout steps IN ORDER, logging each as
+    `{step, result, detail}`. Returns `(entries, error)`: `entries` is the
+    full `closeout:` list (every step that RAN, in order); on a refused step
+    `entries` stops there and `error` names the refused STEP, so the caller
+    knows exactly where the call stopped and what blocked it (exit non-zero,
+    nothing after it runs). A step that returns `(False, ...)` -- or one that
+    is unknown to the runner table -- is a REFUSED step and stops the call.
+    Never raises: every failure is a named `(entries, error)` return.
+    `worktree` is the seat row's worktree cell ("" for a MAIN checkout,
+    None when the caller does not know the seat kind); it is passed through
+    to `_closeout_step_list` so the captive list is chosen by SEAT KIND, not
+    served the worktree default for every role.
+    """
+    steps = _closeout_step_list(role, template, worktree=worktree)
+    if seams is None:
+        seams = _make_closeout_seams(root, record or {}, seat=seat,
+                                     role=role)
+    entries: list[dict] = []
+    seen: set[str] = set()
+    for step in steps:
+        runner = seams.get(step)
+        if runner is None:
+            return entries + [{"step": step, "result": "refused",
+                              "detail": f"{step!r} has no runner"}], \
+                f"closeout refused at step {step!r}: no runner for it"
+        if step in seen:
+            return entries + [{"step": step, "result": "refused",
+                              "detail": f"{step!r} listed twice"}], \
+                f"closeout refused at step {step!r}: listed twice in the step list"
+        seen.add(step)
+        try:
+            ok, result, detail = runner()
+        except Exception as exc:  # noqa: BLE001
+            ok, result, detail = False, "refused", f"runner raised: {exc}"
+        entries.append({"step": step, "result": result, "detail": detail})
+        if not ok:
+            return entries, f"closeout refused at step {step!r}: {detail}"
+    return entries, None
+
+
+def _closeout_cli_seams(root: Path, seams_json: str | None):
+    """The NAMED seam at the CLI boundary of phase 3 (`rotate-self
+    --closeout`). Absent -> None, and `_closeout_run_steps` builds the REAL
+    seam table (a live close-out runs the actual merge / suite / push).
+    Given a JSON object `{"refuse": [step, ...]}`, return a fake seam table
+    over the UNION of all three coded closeout lists (worktree-post,
+    MAIN-post, Prime) where every step returns ok except the named refusers
+    (which return `(False, "refused", ...)` and STOP the call) -- the
+    injectable seam that lets a test drive phase 3 THROUGH the CLI path
+    without spawning, merging, or touching the network. A step list that
+    extends past the coded union has no runner and is refused by name here
+    too (the driver's own rule)."""
+    del root  # kept for signature symmetry (the real table bounds on root)
+    if not seams_json:
+        return None
+    try:
+        spec = json.loads(seams_json)
+    except Exception:  # noqa: BLE001
+        spec = {}
+    refusers = set(str(s) for s in (spec.get("refuse") or []))
+
+    def make(step):
+        def run():
+            if step in refusers:
+                return (False, "refused", f"fake {step} refused (seam)")
+            return (True, "ok", f"fake {step} ran (seam)")
+        return run
+
+    # The fake table spans the UNION of all three coded closeout lists, so a
+    # MAIN-post or Prime fixture is driven through the CLI seam exactly like
+    # the worktree one (a step of ANY coded list with no runner here would
+    # be refused by name -- the driver's own rule).
+    _union = {}
+    for _l in (WORKTREE_POST_CLOSEOUT_STEPS,
+               MAIN_POST_CLOSEOUT_STEPS, PRIME_CLOSEOUT_STEPS):
+        for _s in _l:
+            _union.setdefault(_s, make(_s))
+    return _union
+
+
+def _record_closeout(record_path: Path | None, entries: list[dict]) -> None:
+    """Drop the phase-3 closeout captive-step log into the in-progress
+    rotation record as `closeout: [{step, result, detail}]` so a reader (the
+    successor's STARTUP, a later audit) sees every close-out step logged by
+    NAME in order (hypothesis:...-every-step-logged-by-name). Best-effort:
+    never raises -- the step run, not the bookkeeping, is load-bearing. The
+    field rides later rewrites of the same record via `_preserve_closeout`."""
+    if not record_path:
+        return
+    p = Path(record_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    doc["closeout"] = [dict(e) for e in entries]
+    try:
+        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+
+
 # --- rotate-self subcommand -----------------------------------------------
 
 
@@ -5622,6 +6918,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
                          session_id: str | None = None,
+                         session_name: str = "",
                          key_rotation: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
@@ -5654,6 +6951,14 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     declared self_row fields, so admission holds."""
     cells: dict = {"session_ref": session_ref, "generation": generation,
                    "window": window}
+    # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+    # cell...): the row's `session_name` is the harness registry NAME the
+    # registry JOIN resolved (join['name'], e.g. agi-d7), '' when the join
+    # did not resolve or no join ran (a first seating, the internal
+    # session_ref seam). Written ALWAYS (even empty) so the cell exists from
+    # the seat's own first spawn/ack write — the F3 SendMessage-by-ref join
+    # key, and never the session uuid (which lives in session_id, SL7.86).
+    cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
     if pid is not None:
@@ -5685,8 +6990,22 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
+            f"session_name={session_name} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry{_extra}")
+
+
+def _looks_like_session_uuid(s: str) -> bool:
+    """A 36-char UUID-ish string (8-4-4-4-12, dash-separated) — the shape of
+    a Claude session_id that would land in `session_ref` pre-F15 (SL7.86).
+    The harness ListAgents ref is short (e.g. `caa927`) and never this shape,
+    so a session_ref of this shape is a STALE session id that send.whois
+    reads as NO-MATCH for every peer — status flags it (hypothesis:l4-a-post-
+    row-carries-a-session-name-cell...): a lingering uuid must never be
+    trusted as a harness ref."""
+    if len(s) != 36:
+        return False
+    return bool(re.fullmatch(r"\w{8}-\w{4}-\w{4}-\w{4}-\w{12}", s))
 
 
 def _ref_shape_issue(ref: str, seat: str) -> str | None:
@@ -5707,7 +7026,8 @@ def _ref_shape_issue(ref: str, seat: str) -> str | None:
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
                           ref: str, pid: int | None = None,
-                          session_id: str | None = None) -> str:
+                          session_id: str | None = None,
+                          session_name: str = "") -> str:
     """r3 — `rotate.py ack --ref <ref>` BACK-FILLS `session_ref` into the
     successor's OWN seats row through the self_row write (source: ack).
 
@@ -5725,6 +7045,12 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     wrote. Returns a one-line outcome; the write is admitted by the self_row
     declaration."""
     cells: dict = {"session_ref": ref}
+    # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+    # cell...): the ack back-fill ALSO writes the harness registry NAME the
+    # join resolved (join['name'], e.g. agi-d7), '' when the join did not
+    # resolve — F3's SendMessage-by-ref join key travels like every other
+    # identity cell, never the session uuid (session_id keeps that).
+    cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
     if pid is not None:
@@ -5734,6 +7060,8 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat has no row to back-fill)")
     parts = [f"session_ref={ref}"]
+    if session_name:
+        parts.append(f"session_name={session_name}")
     if session_id is not None:
         parts.append(f"session_id={session_id}")
     if pid is not None:
@@ -6285,6 +7613,20 @@ def _push_season_branch(root: Path) -> str:
     <branch>`` on success and ``push: SKIPPED -- ...`` when there is nothing
     to push. Never a force-push, never a second commit. Returns the same
     one line it prints (for callers that log the outcome)."""
+    # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): a merge-
+    # up push is a GATED Prime-scope act. While a council+Keep veto (or an
+    # owner-written human_gate) shows the scope FROZEN, the push WAITS --
+    # refused by name, and never auto-released.
+    try:
+        from seatsig import veto as _veto
+
+        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        if _frozen:
+            _l = f"push: HELD -- merge-up push is a gated act; {_why}"
+            print(_l, file=sys.stderr)
+            return _l
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+        pass
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
     if top is None:
@@ -6472,6 +7814,96 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
             f"own-row only: {msg}\npush: {_push}")
 
 
+def _commit_after_join_record(root: Path, *, record: dict,
+                             record_path: str,
+                             seat: str, performer: str = "service",
+                             commit_label: str = "record") -> str:
+    """The SERVICE's after_join rewrite of a rotation record is committed as
+    ITS OWN one-pathspec commit (hypothesis:l4-the-after-join-record-rewrite-
+    is-committed-by-pathspec...), so MAIN never reads `M` on a record that
+    rotate-self already committed (and a record rotate-self left UNTRACKED on
+    a worktree seat is committed here too, never left untracked).
+
+    Writes the already-mutated `record` (its `after_join` block names the
+    committer via `committed_by`), then ONE `git add -- <record>` and ONE
+    `git commit -q -m 'after_join record: <seat> <stamp> (performed by
+    <performer>)' -- <record>`, from the MAIN checkout's toplevel
+    (`_shared_graph_root` + `_git_toplevel`): the record physically lives in
+    MAIN's shared rotations dir even for a worktree heal watch, and the
+    caller's own tree may be a worktree copy that was never the written
+    file. Touches ONLY the record path — never `git add -A`, never a grid
+    commit, never a push. Best-effort: on ANY failure returns a
+    FAILED/SKIPPED one-line outcome (a failure is ALSO NAMED on the record's
+    `after_join.record_commit`, since its rewrite is left local/uncommitted)
+    and NEVER raises into the watch (mirror `_commit_rotation_record`'s
+    fail-soft contract). On success NO extra field rides on the record — the
+    committed byte carries `committed_by` unchanged, the SHA lives in git
+    log and the returned string; a byte-identical re-rewrite of an
+    already-committed record (`git add` stages nothing) is SKIPPED cleanly.
+    Returns the one-line outcome (with sha on success).
+    """
+    rp = Path(record_path) if record_path else None
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return (f"after_join_record_commit: SKIPPED \u2014 no git repo; the "
+                "after_join rewrite stays uncommitted (gitless fixture/root)")
+    if rp is None or not rp.exists():
+        return ("after_join_record_commit: SKIPPED \u2014 no rotation record "
+                "file to commit")
+    try:
+        rel = os.path.relpath(rp, top)
+    except ValueError:
+        return ("after_join_record_commit: SKIPPED \u2014 record lies outside "
+                "the git repo")
+    msg = (f"after_join {commit_label}: {seat} {rp.name} (performed by "
+           f"{performer})")
+    try:
+        # `record` is the byte the caller just wrote (committer named); the
+        # helper stages and commits exactly those bytes, never re-writing.
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=30)
+        if add.returncode != 0:
+            raise RuntimeError(add.stderr.strip())
+        chk = subprocess.run(
+            ["git", "-C", str(top), "diff", "--cached", "--quiet", "--",
+             rel], capture_output=True, text=True, timeout=30)
+        if chk.returncode == 0:
+            # nothing staged: a byte-identical rewrite — already clean.
+            subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                           capture_output=True, text=True, timeout=30)
+            return ("after_join_record_commit: SKIPPED \u2014 record already "
+                    "clean after the rewrite")
+        cm = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--", rel],
+                            capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            raise RuntimeError((cm.stderr or cm.stdout or "").strip())
+        sha = ""
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(top), "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=10)
+            sha = (out.stdout or "").strip()
+        except Exception:  # noqa: BLE001
+            sha = ""
+        return f"after_join_record_commit: committed (sha {sha}) \u2014 {rel}"
+    except Exception as exc:  # noqa: BLE001
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True, timeout=30)
+        outcome = f"after_join_record_commit: FAILED \u2014 {exc}"
+        # name the failure on the record; the rewrite stays local (dirty),
+        # never attributed to a commit that did not happen.
+        try:
+            record["after_join"]["record_commit"] = outcome
+            rp.write_text(json.dumps(record, indent=2) + "\n",
+                          encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
+        return outcome
+
+
+
 def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
                             gen_after: int,
                             record_path: Path | None = None) -> str:
@@ -6484,7 +7916,9 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
     a MAIN-checkout post ONLY (`_commit_spawn_row`'s tree: `_git_toplevel`
     of `_shared_graph_root(root)`); a WORKTREE seat keeps `_button_down` and
     adds no commit here (`_shared_graph_root` resolves MAIN even from a
-    worktree, so `main_root != root` identifies a worktree seat).
+    worktree, so `main_root != root` identifies a worktree seat). CLAIM (b) removes
+    that skip: a worktree seat's record ALSO lives in MAIN and is committed
+    here, `committed_by: rotate-self` named on the record.
 
     Staging is as narrow as git allows: `git add -- <record> <seq>` then
     `git commit -q -m ... -- <both>` — NEVER `git add -A`, never a grid
@@ -6505,15 +7939,31 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
         return ("rotation_record_commit: SKIPPED — no git repo; the record "
                 "+ sequence stay in the tree, never committed (gitless "
                 "fixture/root)")
-    if main_root != root:
-        return ("rotation_record_commit: SKIPPED — worktree seat; the record "
-                "+ sequence commit runs only on a MAIN checkout "
-                "(_button_down handles the grid commit)")
+    # (hypothesis:l4-the-after-join-record-rewrite-is-committed-by-pathspec-...
+    # claim (b)) a WORKTREE seat's record ALSO lands in MAIN (the shared
+    # rotations dir) and is committed here — the writer's own pathspec commit
+    # from MAIN's toplevel (`main_root`/`top` resolve MAIN even for a worktree
+    # caller) — with `committed_by: rotate-self` named on the record, NEVER
+    # left untracked. The old worktree SKIP is removed: _button_down's grid
+    # commit does not cover sessions/rotations (PREPARE_CHURN captive
+    # exemption), which is exactly why the record rode uncommitted.
     if record_path is None or not Path(record_path).exists():
         return ("rotation_record_commit: SKIPPED — no rotation record file "
                 "to commit")
     rec = Path(record_path)
     seq = _seq_file(main_root)
+    # name the committer on the record BEFORE the pathspec commit so a reader
+    # sees who owns the rotation's record commit; best-effort, never fails the
+    # commit (rotate-self from MAIN or a worktree is the SAME writer,
+    # `rotate-self`).
+    try:
+        _r = json.loads(rec.read_text(encoding="utf-8"))
+        if isinstance(_r, dict):
+            _r["committed_by"] = "rotate-self"
+            rec.write_text(json.dumps(_r, indent=2) + "\n",
+                           encoding="utf-8")
+    except (OSError, ValueError, json.JSONDecodeError):
+        pass
     rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
     try:
         add = subprocess.run(["git", "-C", str(top), "add", "--"] + rels,
@@ -6631,7 +8081,8 @@ def _latches_dirs(root: Path, seat: str) -> list[Path]:
     return dirs
 
 
-def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
+def _sweep_dead_hook_latches(root: Path, seat: str,
+                             log_path: str | Path | None = None) -> list[str]:
     """Sweep the seat's dead `hook-<seat>-gen*.lock` latches before spawning
     the successor (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-
     spawning).
@@ -6649,10 +8100,18 @@ def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
     mid-flight). Best-effort: a read or unlink failure NEVER refuses the
     rotation and never raises.
 
-    Returns the number of latches swept. Matches the hook's own dead-vs-live
-    judgement (`_latch_held`), kept in lockstep so the sweep and the hook's
-    release can never disagree."""
-    swept = 0
+    Returns the NAMES of the latches swept (empty list when none). Each line
+    that would otherwise be observable ONLY on stderr -- which the PRODUCTION
+    launch path discards before `claude` starts -- is ALSO appended to
+    `log_path` when given (hypothesis:l4-the-per-file-latch-sweep-stderr-line-
+    reaches-the-production-launch-path-never-discarded): the same one line,
+    prefixed `[sweep:<seat>]`, written to the seat's wrapper log, so
+    `grep 'swept dead hook latch' <log>` finds it after a real rotate-self. An
+    EMPTY sweep writes NOTHING to the log (no noise line per spawn).
+
+    Matches the hook's own dead-vs-live judgement (`_latch_held`), kept in
+    lockstep so the sweep and the hook's release can never disagree."""
+    swept: list[str] = []
     for latch_dir in _latches_dirs(root, seat):
         latches = sorted(latch_dir.glob(f"hook-{seat}-gen*.lock"))
         for latch in latches:
@@ -6662,12 +8121,26 @@ def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
                 continue  # a live rotate-self still holds it; leave it alone
             try:
                 latch.unlink()
-                swept += 1
-                print(f"swept dead hook latch {latch.name} (holder {holder})",
-                      file=sys.stderr)
             except OSError:
                 pass  # an unlink we cannot do must not refuse the rotation
+            else:
+                swept.append(latch.name)
+                line = f"swept dead hook latch {latch.name} (holder {holder})"
+                print(line, file=sys.stderr)
+                if log_path is not None:
+                    _append_sweep_log(log_path, seat, line)
     return swept
+
+
+def _append_sweep_log(log_path: str | Path, seat: str, line: str) -> None:
+    """Append one sweep line to a sink log, tagged with which seat ran the
+    sweep, guaranteed never to raise (a log append must not refuse the
+    rotation -- best-effort, exactly like the sweep itself)."""
+    try:
+        with open(log_path, "a", encoding="utf-8") as fh:
+            fh.write(f"[sweep:{seat}] {line}\n")
+    except OSError:
+        pass  # a log append we cannot do must not refuse the rotation
 
 
 def _short_ps(pid: int) -> str:
@@ -6679,6 +8152,29 @@ def _short_ps(pid: int) -> str:
     except Exception:  # noqa: BLE001
         return ""
     return out
+
+
+def _record_swept_latches(record_path: Path | None, swept: list[str]) -> None:
+    """Drop the `swept_latches` fact into the in-progress rotation record so
+    the successor's STARTUP rotation-record entry lists exactly what the
+    pre-spawn sweep removed -- an empty list when nothing was swept, never
+    absent (hypothesis:l4-the-per-file-latch-sweep-stderr-line-reaches-the-
+    production-launch-path-never-discarded part (b)). Best-effort: never
+    raises (the sweep, not the bookkeeping, is load-bearing)."""
+    if not record_path:
+        return
+    p = Path(record_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    doc["swept_latches"] = list(swept)
+    try:
+        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
@@ -7529,18 +9025,21 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         #           `pending: resolved after join` and
         #           _fill_bootstrap_join_facts fills it once the successor
         #           has answered — never `SKIPPED: no handover derivation`.
+        # (SL7.100) the pin is read through `_read_seat_pin`, so the bootstrap
+        #     path carries cmd_meter's cross-generation refusal; generation=None
+        #     (a derivation call that predates the bound) keeps the legacy read.
         usage = None
         src = None
-        pin = _seat_pin_path(root, seat)
-        if pin.is_file():
-            lp = _read_pin_target(pin)
-            if lp is not None:
-                try:
-                    usage = parse_usage_from_cc_transcript(lp)
-                    if usage is not None:
-                        src = usage_source_name("pin_file")
-                except (OSError, ValueError):
-                    usage = None
+        lp, _preason = _read_seat_pin(root, seat, generation)
+        if lp is not None:
+            try:
+                usage = parse_usage_from_cc_transcript(lp)
+                if usage is not None:
+                    src = usage_source_name("pin_file")
+            except (OSError, ValueError):
+                usage = None
+        elif _preason:
+            return None, f"meter pin is stale: {_preason}"
         if usage is not None:
             ctxt = load_ladder_field(root, "director_context_tokens",
                                      DEFAULT_DIRECTOR_CONTEXT_TOKENS)
@@ -7678,11 +9177,26 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                 measured_at[key] = commit
             continue
         if key in join_pending:
-            if join_poll_secs is None:
+            # (SL7.100) FIRST try the derivation, exactly as the non-join path
+            #     does -- the meter est. case (the caller holds the composed
+            #     first-input bytes and can estimate BEFORE the join) was
+            #     unreachable because set membership short-circuited first. A
+            #     value that resolves is written with the `(resolved after
+            #     join)` marker; only a derivation that cannot resolve leaves
+            #     `pending: resolved after join` (pre-join, as today) or
+            #     `unresolved: <named reason>` (post-join).
+            value, reason = _derive_bootstrap_fact(
+                key, root=root, seat=seat, seat_row=seat_row, commit=commit,
+                generation=generation,
+                meter_first_input_bytes=meter_first_input_bytes)
+            if value is not None:
+                tele[key] = f"{value} (resolved after join)"
+                if commit:
+                    measured_at[key] = commit
+            elif join_poll_secs is None:
                 tele[key] = "pending: resolved after join"
             else:
-                tele[key] = (f"unresolved: join found nothing within "
-                             f"{join_poll_secs}s")
+                tele[key] = f"unresolved: {reason}"
             continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit,
@@ -9196,6 +10710,68 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
+def _derive_pred_pids(root: Path, seat: str,
+                      record: dict | None) -> str:
+    """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
+    space-joined pid list this rotation REAPED, else the predecessor row's own
+    `pid`, else ''. ONE reader, shared by every after_join performer
+    (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-performer-derives-
+    pred-pids...): the watch/service, the rotate-self own tail and the
+    dry-run plan. Before this helper each caller passed NO pred_pids, so the
+    placeholder resolved '' and the reap-proof entry was refused with the
+    named `no predecessor chain` on EVERY real rotation instead of running
+    against the reaped chain.
+
+    Order:
+      1. the record's `s12_self_reap.chain` — the pids THIS rotation just
+         reaped (the live reap-proof source; the same chain heal's
+         `_rotation_identity` reads as the retired predecessor's identity).
+         Written AFTER the own tail performs (step 7 vs the tail's 6.4), so
+         the service/watch path is where it fires; earlier a chain element is
+         an int or a `{pid}` dict, both accepted.
+      2. the predecessor ROW's own `pid` (best-effort `_find_seat`; at
+         rotate-self tail time the s12 section is not yet written, so the row
+         is what gives the tail a non-empty value).
+      3. '' — which the startup placeholder mech refuses BY NAME
+         (`no predecessor chain`), never running `grep -E ''` over the whole
+         process table.
+    """
+    if record is not None:
+        reap = record.get("s12_self_reap")
+        if isinstance(reap, dict):
+            pids = []
+            for c in reap.get("chain") or []:
+                pid = c.get("pid") if isinstance(c, dict) else c
+                if pid is not None and str(pid).lstrip("-").isdigit():
+                    pids.append(str(pid))
+            if pids:
+                return " ".join(pids)
+    try:
+        row = _find_seat(root, seat)
+    except Exception:  # noqa: BLE001  best-effort source
+        row = None
+    if row is not None:
+        pid = row.get("pid")
+        if pid is not None and str(pid).lstrip("-").isdigit():
+            return str(pid)
+    return ""
+
+
+def _load_record_best_effort(record_path) -> dict | None:
+    """Read a rotation record file as a dict, or None when absent/unreadable.
+    Best-effort — never raises; callers deriving pred_pids for the dry-run
+    plan or the own tail pass an existing record path when they have one."""
+    if not record_path:
+        return None
+    try:
+        p = Path(record_path)
+        if not p.exists():
+            return None
+        return json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, json.JSONDecodeError, TypeError):  # noqa: BLE001
+        return None
+
+
 def _first_turn_values(root: Path, *, seat: str, gen: int | str,
                        succ_name: str, succ_ref: str = "",
                        succ_transcript: str = "",
@@ -9307,6 +10883,22 @@ DEFAULT_AFTER_JOIN_POLL_S = 1.0
 # restart does not re-visit it. Config key `startup.after_join_max_age_s`
 # (per-template) overrides; default 300 s.
 DEFAULT_AFTER_JOIN_MAX_AGE_S = 300
+# (goal:g15.25 SL7.8x) the JOIN-RESOLVED upper bound: a rotation record whose
+# successor join was ATTEMPTED but has not landed within this many seconds of
+# the record's `recorded_at` is performed anyway, with every join-dependent
+# entry refused by name — never left unperformed forever, never at delay 0 on
+# an empty transcript. Config key `startup.after_join_max_wait_s` per template;
+# default 600 s (10 min — the 37-min-late symptom is caught, a slow join is
+# still given ten minutes before the named-refusal close-out).
+DEFAULT_AFTER_JOIN_MAX_WAIT_S = 600
+# (goal:g15.25 SL7.88 fix A) the CLAIM STALENESS bound: an `after_join` claim
+# block (claimed_at, NO results — a performer claimed the record then DIED
+# before writing results) older than this is STALE and may be RE-CLAIMED by
+# the next performer, so a dead claim can never strand a rotation's join/
+# dm forever. A LIVE (fresh) claim still defers. A completed block (results
+# present) is never stale. Config key `startup.after_join_claim_stale_s` per
+# template; default 300 s.
+DEFAULT_AFTER_JOIN_CLAIM_STALE_S = 300
 
 
 # (goal:g15.25 SL7.72) the heal.py watch loop's liveness heartbeat. The watch
@@ -9433,13 +11025,136 @@ def _after_join_tail_should_perform(root: Path, *, forced: bool = False,
     return not _watch_alive(root)
 
 
-def _after_join_already_performed(record_path) -> bool:
+def _parse_utc_inst(s):
+    """Parse a UTC instant in the forms this module both writes and reads:
+    `2026-09-12T09:00:00.123456+00:00` (datetime.now(timezone.utc).isoformat(),
+    what `_claim_after_join` writes) and the `...Z` forms the fixtures and
+    `recorded_at` read (`2026-09-12T09:00:00.123456Z`, `2026-09-12T09:00:00Z`).
+    Returns a tz-aware datetime, or None when unparseable. SL7.88 uses it for
+    the claimed_at staleness / claim-age anchor; the record_age gate keeps its
+    own strptime pair above."""
+    if not s:
+        return None
+    if isinstance(s, str) and s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
+def _claimed_at_age_s(aj, now=None):
+    """SL7.88 (fix B): elapsed seconds since an after_join claim's
+    `claimed_at`, or None when there is no parseable claim instant. Used to
+    anchor the join gate's upper bound when the record's OWN `recorded_at` is
+    missing/unparseable — a claim is the fresh instant a performer touched
+    the record, so its age is the honest "how long we have really waited"."""
+    if not isinstance(aj, dict):
+        return None
+    ts = _parse_utc_inst(aj.get("claimed_at"))
+    if ts is None:
+        return None
+    now = now if now is not None else time.time()
+    return max(0.0, now - ts.timestamp())
+
+
+def _claim_is_stale(aj0, *, stale_s, now=None) -> bool:
+    """SL7.88 (fix A): True when an `after_join` claim block — claimed_at, no
+    `results` — is STALE: older than `after_join_claim_stale_s`, so the next
+    performer may RE-CLAIM and re-perform instead of deferring on a dead
+    claim forever. A block carrying `results` (a completed run) is NEVER
+    stale; a claim with no parseable claimed_at is treated as LIVE (defer)."""
+    if not isinstance(aj0, dict):
+        return False
+    if "results" in aj0:
+        return False
+    age = _claimed_at_age_s(aj0, now=now)
+    return age is not None and age > stale_s
+
+
+def _claim_after_join(root, seat, record_path, performer,
+                      *, stale_s=None, now=None) -> dict | None:
+    """(goal:g15.25 SL7.8x) CLAIM-BEFORE-RUN: the performer writes
+    `after_join: {claimed_at, performer, claim_key:<record recorded_at>}` to
+    the rotation record through the SL7.78 `_commit_after_join_record` pathspec
+    commit BEFORE any lockless `after_join` key (the results) exists, so a
+    second performer (the heal watch vs the rotate-self own-tail) reads the
+    CLAIM and defers by name instead of running a duplicate set of commands
+    and sending a second dm.
+
+    Returns None when the claim was written (or could not be written — a
+    failed claim must not strand a rotation's after_join, so the run proceeds)
+    and a deferred marker dict when the record ALREADY carries an after_join
+    (a live claim by another performer, or a completed run). A completed run
+    also reads `deferred` (already_performed: true) so a re-perform never
+    re-sends. Best-effort; never raises."""
+    if record_path is None:
+        return None
+    rp = Path(record_path)
+    try:
+        if not rp.exists():
+            return None
+        rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
+        if not isinstance(rec, dict):
+            return None
+    except Exception:                                   # noqa: BLE001
+        return None
+    aj = rec.get("after_join")
+    if aj:
+        if isinstance(aj, dict) and aj.get("claimed_at"):
+            if "results" in aj:
+                return {"deferred": (f"already performed by "
+                                      f"{aj.get('performer')}"),
+                        "already_performed": True, "record_path": str(rp)}
+            # SL7.88 (fix A): a claim whose performer died before writing
+            # results is STALE once older than `after_join_claim_stale_s` —
+            # log a NAMED line and FALL THROUGH to re-claim (write our own
+            # claim and perform) instead of deferring on the dead claim
+            # forever. A LIVE (fresh) claim still defers by name.
+            if _claim_is_stale(aj, stale_s=stale_s, now=now):
+                print(
+                    f"after_join claim stale for {seat}: claimed by "
+                    f"{aj.get('performer')} at {aj.get('claimed_at')}",
+                    file=sys.stderr)
+            else:
+                return {"deferred": (f"claimed by {aj.get('performer')} at "
+                                      f"{aj.get('claimed_at')}"),
+                        "record_path": str(rp)}
+        else:
+            # a legacy after_join without a claim (pre-SL7.8x record): treated
+            # as performed so no second run ever re-sends.
+            return {"deferred": "already performed",
+                    "already_performed": True,
+                    "record_path": str(rp)}
+    rec["after_join"] = {
+        "claimed_at": datetime.now(timezone.utc).isoformat(),
+        "performer": performer,
+        "claim_key": str(rec.get("recorded_at") or ""),
+    }
+    try:
+        rp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        _commit_after_join_record(root, record=rec, record_path=str(rp),
+                                  seat=seat, performer=performer,
+                                  commit_label="claim")
+    except Exception:                                   # noqa: BLE001
+        pass  # a failed claim must not block the run; it still performed
+    return None
+
+
+def _after_join_already_performed(record_path, *, stale_s=None, now=None) -> bool:
     """(goal:g15.25 SL7.72) the double-perform guard used by the rotate-self
     tail at step (6.4): re-read the rotation record at `record_path`; True when
     it ALREADY carries an `after_join` key — the heal watch won the race, so
     the tail must NOT perform a second time. Best-effort: absent / unreadable /
     malformed / unittestable reads False (the tail performs). Empty after_join
-    (`{}`) is still a performed key and guards too — `bool` on the value."""
+    (`{}`) is still a performed key and guards too — `bool` on the value.
+    (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    With `stale_s` (the claim staleness bound) the guard is STALE-AWARE: a
+    claim by another performer that DIED before writing results is not
+    "performed" — it returns False so the tail falls through and RE-CLAIMS it
+    through the SAME `_claim_is_stale` helper the watch path uses, its own
+    identity on the re-claim. A LIVE (fresh) claim still defers the tail; a
+    completed run (results) always guards."""
     if record_path is None:
         return False
     try:
@@ -9447,7 +11162,16 @@ def _after_join_already_performed(record_path) -> bool:
         if not rp.exists():
             return False
         rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
-        return isinstance(rec, dict) and bool(rec.get("after_join"))
+        if not isinstance(rec, dict) or not rec.get("after_join"):
+            return False
+        aj = rec["after_join"]
+        # a claim (no results), stale_s given, older than the bound -> the
+        # tail may RE-CLAIM (re-claimable), never a permanent perform-skip.
+        if (isinstance(aj, dict) and aj.get("claimed_at")
+                and "results" not in aj and stale_s is not None
+                and _claim_is_stale(aj, stale_s=stale_s, now=now)):
+            return False
+        return True
     except Exception:                                       # noqa: BLE001
         return False
 
@@ -9580,11 +11304,21 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
     is unresolved (no gen_after on the record and no generation on the row)
     there is no runnable ack, so the copy-paste line is omitted entirely.
 
-    (goal:g15.25 SL7.74) the dm has a TOTAL byte budget (`dm_byte_cap`,
-    default `startup.dm_byte_cap` / DEFAULT_AFTER_JOIN_DM_BYTE_CAP): a post
-    over budget carries the head, ONE status line per entry, and
-    `full output: <record path>` — the record keeps the full per-command-
-    capped results, so cutting the dm never loses the bytes (F10 class)."""
+    POLICY (goal:g15.25, sensei-director XVII 19:0xZ under delegated
+    authority): the heal WATCH signs the after_join dm with the SEAT's private
+    key, because the watch is that seat's own rotation tail performed LATE, on
+    the same box and in the same trust domain; the record's performer field
+    and the dm body already name the performer. NO separate heal key is
+    minted.
+
+    (goal:g15.25 SL7.74 + FIX-ONLY) the dm has a TOTAL byte budget
+    (`dm_byte_cap`, default `startup.dm_byte_cap` /
+    DEFAULT_AFTER_JOIN_DM_BYTE_CAP), counted in UTF-8 BYTES (a body of 1000
+    two-byte characters is over a 1500-byte cap, even though it is 1000 code
+    points). A post over budget keeps the HEAD + ONE status line per entry +
+    the CAPTIVE ack line (pinned), trimming the MIDDLE with ONE marker line
+    `… [trimmed N bytes] …`; the record keeps the full per-command-capped
+    results, so cutting the dm never loses the bytes (F10 class)."""
     cap = (dm_byte_cap if dm_byte_cap is not None
            else DEFAULT_AFTER_JOIN_DM_BYTE_CAP)
     lines = [
@@ -9620,8 +11354,10 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                      f"ack --post {seat} --gen {gen} "
                      f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -")
     full = "\n".join(lines)
-    if cap and len(full) > cap and record_path:
-        trimmed = [
+    if cap and len(full.encode("utf-8")) > cap and record_path:
+        # over budget: keep HEAD + one status line per entry + the CAPTIVE ack
+        # line (pinned); trim the MIDDLE with ONE marker line. Byte-counted.
+        kept = [
             "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join "
             "for you; you ran nothing)",
             "This is your SECOND input, delivered `after_join_delay_s` after "
@@ -9635,10 +11371,21 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                 status = f"TIMEOUT (>{r['timed_out_after_s']}s)"
             else:
                 status = f"exit {r.get('rc')}"
-            trimmed.append(f"[{r.get('label', '')}] {status}")
-        trimmed.append("")
-        trimmed.append(f"full output: {record_path}")
-        return "\n".join(trimmed)
+            kept.append(f"[{r.get('label', '')}] {status}")
+        kept.append("")
+        kept.append(f"full output: {record_path}")
+        ack = []
+        if gen not in (None, ""):
+            ack = [
+                "Where a decision remains (only a `diff` against the "
+                "handoff), emit EXACTLY this copy-paste line:",
+                "python3 extensions/agi/bin/rotate.py "
+                f"ack --post {seat} --gen {gen} "
+                f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -",
+            ]
+        n = len(full.encode("utf-8")) - len(
+            "\n".join(kept + ack).encode("utf-8"))
+        return "\n".join(kept + [f"… [trimmed {n} bytes] …"] + ack)
     return full
 
 
@@ -9799,29 +11546,30 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
         #     is never left behind. A fill that finds no usage leaves the
         #     key in join_pending (written `unresolved: ...` by the caller's
         #     join_poll_secs — never the PRE-join pending lie).
-        pin = _seat_pin_path(root, seat)
-        if pin.is_file():
-            lp = _read_pin_target(pin)
-            if lp is not None:
-                try:
-                    _use = parse_usage_from_cc_transcript(lp)
-                except (OSError, ValueError):
-                    _use = None
-                if _use is not None:
-                    _ctxt = load_ladder_field(
-                        root, "director_context_tokens",
-                        DEFAULT_DIRECTOR_CONTEXT_TOKENS)
-                    _thr = load_ladder_field(
-                        root, "director_rotate_at",
-                        DEFAULT_DIRECTOR_ROTATE_AT)
-                    _frac = calculate_fraction(_use, _ctxt)
-                    _used = (_use.get("input_tokens", 0)
-                             + _use.get("cache_read_input_tokens", 0)
-                             + _use.get("cache_creation_input_tokens", 0))
-                    overrides["meter"] = (
-                        f"{_frac:.4f} ({_used}/{_ctxt} tokens) "
-                        f"source={usage_source_name('pin_file')} "
-                        f"threshold={_thr}")
+        # (SL7.100) the pin is read through `_read_seat_pin`, so the fill also
+        #     refuses a cross-generation pin: the key stays in join_pending and
+        #     `_write_bootstrap` stamps `unresolved: <reason>` via derivation.
+        lp, _preason = _read_seat_pin(root, seat, b.get("generation"))
+        if lp is not None:
+            try:
+                _use = parse_usage_from_cc_transcript(lp)
+            except (OSError, ValueError):
+                _use = None
+            if _use is not None:
+                _ctxt = load_ladder_field(
+                    root, "director_context_tokens",
+                    DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+                _thr = load_ladder_field(
+                    root, "director_rotate_at",
+                    DEFAULT_DIRECTOR_ROTATE_AT)
+                _frac = calculate_fraction(_use, _ctxt)
+                _used = (_use.get("input_tokens", 0)
+                         + _use.get("cache_read_input_tokens", 0)
+                         + _use.get("cache_creation_input_tokens", 0))
+                overrides["meter"] = (
+                    f"{_frac:.4f} ({_used}/{_ctxt} tokens) "
+                    f"source={usage_source_name('pin_file')} "
+                    f"threshold={_thr}")
         # carry EVERY other fact through byte-identically (value AND
         # measured_at): only the join facts may change on this rewrite. A
         # join-only fact ANOTHER path already resolved (rotate-self's
@@ -9881,7 +11629,9 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                    late: bool = False,
                    performed_after_s: float | None = None,
                    gen_unresolved_reason: str | None = None,
-                   dm_byte_cap: int | None = None) -> dict:
+                   dm_byte_cap: int | None = None,
+                   join_unresolved_wait_s: int | None = None,
+                   type_input=None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -9906,6 +11656,44 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     record/send failure — each surfaces as a result / return field."""
     startup = startup or {}
     entries = startup.get("after_join") or []
+    # (goal:g15.25 SL7.8x) CLAIM-BEFORE-RUN: the performer claims the record
+    # (after_join: {claimed_at, performer, claim_key}, committed by pathspec)
+    # BEFORE any command runs; a record ALREADY claimed or performed defers
+    # here so a second performer runs nothing and sends nothing (dm exactly
+    # once). Guarded by the SAME `not dry_run and record_path` that the final
+    # write uses — a dry_run never claims, a fixture/tmp record is a no-op
+    # commit. A deferred call returns early (no sleep, no confirm, no dm).
+    if not dry_run and record_path is not None:
+        _claimed = _claim_after_join(
+            root, seat, record_path, performer,
+            stale_s=int(startup.get("after_join_claim_stale_s")
+                        or DEFAULT_AFTER_JOIN_CLAIM_STALE_S))
+        if _claimed is not None:
+            return {"delay_s": 0, "results": [], "dm": "",
+                    "appended": False, "sent": False,
+                    "record_commit": None, "model_confirm": None,
+                    "record_path": record_path,
+                    "deferred": (_claimed.get("deferred")
+                                  if isinstance(_claimed, dict)
+                                  else str(_claimed))}
+    # (goal:g15.25 SL7.8x) JOIN-GATE named refusal: when the record's successor
+    # join never resolved and the upper bound elapsed, every join-dependent
+    # entry (one whose command references the rejoin-only facts {pid},
+    # {session_id} or {succ_transcript}) is REFUSED BY NAME with the wait — the
+    # record still gets closed on a successor that never joins, but never with
+    # a join-null perform pretending the successor was there.
+    _join_wait = join_unresolved_wait_s
+    def _refuse_join(e):
+        if _join_wait is None:
+            return None
+        entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+        cmd = entry.get("cmd", "")
+        if any(tok in cmd for tok in ("{pid}", "{session_id}",
+                                      "{succ_transcript}")):
+            return {"label": entry.get("label", ""),
+                    "cmd": cmd,
+                    "refused": f"join unresolved after {_join_wait}s"}
+        return None
     # (goal:g15.25 SL7.76 (c)) what the run PROMISES — the template's OWN
     # `after_join_delay_s`, written into the record. `delay_override` (0 from
     # the service, whose wait was already consumed before this call) is a
@@ -9918,11 +11706,14 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     timeout = timeout_s or (startup.get("first_turn_timeout_s")
                             or DEFAULT_AFTER_JOIN_TIMEOUT_S)
     cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
-    # (goal:g15.25) the declared sender for the service dm — ONE resolution,
-    # shared by the tail and the watch, recorded on the record AND used by the
-    # default send_dm so the delivered block can never read `from: unknown`.
+    # (goal:g15.25) the sender the record names is the one the SEND RETURNED,
+    # never a key-file existence check (a key file present but malformed still
+    # sends UNSIGNED -- send.py's send now returns the (sender, signed) pair
+    # it actually used). The DECLARED sender is the fallback when no send
+    # fires (dry-run) or an injected send_dm returns nothing to read.
     sender = _after_join_sender(root, seat)
-    dm_signed = (_sessions_dir(root) / "seats" / f"{sender}.key").is_file()
+    dm_sender = sender
+    dm_signed = False
     if not dry_run and delay_s > 0:
         if sleep_impl is None:
             time.sleep(delay_s)
@@ -9968,7 +11759,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     if dry_run:
         for e in entries:
             entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
-            pre = _refuse_gen(entry)
+            pre = _refuse_gen(entry) or _refuse_join(entry)
             if pre is not None:
                 results.append(pre)
                 continue
@@ -9984,7 +11775,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     else:
         for e in entries:
             entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
-            pre = _refuse_gen(entry)
+            pre = _refuse_gen(entry) or _refuse_join(entry)
             results.append(pre if pre is not None
                            else _run_after_join_command(e, values, timeout, cap))
     dm = _compose_after_join_dm(
@@ -9992,7 +11783,89 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         dm_byte_cap=(dm_byte_cap if dm_byte_cap is not None
                      else startup.get("dm_byte_cap")),
         record_path=record_path)
+    # (hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-
+    # pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox) the
+    # DELIVERY decision: when a type_input seam is provided (production
+    # default is send.type_input — the wake typing seam) the composed SECOND
+    # input is TYPED into the successor's pane as the input ITSELF, so the
+    # successor pays ZERO reads (no nudge pointer to read). The dm copy is
+    # STILL the durable, signed record written below; send.send's pane NUDGE is
+    # SUPPRESSED for this one message (`nudge_suppressed` closure state, read
+    # by the DEFAULT send_dm — never by a caller-injected seam) because the
+    # pane already saw the body once. When typing refuses (no resolvable
+    # window / tmux absent / a failed send / a send module with no
+    # type_input, as a test stub may be), everything above the record runs
+    # EXACTLY as today and the delivery mode names the refusal. A dry_run
+    # types and sends NOTHING.
+    nudge_suppressed = False
+    if dry_run:
+        delivery = {"mode": "none", "nudge": "n/a"}
+    else:
+        typed_ok = False
+        typing_refused = None
+        _type_fn = type_input
+        if _type_fn is None:
+            # production default: send.type_input (the wake typing seam) — a
+            # caller that passes no seam still TYPES the second input into
+            # the pane; a test seam overrides it. getattr-guarded so a stub
+            # `send` module (or tmux absence) reads as "typing unavailable"
+            # and falls to the dm+nudge path, never raising. The seam
+            # CONTRACT is (seat, text), but send.type_input has the FULL
+            # (root, to, text, tmux_session=None) signature — so the
+            # default is resolved as a CLOSURE over `root`, never passed
+            # (seat, text) directly as (root, to) and losing `text`. The
+            # closure is what makes a REAL successor pane receive the typing
+            # through the REAL default, not through a test stub.
+            import send as _send
+            _ti = getattr(_send, "type_input", None)
+            if _ti is not None:
+                _type_fn = lambda _seat, _text: _ti(root, _seat, _text)
+        if _type_fn is not None:
+            try:
+                typed_ok = bool(_type_fn(seat, dm))
+            except Exception:  # noqa: BLE001 — a throwing typing seam must not sink the after_join
+                typed_ok = False
+                typing_refused = "the typing seam raised"
+        if typed_ok:
+            nudge_suppressed = True
+            delivery = {"mode": "typed", "nudge": "suppressed"}
+        else:
+            delivery = {"mode": "dm+nudge", "nudge": "kept",
+                        "typing_refused": (typing_refused or
+                            "could not resolve the successor pane (tmux "
+                            "absent or no addressable window) or the typed "
+                            "chunk failed")}
+    # (goal:g15.25 FIX-ONLY) SEND FIRST so the record can name what the send
+    # actually RETURNED. The default closure returns send.py's (sender, signed)
+    # pair; an injected send_dm may return the same pair (or nothing -- the
+    # record then keeps the DECLARED sender, unsigned). The record NEVER reads
+    # a key file for dm_signed (hypothesis:l4-the-after-join-record-names-the-
+    # sender-and-signature-the-send-returned...).
+    sent = False
+    if not dry_run and send_dm is None:
+        def send_dm(to: str, text: str):
+            import send as _send
+            # a NAMED sender (never None): send.py falls to `unknown` only when
+            # no --from flag AND no seat env is exported — the after_join dm
+            # now always passes a declared sender, so `from: unknown` cannot
+            # appear on a service dm. `heal` is an established system sender
+            # (heal.py sends its own alarms as "heal"); the seat signs when the
+            # helper resolved a keyed custodian.
+            # `nudge=False` (ONLY when the body was already typed into the
+            # pane as the input itself, SL7.93) suppresses the redundant pane
+            # pointer for this one message; the returned (sender, signed)
+            # pair is what the record names (SL7.99).
+            if nudge_suppressed:
+                return _send.send(root, to, text, sender, nudge=False)
+            return _send.send(root, to, text, sender)
+    if not dry_run and send_dm is not None:
+        _dm_ret = send_dm(seat, dm)
+        sent = True
+        if (isinstance(_dm_ret, tuple) and len(_dm_ret) == 2
+                and isinstance(_dm_ret[0], str)):
+            dm_sender, dm_signed = _dm_ret
     appended = False
+    record_commit = None
     if not dry_run and record_path is not None:
         rp = Path(record_path)
         if rp.exists():
@@ -10024,15 +11897,32 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                                 values.get("succ_transcript") or "")
                             if isinstance(model_confirm, dict) else None),
                         join_poll_secs=int(inter))
+                # (goal:g15.25 SL7.8x) the results land under the SAME claim
+                # identity the performer wrote before running (a second
+                # performer's `_claim_after_join` reads the completed block and
+                # defers — dm/nudge exactly once per record).
+                _prev_aj = rec.get("after_join")
                 rec["after_join"] = {
                     "performer": performer,
                     "performed_by": performer,
+                    "committed_by": performer,
                     "delay_s": promised_delay_s,
                     "results": results,
                     "dm": dm,
-                    "dm_sender": sender,
+                    "delivery": delivery,
+                    "dm_sender": dm_sender,
                     "dm_signed": dm_signed,
+                    # (goal:g15.25 SL7.105) PERSIST the engine HEAD that
+                    # performed this after_join INTO the record (the same
+                    # pathspec-committed write that lands results), so the
+                    # on-disk block — not just the returned dict — names the
+                    # bytes that ran it.
+                    "code_head": _code_head(root),
                 }
+                if isinstance(_prev_aj, dict):
+                    for _k in ("claimed_at", "claim_key"):
+                        if _prev_aj.get(_k) is not None:
+                            rec["after_join"][_k] = _prev_aj[_k]
                 # (SL7.76 (b)(c)) age honesty: `performed_after_s` is the
                 # MEASURED now-recorded_at delay (separate from the promised
                 # `delay_s`); a run past its age budget carries `late: true`
@@ -10044,27 +11934,26 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     rec["after_join"]["late"] = True
                     if performed_after_s is not None:
                         rec["after_join"]["age_s"] = float(performed_after_s)
+                record_commit = None
                 rp.write_text(json.dumps(rec, indent=2) + "\n",
                               encoding="utf-8")
+                # (hypothesis:l4-the-after-join-record-rewrite-is-committed-
+                # by-pathspec-and-a-worktree-seats-record-names-its-committer
+                # claim (a)) the SERVICE's rewrite commits ITS OWN change as
+                # ONE pathspec commit from MAIN's toplevel, so MAIN never reads
+                # M on a record rotate-self already committed. Best-effort:
+                # the caller's byte above (committer named) is what the helper
+                # stages and commits; a failed commit is NAMED back on the
+                # record by the helper, never an exception into the watch.
+                record_commit = _commit_after_join_record(
+                    root, record=rec, record_path=str(rp),
+                    seat=seat, performer=performer)
                 appended = True
             except (OSError, ValueError, json.JSONDecodeError) as exc:
                 appended = False
-    if not dry_run and send_dm is None:
-        def send_dm(to: str, text: str) -> None:
-            import send as _send
-            # a NAMED sender (never None): send.py falls to `unknown` only when
-            # no --from flag AND no seat env is exported — the after_join dm
-            # now always passes a declared sender, so `from: unknown` cannot
-            # appear on a service dm. `heal` is an established system sender
-            # (heal.py sends its own alarms as "heal"); the seat signs when the
-            # helper resolved a keyed custodian.
-            _send.send(root, to, text, sender)
-    sent = False
-    if not dry_run and send_dm is not None:
-        send_dm(seat, dm)
-        sent = True
     return {"delay_s": delay_s, "results": results, "dm": dm,
-            "appended": appended, "sent": sent,
+            "appended": appended, "sent": sent, "delivery": delivery,
+            "record_commit": record_commit,
             "model_confirm": model_confirm,
             "record_path": str(record_path) if record_path else None}
 
@@ -10096,9 +11985,22 @@ def _latest_rotate_record(root: Path, seat: str):
     return None
 
 
+def _code_head(root: Path) -> str:
+    """The engine tree's HEAD sha7, stamped `code_head` on every after_join
+    result so a record always names which bytes performed it
+    (hypothesis:l4-the-heal-watch-re-execs-itself...). Best-effort: empty on
+    any git refusal, never raising."""
+    lines = _git_maybe(root, "rev-parse", "HEAD")
+    return (lines[0][:7] if lines and lines[0] else "")
+
+
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
-                            performer: str = "watch") -> dict | None:
+                            type_input=None,
+                            performer: str = "watch",
+                            _rec_pair=None, _row=None, _joined=None,
+                            _values=None, _force_due=False,
+                            _delay_override=None) -> dict | None:
     """The heal.py watch loop's per-seat action: discover the seat's latest
     rotation record that has NOT yet had its captive after_join run and whose
     `after_join_delay_s` has elapsed, and run it. Returns None when nothing is
@@ -10106,12 +12008,24 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     Reads the startup template through `_resolve_template` for the seat's role
     so the SAME `after_join` list + delay the rotate-self caller would run is
     the one the service runs."""
-    pair = _latest_rotate_record(root, seat)
-    if pair is None:
-        return None
-    rec, path = pair
-    if rec.get("after_join"):
-        return None  # already performed
+    # (SL7.98) the rotate-self OWN TAIL routes through THIS SAME function so
+    # its record inherits the shared liveness gate + age budget (one gate, no
+    # second afterlife). The tail injects its OWN record pair (it already
+    # holds the rotation record it just wrote), row, join result and values
+    # via the private `_*` kwargs; the watch path passes none and discovers
+    # everything exactly as before.
+    if _rec_pair is not None:
+        rec, path = _rec_pair
+    else:
+        pair = _latest_rotate_record(root, seat)
+        if pair is None:
+            return None
+        rec, path = pair
+    # (SL7.76) resolve the role template UP FRONT so the age budget, the
+    # promised delay, the JOIN upper bound and the CLAIM staleness bound all
+    # come from the SAME `startup` block the after_join runs — the live-claim
+    # pre-check below needs `after_join_claim_stale_s` to decide whether a
+    # claim is re-claimable.
     # (goal:g15.25 SL7.54 fix 5) the pushed-seats fetch memo is per-PROCESS
     # (`_PUSHED_SEATS_FETCHED_ONCE`, keyed on (root, ref)); a long-lived
     # reaper process pins the FIRST-fetched prime row across Prime rotations.
@@ -10119,15 +12033,29 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # prime row change read the new row (the first/first_turn values build
     # below refetches). `_prime_rows_fetch_clear` had NO production caller.
     _prime_rows_fetch_clear()
-    # (SL7.76) resolve the role template UP FRONT so the age budget and the
-    # promised delay come from the SAME `startup` block the after_join runs.
-    row = _find_seat(root, seat)
+    row = _row if _row is not None else _find_seat(root, seat)
     role = (row or {}).get("role") or "parent"
     # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
     # (None = role default) so `_resolve_template(root, role, None)` matches
     # its 4-arg signature — the old 2-arg call raised TypeError every run.
     tmpl, _name, _src = _resolve_template(root, role, None)
     startup = (tmpl.get("startup") if tmpl else None) or {}
+    if rec.get("after_join"):
+        aj0 = rec["after_join"]
+        if isinstance(aj0, dict) and aj0.get("claimed_at") and "results" not in aj0:
+            # SL7.88 (fix A): a LIVE claim by another performer defers by name
+            # (run nothing, send nothing); a STALE claim (older than the
+            # bound, no results) is RE-CLAIMABLE and falls through to the
+            # perform path which logs the named stale line and re-claims.
+            if not _claim_is_stale(
+                    aj0,
+                    stale_s=int(startup.get("after_join_claim_stale_s")
+                                or DEFAULT_AFTER_JOIN_CLAIM_STALE_S)):
+                return {"deferred": (f"claimed by {aj0.get('performer')} at "
+                                      f"{aj0.get('claimed_at')}"),
+                        "record_path": str(path)}
+        else:
+            return None  # already performed
     delay_s = int(startup.get("after_join_delay_s")
                   or DEFAULT_AFTER_JOIN_DELAY_S)
     gen = rec.get("gen_after")
@@ -10155,7 +12083,10 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         if ts is not None:
             now = now if now is not None else time.time()
             age_s = max(0.0, now - ts.timestamp())
-            if (ts.timestamp() + delay_s) > now:
+            # (SL7.98) a caller that just WROTE the record (the own tail) is
+            # force-due: the tail owns the delay itself inside run_after_join,
+            # so the age-based due gate must not skip it.
+            if (ts.timestamp() + delay_s) > now and not _force_due:
                 return None  # not yet due
     # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
     # autopsy-share-one-pid) key the after_join successor on the RECORD's
@@ -10167,10 +12098,16 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # @id does NO join and behaves as before.
     join = _record_join(rec)
     window_id = str(join.get("window_id") or "")
-    joined = {}
-    if window_id:
+    # (SL7.98) the own tail injects its OWN join result (_joined) so the
+    # dead-seat skip cannot fire for the seat rotating ITSELF; the watch path
+    # re-joins through the same `_join_successor` as before.
+    if _joined is not None:
+        joined = _joined
+    elif window_id:
         joined = _join_successor(root=root, seat=seat, window_id=window_id,
                                  poll_secs=REGISTRY_JOIN_POLL_S)
+    else:
+        joined = {}
     if not _seat_has_live_session(row, joined):
         # (SL7.76 (a)(b)) a seat with NO live session is SKIPPED — no record
         # perform, no dm, exactly one log line (heal logs `after_join skipped
@@ -10189,52 +12126,116 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                         "skipped": "no live session",
                         "age_s": age_s,
                     }
+                    # (hypothesis:l4-a-no-window-started-record-waits-the-
+                    # promised-delay...) the dead-seat marker is a REWRITE of a
+                    # committed record — write AND pathspec-commit it through
+                    # the SAME `_commit_after_join_record` the after_join
+                    # rewrite uses, with a `dead-seat` label, so MAIN never
+                    # reads `M` on the marker (a marker left local/uncommitted
+                    # made the next restart RE-see the record and re-skip). On
+                    # a gitless fixture the helper SKIPPEDs harmlessly.
                     rp.write_text(json.dumps(mark, indent=2) + "\n",
                                   encoding="utf-8")
+                    _commit_after_join_record(
+                        root, record=mark, record_path=str(path),
+                        seat=seat, performer=performer,
+                        commit_label="dead-seat")
             except (OSError, ValueError, json.JSONDecodeError):
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
-                "late": bool(late), "record_path": str(path)}
+                "late": bool(late), "record_path": str(path),
+                "code_head": _code_head(root)}
 
-    if joined.get("found"):
-        pid = joined.get("pid")
-        session_id = joined.get("session_id")
-        transcript = joined.get("transcript")
-    else:
-        pid = None
-        session_id = None
-        transcript = join.get("transcript") or ""
-    # succ_ref ONLY from the seat row's OWN session_ref cell (a harness ref,
-    # never a session id); an empty ref stays empty so the composed after_join
-    # dm prints `<your ListAgents ref>`, exactly as _compose_after_join_dm
-    # intends today.
-    sref = (row or {}).get("session_ref") or ""
-    # (goal:g15.25 SL7.74) the ack gen resolves from the RECORD's gen_after
-    # (write-owner of the real generation), else the seat row's OWN
-    # `generation` cell (the successor's row is written at spawn, F8) —
-    # NEVER 0. Neither present => the ack ENTRY is refused by name and no
-    # --gen 0 / blank --gen reaches the entry or the captive line.
+    # (goal:g15.25 SL7.8x) JOIN GATE with an upper bound. A record whose
+    # successor join was ATTEMPTED (a window @id captured) but has not landed
+    # is NOT performed at delay 0 on an empty transcript: within
+    # `after_join_max_wait_s` of the record the performer WAITS (returns
+    # waiting, no perform, no dm); past the bound it performs once, every
+    # join-dependent entry refused by name (`join unresolved after <n>s`).
+    # (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    # ONE code path for BOTH record shapes: a started record with NO window
+    # @id never joined, so its `joined` is empty ({}) and `joined.found` is
+    # falsy exactly like a windowed record whose rejoin failed — it takes the
+    # SAME wait-then-refuse gate instead of performing at delay 0 (as if
+    # fresh) on an empty transcript. The dead-seat skip above stays
+    # authoritative — a dead row skips, never waits and never performs.
+    _join_wait_s = None
+    if not joined.get("found"):
+        max_wait = int(startup.get("after_join_max_wait_s")
+                       or DEFAULT_AFTER_JOIN_MAX_WAIT_S)
+        # SL7.88 (fix B): the wait is anchored on a MEASURED age so a record
+        # whose age cannot be measured is never left waiting forever (the
+        # reverse of the hypothesis' "never left unperformed forever"). An
+        # unparseable/missing `recorded_at` gives age_s None: anchor on the
+        # CLAIM's age (the fresh instant a performer touched the record) when
+        # a claim exists; with NO claim and NO measurable record age there is
+        # no anchor, so DO NOT wait — perform now with the named refusals. A
+        # record of measurable age (or claim age) waits only within the bound.
+        if age_s is None:
+            claim_age = _claimed_at_age_s(rec.get("after_join"), now=now)
+            wait_s = claim_age if claim_age is not None else max_wait
+        else:
+            wait_s = age_s
+        if wait_s < max_wait:
+            return {"waiting": f"join unresolved {int(wait_s)}s",
+                    "record_path": str(path)}
+        _join_wait_s = int(wait_s)
+
     gen_str, gen_reason = _resolve_join_gen(rec, row, seat)
-    values = _first_turn_values(
-        root, seat=seat, gen=gen_str,
-        succ_name=seat, succ_ref=str(sref),
-        succ_transcript=str(transcript))
-    # pid/from the live join (never the stale record), informational on the
-    # values map for any startup template that reads them — unknown placeholders
-    # stay refused by _resolve_startup_placeholders regardless.
-    values["pid"] = pid
-    values["session_id"] = session_id
+    if _values is not None:
+        # (SL7.98) the own tail supplies its OWN values (the ACKED harness
+        # ref F15 resolves, tmux_session, and the derived pred_pids), so the
+        # shared gate runs against the SAME values the tail would have built.
+        values = _values
+    else:
+        if joined.get("found"):
+            pid = joined.get("pid")
+            session_id = joined.get("session_id")
+            transcript = joined.get("transcript")
+        else:
+            pid = None
+            session_id = None
+            transcript = join.get("transcript") or ""
+        # succ_ref ONLY from the seat row's OWN session_ref cell (a harness
+        # ref, never a session id); an empty ref stays empty so the composed
+        # after_join dm prints `<your ListAgents ref>`, exactly as
+        # _compose_after_join_dm intends today.
+        sref = (row or {}).get("session_ref") or ""
+        # (SL7.98) the performer derives pred_pids from the RECORD's
+        # s12_self_reap chain (else the predecessor row, else '') so the
+        # reap-proof entry runs against the REAL reaped pids and is never
+        # refused for an empty placeholder on a live rotation.
+        values = _first_turn_values(
+            root, seat=seat, gen=gen_str,
+            succ_name=seat, succ_ref=str(sref),
+            succ_transcript=str(transcript),
+            pred_pids=_derive_pred_pids(root, seat, rec))
+        # pid/from the live join (never the stale record), informational on
+        # the values map for any startup template that reads them — unknown
+        # placeholders stay refused by _resolve_startup_placeholders
+        # regardless.
+        values["pid"] = pid
+        values["session_id"] = session_id
     # (SL7.76 (b)) a LIVE seat long past its age budget is performed EXACTLY
     # ONCE, the record's after_join carrying `late: true` and the measured
     # `age_s` (no as-if-fresh pretense) alongside the promised `delay_s` and
     # the measured `performed_after_s`.
     late = age_s is not None and age_s > max_age
-    return run_after_join(
+    result = run_after_join(
         root, seat=seat, gen=gen_str,
         startup=startup, values=values, record_path=str(path),
-        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
+        sleep_impl=sleep_impl, send_dm=send_dm,
+        # (SL7.98) the service (watch) already consumed the delay via the age-
+        # based due gate, so it passes 0; the own tail passes its OWN
+        # delay_override so run_after_join sleeps the promised delay exactly
+        # as pre-SL7.98 (a fixture passes 0 again).
+        delay_override=(_delay_override if _delay_override is not None else 0),
         performer=performer, late=late, performed_after_s=age_s,
-        gen_unresolved_reason=gen_reason)
+        gen_unresolved_reason=gen_reason,
+        join_unresolved_wait_s=_join_wait_s,
+        type_input=type_input)
+    result["code_head"] = _code_head(root)
+    return result
 
 
 def _resolve_join_gen(rec: dict, row: dict | None, seat: str):
@@ -10422,16 +12423,6 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return int(lines[0].strip())
     except (ValueError, IndexError):
         return None
-
-
-#: porcelain paths the checklist never counts as the seat's dirt: written by
-#: the comms layer and the rotation sequence as a side effect of every dm and
-#: every rotation, committed by grid_sync (not by any seat).
-PREPARE_CHURN_PREFIXES = (".agi/comms/",)
-#: the rotation records + sequence.json: written by rotate-self / the loop
-#: at every rotation, UNTRACKED until a sync commits them (Sensei 18:29Z:
-#: five uncommitted records blocked a rotate-self with 0 modified files).
-PREPARE_CHURN_DIRS = (".agi/sessions/rotations/",)
 
 
 def _porcelain_path(porcelain_line: str) -> str:
@@ -10934,16 +12925,37 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # state. Same row-first generation, same unmeasured note as check 5.
     ack = _ack_path(root, seat)
     stale_ack = False
+    ack_line = f"stale ack ({seat}.ack.json) {gen_note}"
     if ack.exists():
         try:
             data = json.loads(ack.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             data = {}
         ga = data.get("gen_after")
-        if ga is not None and gen_measured and ga != cur_gen:
+        answer = data.get("answer")
+        # g15.25 FIX-ONLY (SL7.87): a CONTINUE ack whose gen_after EQUALS the
+        # row's gen is CONSUMED — check 6 passes and says it, so the next
+        # rotate-out does not misreport a settled rotation as an open handoff.
+        # (Nothing here DELETES the seat's own ack; this generation has Moved
+        # On and the prompt is the truth.)
+        if (answer == "continue" and gen_measured
+                and ga is not None and ga == cur_gen):
+            ack_line = f"ack consumed (gen {cur_gen} continue)"
+        elif ga is not None and gen_measured and ga != cur_gen:
             stale_ack = True
-    checks.append((stale_ack, f"stale ack ({seat}.ack.json) {gen_note}",
-                   f"rm {ack}"))
+            # Name the EVIDENCE so the Prime does not pay tool calls to learn
+            # what the refusal already knew: the file's gen_after, its answer,
+            # its source (or unknown), and its written-time (file mtime UTC).
+            try:
+                _written = datetime.fromtimestamp(
+                    ack.stat().st_mtime, tz=timezone.utc).strftime("%H:%MZ")
+            except OSError:
+                _written = "?"
+            ack_line = (f"stale ack ({seat}.ack.json): gen_after={ga} "
+                        f"answer={answer or '?'} "
+                        f"source={data.get('source') or 'unknown'} "
+                        f"written={_written}, row gen={cur_gen}")
+    checks.append((stale_ack, ack_line, f"rm {ack}"))
 
     return checks
 
@@ -12099,23 +14111,16 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         sub_header = (lines[sub] if sub < len(lines)
                       else "### 🔴 Where it stops")
         end = len(lines)
-        in_fence = False
-        opener = 0
-        for j in range(sub + 1, len(lines)):
-            r = _fence_run(lines[j])
+        # find the next REAL markdown heading outside a code fence — the
+        # same shared `_fence_items` walker `_split_card_sections` and
+        # `_subheader_in_body` use, so the stops scan agrees with them on
+        # where a fence is (goal:g15.25 SL7.80). A `#` line inside a fence
+        # (the stops block quotes headings verbatim) stays content.
+        for j, (ln, in_fence) in enumerate(
+                _fence_items(lines[sub + 1:]), start=sub + 1):
             if in_fence:
-                # a fence closes only on a fence of the SAME character
-                # whose run is at least the opener's (CommonMark); an inner
-                # shorter fence and any `#` line inside it stay content
-                # (goal:g15.25 residue (iii)).
-                if r >= opener:
-                    in_fence = False
                 continue
-            if r >= 3:                      # an opener: record its run
-                in_fence = True
-                opener = r
-                continue
-            if lines[j].strip().startswith("#"):
+            if ln.strip().startswith("#"):
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
@@ -12280,6 +14285,60 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     return None
 
 
+def _rotate_human_gate(root: Path, seat: str,
+                       actor: str | None = None) -> tuple[str | None, dict | None]:
+    """RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
+    ANOTHER post is a GATED Prime-scope act. While a council+Keep veto (or an
+    owner-written human_gate) shows the ``prime`` scope FROZEN, a rotation whose
+    target ``seat`` is NOT the caller's own post is refused BY NAME and never
+    auto-released -- no timeout, no restart, no rotation frees it, only an owner
+    answer in the veto room (the claim's freeze-never-frees).
+
+    A rotation of the caller's OWN post (the ``self_row`` carve-out) is NEVER
+    gated. The actor defaults to ``$AGI_SEAT`` -- the identity a seat carries
+    when it was spawned; an IDENTIFIED caller who tries to rotate another seat
+    is gated when frozen, and an unidentified caller is treated as gated too
+    (an unknown actor cannot claim the self carve-out).
+
+    Returns ``(held_line, freeze_dict)`` -- ``held_line``/``freeze_dict`` both
+    None means the rotation may proceed; otherwise the line names the HELD act
+    and the dict carries the freeze (scope + why) for the ROTATION RECORD, so a
+    reader of the record sees the freeze without asking viewport --live.
+    """
+    if actor is None:
+        actor = os.environ.get("AGI_SEAT") or ""
+    if actor and seat and actor == seat:
+        return None, None  # the caller's OWN post is never gated (self_row)
+    try:
+        from seatsig import veto as _veto
+
+        _groot = _shared_graph_root(root)
+        _frozen, _why = _veto.is_frozen(_groot, "prime")
+        if _frozen:
+            held = (f"rotation: HELD -- rotating another post {seat!r} is a "
+                    f"gated Prime-scope act; {_why}")
+            _gate = None
+            try:
+                _gate = _veto.active_gate(_veto.read(_groot), "prime")
+            except Exception:  # noqa: BLE001  (the frozen verdict still stands)
+                _gate = None
+            freeze = {
+                "scope": "prime",
+                "hold_reason": _why,
+                "auto_released": False,
+                "note": "an unanswered human gate freezes, never frees; "
+                        "only an owner answer in the veto room clears it",
+            }
+            if _gate:
+                for _k in ("veto_ref", "since", "reason"):
+                    if _gate.get(_k):
+                        freeze[_k] = _gate[_k]
+            return held, freeze
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+        pass
+    return None, None
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -12295,6 +14354,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if root is None:
         print("ERR: rotate-self needs an agi project root.", file=sys.stderr)
         return 1
+    # the ONE in-progress rotation record, opened once and reused through
+    # every step (see the started-record block below); phase 3 opens it early
+    # when a --closeout run reaches the captive steps, so the closeout log
+    # lives in the SAME file the spawn/outcome write later.
+    rec_path = None
+    steps_reached: list[str] = []
     # goal:g15.14 STEP 2 -- `rotate-self --prepare` is the same captive
     # checklist the `prepare` subcommand prints, on the SAME 
     # `_prepare_checks`: one implementation, two spellings. Its branch guard
@@ -12324,6 +14389,24 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # calls if prompted instead. A --dry-run inspection still NEVER merges.
         args.perform = not bool(getattr(args, "dry_run", False))
         return cmd_prepare(args, root)
+    # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): rotating
+    # ANOTHER post is a GATED Prime-scope act. While the prime scope is FROZEN,
+    # refuse BY NAME before ANY side effect (stops write, started record,
+    # handoff, rename, spawn); a rotation of the caller's OWN post (self_row)
+    # is never gated. The freeze is made VISIBLE IN THE ROTATION RECORD, so a
+    # reader sees scope+why without asking viewport --live (claim (3)).
+    _hgate, _hfreeze = _rotate_human_gate(root, args.name)
+    if _hgate:
+        _write_rotation_record(root, {
+            "rotation": "rotate-self",
+            "seat": args.name,
+            "recorded_at": datetime.utcnow().isoformat() + "Z",
+            "result": "held",
+            "refusal_reason": _hgate,
+            "human_gate": _hfreeze,
+        })
+        print(_hgate, file=sys.stderr)
+        return 3
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
@@ -12376,6 +14459,57 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     _stops_src = getattr(args, "stops", None)
     _stops_file = getattr(args, "stops_file", None)
     _stops_has = _stops_src is not None or _stops_file is not None
+    # ++ phase-1 closeout CARD FORM (hypothesis:l4-rotate-self-closeout-is-
+    # one-call-...): `--closeout` prints the ONE JSON slot form and returns
+    # (the LLM fills it once); `--closeout --form FILE|-` applies the filled
+    # array BY CODE to the seat's own card (trim guard + owner-quote check),
+    # then derives the where-it-stops and feeds it into the SAME --stops
+    # write/commit/push path below — phases 1+2 as ONE call, no second
+    # stops implementation. `--closeout` and `--stops` are mutually
+    # exclusive: a form refusing on apply is exit 2 (nothing rotated).
+    if getattr(args, "closeout", False):
+        if _stops_src is not None or _stops_file is not None:
+            print("ERR: rotate-self: --closeout and --stops/--stops-file are "
+                  "mutually exclusive; the form carries the stops slot.",
+                  file=sys.stderr)
+            return 2
+        _co_role = (row.get("role") if row else None) \
+            or getattr(args, "role", None) or "parent"
+        _co_tmpl = None
+        _co_tmpl, _nm, _src = _resolve_template(
+            cfg_root, _co_role, getattr(args, "template", None),
+            where="closeout")
+        if getattr(args, "form", None) is None:
+            print(_closeout_form_json(cfg_root, seat, _co_role, _co_tmpl))
+            print("rotate-self --closeout: fill the form (value `keep` "
+                  "carries a slot) and re-run with --form FILE|-",
+                  file=sys.stderr)
+            return 0
+        if args.form == "-":
+            _co_text = sys.stdin.read()
+        else:
+            try:
+                _co_text = Path(args.form).read_text(encoding="utf-8")
+            except OSError as e:
+                print(f"ERR: rotate-self --closeout: cannot read --form "
+                      f"{args.form!r}: {e}", file=sys.stderr)
+                return 2
+        _co_filled, _co_perr = _closeout_parse_form(_co_text)
+        if _co_perr:
+            print(f"ERR: rotate-self --closeout: {_co_perr}", file=sys.stderr)
+            return 2
+        _co_full, _co_s3, _co_aerr = _closeout_apply(
+            cfg_root, seat, _co_role, _co_filled, _co_tmpl)
+        if _co_aerr:
+            print(f"ERR: rotate-self --closeout: {_co_aerr} "
+                  f"(nothing rotated)", file=sys.stderr)
+            return 2
+        # derive the where-it-stops from the applied form unless the LLM
+        # kept the card's existing §3 (then nothing new to write).
+        if _co_s3:
+            _stops_src = _co_s3
+            _stops_file = None
+            _stops_has = True
     if _stops_has:
         _stops_text: str | None = None
         _stops_err = None
@@ -12437,6 +14571,59 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             _finish_pending_swap_on_push(root, seat, "push: OK")
             print("rotation line: delivered as the [rotation-alert] dm "
                   "to <prime> (no send.py call needed)")
+
+    # ++ phase-3 closeout CAPTIVE STEPS (hypothesis:l4-rotate-self-closeout-
+    # is-one-call-...-prepare-role-captive-steps-and-the-spawn-every-step-
+    # logged-by-name): after phase 1 (the ONE filled form applied to the card)
+    # and phase 2 (the derived where-it-stops written / committed / pushed by
+    # the EXISTING stops path), run the role's captive closeout steps IN
+    # ORDER and log each by NAME in the in-progress rotation record's
+    # `closeout: [...]`. A refused step EXITS NON-ZERO NAMING the STEP, and
+    # NOTHING after it runs (no spawn, no later step): the driver's stopped
+    # entries are honoured at the CLI boundary. The REAL seam table
+    # (`_make_closeout_seams`) fires a merge / suite / push in a live run;
+    # `--closeout-seams-json` is the NAMED seam that drives the same CLI path
+    # in a test WITHOUT spawning, merging or touching the network.
+    if getattr(args, "closeout", False):
+        _co_seams_json = getattr(args, "closeout_seams_json", None)
+        if args.dry_run and not _co_seams_json:
+            # dry-run never executes side-effecting captive steps (a merge /
+            # suite / push is a touch dry-run must not perform): report the
+            # planned order, run nothing.
+            _co_plan = _closeout_step_list(
+                _co_role, _co_tmpl, worktree=row.get("worktree"))
+            _co_entries = [{"step": s, "result": "dry",
+                            "detail": "dry-run, not run"} for s in _co_plan]
+            _co_err = None
+        else:
+            if not args.dry_run and rec_path is None:
+                rec_path = _rotate_self_started_path(root, seat)
+                _write_rotate_self_started(
+                    rec_path, seat=seat, steps=steps_reached,
+                    template_source=geom_src)
+            _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
+            # (SL7.103) pass the in-progress rotation record to the captive
+            # driver so the Prime's numbers line / note is composed FROM it
+            # (never an empty {}/'' -- the pre-fix call passed no record=).
+            _co_record = {}
+            try:
+                _rp = Path(rec_path)
+                if _rp.exists():
+                    _co_record = json.loads(
+                        _rp.read_text(encoding="utf-8")) or {}
+            except Exception:  # noqa: BLE001
+                _co_record = {}
+            _co_entries, _co_err = _closeout_run_steps(
+                cfg_root, seat, _co_role, template=_co_tmpl, seams=_co_seams,
+                record=_co_record, worktree=row.get("worktree"))
+            if not args.dry_run and rec_path is not None:
+                _record_closeout(rec_path, _co_entries)
+        print("(2.6) closeout captive steps: " + ", ".join(
+            f"{e['step']}={e['result']}" for e in _co_entries))
+        if _co_err:
+            print(f"rotate-self --closeout refused: {_co_err} — "
+                  f"nothing rotated, no spawn.", file=sys.stderr)
+            return 3
 
     # goal:g15.14 STEP 2 — the captive rotate-out checklist runs BEFORE any
     # side effect (the started record, the handoff, the own-window rename,
@@ -12648,10 +14835,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # at any point leaves a record whose `steps_reached` says where it died —
     # instead of nothing at all (hypothesis:l4-rotation-record-survives-
     # interruption). The final outcome rewrites the SAME path, so a completed
-    # rotation still leaves exactly one record in today's shape.
-    rec_path = None
-    steps_reached: list[str] = []
-    if not args.dry_run:
+    # rotation still leaves exactly one record in today's shape. When phase-3
+    # --closeout already opened it (rec_path set), REUSE that one file — never
+    # a second record.
+    if not args.dry_run and rec_path is None:
         rec_path = _rotate_self_started_path(root, seat)
         _write_rotate_self_started(
             rec_path, seat=seat, steps=steps_reached,
@@ -12816,7 +15003,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     rotation, and a dry-run touches nothing (no real spawn to sweep
     #     around).
     if not args.dry_run:
-        _sweep_dead_hook_latches(root, seat)
+        # (SL7.83) the sweep reaches the PRODUCTION launch path's log: each
+        #     line that would otherwise be discarded with the spawn's stderr
+        #     is appended to the seat's wrapper log, and the rotation record
+        #     carries `swept_latches` (empty list when none — never absent)
+        #     so the successor's STARTUP rotation-record entry says what was
+        #     swept (hypothesis:l4-the-per-file-latch-sweep-stderr-line-
+        #     reaches-the-production-launch-path-never-discarded).
+        swept_latches = _sweep_dead_hook_latches(
+            root, seat,
+            log_path=_seat_hands(root) / f"{seat}.wrapper.log")
+        _record_swept_latches(rec_path, swept_latches)
 
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
@@ -12996,8 +15193,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # after spawn. The captive copy-paste line is printed as the decision
         # the successor would receive.
         if startup:
+            # (SL7.98) the dry-run derives pred_pids the SAME way the live
+            # performers do (the record at rec_path when one exists — in a dry
+            # run of a NEW rotation none does — else the predecessor row), so
+            # a reap-proof entry is planned against the derived pids, or the
+            # NAMED refusal when '' — never `dry: True` over an unresolved
+            # placeholder.
+            aj_values = dict(startup_values)
+            aj_values["pred_pids"] = _derive_pred_pids(
+                root, seat, _load_record_best_effort(rec_path))
             plan = run_after_join(root, seat=seat, gen=gen,
-                                  startup=startup, values=startup_values,
+                                  startup=startup, values=aj_values,
                                   dry_run=True,
                                   record_path=str(rec_path) if rec_path else None)
             print(f"(9) after_join dry-run: {len(plan['results'])} command(s) "
@@ -13008,7 +15214,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     else "dry-run"
                 print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
             print("    captive dm decision line (the successor's SECOND input):")
-            print(f"    python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+            print(f"    python3 extensions/agi/bin/rotate.py ack --post {seat} "
                   f"--gen {gen} --ref <your ListAgents ref> diff --text -")
         return 0
 
@@ -13113,6 +15319,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 # cell stays EMPTY — never the uuid.
                 session_ref="",
                 pid=succ_pid, session_id=succ_session_id,
+                # goal:g15.25 FIX-ONLY: session_name = the harness registry
+                # NAME the join resolved (join['name'], e.g. agi-d7); '' when
+                # no join ran (the session_ref seam) or the join missed. The
+                # session uuid NEVER lands here (session_id holds that).
+                session_name=((joined or {}).get("name", "")
+                              if (joined and joined.get("found")) else ""),
                 generation=gen,
                 # goal:g15.25 line (2): the successor pubkey + key_history
                 # cells ride this ONE spawn-row write (and the ONE
@@ -13179,11 +15391,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         #     handoff inspection exactly as today
         #     (hypothesis:l4-the-predecessor-answers-continue-by-default-and-
         #     ask-diff-hands-the-successor-exactly-one-call).
+        # SL7.102 (hypothesis:l4-the-spawn-time-ack-carries-no-session-ref-...):
+        #     session_ref '' — the predecessor CANNOT know the successor's
+        #     harness ref at spawn (it only arrives when the successor names
+        #     it); the pre-F15 `succ_session_id` wrote a JOIN uuid no peer
+        #     can message into session_ref.
         _ack_answer = "diff-requested" if ask_diff else "continue"
         try:
             handover["ack_written"] = str(_write_ack(
                 root=root, seat=seat, gen_after=gen,
-                session_ref=succ_session_id, answer=_ack_answer))
+                session_ref="", answer=_ack_answer))
             if ask_diff:
                 print("(s6.3) --ask-diff: the successor's ONE wake call is:\n"
                       f"    python3 extensions/agi/bin/rotate.py ack --seat "
@@ -13473,30 +15690,85 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # (window_path seam) has no live successor to wait on, so its delay
         # is 0 — the default 20 s sleep ran for real in five selfreap
         # fixtures (115 s of suite time) before this line.
+        #
+        # F15 (goal:g15.25 FIX-ONLY, hypothesis:l4-the-own-tail-after-join-
+        # passes-the-successors-acked-harness-ref-or-nothing...): the OWN-TAIL
+        # path must mirror the watch path — `{succ_ref}` is the successor's
+        # ACKED harness ref when it acked with one, else EMPTY (so the DM
+        # prints `<your ListAgents ref>` and the whois --key fallback fires).
+        # The `or succ_session_id` fallback (deleted: one line) back-filled a
+        # JOIN's session UUID into session_ref, which send.whois reads as the
+        # row's identity — a UUID there is NO-MATCH for every peer (F15, see
+        # the two poisoned records the hypothesis cites).
         aj_values = _first_turn_values(
             root, seat=seat, gen=gen, succ_name=spawn_name,
-            succ_ref=((ack or {}).get("session_ref") or succ_session_id
-                      or ""),
+            succ_ref=(ack or {}).get("session_ref") or "",
             succ_transcript=succ_transcript or "",
-            tmux_session=tmux_session)
+            tmux_session=tmux_session,
+            pred_pids=_derive_pred_pids(
+                root, seat, _load_record_best_effort(record_path)))
         # double-perform guard: the watch may have won the race since step (4)
         # (or this box runs the service inline). Re-read the record; if it
-        # ALREADY carries `after_join`, the tail does NOT perform a second time.
-        _performed_elsewhere = _after_join_already_performed(record_path)
+        # ALREADY carries a completed `after_join` (or a LIVE claim), the tail
+        # does NOT perform a second time. A STALE claim (no results, older
+        # than the bound) is NOT "performed" — the tail falls through and
+        # re-claims it through the SAME stale-aware helper the watch uses, its
+        # OWN identity on the re-claim.
+        _tail_stale = (
+            int((startup or {}).get("after_join_claim_stale_s")
+                or DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+            if isinstance(startup, dict) else DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+        _performed_elsewhere = _after_join_already_performed(
+            record_path, stale_s=_tail_stale)
         if _performed_elsewhere:
             print("(6.4) after_join already performed (by the watch); "
                   "rotate-self tail skips")
         else:
-            aj = run_after_join(
-                root, seat=seat, gen=gen, startup=startup or {},
-                values=aj_values, record_path=str(record_path),
-                delay_override=(0 if getattr(args, "window_path", None)
-                                is not None else None),
-                performer="tail")
-            print(f"(6.4) after_join performed by rotate-self (own tail): "
-                  f"{len(aj['results'])} command(s) after a {aj['delay_s']}s "
-                  f"delay; record appended: {aj['appended']}, dm sent: "
-                  f"{aj['sent']}")
+            # (SL7.98, hypothesis:l4-every-after-join-performer-...) the OWN
+            # TAIL performs through the SAME run_after_join_for_seat the watch
+            # uses — ONE liveness gate, ONE age budget — so this record
+            # carries `late`/`age_s`/`performed_after_s` + `performer: tail`
+            # exactly like a watch-performed one (no second gate). It injects
+            # its OWN row + join result (`joined` from step (4)) so the
+            # dead-seat skip cannot fire for the seat rotating ITSELF, its
+            # OWN values (the ACKED harness ref F15 resolves, tmux_session,
+            # derived pred_pids) and force-due (the promised delay is
+            # run_after_join's own sleep via `_delay_override`, never the
+            # age-based due gate on a just-written record).
+            _tail_rec = (_load_record_best_effort(record_path)
+                         if record_path else {})
+            if _tail_rec:
+                # the tail's OWN join result: a successful rotation is live by
+                # construction (the successor joined and acked, step (4)), so
+                # the liveness gate must never dead-skip the seat rotating
+                # ITSELF. Prefer the real resolved join; the seam/identity
+                # path (no registry join) degrades to a success marker naming
+                # the captured successor session id.
+                _tail_join = (
+                    joined if (joined or {}).get("found")
+                    else {"found": True,
+                          "session_id": (succ_session_id
+                                          or (row or {}).get("session_id")
+                                          or "")})
+                aj = run_after_join_for_seat(
+                    root, seat=seat, performer="tail",
+                    _rec_pair=(dict(_tail_rec), str(record_path)),
+                    _row=row, _joined=_tail_join, _values=aj_values,
+                    _force_due=True,
+                    _delay_override=(0 if getattr(args, "window_path", None)
+                                     is not None else None))
+            else:
+                aj = None
+            if aj and aj.get("results"):
+                print(f"(6.4) after_join performed by rotate-self (own tail): "
+                      f"{len(aj['results'])} command(s) after a "
+                      f"{aj['delay_s']}s delay; record appended: "
+                      f"{aj['appended']}, dm sent: {aj['sent']}")
+            elif aj:
+                _tail_note = (aj.get("deferred") or aj.get("skipped")
+                              or aj.get("waiting") or aj)
+                print("(6.4) after_join NOT performed by rotate-self own "
+                      f"tail: {_tail_note}.")
 
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
@@ -13689,7 +15961,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # record rewrite (ack-rename / after_join / s12 append), so the committed
     # bytes are the FINAL record. Best-effort + fail-soft: on any failure it
     # prints ONE stderr line and the rotation still succeeds (falsifier 4).
-    # Worktree seats are unchanged (_button_down owns their grid commit).
+    # A worktree seat's record ALSO lands in MAIN and is committed here
+    # too (claim (b), committer named) — the record commit is the
+    # writer's own, from MAIN's toplevel, for both MAIN and worktree.
     handover["rotation_record_commit"] = _commit_rotation_record(
         root, seat=seat, gen_before=gen_before, gen_after=gen,
         record_path=record_path)
@@ -14374,6 +16648,29 @@ def main(argv: list[str] | None = None) -> int:
                           "write")
     p_h.set_defaults(func=cmd_handoff)
 
+    # closeout: the phase-1 CARD FORM (hypothesis:l4-rotate-self-closeout-is-
+    # one-call-...). Prints the ONE JSON array of slots from the role
+    # template's `closeout.slots` (coded DEFAULT when absent); `--form` reads
+    # the filled array back and applies it BY CODE to the seat's own card.
+    p_co = sub.add_parser(
+        "closeout", help="phase-1 closeout card form: print the ONE JSON "
+                          "array of slots (/ template closeout.slots, coded "
+                          "DEFAULT when absent), or apply a filled form BY "
+                          "CODE to the seat's own card")
+    p_co.add_argument("--seat", "--post", action=geometry_config.SeatAction,
+                      default=None, help="seat name")
+    p_co.add_argument("--form", default=None,
+                      help="filled JSON array to apply; `-` reads stdin; "
+                           "absent prints the form and exits")
+    p_co.add_argument("--role", default=None,
+                      help="role the template is resolved for (default: "
+                           "parent)")
+    p_co.add_argument("--template", default=None,
+                      help="template name (default: the role's default)")
+    p_co.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_co.set_defaults(func=cmd_closeout)
+
     # prepare: the captive rotate-out checklist (goal:g15.14 STEP 2).
     p_pr = sub.add_parser(
         "prepare", help="print the captive rotate-out checklist: one line per "
@@ -14516,6 +16813,27 @@ def main(argv: list[str] | None = None) -> int:
     p_rs.add_argument("--stops-file", default=None,
                       help="read the stops text from FILE instead of "
                            "--stops (mutually the rotate-out stops write)")
+    # ++ phase-1 closeout CARD FORM (hypothesis:l4-rotate-self-closeout-is-
+    # one-call-...). `--closeout` alone prints the ONE JSON slot form and
+    # exits (the LLM fills it once); `--closeout --form FILE|-` applies the
+    # filled array BY CODE to the seat's own card, then derives the where-it-
+    # stops and reuses the EXISTING --stops write/commit/push path (phase 2,
+    # no second implementation). `--closeout` and `--stops` are mutually
+    # exclusive: the form is the single source for the card's stops slot.
+    p_rs.add_argument("--closeout", action="store_true",
+                      help="phase-1 closeout: print the ONE JSON CARD FORM "
+                           "(no --form) or apply a filled form (--form) and "
+                           "drive the existing stops write in the same call")
+    p_rs.add_argument("--form", default=None,
+                      help="with --closeout: the filled JSON array; `-` reads "
+                           "stdin; absent prints the form and exits")
+    p_rs.add_argument("--closeout-seams-json", default=None,
+                      help="phase-3 TEST SEAM for `rotate-self --closeout`: a "
+                           "JSON object {refuse: [step...]} -> a fake captive-"
+                           "step seam table that returns ok for every step "
+                           "except the named refusers (which stop the call); "
+                           "ABSENT runs the REAL captive steps (merge, suite, "
+                           "push) -- a live close-out is the real run.")
     p_rs.set_defaults(func=cmd_rotate_self)
 
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
@@ -14631,7 +16949,7 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision", "autopsy"):
+                    "first-decision", "autopsy", "closeout"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)

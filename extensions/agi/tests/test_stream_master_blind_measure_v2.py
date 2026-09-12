@@ -40,6 +40,11 @@ outage mode is documented, not discovered later — and it is NOT changed to fai
 this round.
 
 FIXTURES ONLY; the real model call as judge is in scope, no chat platform involved.
+
+The ModelJudge real run is OPT-IN and OFF by default: it happens only under
+`AGI_REAL_JUDGE=1` (AND a present OPENROUTER_API_KEY). A key alone spends
+nothing. One-shot invocation of the real measurement:
+    AGI_REAL_JUDGE=1 python3 -m pytest tests/test_stream_master_blind_measure_v2.py
 """
 import codecs
 import base64
@@ -49,6 +54,7 @@ import pytest
 
 from src.stream_master.semantic_screen import HeuristicJudge, ModelJudge, screened_relay
 from src.stream_master.relay import screening_reason
+from tests.conftest import real_judge_skip
 
 # --- a fresh, attacker-intent corpus. Classes the reused BLIND_CORPUS did NOT name. ---
 # Each row: (intent, body). phrasing chosen fresh, before reading the model prompt.
@@ -218,11 +224,10 @@ def test_model_judge_fails_OPEN_when_no_api_key():
 # --- the REAL measured generalization probe: ModelJudge (actual model call) --------
 
 _real_judge = ModelJudge()
+_REAL_JUDGE_SKIP = real_judge_skip()
 
 
-@pytest.mark.skipif(not _real_judge.available(),
-                    reason="ModelJudge has no OPENROUTER_API_KEY; real generalization "
-                           "measurement unavailable in this environment")
+@pytest.mark.skipif(_REAL_JUDGE_SKIP is not None, reason=_REAL_JUDGE_SKIP or "")
 class TestRealGeneralizationProbe:
     """The measured generalization result: real model judge on the FRESH corpus v2."""
 
