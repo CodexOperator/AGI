@@ -17,7 +17,7 @@ scaffold_hash: 87c61ee21ec6546e
 season: 2
 spawn_check: unverified
 spawn_check_reason: "parent id(s) resolve to no node: ['hypothesis:l4-sign-exactly-the-bytes-the-reader-parses-one-canonical-form-so-a-legitimate-body-never-reads-forged']"
-title: LF/---/CRLF bodies now read VERIFIED; single-LF-strip + header-conditional splitter fixes the FORGED defects
+title: LF-terminated, three-dash-line and CRLF bodies now read VERIFIED; single-LF-strip + header-conditional splitter fixes the FORGED defects
 town: core
 verdict: proved
 ---
