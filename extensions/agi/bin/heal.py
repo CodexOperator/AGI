@@ -1498,7 +1498,9 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
 
 
 def _live_seat_row(gdir: Path, seat: str, _rotate) -> dict | None:
-    """Read the seat row LIVE-FIRST from `<gdir>/nodes/.geometry/seats.md`
+    """Read the seat row LIVE-FIRST from `<gdir>/nodes/.geometry/posts.md`
+    (`seats.md` is the one-season alias; post-first via
+    `geometry_config.resolve`, hypothesis:l4-a-seat-is-a-post-everywhere)
     (a worktree seat's row reaches MAIN only at its merge-up, so a worktree
     seat must be read from its own copy first). The IDENTITY cells
     (`generation`/`window`/`pid`/`session_ref`/`session_id`) are taken from

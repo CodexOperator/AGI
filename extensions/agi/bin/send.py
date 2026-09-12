@@ -2825,11 +2825,18 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #   * UNVERIFIED + non-zero exit, when it is not — never a silent success.
 # --------------------------------------------------------------------------- #
 
-#: The pushed branch that carries config:seats (`.agi/nodes/.geometry/seats.md`).
-#: The prime updates and pushes it at every rotation, so its HEAD is the
-#: authoritative answer after a fetch — never the local working tree.
+#: The pushed branch carries the geometry config (hypothesis:l4-a-seat-is-a-
+#: post-everywhere): posts.md post-first, the deprecated seats.md as the
+#: one-season alias. The prime updates and pushes it at every rotation, so its
+#: HEAD is the authoritative answer after a fetch — never the local working
+#: tree.
 _PUSHED_SEATS = "origin/season/s2"
-_SEATS_REPO_PATH = ".agi/nodes/.geometry/seats.md"
+#: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
+#: first that `git show` succeeds on wins.
+_SEATS_REPO_PATHS = (
+    ".agi/nodes/.geometry/posts.md",
+    ".agi/nodes/.geometry/seats.md",
+)
 
 
 def _load_seats_rows(content: str) -> list:
@@ -2877,7 +2884,11 @@ def _pushed_seats(root: Path, ref: str, do_fetch: bool):
     sha = _run_git(root, ["rev-parse", ref])
     if sha is None or sha.returncode != 0:
         return None
-    shown = _run_git(root, ["show", f"{ref}:{_SEATS_REPO_PATH}"])
+    shown = None
+    for path in _SEATS_REPO_PATHS:
+        shown = _run_git(root, ["show", f"{ref}:{path}"])
+        if shown is not None and shown.returncode == 0:
+            break
     if shown is None or shown.returncode != 0:
         return None
     return _load_seats_rows(shown.stdout), sha.stdout.strip()
