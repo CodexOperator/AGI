@@ -7562,6 +7562,12 @@ BOOTSTRAP_FIXED_FACTS = [
     "commit", "seat_row", "successor_live_model", "successor_address",
     "model_refusal_fallback", "mail", "account", "floor", "registry",
     "crons",
+    # (SL7.71 harvest) every join-only fact is ALSO a fixed fact, so a
+    # pre-spawn record carries `meter` as `pending: resolved after join`
+    # whatever the template's telemetry list declares (the owner's 15:4xZ
+    # order: every wake carries its meter); test_session_start_seat_pre_spawn
+    # iterates BOOTSTRAP_JOIN_ONLY_FACTS against a three-key fixture.
+    "meter",
 ]
 
 # The bootstrap facts that depend on the @id JOIN (hypothesis:l4-startup-...).
