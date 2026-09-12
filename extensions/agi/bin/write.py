@@ -1149,6 +1149,37 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
     return _rings.fresh_fields(fields, ts=ts, nonce=nonce)
 
 
+def _self_row_edit(schema, root, actor, where, set_fm, unset_fm,
+                   allow_self_row: bool) -> bool:
+    """True when this config-row write IS the writer's own self_row edit.
+
+    Mirrors the L4.110 prime ruling B carve-out (the SAME ``self_row``
+    declaration and refusal evaluation the write path later applies): a
+    SEATED writer updating its OWN declared row and only the declared fields
+    -- NEVER a gated act, even while the prime scope is FROZEN (defect 4,
+    hypothesis:l4-...gate-sits-on-the-merge-up-push). Duplicated as a
+    predicate so the human-gate check can exclude it; the actual permission
+    still lives in the self_row carve-out below. Returns False for a `create`
+    (``allow_self_row`` is submit-only), for a node whose schema declares no
+    ``self_row``, for an unresolved/absent actor, and for a write that touches
+    a row/field outside the declaration (the refusal is then gated like any
+    foreign config-row write)."""
+    if not allow_self_row:
+        return False
+    if not (set_fm or unset_fm):
+        return False
+    if not isinstance(schema.frontmatter.get("self_row"), dict):
+        return False
+    if _resolve_seat(root, actor) is None:
+        return False
+    try:
+        refusal = _self_row_refusal(root, schema, actor, set_fm, unset_fm,
+                                    where)
+    except Exception:  # noqa: BLE001 (a broken refusal never silently un-gates)
+        return False
+    return refusal is None
+
+
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         set_fm: dict | None = None,
                         unset_fm: list | None = None,
@@ -1198,7 +1229,18 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     # FROZEN in the vetoes geometry node, the edit WAITS -- refused by name.
     # Checked FIRST so a frozen scope refuses even an otherwise-admitted
     # writer, and it is never auto-released; only an owner answer clears it.
-    if set_fm is not None or unset_fm is not None:
+    #
+    # DEFECT 4 (hypothesis:l4-...gate-sits-on-the-merge-up-push): this gate
+    # previously fired on EVERY submit -- ``set_fm``/``unset_fm`` are non-None
+    # dicts from ``_config_write_fields`` on every config-row submission, so
+    # a writer's OWN self_row write was gated too and ``key:``-only empties
+    # gated even a no-op. It now fires ONLY for a config-row write OUTSIDE
+    # the writer's OWN self_row: BOTH ``set_fm`` and ``unset_fm`` empty => no
+    # gate, and a self_row write (the writer updating its own declared row /
+    # fields) is NEVER gated.
+    if (set_fm or unset_fm) and not _self_row_edit(schema, root, actor, where,
+                                                   set_fm, unset_fm,
+                                                   allow_self_row):
         try:
             from seatsig import veto as _veto
 

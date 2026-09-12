@@ -318,7 +318,14 @@ def evaluate_veto(geom: dict, scope: str, decision: dict, *,
     new["vetoes"] = [dict(v) for v in new.get("vetoes") or []]
     new["active_gates"] = [dict(g) for g in new.get("active_gates") or []]
     ref = f"veto:{len(new['vetoes']) + 1:03d}"
-    expires = fields.get("expires_at") or _now_iso()
+    # defect 5 (hypothesis:l4-...gate-sits-on-the-merge-up-push): the LOGGED
+    # ``expires_at`` is the EFFECTIVE expiry (an explicit ``expires_at`` the
+    # signatures covered, else now + expiry_seconds) -- :func:`_effective_expiry`
+    # is actually CALLED on the filing path, never the bare filing instant, so
+    # an unexpired veto cannot be relabelled inert by a logged-but-deriveble
+    # timestamp and vice versa.
+    _eff = _effective_expiry(fields, geom, now)
+    expires = _eff.isoformat() if _eff is not None else _now_iso()
     new["vetoes"].append({
         "veto_ref": ref, "scope": scope, "filed_at": _now_iso(),
         "expires_at": expires, "answer": "",
@@ -367,15 +374,24 @@ def save(root, geom: dict, path: Path | None = None) -> Path:
     try:
         from graph_core.persistence import frontmatter
 
-        fm = dict(_DEFAULTS) if not cell.is_file() else \
-            frontmatter.load_node_file(cell).frontmatter
+        existing = None
+        if cell.is_file():
+            try:
+                existing = frontmatter.load_node_file(cell)
+            except Exception:  # noqa: BLE001 (an unreadable node is a fresh one)
+                existing = None
+        fm = dict(_DEFAULTS) if existing is None else dict(existing.frontmatter)
         for key in _DEFAULTS:
             fm[key] = geom.get(key, _DEFAULTS[key])
         fm["id"] = "config:vetoes"
         fm["type"] = "config"
         fm["edited_by"] = fm.get("edited_by", "belam")
         fm["parents"] = fm.get("parents") or ["goal:g15"]
-        out = "---\n" + _dump_yaml(fm) + "---\n"
+        # defect 5: the node BODY round-trips through a save -- the written
+        # file carries ``---\n<fm>\n---\n<body>`` exactly as it did before, so
+        # an authored body on the vetoes cell is never dropped.
+        body = existing.body if existing is not None else ""
+        out = "---\n" + _dump_yaml(fm) + "---\n" + body
         cell.write_text(out, encoding="utf-8")
     except Exception:  # noqa: BLE001  (never make the save crash a gate)
         raise
@@ -391,9 +407,15 @@ def _dump_yaml(fm: dict) -> str:
     lines = []
     for key, value in sorted(fm.items()):
         if isinstance(value, (list, dict)):
-            lines.append(f"{key}:")
-            for row in value:
-                lines.append(f"  - {_json.dumps(row, sort_keys=True)}")
+            if isinstance(value, list) and not value:
+                # defect 5: an EMPTY list round-trips as ``[]``, never as YAML
+                # null (``key:`` with no rows re-read as None and silently
+                # erased the ``active_gates``/``vetoes`` defaults).
+                lines.append(f"{key}: []")
+            else:
+                lines.append(f"{key}:")
+                for row in value:
+                    lines.append(f"  - {_json.dumps(row, sort_keys=True)}")
         else:
             lines.append(f"{key}: {value}")
     return "\n".join(lines) + "\n"
