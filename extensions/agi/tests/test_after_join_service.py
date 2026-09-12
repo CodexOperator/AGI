@@ -905,3 +905,148 @@ def test_after_join_dm_record_carries_sender_in_dry_run_too(tmp_path):
     assert json.loads(rec_path.read_text()) == {"result": "success"}, \
         "dry-run never appends sender fields to the record"
     assert out["dm"], "dry-run still plans the captive dm"
+
+# ── hypothesis:l4-an-after-join-entry-whose-placeholder-resolves-empty-is-
+# ── refused-by-name-and-skipped-never-run-on-the-empty-slot ───────────────
+# (g15 build order 2026-09-12) An after_join entry that USES a placeholder
+# whose value resolves EMPTY is refused by name and never executed — no rc, no
+# output. Generic to every after_join entry (the ack's empty `{succ_ref}`
+# refuses the SAME way as the reap-proof's empty `{pred_pids}`), fallback is
+# honored with first_turn's precedence, and a first seeding's NAMED value
+# (`none: first seating`) is a NON-empty string that still runs.
+
+def _assert_named_refusal(r, key, reason):
+    assert "refused" in r and "rc" not in r and "output" not in r, r
+    assert f"placeholder {{{key}}} empty" in r["refused"], r["refused"]
+    assert reason in r["refused"], r["refused"]
+    assert "skipped by name" in r["refused"], r["refused"]
+
+
+def test_empty_pred_pids_refuses_named_never_runs():
+    """The reap-proof repro: empty `{pred_pids}` on a MAIN post with no
+    predecessor chain must refuse BY NAME (no predecessor chain) and never
+    execute — `grep -E ''` must never match the whole process table."""
+    entry = {"label": "reap-proof",
+             "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'"}
+    vals = dict(VALUES)
+    vals["pred_pids"] = ""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refused entry must NEVER run"))
+    try:
+        r = rot._run_after_join_command(entry, vals, 60, 4000)
+    finally:
+        rot.subprocess.run = real_run
+    _assert_named_refusal(r, "pred_pids", "no predecessor chain")
+
+
+def test_non_empty_pred_pids_runs():
+    """A non-empty `{pred_pids}` resolves and the entry RUNS (rc present, no
+    refusal)."""
+    entry = {"label": "reap-proof", "cmd": "echo poll {pred_pids}"}
+    r = rotate._run_after_join_command(entry, VALUES, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "123 456" in r.get("output", ""), r
+
+
+def test_first_seating_named_value_runs_not_refusal():
+    """A first seating's NAMED value `none: first seating` is a NON-empty
+    string — the entry still runs (its grep matches nothing, exit 1), not a
+    refusal."""
+    entry = {"label": "reap-proof", "cmd": "echo {pred_pids}"}
+    vals = dict(VALUES)
+    vals["pred_pids"] = "none: first seating"
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "first seating" in r.get("output", ""), r
+
+
+def test_empty_succ_ref_ack_refuses_named():
+    """Generic to every after_join entry: the ack entry's empty `{succ_ref}`
+    refuses by name (row session_ref empty), never run."""
+    entry = {"label": "ack",
+             "cmd": "python3 extensions/agi/bin/rotate.py "
+                    "ack --seat {seat} --gen {gen} --ref {succ_ref} "
+                    "diff --text -"}
+    vals = dict(VALUES)
+    vals["succ_ref"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    _assert_named_refusal(r, "succ_ref", "row session_ref empty")
+
+
+def test_empty_gen_refuses_named():
+    """`gen` also carries a named reason (no generation resolved)."""
+    entry = {"label": "ack", "cmd": "echo gen {gen}"}
+    vals = dict(VALUES)
+    vals["gen"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    _assert_named_refusal(r, "gen", "no generation resolved")
+
+
+def test_unmapped_empty_placeholder_still_refuses_named():
+    """A placeholder with no mapped reason still refuses, NAMING the
+    placeholder — never an invented silent pass."""
+    entry = {"label": "x", "cmd": "echo {seat}"}
+    vals = dict(VALUES)
+    vals["seat"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "refused" in r and "rc" not in r, r
+    assert "placeholder {seat} empty" in r["refused"], r["refused"]
+    assert "skipped by name" in r["refused"], r["refused"]
+
+
+def test_usable_per_entry_fallback_resolves_instead_of_refusing():
+    """An entry whose placeholder has a usable per-entry `fallback:` resolves
+    through the fallback instead of refusing."""
+    entry = {"label": "ack", "cmd": "echo {succ_ref}",
+             "fallback": "none-provided"}
+    vals = dict(VALUES)
+    vals["succ_ref"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "none-provided" in r.get("output", ""), r
+
+
+def test_usable_code_fallback_prime_ref_resolves():
+    """The code map _STARTUP_FALLBACKS resolves an emptied `{prime_ref}` to the
+    by-key whois form (`--key {prime_key}`) instead of refusing — same
+    precedence first_turn uses."""
+    entry = {"label": "whois", "cmd": "echo {prime_ref}"}
+    vals = dict(VALUES)
+    vals["prime_ref"] = ""
+    vals["prime_key"] = "pubKEY123"
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "--key pubKEY123" in r.get("cmd", ""), r
+    assert "pubKEY123" in r.get("output", ""), r
+
+
+def test_dm_prints_refused_and_refusal_line_for_empty_pred_pids():
+    """The dm goes through the EXISTING refused branch of
+    `_compose_after_join_dm` — it prints REFUSED plus the refusal line, with no
+    new dm branch."""
+    startup = _startup(after_join=[
+        {"label": "reap-proof",
+         "cmd": "ps -e | grep -E '{pred_pids}'"},
+    ])
+    vals = dict(VALUES)
+    vals["pred_pids"] = ""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refused entry must NEVER run"))
+    sent = []
+    try:
+        out = rot.run_after_join(
+            Path("."), seat="s", gen=11, startup=startup, values=vals,
+            delay_override=0, sleep_impl=lambda s: None,
+            send_dm=lambda to, text: sent.append(text))
+    finally:
+        rot.subprocess.run = real_run
+    r = out["results"][0]
+    assert "refused" in r and "rc" not in r and "output" not in r, r
+    assert "REFUSED" in out["dm"], out["dm"]
+    assert "no predecessor chain" in out["dm"], out["dm"]
+    assert "skipped by name" in out["dm"], out["dm"]
+    assert sent == [out["dm"]], "exactly ONE dm, the composed text"
