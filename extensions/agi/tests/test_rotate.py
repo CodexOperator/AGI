@@ -5597,7 +5597,7 @@ def test_openrouter_key_none_when_neither_configured(tmp_path, monkeypatch):
     assert rotate._openrouter_key(graph_root) is None
 
 
-def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkeypatch):
+def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkeypatch, _no_pin_socket):
     # The bug being pinned: showing the key sub-cap alone reads as "all
     # there is". Both numbers must appear, and the key must read as a
     # sub-cap on ONE key (raisable), never as the account ceiling.
@@ -5621,7 +5621,7 @@ def test_fresh_spend_status_shows_both_key_and_account_labelled(tmp_path, monkey
     assert "account" in status, status
 
 
-def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch):
+def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch, _no_pin_socket):
     # A balance check must never fail a pin claim -- silent None, not a raise.
     graph_root = tmp_path / ".agi"
     graph_root.mkdir()
@@ -5630,14 +5630,14 @@ def test_fresh_spend_status_none_when_network_fails(tmp_path, monkeypatch):
     assert rotate.fresh_spend_status(graph_root) is None
 
 
-def test_fresh_spend_status_none_without_a_key(tmp_path, monkeypatch):
+def test_fresh_spend_status_none_without_a_key(tmp_path, monkeypatch, _no_pin_socket):
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     graph_root = tmp_path / ".agi"
     graph_root.mkdir()
     assert rotate.fresh_spend_status(graph_root) is None
 
 
-def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder, capsys, _no_pin_socket):
     # The actual owner ask: --pin (a fresh claim) shows spend, unprompted.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     monkeypatch.setattr(
@@ -5651,7 +5651,7 @@ def test_meter_pin_claim_prints_spend_status(monkeypatch, tmp_path, fake_ladder,
     assert "spend" in out and "9.26" in out and "16.23" in out, out
 
 
-def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_path, fake_ladder, capsys):
+def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_path, fake_ladder, capsys, _no_pin_socket):
     # Spend is only ever checked at CLAIM time (--pin), not on every plain
     # read -- a bare `meter --seat X` must not add a network call.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
@@ -6213,6 +6213,29 @@ def test_ack_no_ref_leaves_session_ref_empty(tmp_path, monkeypatch, capsys):
     assert belam.get("session_id") == "27179681-4a0c-4651-8a04-50de141b2ce0"
     ack = json.loads(rotate._ack_path(root, "belam").read_text(encoding="utf-8"))
     assert ack["session_ref"] == ""
+
+
+def test_ack_refuses_any_uuid_shaped_ref_by_name(tmp_path, monkeypatch,
+                                                 capsys):
+    """SL7.102 FIX-ONLY: cmd_ack refuses ANY 36-char uuid-shaped --ref BY NAME
+    (`_looks_like_session_uuid` on the value itself), not only one equal to
+    the seat's OWN session_id — a foreign/any uuid ref must never be back-
+    filled into session_ref (a uuid there is NO-MATCH for every peer).
+    rc 2, no ack file, no row back-fill."""
+    _own_sid = "27179681-4a0c-4651-8a04-50de141b2ce0"
+    root = _ack_root_with_sid(tmp_path, sid=_own_sid)
+    monkeypatch.chdir(root)
+    foreign_uid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"   # uid-shaped, != own sid
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref=foreign_uid, answer="continue", text=""),
+        root)
+    assert code == 2, "a uuid-shaped --ref must be refused by name"
+    err = capsys.readouterr().err
+    assert "is a session id" in err and "ListAgents ref" in err, err
+    assert not rotate._ack_path(root, "belam").exists()
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") in (None, "")
 
 
 def _ack_seed_git(tmp_path, session_ref=""):

@@ -1473,3 +1473,74 @@ def test_after_join_result_carries_code_head(monkeypatch, tmp_path):
     assert result is not None
     assert result.get("code_head") == "deadbeef", \
         f"performed after_join result must carry code_head: {result}"
+
+
+# --- goal:g15.25 SL7.105 residue (b): the performed WATCH LINE names the
+# code_head, execv OSError is caught and the loop continues, and re-exec is
+# keyed on a CHANGED HEAD only (a file-only mtime/size touch never execs). ---
+
+def test_watch_performed_line_names_code_head(monkeypatch, tmp_path):
+    """The heal watch's `after_join performed for <seat>` line names the
+    engine HEAD that ran it, so an operator reading the reaper log can tell
+    which bytes performed the record (claim 1 part b)."""
+    import rotate as hrot  # noqa: E402
+    lines = []
+    monkeypatch.setattr(hrot, "_inline_reaper_enabled", lambda root: False)
+    monkeypatch.setattr(hrot, "_load_seats",
+                        lambda root: [{"name": "seat-a"}])
+    monkeypatch.setattr(hrot, "run_after_join_for_seat",
+                        lambda root, seat, **kw: {
+                            "results": [{"label": "x"}],
+                            "appended": True, "sent": False,
+                            "code_head": "c0debeef"})
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    heal._run_pending_after_joins(tmp_path)
+    assert any("after_join performed" in ln and "code_head=c0debeef" in ln
+               for ln in lines), f"performed line must name code_head:\n{lines}"
+
+
+def test_watch_reexec_oserror_is_caught_loop_continues(monkeypatch, tmp_path):
+    """An `os.execv` that raises OSError (missing interpreter / EACCES /
+    ENOMEM) must NOT end the watch loop: it is logged by name + errno and the
+    fresh identity is adopted, so the next re-exec attempt waits for the
+    NEXT clean-tree HEAD change (claim 2; no retry storm)."""
+    def boom(argv):
+        raise OSError(13, "Permission denied")
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec", boom)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert ret == {"head": "bbbbbbb", "files": {}}, \
+        "the fresh identity is adopted so next pass does NOT re-attempt"
+    log = reaper.read_text()
+    assert "re-exec error" in log and "errno 13" in log, log
+    assert "re-exec error" in log and "PermissionError" in log, log
+    assert "continuing on running bytes" in log, log
+    assert log.count("re-exec error") == 1, \
+        f"one error line, no retry storm:\n{log}"
+
+
+def test_watch_unchanged_head_never_reexecs(monkeypatch, tmp_path):
+    """Claim 3 falsifier: a file-only identity change — mtime/size touched,
+    HEAD UNCHANGED, clean tree — must NEVER re-exec (the watchdog keeps
+    running the bytes it is actually running)."""
+    calls = []
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "aaaaaaa",
+                                      "files": {"heal.py": (1, 200)}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {"heal.py": (0, 200)}},
+        once=False)
+    assert calls == [], f"unchanged HEAD must never exec: {calls}"
+    assert ret["head"] == "aaaaaaa"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "re-exec" not in log, f"no re-exec line for a file-only change:\n{log}"
