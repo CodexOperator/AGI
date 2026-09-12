@@ -1,17 +1,18 @@
 ---
 id: config:vetoes
-mint_id: ''
+mint_id: bcb38232a5b54b6aaff540aab310af22
 type: config
 parents:
   - hypothesis:l4-a-veto-freezes-never-frees
 next_edges: []
-edited_by: belam
-veto_room: veto
-rate_limit_per_window: 2
-window_seconds: 3600
-expiry_seconds: 86400
 active_gates: []
+edited_by: belam
+expiry_seconds: 86400
+rate_limit_per_window: 2
+scaffold_hash: 0558542fb6a84c50
+veto_room: veto
 vetoes: []
+window_seconds: 3600
 ---
 <!-- BODY:BEGIN -->
 # config:vetoes
