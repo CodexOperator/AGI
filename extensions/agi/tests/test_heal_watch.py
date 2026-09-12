@@ -1301,3 +1301,60 @@ def test_succ_dead_arm_reaches_log(graph_project, tmp_path, monkeypatch):
     log = reaper.read_text() if reaper.exists() else ""
     assert "arm=succ-dead" in log, \
         f"succ-dead arm must name itself in the reaper log; reaper:\n{log}"
+
+
+def test_heartbeat_lands_in_shared_room_across_worktrees(tmp_path, monkeypatch):
+    """SL7.72 regression: the heal-watch heartbeat must land where EVERY
+    rotation seat reads it — the SHARED room (`shared_sessions_dir`, routed
+    through `git_common_root` to the main checkout) — not the per-worktree
+    join. Pre-fix heal wrote via `locations.sessions_dir` (the worktree-local
+    fork), so a watch rooted in a LINKED worktree left its heartbeat in the
+    worktree's `sessions/` while `rotate._watch_alive` read the main
+    checkout's — `_watch_alive` then went False with the watch fully alive,
+    and the tail performed (`performer: "tail"`) exactly the layout seats run
+    in. Claim (b) of hypothesis:l4-after-join-is-performed-live-by-a-... died
+    silently.
+
+    Fails on the pre-fix resolver, passes after: the stub below points the
+    two graph roots at DIFFERENT rooms (a worktree and its main checkout), and
+    `_watch_alive` must still find the heartbeat the worktree-rooted watch
+    wrote."""
+    import rotate  # noqa: E402
+    locations = cli.locations
+
+    main_graph = tmp_path / "main-graph"          # the main checkout's graph
+    (main_graph / "nodes").mkdir(parents=True, exist_ok=True)
+    wt_graph = tmp_path / "wt-graph"              # a linked worktree's graph
+    (wt_graph / "nodes").mkdir(parents=True, exist_ok=True)
+
+    def fake_find_project_root(root):
+        # identity for a dir that already carries nodes/ (a resolved graph root)
+        r = Path(root)
+        return r if (r / "nodes").is_dir() else None
+
+    def fake_git_common_root(root):
+        # a worktree graph re-routes to the main checkout; main is identity
+        return main_graph if Path(root).resolve() == wt_graph.resolve() else None
+
+    monkeypatch.setattr(locations, "find_project_root", fake_find_project_root)
+    monkeypatch.setattr(locations, "git_common_root", fake_git_common_root)
+
+    # the SAME root both halves play: a rotation seat's graph root inside the
+    # worktree — heal/watch and rotate resolve the shared room from it.
+    shared = locations.shared_sessions_dir(wt_graph)
+    assert not shared.resolve().is_relative_to(wt_graph.resolve()), \
+        "seam must fork the rooms or this test is vacuous"
+
+    heal._write_watch_heartbeat(wt_graph)
+
+    # the heartbeat is where the shared resolver points...
+    hb = shared / "reaper.watch.json"
+    assert hb.exists(), \
+        f"heartbeat must land in the SHARED room {shared}, not a worktree fork"
+    # ...NOT in the per-worktree fork (pre-fix it landed here and went lost)
+    assert not (wt_graph / "sessions" / "reaper.watch.json").exists(), \
+        "heartbeat must never land in the per-worktree sessions fork"
+
+    # and the main-checkout reader finds it ALIVE
+    assert rotate._watch_alive(wt_graph) is True, \
+        "main-checkout rotation seat must read the worktree-rooted watch as ALIVE"

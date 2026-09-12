@@ -450,16 +450,22 @@ def _run_pending_after_joins(root: Path) -> None:
         if not seat:
             continue
         try:
-            result = _rotate.run_after_join_for_seat(root, seat)
+            result = _rotate.run_after_join_for_seat(root, seat, performer="watch")
         except Exception as exc:                         # noqa: BLE001
             print(f"warn: after_join for {seat!r} failed: {exc}",
                   file=sys.stderr)
             continue
         if result is not None:
-            _watch_log(f"watch: after_join performed for seat {seat!r} "
-                       f"({len(result.get('results') or [])} command(s); "
-                       f"record appended: {result.get('appended')}, "
-                       f"dm sent: {result.get('sent')})")
+            if result.get("skipped"):
+                # (goal:g15.25 SL7.76 (a)) exactly ONE line for a definitely-
+                # dead seat with no live session — no record append, no dm.
+                _watch_log(f"after_join skipped for {seat!r}: "
+                           f"{result['skipped']}")
+            else:
+                _watch_log(f"watch: after_join performed for seat {seat!r} "
+                           f"({len(result.get('results') or [])} command(s); "
+                           f"record appended: {result.get('appended')}, "
+                           f"dm sent: {result.get('sent')})")
 
 
 def _sweep_season(branch: str) -> int | None:
@@ -882,12 +888,43 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     return (removed, refused, kept)
 
 
+def _write_watch_heartbeat(root: Path) -> None:
+    """Best-effort liveness heartbeat written ONCE per watch pass so rotate-
+    self's post-spawn tail can tell an ALIVE watch (deferral is real) from a
+    DEAD one (rotate-self must perform the captive after_join itself).
+    `<sessions>/reaper.watch.json` = {"pid": <watch pid>, "at": <epoch>}.
+    Resolved through `locations` (never hardcoded); never raises into the
+    watch loop. The heartbeat is NOT the reaper log's mtime: `_watch_log`
+    delegates to send.py's SHARED `reaper_log.log`, so a fresh log mtime can
+    come from a non-watch writer (send.py `wake`) and would read "watch alive"
+    on a box whose watch is dead. A dedicated file carries the only true
+    signal."""
+    try:
+        # SHARED room: the watch's heartbeat must land where every rotation
+        # seat reads it (rotate._watch_heartbeat_path -> shared_sessions_dir,
+        # routed to the main checkout through git_common_root). The per-
+        # worktree `sessions_dir` would fork the room when the watch runs from
+        # a linked worktree root -- the heartbeat landing in the worktree's
+        # `sessions/` while seats read the main checkout's (`_watch_alive`
+        # then False with the watch fully alive, and the tail performs). One
+        # room, one path: the heartbeat is watch->rotate state, same rule as
+        # pins/mail/rotation records (locations.shared_sessions_dir).
+        sess = locations.shared_sessions_dir(root)
+        sess.mkdir(parents=True, exist_ok=True)
+        (sess / "reaper.watch.json").write_text(
+            json.dumps({"pid": os.getpid(), "at": time.time()}),
+            encoding="utf-8")
+    except Exception:                                    # noqa: BLE001
+        pass
+
+
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
     """
     adapter = _WatcherAdapter()
     while True:
+        _write_watch_heartbeat(root)
         rounds = _discover_rounds(root)
         for iter_dir, _mp in rounds:
             _watch_round(root, iter_dir, adapter)

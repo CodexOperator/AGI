@@ -116,6 +116,16 @@ def _latest_record(root, seat):
     return json.loads(recs[-1].read_text(encoding="utf-8"))
 
 
+def _live_watch_heartbeat(root):
+    """SL7.72: write a fresh heal-watch heartbeat (a live pid within grace) so
+    `rotate._watch_alive` reads the watch as ALIVE — the tail then defers to it
+    instead of double-performing."""
+    sess = root / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / "reaper.watch.json").write_text(json.dumps({
+        "pid": os.getpid(), "at": time.time()}), encoding="utf-8")
+
+
 # ── (c) the fixture handover writes row / pin / identity / ack ─────────────
 
 
@@ -1538,9 +1548,16 @@ def test_rotate_self_pre_turn_confirm_records_deferred_not_skipped(
         rotate, "_confirm_successor_model",
         lambda **k: "skipped: no assistant turn in the successor transcript — "
                     "cannot confirm model/effort")
-    # no persistent service, no forced run: after_join stays DEFERRED to the
-    # service at the (6.4) gate, so the pre-turn deferral is what the record
-    # carries — the after_join confirm overwrites it only when IT runs.
+    # (goal:g15.25 SL7.72) the heal watch is ALIVE (a fresh heartbeat): it is
+    # the armed SERVICE, so the pre-turn deferral is truthful and the rotate-
+    # self tail defers to it at (6.4) — never double-performing. `_fix` wrote
+    # `agi-tree.config.json` = {} (unit armed by default), so with a live
+    # heartbeat `_after_join_performer_armed` is True and the probe records
+    # `deferred: after_join`, which nothing overwrites.
+    _live_watch_heartbeat(tmp_path)
+    # no forced run, inline_reaper off: after_join stays DEFERRED to the
+    # SERVICE at the (6.4) gate, so the pre-turn deferral is what the record
+    # carries — the after_join confirm overwrites it only when THAT runs.
     monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: False)
     args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
                              session_ref=None)
@@ -1572,7 +1589,14 @@ def test_rotate_self_pre_turn_probe_skipped_when_no_performer_can_run(
     monkeypatch.setattr(
         rotate, "_confirm_successor_model",
         lambda **k: "skipped: no assistant turn in the successor transcript")
-    # no fallback performer, persistent unit down -> nothing will run it
+    # (goal:g15.25 SL7.72) the heal watch is ALIVE (fresh heartbeat): the tail
+    # defers to it at (6.4) and never double-performs. But with inline_reaper
+    # off AND the watch unit declared DOWN, the SERVICE performer is NOT armed
+    # — so the (s5) probe records the honest `skipped: <reason>`, never a
+    # `deferred: after_join` LIE that a SERVICE confirm will land on a record
+    # no service is armed to touch.
+    _live_watch_heartbeat(tmp_path)
+    # no fallback service performer, persistent unit down -> nothing will run it
     monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: False)
     # the root's own legacy config declares the watch unit DOWN
     (tmp_path / "agi-tree.config.json").write_text(
@@ -1635,3 +1659,99 @@ def test_rotate_self_fallback_after_join_overwrites_with_real_verdict_and_fills_
     assert tele["model_refusal_fallback"] == (
         "ts=2026-09-12T10:00:00.000Z category=safety requestId=req-42"), \
         tele
+
+
+# ── SL7.72 (goal:g15.25) — the END-TO-END (6.4) wiring, not the helpers ─────
+# Kid 1 (experiment:a00-f559a2f8-85dc82) proved the DECISION HELPER
+# `_after_join_tail_should_perform` and `run_after_join(performer=...)` via
+# direct calls. These two drive the REAL `cmd_rotate_self` step (6.4) on the
+# fixture root with `inline_reaper=false` (declare it in the config — the
+# default Absent-code reads True) and NO/ALIVE watch heartbeat, and read the
+# rotation RECORD the parent will read, so the branch at (6.4) — the guard,
+# the deferral print, and `performer="tail"` reaching the record — is proven
+# end-to-end, not just by reading.
+
+
+def test_rotate_self_tail_performs_after_join_when_no_watch(
+        _fix, tmp_path, monkeypatch):
+    """T4 — drive the real cmd_rotate_self with `inline_reaper: false` and NO
+    `sessions/reaper.watch.json` (an alive watch is absent -> the tail is the
+    performer at (6.4)). The rotation record must land a NON-EMPTY `after_join`
+    dict with `performer == "tail"` (and the legacy `performed_by == "tail"`)
+    and a `results` key present. This is the artifact the parent reads: the
+    end-to-end wiring, not a seam the fixture forced.
+    (hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-
+    rotate-selfs-own-tail-when-no-watcher-runs) --
+    experiment:a00-f53dbe76-4f7353"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    # declare inline reaper OFF (absent-code reads True by default): the heal
+    # watch IS the service, so with NO watch alive the rotate-self TAIL must
+    # perform after_join at step (6.4).
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"agent_dispatch": {"inline_reaper": False}}),
+        encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    # NO _read_ack monkeypatch: the DEFAULT wake-0 continue confirms the
+    # rotation itself, so the tail's after_join is the only thing being tested.
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    aj = rec.get("after_join")
+    assert isinstance(aj, dict) and len(aj) > 0, \
+        f"record lacks a non-empty after_join: {rec.get('after_join')}"
+    assert aj["performer"] == "tail", aj
+    assert aj.get("performed_by") == "tail", aj
+    # the fixed key-present guarantee: `results` is a key even when empty
+    # (never `after_join: {}`).
+    assert "results" in aj, aj
+
+
+def test_rotate_self_tail_defers_when_watch_alive(_fix, tmp_path,
+                                                  monkeypatch, capsys):
+    """T5 — the same drive with `_live_watch_heartbeat(root)` written FIRST:
+    an ALIVE watch owns after_join, so the tail DEFERS at (6.4) and never
+    performs a second time. The record must NOT carry a tail-performed
+    `after_join` (the deferral line prints instead); the rotation itself
+    still succeeds.
+    (hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-
+    rotate-selfs-own-tail-when-no-watcher-runs) --
+    experiment:a00-f53dbe76-4f7353"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"agent_dispatch": {"inline_reaper": False}}),
+        encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    # an ALIVE heal watch (fresh heartbeat, live pid, within grace) owns
+    # after_join -> the tail must defer, not double-perform.
+    _live_watch_heartbeat(tmp_path)
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    # the tail did NOT perform: no tail-performed history on the record.
+    assert rec.get("after_join") is None, \
+        f"tail performed despite an alive watch: {rec.get('after_join')}"
+    # the (6.4) deferral was printed to stderr (captured by capsys).
+    out = capsys.readouterr()
+    assert "after_join deferred to the persistent service" in \
+        (out.out + out.err)
+

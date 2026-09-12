@@ -1265,6 +1265,91 @@ def cmd_wake_audit(root: Path, args) -> int:
     return 0
 
 
+# ── calls ─────────────────────────────────────────────────────────────────
+# hypothesis:l4-sensei-py-calls-lists-a-transcripts-tool-calls-so-no-post-
+# copies-a-scratchpad-script-at-spawn: a terse listing of a CC transcript's
+# assistant tool_use calls WITH user-turn boundaries, so a director/verdict
+# writer can skim the call sequence in one line per call instead of copying a
+# scratchpad script around at spawn. Numbered in FILE ORDER; --from/--to bound
+# the listing to 1-based call numbers N..M; --width truncates the command.
+
+def _user_turn_lines(path: Path) -> set[int]:
+    """Line offsets (0-based) that open a genuine USER TEXT turn — a user
+    event whose message content carries a `type: text` block. tool_result
+    feedback (also `type: user`) is NOT a new user turn, so it never becomes a
+    boundary. Reads the file once with errors=replace like the low-level
+    iterator, tolerating corrupt lines."""
+    out: set[int] = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for ln_idx, line in enumerate(fh):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if ev.get("type") != "user":
+                continue
+            content = ev.get("message", {}).get("content")
+            if isinstance(content, list):
+                if any(isinstance(b, dict) and b.get("type") == "text"
+                       for b in content):
+                    out.add(ln_idx)
+            elif isinstance(content, str) and content.strip():
+                out.add(ln_idx)
+    return out
+
+
+def _snippet(cmd: str, width: int) -> str:
+    """First `width` chars of the command; a trailing `…` marks truncation."""
+    cmd = cmd or ""
+    if width is None or width <= 0 or len(cmd) <= width:
+        return cmd
+    return cmd[:max(0, width - 1)] + "…"
+
+
+def cmd_calls(args) -> int:
+    """sensei.py calls <transcript.jsonl> [--from N] [--to M] [--width 150]
+
+    Print one line per assistant tool_use in FILE ORDER:
+        `n · timestamp · tool · command[:width]`
+    (timestamp is the event's timestamp, else `-`; the command is the call's
+    `input.command`, else empty). A genuine user TEXT turn between calls is
+    printed as a numbered boundary marker. --from/--to bound the listing to
+    1-based call numbers N..M. A transcript with NO tool calls prints zero
+    call lines and exits 0 (it never errors).
+    """
+    path = Path(args.transcript)
+    width = args.width if args.width else 150
+    lo = args.from_ if args.from_ is not None else 1
+    hi = args.to
+
+    calls = list(_iter_assistant_tool_uses(path))  # (line, tool, inp, ts)
+    boundaries = _user_turn_lines(path)
+
+    n = 0           # global call number (1-based, for boundaries)
+    last_line = -1
+    user_no = 0      # user-turn counter
+    for line, tool, inp, ts in calls:
+        n += 1
+        # a user text turn opened between the previous call and this one, and
+        # only when the window is open (n within/near the --from boundary)
+        if lo is None or n >= lo:
+            for bl in sorted(b for b in boundaries if last_line < b < line):
+                user_no += 1
+                print(f"── user turn {user_no} ──")
+        last_line = line
+        if lo is not None and n < lo:
+            continue
+        if hi is not None and n > hi:
+            break
+        cmd = inp.get("command", "") if isinstance(inp, dict) else ""
+        ts = ts if ts is not None else "-"
+        print(f"{n} · {ts} · {tool} · {_snippet(cmd, width)}")
+    return 0
+
+
 # ── rotate-out-audit ──────────────────────────────────────────────────────
 # The mirror of wake-audit over the OUTGOING predecessor, instead of the
 # incoming successor (goal:g15.13 / hypothesis
@@ -1686,6 +1771,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--supervisor", default=None)
     p.add_argument("--owner-approved", action="store_true")
 
+    p = sub.add_parser(
+        "calls",
+        help="list a transcript's assistant tool_use calls (with user-turn "
+             "boundaries) — sensei.py calls <transcript.jsonl> --from N --to M --width W")
+    p.add_argument("transcript", metavar="transcript.jsonl")
+    p.add_argument("--from", dest="from_", type=int, default=None,
+                   help="first call number to list (1-based; default 1)")
+    p.add_argument("--to", dest="to", type=int, default=None,
+                   help="last call number to list (1-based; default all)")
+    p.add_argument("--width", type=int, default=150,
+                   help="command truncation width (default 150)")
+
     args = ap.parse_args(argv)
     root = locations.find_project_root(Path(args.root).resolve()) or root
     croot = _send.comms_root(root)
@@ -1714,6 +1811,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_rotate_out_audit(root, args)
     if args.cmd == "apply":
         return cmd_apply(root, croot, args)
+    if args.cmd == "calls":
+        return cmd_calls(args)
     return 2
 
 

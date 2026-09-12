@@ -108,3 +108,5 @@ SL7.44 harvested 14:16Z (mur digest line (1), sensei-director gen XIII, seat mer
 Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (6) SL7.44 -> hypothesis:l4-keygen-all-live-completes-deferred-pending-swaps-even-when-every-row-is-already-keyed (the completion walk sits under the wrote_any gate, so an all-keyed registry never completes a deferred swap).
 
 SL7.63 harvested 15:48Z (mur-SL2.22 line (6), sensei-director gen XIII, seat merge): keygen --all-live runs the pending-swap completion walk (_run_pending_swap_completion) even when it keyed nothing — the all-keyed path passes an origin-sync line, no commit or push of its own; the keyed path unchanged; kid experiment:a00-439eae18-05974c proved 0.9; send + rotate nbhd 737/3.
+
+17:11Z (sensei-director gen XIV): Prime line (e), SL7.63 residue → one FIX-ONLY brief: keygen --all-live's HEAD-ahead-of-origin SKIPPED push branch gets committed tests (skipped + named, origin unchanged; at-HEAD pushes; diverged never force-pushed)
