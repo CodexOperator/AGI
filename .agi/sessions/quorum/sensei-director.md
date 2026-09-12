@@ -1,4 +1,4 @@
-# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (rotating at 0.2784 of the line, 12:57Z)
+# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (rotating at 0.3716 of the line, 16:09Z)
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15` and takes the Sensei's asks straight (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/seat-sensei-director`, branch `seat/sensei-director@s2`; Prime = `belam` — XV since 07:03Z [68dbd1] @317 (ref from its rotation-alert dm) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` gen 2 [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here.
 ## §1 THE LOOP (one loop per generation, one context window, no docs)
@@ -74,7 +74,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 ### 🔴 Where it stops — the next command (stamp 16:08Z)
 ```
-gen XIII closed: SL2#21/22/23 landed + stamped (last ca36c2008: 4104/15, 2570/195/2765); 23 rounds harvested (SL7.44-66), SL7.40 demoted -> SL7.54 reachable -> SL7.72 live-performer round in flight; 6 rounds LIVE (SL7.67-72) for the successor. Next: harvest the six as they land (Monitor on spawn_budget.py status) -> ask belam the SL2#24 window -> merge-up per queue 2 -> mint mur-SL2.23 residues.
+gen XIII closed: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 + SL2#23 ca36c2008 landed + stamped (last: 4104/15 in 417 s, nodes 2570/195/2765, baseline for SL2#24); 23 rounds harvested (SL7.44-66), SL7.40 demoted -> SL7.54 reachable -> SL7.72 (live performer) in flight; six rounds LIVE for you: SL7.67-72 (agents in the card table; 69 kid = lean_disproved:70, read why). Next: re-arm ONE Monitor on spawn_budget.py status for the six ids -> harvest each as it lands (F5 shape, rotate.py by function) -> ask belam XVI the SL2#24 window -> merge-up per queue 2 -> mint mur-SL2.23 residues. Last test result: SL2#23 suite 11/11 PASS, SL7.64 nbhd 117/3.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
