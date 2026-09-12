@@ -1161,6 +1161,32 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     return 0
 
 
+def _read_seat_pin(root: Path, seat: str, cur_gen: int | None) -> tuple[Path | None, str | None]:
+    """A seat's meter pin with the cross-generation refusal built in (SL7.100).
+    Returns `(transcript_path | None, reason | None)`. `cur_gen` is the
+    caller's own generation; a pin naming a DIFFERENT generation is a
+    predecessor's stale pin never re-pointed on rotation — the same
+    `seat_pin-stale:<written>:<current>` wording cmd_meter prints, RETURNED as
+    the reason (never printed) so a bootstrap fact line stamps the refusal
+    instead of a confident number for a session that ended. `cur_gen=None`
+    (a derivation call that predates the generation bound) keeps the legacy
+    read; a gen-less legacy pin has nothing to compare and passes through.
+    cmd_meter itself is untouched (SL7.91) — the helper is extracted NEXT TO it."""
+    pin = _seat_pin_path(root, seat)
+    if not pin.is_file():
+        return None, None
+    written_gen, target_s = _parse_pin_record(pin)
+    if not target_s:
+        return None, None
+    lp = Path(target_s).expanduser().resolve()
+    if not lp.exists():
+        return None, None
+    if (cur_gen is not None and written_gen is not None
+            and written_gen != cur_gen):
+        return None, f"seat_pin-stale:{written_gen}:{cur_gen}"
+    return lp, None
+
+
 # --- spawn subcommand -----------------------------------------------------
 
 
@@ -8488,18 +8514,21 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         #           `pending: resolved after join` and
         #           _fill_bootstrap_join_facts fills it once the successor
         #           has answered — never `SKIPPED: no handover derivation`.
+        # (SL7.100) the pin is read through `_read_seat_pin`, so the bootstrap
+        #     path carries cmd_meter's cross-generation refusal; generation=None
+        #     (a derivation call that predates the bound) keeps the legacy read.
         usage = None
         src = None
-        pin = _seat_pin_path(root, seat)
-        if pin.is_file():
-            lp = _read_pin_target(pin)
-            if lp is not None:
-                try:
-                    usage = parse_usage_from_cc_transcript(lp)
-                    if usage is not None:
-                        src = usage_source_name("pin_file")
-                except (OSError, ValueError):
-                    usage = None
+        lp, _preason = _read_seat_pin(root, seat, generation)
+        if lp is not None:
+            try:
+                usage = parse_usage_from_cc_transcript(lp)
+                if usage is not None:
+                    src = usage_source_name("pin_file")
+            except (OSError, ValueError):
+                usage = None
+        elif _preason:
+            return None, f"meter pin is stale: {_preason}"
         if usage is not None:
             ctxt = load_ladder_field(root, "director_context_tokens",
                                      DEFAULT_DIRECTOR_CONTEXT_TOKENS)
@@ -8637,11 +8666,26 @@ def _write_bootstrap(root: Path, *, seat: str, generation: int | None,
                 measured_at[key] = commit
             continue
         if key in join_pending:
-            if join_poll_secs is None:
+            # (SL7.100) FIRST try the derivation, exactly as the non-join path
+            #     does -- the meter est. case (the caller holds the composed
+            #     first-input bytes and can estimate BEFORE the join) was
+            #     unreachable because set membership short-circuited first. A
+            #     value that resolves is written with the `(resolved after
+            #     join)` marker; only a derivation that cannot resolve leaves
+            #     `pending: resolved after join` (pre-join, as today) or
+            #     `unresolved: <named reason>` (post-join).
+            value, reason = _derive_bootstrap_fact(
+                key, root=root, seat=seat, seat_row=seat_row, commit=commit,
+                generation=generation,
+                meter_first_input_bytes=meter_first_input_bytes)
+            if value is not None:
+                tele[key] = f"{value} (resolved after join)"
+                if commit:
+                    measured_at[key] = commit
+            elif join_poll_secs is None:
                 tele[key] = "pending: resolved after join"
             else:
-                tele[key] = (f"unresolved: join found nothing within "
-                             f"{join_poll_secs}s")
+                tele[key] = f"unresolved: {reason}"
             continue
         value, reason = _derive_bootstrap_fact(
             key, root=root, seat=seat, seat_row=seat_row, commit=commit,
@@ -10890,29 +10934,30 @@ def _fill_bootstrap_join_facts(root: Path, *, seat: str,
         #     is never left behind. A fill that finds no usage leaves the
         #     key in join_pending (written `unresolved: ...` by the caller's
         #     join_poll_secs — never the PRE-join pending lie).
-        pin = _seat_pin_path(root, seat)
-        if pin.is_file():
-            lp = _read_pin_target(pin)
-            if lp is not None:
-                try:
-                    _use = parse_usage_from_cc_transcript(lp)
-                except (OSError, ValueError):
-                    _use = None
-                if _use is not None:
-                    _ctxt = load_ladder_field(
-                        root, "director_context_tokens",
-                        DEFAULT_DIRECTOR_CONTEXT_TOKENS)
-                    _thr = load_ladder_field(
-                        root, "director_rotate_at",
-                        DEFAULT_DIRECTOR_ROTATE_AT)
-                    _frac = calculate_fraction(_use, _ctxt)
-                    _used = (_use.get("input_tokens", 0)
-                             + _use.get("cache_read_input_tokens", 0)
-                             + _use.get("cache_creation_input_tokens", 0))
-                    overrides["meter"] = (
-                        f"{_frac:.4f} ({_used}/{_ctxt} tokens) "
-                        f"source={usage_source_name('pin_file')} "
-                        f"threshold={_thr}")
+        # (SL7.100) the pin is read through `_read_seat_pin`, so the fill also
+        #     refuses a cross-generation pin: the key stays in join_pending and
+        #     `_write_bootstrap` stamps `unresolved: <reason>` via derivation.
+        lp, _preason = _read_seat_pin(root, seat, b.get("generation"))
+        if lp is not None:
+            try:
+                _use = parse_usage_from_cc_transcript(lp)
+            except (OSError, ValueError):
+                _use = None
+            if _use is not None:
+                _ctxt = load_ladder_field(
+                    root, "director_context_tokens",
+                    DEFAULT_DIRECTOR_CONTEXT_TOKENS)
+                _thr = load_ladder_field(
+                    root, "director_rotate_at",
+                    DEFAULT_DIRECTOR_ROTATE_AT)
+                _frac = calculate_fraction(_use, _ctxt)
+                _used = (_use.get("input_tokens", 0)
+                         + _use.get("cache_read_input_tokens", 0)
+                         + _use.get("cache_creation_input_tokens", 0))
+                overrides["meter"] = (
+                    f"{_frac:.4f} ({_used}/{_ctxt} tokens) "
+                    f"source={usage_source_name('pin_file')} "
+                    f"threshold={_thr}")
         # carry EVERY other fact through byte-identically (value AND
         # measured_at): only the join facts may change on this rewrite. A
         # join-only fact ANOTHER path already resolved (rotate-self's
