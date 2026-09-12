@@ -11078,13 +11078,20 @@ def _claim_after_join(root, seat, record_path, performer,
     return None
 
 
-def _after_join_already_performed(record_path) -> bool:
+def _after_join_already_performed(record_path, *, stale_s=None, now=None) -> bool:
     """(goal:g15.25 SL7.72) the double-perform guard used by the rotate-self
     tail at step (6.4): re-read the rotation record at `record_path`; True when
     it ALREADY carries an `after_join` key — the heal watch won the race, so
     the tail must NOT perform a second time. Best-effort: absent / unreadable /
     malformed / unittestable reads False (the tail performs). Empty after_join
-    (`{}`) is still a performed key and guards too — `bool` on the value."""
+    (`{}`) is still a performed key and guards too — `bool` on the value.
+    (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    With `stale_s` (the claim staleness bound) the guard is STALE-AWARE: a
+    claim by another performer that DIED before writing results is not
+    "performed" — it returns False so the tail falls through and RE-CLAIMS it
+    through the SAME `_claim_is_stale` helper the watch path uses, its own
+    identity on the re-claim. A LIVE (fresh) claim still defers the tail; a
+    completed run (results) always guards."""
     if record_path is None:
         return False
     try:
@@ -11092,7 +11099,16 @@ def _after_join_already_performed(record_path) -> bool:
         if not rp.exists():
             return False
         rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
-        return isinstance(rec, dict) and bool(rec.get("after_join"))
+        if not isinstance(rec, dict) or not rec.get("after_join"):
+            return False
+        aj = rec["after_join"]
+        # a claim (no results), stale_s given, older than the bound -> the
+        # tail may RE-CLAIM (re-claimable), never a permanent perform-skip.
+        if (isinstance(aj, dict) and aj.get("claimed_at")
+                and "results" not in aj and stale_s is not None
+                and _claim_is_stale(aj, stale_s=stale_s, now=now)):
+            return False
+        return True
     except Exception:                                       # noqa: BLE001
         return False
 
@@ -12041,8 +12057,20 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                         "skipped": "no live session",
                         "age_s": age_s,
                     }
+                    # (hypothesis:l4-a-no-window-started-record-waits-the-
+                    # promised-delay...) the dead-seat marker is a REWRITE of a
+                    # committed record — write AND pathspec-commit it through
+                    # the SAME `_commit_after_join_record` the after_join
+                    # rewrite uses, with a `dead-seat` label, so MAIN never
+                    # reads `M` on the marker (a marker left local/uncommitted
+                    # made the next restart RE-see the record and re-skip). On
+                    # a gitless fixture the helper SKIPPEDs harmlessly.
                     rp.write_text(json.dumps(mark, indent=2) + "\n",
                                   encoding="utf-8")
+                    _commit_after_join_record(
+                        root, record=mark, record_path=str(path),
+                        seat=seat, performer=performer,
+                        commit_label="dead-seat")
             except (OSError, ValueError, json.JSONDecodeError):
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
@@ -12054,12 +12082,16 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # is NOT performed at delay 0 on an empty transcript: within
     # `after_join_max_wait_s` of the record the performer WAITS (returns
     # waiting, no perform, no dm); past the bound it performs once, every
-    # join-dependent entry refused by name (`join unresolved after <n>s`). A
-    # record with no window @id did no join and behaves exactly as before.
-    # The dead-seat skip above stays authoritative — a dead row skips, never
-    # waits and never performs.
+    # join-dependent entry refused by name (`join unresolved after <n>s`).
+    # (hypothesis:l4-a-no-window-started-record-waits-the-promised-delay...)
+    # ONE code path for BOTH record shapes: a started record with NO window
+    # @id never joined, so its `joined` is empty ({}) and `joined.found` is
+    # falsy exactly like a windowed record whose rejoin failed — it takes the
+    # SAME wait-then-refuse gate instead of performing at delay 0 (as if
+    # fresh) on an empty transcript. The dead-seat skip above stays
+    # authoritative — a dead row skips, never waits and never performs.
     _join_wait_s = None
-    if window_id and not joined.get("found"):
+    if not joined.get("found"):
         max_wait = int(startup.get("after_join_max_wait_s")
                        or DEFAULT_AFTER_JOIN_MAX_WAIT_S)
         # SL7.88 (fix B): the wait is anchored on a MEASURED age so a record
@@ -15520,8 +15552,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 root, seat, _load_record_best_effort(record_path)))
         # double-perform guard: the watch may have won the race since step (4)
         # (or this box runs the service inline). Re-read the record; if it
-        # ALREADY carries `after_join`, the tail does NOT perform a second time.
-        _performed_elsewhere = _after_join_already_performed(record_path)
+        # ALREADY carries a completed `after_join` (or a LIVE claim), the tail
+        # does NOT perform a second time. A STALE claim (no results, older
+        # than the bound) is NOT "performed" — the tail falls through and
+        # re-claims it through the SAME stale-aware helper the watch uses, its
+        # OWN identity on the re-claim.
+        _tail_stale = (
+            int((startup or {}).get("after_join_claim_stale_s")
+                or DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+            if isinstance(startup, dict) else DEFAULT_AFTER_JOIN_CLAIM_STALE_S)
+        _performed_elsewhere = _after_join_already_performed(
+            record_path, stale_s=_tail_stale)
         if _performed_elsewhere:
             print("(6.4) after_join already performed (by the watch); "
                   "rotate-self tail skips")
