@@ -6668,6 +6668,8 @@ SL7.117 (SM 23:43Z): rotate_defaults = ONE top-level config:rotations map (timeo
 
 SM.01 HARVESTED (a00-2d7d67b8; kid 1 lean_disproved:70 on the --seat alias, kid 2 proved 0.9): the after_join dm is one line per entry (label + exit), detail only on refusal or non-zero/timeout, the record named as rotate.py status --post <seat> --record latest, captive line untouched; after_join + rotate 342/3
 
+SL7.116 HARVESTED (a00-e2759a34, proved 0.9; six parent probes): rotate refuses a derived stops slot byte-identical to the card at the last rotate-out commit (gen pair + short sha + date named; explicit --stops never gated; dry-run on a stale slot returns 2); started record carries stops_sha256. Over ceiling: 160 lines vs 50 (record threading) — flagged for SM's review
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
