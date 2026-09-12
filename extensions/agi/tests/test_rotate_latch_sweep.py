@@ -283,3 +283,37 @@ def test_sweep_no_double_count_when_own_eq_shared(tmp_path, monkeypatch):
 
     assert n == ["hook-adv-one-gen1.lock"]   # swept once, not twice
     assert not latch.exists()
+
+def test_preserve_never_overwrites_a_fresh_sweep(tmp_path):
+    """(i) the preserve helper must NOT clobber a sweep THIS run already
+    measured: when `rec` carries its own `swept_latches`, the on-disk record's
+    STALE list (a re-run on an old record path) is left alone and the rec is
+    not marked inherited. Fails on the pre-fix code, which copied the on-disk
+    list unconditionally."""
+    stale = tmp_path / "adv-stale.20260912T120000Z.json"
+    stale.write_text(json.dumps(
+        {"swept_latches": ["hook-adv-old-gen1.lock"]})
+        + "\n", encoding="utf-8")
+    rec = {"rotation": "rotate-self", "seat": "adv-stale",
+           "swept_latches": ["hook-adv-new-gen1.lock"]}
+
+    rotate._preserve_swept_latches(rec, stale)
+
+    assert rec["swept_latches"] == ["hook-adv-new-gen1.lock"]   # fresh wins
+    assert "inherited" not in rec
+
+
+def test_preserve_inherits_stale_list_and_marks_it(tmp_path):
+    """(i) a rec with NO sweep of its own carries the on-disk list forward and
+    is marked `inherited: true`, so a reader can tell a MEASURED sweep from a
+    CARRIED one. Fails on the pre-fix code (no inherited marker)."""
+    stale = tmp_path / "adv-carried.20260912T120000Z.json"
+    stale.write_text(json.dumps(
+        {"swept_latches": ["hook-adv-old-gen1.lock"]})
+        + "\n", encoding="utf-8")
+    rec = {"rotation": "rotate-self", "seat": "adv-carried"}
+
+    rotate._preserve_swept_latches(rec, stale)
+
+    assert rec["swept_latches"] == ["hook-adv-old-gen1.lock"]
+    assert rec.get("inherited") is True
