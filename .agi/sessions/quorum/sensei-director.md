@@ -29,37 +29,39 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE — gen VII (ref `0a14a7`, window @313, loop L7 03:15Z–; row generation 6 → the successor acks `--gen 7`) — stamp 03:25Z
+## §3 🔴 STATE — gen VII (ref `0a14a7`, window @313, loop L7 03:15Z–; row generation 6 → the successor acks `--gen 7` — OR, once SL7.06 lands, nothing: the predecessor answers) — stamp 03:43Z
 
 | | |
 |---|---|
-| wake | gen VII: ListAgents + ack + push = 3 calls, floor (Sensei audit draft `sessions/sensei/drafts/sensei-director-wake-audit-20260912T031516Z.md` confirms; own spawn row 5ff867444 + ack afdad8e36 landed in MAIN — SL6.01/09 shape LIVE) |
+| wake | gen VII: 3 calls, floor (Sensei audit). Owner order 03:3xZ (rule-changing): **wake 0 / out 1 for every post** — my g15 lines: SL7.06 (ack answered by the predecessor) → line (3) narrowed to `--stops` rotate-out → line (4) hook-driven |
 | seat | `seat/sensei-director@s2` in sync with origin/season/s2 (merged at every dispatch; never rebased); NOTHING harvested-but-unmerged-up |
-| Prime | belam rotated XIII → XIV at 03:18Z (record belam.20260912T031811Z, 3a624e646) — new ref unknown until its first line; `send.py send belam` routes by seat regardless |
-| credits | 03:19Z total 152 / used 125.38 (F13 curl) — ~$26 headroom; a 403 = ONE line to the Prime, stop dispatching |
-| graph | goals 180 · +2 hypothesis (SL7.01, SL7.03 briefs) this loop |
-| meter | 0.14 at 03:27Z (threshold 0.4; pass `--session-log <own .jsonl>`) |
+| Prime | belam XIV [92eda4] @314 since 03:18Z. mur-SL2.12 (03:37Z): SL6.06/08/09 ACCEPT 3/3 with residue, six lines routed (see queue); **flip HELD on F1 → SL2#13 → mur-SL2.13** |
+| Sensei | master-sensei gen 2 [f5de36] @309. Asks A (EOF newline) → SL7.04 live · B (first-seating writer commits its row + exact `ack --gen 1` line) queued · C (FORGED at the seam → UNVERIFIABLE) folds into the send.py round |
+| credits | 03:19Z total 152 / used 125.38 → 26.5 left; Prime saw 26.53 at 03:25Z. Five parents live = ~$2-3. A 403 = ONE line to the Prime, stop dispatching. Floor $1.00 |
+| meter | 0.17 at 03:38Z (threshold 0.4; pass `--session-log <own .jsonl>`) |
 
 ### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read kid nodes · merge --no-ff · neighbourhood tests · note · render · push)
 
-| round · agent · branch | brief | gate | state |
+| round · agent · branch | brief | gate · tests | since |
 |---|---|---|---|
-| **SL6.05** a00-4a8d98b3 `loop/hypothesis-l4-the-label-authorit-a00-4a8d98b3@s2` | F1 `hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row` (g15.26 P1, last of F1-F4; carries the mur-SL2.11 fold as its rotate.py leg) | the brief's (i)-(iv) + the MANDATORY rotation-alert live-proof test (VERIFIED/RETIRED under enforcing on the two-tree fixture); rotate + send neighbourhoods | RUNNING since 03:04Z (rotate.py + send.py modified, 1 kid node scaffolded at 03:17Z) |
-| **SL7.01** a00-d18b8865 `loop/hypothesis-l4-the-watcher-proves-a00-d18b8865@s2` | `hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-by-gen-order-or-age` (g15.23 fix-only #4, heal.py only) | identity arms + fallback bounded; heal neighbourhood (`test_heal*.py test_rotate_recover.py test_bin_help_smoke.py`) | RUNNING since 03:21Z |
-| **SL7.03** a00-957c0052 `loop/hypothesis-l4-after-join-keys-on-a00-957c0052@s2` | `hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid` (g15.19 P2 + g15.21 + g15.24 residues; rotate.py after-join/spawn-gate + tests, EXCLUDED list names F1's functions) | rotate + send neighbourhoods + test_heal_seats.py | RUNNING since 03:24Z |
+| **SL6.05** a00-4a8d98b3 `loop/hypothesis-l4-the-label-authorit-a00-4a8d98b3@s2` | F1 `hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row` (g15.26 P1, last of F1-F4; mur-SL2.11 fold = its rotate.py leg) | brief's (i)-(iv) + MANDATORY rotation-alert live-proof test (VERIFIED/RETIRED under enforcing, two-tree fixture) · rotate + send | 03:04Z (editing 03:27Z) |
+| **SL7.01** a00-d18b8865 `loop/hypothesis-l4-the-watcher-proves-a00-d18b8865@s2` | `hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-by-gen-order-or-age` (g15.23 #4, heal.py) | identity arms, fallback bounded · `test_heal*.py test_rotate_recover.py test_bin_help_smoke.py` | 03:21Z (kid lean:80) |
+| **SL7.03** a00-957c0052 `loop/hypothesis-l4-after-join-keys-on-a00-957c0052@s2` | `hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid` (g15.19/21/24) | rotate + send + test_heal_seats.py | 03:24Z (kid lean:70) |
+| **SL7.04** a00-ea11bdd1 `loop/hypothesis-l4-one-serializer-end-a00-ea11bdd1@s2` | `hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline-and-the-gates-read-a-whitespace-only-delta-as-clean` (g15.25, Sensei A) | every seats.md writer leaves 0a; gates whitespace-clean · test_node_writer/test_write/rotate | 03:31Z |
+| **SL7.05** a00-36201455 `loop/hypothesis-l4-one-line-anchored--a00-36201455@s2` | `hypothesis:l4-one-line-anchored-frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-spawning` (g15, Prime (4)+(5)) | 17 sites migrated, byte-identical reads on real nodes; held lock = one refusal line · metrics/evidence_gate/spawn_gate/completion/cli/stitch/verification tests | 03:40Z |
 
-### Queue (in order; each waits on the row above it)
+### Queue (in order)
 
-1. **SL7.02** (after F1 harvests — F1 owns keygen's commit/push): send.py fix-only for g15.25 residues — `_cli_keygen` (send.py:3585-3597) exits 0 when `_row_write_submit` (:347, returns bool, discarded at :470 and :448) refused the row write (key on disk + no pubkey = UNKEYED forever) → exit non-zero + say so; keygen seeds `key_history: []`; `_lockdown_warn` (:296) is called only by inbox send/read/peek (:1923/:2377/:2436) — dm/room verbs (`send_dm` :2458, `send_room` :2487, `read_dm` :2591, `peek_dm` :2604, `read_room` :2614, `peek_room` :2625) never warn. Measure again on the merged tree. SL5.05 residue (gate/mint decisions read the WORKTREE row while writes land on MAIN; handover order; e2e wiring test) — check whether F1 closed it before briefing.
-2. **line (3)** `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` (g15.25) — after F1 AND SL7.03 harvest (all three touch rotate.py).
-3. **line (4)** `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` — serial behind line (3).
-4. Sensei audit-draft cuts (NOT yet an ask — wait for the Sensei's dm): (a) 03:15Z rotation-alert read FORGED on origin's lagging gen-5 row → should be closed by F1's key-cell push; verify on the merged tree, note on g15.26; (b) the first-seating writer (Prime's `spawn`) commits its row like rotate-self (5ff867444 shape) + the seating alert/brief print the exact `ack --gen 1` line.
-5. **SL2#13** merge-up once F1 + SL7.01 + SL7.03 are on the seat: ask belam "window?" → merge on MAIN only on the grant line → the Prime's NAMED review of F1-F4 decides the comms.verify flip (never flip yourself).
+1. **SL7.06** (the moment F1 harvests): `hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-hands-the-successor-exactly-one-call` (g15.25, OWNER ORDER 03:3xZ; folds Prime (3)). Dispatch line: `dispatch.py . SL7.06 --target <that id> --level small --tier parent --harness pi --branch`.
+2. **SL7.02** (after F1; F1 owns keygen's commit/push): send.py — keygen exit non-zero on a refused row write (`_cli_keygen` :3585, `_row_write_submit` bool discarded :448/:470) + `key_history: []` seed; `_lockdown_warn` on dm/room verbs (:2458-2630); Sensei C: a sig by a key whose row is not yet on origin reads UNVERIFIABLE (or VERIFIED main-committed) never FORGED; Prime (1) `_MSG_BOUNDARY_RE` lookahead (a body `---` followed by `ts:` still fragments — pin + reword g15.26/F2 title to unless-next-line-starts-with-ts) ; Prime (2) `_whois_enforced_refusal` docstring (3108-3120), quarantine ref length cap (>251 chars raises OSError), duplicate `import re` 48/50; Sensei §5: `send.py read` wraps at 160. Re-measure on the merged tree.
+3. **SL7.07** (after SL7.03): Sensei B — `cmd_spawn` first-seating writer commits its row (5ff867444 shape) + the seating alert/brief print the exact `ack --gen 1` line (or none, once SL7.06's default lands).
+4. **line (3)** narrowed (`--stops` one-call rotate-out; merge + prepare inside rotate-self) → **line (4)** (hook fires rotate-self; never mid-merge-up). SL5.05 residue (mint decisions read the worktree row): re-measure after F1 — `_geometry_resolution_root` already picks the integration tree when the worktree's geometry is behind.
+5. **SL2#13** merge-up once F1 + SL7.01/03/04/05 are on the seat: ask belam "window?" → merge on MAIN only on the grant line → render + --render --check → verify-suite → grid commit → push season/s2 + refs/grid → stamp → ONE line. The Prime's named review (mur-SL2.13) decides the flip.
 
-### 🔴 Where it stops — the next command (stamp 03:25Z)
+### 🔴 Where it stops — the next command (stamp 03:43Z)
 
 ```
-python3 extensions/agi/bin/spawn_budget.py status | grep -E "iter=SL(6.05|7.01|7.03)"   # a parent gone = harvest that round (table above)
+python3 extensions/agi/bin/spawn_budget.py status | grep -E "tier=parent iter=SL(6.05|7)"   # a parent gone = harvest that round (table above); F1 gone = harvest F1 THEN dispatch SL7.06
 F=/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md; awk '/^# read up to here/{f=1;next} f' $F   # then ONE send.py read; dms: send.py rooms
 ```
 A parent that died on a provider error leaves its kids' work STAGED in its worktree: commit the staged index on the round branch, set evidence_runs, write the salvage thought, harvest normally (SL6.07/SL6.01 shape).
