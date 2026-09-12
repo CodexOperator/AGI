@@ -3561,22 +3561,24 @@ def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
         ["git", "-C", str(tmp_path), "ls-files"],
         capture_output=True, text=True).stdout
     # the merge commit (+ the stops commit) were BOTH pushed before the
-    # spawn. The TWO unpushed commits at the end are the rotate-self tail's
-    # own: the record+sequence commit, then the after_join rewrite commit the
-    # service leaves (hypothesis:l4-the-after-join-record-rewrite-is-committed-
-    # by-pathspec... claim (a): a performed after_join rewrites the record IN
-    # PLACE and commits ITS OWN change by pathspec, so it is never a second
-    # dirty edit of a committed record). Both are plain local commits, never
-    # pushed by the predecessor; F20 holds — neither is a successor commit.
+    # spawn. The THREE unpushed commits at the end are the rotate-self tail's
+    # own: the record+sequence commit, then the after_join CLAIM commit
+    # (SL7.8x, claim-before-run) and the completed after_join rewrite commit
+    # the service leaves (hypothesis:l4-the-after-join-record-rewrite-is-
+    # committed-by-pathspec... claim (a): a performed after_join rewrites the
+    # record IN PLACE and commits ITS OWN change by pathspec). All plain
+    # local commits, never pushed by the predecessor; F20 holds — none is a
+    # successor commit.
     unpushed = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-list", "--count", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
-    assert unpushed == "2", f"unpushed commits before spawn: {unpushed}"
+    assert unpushed == "3", f"unpushed commits before spawn: {unpushed}"
     un_log = subprocess.run(
         ["git", "-C", str(tmp_path), "log", "--format=%s", "@{u}..HEAD"],
         capture_output=True, text=True).stdout.strip()
     assert "record + sequence" in un_log, un_log
     assert "after_join record:" in un_log, un_log
+    assert "after_join claim:" in un_log, un_log
     # the spawn ran AFTER the push (last side effect) and exactly once
     assert win.read_text(encoding="utf-8").count("adv-alive") == 2
     # merge did not clobber the stops card

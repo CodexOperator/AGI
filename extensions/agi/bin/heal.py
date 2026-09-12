@@ -461,6 +461,16 @@ def _run_pending_after_joins(root: Path) -> None:
                 # dead seat with no live session — no record append, no dm.
                 _watch_log(f"after_join skipped for {seat!r}: "
                            f"{result['skipped']}")
+            elif result.get("deferred"):
+                # (goal:g15.25 SL7.8x) the record is already claimed/performed
+                # by another performer (own-tail vs watch) — run nothing.
+                _watch_log(f"after_join deferred for {seat!r}: "
+                           f"{result['deferred']}")
+            elif result.get("waiting"):
+                # (goal:g15.25 SL7.8x) the successor join has not landed
+                # within the upper bound — not performed yet.
+                _watch_log(f"after_join waiting for {seat!r}: "
+                           f"{result['waiting']}")
             else:
                 _watch_log(f"watch: after_join performed for seat {seat!r} "
                            f"({len(result.get('results') or [])} command(s); "
