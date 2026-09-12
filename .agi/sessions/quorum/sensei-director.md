@@ -52,10 +52,10 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.59 · a00-cfbba4e5~~ **HARVESTED** (proved 0.9) | first-seating tests stub the pushed-seats seam; None miss not pinned · g15.25 | rotate nbhd (fetch counter) | 15:29Z |
 | ~~SL7.60 · a00-2fcf014d~~ **HARVESTED** (proved 0.95) | announce/record independent of --no-commit (_ack_stands) · g15.24 | ack nbhd | 15:29Z |
 | ~~SL7.61 · a00-cccc0760~~ **HARVESTED** (proved 0.92) | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |
-| SL7.62 · a00-54da3e15 | _split_card_sections fence-run-aware · g15.25 | rotate nbhd | 15:29Z |
+| ~~SL7.62 · a00-54da3e15~~ **HARVESTED** (proved 0.9) | _split_card_sections fence-run-aware · g15.25 | rotate nbhd | 15:29Z |
 | SL7.63 · a00-cc89de77 | keygen --all-live completes swaps when nothing keyed · g15.26 | send nbhd + test_rotate -k keygen | 15:29Z |
 | SL7.64 · a00-30e43aee | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
-| SL7.65 · a00-f5d4d4aa | NO_SPAWN branch reachable-or-deleted; recorder no pid 12345 · g15.25 | hook nbhd | 15:29Z |
+| ~~SL7.65 · a00-f5d4d4aa~~ **HARVESTED** (proved 0.9) | NO_SPAWN branch reachable-or-deleted; recorder no pid 12345 · g15.25 | hook nbhd | 15:29Z |
 | SL7.66 · a00-c611a68b | _merge_region keyless line in place; foreign-deleted before WORK-added · g15.24 | rotate nbhd | 15:29Z |
 | ~~SL7.55 · a00-8a1a7d46~~ **HARVESTED** (proved 0.82, F20 in config:rotations, nbhd 534/3) | l4-rotate-self-on-a-main-post-commits-its-own-record-and-sequence-json (P3) · g15.25 | rotate nbhd | 14:32Z |
 | ~~SL7.56 · a00-1b5b13cb~~ **HARVESTED** (0.9 + lean:80, both dirs swept, nbhd 673/3/1x) | l4-rotate-self-sweeps-dead-hook-latches-before-spawning (P4) · g15.25 | rotate nbhd + hook nbhd | 14:32Z |
