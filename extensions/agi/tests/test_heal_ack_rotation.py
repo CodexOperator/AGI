@@ -215,10 +215,11 @@ def test_rotate_ack_file_renames_and_recover_takes_identity(_fix, capsys):
 # --- part (d): the bootstrap ack fact reads the ack file -------------------
 
 def test_bootstrap_ack_fact_derives_from_ack_file(_fix):
-    """(d) `_derive_bootstrap_fact('ack', ...)` returns
-    `ack: continue (source predecessor, gen 4)` FROM THE ACK FILE when one
-    exists, and `ack: none` when none does — never a row read (the row has no
-    `ack` key; no writer fills it)."""
+    """(d) `_derive_bootstrap_fact('ack', ...)` returns the BARE
+    `continue (source predecessor, gen 4)` FROM THE ACK FILE when one exists,
+    and `none` when none does — never a row read (the row has no `ack` key;
+    no writer fills it). The block writer prefixing the key ONCE is what
+    renders `- ack: continue ...` (no doubled `ack: ack:`)."""
     _fix_sheet = _fix / "nodes" / ".geometry" / "seats.md"
     _fix_sheet.parent.mkdir(parents=True, exist_ok=True)
     (_fix / "sessions" / "seats").mkdir(parents=True, exist_ok=True)
@@ -229,16 +230,103 @@ def test_bootstrap_ack_fact_derives_from_ack_file(_fix):
     row = {"name": "seat-a", "role": "parent"}   # NO ack key — as written
     val, reason = rotate._derive_bootstrap_fact(
         "ack", root=_fix, seat="seat-a", seat_row=row, commit=None)
-    assert val == "ack: continue (source predecessor, gen 4)"
+    assert val == "continue (source predecessor, gen 4)"
     assert reason is None
 
-    # no ack file -> `ack: none`, still no reason (not a SKIPPED row read).
+    # no ack file -> `none`, still no reason (not a SKIPPED row read).
     (rotate._ack_path(_fix, "seat-b")).parent.mkdir(parents=True, exist_ok=True)
     val2, reason2 = rotate._derive_bootstrap_fact(
         "ack", root=_fix, seat="seat-b", seat_row={"name": "seat-b"},
         commit=None)
-    assert val2 == "ack: none"
+    assert val2 == "none"
     assert reason2 is None
+
+
+def test_bootstrap_block_renders_no_doubled_ack(_fix):
+    """(SL7.29 part (a)) the ack fact is prefixed ONCE — a rotate-self
+    successor's STARTUP block renders `- ack: continue (source predecessor,
+    gen N)` for a default-continue ack and `- ack: diff-requested (source
+    predecessor, gen N)` for an --ask-diff ack, NEVER the doubled
+    `- ack: ack: ...`. The template-driven rotate-self writes the ack
+    (s6.3) then re-derives the bootstrap (s11) — this exercises that same
+    real-write-then-render chain in both answer modes, against the real
+    `_write_ack` ack shape."""
+    seats = _fix / "sessions" / "seats"
+    _fix_sheet = _fix / "nodes" / ".geometry" / "seats.md"
+    _fix_sheet.parent.mkdir(parents=True, exist_ok=True)
+    _fix_sheet.write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"seat-a\", \"role\": \"parent\", "
+        "\"model\": \"x\"}\n---\n", encoding="utf-8")
+    for answer in ("continue", "diff-requested"):
+        # the s6.3 -> s11 order: the ack is written first, then the
+        # bootstrap re-derives its `ack` fact from the ack file.
+        rotate._write_ack(root=_fix, seat="seat-a", gen_after=4,
+                          answer=answer, source="predecessor",
+                          session_ref="")
+        rotate._write_bootstrap(
+            _fix, seat="seat-a", generation=2,
+            telemetry=["seed", "model", "effort", "window", "worktree",
+                       "ack"],
+            verification=None, commit="abc1234")
+        block, reason = rotate._bootstrap_block(_fix, "seat-a",
+                                                commit="abc1234")
+        assert reason is None
+        ack_lines = [ln for ln in block.splitlines()
+                     if ln.strip().startswith("- ack")]
+        assert ack_lines, f"no ack line rendered for {answer!r}; block={block}"
+        assert ack_lines == [f"- ack: {answer} (source predecessor, gen 4)"]
+        # the doubled prefix is the defect — assert it is absent everywhere.
+        assert "ack: ack:" not in block
+
+
+def test_pre_spawn_bootstrap_carries_ack_before_restart(_fix):
+    """(SL7.29 part (b)) the ack answer is knowable BEFORE the spawn, so the
+    PRE-SPAWN bootstrap write (cmd_rotate_self step 2.75, the EXACT call args
+    it now makes) carries the ack fact verbatim through the `overrides` seam —
+    `- ack: continue (source predecessor, gen N)` for a default rotation and
+    `- ack: diff-requested (source predecessor, gen N)` when --ask-diff is
+    set — read back by the SAME hook reader (`_bootstrap_block`). This is the
+    record a rotate-self SUCCESSOR reads at TURN ONE (before s6.3 writes any
+    ack file), so `ack: none` would be the defect. No `ack: ack:` anywhere; a
+    test that only calls the post-join s11 writer does not cover this read."""
+    seats = _fix / "sessions" / "seats"
+    _fix_sheet = _fix / "nodes" / ".geometry" / "seats.md"
+    _fix_sheet.parent.mkdir(parents=True, exist_ok=True)
+    _fix_sheet.write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        "  - {\"name\": \"seat-a\", \"role\": \"parent\", "
+        "\"model\": \"x\"}\n---\n", encoding="utf-8")
+    # NO ack file exists yet — the s6.3 `_write_ack` has NOT run when the
+    # pre-spawn record is written. `_derive_bootstrap_fact` would read `none`;
+    # the pre-spawn overrides seam supplies the truthful answer instead.
+    for ask_diff in (False, True):
+        _answer = "diff-requested" if ask_diff else "continue"
+        gen = 8
+        # the EXACT pre-spawn step-2.75 call args cmd_rotate_self now makes:
+        rotate._write_bootstrap(
+            _fix, seat="seat-a", generation=gen,
+            telemetry=["seed", "model", "effort", "window", "worktree",
+                       "ack"],
+            verification=None, commit="abc1234",
+            join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+            overrides={"ack":
+                       f"{_answer} (source predecessor, gen {gen})"})
+        block, reason = rotate._bootstrap_block(_fix, "seat-a",
+                                                commit="abc1234")
+        assert reason is None
+        ack_lines = [ln for ln in block.splitlines()
+                     if ln.strip().startswith("- ack")]
+        assert ack_lines, f"no ack line rendered for ask_diff={ask_diff}"
+        assert ack_lines == [
+            f"- ack: {_answer} (source predecessor, gen {gen})"]
+        assert "ack: ack:" not in block
+        assert "ack: none" not in block
+        # the record on disk is the turn-one source of truth for the hook:
+        doc = json.loads((seats / "seat-a.bootstrap.json")
+                         .read_text(encoding="utf-8"))
+        assert doc["telemetry"]["ack"] == \
+            f"{_answer} (source predecessor, gen {gen})"
 
 
 def _ack_ns(gen=1, ref="r1", reg=None):

@@ -20,3 +20,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+BASE UPDATE (sensei-director gen X, 09:2xZ): SL7.28 landed on this base at b74f5b951 — _locate_where_it_stops is now title-only (numeral fallback deleted), the ###-path end-of-block scan in _write_stops_section tracks triple-backtick fences, and _resolved_stops_slot_text feeds --dry-run. Re-measure the 2451606d0 line cites on your base; the replacer inside-the-fence byte loss (clause i), the _stops_push refusal, --stops-file, stdin and --dry-run test gaps and the captive-4 exclusion are STILL open — build those, never redo SL7.28.

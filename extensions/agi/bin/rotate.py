@@ -4892,11 +4892,11 @@ def _section_tag(header: str) -> str | None:
     first word).
 
     **SL2.01 (hypothesis:l4-the-driven-handoff-writer-keys-on-declared-
-    titles-and-writes-the-seats-own-card):** the driven writer no longer keys
-    on the § numerals directly — the sensei-director card's numerics are a
-    DIFFERENT layout (§0 identity, §5 state). The numerals survive here only
-    as the legacy PRIME-card fallback (`## §3 🔴 NEXT COMMAND` has no
-    "where it stops" title), resolved by `_locate_where_it_stops`. KEYS ON
+    titles-and-writes-the-seats-own-card):** the driven writer keys on the
+    § numerals only to know which DECLARED slot to fill — the sensei-
+    director card's numerics are a DIFFERENT layout (§0 identity, §5 state)
+    and the where-it-stops slot resolves by TITLE
+    (`_locate_where_it_stops`), never a numeral. KEYS ON
     DECLARED TITLES first, never on these."""
     for tok in ("§0", "§3", "§6"):
         if tok in header:
@@ -4948,14 +4948,16 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
     more than one match, `None` when none (caller refuses an existing-card
     miss). Resolution order:
       1. a `## ` header whose TEXT contains "where it stops";
-      2. a `###`-level subheader whose text contains "where it stops";
-      3. the legacy PRIME fallback: a `## ` header carrying the §3 numeral
-         (`## §3 🔴 NEXT COMMAND` has no title, but is the next-command slot).
-    Never numerals ahead of titles — the sensei-director §3 is NEVER TOUCH."""
+      2. a `###`-level subheader whose text contains "where it stops".
+    NEVER a numeral: `## §3 WHAT YOU NEVER TOUCH` carries the §3 numeral but
+    is NOT the slot (the sensei-director §3 is NEVER TOUCH), so an untitled
+    §3 header falls through to `None` and the caller (`_write_stops_section`)
+    CREATES a TITLED slot at the card end instead of overwriting the untitled
+    block. The legacy §3-numeral fallback is DELETED
+    (hyp:l4-the-stops-slot-is-located-by-title-only…)."""
     # "next command" is the same slot under the Prime's and the Sensei's
     # titles (`## §3 🔴 NEXT COMMAND`, `## §5 🔴 NEXT COMMAND — the loop …`);
-    # a title synonym, keyed ahead of any numeral (Sensei 18:29Z: the §5
-    # card refused as 'no where-it-stops slot').
+    # a title synonym keyed exactly like 'where it stops'.
     top = [(i, -1) for i, (h, _) in enumerate(sections)
            if _is_stops_title(h)]
     sub = [(i, j) for i, (_, b) in enumerate(sections)
@@ -4967,12 +4969,26 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
         return top[0]
     if len(sub) == 1:
         return sub[0]
-    fallback = [i for i, (h, _) in enumerate(sections) if "§3" in h]
-    if len(fallback) > 1:
-        return "ambiguous"
-    if len(fallback) == 1:
-        return (fallback[0], -1)
     return None
+
+
+def _resolved_stops_slot_text(card_path: Path) -> str:
+    """The rotate-self --stops --dry-run 'stops slot:' line for a card, read
+    fresh and never written: the located header line + '(replace)', or
+    'none — will append at end' when no titled slot exists, or the ambiguous
+    refusal. Keys on TITLE only (the numeral fallback is deleted), so a card
+    carrying only `## §3 …` (no title) reports append-at-end."""
+    card_txt = (card_path.read_text(encoding="utf-8")
+                if card_path.exists() else "")
+    _preamble, _secs = _split_card_sections(card_txt)
+    _slot = _locate_where_it_stops(_secs)
+    if _slot == "ambiguous":
+        return "stops slot: AMBIGUOUS where-it-stops (replace refused)"
+    if isinstance(_slot, tuple):
+        _sec = _secs[_slot[0]]
+        _hdr = _sec[0] if _slot[1] < 0 else _sec[1].splitlines()[_slot[1]]
+        return f"stops slot: {_hdr.strip()} (replace)"
+    return "stops slot: none — will append at end"
 
 
 def _locate_banked(sections) -> tuple[int, int] | str | None:
@@ -5245,8 +5261,7 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         if stops is None:
             found = " / ".join(h for h, _ in sections)
             print("ERR: handoff --driven finds no where-it-stops slot (no "
-                  "'where it stops' / 'next command' title and no §3 "
-                  "numeral) to fill; "
+                  "'where it stops' / 'next command' title) to fill; "
                   f"refusing — found: {found or '(none)'}.", file=sys.stderr)
             return 2
         if banked == "ambiguous":
@@ -7053,13 +7068,16 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         return ((str(row[key]) if row.get(key) else None),
                 (f"seat row carries no {key}" if not row.get(key) else None))
     if key == "ack":
-        # GOAL:g15.25 (SL7.15) — the ack fact derives from the ACK FILE, never
+        # GOAL:g15.25 (SL7.29) — the ack fact derives from the ACK FILE, never
         #     from the seat row (no writer ever fills a `row['ack']`, so the
         #     old read printed `ack: SKIPPED: seat row carries no ack at HEAD`
         #     for every seat while the truth sat in seats/<seat>.ack.json).
-        #     Shape: `ack: <answer> (source <source>, gen <gen_after>)` when a
-        #     live ack file exists, else `ack: none`. The staleness bound
-        #     (`head` as today) is applied by the caller, unchanged.
+        #     Shape: the BARE `<answer> (source <source>, gen <gen_after>)`
+        #     when a live ack file exists, else `none` — the block writer
+        #     (`_bootstrap_block`) prefixes the key ONCE (`- ack: {val}`), so
+        #     a prefixed value here would render the doubled `- ack: ack: ...`
+        #     (the SL7.15 defect part (a)). The staleness bound (`head` as
+        #     today) is applied by the caller, unchanged.
         ack_path = _ack_path(root, seat)
         try:
             _a = (json.loads(ack_path.read_text(
@@ -7068,10 +7086,10 @@ def _derive_bootstrap_fact(key: str, *, root: Path, seat: str,
         except (OSError, ValueError):
             _a = None
         if isinstance(_a, dict) and _a.get("answer"):
-            return (("ack: {} (source {}, gen {})".format(
+            return (("{} (source {}, gen {})".format(
                 _a.get("answer"), _a.get("source"), _a.get("gen_after"))),
                     None)
-        return "ack: none", None
+        return "none", None
     if key == "prev_gen":
         return ((str(row[key]) if row.get(key) is not None else None),
                 (f"seat row carries no {key} at HEAD"
@@ -9330,9 +9348,18 @@ def _prepare_merge_target(root: Path) -> str:
     return season_branch(root)
 
 
-def _prepare_checks(root: Path, seat: str, perform: bool = False
+def _prepare_checks(root: Path, seat: str, perform: bool = False,
+                    stops_rotation: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
+
+    `stops_rotation` marks a `rotate-self --stops/--stops-file` run. Only such
+    a run exempts the seat's ack seats path (seats.md/posts.md) from check 4's
+    "last WORK commit" scan: a --stops run's OWN card+seats commit must not
+    re-age the card (goal:g15.25 line (3)). A plain `prepare`, or a
+    `rotate-self --prepare` which delegates to it, must NOT carry the
+    exclusion (SL7.30) — seating bookkeeping on a non-stops run is still WORK
+    worth ageing the card against (SL7.12 had applied it unconditionally).
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
@@ -9531,13 +9558,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     # (goal:g15.25 line (3)): seating/rotation bookkeeping is not WORK, the
     # same reasoning that excludes comms + rotation records — a pure
     # card+seats commit is fully invisible to this check, so the stops write
-    # satisfies this captive instead of re-triggering it.
-    try:
-        _sres = str(_ack_seats_path(root).resolve()
-                    .relative_to(Path(top).resolve()))
-        spec.append(f":(exclude){_sres}")
-    except (ValueError, OSError):
-        pass
+    # satisfies this captive instead of re-triggering it. SL7.30: this
+    # exclusion is CONDITIONAL on the run being a --stops rotate-self. A
+    # plain `prepare` (or rotate-self --prepare) must still let a seats.md
+    # WORK commit age the card — SL7.12 over-applied it to every prepare.
+    if stops_rotation:
+        try:
+            _sres = str(_ack_seats_path(root).resolve()
+                        .relative_to(Path(top).resolve()))
+            spec.append(f":(exclude){_sres}")
+        except (ValueError, OSError):
+            pass
     last_ts = _git_count_maybe(top, *spec)
     card_stale = (last_ts is not None and card.exists()
                   and card.stat().st_mtime < last_ts)
@@ -10577,17 +10608,91 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
             f"push={_push!r})")
 
 
+def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
+    """Stamp the card's OWN `# SESSION HANDOFF` header with the rotation
+    fact, in the SAME write that lands the where-it-stops slot.
+
+    goal:g15.25 line (3) (hypothesis:l4-rotate-self-stamps-the-card-header-
+    itself... (a)): the FIRST line matching `^# SESSION HANDOFF` gains exactly
+    ONE trailing parenthetical ` (rotating at <frac> of the line, <HH:MMZ>)`;
+    when such a ` (rotating at` parenthetical is ALREADY present it is
+    REPLACED, never double-appended (a second run re-stamps). A card with NO
+    `# SESSION HANDOFF` header is returned byte-identical (never invent a
+    header). Operates on the fully rendered card text."""
+    stamp = f" (rotating at {frac:.4f} of the line, {hmz})"
+    lines = full.splitlines()
+    for i, ln in enumerate(lines):
+        if ln.startswith("# SESSION HANDOFF"):
+            if " (rotating at" in ln:
+                start = ln.index(" (rotating at")
+                end = ln.find(")", start)
+                if end == -1:
+                    end = len(ln)
+                lines[i] = ln[:start] + stamp + ln[end + 1:]
+            else:
+                lines[i] = ln.rstrip() + stamp
+            break
+    return "\n".join(lines) + "\n"
+
+
+def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
+    """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
+    holding the stops text, plus the optional `diff requested:` line AFTER
+    the fence -- as ONE unit. BOTH the CREATE and the REPLACE paths of
+    `_write_stops_section` build the slot's block from this single function,
+    so a slot written fresh and one filled over an existing block take an
+    identical shape, and the exterior prose of an existing slot that sits
+    OUTSIDE the fence is carried verbatim by the callers. The fence is
+    always part of the block, so a stops text that itself carries a ```
+    fence nests cleanly instead of being spliced between someone else's
+    delimiters (goal:g15.25 line (3))."""
+    out = "```\n" + stops_text.rstrip("\n") + "\n```"
+    if diff_gap:
+        out += f"\n\ndiff requested: {diff_gap}"
+    return out
+
+
+def _stops_replace_fenced_region(lines: list[str], block: str):
+    """Replace the fenced region of `lines` (the slot's content span) with
+    `block` -- the WHOLE fenced block written together -- carrying every
+    line OUTSIDE the fence (prose before it and after it) verbatim. Returns
+    the new line list, or None when `lines` carries no fence (the caller
+    then replaces the whole span). The whole region from the opening
+    delimiter to the matching closing delimiter is replaced by the single
+    rendered block, so the slot gains a fresh fence+prose unit instead of
+    splicing the stops text between pre-existing delimiters (which a stops
+    text carrying its own fence would interlock with)."""
+    fence_i = None
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("```"):
+            fence_i = i
+            break
+    if fence_i is None:
+        return None
+    close_i = None
+    for i in range(fence_i + 1, len(lines)):
+        if lines[i].strip().startswith("```"):
+            close_i = i
+            break
+    if close_i is None:
+        close_i = len(lines) - 1
+    return lines[:fence_i] + block.splitlines() + lines[close_i + 1:]
+
+
 def _write_stops_section(card_path: Path, seat: str, stops_text: str,
-                         diff_gap: str | None = None):
+                         diff_gap: str | None = None,
+                         frac: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
     own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
     any header whose title `_locate_where_it_stops` keys on -- 'where it
-    stops' / 'next command'), replacing that section up to the next heading
-    and carrying everything else verbatim. When the card has no where-it-
-    stops slot at ALL, the slot is CREATED at the card's end as
-    `### 🔴 Where it stops`. When `--ask-diff <gap>` accompanies `--stops`,
-    the gap is ALSO written as `diff requested: <gap>` beneath the stops
-    body. Returns `(body, slot)` on success (slot in {'replaced', 'created'})
+    stops' / 'next command'), replacing only the slot's FENCED block (the
+    fence + the stops text together, rendered by `_render_stops_block`) and
+    carrying the slot's own prose OUTSIDE the fence -- before it and after
+    it -- byte-identical. When the card has no where-it-stops slot at ALL,
+    the slot is CREATED at the card's end as `### 🔴 Where it stops` using
+    the SAME render function. When `--ask-diff <gap>` accompanies `--stops`,
+    the gap is ALSO written as `diff requested: <gap>` after the fence.
+    Returns `(body, slot)` on success (slot in {'replaced', 'created'})
     or `(None, error)` when the where-it-stops slot is AMBIGUOUS (refused,
     never guessed). Never raises."""
     existing = (card_path.read_text(encoding="utf-8")
@@ -10598,11 +10703,13 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         return None, "ambiguous where-it-stops slot on the own card; " \
                      "refused (rotate-self --stops never guesses)"
     if stops is None:
-        extra = f"### 🔴 Where it stops\n{stops_text}"
-        if diff_gap:
-            extra += f"\n\ndiff requested: {diff_gap}"
+        extra = (f"### 🔴 Where it stops\n"
+                 + _render_stops_block(stops_text, diff_gap))
         full = _render_card(preamble, sections)
         full = full.rstrip("\n") + "\n\n" + extra + "\n"
+        if frac is not None:
+            full = _stamp_rotating_header(
+                full, frac, datetime.utcnow().strftime("%H:%MZ"))
         card_path.parent.mkdir(parents=True, exist_ok=True)
         card_path.write_text(full, encoding="utf-8")
         return full, "created"
@@ -10618,22 +10725,30 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         sub_header = (lines[sub] if sub < len(lines)
                       else "### 🔴 Where it stops")
         end = len(lines)
+        in_fence = False
         for j in range(sub + 1, len(lines)):
-            if lines[j].strip().startswith("#"):
+            s = lines[j].strip()
+            if s.startswith("```"):
+                in_fence = not in_fence
+                continue
+            if s.startswith("#") and not in_fence:
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
-        block = sub_header + "\n" + stops_text
-        if diff_gap:
-            block += f"\n\ndiff requested: {diff_gap}"
-        new_body = "\n".join(keep + block.splitlines() + tail)
+        block = _render_stops_block(stops_text, diff_gap)
+        new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
+        if new_region is None:
+            new_region = block.splitlines()   # no fence: whole slot replaced
+        new_body = "\n".join(keep + [sub_header] + new_region + tail)
     else:
-        new_body = _replace_stops_body(body, stops_text, None)
-        if diff_gap:
-            new_body = (new_body.strip() + f"\n\ndiff requested: {diff_gap}"
-                        if new_body.strip() else f"diff requested: {diff_gap}")
+        block = _render_stops_block(stops_text, diff_gap)
+        new_region = _stops_replace_fenced_region(body.splitlines(), block)
+        new_body = block if new_region is None else "\n".join(new_region)
     sections[sec_idx] = (header, new_body)
     full = _render_card(preamble, sections)
+    if frac is not None:
+        full = _stamp_rotating_header(
+            full, frac, datetime.utcnow().strftime("%H:%MZ"))
     card_path.parent.mkdir(parents=True, exist_ok=True)
     card_path.write_text(full, encoding="utf-8")
     return full, "replaced"
@@ -10902,6 +11017,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:
+            print(f"(--stops) {_resolved_stops_slot_text(_card)}")
             print(f"(--stops) would write where-it-stops into {_card}")
             print(f"(--stops) commit: {_msg!r} "
                   f"(card + the seat's own seats.md row, nothing else)")
@@ -10912,8 +11028,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   "<prime> (no send.py call needed; --dry-run, nothing "
                   "written)")
         else:
+            # (a) the header stamp rides this SAME write: the meter fraction
+            #     is read ONCE via the seat's own pin (the value rotate-self
+            #     already reads -- never re-derived), and passed down so the
+            #     rotate-out is ONE card write + ONE commit.
+            _frac = _seat_fraction(root, row)
             _full, _slot = _write_stops_section(
-                _card, seat, _stops_text, diff_gap=_gap)
+                _card, seat, _stops_text, diff_gap=_gap, frac=_frac)
             if _full is None:
                 print(f"ERR: rotate-self --stops: {_slot}", file=sys.stderr)
                 return 2
@@ -10951,7 +11072,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
     # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
     _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
-    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate,
+                                          stops_rotation=_stops_has)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
     # background tasks BEFORE it spawns, so it knows what to leave behind
@@ -11258,10 +11380,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         verification = _run_verification(
             root, argv=getattr(args, "verification_argv", None))
     if not args.dry_run:
+        # (SL7.29 part (b)) the ack answer is fully knowable BEFORE the spawn
+        #     (`_answer = "diff-requested" if ask_diff else "continue"`), so
+        #     the PRE-SPAWN bootstrap record carries it verbatim via the
+        #     `overrides` seam -- `- ack: continue (source predecessor, gen
+        #     N)` (or diff-requested) at TURN ONE, instead of `ack: none`
+        #     (which happened because the pre-spawn `_derive_bootstrap_fact`
+        #     found no ack FILE yet -- the ack is only written at s6.3, AFTER
+        #     the successor has already read this record). The post-join s11
+        #     rewrite and the existing `overrides` machinery are unchanged;
+        #     this only makes the TURN-ONE record truthful.
+        _ack_answer = "diff-requested" if ask_diff else "continue"
         _write_bootstrap(
             root, seat=seat, generation=gen,
             telemetry=tmpl.get("telemetry"), verification=verification,
-            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS))
+            join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
+            overrides={"ack": f"{_ack_answer} (source predecessor, gen {gen})"})
 
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
@@ -11648,17 +11782,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             f"generation {gen_before} of seat {seat!r} retired; successor "
             f"generation {gen} owns it (release by RECORD: the config:seats "
             "self_row schema has no retired field)")
-        # (s6.5) reap our own process by PID — an EXPLICIT STAND-IN (internal
-        #     seam; the CLI flag is gone). Real own pids are never reaped
-        #     here.
-        own_pid = getattr(args, "own_pid", None)
-        if own_pid:
-            handover["reap_own_pid"] = _reap_pid(int(own_pid))
-        else:
-            handover["reap_own_pid"] = {
-                "pid": None, "reaped": False,
-                "note": "no own-pid stand-in supplied; the predecessor's "
-                        "process is NOT reaped by this run"}
+        # (O3/g15.25 (c)) the reap stand-in seam is RETIRED: s12_self_reap
+        #     (written at the end of this same flow) is the ONE reap section.
+        #     The record never claimed the predecessor was NOT reaped while
+        #     s12 said it was reaped — one truth per record.
         # (s6.6) Belam cap: a prime_director keeps the predecessor chain
         #     exactly five deep — reap the OLDEST when a sixth would exist.
         if role == "prime_director" or getattr(args, "belam_prefix", None):
@@ -11845,6 +11972,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     rotated file is an ADDITIONAL name, never a changed shape.
     _rot = _rotate_ack_file(root, seat, gen)
     if _rot:
+        if _rot.startswith("ack rotated:"):
+            # (b) the record names the ack AS IT EXISTS at record time: the
+            #     live `seats/<seat>.ack.json` is now `.ack.gen<N>.json`, so
+            #     the SAME record's `ack_written` is rewritten to the rotated
+            #     path (a reader following the record must not open a path
+            #     that no longer exists) and the spawn-time value is preserved
+            #     under `ack_written_at_spawn`. Naming only -- the ack SHAPE
+            #     is untouched. The record file is rewritten in place (same
+            #     path `_write_rotation_record` already opened).
+            _spawn_ack = handover.get("ack_written")
+            if (isinstance(_spawn_ack, str) and _spawn_ack
+                    and not _spawn_ack.startswith("FAILED")):
+                handover["ack_written_at_spawn"] = _spawn_ack
+                handover["ack_written"] = str(_ack_path(root, seat)
+                                               .with_name(
+                                                   f"{seat}.ack.gen{gen}.json"))
+                if record_path:
+                    _rp = Path(record_path)
+                    if _rp.exists():
+                        _rec = json.loads(_rp.read_text(
+                            encoding="utf-8", errors="replace"))
+                        _rec["handover"] = handover
+                        _write_rotation_record(root, _rec, path=record_path)
         print(_rot)
 
     # (6.4) THE SERVICE performs the captive after_join first turn (0b-b owed
