@@ -15,6 +15,11 @@ fields:
   tags: {type: list}
   payload_ref: {type: str}    # path of the file this experiment IS, relative to `location`
   location: {type: str}       # NAME of the base it resolves against; default source_root
+  probes: {type: list}        # additive (hypothesis:l4-cli-done-for-tier-parent-...): the
+                              # parent-run negative probes, one per claim conjunct of the
+                              # target hypothesis; each = {conjunct:int, class, cmd,
+                              # expected, observed, result}. Recorded by cli.py done like
+                              # evidence_runs (same record, same commit).
 validation:
   required: [id, type, mint_id, title]
   types:
