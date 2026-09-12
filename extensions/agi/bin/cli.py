@@ -1963,27 +1963,95 @@ def _post_rename_jobs(root: Path) -> list:
     return jobs
 
 
-def _post_rename_print(step: str, cmd: str, applied: bool) -> None:
-    print(f"[{'APPLY' if applied else 'DRY '}] {step}: {cmd}")
+def _post_rename_print(step: str, cmd: str, applied: bool,
+                       rollback: str | None = None) -> None:
+    tail = f"  -- rollback: {rollback}" if rollback else ""
+    print(f"[{'APPLY' if applied else 'DRY '}] {step}: {cmd}{tail}")
+
+
+def _post_rename_plan_path(root: Path) -> Path:
+    """The resumability state file, under the graph root's sessions/ dir (a
+    gitignored scratch area, so a clean checkout starts fresh)."""
+    return Path(root) / "sessions" / "post-rename-plan.json"
+
+
+def _post_rename_load_plan(root: Path) -> dict:
+    """The {step_name: bool} done map, or {} when absent/corrupt."""
+    try:
+        data = _post_rename_plan_path(root).read_text(encoding="utf-8")
+        loaded = json.loads(data)
+        return loaded if isinstance(loaded, dict) else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _post_rename_save_plan(root: Path, text: str) -> None:
+    """Atomically (write-then-rename) persist the plan file."""
+    p = _post_rename_plan_path(root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".json.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(p)
+
+
+def _post_rename_has_origin(repo: Path) -> bool:
+    r = subprocess.run(["git", "remote"], cwd=repo, capture_output=True, text=True)
+    return "origin" in (r.stdout or "").split()
+
+
+def _post_rename_current_branch(repo: Path) -> str:
+    r = subprocess.run(["git", "branch", "--show-current"], cwd=repo,
+                       capture_output=True, text=True)
+    return (r.stdout or "").strip() or "HEAD"
+
+
+def _post_rename_has_branch(repo: Path, branch: str) -> bool:
+    r = subprocess.run(["git", "branch", "--list", branch], cwd=repo,
+                       capture_output=True, text=True)
+    return bool((r.stdout or "").strip())
+
+
+def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
+    """True when `ref` (e.g. refs/heads/post/a@s2) exists on origin."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref], cwd=repo,
+                       capture_output=True, text=True)
+    return bool((r.stdout or "").strip())
+
+
+def _post_rename_upstream(repo: Path, branch: str) -> str:
+    """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset."""
+    r = subprocess.run(["git", "rev-parse", "--abbrev-ref",
+                        f"{branch}@{{upstream}}"], cwd=repo,
+                       capture_output=True, text=True)
+    return (r.stdout or "").strip()
 
 
 def cmd_post_rename(args: argparse.Namespace) -> int:
     """hypothesis:l4-a-seat-is-a-post-everywhere — clause 3: the live rename
-    (migration script + fixture proof). Renames the seat geometry to posts IN
-    ORDER, printing every step:
-      1. fetch                    (dry-run: print only)
+    (migration script + fixture proof; L4.306 FIX-ONLY). Renames the seat
+    geometry to posts IN ORDER, printing every step AND its ROLLBACK:
+      1. fetch
       2. git mv seats.md->posts.md, rewrite id:config:seats->config:posts and
          seats:->posts:, keeping mint_id BYTE-IDENTICAL
-      3. rewrite each row `worktree` cell seat-<name> -> post-<name>
+      3. COMMIT + PUSH posts.md as its own step (git add <dest> && commit; push
+         the current branch when an `origin` exists) — leaves no dirty tree for
+         the ack dirty-gate (L4.306 fix)
       4. git worktree move each .agi/worktrees/seat-<name> -> post-<name>
-      5. git branch -m seat/<name>@s2 -> post/<name>@s2, LOCAL then REMOTE
-         (push new, delete old LAST)
+      5. git branch -m seat/<name>@s2 -> post/<name>@s2 (local)
+      6. push the renamed branch (new) then delete the old, when origin exists
+      7. git branch --set-upstream-to origin/post/<name>@s2 when origin exists
+         (L4.306 fix: a bare `git push` in a renamed worktree fails without it)
 
-    --dry-run changes NOTHING and prints the exact ordered steps. --apply
-    performs them against the --root graph (default: resolve normally — the
-    LIVE tree, which is the Prime's job, never a kid's). All git runs with
-    cwd at the repo top derived from --root, so an --apply against a fixture
-    tmp_path is hermetic and never touches the shared tree.
+    --dry-run changes NOTHING, prints the ordered steps, and does NOT write the
+    plan file. --apply performs them against the --root graph (default: resolve
+    normally — the LIVE tree, which is the Prime's job, never a kid's), recording
+    each finished step in <root>/sessions/post-rename-plan.json so a re-run
+    RESUME skips already-done steps (idempotent); each sub-operation also
+    self-skips when its target state already holds, so a step that failed
+    half-way through a job loop can resume. A failed step writes the plan
+    recording exactly what completed before it. All git runs with cwd at the
+    repo top derived from --root, so an --apply against a fixture tmp_path is
+    hermetic and never touches the shared tree.
     """
     root = Path(args.root).resolve() if args.root else _find_root()
     apply = bool(args.apply)
@@ -1991,80 +2059,196 @@ def cmd_post_rename(args: argparse.Namespace) -> int:
     cfg, _key = geometry_config.resolve(root)
     cfg = Path(cfg) if cfg else None
 
-    # 1. fetch
-    _post_rename_print("fetch", "git fetch", apply)
-    if apply:
-        r = subprocess.run(["git", "fetch"], cwd=repo, capture_output=True, text=True)
-        if r.returncode != 0:
-            print(f"  note: git fetch rc={r.returncode} (no remote or offline); "
-                  "continuing with the local rename", file=sys.stderr)
-
-    # fail fast: without the geometry config there is nothing to rename
-    if cfg is None or not cfg.exists():
+    if cfg is None:
+        print("ERR: no geometry config to rename", file=sys.stderr)
+        return 1
+    # The SOURCE of the migration is always seats.md — never whatever resolve()
+    # returned (post-first returns posts.md on a re-run). dest is always posts.md.
+    seats_abs = cfg.parent / "seats.md"
+    posts_abs = cfg.parent / "posts.md"
+    seats_rel = seats_abs.relative_to(repo)
+    dest = posts_abs.relative_to(repo)
+    if not seats_abs.exists() and not posts_abs.exists():
         print("ERR: no geometry config (seats.md/posts.md) to rename", file=sys.stderr)
         return 1
 
     jobs = _post_rename_jobs(root)
-    rel = cfg.relative_to(repo)
-    dest = rel.parent / "posts.md"          # git mv target (repo-relative)
-    posts_abs = cfg.parent / "posts.md"     # for file IO (absolute)
+    plan = _post_rename_load_plan(root) if apply else {}
+    done = dict(plan.get("steps") or {})
 
-    # 2. git mv the geometry config file
-    _post_rename_print("git mv", f"git mv {rel} {dest}", apply)
-    if apply:
-        r = subprocess.run(["git", "mv", str(rel), str(dest)], cwd=repo,
+    def step_done(key: str) -> bool:
+        return bool(done.get(key))
+
+    def mark(key: str) -> None:
+        done[key] = True
+        if apply:          # dry-run never writes the plan file
+            _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+
+    origin = _post_rename_has_origin(repo) if apply else False
+    cur = _post_rename_current_branch(repo) if apply else "HEAD"
+
+    # 1. fetch (dry-run: print only)
+    _post_rename_print("fetch", "git fetch", apply)
+    if apply and not step_done("fetch"):
+        r = subprocess.run(["git", "fetch"], cwd=repo, capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  note: git fetch rc={r.returncode} (no remote or offline); "
+                  "continuing with the local rename", file=sys.stderr)
+        mark("fetch")
+
+    # 2. git mv seats.md -> posts.md + rewrite the frontmatter/worktree cells
+    if posts_abs.exists() and not seats_abs.exists():
+        _post_rename_print("git mv", f"skip {seats_rel} (already moved to {dest})",
+                           apply, rollback=f"git mv {dest} {seats_rel}")
+    else:
+        _post_rename_print("git mv", f"git mv {seats_rel} {dest}", apply,
+                           rollback=f"git mv {dest} {seats_rel}")
+        _post_rename_print("rewrite frontmatter + worktree cells",
+                           f"edit {dest} (id, seats:, worktree cells)", apply)
+    if apply and not step_done("git_mv") and not (posts_abs.exists()
+                                                   and not seats_abs.exists()):
+        r = subprocess.run(["git", "mv", str(seats_rel), str(dest)], cwd=repo,
                            capture_output=True, text=True)
         if r.returncode != 0:
+            _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
             print(f"ERR: git mv failed: {r.stderr.strip()}", file=sys.stderr)
             return 1
-        text = posts_abs.read_text(encoding="utf-8")
-        rewritten = _post_rename_rewrite(text, [j["name"] for j in jobs])
-        posts_abs.write_text(rewritten, encoding="utf-8")
-        _post_rename_print("rewrite frontmatter + worktree cells",
-                           f"edit {dest} (id, {rel.stem}:, worktree cells)", True)
-    else:
-        _post_rename_print("rewrite frontmatter + worktree cells",
-                           f"edit {dest} (id, {rel.stem}:, worktree cells)", False)
+        posts_abs.write_text(
+            _post_rename_rewrite(posts_abs.read_text(encoding="utf-8"),
+                                 [j["name"] for j in jobs]),
+            encoding="utf-8")
+        mark("git_mv")
+    elif apply and not step_done("git_mv"):
+        mark("git_mv")   # already migrated (posts.md present, seats.md gone)
+
+    # 3. COMMIT + PUSH posts.md as its OWN step (L4.306 fix: the ack dirty-gate
+    #    refuses every ack while the tree is dirty — commit posts.md so a
+    #    migrated tree is clean; push the current branch when origin exists)
+    commit_cmds = [f"git add {dest}",
+                   'git commit -m "post-rename: seats.md -> posts.md"']
+    if origin:
+        commit_cmds.append(f"git push origin {cur}")
+    _post_rename_print("commit posts.md", " && ".join(commit_cmds), apply,
+                       rollback="git reset --soft HEAD~1 && git mv posts.md seats.md")
+    if apply and not step_done("commit_posts"):
+        if not (posts_abs.exists() and not seats_abs.exists()):
+            _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+            print("ERR: commit step reached before the git mv; aborting",
+                  file=sys.stderr)
+            return 1
+        r_add = subprocess.run(["git", "add", str(dest)], cwd=repo,
+                               capture_output=True, text=True)
+        r_com = subprocess.run(["git", "commit", "-m",
+                                "post-rename: seats.md -> posts.md"],
+                               cwd=repo, capture_output=True, text=True)
+        if r_com.returncode != 0 and "nothing to commit" not in r_com.stderr:
+            _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+            print(f"ERR: git commit posts.md failed: {r_com.stderr.strip()}",
+                  file=sys.stderr)
+            return 1
+        if origin:
+            r_pu = subprocess.run(["git", "push", "origin", cur], cwd=repo,
+                                  capture_output=True, text=True)
+            if r_pu.returncode != 0:
+                print(f"  note: git push origin {cur} rc={r_pu.returncode} "
+                      f"(commit kept locally); {r_pu.stderr.strip()}",
+                      file=sys.stderr)
+        mark("commit_posts")
 
     # 4. git worktree move each seat-<name> -> post-<name>
     for j in jobs:
         old = j["wt_rel"]
         new = old.replace("seat-" + j["name"], "post-" + j["name"])
-        _post_rename_print("git worktree move", f"git worktree move {old} {new}", apply)
-        if apply:
+        skip = (repo / new).exists() and not (repo / old).exists()
+        cmd = (f"git worktree move {old} {new}" if not skip
+               else f"skip {old} (already {new})")
+        _post_rename_print("git worktree move", cmd, apply,
+                           rollback=f"git worktree move {new} {old}")
+        if apply and not step_done("worktree_move") and not skip:
             r = subprocess.run(["git", "worktree", "move", old, new],
                                cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
+                _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
                 print(f"ERR: git worktree move {old} failed: {r.stderr.strip()}",
                       file=sys.stderr)
                 return 1
+    if apply:
+        mark("worktree_move")
 
-    # 5. rename branches local + remote
+    # 5. rename branches local
     for j in jobs:
         old_b = f"seat/{j['name']}@s2"
         new_b = f"post/{j['name']}@s2"
-        _post_rename_print("branch rename (local)", f"git branch -m {old_b} {new_b}", apply)
-        _post_rename_print("branch rename (remote)",
-                           f"git push origin {new_b} && git push origin --delete {old_b}",
-                           apply)
-        if apply:
+        skip = _post_rename_has_branch(repo, new_b) and not _post_rename_has_branch(repo, old_b)
+        cmd = (f"git branch -m {old_b} {new_b}" if not skip
+               else f"skip {old_b} (already {new_b})")
+        _post_rename_print("branch rename (local)", cmd, apply,
+                           rollback=f"git branch -m {new_b} {old_b}")
+        if apply and not step_done("branch_rename") and not skip:
             r = subprocess.run(["git", "branch", "-m", old_b, new_b],
                                cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
+                _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
                 print(f"ERR: git branch -m {old_b} failed: {r.stderr.strip()}",
                       file=sys.stderr)
                 return 1
-            rem = subprocess.run(["git", "remote"], cwd=repo, capture_output=True,
-                                 text=True)
-            if "origin" in rem.stdout.split():
-                for push in (["push", "origin", new_b],
-                             ["push", "origin", "--delete", old_b]):
-                    pr = subprocess.run(["git"] + push, cwd=repo,
-                                        capture_output=True, text=True)
-                    if pr.returncode != 0:
-                        print(f"ERR: git {' '.join(push)} failed: "
-                              f"{pr.stderr.strip()}", file=sys.stderr)
+    if apply:
+        mark("branch_rename")
+
+    # 6. push the renamed branch (new, then delete old LAST) — when origin exists
+    for j in jobs:
+        old_b = f"seat/{j['name']}@s2"
+        new_b = f"post/{j['name']}@s2"
+        _post_rename_print("branch push (remote)",
+                           f"git push origin {new_b} ; git push origin --delete {old_b}",
+                           apply,
+                           rollback=f"git push origin {old_b} ; git push origin --delete {new_b}")
+    if apply and not step_done("branch_push"):
+        if origin:
+            for j in jobs:
+                old_b = f"seat/{j['name']}@s2"
+                new_b = f"post/{j['name']}@s2"
+                if not _post_rename_ls_remote(repo, f"refs/heads/{new_b}"):
+                    r = subprocess.run(["git", "push", "origin", new_b], cwd=repo,
+                                       capture_output=True, text=True)
+                    if r.returncode != 0:
+                        _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+                        print(f"ERR: git push origin {new_b} failed: {r.stderr.strip()}",
+                              file=sys.stderr)
                         return 1
+                if _post_rename_ls_remote(repo, f"refs/heads/{old_b}"):
+                    r = subprocess.run(["git", "push", "origin", "--delete", old_b],
+                                       cwd=repo, capture_output=True, text=True)
+                    if r.returncode != 0:
+                        _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+                        print(f"ERR: git push origin --delete {old_b} failed: "
+                              f"{r.stderr.strip()}", file=sys.stderr)
+                        return 1
+        mark("branch_push")
+
+    # 7. set the upstream on each renamed branch (L4.306 fix) — after the push,
+    #    so origin/post/<name>@s2 exists to bind to
+    for j in jobs:
+        new_b = f"post/{j['name']}@s2"
+        _post_rename_print("branch upstream",
+                           f"git branch --set-upstream-to origin/{new_b} {new_b}",
+                           apply,
+                           rollback=f"git branch --unset-upstream {new_b}")
+    if apply and not step_done("branch_upstream"):
+        if origin:
+            for j in jobs:
+                new_b = f"post/{j['name']}@s2"
+                if _post_rename_upstream(repo, new_b):
+                    continue
+                r = subprocess.run(["git", "branch", "--set-upstream-to",
+                                    f"origin/{new_b}", new_b], cwd=repo,
+                                   capture_output=True, text=True)
+                if r.returncode != 0:
+                    _post_rename_save_plan(root, json.dumps({"steps": done}, indent=2))
+                    print(f"ERR: git branch --set-upstream-to origin/{new_b} failed: "
+                          f"{r.stderr.strip()}", file=sys.stderr)
+                    return 1
+        mark("branch_upstream")
 
     print("dry-run: nothing changed" if not apply else "rename applied")
     return 0
