@@ -939,6 +939,27 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
     return None
 
 
+def _meter_seat_label(seat: str | None) -> str:
+    """The post label for the [meter] line — the RESOLVED seat/post name, or
+    'n/a' when none could be resolved. D1: never invent a post name."""
+    return seat if seat else "n/a"
+
+
+def _meter_line(post_label: str, fraction: float, used: int, window: int,
+                threshold: float, label: str = "") -> str:
+    """D1 — the ONE compact meter line, the LAST stdout line on every prompt:
+    `[meter] post=<post> <fraction|est. fraction> (<tokens>/<window>) line=<line>`.
+    `label` is 'est. ' (D3) or '' on a real measurement."""
+    return (f"[meter] post={post_label} {label}{fraction:.4f} "
+            f"({used}/{window}) line={threshold:.4f}")
+
+
+def _meter_refusal(post_label: str, reason: str) -> str:
+    """D4 — a refusal meter line: the reason IN PLACE OF the fraction, never
+    a digit where a fraction would go. P6 stays fail-closed."""
+    return f"[meter] post={post_label} {reason}"
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
@@ -964,6 +985,10 @@ def main(argv: list[str] | None = None) -> int:
     # Fail closed with a NAMED error if the field we depend on is missing
     # (P2). Never emit a fraction we cannot trace to a handed transcript.
     if not (isinstance(transcript, str) and transcript.strip()):
+        # D4: no transcript path — the meter reads the refusal reason (a real
+        # measurement is impossible), never a confident number. No project root
+        # is known yet, so the post label is the unresolved marker.
+        print(_meter_refusal(_meter_seat_label(None), "no-transcript-path"))
         print('rotation-alert: fail-closed: payload has no "transcript_path"; '
               "refusing to guess a transcript. Emitting no rotation warning.",
               file=sys.stderr)
@@ -988,6 +1013,12 @@ def main(argv: list[str] | None = None) -> int:
         window = 0
         ladder_default = 0.0
     if window <= 0 or ladder_default <= 0:
+        # D4: no window / no ladder — a real fraction cannot be computed, so
+        # the meter reads the refusal reason, never a confident number. Keep
+        # the fail-closed stderr message AND the exit code (P6). The post
+        # label resolves the seat name (its threshold is ignored).
+        probe_seat = _meter_seat_label(_seat_line(root, cwd, 0.0)[0])
+        print(_meter_refusal(probe_seat, "no-window"))
         print("rotation-alert: fail-closed: ladder declares no "
               f"director_context_tokens/window (got {ladder.get('director_context_tokens')!r}) and no "
               f"director_rotate_at (got {ladder.get('director_rotate_at')!r}); "
@@ -1001,10 +1032,41 @@ def main(argv: list[str] | None = None) -> int:
     # (hypothesis:l4-a-seat-rotates-at-its-own-line).
     seat, threshold, threshold_source = _seat_line(root, cwd, ladder_default)
 
+    # D4 falsifier: a RESOLVED seat whose pin cannot be computed refuses the
+    # number — the [meter] line reads the reason, never a confident fraction
+    # (a missing pin must NOT print a fraction). An UNRESOLVED seat (None)
+    # still measures against the ladder line per D1 — the [meter] prints the
+    # resolved label, never invents one.
+    pin_missing = bool(seat) and (_canonical_pin(root, seat) is None)
+
+    def _meter(usedv: int, thresh: float, frac: float, label: str = "") -> None:
+        """Append the ONE compact [meter] line as the LAST stdout line. D4: a
+        missing pin reads the refusal reason; otherwise a real/estimated
+        fraction (D1/D3)."""
+        if pin_missing:
+            print(_meter_refusal(_meter_seat_label(seat), "no-pin"))
+        else:
+            print(_meter_line(_meter_seat_label(seat), frac, usedv, window,
+                              thresh, label=label))
+
     try:
         used, seen = _latest_usage(tp)
     except OSError as exc:
         print(f"rotation-alert: fail-closed: cannot read transcript: {exc}", file=sys.stderr)
+        return 0
+
+    if seen == 0:
+        # D3: turn 1 — no assistant message yet, so the meter is ESTIMATED and
+        # labelled, never a blank or a bare unlabelled 0.0000. est =
+        # (prompt bytes + transcript bytes) / 4. Informational only: the band
+        # block is NOT printed from an estimate. The [meter] line is the whole
+        # stdout on a wake.
+        try:
+            transcript_bytes = tp.stat().st_size
+        except OSError:
+            transcript_bytes = 0
+        est = int((len(raw) + transcript_bytes) / 4)
+        _meter(est, threshold, est / window, label="est. ")
         return 0
 
     fraction = used / window
@@ -1075,14 +1137,19 @@ def main(argv: list[str] | None = None) -> int:
                       "(rotate-out ZERO calls); the stops line is landing on "
                       "its card. The command below inspects/rotates by hand "
                       "if needed.")
-        return _emit(AT_OR_OVER_TITLE,
-                     f"This session is at or over its rotation line: "
-                     f"{fraction:.4f} ≥ {threshold:.4f}. Rotate NOW. If you were "
-                     f"mid-round, hand off cleanly first."
-                     + suffix)
+        _rc = _emit(AT_OR_OVER_TITLE,
+                    f"This session is at or over its rotation line: "
+                    f"{fraction:.4f} ≥ {threshold:.4f}. Rotate NOW. If you were "
+                    f"mid-round, hand off cleanly first."
+                    + suffix)
+        _meter(used, threshold, fraction)
+        return _rc
 
     if band < 0 or b_frac <= 0.0:
-        # Below the lowest band: nothing has changed — stay silent (P3).
+        # Below the lowest band: no band block (silent in the body, P3), but
+        # the [meter] line still prints (D1) so a session never goes a prompt
+        # without a reading.
+        _meter(used, threshold, fraction)
         return 0
 
     if band not in fired_bands:
@@ -1093,12 +1160,16 @@ def main(argv: list[str] | None = None) -> int:
         except OSError:
             pass
         pct = int(b_frac * 100)
-        return _emit(BENEATH_TITLE,
-                     f"Approaching rotation ({fraction:.4f} of the window = "
-                     f"{fraction/threshold:.4f} of the line). "
-                     f"Crossed band {pct}% of threshold.")
+        _rc = _emit(BENEATH_TITLE,
+                    f"Approaching rotation ({fraction:.4f} of the window = "
+                    f"{fraction/threshold:.4f} of the line). "
+                    f"Crossed band {pct}% of threshold.")
+        _meter(used, threshold, fraction)
+        return _rc
 
-    # Already fired this band this session — silence (P3).
+    # Already fired this band this session — the band block stays silent (P3),
+    # but the [meter] line still prints (D1).
+    _meter(used, threshold, fraction)
     return 0
 
 
