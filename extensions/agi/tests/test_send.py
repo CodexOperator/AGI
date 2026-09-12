@@ -5214,7 +5214,10 @@ def test_whois_sig_unresolvable_path_traversal_refs_write_nothing_recursive(
         assert f"UNVERIFIABLE (no row: {raw})" in text, (raw, text)
         assert "FORGED" not in text, (raw, text)
         assert "REFUSED" not in text, (raw, text)
-        assert rc != 2, (raw, rc)   # no FORGED refusal => never the hard exit
+        assert rc == send_mod.WHOIS_NO_MATCH, (raw, rc)  # nil row => the
+        # no-match exit BY NAME (3), not merely "not the forged hard exit":
+        # an unresolvable traversal ref must read NO-MATCH, never a 0 that
+        # a caller might treat as authority (SL7.35 pin).
         assert before == after, \
             f"an unresolvable traversal ref writes nothing: {raw}"
 
