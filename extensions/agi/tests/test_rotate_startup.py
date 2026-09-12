@@ -2080,3 +2080,99 @@ def test_first_seating_family_reaches_no_origin_fetch(monkeypatch, tmp_path):
     assert seen["n"] == 0, (
         f"first-seating family reached the origin fetch {seen['n']} times; "
         f"expected 0 with the seam stubbed")
+
+
+# ── g15.25 SL7.71 — the 'meter' telemetry key resolves in the bootstrap ────
+
+
+def _cc_transcript(path, input_tokens=1000, cache_read=0, cache_creation=0):
+    """A one-assistant-turn Claude Code transcript JSONL with a usage block."""
+    path.write_text(json.dumps({
+        "message": {
+            "role": "assistant",
+            "usage": {
+                "input_tokens": input_tokens,
+                "cache_read_input_tokens": cache_read,
+                "cache_creation_input_tokens": cache_creation,
+                "output_tokens": 50,
+            },
+        },
+    }) + "\n", encoding="utf-8")
+    return path
+
+
+def _meter_pin(root, seat, transcript, gen=1):
+    sess = root / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    p = sess / f"{seat}{rotate.METER_PIN_EXT}"
+    p.write_text(f"{gen}\t{transcript}\n", encoding="utf-8")
+    return p
+
+
+def test_meter_fact_measured_fraction_exactly_as_meter_prints(tmp_path):
+    """(a) the pinned successor transcript that carries assistant usage ->
+    the measured fraction EXACTLY as rotate.py meter prints it — `0.NNNN
+    (used/tokens window) source=... threshold=...` — never an estimate, never
+    a bare number (goal:g15.25 SL7.71 falsifier: 'a transcript with usage
+    prints an estimate')."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = _cc_transcript(tr / "succ.jsonl", input_tokens=1000)
+    _meter_pin(tmp_path, "mseat", str(tx))
+    val, reason = rotate._derive_bootstrap_fact(
+        "meter", root=tmp_path, seat="mseat", seat_row={}, commit="abc1234")
+    assert reason is None
+    assert val.startswith("0.0010 (1000/1000000 tokens) ")
+    assert "source=claude-code transcript (pinned)" in val
+    assert "threshold=0.47" in val
+    assert "est." not in val
+
+
+def test_meter_fact_estimate_from_composed_first_input_bytes(tmp_path):
+    """(b) a pinned transcript with NO assistant usage yet, but the caller
+    supplied the successor's composed first-input byte count -> `est. N
+    tokens = first input <bytes>/4 (head + brief + STARTUP)` — LABELLED, never
+    a bare number (P6), never a confident wrong number."""
+    # transcript exists but carries only a user line: no assistant usage.
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    (tr / "succ.jsonl").write_text(
+        json.dumps({"message": {"role": "user", "content": "hello"}}) + "\n",
+        encoding="utf-8")
+    _meter_pin(tmp_path, "mseat", str(tr / "succ.jsonl"))
+    val, reason = rotate._derive_bootstrap_fact(
+        "meter", root=tmp_path, seat="mseat", seat_row={}, commit="abc1234",
+        meter_first_input_bytes=4000)
+    assert reason is None
+    assert val == ("est. 1000 tokens = first input 4000 bytes/4 "
+                   "(head + brief + STARTUP)")
+    assert val.startswith("est.")
+
+
+def test_meter_fact_join_only_pending_then_filled(tmp_path):
+    """(c) pre-spawn neither a measure nor the composed bytes -> the key is
+    join-only: the pre-spawn record writes `pending: resolved after join`
+    (never blank, never SKIPPED), and _fill_bootstrap_join_facts fills the
+    measured fraction once the successor's transcript carries its first
+    assistant turn — the pending marker is never left behind after the join."""
+    # pre-spawn write: meter is in BOOTSTRAP_JOIN_ONLY_FACTS, so it lands
+    # `pending: resolved after join`, never `SKIPPED: no handover derivation`.
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["ack", "meter"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS))
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["meter"] == "pending: resolved after join"
+    # after the join the successor has answered: a seat pin names a transcript
+    # that now carries assistant usage; the fill must resolve meter in place.
+    tr = tmp_path / "sessions"
+    tx = _cc_transcript(tr / "succ.jsonl", input_tokens=2000)
+    _meter_pin(tmp_path, "mseat", str(tx))
+    ok = rotate._fill_bootstrap_join_facts(
+        tmp_path, seat="mseat", live_model="claude-opus-5",
+        refusal_fallback="fallback", join_poll_secs=10)
+    assert ok
+    doc2 = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc2["telemetry"]["meter"].startswith("0.0020 (2000/1000000 tokens)")
+    assert not doc2["telemetry"]["meter"].startswith("pending:")
+    assert doc2["telemetry"]["meter"] != "SKIPPED: no handover derivation for meter"

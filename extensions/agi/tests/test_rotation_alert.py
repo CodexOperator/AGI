@@ -1379,3 +1379,187 @@ def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
     # over-line branch, proving the seat DID resolve and would have spawned.
     assert "ROTATION OWED" in proc.stdout
     assert "rotate.py" in proc.stdout
+
+# --------------------------------------------------------------------------
+# Round SL7.70 — the hook prints ONE compact [meter] line on EVERY prompt
+# (hypothesis:l4-the-rotation-alert-hook-prints-one-compact-meter-line-on-
+# every-prompt). Fix-only build: the pre-fix bytes are SILENT below the first
+# band and inside an already-fired band, so D1's "prints on every prompt"
+# fails them and passes the built ones. D1 = unconditional meter line (last
+# stdout line); D2 = band block unchanged ABOVE it; D3 = turn 1 estimated and
+# labelled; D4 = P6 refusal reason in place of the fraction.
+# --------------------------------------------------------------------------
+
+def test_meter_line_prints_below_first_band(agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """D1 — a prompt below the first band (currently silent in the body)
+    prints the [meter] line as its WHOLE stdout. The meter is unconditional;
+    the band escalation is what stays quiet below the line."""
+    transcript = tmp_path / "below.jsonl"
+    _write_transcript(transcript, 5_000)          # 0.05 < band 0 (0.10)
+    state_dir = tmp_path / "state-below"
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-below"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines, out
+    assert lines[-1].startswith("[meter]"), out
+    assert "0.0500" in lines[-1], lines[-1]        # a real fraction, not est.
+    assert "approaching rotation" not in out, out  # no band block below band
+    assert "--session-log" not in lines[-1], lines[-1]  # meter never the command
+
+
+def test_meter_line_last_stdout_line_after_band_crossing(agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """D2 — a band-crossing prompt prints the band block AND the [meter] line,
+    and the [meter] line is the LAST stdout line (asserted on the last
+    non-empty line, not an `in`)."""
+    transcript = tmp_path / "band.jsonl"
+    _write_transcript(transcript, 20_000)         # 0.20 -> crosses band 0.70
+    state_dir = tmp_path / "state-band"
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-band"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "approaching rotation" in out, out      # band block still prints
+    assert "--session-log" in out
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines[-1].startswith("[meter]"), out    # meter is the LAST line
+    assert "0.2000" in lines[-1], lines[-1]
+
+
+def test_turn_one_estimates_and_labels_meter(agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """D3 — turn 1 (no assistant usage yet) prints a labelled `est.` fraction
+    as the [meter] line, never a blank, never a bare unlabelled 0.0000. The
+    estimate is informational: NO band block fires from an estimate."""
+    transcript = tmp_path / "turn1.jsonl"
+    transcript.parent.mkdir(parents=True, exist_ok=True)
+    # a transcript with ONLY a user message — no assistant usage to measure.
+    transcript.write_text(json.dumps({"message": {"role": "user",
+                                                  "content": "hi"}}) + "\n")
+    state_dir = tmp_path / "state-turn1"
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-turn1"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines, out
+    assert lines[-1].startswith("[meter]"), out
+    assert "est." in lines[-1], lines[-1]          # labelled estimate
+    assert "0.0000" not in out, out                # never a bare unlabelled zero
+    assert "approaching rotation" not in out, out  # no band block from estimate
+    assert "--session-log" not in out, out
+
+
+def test_missing_pin_prints_refusal_reason_not_fraction(tmp_path, run_hook, monkeypatch, capsys):
+    """D4 — a RESOLVED seat whose pin cannot be computed refuses the number:
+    the [meter] line reads `post=<post> no-pin`, with NO digit where the
+    fraction would go (P6 stays fail-closed). FALSIFIER: a missing pin that
+    still prints a fraction."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setattr(hook, "_canonical_pin", lambda *a, **k: None)
+    tp = tmp_path / "nopin.jsonl"
+    _write_transcript(tp, 5_000)          # 0.05 < band0 (0.16) -> silent body
+    state_dir = tmp_path / "state-nopin"
+    code, out, err = run_hook(_payload(graph, tp, "sess-nopin", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines, out
+    assert lines[-1].startswith("[meter]"), out
+    assert len(lines) == 1, out           # silent body: meter is the whole stdout
+    after = lines[-1].split("post=probe-director ", 1)[1]
+    assert after.startswith("no-pin"), lines[-1]    # reason, owned by the seat
+    assert not after[:1].isdigit(), lines[-1]       # no confident number
+
+# --------------------------------------------------------------------------
+# T1 + T2 of experiment:a00-83d5d0e0-bcf35b (SL7.70 kid 2) — PIN THE P7
+# CARVE-OUT so no later kid 'fixes' the silent paths into a meter line, and
+# SETTLE the mid-read OSError path by measuring it.
+#
+# The claim's word 'unconditionally' is FALSE on exactly the paths the hook's
+# own P7 ("SILENT and exit 0 outside an agi project and on an unreadable
+# transcript — this runs on every session on the box and must never break
+# one", rotation_alert.py:36) requires to be silent. MEASURED on the real
+# hook bytes by this round's parent (three live payloads) and re-measured on
+# this base (experiment:a00-83d5d0e0-bcf35b):
+#   * no transcript_path                -> rc 3, `[meter] post=n/a
+#     no-transcript-path`  (fail-closed, P2)
+#   * transcript_path does not exist    -> rc 0, stdout '' (no [meter])
+#   * cwd outside an agi project        -> rc 0, stdout '' (no [meter])
+#   * transcript exists but unreadable  -> rc 0, stdout '' (no [meter]), a
+#     fail-closed reason on STDERR (measured: chmod-000, PermissionError)
+# These tests make the silence DELIBERATE and NAMED (P7 + hypothesis id), so
+# a later kid who reads 'unconditionally' cannot 'fix' it into a meter line
+# emitted into every non-agi session on this box. hypothesis:
+# l4-the-rotation-alert-hook-prints-one-compact-meter-line-on-every-prompt
+# --------------------------------------------------------------------------
+
+def test_p7_no_meter_outside_agi_project(run_hook, tmp_path, monkeypatch, capsys):
+    """P7 — a payload whose cwd has no enclosing .agi holding a config prints
+    NO [meter] at all (measurement, not inference):
+    `cwd outside an agi project -> rc 0, stdout ''`. The claim's meter line is
+    scoped INSIDE AN AGI PROJECT WITH A READABLE TRANSCRIPT; outside a project
+    the hook is silent and exits 0 (P7) so it never breaks a session.
+    hypothesis:l4-the-rotation-alert-hook-prints-one-compact-meter-line-on-
+    every-prompt. FALSIFIER: any [meter] token on stdout outside a project."""
+    outside = tmp_path / "plain-no-agi"      # no .agi/config.json above it
+    outside.mkdir(exist_ok=True)
+    transcript = tmp_path / "x.jsonl"
+    _write_transcript(transcript, 50_000)
+    state_dir = tmp_path / "state-p7out"
+    code, out, err = run_hook(_payload(outside, transcript, "sess-p7out",
+                                       cwd=outside),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert out == ""                          # deliberate P7 silence
+    assert "[meter]" not in out
+    assert "--session-log" not in out
+
+
+def test_p7_no_meter_transcript_does_not_exist(agi_project, run_hook, tmp_path,
+                                               monkeypatch, capsys):
+    """P7 — a transcript_path that does not exist on disk (so the hook cannot
+    read it) prints NO [meter] at all (measurement, not inference):
+    `transcript_path does not exist -> rc 0, stdout ''`. The claim's meter
+    line needs a readable transcript; a missing one is P7 silence (if the
+    hook were to emit a meter line it would have to print for a measurement it
+    never made). hypothesis:l4-the-rotation-alert-hook-prints-one-compact-
+    meter-line-on-every-prompt. FALSIFIER: any [meter] token on stdout for a
+    missing transcript."""
+    missing = tmp_path / "no-such-transcript.jsonl"  # does not exist on disk
+    state_dir = tmp_path / "state-p7miss"
+    code, out, err = run_hook(_payload(agi_project, missing, "sess-p7miss"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert out == ""                          # deliberate P7 silence
+    assert "[meter]" not in out
+    assert "--session-log" not in out
+
+
+def test_mid_read_oserror_is_p7_silence_not_claim(agi_project, run_hook,
+                                                  tmp_path, monkeypatch,
+                                                  capsys):
+    """T2 — a transcript that EXISTS but whose mid-read open() raises OSError
+    (permission lost between is_file() and open(); measured for real with a
+    chmod-000 file -> rc 0, stdout '', 'cannot read transcript' on stderr) is
+    P7 SILENCE, not the claim: the claim is scoped to 'INSIDE AN AGI PROJECT
+    WITH A READABLE TRANSCRIPT', and an unreadable transcript is explicitly
+    outside it. The hook must NOT print a [meter] line on stdout for a number
+    it could not read; the fail-closed reason goes to stderr (P6 never a
+    confident fraction, P7 never a broken session). Deterministic via the
+    `_latest_usage` seam (an unreadable real file is environment-dependent:
+    root bypasses 000). FALSIFIER: a [meter] line on stdout when
+    _latest_usage raises. hypothesis:l4-the-rotation-alert-hook-prints-one-
+    compact-meter-line-on-every-prompt."""
+    transcript = tmp_path / "readable-once.jsonl"
+    _write_transcript(transcript, 5_000)     # would read fine if not broken
+
+    def _raise(_tp):
+        raise OSError("simulated mid-read failure")
+
+    monkeypatch.setattr(hook, "_latest_usage", _raise)
+    state_dir = tmp_path / "state-oserr"
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-oserr"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0                    # P7: never break the session
+    assert "[meter]" not in out         # a number we could not read: never
+    assert out == ""
+    assert "cannot read transcript" in err      # fail-closed reason, on stderr
