@@ -3085,19 +3085,30 @@ def _rs_v3_towns_plan(repo: Path, tuples: list[dict]) -> list[tuple[str, str]]:
     return out
 
 
+def _rs_v3_core_town(tuples: list[dict]) -> str:
+    """The v3 season-owner town — the tuple whose season equals the global
+    season (the town every v3 post rename derives under). Extracted from
+    _rs_v3_posts_renames' inline gs/core so the I-3a-3 legacy-post fold-in in
+    the SAME plan derives the exact same target."""
+    gs = max((r.get("global_season") or 0) for r in tuples)
+    return next((r["town"] for r in tuples if (r.get("season") or 0) == gs),
+                tuples[0]["town"])
+
+
 def _rs_v3_posts_renames(repo: Path, tuples: list[dict]) -> list[tuple[str, str]]:
     """[(season<n>/posts/<p>, <core>/season<n>/posts/<p>/main)] — the v3
-    LOCAL post renames. Source = every live post branch season<n>/posts/<p>;
-    target = the season-owner town's post_main DERIVED through
-    branches.derive_names from the same tuple — never hand-spelled. NO push
-    (a post is not remote-visible), upstream UNSET (the target tracks
-    nothing; the old origin name falls to --delete-old)."""
+    LOCAL post renames. Source = every live post branch season<n>/posts/<p>
+    PLUS every legacy post/seat alias job (an alias branch the v2 stream
+    would rename to a season-first post) — I-3a-3 the latter skip the
+    season-first hop and go STRAIGHT to the same post_main target. Target =
+    the season-owner town's post_main DERIVED through branches.derive_names
+    from the same tuple — never hand-spelled. NO push (a post is not
+    remote-visible), upstream UNSET (the target tracks nothing; the old
+    origin name falls to --delete-old)."""
     import branches  # noqa: PLC0415
     if not tuples:
         return []
-    gs = max((r.get("global_season") or 0) for r in tuples)
-    core = next((r["town"] for r in tuples if (r.get("season") or 0) == gs),
-                tuples[0]["town"])
+    core = _rs_v3_core_town(tuples)
     out: list[tuple[str, str]] = []
     for b in _reshuffle_branches(repo):
         m = re.fullmatch(r"season(\d+)/posts/(.+)", b)
@@ -3110,6 +3121,27 @@ def _rs_v3_posts_renames(repo: Path, tuples: list[dict]) -> list[tuple[str, str]
             continue  # reserved town / bad post — not this plan's name
         if target != b:
             out.append((b, target))
+    # I-3a-3 (g15 yield): a legacy post/seat alias (an alias branch of a
+    # post) folds into THIS v3 LOCAL rename — its fate is the v3 post rename, never
+    # a season-first rename + push. Dedupe by target so a source that also
+    # lives canonically cannot be planned twice to the same name.
+    seen_targets = {t for _, t in out}
+    for job in _reshuffle_jobs(repo, 0):
+        try:
+            p = branches.parse(job["new"])
+        except ValueError:
+            continue
+        if p.get("kind") != "post":
+            continue
+        try:
+            target = branches.derive_names(
+                core, int(p["season"]), p["name"])["post_main"]
+        except (ValueError, KeyError):
+            continue  # reserved town / bad post — not this plan's name
+        if target in seen_targets:
+            continue
+        seen_targets.add(target)
+        out.append((job["old"], target))
     return out
 
 
@@ -3442,21 +3474,105 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
 
     # worktree re-points (post worktrees on a renamed branch)
     wts = _reshuffle_worktrees(repo)
-    rename = {j["old"]: j["new"] for j in jobs}
+
+    # I-3a-3 (g15 yield): when a v3 kind is requested AND the town set is
+    # DECLARED, the legacy job stream YIELDS to the v3 plan (hypothesis:
+    # l4-the-legacy-job-stream-yields-to-the-v3-plan). A legacy LOOP job and a
+    # legacy TOWN job are NOT renamed and NOT pushed here — their fates live
+    # in the v3 loop section (HELD BY NAME / prune) and the v3 town create
+    # section respectively. A legacy POST job is NOT renamed/pushed here
+    # either: it has already been folded into the v3 posts section's LOCAL
+    # rename (no push, upstream unset). Only kind-main jobs (master add-only,
+    # season<n>/main) keep the old rename+push here, and every push line
+    # passes branches.assert_remote_visible FIRST (a non-remote-visible push
+    # is refused BY NAME). When v3 is NOT on (no declared town set — a tree
+    # with no town:* node and no ladder towns: list), the old season-first-
+    # only stream stays and the header says the yield is inert.
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    _rs_tuples, _rs_town_src, _rs_town_declared = _rs_town_set(root)
+    _v3_on = bool(kinds & {"town_main", "main", "post", "loop"}) and \
+        _rs_town_declared
+    _yield_note = ("; v3 YIELD active (declared town set)" if _v3_on
+                   else "; v3 yield inert (no declared town set)")
+    # the step-1 rename map covers ONLY the jobs THIS stream performs: under
+    # v3-on the loop / town / post jobs are another section's (the v3 posts
+    # section re-points its own post worktrees), so both the worktree re-point
+    # here and the --apply tail iterate the filtered map, never the raw jobs.
+    rename = {j["old"]: j["new"] for j in jobs
+              if not (_v3_on and _reshuffle_kind(j["new"])
+                      in ("loop", "town_main", "post"))}
+    # I-3a-3 (g15 fix-only, coherence): the old names of the post-kind jobs
+    # that the v3 posts section ACTUALLY folds in (a legacy post/seat alias
+    # whose derived post_main target is FREE). A colliding alias — a target
+    # already owned by the canonical season<N>/posts/<p> branch that renames
+    # to it, or a same-target sibling — is NOT folded; it must still appear
+    # EXACTLY ONCE in the plan, its fate NAMED (deprecated duplicate, left
+    # to --delete-old), never renamed (two refs onto one target) and never
+    # pushed. Read from the same _rs_v3_posts_renames list the plan section
+    # prints, so step-1 and the v3 posts section can never disagree.
+    _post_folded_olds: frozenset[str] = frozenset()
+    if _v3_on and "post" in kinds and _rs_tuples:
+        _post_folded_olds = frozenset(
+            o for o, _ in _rs_v3_posts_renames(repo, _rs_tuples))
 
     # ---- step 1: local rename + push new + upstream + worktree re-points
-    print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)")
+    print(f"branch-reshuffle (season={season}): {len(jobs)} legacy branch(es)"
+          + _yield_note)
     for j in jobs:
         old, new = j["old"], j["new"]
+        if _v3_on:
+            _k = _reshuffle_kind(new)
+            if _k in ("loop", "post"):
+                # I-3a-3: a legacy loop is HELD BY NAME / pruned in the v3
+                # loop section; a legacy post was folded into the v3 posts
+                # LOCAL rename (no push, upstream unset). Both appear EXACTLY
+                # once, in their v3 section — never renamed or pushed here.
+                if _k == "post" and old not in _post_folded_olds:
+                    # I-3a-3 coherence (g15 fix-only): a post/seat alias
+                    # whose target is ALREADY owned (a canonical
+                    # season<N>/posts/<p> branch renames to the same derived
+                    # post_main, or a same-target sibling has it) is a
+                    # DEPRECATED DUPLICATE, not a rename — two refs must
+                    # never land on one target. Name its fate BY NAME so it
+                    # still appears exactly once in the plan (this routing
+                    # line), never renamed here and never pushed; the remote
+                    # --delete-old step removes it.
+                    print(f"  legacy post {old} -> duplicate of {new}; "
+                          f"left to --delete-old (no push, upstream "
+                          f"unchanged)")
+                continue
+            if _k == "town_main":
+                # I-3a-3: maps ONLY to the v3 create pair (pushed via
+                # _rs_v3_town_push, which asserts remote-visible first). The
+                # legacy city alias carries no town-first pair of its own — it
+                # maps to the town's V3 CREATE PAIR (both trunk-pair names) in
+                # the v3 town section. Name the routing once so the alias
+                # appears in exactly one section.
+                _pt = branches.parse(new)
+                _tn = _pt.get("town") or ()
+                print(f"  legacy town {old} -> maps ONLY to the v3 town create "
+                      f"pair (town {_tn})")
+                continue
         if old == "master":
             # L4.330 (KID A): a main-kind job is ADD-ONLY in the plan too.
             # master is the frozen season-1 name: it is NEVER `git branch
             # -m`'d; the new remote name is pushed FROM master's tip. This is
             # byte-for-byte what --apply runs for a master job (a push of
             # `old:new`, then it continues — no rename, no upstream re-point).
+            branches.assert_remote_visible(new)  # I-3a-3: push is gated first
             _post_rename_print("branch push (new)",
                                f"git push origin {old}:{new}", apply)
             continue
+        # I-3a-3: every push line THIS stream emits under the v3 yield passes
+        # assert_remote_visible FIRST, so a non-remote-visible push can never
+        # be planned here (only kind-main jobs survive to this line under the
+        # yield, and the season-main and master targets are remote-visible; the v3
+        # town pushes already assert inside _rs_v3_town_push). Under v3-OFF
+        # the preserved season-first-only stream still pushes its legacy
+        # names (posts / loops) by design — that is the
+        # old behaviour a town-less tree keeps, so no assert there.
+        if _v3_on:
+            branches.assert_remote_visible(new)
         _post_rename_print("branch rename (local)", f"git branch -m {old} {new}", apply)
         _post_rename_print("branch push (new)", f"git push origin {new}", apply)
         _post_rename_print("branch upstream",
@@ -3607,6 +3723,13 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # defect 2: --apply is RESUMABLE and refuses origin moves BY NAME.
         for j in jobs:
             old, new = j["old"], j["new"]
+            # I-3a-3 (g15 yield): under v3-on a loop / town / post job is
+            # ANOTHER section's (v3 loops HELD-BY-NAME/prune, v3 towns create pair,
+            # v3 posts LOCAL rename run in the _rs_v3_run apply tail below) —
+            # never apply the old season-first rename+push here.
+            if _v3_on and _reshuffle_kind(new) in ("loop", "town_main",
+                                                   "post"):
+                continue
             base_sha = (prev_plan.get(old) or {}).get("origin_sha") or ""
             if base_sha and has_origin:
                 now_sha = _rs_ls_remote_sha(repo, old)
