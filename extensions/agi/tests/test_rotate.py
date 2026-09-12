@@ -1864,7 +1864,7 @@ def test_read_ack_polls_until_written(tmp_path):
         ac.write_text(json.dumps({"seat": "s", "gen_after": 9,
                                   "answer": "continue"}), encoding="utf-8")
     threading.Thread(target=_writer, daemon=True).start()
-    got = rotate._read_ack(str(ac), gen_after=9, timeout=20)
+    got = rotate._read_ack(str(ac), gen_after=9, timeout=20, poll_s=0.05)
     assert got is not None and got["answer"] == "continue"
 
 
