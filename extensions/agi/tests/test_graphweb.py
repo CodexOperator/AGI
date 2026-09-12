@@ -700,3 +700,16 @@ def test_graph_version_changes_on_add_not_on_body_edit(graph) -> None:
     (graph / "nodes" / "goal" / "added.md").unlink()
     assert graphweb.graph_version(graph) == v1, \
         "an id-set round-trip must return to the original version"
+
+def test_dispatched_by_accepts_post_and_canonical_spellings():
+    """hypothesis:l4-a-seat-is-a-post-everywhere — `_dispatched_by` accepts
+    the seat's post- rename beside the deprecated seat- spelling: it derives
+    the seat name from `post/<name>@s2` and `season<n>/posts/<name>` just as
+    it does from `seat/<name>@s2`."""
+    assert graphweb._dispatched_by({"base_branch": "seat/sanctuary-director@s2"}) \
+        == "sanctuary-director"
+    assert graphweb._dispatched_by({"base_branch": "post/sanctuary-director@s2"}) \
+        == "sanctuary-director"
+    assert graphweb._dispatched_by({"base_branch": "season2/posts/sanctuary-director"}) \
+        == "sanctuary-director"
+    assert graphweb._dispatched_by({"base_branch": ""}) == ""

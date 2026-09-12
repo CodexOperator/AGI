@@ -622,11 +622,18 @@ def _dispatched_by(rec: dict) -> str:
     """The dispatching seat, derived from a lease's `base_branch`.
 
     Dispatches record `base_branch` like `seat/sanctuary-director@s2`; the
-    `seat/<name>` prefix names the seat that spawned this agent.
+    `seat/<name>` prefix names the seat that spawned this agent. The seat has
+    been renamed to a POST (hypothesis:l4-a-seat-is-a-post-everywhere):
+    `post/<name>@s2` and the canonical `season<n>/posts/<name>` are accepted
+    beside the deprecated `seat/<name>@s2`.
     """
     base = rec.get("base_branch") or ""
-    if base.startswith("seat/"):
-        return base[len("seat/"):].split("@")[0]
+    for prefix in ("post/", "seat/"):
+        if base.startswith(prefix):
+            return base[len(prefix):].split("@")[0]
+    parts = base.split("/")
+    if len(parts) == 3 and parts[1] == "posts":
+        return parts[2]
     return ""
 
 

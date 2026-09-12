@@ -411,6 +411,77 @@ def test_d_seat_measured_at_own_rotate_at(tmp_path, run_hook, monkeypatch, capsy
     assert "ladder.director_rotate_at" not in out, out
 
 
+# --- (kid 2) config:posts / post-<name> worktree / AGI_POST (hypothesis:
+# --- l4-a-seat-is-a-post-everywhere) ----------------------------------------
+def test_posts_md_is_resolved_post_first(tmp_path, run_hook, monkeypatch, capsys):
+    """A posts.md-ONLY fixture (no seats.md on disk — the post-rename live
+    shape) still resolves the post's OWN rotate_at. The measured fraction 0.45
+    is >= the posts row line 0.4 but < the ladder 0.47, so ROTATION OWED fires
+    only if the `posts:` row was read; a residual literal `seats.md` stat would
+    return [] and fall to the ladder ("approaching", not OWED) — and fail."""
+    outer = tmp_path / "outer"
+    graph = outer / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    # only posts.md exists — the renamed live file
+    (graph / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nposts:\n"
+        "  - {\"name\": \"sensei-director\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/post-sensei-director\", "
+        "\"rotate_at\": 0.4}\n---\n")
+
+    # cwd sits under the RENAMED `post-<name>` worktree spelling
+    post_cwd = graph / "worktrees" / "post-sensei-director"
+    post_cwd.mkdir(parents=True, exist_ok=True)
+
+    tp = tmp_path / "posts.jsonl"
+    _write_transcript(tp, 45_000)          # fraction 0.45: >= 0.4, < 0.47
+    state_dir = tmp_path / "state-posts"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-posts", cwd=str(post_cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out, out
+    # the message names the POSTS row that won — never {} / ladder
+    assert "config:posts" in out and "sensei-director" in out, out
+    assert "ladder.director_rotate_at" not in out, out
+
+
+def test_agi_post_wins_over_agi_seat_in_hook(tmp_path, run_hook, monkeypatch, capsys):
+    """Both AGI_POST and AGI_SEAT set: AGI_POST identifies the post, so the
+    threshold comes from the POST row (rotate_at 0.4) not the legacy row
+    (rotate_at 0.99). 0.45 fires ROTATION OWED only against the post row."""
+    outer = tmp_path / "outer"
+    graph = outer / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nposts:\n"
+        "  - {\"name\": \"new-post\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/post-new-post\", "
+        "\"rotate_at\": 0.4}\n"
+        "  - {\"name\": \"legacy-seat\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/seat-legacy-seat\", "
+        "\"rotate_at\": 0.99}\n---\n")
+    monkeypatch.setenv("AGI_POST", "new-post")
+    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
+
+    tp = tmp_path / "env.jsonl"
+    _write_transcript(tp, 45_000)          # >= 0.4 (new-post), < 0.99 and 0.47
+    state_dir = tmp_path / "state-env"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-env", cwd=str(graph)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out, out
+    assert "new-post" in out, out
+    assert "legacy-seat" not in out, out
+
+
 # --- (e) a seat rotate_at of 0 is treated as MISSING, not as threshold 0 ----
 def test_e_nonpositive_seat_rotate_at_falls_back_to_ladder(tmp_path, run_hook, monkeypatch, capsys):
     """RED-FIRST guard for the ZeroDivisionError. A config:seats row whose

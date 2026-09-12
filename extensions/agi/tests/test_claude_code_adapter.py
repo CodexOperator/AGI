@@ -576,6 +576,55 @@ def test_record_session_pin_derives_transcript_then_meter_reads_it(monkeypatch, 
     assert "source=claude-code transcript (pinned)" in out
 
 
+def test_record_session_pin_agi_post_wins_over_agi_seat(monkeypatch, tmp_path):
+    """Both AGI_POST and AGI_SEAT set: the meter pin is keyed by AGI_POST (the
+    primary spelling), never the deprecated AGI_SEAT value
+    (hypothesis:l4-a-seat-is-a-post-everywhere)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from adapters import claude_code_adapter as cc
+
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sess = graph / "sessions" / "iter-001" / "a00-posttest"
+    sess.mkdir(parents=True)
+    logf = sess / "output.log"
+    logf.write_text('{"type":"assistant","session_id":"own-sess-p","message":{"role":"assistant","usage":{"input_tokens":1}}}\n')
+
+    monkeypatch.setenv("AGI_POST", "new-post")
+    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
+
+    pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-posttest",
+                                cwd=str(tmp_path), log_file=logf)
+    assert pin is not None and pin.exists()
+    # pin keyed by AGI_POST (new-post), not AGI_SEAT (legacy-seat)
+    assert (graph / "sessions" / "new-post.meter").exists()
+    assert not (graph / "sessions" / "legacy-seat.meter").exists()
+
+
+def test_record_session_pin_agi_seat_only_is_legacy_fallback(monkeypatch, tmp_path):
+    """Only AGI_SEAT set: the deprecated spelling still keys the pin, so an
+    existing env that never sets AGI_POST keeps working this season."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from adapters import claude_code_adapter as cc
+
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sess = graph / "sessions" / "iter-001" / "a00-seatonly"
+    sess.mkdir(parents=True)
+    logf = sess / "output.log"
+    logf.write_text('{"type":"assistant","session_id":"own-sess-s","message":{"role":"assistant","usage":{"input_tokens":1}}}\n')
+
+    monkeypatch.setenv("AGI_SEAT", "legacy-seat")
+    monkeypatch.delenv("AGI_POST", raising=False)
+
+    pin = cc.record_session_pin(sess_dir=sess, agent_id="a00-seatonly",
+                                cwd=str(tmp_path), log_file=logf)
+    assert pin is not None and pin.exists()
+    assert (graph / "sessions" / "legacy-seat.meter").exists()
+
+
 # --- hypothesis:l3-cc-adapter-zombie-lease: session-limit + reaping ---------
 
 

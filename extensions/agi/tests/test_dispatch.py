@@ -1079,12 +1079,15 @@ def _git_repo(tmp_path: Path, branch: str = "init") -> Path:
 
 def test_loop_branch_name_carries_slug_agent_and_season():
     """ADDENDUM item 3: the agent id rides in the branch name so nested layers
-    never collide; the slug tells a human which aim the branch carries."""
+    never collide; the slug tells a human which aim the branch carries. The
+    branch shape is the grammar's `season<N>/loops/<slug>-<agent>`."""
     assert (dispatch.loop_branch_name("hypothesis:l3w4-x", "a00-abc8", 2)
-            == "loop/hypothesis-l3w4-x-a00-abc8@s2")
+            == "season2/loops/hypothesis-l3w4-x-a00-abc8")
     # colon flattened, explore fallback, season stamped
-    assert dispatch.loop_branch_name(None, "a00-x", 1) == "loop/explore-a00-x@s1"
-    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) == "loop/mvp-g-kid1@s3"
+    assert dispatch.loop_branch_name(None, "a00-x", 1) \
+        == "season1/loops/explore-a00-x"
+    assert dispatch.loop_branch_name("mvp:g", "kid1", 3) \
+        == "season3/loops/mvp-g-kid1"
 
 
 def test_spawner_base_branch_returns_the_checked_out_branch(tmp_path):
@@ -1889,7 +1892,7 @@ def test_stale_base_record_is_structured_with_actions(tmp_path, monkeypatch):
     rec = dispatch._stale_base_record(stale, season=2)
     assert rec["issue"] == "stale-base"
     assert rec["behind"] == 3
-    assert rec["integration"] == "season/s2"
+    assert rec["integration"] == "season2/main"
     ids = [a["id"] for a in rec["actions"]]
     assert "sync" in ids and "override" in ids and "abort" in ids, (
         "the must-pick floor: a re-invocation carries one of these — a "
@@ -1983,7 +1986,7 @@ def test_town_branch_behind_season_not_stale_against_own_branch(
     assert fallback["status"] == "behind", fallback
     assert fallback["behind"] == 1, fallback
     rec = dispatch._stale_base_record(fallback, season=2)
-    assert rec["integration"] == "season/s2", rec
+    assert rec["integration"] == "season2/main", rec
     # The town-path record names the town branch, and its sync target too.
     trec = dispatch._stale_base_record(out, season=2,
                                        town_branch="town/streaming-suite@s2")
@@ -2116,3 +2119,38 @@ def test_reap_pass_mirrors_terminal_record_in_inline_lane(tmp_path, monkeypatch)
     e = m["agents"][0]
     assert e["status"] == "done" and e["finished_at"] == 7, e
     assert adapter.calls == [], "a terminal record must never be restarted"
+
+
+# --- hypothesis:l4-branches-follow-the-season-grammar clause (5) ---
+# dispatch's integration branch for the stale-base guard must resolve a
+# spawner on a canonical TOWN post/loop branch to that TOWN's main via the
+# grammar module's merge_target -- the exact-string town reverse-lookup
+# matches no ladder value for a canonical loop/post spelling, so the old
+# code fell back to the CORE main instead.
+
+
+def test_current_town_branch_prefers_merge_target_for_loop(tmp_path):
+    # A spawner on a canonical town loop branch: merge_target runs BEFORE the
+    # town reverse-lookup (which would return None for this exact string), so
+    # the returned integration is the TOWN main, not a core main.
+    repo = _git_repo_on_branch(tmp_path, "season2/web-app-suite/season1/loops/xx-yy")
+    # nodes_dir is pointless here: a post/loop branch resolves via merge_target
+    # without ever consulting the ladder reverse-lookup.
+    assert dispatch._current_town_branch(repo, tmp_path / "scratch") == \
+        "season2/web-app-suite/season1/main"
+
+
+def _git_repo_on_branch(tmp_path: Path, branch: str) -> Path:
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
