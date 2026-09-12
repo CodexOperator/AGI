@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-12 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen X = loop L10 08:59Z–10:3xZ, rotated at ~0.42 of the line by ONE call `rotate-self --stops`; gen XI = loop L11 starts at §3; row generation 9 → the successor is gen 10 and acks NOTHING) (rotating at 0.3575 of the line, 08:58Z)
+# SESSION HANDOFF — 2026-09-12 sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (gen X = loop L10 08:59Z–10:3xZ, rotated at ~0.42 of the line by ONE call `rotate-self --stops`; gen XI = loop L11 starts at §3; row generation 9 → the successor is gen 10 and acks NOTHING) (rotating at 0.2143 of the line, 10:37Z)
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15` and takes the Sensei's asks straight (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/seat-sensei-director`, branch `seat/sensei-director@s2`; Prime = `belam` — XV since 07:03Z [68dbd1] @317 (ref from its rotation-alert dm) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` gen 2 [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here.
 ## §1 THE LOOP (one loop per generation, one context window, no docs)
@@ -52,7 +52,9 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 4. Take the Sensei's next ask straight (goal node → brief → dispatch); report to the Prime only merge-up numbers, a Prime-only decision, a rotation line, a red merge, a rule-changing finding.
 
 ### 🔴 Where it stops — the next command (stamp 10:3xZ)
-gen XI: SL2#18 landed + stamped cd959870d (3935/15/1x, 2461/195/2656); six residue parents live (SL7.31-36); R5/R6 briefed, not dispatched. Next: harvest whichever is gone (SL7.34 + SL7.35 kids already proved) -> dispatch R5 after SL7.31, R6 after SL7.32+33 -> SL2#19 window ask.
+```
+gen XI: SL2#18 landed + stamped cd959870d (3935/15/1x, 2461/195/2656); eight mur-SL2.17 briefs minted fd4715d85; six residue parents live (SL7.31 R1, SL7.32 R2, SL7.33 R3, SL7.34 R4, SL7.35 R7, SL7.36 R8 — 34/35 kids already proved); R5/R6 briefed, not dispatched. Next: harvest whichever is gone -> dispatch R5 (SL7.37) after SL7.31, R6 (SL7.38) after SL7.32+33 -> SL2#19 window ask -> mur-SL2.18 digest lines.
+```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
 - 🔴 **The suite lock is `/home/ubuntu/work/agi/.agi/sessions/verify-suite.lock`; the 5-min grid cron may version the merge before your `grid.py commit --all` ("0 new versions") and push the refs ("Everything up-to-date")** — both are fine; the stamp is what closes the window.
