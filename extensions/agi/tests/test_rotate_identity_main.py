@@ -36,8 +36,8 @@ def _write_schema(root):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid, "
-        "pubkey, sig_scheme, enc_scheme, key_history]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, "
+        "pid, pubkey, sig_scheme, enc_scheme, key_history]}\n"
         "---\nbody\n", encoding="utf-8")
 
 

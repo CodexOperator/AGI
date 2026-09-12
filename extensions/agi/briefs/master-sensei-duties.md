@@ -92,25 +92,42 @@ Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
   removed only when a tool performs the step; prose that says "don't" has
   never removed one (20:1xZ finding).
 
-## The main question, per finished session (owner 2026-09-12 19:0xZ)
+## The main question, per finished session (owner 2026-09-12 19:0xZ, amended in-line 22:2xZ)
 
 Owner, verbatim in the master-sensei pane (quote lives in
-`doc:l4-owner-decisions`, relayed to the Prime for reflection): "Can any of
-the tool/command/agent/etc calls made during that role's finished session be
-handled using the following heuristic, in order of decision preference from
-most preferred decision type to least preferred: eliminated (unnecessary
-calls not needed for the role task - needs role template change); automated
-(the harness does it for the agent when a relevant flag triggers like
-session start, metric flag hit, gate reached, etc - should only needs
-template change but harness code improvement can be added as well to make
-this type of change be part of the template); and/or consolidated (the call
-is added as part of another relevant call - still ideally just done using
+`doc:l4-owner-decisions`, relayed to the Prime for reflection; the 22:2xZ
+amendment is written INTO the quote, not under it — owner: in-line, never
+append): "Can any of the tools/commands/calls/etc (and individual call
+options/flags/args/call locations as well inside each call) made during that
+role's finished session be handled using the following heuristic, in order of
+decision preference from most preferred decision type to least preferred:
+eliminated (unnecessary calls not needed for the role task - needs role
+template change); automated (the harness does it for the agent when a relevant
+flag triggers like session start, metric flag hit, gate reached, etc - should
+only needs template change but harness code improvement can be added as well
+to make this type of change be part of the template); and/or consolidated (the
+call is added as part of another relevant call - still ideally just done using
 template modifications but same rules apply if it requires harness code
 improvement; improve the harness such that future changes of this type only
-need template edits)?"
+need template edits)… so that it simplifies for instance how rotate has to
+have a whole bunch of args and options going with it. Ideally using the key
+system to keep everything in line so that rotate by default does self and all
+the other options and args and pieces are filled in based on the key holder
+identity and other relevant session-end metrics. With individual override
+options so higher up hierarchy members can rotate lower-ranked ones but not
+the other way around."
 
 The scope is the WHOLE finished session, not only the wake and the
-rotate-out tails. Every call gets one of three verdicts, tried in this order:
+rotate-out tails — and INSIDE each call: every option, flag, argument and
+call location is itself a candidate. A call the role must make can still
+lose its arguments. The standing example is `rotate-self --name X --role Y
+--timeout N --force --stops '…'`: the target is a bare `rotate` that does
+self, with post, role, timeout and the stop text filled from the KEY HOLDER's
+identity (`seats/<post>.key` → its `config:seats` row) and the session-end
+metrics (meter, card §stop), and `--post <other>` honoured only DOWNWARD in
+the hierarchy (a Prime rotates a director, a director a helper; never the
+reverse). Every call, and every piece of one, gets one of three verdicts,
+tried in this order:
 
 1. **eliminated** — not needed for the role's task. Cut = a role template
    change (an entry dropped, a fact or brief line that made the model think
@@ -129,3 +146,41 @@ The parenthesised clauses are the standing method for duties 2-3 (propose,
 apply on agreement): a template edit this post applies; a harness change is
 a code line to sensei-director, shaped so its class of change never needs
 code again.
+
+## The overall question (owner 2026-09-12 22:3xZ — appended, owner's word)
+
+Owner, verbatim (quote lives in `doc:l4-owner-decisions`): "Also append the
+fact that the elimination/consolidation (or in this case just raw text
+shortening) should also apply to redundant or excessively wordy outputs. For
+example your second output, the automated after join one, includes a lot of
+details about what was ran and where the script is. The idea is that we use
+the viewport for everything, so we don't need to say where it is in the file
+system, only the graph. And also a lot of the scripts we use at this point are
+complex enough they'd likely work better as CLI tools or MCP calls. If it
+needs something like that pass it over to the sanctuary master who I'm about
+to stand up with his own director. Your overall even more general but also
+more specific question is: What template changes can I make to minimize non-
+reasoning/planning token use both for inputs and actions aka tools/calls while
+keeping failed tool calls to a minimum? Anything that needs a code change for
+you to answer your question successfully gets passed to Sanctuary Master
+instead so she can plan it out and hand it to her director."
+
+What this adds to the per-session question above:
+
+- **Outputs are in scope.** Redundant or excessively wordy OUTPUT is a cost
+  like a call — eliminate/consolidate it by raw text shortening. Measured
+  example: the after_join dm (a post's SECOND input) printed every command it
+  ran, its full output and the record's filesystem path; the post needs the
+  label + exit per entry, detail only on REFUSED/non-zero, and a GRAPH
+  address (the rotation record by name via `rotate.py status --record
+  latest`), never a path — the viewport is how everything is seen.
+- **Inputs AND actions.** The question is now: *what template changes
+  minimize non-reasoning/planning tokens — inputs (head, brief, STARTUP,
+  after_join, injected context) and actions (tools/calls) — while keeping
+  failed tool calls to a minimum?* A refused or failed call is a token cost
+  twice (the call and its retry), so a cut that raises refusals is not a cut.
+- **Routing change.** Anything that needs a CODE change to answer the
+  question goes to **`sanctuary-master`** (tier 1 director, town `all`,
+  `posts.md`; she plans it and hands it to her own director) — no longer to
+  sensei-director. Scripts grown complex enough to want a CLI verb or an MCP
+  call go there too, named as such.

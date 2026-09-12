@@ -2290,17 +2290,67 @@ def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
     return cp.returncode == 0
 
 
+def type_input(root: Path, to: str, text: str,
+               tmux_session: str | None = None) -> bool:
+    """TYPE `text` into the seat's pane as the input ITSELF — the second
+    input the after_join delivers to a successor (hypothesis:l4-the-after-
+    join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-
+    never-a-nudge-that-points-at-the-inbox). The pane sees the body once and
+    a successor pays ZERO reads: there is no nudge pointer line to read.
+
+    Reuses the wake typing mechanics — the SAME `_nudge_target` address
+    resolution (a NAME-addressed row is refused, a windowless recipient is
+    untouched, a stale @id is repaired by name) and the probe-(D) chunked
+    shape: the text as a LITERAL (`send-keys -l`) in ONE call, a pause, then
+    Enter in a SEPARATE call — never `text Enter` in one call (the paste
+    hazard) and never Enter-only.
+
+    Returns True only when the full chunk + separate Enter reached the pane;
+    False BY NAME when the seat has no resolvable pane or tmux is absent (the
+    caller type_input's refusal falls back to the dm+nudge path and records
+    the delivery mode). Never raises, and never writes the inbox — the dm
+    copy is a separate send_dm call."""
+    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
+    if resolved is None:
+        # no resolvable pane (tmux absent / windowless / NAME-refused / stale
+        # @id unfindable): named refusal, never raise
+        return False
+    target, _pid, tmux_session = resolved
+    if not _send_keys(target, text, literal=True):
+        return False
+    time.sleep(_NUDGE_ENTER_DELAY_S)
+    return _send_keys(target, "Enter")
+
+
 # ── verbs ─────────────────────────────────────────────────────────────────
 
 
-def send(root: Path, to: str, text: str, sender: str | None) -> None:
-    """Append one message block to the recipient's inbox.
+def send(root: Path, to: str, text: str, sender: str | None,
+         nudge: bool = True) -> tuple[str, bool]:
+    """Append one message block to the recipient's inbox; return the pair
+    ``(sender_used, signed)`` the block actually carried.
+
+    ``sender_used`` is the sender AFTER ``_detect_sender`` resolution (one of
+    AGI_AGENT_ID / seat env / ``sender`` / ``"unknown"``) -- the id that
+    actually signs and is written on the ``from:`` line, which may differ from
+    the ``sender`` passed when the harness env exports an identity. ``signed``
+    is whether an envelope sig was WRITTEN (true only when a well-formed key
+    actually produced a signature; a key file present but malformed / empty
+    still sends UNSIGNED). Additive: every existing caller ignores the return
+    (goal:g15.25 FIX-ONLY -- hypothesis:l4-the-after-join-record-names-the-
+    sender-and-signature-the-send-returned..., where run_after_join records
+    its dm's sender/signature FROM this pair, never from key-file existence).
 
     Signs the message -- one ``sig: <scheme>:<fingerprint>:<sig_hex>`` line
-    after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists. Without a
-    key the block is byte-identical to the unsigned form (every existing
-    test_send.py test stays green untouched). The signed bytes are exactly
-    ``ts\nfrom\nto\n\ntext`` (:func:`_canonical_msg`).
+    after ``to:`` -- IFF ``<sessions>/seats/<from_id>.key`` exists AND yields
+    a usable key. Without a usable key the block is byte-identical to the
+    unsigned form (every existing test_send.py test stays green untouched).
+    The signed bytes are exactly ``ts\nfrom\nto\n\ntext``
+    (:func:`_canonical_msg`).
+
+    `nudge=True` (default) best-effort-nudges the recipient's pane with the
+    wake token afterwards; `nudge=False` suppresses that pane pointer for this
+    one message (the after_join types the body in directly — SL7.93).
     """
     _lockdown_warn(root)
     inbox = _inbox_path(root, to)
@@ -2324,9 +2374,17 @@ def send(root: Path, to: str, text: str, sender: str | None) -> None:
     # Best-effort wake-token nudge into a perpetual seat's window; a no-op
     # for windowless (ephemeral) recipients. One fixed token only — never the
     # body (hypothesis:l4-a-nudge-is-a-wake-token-not-a-message).
-    _nudge_window(root, to)
+    # `nudge=False` suppresses the pane NUDGE for this ONE message — the
+    # after_join suppresses it after type_input already typed the body into
+    # the pane as the input itself, so a redundant pointer would just demand
+    # a read the successor never needs (hypothesis:l4-the-after-join-second-
+    # input-is-typed-into-the-successors-pane...). The inbox write is
+    # unaffected — the dm is still the durable, signed record.
+    if nudge:
+        _nudge_window(root, to)
 
     print(inbox.resolve())
+    return (from_id, sig_line is not None)
 
 
 def _scan_messages(inbox: Path) -> tuple[list[str], int]:
@@ -3734,7 +3792,10 @@ def _resolve_rows(rows: list, session_ref: str,
     L4.114 (r3): a ref that is not an exact `session_ref` match is still
     authorized when it is a PREFIX of a row's `session_id` uuid, at least
     WHOIS_MIN_SESSION_ID_PREFIX chars — a shorter prefix is refused (never
-    treated as a match).
+    treated as a match). goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-
+    carries-a-session-name-cell...): an exact `session_name` match (the F3
+    harness registry name, e.g. agi-d7) resolves exactly like a session_ref —
+    one lookup over both cells.
 
     With ``target`` (a ``("key", prefix)`` or ``("seat", name)`` tuple, from
     ``--key`` / ``--seat``) the row is resolved by its ``pubkey`` PREFIX or
@@ -3764,7 +3825,8 @@ def _resolve_rows(rows: list, session_ref: str,
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
         return _whois_answer(hits[0], f"by key: {val}", claim)
-    hits = [r for r in rows if r.get("session_ref") == session_ref]
+    hits = [r for r in rows if (r.get("session_ref") == session_ref
+                                or r.get("session_name") == session_ref)]
     if not hits:
         # r3: prefix-match a row's session_id uuid (state min length; refuse
         # shorter as NO-MATCH rather than guessing on a too-small prefix).
@@ -3774,7 +3836,7 @@ def _resolve_rows(rows: list, session_ref: str,
             if not hits:
                 return (WHOIS_NO_MATCH,
                         f"NO-MATCH: {session_ref!r} belongs to no seat row "
-                        "by session_ref or session_id prefix "
+                        "by session_ref, session_name or session_id prefix "
                         f"(min prefix {WHOIS_MIN_SESSION_ID_PREFIX})")
         else:
             return (WHOIS_NO_MATCH,

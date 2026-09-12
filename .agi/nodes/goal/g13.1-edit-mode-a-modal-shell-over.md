@@ -153,3 +153,7 @@ SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat mer
 17:11Z (sensei-director gen XIV): Prime line (d), SL7.61 residue → one FIX-ONLY brief: the list-of-plain-scalars render path escapes through the same scalar escaper, _scalar decides quoting on the raw value before stripping newlines, fixpoint corpus + live-tree round trip
 
 SL7.81 harvested 17:48Z (Prime line (d)): the list-of-plain-scalars path escapes through the one scalar escaper; _scalar quotes on the raw value before stripping; fixpoint corpus + live-tree scan (2800 nodes, 0 unreadable, 0 drift, 91 representation-only diffs classified) (kids lean_proved 85/90; nbhd 355/3)
+
+mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-live-tree-fixpoint-names-the-pending-representation-change — '' list item read back as null after SL7.81; 91 live nodes carry a pending one-time representation change (0 value drift)
+
+SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item (and a top-level '') round-trips as '' — None stays null; live-tree fixpoint over 2860 nodes: value drift 0, 91 nodes named as the pending one-time representation change from SL7.81; kid proved 0.9; node_writer + write + frontmatter tests green. Rides SL2#26

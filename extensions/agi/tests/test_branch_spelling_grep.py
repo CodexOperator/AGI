@@ -57,6 +57,7 @@ _SPELLINGS = [
 # rotate.py/heal.py by a few lines -- brittle by construction, and a
 # false "drift" every hour). Adding a NEW hand-spelled shape -- even in a
 # comment or an f-string -- or silently deleting a debt line still fails.
+# re-pinned 2026-09-12 SL2#26 cut 2 (sensei-director): rotate.py inventory after SL7.92-107 landed behind the point's 48 — a cross-merge pin move, not a spelling defect
 PINNED = {
     'cli.py': [
         'post/<name>@s2',
@@ -103,7 +104,6 @@ PINNED = {
         'season/s2',
         'season/s2',
         'season/s2',
-        'season/s2',
         'season/sN',
         'season/sN',
         'season/sN',
@@ -113,9 +113,6 @@ PINNED = {
         'season/s{s',
         'season1/l',
         'season1/m',
-        'season2/m',
-        'season2/m',
-        'season2/m',
         'season2/m',
         'season2/m',
         'season2/m',
