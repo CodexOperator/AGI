@@ -500,6 +500,38 @@ def test_spawn_refuses_live_pid_over_dead_row(tmp_path, monkeypatch, capsys):
     assert f"pid {os.getpid()}" in err
 
 
+def test_spawn_refuses_dead_pid_over_live_row(tmp_path, monkeypatch, capsys):
+    """CLAIM (1) of l4-the-spawn-gate-refuses-both-directions — the gate
+    reads BOTH the row pid and the `--pid` and refuses in EITHER direction.
+    The SL7.03 inverse hole: a DEAD `--pid` (DEAD_PID) over a ROW whose pid
+    is ALIVE (os.getpid()) used to PASS the gate, because `--pid` won the
+    single-pred_pid derivation and masked the live row. Now the seat is
+    ALIVE iff the row's pid OR the --pid is alive, so this is refused by
+    name before any write/window, naming the LIVE ROW pid."""
+    root, reg, _tp = _fixture(tmp_path, seat="deadpidseat")
+    # the row pid is this test's OWN live pid (the inverse of the sibling
+    # live-`--pid`-over-dead-row test)
+    _mk_seats(root, "deadpidseat", os.getpid())
+    _run_fake_git(monkeypatch)
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **k: (_ for _ in ()).throw(
+            AssertionError("spawn_window must never run for a live row")))
+
+    base = dict(name="deadpidseat", tier="parent", prompt_file=None,
+                model=None, effort=None, settings=None,
+                successor_argv=None, seat="deadpidseat",
+                tmux_session="t", window_path=None, dry_run=False,
+                registry_dir=str(reg), no_autopsy=False, pid=DEAD_PID)
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "deadpidseat" in err and "alive" in err
+    # the refusal names the LIVE ROW pid, never the dead --pid
+    assert f"pid {os.getpid()}" in err
+    assert f"pid {DEAD_PID}" not in err
+
+
 def test_spawn_refuses_alive_window_for_seat(tmp_path, monkeypatch, capsys):
     """A dead row pid but a LIVE tmux window for the seat (window_path seam)
     is the SAME liveness read the autopsy uses — refused by name before any

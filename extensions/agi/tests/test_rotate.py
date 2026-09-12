@@ -2448,6 +2448,24 @@ def test_compose_seating_announcement_shape():
     assert "ref: (pending ack)" in pre and "[]" not in pre
 
 
+def test_compose_seating_announcement_ask_diff_exact_ack_line():
+    """Claim (3): WITH `--ask-diff` the seating alert appends the exact
+    `rotate.py ack --seat S --gen 1 --ref <ref> diff --text -` line -- never
+    `--gen 0`, never a bare `(pending ack)` without the line -- and the
+    default carries NO ack line. (hypothesis:l4-the-spawn-gate-refuses-both-
+    directions-and-a-hand-seating-commits-its-row-and-answers-the-ack)"""
+    line = (rotate._compose_seating_announcement(
+        seat="director-seat", window_id="42", seq=1, ask_diff=True))
+    assert "generation 0 -> 1" in line and "--gen 0" not in line
+    assert ("rotate.py ack --seat director-seat --gen 1 "
+            "--ref <your ListAgents ref> diff --text -") in line, line
+    assert "ref: (pending ack)" in line, \
+        "with ask-diff the ref placeholder still renders, plus the line"
+    plain = rotate._compose_seating_announcement(
+        seat="director-seat", window_id="42", seq=1)
+    assert "rotate.py ack" not in plain and "diff --text" not in plain
+
+
 def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatch):
     """A first seating through `spawn --seat S` (non-dry) emits the SAME
     rotation-alert dm a rotation does — trigger: first-seating, generation
@@ -2495,6 +2513,92 @@ def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatc
     assert rec["session_id"] == "2717-aaaa" and rec["window_id"] == "@42"
     assert rec["first_turn"], "the seating record must carry the first_turn results"
     assert rec["first_turn"][0]["label"] == "probe"
+
+
+def test_spawn_first_seating_default_ack_source_seating_wake_zero(
+        tmp_path, monkeypatch):
+    """Claim (3) default: a hand seating answers its OWN ack `continue,
+    source: seating` (SL7.06's contract) so the post wakes at 0 -- the alert
+    carries NO `rotate.py ack ... diff` line, never `--gen 0`.
+    (hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-hand-
+    seating-commits-its-row-and-answers-the-ack, claim 3)"""
+    import send as _send
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    _write_first_seating_rotations(tmp_path)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender:
+                        sent.append((other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    args = SimpleNamespace(name="director-seat", tier="director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=str(wins), dry_run=False,
+                           successor_argv=None, seat="director-seat",
+                           registry_dir=str(reg), pid=None, ask_diff=False)
+    rc = rotate.cmd_spawn(args, tmp_path)
+    assert rc == 0
+    ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+                     .read_text(encoding="utf-8"))
+    assert ack["answer"] == "continue", ack
+    assert ack["source"] == "seating", ack
+    assert ack["gen_after"] == 1
+    _to, text = sent[0]
+    assert "generation 0 -> 1" in text and "--gen 0" not in text
+    assert "rotate.py ack" not in text, \
+        f"default seating alert must carry NO ack line: {text}"
+    assert "diff --text" not in text
+
+
+def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
+        tmp_path, monkeypatch):
+    """Claim (3) `--ask-diff`: the seating alert prints the exact
+    `rotate.py ack --seat S --gen 1 --ref <ref> diff --text -` line -- never
+    `--gen 0`, never a bare `(pending ack)` without the line -- and the ack
+    is left `diff-requested, source: seating`. (hypothesis:l4-the-spawn-
+    gate-refuses-both-directions-and-a-hand-seating-commits-its-row-and-
+    answers-the-ack, claim 3)"""
+    import send as _send
+    rows = [
+        {"name": "director-seat", "role": "director", "model": "m",
+         "effort": "max", "settings": "", "session_kind": "remote-control"},
+        {"name": "sensei-peer", "role": "prime_director"},
+    ]
+    _write_seats_sheet(tmp_path, rows)
+    _write_first_seating_rotations(tmp_path)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 director-seat\nsensei-peer\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender:
+                        sent.append((other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    args = SimpleNamespace(name="director-seat", tier="director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=str(wins), dry_run=False,
+                           successor_argv=None, seat="director-seat",
+                           registry_dir=str(reg), pid=None, ask_diff=True)
+    rc = rotate.cmd_spawn(args, tmp_path)
+    assert rc == 0
+    ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+                     .read_text(encoding="utf-8"))
+    assert ack["answer"] == "diff-requested", ack
+    assert ack["source"] == "seating", ack
+    assert ack["gen_after"] == 1
+    _to, text = sent[0]
+    assert "generation 0 -> 1" in text and "--gen 0" not in text
+    assert ("rotate.py ack --seat director-seat --gen 1 "
+            "--ref <your ListAgents ref> diff --text -") in text, text
 
 
 def test_seats_launch_first_seating_emits_seating_alert(tmp_path, monkeypatch):
@@ -4950,3 +5054,49 @@ def test_commit_spawn_row_pushes_successor_row_to_bare_remote(
     st = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
                         capture_output=True, text=True)
     assert st.stdout.strip() == "", st.stdout
+
+
+def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
+        tmp_path, capsys):
+    """Claim (2) (hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-
+    hand-seating-commits-its-row-and-answers-the-ack): the first-seating
+    writer writes its own identity row into MAIN (gen 1 + session_id/window/
+    pid), then `_commit_spawn_row(verb="seating row")` commits ONLY its own
+    row (`belam seating row: gen 1, ...`) and `_push_season_branch` pushes it
+    -- a hand seating leaves MAIN clean, never a dirty row riding to the next
+    merge-up (falsifier: "a seating leaves seats.md dirty in MAIN"). The ack
+    it writes is `continue, source: seating` (claim 3 default)."""
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    capsys.readouterr()
+    got = rotate._first_seating_spawn_writes(
+        root=root, seat="belam", generation=1, session_id="sess-1",
+        window="@w9", pid=4242, role="prime_director")
+    assert "row" in got and "seats" in (got["row"] or "")
+    # the row write left seats.md dirty -- the exact dirt claim (2) commits.
+    dirty = rotate._ack_seats_dirty(root, rotate._git_toplevel(root), "belam")
+    assert dirty, "a first seating's own row write must dirty seats.md"
+    outcome = rotate._commit_spawn_row(
+        root=root, seat="belam", generation=1, session_id="sess-1",
+        window="@w9", pid=4242, verb="seating row")
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    out = capsys.readouterr().err
+    assert "push: OK" in out, out
+    # MAIN clean after the hand seating.
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout
+    # origin's committed row carries the seating identity + the exact message.
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "sess-1" in shown.stdout, shown.stdout
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert commits[0].endswith(
+        "belam seating row: gen 1, session_id sess-1, window @w9, pid 4242"), \
+        commits[0]
+    # the ack it answered its OWN channel with (claim 3).
+    ack = json.loads((rotate._ack_path(root, "belam"))
+                     .read_text(encoding="utf-8"))
+    assert ack["answer"] == "continue" and ack["source"] == "seating", ack
+    assert ack["gen_after"] == 1
