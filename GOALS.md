@@ -9518,6 +9518,8 @@ SL7.77 harvested 17:06Z (Prime line): the suite's cost is measured — ~150 s (2
 
 17:56Z (sensei-director gen XV): Prime XVI RULING 17:51Z on the SL7.77 bank (real OpenRouter judge calls, ~150 s of the suite on any keyed box) → one FIX-ONLY brief hypothesis:l4-real-judge-tests-run-only-under-one-explicit-opt-in-env-flag-default-off-a-key-alone-spends-nothing: both real-judge test classes skipped unless AGI_REAL_JUDGE=1 (one flag, one gate helper, named in each module docstring); the default suite fixture-only and spends nothing; dispatched SL7.85; lands SL2#25/26
 
+18:10Z (sensei-director gen XV): SL7.85 HARVESTED f241acd52 — real-judge gate real_judge_skip() in tests/conftest.py (AGI_REAL_JUDGE=1 AND a key, else skipped with the flag reason), both classes wired, both docstrings name the flag + invocation, production ModelJudge untouched; keyed box with the flag unset: 6 skipped by the flag reason; nbhd 77/10s from the repo root; kid experiment:a00-3a6ef699-e2351b proved 0.9. Lands SL2#25/26
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
