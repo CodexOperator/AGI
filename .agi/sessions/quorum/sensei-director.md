@@ -57,8 +57,8 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.64 · a00-30e43aee~~ **HARVESTED** (proved 0.9) | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
 | ~~SL7.65 · a00-f5d4d4aa~~ **HARVESTED** (proved 0.9) | NO_SPAWN branch reachable-or-deleted; recorder no pid 12345 · g15.25 | hook nbhd | 15:29Z |
 | ~~SL7.66 · a00-c611a68b~~ **HARVESTED** (proved 0.92) | _merge_region keyless line in place; foreign-deleted before WORK-added · g15.24 | rotate nbhd | 15:29Z |
-| SL7.67 · a00-339d2ff2 | config:posts note silent-or-posts.md minted (owner 15:4xZ (1)) · g15 | test_geometry_config + bin smoke | 15:48Z |
-| SL7.68 · a00-34c439ff | sensei.py calls <transcript> (owner (2)) · g15 | test_sensei | 15:48Z |
+| ~~SL7.67 · a00-339d2ff2~~ **HARVESTED** (proved 0.97/0.92; notice DELETED not gated; five-reader guard; nbhd 101/3) | config:posts note silent (owner 15:4xZ (1)) · g15 | test_geometry_config + bin smoke | 15:48Z |
+| ~~SL7.68 · a00-34c439ff~~ **HARVESTED** (proved 0.9; differential vs old script untested) | sensei.py calls <transcript> (owner (2)) · g15 | test_sensei (nbhd 361/3) | 15:48Z |
 | SL7.69 · a00-7561a748 | role-template hand-setup audit (owner (3)) · g15 | test_rotate_templates; judge entries in-process (F12) | 15:48Z |
 | SL7.70 · a00-84f091be | one compact [meter] line on every prompt (owner 2nd order) · g15.25 | hook nbhd | 15:48Z |
 | SL7.71 · a00-bbb6f27a | meter telemetry key resolves (measured or labelled est.; join-only if unknowable) — wake half · g15.25 | test_rotate_startup + bootstrap tests | 16:08Z |
