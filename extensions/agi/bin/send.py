@@ -4312,6 +4312,40 @@ def main(argv: list[str] | None = None) -> int:
                           action="store_true",
                           help="key every LIVE config:seats row lacking a "
                                "pubkey; run by the prime seat")
+    p_keygen.add_argument("--onboard", dest="onboard", default=None,
+                          metavar="NAME",
+                          help="rung-4 open onboarding: mint an untrusted "
+                               "newcomer keypair (fixture root), build a "
+                               "charter-acceptance ring record signed by the "
+                               "newcomer and co-signed by --sponsor, verify it "
+                               "through rings.verify_ring BEFORE writing, then "
+                               "append the row (tier 'untrusted'); every "
+                               "refusal names the tier (hypothesis:l4-an-"
+                               "untrusted-lane-earns-tier-by-signed-verdicts)")
+    p_keygen.add_argument("--sponsor", dest="sponsor", default=None,
+                          help="the trusted post co-signing the charter "
+                               "acceptance for --onboard")
+    p_keygen.add_argument("--sponsor-sig", dest="sponsor_sig", default=None,
+                          help="the sponsor's OWN co-signature over the "
+                               "charter canonical bytes (produced disjointly "
+                               "via --sponsor-sign, or by the sponsor on its "
+                               "own store); VERIFIED against the sponsor's "
+                               "pubkey -- the writer never reads the "
+                               "sponsor's key, so a forged self-signature is "
+                               "refused")
+    p_keygen.add_argument("--sponsor-sign", dest="sponsor_sign", default=None,
+                          metavar="CANONICAL_HEX",
+                          help="sign a charter canonical hex with --seat's "
+                               "own key and print the signature -- the "
+                               "sponsor's SEPARATE action that produces a "
+                               "--sponsor-sig value the onboard writer can "
+                               "only verify, never invent")
+    p_keygen.add_argument("--charter-hash", dest="charter_hash", default=None,
+                          help="sha256 hex of the charter text accepted "
+                               "(default: the onboard module charter)")
+    p_keygen.add_argument("--budget", dest="budget", default=None,
+                          help="the newcomer row's per-key spawn budget "
+                               f"(default {_ONBOARD_DEFAULT_BUDGET})")
 
     p_wake = sub.add_parser(
         "wake", parents=[common],
@@ -4534,6 +4568,253 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+# ── RUNG 4 (SLICE 1): open onboarding -- keygen --onboard ─────────────
+# hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts, SLICE 1:
+# `send.py keygen --onboard <name> --sponsor <post>` mints the newcomer's
+# keypair (FIXTURE ROOT ONLY -- never a real key), builds a charter-acceptance
+# record as a rings.decision_cell over the FULL fields (name, pubkey, sponsor,
+# charter_hash) signed by the newcomer and co-signed by the sponsor, and
+# verifies it through rings.verify_ring BEFORE anything is written to the
+# config. On success it appends the newcomer's config:posts row (tier
+# 'untrusted', plus the worktree/budget/harness cells slices 2 and 3 read).
+# EVERY refusal names the tier 'untrusted' and the missing piece; a refused
+# onboard never writes config and never leaves a minted key behind.
+
+#: The charter text the newcomer accepts; authenticated by charter_hash.
+_CHARTER_TEXT = (
+    "I request onboarding as an untrusted contributor to the Sanctuary. "
+    "I accept the charter of the web-app-suite vision, will write only within "
+    "the worktree your row grants me, will never merge or dispatch on my own, "
+    "and understand my per-key budget."
+)
+
+#: The default per-key spawn budget a newly onboarded untrusted row carries
+#: (slices 2 and 3 read row['budget'] as the cap). Int; the ladder/geometry
+#: promotion-threshold cell that upgrades a row OUT of untrusted is a later
+#: slice.
+_ONBOARD_DEFAULT_BUDGET = 1
+
+
+def _charter_hash(text: str = _CHARTER_TEXT) -> str:
+    """sha256 hex over the accepted charter text -- authenticated by the
+    record's signatures."""
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def _read_key_priv(root: Path, post: str) -> bytes | None:
+    """The private seed of an existing seat key file, or None when absent /
+    unreadable. In the onboard flow this is used ONLY for the NEWCOMER's own
+    just-minted key (the writer authorizing its own record). The SPONSOR's
+    key is never read by the writer: the sponsor co-signature arrives as an
+    argv value and is only VERIFIED against the sponsor's pubkey. Never
+    printed, never returned except to sign a charter record."""
+    kf = _seat_key_path(root, post)
+    if not kf.is_file():
+        return None
+    try:
+        return bytes.fromhex(json.loads(kf.read_text()).get("priv_hex") or "")
+    except (ValueError, OSError, KeyError):
+        return None
+
+
+def _onboard_build_canonical(root: Path, name: str, sponsor: str,
+                             scheme, _h: str):
+    """Build the charter canonical bytes for an onboard, minting the
+    newcomer key FIRST when it is absent (fixture root only) and reusing an
+    already-minted key so the sponsor can pre-sign the exact canonical the
+    row will carry. Returns a dict with ``fields``, ``canonical_hex``,
+    ``pub_hex``, ``minted_here`` and ``kpath``, or None when the key could
+    not be established. Minting here keeps the refusal path inside
+    ``onboard`` able to unlink a key it minted itself."""
+    from seatsig import rings  # the rung-2 helper beside seatsig
+    kpath = _seat_key_path(root, name)
+    if not kpath.is_file():
+        minted = _mint_seat_key(root, name, scheme.name)
+        if minted is None:
+            return None
+        _kpath, pub = minted
+        pub_hex = pub.hex()
+        minted_here = True
+    else:
+        priv = _read_key_priv(root, name)
+        if priv is None:
+            return None
+        pub_hex = scheme.public_from_secret(priv).hex()
+        minted_here = False
+    fields = {"name": name, "pubkey": pub_hex, "sponsor": sponsor,
+              "charter_hash": _h}
+    canonical = rings.canonical_bytes("charter", fields)
+    return {"fields": fields, "canonical_hex": canonical.hex(),
+            "pub_hex": pub_hex, "minted_here": minted_here, "kpath": kpath}
+
+
+def _sponsor_sig_for(root: Path, post: str, canonical_hex: str,
+                     scheme) -> str | None:
+    """The sponsor's OWN disjoint signing action: given the charter canonical
+    hex, sign it with ONLY ``post``'s key on file. This is a SEPARATE process
+    / person from the writer -- the sponsor holds its own key on its own
+    store -- and it is how the ``--sponsor-sig`` argv value is produced. The
+    writer can only VERIFY that value, never invent it by reading the
+    sponsor's key. Returns the hex signature, or None when the sponsor holds
+    no key on file."""
+    priv = _read_key_priv(root, post)
+    if priv is None:
+        return None
+    return scheme.sign(priv, bytes.fromhex(canonical_hex)).hex()
+
+
+def _onboard_pubkey_for_post(name: str, pub_hex: str, root: Path):
+    """The verify-side pubkey resolver for an onboard record: the newcomer
+    resolves to the freshly-minted pubkey, every other post (the sponsor) via
+    its config:posts row -- the same row source send.py's verify labels
+    against. Returns a callable for rings.verify_ring/pubkey_for_post."""
+    def resolve(post: str):
+        if post == name:
+            return pub_hex
+        for row in geometry_config.load_rows(root):
+            if row.get("name") == post:
+                return row.get("pubkey") or None
+        return None
+    return resolve
+
+
+def onboard(root: Path, name: str, sponsor: str, sponsor_sig: str,
+            scheme_name: str | None = None,
+            charter_hash: str | None = None, worktree: str | None = None,
+            budget: int = _ONBOARD_DEFAULT_BUDGET, harness: str | None = None,
+            actor: str = "", role: str = "") -> dict | None:
+    """RUNG 4 SLICE 1 -- onboard one untrusted newcomer (FIXTURE ROOT ONLY).
+
+    ``sponsor_sig`` is the SPONSOR's own co-signature over the charter
+    canonical bytes, produced disjointly (``_sponsor_sig_for``, or the
+    ``--sponsor-sig`` argv value) -- it is VERIFIED against the sponsor's
+    pubkey here, never invented by reading the sponsor's key. That closes the
+    forge the parent ran: the writer could previously co-sign for any
+    readable key; now it holds no sponsor key to sign with.
+
+    Refuses BY NAME (returns None, never a partial write) when: the sponsor
+    is absent from config:posts, the sponsor has no pubkey on its row,
+    ``sponsor_sig`` is missing or does not verify against the sponsor's
+    pubkey, a row for ``name`` already exists, the ``charter`` ring cannot be
+    resolved, or rings.verify_ring does not reach the ring threshold. On
+    success mints ``<name>.key``, appends the row ``{name, tier:'untrusted',
+    pubkey, sig_scheme, enc_scheme, worktree, budget, harness, charter:<decision
+    cell>}`` and returns the new row dict. Every refusal names tier
+    'untrusted'.
+    """
+    scheme = seatsig.get(scheme_name or seatsig.DEFAULT_SCHEME)
+    _h = charter_hash or _charter_hash()
+    graph = _graph_root(root)
+    # ---- pre-checks BEFORE anything is minted or written -------------------
+    sponsor_row = None
+    for r in geometry_config.load_rows(graph):
+        if r.get("name") == sponsor:
+            sponsor_row = r
+    if sponsor_row is None:
+        print(f"REFUSED {name}: tier untrusted -- sponsor {sponsor!r} is "
+              "absent from config:posts", file=sys.stderr)
+        return None
+    sponsor_pub = str(sponsor_row.get("pubkey") or "")
+    if not sponsor_pub:
+        print(f"REFUSED {name}: tier untrusted -- sponsor {sponsor!r} has no "
+              "pubkey on file", file=sys.stderr)
+        return None
+    if not sponsor_sig:
+        print(f"REFUSED {name}: tier untrusted -- sponsor co-signature "
+              "(--sponsor-sig) is required; the writer never reads the "
+              "sponsor's key", file=sys.stderr)
+        return None
+    if any(r.get("name") == name for r in geometry_config.load_rows(graph)):
+        print(f"REFUSED {name}: tier untrusted -- a config:posts row named "
+              f"{name!r} already exists", file=sys.stderr)
+        return None
+
+    # ---- mint the newcomer key (fixture root only), build canonical -------
+    from seatsig import rings  # the rung-2 helper beside seatsig (never crypto)
+    built = _onboard_build_canonical(root, name, sponsor, scheme, _h)
+    if built is None:
+        print(f"REFUSED {name}: tier untrusted -- could not establish the "
+              "newcomer key", file=sys.stderr)
+        return None
+
+    # ---- VERIFY the sponsor co-signature as an argv value, not a forge -----
+    try:
+        sig_ok = scheme.verify(
+            bytes.fromhex(sponsor_pub), bytes.fromhex(built["canonical_hex"]),
+            bytes.fromhex(sponsor_sig))
+    except Exception:                                                  # noqa: BLE001
+        sig_ok = False
+    if not sig_ok:
+        if built["minted_here"]:
+            built["kpath"].unlink(missing_ok=True)
+        print(f"REFUSED {name}: tier untrusted -- sponsor co-signature does "
+              "not verify against {sponsor!r}'s pubkey; the writer cannot "
+              "invent a sponsor signature", file=sys.stderr)
+        return None
+
+    # ---- the newcomer signs its own record with its own key --------------/
+    newcomer_priv = _read_key_priv(root, name)
+    try:
+        nsig = scheme.sign(newcomer_priv, bytes.fromhex(built["canonical_hex"]))
+    except Exception:                                                  # noqa: BLE001
+        if built["minted_here"]:
+            built["kpath"].unlink(missing_ok=True)
+        print(f"REFUSED {name}: tier untrusted -- could not sign the "
+              "charter record", file=sys.stderr)
+        return None
+    signatures = [f"{name}:{scheme.name}:{nsig.hex()}",
+                  f"{sponsor}:{scheme.name}:{sponsor_sig}"]
+    decision = rings.decision_cell("charter", "charter", built["fields"],
+                                   signatures)
+
+    # ---- VERIFY before anything is written ------------------------------- //
+    rings_list = rings.load_rings(graph)
+    charter_ring = rings.ring_by_name(rings_list, "charter")
+    if charter_ring is None:
+        if built["minted_here"]:
+            built["kpath"].unlink(missing_ok=True)
+        print(f"REFUSED {name}: tier untrusted -- no 'charter' ring is "
+              "declared in the rings cell", file=sys.stderr)
+        return None
+    result = rings.verify_ring(
+        charter_ring, bytes.fromhex(built["canonical_hex"]), signatures,
+        pubkey_for_post=_onboard_pubkey_for_post(name, built["pub_hex"],
+                                                 graph))
+    if not result.ok:
+        if built["minted_here"]:
+            built["kpath"].unlink(missing_ok=True)
+        print(f"REFUSED {name}: tier untrusted -- "
+              f"{result.refused}", file=sys.stderr)
+        return None
+
+    # ---- append the untrusted row (the record IS the row) ---------------- //
+    graph = _graph_root(root)
+    rows = _seats_rows(graph)
+    new_rows = [dict(r) for r in rows]
+    new_row = {
+        "name": name,
+        "tier": "untrusted",
+        "pubkey": built["pub_hex"],
+        "sig_scheme": scheme.name,
+        "enc_scheme": "none",
+        "worktree": worktree or f"worktrees/{name}",
+        "budget": int(budget),
+        "harness": harness or (sponsor_row.get("harness") or "pi"),
+        "charter": decision,
+        "key_history": [],
+    }
+    new_rows.append(new_row)
+    if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+        if built["minted_here"]:
+            built["kpath"].unlink(missing_ok=True)
+        print(f"REFUSED {name}: tier untrusted -- config write was refused; "
+              "no row appended, no key left behind", file=sys.stderr)
+        return None
+    print(f"onboarded {name} (tier untrusted, sponsor {sponsor}, "
+          f"{seatsig.fingerprint(bytes.fromhex(built['pub_hex']))})")
+    return dict(new_row)
+
+
 def _cli_keygen(root: Path, args) -> int:
     """The keygen CLI: exit 0 when every requested key was minted AND its
     row write landed; 1 on a refusal (single-seat refusal, or an unnamed
@@ -4542,6 +4823,39 @@ def _cli_keygen(root: Path, args) -> int:
     disk with no pubkey on the row would otherwise read UNKEYED forever
     under an exit 0. The one stderr line is printed by keygen._keygen_row_refused."""
     actor = _detect_sender(getattr(args, "from_id", None))
+    onboard_name = getattr(args, "onboard", None)
+    if onboard_name:
+        sponsor = getattr(args, "sponsor", "") or ""
+        if not sponsor:
+            print("ERR: keygen --onboard needs --sponsor <post>",
+                  file=sys.stderr)
+            return 1
+        sponsor_sig = getattr(args, "sponsor_sig", None)
+        if not sponsor_sig:
+            print("ERR: keygen --onboard needs --sponsor-sig <hex> "
+                  "(the sponsor's own co-signature; produced via "
+                  "--sponsor-sign)", file=sys.stderr)
+            return 1
+        out = onboard(root, onboard_name, sponsor, sponsor_sig,
+                      scheme_name=args.scheme,
+                      charter_hash=getattr(args, "charter_hash", None),
+                      budget=int(getattr(args, "budget", 1) or 1),
+                      actor=actor)
+        return 0 if out is not None else 1
+    if getattr(args, "sponsor_sign", None):
+        sponsor = args.seat
+        if not sponsor:
+            print("ERR: keygen --sponsor-sign needs --seat <sponsor-post>",
+                  file=sys.stderr)
+            return 1
+        scheme = seatsig.get(args.scheme or seatsig.DEFAULT_SCHEME)
+        sig = _sponsor_sig_for(root, sponsor, args.sponsor_sign, scheme)
+        if sig is None:
+            print(f"ERR: {sponsor!r} holds no key on file to sign with",
+                  file=sys.stderr)
+            return 1
+        print(sig)
+        return 0
     if getattr(args, "all_live", False):
         out = keygen(root, all_live=True, scheme_name=args.scheme,
                      actor=actor)
