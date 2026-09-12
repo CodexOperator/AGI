@@ -6544,7 +6544,8 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
 
 def _commit_after_join_record(root: Path, *, record: dict,
                              record_path: str,
-                             seat: str, performer: str = "service") -> str:
+                             seat: str, performer: str = "service",
+                             commit_label: str = "record") -> str:
     """The SERVICE's after_join rewrite of a rotation record is committed as
     ITS OWN one-pathspec commit (hypothesis:l4-the-after-join-record-rewrite-
     is-committed-by-pathspec...), so MAIN never reads `M` on a record that
@@ -6583,7 +6584,7 @@ def _commit_after_join_record(root: Path, *, record: dict,
     except ValueError:
         return ("after_join_record_commit: SKIPPED \u2014 record lies outside "
                 "the git repo")
-    msg = (f"after_join record: {seat} {rp.name} (performed by "
+    msg = (f"after_join {commit_label}: {seat} {rp.name} (performed by "
            f"{performer})")
     try:
         # `record` is the byte the caller just wrote (committer named); the
@@ -9530,6 +9531,22 @@ DEFAULT_AFTER_JOIN_POLL_S = 1.0
 # restart does not re-visit it. Config key `startup.after_join_max_age_s`
 # (per-template) overrides; default 300 s.
 DEFAULT_AFTER_JOIN_MAX_AGE_S = 300
+# (goal:g15.25 SL7.8x) the JOIN-RESOLVED upper bound: a rotation record whose
+# successor join was ATTEMPTED but has not landed within this many seconds of
+# the record's `recorded_at` is performed anyway, with every join-dependent
+# entry refused by name — never left unperformed forever, never at delay 0 on
+# an empty transcript. Config key `startup.after_join_max_wait_s` per template;
+# default 600 s (10 min — the 37-min-late symptom is caught, a slow join is
+# still given ten minutes before the named-refusal close-out).
+DEFAULT_AFTER_JOIN_MAX_WAIT_S = 600
+# (goal:g15.25 SL7.88 fix A) the CLAIM STALENESS bound: an `after_join` claim
+# block (claimed_at, NO results — a performer claimed the record then DIED
+# before writing results) older than this is STALE and may be RE-CLAIMED by
+# the next performer, so a dead claim can never strand a rotation's join/
+# dm forever. A LIVE (fresh) claim still defers. A completed block (results
+# present) is never stale. Config key `startup.after_join_claim_stale_s` per
+# template; default 300 s.
+DEFAULT_AFTER_JOIN_CLAIM_STALE_S = 300
 
 
 # (goal:g15.25 SL7.72) the heal.py watch loop's liveness heartbeat. The watch
@@ -9654,6 +9671,122 @@ def _after_join_tail_should_perform(root: Path, *, forced: bool = False,
     if ir:
         return True
     return not _watch_alive(root)
+
+
+def _parse_utc_inst(s):
+    """Parse a UTC instant in the forms this module both writes and reads:
+    `2026-09-12T09:00:00.123456+00:00` (datetime.now(timezone.utc).isoformat(),
+    what `_claim_after_join` writes) and the `...Z` forms the fixtures and
+    `recorded_at` read (`2026-09-12T09:00:00.123456Z`, `2026-09-12T09:00:00Z`).
+    Returns a tz-aware datetime, or None when unparseable. SL7.88 uses it for
+    the claimed_at staleness / claim-age anchor; the record_age gate keeps its
+    own strptime pair above."""
+    if not s:
+        return None
+    if isinstance(s, str) and s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
+def _claimed_at_age_s(aj, now=None):
+    """SL7.88 (fix B): elapsed seconds since an after_join claim's
+    `claimed_at`, or None when there is no parseable claim instant. Used to
+    anchor the join gate's upper bound when the record's OWN `recorded_at` is
+    missing/unparseable — a claim is the fresh instant a performer touched
+    the record, so its age is the honest "how long we have really waited"."""
+    if not isinstance(aj, dict):
+        return None
+    ts = _parse_utc_inst(aj.get("claimed_at"))
+    if ts is None:
+        return None
+    now = now if now is not None else time.time()
+    return max(0.0, now - ts.timestamp())
+
+
+def _claim_is_stale(aj0, *, stale_s, now=None) -> bool:
+    """SL7.88 (fix A): True when an `after_join` claim block — claimed_at, no
+    `results` — is STALE: older than `after_join_claim_stale_s`, so the next
+    performer may RE-CLAIM and re-perform instead of deferring on a dead
+    claim forever. A block carrying `results` (a completed run) is NEVER
+    stale; a claim with no parseable claimed_at is treated as LIVE (defer)."""
+    if not isinstance(aj0, dict):
+        return False
+    if "results" in aj0:
+        return False
+    age = _claimed_at_age_s(aj0, now=now)
+    return age is not None and age > stale_s
+
+
+def _claim_after_join(root, seat, record_path, performer,
+                      *, stale_s=None, now=None) -> dict | None:
+    """(goal:g15.25 SL7.8x) CLAIM-BEFORE-RUN: the performer writes
+    `after_join: {claimed_at, performer, claim_key:<record recorded_at>}` to
+    the rotation record through the SL7.78 `_commit_after_join_record` pathspec
+    commit BEFORE any lockless `after_join` key (the results) exists, so a
+    second performer (the heal watch vs the rotate-self own-tail) reads the
+    CLAIM and defers by name instead of running a duplicate set of commands
+    and sending a second dm.
+
+    Returns None when the claim was written (or could not be written — a
+    failed claim must not strand a rotation's after_join, so the run proceeds)
+    and a deferred marker dict when the record ALREADY carries an after_join
+    (a live claim by another performer, or a completed run). A completed run
+    also reads `deferred` (already_performed: true) so a re-perform never
+    re-sends. Best-effort; never raises."""
+    if record_path is None:
+        return None
+    rp = Path(record_path)
+    try:
+        if not rp.exists():
+            return None
+        rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
+        if not isinstance(rec, dict):
+            return None
+    except Exception:                                   # noqa: BLE001
+        return None
+    aj = rec.get("after_join")
+    if aj:
+        if isinstance(aj, dict) and aj.get("claimed_at"):
+            if "results" in aj:
+                return {"deferred": (f"already performed by "
+                                      f"{aj.get('performer')}"),
+                        "already_performed": True, "record_path": str(rp)}
+            # SL7.88 (fix A): a claim whose performer died before writing
+            # results is STALE once older than `after_join_claim_stale_s` —
+            # log a NAMED line and FALL THROUGH to re-claim (write our own
+            # claim and perform) instead of deferring on the dead claim
+            # forever. A LIVE (fresh) claim still defers by name.
+            if _claim_is_stale(aj, stale_s=stale_s, now=now):
+                print(
+                    f"after_join claim stale for {seat}: claimed by "
+                    f"{aj.get('performer')} at {aj.get('claimed_at')}",
+                    file=sys.stderr)
+            else:
+                return {"deferred": (f"claimed by {aj.get('performer')} at "
+                                      f"{aj.get('claimed_at')}"),
+                        "record_path": str(rp)}
+        else:
+            # a legacy after_join without a claim (pre-SL7.8x record): treated
+            # as performed so no second run ever re-sends.
+            return {"deferred": "already performed",
+                    "already_performed": True,
+                    "record_path": str(rp)}
+    rec["after_join"] = {
+        "claimed_at": datetime.now(timezone.utc).isoformat(),
+        "performer": performer,
+        "claim_key": str(rec.get("recorded_at") or ""),
+    }
+    try:
+        rp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        _commit_after_join_record(root, record=rec, record_path=str(rp),
+                                  seat=seat, performer=performer,
+                                  commit_label="claim")
+    except Exception:                                   # noqa: BLE001
+        pass  # a failed claim must not block the run; it still performed
+    return None
 
 
 def _after_join_already_performed(record_path) -> bool:
@@ -10104,7 +10237,8 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                    late: bool = False,
                    performed_after_s: float | None = None,
                    gen_unresolved_reason: str | None = None,
-                   dm_byte_cap: int | None = None) -> dict:
+                   dm_byte_cap: int | None = None,
+                   join_unresolved_wait_s: int | None = None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -10129,6 +10263,44 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     record/send failure — each surfaces as a result / return field."""
     startup = startup or {}
     entries = startup.get("after_join") or []
+    # (goal:g15.25 SL7.8x) CLAIM-BEFORE-RUN: the performer claims the record
+    # (after_join: {claimed_at, performer, claim_key}, committed by pathspec)
+    # BEFORE any command runs; a record ALREADY claimed or performed defers
+    # here so a second performer runs nothing and sends nothing (dm exactly
+    # once). Guarded by the SAME `not dry_run and record_path` that the final
+    # write uses — a dry_run never claims, a fixture/tmp record is a no-op
+    # commit. A deferred call returns early (no sleep, no confirm, no dm).
+    if not dry_run and record_path is not None:
+        _claimed = _claim_after_join(
+            root, seat, record_path, performer,
+            stale_s=int(startup.get("after_join_claim_stale_s")
+                        or DEFAULT_AFTER_JOIN_CLAIM_STALE_S))
+        if _claimed is not None:
+            return {"delay_s": 0, "results": [], "dm": "",
+                    "appended": False, "sent": False,
+                    "record_commit": None, "model_confirm": None,
+                    "record_path": record_path,
+                    "deferred": (_claimed.get("deferred")
+                                  if isinstance(_claimed, dict)
+                                  else str(_claimed))}
+    # (goal:g15.25 SL7.8x) JOIN-GATE named refusal: when the record's successor
+    # join never resolved and the upper bound elapsed, every join-dependent
+    # entry (one whose command references the rejoin-only facts {pid},
+    # {session_id} or {succ_transcript}) is REFUSED BY NAME with the wait — the
+    # record still gets closed on a successor that never joins, but never with
+    # a join-null perform pretending the successor was there.
+    _join_wait = join_unresolved_wait_s
+    def _refuse_join(e):
+        if _join_wait is None:
+            return None
+        entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
+        cmd = entry.get("cmd", "")
+        if any(tok in cmd for tok in ("{pid}", "{session_id}",
+                                      "{succ_transcript}")):
+            return {"label": entry.get("label", ""),
+                    "cmd": cmd,
+                    "refused": f"join unresolved after {_join_wait}s"}
+        return None
     # (goal:g15.25 SL7.76 (c)) what the run PROMISES — the template's OWN
     # `after_join_delay_s`, written into the record. `delay_override` (0 from
     # the service, whose wait was already consumed before this call) is a
@@ -10191,7 +10363,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     if dry_run:
         for e in entries:
             entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
-            pre = _refuse_gen(entry)
+            pre = _refuse_gen(entry) or _refuse_join(entry)
             if pre is not None:
                 results.append(pre)
                 continue
@@ -10207,7 +10379,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     else:
         for e in entries:
             entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
-            pre = _refuse_gen(entry)
+            pre = _refuse_gen(entry) or _refuse_join(entry)
             results.append(pre if pre is not None
                            else _run_after_join_command(e, values, timeout, cap))
     dm = _compose_after_join_dm(
@@ -10248,6 +10420,11 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                                 values.get("succ_transcript") or "")
                             if isinstance(model_confirm, dict) else None),
                         join_poll_secs=int(inter))
+                # (goal:g15.25 SL7.8x) the results land under the SAME claim
+                # identity the performer wrote before running (a second
+                # performer's `_claim_after_join` reads the completed block and
+                # defers — dm/nudge exactly once per record).
+                _prev_aj = rec.get("after_join")
                 rec["after_join"] = {
                     "performer": performer,
                     "performed_by": performer,
@@ -10258,6 +10435,10 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     "dm_sender": sender,
                     "dm_signed": dm_signed,
                 }
+                if isinstance(_prev_aj, dict):
+                    for _k in ("claimed_at", "claim_key"):
+                        if _prev_aj.get(_k) is not None:
+                            rec["after_join"][_k] = _prev_aj[_k]
                 # (SL7.76 (b)(c)) age honesty: `performed_after_s` is the
                 # MEASURED now-recorded_at delay (separate from the promised
                 # `delay_s`); a run past its age budget carries `late: true`
@@ -10348,8 +10529,11 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     if pair is None:
         return None
     rec, path = pair
-    if rec.get("after_join"):
-        return None  # already performed
+    # (SL7.76) resolve the role template UP FRONT so the age budget, the
+    # promised delay, the JOIN upper bound and the CLAIM staleness bound all
+    # come from the SAME `startup` block the after_join runs — the live-claim
+    # pre-check below needs `after_join_claim_stale_s` to decide whether a
+    # claim is re-claimable.
     # (goal:g15.25 SL7.54 fix 5) the pushed-seats fetch memo is per-PROCESS
     # (`_PUSHED_SEATS_FETCHED_ONCE`, keyed on (root, ref)); a long-lived
     # reaper process pins the FIRST-fetched prime row across Prime rotations.
@@ -10357,8 +10541,6 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # prime row change read the new row (the first/first_turn values build
     # below refetches). `_prime_rows_fetch_clear` had NO production caller.
     _prime_rows_fetch_clear()
-    # (SL7.76) resolve the role template UP FRONT so the age budget and the
-    # promised delay come from the SAME `startup` block the after_join runs.
     row = _find_seat(root, seat)
     role = (row or {}).get("role") or "parent"
     # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
@@ -10366,6 +10548,22 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # its 4-arg signature — the old 2-arg call raised TypeError every run.
     tmpl, _name, _src = _resolve_template(root, role, None)
     startup = (tmpl.get("startup") if tmpl else None) or {}
+    if rec.get("after_join"):
+        aj0 = rec["after_join"]
+        if isinstance(aj0, dict) and aj0.get("claimed_at") and "results" not in aj0:
+            # SL7.88 (fix A): a LIVE claim by another performer defers by name
+            # (run nothing, send nothing); a STALE claim (older than the
+            # bound, no results) is RE-CLAIMABLE and falls through to the
+            # perform path which logs the named stale line and re-claims.
+            if not _claim_is_stale(
+                    aj0,
+                    stale_s=int(startup.get("after_join_claim_stale_s")
+                                or DEFAULT_AFTER_JOIN_CLAIM_STALE_S)):
+                return {"deferred": (f"claimed by {aj0.get('performer')} at "
+                                      f"{aj0.get('claimed_at')}"),
+                        "record_path": str(path)}
+        else:
+            return None  # already performed
     delay_s = int(startup.get("after_join_delay_s")
                   or DEFAULT_AFTER_JOIN_DELAY_S)
     gen = rec.get("gen_after")
@@ -10434,6 +10632,37 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         return {"skipped": "no live session", "age_s": age_s,
                 "late": bool(late), "record_path": str(path)}
 
+    # (goal:g15.25 SL7.8x) JOIN GATE with an upper bound. A record whose
+    # successor join was ATTEMPTED (a window @id captured) but has not landed
+    # is NOT performed at delay 0 on an empty transcript: within
+    # `after_join_max_wait_s` of the record the performer WAITS (returns
+    # waiting, no perform, no dm); past the bound it performs once, every
+    # join-dependent entry refused by name (`join unresolved after <n>s`). A
+    # record with no window @id did no join and behaves exactly as before.
+    # The dead-seat skip above stays authoritative — a dead row skips, never
+    # waits and never performs.
+    _join_wait_s = None
+    if window_id and not joined.get("found"):
+        max_wait = int(startup.get("after_join_max_wait_s")
+                       or DEFAULT_AFTER_JOIN_MAX_WAIT_S)
+        # SL7.88 (fix B): the wait is anchored on a MEASURED age so a record
+        # whose age cannot be measured is never left waiting forever (the
+        # reverse of the hypothesis' "never left unperformed forever"). An
+        # unparseable/missing `recorded_at` gives age_s None: anchor on the
+        # CLAIM's age (the fresh instant a performer touched the record) when
+        # a claim exists; with NO claim and NO measurable record age there is
+        # no anchor, so DO NOT wait — perform now with the named refusals. A
+        # record of measurable age (or claim age) waits only within the bound.
+        if age_s is None:
+            claim_age = _claimed_at_age_s(rec.get("after_join"), now=now)
+            wait_s = claim_age if claim_age is not None else max_wait
+        else:
+            wait_s = age_s
+        if wait_s < max_wait:
+            return {"waiting": f"join unresolved {int(wait_s)}s",
+                    "record_path": str(path)}
+        _join_wait_s = int(wait_s)
+
     if joined.get("found"):
         pid = joined.get("pid")
         session_id = joined.get("session_id")
@@ -10472,7 +10701,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         startup=startup, values=values, record_path=str(path),
         sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
         performer=performer, late=late, performed_after_s=age_s,
-        gen_unresolved_reason=gen_reason)
+        gen_unresolved_reason=gen_reason,
+        join_unresolved_wait_s=_join_wait_s)
 
 
 def _resolve_join_gen(rec: dict, row: dict | None, seat: str):
