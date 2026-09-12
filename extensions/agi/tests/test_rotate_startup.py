@@ -15,7 +15,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
 
-# A fully-filled values map matching the 11 canonical placeholders.
+# A fully-filled values map matching the 13 canonical placeholders.
 VALUES = {
     "seat": "sanctuary-director",
     "succ_ref": "abc123",
@@ -24,6 +24,8 @@ VALUES = {
     "pin_ref": "/tmp/sanctuary-director.meter",
     "gen": "11",
     "prime_ref": "7cff1a",
+    "prime_key": "aabbccdd1122334455667788",
+    "prime_seat": "belam",
     "worktree": "/wt",
     "repo": "/repo",
     "tmux_session": "agi-rc",
@@ -826,6 +828,197 @@ def test_t_other_callers_resolve_empty_happily():
         "python3 extensions/agi/bin/send.py whois {succ_ref}", {"succ_ref": ""})
     assert resolved == "python3 extensions/agi/bin/send.py whois "
     assert "{" not in resolved
+
+
+def test_u_empty_placeholder_with_declared_fallback_substitutes_by_key():
+    # hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+    # session-ref-is-empty... — a used placeholder whose value is EMPTY is
+    # substituted by a WHOLE resolvable FRAGMENT (flags included), so a prime
+    # row whose session_ref is empty under SL7.06's default still resolves
+    # authority by the row's pubkey. The per-placeholder code map
+    # `_STARTUP_FALLBACKS["prime_ref"]` is the by-key whois form: substituting
+    # only the pubkey VALUE would land it in the POSITIONAL session_ref slot,
+    # where whois answers NO-MATCH, never IS-AUTHORIZED.
+    vals = dict(VALUES, prime_ref="", prime_key="a1b2c3d4e5f6")
+    resolved = rotate._resolve_startup_placeholders(
+        "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam",
+        vals, refuse_empty=True)
+    assert "--key a1b2c3d4e5f6" in resolved      # the FRAGMENT, flags included
+    assert "{prime_ref}" not in resolved
+    assert "{prime_key}" not in resolved
+    # the resolved whole command still passes the producing allowlist
+    assert rotate._producing_refusal(resolved) is None, resolved
+
+
+def test_u2_entry_level_fallback_overrides_the_code_map():
+    # a per-entry `fallback:` fragment wins over the code map; here the entry
+    # wants the by-name form for the same empty placeholder.
+    vals = dict(VALUES, prime_ref="", prime_key="a1b2c3d4e5f6",
+                prime_seat="belam")
+    resolved = rotate._resolve_startup_placeholders(
+        "python3 extensions/agi/bin/send.py whois {prime_ref}",
+        vals, refuse_empty=True, fallback="--seat {prime_seat}")
+    assert "--seat belam" in resolved
+    assert "{prime_ref}" not in resolved
+
+
+def test_u3_fallback_fragment_references_empty_placeholder_refuses():
+    # a fragment must not substitute itself; that is a broken fallback, not a
+    # silent self-reference.
+    vals = dict(VALUES, prime_ref="")
+    with pytest.raises(ValueError) as ei:
+        rotate._resolve_startup_placeholders(
+            "python3 extensions/agi/bin/send.py whois {prime_ref}",
+            vals, refuse_empty=True, fallback="--seat {prime_ref}")
+    assert "prime_ref" in str(ei.value)
+
+
+def test_v_fallback_value_also_empty_still_refuses():
+    # a fallback whose value is also empty fails CLOSED: the refusal names the
+    # placeholder AND the exhausted fallback — a placeholder never runs empty
+    # and never silently self-declares a fallback.
+    vals = dict(VALUES, prime_ref="", prime_key="")
+    with pytest.raises(ValueError) as ei:
+        rotate._resolve_startup_placeholders(
+            "python3 extensions/agi/bin/send.py whois {prime_ref}",
+            vals, refuse_empty=True)
+    assert "prime_ref" in str(ei.value)
+    assert "prime_key" in str(ei.value)
+
+
+def test_w_first_turn_entry_without_any_fallback_still_refuses():
+    # the FALSIFIER guard: the fallback substitutes ONLY when a fallback
+    # EXISTS (a per-entry `fallback:`, or the per-placeholder code map). An
+    # entry whose emptied placeholder has NEITHER refuses exactly as before —
+    # a placeholder never stops meaning empty just because a fallback
+    # mechanism exists. `{succ_ref}` has no code-map entry, so it is the
+    # honest probe.
+    vals = dict(VALUES, succ_ref="")
+    with pytest.raises(ValueError) as ei:
+        rotate._resolve_startup_placeholders(
+            "python3 extensions/agi/bin/send.py whois {succ_ref}",
+            vals, refuse_empty=True)
+    assert "succ_ref" in str(ei.value)
+    assert "empty at spawn" in str(ei.value)
+
+
+def test_e_prime_authority_startup_block_shows_authorized_by_key(monkeypatch):
+    # (e): the CURRENT director-template shape (no per-entry fallback) with an
+    # EMPTY prime session_ref must resolve by key, pass the producing judge
+    # (None), run, and the composed ## STARTUP OUTPUT must show IS-AUTHORIZED
+    # by key — proving the transition mechanism, not the direct re-cut.
+    captured = {}
+    def _run(argv, **kwargs):
+        captured["argv"] = list(argv)
+        return _Proc(0, "IS-AUTHORIZED by key: "
+                     "abcdef1234567890 (belam) window @123")
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
+    vals = dict(VALUES, prime_ref="", prime_key="abcdef1234567890",
+                prime_seat="belam")
+    startup = {"first_turn": [{
+        "label": "prime-authority",
+        "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} "
+               "--claim belam",
+    }]}
+    res = rotate._run_first_turn_commands(startup, vals)
+    assert not res[0].get("refused"), res[0]
+    assert "rc" in res[0] and res[0]["rc"] == 0
+    assert "--key" in res[0]["cmd"] and "abcdef1234567890" in res[0]["cmd"]
+    assert captured["argv"][:3] == ["python3",
+                                     "extensions/agi/bin/send.py", "whois"]
+    assert "--key" in captured["argv"] and "abcdef1234567890" \
+        in captured["argv"]
+    assert captured["argv"].index("--key") < \
+        captured["argv"].index("abcdef1234567890")
+    block = rotate._compose_startup_output(res)
+    assert "[prime-authority] exit 0" in block
+    assert "$ python3 extensions/agi/bin/send.py whois --key " \
+        "abcdef1234567890 --claim belam" in block
+    assert "IS-AUTHORIZED by key" in block
+
+
+def _graph_root() -> Path:
+    # The graph root the LIVE config test reads from: the real `.agi/` of the
+    # checkout under test (parents[3] = worktree root; the same resolution
+    # `locations.find_project_root` would produce walking up from the test).
+    return Path(__file__).resolve().parents[3] / ".agi"
+
+
+def test_e_live_prime_authority_entry_resolves_by_key_from_the_live_node():
+    # LIVE-CONFIG (the standing kid rule: a test of live config reads the
+    # live node, never a copied list). Load `config:rotations` through the
+    # SAME loader rotate.py uses (`_load_templates`), take the REAL
+    # `prime-authority` first_turn entry from the director template and its
+    # prime_director mirror, set the values map from `_first_turn_values`
+    # with the prime row's session_ref EMPTY (the SL7.06 default), and assert
+    # the entry resolves WITHOUT a refusal to the by-key form (`--key
+    # <pubkey>`) and that the resolved whole command still passes the
+    # producing allowlist. Asserts the RESOLVED SHAPE, not which path
+    # produced it: if the live template has been re-cut to `--key
+    # {prime_key}` the test still passes. Skips (not fails) only when the
+    # graph/rotations node is genuinely absent so the hermetic suite stays
+    # runnable off-repo; a PRESENT node that fails to resolve is a live drift
+    # finding, not a skip.
+    #
+    # hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-
+    # session-ref-is-empty-and-a-placeholder-with-a-fallback-never-refuses
+    graph = _graph_root()
+    node = rotate._rotations_node_path(graph)
+    if not node.exists():
+        pytest.skip(f"live rotations node absent: {node}")
+    templates = rotate._load_templates(graph)
+    if not templates:
+        pytest.skip(f"live rotations node declares no templates: {node}")
+    tested = []
+    for tmpl_name in ("director", "prime_director"):
+        tmpl = templates.get(tmpl_name)
+        if not tmpl or not isinstance(tmpl, dict):
+            pytest.fail(
+                f"live rotations node has no '{tmpl_name}' template: {node}")
+        entries = (tmpl.get("startup") or {}).get("first_turn") or []
+        ent = next((e for e in entries
+                    if isinstance(e, dict)
+                    and e.get("label") == "prime-authority"), None)
+        if ent is None:
+            pytest.fail(
+                f"{tmpl_name} template has no 'prime-authority' first_turn "
+                f"entry in live {node}")
+        live_cmd = ent.get("cmd", "")
+        live_fallback = ent.get("fallback") or ""
+        # FULLY-FILLED canonical map from the live seats registry, then the
+        # one SL7.06 default: the prime row's session_ref is EMPTY.
+        vals = rotate._first_turn_values(
+            graph, seat="sanctuary-director", gen="1",
+            succ_name="sd-next")
+        vals = dict(vals, prime_ref="")
+        if not vals.get("prime_key"):
+            pytest.fail(
+                f"prime row in live seats has no pubkey; cannot assert the "
+                f"by-key form ({tmpl_name} prime-authority)")
+        try:
+            resolved = rotate._resolve_startup_placeholders(
+                live_cmd, vals, refuse_empty=True, fallback=live_fallback)
+        except ValueError as exc:
+            pytest.fail(
+                f"live {tmpl_name} prime-authority cmd REFUSES with prime "
+                f"session_ref empty: {exc}\n  cmd: {live_cmd}")
+        assert "--key" in resolved, (
+            f"live {tmpl_name} prime-authority did not resolve to the "
+            f"by-key form; got: {resolved}")
+        assert vals["prime_key"] in resolved
+        assert "{prime_ref}" not in resolved
+        assert "{prime_key}" not in resolved
+        refusal = rotate._producing_refusal(resolved)
+        assert refusal is None, (
+            f"live {tmpl_name} prime-authority resolved form refused: "
+            f"{refusal}: {resolved}")
+        tested.append((tmpl_name, live_cmd, resolved))
+    # Report the EXACT live line read, so the round's acceptance (e) is tied
+    # to the node bytes, not a re-derived shape.
+    assert tested, "no live prime-authority entry resolved"
+    for tmpl_name, live_cmd, resolved in tested:
+        print(f"  [{tmpl_name}] live cmd : {live_cmd}")
+        print(f"  [{tmpl_name}] resolved: {resolved}")
 
 
 def test_filter_allowlist_refuses_escape_list(tmp_path):

@@ -3526,9 +3526,37 @@ WHOIS_NO_MATCH = 3          #: ref belongs to no seat row at all
 #: `session_id` uuid. A prefix shorter than this is REFUSED (never a guess).
 WHOIS_MIN_SESSION_ID_PREFIX = 6
 
+#: whois `--key` resolves a row by a PREFIX of its `pubkey` cell. The prefix
+#: must be at least this many chars and the MATCH must be UNIQUE across rows —
+#: a shorter or ambiguous prefix is NO-MATCH (never a guess)
+#: (hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-session-
+#: ref-is-empty...).
+WHOIS_MIN_KEY_PREFIX = 8
+
+
+def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int, str]:
+    """Build the IS-AUTHORIZED/SEAT answer line for one matched row.
+    ``match_display`` is the text that stands where the session_ref would
+    because the row was found by key prefix or by seat name (``by key: <p>`` /
+    ``by name: <n>``). When the row names a CURRENT ``window`` cell the line
+    carries it (``window <@id>``), so a by-key by-name answer still yields F3's
+    SendMessage address in one call — the authority row's own window, printed
+    by the same resolver whois always used."""
+    name = who.get("name", "?")
+    role = who.get("role", "?")
+    win = who.get("window") or ""
+    winpart = f"  window {win}" if win else ""
+    if claim:
+        ok = (claim == name) or (claim == role)
+        verdict = "IS-AUTHORIZED" if ok else "IS-NOT-AUTHORIZED"
+        return ((WHOIS_OK if ok else WHOIS_NOT_AUTHORIZED),
+                f"{verdict}: {match_display} vs claim {claim!r} "
+                f"-> actual seat {name}, role {role}{winpart}")
+    return WHOIS_OK, f"SEAT: {match_display} -> seat {name}, role {role}{winpart}"
+
 
 def _resolve_rows(rows: list, session_ref: str,
-                  claim: str | None) -> tuple[int, str]:
+                  claim: str | None, target: tuple | None = None) -> tuple[int, str]:
     """Answer the is-this-who-they-say question for one ref. Two directions:
     with no --claim, name the seat + role the ref belongs to; with
     --claim NAME, answer whether this ref IS that row (a ref present in the
@@ -3537,7 +3565,36 @@ def _resolve_rows(rows: list, session_ref: str,
     L4.114 (r3): a ref that is not an exact `session_ref` match is still
     authorized when it is a PREFIX of a row's `session_id` uuid, at least
     WHOIS_MIN_SESSION_ID_PREFIX chars — a shorter prefix is refused (never
-    treated as a match)."""
+    treated as a match).
+
+    With ``target`` (a ``("key", prefix)`` or ``("seat", name)`` tuple, from
+    ``--key`` / ``--seat``) the row is resolved by its ``pubkey`` PREFIX or
+    by its ``name`` instead of by session_ref, and the answer names the axis
+    that found it."""
+    if target is not None:
+        mode, val = target
+        if mode == "seat":
+            hits = [r for r in rows if r.get("name") == val]
+            if hits:
+                return _whois_answer(hits[0], f"by name: {val}", claim)
+            return (WHOIS_NO_MATCH,
+                    f"NO-MATCH by name: {val!r} belongs to no seat row")
+        # mode == "key": a UNIQUE pubkey-prefix match, min 8 chars.
+        if len(val) < WHOIS_MIN_KEY_PREFIX or not all(
+                c in "0123456789abcdefABCDEF" for c in val):
+            return (WHOIS_NO_MATCH,
+                    f"NO-MATCH by key: {val!r} (< {WHOIS_MIN_KEY_PREFIX} hex "
+                    "chars) is too short or not hex to authorize by pubkey "
+                    "prefix")
+        hits = [r for r in rows if (r.get("pubkey") or "").startswith(val)]
+        if len(hits) > 1:
+            return (WHOIS_NO_MATCH,
+                    f"NO-MATCH by key: {val!r} matches {len(hits)} rows "
+                    "(ambiguous pubkey prefix — never a guess)")
+        if not hits:
+            return (WHOIS_NO_MATCH,
+                    f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
+        return _whois_answer(hits[0], f"by key: {val}", claim)
     hits = [r for r in rows if r.get("session_ref") == session_ref]
     if not hits:
         # r3: prefix-match a row's session_id uuid (state min length; refuse
@@ -3722,8 +3779,13 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
 
 def whois(root: Path, session_ref: str, claim: str | None,
           source: str = _PUSHED_SEATS, do_fetch: bool = True,
-          sig_line: str | None = None, msg_text: str | None = None):
+          sig_line: str | None = None, msg_text: str | None = None,
+          target: tuple | None = None):
     """Resolve session_ref against the PUSHED config:seats.
+
+    ``target`` is an optional ``("key", prefix)`` / ``("seat", name)`` tuple
+    (from ``--key`` / ``--seat``): the row is resolved by pubkey prefix or by
+    name instead of by session_ref, and the answer names that axis.
 
     Returns `(exit, text)` using the WHOIS_* codes: 0 only when the answer is
     both authoritative AND affirmative, 1 UNVERIFIED, 2 NOT-AUTHORIZED,
@@ -3748,7 +3810,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # tree: answer, but label it UNVERIFIED and exit non-zero. An
         # unauthoritative answer must never exit 0.
         local = _locally_loaded_rows(root)
-        _code, answer = _resolve_rows(local, session_ref, claim)
+        _code, answer = _resolve_rows(local, session_ref, claim, target)
         text = (f"UNVERIFIED {session_ref}: pushed ref {source!r} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
@@ -3766,7 +3828,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # negative one.
         return WHOIS_UNVERIFIED, text
     rows, sha = seeded
-    code, answer = _resolve_rows(rows, session_ref, claim)
+    code, answer = _resolve_rows(rows, session_ref, claim, target)
     text = f"{answer}  (verified against {source} @ {sha})"
     # INFORMATIONAL signature label: never part of the exit decision -- EXCEPT
     # clause (3)'s enforced FORGED refusal, checked below.
@@ -3912,8 +3974,17 @@ def main(argv: list[str] | None = None) -> int:
         help="resolve a claimed session_ref against the PUSHED config:seats "
              "(authority is the graph, never the message; hypothesis:l4-"
              "authority-verified-against-the-graph-not-the-message)")
-    p_whois.add_argument("session_ref",
-                         help="the session_ref (e.g. 7902ac) to verify")
+    p_whois.add_argument("session_ref", nargs="?", default=None,
+                         help="the session_ref (e.g. 7902ac) to verify "
+                              "(omit when using --key or --seat)")
+    p_whois.add_argument("--key", default=None,
+                         help="resolve by a UNIQUE prefix (>= 8 hex chars) "
+                              "of a row's pubkey instead of by session_ref "
+                              "(the prime row's pubkey is filled at every "
+                              "rotation when its session_ref is empty)")
+    p_whois.add_argument("--seat", default=None,
+                         help="resolve by a row's seat name instead of by "
+                              "session_ref")
     p_whois.add_argument("--claim", default=None,
                          help="claimed seat name or role; answer whether this "
                               "ref IS that row (impersonation check)")
@@ -4112,9 +4183,23 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.verb == "whois":
-        rc, text = whois(root, args.session_ref, args.claim, args.source,
+        # --key / --seat are alternatives to the positional ref, mutually
+        # exclusive with it and with each other. Exactly one resolution axis
+        # must be given.
+        given = [x for x in (args.session_ref, args.key, args.seat)
+                 if x is not None]
+        if len(given) != 1:
+            print("ERR: whois needs exactly one of <session_ref>, --key, or "
+                  "--seat", file=sys.stderr)
+            return 1
+        target = None
+        if args.key is not None:
+            target = ("key", args.key)
+        elif args.seat is not None:
+            target = ("seat", args.seat)
+        rc, text = whois(root, given[0], args.claim, args.source,
                          not args.no_fetch, sig_line=args.sig,
-                         msg_text=args.msg)
+                         msg_text=args.msg, target=target)
         print(text)
         return rc
 
