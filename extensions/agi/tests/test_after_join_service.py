@@ -216,8 +216,12 @@ def test_dm_carries_byte_budget_cut_with_full_output_pointer(tmp_path):
         rot.subprocess.run = real_run
     dm = out["dm"]
     assert len(dm) <= rotate.DEFAULT_AFTER_JOIN_DM_BYTE_CAP, len(dm)
-    assert "full output:" in dm
-    assert str(rec_path) in dm
+    assert "full output:" not in dm, \
+        "the full-output pointer is the graph address, never a path"
+    assert str(rec_path) not in dm, \
+        "a filesystem path is never printed (goal:g15.25 SM.01)"
+    assert "rotate.py status --post s --record latest" in dm, \
+        "the record is named by its GRAPH ADDRESS"
     # the record keeps the full per-command-capped results (4000)
     written = json.loads(rec_path.read_text())
     assert written["after_join"]["results"][0]["rc"] == 0
@@ -2380,20 +2384,24 @@ def test_after_join_record_names_send_returned_pair(tmp_path):
         "the record names what the SEND returned, not the on-disk key"
 
 
-def test_after_join_trim_keeps_head_and_captive_ack_line(tmp_path):
-    """Over the byte budget, the dm keeps the HEAD + ONE status line per entry
-    + the CAPTIVE `ack --post` line, trims the MIDDLE with ONE marker line,
-    and drops the per-command output."""
+def test_after_join_trim_keeps_head_status_and_captive_ack_line():
+    """Over the byte budget, the dm keeps the HEAD + the rule 1-4 entry
+    status lines + the CAPTIVE `ack --post` line + the GRAPH-ADDRESS tail,
+    trims the MIDDLE with ONE marker line, and drops the per-command output.
+    The record_path string is ABSENT (a filesystem path is never printed)."""
     huge = "y" * 5000
-    results = [{"label": "ack", "cmd": "echo boom", "rc": 0,
+    results = [{"label": "ack", "cmd": "echo boom", "rc": 1,
                 "output": huge}]
     out = rotate._compose_after_join_dm(
         "seat-a", 2, "ref123", results,
         dm_byte_cap=1500, record_path="/tmp/rec.json")
     assert out.count("… [trimmed") == 1, out
     assert out.startswith("## AFTER_JOIN OUTPUT"), out
-    assert "[ack] exit 0" in out, out
-    assert "full output: /tmp/rec.json" in out, out
+    assert "[ack] exit 1" in out, out
+    assert "$ echo boom" in out, "the cmd survives the trim for a non-zero rc"
+    assert "/tmp/rec.json" not in out, "a filesystem path is never printed"
+    assert "rotate.py status --post seat-a --record latest" in out, \
+        "the record is named by its GRAPH ADDRESS"
     assert "ack --post seat-a --gen 2 --ref ref123 diff --text -" in out, \
         "the CAPTIVE ack line survives the trim"
     assert huge not in out, "the per-command output is trimmed"
@@ -2403,13 +2411,66 @@ def test_after_join_trim_keeps_head_and_captive_ack_line(tmp_path):
 def test_after_join_byte_cap_counts_utf8_bytes():
     """1000 two-byte chars = 2000 UTF-8 bytes: over a 1500-byte cap it is
     TRIMMED even though it is only 1000 code points (a code-point cap would
-    wrongly keep it under)."""
-    results = [{"label": "ack", "cmd": "echo x", "rc": 0,
+    wrongly keep it under). A non-zero rc keeps the output so it can be over."""
+    results = [{"label": "ack", "cmd": "echo x", "rc": 1,
                 "output": "\u00e9" * 1000}]
     out = rotate._compose_after_join_dm(
         "s", 1, "r", results, dm_byte_cap=1500, record_path="/tmp/r.json")
     assert "… [trimmed" in out, \
         "byte-cap trimmed; a code-point cap (1000 < 1500) would not have"
+
+
+def test_after_join_dm_zero_exit_is_one_line_no_cmd_no_output():
+    """Rule 1 (goal:g15.25 SM.01): an entry that exits 0 is EXACTLY one line
+    `[label] exit 0` — no `$ cmd`, no output."""
+    out = rotate._compose_after_join_dm(
+        "s", 1, "r", [{"label": "seed", "cmd": "echo hi", "rc": 0,
+                         "output": "hello\nworld\n"}])
+    assert "\n[seed] exit 0\n" in "\n" + out + "\n", out
+    assert "$ echo hi" not in out, "no `$ cmd` for a zero exit"
+    assert "hello" not in out and "world" not in out, \
+        "no output for a zero exit"
+
+
+def test_after_join_dm_refused_carries_reason_on_one_line():
+    """Rule 2 (goal:g15.25 SM.01): a refusal is ONE line carrying the reason
+    — never dropped."""
+    out = rotate._compose_after_join_dm(
+        "s", 1, "r", [{"label": "seal", "cmd": "echo x",
+                         "refused": "no predecessor chain — skipped by name"}])
+    assert "\n[seal] REFUSED — no predecessor chain — skipped by name\n" in \
+        "\n" + out + "\n", out
+    assert "$ echo x" not in out, "a refusal carries no cmd line"
+
+
+def test_after_join_dm_nonzero_keeps_cmd_and_output():
+    """Rule 3 (goal:g15.25 SM.01): a non-zero exit keeps `$ cmd` + the
+    output so the reader can see what failed."""
+    out = rotate._compose_after_join_dm(
+        "s", 1, "r", [{"label": "sync", "cmd": "ls nope", "rc": 2,
+                         "output": "ls: nope: No such file\n"}])
+    assert "[sync] exit 2" in out, out
+    assert "$ ls nope" in out, out
+    assert "No such file" in out, "the failing output is kept"
+
+
+def test_after_join_dm_record_path_absent_graph_address_present():
+    """Rule 4 (goal:g15.25 SM.01): record_path is never printed; the tail
+    names the record by its GRAPH ADDRESS, under budget or over.
+    A lone rc0 (under cap) still ends with the graph address, no path."""
+    out = rotate._compose_after_join_dm(
+        "s", 1, "r", [{"label": "ack", "cmd": "echo hi", "rc": 0,
+                         "output": ""}],
+        record_path="/var/tmp/records/s-rot.json")
+    assert "/var/tmp/records/s-rot.json" not in out, \
+        "a filesystem path is never printed"
+    assert "rotate.py status --post s --record latest" in out, out
+    out2 = rotate._compose_after_join_dm(
+        "s", 1, "r", [{"label": "ack", "cmd": "echo boom", "rc": 1,
+                         "output": "y" * 5000}],
+        dm_byte_cap=1500, record_path="/var/tmp/records/s-rot.json")
+    assert "/var/tmp/records/s-rot.json" not in out2, out2
+    assert "rotate.py status --post s --record latest" in out2, out2
 
 
 # ── hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors- ──
