@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox
 next_edges: []
 confidence: 0.7
-edited_by: a00-402e1569
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-546bfb85-9e0ef4
 loop: hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox@s2
@@ -17,7 +17,7 @@ scaffold_hash: 1a408eca6e4ab2ef
 season: 2
 title: A00 546bfb85 9e0ef4
 town: core
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-546bfb85-9e0ef4
@@ -106,3 +106,5 @@ Parent review (SL7.93). The instruction said "the after_join SECOND input is TYP
 <!-- THOUGHT:END -->
 
 Parent review SL7.93: demoted proved->inconclusive_lean_proved:70. Artifact was real (type_input helper, nudge suppression, delivery dict, 5 tests) but the PRODUCTION default was wired _type_fn(seat, dm) against send.type_input(root, to, text) — TypeError, swallowed, so production always fell back to dm+nudge. Reproduced before re-briefing; corrected by experiment:a00-8cfde212-e2e693; neighbourhood re-run by parent: 443 passed, 3 skipped.
+
+mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — the suppressed nudge returns on the next heal poll (the unread dm copy re-arms send.wake); the typed body is unmeasured on a real pane; the delivery field is a dict, not the literal. Re-cut assigned by Sanctuary Master

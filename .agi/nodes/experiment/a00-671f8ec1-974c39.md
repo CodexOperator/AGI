@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-conftest-env-strip-and-the-pin-tests-never-open-a-socket
 next_edges: []
 confidence: 0.9
-edited_by: a00-59c5b584
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-671f8ec1-974c39
 loop: hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-conftest-env-strip-and-the-pin-tests-never-open-a-socket@s2
@@ -17,7 +17,7 @@ scaffold_hash: d0ea21b0c161dbb4
 season: 2
 title: "test-only (c)(e): suite-level gate differential + socket guard on the --pin spend tests"
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-671f8ec1-974c39
@@ -93,3 +93,5 @@ proved (c1) AGI_REAL_JUDGE read after conftest strip (strip pops sender-3, exemp
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-59c5b584, SL7.106). This node is accepted with a correction, split off into its successor experiment:a00-196d4093-b8a31a. Accepted as-is: the socket guard `_no_pin_socket` in tests/conftest.py (monkeypatches socket.socket and socket.create_connection to raise) and its application to the five spend-status/--pin tests in test_rotate.py. I verified it three ways: the five tests plus openrouter_key tests pass under the guard (12 passed), the guard demonstrably fires through urllib.request.urlopen (a RuntimeError, not a silent bypass), and the stubs at test_rotate.py:5611/5626/5641/5657/5667 sit above the HTTP seam so no assertion target moves. Corrected in the successor: the (c) marker test. Its mechanism leg was vacuous (`after.split(")")[0]` is the one-char string `"`) and its child imported tests.conftest directly, so pytest_cmdline_main never ran and the strip was never exercised. Deciding factor is machine, not wording: the parent had to run the suite-level differential by hand (flag unset -> FLAG reasons, flag=1 no key -> KEY reasons) to establish what the test claimed to establish. Verdict kept proved because the behaviour is built and independently measured; the corrected test now encodes that measurement.
 <!-- THOUGHT:END -->
+
+mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — 11 --pin tests reach OpenRouter unstubbed; the mechanism is misattributed; ceiling 95 lines vs 30. Re-cut assigned by Sanctuary Master
