@@ -46,6 +46,7 @@ import argparse
 import fcntl
 import hashlib
 import json
+import re
 import os
 import subprocess
 import sys
@@ -3047,21 +3048,36 @@ def _whois_sig_fp(sig_line: str | None) -> str:
         return "?"
 
 
+_SAFE_REF_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _sanitize_ref(session_ref: str) -> str:
+    """A filename-for-safe for a CLI-provided session_ref: keep ONLY
+    ``[A-Za-z0-9._-]``, dropping everything else (so ``/`` and ``..``-shaped
+    traversal can never escape the quarantine dir). Empty (or strips-to-nothing)
+    becomes the literal ``invalid-ref``."""
+    safe = _SAFE_REF_RE.sub("", session_ref)
+    return safe or "invalid-ref"
+
+
 def _quarantine_whois(root: Path, session_ref: str, sig_line: str | None,
                       msg_text: str) -> Path:
     """Append one FORGED whois's OWN signed bytes to
-    `<inbox_dir>/quarantine/<session_ref>.md` and return the absolute path.
+    `<inbox_dir>/quarantine/<safe>.md` and return the absolute path.
 
     whois has no inbox block to withhold (the sig + msg travel on the command
     line, not the wire), so the natural record IS the ``--sig`` line plus the
-    canonical ``--msg`` text whois was handed. SAME append semantics as
-    :func:`_quarantine_block` (`mkdir(parents=True, exist_ok=True)`,
-    `open(path, "a", newline="")`) -- never rewrites or truncates, and
-    ``newline=""`` keeps any CR surviving."""
+    canonical ``--msg`` text whois was handed. The filename is derived from a
+    SANITIZED session_ref (only ``[A-Za-z0-9._-]`` survive; an empty result
+    becomes ``invalid-ref``), so no CLI value can choose a path -- the ORIGINAL
+    raw ref is written as the record's first line so provenance survives the
+    sanitization. SAME append semantics as :func:`_quarantine_block`
+    (`mkdir(parents=True, exist_ok=True)`, `open(path, "a", newline="")`) --
+    never rewrites or truncates, and ``newline=""`` keeps any CR surviving."""
     qdir = _inbox_dir(root) / "quarantine"
     qdir.mkdir(parents=True, exist_ok=True)
-    path = qdir / f"{session_ref}.md"
-    record = f"{sig_line or '?'}\n{msg_text}\n"
+    path = qdir / f"{_sanitize_ref(session_ref)}.md"
+    record = f"{session_ref}\n{sig_line or '?'}\n{msg_text}\n"
     with open(path, "a", newline="") as f:
         f.write(record)
     return path.resolve()
@@ -3089,15 +3105,18 @@ def _whois_enforced_refusal(root: Path, session_ref: str, label: str | None,
         return None
     if _comms_config(root).get("verify") != "enforcing":
         return None
+    fp = _whois_sig_fp(sig_line)
     if not msg_text:
-        # No canonical msg to trace a ts/from from, nothing to write to the
-        # quarantine: keep today's behavior (label line, normal exit).
-        return None
+        # Under enforcing a FORGED label is refused even without a --msg to
+        # withhold: there are no canonical bytes to trace a ts/from from and
+        # none to write to the quarantine, but the forgery is still refused
+        # (exit 2). Do NOT fabricate a quarantine file -- nothing was handed.
+        return (f"REFUSED FORGED for {session_ref!r} fp {fp}: no --msg to "
+                f"withhold, nothing quarantined")
     path = _quarantine_whois(root, session_ref, sig_line, msg_text)
     ts, from_id = _whois_msg_meta(msg_text)
-    fp = _whois_sig_fp(sig_line)
     return (f"REFUSED FORGED from {from_id} ts {ts} fp {fp}: "
-            f"withheld to {path}")
+            f"withheld to {path} (ref {session_ref!r})")
 
 
 def _whois_sig_label(rows: list | None, session_ref: str,
@@ -3144,13 +3163,14 @@ def whois(root: Path, session_ref: str, claim: str | None,
     (VERIFIED/UNSIGNED/FORGED/RETIRED) as an INFORMATIONAL extra line.
 
     Clause (3): under ``comms.verify == "enforcing"`` AND ONLY THEN, a label
-    EXACTLY ``FORGED`` (with a ``--msg`` to withhold) returns WHOIS_NOT_AUTHORIZED
-    (2) EVEN IF the authority answer was code 0, and prints one
-    ``REFUSED FORGED ...`` line instead of the normal text -- the sig is the
-    reader's gate the same way it gates the inbox. Any other verify value, an
-    absent ``--msg``, or a non-FORGED label returns today's bytes and exit
-    unchanged: Prime ruling A keeps the sig label off the exit axis except at
-    this one enforced seam.
+    EXACTLY ``FORGED`` returns WHOIS_NOT_AUTHORIZED (2) EVEN IF the authority
+    answer was code 0, and prints one ``REFUSED FORGED ...`` line instead of the
+    normal text -- the sig is the reader's gate the same way it gates the inbox.
+    With a ``--msg`` the refused sig+msg is written to the quarantine; without
+    one there are no bytes to withhold, but the forgery is STILL refused and the
+    line says so (nothing is quarantined). Any other verify value or a
+    non-FORGED label returns today's bytes and exit unchanged: Prime ruling A
+    keeps the sig label off the exit axis except at this one enforced seam.
     """
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
