@@ -4739,3 +4739,80 @@ def test_status_record_latest_skips_detected_record(tmp_path, capsys):
     assert detected.name not in out, \
         f"status must not surface the detected record: {out}"
     assert "crash-recovery" not in out, out
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# g15.26 hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-
+# and-every-key-cell-writer-commits-and-pushes-its-own-row — CLAUSE (2) ROTATE
+# MINT legs: _rotate_first_key and the spawn-row/successor commit now commit
+# the key-cell write onto MAIN's season branch and PUSH it to origin (bare
+# remote fixture). A failed push never fails the mint/rotation.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def _git_with_bare(tmp_path, seed):
+    """seed(main_root, seats_path) -> commit an initial seats.md, then wire a
+    bare remote and push the initial branch so `origin` exists. Returns
+    (main_root, repo_top, bare). The caller's key-cell write then commits and
+    pushes onto that branch and origin reflects it."""
+    # bare remote OUTSIDE the seeded repo tree -- placing it under tmp_path
+    # would itself show as untracked in `git status` and trip the "MAIN not
+    # dirty" assertion.
+    bare = tmp_path.parent / f"{tmp_path.name}-remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root, top = _spawn_seed_git(tmp_path)   # proj graph + committed seats.md
+    subprocess.run(["git", "-C", str(top), "remote", "add", "origin",
+                    str(bare)], check=True)
+    branch = subprocess.run(["git", "-C", str(top), "rev-parse",
+                             "--abbrev-ref", "HEAD"], capture_output=True,
+                            text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(top), "push", "-u", "origin", branch],
+                   check=True)
+    return root, top, bare
+
+
+def test_rotate_first_key_commits_and_pushes_first_key_to_bare_remote(
+        tmp_path, monkeypatch, capsys):
+    """g15.26 clause (2) ROTATE MINT (first): an unkeyed real row's first
+    mint writes its pubkey cells into MAIN and COMMITS+PUSHES them -- after
+    the mint ORIGIN's row carries the pubkey and MAIN is not left dirty."""
+    root, top, bare = _git_with_bare(
+        tmp_path, lambda r: None)
+    capsys.readouterr()
+    note = rotate._rotate_first_key(root, root, "belam",
+                                    {"role": "prime_director"})
+    assert note and "minted its first key" in note
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "pubkey" in shown.stdout, shown.stdout
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout   # MAIN not left dirty
+
+
+def test_commit_spawn_row_pushes_successor_row_to_bare_remote(
+        tmp_path, capsys):
+    """g15.26 clause (2) SUCCESSOR/spawn-row: the successor row write
+    (carrying the successor pubkey + key_history) is committed AND pushed —
+    origin's row carries the successor cells and MAIN is clean."""
+    root, top, bare = _git_with_bare(
+        tmp_path, lambda r: None)
+    rotate._successor_row_write(
+        root, actor="belam", seat="belam", role="prime_director",
+        session_ref="", pid=4242, session_id="sess-123",
+        generation=3, window="@w9")
+    capsys.readouterr()
+    rotate._commit_spawn_row(root, seat="belam", generation=3,
+                             session_id="sess-123", window="@w9", pid=4242)
+    out = capsys.readouterr().err
+    assert "push: OK" in out, out
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "sess-123" in shown.stdout, shown.stdout
+    st = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout
