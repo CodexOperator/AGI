@@ -5867,6 +5867,8 @@ SL7.81 harvested 17:48Z (Prime line (d)): the list-of-plain-scalars path escapes
 
 mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-live-tree-fixpoint-names-the-pending-representation-change — '' list item read back as null after SL7.81; 91 live nodes carry a pending one-time representation change (0 value drift)
 
+SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item (and a top-level '') round-trips as '' — None stays null; live-tree fixpoint over 2860 nodes: value drift 0, 91 nodes named as the pending one-time representation change from SL7.81; kid proved 0.9; node_writer + write + frontmatter tests green. Rides SL2#26
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
