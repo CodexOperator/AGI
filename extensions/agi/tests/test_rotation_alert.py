@@ -55,6 +55,13 @@ def _no_inherited_seat(monkeypatch):
 #: test; the rotation tests read `_SPAWNS` back as the proof.
 _SPAWNS: list[list[str]] = []
 
+#: A provably-DEAD sentinel pid the `_no_real_spawn` recorder returns (NOT a
+#: real-looking 12345 that a latch could read as a live rotate-self). 2**24
+#: (16777216) sits beyond OS pid_max, so `hook._pid_alive(_RECORDER_PID)` is
+#: False — any latch the recorder path leaves naming it reads stale/never-held
+#: and can never hold a generation against a phantom.
+_RECORDER_PID = 2 ** 24
+
 
 @pytest.fixture(autouse=True)
 def _no_real_spawn(monkeypatch):
@@ -65,18 +72,23 @@ def _no_real_spawn(monkeypatch):
     `_spawn_rotate_self` builds the argv via `hook._rotate_self_argv` and calls
     `_Popen(argv, ...)`, returning `proc.pid`. The recorder records that argv
     (the exact bytes the production path would spawn) into `_SPAWNS` and
-    returns a fake proc with pid 12345, so the rotation claim is proved on the
-    built bytes without ever running a real rotate-self against a gitless tmp
-    fixture (a real subprocess does real writes and exits 3 — that must never
-    happen in a test not about rotating). Patching the SEAM, not the function,
-    is what keeps an out-of-process run honest: a fresh interpreter imports
-    this module with the REAL subprocess.Popen, so the out-of-process test
-    declines via AGI_HOOK_NO_SPAWN instead.
+    returns a fake proc whose pid is `_RECORDER_PID` — a provably-DEAD sentinel
+    (16777216, beyond OS pid_max, so `hook._pid_alive` reports it dead), never a
+    real-looking 12345 that a latch could read as a live rotate-self. A latch
+    the recorder path leaves naming `_RECORDER_PID` reads as stale/never-held, so
+    the rotation claim is proved on the built bytes without running a real
+    rotate-self against a gitless tmp fixture (a real subprocess does real
+    writes and exits 3 — that must never happen in a test not about rotating),
+    and without ever latching a phantom pid that could hold a generation.
+    Patching the SEAM, not the function, is what keeps an out-of-process run
+    honest: a fresh interpreter imports this module with the REAL
+    subprocess.Popen, so the out-of-process test declines via AGI_HOOK_NO_SPAWN
+    instead.
     """
     _SPAWNS.clear()
 
     class _FakeProc:
-        pid = 12345
+        pid = _RECORDER_PID
 
     def _record(argv, **_kw):
         _SPAWNS.append(argv)
@@ -1113,7 +1125,7 @@ def test_dead_latch_is_released_and_rerotates(tmp_path, run_hook, monkeypatch, c
     assert len(_SPAWNS) == 1, (out, _SPAWNS)
     latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
     assert latch.exists()
-    assert hook._latch_holder_pid(latch) == 12345   # the ROTATE-SELF pid
+    assert hook._latch_holder_pid(latch) == _RECORDER_PID  # the ROTATE-SELF pid
 
     # SIMULATE the mid-flight failure: its holder dies.
     monkeypatch.setattr(hook, "_pid_alive", lambda pid: False)
@@ -1273,6 +1285,44 @@ def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
     assert "rotate-self" in argv, argv
     assert kw.get("start_new_session") is True, kw
     assert kw.get("stdout") is subprocess.DEVNULL, kw
+
+
+def test_one_no_spawn_check_lives_in_gate_e_not_the_helper(
+        tmp_path, monkeypatch):
+    """Goal:g15.25 one-check claim — AGI_HOOK_NO_SPAWN is guarded by the ONE
+    check, gate (e) in `_gated_rotate`, NOT by a second short-circuit inside
+    `_spawn_rotate_self` (dead code that used to read as the fix). Two proofs:
+
+    (1) a DIRECT call to the helper under NO_SPAWN now REACHES the seam: the
+    recorder is called (the helper has no stealth env-var branch of its own),
+    so the sole suppression lives in the caller — reached end to end through
+    the production path covered by `test_spawn_launch_goes_through_the_popen_
+    seam_and_no_spawn_honoured` / `test_out_of_process_no_spawn_declines_...`.
+    (2) the recorder's sentinel pid is provably DEAD, so a latch left through
+    the recorder path can never hold a generation against a phantom pid."""
+    calls = []
+
+    class _Fake:
+        pid = _RECORDER_PID
+
+    def _record(argv, **kw):
+        calls.append((argv, kw))
+        return _Fake()
+
+    monkeypatch.setattr(hook, "_Popen", _record)
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    root = tmp_path / "g"
+    root.mkdir(exist_ok=True)
+    bin_dir = Path(hook.__file__).resolve().parents[1] / "bin"
+    pid = hook._spawn_rotate_self(root, "probe-director", "stops: x")
+    # (1) the helper reaches the seam even under NO_SPAWN — NO second check.
+    assert calls, ("helper must reach the _Popen seam under NO_SPAWN; "
+                   "the one NO_SPAWN check is gate (e) in the caller")
+    assert calls[0][0][1].endswith("rotate.py"), calls[0][0]
+    assert pid == _RECORDER_PID, pid
+    # (2) the sentinel is provably dead — a recorder-path latch can't hold.
+    assert hook._pid_alive(_RECORDER_PID) is False
+    assert _RECORDER_PID != 12345
 
 
 def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
