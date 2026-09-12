@@ -29,34 +29,33 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start*.py test_after_jo
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2`.
 Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = the Sensei only (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; $1.00 floor never lowered · meter: `rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log <own .jsonl>` (absolute) · at 0.4: card FIRST, merge origin/season/s2, `rotate.py prepare --seat sensei-director`, `rotate-self --name sensei-director --role director --timeout 900 --force`, then `send.py send belam "sensei-director rotated: window @<id>, ref <ref>"` · the four prayers open every seam; the closing prayer once, at rotation.
 
-## §3 🔴 STATE — gen VIII (ref `013f1fb9-e3e4-4957-9ee5-e5637a5ec642`, window @316, pid 1353686, loop L8 from 04:55Z; row generation 7, session_ref empty by design) — stamp 05:25Z
+## §3 🔴 STATE — gen VIII (ref `013f1fb9-e3e4-4957-9ee5-e5637a5ec642`, window @316, pid 1353686, loop L8 from 04:55Z; row generation 7, session_ref empty by design) — stamp 05:33Z
 
 | | |
 |---|---|
-| seat | `seat/sensei-director@s2` = origin/season/s2 (42ce34503) + the g15 landed note + the read-guard brief (never rebased). Nothing harvested-but-unmerged. |
-| SL2#14 | **LANDED 05:21Z** merge 42ce34503 = stamp; ALL 11 GREEN suite passed=3782 skipped=15 + ONE declared strict-xfail (test_send.py::test_keygen_commits_and_pushes_own_row_to_bare_remote — SL7.09 owns it; REMOVE the mark when it lands); **2396 / 195 / 2591** (baseline 2373/195/2568); grid 24 versions; pushed. Seven rounds: SL7.02/04/05/06/08/10/11. Numbers line sent 05:24Z; Prime owes mur-SL2.14 by name |
-| wake | gen VIII: 0 calls (SL7.06 default answered continue — first live proof). Owner order 03:3xZ: wake 0 / out 1 → line (3) = SL7.12 (brief narrowed, queued behind SL7.09), line (4) after it |
-| Prime | belam XIV [92eda4] @314. Owes: mur-SL2.14 by name; reaper restart once after merge-up 44 |
-| Sensei | master-sensei gen 2 [f5de36] @309. Asks: A built + landed (SL7.04) · owner order built + landed (SL7.06; Sensei ruled 05:05Z KEEP the ack template entry) · B = SL7.07 (running) · C built + landed (SL7.02). Told 05:06Z: rotate-self ack prose already conditional on the seat; the `loop` twin writes no pending ack so its prose is right for its path |
-| credits | 05:07Z 152 / 128.43 used → **$23.57 left**; ~$0.3-0.5 per round; a 403 = ONE line to the Prime, stop. Floor $1.00 |
-| trap paid | gen VIII call 4: `send.py read <seat>` (positional) READS THAT SEAT'S INBOX and marks it read — I consumed belam's inbox; dms are `send.py read --dm <seat> --from sensei-director`. Corrected to the Prime 04:58Z; Prime ACCEPTED a g15 line → minted `hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open` (SL7.13, after SL7.09/07 harvest) |
+| seat | `seat/sensei-director@s2` = origin/season/s2 (146d971eb) + **SL7.07 + SL7.09 harvested, NOT merged up** (never rebased). 753 rotate+send+seatsig + 294 heal/session-start/after-join/hook/sensei green; **zero xfails** (SL7.09 flipped the keygen one and removed the mark) |
+| SL2#14 | **LANDED 05:21Z** merge 42ce34503 = stamp; ALL 11 GREEN 3782/15 + 1 declared xfail; 2396 / 195 / 2591; grid 24; seven rounds SL7.02/04/05/06/08/10/11. Prime owes mur-SL2.14 by name (running wf_ec887773-cd6 per the point's 05:3xZ handoff) |
+| SL2#15 | window ASKED 05:33Z (SL7.07 + SL7.09; all six flip-gate lines built). Merge on MAIN ONLY on the GO line. Baseline 2396/195/2591, active never lower |
+| wake | gen VIII: 0 calls (SL7.06 default — first live proof). Owner order 03:3xZ: wake 0 / out 1 → SL7.12 running; line (4) after it |
+| Prime | belam XIV [92eda4] @314. Owes: GO for SL2#15; mur-SL2.14 by name; the flip decision once mur names all six gate lines |
+| Sensei | master-sensei gen 2 [f5de36] @309. A/C/owner-order landed at SL2#14; B = SL7.07 on the seat; ack template entry KEPT (Sensei 05:05Z); told 05:06Z the rotate-self ack prose is already conditional on the seat |
+| credits | 05:07Z $23.57 left; two rounds dispatched since (~$1) → ~$22; a 403 = ONE line to the Prime, stop. Floor $1.00 |
+| trap paid | `send.py read <seat>` (positional) READS THAT SEAT'S INBOX — dms are `read --dm <seat>`; consumed belam's inbox at 04:56Z, corrected, Prime accepted a g15 line → SL7.13 running. Also: an UNQUOTED heredoc / double-quoted send line runs backticks — quote heredoc EOF with single quotes, backticks only inside single quotes |
 
 ### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read kid nodes · merge --no-ff · neighbourhood tests · note · render · push)
 
 | round · agent · branch | brief | gate · tests | since |
 |---|---|---|---|
-| **SL7.09** a00-8f0f4ffa `season2/loops/hypothesis-l4-the-successor-key--a00-8f0f4ffa` (kid a00-89d49b37 live) | `hypothesis:l4-the-successor-key-swap-waits-for-the-push-and-a-recovery-record-still-yields-the-join` (g15.26 flip gate (2)(6) + mur-SL2.12 (3) + the edited_by xfail) | MANDATORY two-tree alert fixture VERIFIED never FORGED; xfail flips → remove the strict mark in test_send.py · rotate + send | 04:54Z |
-| **SL7.07** a00-a457c3fe `season2/loops/hypothesis-l4-the-spawn-gate-ref-a00-a457c3fe` (kid a00-7d33638d live) | `hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-hand-seating-commits-its-row-and-answers-the-ack` (Sensei B + flip gate (5)) | both-direction gate fixtures; hand seating leaves MAIN clean, post wakes at 0 · rotate | 04:54Z |
+| **SL7.12** a00-a316ccc9 `season2/loops/hypothesis-l4-the-predecessor-an-a00-a316ccc9` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` (g15.25 line (3) narrowed: `rotate-self --stops` = one-call rotate-out; alert dm = the rotation line) | fake-tmux proof: one call rotates, one pathspec commit (card + seats.md), clean tree, upstream equal; no-flag path byte-identical · rotate neighbourhood | 05:31Z |
+| **SL7.13** a00-0bec02e3 `season2/loops/hypothesis-l4-send-py-read-refus-a00-0bec02e3` | `hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open` (g15, Prime-accepted 05:14Z) | foreign-target read refuses with the three remedies, marker untouched; peek/--dm/--room unchanged; every engine caller measured · send neighbourhood | 05:31Z |
 
-Harvested this gen and LANDED at SL2#14: SL7.08 · SL7.10 · SL7.11 (with the four from gen VII). Round branches now spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar; a `+` prefix in plain `git branch` = checked out in the round's worktree.
+Harvested this gen: SL7.08 · SL7.10 · SL7.11 (LANDED SL2#14) · SL7.07 · SL7.09 (on the seat for SL2#15). Round branches spell `season2/loops/<slug>-<agent>` (L4.305); `git branch --format='%(refname:short)' | grep <agent>` finds either grammar.
 
 ### Queue — dispatch in this order, each behind the round that owns its file
 
-1. **SL2#15** when SL7.09 + SL7.07 are harvested: ask belam "window?" → merge on MAIN only on the GO line → render + --render --check → `commands.py run verify-suite` (BACKGROUND it — 5-6 min; read the task output) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE line: 5 numbers **including suite passed/skipped and any named xfail**, merge sha, stamp sha, one line per goal. Baseline now 2396/195/2591, active never lower.
-2. **line (3)** NARROWED 05:01Z (bf58b538a) — `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` (rotate-self --stops = one-call rotate-out) — dispatch as SL7.12 AFTER SL7.09 harvests (rotate.py owner); SL7.07 EXCLUDED by name in the brief.
-3. **SL7.13** read-guard `hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open` (send.py read dispatch only) — after SL7.09 harvests (it touches test_send.py); can run beside SL7.12 (rotate.py) — file-disjoint.
-4. **line (4)** `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` — re-read against SL7.06 + line (3) before dispatch; after line (3).
-5. **Dispatch line:** `python3 extensions/agi/bin/dispatch.py . SL7.<nn> --target <id> --level small --tier parent --harness pi --branch` (commit + push first; exit 3 stale-base = merge origin/season/s2, push, re-run).
+1. **SL2#15** on the Prime's GO line: merge on MAIN → render + --render --check → `commands.py run verify-suite` (BACKGROUND, ~6 min) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE line: 5 numbers incl. suite passed/skipped, merge sha, stamp sha, one line per goal.
+2. **line (4)** `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` — after SL7.12 harvests (it names `--stops`); re-read against SL7.06 + SL7.12 before dispatch (hooks + rotate.py pre-spawn region).
+3. **Dispatch line:** `python3 extensions/agi/bin/dispatch.py . SL7.<nn> --target <id> --level small --tier parent --harness pi --branch` (commit + push first; exit 3 stale-base = merge origin/season/s2, push, re-run).
 
 ### 🔴 Where it stops — the next command (stamp 04:54Z)
 
