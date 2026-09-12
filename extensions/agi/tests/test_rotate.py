@@ -1610,6 +1610,51 @@ def test_loop_returns_success_when_diff_is_empty(monkeypatch, tmp_path, capsys):
     assert "handoff stood" in err and "EMPTY diff" in err
 
 
+def test_loop_in_flight_names_real_answer(monkeypatch, tmp_path, capsys):
+    """g15.24 FIX: the loop-path alert's `in_flight` names the REAL answer
+    (diff-empty when a diff-empty stood the handoff, continue when a continue
+did), never the old hard-coded successor-acked-continue on the diff-empty
+    path."""
+    seen = {}
+
+    def _capture(**kw):
+        seen["in_flight"] = kw.get("in_flight")
+
+    monkeypatch.setattr(rotate, "_announce_rotation", _capture)
+    for i, (answer, ack_text, expect) in enumerate((
+        ("continue", "", "successor acked `continue`; handoff stood"),
+        ("diff", "   ", "successor acked `diff-empty`; handoff stood"),
+    )):
+        root = _proj(tmp_path / str(i))
+        monkeypatch.chdir(root)
+        monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+        monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+        dbg = tmp_path / "seat.log"
+        dbg.write_text(REAL_DEBUG_LOG)
+        ackp = rotate._ack_path(root, "belam-II")
+        ackp.parent.mkdir(parents=True, exist_ok=True)
+        ackp.write_text(json.dumps({"seat": "belam-II", "gen_after": None,
+                                    "answer": answer, "text": ack_text}),
+                        encoding="utf-8")
+        wins = tmp_path / "windows.txt"
+        wins.write_text("")
+        monkeypatch.setattr(
+            rotate, "_launch_window",
+            lambda session, name, shell_cmd: _fake_launch(wins, "belam-II\n"))
+        code = rotate.cmd_loop(SimpleNamespace(
+            session_log=None, force=True, role="prime_director",
+            name="belam-II", name_prefix="belam", model=None, effort=None,
+            settings=None, prompt_file=None, tmux_session="agi-rc",
+            window_path=str(wins), debug_file=str(dbg), dry_run=False,
+            timeout=1), root)
+        assert code == 0
+        assert seen.get("in_flight") == expect, (
+            f"answer={answer!r}: in_flight {seen.get('in_flight')!r} "
+            f"!= {expect!r}")
+        capsys.readouterr()
+
+
+
 
 def test_loop_present_but_silent_no_ack_still_no_reply(monkeypatch, tmp_path):
     """FALSIFIER (2): the same REAL --debug-file WITHOUT an ack file, with the
@@ -5144,14 +5189,17 @@ def test_ack_commits_nothing_when_row_already_carries_ref(
     assert "git -C {0} push".format(top) not in out
 
 
-def test_ack_diff_answer_never_commits(tmp_path, monkeypatch, capsys):
-    """r3b (2): `diff` is the no-commit default — write + print, HEAD
-    unchanged, no push line (the successor still edits)."""
+def test_ack_diff_with_text_never_commits(tmp_path, monkeypatch, capsys):
+    """r3b (2) + g15.24 FIX: `diff` WITH text is the no-commit default —
+    write + print, HEAD unchanged, no push line (the successor still
+    edits). A diff-empty (no text) is the one that now COMMITS (the
+    handoff stands), so a non-empty diff must stay a pure write."""
     root, top = _ack_seed_git(tmp_path)
     monkeypatch.chdir(root)
     before = _git_head(top)
     code = rotate.cmd_ack(SimpleNamespace(
-        seat="belam", gen=7, ref="f52a4c", answer="diff", text=""),
+        seat="belam", gen=7, ref="f52a4c", answer="diff",
+        text="the successor needs a change"),
         root)
     assert code == 0
     assert _git_head(top) == before
@@ -5162,6 +5210,38 @@ def test_ack_diff_answer_never_commits(tmp_path, monkeypatch, capsys):
     assert "back-filled session_ref=f52a4c" in out
     assert "git -C {0} push".format(top) not in out
     assert "ack: committed" not in out
+
+
+def test_ack_diff_empty_commits_own_row_write(tmp_path, monkeypatch, capsys):
+    """g15.24 FIX-ONLY: a `diff` answer whose text is EMPTY stands the handoff
+    exactly like `continue` (SL7.18), so it commits the own-row back-fill the
+    same way — clean tree, exactly ONE new commit on seats.md only, and the
+    ack prints the same +/- lines and the exact `git push` line."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="diff", text=""),
+        root)
+    assert code == 0, capsys.readouterr().err
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+    after = _git_head(top)
+    assert after != before                      # exactly ONE new commit
+    status = subprocess.run(["git", "-C", str(top), "status", "--porcelain"],
+                            capture_output=True, text=True)
+    assert status.stdout.strip() == ""          # clean tree (ack own write)
+    files = subprocess.run(["git", "-C", str(top), "diff-tree",
+                            "--no-commit-id", "--name-only", "-r", after],
+                           capture_output=True, text=True).stdout.split()
+    assert files == ["proj/nodes/.geometry/seats.md"]   # seats.md ONLY
+    out = capsys.readouterr().out
+    assert "ack: committed own row write" in out
+    assert any(ln.startswith("+") for ln in out.splitlines())
+    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "git -C {0} push".format(top) in out  # exact push line printed
+    assert "--no-commit" not in out
 
 
 def test_ack_own_row_pre_dirty_refused_before_write(tmp_path, monkeypatch, capsys):
