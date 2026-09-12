@@ -10446,8 +10446,36 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
             f"push={_push!r})")
 
 
+def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
+    """Stamp the card's OWN `# SESSION HANDOFF` header with the rotation
+    fact, in the SAME write that lands the where-it-stops slot.
+
+    goal:g15.25 line (3) (hypothesis:l4-rotate-self-stamps-the-card-header-
+    itself... (a)): the FIRST line matching `^# SESSION HANDOFF` gains exactly
+    ONE trailing parenthetical ` (rotating at <frac> of the line, <HH:MMZ>)`;
+    when such a ` (rotating at` parenthetical is ALREADY present it is
+    REPLACED, never double-appended (a second run re-stamps). A card with NO
+    `# SESSION HANDOFF` header is returned byte-identical (never invent a
+    header). Operates on the fully rendered card text."""
+    stamp = f" (rotating at {frac:.4f} of the line, {hmz})"
+    lines = full.splitlines()
+    for i, ln in enumerate(lines):
+        if ln.startswith("# SESSION HANDOFF"):
+            if " (rotating at" in ln:
+                start = ln.index(" (rotating at")
+                end = ln.find(")", start)
+                if end == -1:
+                    end = len(ln)
+                lines[i] = ln[:start] + stamp + ln[end + 1:]
+            else:
+                lines[i] = ln.rstrip() + stamp
+            break
+    return "\n".join(lines) + "\n"
+
+
 def _write_stops_section(card_path: Path, seat: str, stops_text: str,
-                         diff_gap: str | None = None):
+                         diff_gap: str | None = None,
+                         frac: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
     own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
     any header whose title `_locate_where_it_stops` keys on -- 'where it
@@ -10472,6 +10500,9 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
             extra += f"\n\ndiff requested: {diff_gap}"
         full = _render_card(preamble, sections)
         full = full.rstrip("\n") + "\n\n" + extra + "\n"
+        if frac is not None:
+            full = _stamp_rotating_header(
+                full, frac, datetime.utcnow().strftime("%H:%MZ"))
         card_path.parent.mkdir(parents=True, exist_ok=True)
         card_path.write_text(full, encoding="utf-8")
         return full, "created"
@@ -10503,6 +10534,9 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                         if new_body.strip() else f"diff requested: {diff_gap}")
     sections[sec_idx] = (header, new_body)
     full = _render_card(preamble, sections)
+    if frac is not None:
+        full = _stamp_rotating_header(
+            full, frac, datetime.utcnow().strftime("%H:%MZ"))
     card_path.parent.mkdir(parents=True, exist_ok=True)
     card_path.write_text(full, encoding="utf-8")
     return full, "replaced"
@@ -10781,8 +10815,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                   "<prime> (no send.py call needed; --dry-run, nothing "
                   "written)")
         else:
+            # (a) the header stamp rides this SAME write: the meter fraction
+            #     is read ONCE via the seat's own pin (the value rotate-self
+            #     already reads -- never re-derived), and passed down so the
+            #     rotate-out is ONE card write + ONE commit.
+            _frac = _seat_fraction(root, row)
             _full, _slot = _write_stops_section(
-                _card, seat, _stops_text, diff_gap=_gap)
+                _card, seat, _stops_text, diff_gap=_gap, frac=_frac)
             if _full is None:
                 print(f"ERR: rotate-self --stops: {_slot}", file=sys.stderr)
                 return 2
@@ -11517,17 +11556,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             f"generation {gen_before} of seat {seat!r} retired; successor "
             f"generation {gen} owns it (release by RECORD: the config:seats "
             "self_row schema has no retired field)")
-        # (s6.5) reap our own process by PID — an EXPLICIT STAND-IN (internal
-        #     seam; the CLI flag is gone). Real own pids are never reaped
-        #     here.
-        own_pid = getattr(args, "own_pid", None)
-        if own_pid:
-            handover["reap_own_pid"] = _reap_pid(int(own_pid))
-        else:
-            handover["reap_own_pid"] = {
-                "pid": None, "reaped": False,
-                "note": "no own-pid stand-in supplied; the predecessor's "
-                        "process is NOT reaped by this run"}
+        # (O3/g15.25 (c)) the reap stand-in seam is RETIRED: s12_self_reap
+        #     (written at the end of this same flow) is the ONE reap section.
+        #     The record never claimed the predecessor was NOT reaped while
+        #     s12 said it was reaped — one truth per record.
         # (s6.6) Belam cap: a prime_director keeps the predecessor chain
         #     exactly five deep — reap the OLDEST when a sixth would exist.
         if role == "prime_director" or getattr(args, "belam_prefix", None):
@@ -11714,6 +11746,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     rotated file is an ADDITIONAL name, never a changed shape.
     _rot = _rotate_ack_file(root, seat, gen)
     if _rot:
+        if _rot.startswith("ack rotated:"):
+            # (b) the record names the ack AS IT EXISTS at record time: the
+            #     live `seats/<seat>.ack.json` is now `.ack.gen<N>.json`, so
+            #     the SAME record's `ack_written` is rewritten to the rotated
+            #     path (a reader following the record must not open a path
+            #     that no longer exists) and the spawn-time value is preserved
+            #     under `ack_written_at_spawn`. Naming only -- the ack SHAPE
+            #     is untouched. The record file is rewritten in place (same
+            #     path `_write_rotation_record` already opened).
+            _spawn_ack = handover.get("ack_written")
+            if (isinstance(_spawn_ack, str) and _spawn_ack
+                    and not _spawn_ack.startswith("FAILED")):
+                handover["ack_written_at_spawn"] = _spawn_ack
+                handover["ack_written"] = str(_ack_path(root, seat)
+                                               .with_name(
+                                                   f"{seat}.ack.gen{gen}.json"))
+                if record_path:
+                    _rp = Path(record_path)
+                    if _rp.exists():
+                        _rec = json.loads(_rp.read_text(
+                            encoding="utf-8", errors="replace"))
+                        _rec["handover"] = handover
+                        _write_rotation_record(root, _rec, path=record_path)
         print(_rot)
 
     # (6.4) THE SERVICE performs the captive after_join first turn (0b-b owed

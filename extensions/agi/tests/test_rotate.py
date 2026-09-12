@@ -2090,6 +2090,139 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
         capture_output=True, text=True).stdout
     assert "fix the merge on seat-3" in committed_card
 
+def test_write_stops_section_stamps_rotating_header(tmp_path):
+    """goal:g15.25 line (3) (a) — when a meter fraction is supplied the
+    card's OWN `# SESSION HANDOFF` header is stamped in the SAME write:
+    exactly ONE ` (rotating at <frac> of the line, <HH:MMZ>)` parenthetical,
+    REPLACED (not appended) on a second run, and a card with NO such header
+    is left byte-identical apart from the stops slot."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# SESSION HANDOFF — 2026-09-12 scratchpad\n\n"
+                    "## Intro\nkeep this\n", encoding="utf-8")
+    body, slot = _r._write_stops_section(card, "s", "fix seat-3", frac=0.4)
+    assert slot == "created"
+    head = body.splitlines()[0]
+    assert "rotating at 0.4000 of the line, " in head
+    assert head.count("rotating at") == 1
+    assert "keep this" in body
+    # a SECOND stamp REPLACES the parenthetical — never a second one
+    body2, _ = _r._write_stops_section(card, "s", "now this", frac=0.5)
+    head2 = body2.splitlines()[0]
+    assert head2.count("rotating at") == 1
+    assert "rotating at 0.5000 of the line, " in head2
+    assert "rotating at 0.4000" not in head2
+    # a card with NO `# SESSION HANDOFF` header: never invent one
+    plain = tmp_path / "quorum" / "p.md"
+    plain.write_text("# plain pitch\n\n## Intro\ncarried\n",
+                     encoding="utf-8")
+    pbody, _ = _r._write_stops_section(plain, "s", "fix", frac=0.5)
+    assert "rotating at" not in pbody
+    assert "carried" in pbody
+    assert plain.read_text(encoding="utf-8").count("### 🔴 Where it stops")\
+         == 1
+
+
+def test_rotate_self_stops_stamps_header_once_in_commit(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 (a) — ONE `rotate-self --stops` run stamps the card's own
+    `# SESSION HANDOFF` header in the SAME write/commit as the stops slot:
+    the rotate-out commit names the card ONCE and the committed header carries
+    `rotating at <frac>` (the meter fraction rotate-self reads, never a
+    second derivation)."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    _pin_seat_transcript(tmp_path, "adv-alive", tokens=1000)  # 0.0100 frac
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# SESSION HANDOFF — 2026-09-12 scratchpad\n\n"
+                    "## Intro\ncarried\n", encoding="utf-8")
+    _init_git_remote(tmp_path)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge on seat-3")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, capsys.readouterr().out
+    # git log -1 --stat names the card EXACTLY ONCE
+    names = subprocess.run(
+        ["git", "-C", str(tmp_path), "log", "-1", "--name-only",
+         "--format="], capture_output=True, text=True).stdout.splitlines()
+    names = [n for n in names if n.strip()]
+    assert names.count("sessions/quorum/adv-alive.md") == 1, names
+    committed = subprocess.run(
+        ["git", "-C", str(tmp_path), "show",
+         "HEAD:sessions/quorum/adv-alive.md"],
+        capture_output=True, text=True).stdout
+    head_line = committed.splitlines()[0]
+    assert "rotating at 0.0100 of the line, " in head_line
+    assert head_line.count("rotating at") == 1
+    # the committed card carries the where-it-stops text too, in the SAME
+    # one write+commit
+    assert "fix the merge on seat-3" in committed
+
+
+def test_rotate_self_record_names_rotated_ack_after_rotation(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 (b) — after `_rotate_ack_file` succeeds the SAME record's
+    `ack_written` names the rotated `.ack.gen<N>.json` (a reader following the
+    record must not open a path that no longer exists) and the spawn-time
+    value is preserved under `ack_written_at_spawn`. Naming only — the on-disk
+    ack contract is untouched."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    (quorum / "adv-alive.md").write_text("# adv-alive card\n",
+                                          encoding="utf-8")
+    _init_git_remote(tmp_path)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    # session_ref seam: WITH identity the s6.x handover block runs, including
+    # the real `_write_ack` whose file (5.75) rotates. Without it this
+    # fixture skips the whole block (no ack written, nothing to rotate).
+    args = _rotate_self_args(tmp_path, window_path=str(win), session_ref="s-123",
+                             stops="fix the merge on seat-3")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, capsys.readouterr().out
+    recs = sorted((tmp_path / "sessions" / "rotations")
+                  .glob("adv-alive.*.json"))
+    assert recs
+    rec = json.loads(recs[-1].read_text(encoding="utf-8"))
+    assert rec["result"] == "success"
+    hand = rec["handover"] or {}
+    assert hand["ack_written"].endswith("adv-alive.ack.gen1.json"), \
+        hand["ack_written"]
+    assert hand["ack_written_at_spawn"].endswith("adv-alive.ack.json")
+    # the live ack is gone and the .gen1 name is what actually exists
+    assert not (tmp_path / "sessions" / "seats"
+                / "adv-alive.ack.json").exists()
+    assert (tmp_path / "sessions" / "seats"
+            / "adv-alive.ack.gen1.json").exists()
+
+
 def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
         fake_ladder, tmp_path, monkeypatch, capsys):
     """FALSIFIER (the parent's measured gap): when the captive checklist

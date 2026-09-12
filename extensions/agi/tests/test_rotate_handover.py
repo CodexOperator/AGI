@@ -409,8 +409,10 @@ def test_reap_pid_refuses_own_or_invalid(_fix, tmp_path):
     assert out0["reaped"] is False
 
 
-def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
-    """The full rotate-self call reaps the stand-in own pid handed it."""
+def test_handover_no_reap_own_pid_stand_in(_fix, tmp_path, monkeypatch):
+    """g15.25 (c): the `reap_own_pid` stand-in seam is RETIRED — a full
+    rotate-self call leaves NO `reap_own_pid` key in the rotation record,
+    even when the seam injects an own pid (only `s12_self_reap` reaps now)."""
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
@@ -430,10 +432,10 @@ def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
         rc = rotate.cmd_rotate_self(args, tmp_path)
         assert rc == 0
         rec = _latest_record(tmp_path, "adv-alive")
-        hp = rec["handover"]["reap_own_pid"]
-        assert hp["reaped"] is True
-        assert hp["gone_after"] is True
-        assert hp["pid"] == pid
+        # the stand-in is gone: the record never claims a reap it did not do.
+        assert "reap_own_pid" not in rec["handover"]
+        # the injected pid was NOT TERM'd (the stand-in that reaped it gone).
+        assert rotate._pid_alive(pid)
     finally:
         if rotate._pid_alive(pid):
             os.kill(pid, signal.SIGKILL)

@@ -1302,17 +1302,12 @@ def _gen_bounds(rec: dict) -> tuple[int | None, int | None]:
 
 def _fallback_pids(rec: dict) -> list[int]:
     """Pids to try as `~/.claude/sessions/<pid>.json` for the predecessor
-    transcript: the outgoing record's `s12_self_reap.chain` and its
-    `handover.reap_own_pid.pid`."""
+    transcript: the outgoing record's `s12_self_reap.chain` — the ONE reap
+    section (g15.25 (c): the `handover.reap_own_pid` stand-in is retired)."""
     pids: list[int] = []
     s12 = rec.get("s12_self_reap")
     if isinstance(s12, dict) and isinstance(s12.get("chain"), list):
         pids += [p for p in s12["chain"] if isinstance(p, int)]
-    rop = rec.get("handover")
-    if isinstance(rop, dict):
-        rop = rop.get("reap_own_pid")
-    if isinstance(rop, dict) and isinstance(rop.get("pid"), int):
-        pids.append(rop["pid"])
     return pids
 
 
@@ -1327,7 +1322,8 @@ def _resolve_predecessor_transcript(
     `--transcript`; (2) the previous record of the same seat whose
     `b_generation.after == N` — it carries the `handover.join.transcript` of
     gen N joining; (3) `~/.claude/sessions/<pid>.json` for a pid in the
-    OUTGOING record's `s12_self_reap.chain`/`handover.reap_own_pid`, resolved
+    OUTGOING record's `s12_self_reap.chain` (the ONE reap section — the
+    `handover.reap_own_pid` stand-in is retired, g15.25 (c)), resolved
     through `rotate.transcript_from_registry` (the registry file is content,
     never itself the transcript — returning it would read 0 calls and exit 0,
     a silent false negative).
