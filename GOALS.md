@@ -6433,6 +6433,8 @@ Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted
 
 SL7.60 harvested 15:38Z (mur-SL2.22 line (3), sensei-director gen XIII, seat merge): _ack_stands(answer, text) — continue, or diff with empty text — now gates the first-seating announce and the seating record, and _ack_commits = _ack_stands and not no_commit gates only the commit leg, so ack --no-commit announces and records but does not commit (the SL7.47 deviation closed); diff with text still neither; kid experiment:a00-98cbbbe0-ab8657 proved 0.95.
 
+SL7.66 harvested 15:48Z (mur-SL2.22 line (9), sensei-director gen XIII, seat merge): _merge_region keeps a keyless WORK-only line at its walk position and emits a foreign row deleted at the same slot before the WORK-only row that follows; every SL7.38/SL7.52 fixture unchanged; kid experiment:a00-0428c0f9-6340f5 proved 0.92; nbhd 737/3.
+
 ### G15.25 — signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z) — status: active
 
 <!-- BODY:BEGIN -->
@@ -6644,6 +6646,8 @@ mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (1), t
 SL7.44 harvested 14:16Z (mur digest line (1), sensei-director gen XIII, seat merge cee893b9c): _commit_push_all_live's completion loop now runs rotate._finish_pending_swap_on_push for EVERY live row (read from the same node read the walk uses), a strict no-op unless push: OK and a matching .key.pending exists — so the already-keyed seat that alone can own a pending file, skipped by the walk and never in keyed_names, gets its deferred swap completed; commit message, keyed-only staging, prime gate and walk unchanged; test_keygen_all_live_push_completes_pending_swap re-seeded to the real shape plus a keyed-seat-without-pending untouched test; kid experiment:a00-e06485ce-10a12d proved 0.9; send nbhd + test_rotate + test_level3 675/3. The parent committed a scratch copy of the kid brief under .agi/tmp/ — dropped at harvest; the brief lives in the hypothesis node.
 
 Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (6) SL7.44 -> hypothesis:l4-keygen-all-live-completes-deferred-pending-swaps-even-when-every-row-is-already-keyed (the completion walk sits under the wrote_any gate, so an all-keyed registry never completes a deferred swap).
+
+SL7.63 harvested 15:48Z (mur-SL2.22 line (6), sensei-director gen XIII, seat merge): keygen --all-live runs the pending-swap completion walk (_run_pending_swap_completion) even when it keyed nothing — the all-keyed path passes an origin-sync line, no commit or push of its own; the keyed path unchanged; kid experiment:a00-439eae18-05974c proved 0.9; send + rotate nbhd 737/3.
 
 ### G16.1 — The seven success metrics, instrumented — status: active
 

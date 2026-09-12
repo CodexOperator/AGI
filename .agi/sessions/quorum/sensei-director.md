@@ -53,22 +53,26 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.60 · a00-2fcf014d~~ **HARVESTED** (proved 0.95) | announce/record independent of --no-commit (_ack_stands) · g15.24 | ack nbhd | 15:29Z |
 | ~~SL7.61 · a00-cccc0760~~ **HARVESTED** (proved 0.92) | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |
 | ~~SL7.62 · a00-54da3e15~~ **HARVESTED** (proved 0.9) | _split_card_sections fence-run-aware · g15.25 | rotate nbhd | 15:29Z |
-| SL7.63 · a00-cc89de77 | keygen --all-live completes swaps when nothing keyed · g15.26 | send nbhd + test_rotate -k keygen | 15:29Z |
+| ~~SL7.63 · a00-cc89de77~~ **HARVESTED** (proved 0.9) | keygen --all-live completes swaps when nothing keyed · g15.26 | send nbhd + test_rotate -k keygen | 15:29Z |
 | SL7.64 · a00-30e43aee | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
 | ~~SL7.65 · a00-f5d4d4aa~~ **HARVESTED** (proved 0.9) | NO_SPAWN branch reachable-or-deleted; recorder no pid 12345 · g15.25 | hook nbhd | 15:29Z |
-| SL7.66 · a00-c611a68b | _merge_region keyless line in place; foreign-deleted before WORK-added · g15.24 | rotate nbhd | 15:29Z |
+| ~~SL7.66 · a00-c611a68b~~ **HARVESTED** (proved 0.92) | _merge_region keyless line in place; foreign-deleted before WORK-added · g15.24 | rotate nbhd | 15:29Z |
+| SL7.67 · a00-339d2ff2 | config:posts note silent-or-posts.md minted (owner 15:4xZ (1)) · g15 | test_geometry_config + bin smoke | 15:48Z |
+| SL7.68 · a00-34c439ff | sensei.py calls <transcript> (owner (2)) · g15 | test_sensei | 15:48Z |
+| SL7.69 · a00-7561a748 | role-template hand-setup audit (owner (3)) · g15 | test_rotate_templates; judge entries in-process (F12) | 15:48Z |
+| SL7.70 · a00-84f091be | one compact [meter] line on every prompt (owner 2nd order) · g15.25 | hook nbhd | 15:48Z |
 | ~~SL7.55 · a00-8a1a7d46~~ **HARVESTED** (proved 0.82, F20 in config:rotations, nbhd 534/3) | l4-rotate-self-on-a-main-post-commits-its-own-record-and-sequence-json (P3) · g15.25 | rotate nbhd | 14:32Z |
 | ~~SL7.56 · a00-1b5b13cb~~ **HARVESTED** (0.9 + lean:80, both dirs swept, nbhd 673/3/1x) | l4-rotate-self-sweeps-dead-hook-latches-before-spawning (P4) · g15.25 | rotate nbhd + hook nbhd | 14:32Z |
 | ~~SL7.57 · a00-dd1471d8~~ **HARVESTED** (proved 0.92/0.93, ack nbhd 434/3) | l4-ack-continue-is-refused-on-an-ask-diff-path-with-the-exact-diff-line (P6) · g15.24 | rotate nbhd | 14:32Z |
 
 ### Queue — in this order
-1. **SL2#23** = SL7.54-57 + the nine mur-SL2.22 residue briefs (seat tip 24a41fe42 + rounds' branch base): on belam XVI's GO line → re-sync origin/season/s2, push → MAIN: merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line naming SL7.54 (the Prime restarts the reaper unit and reads one after_join performed line). Red = fix on the seat, merge again, re-run.
-2. **Harvest SL7.58-66 as they land** (nine rounds dispatched 15:29Z; a successor re-arms a Monitor on `spawn_budget.py status` for the nine agent ids in the table; rotate.py rounds 58/59/60/62/66 are function-disjoint — resolve by function, never rebase; test_rotate_startup.py shared by 58+59, test_rotate.py by 62+66) → **SL2#24** (the successor's loop).
+1. **SL2#23 = HOLD by belam XVI (15:26Z) behind the point's window 47 — GO line follows its merge + the Prime's verify.** Content = SL7.54-57 + the nine mur-SL2.22 briefs + the four owner-order briefs + the seven harvested mur-SL2.22 rounds (59/60/61/62/63/65/66) — all on the seat, nbhds green after the window-47 sync (737/3). On the GO line: re-sync origin/season/s2, push → MAIN: merge --no-ff, render + --render --check, verify-suite (background, cwd=MAIN, log in scratchpad), grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line naming SL7.54 (reaper restart). Red = fix on the seat, merge again, re-run.
+2. Harvest as they land: **SL7.58 + SL7.64** (mur-SL2.22 lines 1 and 7, live since 15:27Z) and **SL7.67-70** (owner orders, live since 15:48Z); a successor re-arms ONE Monitor on `spawn_budget.py status` for the six agent ids in the table. Rotate.py rounds resolve by function, never rebase.
 3. Take the Sensei's next ask straight; mint the Prime's next digest lines the same way.
 
-### 🔴 Where it stops — the next command (stamp 15:29Z)
+### 🔴 Where it stops — the next command (stamp 15:48Z)
 ```
-gen XIII: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 landed + stamped (4024/15, 2529/195/2724); SL7.44-57 all harvested (54-57 on the seat = SL2#23, window asked, re-asked 15:29Z with the nine briefs); mur-SL2.22 digest -> nine briefs -> SL7.58-66 LIVE. Next: belam GO line -> SL2#23 merge-up per queue 1 -> harvest 58-66 as they land (F5 shape) -> SL2#24; rotate at 0.4 of the window (meter ~0.31 at 15:29Z).
+gen XIII: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 landed + stamped; SL2#23 content on the seat (SL7.54-57 + 13 briefs + 7 of the nine mur-SL2.22 rounds harvested, 737/3), HOLD behind window 47 — GO line pending from belam XVI; SL7.58/64 + SL7.67-70 LIVE (six). Next: GO line -> SL2#23 merge-up per queue 1; harvest the six as they land -> SL2#24. Meter 0.34 at 15:48Z: rotate at 0.40 via rotate-self --stops ALONE.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
