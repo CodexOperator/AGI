@@ -6334,7 +6334,8 @@ def _numbers_line(record: dict) -> str:
     return " | ".join(parts)
 
 
-def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
+def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
+                        role: str = "") -> dict:
     """The REAL seam table -- the default the driver uses when a caller
     passes no seams. Each callable is a thin wrapper over an EXISTING
     function/script (REUSE). The tests inject fakes here so a test never
@@ -6600,22 +6601,33 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
             out = _commit_rotation_record(
                 root, seat=seat, gen_before=_gen_b, gen_after=_gen_a)
         if (out.startswith("stop_commit: committed")
-                or out.startswith("rotation_record_commit: ")
-                and "SKIPPED" not in out):
+                or out.startswith("rotation_record_commit: committed")):
             return (True, "committed", out)
+        # a FAILED / SKIPPED record commit is a REFUSED step, named (the
+        # pre-fix prefix match reported a FAILED _commit_rotation_record as
+        # (True, 'committed')).
         return (False, "refused", out)
 
     def _g17_1_note():
         # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
         # numbers line / the where-it-stops>, via subprocess (REUSE: the
-        # existing write.py executable, no second note writer). Refuses by
-        # name on a non-zero exit.
+        # existing write.py executable, no second note writer). write.py's
+        # grammar is ONE script argument ('note <text>') -- never `note` and
+        # the text as two positionals (which parses 'note' with no arg and
+        # lets the text ride the unused slug slot, exiting rc 2). Resolves
+        # the project from root explicitly (--root + cwd), never the
+        # subprocess cwd. Refuses by name on a non-zero exit.
         binp = Path(__file__).with_name("write.py")
         text = _numbers_line(record)
+        argv = [sys.executable, str(binp), "goal:g17.1",
+                f"note {text}", "--root", str(root)]
+        if seat:
+            argv += ["--actor", seat]
+        if role:
+            argv += ["--role", role]
         try:
-            out = subprocess.run(
-                [sys.executable, str(binp), "goal:g17.1", "note", text],
-                capture_output=True, text=True, timeout=120)
+            out = subprocess.run(argv, capture_output=True, text=True,
+                                 timeout=120, cwd=str(root))
         except Exception as exc:  # noqa: BLE001
             return (False, "refused", f"g17_1_note could not run: {exc}")
         if out.returncode == 0:
@@ -6625,13 +6637,25 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "") -> dict:
                 f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
 
     def _render():
+        # snapshot-goals.py --render with cwd=root AND the project root made
+        # explicit (--project), so a closeout run never resolves the project
+        # from the SUBPROCESS cwd (a worktree cwd would render the wrong
+        # tree); then --render --check, whose result is the verdict -- the
+        # note is only written if GOALS.md round-trips byte-identical.
         binp = Path(__file__).with_name("snapshot-goals.py")
         res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render"])
-        if res["ok"]:
-            return (True, "ok", "snapshot-goals.py --render")
-        return (False, "refused",
-                f"render refused: {res.get('detail') or res}")
+            root, [sys.executable, str(binp), "--render",
+                   "--project", str(root)], cwd=root)
+        if not res["ok"]:
+            return (False, "refused",
+                    f"render refused: {res.get('detail') or res}")
+        chk = _closeout_pop_and_run(
+            root, [sys.executable, str(binp), "--render", "--check",
+                   "--project", str(root)], cwd=root)
+        if chk["ok"]:
+            return (True, "ok", "snapshot-goals.py --render + --check clean")
+        return (False, "failed",
+                f"render --check refused: {chk.get('detail') or chk}")
 
     return {
         "post_verify": _verify,
@@ -6670,7 +6694,8 @@ def _closeout_run_steps(root: Path, seat: str, role: str = "parent",
     """
     steps = _closeout_step_list(role, template, worktree=worktree)
     if seams is None:
-        seams = _make_closeout_seams(root, record or {}, seat=seat)
+        seams = _make_closeout_seams(root, record or {}, seat=seat,
+                                     role=role)
     entries: list[dict] = []
     seen: set[str] = set()
     for step in steps:
@@ -14429,9 +14454,20 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     rec_path, seat=seat, steps=steps_reached,
                     template_source=geom_src)
             _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
+            # (SL7.103) pass the in-progress rotation record to the captive
+            # driver so the Prime's numbers line / note is composed FROM it
+            # (never an empty {}/'' -- the pre-fix call passed no record=).
+            _co_record = {}
+            try:
+                _rp = Path(rec_path)
+                if _rp.exists():
+                    _co_record = json.loads(
+                        _rp.read_text(encoding="utf-8")) or {}
+            except Exception:  # noqa: BLE001
+                _co_record = {}
             _co_entries, _co_err = _closeout_run_steps(
                 cfg_root, seat, _co_role, template=_co_tmpl, seams=_co_seams,
-                worktree=row.get("worktree"))
+                record=_co_record, worktree=row.get("worktree"))
             if not args.dry_run and rec_path is not None:
                 _record_closeout(rec_path, _co_entries)
         print("(2.6) closeout captive steps: " + ", ".join(
