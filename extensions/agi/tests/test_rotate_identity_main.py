@@ -35,7 +35,8 @@ def _write_schema(root):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_id, generation, window, pid, "
+        "pubkey, sig_scheme, enc_scheme, key_history]}\n"
         "---\nbody\n", encoding="utf-8")
 
 
@@ -97,6 +98,59 @@ def test_identity_writer_rotates_from_worktree_writes_main(
         "the identity cells")
 
 
+def test_commit_spawn_row_from_worktree_lands_in_main(tmp_path):
+    """hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-
+    and-the-ack-stages-only-its-own-row clause (1) -- a worktree rotation's
+    ONE spawn-row commit must land in the tree the ONE writer wrote: MAIN's
+    seats.md, never the caller's worktree copy (which was never touched and
+    would SKIP as byte-identical). FALSIFIER: after `_commit_spawn_row`
+    from the worktree, MAIN's seats.md is committed (clean) carrying the
+    spawn row, and the worktree copy is byte-unchanged."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    wt_seats = wt / ".agi" / "nodes" / ".geometry" / "seats.md"
+    before = wt_seats.read_bytes()
+
+    # rotate from the worktree: the ONE writer puts the row in MAIN.
+    out = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="ref-1", generation=4, window="@NEW")
+    assert out.startswith("config:seats row")
+    assert _seat_window(main / ".agi", seat) == "@NEW"
+    # MAIN's seats.md is dirty (uncommitted) -- the exact dirt a worktree
+    # commit used to leave riding to the next merge-up.
+    main_dirty = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.strip()
+    assert main_dirty, ("PRE-FIX: worktree spawn-row write leaves MAIN's "
+                        "seats.md dirty")
+    assert wt_seats.read_bytes() == before, (
+        "a worktree rotation must never touch the worktree's own seats.md "
+        "on the identity cells")
+
+    # THE FIX: rotate-self commits it in MAIN's tree (the ONE writer's).
+    outcome = rotate._commit_spawn_row(
+        wt / ".agi", seat=seat, generation=4, session_id="sess-1",
+        window="@NEW", pid=4242)
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    # MAIN's seats.md is now committed and clean; worktree still untouched.
+    ok = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.strip()
+    assert ok == "", "the spawn-row commit must leave MAIN's seats.md clean"
+    assert wt_seats.read_bytes() == before, (
+        "the spawn-row commit must never touch the worktree's seats.md")
+    # the ONE commit on MAIN's seats.md since the seed carries the spawn row.
+    log = subprocess.run(
+        ["git", "-C", str(main), "log", "--format=%h %s", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert len(log) == 2 and log[0].endswith(
+        f"{seat} spawn row: gen 4, session_id sess-1, "
+        "window @NEW, pid 4242"), log
+
+
 def test_identity_writer_ack_backfill_from_worktree_writes_main(tmp_path):
     """The ack back-fill routes through the SAME one writer: from the worktree
     it writes MAIN, not the worktree copy."""
@@ -115,6 +169,44 @@ def test_identity_writer_ack_backfill_from_worktree_writes_main(tmp_path):
     assert row["session_id"] == "sess-x"
     assert row["pid"] == 101
     assert wt_seats.read_bytes() == before
+
+
+def test_rotate_first_key_from_worktree_writes_main(tmp_path):
+    """clause (1) / Prime XIII ask (a): an UNKEYED seat's first mint
+    (`_rotate_first_key`) writes its THREE identity cells (pubkey /
+    sig_scheme / enc_scheme) through the ONE identity writer into MAIN's
+    seats.md, never send._row_write_submit on the caller's worktree copy.
+    FALSIFIER: after a worktree post's rotate-self first-mint, MAIN's row
+    pubkey == the minted key's pubkey (derived from the key file), and the
+    worktree copy is byte-unchanged."""
+    import send  # noqa: E402
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    wt_seats = wt / ".agi" / "nodes" / ".geometry" / "seats.md"
+    before = wt_seats.read_bytes()
+
+    note = rotate._rotate_first_key(
+        wt / ".agi", wt / ".agi", seat, {"role": "parent"})
+
+    assert "minted its first key" in note
+    assert f"; row {seat!r} keyed" in note
+    # derive the minted pubkey from the key file.
+    key_path = send._seat_key_path(wt / ".agi", seat)
+    assert key_path.is_file()
+    obj = json.loads(key_path.read_text())
+    scheme = send.seatsig.get(obj["scheme"])
+    pub = scheme.public_from_secret(bytes.fromhex(obj["priv_hex"]))
+    exp_pub = pub.hex()
+
+    row = next(r for r in rotate._load_seats(main / ".agi")
+               if r.get("name") == seat)
+    assert row.get("pubkey") == exp_pub, (
+        "the first-mint identity cells must land in MAIN's row, pubkey == "
+        "the minted key's pubkey")
+    assert row.get("sig_scheme") == obj["scheme"]
+    assert row.get("enc_scheme")
+    # worktree copy must be byte-identical -- never a second writer.
+    assert wt_seats.read_bytes() == before, (
+        "a worktree first-mint must never write the worktree's own seats.md")
 
 
 def test_send_locally_loaded_rows_reads_main_from_a_worktree(tmp_path):

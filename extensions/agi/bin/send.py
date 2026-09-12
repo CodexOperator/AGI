@@ -2066,12 +2066,16 @@ def _label_for_sig(row: dict, sig_scheme: str, fp: str, sig_bytes: bytes,
                 return f"RETIRED:{fp}"
         except Exception:                                          # noqa: BLE001
             continue
-    # LIVE path: the row declares what it accepts -- a sig under a scheme the
-    # row does not name is a forgery even if the bytes are genuine.
+    # LIVE path: the row declares what it accepts. A row that NAMES no key
+    # (no pubkey, no sig_scheme) cannot refute anything -- a signed block
+    # from such a row reads UNKEYED <seat> (printed in full, never withheld,
+    # never REFUSED), NOT FORGED: FORGED is reserved for a signature that
+    # FAILS against a key the row NAMES (hypothesis:l4-a-sig-against-a-row-
+    # with-no-key-on-file-reads-unkeyed-never-forged).
     row_scheme = row.get("sig_scheme") or ""
     row_pub = row.get("pubkey") or ""
     if not row_scheme or not row_pub:
-        return "FORGED"
+        return f"UNKEYED {seat_name}"
     if row_scheme != sig_scheme:
         return "FORGED"
     try:
@@ -2089,13 +2093,17 @@ def _verify_block(root: Path, rows: list | None,
 
     ``VERIFIED <seat> (<scheme>)`` when a ``sig`` line is present and verifies
     against the from-seat's row (pubkey + sig_scheme matched); ``UNSIGNED``
-    when there is no sig line; ``FORGED`` when a sig is present and fails any
-    check (bad shape, unknown scheme, unknown sender, a row with no
-    pubkey/sig_scheme, a scheme the row does not name, or a signature that
-    does not verify); ``RETIRED:<fp>`` when the sig's fingerprint matches a
-    key_history entry of the from-seat and verifies under that retired pub.
-    The label is NEVER a drop -- the caller prints the block in full under all
-    four.
+    when there is no sig line; ``UNKEYED <seat>`` when a sig is present but the
+    from-seat's row NAMES no pubkey or no sig_scheme (nothing to refute it --
+    readers print UNKEYED like UNSIGNED, never withheld, never REFUSED);
+    ``FORGED`` when a sig is present and fails a check AGAINST A KEY THE ROW
+    NAMES (bad shape, unknown scheme, unknown sender, a scheme the row does
+    not name, or a signature that does not verify -- but NOT a row with no
+    pubkey/sig_scheme, which is UNKEYED); ``RETIRED:<fp>`` when the sig's
+    fingerprint matches a key_history entry of the from-seat and verifies
+    under that retired pub. The label is NEVER a drop -- the caller prints
+    the block in full under all labels, and under comms.verify==enforcing only
+    the EXACT label FORGED is refused.
     """
     sig = meta.get("sig")
     if not sig:
@@ -2140,8 +2148,9 @@ def _wrap_body(text: str, width: int) -> str:
     needs no wrap prints byte-identical (indent, internal runs of spaces,
     trailing spaces all included) because folding touches ONLY lines longer
     than `width` and breaks only at a single space outside the indent, never
-    inside a node id, sha, path, URL or [VERIFIED|UNSIGNED|FORGED] label (an
-    over-width token stays whole on its own line). `width <= 0` returns the
+    inside a node id, sha, path, URL or [VERIFIED|UNSIGNED|UNKEYED|FORGED]
+    label (an over-width token stays whole on its own line). `width <= 0`
+    returns the
     text unchanged.
     """
     if width <= 0:
@@ -2240,19 +2249,43 @@ def _sig_fp_from_block(block: str) -> str:
 
 def _quarantine_block(root: Path, me: str, block: str) -> Path:
     """Append one refused block's RAW inbox bytes verbatim to
-    `<inbox_dir>/quarantine/<me>.md` and return the absolute path written.
+    `<inbox_dir>/quarantine/<me>.md` -- once per DISTINCT block -- and return
+    the absolute path written.
 
     The inbox stores each block as `MSG_SEP + block` (the writer's `_block`
     prepends `---\n`), and `_scan_messages` splits that sep off, so the raw
     bytes are reassembled by prepending `MSG_SEP` when absent. Never rewrites
     or truncates the quarantine file -- always append, `newline=""` so CR
-    bytes survive (mur-39 order (d), the same trap the writer documents)."""
+    bytes survive (mur-39 order (d), the same trap the writer documents).
+
+    Dedupe by the sha256 of the raw block bytes (hypothesis:l4-quarantine-
+    dedupes-by-block-hash...): `peek` never advances the read cursor, so a
+    repeated peek of the same FORGED block would otherwise grow the
+    quarantine by one identical copy per call. The quarantine is the durable
+    RECORD of what was withheld -- not an event log of how often it was
+    refused -- so one distinct block is kept once. The dedupe marker is a
+    sidecar `<me>.hashes` (one hex per line, append-only), never a marker
+    line inside the quarantine body, so the body stays the exact inbox bytes
+    verbatim. A block already recorded is not appended again, but the caller
+    still prints the REFUSED line (the refusal happens every event; only the
+    durable copy is once)."""
     qdir = _inbox_dir(root) / "quarantine"
     qdir.mkdir(parents=True, exist_ok=True)
     path = qdir / f"{me}.md"
     raw = block if block.startswith(MSG_SEP) else MSG_SEP + block
-    with open(path, "a", newline="") as f:
-        f.write(raw)
+    h = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    hashes_path = qdir / f"{me}.hashes"
+    existing: set[str] = set()
+    if hashes_path.is_file():
+        try:
+            existing = set(hashes_path.read_text().splitlines())
+        except OSError:  # a read race never turns a refusal into a crash
+            existing = set()
+    if h not in existing:
+        with open(path, "a", newline="") as f:
+            f.write(raw)
+        with open(hashes_path, "a", newline="") as f:
+            f.write(h + "\n")
     return path.resolve()
 
 

@@ -4750,6 +4750,113 @@ def test_enforcing_prints_retired_in_full(tmp_path, capsys, monkeypatch):
     assert not _quarantine_path(project).exists()
 
 
+# ── g15.26 claim: a signed block from a row that NAMES no key reads
+# ── UNKEYED <seat>, never FORGED (hypothesis:l4-a-sig-against-a-row-with-
+# ── no-key-on-file-reads-unkeyed-never-forged). FORGED is reserved for a
+# ── signature that FAILS against a key the row NAMES; an unkeyed row cannot
+# ── refute its own signed bytes, so readers print UNKEYED like UNSIGNED --
+# ── in full, never withheld, never REFUSED, under informational AND enforcing.
+
+
+def _unkeyed_inbox(project, monkeypatch, body="unkeyed hello"):
+    """Build a one-block SIGNED inbox whose from-seat's row NAMES no pubkey
+    and no sig_scheme. The sig is genuine ed25519 (there IS a .key file); only
+    the row is unkeyed, which is exactly the state a freshly rotated worktree
+    post holds on MAIN until its merge-up carries the key."""
+    send_mod.keygen(project, "seat-a")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a"},                 # names NO key -> UNKEYED
+    ])
+    send_mod.send(project, "recv", body, "seat-a")
+    return project / ".agi" / "sessions" / "inbox" / "recv.md"
+
+
+def test_unkeyed_row_signed_block_reads_unkeyed_not_forged(
+        tmp_path, capsys, monkeypatch):
+    """Claim (1): a signed block from a seat whose row names NO pubkey and NO
+    sig_scheme reads `UNKEYED seat-a` -- never FORGED -- and prints in full
+    under informational."""
+    project = _project_with_comms(tmp_path, {"verify": "informational"})
+    _unkeyed_inbox(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNKEYED seat-a" in out
+    assert "unkeyed hello" in out, "UNKEYED prints in full, like UNSIGNED"
+    assert "FORGED" not in out, "an unkeyed row must never read FORGED"
+    assert "REFUSED" not in out
+
+
+def test_unkeyed_row_not_withheld_under_enforcing(
+        tmp_path, capsys, monkeypatch):
+    """Claim (2): under comms.verify==enforcing an UNKEYED block prints in
+    FULL. Only the EXACT label FORGED is withheld, so an unkeyed sender's
+    signed dm is never lost at the one moment the channel matters -- read and
+    peek share the ONE delivery path."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    _unkeyed_inbox(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "UNKEYED seat-a" in out
+    assert "unkeyed hello" in out, "an UNKEYED body must print under enforcing"
+    assert "REFUSED" not in out, "UNKEYED is never refused"
+    assert "FORGED" not in out
+    assert not _quarantine_path(project).exists(), \
+        "an UNKEYED block is never quarantined"
+
+
+def test_unkeyed_row_peek_enforcing_prints_in_full(
+        tmp_path, capsys, monkeypatch):
+    """peek shares the SAME delivery path as read, so an UNKEYED block prints
+    in full under peek + enforcing too (never quietly withheld)."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    _unkeyed_inbox(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.peek(project, "recv", wrap=160)
+    out = capsys.readouterr().out
+    assert "UNKEYED seat-a" in out
+    assert "unkeyed hello" in out
+    assert "REFUSED" not in out
+
+
+def test_whois_sig_unkeyed_row_not_refused(tmp_path, monkeypatch):
+    """Claim (2) whois half: a `--sig` on a row that names no key reports
+    UNKEYED and is never REFUSED under enforcing -- the refusal is reserved
+    for the EXACT label FORGED."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    send_mod.keygen(project, "seat-a")
+    sig_line, canonical = _signed_send_and_canonical(project, "seat-a",
+                                                     "recv", "whois me")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-a", "session_ref": "seat-a"},  # no key
+    ])
+    rc, text = send_mod.whois(project, "seat-a", claim="seat-a",
+                              source="refs/x", do_fetch=False,
+                              sig_line=sig_line, msg_text=canonical)
+    assert rc == send_mod.WHOIS_OK, rc       # claim axis, label off it
+    assert "UNKEYED seat-a" in text
+    assert "REFUSED" not in text, "an UNKEYED whois sig is never refused"
+    assert "FORGED" not in text
+
+
+def test_forged_still_fires_when_row_names_a_key(tmp_path, capsys,
+                                                 monkeypatch):
+    """The flip never lowers the guard: a tampered body, under a row that
+    NAMES a pubkey, still reads FORGED (FORGED is reserved for a key the row
+    names) and is still refused under enforcing. Regression anchor proving the
+    UNKEYED carve-out is narrow."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert f"REFUSED FORGED from seat-a " in out, \
+        "a row that NAMES a key but whose sig fails is still refused"
+    assert "tampered!!" not in out
+    assert _quarantine_path(project).read_text() == inbox_text
+
+
 def test_absent_and_informational_print_identical_bytes(
         tmp_path, capsys, monkeypatch):
     """Clause (4): the SAME inbox under a comms block ABSENT and under
@@ -4798,6 +4905,101 @@ def test_quarantine_appends_never_truncates(tmp_path, capsys, monkeypatch):
     assert qtext.count("second forged") == 1
     assert qtext.count(send_mod.MSG_SEP) == 2, \
         "quarantine appends both RAW blocks, never truncating"
+
+
+# ── g15.26 P1 (F3): quarantine DEDUPES by the sha256 of the block's raw
+# ── bytes (hypothesis:l4-quarantine-dedupes-by-block-hash...). peek never
+# ── advances the read cursor, so a repeated peek of one FORGED block must
+# ── NOT grow the quarantine by one identical copy per call -- the quarantine
+# ── is the durable RECORD of what was withheld, not an append event log.
+# ── One distinct block is kept once; the REFUSED line still prints every
+# ── event; and `read` still advances the cursor past a withheld block (the
+# ── inbox drains; the quarantine holds the copy).
+
+
+def test_peek_enforcing_n_peeks_of_one_forged_leave_one_copy(
+        tmp_path, capsys, monkeypatch):
+    """N peeks of one FORGED block keep EXACTLY ONE copy in the quarantine
+    (deduped by block hash), while every peek still prints its REFUSED line
+    and pins the SAME withheld path."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    path_str = None
+    for _ in range(5):
+        send_mod.peek(project, "recv", wrap=160)
+        out = capsys.readouterr().out
+        assert "tampered!!" not in out, "a FORGED body never prints"
+        assert f"REFUSED FORGED from seat-a " in out, \
+            "every peek still refuses the block"
+        assert "withheld to " in out
+        if path_str is None:
+            path_str = out.split("withheld to ")[1].strip()
+        else:
+            assert out.split("withheld to ")[1].strip() == path_str, \
+                "the refusal names the SAME withheld path every peek"
+    q = _quarantine_path(project)
+    qtext = q.read_text()
+    assert qtext.count(send_mod.MSG_SEP) == 1, \
+        "N peeks of one block leave exactly one copy in quarantine"
+    assert qtext.count("tampered!!") == 1
+    assert qtext == inbox_text, \
+        "the retained copy is the block's inbox bytes verbatim"
+    # the sidecar index holds exactly one hash line (append-only, one hex).
+    hashes = _quarantine_path(project).with_suffix(".hashes")
+    lines = hashes.read_text().splitlines()
+    assert len(lines) == 1
+    assert len(lines[0]) == 64, "the sidecar holds one sha256 hex per line"
+
+
+def test_quarantine_distinct_forged_blocks_still_all_kept(
+        tmp_path, capsys, monkeypatch):
+    """Dedupe is by BYTES, not by quarantine slot: two DIFFERENT FORGED
+    blocks (different hashes) are BOTH kept -- the never-lose guarantee of
+    test_quarantine_appends_never_truncates is unchanged, only repeats of
+    the SAME block are collapsed."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    _forged_inbox_with_rows(project, monkeypatch, body="first forged")
+    inbox_path = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    send_mod.send(project, "recv", "second message", "seat-a")
+    inbox_path.write_text(
+        inbox_path.read_text().replace("second message", "second forged"))
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    capsys.readouterr()
+    q = _quarantine_path(project)
+    qtext = q.read_text()
+    assert qtext.count("first forged") == 1
+    assert qtext.count("second forged") == 1
+    assert qtext.count(send_mod.MSG_SEP) == 2
+    hashes = _quarantine_path(project).with_suffix(".hashes")
+    assert len(hashes.read_text().splitlines()) == 2, \
+        "two distinct blocks record two hashes"
+
+
+def test_read_advances_cursor_past_withheld_block_copy_remains(
+        tmp_path, capsys, monkeypatch):
+    """Cursor decision, recorded (hypothesis clause (2)): `read` ADVANCES
+    past a withheld FORGED block -- the inbox drains so the same bytes are
+    never re-refused/re-appended on the next read, while the quarantine keeps
+    the one copy as the durable record. A second read reports empty and does
+    not grow the quarantine."""
+    project = _project_with_comms(tmp_path, {"verify": "enforcing"})
+    inbox, inbox_text, fp = _forged_inbox_with_rows(project, monkeypatch)
+    capsys.readouterr()                      # drain keygen/send stdout
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert f"REFUSED FORGED from seat-a " in out
+    q = _quarantine_path(project)
+    assert q.read_text().count(send_mod.MSG_SEP) == 1
+    # the read consumed the withheld block: a second read sees an empty inbox
+    send_mod.read(project, "recv", None)
+    out2 = capsys.readouterr().out
+    assert "empty" in out2, "read advanced past the withheld block"
+    assert q.read_text().count(send_mod.MSG_SEP) == 1, \
+        "the second read does not re-append the already-whithheld block"
+    assert q.read_text() == inbox_text, \
+        "the one retained copy is still the exact inbox bytes"
 
 
 def test_lockdown_requirements_named_seam():
