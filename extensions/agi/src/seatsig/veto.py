@@ -284,6 +284,24 @@ def evaluate_veto(geom: dict, scope: str, decision: dict, *,
     if not res.ok:
         return (f"minority veto refused: {res.summary()}", dict(geom))
 
+    # FRESH (kid B, OPT-IN): a veto DECISION that carries the reserved
+    # ``_fresh`` field is judged against its signature-replay window too -- a
+    # producer may give a ring-authorized veto a finite replay life. A veto
+    # without ``_fresh`` is unaffected (backwards- and test-compatible; the
+    # shared veto_fields builder stays signature-stable so rung 3's tests and
+    # its stacking path are not broken). Veto AUTHORITY is separately bounded
+    # by expiry (expires_at/expiry_seconds); freshness is the SIGNATURE's
+    # replay window, never the gate's freeze lifecycle.
+    flds = dict(decision.get("fields") or {})
+    if rings.FRESH_KEY in flds:
+        nk = (now.timestamp() if getattr(now, "tzinfo", None)
+              else float(now))
+        fr = rings.freshness_refusal(
+            flds, now=nk,
+            max_age_s=rings._effective_max_age_s(ring))
+        if fr:
+            return (f"veto refused: freshness {fr}", dict(geom))
+
     # 2. rate limit: the N+1th is refused before it can set anything.
     rl = rate_refusal(geom, scope, now)
     if rl:
