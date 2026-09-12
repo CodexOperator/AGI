@@ -6513,6 +6513,151 @@ def test_keygen_all_live_no_write_leaves_keyed_seat_without_pending_touched(
     assert kp.read_bytes() == before, "keyed seat with no pending is untouched"
 
 
+# ── hypothesis:l4-the-head-ahead-of-origin-skipped-push-branch-of-keygen-all-live ──
+#
+# A COMMITTED test for the g15.26 SKIPPED push branch of `keygen --all-live`:
+# the exact function keygen(key all_live=True, wrote_any False) feeds into the
+# deferred-swap walk is `_all_live_origin_sync_line`. These tests exercise that
+# function DIRECTLY (never copying its logic) against a REAL git repo whose
+# origin is behind, ahead, or diverged from HEAD. The NO-WRITE all-keyed path
+# never commits or pushes of its own -- it only fetch+rev-parse READS and
+# reports `push: OK` ONLY when origin is exactly at HEAD. Any other outcome is
+# `push: SKIPPED -- origin ... is not at HEAD`, and origin's ref must be left
+# byte-identical (a SKIPPED pass never force-pushes). FALSIFIER: if the SKIPPED
+# branch were deleted, these fail (they demand the exact prefix and forbid
+# `push: OK`).
+
+
+def _origin_seed(root, tmp_path, rows=None):
+    """A real git project whose committed seed row is PUSHED to a bare
+    origin, so origin/EG == HEAD. Returns (root, origin_ref_sha). The
+    function-under-test needs only a git repo with a fetchable `origin`; the
+    seed row is committed + pushed so HEAD and origin agree at the start."""
+    rows = rows if rows is not None else [{"name": "s1", "role": "director",
+                                           "pid": 111}]
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(tmp_path, rows, branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    seed = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    return root, seed
+
+
+def _origin_ref(root, branch="origin/season/s2"):
+    return subprocess.run(["git", "-C", str(root), "rev-parse", branch],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def test_all_live_origin_sync_line_head_ahead_of_origin_skipped(
+        tmp_path, monkeypatch):
+    """g15.26 SKIPPED branch, HEAD-AHEAD: origin is at the seed S; a LOCAL
+    commit C unpushed makes HEAD=C =/= origin/season/s2=S. `_all_live_origin_sync_line`
+    must return the exact `push: SKIPPED -- origin <S> is not at HEAD <C>` line
+    (never `push: OK`) and must leave origin's ref byte-identical -- an
+    all-keyed no-write pass never force-pushes. FALSIFIER: delete the SKIPPED
+    branch and this fails (no `push: OK` allowed, exact prefix required)."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    # a LOCAL commit that is NEVER pushed: HEAD now ahead of origin.
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "t"],
+                   check=True)
+    (root / "unpushed.txt").write_text("head-ahead\n")
+    subprocess.run(["git", "-C", str(root), "add", "unpushed.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m",
+                    "local-only commit ahead of origin"], check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin"), \
+        f"HEAD-ahead must be SKIPPED, got {line!r}"
+    assert " is not at HEAD " in line, line
+    assert seed in line and head in line, \
+        "both origin ref and HEAD sha must appear in the SKIPPED line"
+    assert "push: OK" not in line, \
+        f"HEAD-ahead must never read push: OK, got {line!r}"
+    assert _origin_ref(root) == origin_before, \
+        "a SKIPPED pass must not touch origin's ref (never force-pushed)"
+
+
+def test_all_live_origin_sync_line_origin_ahead_skipped(tmp_path, monkeypatch):
+    """g15.26 SKIPPED branch, ORIGIN-AHEAD: a pushed commit leaves
+    origin/season/s2 = C while a local `reset --hard HEAD^` pulls HEAD back to
+    the seed S. HEAD =/= origin -> SKIPPED, still never `push: OK`, still never
+    a force-push."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    (root / "pushed.txt").write_text("pushed\n")
+    subprocess.run(["git", "-C", str(root), "add", "pushed.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "push me"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "push", "origin",
+                    "season/s2"], check=True)
+    pushed = _origin_ref(root)
+    # pull LOCAL HEAD back behind origin: HEAD = seed, origin = pushed commit
+    subprocess.run(["git", "-C", str(root), "reset", "--hard", "HEAD^"],
+                   check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    assert head != pushed, "fixture: local HEAD must sit behind origin"
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin"), \
+        f"origin-ahead must be SKIPPED, got {line!r}"
+    assert "push: OK" not in line, line
+    assert pushed in line and head in line, \
+        "both origin ref and HEAD sha must appear in the SKIPPED line"
+    assert _origin_ref(root) == origin_before, \
+        "a SKIPPED pass must not touch origin's ref (never force-pushed)"
+
+
+def test_all_live_origin_sync_line_diverged_skipped_at_head_ok(tmp_path,
+                                                              monkeypatch):
+    """g15.26 two-sided control: (a) a DIVERGED repo (local amend of a
+    pushed merge-base: HEAD=C', origin=C with equal trees but differing shas)
+    reads SKIPPED -- never `push: OK`; (b) the at-HEAD steady state where
+    origin really carries HEAD's committed row reads `push: OK` -- the only
+    line that makes completing a deferred swap safe. Both call the SAME
+    function the no-write keygen path feeds, never copying its logic."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    (root / "d.txt").write_text("diverged\n")
+    subprocess.run(["git", "-C", str(root), "add", "d.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "div1"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "push", "origin",
+                    "season/s2"], check=True)
+    # amend with a NEW staged change: HEAD=C' (tree differs) while origin still
+    # holds C -> genuinely diverged, not a bare-time-metadata rewrite.
+    (root / "diverged.txt").write_text("local-only\n")
+    subprocess.run(["git", "-C", str(root), "add", "diverged.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "--amend", "-q",
+                    "--no-edit"], check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    origin_ref = _origin_ref(root)
+    assert head != origin_ref, "fixture: amend must diverge HEAD from origin"
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin") and "push: OK" not in line, \
+        f"diverged must be SKIPPED, got {line!r}"
+    assert head in line and origin_ref in line, line
+    assert _origin_ref(root) == origin_before, "never force-push on SKIPPED"
+    # (b) at-HEAD control: force origin to the amended HEAD so origin holds it
+    # exactly (the fixture may force-push; the FUNCTION under test may not).
+    subprocess.run(["git", "-C", str(root), "push", "--force", "origin",
+                    "season/s2"], check=True)
+    line_ok = send_mod._all_live_origin_sync_line(root)
+    assert line_ok.startswith("push: OK"), \
+        f"at-HEAD steady state must read push: OK, got {line_ok!r}"
+
+
 # ── hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender ──
 
 

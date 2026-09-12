@@ -728,3 +728,69 @@ def test_rotate_self_tail_writes_bootstrap_and_repoint(_fix, tmp_path,
     # s11: on a fixture the verification is SKIPPED (no graph), never run.
     assert "SKIPPED" in doc["verification"]["skipped"]
     assert doc["verification"]["ok"] is False
+
+# ── F15 (goal:g15.25 FIX-ONLY): the OWN-TAIL after_join `{succ_ref}` never
+# takes the JOIN's session uuid as a fallback (rotate.py step 6.4) ─────────
+
+
+def _tail_succ_ref(monkeypatch, tmp_path, ack_fact, session_seam):
+    """Drive cmd_rotate_self's step 6.4 tail and capture the `succ_ref` value
+    passed to _first_turn_values — the exact one-line value the F15 fix owns.
+    ``ack_fact`` is the stubbed ack dict the tail reads; ``session_seam`` the
+    successor session uuid/seam that pre-F15 fell back into succ_ref when the
+    ack had no session_ref."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    transcript = tmp_path / "succ.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: ack_fact)
+    captured = {}
+    real_ftv = rotate._first_turn_values
+    def _cap(root, *, seat, gen, succ_name, succ_ref="", **kw):
+        captured["succ_ref"] = succ_ref
+        return real_ftv(root, seat=seat, gen=gen, succ_name=succ_name,
+                        succ_ref=succ_ref, **kw)
+    monkeypatch.setattr(rotate, "_first_turn_values", _cap)
+    args = _rs_args(tmp_path, window_path=str(ft.win), timeout=5,
+                    session_ref=session_seam,
+                    successor_transcript=str(transcript))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, "tail must complete so step 6.4 runs"
+    return captured.get("succ_ref", "<not-passed>")
+
+
+def test_tail_with_no_acked_ref_never_falls_back_to_join_uuid(_fix,
+                                                              tmp_path,
+                                                              monkeypatch):
+    """F15 tail, ack with NO session_ref: `{succ_ref}` is EMPTY even though the
+    join's session seam (the successor uuid) is non-empty — pre-fix the one
+    `or succ_session_id` fallback back-filled the uuid here, poisoning the
+    row's session_ref so send.whois reads NO-MATCH for every peer."""
+    succ_ref = _tail_succ_ref(
+        monkeypatch, tmp_path,
+        ack_fact={"seat": "adv-alive", "gen_after": 1, "answer": "continue"},
+        session_seam="c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2")
+    assert succ_ref == "", (
+        f"{succ_ref!r}: the tail back-filled the join uuid as succ_ref (F15 "
+        "defect) — it must pass nothing so the DM prints <your ListAgents ref> "
+        "and the whois --key fallback resolves")
+
+
+def test_tail_with_an_acked_ref_passes_that_ref_never_the_uuid(_fix,
+                                                               tmp_path,
+                                                               monkeypatch):
+    """F15 tail, ack WITH a session_ref: `{succ_ref}` is the successor's OWN
+    acked harness ref — never the join's session uuid even though the seam
+    carries one."""
+    succ_ref = _tail_succ_ref(
+        monkeypatch, tmp_path,
+        ack_fact={"seat": "adv-alive", "gen_after": 1, "answer": "continue",
+                  "session_ref": "1be8d4"},   # a real ListAgents ref, not a uuid
+        session_seam="c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2")
+    assert succ_ref == "1be8d4", (
+        f"{succ_ref!r}: the tail must carry the successor's ACKED ref, never "
+        "the join uuid (F15)")
