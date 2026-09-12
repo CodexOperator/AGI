@@ -2249,19 +2249,43 @@ def _sig_fp_from_block(block: str) -> str:
 
 def _quarantine_block(root: Path, me: str, block: str) -> Path:
     """Append one refused block's RAW inbox bytes verbatim to
-    `<inbox_dir>/quarantine/<me>.md` and return the absolute path written.
+    `<inbox_dir>/quarantine/<me>.md` -- once per DISTINCT block -- and return
+    the absolute path written.
 
     The inbox stores each block as `MSG_SEP + block` (the writer's `_block`
     prepends `---\n`), and `_scan_messages` splits that sep off, so the raw
     bytes are reassembled by prepending `MSG_SEP` when absent. Never rewrites
     or truncates the quarantine file -- always append, `newline=""` so CR
-    bytes survive (mur-39 order (d), the same trap the writer documents)."""
+    bytes survive (mur-39 order (d), the same trap the writer documents).
+
+    Dedupe by the sha256 of the raw block bytes (hypothesis:l4-quarantine-
+    dedupes-by-block-hash...): `peek` never advances the read cursor, so a
+    repeated peek of the same FORGED block would otherwise grow the
+    quarantine by one identical copy per call. The quarantine is the durable
+    RECORD of what was withheld -- not an event log of how often it was
+    refused -- so one distinct block is kept once. The dedupe marker is a
+    sidecar `<me>.hashes` (one hex per line, append-only), never a marker
+    line inside the quarantine body, so the body stays the exact inbox bytes
+    verbatim. A block already recorded is not appended again, but the caller
+    still prints the REFUSED line (the refusal happens every event; only the
+    durable copy is once)."""
     qdir = _inbox_dir(root) / "quarantine"
     qdir.mkdir(parents=True, exist_ok=True)
     path = qdir / f"{me}.md"
     raw = block if block.startswith(MSG_SEP) else MSG_SEP + block
-    with open(path, "a", newline="") as f:
-        f.write(raw)
+    h = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    hashes_path = qdir / f"{me}.hashes"
+    existing: set[str] = set()
+    if hashes_path.is_file():
+        try:
+            existing = set(hashes_path.read_text().splitlines())
+        except OSError:  # a read race never turns a refusal into a crash
+            existing = set()
+    if h not in existing:
+        with open(path, "a", newline="") as f:
+            f.write(raw)
+        with open(hashes_path, "a", newline="") as f:
+            f.write(h + "\n")
     return path.resolve()
 
 
