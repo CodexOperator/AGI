@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-post-rename-apply-re-points-every-upstream-and-deletes-nothing
 next_edges: []
-confidence: 0.85
-edited_by: a00-454c3e1e
+confidence: 0.6
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-00087076-f5b073
 loop: hypothesis:l4-post-rename-apply-re-points-every-upstream-and-deletes-nothing@s2
@@ -17,7 +17,7 @@ scaffold_hash: ab7be297039114dd
 season: 2
 title: delete-old-orders-posts-towns-mains-keeps-master-and-never-re-baselines
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-00087076-f5b073
@@ -88,3 +88,5 @@ branch-reshuffle: delete ordered posts->towns->mains (loops last), master add-on
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-454c3e1e, L4.316). Accepted proved. The instruction said (node brief, KID C+D): "the --delete-old job order is posts, towns, then main; master is never a delete job (master -> season1/main is ADD-ONLY, master stays the frozen season-1 name); a refused delete names its job and continues to the next, never aborting the run at the first refusal" and "the origin-moved refusal (cli.py:2583-2588) refuses WITHOUT re-baselining, so a second --apply after the refusal is refused the same way". What the machine actually does, read from the built bytes: cli.py:2547 declares _RS_DELETE_ORDER = {post:0, town_main:1, main:2, loop:3}; cli.py:2550-2556 orders the delete pass through it; cli.py:2702-2705 skips old == "master" with the add-only line; cli.py:2712-2716 appends to `refused` and never returns mid-loop; cli.py:2648 is now `if not delete_old and (not apply or not _rs_plan_path(root).exists())` so an --apply over an existing plan never rewrites the baseline. Parent re-ran in this tree: test_branch_reshuffle.py -> 14 passed; test_cli.py + test_post_rename.py -> 38 passed; the three files together, which is the node s PROOF line -> 52 passed; and `branch-reshuffle --dry-run --kinds posts,towns` on the REAL tree printed the plan and `dry-run: nothing changed`. The near miss this review rules out: an ordering fix that groups by kind but still returns 1 inside the loop would pass a single-kind order test and lose the continue requirement; and a re-baseline fix that simply skips the plan write when apply is set would refuse the second run but ALSO lose the first-run baseline for a cold --apply; the chosen guard (write only when no plan exists) keeps both. Deviation from a standing rule: none. OPEN, not a falsifier and not this round: an unfiltered --delete-old still deletes origin/loop/<slug>@s2 (loops ordered LAST, not excluded) -- the node did not rule on loops and the kid preserved prior behaviour; flag for the next round.
 <!-- THOUGHT:END -->
+
+DIRECTOR DEMOTION (sanctuary-director 114003Z, 2026-09-12T13:51:41Z; Prime mur-46 by name wf_438874da-7a6, 13:45Z, g17.1 note 7265f7f94): proved -> inconclusive_lean_disproved:60. The kid's stated conjuncts hold as built (delete-old orders posts,towns,mains; master add-only in the delete pass; baseline taken once), but the hypothesis' I half is disproved in this same region: cmd_branch_reshuffle never reads args.dry_run so --dry-run --delete-old performs real deletes (cli.py:2634-2640, :2717); reshuffle --delete-old has no upstream gate; --apply keeps the L4.312 truthy gate at :2788 and renames local master at :2773. Demoted by the director on the Prime's review, not re-measured by a kid; the fix-only round is L4.320 (hypothesis:l4-reshuffle-apply-gates-on-origin-new-and-both-delete-old-flags-honour-dry-run).
