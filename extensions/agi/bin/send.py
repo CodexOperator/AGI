@@ -3968,6 +3968,99 @@ def whois(root: Path, session_ref: str, claim: str | None,
     return code, text
 
 
+# ---- rung-3 HUMAN GATE wire surface (hypothesis:l4-a-veto-freezes-never-
+# frees): the `veto` verb's owner-answer + status path. The freeze itself is
+# seatsig.veto (a rings m-of-n decision cell, expiry, rate-limit, never-frees
+# active gate); these two helpers are the NAMED-ROOM wire: an owner answers a
+# frozen scope (the ONLY release -- a timeout/restart/rotation never frees),
+# and the answer lands in the veto_room AND the one geometry log. Fixture-
+# testable by pointing `root` at a tmp graph root (veto.read/save accept any
+# root; the real posts/seats tree is read, never written).
+
+
+def _veto_graph_root(root: Path) -> Path | None:
+    """The graph root the vetoes geometry cell lives under (main checkout, so
+    a `--branch` worktree kid reads the season's ONE vetoes cell -- same
+    resolution the comms root and the rotate/push gate use)."""
+    return _main_graph_root(root) if root else None
+
+
+def veto_gate_status(root: Path, scope: str) -> str:
+    """The by-name GATE-FROZEN / free status line for `scope` (visibility, and
+    how an owner learns a veto is standing). A VETOES cell that is absent or
+    unparsable reads as a FREE scope -- the gate is opt-in."""
+    graph = _veto_graph_root(root)
+    try:
+        from seatsig import veto as _veto
+    except Exception:  # noqa: BLE001  (a broken cell never frees-silent)
+        return (f"veto: vetoes cell unavailable; scope {scope!r} treated as "
+                "free")
+    g = _veto.read(graph)
+    frozen, why = _veto.is_frozen(graph, scope, geom=g)
+    room = g.get("veto_room") or "veto"
+    if frozen:
+        return f"GATE-FROZEN scope={scope} room={room}; {why}"
+    return (f"veto: scope {scope!r} is FREE (no active human gate; the owner "
+            f"answers in the {room!r} room when one is filed)")
+
+
+def veto_answer(root: Path, scope: str, answer: str) -> str:
+    """An OWNER ANSWER clears the freeze on `scope` -- the ONE and only
+    release. The geometry is loaded, the current active gate for `scope` is
+    checked (nothing to answer if it is already free), the answer is recorded
+    (veto.record_answer fills the gate's `answered` AND the veto log's
+    `answer`, so the lifecycle filed -> frozen -> answered stays in ONE file),
+    and the state is written back through veto.save. The answer is also
+    posted to the named veto_room (the comms room the claim names), so the
+    wire surface and the durable log agree. Returns the printed line; raises
+    nothing (a broken cell answers the owner by name)."""
+    from seatsig import veto as _veto
+
+    graph = _veto_graph_root(root)
+    if not answer.strip():
+        return "ERR: an owner answer cannot be empty"
+    g = _veto.read(graph)
+    frozen, _why = _veto.is_frozen(graph, scope, geom=g)
+    if not frozen:
+        return (f"veto: scope {scope!r} is not under an active gate; "
+                "nothing to answer")
+    freed = _veto.record_answer(g, scope, answer.strip())
+    try:
+        _veto.save(graph, freed)
+    except Exception:  # noqa: BLE001  (never crash the verb on a save failure)
+        pass
+    room = g.get("veto_room") or "veto"
+    return (f"veto: ANSWERED -- an owner answer cleared scope {scope!r}; the "
+            f"gate is released and the answer is logged to the {room!r} "
+            "room and the vetoes geometry node. Never auto-released -- only "
+            "an owner answer.")
+
+
+def _cli_veto(croot: Path, root: Path, args) -> int:
+    """The `veto` verb: status by default, or an OWNER ANSWER that clears a
+    frozen scope (claim (1): wait for an owner line; the answer is posted to
+    the named room and the freeze is released in the one geometry log)."""
+    scope = getattr(args, "scope", None) or "prime"
+    if getattr(args, "answer", None):
+        line = veto_answer(root, scope, args.answer)
+        print(line)
+        dropped = args.answer.strip()
+        # post the owner line to the named room (best-effort comms surface)
+        try:
+            room = getattr(args, "room", None)
+            if not room:
+                from seatsig import veto as _veto
+                room = (_veto.read(_veto_graph_root(root)).get("veto_room")
+                        or "veto")
+            print(send_room(croot, room, dropped, _detect_sender(
+                getattr(args, "from_id", None))).resolve())
+        except Exception:  # noqa: BLE001  (the gate release already happened)
+            pass
+        return 0 if dropped else 1
+    print(veto_gate_status(root, scope))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="one-verb agent comms",
         epilog=_LOCKDOWN_RESERVED_HELP)
@@ -4162,6 +4255,21 @@ def main(argv: list[str] | None = None) -> int:
                        help="concern tag when --to is omitted")
     p_esc.add_argument("text", nargs="*", help="message text")
 
+    p_veto = sub.add_parser(
+        "veto", parents=[common],
+        help="rung-3 human gate: status of / owner answer to a frozen scope "
+             "(hypothesis:l4-a-veto-freezes-never-frees; an unanswered gate "
+             "freezes, never frees)")
+    p_veto.add_argument("--scope", default="prime",
+                        help="scope/gate to inspect or answer (default: prime)")
+    p_veto.add_argument("--answer", default=None,
+                        help="the owner answer that clears the frozen scope -- "
+                             "the ONLY release (a timeout/restart/rotation "
+                             "never auto-frees)")
+    p_veto.add_argument("--room", default=None,
+                        help="named room to post the owner answer into "
+                             "(default: the geometry veto_room)")
+
     args = ap.parse_args(argv)
 
     root = _project_root()
@@ -4346,6 +4454,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(escalate(croot, text, args.to, args.concern, sender).resolve())
         return 0
+
+    if args.verb == "veto":
+        return _cli_veto(croot, root, args)
 
     return 0
 

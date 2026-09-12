@@ -1155,6 +1155,26 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     if schema is None:
         return
     written_by = schema.frontmatter.get("written_by")
+
+    # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): a
+    # config-row edit OUTSIDE self_row is a GATED Prime-scope act. While a
+    # council+Keep veto (or an owner-written human_gate) shows the scope
+    # FROZEN in the vetoes geometry node, the edit WAITS -- refused by name.
+    # Checked FIRST so a frozen scope refuses even an otherwise-admitted
+    # writer, and it is never auto-released; only an owner answer clears it.
+    if set_fm is not None or unset_fm is not None:
+        try:
+            from seatsig import veto as _veto
+
+            _frozen, _why = _veto.is_frozen(root, "prime")
+        except Exception:  # noqa: BLE001  (a broken veto cell never frees-silent)
+            _frozen, _why = False, ""
+        if _frozen:
+            raise EditError(
+                f"{node_type} nodes ({where}): a config-row edit outside "
+                f"self_row is a gated act and {_why} "
+                f"(human gate, rung 3)")
+
     admitted = links.parse_written_by(written_by) if written_by is not None else None
     if not admitted:
         return

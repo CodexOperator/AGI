@@ -1123,6 +1123,24 @@ def main() -> int:
         except Exception:                                   # noqa: BLE001
             anchors = None
 
+    # RUNG 3 human gate visibility (hypothesis:l4-a-veto-freezes-never-frees):
+    # a frozen scope shows up in `--live` by name. Read-only from the vetoes
+    # geometry cell; fails open to silence, never a traceback.
+    freeze_lines = []
+    if args.live:
+        try:
+            from seatsig import veto as _veto
+
+            _g = _veto.read(root)
+            for _gate in _g.get("active_gates") or []:
+                if isinstance(_gate, dict) and not _gate.get("answered"):
+                    freeze_lines.append(
+                        f"GATE-FROZEN scope={_gate.get('scope')} since="
+                        f"{_gate.get('since')} veto={_gate.get('veto_ref')} "
+                        f"(human gate; waits for an owner answer)")
+        except Exception:  # noqa: BLE001  (read-only, never a crash)
+            freeze_lines = []
+
     if args.verify:
         return _verify(frames, args, brief)
 
@@ -1133,6 +1151,8 @@ def main() -> int:
     status = (f"anchor={args.anchor or 'roots'} depth={args.depth} "
               f"frames={len(frames)} time={iter_name or '-'} "
               f"layer={args.layer if anchors is not None else '-'}")
+    if freeze_lines:
+        status = f"{' | '.join(freeze_lines)} — " + status
     if mode in ("human", "both"):
         if mode == "both":
             print("=" * args.width)
