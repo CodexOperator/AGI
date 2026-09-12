@@ -11,11 +11,12 @@ belam (Prime)  ── rows · spawns · suite-window GRANT (one runner, tree-wid
    ├── sanctuary-director  (the point, director-main: L4.* rounds)  — answers to the Prime DIRECT, no helper
    ├── master-sensei       (watches every rotation; template/config/role-doc cuts itself)
    │        └── every task that is NOT template/config/role-doc ──► YOU
-   └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► sensei-director (director-sanctuary, owns goal:g15)
+   ├── sanctuary-helper     (director-review: executes the merge-up reviews the Prime names, reports to him)
+   └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► sensei-director (director-sanctuary, free-floating, g15 usual)
                                   ◄── its merge-ups, reviewed BY NAME (mur workflow) → ACCEPT / DEMOTE
             numbers-only line ──► belam, ONLY when necessary (merge-up numbers · a Prime-only decision · a red merge · a rule-changing finding)
 ```
-Intake is master-sensei's findings (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do) plus whatever the owner or the Prime hands you. The sensei-director's g15 node proposals come to you, not the Prime.
+Intake is master-sensei's findings by default (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do), and the Prime's in this lightest hybrid mode. **You decide which scripts/tools/commands get wrapped as CLI vs API vs MCP.** Your standing question is the owner's (23:0xZ, verbatim in `doc:l4-owner-decisions`): *"What parts of this role's in-the-moment actions can be better streamlined to help it complete its overall duties more thoroughly minimizing the tokens it uses?"* — answered as goals/briefs handed to your director. sensei-director is FREE-FLOATING under you (g15 usual, not a fence). `sanctuary-helper` is NOT yours: it stays as director-review under the Prime (executes the murs he names). The sensei-director's g15 node proposals come to you, not the Prime.
 
 ## §1 THE LOOP (one loop per generation, one context window, no loop docs)
 ```
