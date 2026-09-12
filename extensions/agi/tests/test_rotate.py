@@ -7986,3 +7986,32 @@ def test_prepare_check6_diff_ack_at_cur_gen_halts_as_today(tmp_path):
     blocker, name, _ = checks[-1]
     assert blocker is False
     assert "ack consumed" not in name
+
+# ── F15 (goal:g15.25 FIX-ONLY): cmd_ack refuses BY NAME a --ref equal to the
+# running seat's OWN session_id cell (the joined session uuid) ──────────────
+
+
+def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
+                                                          monkeypatch,
+                                                          capsys):
+    """A --ref equal to the seat's own session_id cell IS the session uuid
+    (the JOIN registers the same uuid in the row) — refused BY NAME as a
+    session id, never accepted and back-filled (F15: pre-fix _resolve_rows
+    ACCEPTED the exact session_id match as the seat's own row, so the uuid
+    slipped into session_ref and every peer read NO-MATCH). Nothing is
+    written: no ack file, no row write, rc != 0."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    uid = "c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2"
+    _write_seats_sheet(root, [{"name": "sanctuary-director",
+                               "role": "director",
+                               "session_id": uid}])
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="sanctuary-director", gen=7, ref=uid,
+        answer="continue", text=""), root)
+    assert code == 2
+    err = capsys.readouterr().err
+    assert "session id" in err and "F15" in err
+    assert uid in err
+    # nothing written: no ack file (and the row is untouched by a refusal).
+    assert not rotate._ack_path(root, "sanctuary-director").exists()
