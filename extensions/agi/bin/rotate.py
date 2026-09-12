@@ -1964,16 +1964,25 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
     return None
 
 
-def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
-    """The ONE predicate that decides whether an answered ack commits its own
-    row write: `continue` commits; `diff` with empty/whitespace text commits
-    (an empty diff stands the handoff exactly like continue); `diff` with text
-    never commits. `--no-commit` suppresses the commit on every path. Shared
-    by the do_commit gate and the first-seating announce gate so the two can
-    never disagree (g15.24 FIX-ONLY)."""
+def _ack_stands(answer: str, text: str | None) -> bool:
+    """Whether an answered ack STANDS the handoff: `continue` always does;
+    `diff` with empty/whitespace text does (an empty diff stands the handoff
+    exactly like continue); `diff` with text never does. Deliberately does NOT
+    look at `--no-commit`: an ack either stands the handoff or it does not,
+    and that decision is independent of whether the own-row write is COMMITTED
+    (g15.24 FIX-ONLY)."""
     return (answer == "continue"
-            or (answer == "diff" and not (text or "").strip())) \
-        and not no_commit
+            or (answer == "diff" and not (text or "").strip()))
+
+
+def _ack_commits(answer: str, text: str | None, no_commit: bool = False) -> bool:
+    """Whether an answered ack COMMITS its own row write: exactly `_ack_stands`
+    when the commit is not suppressed, and False under `--no-commit`. Shared by
+    the do_commit gate and (formerly) the first-seating announce gate. The
+    announce gate now calls `_ack_stands` directly so that `--no-commit` no
+    longer suppresses the announce/record, which have nothing to do with
+    committing (g15.24 FIX-ONLY)."""
+    return _ack_stands(answer, text) and not no_commit
 
 
 def cmd_ack(args: argparse.Namespace, root: Path) -> int:
@@ -2279,14 +2288,16 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # so a spawn/seats-launch that already recorded + announced is never
     # double-sent (hypothesis:l4-a-first-seating-sends-the-sensei-the-same-
     # alert-a-rotation-does; the falsifier: a second dm for the same seat+gen).
-    # g15.24: the announce gate uses the SAME predicate as do_commit (_ack_commits),
-    # NOT a literal `answer == "continue"`, so a gen-1 answer of `diff` with EMPTY
-    # text commits AND announces once (a `diff` with text commits nothing and, by
-    # the same predicate, announces nothing). The double-send falsifier (a second
-    # dm for the same seat+gen) still holds via _seating_record_exists.
+    # g15.24 FIX-ONLY: the announce gate uses `_ack_stands` -- NOT `_ack_commits`,
+    # which would fold `--no-commit` in and wrongly suppress the announce/record.
+    # The first-seating announce and its ONE seating record have nothing to do
+    # with committing: a gen-1 answer that stands the handoff (continue, or diff
+    # with empty text) announces + records once even under --no-commit, while a
+    # diff with text (which does not stand the handoff) announces nothing. The
+    # commit leg gates on `_ack_commits` separately and unchanged. The double-send
+    # falsifier (a second dm for the same seat+gen) still holds via _seating_record_exists.
     if args.gen == FIRST_SEATING_GEN \
-            and _ack_commits(args.answer, text,
-                             getattr(args, "no_commit", False)) \
+            and _ack_stands(args.answer, text) \
             and not _seating_record_exists(root, seat, generation=args.gen) \
             and not _rotation_record_exists(root, seat) \
             and not _pending_ack_present:

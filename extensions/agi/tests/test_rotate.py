@@ -4623,6 +4623,68 @@ def test_ack_gen1_diff_with_text_does_not_announce(tmp_path, monkeypatch):
     assert not list(rotate._rotations_dir(tmp_path).glob("diff-t.*.seating.json"))
 
 
+def test_ack_gen1_continue_no_commit_still_announces_and_records(tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-the-first-seating-announce-and-record-do-not-depend-on-
+    the-ack-commit-flag (g15.24 FIX-ONLY) — the gen-1 first-seating announce
+    gate calls `_ack_stands`, NOT `_ack_commits`, so `--no-commit` no longer
+    suppresses the announce/record. A gen-1 `continue` UNDER --no-commit sends
+    ONE dm, writes ONE seating record (both have nothing to do with committing)
+    and commits nothing (HEAD unchanged, no push, no committed line). Fails on
+    the pre-fix bytes, which folded --no-commit in and produced dms=0 recs=0."""
+    import send as _send
+    rows = [{"name": "noct-seat", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["noct-seat", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="noct-seat", gen=1, ref="n1",
+                                        answer="continue", text=None,
+                                        no_commit=True), tmp_path)
+    assert rc == 0
+    assert len(sent) == 1, \
+        f"a gen-1 continue WITH --no-commit must announce the first seating once: {sent}"
+    _to, text = sent[0]
+    assert "first seating noct-seat" in text
+    assert "trigger: first-seating" in text
+    recs = list(rotate._rotations_dir(tmp_path).glob("noct-seat.*.seating.json"))
+    assert len(recs) == 1, \
+        f"exactly ONE seating record even under --no-commit, got {recs}"
+    out = capsys.readouterr().out
+    assert "git -C" not in out or "push" not in out, \
+        f"--no-commit must commit nothing: {out}"
+
+
+def test_ack_gen1_diff_with_text_no_commit_still_sends_nothing(tmp_path, monkeypatch):
+    """hypothesis:l4-the-first-seating-announce-and-record-do-not-depend-on-
+    the-ack-commit-flag falsifier — `--no-commit` changes the announce gate's
+    INPUT (the handoff decision), never the outcome: a gen-1 `diff` WITH text
+    still does NOT stand the handoff, so it sends no dm and writes no seating
+    record even under --no-commit."""
+    import send as _send
+    rows = [{"name": "diff-nc", "role": "director"},
+            {"name": "sensei-peer", "role": "prime_director"}]
+    _write_seats_sheet(tmp_path, rows)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: sent.append(
+                            (other, text)) or tmp_path)
+    monkeypatch.setattr(rotate, "_existing_windows",
+                        lambda s, wp: ["diff-nc", "sensei-peer"])
+    monkeypatch.setattr(rotate, "_successor_window_id", lambda *a, **k: None)
+    rc = rotate.cmd_ack(SimpleNamespace(seat="diff-nc", gen=1, ref="d3",
+                                        answer="diff", text="- a\n+ b",
+                                        no_commit=True), tmp_path)
+    assert rc == 0
+    assert sent == [], \
+        f"a gen-1 diff-with-text must NOT announce a seating even with --no-commit: {sent}"
+    assert not list(rotate._rotations_dir(tmp_path).glob("diff-nc.*.seating.json"))
+
+
 def test_ack_help_names_diff_empty_commits(capsys):
     """g15.24 FIX-ONLY (SL7.33 residue) — `ack --help` names the THREE answers
     and what each commits (the FALSIFIER: help lacks the words diff and empty,
