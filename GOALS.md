@@ -6620,6 +6620,12 @@ SL7.91 HARVESTED 19:00Z on the sensei-director post (8a7b5aa7f): meter --pin nev
 
 SL7.88 HARVESTED 19:00Z on the sensei-director post (351aa4b07): after_join is CLAIMED on the record (claimed_at/performer/claim_key, pathspec commit) before any command, a live claim defers the second performer by name, one dm per record, the join gate performs only when the join resolved or after_join_max_wait_s=600 elapsed (join-dependent entries then refused by name), heal log names deferred/waiting; kid 2 closed two wedges — a dead claim goes stale after after_join_claim_stale_s=300 and is re-claimed, an unmeasurable record age anchors on the claim age or performs now; lean 70 + proved 0.85, +8 tests; one conflict hunk vs SL7.89 code_head unioned
 
+SL7.98 brief 19:03Z (FIX-ONLY, Prime XVII 18:48Z lines (1)(2)(3) bundled): hypothesis:l4-every-after-join-performer-derives-pred-pids-routes-the-own-tail-through-the-liveness-gate-and-reads-the-rows-window-cell — pred_pids derived by every performer, the tail through the gate, window cell + pid check
+
+SL7.99 brief 19:03Z (FIX-ONLY, Prime XVII 18:48Z lines (4)(5) bundled): hypothesis:l4-the-after-join-record-names-the-sender-and-signature-the-send-returned-the-trim-keeps-the-captive-ack-line-and-the-cap-counts-bytes — dm_signed/dm_sender from the send's return, the trim keeps the ack line, UTF-8 byte cap, ack --post grammar; policy decided under delegated authority: the watch signs with the SEAT key, no heal key
+
+SL7.100 brief 19:03Z (FIX-ONLY, Prime XVII 18:48Z line (6)): hypothesis:l4-the-bootstrap-writer-derives-a-join-pending-key-before-stamping-pending-the-rewrite-derives-before-unresolved-and-the-pin-reads-refuse-cross-generation — meter est. reachable from every writer, named unresolved, one pin helper with the cross-generation refusal, cmd_meter untouched
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
