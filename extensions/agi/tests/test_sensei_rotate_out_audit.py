@@ -451,7 +451,11 @@ def test_rotate_out_registry_dir_is_honoured(tmp_path, monkeypatch):
     (reg / f"{pid}.json").write_text(
         json.dumps({"pid": pid, "sessionId": sess, "cwd": "/a/b.c"}),
         encoding="utf-8")
-    # default registry dir: the fixture reg file is invisible -> no resolution
+    # default registry dir: the fixture reg file is invisible -> no resolution.
+    # Route the default through a DIFFERENT temp dir (never $HOME - a test
+    # must not stat ~/.claude): the fixture `reg` file is invisible under it.
+    monkeypatch.setattr(rotate, "REGISTRY_DEFAULT_DIR",
+                        str(tmp_path / "not-the-registry"))
     code, _, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, None)
     assert code == 2
     # --registry-dir points at the fixture: the SAME file is found (and here

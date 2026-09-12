@@ -13,6 +13,303 @@ from agi.bin import rotate
 from agi.bin import brief
 
 
+def _mk_seat_key(tmp_path, seat, scheme="ed25519"):
+    from agi.bin import send
+    kr = send._seats_dir(tmp_path)
+    kr.mkdir(parents=True, exist_ok=True)
+    scheme_obj = send.seatsig.get(scheme)
+    _priv, pub = scheme_obj.keygen()
+    key_path = kr / f"{seat}.key"
+    key_path.write_text(
+        '{"scheme": "ed25519", "priv_hex": "%s"}' % _priv.hex())
+    import os
+    os.chmod(key_path, 0o600)
+    return key_path, pub
+
+
+def test_rotate_key_gate_refuses_keyed_seat_without_key(tmp_path):
+    # KEY-GATED: a KEYED row (names a pubkey) but no key file refuses by name.
+    err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": "deadbeef"})
+    assert err is not None
+    assert "s1" in err
+    assert "keygen s1" in err
+
+
+def test_rotate_key_gate_passes_when_key_present(tmp_path):
+    # row keyed AND the key file exists -> gate passes.
+    key_path, pub = _mk_seat_key(tmp_path, "s1")
+    err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": pub.hex()})
+    assert err is None
+
+
+def test_rotate_key_gate_passes_unkeyed_and_throwaway(tmp_path):
+    # no pubkey in the row (incremental fleet keying) and a throwaway row
+    # (empty dict) are NEVER refused here -- the minting half is other work.
+    assert rotate._rotate_key_gate(tmp_path, "s1", {"role": "parent"}) is None
+    assert rotate._rotate_key_gate(tmp_path, "s1", {}) is None
+    assert rotate._rotate_key_gate(tmp_path, "s1", None) is None
+
+
+def test_rotate_first_key_mints_unkeyed_row(tmp_path):
+    # line (1) minting half: an UNKEYED real row mints its first key IN THE
+    # SAME rotate-self step (incremental fleet keying) -- a 0600 key file
+    # appears at <sessions>/seats/<seat>.key and a note is returned.
+    from agi.bin import send
+    note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"role": "parent"})
+    assert note
+    assert "minted its first key" in note
+    key_path = send._seat_key_path(tmp_path, "s1")
+    assert key_path.is_file()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(key_path.read_text())
+    assert obj.get("scheme")
+    # no cfg/graph here, so there are no rows to write -- the key file is
+    # the minted half; the pubkey cell row-write is best-effort and absent.
+    assert send._seats_rows(tmp_path) == []
+
+
+def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
+    # the mint MUST go through send._mint_seat_key (no second key writer, no
+    # ed25519 literal in rotate.py). rotate.py imports `send` as a TOP-LEVEL
+    # module (it pushes bin/ onto sys.path at import), which is a DIFFERENT
+    # module object from `agi.bin.send` -- so patch the one rotate binds.
+    import send as bin_send
+    orig = bin_send._mint_seat_key
+    seen = {}
+
+    def spy(r, s, sc):
+        seen["call"] = (r, s, sc)
+        return orig(r, s, sc)
+
+    monkeypatch.setattr(bin_send, "_mint_seat_key", spy)
+    rotate._rotate_first_key(tmp_path, tmp_path, "s2", {"role": "helper"})
+    assert seen.get("call") == (tmp_path, "s2",
+                                 bin_send.seatsig.DEFAULT_SCHEME)
+    from agi.bin import send as send_pkg
+    assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
+
+
+def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path):
+    # already-keyed row, a throwaway (empty) row, and an idempotent re-rotate
+    # (key file already exists) all mint nothing -> ''.
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"pubkey": "deadbeef", "role": "parent"}) == ""
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
+    from agi.bin import send
+    _mk_seat_key(tmp_path, "s3")
+    assert rotate._rotate_first_key(tmp_path, tmp_path, "s3",
+                                    {"role": "parent"}) == ""
+
+
+# ---- goal:g15.25 line (2) SUCCESSOR half (SL5.05 ORDER 2) ----------------
+
+def test_rotate_first_key_dry_run_leaves_no_key_and_no_row(tmp_path):
+    """ORDER 1 (SL5.05): --dry-run on an unkeyed real row mints NOTHING and
+    writes NO row cell; it still reports the mint it would perform."""
+    from agi.bin import send
+    note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
+                                    {"role": "parent"}, dry_run=True)
+    assert note
+    assert "(dry-run)" in note
+    assert not send._seat_key_path(tmp_path, "s1").exists()
+    assert send._seats_rows(tmp_path) == []
+
+
+def test_rotate_successor_key_mints_and_replaces(tmp_path):
+    """SL5.05 handover-order fix: the mint + retirement SIGN happen early and
+    return the successor key in ``pending_key``, but <seat>.key is NOT
+    flipped by `_rotate_successor_key` alone -- it stays byte-identical with
+    the PREDECESSOR key until `_apply_successor_key_pending` runs (which the
+    caller gates on the row write + commit succeeding). After apply the
+    successor key is atomically in place (0600, valid JSON)."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "parent",
+           "sig_scheme": "ed25519"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2)
+    assert out is not None
+    # DEFERRED: the file is NOT yet touched -- still the predecessor key,
+    # byte-identical (a failed spawn/row-write/commit would leave it so).
+    assert key_path.read_text() == before
+    pk = out.get("pending_key")
+    assert pk is not None and pk["path"] == str(key_path)
+    # only the gated apply flips the file.
+    applied = rotate._apply_successor_key_pending(pk)
+    assert "key_replace" in applied and str(key_path) in applied
+    assert key_path.is_file()
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    obj = json.loads(key_path.read_text())
+    assert obj.get("scheme") == "ed25519"
+    sch = send.seatsig.get("ed25519")
+    live_pub = sch.public_from_secret(bytes.fromhex(obj["priv_hex"]))
+    assert live_pub.hex() == out["successor_pub"]
+    assert out["successor_pub"] != pred_pub.hex()  # a NEW key, not the old
+    ret = out["retired"]
+    assert ret["pub"] == pred_pub.hex()  # retired = the predecessor pub
+    assert ret["fp"] == send.seatsig.fingerprint(pred_pub)
+    assert ret["from"] == 1 and ret["to"] == 2
+    assert "rotated_by_sig" in ret
+
+
+def test_rotate_successor_key_gate_leaves_pred_key_on_failed_row_write(tmp_path):
+    """SL5.05 handover-order fix, proving the DEFECT is closed: when the
+    successor spawn-row write (or its one commit) FAILS, the predecessor
+    <seat>.key is left BYTE-IDENTICAL and NO successor key is ever written --
+    `_apply_successor_key_gated` records the refusal and does not flip the
+    file. The failure seam is the existing try/except that records
+    ``successor_row`` / ``spawn_row_commit`` as ``FAILED: ...`` lines."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    pred_priv = json.loads(before)["priv_hex"]
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2)
+    assert out is not None and "pending_key" in out
+
+    # (a) row write FAILED (the existing seam: _successor_row_write raised,
+    #     caught as 'FAILED: ...'); no commit ran (absent).
+    r1 = rotate._apply_successor_key_gated(
+        out, "FAILED: write.submit boom", "")
+    assert "NOT applied" in r1
+    assert key_path.read_text() == before  # byte-identical
+    assert json.loads(key_path.read_text())["priv_hex"] == pred_priv
+
+    # (b) row write ok but the ONE commit FAILED.
+    r2 = rotate._apply_successor_key_gated(
+        out, "config:seats row s1: ...", "spawn_row_commit: FAILED -- git add")
+    assert "NOT applied" in r2
+    assert key_path.read_text() == before  # still the predecessor key
+
+    # (c) row write ok + commit ok -> the successor key IS written.
+    r3 = rotate._apply_successor_key_gated(
+        out, "config:seats row s1: ...",
+        "spawn_row_commit: committed (sha abc1234)")
+    assert "key_replace: wrote" in r3
+    assert key_path.read_text() != before
+    assert (json.loads(key_path.read_text())["priv_hex"]
+            == out["pending_key"]["priv_hex"])
+
+    # (d) commit SKIPPED (gitless / already-clean) is NOT a failure -- the
+    #     rotation still succeeds and the key flips (the row WAS written;
+    #     only the durability commit was skipped, by design never fatal).
+    key_path2, pred_pub2 = _mk_seat_key(tmp_path, "s2")
+    row2 = {"pubkey": pred_pub2.hex(), "role": "helper"}
+    out2 = rotate._rotate_successor_key(tmp_path, "s2", row2,
+                                        gen_before=1, gen_after=2)
+    r4 = rotate._apply_successor_key_gated(
+        out2, "config:seats row s1: ...",
+        "spawn_row_commit: SKIPPED -- no git repo; ...")
+    assert "key_replace: wrote" in r4
+    assert (json.loads(key_path2.read_text())["priv_hex"]
+            == out2["pending_key"]["priv_hex"])
+
+    # (e) NO-OP: no pending_key (unkeyed row, dry-run, None) -> ''
+    assert rotate._apply_successor_key_gated(None, "x", "y") == ""
+
+
+def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
+    """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
+    must fail under a corrupted record (the signature is specific)."""
+    from agi.bin import send
+    _key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=3, gen_after=4)
+    ret = out["retired"]
+    sch = send.seatsig.get("ed25519")
+    good = f"s1\nretire\n3\n4\n{out['successor_pub']}"
+    assert sch.verify(bytes.fromhex(ret["pub"]), good.encode(),
+                      bytes.fromhex(ret["rotated_by_sig"]))
+    bad = f"s1\nretire\n3\n5\n{out['successor_pub']}"
+    assert not sch.verify(bytes.fromhex(ret["pub"]), bad.encode(),
+                          bytes.fromhex(ret["rotated_by_sig"]))
+
+
+def test_rotate_successor_key_leaves_unkeyed_and_throwaway_alone(tmp_path):
+    """Unkeyed row, THROWAWAY/empty row, None, and a keyed row with no key
+    file (the gate refused it earlier) all retire nothing -> None."""
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", {"role": "parent"}, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", {}, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s1", None, gen_before=1, gen_after=2) is None
+    assert rotate._rotate_successor_key(
+        tmp_path, "s2", {"pubkey": "deadbeef"},
+        gen_before=1, gen_after=2) is None
+
+
+def test_rotate_successor_key_dry_run_touches_nothing(tmp_path):
+    """ORDER 1: --dry-run on a keyed row mints nothing, replaces nothing,
+    and still reports the retirement it would perform."""
+    from agi.bin import send
+    key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
+    before = key_path.read_text()
+    row = {"pubkey": pred_pub.hex(), "role": "parent"}
+    out = rotate._rotate_successor_key(tmp_path, "s1", row,
+                                       gen_before=1, gen_after=2, dry_run=True)
+    assert out is not None and out.get("dry_run") is True
+    assert "(dry-run)" in out["note"]
+    assert key_path.read_text() == before  # byte-identical: nothing replaced
+
+
+def _seed_key_history_graph(root, rows):
+    """A minimal graph root (project/.agi) whose config:seats admits the
+    self_row fields, so `_successor_row_write`'s write.submit admission runs.
+    Mirrors test_write_self_row's project fixture; never touches live config."""
+    graph = root / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sd = graph / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    live = (Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas" /
+            "[config].md")
+    if live.exists():
+        (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
+    d = graph / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f"  - {r!r}" for r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\n"
+        "mint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nseats:\n" + body + "\n---\n\nfixture\n",
+        encoding="utf-8")
+    return graph
+
+
+def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
+    """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
+    spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
+    entry and never shrinking existing history."""
+    from agi.bin import send
+    existing_hist = [{"pub": "00" * 32, "fp": "deadbeef12345678",
+                      "from": 0, "to": 1, "rotated_by_sig": "feed"}]
+    rows = [{"name": "s1", "role": "director",
+             "session_ref": "x", "generation": 1, "window": "",
+             "key_history": list(existing_hist)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    _key_path, pred_pub = _mk_seat_key(graph, "s1")
+    row = {"pubkey": pred_pub.hex(), "role": "director"}
+    kr = rotate._rotate_successor_key(graph, "s1", row,
+                                      gen_before=1, gen_after=2)
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=2, window="",
+        key_rotation=kr)
+    assert "config:seats row" in out and "s1" in out
+    import write as w
+    rows_after = w._load_seats(graph)
+    own = next(r for r in rows_after if r.get("name") == "s1")
+    assert own["pubkey"] == kr["successor_pub"]
+    assert own["key_history"] == existing_hist + [kr["retired"]]
+    assert own["key_history"][-1]["pub"] == pred_pub.hex()
+
+
 @pytest.fixture
 def fake_ladder(tmp_path, monkeypatch):
     root = tmp_path
@@ -2515,6 +2812,77 @@ def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
     assert "trigger: --force" in text
 
 
+# ── clause 1 of hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
+# ── coalesced-nudge-still-wakes-and-detected-records-dedupe: the alert must
+# ── land in each recipient's INBOX (`<sessions>/inbox/<seat>.md`, the writer
+# ── `send.send` / the reader `send.py read` use), IN ADDITION to the dm log,
+# ── so nothing depends on the nudge (it is delivery, the inbox is the record).
+
+
+def test_announce_rotation_lands_alert_in_each_recipient_inbox(
+        monkeypatch, tmp_path):
+    """Clause 1 non-prime leg: every derived recipient's INBOX file holds the
+    [rotation-alert] block that `send.py read <recv>` shows, while the dm-log
+    hop (send_dm) still happens with the same payload. Falsifier: an alert
+    absent from a recipient's inbox."""
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "liason", "role": "parent"},
+            {"name": "kid-b", "role": "director"}]
+    _write_seats_sheet(tmp_path, rows)
+    dms = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: dms.append(
+                            (other, text)) or tmp_path)
+    rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="liason",
+        successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
+        handoff_path=".agi/sessions/liason.handoff.md", in_flight="none",
+        live_names=["kid-a", "liason", "kid-b"])
+    inbox_dir = tmp_path / "sessions" / "inbox"
+    for recv in ("kid-a", "kid-b"):
+        inbox = inbox_dir / f"{recv}.md"
+        assert inbox.is_file(), f"no inbox file for {recv}: {inbox}"
+        body = inbox.read_text(encoding="utf-8")
+        assert "[rotation-alert]" in body, f"{recv} inbox lacks the alert"
+        assert "trigger: rotate-self" in body
+        assert "in flight: none" in body
+    # dm-log hop unchanged, same payload.
+    assert [to for to, _ in dms] == ["kid-a", "kid-b"]
+    for _, text in dms:
+        assert "[rotation-alert]" in text
+
+
+def test_announce_rotation_prime_lands_alert_in_own_inbox(
+        monkeypatch, tmp_path):
+    """Clause 1 prime leg: ROTATION_ALERT_ROOM is NOT the prime's inbox
+    (`<sessions>/inbox/prime.md` is a different file, what `send.py read`
+    reads), so the room alone does not satisfy "lands in the inbox". The prime
+    is inbox-only (dm/room may not address it), but `send.send` imposes no
+    prime restriction -- it IS the inbox-only writer -- so a prime-specific
+    send() puts the same [rotation-alert] block into the prime's OWN inbox
+    alongside the shared room post, never into quorum."""
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"}])
+    room_posts = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_room",
+                        lambda croot, room, text, sender: room_posts.append(
+                            (room, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="prime",
+        successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
+        handoff_path=".agi/sessions/belam-III.log", in_flight="none",
+        live_names=["kid-a", "prime"])
+    assert delivered == [rotate.ROTATION_ALERT_ROOM]
+    assert len(room_posts) == 1
+    prime_inbox = tmp_path / "sessions" / "inbox" / "prime.md"
+    assert prime_inbox.is_file(), f"no prime inbox: {prime_inbox}"
+    body = prime_inbox.read_text(encoding="utf-8")
+    assert "[rotation-alert]" in body
+    assert "generation 2 -> 3" in body
+    assert "trigger: --force" in body
+
+
 def test_loop_success_announces_exactly_once_refusal_never(
         fake_ladder, tmp_path, monkeypatch):
     root = _proj(tmp_path)
@@ -3537,6 +3905,87 @@ def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
     assert "git -C {0} push".format(top) not in out
 
 
+# ── hypothesis:l4-a-failed-ack-commit-exits-non-zero-and-unstages-and- ──
+# -three-tests-assert-what-they-claim (g15.24 P1). A FAILED commit path
+# (git add rc!=0 OR git commit rc!=0) must not leave seats.md staged — that
+# is exactly the dirt that would refuse the NEXT ack (`_ack_seats_dirty`).
+# So `_ack_commit_seats` returns (ok, out), prints the error on STDERR, runs
+# `git reset -q -- <rel>` (working tree keeps the back-filled row), and
+# `cmd_ack` exits NON-ZERO (3). Falsifier: a forced commit failure leaves
+# seats.md STAGED, or the command exits 0.
+
+def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 P1 falsifier + as-written claim (first integrity test): a
+    FORCED commit failure (a fixture `.git/hooks/pre-commit` that `exit 1`)
+    makes the ack exit NON-ZERO (3), prints the error on STDERR (never
+    stdout), UNSTAGES seats.md (`git diff --cached` empty), and STILL keeps
+    the back-filled row in the WORKING TREE — so the next ack's dirty gate
+    finds seats.md clean, not staged."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    # the harness injects agent-git hooks via GIT_CONFIG_* command-line
+    # config (it wins over the repo's own config); clear it so the repo's
+    # OWN .git/hooks/pre-commit actually runs and can force the commit fail.
+    monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
+    monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
+    hooks = top / ".git" / "hooks"
+    hooks.mkdir(parents=True, exist_ok=True)
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    pre.chmod(0o755)
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == 3, f"expect exit 3, got {code}"
+    # the row was UNSTAGED — seats.md is not left staged for the next ack.
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    assert cached.stdout.strip() == "", \
+        "seats.md must NOT be left staged after a failed commit"
+    # the row is still written in the WORKING TREE (back-fill kept by reset).
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c", (
+        "working tree must keep the back-filled row after the failed commit")
+    out, err = capsys.readouterr()
+    assert "commit failed" in err, "error must go to STDERR"
+    assert "commit failed" not in out, "error must NOT go to STDOUT"
+
+
+def test_ack_failed_git_add_exits_nonzero_and_no_staged_diff(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 P1 (second integrity test): a FORCED `git add` failure (a
+    mocked subprocess returning rc 1 for the ack's `git add -- seats.md`) also
+    makes the ack exit NON-ZERO (3) with NO staged diff on seats.md."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    real_run = subprocess.run
+
+    def _fail_add(cmd, *a, **k):
+        if cmd and cmd[0] == "git" and "add" in cmd:
+            return subprocess.CompletedProcess(
+                cmd, 1, "", "index is read-only (forced)")
+        return real_run(cmd, *a, **k)
+
+    monkeypatch.setattr(rotate.subprocess, "run", _fail_add)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == 3, f"expect exit 3, got {code}"
+    cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True)
+    assert cached.stdout.strip() == "", \
+        "git add failure must not leave seats.md staged"
+    out, err = capsys.readouterr()
+    assert "git add" in err and "failed" in err, \
+        "git add error must go to STDERR"
+    assert "git add" not in out, "git add error must NOT go to STDOUT"
+
+
 # ── hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack- ──
 # -finds-seats-clean (g15.24 fix (a), Sensei's pick). rotate-self commits its
 # OWN s6.1 spawn-row write itself (seats.md only, one line) so the successor's
@@ -3776,3 +4225,71 @@ def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
         debug_file=None, dry_run=True, timeout=1, seat=None,
     ), root)
     assert code == 0 and called.get("seat") is None
+
+
+# --------------------------------------------------------------------------
+# Round SL5.09 — clause 3 of hypothesis:l4-a-rotation-alert-lands-in-the-
+# inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe: a
+# crash-recovery record (a heal outcome, `result: detected`) is NEVER a
+# rotation. `_latest_rotation_record` and `status --record latest <seat>`
+# must skip it, even when it is the LEXICALLY newest `<seat>.*.json` (nine
+# detected records for one death is what made the newest file a detected one).
+# --------------------------------------------------------------------------
+
+def _record_fixture(root: Path, seat: str, name: str, rec: dict) -> Path:
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    p = rot / f"{seat}.{name}.json"
+    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    return p
+
+
+def test_latest_rotation_record_skips_crash_recovery(tmp_path):
+    """A real rotation survives the presence of a lexically-NEWER
+    crash-recovery `detected` record for the same seat: the newest ROTATION
+    must be returned, never the detected recovery."""
+    seat = "skp"
+    _record_fixture(tmp_path, seat, "20260911T190000Z", {
+        "rotation": "rotate-self", "seat": seat, "result": "success"})
+    # newer stamp, same seat, a crash-recovery detected record
+    _record_fixture(tmp_path, seat, "20260911T193000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    rec = rotate._latest_rotation_record(tmp_path, seat)
+    assert rec is not None
+    assert rec["rotation"] == "rotate-self", \
+        "a crash-recovery detected record must never be read as the rotation"
+    assert rec["result"] == "success"
+
+
+def test_latest_rotation_record_none_when_only_crash_recovery(tmp_path):
+    """When a seat has ONLY crash-recovery records (no real rotation), the
+    reader must return None — there is no rotation record to serve, and a
+    rotated-in seat must not be told its crash-recovery is its rotation."""
+    seat = "onlyrec"
+    _record_fixture(tmp_path, seat, "20260911T193000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    _record_fixture(tmp_path, seat, "20260911T194000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    assert rotate._latest_rotation_record(tmp_path, seat) is None
+
+
+def test_status_record_latest_skips_detected_record(tmp_path, capsys):
+    """`status --record latest <seat>` prints the newest ROTATION record,
+    never a crash-recovery `detected` record (the falsifier: status counts a
+    detected record as a rotation). The detected file's own name and body
+    must be absent from stdout."""
+    seat = "stat"
+    rotation = _record_fixture(tmp_path, seat, "20260911T180000Z", {
+        "rotation": "rotate-self", "seat": seat, "result": "success",
+        "generation": 2})
+    detected = _record_fixture(tmp_path, seat, "20260911T190000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    args = SimpleNamespace(record=True, seat=seat, wait=0)
+    rc = rotate.cmd_status(args, tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "latest rotation record" in out
+    assert rotation.name in out, out                 # the rotation IS served
+    assert detected.name not in out, \
+        f"status must not surface the detected record: {out}"
+    assert "crash-recovery" not in out, out

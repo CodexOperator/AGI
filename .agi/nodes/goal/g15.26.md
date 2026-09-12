@@ -14,6 +14,8 @@ heading_level: 3
 origin: goals-doc
 scaffold_hash: 3423cb5fc8279e24
 season: 2
+seeds:
+  - hypothesis:l4-a-reader-refuses-a-forged-block-under-enforcing-and-the-value-flips-after-a-named-review
 status: active
 tags:
   - goal
@@ -44,3 +46,5 @@ Under `comms.verify: enforcing` a `read`/`peek` WITHHOLDS the body of a FORGED b
 Minted 2026-09-11 22:2xZ (loop L5). Serial after SL5.02 + merge-up SL2#7; brief `hypothesis:l4-a-reader-refuses-a-forged-block-under-enforcing-and-the-value-flips-after-a-named-review`.
 
 ## Agent Notes
+
+SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.verify=enforcing a read/peek withholds a FORGED block (one REFUSED FORGED line, bytes appended verbatim to inbox/quarantine/<seat>.md, never deleted), VERIFIED/UNSIGNED/RETIRED print in full, informational output is byte-identical, whois --sig exits 2 on FORGED; the season/s2 value is still informational. Kids lean-proved 85/90; caveat for the named review: a repeated peek of the same FORGED block re-appends it (append-only, duplicates accumulate) — a dedupe by (ts, from, sig) is the obvious fix-only if the review wants it. The VALUE flip is the Prime one-line edit after that review.
