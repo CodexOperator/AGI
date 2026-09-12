@@ -4900,12 +4900,39 @@ def _split_card_sections(text: str) -> tuple[str, list[tuple[str, str]]]:
     dropped. Sections split on lines starting with `## `; each header keeps
     its `## ` prefix and its body is the exact raw span of lines below it up
     to the next `## ` (`_section_body`), so a re-join loses NO section-
-    boundary blank line (goal:g15.25 residue (i))."""
+    boundary blank line (goal:g15.25 residue (i)).
+
+    FENCE-RUN AWARE (goal:g15.25 residue (iii), SL7.62): a `## ` line
+    starts a section ONLY outside a Markdown code fence. The scan tracks
+    fences by backtick-run length (`_fence_run`): it enters on an opener
+    (run >= 3) and leaves on a closer whose run >= the opener's, so a `## `
+    heading QUOTED inside a fenced block (a stops block, a fenced example)
+    is content and never splits the card there — the same class SL7.48
+    fixed on the stops end-of-slot scan, now fixed on the card reader."""
     preamble: list[str] = []
     sections: list[tuple[str, str]] = []
     header: str | None = None
     body: list[str] = []
+    in_fence = False
+    opener_run = 0
     for ln in text.splitlines():
+        run = _fence_run(ln)
+        if in_fence:
+            if run >= opener_run:
+                in_fence = False   # closer (run >= opener's) ends the fence
+            if header is None:
+                preamble.append(ln)
+            else:
+                body.append(ln)
+            continue
+        if run > 0:
+            in_fence = True        # opener (run >= 3) starts the fence
+            opener_run = run
+            if header is None:
+                preamble.append(ln)
+            else:
+                body.append(ln)
+            continue
         if ln.startswith("## "):
             if header is not None:
                 sections.append((header, _section_body(body)))
