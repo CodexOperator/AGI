@@ -376,3 +376,17 @@ def test_calls_e_empty_input_prints_dash_not_empty_column(tmp_path, capsys):
     out = capsys.readouterr().out.splitlines()
     assert len(out) == 1
     assert out[0].endswith("ToolX · -")
+
+
+def test_display_cmd_empty_command_resolves_by_key_and_prints_dash():
+    """(h) `_display_cmd` resolves by KEY PRESENCE, not truthiness:
+    `{"command": ""}` (an explicit empty command) prints '-', NOT a json dump
+    — every value is falsy but the KEY is present. Fails on the pre-fix code,
+    which fell through to `json.dumps` and printed `{"command":""}`."""
+    assert sensei._display_cmd({"command": ""}) == "-"
+
+
+def test_display_cmd_non_empty_mapping_unchanged():
+    """(h) a non-empty value still prints as before when its key is present."""
+    assert sensei._display_cmd({"file_path": "/tmp/x"}) == "/tmp/x"
+    assert sensei._display_cmd({"command": "git log"}) == "git log"

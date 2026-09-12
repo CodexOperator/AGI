@@ -2497,3 +2497,43 @@ def test_first_seating_spawn_row_writes_empty_session_name(tmp_path):
     assert own.get("session_name") == ""
     assert own.get("session_id") == "2717-aaaa"
     assert own.get("pid") == 999
+
+
+def _spawn_args(**kw):
+    """A bare argument namespace for `cmd_spawn` — every attribute it reads
+    on the seat-less path, defaulted so a caller must override only what the
+    test cares about."""
+    base = dict(name="belam-seatless", tier="prime_director",
+                prompt_file=None, model=None, effort=None, settings=None,
+                dry_run=False, window_path=None, tmux_session=None)
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+def test_cmd_spawn_seatless_in_root_resolves_rowgen_and_uses_first_gen(
+        monkeypatch, tmp_path):
+    """(d) `cmd_spawn` with NO --seat, inside a project root, NON-dry: the
+    pre-fix code read an UNBOUND `_rowgen` (assigned only under `if seat is
+    not None:`) at the `_compose_seating_base_block` call ~1769 and died with
+    UnboundLocalError. The fix initialises `_rowgen = None` alongside
+    `_spawn_gen`, so the seat-less path reads the named FIRST_SEATING_GEN
+    fallback. `spawn_window` is FAKED so nothing real launches (the fault
+    sits under `if not args.dry_run:`, so the test MUST be non-dry to reach
+    it, and the generation expression at the call site still evaluates even
+    with the collator wrapped)."""
+    captured = {}
+
+    def _capture_base_block(**kw):
+        captured.update(kw)
+        return []
+
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (0, "win"))
+    monkeypatch.setattr(rotate, "_compose_seating_base_block",
+                        _capture_base_block)
+
+    args = _spawn_args(seat=None)
+    rc = rotate.cmd_spawn(args, tmp_path)
+
+    assert rc == 0                 # no UnboundLocalError, spawn "succeeded"
+    assert captured.get("generation") == rotate.FIRST_SEATING_GEN
