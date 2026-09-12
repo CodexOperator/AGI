@@ -361,11 +361,13 @@ def test_spawn_pins_meter_gen1_ack_pending_and_three_worktree_facts(
     pin = root / "sessions" / "pinseat.meter"
     assert pin.is_file(), out
     assert pin.read_text(encoding="utf-8").startswith("11\t")
-    # the ack: `sessions/seats/<seat>.ack.json` with `answer: pending`
+    # the ack: `sessions/seats/<seat>.ack.json` with `answer: continue`
+    # (the DEFAULT-continue seating contract — the seating writer answers its
+    # own ack, wake 0)
     ack = root / "sessions" / "seats" / "pinseat.ack.json"
     assert ack.is_file(), out
     ack_doc = json.loads(ack.read_text(encoding="utf-8"))
-    assert ack_doc["answer"] == "pending"
+    assert ack_doc["answer"] == "continue"
     assert ack_doc["seat"] == "pinseat" and ack_doc["gen_after"] == 11
     # the [seating] base block carries all three worktree facts
     assert "[seating] worktree: behind" in out
@@ -521,7 +523,7 @@ def test_spawn_dead_seat_still_writes_pin_and_ack(tmp_path, monkeypatch, capsys)
     assert pin.is_file() and pin.read_text(encoding="utf-8").startswith("11\t")
     ack = root / "sessions" / "seats" / "deadw1.ack.json"
     assert ack.is_file()
-    assert json.loads(ack.read_text(encoding="utf-8"))["answer"] == "pending"
+    assert json.loads(ack.read_text(encoding="utf-8"))["answer"] == "continue"
 
 
 def test_seating_season_resolves_through_season_branch(tmp_path, monkeypatch):
