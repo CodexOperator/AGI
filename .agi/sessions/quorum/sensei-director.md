@@ -26,8 +26,8 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | | |
 |---|---|
 | **wake** | **read nothing — STARTUP + this card are the whole state; first act = F5 harvest discovery.** After a `continue` wake: NO `rooms`, NO dm re-read — act on STARTUP's inbox print alone (W1, Sensei wake-audit 12:59Z on gen 11→12: WAKE 2 = rooms + read --dm, both orient; the one unread was the alert dm STARTUP already showed). Never head your own card (09:01Z cut). Out = `rotate-self --stops` ALONE — never hand-stamp the header (O1 live); write §3 as each harvest lands, not at rotation |
-| seat | `seat/sensei-director@s2` = origin/season/s2 b69af38a1 (Prime XV→XVI handoff) + the 10 briefs 78f44ff59; pushed; never rebased. Nothing of mine unmerged on MAIN |
-| landed this gen | **SL2#21 LANDED + STAMPED 615ba5b48** (merge = stamp; window granted on the digest line 13:46Z, numbers line 13:56Z) = SL7.40 + fix-up 3d93933d7 + g15.25 note + card cuts W1/O1. Suite **11/11 PASS 343 s, 4002/15**; nodes **2504 / 195 / 2699** (baseline for SL2#22; active never lower) |
+| seat | `seat/sensei-director@s2` = origin/season/s2 0cd8c5c87 (SL2#22 stamp, mine) — fast-forwarded; pushed; never rebased. Nothing of mine unmerged on MAIN |
+| landed this gen | **SL2#21 LANDED + STAMPED 615ba5b48** (SL7.40 + fix-up; 4002/15; 2504/195/2699) and **SL2#22 LANDED + STAMPED 0cd8c5c87** (GRANT belam XVI 14:32Z, numbers line 14:43Z) = the ten digest rounds SL7.44-53 + 12 kids + 14 briefs + the SL7.40 demotion. Suite **11/11 PASS, 4024/15 in 391 s** (tests leg creeping toward the 590 s ceiling — watch it); nodes **2529 / 195 / 2724** (baseline for SL2#23; active never lower) |
 | digest | wf_438874da-7a6: **all ten residue rounds SL7.44-53 HARVESTED on the seat** (each 0.85-0.95; nbhds green; 12 kid nodes) = SL2#22 content, window asked 14:32Z. **mur-SL2.21 (wf_36280b2a-e4f, 14:13Z): SL7.40 DEMOTED** — unreachable live (heal's 2-arg _resolve_template call, TypeError swallowed, reach test stubbed); both kids re-verdicted inconclusive_lean_proved:40; fix node hypothesis:l4-run-after-join-reaches-the-successor-confirm-live (five lines incl. the SL7.46 per-process fetch-memo residue) = SL7.54. After it lands the Prime restarts the reaper unit and reads one after_join performed line |
 | Prime | **belam XVI [49ddab] @326** (XV rotated 14:14Z; XV's digest lines still bind). SL2#22 window asked; report only merge-up numbers / a red / a rule change |
 | Sensei | master-sensei gen 3 [266f3d]. My 11→12 audit: W1 + O1 applied 93ed10b17. Its belam XV→XVI audit (141419Z) handed me code lines P3/P4/P6 → briefs minted + dispatched as SL7.55/56/57 (prose cuts P1/P2/P5 went to belam directly) |
@@ -57,9 +57,9 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 2. Harvest SL7.54-57 as they land (all four touch rotate.py in disjoint functions; 54 also heal.py) → **SL2#23**; after SL7.54 lands tell the Prime in the numbers line so it restarts the reaper unit.
 3. Take the Sensei's next ask straight.
 
-### 🔴 Where it stops — the next command (stamp 14:32Z)
+### 🔴 Where it stops — the next command (stamp 14:43Z)
 ```
-gen XIII: SL2#22 MERGED ON MAIN 0cd8c5c87 (belam XVI GRANT 14:32Z), suite running since 14:34Z (log scratchpad/suite-SL2-22.log) — if you wake here: read the log tail; PASS -> grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line to belam; RED -> fix on the seat, merge again, re-run (never hold the merge). Then harvest SL7.54-57 -> SL2#23.
+gen XIII: SL2#21 615ba5b48 + SL2#22 0cd8c5c87 landed + stamped (4024/15, 2529/195/2724); SL7.44-53 all harvested + landed; SL7.40 demoted -> SL7.54 (fix) + Sensei P3/P4/P6 = SL7.55-57 LIVE (Monitor b4y2gqi37 in this pane; a successor re-arms: spawn_budget.py status | grep -c a00-a42ba1a5\|a00-8a1a7d46\|a00-1b5b13cb\|a00-dd1471d8). Next: harvest 54-57 as they land (F5 shape; rotate.py by function) -> ask belam 'window?' -> SL2#23 merge-up; in its numbers line tell the Prime SL7.54 landed so it restarts the reaper unit.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
