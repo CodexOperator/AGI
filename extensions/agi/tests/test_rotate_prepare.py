@@ -792,6 +792,38 @@ def test_prepare_perform_conflict_blocks_real_fixture(prep_root, capsys):
         == "seat work"
 
 
+def test_prepare_check2_whitespace_only_delta_clean(prep_root, capsys):
+    """CLAIM-2 prepare check 2, real fixture: a tracked seats.md whose ONLY
+    delta vs HEAD is a missing EOF newline (the one-serializer EOJ dirt)
+    reads CLEAN — named on ONE never-blocking line (`seats.md: whitespace-only
+    delta, treated as clean`) and prepare exits 0. FALSIFIER: a REAL one-cell
+    change in the same file still names a dirty-tree BLOCK (exit 3) — the
+    gate is never weakened for a real change."""
+    root = _real_repo(prep_root, conflict=False)
+    (root / "seats.md").write_text("name\trole\nbelam\tprime\n",
+                                   encoding="utf-8")
+    _git(root, "add", "seats.md")
+    _git(root, "commit", "-qm", "seats")
+    # the extra commit is 'pushed' so check 1 (unpushed commits) stays ok.
+    _git(root, "update-ref", "refs/remotes/origin/seat/x",
+         _git(root, "rev-parse", "HEAD").stdout.strip())
+    # whitespace-only: drop ONLY the EOF newline from the working copy.
+    (root / "seats.md").write_bytes(
+        (root / "seats.md").read_bytes().rstrip(b"\n"))
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] seats.md: whitespace-only delta, treated as clean" in out
+    assert "[BLOCK]" not in out
+    # falsifier: a REAL one-cell change stays a dirty-tree BLOCK.
+    (root / "seats.md").write_text("name\trole\nbelam\tadversary\n",
+                                   encoding="utf-8")
+    rc = rotate.cmd_prepare(_args(perform=True), root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree: seats.md" in out
+
+
 def test_prepare_perform_season_merge_aborts_live_conflict(prep_root):
     """P2-a abort path: the REAL `_perform_season_merge` on the conflicting
     repo — the actual `git merge` CONFLICTS, so the function must run

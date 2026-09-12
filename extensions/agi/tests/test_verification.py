@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -32,6 +33,14 @@ sys.path.insert(0, str(SRC))
 
 import locations  # noqa: E402
 import verification  # noqa: E402
+
+
+class _StubProc:
+    """A minimal subprocess result twin for guards that must be asserted to
+    NEVER invoke subprocess.run on the refusal path."""
+    returncode = 0
+    stdout = ""
+    stderr = ""
 
 VERIFY_SOURCE = (BIN / "verification.py").read_text(encoding="utf-8")
 
@@ -342,6 +351,93 @@ def test_lock_stale_pid_is_broken_and_reacquired(tmp_path, monkeypatch):
     path, holder = verification.acquire_suite_lock(tmp_path)
     assert path is not None and holder is None
     assert lock.read_text().strip() == str(__import__("os").getpid())
+
+
+# --- the suite-lock refusal (residue (5), hypothesis:l4-one-line-anchored-
+# --- frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-
+# --- spawning): one clean line BEFORE pytest, never a conftest-error count ----
+
+
+def test_suite_lock_guard_refuses_held_and_spawns_nothing(tmp_path, monkeypatch):
+    """A held lock refuses with ONE refusal line and NO pytest subprocess. The
+    3650-error conftest cascade is the thing being removed, so subprocess.run
+    must not be invoked for the suite at all, and the refusal must not carry a
+    conftest-error count."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+
+    spawned: list = []
+    monkeypatch.setattr(verification.subprocess, "run",
+                        lambda argv, **kw: spawned.append(argv) or _StubProc())
+
+    msg = verification._suite_lock_guard(tmp_path)
+    assert msg is not None
+    assert "lock held by 424242" in msg
+    assert "refusing, not spawning" in msg
+    assert "since" in msg
+    # the refusal must not contain a conftest-error / collection-error count
+    assert "error" not in msg.lower()
+    assert "collection" not in msg.lower()
+    # and no pytest subprocess was spawned by the refusal path
+    assert spawned == []
+    # the live holder's lock is left untouched
+    assert lock.exists() and lock.read_text().strip() == "424242"
+
+
+def test_main_suite_refusal_returns_named_code(tmp_path, monkeypatch, capsys):
+    """main() --suite under a held lock prints exactly one refusal line and
+    returns the NAMED exit code, never running the level (so pytest never
+    spawns). The named code is what a caller abroad can tell from a "suite ran
+    and failed."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+    monkeypatch.setattr(verification.locations, "find_project_root",
+                        lambda p: tmp_path)
+    monkeypatch.setattr(verification.commands, "engine_for",
+                        lambda g: str(tmp_path))
+    planned: list = []
+    monkeypatch.setattr(verification, "run_level",
+                        lambda *a, **k: planned.append(a) or [])
+
+    rc = verification.main(["--suite", "--root", str(tmp_path)])
+    assert rc == verification.EXIT_SUITE_LOCKED
+    assert planned == []  # the level never ran -> no pytest spawned
+    out = capsys.readouterr().out
+    assert "lock held by 424242" in out
+    assert out.count("refusing") == 1  # exactly one refusal line
+    assert verification.EXIT_SUITE_LOCKED != 0  # named, non-zero
+
+
+def test_suite_lock_guard_stale_proceeds(tmp_path, monkeypatch):
+    """A dead pid is broken, NOT refused: the guard lets the suite proceed
+    exactly as before, and the probe leaves the window free for the child
+    conftest to acquire as the one live holder."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("999999")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)
+
+    msg = verification._suite_lock_guard(tmp_path)
+    assert msg is None  # proceed
+    # the probe acquired-then-released; no lock sits on file for the child
+    assert not lock.exists()
+
+
+def test_suite_lock_guard_free_proceeds(tmp_path, monkeypatch):
+    """A FREE lock is no reason to refuse: the guard returns None and leaves
+    no lock on file, so the child pytest (conftest) acquires as the single
+    holder."""
+    spawned: list = []
+    monkeypatch.setattr(verification.subprocess, "run",
+                        lambda argv, **kw: spawned.append(argv) or _StubProc())
+
+    msg = verification._suite_lock_guard(tmp_path)
+    assert msg is None
+    assert not (tmp_path / "sessions" / verification.SUITE_LOCK).exists()
 
 
 # --- the bin freshness guard (goal:g15.10 / L4.81) -------------------------

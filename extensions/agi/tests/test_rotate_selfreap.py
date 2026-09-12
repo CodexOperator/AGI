@@ -250,7 +250,7 @@ def test_dry_run_enumerates_s2_s12(_fix, tmp_path, monkeypatch, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     for fragment in [
-        "pending ack path",
+        "ack path",   # renamed from "pending ack path" (default-continue)
         "adv-alive.bootstrap.json",
         "verification.py --level",
         "grid legality on THIS branch",

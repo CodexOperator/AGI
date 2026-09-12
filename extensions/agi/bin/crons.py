@@ -82,6 +82,8 @@ import locations  # noqa: E402
 
 import yaml
 
+from frontmatter import split_frontmatter  # noqa: E402
+
 # The four jobs this project runs today. Order here is the order every
 # rendered block and every diff uses — fixed rather than dict/YAML-key order,
 # which is what makes "running apply twice is byte-identical" true regardless
@@ -129,11 +131,11 @@ def _parse_frontmatter(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     if not text.strip().startswith("---"):
         raise CronsError(f"{path}: no YAML frontmatter (expected a leading `---`)")
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    parted = split_frontmatter(text)
+    if parted is None:
         raise CronsError(f"{path}: unterminated frontmatter block (only one `---`)")
     try:
-        fm = yaml.safe_load(parts[1])
+        fm = yaml.safe_load(parted[0])
     except yaml.YAMLError as exc:
         raise CronsError(f"{path}: malformed YAML frontmatter — {exc}") from exc
     if not isinstance(fm, dict):

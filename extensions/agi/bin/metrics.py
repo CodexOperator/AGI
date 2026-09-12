@@ -33,6 +33,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from frontmatter import read_frontmatter, split_frontmatter  # noqa: E402
 from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
     build_corpus,
@@ -120,14 +121,8 @@ def _load_traversable_fields(root: Path) -> frozenset[str]:
         text = shape_path.read_text(encoding="utf-8")
     except Exception:
         return FALLBACK_TRAVERSABLE_FIELDS
-    if not text.startswith("---"):
-        return FALLBACK_TRAVERSABLE_FIELDS
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return FALLBACK_TRAVERSABLE_FIELDS
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
+    fm = read_frontmatter(text)
+    if fm is None:
         return FALLBACK_TRAVERSABLE_FIELDS
     ef = fm.get("edge_fields")
     if not isinstance(ef, dict):
@@ -164,16 +159,8 @@ def _load_graph(root: Path):
                 text = nf.read_text(encoding="utf-8")
             except Exception:
                 continue
-            if not text.startswith("---"):
-                continue
-            parts = text.split("---", 2)
-            if len(parts) < 3:
-                continue
-            try:
-                fm = yaml.safe_load(parts[1]) or {}
-            except Exception:
-                continue
-            if not isinstance(fm, dict):
+            fm = read_frontmatter(text)
+            if fm is None:
                 continue
             nid = fm.get("id")
             if not isinstance(nid, str) or not nid.strip():
@@ -266,17 +253,10 @@ def _iter_frontmatter(nodes_dir: Path):
             text = nf.read_text(encoding="utf-8")
         except Exception:
             continue
-        if not text.startswith("---"):
+        fm = read_frontmatter(text)
+        if fm is None:
             continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        try:
-            fm = yaml.safe_load(parts[1]) or {}
-        except Exception:
-            continue
-        if isinstance(fm, dict):
-            yield nf, fm
+        yield nf, fm
 
 
 _THOUGHT_RE = re.compile(
@@ -702,17 +682,8 @@ def _mvp_forward_violations(nodes_dir: Path, types: dict, parents: dict) -> froz
             text = nf.read_text(encoding="utf-8")
         except Exception:
             continue
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        import yaml
-        try:
-            fm = yaml.safe_load(parts[1]) or {}
-        except Exception:
-            continue
-        if not isinstance(fm, dict) or fm.get("type") != "mvp":
+        fm = read_frontmatter(text)
+        if fm is None or fm.get("type") != "mvp":
             continue
         nid = fm.get("id")
         if not isinstance(nid, str) or not nid.strip():
@@ -725,7 +696,8 @@ def _mvp_forward_violations(nodes_dir: Path, types: dict, parents: dict) -> froz
         )
         if has_forward_evidence:
             continue
-        if _BACKWARD_MVP_RE.search(parts[2]):
+        _sp = split_frontmatter(text)
+        if _sp is not None and _BACKWARD_MVP_RE.search(_sp[1]):
             backward.add(nid)
     return frozenset(backward)
 
