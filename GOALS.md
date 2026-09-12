@@ -6444,6 +6444,8 @@ SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.
 
 2026-09-12T01:21Z deviation, recorded: F2/F3/F4 (SL6.06-08) cut in PARALLEL at 01:2xZ rather than serially — all three are send.py-only with disjoint FILE SCOPE and each EXCLUDES the others' functions by name (the SL5.06/SL5.09 shared-file shape that merged clean); none depends on SL6.01. F1 (SL6.05) waits for SL6.01's own-row-hunk helper. The Prime's order is honoured as priority at review time; any harvest seam is unioned by hand and named in the merge message.
 
+2026-09-12T01:45Z SL6.08 harvested on the seat (sensei-director gen VI): F4 done — whois under enforcing exits 2 on a FORGED label even without --msg (no fabricated quarantine file; the --msg path byte-unchanged except the raw ref named); _quarantine_whois filename sanitized to [A-Za-z0-9._-] else invalid-ref, raw ref kept as the record's first line; kid a00-b7c9a7d5 proved. F3 (SL6.07) landed at SL2#11. Open: F2 (SL6.06 running), F1 (SL6.05 after SL6.09).
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
