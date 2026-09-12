@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-merge-region-keeps-an-own-added-line-when-two-rows-swap-in-one-opcode-and-the-alert-hook-test-runs-in-process
 next_edges: []
 confidence: 0.9
-edited_by: a00-0514c9d4
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-d3efee8b-4c0cc6
 loop: hypothesis:l4-merge-region-keeps-an-own-added-line-when-two-rows-swap-in-one-opcode-and-the-alert-hook-test-runs-in-process@s2
@@ -15,7 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: e20d4538eab3fac0
 season: 2
-title: A00 d3efee8b 4c0cc6
+title: _merge_region pairs rows by name key so a swapped own+foreign edited pair keeps the own WORK line and restores the foreign row from HEAD; the alert-hook runnable test runs in-process
 town: core
 verdict: proved
 ---
