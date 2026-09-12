@@ -747,6 +747,35 @@ def test_apply_and_delete_old_are_mutually_exclusive(repo):
         "separate final step" in RESULT.stderr, RESULT.stderr
 
 
+def test_delete_old_ls_remote_failure_is_rc_honest(repo):
+    """(rc-honest; L4.330 KID B) A FAILED `git ls-remote` (origin
+    unreachable) must NOT read as "already deleted" on a resuming --delete-old.
+    Before the fix `_post_rename_ls_remote` returned `bool(stdout.strip())`
+    and IGNORED the returncode, so an unreachable origin emitted empty stdout
+    => every delete was skipped => "delete-old: ... removed" + exit 0 with
+    NOTHING deleted. The rc-honest probe refuses each branch BY NAME and exits
+    non-zero -- the falsifier for this test is
+    `assert RESULT.returncode != 0` (flips to a false success without the
+    fix)."""
+    g = _migrate_with_origin(repo)
+    # make origin unreachable (a local path that does not exist) so ls-remote
+    # fails with rc != 0. Deterministic and instant -- no SSH/network.
+    _git(repo, "remote", "set-url", "origin", "/nonexistent/origin.git")
+    RESULT = _run_cli(g, "--delete-old")
+    assert RESULT.returncode != 0, \
+        "a failed ls-remote must never report success:\n" + RESULT.stdout
+    assert "seat/a@s2" in RESULT.stderr and "seat/b@s2" in RESULT.stderr, \
+        RESULT.stderr
+    # nothing was deleted (the run could not reach origin at all); re-point
+    # origin back to the real bare repo before asking for the old refs
+    _git(repo, "remote", "set-url", "origin",
+         str(repo.parent / "bare.git"))
+    for name in ("a", "b"):
+        has_old = _git(repo, "ls-remote", "origin",
+                       f"refs/heads/seat/{name}@s2").stdout.strip()
+        assert has_old != "", f"origin/seat/{name}@s2 should have survived"
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l4-the-dry-run-pathspec-and-the-alias-notice-say-only-what-is-
 # true — L4.318 FIX-ONLY, Region A. The --dry-run step-3 pathspec is built by
