@@ -3351,6 +3351,32 @@ def _observed_windows(tmux_session: str, window_path: str | None = None) -> dict
     return {"names": names, "source": source}
 
 
+def _preserve_swept_latches(rec: dict, existing_path: Path | None) -> None:
+    """Carry the pre-spawn `swept_latches` fact from the on-disk rotation
+    record into a FRESH dict about to overwrite it, so a later in-place
+    rewrite never clobbers the fact the successor's STARTUP reads
+    (hypothesis:l4-the-per-file-latch-sweep-stderr-line-reaches-the-
+    production-launch-path-never-discarded, part (b): never absent). Both
+    `_write_rotate_self_started` and the in-place `_write_rotation_record`
+    rebuild the dict from arguments each time, so the only way the sweep
+    fact survives their rewrite is to re-read it from the file and merge it
+    back (mechanism (A)). Absent on disk -> leaves `rec` unchanged (a
+    record written before or without a sweep stays sweep-free by design).
+    Best-effort: never raises.
+    """
+    if existing_path is None:
+        return
+    p = Path(existing_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    if isinstance(doc, dict) and "swept_latches" in doc:
+        rec["swept_latches"] = doc["swept_latches"]
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -3369,6 +3395,9 @@ def _write_rotation_record(root: Path, record: dict,
     if path is None:
         stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
         path = rot / f"{seat}.{stamp}.json"
+    # (SL7.83) in-place outcome rewrite of a rotate-self STARTED record must
+    #     also keep the pre-spawn sweep fact the successor's STARTUP reads.
+    _preserve_swept_latches(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -3426,6 +3455,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     if gen_before is not None:
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
+    # (SL7.83) a later rebuild of this same file must not drop the pre-spawn
+    #     sweep fact: merge it back from the on-disk doc (mechanism (A)).
+    _preserve_swept_latches(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
@@ -6631,7 +6663,8 @@ def _latches_dirs(root: Path, seat: str) -> list[Path]:
     return dirs
 
 
-def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
+def _sweep_dead_hook_latches(root: Path, seat: str,
+                             log_path: str | Path | None = None) -> list[str]:
     """Sweep the seat's dead `hook-<seat>-gen*.lock` latches before spawning
     the successor (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-
     spawning).
@@ -6649,10 +6682,18 @@ def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
     mid-flight). Best-effort: a read or unlink failure NEVER refuses the
     rotation and never raises.
 
-    Returns the number of latches swept. Matches the hook's own dead-vs-live
-    judgement (`_latch_held`), kept in lockstep so the sweep and the hook's
-    release can never disagree."""
-    swept = 0
+    Returns the NAMES of the latches swept (empty list when none). Each line
+    that would otherwise be observable ONLY on stderr -- which the PRODUCTION
+    launch path discards before `claude` starts -- is ALSO appended to
+    `log_path` when given (hypothesis:l4-the-per-file-latch-sweep-stderr-line-
+    reaches-the-production-launch-path-never-discarded): the same one line,
+    prefixed `[sweep:<seat>]`, written to the seat's wrapper log, so
+    `grep 'swept dead hook latch' <log>` finds it after a real rotate-self. An
+    EMPTY sweep writes NOTHING to the log (no noise line per spawn).
+
+    Matches the hook's own dead-vs-live judgement (`_latch_held`), kept in
+    lockstep so the sweep and the hook's release can never disagree."""
+    swept: list[str] = []
     for latch_dir in _latches_dirs(root, seat):
         latches = sorted(latch_dir.glob(f"hook-{seat}-gen*.lock"))
         for latch in latches:
@@ -6662,12 +6703,26 @@ def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
                 continue  # a live rotate-self still holds it; leave it alone
             try:
                 latch.unlink()
-                swept += 1
-                print(f"swept dead hook latch {latch.name} (holder {holder})",
-                      file=sys.stderr)
             except OSError:
                 pass  # an unlink we cannot do must not refuse the rotation
+            else:
+                swept.append(latch.name)
+                line = f"swept dead hook latch {latch.name} (holder {holder})"
+                print(line, file=sys.stderr)
+                if log_path is not None:
+                    _append_sweep_log(log_path, seat, line)
     return swept
+
+
+def _append_sweep_log(log_path: str | Path, seat: str, line: str) -> None:
+    """Append one sweep line to a sink log, tagged with which seat ran the
+    sweep, guaranteed never to raise (a log append must not refuse the
+    rotation -- best-effort, exactly like the sweep itself)."""
+    try:
+        with open(log_path, "a", encoding="utf-8") as fh:
+            fh.write(f"[sweep:{seat}] {line}\n")
+    except OSError:
+        pass  # a log append we cannot do must not refuse the rotation
 
 
 def _short_ps(pid: int) -> str:
@@ -6679,6 +6734,29 @@ def _short_ps(pid: int) -> str:
     except Exception:  # noqa: BLE001
         return ""
     return out
+
+
+def _record_swept_latches(record_path: Path | None, swept: list[str]) -> None:
+    """Drop the `swept_latches` fact into the in-progress rotation record so
+    the successor's STARTUP rotation-record entry lists exactly what the
+    pre-spawn sweep removed -- an empty list when nothing was swept, never
+    absent (hypothesis:l4-the-per-file-latch-sweep-stderr-line-reaches-the-
+    production-launch-path-never-discarded part (b)). Best-effort: never
+    raises (the sweep, not the bookkeeping, is load-bearing)."""
+    if not record_path:
+        return
+    p = Path(record_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    doc["swept_latches"] = list(swept)
+    try:
+        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
@@ -12816,7 +12894,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     rotation, and a dry-run touches nothing (no real spawn to sweep
     #     around).
     if not args.dry_run:
-        _sweep_dead_hook_latches(root, seat)
+        # (SL7.83) the sweep reaches the PRODUCTION launch path's log: each
+        #     line that would otherwise be discarded with the spawn's stderr
+        #     is appended to the seat's wrapper log, and the rotation record
+        #     carries `swept_latches` (empty list when none — never absent)
+        #     so the successor's STARTUP rotation-record entry says what was
+        #     swept (hypothesis:l4-the-per-file-latch-sweep-stderr-line-
+        #     reaches-the-production-launch-path-never-discarded).
+        swept_latches = _sweep_dead_hook_latches(
+            root, seat,
+            log_path=_seat_hands(root) / f"{seat}.wrapper.log")
+        _record_swept_latches(rec_path, swept_latches)
 
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
