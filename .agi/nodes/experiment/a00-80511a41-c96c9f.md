@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names
 next_edges: []
 confidence: 0.9
-edited_by: a00-c653f5de
+edited_by: a00-ca6e4b39
 evidence_runs:
   - experiment:a00-80511a41-c96c9f
 loop: hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names@s2
@@ -48,7 +48,8 @@ executes each parsed line through a real subprocess on a fixture whose vision
 nodes are the five REAL ids — never placeholders. The only thing the test
 injects is `--root <fixture>` (the one environmental argument the Prime does
 not paste: the Prime runs from the repo root); everything else — command,
-`--actor prime_director`, every `--set`, the vision ids, the `AGI_SEASON` env —
+`--actor belam --role prime_director` (actor = the seat, role explicit),
+every `--set`, the vision ids, the `AGI_SEASON` env —
 is byte-for-byte what the node says. So the node block and the tested strings
 cannot drift.
 
@@ -56,8 +57,6 @@ cannot drift.
 `vision:web-app-suite` each carry a `town:` cell naming their charter vision,
 so those two lines' `--set visions=…` are author-explicit. Core's three are
 INHERITED from kid 1's reading of the ladder's THOUGHT block
-(`.geometry/ladder.md:149` says only "core = the three season-2 visions" and
-does NOT enumerate them — owner ruling 2026-09-11 01:0xZ in doc:l4-owner-
 decisions), and are now independently VERIFIED live as the only three season-2
 vision nodes with NO `town:` cell: `vision:alive`, `vision:all-is-one`,
 `vision:self-perpetuating`. The Prime should confirm that enumeration when
@@ -67,9 +66,9 @@ ownership set is the owner's final word.
 ## Prime create lines (final)
 
 ```sh
-AGI_SEASON=2 python3 extensions/agi/bin/write.py create town core --parent ladder:ladder --actor prime_director --set 'visions=["vision:alive", "vision:all-is-one", "vision:self-perpetuating"]' --set council=council-core --set season=2
-AGI_SEASON=1 python3 extensions/agi/bin/write.py create town streaming-suite --parent ladder:ladder --actor prime_director --set 'visions=["vision:streaming-suite"]' --set council=council-streaming-suite --set season=1
-AGI_SEASON=1 python3 extensions/agi/bin/write.py create town web-app-suite --parent ladder:ladder --actor prime_director --set 'visions=["vision:web-app-suite"]' --set council=council-web-app-suite --set season=1
+AGI_SEASON=2 python3 extensions/agi/bin/write.py create town core --parent ladder:ladder --actor belam --role prime_director --set 'visions=["vision:alive", "vision:all-is-one", "vision:self-perpetuating"]' --set council=council-core --set season=2
+AGI_SEASON=1 python3 extensions/agi/bin/write.py create town streaming-suite --parent ladder:ladder --actor belam --role prime_director --set 'visions=["vision:streaming-suite"]' --set council=council-streaming-suite --set season=1
+AGI_SEASON=1 python3 extensions/agi/bin/write.py create town web-app-suite --parent ladder:ladder --actor belam --role prime_director --set 'visions=["vision:web-app-suite"]' --set council=council-web-app-suite --set season=1
 ```
 
 ## Record correction

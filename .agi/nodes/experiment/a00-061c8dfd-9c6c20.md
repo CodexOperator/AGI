@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names
 next_edges: []
 confidence: 0.9
-edited_by: a00-c653f5de
+edited_by: a00-ca6e4b39
 evidence_runs:
   - experiment:a00-061c8dfd-9c6c20
 loop: hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names@s2
@@ -75,6 +75,7 @@ DEALIVERABLE — the Prime create lines (dry-run on the REAL tree, wrote
 nothing; `--root .agi/worktrees/a00-c653f5de` is the Prime's checkout root — the
 Prime drops `--root`/`--dry-run` at merge-up):
 ```
+# SUPERSEDED (L4.338) — no AGI_SEASON control (mints all three season: 2 on a live current_season: 2 ladder) and a dry-run that never reached the stamp; NOT paste-ready. The Prime pastes experiment:a00-80511a41-c96c9f "## Prime create lines (final)" (`--actor belam --role prime_director`).
 write.py create town core --root <root> --parent ladder:ladder --set 'season=2' --set 'council=council-core' --set 'visions=[vision:alive, vision:all-is-one, vision:self-perpetuating]'
 write.py create town streaming-suite --root <root> --parent ladder:ladder --set 'season=1' --set 'council=council-streaming-suite' --set 'visions=[vision:streaming-suite]'
 write.py create town web-app-suite --root <root> --parent ladder:ladder --set 'season=1' --set 'council=council-web-app-suite' --set 'visions=[vision:web-app-suite]'
@@ -132,6 +133,13 @@ council role, owning_goal the charter vision).
 
 See `## Evidence` DELIVERABLE block — the three verbatim-pasteable command
 lines. The Prime runs them once at merge-up (dropping `--root`/`--dry-run`).
+
+**SUPERSEDED (L4.338):** the block above has NO `AGI_SEASON` control, so on
+a live `current_season: 2` ladder it mints all three towns `season: 2` — and
+its `--dry-run` proof never reached the stamp. The Prime pastes the corrected
+final block instead: `experiment:a00-80511a41-c96c9f`, `## Prime create lines
+(final)` (carrying `--actor belam --role prime_director` = seat actor, role
+explicit).
 
 ## DISPROOF
 None. No town node minted on the real tree; no edit to branches.py/cli.py/

@@ -60,7 +60,8 @@ def _town_node(slug, visions, council, season, mint="mint-" + "x" * 12, extra=""
     )
 
 
-def _graph(root: Path, visions=("vision:a", "vision:b", "vision:c")) -> Path:
+def _graph(root: Path, visions=("vision:a", "vision:b", "vision:c",
+                                "vision:streaming-suite", "vision:web-app-suite")) -> Path:
     """A fixture GRAPH ROOT (the dir holding nodes/ directly, like the .agi/
     graph dir): ladder + council posts + 3 vision nodes. Returns the graph root."""
     g = root / ".agi"
@@ -191,6 +192,51 @@ def test_auto_resolves_unclaimed_visions(tmp_path):
     assert by["core"].visions_was_auto is True
     # auto = every vision node no other town claims = vision:c
     assert by["core"].visions == ["vision:c"]
+
+
+def test_refusal_dangling_vision_id(tmp_path):
+    """An EXPLICIT vision id that resolves to no vision node is refused BY
+    NAME — the create gate refuses what the loader refuses, and the loader
+    must check existence, not just duplicate claims. `vision:ghost` is a
+    cell in core's list but no nodes/vision/ghost.md exists."""
+    g = _graph(tmp_path, visions=("vision:a",))  # fixture has NO vision:ghost
+    _write(g, "nodes/town/core.md",
+           _town_node("core", ["vision:a", "vision:ghost"], "council-core", 2))
+    with pytest.raises(towns.TownError) as e:
+        towns.load_towns(g)
+    assert "vision:ghost" in str(e.value)
+    assert "core" in str(e.value)
+    assert "no vision node" in str(e.value)
+
+
+def test_refusal_second_auto_town(tmp_path):
+    """At most ONE town may spell `visions: auto`; a second is refused BY
+    NAME. Today the loader counted no AUTO towns, so two could both claim
+    every unclaimed vision silently."""
+    g = _graph(tmp_path)
+    _write(g, "nodes/town/core.md",
+           _town_node("core", "auto", "council-core", 2))
+    _write(g, "nodes/town/streaming-suite.md",
+           _town_node("streaming-suite", "auto", "council-streaming-suite", 1))
+    with pytest.raises(towns.TownError) as e:
+        towns.load_towns(g)
+    assert "auto" in str(e.value)
+    assert "core" in str(e.value) and "streaming-suite" in str(e.value)
+
+
+def test_refusal_non_int_season(tmp_path):
+    """A NON-INT `season` is refused BY NAME at READ time, never a bare
+    ValueError traceback. `season: abc` previously raised
+    `int(season)`'s unhandled ValueError from _load_one."""
+    g = _graph(tmp_path)
+    # _town_node writes season: {season}; hand-write a bad value.
+    _write(g, "nodes/town/core.md",
+           _town_node("core", ["vision:a"], "council-core", "abc"))
+    with pytest.raises(towns.TownError) as e:
+        towns.load_towns(g)
+    assert "non-integer season" in str(e.value)
+    assert "core" in str(e.value)
+    assert "abc" in str(e.value)
 
 
 def test_deprecated_sibling_still_read(tmp_path):
