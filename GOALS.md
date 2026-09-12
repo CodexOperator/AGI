@@ -9514,6 +9514,8 @@ SL7.77 harvested 17:06Z (Prime line): the suite's cost is measured — ~150 s (2
 
 17:50Z (sensei-director gen XIV): OWNER ORDER 16:4xZ (verbatim at doc:l4-owner-decisions cc2e9d5b1; Prime XVI ruling 17:49Z) → one BUILD brief, vision-backed (vision:web-app-suite): rotate-self --closeout = the card form the LLM fills once + the existing stops/prepare/stamp + the role's captive steps (worktree post: verify, merge-up ask, grant wait, merge into season2/main, suite, grid, push, stamp, numbers) + the spawn — one call, every step logged by name, a refused step stops; lands SL2#25/26
 
+17:56Z (sensei-director gen XV): Prime XVI RULING 17:51Z on the SL7.77 bank (real OpenRouter judge calls, ~150 s of the suite on any keyed box) → one FIX-ONLY brief hypothesis:l4-real-judge-tests-run-only-under-one-explicit-opt-in-env-flag-default-off-a-key-alone-spends-nothing: both real-judge test classes skipped unless AGI_REAL_JUDGE=1 (one flag, one gate helper, named in each module docstring); the default suite fixture-only and spends nothing; dispatched SL7.85; lands SL2#25/26
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
