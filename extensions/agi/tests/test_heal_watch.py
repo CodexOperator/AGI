@@ -598,3 +598,89 @@ def test_watch_mirror_falsifier_no_terminal_behind_running(graph_project,
         e = _entry(graph_project, nm, {"R": "done-z", "S": "fail-z"}[nm])
         assert e["status"] != "running", \
             f"iter-{nm} entry must not read running after one pass"
+
+
+# --------------------------------------------------------------------------
+# Round SL5.09 — clause 3 of hypothesis:l4-a-rotation-alert-lands-in-the-
+# inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe:
+# crash-recovery `detected` records DEDUPE per death (one record per
+# seating, later polls update it IN PLACE — never a fresh stamp file per
+# poll). The measured defect: a still-dead-and-unrecoverable seat, re-scanned
+# every ~30 s, accumulated nine `result=detected` records for one death.
+# A real-rotate shim stands in so the write path and the dedupe read both use
+# the genuine record format.
+# --------------------------------------------------------------------------
+
+def _rot_shim(tmp_rot):
+    """A minimal `_rotate` stand-in whose records are real rotate.py-shape
+    JSON under `tmp_rot`, exercising heal's own dedupe read + the same
+    `.seating.json`-style naming the real writer uses."""
+    import datetime as _dt
+    class _R:
+        @staticmethod
+        def _rotations_dir(root):
+            return tmp_rot
+        @staticmethod
+        def _write_rotation_record(root, rec, path=None):
+            tmp_rot.mkdir(parents=True, exist_ok=True)
+            if path is None:
+                # ns suffix: distinct fresh files even within one wall-clock
+                # second, isolating the DEDUPE behaviour under test.
+                stamp = _dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+                stamp += f"{time.time_ns() % 10**6:06d}"
+                path = tmp_rot / f"{rec['seat']}.{stamp}.json"
+            path.write_text(json.dumps(rec) + "\n", encoding="utf-8")
+            return path
+    return _R
+
+
+def test_detected_recovery_records_dedupe_one_per_death(graph_project,
+                                                        tmp_path, monkeypatch):
+    """A death whose recovery never lands (outcome respawned=False) is
+    re-scanned by the watcher every poll; each `detected` write must update
+    the SAME record file in place, never mint a fresh stamp file. Three
+    polls -> exactly ONE detected record. (The nine-record defect.)"""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "pid": 4242,
+             "window": "@9", "generation": 3}
+    outcome = {"respawned": False, "name": "solo", "generation": 3,
+               "reason": "launcher reported no successor process"}
+    try:
+        for _ in range(3):
+            heal._write_crash_recovery(graph_project, "solo", "dead-pid",
+                                       cells, shim, now, outcome)
+    finally:
+        pass
+    detected = [p for p in rot.glob("solo.*.json")]
+    assert len(detected) == 1, \
+        f"expected ONE deduped detected record, got {len(detected)}: {detected}"
+    rec = json.loads(detected[0].read_text())
+    assert rec["result"] == "detected"
+    assert rec["rotation"] == "crash-recovery"
+
+
+def test_respawned_recovery_writes_fresh_file_per_outcome(graph_project,
+                                                          tmp_path,
+                                                          monkeypatch):
+    """A `respawned` outcome is a distinct, terminal recovery: it is NEVER
+    deduped. Two respawned recoveries -> two records (the dedupe key is the
+    still-open death, so it must not suppress distinct healed recoveries)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    cells = {"name": "twice", "role": "director", "pid": 1,
+             "window": "@1", "generation": 1}
+    outcome = {"respawned": True, "name": "twice", "generation": 2,
+               "pid": 55, "window": "@2", "reason": "", "row": "ok"}
+    heal._write_crash_recovery(graph_project, "twice", "boom", cells,
+                               shim, time.time(), outcome)
+    heal._write_crash_recovery(graph_project, "twice", "boom", cells,
+                               shim, time.time(), outcome)
+    files = sorted(rot.glob("twice.*.json"))
+    assert len(files) == 2, f"fresh respawned record expected, got {files}"
+    for p in files:
+        rec = json.loads(p.read_text())
+        assert rec["result"] == "respawned"

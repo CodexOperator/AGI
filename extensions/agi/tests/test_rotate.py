@@ -2812,6 +2812,77 @@ def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
     assert "trigger: --force" in text
 
 
+# ── clause 1 of hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
+# ── coalesced-nudge-still-wakes-and-detected-records-dedupe: the alert must
+# ── land in each recipient's INBOX (`<sessions>/inbox/<seat>.md`, the writer
+# ── `send.send` / the reader `send.py read` use), IN ADDITION to the dm log,
+# ── so nothing depends on the nudge (it is delivery, the inbox is the record).
+
+
+def test_announce_rotation_lands_alert_in_each_recipient_inbox(
+        monkeypatch, tmp_path):
+    """Clause 1 non-prime leg: every derived recipient's INBOX file holds the
+    [rotation-alert] block that `send.py read <recv>` shows, while the dm-log
+    hop (send_dm) still happens with the same payload. Falsifier: an alert
+    absent from a recipient's inbox."""
+    rows = [{"name": "kid-a", "role": "director"},
+            {"name": "liason", "role": "parent"},
+            {"name": "kid-b", "role": "director"}]
+    _write_seats_sheet(tmp_path, rows)
+    dms = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender: dms.append(
+                            (other, text)) or tmp_path)
+    rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="liason",
+        successor="liason", gen_before=1, gen_after=2, trigger="rotate-self",
+        handoff_path=".agi/sessions/liason.handoff.md", in_flight="none",
+        live_names=["kid-a", "liason", "kid-b"])
+    inbox_dir = tmp_path / "sessions" / "inbox"
+    for recv in ("kid-a", "kid-b"):
+        inbox = inbox_dir / f"{recv}.md"
+        assert inbox.is_file(), f"no inbox file for {recv}: {inbox}"
+        body = inbox.read_text(encoding="utf-8")
+        assert "[rotation-alert]" in body, f"{recv} inbox lacks the alert"
+        assert "trigger: rotate-self" in body
+        assert "in flight: none" in body
+    # dm-log hop unchanged, same payload.
+    assert [to for to, _ in dms] == ["kid-a", "kid-b"]
+    for _, text in dms:
+        assert "[rotation-alert]" in text
+
+
+def test_announce_rotation_prime_lands_alert_in_own_inbox(
+        monkeypatch, tmp_path):
+    """Clause 1 prime leg: ROTATION_ALERT_ROOM is NOT the prime's inbox
+    (`<sessions>/inbox/prime.md` is a different file, what `send.py read`
+    reads), so the room alone does not satisfy "lands in the inbox". The prime
+    is inbox-only (dm/room may not address it), but `send.send` imposes no
+    prime restriction -- it IS the inbox-only writer -- so a prime-specific
+    send() puts the same [rotation-alert] block into the prime's OWN inbox
+    alongside the shared room post, never into quorum."""
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"}])
+    room_posts = []
+    import send as _send
+    monkeypatch.setattr(_send, "send_room",
+                        lambda croot, room, text, sender: room_posts.append(
+                            (room, text)) or tmp_path)
+    delivered = rotate._announce_rotation(
+        root=tmp_path, croot=tmp_path / "comms", seat="prime",
+        successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
+        handoff_path=".agi/sessions/belam-III.log", in_flight="none",
+        live_names=["kid-a", "prime"])
+    assert delivered == [rotate.ROTATION_ALERT_ROOM]
+    assert len(room_posts) == 1
+    prime_inbox = tmp_path / "sessions" / "inbox" / "prime.md"
+    assert prime_inbox.is_file(), f"no prime inbox: {prime_inbox}"
+    body = prime_inbox.read_text(encoding="utf-8")
+    assert "[rotation-alert]" in body
+    assert "generation 2 -> 3" in body
+    assert "trigger: --force" in body
+
+
 def test_loop_success_announces_exactly_once_refusal_never(
         fake_ladder, tmp_path, monkeypatch):
     root = _proj(tmp_path)
@@ -4154,3 +4225,71 @@ def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
         debug_file=None, dry_run=True, timeout=1, seat=None,
     ), root)
     assert code == 0 and called.get("seat") is None
+
+
+# --------------------------------------------------------------------------
+# Round SL5.09 — clause 3 of hypothesis:l4-a-rotation-alert-lands-in-the-
+# inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe: a
+# crash-recovery record (a heal outcome, `result: detected`) is NEVER a
+# rotation. `_latest_rotation_record` and `status --record latest <seat>`
+# must skip it, even when it is the LEXICALLY newest `<seat>.*.json` (nine
+# detected records for one death is what made the newest file a detected one).
+# --------------------------------------------------------------------------
+
+def _record_fixture(root: Path, seat: str, name: str, rec: dict) -> Path:
+    rot = root / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    p = rot / f"{seat}.{name}.json"
+    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    return p
+
+
+def test_latest_rotation_record_skips_crash_recovery(tmp_path):
+    """A real rotation survives the presence of a lexically-NEWER
+    crash-recovery `detected` record for the same seat: the newest ROTATION
+    must be returned, never the detected recovery."""
+    seat = "skp"
+    _record_fixture(tmp_path, seat, "20260911T190000Z", {
+        "rotation": "rotate-self", "seat": seat, "result": "success"})
+    # newer stamp, same seat, a crash-recovery detected record
+    _record_fixture(tmp_path, seat, "20260911T193000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    rec = rotate._latest_rotation_record(tmp_path, seat)
+    assert rec is not None
+    assert rec["rotation"] == "rotate-self", \
+        "a crash-recovery detected record must never be read as the rotation"
+    assert rec["result"] == "success"
+
+
+def test_latest_rotation_record_none_when_only_crash_recovery(tmp_path):
+    """When a seat has ONLY crash-recovery records (no real rotation), the
+    reader must return None — there is no rotation record to serve, and a
+    rotated-in seat must not be told its crash-recovery is its rotation."""
+    seat = "onlyrec"
+    _record_fixture(tmp_path, seat, "20260911T193000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    _record_fixture(tmp_path, seat, "20260911T194000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    assert rotate._latest_rotation_record(tmp_path, seat) is None
+
+
+def test_status_record_latest_skips_detected_record(tmp_path, capsys):
+    """`status --record latest <seat>` prints the newest ROTATION record,
+    never a crash-recovery `detected` record (the falsifier: status counts a
+    detected record as a rotation). The detected file's own name and body
+    must be absent from stdout."""
+    seat = "stat"
+    rotation = _record_fixture(tmp_path, seat, "20260911T180000Z", {
+        "rotation": "rotate-self", "seat": seat, "result": "success",
+        "generation": 2})
+    detected = _record_fixture(tmp_path, seat, "20260911T190000Z", {
+        "rotation": "crash-recovery", "seat": seat, "result": "detected"})
+    args = SimpleNamespace(record=True, seat=seat, wait=0)
+    rc = rotate.cmd_status(args, tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "latest rotation record" in out
+    assert rotation.name in out, out                 # the rotation IS served
+    assert detected.name not in out, \
+        f"status must not surface the detected record: {out}"
+    assert "crash-recovery" not in out, out

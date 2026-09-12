@@ -2224,8 +2224,7 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         if root is None:
             print("ERR: --record needs an agi project root", file=sys.stderr)
             return 1
-        rot_dir = _rotations_dir(root)
-        files = sorted(rot_dir.glob(f"{seat}.*.json")) if rot_dir.exists() else []
+        files = _rotation_record_files(root, seat)
         latest = files[-1] if files else None
         wait = int(getattr(args, "wait", 0) or 0)
         if wait > 0:
@@ -2237,8 +2236,7 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             if latest is None:
                 # wait for a record to APPEAR within the same deadline
                 while True:
-                    files = (sorted(rot_dir.glob(f"{seat}.*.json"))
-                             if rot_dir.exists() else [])
+                    files = _rotation_record_files(root, seat)
                     if files:
                         latest = files[-1]
                         break
@@ -3375,7 +3373,17 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     declared = "first seating" if seating is not None else "rotation"
     receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
+        # CLAUSE 1 (hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
+        # coalesced-nudge-still-wakes-and-detected-records-dedupe): the room
+        # is NOT the petition's inbox -- `send.py read` reads
+        # `<sessions>/inbox/<seat>.md`, a different file -- so a prime-specific
+        # write is needed for the alert to satisfy "lands in the inbox". The
+        # prime is inbox-only, but send.send() imposes no prime restriction
+        # (only dm/room do), so it is the exact inbox-only path: land the SAME
+        # [rotation-alert] block in the prime's OWN inbox in addition to the
+        # shared alert-room post.
         try:
+            send.send(root, seat, text, sender=seat)
             path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
                                   sender=seat)
             print(f"announced {declared} -> {ROTATION_ALERT_ROOM} ({path})",
@@ -3388,6 +3396,17 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     delivered = []
     for recv in receivers:
         try:
+            # CLAUSE 1: land the SAME [rotation-alert] block in the
+            # recipient's INBOX (`<sessions>/inbox/<recv>.md`, the writer
+            # `send.send` uses -- the reader `send.py read <recv>` shows)
+            # IN ADDITION to the pairwise dm log, so an alert is never
+            # absent from a recipient's inbox and nothing depends on the
+            # nudge (it is delivery, the inbox is the record). send() also
+            # physically types its own wake; send_dm adds the dm-log block
+            # plus its own pane line. A `send.py send` to the prime would be
+            # rejected downstream but send() itself has no prime restriction,
+            # so this stays the non-prime loop.
+            send.send(root, recv, text, sender=seat)
             send.send_dm(croot, seat, recv, text, sender=seat)
             delivered.append(recv)
         except SystemExit as exc:
@@ -4236,15 +4255,37 @@ def _git_maybe(cwd: Path, *args: str) -> list[str] | None:
     return [ln for ln in out.stdout.splitlines() if ln]
 
 
+def _rotation_record_files(root: Path, seat: str) -> list:
+    """Every `<seat>.*.json` ROTATION record, newest-first in name order
+    (filenames carry `YYYYMMDDTHHMMSSZ`), EXCLUDING `rotation:
+    crash-recovery` records (hypothesis:l4-a-rotation-alert-lands-in-the-
+    inbox-..., clause 3: status must never read a detected record — or any
+    crash-recovery record — as a rotation). Files that do not parse are kept
+    best-effort, exactly as the pre-existing reader behaved."""
+    rot = _rotations_dir(root)
+    if not rot.is_dir():
+        return []
+    out = []
+    for p in sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            out.append(p)      # unparseable: keep (best-effort, as before)
+            continue
+        if isinstance(rec, dict) and rec.get("rotation") == "crash-recovery":
+            continue           # a crash-recovery is NEVER a rotation
+        out.append(p)
+    return out
+
+
 def _latest_rotation_record(root: Path, seat: str) -> dict | None:
     """The newest durable rotation record for `seat`
     (`<sessions>/rotations/<seat>.*.json`), or None when the seat has no
     record yet. Record filenames carry the stamp `YYYYMMDDTHHMMSSZ`, which
-    sorts lexically, so the max by name is the newest."""
-    rot = _rotations_dir(root)
-    if not rot.is_dir():
-        return None
-    files = sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name)
+    sorts lexically, so the max by name is the newest. Crash-recovery records
+    (a heal outcome, never a rotation) are EXCLUDED — clause 3: a `detected`
+    record must never be read as the seat's rotation."""
+    files = _rotation_record_files(root, seat)
     if not files:
         return None
     try:
