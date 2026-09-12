@@ -264,6 +264,33 @@ def test_absent_kinds_still_defaults_and_prints(repo: Path):
     assert "--kinds" not in res.stderr, res.stderr
 
 
+# ---- L4.331 residue (mur-47, verbatim): an explicit --kinds that is EMPTY -------
+# ---- or WHITESPACE-ONLY ('' / '  ') is NOT the absent case either. It --------
+# ---- refuses BY NAME like ',', never defaulted, never unfiltered. -----------
+def test_explicit_blank_kinds_refuses_by_name_and_lists_nothing(repo: Path):
+    for spec in ["", "  "]:
+        res = _run_cli(repo / ".agi", "--dry-run", "--kinds", spec)
+        assert res.returncode == 1, (spec, res.stdout, res.stderr)
+        # the error names the AS-WRITTEN blank spec
+        assert f"--kinds: {spec!r} is blank" in res.stderr, \
+            (spec, res.stderr)
+        assert "one or more of main, posts, loops, towns" in res.stderr, \
+            res.stderr
+        # no defaulting line, no jobs computed, nothing else printed
+        assert "defaulted to kinds" not in res.stdout, (spec, res.stdout)
+        assert "branch rename" not in res.stdout, (spec, res.stdout)
+        assert res.stdout.strip() == "", (spec, res.stdout)
+
+
+def test_explicit_blank_kinds_refuses_under_delete_old(repo: Path):
+    # --delete-old is the unfiltered-hazard hotspot; a blank spec must refuse
+    # there too, before any delete step is considered.
+    res = _run_cli(repo / ".agi", "--delete-old", "--kinds", "  ")
+    assert res.returncode == 1, (res.stdout, res.stderr)
+    assert "--kinds: '  ' is blank" in res.stderr, res.stderr
+    assert "defaulted to kinds" not in res.stdout, res.stdout
+
+
 def test_reshuffle_kind_of_canonical_names():
     assert cli._reshuffle_kind("season2/main") == "main"
     assert cli._reshuffle_kind("season2/posts/foo") == "post"

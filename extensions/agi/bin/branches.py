@@ -116,10 +116,13 @@ def ref_candidates(branch: str) -> list[str]:
     the candidates are, in order and deduped: the canonical
     ``season<n>/posts/<n>``, the INTERMEDIATE as-written ``post/<n>@s<n>``,
     and the legacy deprecated ``seat/<n>@s<n>``. The as-written input always
-    appears in the result (it is one of the three spellings for every input
-    kind). For main/loop/town the intermediate and legacy spellings are the
-    same single old name, deduped to one. Returns ``[canonical]`` alone when
-    no legacy spelling exists."""
+    appears in the result (it is one of the spellings for every input kind).
+    For main/loop/town the intermediate and legacy spellings are the same
+    old name deduped to one, except where a canonical carries TWO legacy
+    spellings — ``season1/main`` also bears the pre-rename ``master``, and a
+    town ``season<n>/<t>/season1/main`` also bears its one-season alias
+    ``town/<t>@s<n>`` — in which case both are listed, canonical first.
+    Returns ``[canonical]`` alone when no legacy spelling exists."""
     canonical = branch
     try:
         p = parse(branch)
@@ -132,31 +135,44 @@ def ref_candidates(branch: str) -> list[str]:
     # to one for main/loop/town, where they are the same old name.
     inter = _canonical_to_old(canonical)
     legacy = _canonical_to_old(canonical, legacy_seat=True)
-    out = []
-    for cand in (canonical, inter, legacy):
-        if cand is None or cand in out:
+    out = [canonical]
+    for cand in (*inter, *legacy):
+        if cand in out:
             continue
         out.append(cand)
-    return out or [canonical]
+    return out
 
 
-def _canonical_to_old(name: str, *, legacy_seat: bool = False) -> str | None:
-    """The one-season DEPRECATED spelling of a canonical branch, or None.
-    Inverts the alias table so readers can fall back to the old name while a
-    live tree has not been renamed yet."""
-    # season<n>/main -> season/s<n>
+def _canonical_to_old(name: str, *, legacy_seat: bool = False) -> list[str]:
+    """The one-season DEPRECATED spellings of a canonical branch, deduped.
+    Empty when the canonical has no legacy spelling. Each reverse row yields
+    EVERY pre-rename alias a live tree may still carry, so the as-written
+    input is always reachable until the tree is renamed (hypothesis
+    l4-an-empty-or-blank-explicit-kinds-is-refused-and-every-branch-spelling-
+    is-in-its-own-ref-candidates — the docstring must be true). Inverts the
+    alias table so readers can fall back to the old name."""
+    # season<n>/main -> [season/s<n>]; season1/main also bears the pre-rename
+    # spelling `master` (is_legal_branch accepts it; _ALIASES maps it here).
     m = re.fullmatch(r"season(\d+)/main", name)
     if m:
-        return f"season/s{m.group(1)}"
-    # season<n>/<town>/season<k>/main -> town/<town>/season/s<k>
+        out = [f"season/s{m.group(1)}"]
+        if m.group(1) == "1":
+            out.append("master")
+        return out
+    # season<n>/<town>/season<k>/main -> [town/<town>/season/s<k>]; and, when
+    # k==1, the one-season town alias town/<town>@s<n> (which canonicalises
+    # back to town_main(n, town, 1)) is also a reachable old spelling.
     m = re.fullmatch(r"season(\d+)/(.+?)/season(\d+)/main", name)
     if m:
         _check_town(m.group(2))
-        return f"town/{m.group(2)}/season/s{m.group(3)}"
+        out = [f"town/{m.group(2)}/season/s{m.group(3)}"]
+        if m.group(3) == "1":
+            out.append(f"town/{m.group(2)}@s{m.group(1)}")
+        return out
     # season<n>/loops/<slug>-<agent> -> loop/<slug>-<agent>@s<n>
     m = re.fullmatch(r"season(\d+)/loops/(.+)", name)
     if m:
-        return f"loop/{m.group(2)}@s{m.group(1)}"
+        return [f"loop/{m.group(2)}@s{m.group(1)}"]
     # season<n>/posts/<name> -> post/<name>@s<n>
     # The INTERMEDIATE spelling the seat->post rename moves through (cli.py
     # branch --apply renames `seat/<n>@s2` to `post/<n>@s2`, then re-points
@@ -172,8 +188,8 @@ def _canonical_to_old(name: str, *, legacy_seat: bool = False) -> str | None:
     if m:
         spell = f"seat/{m.group(2)}@s{m.group(1)}" if legacy_seat \
             else f"post/{m.group(2)}@s{m.group(1)}"
-        return spell
-    return None
+        return [spell]
+    return []
 
 
 def season_main(n: int) -> str:

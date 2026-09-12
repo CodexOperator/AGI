@@ -2716,10 +2716,11 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # names -- harvest notes and experiment nodes cite them by name, and a
     # rename would make every citation stale for nothing. The kind of a job
     # is the kind of its NEW (canonical) name: main | post | loop | town_main.
-    kinds_spec_raw = getattr(args, "kinds", "") or ""
-    kinds_spec = kinds_spec_raw.strip()
-    kinds = _reshuffle_kinds(kinds_spec)
-    if not kinds_spec:
+    # L4.331 (mur-47): the --kinds argparse entry defaults to None so ABSENT
+    # is told apart from an explicit empty string. A blank explicit spec is
+    # refused by name; only a truly absent flag defaults to posts,towns.
+    kinds_spec_raw = getattr(args, "kinds", None)
+    if kinds_spec_raw is None:
         # Prime ruling (window 46 HOLD, goal:g17.1): --delete-old is NEVER
         # unfiltered. No explicit --kinds -> default to posts,towns (main and
         # loop excluded), and PRINT the default so a --dry-run / --delete-old
@@ -2728,18 +2729,29 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         kinds = _RESHUFFLE_DEFAULT_KINDS
         print("branch-reshuffle: --kinds not given; defaulted to kinds "
               "posts,towns (main/loops excluded until named explicitly)")
-    elif not kinds:
-        # L4.319 residue (mur-46, verbatim): an explicit --kinds that PARSES
-        # to nothing (`,`, ` , `, any separator/whitespace string) is NOT the
-        # absent case — it must NOT be silently unfiltered nor defaulted.
-        # Refuse BY NAME: the caller's AS-WRITTEN spec and the legal words,
-        # exit 1. The empty-set-from-explicit-spec decision can only be made
-        # HERE, where kinds_spec vs the parse is known together;
-        # _reshuffle_kinds alone cannot tell an explicit empty set from an
-        # absent flag.
-        raise SystemExit(
-            f"ERR: --kinds: {kinds_spec_raw!r} parsed to no kinds "
-            "(one of main, posts, loops, towns)")
+    else:
+        kinds_spec = kinds_spec_raw.strip()
+        if not kinds_spec:
+            # L4.331 (mur-47, verbatim): a whitespace-only/empty EXPLICIT
+            # --kinds ('' or '  ') is NOT the absent case — it must not be
+            # defaulted nor unfiltered. Refuse BY NAME exactly like ',':
+            # name the AS-WRITTEN spec, exit 1, zero jobs, no defaulting line.
+            raise SystemExit(
+                f"ERR: --kinds: {kinds_spec_raw!r} is blank; explicitly name "
+                "one or more of main, posts, loops, towns")
+        kinds = _reshuffle_kinds(kinds_spec)
+        if not kinds:
+            # L4.319 residue (mur-46, verbatim): an explicit --kinds that
+            # PARSES to nothing (`,`, ` , `, any separator/whitespace string)
+            # is NOT the absent case — it must NOT be silently unfiltered nor
+            # defaulted. Refuse BY NAME: the caller's AS-WRITTEN spec and the
+            # legal words, exit 1. The empty-set-from-explicit-spec decision
+            # can only be made HERE, where kinds_spec vs the parse is known
+            # together; _reshuffle_kinds alone cannot tell an explicit empty
+            # set from an absent flag.
+            raise SystemExit(
+                f"ERR: --kinds: {kinds_spec_raw!r} parsed to no kinds "
+                "(one of main, posts, loops, towns)")
     if kinds:
         jobs = [j for j in jobs if _reshuffle_kind(j["new"]) in kinds]
     if not jobs:
@@ -3151,11 +3163,12 @@ def main() -> int:
         help="the graph root (.agi dir) to act on — required to run --apply "
              "against a fixture repo; default resolves the live tree normally.")
     p_rs.add_argument(
-        "--kinds", default="",
+        "--kinds", default=None,
         help="comma list of kinds to reshuffle (main, posts, towns, loops); "
-             "empty = DEFAULTS to posts,towns (NEVER unfiltered: main and "
+             "absent = DEFAULTS to posts,towns (NEVER unfiltered: main and "
              "loop are delete/rename jobs only when named explicitly, per "
-             "the Prime ruling)")
+             "the Prime ruling); an explicit empty/whitespace value is "
+             "refused by name")
     p_rs.add_argument(
         "--season", type=int, default=None,
         help="root season for town-main renames (default: ladder "
