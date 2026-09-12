@@ -47,6 +47,7 @@ import locations  # noqa: E402
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
+import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 def _default_role_for_tier(tier):
     """Mirror dispatch's default (role == tier) for the heal path."""
     return tier or "kid"
@@ -462,11 +463,20 @@ def _run_pending_after_joins(root: Path) -> None:
 
 
 def _sweep_season(branch: str) -> int | None:
-    """Season from a `loop/<slug>-<agent8>@s<N>` branch name, or None.
-    Used to fall back to `origin/season/s<N>` as the round's base when the
-    worktree's own session records no `base_branch`."""
+    """Season from a loop branch name, NEW (`season<n>/loops/<slug>-<agent>`)
+    or OLD (`loop/<slug>-<agent8>@s<N>`), or None. Old names are accepted, never
+    refused: an old round's worktree is never dropped because its branch
+    spelling changed. Used to fall back to the round's base when the worktree's
+    own session records no `base_branch`."""
     if not branch:
         return None
+    try:
+        parsed = branches.parse(branch)
+        if parsed.get("kind") == "loop" and parsed.get("season") is not None:
+            return parsed["season"]
+    except ValueError:
+        pass
+    # legacy `loop/<slug>-<agent8>@s<N>`: pull the @s<N> suffix directly
     m = re.search(r"@s(\d+)\s*$", branch)
     if not m:
         return None
@@ -474,6 +484,22 @@ def _sweep_season(branch: str) -> int | None:
         return int(m.group(1))
     except ValueError:
         return None
+
+
+def _sweep_resolve_base(root: Path, base: str) -> str:
+    """Resolve `origin/...` season-trunk base to a LIVE ref the ancestry check
+    can prove against, accepting the old `origin/season/s<N>` spelling (via
+    ref_candidates, canonical first) so a tree not yet renamed still resolves.
+    Non-origin bases (a recorded base_branch) pass through unchanged."""
+    if not base.startswith("origin/"):
+        return base
+    local = base[len("origin/"):]
+    for name in branches.ref_candidates(local):
+        probe = f"origin/{name}"
+        _, rc = _git(["rev-parse", "--verify", f"{probe}^{{commit}}"], root)
+        if rc == 0:
+            return probe
+    return base
 
 
 def _git(args: list[str], cwd: Path) -> tuple[list[str], int]:
@@ -517,7 +543,7 @@ def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None
                     if bb:
                         return bb
     if season is not None:
-        return f"origin/season/s{season}"
+        return f"origin/{branches.season_main(season)}"
     return None
 
 
@@ -762,6 +788,8 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         branch = branch_lines[0] if branch_lines else ""
         season = _sweep_season(branch)
         base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
+        if base:
+            base = _sweep_resolve_base(root, base)
         if not base:
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
