@@ -1855,7 +1855,7 @@ def test_first_seating_respawn_record_and_alert_carry_row_gen(
     _fs_seats_sheet(tmp_path, [
         {"name": "re-seated", "role": "director", "generation": 4},
     ])
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     # the bootstrap writer resolves the row gen to 4.
     _block, _results = rotate._first_seating_run(
         tmp_path, seat="re-seated", role="director", succ_name="re-seated",
@@ -1896,7 +1896,7 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
     _fs_seats_sheet(tmp_path, [
         {"name": "zero-seat", "role": "director", "generation": 0},
     ])
-    _fs_director_first_turn(tmp_path)
+    _fs_director_first_turn(tmp_path, monkeypatch)
     block, _results = rotate._first_seating_run(
         tmp_path, seat="zero-seat", role="director", succ_name="zero-seat",
         dry_run=False)
