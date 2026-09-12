@@ -2321,7 +2321,9 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 # L4.288 harvest). A hit appends the @id it joined by.
                 line = _backfill_session_ref(
                     root, seat=seat, role="parent", ref=ref, pid=back_pid,
-                    session_id=back_sid)
+                    session_id=back_sid,
+                    session_name=((join or {}).get("name", "")
+                                  if (join and join.get("found")) else ""))
                 if join.get("found") and line.endswith("(source: ack)"):
                     line = f"{line[:-1]}, joined by @{window_id.lstrip('@')})"
                 print(line)
@@ -2680,6 +2682,18 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
             print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+            # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-
+            # name-cell...): status FLAGS a 36-char session uuid lingering in
+            # session_ref as STALE (a session id, pre-F15) — a row written
+            # before SL7.86 can still carry one, and nothing should read it
+            # as a harness ref (send.whois reads a uuid as NO-MATCH for every
+            # peer). session_name (the F3 join key) is printed when present.
+            _sref = (row.get("session_ref") or "")
+            if _looks_like_session_uuid(_sref):
+                print(f"session_ref: {_sref} (stale: a session id, never a "
+                      "harness ref — pass the bare ListAgents ref)")
+            if row.get("session_name"):
+                print(f"session_name: {row['session_name']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
         # call left above the wake floor was a fetch + behind check, because
         # F9's "the refusal IS the behind check" was not trusted. The record
@@ -4264,6 +4278,11 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
         session_id=session_id)
+    # goal:g15.25 FIX-ONLY: a first seating has NO join to resolve a harness
+    # name from, so session_name stays '' — the cell is still written (as
+    # empty) from the seat's first spawn write, and a later ack back-fill
+    # fills it when it joins (hypothesis:l4-a-post-row-carries-a-session-
+    # name-cell...).
     return {"meter_pin": mp, "ack_path": str(ap), "row": row}
 
 
@@ -6785,6 +6804,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_ref: str, generation: int,
                          window: str, pid: int | None = None,
                          session_id: str | None = None,
+                         session_name: str = "",
                          key_rotation: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
@@ -6817,6 +6837,14 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     declared self_row fields, so admission holds."""
     cells: dict = {"session_ref": session_ref, "generation": generation,
                    "window": window}
+    # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+    # cell...): the row's `session_name` is the harness registry NAME the
+    # registry JOIN resolved (join['name'], e.g. agi-d7), '' when the join
+    # did not resolve or no join ran (a first seating, the internal
+    # session_ref seam). Written ALWAYS (even empty) so the cell exists from
+    # the seat's own first spawn/ack write — the F3 SendMessage-by-ref join
+    # key, and never the session uuid (which lives in session_id, SL7.86).
+    cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
     if pid is not None:
@@ -6848,8 +6876,22 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
+            f"session_name={session_name} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry{_extra}")
+
+
+def _looks_like_session_uuid(s: str) -> bool:
+    """A 36-char UUID-ish string (8-4-4-4-12, dash-separated) — the shape of
+    a Claude session_id that would land in `session_ref` pre-F15 (SL7.86).
+    The harness ListAgents ref is short (e.g. `caa927`) and never this shape,
+    so a session_ref of this shape is a STALE session id that send.whois
+    reads as NO-MATCH for every peer — status flags it (hypothesis:l4-a-post-
+    row-carries-a-session-name-cell...): a lingering uuid must never be
+    trusted as a harness ref."""
+    if len(s) != 36:
+        return False
+    return bool(re.fullmatch(r"\w{8}-\w{4}-\w{4}-\w{4}-\w{12}", s))
 
 
 def _ref_shape_issue(ref: str, seat: str) -> str | None:
@@ -6870,7 +6912,8 @@ def _ref_shape_issue(ref: str, seat: str) -> str | None:
 
 def _backfill_session_ref(root: Path, *, seat: str, role: str,
                           ref: str, pid: int | None = None,
-                          session_id: str | None = None) -> str:
+                          session_id: str | None = None,
+                          session_name: str = "") -> str:
     """r3 — `rotate.py ack --ref <ref>` BACK-FILLS `session_ref` into the
     successor's OWN seats row through the self_row write (source: ack).
 
@@ -6888,6 +6931,12 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
     wrote. Returns a one-line outcome; the write is admitted by the self_row
     declaration."""
     cells: dict = {"session_ref": ref}
+    # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+    # cell...): the ack back-fill ALSO writes the harness registry NAME the
+    # join resolved (join['name'], e.g. agi-d7), '' when the join did not
+    # resolve — F3's SendMessage-by-ref join key travels like every other
+    # identity cell, never the session uuid (session_id keeps that).
+    cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
     if pid is not None:
@@ -6897,6 +6946,8 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat has no row to back-fill)")
     parts = [f"session_ref={ref}"]
+    if session_name:
+        parts.append(f"session_name={session_name}")
     if session_id is not None:
         parts.append(f"session_id={session_id}")
     if pid is not None:
@@ -15029,6 +15080,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 # cell stays EMPTY — never the uuid.
                 session_ref="",
                 pid=succ_pid, session_id=succ_session_id,
+                # goal:g15.25 FIX-ONLY: session_name = the harness registry
+                # NAME the join resolved (join['name'], e.g. agi-d7); '' when
+                # no join ran (the session_ref seam) or the join missed. The
+                # session uuid NEVER lands here (session_id holds that).
+                session_name=((joined or {}).get("name", "")
+                              if (joined and joined.get("found")) else ""),
                 generation=gen,
                 # goal:g15.25 line (2): the successor pubkey + key_history
                 # cells ride this ONE spawn-row write (and the ONE

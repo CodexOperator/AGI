@@ -6910,3 +6910,38 @@ def test_type_input_types_chunk_then_separate_enter(project, monkeypatch):
     assert calls.index(typed[0]) < calls.index(enters[0])
     assert sleeps and sleeps[0] >= 0.3, sleeps   # the pause, not a bare Enter
     assert pane.submitted == [body] and pane.input == "", pane.input
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): whois resolves a session_name (the F3 harness registry name,
+# e.g. agi-d7) EXACTLY as it resolves a session_ref — one lookup over both
+# cells — so whois agi-d7 names the seat; a row that ALSO carries a
+# session_name still resolves by its session_ref unchanged (additive).
+# ---------------------------------------------------------------------------
+NAME_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac", "session_name": "agi-d7"},
+    {"name": "sanctuary-director", "role": "director", "tier": 1,
+     "session_ref": "6f9bb5", "session_name": "agi-e1"},
+]
+
+
+def test_whois_resolves_by_session_name(monkeypatch):
+    """(e) claim: whois <session_name> resolves the seat — one lookup over
+    both cells, so F3's SendMessage-by-ref join can address agi-d7."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "agi-d7", claim=None)
+    assert rc == send_mod.WHOIS_OK
+    assert "belam" in text
+
+
+def test_whois_by_session_ref_unaffected_by_session_name(monkeypatch):
+    """(f) claim: a row that also carries session_name still resolves by its
+    session_ref unchanged — the session_name lookup is additive. A
+    session_name matching NO row still NO-MATCHes (never a guess)."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="prime_director")
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    rc2, text2 = send_mod.whois(Path("."), "agi-ghost", claim=None)
+    assert rc2 == send_mod.WHOIS_NO_MATCH
