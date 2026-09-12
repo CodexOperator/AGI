@@ -1152,7 +1152,11 @@ def test_watch_alive_tail_skips(tmp_path, monkeypatch):
     def _lat(root, seat):
         return json.loads(rec_path.read_text()), str(rec_path)
     monkeypatch.setattr(rot, "_latest_rotate_record", _lat)
-    monkeypatch.setattr(rot, "_find_seat", lambda root, name: {"role": "parent"})
+    # (SL7.76 harvest) the row carries a LIVE pid so SL7.76's liveness gate
+    # reads the seat as live — this test is about the watch/tail decision,
+    # not the dead-seat skip.
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent", "pid": os.getpid()})
     monkeypatch.setattr(
         rot, "_resolve_template",
         lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
@@ -1277,8 +1281,11 @@ def test_dead_seat_skipped_no_record_no_dm_one_log(tmp_path, monkeypatch):
     monkeypatch.setattr(hrot, "_load_seats",
                         lambda root: [{"name": "dead"}])
     monkeypatch.setattr(heal, "_watch_log", lambda line: logged.append(line))
+    # (SL7.76 harvest) the stub accepts SL7.72's `performer=` kwarg — heal's
+    # loop passes performer="watch"; a stub without it raised TypeError into
+    # the loop's best-effort except and logged nothing.
     monkeypatch.setattr(hrot, "run_after_join_for_seat",
-                        lambda root, seat: out)
+                        lambda root, seat, **kw: out)
     heal._run_pending_after_joins(tmp_path)
     assert logged == [f"after_join skipped for 'dead': no live session"], logged
 
