@@ -3734,7 +3734,10 @@ def _resolve_rows(rows: list, session_ref: str,
     L4.114 (r3): a ref that is not an exact `session_ref` match is still
     authorized when it is a PREFIX of a row's `session_id` uuid, at least
     WHOIS_MIN_SESSION_ID_PREFIX chars — a shorter prefix is refused (never
-    treated as a match).
+    treated as a match). goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-
+    carries-a-session-name-cell...): an exact `session_name` match (the F3
+    harness registry name, e.g. agi-d7) resolves exactly like a session_ref —
+    one lookup over both cells.
 
     With ``target`` (a ``("key", prefix)`` or ``("seat", name)`` tuple, from
     ``--key`` / ``--seat``) the row is resolved by its ``pubkey`` PREFIX or
@@ -3764,7 +3767,8 @@ def _resolve_rows(rows: list, session_ref: str,
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
         return _whois_answer(hits[0], f"by key: {val}", claim)
-    hits = [r for r in rows if r.get("session_ref") == session_ref]
+    hits = [r for r in rows if (r.get("session_ref") == session_ref
+                                or r.get("session_name") == session_ref)]
     if not hits:
         # r3: prefix-match a row's session_id uuid (state min length; refuse
         # shorter as NO-MATCH rather than guessing on a too-small prefix).
@@ -3774,7 +3778,7 @@ def _resolve_rows(rows: list, session_ref: str,
             if not hits:
                 return (WHOIS_NO_MATCH,
                         f"NO-MATCH: {session_ref!r} belongs to no seat row "
-                        "by session_ref or session_id prefix "
+                        "by session_ref, session_name or session_id prefix "
                         f"(min prefix {WHOIS_MIN_SESSION_ID_PREFIX})")
         else:
             return (WHOIS_NO_MATCH,
