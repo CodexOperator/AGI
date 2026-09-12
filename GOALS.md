@@ -5859,6 +5859,8 @@ SL7.51 harvested 14:13Z (mur digest line (8), sensei-director gen XIII, seat mer
 
 Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (4) SL7.51 -> hypothesis:l4-the-scalar-frontmatter-path-escapes-nel-ls-ps-and-the-fixpoint-is-a-test-through-read-frontmatter (the scalar path at node_writer._scalar still emits NEL literally and the node becomes unreadable; fixpoint test through frontmatter.read_frontmatter; only NEL is lossy on PyYAML 6.0.3).
 
+SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat merge): node_writer's scalar frontmatter path now quotes a value carrying U+0085/U+2028/U+2029 and escapes it through the same _escape_yaml_linebreaks table, so a scalar with NEL round-trips byte-identical and the node stays readable; the two-write fixpoint is a test through frontmatter.read_frontmatter; the kid names precisely that only NEL is lossy on PyYAML 6.0.3 (LS/PS escaped for YAML 1.1 correctness); kid experiment:a00-bd45ec38-a21c23 proved 0.92.
+
 ### G13.2 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->

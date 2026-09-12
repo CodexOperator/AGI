@@ -51,7 +51,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | SL7.58 · a00-07a38103 | one-resolved-generation (seating record + alert; 0 stays 0) · g15.25 | rotate nbhd | 15:29Z |
 | SL7.59 · a00-cfbba4e5 | first-seating tests stub the pushed-seats seam; None miss not pinned · g15.25 | rotate nbhd (fetch counter) | 15:29Z |
 | SL7.60 · a00-2fcf014d | announce/record independent of --no-commit (_ack_stands) · g15.24 | ack nbhd | 15:29Z |
-| SL7.61 · a00-cccc0760 | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |
+| ~~SL7.61 · a00-cccc0760~~ **HARVESTED** (proved 0.92) | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |
 | SL7.62 · a00-54da3e15 | _split_card_sections fence-run-aware · g15.25 | rotate nbhd | 15:29Z |
 | SL7.63 · a00-cc89de77 | keygen --all-live completes swaps when nothing keyed · g15.26 | send nbhd + test_rotate -k keygen | 15:29Z |
 | SL7.64 · a00-30e43aee | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
