@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -6417,6 +6418,99 @@ def test_keygen_all_live_commit_names_every_keyed_seat_and_stages_seats_only(
     st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
                         capture_output=True, text=True)
     assert st.stdout.strip() == "", st.stdout
+
+
+def test_keygen_all_live_no_write_completes_deferred_pending_swap(
+        tmp_path, monkeypatch, capsys):
+    """g15.26 claim -- ALL-KEYED steady state (wrote_any False): keygen
+    --all-live on a registry where every live row already carries a pubkey
+    still runs the pending-swap completion walk, WITHOUT committing or
+    pushing of its own -- it confirms origin already carries HEAD's committed
+    rows (a fetch READ only) and completes a deferred `.key.pending` swap
+    whose successor row origin truly holds. A keyed seat with no pending file
+    is untouched. The no-write path leaves git atomic: no new commit, no
+    push (origin stays at the seed)."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    succ_priv, succ_pub = scheme.keygen()
+    pred_priv, _pred_pub = scheme.keygen()
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    # the committed seed row ALREADY carries the SUCCESSOR pubkey and is on
+    # origin (the earlier push succeeded): the all-keyed steady state.
+    root = _git_project(
+        tmp_path,
+        [{"name": "s1", "role": "director", "pid": 111,
+          "pubkey": succ_pub.hex()}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    seed = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    # on-disk key = PREDECESSOR; the deferred swap: pending successor priv
+    # whose row origin already carries succ_pub.
+    kp = send_mod._seat_key_path(root, "s1")
+    kp.parent.mkdir(parents=True, exist_ok=True)
+    kp.write_text(json.dumps({"scheme": "ed25519",
+                              "priv_hex": pred_priv.hex()}))
+    os.chmod(kp, send_mod.SEAT_KEY_MODE)
+    pend = kp.parent / "s1.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    capsys.readouterr()
+    out = send_mod.keygen(root, all_live=True, actor="belam",
+                          role="prime_director")
+    capsys.readouterr()
+    assert out == [], f"an all-keyed pass must key nothing, got {out!r}"
+    # the deferred swap COMPLETED -- no commit/push of its own.
+    assert not pend.exists(), "pending swap must complete on the no-write path"
+    assert json.loads(kp.read_text())["priv_hex"] == succ_priv.hex()
+    # the no-write path commits and pushes NOTHING: HEAD and origin unchanged.
+    after = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == seed, "the no-write path must not commit"
+    origin_ref = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "origin/season/s2"],
+        capture_output=True, text=True).stdout.strip()
+    assert origin_ref == seed, "the no-write path must not push"
+
+
+def test_keygen_all_live_no_write_leaves_keyed_seat_without_pending_touched(
+        tmp_path, monkeypatch, capsys):
+    """g15.26 claim FALSIFIER -- a keyed seat with NO pending file is never
+    touched by the all-keyed no-write walk: its on-disk `.key` stays
+    byte-identical and the committed row is unchanged."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    _pred_priv, pred_pub = scheme.keygen()
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(
+        tmp_path,
+        [{"name": "s1", "role": "director", "pid": 111,
+          "pubkey": pred_pub.hex()}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    kp = send_mod._seat_key_path(root, "s1")
+    kp.parent.mkdir(parents=True, exist_ok=True)
+    kp.write_text(json.dumps({"scheme": "ed25519",
+                              "priv_hex": _pred_priv.hex()}))
+    os.chmod(kp, send_mod.SEAT_KEY_MODE)
+    before = kp.read_bytes()
+    capsys.readouterr()
+    out = send_mod.keygen(root, all_live=True, actor="belam",
+                          role="prime_director")
+    capsys.readouterr()
+    assert out == []
+    assert kp.read_bytes() == before, "keyed seat with no pending is untouched"
 
 
 # ── hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender ──
