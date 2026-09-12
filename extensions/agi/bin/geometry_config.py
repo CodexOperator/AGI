@@ -5,16 +5,21 @@ everywhere). For one season BOTH spellings resolve: `posts.md`/`posts:` is the
 primary, `seats.md`/`seats:` is a deprecated alias. Every reader that opens the
 geometry config, and every sink that spells the identity as `--seat`/`AGI_SEAT`,
 routes through here so the post-first / seat-fallback behaviour and the
-exactly-once-per-process deprecation notice live in ONE place instead of a
-hand-rolled copy per reader.
+exactly-once-per-process seat/environment deprecation notices live in ONE
+place instead of a hand-rolled copy per reader. The seats.md fallback prints
+NO deprecation notice: a notice naming a migration target only reachable on a
+tree where that target does not exist would be a lie on exactly the trees
+where it fired (hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-
+exists).
 
 Public API
 ----------
 resolve(root) -> (Path | None, str)
     The geometry config file to read plus the frontmatter LIST KEY to read from
     it. Prefers ``<root>/nodes/.geometry/posts.md`` + ``posts:``; else falls
-    back to ``<root>/nodes/.geometry/seats.md`` + ``seats:`` (emitting a
-    deprecated-alias notice at most once per process); else
+    back to ``<root>/nodes/.geometry/seats.md`` + ``seats:`` (silently — no
+    deprecation notice, since posts.md is absent by definition on this branch
+    and the old notice's advice was untakeable); else
     ``(posts_path, "posts")`` so a caller with no file resolves to ``[]``.
     ``root`` None -> ``(None, "posts")``. Never raises.
 
@@ -45,11 +50,6 @@ import os
 import sys
 from pathlib import Path
 
-_FILE_DEP_MSG = (
-    "note: config:seats is deprecated; use config:posts "
-    "(nodes/.geometry/posts.md with a `posts:` list). "
-    "Falling back to the old seats.md layout this season."
-)
 _FLAG_DEP_MSG = (
     "note: --seat is deprecated; use --post this season."
 )
@@ -57,25 +57,24 @@ _ENV_DEP_MSG = (
     "note: AGI_SEAT is deprecated; use AGI_POST this season."
 )
 
-# Module-level flags: the deprecated-alias notices fire AT MOST ONCE PER
-# PROCESS, however many readers/consumers hit the fallback.
-_seen_file = False
+# Module-level flags: the deprecated-alias notices (--seat flag spelling +
+# AGI_SEAT env spelling) fire AT MOST ONCE PER PROCESS, however many
+# readers/consumers hit them. There is deliberately NO file-level notice: the
+# seats.md fallback is silent.
 _seen_flag = False
 _seen_env = False
 
 
 def _print_once(msg: str, flag_holder: str) -> None:
-    """Print a deprecation notice once per process (best effort, never raises)."""
-    global _seen_file, _seen_flag, _seen_env
-    if flag_holder == "file" and _seen_file:
-        return
+    """Print a deprecation notice once per process (best effort, never raises).
+    Only the `--seat` flag and `AGI_SEAT` env spellings remain live; there is
+    no file fallback notice."""
+    global _seen_flag, _seen_env
     if flag_holder == "flag" and _seen_flag:
         return
     if flag_holder == "env" and _seen_env:
         return
-    if flag_holder == "file":
-        _seen_file = True
-    elif flag_holder == "flag":
+    if flag_holder == "flag":
         _seen_flag = True
     else:
         _seen_env = True
@@ -95,7 +94,10 @@ def resolve(root: Path | None):
         return posts, "posts"
     seats = Path(root) / "nodes" / ".geometry" / "seats.md"
     if seats.exists():
-        _print_once(_FILE_DEP_MSG, "file")
+        # Silent fallback: no deprecation notice. posts.md is absent here by
+        # construction (we only reach this branch when it does not exist), so
+        # the old notice's advice was untakeable on exactly the trees where it
+        # fired. Keeping it would be a lie; deleted instead.
         return seats, "seats"
     return posts, "posts"
 
