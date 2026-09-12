@@ -6358,6 +6358,79 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
             f"own-row only: {msg}\npush: {_push}")
 
 
+def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
+                            gen_after: int,
+                            record_path: Path | None = None) -> str:
+    """goal:g15.25 — rotate-self COMMITS its OWN rotation record AND
+    `sequence.json` as ONE plain pathspec commit, right after both are
+    written, so the rotation's proof (and the rotation-alert counter that
+    rides it) land on the tree instead of lurking UNTRACKED under the
+    PREPARE_CHURN captive exemption (`sessions/rotations/*.json` —
+    rotate.py:9549-9553, the reason nothing commits them today). It runs on
+    a MAIN-checkout post ONLY (`_commit_spawn_row`'s tree: `_git_toplevel`
+    of `_shared_graph_root(root)`); a WORKTREE seat keeps `_button_down` and
+    adds no commit here (`_shared_graph_root` resolves MAIN even from a
+    worktree, so `main_root != root` identifies a worktree seat).
+
+    Staging is as narrow as git allows: `git add -- <record> <seq>` then
+    `git commit -q -m ... -- <both>` — NEVER `git add -A`, never a grid
+    commit, never a push, nothing outside the two paths. `.agi/comms/**`
+    dm-log appends stay cron-owned churn, out of scope by construction.
+
+    The commit runs AFTER the final record write (the ack-rename rewrite /
+    after_join / s12 append all happen earlier and mutate the SAME path in
+    place), so the committed bytes ARE the final record, never an interim
+    one. Best-effort: on ANY failure print ONE stderr line and return a
+    one-line outcome — never raises, never fails the rotation (mirror
+    `_commit_spawn_row`'s fail-soft contract). Returns the sha or the
+    reason nothing committed.
+    """
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return ("rotation_record_commit: SKIPPED — no git repo; the record "
+                "+ sequence stay in the tree, never committed (gitless "
+                "fixture/root)")
+    if main_root != root:
+        return ("rotation_record_commit: SKIPPED — worktree seat; the record "
+                "+ sequence commit runs only on a MAIN checkout "
+                "(_button_down handles the grid commit)")
+    if record_path is None or not Path(record_path).exists():
+        return ("rotation_record_commit: SKIPPED — no rotation record file "
+                "to commit")
+    rec = Path(record_path)
+    seq = _seq_file(main_root)
+    rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
+    try:
+        add = subprocess.run(["git", "-C", str(top), "add", "--"] + rels,
+                             capture_output=True, text=True, timeout=30)
+        if add.returncode != 0:
+            raise RuntimeError(add.stderr.strip())
+        msg = (f"rotate-self {seat} gen {gen_before}->{gen_after}: "
+               "record + sequence")
+        cm = subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                             msg, "--"] + rels,
+                            capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            subprocess.run(["git", "-C", str(top), "reset", "-q", "--"]
+                           + rels, capture_output=True, text=True, timeout=30)
+            raise RuntimeError(cm.stderr.strip())
+    except Exception as exc:  # noqa: BLE001
+        line = f"rotation_record_commit: FAILED — {exc}"
+        print(line, file=sys.stderr)
+        return line
+    sha = ""
+    try:
+        out = subprocess.run(["git", "-C", str(top), "rev-parse",
+                              "--short", "HEAD"], capture_output=True,
+                             text=True, timeout=10)
+        sha = (out.stdout or "").strip()
+    except Exception:  # noqa: BLE001
+        sha = ""
+    return (f"rotation_record_commit: committed (sha {sha}) — record + "
+            f"sequence.json: {' + '.join(rels)}")
+
+
 def _pin_successor_meter(root: Path, *, seat: str, generation: int,
                          transcript: str) -> str:
     """Pin the successor's meter at ITS transcript (kid-2 step 4).
@@ -12898,6 +12971,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         print(f"    predecessor window list: "
               f"{_observed_windows(tmux_session, args.window_path)['names']!r}")
     print(f"rotation recorded: {record_path}")
+    # (goal:g15.25 SL7.55) rotate-self COMMITS its OWN rotation record +
+    # sequence.json as ONE pathspec commit on a MAIN-checkout post, so the
+    # rotation's proof is not left untracked under the PREPARE_CHURN captive
+    # exemption ({sessions/rotations/*.json}). Runs AFTER every in-place
+    # record rewrite (ack-rename / after_join / s12 append), so the committed
+    # bytes are the FINAL record. Best-effort + fail-soft: on any failure it
+    # prints ONE stderr line and the rotation still succeeds (falsifier 4).
+    # Worktree seats are unchanged (_button_down owns their grid commit).
+    handover["rotation_record_commit"] = _commit_rotation_record(
+        root, seat=seat, gen_before=gen_before, gen_after=gen,
+        record_path=record_path)
     _restore_shield_signals(_shield_old)
     return 0
 
