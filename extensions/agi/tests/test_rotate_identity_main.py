@@ -152,6 +152,62 @@ def test_commit_spawn_row_from_worktree_lands_in_main(tmp_path):
         "window @NEW, pid 4242"), log
 
 
+def test_commit_spawn_row_stages_only_own_row_with_foreign_predirty(tmp_path):
+    """claim (7): the spawn-row commit stages ONLY ITS OWN row. A FOREIGN
+    row whose change is PRE-STAGED in MAIN's seats.md before the spawn write
+    must NOT ride the spawn-row commit — the COMMITTED seats.md carries the
+    own row's new cells and the foreign row's COMMITTED (HEAD) values, and
+    the foreign hunk stays staged/uncommitted.
+    (hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-
+    hands-the-successor-exactly-one-call)"""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    seats_path = main / ".agi" / "nodes" / ".geometry" / "seats.md"
+    # append a SECOND (foreign) row to MAIN's seats.md and PRE-STAGE it.
+    text = seats_path.read_text(encoding="utf-8")
+    other_hunk = ("  - {\"name\": \"other-seat\", \"role\": \"parent\", "
+                  "\"window\": \"@FOREIGN\", \"pid\": 999, "
+                  "\"generation\": 9}")
+    seats_path.write_text(text.rstrip() + "\n" + other_hunk + "\n",
+                          encoding="utf-8")
+    subprocess.run(["git", "-C", str(main), "add", "--",
+                    ".agi/nodes/.geometry/seats.md"], check=True,
+                   capture_output=True)
+
+    wt_seats = wt / ".agi" / "nodes" / ".geometry" / "seats.md"
+    before_wt = wt_seats.read_bytes()
+    # the own rotation from the worktree: ONE writer -> MAIN, row -> @NEW.
+    out = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="", generation=4, window="@NEW")
+    assert out.startswith("config:seats row")
+    outcome = rotate._commit_spawn_row(
+        wt / ".agi", seat=seat, generation=4, session_id="sess-9",
+        window="@NEW", pid=7777)
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    assert wt_seats.read_bytes() == before_wt
+
+    # the COMMITTED seats.md carries the own row's new window AND the OTHER
+    # seat's COMMITTED (HEAD) values — never the @FOREIGN pre-staged hunk.
+    head_out = subprocess.run(
+        ["git", "-C", str(main), "show", "HEAD:"
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert '"window": "@NEW"' in head_out          # own row committed
+    assert '"window": "@FOREIGN"' not in head_out  # foreign NOT committed
+    # the foreign hunk is NOT in the real index (the own-row commit re-pointed
+    # it at the committed blob) but is BYTE-PRESERVED in the working tree,
+    # never bundled under this post's name.
+    staged = subprocess.run(
+        ["git", "-C", str(main), "diff", "--cached", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    work = seats_path.read_text(encoding="utf-8")
+    assert '"window": "@FOREIGN"' not in staged, \
+        "the foreign hunk must not sit in the real index as a staged change"
+    assert '"window": "@FOREIGN"' in work, \
+        "the foreign hunk must stay byte-preserved in the working tree"
+
+
 def test_identity_writer_ack_backfill_from_worktree_writes_main(tmp_path):
     """The ack back-fill routes through the SAME one writer: from the worktree
     it writes MAIN, not the worktree copy."""
@@ -278,9 +334,14 @@ def test_worktree_rotate_self_then_ack_continue_lands_in_main(tmp_path, monkeypa
     # the successor's wake act acks `continue` FROM the worktree; its own-row
     # gate and commit resolve against MAIN (the tree the writer wrote).
     monkeypatch.chdir(wt / ".agi")
+    # mur-SL2.12 (3): the two-tree chain test points the registry at a
+    # FIXTURE dir (never ~/.claude/sessions), so a fixture ack's join cannot
+    # poll the real registry host.
+    reg_fix = tmp_path / "reg-fixture"
+    reg_fix.mkdir(exist_ok=True)
     code = rotate.cmd_ack(SimpleNamespace(
         seat=seat, gen=4, ref="new-ref", answer="continue", text="",
-        wait=0, registry_dir=None, window_path=None), wt / ".agi")
+        wait=0, registry_dir=str(reg_fix), window_path=None), wt / ".agi")
     assert code == 0, capsys.readouterr().err
     assert wt_seats.read_bytes() == before_wt, \
         "a worktree ack must never write the worktree's own seats.md"

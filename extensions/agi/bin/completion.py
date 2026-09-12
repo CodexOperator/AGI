@@ -36,6 +36,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import node_writer  # noqa: E402
+from frontmatter import read_frontmatter, split_frontmatter  # noqa: E402
 
 
 def scaffold_body_for(node_id: str) -> str:
@@ -63,28 +64,22 @@ def is_complete(root: Path, node_id: str) -> bool:
     path = node_writer.find_node_file(Path(root), node_id)
     if path is None or not path.exists():
         return False
-    parts = path.read_text(encoding="utf-8").split("---", 2)
-    if len(parts) < 3:
-        return False  # no frontmatter — not a node this function recognizes
-    import yaml
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except yaml.YAMLError:
-        # A node whose frontmatter will not parse is not a finished node, and
-        # this is a PREDICATE -- it answers True or False, it does not get to
-        # take the caller down. `post_wire.cmd_wire` calls this inside its
-        # agent loop, so a raise here would lose the whole iteration's wiring
-        # rather than one node. That is a regression this file introduced on
-        # 2026-09-01 by acquiring its first caller: with zero callers the raise
-        # was unreachable.
+    text = path.read_text(encoding="utf-8")
+    fm = read_frontmatter(text)
+    if fm is None:
+        # A node whose frontmatter will not parse (or is not a mapping) is
+        # not a finished node, and this is a PREDICATE -- it answers True or
+        # False, it does not get to take the caller down. `post_wire.cmd_wire`
+        # calls this inside its agent loop, so a raise here would lose the
+        # whole iteration's wiring rather than one node.
         #
         # `skip_quiet` is the right policy HERE and is not a vote on the
         # unified reader's default (`hypothesis:a00-6b4ad6b2-a60b78` is
         # deciding that): a boolean predicate has exactly one safe answer for
         # input it cannot read.
         return False
-    stored = fm.get("scaffold_hash") if isinstance(fm, dict) else None
-    body = parts[2]
+    stored = fm.get("scaffold_hash")
+    _fm_text, body = split_frontmatter(text)
     if isinstance(stored, str) and stored.strip():
         return node_writer.scaffold_hash(body) != stored
     return (node_writer.scaffold_hash(body)

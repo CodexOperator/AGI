@@ -79,6 +79,7 @@ from pathlib import Path
 # goal:g11.1 — one resolver for every path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+from frontmatter import read_frontmatter  # noqa: E402
 
 #: Where the schemas live, relative to the graph root. Mirrors
 #: `schema_registry/loader.py`'s caller; also declared in
@@ -223,23 +224,17 @@ class SpawnRules:
 
 
 def _read_frontmatter(path: Path) -> dict | None:
-    """Plain YAML frontmatter read. Same cheap scan `build_corpus` uses."""
-    import yaml
+    """Plain YAML frontmatter read. Same cheap scan `build_corpus` uses.
 
+    Routes through the one line-anchored reader so a `---` inside a quoted
+    value never cuts the frontmatter short (hypothesis:l4-one-line-anchored-
+    frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-spawning).
+    """
     try:
         text = path.read_text(encoding="utf-8")
     except Exception:
         return None
-    if not text.startswith("---"):
-        return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return None
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
-        return None
-    return fm if isinstance(fm, dict) else None
+    return read_frontmatter(text)
 
 
 def _parse_min_by_type(raw, allowed: frozenset, max_p: int) -> tuple[tuple, str]:

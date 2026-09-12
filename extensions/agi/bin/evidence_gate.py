@@ -60,6 +60,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: `100|\d{1,2}` and not `\d{1,3}`. The loose form accepted `:999` while every
 #: document describing it — VERDICT_HELP below, `zoom.py`'s contract,
@@ -237,16 +238,8 @@ def build_corpus(nodes_dir) -> frozenset:
             text = nf.read_text(encoding="utf-8")
         except Exception:
             continue
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        try:
-            fm = yaml.safe_load(parts[1]) or {}
-        except Exception:
-            continue
-        if not isinstance(fm, dict):
+        fm = read_frontmatter(text)
+        if fm is None:
             continue
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
@@ -588,16 +581,7 @@ def read_frontmatter_text(text: str) -> dict | None:
     """
     import yaml
 
-    if not text.startswith("---"):
-        return None
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return None
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
-        return None
-    return fm if isinstance(fm, dict) else None
+    return read_frontmatter(text)
 
 
 def gate_on_disk(fm: dict, corpus) -> GateResult | None:
@@ -685,9 +669,10 @@ def enforce_on_disk(root, paths=None, *, dry_run: bool = False,
             text = p.read_text(encoding="utf-8")
         except OSError:
             continue
-        if not text.startswith("---"):
+        parts = split_frontmatter(text)
+        if parts is None:
             continue
-        head = text.split("---", 2)[1] if text.count("---") >= 2 else text
+        head = parts[0]
         if not DECISIVE_LINE_RE.search(head):
             continue
         fm = read_frontmatter_text(text)
