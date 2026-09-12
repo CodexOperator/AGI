@@ -1924,8 +1924,8 @@ def _resolve_seat_for_name(root: Path, session_name: str) -> str:
     return best if best is not None else session_name
 
 
-def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
-        -> dict | None:
+def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600,
+              poll_s: float = 2.0) -> dict | None:
     """Poll `<seat>.ack.json` until it carries an ACK for `gen_after`.
 
     Returns the parsed ack dict when the file exists AND its `gen_after`
@@ -1960,7 +1960,7 @@ def _read_ack(path: str | Path, gen_after: int | None, timeout: int = 600) \
                         return ack
         except (OSError, ValueError):
             pass
-        time.sleep(2)
+        time.sleep(poll_s)
     return None
 
 

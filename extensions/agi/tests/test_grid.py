@@ -1,6 +1,7 @@
 """Tests for bin/grid.py — the per-node git grid, in-repo ref-namespace mode."""
 
 import fcntl
+import functools
 import importlib.util
 import os
 import subprocess
@@ -252,6 +253,27 @@ def test_sanitize_is_injective_over_adversarial_corpus():
         seen[ref] = nid
 
 
+@functools.lru_cache(maxsize=None)
+def _git_component_valid(component: str) -> bool:
+    """Does REAL git accept `component` as a one-level refname component?
+
+    Memoized by component. `git check-ref-format --allow-onelevel <c>` is the
+    authority for what a valid component is, and real git is still what runs
+    for every DISTINCT component — we never substitute an in-process regex
+    validator. The cache only stops RE-spawning git for the many corpus
+    components that repeat (nodes share `experiment/`, `hypothesis/`,
+    `goal/`, the mint-id suffixes, ...), which drops the suite's ~2974 real
+    spawns to the distinct-component count. lru_cache is unbounded but the
+    component space is exactly the ref component vocabulary, so it is small
+    and bounded in practice.
+    """
+    res = subprocess.run(
+        ["git", "check-ref-format", "--allow-onelevel", component],
+        capture_output=True, text=True,
+    )
+    return res.returncode == 0
+
+
 def test_sanitize_output_is_a_valid_git_refname():
     """Don't trust the reasoning about `%XX` being ref-safe -- check it."""
     for nid in ADVERSARIAL_IDS:
@@ -303,11 +325,9 @@ def test_sanitize_real_agi_tree_corpus_round_trips_distinctly():
     assert not collisions, f"non-injective on live corpus: {collisions[:5]}"
     for ref in seen:
         for component in ref.split("/"):
-            res = subprocess.run(
-                ["git", "check-ref-format", "--allow-onelevel", component],
-                capture_output=True, text=True,
+            assert _git_component_valid(component), (
+                f"{component!r} invalid: real git check-ref-format refused it"
             )
-            assert res.returncode == 0, f"{component!r} invalid: {res.stderr}"
 
 
 # ------------------------- migrate-refs: move old-scheme refs safely -------
