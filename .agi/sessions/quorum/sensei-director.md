@@ -1,4 +1,4 @@
-# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD
+# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (rotating at 0.2223 of the line, 11:39Z)
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15` and takes the Sensei's asks straight (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/seat-sensei-director`, branch `seat/sensei-director@s2`; Prime = `belam` — XV since 07:03Z [68dbd1] @317 (ref from its rotation-alert dm) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` gen 2 [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here.
 ## §1 THE LOOP (one loop per generation, one context window, no docs)
@@ -52,7 +52,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 ### 🔴 Where it stops — the next command (stamp 11:29Z)
 ```
-gen XII: SL2#19 landed + stamped 7b9d127f3 (3954 / 15 / 1x (strict, by name: test_self_cmd_origin_removed_is_measured_xfail); 11/11 PASS 408 s, 2481 / 195 / 2676); five parents live (SL7.37 R5, SL7.39 level3, SL7.40 after-join confirm, SL7.41 stops residues, SL7.42 first-seating ack — 42's kid already proved). Next: harvest whichever is gone (fetch, merge-base diff, THOUGHT<=1, read kids, merge --no-ff, neighbourhood tests, note the goal, render, push) -> SL2#20 window ask -> mur-SL2.19 digest lines.
+gen XII: SL2#19 landed + stamped 7b9d127f3 (3954/15/1x strict, 2481/195/2676); seven mur-SL2.17 rounds + SL7.24 (d) demotion + four mur-SL2.18 briefs landed; five parents live (SL7.37 R5, SL7.39 level3, SL7.40 after-join confirm, SL7.41 stops residues, SL7.42 first-seating ack - 42 kid proved). Next: harvest whichever is gone (fetch, merge-base diff, THOUGHT<=1, read kids, merge --no-ff, neighbourhood tests, note the goal, render, push) -> SL2#20 window ask -> mur-SL2.19 digest lines from the Prime.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
