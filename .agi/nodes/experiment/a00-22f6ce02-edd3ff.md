@@ -17,7 +17,7 @@ scaffold_hash: cff1c49ea178fe7e
 season: 2
 title: The closeout captive-step list is chosen by SEAT KIND -- the fix lands (SL7.90)
 town: core
-verdict: inconclusive_lean_disproved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-22f6ce02-edd3ff
