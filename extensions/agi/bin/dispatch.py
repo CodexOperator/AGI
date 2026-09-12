@@ -1159,10 +1159,16 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
         # FRESH (kid B): the quorum is satisfied; the round must still sit
         # inside its replay window and not carry a spent nonce.
         seen, remember_fn = _rings.nonce_ledger(root)
-        fr = _rings.freshness_refusal(
-            fields,
-            max_age_s=_rings._effective_max_age_s(ring),
-            seen=seen, remember=remember_fn if remember else None)
+        # RUNG 2b clause 3: a failed ledger write (LedgerWriteError) refuses
+        # BY NAME -- the nonce was not remembered, so the decision is not
+        # admitted (a nonce is never spent silently).
+        try:
+            fr = _rings.freshness_refusal(
+                fields,
+                max_age_s=_rings._effective_max_age_s(ring),
+                seen=seen, remember=remember_fn if remember else None)
+        except _rings.LedgerWriteError as le:
+            return (f"round {ring_name!r} refused: {le}")
         if fr:
             return (f"round {ring_name!r} refused: freshness {fr}")
         return None
