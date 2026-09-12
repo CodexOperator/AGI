@@ -1,0 +1,99 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-12T17:54:26.408777Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sensei-director",
+      "windows": [
+        "master-sensei",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "sensei-director.gen14",
+        "belam-S1-L4-XVI",
+        "belam-S1-L4-XII",
+        "sensei-director",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 13,
+      "after": 14
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 9147191,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sensei-director.gen14",
+      "windows": [
+        "master-sensei",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "sensei-director.gen14",
+        "belam-S1-L4-XVI",
+        "belam-S1-L4-XII",
+        "sensei-director",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sensei-director.gen14",
+      "id": "@328"
+    },
+    "successor_window": {
+      "name": "sensei-director",
+      "id": "@330"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@330",
+      "pid": 593102,
+      "session_id": "51051ef4-2f99-4e21-8651-3b487ca54470",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/51051ef4-2f99-4e21-8651-3b487ca54470.jsonl",
+      "name": "post-sensei-director-46",
+      "path": "/home/ubuntu/.claude/sessions/593102.json",
+      "note": "joined by @330 in registry file 593102.json"
+    },
+    "successor_row": "config:seats row 'sensei-director': session_ref= session_id=51051ef4-2f99-4e21-8651-3b487ca54470 pid=593102 generation=14 window='@330' source=registry pubkey=1c4281606274d460... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha a3652da79) -- own-row only: sensei-director spawn row: gen 14, session_id 51051ef4-2f99-4e21-8651-3b487ca54470, window @330, pid 593102\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen14.json",
+    "own_authority_released": "generation 13 of seat 'sensei-director' retired; successor generation 14 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/posts/sensei-director",
+    "livestream_repoint": {
+      "session": "view-sensei-director",
+      "target": "@330",
+      "skipped": "view session view-sensei-director absent"
+    },
+    "model_confirm": "skipped: skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort \u2014 no captive after_join performer (reaper unit off and agent_dispatch.inline_reaper=false)",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.json"
+  },
+  "swept_latches": []
+}

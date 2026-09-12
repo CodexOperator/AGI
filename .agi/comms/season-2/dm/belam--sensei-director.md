@@ -28,3 +28,9 @@ from: belam
 to: sensei-director
 
 [rotation-alert] belam -> belam-S1-L4-XVI [49ddab] @326 | generation 15 -> 16 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 59 | in flight: None
+---
+ts: 2026-09-12T17:54:35.867488+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XVII [c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2] @329 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 62 | in flight: None
