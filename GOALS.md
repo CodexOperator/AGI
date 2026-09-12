@@ -9562,6 +9562,8 @@ SL7.97 brief 18:56Z (TEST-ONLY, Prime XVII 18:48Z test-only line): hypothesis:l4
 
 SL7.90 HARVESTED 19:05Z on the sensei-director post: the closeout captive-step list is chosen by SEAT KIND — PRIME_CLOSEOUT_STEPS (g17_1_note, render, push), MAIN_POST_CLOSEOUT_STEPS (pathspec_commit, push), the worktree list otherwise; template closeout.steps still wins; worktree=None keeps the legacy list, an explicit '' is a MAIN post; kid proved 0.9, +tests in test_rotate_closeout_steps.py; nbhd 530/3. Closes the SL7.84 near miss; SL7.92 (real runners merge-up in MAIN) dispatched next
 
+SL7.95 HARVESTED 19:20Z on the sensei-director post: sensei.py calls prints one row per call (whitespace runs collapsed before the cut), names non-Bash tool inputs via _display_cmd (command / file_path / pattern / path / notebook_path / to + message head / compact json; '-' when empty) and never prints a user-turn boundary past --to; Bash-only rendering byte-identical; kid proved 0.95, +5 tests; send nbhd green. Rides SL2#26
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
