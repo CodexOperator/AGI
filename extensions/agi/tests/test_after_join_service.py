@@ -2557,3 +2557,211 @@ def test_production_default_nudge_kept_on_typing_refusal(tmp_path, monkeypatch):
     assert len(typed) == 1, "the refusing production typing seam WAS consulted"
     assert sent and sent[0][4] is True, \
         "the REAL send.send keeps nudge=True when typing refused: %r" % sent
+
+
+# ── hypothesis:l4-a-no-window-started-record-waits-the-promised-delay-... ──
+# goal:g15.25 FIX-ONLY : the residue gates bundled (a)+(f).
+#   (1) a started record with NO window @id is NOT performed at delay 0: it
+#       waits the promised after_join_delay_s AND the after_join_max_wait_s
+#       bound, then performs with the join-dependent entries refused by name —
+#       ONE code path for both record shapes (a windowed rejoin-failed record
+#       and a no-window record both land on `joined.found == False`).
+#   (2) the own tail RE-CLAIMS a stale claim exactly as the watch does: the
+#       step-(6.4) double-perform guard is STALE-AWARE (one `_claim_is_stale`
+#       helper both call), so a dead claim is not a permanent perform-skip.
+#   (3) the dead-seat marker write is a rewrite of a COMMITTED record — it
+#       goes through `_commit_after_join_record` with a `dead-seat` label, so
+#       MAIN never reads `M` on the marker.
+
+def test_no_window_record_waits_delay_not_performed(tmp_path, monkeypatch):
+    """(a) FALSIFIER: a started record with NO window @id and an age within
+    `after_join_delay_s` is NOT performed (no run, no dm) — it WAITS the
+    promised delay exactly as the windowed path does, never delay 0."""
+    import agi.bin.rotate as rot
+    from datetime import datetime, timezone, timedelta
+    now_rec = (datetime.now(timezone.utc) - timedelta(seconds=5))\
+        .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    rec_path = tmp_path / "w.20260912T08000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "w", "result": "success",
+        "gen_after": 2, "recorded_at": now_rec,
+        "handover": {"join": {}}}),  # NO window_id
+        encoding="utf-8")
+    tmpl = {"startup": _startup(
+        after_join=[{"label": "a", "cmd": "echo {pid}"}],
+        delay_s=1000, max_wait=600)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {"found": False})
+    called = []
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: called.append(1) or {})
+    out = rot.run_after_join_for_seat(Path(tmp_path), "w",
+                                      sleep_impl=lambda s: None)
+    assert called == [], "age < delay -> a no-window record is NOT performed"
+    assert out is None, f"no-window record waits the promised delay: {out}"
+
+
+def test_no_window_record_past_wait_performs_with_named_refusals(
+        tmp_path, monkeypatch):
+    """(b) FALSIFIER: past `after_join_max_wait_s`, a started record with NO
+    window @id is performed EXACTLY ONCE with every join-dependent entry
+    refused BY NAME ('join unresolved after <n>s') — the SAME gate as the
+    windowed record, never a delay-0 fresh perform on an empty transcript."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="j-nowin",
+                              window_id="")  # 2020 -> past the bound
+    tmpl = {"startup": _startup(after_join=[
+        {"label": "pid-dep", "cmd": "echo {pid}"},
+        {"label": "plain", "cmd": "echo ok"}], delay_s=0, max_wait=10)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {"found": False})
+    _fake_run(monkeypatch)
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "j-nowin", sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None)
+    data = json.loads(rec_path.read_text())
+    by_label = {r["label"]: r for r in data["after_join"]["results"]}
+    assert by_label["pid-dep"].get("refused", ""), by_label
+    assert "join unresolved after" in by_label["pid-dep"]["refused"], by_label
+    assert by_label["plain"].get("refused", "") == "", by_label
+    # already performed -> a second pass is a no-op (no re-perform)
+    called = []
+    real = rot.run_after_join
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: called.append(1) or {})
+    out2 = rot.run_after_join_for_seat(Path(tmp_path), "j-nowin")
+    assert called == [], "already performed -> not re-performed"
+    assert out2 is None, out2
+
+
+def test_tail_reclaims_stale_claim_with_own_identity(tmp_path, monkeypatch,
+                                                     capsys):
+    """(c) FALSIFIER (claim 2): the tail's step-(6.4) double-perform guard is
+    STALE-AWARE — a STALE claim (claimed long ago, no results) is NOT
+    'performed', so the tail falls through and RE-CLAIMS it through the SAME
+    `_claim_is_stale` helper the watch uses, its OWN identity on the re-claim.
+    A LIVE (fresh) claim still defers; a completed run still guards."""
+    rec_path = _rotation_record(tmp_path, "tail-stale")
+    rec = json.loads(rec_path.read_text())
+    rec["after_join"] = {"claimed_at": "2020-01-01T00:00:00Z",
+                         "performer": "watch", "claim_key": "old"}
+    rec_path.write_text(json.dumps(rec), encoding="utf-8")
+    # with the stale bound, the tail may re-claim; without it, still defers.
+    assert not rotate._after_join_already_performed(
+        str(rec_path), stale_s=300), "stale claim -> tail re-claims (not performed)"
+    assert rotate._after_join_already_performed(
+        str(rec_path)), "default guard (no stale_s) still defers the tail"
+    # a LIVE claim still defers the tail (the watch is mid-flight, not dead).
+    live_path = _rotation_record(tmp_path, "tail-live")
+    lv = json.loads(live_path.read_text())
+    lv["after_join"] = {"claimed_at": datetime.now(timezone.utc).isoformat(),
+                        "performer": "watch", "claim_key": "new"}
+    live_path.write_text(json.dumps(lv), encoding="utf-8")
+    assert rotate._after_join_already_performed(str(live_path), stale_s=300)
+    # the tail re-claims through run_after_join and PERFORMS, its own identity
+    ran, sends = [], []
+    real = rotate._run_units_no_shell
+    rotate._run_units_no_shell = lambda *a, **kw: (ran.append(1) or 0, "x")
+    try:
+        out = rotate.run_after_join(
+            Path(tmp_path), seat="tail-stale", gen=1,
+            startup=_startup(after_join=[
+                {"label": "x", "cmd": "echo {seat}"}], delay_s=0),
+            values=VALUES, record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, performer="tail",
+            send_dm=lambda to, text: sends.append(to))
+    finally:
+        rotate._run_units_no_shell = real
+    err = capsys.readouterr().err
+    assert not out.get("deferred"), f"a stale claim must NOT defer: {out}"
+    assert ran == [1], f"stale claim -> re-claiming tail RUNS: {ran}"
+    assert "after_join claim stale for tail-stale" in err, err
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert "results" in aj, "the stale claim was re-claimed AND performed"
+    assert aj.get("performer") == "tail", f"the tail's OWN claim: {aj}"
+
+
+def test_dead_seat_marker_committed_by_pathspec(tmp_path, monkeypatch):
+    """(d) FALSIFIER (claim 3): the late dead-seat `after_join {skipped}` marker
+    is a REWRITE of a COMMITTED record — it goes through the pathspec commit
+    with a 'dead-seat' label, so MAIN reads the marker COMMITTED-CLEAN and the
+    marker commit appears in git log. (gitless fixtures stay SKIPPED, harmless.)"""
+    repo, record = _make_git_repo(tmp_path)
+    rec = json.loads(record.read_text())
+    rec["recorded_at"] = "2020-01-01T00:00:00.000000Z"  # old -> late
+    record.write_text(json.dumps(rec), encoding="utf-8")
+    tmpl = {"startup": _startup(after_join=[{"label": "a", "cmd": "echo x"}],
+                                delay_s=0, max_age=10)}
+    monkeypatch.setattr(rotate, "_resolve_template",
+                        lambda root, role, explicit=None, **kw:
+                            (tmpl, "parent", "test"))
+    # _find_seat reads no seats file -> a DEAD row; past its age budget the
+    # late dead-seat marker fires and must be COMMITTED by pathspec.
+    rotate.run_after_join_for_seat(
+        repo / ".agi", "s", sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None)
+    data = json.loads(record.read_text())
+    assert data["after_join"]["skipped"] == "no live session", data
+    assert data["after_join"]["age_s"] is not None, data["after_join"]
+    log = subprocess.run(["git", "-C", str(repo), "log", "--format=%s"],
+                         capture_output=True, text=True).stdout.splitlines()
+    assert any("dead-seat" in l for l in log), log
+    st = subprocess.run(
+        ["git", "-C", str(repo), "status", "--porcelain", "--",
+         ".agi/sessions/rotations/"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", f"dead-seat marker must be committed-clean: {st}"
+
+
+def test_watch_performed_then_tail_guard_skips_second(tmp_path, monkeypatch):
+    """(e) FALSIFIER: watch + tail on the SAME record -> ONE perform. After the
+    watch performs (writes `after_join.results`), the tail's step-(6.4) guard
+    reads the completed record as performed — a second run_after_join_for_seat
+    is a no-op (no re-perform, no re-dm)."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="wt", recorded_at="2020-01-01T00:00:00Z")
+    tmpl = {"startup": _startup(after_join=[
+        {"label": "a", "cmd": "echo once"}], delay_s=0, max_wait=10)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw:
+                            (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {"found": True})
+    _fake_run(monkeypatch)
+    out = rot.run_after_join_for_seat(Path(tmp_path), "wt",
+                                      sleep_impl=lambda s: None,
+                                      send_dm=lambda to, text: None)
+    assert out and out.get("appended") is True, out
+    data = json.loads(rec_path.read_text())
+    assert "results" in data["after_join"], data["after_join"]
+    # the TAIL's guard sees the completed record as performed -> skips.
+    assert rot._after_join_already_performed(str(rec_path), stale_s=300)
+    # a second pass is a no-op: no re-run reaches run_after_join.
+    called = []
+    real = rot.run_after_join
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: called.append(1) or {})
+    out2 = rot.run_after_join_for_seat(Path(tmp_path), "wt")
+    assert called == [], "watch-performed record -> tail does NOT re-perform"
+    assert out2 is None, out2
