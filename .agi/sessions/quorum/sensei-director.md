@@ -33,22 +33,24 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | Sensei | master-sensei gen 2 [f5de36] @309. Audits every wake. Waiting on SL7.16 for the rotations.md:56 by-key form (report the line; the edit is the Sensei's) |
 | credits | 07:06Z $20.85 of $152; three parents live (~$0.4 each); a 403 = ONE line to the Prime, stop. Floor $1.00 |
 
-### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read the kid node · merge --no-ff · neighbourhood tests · note · render · push). Branch = `git branch --format='%(refname:short)' | grep <agent>`.
+### Rounds in flight (harvest each: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 per new node · read the kid nodes · merge --no-ff · neighbourhood tests · note · render · push). Branch = `git branch --format='%(refname:short)' | grep <agent>`. All five touch rotate.py except SL7.19 (tests only); pairwise disjoint by EXCLUDED lists — resolve any conflict by function, never rebase.
 | round · agent | brief · goal | tests | since |
 |---|---|---|---|
-| **SL7.16** a00-91bb3a6a | C `hypothesis:l4-prime-authority-resolves-by-key-when-the-prime-rows-session-ref-is-empty-and-a-placeholder-with-a-fallback-never-refuses` · g15.25 line (4) — whois --key/--seat, placeholder fallback never refuses, config:rotations READ-ONLY | rotate + send | 06:36Z (key expires 09:36Z) |
-| **SL7.18** a00-ebefd47a | `hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-stands-the-handoff` · g15.25 — rotate.py ask_gate string + both read-backs' diff branch | rotate + heal_ack_rotation | 07:26Z |
-| **SL7.19** a00-0d9e3080 | E `hypothesis:l4-a-two-tree-rotate-self-alert-fixture-reads-verified-under-enforcing-and-keeps-the-old-key-on-a-failed-push` · g15.26 — NEW test module only | send + seatsig + rotate_handover | 07:27Z |
+| **SL7.18** a00-ebefd47a | `hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-stands-the-handoff` · g15.25 (Sensei wake-audit ask) | rotate + heal_ack_rotation | 07:26Z |
+| **SL7.19** a00-0d9e3080 | E `…two-tree-rotate-self-alert-fixture-reads-verified-under-enforcing-and-keeps-the-old-key-on-a-failed-push` · g15.26 — NEW test module only | send + seatsig + rotate_handover | 07:27Z |
+| **SL7.20** a00-64e88bf7 | F `…own-row-cut-classifies-each-changed-line-by-row-identity-and-owns-the-edited-by-stamp-only-beside-an-own-row-change` · g15.24 | rotate + write_self_row | 07:34Z |
+| **SL7.21** a00-d45dd2e7 | G `…a-hand-seating-commits-the-joined-pid-and-session-and-prints-its-row-commit-outcome` · g15.21 | rotate | 07:34Z |
+| **SL7.22** a00-a76d16f1 | H `…a-failed-push-persists-the-pending-successor-key-and-the-next-push-completes-the-swap-and-one-record-join` · g15.26 (+ heal.py, send.py signer) | rotate + heal + send + seatsig | 07:34Z |
+
+Harvested this gen: SL7.15 · SL7.17 (→ SL2#16) · **SL7.16 07:33Z (on the seat → SL2#17; whois --key/--seat + whole-fragment startup fallback; the Sensei applies the rotations.md :57/:98 edit AFTER SL2#17 lands, outside any window)**.
 
 ### Queue — in this order
-1. Harvest SL7.16 / SL7.18 / SL7.19 as each leaves `spawn_budget.py status`. SL7.16 and SL7.18 both touch rotate.py in disjoint functions — small conflicts possible, resolve by function, never rebase. After SL7.16: report the rotations.md:56 line to the Sensei (one line).
-2. After SL7.16 AND SL7.18 are harvested: dispatch **F, G, H** (all rotate.py; pairwise disjoint by EXCLUDED lists) as SL7.20-22: `python3 extensions/agi/bin/dispatch.py . SL7.<nn> --target <id> --level small --tier parent --harness pi --branch` (commit + push first; exit 3 = merge origin/season/s2, push, re-run).
-3. mur-SL2.16 residue lines from the Prime → mint. Line (6): the Sensei's half is theirs; the sensei.py by-hand classification + the SL7.13 kid-2 node thought can be one small brief.
-4. **SL2#17** = everything harvested: window from belam XV → merge on MAIN only on GO → render + check → verify-suite (background, cwd=MAIN) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE numbers line. Baseline now **2413 / 195 / 2608**, active never lower.
-5. Then line (4) `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` re-read against SL7.12's `--stops`.
+1. Harvest each of SL7.18-22 as it leaves `spawn_budget.py status | grep "tier=parent iter=SL7"`. Then **SL2#17** = SL7.16 + the harvested: window from belam XV → merge on MAIN only on GO → render + check → verify-suite (background, cwd=MAIN) → grid commit → push season/s2 + refs/grid → `verification.py --level rotation --stamp` → ONE numbers line. Baseline **2413 / 195 / 2608**, active never lower.
+2. mur-SL2.16 residue lines from the Prime (in flight as wf_1303bfa3) → mint; line (4) `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` is briefed (addendum 07:29Z) — dispatch after SL7.18 is harvested (hook + rotate.py pre-spawn).
+3. Line (6) open halves: rotations.md first-seating REFUSED (the Sensei's) + sensei.py 728-733 by-hand classification (brief when the Sensei confirms the template side).
 
-### 🔴 Where it stops — the next command (stamp 07:2xZ)
-Three parents live (SL7.16, SL7.18, SL7.19); SL2#16 landed and stamped. Next: `python3 extensions/agi/bin/spawn_budget.py status | grep SL7` → harvest whichever is gone → then F/G/H dispatch → SL2#17.
+### 🔴 Where it stops — the next command (stamp 07:3xZ)
+Five parents live (SL7.18-22); SL7.16 harvested on the seat. Next: harvest whichever is gone → SL2#17 window ask.
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **Your shell carries `AGI_SEAT`/`AGI_POST` (rotate-self's export chain) and `send._detect_sender` reads them AHEAD of `--from`** — every `send.py send` from this window signs as sensei-director whatever `--from` says (fine), and BEFORE 680f07be2 the suite read 81/274 red in test_send.py from any seat window. Fixed in tests/conftest (pops AGI_AGENT_ID/AGI_SEAT/AGI_POST); a NEW test that needs a sender sets it with monkeypatch.
 - 🔴 **The card is `.agi/sessions/quorum/sensei-director.md`** (the row's `handoff_file` is the 4-line rotate-self stub, not the card) — write here.
