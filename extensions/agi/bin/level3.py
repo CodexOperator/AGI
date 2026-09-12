@@ -173,6 +173,21 @@ DEFAULT_ENGINE_ROOT = BIN_DIR.parents[2]
 PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
 
 
+def resolve_project_root(path: Path) -> Path | None:
+    """Resolve a `--project` value to the GRAPH ROOT, or None when it resolves
+    to no graph at all (goal:g15, hypothesis:l4-stitch-and-level3-project-
+    resolve-the-graph-root-or-refuse-by-name-and-verify-prints-its-count).
+    Never a literal `<p>/nodes`: accepts the path itself when it holds
+    `nodes/` directly (legacy), else the nearest enclosing `.agi/` via
+    `locations` (the one resolver), else None for the caller to refuse
+    by name rather than scan an empty tree as authoritative.
+    """
+    p = Path(path).resolve()
+    if (p / "nodes").is_dir():
+        return p
+    return locations.find_project_root(p)
+
+
 def _set_project_root(path: Path) -> None:
     global PROJECT_ROOT
     PROJECT_ROOT = Path(path).resolve()
@@ -1151,7 +1166,13 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.project:
-        _set_project_root(Path(args.project))
+        resolved = resolve_project_root(args.project)
+        if resolved is None:
+            print(f"ERR: no graph root at or above "
+                  f"{Path(args.project).resolve()}"
+                  f" (no .agi/ and no nodes/)", file=sys.stderr)
+            return 2
+        _set_project_root(resolved)
     project_root = PROJECT_ROOT
     engine_root = Path(args.engine_root).resolve() if args.engine_root else DEFAULT_ENGINE_ROOT
 

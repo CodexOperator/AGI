@@ -1044,3 +1044,21 @@ def test_mint_missing_only_dry_run_writes_nothing_and_reports_zero(project, engi
     assert r.returncode == 0
     assert "nothing to mint" in r.stdout
     assert _tot_build_nodes(project) == before
+
+
+def test_refuses_a_rootless_project_path_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-stitch-and-level3-project-resolve-the-graph-
+    root-or-refuse-by-name-and-verify-prints-its-count — a `--project` path
+    that resolves to no graph root (no `.agi/` at or above, no `nodes/` at
+    the path) is REFUSED by name, exit 2 — never scanned as an empty tree
+    that then prunes authoritative scope."""
+    nowhere = tmp_path / "nowhere"
+    nowhere.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    r = run(nowhere, engine, "--dry-run")
+    assert r.returncode == 2
+    assert f"no graph root at or above {nowhere}" in r.stderr
+    assert "no .agi/ and no nodes/" in r.stderr

@@ -155,6 +155,8 @@ import yaml
 from frontmatter import split_frontmatter
 
 BIN_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BIN_DIR))
+import locations  # noqa: E402
 PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
 # Same convention as level3.py / decompose-engine.py: this script lives at
 # <engine repo root>/extensions/agi/bin/stitch.py, so three levels up is the
@@ -817,6 +819,7 @@ def print_verify_report(report: dict) -> None:
     print(f"  engine root: {report['engine_root']} "
           f"({'ok' if report['engine_readable'] else 'UNREADABLE'})")
     print(f"  level-3 nodes: {report['nodes_total']}")
+    print(f"  verified {report['nodes_total']} build node(s)")
     if report["scope_files_total"] is not None:
         print(f"  in-scope engine files: {report['scope_files_total']}")
     for w in report["warnings"]:
@@ -891,6 +894,26 @@ def print_materialize_report(stats: dict) -> None:
 # --- main ------------------------------------------------------------------
 
 
+def resolve_project_root(path: str | Path) -> Path | None:
+    """Resolve `--project` to the GRAPH ROOT, or None when it resolves to no
+    graph at all (goal:g15, hypothesis:l4-stitch-and-level3-project-resolve-
+    the-graph-root-or-refuse-by-name-and-verify-prints-its-count).
+
+    Never a literal `<p>/nodes`. Two cases resolve:
+      1. the path ITSELF is a graph root holding `nodes/` directly (legacy
+         layout: `<p>/nodes/level3`, `<p>/nodes/build`);
+      2. nearest enclosing `.agi/` (G11 layout) found by `locations`
+         (the one resolver; `bin/locations.py`).
+    Anything else — no `.agi/` at or above, no `nodes/` at the path — is
+    None, and the caller refuses it by name rather than silently counting
+    zero build nodes.
+    """
+    p = Path(path).resolve()
+    if (p / "nodes").is_dir():
+        return p
+    return locations.find_project_root(p)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Materialize level-3 nodes into a directory tree, or "
@@ -932,7 +955,11 @@ def main(argv: list[str] | None = None) -> int:
                      help="with --verify, exit 1 if any drift is found")
     args = ap.parse_args(argv)
 
-    project_root = Path(args.project).resolve()
+    project_root = resolve_project_root(args.project)
+    if project_root is None:
+        print(f"ERR: no graph root at or above {Path(args.project).resolve()}"
+              f" (no .agi/ and no nodes/)", file=sys.stderr)
+        return 2
     engine_root = Path(args.engine_root).resolve() if args.engine_root else DEFAULT_ENGINE_ROOT
 
     if args.grid_version is not None and not args.from_grid:
