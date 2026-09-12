@@ -206,7 +206,11 @@ def test_prepare_card_check_reads_the_last_work_commit_only(
     os.utime(card, (1000000000, 1000000000))   # long before any commit
     spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
             ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
-            ":(exclude)sessions/quorum/adv-alive.md")
+            ":(exclude)sessions/quorum/adv-alive.md",
+            # goal:g15.25 — the rotate-out stop commit may touch the seat
+            # row (seats.md/posts.md) *and* the card and is NOT work; the
+            # captives exclude that bookkeeping path too.
+            ":(exclude)nodes/.geometry/posts.md")
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
