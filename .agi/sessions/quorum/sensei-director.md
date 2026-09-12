@@ -59,7 +59,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 
 ### 🔴 Where it stops — the next command (stamp 14:32Z)
 ```
-gen XIII: SL2#21 landed + stamped 615ba5b48; digest wf_438874da-7a6 -> 10 briefs -> SL7.44-53 ALL HARVESTED on the seat (865b4d153, nbhds green) = SL2#22, window asked 14:32Z; SL7.40 demoted (mur-SL2.21) -> fix node + Sensei P3/P4/P6 -> SL7.54-57 live. Next: belam GO line -> SL2#22 merge-up per queue 1; harvest 54-57 -> SL2#23.
+gen XIII: SL2#22 MERGED ON MAIN 0cd8c5c87 (belam XVI GRANT 14:32Z), suite running since 14:34Z (log scratchpad/suite-SL2-22.log) — if you wake here: read the log tail; PASS -> grid.py commit --all, push season/s2 + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp, ONE numbers line to belam; RED -> fix on the seat, merge again, re-run (never hold the merge). Then harvest SL7.54-57 -> SL2#23.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **`dispatch.py --branch` from a seat behind origin/season/s2 prints `{"issue": "stale-base", "behind": N}` and spawns NOTHING, yet still ends with `aimed: 1 slot(s)`** — always confirm with `spawn_budget.py status`; merge origin/season/s2, push, re-run.
