@@ -5675,3 +5675,158 @@ def test_clause3_seat_absent_from_committed_reads_unverifiable(
     assert "UNVERIFIABLE seat-a (row not on origin yet)" in out, out
     assert "FORGED" not in out, out
     assert "REFUSED" not in out, out
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel-and-an-
+# empty-pushed-set-reads-none
+#
+# Clause (1): `_seats_committed_rows` was F1-DEAD for a reader inside a linked
+# worktree: it ran `git rev-parse --show-toplevel` at the CALLER's root, so a
+# worktree reader got the WORKTREE toplevel and `Path.relative_to` then failed
+# against MAIN's seats path, returning [] and never firing the per-seat MAIN-
+# committed fallback. The fix resolves git at MAIN's graph root
+# (`_shared_graph_root` -> its git toplevel) and reads the blob with
+# `git -C <toplevel> show HEAD:<rel>`. Clause (2): an EMPTY pushed row set
+# returns None, never the dirty working copy (pre-F1 behaviour restored).
+# These use REAL git fixtures (bare remote optional) with tmux faked, so
+# nothing touches a live tmux session.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def test_worktree_reader_falls_back_to_main_committed(
+        tmp_path, monkeypatch, capsys):
+    """CLAUSE (1) FALSIFIER, committed two-tree REAL git fixture: MAIN's HEAD
+    carries a KEYED seat-a, the PUSHED (pre-push) row is still UNKEYED, and
+    the READER runs from a LINKED WORKTREE (the `--branch` kid). The
+    worktree reader must still reach MAIN's committed row and verify the sig
+    `VERIFIED seat-a (ed25519, main-committed)` -- never UNKEYED, which is
+    what an empty `_seats_committed_rows` (the worktree bug) produced."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv_a, pub_a = scheme.keygen()
+    main = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub_a.hex()}],
+        branch="season/s2")
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "season/s2"],
+                   check=True, capture_output=True)
+    # origin's pushed row is UNKEYED -- the pre-push authority.
+    _stub_seat_rows(monkeypatch, [{"name": "seat-a"}])
+    # sign under MAIN's committed key; the sender and the shared seats dir both
+    # live in MAIN's checkout, read through the worktree root.
+    _seat_key_write(main, "seat-a", priv_a.hex())
+    send_mod.send(wt, "recv", "hello", "seat-a")
+    capsys.readouterr()                      # drain send stdout
+    send_mod.read(wt, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, main-committed)" in out, out
+    assert "UNKEYED" not in out, out
+    assert "FORGED" not in out, out
+
+
+def test_worktree_reader_committed_lookup_targets_main_not_worktree(
+        tmp_path, monkeypatch):
+    """CLAUSE (1) unit probe at the fallback seam: from a LINKED WORKTREE
+    reader root, `_seats_committed_rows` must resolve MAIN's committed seats
+    path AND run git at MAIN's graph root -- so the relative path lands in
+    MAIN's tree, never the worktree's (whose own seats.md, if any, is a fork
+    the reader must not treat as the committed authority)."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    main = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub.hex()}],
+        branch="season/s2")
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add",
+                    "-b", "loop/x@s2", str(wt), "season/s2"],
+                   check=True, capture_output=True)
+    committed = send_mod._seats_committed_rows(wt)
+    assert len(committed) == 1 and committed[0]["name"] == "seat-a", committed
+    assert committed[0].get("pubkey") == pub.hex(), (
+        "the MAIN-committed key must be read from the worktree reader, "
+        "not [] (the worktree bug) and not a worktree-forked row")
+
+
+def test_empty_pushed_set_reads_none_never_dirty_copy(
+        tmp_path, monkeypatch):
+    """CLAUSE (2): an EMPTY pushed row set (a real, reachable authority with
+    no rows) must make `_load_rows` return None -- never fall back to the
+    DIRTY working copy. Here the working tree DOES carry a keyed row, so a
+    wrong fallback would visibly return it; the assertion pins returning None
+    exactly as before F1, so a reader labels any sig FORGED rather than
+    guessing against an uncommitted local file."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv, pub = scheme.keygen()
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": pub.hex()}],
+        branch="season/s2")
+    # the pushed authority is reachable but EMPTY; the dirty working copy
+    # (the committed row is present on disk) must NOT be read.
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda r, ref, do_fetch: ([], "deadbeef"))
+    assert send_mod._locally_loaded_rows(root), (
+        "fixture sanity: the working copy DOES hold rows, so a wrong "
+        "fallback would find them")
+    assert send_mod._load_rows(root) is None
+
+
+def test_keygen_all_live_commit_names_every_keyed_seat_and_stages_seats_only(
+        tmp_path, monkeypatch, capsys):
+    """CLAUSE (2)/(4b): --all-live's ONE own-row commit message names EVERY
+    seat it keyed (`keygen --all-live: keyed s1, s2`) and stages seats.md
+    ONLY (never `git add -A`), then pushes -- so a keygen --all-live never
+    sweeps another writer's uncommitted work into its commit, and the
+    operator can see at a glance every row a single pass keyed."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(
+        tmp_path,
+        [{"name": "s1", "role": "director", "pid": 111},
+         {"name": "s2", "role": "director", "session_id": "abc"}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    capsys.readouterr()
+    out = send_mod.keygen(root, all_live=True, actor="belam",
+                          role="prime_director")
+    assert out is not None and len(out) == 2, out
+    capsys.readouterr()                      # drain keygen stdout/stderr
+
+    # (a) the ONE commit's subject names every seat it keyed, in key order.
+    subj = subprocess.run(
+        ["git", "-C", str(root), "log", "-1", "--format=%s"],
+        capture_output=True, text=True)
+    assert subj.stdout.strip() == "keygen --all-live: keyed s1, s2", \
+        subj.stdout
+
+    # (b) that commit staged seats.md ONLY -- no `.key` files, no other tree.
+    files = subprocess.run(
+        ["git", "-C", str(root), "diff-tree", "--no-commit-id",
+         "--name-only", "-r", "-z", "HEAD"],
+        capture_output=True, text=True)
+    changed = [p for p in files.stdout.split("\0") if p]
+    assert len(changed) == 1, changed
+    assert changed[0].endswith(".geometry/seats.md"), changed
+
+    # (c) origin's season/s2 row now carries both pubkeys (the push leg ran).
+    shown = subprocess.run(
+        ["git", "-C", str(root), "show",
+         "origin/season/s2:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True)
+    assert "pubkey" in shown.stdout and "s1" in shown.stdout, shown.stdout
+    assert "s2" in shown.stdout and "session_id" in shown.stdout, shown.stdout
+
+    # (d) MAIN's working tree is left clean across the whole --all-live pass.
+    st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
+                        capture_output=True, text=True)
+    assert st.stdout.strip() == "", st.stdout
