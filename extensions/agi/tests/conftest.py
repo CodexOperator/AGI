@@ -473,3 +473,50 @@ def _suite_lock_guard():
                 lock_path.unlink()
             except OSError:
                 pass
+
+# --- real-judge (ModelJudge) opt-in gate (goal:g15, hypothesis:l4-real-judge-
+# tests-run-only-under-one-explicit-opt-in-env-flag-default-off-a-key-alone-
+# spends-nothing). Shared by test_stream_master_semantic_screen.py and
+# test_stream_master_blind_measure_v2.py -- ONE name, ONE helper, never two
+# spellings. A present OPENROUTER_API_KEY alone spends nothing: the suite is
+# fixture-only unless AGI_REAL_JUDGE=1 is set AND a key is present.
+
+REAL_JUDGE_FLAG = "AGI_REAL_JUDGE"
+
+
+def real_judge_skip():
+    """Return the skip reason if the real ModelJudge should NOT run, else None.
+
+    The real (paid, network) stream-master ModelJudge runs only under one
+    explicit opt-in env flag, AGI_REAL_JUDGE=1, AND a present
+    OPENROUTER_API_KEY. A key alone, or the flag alone, still spends nothing.
+    """
+    if os.environ.get(REAL_JUDGE_FLAG) != "1":
+        return (f"{REAL_JUDGE_FLAG} not set; the real semantic measurement is "
+                "opt-in and OFF by default (set AGI_REAL_JUDGE=1 to run it)")
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        return ("ModelJudge has no OPENROUTER_API_KEY; real semantic "
+                "measurement unavailable in this environment")
+    return None
+
+
+@pytest.fixture
+def _no_pin_socket(monkeypatch):
+    """hypothesis:l4-test-only-the-real-judge... (e) -- raise on ANY socket
+    low-level open, proving a --pin test opens no network connection whether
+    it reaches `rotate._openrouter_get` via `urllib.request.urlopen` or any
+    other path. A test that genuinely opens a socket under this guard fails
+    loudly instead of silently spending -- that is the proof, not the tests'
+    own higher-level stubs. Applied to the spend-status / --pin tests in
+    test_rotate.py.
+    """
+    import socket
+
+    def _refuse(*_a, **_k):
+        raise RuntimeError(
+            "a socket was opened during a --pin test; spend-status must be "
+            "stubbed, never reach the network (hypothesis:l4-test-only-the-"
+            "real-judge-opt-in...)")
+
+    monkeypatch.setattr(socket, "socket", _refuse)
+    monkeypatch.setattr(socket, "create_connection", _refuse)

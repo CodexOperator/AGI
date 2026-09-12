@@ -324,18 +324,24 @@ def _canonical_pin(root: Path, seat: str) -> Path | None:
     naive join emits a command that writes a pin no later `--seat` read will
     ever find.
 
-    We ASK `rotate` rather than reimplement it — a sixth private copy of a
-    path rule is how this project keeps paying for the same defect — and if
-    rotate cannot be imported we return None so the caller emits the
-    seat-less command instead. **Never guess a pin path**: guessing which pin
-    is yours is the original defect of this entire chain
+    We ASK the ONE shared path rule — `locations.shared_sessions_dir`, the
+    resolver `rotate._sessions_dir` itself delegates to — rather than
+    reimplementing it (a private copy of a path rule is how this project keeps
+    paying for the same defect) and instead of importing the whole `rotate`
+    engine module: claim (4) — `import rotate` must NOT run on a pin-only
+    prompt. `rotate._sessions_dir` is a one-line delegate to
+    `locations.shared_sessions_dir`, so calling that resolver directly is
+    asking rotate's OWN answer, with zero divergence and without dragging in
+    the 11k-line rotate module on every prompt. If the resolver cannot be
+    imported we return None so the caller emits the seat-less command
+    instead. **Never guess a pin path**: guessing which pin is yours is the
+    original defect of this entire chain
     (hypothesis:l4-the-meter-adopts-a-pin-it-did-not-write).
     """
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
-        import rotate  # noqa: PLC0415 — deliberately lazy; the hook must not
-        #                  hard-depend on the engine being importable (P7).
-        return Path(rotate._sessions_dir(root)) / f"{seat}.meter"
+        import locations  # noqa: PLC0415 — deliberately lazy, like _main_root
+        return Path(locations.shared_sessions_dir(root)) / f"{seat}.meter"
     except Exception:
         return None
 
@@ -982,23 +988,29 @@ def main(argv: list[str] | None = None) -> int:
     session_id = payload.get("session_id")
     cwd = payload.get("cwd") or os.getcwd()
 
+    # ---- P7 FIRST: silent outside an agi project, whatever the payload ------
+    # goal:g15.25 line (7) / claim (1): the P7 outside-project check runs BEFORE
+    # the rc-3 no-transcript refusal. This hooks every session on the box, most
+    # of them outside an agi project, and P7 promises SILENT and exit 0 outside
+    # a project — so a bare payload outside a project must print NOTHING and
+    # exit 0, never a refusal. Only INSIDE a project does the rc-3 + stderr
+    # no-transcript-path fail-closed refusal keep its exact current shape.
+    root = _project_root(cwd)
+    if root is None:
+        return 0
+
     # Fail closed with a NAMED error if the field we depend on is missing
-    # (P2). Never emit a fraction we cannot trace to a handed transcript.
+    # (P2), and ONLY inside a project (P7 came first, above). Never emit a
+    # fraction we cannot trace to a handed transcript.
     if not (isinstance(transcript, str) and transcript.strip()):
         # D4: no transcript path — the meter reads the refusal reason (a real
-        # measurement is impossible), never a confident number. No project root
-        # is known yet, so the post label is the unresolved marker.
+        # measurement is impossible), never a confident number.
         print(_meter_refusal(_meter_seat_label(None), "no-transcript-path"))
         print('rotation-alert: fail-closed: payload has no "transcript_path"; '
               "refusing to guess a transcript. Emitting no rotation warning.",
               file=sys.stderr)
         return 3
     tp = Path(transcript)
-
-    # ---- P7: silent outside an agi project ----------------------------------
-    root = _project_root(cwd)
-    if root is None:
-        return 0
 
     # ---- P7: silent on an unreadable transcript -----------------------------
     if not tp.is_file():
@@ -1032,19 +1044,25 @@ def main(argv: list[str] | None = None) -> int:
     # (hypothesis:l4-a-seat-rotates-at-its-own-line).
     seat, threshold, threshold_source = _seat_line(root, cwd, ladder_default)
 
-    # D4 falsifier: a RESOLVED seat whose pin cannot be computed refuses the
-    # number — the [meter] line reads the reason, never a confident fraction
-    # (a missing pin must NOT print a fraction). An UNRESOLVED seat (None)
-    # still measures against the ladder line per D1 — the [meter] prints the
-    # resolved label, never invents one.
-    pin_missing = bool(seat) and (_canonical_pin(root, seat) is None)
+    # D4 falsifier (claim (2)): a seat with NO computable pin PATH refuses the
+    # number — the [meter] line reads the reason, never a confident fraction.
+    # pin_missing keys on PIN-PATH COMPUTABILITY, never on bool(seat) alone:
+    # root and seat both known AND the canonical pin absent means the pin is
+    # missing; so does NO post resolved at all — without a post there is no
+    # pin path to compute, and the hook must NOT print a fraction for an
+    # unresolved seat (a fraction printed with seat None is the FALSIFIER).
+    # `root` is non-None here (P7 returned already).
+    pin_missing = not seat or (_canonical_pin(root, seat) is None)
 
     def _meter(usedv: int, thresh: float, frac: float, label: str = "") -> None:
         """Append the ONE compact [meter] line as the LAST stdout line. D4: a
-        missing pin reads the refusal reason; otherwise a real/estimated
-        fraction (D1/D3)."""
+        missing pin (or no post at all) reads the refusal reason — `no-pin`
+        for a RESOLVED post whose pin cannot be computed, `no-post` when no
+        post resolved, never a decimal digit where a fraction would go. A
+        computable pin prints the real/estimated fraction (D1/D3)."""
         if pin_missing:
-            print(_meter_refusal(_meter_seat_label(seat), "no-pin"))
+            reason = "no-pin" if seat else "no-post"
+            print(_meter_refusal(_meter_seat_label(seat), reason))
         else:
             print(_meter_line(_meter_seat_label(seat), frac, usedv, window,
                               thresh, label=label))
@@ -1065,7 +1083,14 @@ def main(argv: list[str] | None = None) -> int:
             transcript_bytes = tp.stat().st_size
         except OSError:
             transcript_bytes = 0
-        est = int((len(raw) + transcript_bytes) / 4)
+        # claim (3): count the PROMPT FIELD, never the whole JSON envelope
+        # (raw). `raw` is the stdin payload the hook runner handed us — the
+        # entire envelope — so estimating from it overcounts every prompt by
+        # the envelope's constant; the PROMPT is the genuine new input a turn
+        # adds. A payload with a 20 KB envelope and a 10-char prompt estimates
+        # from the 10 chars.
+        prompt_chars = payload.get("prompt") or ""
+        est = int((len(prompt_chars) + transcript_bytes) / 4)
         _meter(est, threshold, est / window, label="est. ")
         return 0
 

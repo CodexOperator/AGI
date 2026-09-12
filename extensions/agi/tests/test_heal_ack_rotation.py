@@ -65,7 +65,7 @@ def _fix(tmp_path, monkeypatch):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, pid]}\n"
         "---\nbody\n", encoding="utf-8")
     return root
 

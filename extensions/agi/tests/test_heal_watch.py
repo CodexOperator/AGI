@@ -1358,3 +1358,189 @@ def test_heartbeat_lands_in_shared_room_across_worktrees(tmp_path, monkeypatch):
     # and the main-checkout reader finds it ALIVE
     assert rotate._watch_alive(wt_graph) is True, \
         "main-checkout rotation seat must read the worktree-rooted watch as ALIVE"
+
+
+# --- hypothesis:l4-the-heal-watch-re-execs-itself-when-the-engine-code-it-
+# runs-changes-and-every-after-join-result-carries-code-head ---
+# A long-lived reaper process caches rotate in sys.modules, so code changes
+# were dead in the process until a restart. The watch now re-reads a CODE
+# IDENTITY (engine HEAD sha7 + heal.py/rotate.py mtime+size) every pass and
+# re-execs itself on a clean-tree change (same pid). --once never execs. And
+# every after_join result carries `code_head` so a record names which bytes
+# performed it.
+
+
+def test_watch_once_prints_code_identity_exactly_once(graph_project,
+                                                     tmp_path, monkeypatch):
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    heal._watch(graph_project, once=True, poll_s=0)
+    log = reaper.read_text() if reaper.exists() else ""
+    lines = [ln for ln in log.splitlines() if "watch: code " in ln]
+    assert len(lines) == 1, \
+        f"identity must be printed exactly once; reaper:\n{log}"
+    assert "heal.py" in lines[0] and "rotate.py" in lines[0], lines[0]
+
+
+def test_watch_code_change_clean_tree_reexecs_once(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_reexec(argv):
+        calls.append(list(argv))
+
+    id_a = {"head": "aaaaaaa", "files": {}}
+    id_b = {"head": "bbbbbbb", "files": {}}
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: id_b)   # every read sees the NEW head
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec", fake_reexec)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    returned = heal._check_code_change(tmp_path, id_a, once=False)
+
+    assert len(calls) == 1, f"clean-tree HEAD change must re-exec once: {calls}"
+    assert calls[0] == sys.argv, \
+        "_reexec must be handed the real sys.argv so execv re-runs the watch"
+    assert returned == id_b
+    log = reaper.read_text()
+    assert "code changed aaaaaaa->bbbbbbb: re-exec" in log, log
+
+
+def test_watch_code_change_dirty_tree_waiting_no_reexec(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_reexec(argv):
+        calls.append(list(argv))
+
+    id_a = {"head": "aaaaaaa", "files": {}}
+    id_b = {"head": "bbbbbbb", "files": {}}
+    monkeypatch.setattr(heal, "_code_identity", lambda root: id_b)
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    monkeypatch.setattr(heal, "_reexec", fake_reexec)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    returned = heal._check_code_change(tmp_path, id_a, once=False)
+
+    assert calls == [], f"dirty tree must NEVER re-exec: {calls}"
+    assert returned == id_b
+    log = reaper.read_text()
+    assert "code changed aaaaaaa->bbbbbbb: waiting (dirty)" in log, log
+
+
+def test_watch_once_never_reexecs_on_identity_change(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_code_identity", lambda root: {"head": "z", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    heal._check_code_change(tmp_path, {"head": "a", "files": {}}, once=True)
+
+    assert calls == [], "--once must never re-exec: {calls}"
+
+
+def test_after_join_result_carries_code_head(monkeypatch, tmp_path):
+    """A performed after_join result is stamped `code_head` (the engine HEAD
+    sha7) by run_after_join_for_seat, so a record names which bytes ran it."""
+    import rotate  # noqa: E402
+    seat = "sensei-director"
+    rec_path = tmp_path / "rotation.json"
+    rec_path.write_text(json.dumps({"gen_after": 4, "seat": seat}), "utf-8")
+
+    monkeypatch.setattr(rotate, "_latest_rotate_record",
+                        lambda root, s: ({"gen_after": 4}, rec_path))
+    monkeypatch.setattr(rotate, "_prime_rows_fetch_clear", lambda: None)
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, s: {"role": "parent", "name": s})
+    monkeypatch.setattr(rotate, "_resolve_template",
+                        lambda root, role, explicit: ({"startup": {}}, "n", "s"))
+    monkeypatch.setattr(rotate, "_resolve_join_gen",
+                        lambda rec, row, seat_: ("4", None))
+    monkeypatch.setattr(rotate, "_first_turn_values",
+                        lambda root, **kw: {"gen": "4"})
+    monkeypatch.setattr(rotate, "_record_join", lambda rec: {})
+    monkeypatch.setattr(rotate, "_seat_has_live_session", lambda row, j: True)
+    monkeypatch.setattr(rotate, "run_after_join",
+                        lambda root, **kw: {"results": [], "appended": True,
+                                            "sent": False})
+    monkeypatch.setattr(rotate, "_code_head", lambda root: "deadbeef")
+
+    result = rotate.run_after_join_for_seat(tmp_path, seat)
+    assert result is not None
+    assert result.get("code_head") == "deadbeef", \
+        f"performed after_join result must carry code_head: {result}"
+
+
+# --- goal:g15.25 SL7.105 residue (b): the performed WATCH LINE names the
+# code_head, execv OSError is caught and the loop continues, and re-exec is
+# keyed on a CHANGED HEAD only (a file-only mtime/size touch never execs). ---
+
+def test_watch_performed_line_names_code_head(monkeypatch, tmp_path):
+    """The heal watch's `after_join performed for <seat>` line names the
+    engine HEAD that ran it, so an operator reading the reaper log can tell
+    which bytes performed the record (claim 1 part b)."""
+    import rotate as hrot  # noqa: E402
+    lines = []
+    monkeypatch.setattr(hrot, "_inline_reaper_enabled", lambda root: False)
+    monkeypatch.setattr(hrot, "_load_seats",
+                        lambda root: [{"name": "seat-a"}])
+    monkeypatch.setattr(hrot, "run_after_join_for_seat",
+                        lambda root, seat, **kw: {
+                            "results": [{"label": "x"}],
+                            "appended": True, "sent": False,
+                            "code_head": "c0debeef"})
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    heal._run_pending_after_joins(tmp_path)
+    assert any("after_join performed" in ln and "code_head=c0debeef" in ln
+               for ln in lines), f"performed line must name code_head:\n{lines}"
+
+
+def test_watch_reexec_oserror_is_caught_loop_continues(monkeypatch, tmp_path):
+    """An `os.execv` that raises OSError (missing interpreter / EACCES /
+    ENOMEM) must NOT end the watch loop: it is logged by name + errno and the
+    fresh identity is adopted, so the next re-exec attempt waits for the
+    NEXT clean-tree HEAD change (claim 2; no retry storm)."""
+    def boom(argv):
+        raise OSError(13, "Permission denied")
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec", boom)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert ret == {"head": "bbbbbbb", "files": {}}, \
+        "the fresh identity is adopted so next pass does NOT re-attempt"
+    log = reaper.read_text()
+    assert "re-exec error" in log and "errno 13" in log, log
+    assert "re-exec error" in log and "PermissionError" in log, log
+    assert "continuing on running bytes" in log, log
+    assert log.count("re-exec error") == 1, \
+        f"one error line, no retry storm:\n{log}"
+
+
+def test_watch_unchanged_head_never_reexecs(monkeypatch, tmp_path):
+    """Claim 3 falsifier: a file-only identity change — mtime/size touched,
+    HEAD UNCHANGED, clean tree — must NEVER re-exec (the watchdog keeps
+    running the bytes it is actually running)."""
+    calls = []
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "aaaaaaa",
+                                      "files": {"heal.py": (1, 200)}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {"heal.py": (0, 200)}},
+        once=False)
+    assert calls == [], f"unchanged HEAD must never exec: {calls}"
+    assert ret["head"] == "aaaaaaa"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "re-exec" not in log, f"no re-exec line for a file-only change:\n{log}"

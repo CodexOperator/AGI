@@ -6513,6 +6513,151 @@ def test_keygen_all_live_no_write_leaves_keyed_seat_without_pending_touched(
     assert kp.read_bytes() == before, "keyed seat with no pending is untouched"
 
 
+# ── hypothesis:l4-the-head-ahead-of-origin-skipped-push-branch-of-keygen-all-live ──
+#
+# A COMMITTED test for the g15.26 SKIPPED push branch of `keygen --all-live`:
+# the exact function keygen(key all_live=True, wrote_any False) feeds into the
+# deferred-swap walk is `_all_live_origin_sync_line`. These tests exercise that
+# function DIRECTLY (never copying its logic) against a REAL git repo whose
+# origin is behind, ahead, or diverged from HEAD. The NO-WRITE all-keyed path
+# never commits or pushes of its own -- it only fetch+rev-parse READS and
+# reports `push: OK` ONLY when origin is exactly at HEAD. Any other outcome is
+# `push: SKIPPED -- origin ... is not at HEAD`, and origin's ref must be left
+# byte-identical (a SKIPPED pass never force-pushes). FALSIFIER: if the SKIPPED
+# branch were deleted, these fail (they demand the exact prefix and forbid
+# `push: OK`).
+
+
+def _origin_seed(root, tmp_path, rows=None):
+    """A real git project whose committed seed row is PUSHED to a bare
+    origin, so origin/EG == HEAD. Returns (root, origin_ref_sha). The
+    function-under-test needs only a git repo with a fetchable `origin`; the
+    seed row is committed + pushed so HEAD and origin agree at the start."""
+    rows = rows if rows is not None else [{"name": "s1", "role": "director",
+                                           "pid": 111}]
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(tmp_path, rows, branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    seed = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    return root, seed
+
+
+def _origin_ref(root, branch="origin/season/s2"):
+    return subprocess.run(["git", "-C", str(root), "rev-parse", branch],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def test_all_live_origin_sync_line_head_ahead_of_origin_skipped(
+        tmp_path, monkeypatch):
+    """g15.26 SKIPPED branch, HEAD-AHEAD: origin is at the seed S; a LOCAL
+    commit C unpushed makes HEAD=C =/= origin/season/s2=S. `_all_live_origin_sync_line`
+    must return the exact `push: SKIPPED -- origin <S> is not at HEAD <C>` line
+    (never `push: OK`) and must leave origin's ref byte-identical -- an
+    all-keyed no-write pass never force-pushes. FALSIFIER: delete the SKIPPED
+    branch and this fails (no `push: OK` allowed, exact prefix required)."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    # a LOCAL commit that is NEVER pushed: HEAD now ahead of origin.
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "t"],
+                   check=True)
+    (root / "unpushed.txt").write_text("head-ahead\n")
+    subprocess.run(["git", "-C", str(root), "add", "unpushed.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m",
+                    "local-only commit ahead of origin"], check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin"), \
+        f"HEAD-ahead must be SKIPPED, got {line!r}"
+    assert " is not at HEAD " in line, line
+    assert seed in line and head in line, \
+        "both origin ref and HEAD sha must appear in the SKIPPED line"
+    assert "push: OK" not in line, \
+        f"HEAD-ahead must never read push: OK, got {line!r}"
+    assert _origin_ref(root) == origin_before, \
+        "a SKIPPED pass must not touch origin's ref (never force-pushed)"
+
+
+def test_all_live_origin_sync_line_origin_ahead_skipped(tmp_path, monkeypatch):
+    """g15.26 SKIPPED branch, ORIGIN-AHEAD: a pushed commit leaves
+    origin/season/s2 = C while a local `reset --hard HEAD^` pulls HEAD back to
+    the seed S. HEAD =/= origin -> SKIPPED, still never `push: OK`, still never
+    a force-push."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    (root / "pushed.txt").write_text("pushed\n")
+    subprocess.run(["git", "-C", str(root), "add", "pushed.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "push me"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "push", "origin",
+                    "season/s2"], check=True)
+    pushed = _origin_ref(root)
+    # pull LOCAL HEAD back behind origin: HEAD = seed, origin = pushed commit
+    subprocess.run(["git", "-C", str(root), "reset", "--hard", "HEAD^"],
+                   check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    assert head != pushed, "fixture: local HEAD must sit behind origin"
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin"), \
+        f"origin-ahead must be SKIPPED, got {line!r}"
+    assert "push: OK" not in line, line
+    assert pushed in line and head in line, \
+        "both origin ref and HEAD sha must appear in the SKIPPED line"
+    assert _origin_ref(root) == origin_before, \
+        "a SKIPPED pass must not touch origin's ref (never force-pushed)"
+
+
+def test_all_live_origin_sync_line_diverged_skipped_at_head_ok(tmp_path,
+                                                              monkeypatch):
+    """g15.26 two-sided control: (a) a DIVERGED repo (local amend of a
+    pushed merge-base: HEAD=C', origin=C with equal trees but differing shas)
+    reads SKIPPED -- never `push: OK`; (b) the at-HEAD steady state where
+    origin really carries HEAD's committed row reads `push: OK` -- the only
+    line that makes completing a deferred swap safe. Both call the SAME
+    function the no-write keygen path feeds, never copying its logic."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    root, seed = _origin_seed(None, tmp_path)
+    (root / "d.txt").write_text("diverged\n")
+    subprocess.run(["git", "-C", str(root), "add", "d.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "div1"],
+                   check=True)
+    subprocess.run(["git", "-C", str(root), "push", "origin",
+                    "season/s2"], check=True)
+    # amend with a NEW staged change: HEAD=C' (tree differs) while origin still
+    # holds C -> genuinely diverged, not a bare-time-metadata rewrite.
+    (root / "diverged.txt").write_text("local-only\n")
+    subprocess.run(["git", "-C", str(root), "add", "diverged.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "commit", "--amend", "-q",
+                    "--no-edit"], check=True)
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    origin_ref = _origin_ref(root)
+    assert head != origin_ref, "fixture: amend must diverge HEAD from origin"
+    origin_before = _origin_ref(root)
+    line = send_mod._all_live_origin_sync_line(root)
+    assert line.startswith("push: SKIPPED -- origin") and "push: OK" not in line, \
+        f"diverged must be SKIPPED, got {line!r}"
+    assert head in line and origin_ref in line, line
+    assert _origin_ref(root) == origin_before, "never force-push on SKIPPED"
+    # (b) at-HEAD control: force origin to the amended HEAD so origin holds it
+    # exactly (the fixture may force-push; the FUNCTION under test may not).
+    subprocess.run(["git", "-C", str(root), "push", "--force", "origin",
+                    "season/s2"], check=True)
+    line_ok = send_mod._all_live_origin_sync_line(root)
+    assert line_ok.startswith("push: OK"), \
+        f"at-HEAD steady state must read push: OK, got {line_ok!r}"
+
+
 # ── hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender ──
 
 
@@ -6701,3 +6846,102 @@ def test_whois_key_with_sig_verifies_pubkey_selected_row(project, monkeypatch):
                                 sig_line=sig_line, msg_text=canonical,
                                 target=("key", pub_b[:12]))
     assert "FORGED" in text2, text2
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-  ──
+# sender-and-signature-the-send-returned...) — send.send reports the pair it
+# actually used: the sender after _detect_sender and whether the envelope was
+# signed (a usable key -> signed; a key file present but MALFORMED -> not).
+def test_send_returns_sender_signed_pair(project: Path):
+    """send.send returns (sender_used, signed). A usable key reports SIGNED; a
+    key file present but MALFORMED (no priv_hex) reports UNSIGNED — a key-file
+    existence check alone would lie about the envelope (the running fix makes
+    run_after_join record its dm's sender/signed FROM this pair)."""
+    scheme = send_mod.seatsig.get("ed25519")
+    priv, _pub = scheme.keygen()
+    who = "kid-signed"
+    _seat_key_write(project, who, priv.hex())
+    sender, signed = send_mod.send(project, "director", "hello world", who)
+    assert sender == who, sender
+    assert signed is True, "a usable key signs"
+
+    bad = "kid-bad"
+    badf = send_mod._seat_key_path(project, bad)
+    badf.parent.mkdir(parents=True, exist_ok=True)
+    badf.write_text(json.dumps({"scheme": "ed25519"}))  # no priv_hex -> unusable
+    sender2, signed2 = send_mod.send(project, "director", "hello world", bad)
+    assert sender2 == bad, sender2
+    assert signed2 is False, "a present-but-malformed key does NOT sign"
+
+
+# ── hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors- ──
+# pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox
+# type_input(root, to, text) — the wake typing seam — delivers the after_join
+# SECOND input by TYPING it into the successor's pane as the input itself: a
+# successor pays ZERO reads (no nudge pointer). Reuses the wake chunking
+# (probe-D shape): text via one `send-keys -l`, a pause, then Enter in a
+# SEPARATE call — never `text Enter` in one call and never Enter-only.
+def test_type_input_no_tmux_returns_false_by_name(project, monkeypatch):
+    """(d) send.type_input on a fixture with no tmux / no resolvable pane
+    returns False BY NAME — the pane cannot be resolved (a windowless
+    recipient or tmux absent), so the caller falls back to the dm+nudge path.
+    Never raises."""
+    assert send_mod.type_input(project, "nobody", "hello there") is False
+    assert send_mod.type_input(project, "nobody", "x") is False
+
+
+def test_type_input_types_chunk_then_separate_enter(project, monkeypatch):
+    """(e) send.type_input's argv through a subprocess seam = the wake
+    chunking: ONE literal `send-keys -l <text>` call carrying the WHOLE text,
+    a pause, then Enter in a SEPARATE call (never `text Enter` in one call,
+    never Enter-only). The pane submits the body as one turn."""
+    pane = _FixturePane()
+    sleeps: list = []
+    calls = _fake_tmux_pane(monkeypatch, ["director"], pane, sleeps)
+    body = "your second input: join; pin; then ack. one record."
+    ok = send_mod.type_input(project, "director", body)
+    assert ok is True
+    typed, enters = _typed(calls), _enters(calls)
+    assert len(typed) == 1 and len(enters) == 1, calls
+    assert typed[0][:5] == ["tmux", "send-keys", "-l", "-t", "agi-rc:director"]
+    assert typed[0][5] == body, "the whole body is typed as ONE literal chunk"
+    assert "Enter" not in typed[0], "never `text Enter` in one call"
+    assert enters[0] == ["tmux", "send-keys", "-t", "agi-rc:director", "Enter"]
+    assert calls.index(typed[0]) < calls.index(enters[0])
+    assert sleeps and sleeps[0] >= 0.3, sleeps   # the pause, not a bare Enter
+    assert pane.submitted == [body] and pane.input == "", pane.input
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): whois resolves a session_name (the F3 harness registry name,
+# e.g. agi-d7) EXACTLY as it resolves a session_ref — one lookup over both
+# cells — so whois agi-d7 names the seat; a row that ALSO carries a
+# session_name still resolves by its session_ref unchanged (additive).
+# ---------------------------------------------------------------------------
+NAME_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac", "session_name": "agi-d7"},
+    {"name": "sanctuary-director", "role": "director", "tier": 1,
+     "session_ref": "6f9bb5", "session_name": "agi-e1"},
+]
+
+
+def test_whois_resolves_by_session_name(monkeypatch):
+    """(e) claim: whois <session_name> resolves the seat — one lookup over
+    both cells, so F3's SendMessage-by-ref join can address agi-d7."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "agi-d7", claim=None)
+    assert rc == send_mod.WHOIS_OK
+    assert "belam" in text
+
+
+def test_whois_by_session_ref_unaffected_by_session_name(monkeypatch):
+    """(f) claim: a row that also carries session_name still resolves by its
+    session_ref unchanged — the session_name lookup is additive. A
+    session_name matching NO row still NO-MATCHes (never a guess)."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="prime_director")
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    rc2, text2 = send_mod.whois(Path("."), "agi-ghost", claim=None)
+    assert rc2 == send_mod.WHOIS_NO_MATCH

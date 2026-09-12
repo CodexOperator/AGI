@@ -36,8 +36,8 @@ def _write_schema(root):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_id, generation, window, pid, "
-        "pubkey, sig_scheme, enc_scheme, key_history]}\n"
+        "fields: [session_ref, session_name, session_id, generation, window, "
+        "pid, pubkey, sig_scheme, enc_scheme, key_history]}\n"
         "---\nbody\n", encoding="utf-8")
 
 
@@ -412,20 +412,41 @@ def test_rotate_self_commits_record_and_sequence_on_main(tmp_path):
     assert ".json" in both and "sessions/rotations/" in both, both
 
 
-def test_rotate_self_record_commit_skipped_on_worktree(tmp_path):
-    """FALSIFIER 3: a worktree seat's rotate-self grows NO new plain commit —
-    it keeps `_button_down` and the record commit reports SKIPPED."""
+def test_rotate_self_record_commit_for_worktree_names_committer(tmp_path):
+    """claim (b): a WORKTREE seat's record written into MAIN is committed by
+    rotate-self's own pathspec commit (from MAIN's toplevel) with
+    `committed_by: rotate-self` named on the record — NEVER left untracked.
+    FALSIFIER: after it, `git status` on MAIN shows the record clean and the
+    committed record carries the committer."""
     main, wt, seat = _make_main_and_worktree(tmp_path)
     rec = _write_fake_rotation(main, seat)
+    # PRE-FIX: the record + sequence ride untracked in MAIN (the PREPARE_CHURN
+    # captive exemption + the old worktree skip committed nothing).
+    pre = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/sessions/rotations/"],
+        capture_output=True, text=True).stdout
+    assert pre, "PRE-FIX: a worktree record + sequence must ride untracked"
+
     out = rotate._commit_rotation_record(
         wt / ".agi", seat=seat, gen_before=3, gen_after=4, record_path=rec)
-    assert out.startswith("rotation_record_commit: SKIPPED"), out
-    assert "worktree seat" in out, out
-    # only the seed commit exists in MAIN — nothing was grown.
+    assert out.startswith("rotation_record_commit: committed"), out
+    # FALSIFIER 1: MAIN's tree is clean (the worktree record landed and the
+    # pathspec commit from MAIN's toplevel swept it, touching nothing else).
+    st = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", f"after the worktree record commit MAIN must be clean: {st}"
+    # FALSIFIER 2: the committed record names ITS committer (never an
+    # untracked record with no committer); exactly ONE commit over the seed.
+    data = json.loads(rec.read_text(encoding="utf-8"))
+    assert data.get("committed_by") == "rotate-self", data
     log = subprocess.run(
         ["git", "-C", str(main), "log", "--format=%h %s"],
         capture_output=True, text=True).stdout.splitlines()
-    assert len(log) == 1, log
+    assert len(log) == 2, log
+    assert log[0].endswith(
+        f"rotate-self {seat} gen 3->4: record + sequence"), log
 
 
 def test_rotate_self_record_commit_failure_is_best_effort(

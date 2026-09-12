@@ -483,7 +483,11 @@ def test_prepare_blocks_when_ack_is_from_older_generation(
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
     assert rc == 3
-    assert "[BLOCK] stale ack (adv-alive.ack.json) cur=2" in out
+    # SL7.87 (g15.25): the refusal names its evidence — the file's gen_after,
+    # answer, source, written-time and the row's gen — not a bare `cur=N`.
+    assert "[BLOCK] stale ack (adv-alive.ack.json): gen_after=1" in out
+    assert "answer=?" in out and "source=unknown" in out
+    assert "row gen=2" in out
 
 
 def test_prepare_generation_unmeasured_is_said_not_silent(

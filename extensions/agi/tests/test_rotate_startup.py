@@ -1753,6 +1753,27 @@ def _fs_bootstrap(root, seat):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def _fs_stub_successor_window(monkeypatch, window_id="@3"):
+    """Stub the tmux `list-windows` seam so the first-seating suite NEVER
+    shells out to a real `tmux list-windows` (the test box may lack tmux, or
+    hold a foreign session that changes the result) — hypothesis:l4-first-
+    seating-tests-stub-the-real-tmux-list-windows-and-the-seating-base-block-
+    and-alert-read-one-resolved-generation claim (a). Returns a list that
+    records each consultation so a test can assert the stub was called. A
+    fixed @id would otherwise trigger a real bounded join poll into
+    `~/.claude/sessions`, so `_join_successor` is stubbed too to keep the
+    suite deterministic and fast."""
+    calls = []
+    monkeypatch.setattr(
+        rotate, "_successor_window_id",
+        lambda *a, **k: (calls.append((a, k)) or window_id))
+    monkeypatch.setattr(
+        rotate, "_join_successor",
+        lambda **k: {"found": False, "window_id": window_id,
+                     "note": "stubbed in first-seating test"})
+    return calls
+
+
 def test_first_seating_on_existing_seat_reports_row_gen_not_1(
         monkeypatch, tmp_path):
     """A RE-spawn onto a config:seats row that already carries
@@ -1865,9 +1886,13 @@ def test_first_seating_respawn_record_and_alert_carry_row_gen(
     monkeypatch.setattr(
         rotate, "_announce_rotation",
         lambda *a, **kw: captured.update(kw) or [])
+    # claim (a): never a real tmux subprocess — stub the successor-window seam.
+    _win_calls = _fs_stub_successor_window(monkeypatch)
     rotate._first_seating_announce(
         tmp_path, None, seat="re-seated", role="director", source="test",
         tmux_session="t", live_names=[])
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
     seating = captured["seating"]
     # the ONE record the alert shares reports gen_after 4, never a hard-coded 1.
     assert seating["gen_after"] == 4, \
@@ -1910,9 +1935,13 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
     monkeypatch.setattr(
         rotate, "_announce_rotation",
         lambda *a, **kw: captured.update(kw) or [])
+    # claim (a): never a real tmux subprocess — stub the successor-window seam.
+    _win_calls = _fs_stub_successor_window(monkeypatch)
     rotate._first_seating_announce(
         tmp_path, None, seat="zero-seat", role="director", source="test",
         tmux_session="t", live_names=[])
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
     assert captured["seating"]["gen_after"] == 0, \
         f"seating record must keep a row gen 0, got {captured['seating']['gen_after']}"
     assert captured["gen_after"] == 0
@@ -1922,6 +1951,91 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
     assert "generation 0 -> 0" in text, \
         f"alert dm must name generation 0 -> 0:\n{text}"
     assert "generation 0 -> 1" not in text
+
+
+def test_seating_base_block_checks_record_at_resolved_row_gen(
+        monkeypatch, tmp_path):
+    """Claim (b): the `[seating]` base block checks `_seating_record_exists`
+    at the seat's OWN resolved generation, never only gen 1 — a RE-seated
+    seat at gen N with a gen-N record on disk must read `record: present`,
+    never 'none yet (never seated)' merely because a GEN-1 record is absent
+    (the falsifier: the pre-fix base block only looked at gen 1). And the
+    block reads THE ROW, not a stray gen-1 record: row gen 3 with only a
+    gen-1 record on disk must still read 'none yet' (this seating's gen-3
+    record has not been written yet)."""
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 3},
+    ])
+    rec = rotate._seating_record(
+        seat="re-seated", role="director", source="test",
+        window_id="@3", ref="", pid=None, session_id="",
+        transcript_path="", first_turn=None, generation=3)
+    rotate._write_seating_record(tmp_path, rec)
+    now = "2026-01-01T00:00:00Z"
+    block = rotate._compose_seating_base_block(
+        seat="re-seated", source="cmd_spawn", now=now,
+        pred_pid=None, pred_death="-", seq=1, root=tmp_path)
+    assert "record: present" in block[0], \
+        f"gen-3 re-seating with a gen-3 record must read present:\n{block[0]}"
+    # complementary: a STRAY gen-1 record must NOT mask an absent gen-3 one.
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 3},
+    ])
+    (tmp_path / "sessions" / "rotations").mkdir(parents=True, exist_ok=True)
+    for p in (tmp_path / "sessions" / "rotations").glob("*.seating.json"):
+        p.unlink()
+    gen1 = rotate._seating_record(
+        seat="re-seated", role="director", source="test",
+        window_id="@3", ref="", pid=None, session_id="",
+        transcript_path="", first_turn=None, generation=1)
+    rotate._write_seating_record(tmp_path, gen1)
+    block1 = rotate._compose_seating_base_block(
+        seat="re-seated", source="cmd_spawn", now=now,
+        pred_pid=None, pred_death="-", seq=1, root=tmp_path)
+    assert "record: none yet" in block1[0], \
+        f"a stray gen-1 record must not stand in for the missing gen-3:\n{block1[0]}"
+
+
+def test_first_seating_announce_reads_row_gen_zero_when_passed(
+        monkeypatch, tmp_path):
+    """Claim (c) — the ONE-READ ceiling: `_first_seating_announce` must NOT
+    re-read the seat row generation when a caller (the production `cmd_spawn`,
+    which already resolved `_rowgen` once at the same path) passes it
+    explicitly. A counting fake `_seat_row_generation` (returns 4) proves: a
+    call WITH `generation=4` performs ZERO row-generation reads, while a call
+    with generation omitted performs EXACTLY ONE (the None fallback stays a
+    fallback, never re-entered from a caller that passed the value)."""
+    _fs_seats_sheet(tmp_path, [
+        {"name": "re-seated", "role": "director", "generation": 4},
+    ])
+    (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
+    reads = []
+    monkeypatch.setattr(
+        rotate, "_seat_row_generation",
+        lambda root, name: (reads.append(name) or 4))
+    _win_calls = _fs_stub_successor_window(monkeypatch)
+    captured = []
+    monkeypatch.setattr(
+        rotate, "_announce_rotation",
+        lambda *a, **kw: (captured.append(kw) or []))
+    # (i) generation passed explicitly -> ZERO reads.
+    rotate._first_seating_announce(
+        tmp_path, None, seat="re-seated", role="director", source="test",
+        tmux_session="t", live_names=[], generation=4)
+    assert reads == [], \
+        f"explicit generation=4 must cause ZERO _seat_row_generation reads, got {reads}"
+    assert _win_calls, \
+        "_successor_window_id must be consulted (and stubbed) for the announce"
+    assert captured and captured[0]["gen_after"] == 4, \
+        "the seating announce must thread the passed generation (4)"
+    # (ii) generation omitted -> the None fallback reads EXACTLY once.
+    reads.clear()
+    rotate._first_seating_announce(
+        tmp_path, None, seat="re-seated", role="director", source="test",
+        tmux_session="t", live_names=[], generation=None)
+    assert reads == ["re-seated"], \
+        f"omitted generation must fall back to exactly ONE read, got {reads}"
 
 
 def _run_real_announce(monkeypatch, tmp_path, seat, gen_after):
@@ -2176,3 +2290,250 @@ def test_meter_fact_join_only_pending_then_filled(tmp_path):
     assert doc2["telemetry"]["meter"].startswith("0.0020 (2000/1000000 tokens)")
     assert not doc2["telemetry"]["meter"].startswith("pending:")
     assert doc2["telemetry"]["meter"] != "SKIPPED: no handover derivation for meter"
+
+
+# --- SL7.100: join_pending derivation, post-join unresolved, pin gen check ---
+
+def test_write_bootstrap_meter_estimate_resolves_after_join_marker(tmp_path):
+    """(a) the meter est. case is reachable THROUGH _write_bootstrap for a
+    join_pending key: the caller holds the successor's composed first-input
+    bytes, so the writer derives `est. N tokens = ... (resolved after join)`
+    (SL7.100). Before the fix the join_pending set membership short-circuited
+    before any derivation, so the estimator was never tried and the key was
+    stamped `pending: resolved after join` while the hook printed an estimate
+    on the same prompt."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = tr / "succ.jsonl"
+    tx.write_text("{}\n", encoding="utf-8")  # a transcript with no assistant usage
+    _meter_pin(tmp_path, "mseat", str(tx))
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["ack", "meter"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        meter_first_input_bytes=4000)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["meter"] == (
+        "est. 1000 tokens = first input 4000 bytes/4 "
+        "(head + brief + STARTUP) (resolved after join)")
+
+
+def test_write_bootstrap_join_key_without_estimator_still_pending(tmp_path):
+    """(b) a join_pending key whose derivation cannot resolve (no estimator,
+    no pinned usage) still writes `pending: resolved after join` — never a
+    bare SKIPPED, never blank. The SL7.100 fix keeps the PRE-join pending
+    contract; only a resolvable derivation changes the line."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = tr / "succ.jsonl"
+    tx.write_text("{}\n", encoding="utf-8")
+    _meter_pin(tmp_path, "mseat", str(tx))
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["meter", "successor_address"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS))
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["meter"] == "pending: resolved after join"
+    assert doc["telemetry"]["successor_address"] == "pending: resolved after join"
+
+
+def test_write_bootstrap_post_join_rewrite_names_unresolved_reason(tmp_path):
+    """(c) the post-join rewrite (join_poll_secs set) re-derives a still-
+    pending key and stamps `unresolved: <named reason>` FROM the derivation —
+    never the old bare `unresolved: join found nothing within <N>s`. The
+    derivation itself names why."""
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["successor_live_model"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        join_poll_secs=30)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["successor_live_model"] == (
+        "unresolved: successor live model is known only after the @id join "
+        "(after_join)")
+    assert "join found nothing within" not in \
+        doc["telemetry"]["successor_live_model"]
+
+
+def test_write_bootstrap_cross_generation_pin_names_reason_no_number(tmp_path):
+    """(d) a cross-generation seat pin is refused in the bootstrap path: the
+    fact line carries the named reason (the same seat_pin-stale wording
+    cmd_meter prints, RETURNED through _read_seat_pin) and NO number — a
+    predecessor's stale pin never yields a confident fraction."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = _cc_transcript(tr / "succ.jsonl", input_tokens=2000)
+    _meter_pin(tmp_path, "mseat", str(tx), gen=5)  # a DIFFERENT generation's pin
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["meter"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        join_poll_secs=30)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    val = doc["telemetry"]["meter"]
+    assert val.startswith("unresolved: meter pin is stale: seat_pin-stale:5:1")
+    assert "tokens" not in val
+    assert "0.00" not in val
+
+
+def test_golden_non_join_facts_byte_identical_across_four_writers(tmp_path,
+                                                                  monkeypatch):
+    """(e) the four production writers' call shapes write EVERY non-join-only
+    (non-meter) fact line byte-identical to the override or the direct
+    derivation — the SL7.100 change re-derives join_pending keys (meter's
+    path) and must not touch the fixed facts. Golden compare over the four
+    writers' outputs for every non-meter key."""
+    row = {"name": "mseat", "generation": 1, "seed": "seed123",
+           "model": "claude-opus-5", "effort": "max", "window": "main",
+           "worktree": "/wt", "prev_gen": 0}
+    monkeypatch.setattr(rotate, "_find_seat", lambda r, name: row)
+    tele = list(rotate.BOOTSTRAP_FIXED_FACTS)
+
+    def _golden(key, overrides):
+        if key in overrides:
+            return overrides[key]
+        v, r = rotate._derive_bootstrap_fact(
+            key, root=tmp_path, seat="mseat", seat_row=row, commit=None)
+        return f"SKIPPED: {r}" if v is None else v
+
+    join = set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS)
+    ack1 = "continue (source first-seating, gen 1) — this post acks once itself"
+    ack2 = "continue (source predecessor, gen 1)"
+    writers = [
+        ("first-seating", {"ack": ack1},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None, join_pending=join, overrides={"ack": ack1})),
+        ("pre-spawn", {"ack": ack2},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification={"skipped": "x"}, join_pending=join,
+             overrides={"ack": ack2})),
+        ("post-join", {"successor_address": "12"},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None,
+             join_pending=(join - {"successor_address"}),
+             overrides={"successor_address": "12"}, join_poll_secs=30)),
+    ]
+    all_overrides = {k: _golden(k, {}) for k in tele if k not in join}
+    writers.append(
+        ("fill", all_overrides,
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None, overrides=all_overrides,
+             join_pending=join)))
+    for tag, ov, wpath in writers:
+        doc = json.loads(Path(wpath).read_text(encoding="utf-8"))
+        for key in tele:
+            if key in join:
+                continue
+            assert doc["telemetry"][key] == _golden(key, ov), (
+                f"{tag}: non-join fact {key!r} changed: "
+                f"{doc['telemetry'][key]!r} != {_golden(key, ov)!r}")
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): the spawn row write carries a `session_name` cell = the harness
+# registry name the join resolved (join['name'], e.g. agi-d7), '' when the
+# join did not resolve (a first seating) — ADDITIVE, every other cell byte-
+# identical. The cell is written ALWAYS (even empty) so it exists from the
+# seat's own first spawn/ack write; admission is the self_row DATA gate
+# (the schema now lists session_name), so these tests run on a schema'd
+# graph root exactly like test_rotate._seed_key_history_graph.
+# ---------------------------------------------------------------------------
+def _sn_graph(root, rows):
+    """A minimal .agi graph root (schema'd, session_name admitted) so the
+    self_row gate runs on the spawn write."""
+    graph = root / ".agi"
+    graph.mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    sd = graph / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    live = (Path(__file__).resolve().parents[3] / ".agi" / "context" /
+            "schemas" / "[config].md")
+    if live.exists():
+        (sd / "[config].md").write_text(live.read_text(encoding="utf-8"))
+    d = graph / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f"  - {r!r}" for r in rows)
+    (d / "seats.md").write_text(
+        "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nseats:\n" + body + "\n---\n\nfixture\n",
+        encoding="utf-8")
+    return graph
+
+
+def test_successor_row_write_carries_resolved_session_name(tmp_path):
+    """(a) claim: a spawn row write with a joined name writes session_name —
+    F3's SendMessage-by-ref join key travels in the row, admitted by the
+    self_row gate."""
+    graph = _sn_graph(tmp_path, [{"name": "sd", "role": "director",
+                                  "session_ref": "", "session_id": "x",
+                                  "window": "@42", "pid": 1}])
+    out = rotate._successor_row_write(
+        graph, actor="sd", seat="sd", role="director",
+        session_ref="", generation=2, window="@42",
+        pid=9, session_id="y", session_name="agi-d7")
+    assert "agi-d7" in out
+    own = next(r for r in rotate._load_seats(graph)
+               if r.get("name") == "sd")
+    assert own.get("session_name") == "agi-d7"
+
+
+def test_first_seating_spawn_row_writes_empty_session_name(tmp_path):
+    """(b) claim: a first seating (NO join to resolve a name from) writes
+    session_name='' — the cell exists from the seat's first spawn write but
+    is never a guessed name; every other cell rides unchanged."""
+    graph = _sn_graph(tmp_path, [{"name": "sd", "role": "prime_director",
+                                  "session_ref": "", "session_id": "x",
+                                  "window": "", "pid": 1}])
+    res = rotate._first_seating_spawn_writes(
+        root=graph, seat="sd", generation=1,
+        session_id="2717-aaaa", window="@42", pid=999)
+    assert res["row"], "a registry-seated seat must write its own spawn row"
+    own = next(r for r in rotate._load_seats(graph)
+               if r.get("name") == "sd")
+    assert own.get("session_name") == ""
+    assert own.get("session_id") == "2717-aaaa"
+    assert own.get("pid") == 999
+
+
+def _spawn_args(**kw):
+    """A bare argument namespace for `cmd_spawn` — every attribute it reads
+    on the seat-less path, defaulted so a caller must override only what the
+    test cares about."""
+    base = dict(name="belam-seatless", tier="prime_director",
+                prompt_file=None, model=None, effort=None, settings=None,
+                dry_run=False, window_path=None, tmux_session=None)
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+def test_cmd_spawn_seatless_in_root_resolves_rowgen_and_uses_first_gen(
+        monkeypatch, tmp_path):
+    """(d) `cmd_spawn` with NO --seat, inside a project root, NON-dry: the
+    pre-fix code read an UNBOUND `_rowgen` (assigned only under `if seat is
+    not None:`) at the `_compose_seating_base_block` call ~1769 and died with
+    UnboundLocalError. The fix initialises `_rowgen = None` alongside
+    `_spawn_gen`, so the seat-less path reads the named FIRST_SEATING_GEN
+    fallback. `spawn_window` is FAKED so nothing real launches (the fault
+    sits under `if not args.dry_run:`, so the test MUST be non-dry to reach
+    it, and the generation expression at the call site still evaluates even
+    with the collator wrapped)."""
+    captured = {}
+
+    def _capture_base_block(**kw):
+        captured.update(kw)
+        return []
+
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (0, "win"))
+    monkeypatch.setattr(rotate, "_compose_seating_base_block",
+                        _capture_base_block)
+
+    args = _spawn_args(seat=None)
+    rc = rotate.cmd_spawn(args, tmp_path)
+
+    assert rc == 0                 # no UnboundLocalError, spawn "succeeded"
+    assert captured.get("generation") == rotate.FIRST_SEATING_GEN
