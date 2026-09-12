@@ -6215,6 +6215,29 @@ def test_ack_no_ref_leaves_session_ref_empty(tmp_path, monkeypatch, capsys):
     assert ack["session_ref"] == ""
 
 
+def test_ack_refuses_any_uuid_shaped_ref_by_name(tmp_path, monkeypatch,
+                                                 capsys):
+    """SL7.102 FIX-ONLY: cmd_ack refuses ANY 36-char uuid-shaped --ref BY NAME
+    (`_looks_like_session_uuid` on the value itself), not only one equal to
+    the seat's OWN session_id — a foreign/any uuid ref must never be back-
+    filled into session_ref (a uuid there is NO-MATCH for every peer).
+    rc 2, no ack file, no row back-fill."""
+    _own_sid = "27179681-4a0c-4651-8a04-50de141b2ce0"
+    root = _ack_root_with_sid(tmp_path, sid=_own_sid)
+    monkeypatch.chdir(root)
+    foreign_uid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"   # uid-shaped, != own sid
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=3, ref=foreign_uid, answer="continue", text=""),
+        root)
+    assert code == 2, "a uuid-shaped --ref must be refused by name"
+    err = capsys.readouterr().err
+    assert "is a session id" in err and "ListAgents ref" in err, err
+    assert not rotate._ack_path(root, "belam").exists()
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") in (None, "")
+
+
 def _ack_seed_git(tmp_path, session_ref=""):
     """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
     COMMITTED seats.md carrying one row — the r3b `ack ... continue` COMMITS

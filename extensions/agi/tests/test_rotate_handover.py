@@ -203,7 +203,12 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     assert ack["gen_after"] == 1
     assert ack["answer"] == "continue"
     assert ack["source"] == "predecessor"
-    assert ack["session_ref"] == "00000000-0000-4000-8000-000000000000"
+    # SL7.102 FIX-ONLY: the spawn-time ack is written with session_ref '' —
+    # the PREDECESSOR cannot know the successor's ListAgents harness ref at
+    # spawn time, so it must never carry the JOIN's session uuid here (a uuid
+    # in session_ref is NO-MATCH for every peer); the ref only arrives when
+    # the successor names it via `ack --ref`.
+    assert ack["session_ref"] == ""
 
     # the record shows each handover step.
     rec = _latest_record(tmp_path, "adv-alive")
