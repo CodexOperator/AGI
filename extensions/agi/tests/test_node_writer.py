@@ -1144,3 +1144,56 @@ def test_repair_mint_refuses_unknown_node(project):
     res = nw.repair_mint(project, "experiment:nope", announce=False)
     assert res.status == nw.REJECTED
     assert "no node file" in res.reason
+
+
+# --------------------------------------------------------------------------
+# L4 — a container entry round-trips its UTF-8 through every write verb
+# (hypothesis:l4-a-container-entry-in-frontmatter-round-trips-its-utf8-
+# unchanged-through-every-write-verb)
+# --------------------------------------------------------------------------
+
+def test_a_container_entry_round_trips_its_utf8_through_an_update(project):
+    """`json.dumps` defaulted `ensure_ascii=True`, so any non-ASCII character
+    inside a JSON-in-YAML list-of-dict entry was escaped (`—` → `\\u2014`) on
+    every write — a one-line body/note edit re-renders the WHOLE frontmatter.
+    With the one `ensure_ascii=False` at the render site, a literal-UTF-8 entry
+    survives a write byte-identical.
+    """
+    d = project / "nodes" / "idea" / "i2.md"
+    d.write_text(
+        "---\n"
+        "id: idea:i2\n"
+        "type: idea\n"
+        "first_turn:\n"
+        '  - {"cmd": "print", "arg": "a—b"}\n'
+        "---\n\nbody\n",
+        encoding="utf-8",
+    )
+    # The one routine every write verb routes through.
+    res = nw.update_node(project, "idea:i2", set_fm={"note": "x"})
+    assert res.status == nw.UPDATED, res.reason
+    text = d.read_text(encoding="utf-8")
+    assert "a—b" in text, "literal UTF-8 entry was escaped by an unrelated write"
+    assert "\\u2014" not in text, "an unrelated edit escaped the em-dash"
+
+
+def test_a_preescaped_container_entry_normalizes_once_to_literal(project):
+    """An entry that already carries the `\\u2014` escape (a legacy engine
+    write) is normalized ONCE to the literal characters on its next engine
+    write — the named one-time normalization, never a repeated churn.
+    """
+    d = project / "nodes" / "idea" / "i3.md"
+    d.write_text(
+        "---\n"
+        "id: idea:i3\n"
+        "type: idea\n"
+        "first_turn:\n"
+        '  - {"cmd": "print", "arg": "a\\u2014b"}\n'
+        "---\n\nbody\n",
+        encoding="utf-8",
+    )
+    res = nw.update_node(project, "idea:i3", set_fm={"note": "x"})
+    assert res.status == nw.UPDATED, res.reason
+    text = d.read_text(encoding="utf-8")
+    assert "a—b" in text, "escaped entry did not normalize to the literal char"
+    assert "\\u2014" not in text, "the legacy escape survived the write"
