@@ -8918,11 +8918,16 @@ def _prime_pushed_seats(root: Path, ref: str):
     after-join values), each of which would otherwise run a REAL `git fetch
     origin <name>` (send._pushed_seats with do_fetch=True calls _run_git, up
     to 30 s each). The memo collapses those to ONE fetch; every later build
-    reuses the fetched rows. A None result (pushed ref unreachable) is also
-    memoized, so a rotation does not re-fetch on a transient miss within the
-    same process. A test injects the seam by monkeypatching THIS name (or
-    `send._pushed_seats` below it) so a rotate-self values build never
-    performs a real git fetch inside the suite."""
+    reuses the fetched rows. A None result (pushed ref unreachable) is NOT
+    memoized on its first miss (hypothesis:l4-the-first-seating-tests-stub-
+    the-pushed-seats-seam-and-a-none-miss-is-not-pinned-for-the-process):
+    the next build RETRIES the real fetch once, so a transient miss never
+    pins the worktree fallback for the whole process; only a SECOND
+    consecutive miss for the same (root, ref) memoizes None, so a genuinely-
+    dead pushed ref is fetched at most twice per process. A test injects the
+    seam by monkeypatching THIS name (or `send._pushed_seats` below it) so a
+    rotate-self values build never performs a real git fetch inside the
+    suite."""
     key = (str(root), ref)
     if key in _PUSHED_SEATS_FETCHED_ONCE:
         return _PUSHED_SEATS_FETCHED_ONCE[key]
@@ -8931,6 +8936,19 @@ def _prime_pushed_seats(root: Path, ref: str):
         seeded = send._pushed_seats(root, ref, True)
     except Exception:                                       # noqa: BLE001
         seeded = None
+    if seeded is None:
+        # first miss: NOT memoized -- the next build in this process RETRIES
+        # the real fetch once, so a single transient fetch failure can never
+        # pin the worktree fallback for every later build (hypothesis:l4-the-
+        # first-seating-tests-stub-the-pushed-seats-seam-and-a-none-miss-is-
+        # not-pinned-for-the-process). Only a SECOND consecutive miss for
+        # this (root, ref) pins None, so a genuinely-dead pushed ref is
+        # fetched at most twice per process, not on every one of the five
+        # values-build sites (up to 30 s each).
+        miss_n = _PUSHED_SEATS_MISSES.get(key, 0) + 1
+        _PUSHED_SEATS_MISSES[key] = miss_n
+        if miss_n < 2:
+            return None
     _PUSHED_SEATS_FETCHED_ONCE[key] = seeded
     return seeded
 
@@ -8940,6 +8958,7 @@ def _prime_rows_fetch_clear() -> None:
     runs. The memo is intentionally module-global (one fetch per process), so
     isolation is by explicit clear — the standard pytest monkeypatch shape."""
     _PUSHED_SEATS_FETCHED_ONCE.clear()
+    _PUSHED_SEATS_MISSES.clear()
 
 
 #: Per-process memo so the pushed season ref behind `_first_turn_values` is
@@ -8950,6 +8969,11 @@ def _prime_rows_fetch_clear() -> None:
 #: times — up to 150 s worst case inside the rotation's own timeout. Tests
 #: clear it via `_prime_rows_fetch_clear` and may inject a fake seam.
 _PUSHED_SEATS_FETCHED_ONCE: dict[tuple, object] = {}
+
+#: Per-key count of consecutive None misses; see `_prime_pushed_seats`. A
+#: None result is intentionally NOT memoized on its first miss (retry once);
+#: only the second consecutive miss pins None for the process.
+_PUSHED_SEATS_MISSES: dict[tuple, int] = {}
 
 
 def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
