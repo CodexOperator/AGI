@@ -48,12 +48,14 @@ VALUES = {
 }
 
 
-def _startup(after_join=None, delay_s=None):
+def _startup(after_join=None, delay_s=None, max_age=None):
     s = {}
     if after_join is not None:
         s["after_join"] = after_join
     if delay_s is not None:
         s["after_join_delay_s"] = delay_s
+    if max_age is not None:
+        s["after_join_max_age_s"] = max_age
     return s
 
 
@@ -147,9 +149,105 @@ def test_dm_carries_captive_copy_paste_line():
     dm = out["dm"]
     assert "## AFTER_JOIN OUTPUT" in dm
     line = ("python3 extensions/agi/bin/rotate.py "
-            "ack --seat sanctuary-director --gen 9 "
+            "ack --post sanctuary-director --gen 9 "
             "--ref abc123 diff --text -")
-    assert line in dm, "captive copy-paste line must appear verbatim"
+    assert line in dm, "captive copy-paste line must appear verbatim (--post, the live grammar)"
+
+
+def test_dm_captive_line_omitted_and_gen_refused_when_unresolved(tmp_path):
+    """(a)+(b) run_after_join_for_seat: a record with NO gen_after and a row
+    with NO generation refuses the ack ENTRY by name (`gen unresolved for
+    <seat>: ...`) and the dm carries NO captive ack line and NO `--gen 0` —
+    0 is never passed to an ack and never printed in a captive line. (goal:g15.25
+    SL7.74)"""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="ack")
+    startup = _startup(after_join=[{"label": "ack",
+                                    "cmd": "echo {gen}"}])
+    try:
+        rec_path = _write_rotation_record(
+            tmp_path,
+            {"rotation": "rotate-self", "seat": "s",
+             "result": "success", "recorded_at": "2020-01-01T00:00:00.000000Z"})
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen="", startup=startup,
+            values=dict(VALUES, gen=""), record_path=str(rec_path),
+            delay_override=0, sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None, gen_unresolved_reason=(
+                "gen unresolved for s: no gen_after on the record and "
+                "no generation on the row"))
+    finally:
+        rot.subprocess.run = real_run
+    ack = [r for r in out["results"] if r["label"] == "ack"][0]
+    assert ack["refused"], "ack entry must be refused when gen unresolved"
+    assert "gen unresolved for s" in ack["refused"]
+    assert "--gen 0" not in out["dm"]
+    assert "ack --post s --gen " not in out["dm"], \
+        "no blank/gen-0 captive line when gen unresolved"
+
+
+def test_dm_carries_byte_budget_cut_with_full_output_pointer(tmp_path):
+    """(d) a service dm over the byte budget carries the head, ONE status line
+    per entry, and `full output: <record path>` — while the record keeps the
+    full per-command-capped results. (goal:g15.25 SL7.74)"""
+    startup = _startup(after_join=[
+        {"label": "ack", "cmd": "echo x"},
+    ])
+    rec_path = tmp_path / "rec.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 7, "recorded_at": "2020-01-01T00:00:00.000000Z"}))
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="y" * 4300)
+    try:
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen=7, startup=startup, values=VALUES,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    dm = out["dm"]
+    assert len(dm) <= rotate.DEFAULT_AFTER_JOIN_DM_BYTE_CAP, len(dm)
+    assert "full output:" in dm
+    assert str(rec_path) in dm
+    # the record keeps the full per-command-capped results (4000)
+    written = json.loads(rec_path.read_text())
+    assert written["after_join"]["results"][0]["rc"] == 0
+    assert "y" * 3000 in written["after_join"]["results"][0]["output"]
+
+
+def test_dm_not_cut_when_under_budget(tmp_path):
+    """(d) under the byte budget the dm is NOT cut — the full output and the
+    captive line stay present. (goal:g15.25 SL7.74)"""
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo hi"}])
+    rec_path = tmp_path / "rec.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 7, "recorded_at": "2020-01-01T00:00:00.000000Z"}))
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out="hi")
+    try:
+        out = rotate.run_after_join(
+            Path("."), seat="s", gen=7, startup=startup, values=VALUES,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    assert "full output:" not in out["dm"]
+    assert "ack --post s --gen 7 " in out["dm"]
+
+
+def _write_rotation_record(tmp_path: Path, payload: dict) -> Path:
+    """A throwaway rotation record under the test's `tmp_path` — NEVER the
+    CWD: the first cut wrote `./_tmp_rec.json`, so running the suite left a
+    repo-root scratch file that the loop's `git add -A` would sweep into the
+    round's commit (goal:g15.25 SL7.74, parent review)."""
+    rec_path = Path(tmp_path) / "_tmp_rec.json"
+    rec_path.write_text(json.dumps(payload))
+    return rec_path
 
 
 def test_record_receives_every_command_output():
@@ -175,7 +273,8 @@ def test_record_receives_every_command_output():
         assert out["appended"] is True
         saved = json.loads(rec_path.read_text())
         aj = saved["after_join"]
-        assert aj["performed_by"] == "service"
+        assert aj["performer"] == "watch"  # (SL7.72) default = the watch
+        assert aj["performed_by"] == "watch"  # legacy key kept in lockstep
         assert [r["label"] for r in aj["results"]] == ["pin", "ack"]
         assert all("pin-op" in r["output"] or "ack-op" in r["output"]
                    for r in aj["results"])
@@ -202,7 +301,7 @@ def test_heal_service_calls_the_same_rotate_function():
     try:
         hrot._inline_reaper_enabled = lambda root: False
         hrot._load_seats = lambda root: [{"name": "seat-a"}, {"seat": "seat-b"}]
-        hrot.run_after_join_for_seat = lambda root, seat: (
+        hrot.run_after_join_for_seat = lambda root, seat, **kw: (
             called.append(seat) or {})
         heal._watch_log = lambda line: None
         heal._run_pending_after_joins(Path("."))
@@ -314,6 +413,10 @@ def test_after_join_seat_no_join_key_falls_back_to_record_transcript():
         rot._join_successor = lambda *a, **k: (joins.append(k) or {"found": True})
         rot.run_after_join = lambda *a, **kw: (
             record.append((a, kw)) or {"record_path": kw.get("record_path")})
+        # (SL7.76) the seat row must be LIVE for the after_join to run at all:
+        # a dead row (no pid/session/window, join not attempted) is skipped.
+        # A live pid keeps this test on the transcript-fallback path.
+        rot._find_seat = lambda root, name: {"role": "director", "pid": os.getpid()}
         rot.run_after_join_for_seat(Path("."), "seat-b")
         assert joins == [], \
             "no window_id in the record => no registry join attempted"
@@ -742,31 +845,42 @@ def test_fill_bootstrap_join_facts_unresolved_when_join_found_nothing(
 
 # ── goal:g15.25 (SL7.54 fix 4) — pre-turn probe defers only when armed ──
 def test_after_join_performer_armed_branches(tmp_path, monkeypatch):
-    """fix 4: a performer can run — deferred is truthful — exactly when the
-    fixture forces the fallback, OR inline_reaper is truthy (rotate-self is
-    the fallback performer), OR (inline_reaper off) the persistent heal watch
-    unit is armed (`reaper.unit_enabled` not false; absent reads armed). With
-    inline_reaper off AND the unit refused, NO performer can run."""
+    """fix 4: a SERVICE performer is armed exactly when the fixture forces the
+    fallback, OR inline_reaper is truthy (rotate-self is the fallback), OR the
+    box declares the unit (`reaper.unit_enabled` not false) AND the heal watch
+    is demonstrably alive (`_watch_alive` reads its per-pass heartbeat). With a
+    dead/absent/stale heartbeat the SERVICE is NOT armed — rotate-self's own
+    tail performs at step (6.4) instead."""
     import agi.bin.rotate as rot
     # forced: always armed
     assert rot._after_join_performer_armed(tmp_path, forced=True)
     # inline_reaper truthy -> rotate-self fallback performer
     monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: True)
     assert rot._after_join_performer_armed(tmp_path)
-    # inline_reaper off, no config -> unit armed by default
     monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    # the box declares the unit armed; only watch LIVENESS decides from here.
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
+    # inline_reaper off, NO heartbeat -> watch not alive -> no SERVICE armed
+    # (the rotate-self tail performs at (6.4); the pre-turn probe must not
+    #  record a deferral-to-service that nobody will honour)
+    assert not rot._after_join_performer_armed(tmp_path)
+    # a LIVE heartbeat -> unit armed, watch alive -> armed
+    _live_heartbeat(tmp_path, monkeypatch)
     assert rot._after_join_performer_armed(tmp_path)
-    # inline_reaper off, box declares the unit DOWN -> no performer.
-    # (config at the ROOT's own `agi-tree.config.json` legacy name so
-    # `locations.config_path(root)` resolves it on a bare tmp_path — the
-    # G11 graph dir resolves its `.agi/config.json` the same way.)
+    # unit refused -> no service performer (never reaches the alive check)
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"reaper": {"unit_enabled": False}}), encoding="utf-8")
     assert not rot._after_join_performer_armed(tmp_path)
-    # unit re-armed -> performer again
+    # unit re-armed, STALE heartbeat -> watch dead -> not armed
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
-    assert rot._after_join_performer_armed(tmp_path)
+    _live_heartbeat(tmp_path, monkeypatch,
+                    at=time.time() - rot.WATCH_HEARTBEAT_GRACE_S - 10)
+    assert not rot._after_join_performer_armed(tmp_path)
+    # unit re-armed, fresh heartbeat from a DEAD pid -> not armed
+    _live_heartbeat(tmp_path, monkeypatch, pid=999_999_999)
+    assert not rot._after_join_performer_armed(tmp_path)
 
 
 # ── goal:g15.25 (SL7.54 fix 5) — pushed-seats memo cleared per run ────────
@@ -792,7 +906,8 @@ def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch)
         lambda root, seat: (json.loads(rec_path.read_text()),
                             str(rec_path)))
     monkeypatch.setattr(rot, "_find_seat",
-                        lambda root, name: {"role": "parent"})
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
     monkeypatch.setattr(
         rot, "_resolve_template",
         lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
@@ -800,9 +915,738 @@ def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch)
                         lambda *a, **k: {"found": False})
     monkeypatch.setattr(rot, "run_after_join",
                         lambda *a, **kw: {"model_confirm": "ran"})
+    # (SL7.76) the row carries a LIVE pid (os.getpid) so this seat is NOT
+    # skipped as a dead seat — the memo-clear is what this test measures, and
+    # the liveness gate must not turn an old record into a one-shot skip.
     out = rot.run_after_join_for_seat(Path(tmp_path), "c")
     assert out is not None
     assert len(cleared) == 1, cleared
     # a SECOND run in the SAME process (the reaper loop) clears again
     rot.run_after_join_for_seat(Path(tmp_path), "c")
     assert len(cleared) == 2, cleared
+
+
+# ── goal:g15.25 — the service dm is sent by a DECLARED SENDER, never ────────
+# `from: unknown` (hypothesis:l4-the-service-after-join-dm-is-sent-by-a-
+# declared-signed-sender-never-from-unknown). The default send_dm passed
+# send(root, to, text, None) — sender None → send.py falls to 'unknown' when
+# no seat env is exported, and `_sign_line` signed only when a key exists for
+# that (unknown) id. Now the default passes ONE declared sender resolved by
+# `_after_join_sender`: the custodian/outgoing seat when its key exists, else
+# the system sender `heal`. `unknown` can no longer appear; the record names
+# dm_sender + dm_signed.
+import types as _types
+
+
+def _stub_send(monkeypatch, module_name="send"):
+    """Register a stub `send` module (the name rotate.run_after_join's default
+    closure imports) and the table under test."""
+    stub = _types.ModuleType(module_name)
+    calls = []
+    stub.send = lambda root, to, text, sender: calls.append((to, sender))
+    monkeypatch.setitem(sys.modules, module_name, stub)
+    return calls
+
+
+def test_default_send_dm_names_heal_without_a_seat_key(tmp_path, monkeypatch):
+    """No `<sessions>/seats/<seat>.key` exists: the default send_dm passes the
+    SYSTEM sender `heal` (never None → never 'unknown'), the dm still sends,
+    and the record names dm_sender=heal + dm_signed=false (unsigned-but-named)."""
+    calls = _stub_send(monkeypatch)
+    rec_path = tmp_path / "s.json"
+    rec_path.write_text(json.dumps({"result": "success", "seat": "s"}),
+                        encoding="utf-8")
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    out = rotate.run_after_join(
+        tmp_path, seat="s", gen=2, startup=startup, values=VALUES,
+        record_path=str(rec_path), delay_override=0,
+        sleep_impl=lambda s: None)
+    assert calls == [("s", "heal")], \
+        "default closure passes ONE declared sender, never None: %r" % calls
+    assert out["sent"] is True, "the dm is still delivered, named"
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert aj["dm_sender"] == "heal", aj
+    assert aj["dm_signed"] is False, aj
+
+
+def test_default_send_dm_signs_when_the_custodian_seat_key_exists(
+        tmp_path, monkeypatch):
+    """The outgoing/custodian seat HAS a key under `<sessions>/seats/`: the
+    default send_dm passes that SEAT name (resolved by the ONE helper), so
+    send.py signs — and the record names dm_sender=<seat> + dm_signed=true."""
+    kdir = tmp_path / "sessions" / "seats"
+    kdir.mkdir(parents=True, exist_ok=True)
+    (kdir / "seat-a.key").write_text(
+        json.dumps({"scheme": "ed25519", "priv_hex": "ab" * 32}),
+        encoding="utf-8")
+    calls = _stub_send(monkeypatch)
+    rec_path = tmp_path / "sa.json"
+    rec_path.write_text(json.dumps({"result": "success", "seat": "seat-a"}),
+                        encoding="utf-8")
+    out = rotate.run_after_join(
+        tmp_path, seat="seat-a", gen=2,
+        startup=_startup(after_join=[{"label": "ack", "cmd": "echo x"}]),
+        values=VALUES, record_path=str(rec_path), delay_override=0,
+        sleep_impl=lambda s: None)
+    assert calls == [("seat-a", "seat-a")], calls
+    aj = json.loads(rec_path.read_text())["after_join"]
+    assert aj["dm_sender"] == "seat-a", aj
+    assert aj["dm_signed"] is True, aj
+
+
+def test_after_join_sender_resolves_deterministically(tmp_path):
+    """ONE helper, deterministic from (root, seat): a keyed seat resolves to
+    itself (the custodian that can SIGN); an unkeyed seat resolves to the
+    system sender `heal`. No input resolves to 'unknown' — so the watch and the
+    tail can never diverge on the same seat (the falsifier)."""
+    assert rotate._after_join_sender(tmp_path, "seat-a") == "heal", \
+        "unkeyed seat -> system sender heal"
+    kdir = tmp_path / "sessions" / "seats"
+    kdir.mkdir(parents=True, exist_ok=True)
+    (kdir / "seat-a.key").write_text("{}", encoding="utf-8")
+    assert rotate._after_join_sender(tmp_path, "seat-a") == "seat-a", \
+        "keyed seat -> the custodian seat itself"
+
+
+def test_after_join_dm_record_carries_sender_in_dry_run_too(tmp_path):
+    """The record fields dm_sender/dm_signed are populated by the same
+    resolution whether or not a send fires (a caller-injected send_dm still
+    records the DECLARED sender); and the dry-run resolves but never sends."""
+    rec_path = tmp_path / "dry.json"
+    rec_path.write_text(json.dumps({"result": "success"}), encoding="utf-8")
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    sent = []
+    out = rotate.run_after_join(
+        tmp_path, seat="s", gen=1, startup=startup, values=VALUES,
+        record_path=str(rec_path), dry_run=True, send_dm=lambda *a: sent.append(a))
+    assert sent == [], "dry-run never sends"
+    assert json.loads(rec_path.read_text()) == {"result": "success"}, \
+        "dry-run never appends sender fields to the record"
+    assert out["dm"], "dry-run still plans the captive dm"
+
+# ── hypothesis:l4-an-after-join-entry-whose-placeholder-resolves-empty-is-
+# ── refused-by-name-and-skipped-never-run-on-the-empty-slot ───────────────
+# (g15 build order 2026-09-12) An after_join entry that USES a placeholder
+# whose value resolves EMPTY is refused by name and never executed — no rc, no
+# output. Generic to every after_join entry (the ack's empty `{succ_ref}`
+# refuses the SAME way as the reap-proof's empty `{pred_pids}`), fallback is
+# honored with first_turn's precedence, and a first seeding's NAMED value
+# (`none: first seating`) is a NON-empty string that still runs.
+
+def _assert_named_refusal(r, key, reason):
+    assert "refused" in r and "rc" not in r and "output" not in r, r
+    assert f"placeholder {{{key}}} empty" in r["refused"], r["refused"]
+    assert reason in r["refused"], r["refused"]
+    assert "skipped by name" in r["refused"], r["refused"]
+
+
+def test_empty_pred_pids_refuses_named_never_runs():
+    """The reap-proof repro: empty `{pred_pids}` on a MAIN post with no
+    predecessor chain must refuse BY NAME (no predecessor chain) and never
+    execute — `grep -E ''` must never match the whole process table."""
+    entry = {"label": "reap-proof",
+             "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'"}
+    vals = dict(VALUES)
+    vals["pred_pids"] = ""
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refused entry must NEVER run"))
+    try:
+        r = rot._run_after_join_command(entry, vals, 60, 4000)
+    finally:
+        rot.subprocess.run = real_run
+    _assert_named_refusal(r, "pred_pids", "no predecessor chain")
+
+
+def test_non_empty_pred_pids_runs():
+    """A non-empty `{pred_pids}` resolves and the entry RUNS (rc present, no
+    refusal)."""
+    entry = {"label": "reap-proof", "cmd": "echo poll {pred_pids}"}
+    r = rotate._run_after_join_command(entry, VALUES, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "123 456" in r.get("output", ""), r
+
+
+def test_first_seating_named_value_runs_not_refusal():
+    """A first seating's NAMED value `none: first seating` is a NON-empty
+    string — the entry still runs (its grep matches nothing, exit 1), not a
+    refusal."""
+    entry = {"label": "reap-proof", "cmd": "echo {pred_pids}"}
+    vals = dict(VALUES)
+    vals["pred_pids"] = "none: first seating"
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "first seating" in r.get("output", ""), r
+
+
+def test_empty_succ_ref_ack_refuses_named():
+    """Generic to every after_join entry: the ack entry's empty `{succ_ref}`
+    refuses by name (row session_ref empty), never run."""
+    entry = {"label": "ack",
+             "cmd": "python3 extensions/agi/bin/rotate.py "
+                    "ack --seat {seat} --gen {gen} --ref {succ_ref} "
+                    "diff --text -"}
+    vals = dict(VALUES)
+    vals["succ_ref"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    _assert_named_refusal(r, "succ_ref", "row session_ref empty")
+
+
+def test_empty_gen_refuses_named():
+    """`gen` also carries a named reason (no generation resolved)."""
+    entry = {"label": "ack", "cmd": "echo gen {gen}"}
+    vals = dict(VALUES)
+    vals["gen"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    _assert_named_refusal(r, "gen", "no generation resolved")
+
+
+def test_unmapped_empty_placeholder_still_refuses_named():
+    """A placeholder with no mapped reason still refuses, NAMING the
+    placeholder — never an invented silent pass."""
+    entry = {"label": "x", "cmd": "echo {seat}"}
+    vals = dict(VALUES)
+    vals["seat"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "refused" in r and "rc" not in r, r
+    assert "placeholder {seat} empty" in r["refused"], r["refused"]
+    assert "skipped by name" in r["refused"], r["refused"]
+
+
+def test_usable_per_entry_fallback_resolves_instead_of_refusing():
+    """An entry whose placeholder has a usable per-entry `fallback:` resolves
+    through the fallback instead of refusing."""
+    entry = {"label": "ack", "cmd": "echo {succ_ref}",
+             "fallback": "none-provided"}
+    vals = dict(VALUES)
+    vals["succ_ref"] = ""
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "none-provided" in r.get("output", ""), r
+
+
+def test_usable_code_fallback_prime_ref_resolves():
+    """The code map _STARTUP_FALLBACKS resolves an emptied `{prime_ref}` to the
+    by-key whois form (`--key {prime_key}`) instead of refusing — same
+    precedence first_turn uses."""
+    entry = {"label": "whois", "cmd": "echo {prime_ref}"}
+    vals = dict(VALUES)
+    vals["prime_ref"] = ""
+    vals["prime_key"] = "pubKEY123"
+    r = rotate._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert "--key pubKEY123" in r.get("cmd", ""), r
+    assert "pubKEY123" in r.get("output", ""), r
+
+
+def test_dm_prints_refused_and_refusal_line_for_empty_pred_pids():
+    """The dm goes through the EXISTING refused branch of
+    `_compose_after_join_dm` — it prints REFUSED plus the refusal line, with no
+    new dm branch."""
+    startup = _startup(after_join=[
+        {"label": "reap-proof",
+         "cmd": "ps -e | grep -E '{pred_pids}'"},
+    ])
+    vals = dict(VALUES)
+    vals["pred_pids"] = ""
+    import agi.bin.rotate as rot
+    # (SL7.73 harvest) the thrower guards the ONE executor of an after_join
+    # command, `_run_units_no_shell` — not `subprocess.run` wholesale, which
+    # SL7.75's `_after_join_sender` -> `_sessions_dir` -> git also reaches for
+    # the sender resolution (a merge interaction, not a defect of either).
+    real_run = rot._run_units_no_shell
+    rot._run_units_no_shell = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refused entry must NEVER run"))
+    sent = []
+    try:
+        out = rot.run_after_join(
+            Path("."), seat="s", gen=11, startup=startup, values=vals,
+            delay_override=0, sleep_impl=lambda s: None,
+            send_dm=lambda to, text: sent.append(text))
+    finally:
+        rot._run_units_no_shell = real_run
+    r = out["results"][0]
+    assert "refused" in r and "rc" not in r and "output" not in r, r
+    assert "REFUSED" in out["dm"], out["dm"]
+    assert "no predecessor chain" in out["dm"], out["dm"]
+    assert "skipped by name" in out["dm"], out["dm"]
+    assert sent == [out["dm"]], "exactly ONE dm, the composed text"
+
+# ── goal:g15.25 (SL7.72) — after_join performed live vs by rotate-self tail ──
+def _live_heartbeat(root, monkeypatch, *, pid=None, at=None):
+    """Write a fresh heal-watch heartbeat (`<sessions>/reaper.watch.json`) with
+    a live pid (default: the test process) so `_watch_alive` reads it alive."""
+    import agi.bin.rotate as rot
+    sess = root / "sessions"
+    sess.mkdir(parents=True, exist_ok=True)
+    (sess / rot.WATCH_HEARTBEAT_FILE).write_text(json.dumps({
+        "pid": pid if pid is not None else os.getpid(),
+        "at": at if at is not None else time.time(),
+    }), encoding="utf-8")
+
+
+def _rotation_record(tmp_path, seat, *, recorded_at="2020-01-01T00:00:00.000000Z"):
+    """A due rotation record for `seat` under `<tmp>/sessions/rotations/`."""
+    rec_path = tmp_path / "sessions" / "rotations" / f"{seat}.20200101T000000Z.json"
+    rec_path.parent.mkdir(parents=True, exist_ok=True)
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": seat, "result": "success",
+        "gen_after": 1, "recorded_at": recorded_at,
+        "handover": {"join": {"window_id": "@1", "transcript": "/tmp/j.jsonl"}}}),
+        encoding="utf-8")
+    return rec_path
+
+
+def test_no_watcher_tail_performs(tmp_path, monkeypatch):
+    """(a) inline_reaper FALSE + no heartbeat file => `_after_join_performer_armed`
+    is False (no SERVICE armed) yet `_after_join_tail_should_perform` is True —
+    rotate-self's own post-spawn tail performs the captive after_join itself, so
+    a rotation never depends on a watcher that is not running. The record ends
+    with `after_join.performer == "tail"` (never absent, never {})."""
+    import agi.bin.rotate as rot
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    assert not rot._after_join_performer_armed(tmp_path)
+    assert rot._after_join_tail_should_perform(tmp_path)
+    rec_path = _rotation_record(tmp_path, "tail-seat")
+    tmpl = _startup(after_join=[{"label": "join", "cmd": "echo tail-ran"}],
+                    delay_s=0)
+    _fake_run(monkeypatch)
+    # the TAIL path performs with performer="tail" (step (6.4) passes this).
+    out = rot.run_after_join(
+        Path(tmp_path), seat="tail-seat", gen=1, startup=tmpl, values=VALUES,
+        record_path=str(rec_path), sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None, performer="tail")
+    rec = json.loads(rec_path.read_text())
+    aj = rec.get("after_join")
+    assert isinstance(aj, dict) and aj, "after_join must never be absent/{} on a tail-performed record"
+    assert aj.get("performer") == "tail", aj
+    assert aj.get("performed_by") == "tail", aj
+    assert aj.get("results"), "the tail's single command must be recorded"
+    assert out["appended"] is True
+
+
+def test_watch_alive_tail_skips(tmp_path, monkeypatch):
+    """(b) a FRESH heartbeat with a live pid => `_watch_alive` True and the
+    SERVICE is armed, so `_after_join_tail_should_perform` is False — the tail
+    does NOT run after_join (deferral to an alive watch is real, no double-
+    perform). The watch's own run_after_join_for_seat writes
+    `after_join.performer == "watch"` exactly once; a second call returns None."""
+    import agi.bin.rotate as rot
+    _live_heartbeat(tmp_path, monkeypatch)
+    monkeypatch.setattr(rot, "_inline_reaper_enabled", lambda root: False)
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": True}}), encoding="utf-8")
+    assert rot._watch_alive(tmp_path)
+    assert rot._after_join_performer_armed(tmp_path)
+    assert not rot._after_join_tail_should_perform(tmp_path)
+
+    # the watch performs once on a real record; the tail/skip decision above
+    # already proved the tail would not run when the watch is alive.
+    rec_path = _rotation_record(tmp_path, "watch-seat")
+    tmpl = _startup(after_join=[], delay_s=0)  # empty list -> results []
+    def _lat(root, seat):
+        return json.loads(rec_path.read_text()), str(rec_path)
+    monkeypatch.setattr(rot, "_latest_rotate_record", _lat)
+    # (SL7.76 harvest) the row carries a LIVE pid so SL7.76's liveness gate
+    # reads the seat as live — this test is about the watch/tail decision,
+    # not the dead-seat skip.
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent", "pid": os.getpid()})
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor", lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "_after_join_model_confirm", lambda *a, **k: None)
+    _fake_run(monkeypatch)
+    out1 = rot.run_after_join_for_seat(Path(tmp_path), "watch-seat",                                       now=1 << 60, performer="watch",
+                                       send_dm=lambda to, text: None)
+    assert out1 is not None
+    r1 = json.loads(rec_path.read_text())
+    assert r1.get("after_join") and r1["after_join"].get("performer") == "watch"
+    # a second call re-reads the file, sees after_join already present -> None
+    out2 = rot.run_after_join_for_seat(Path(tmp_path), "watch-seat",
+                                       now=1 << 60, performer="watch",
+                                       send_dm=lambda to, text: None)
+    assert out2 is None, "already performed: the second watch run must return None"
+
+
+def test_after_join_key_never_empty(tmp_path, monkeypatch):
+    """(c) a rotation with a ZERO-length after_join list still records
+    `after_join` with `performer` and `results == []` — never {}; and a record
+    that ALREADY carries `after_join` makes the tail skip (double-perform guard,
+    via the real production guard `_after_join_already_performed`)."""
+    import agi.bin.rotate as rot
+    # zero-length list -> after_join present, results []
+    rec_path = _rotation_record(tmp_path, "empty-seat")
+    tmpl = _startup(after_join=[], delay_s=0)
+    _fake_run(monkeypatch)
+    rot.run_after_join(
+        Path(tmp_path), seat="empty-seat", gen=1, startup=tmpl, values=VALUES,
+        record_path=str(rec_path), sleep_impl=lambda s: None,
+        send_dm=lambda to, text: None, performer="tail")
+    aj = json.loads(rec_path.read_text()).get("after_join")
+    assert isinstance(aj, dict) and aj, "after_join must never be {}"
+    assert aj.get("performer") == "tail"
+    assert aj.get("results") == []
+
+    # already-performed record -> the tail's double-perform guard skips
+    done_path = _rotation_record(tmp_path, "done-seat")
+    done_rec = json.loads(done_path.read_text())
+    done_rec["after_join"] = {"performer": "watch", "results": []}
+    done_path.write_text(json.dumps(done_rec), encoding="utf-8")
+    assert rot._after_join_already_performed(str(done_path)) is True
+    hit = []
+    monkeypatch.setattr(
+        rot, "_after_join_tail_should_perform", lambda *a, **k: True)
+    monkeypatch.setattr(
+        rot, "run_after_join",
+        lambda *a, **kw: hit.append(1) or {})
+    # the (6.4)-shared sequence: decide, then guard, then (only if free) run
+    if rot._after_join_tail_should_perform(tmp_path):
+        if not rot._after_join_already_performed(str(done_path)):
+            rot.run_after_join(Path(tmp_path), seat="done-seat", gen=1,
+                               startup={}, values=VALUES,
+                               record_path=str(done_path), performer="tail")
+    assert not hit, "the tail must NOT call run_after_join on an already-\n            performed record"
+
+
+# ── goal:g15.25 (SL7.76) — liveness skip + age budget + honest delay ──────
+# Parent claim: the after_join catch-up SKIPS a seat with no live session and
+# MARKS a late run past its age budget. Four claims: (a) skip a dead seat with
+# one log line, record nothing; (b) age budget `startup.after_join_max_age_s`
+# (default 300) — a late LIVE seat runs once tagged late, a late DEAD seat is
+# marked skipped once; (c) recorded `delay_s` is the TEMPLATE's promise and
+# `performed_after_s` is the measured age; (d) the tail path inherits (a)-(c)
+# through the SAME run_after_join_for_seat (no second gate — covered by (a)).
+def _seed_rotation(tmp_path, name="seat-d", recorded_at="2020-01-01T00:00:00Z",
+                   window_id="@42"):
+    rec_path = tmp_path / f"{name}.20200101T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": name, "result": "success",
+        "gen_after": 7, "recorded_at": recorded_at,
+        "handover": {"join": {"window_id": window_id,
+                               "transcript": "/tmp/x.jsonl"}}}),
+        encoding="utf-8")
+    return rec_path
+
+
+def test_dead_seat_skipped_no_record_no_dm_one_log(tmp_path, monkeypatch):
+    """(a)+(1) a seat row with NO pid, NO session_id, NO window_id, and no
+    registry join result, is a DEAD seat: run_after_join_for_seat returns a
+    skip, writes NO after_join and NO dm into the record (a fresh-age record
+    gets no skip marker either), and heal's loop logs exactly ONE line
+    `after_join skipped for <seat>: no live session`."""
+    import agi.bin.rotate as rot
+    # a FRESH dead seat (age within budget) proves test-1's "record nothing"
+    now = time.time()
+    fresh = datetime.fromtimestamp(now - 30, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")
+    rec_path = _seed_rotation(tmp_path, name="dead", window_id="@42",
+                              recorded_at=fresh)
+    tmpl = {"startup": _startup(after_join=[{"label": "ack", "cmd": "echo x"}],
+                                delay_s=5)}
+    calls = {"aj": 0, "dm": 0}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent"})  # dead row
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: (calls.__setitem__("aj",
+                                                            calls["aj"] + 1)
+                                          or {"results": [], "appended": True,
+                                              "sent": True}))
+    out = rot.run_after_join_for_seat(
+        tmp_path, "dead", send_dm=lambda to, text: calls.__setitem__(
+            "dm", calls["dm"] + 1))
+    assert out is not None and out.get("skipped") == "no live session", out
+    assert calls["aj"] == 0, "dead seat must never reach run_after_join"
+    assert calls["dm"] == 0, "dead seat must never send a dm"
+    saved = json.loads(rec_path.read_text())
+    assert "after_join" not in saved, \
+        "a fresh-age dead seat records nothing at all"
+    # heal's loop emits exactly ONE skip line for this seat
+    logged = []
+    import rotate as hrot
+    monkeypatch.setattr(hrot, "_inline_reaper_enabled", lambda root: False)
+    monkeypatch.setattr(hrot, "_load_seats",
+                        lambda root: [{"name": "dead"}])
+    monkeypatch.setattr(heal, "_watch_log", lambda line: logged.append(line))
+    # (SL7.76 harvest) the stub accepts SL7.72's `performer=` kwarg — heal's
+    # loop passes performer="watch"; a stub without it raised TypeError into
+    # the loop's best-effort except and logged nothing.
+    monkeypatch.setattr(hrot, "run_after_join_for_seat",
+                        lambda root, seat, **kw: out)
+    heal._run_pending_after_joins(tmp_path)
+    assert logged == [f"after_join skipped for 'dead': no live session"], logged
+
+
+def test_second_run_dead_late_seat_is_noop_once_marker_holds(tmp_path,
+                                                             monkeypatch):
+    """(b)+(2) a DEAD seat whose record is long past its age budget is marked
+    `after_join: {skipped: 'no live session', age_s: N}` ONCE; a SECOND run
+    over that same dead seat returns None (no-op) because the already-
+    performed guard now holds."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="dead-late")  # 2020 -> very old
+    tmpl = {"startup": _startup(after_join=[], delay_s=5)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent"})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: {"results": []})
+    out = rot.run_after_join_for_seat(tmp_path, "dead-late")
+    assert out is not None and out["skipped"] == "no live session", out
+    assert out.get("late") is True, "2020 record is far past the age budget"
+    saved = json.loads(rec_path.read_text())
+    assert saved["after_join"]["skipped"] == "no live session", saved
+    assert isinstance(saved["after_join"]["age_s"], (int, float)), saved
+    # second run: the skip marker holds -> no-op
+    out2 = rot.run_after_join_for_seat(tmp_path, "dead-late")
+    assert out2 is None, "after the once-marked skip, a re-run is a no-op"
+
+
+def test_live_late_seat_performed_once_tagged_late(tmp_path, monkeypatch):
+    """(b)+(3) a LIVE seat whose record is past its age budget is performed
+    EXACTLY once, its record's after_join carrying `late: true` and a numeric
+    `age_s` — never performed as-if-fresh."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="seat-live")  # 2020 -> old
+    tmpl = {"startup": _startup(after_join=[], delay_s=5,
+                                max_age=10)}
+    calls = {"n": 0}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})  # LIVE row
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True, "pid": os.getpid(),
+                                         "session_id": "live"})
+    real_aj = rot.run_after_join
+
+    def _aj(*a, **kw):
+        calls["n"] += 1
+        return real_aj(*a, **kw)
+    monkeypatch.setattr(rot, "run_after_join", _aj)
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out=cmd[1])
+    try:
+        out = rot.run_after_join_for_seat(tmp_path, "seat-live",
+                                          sleep_impl=lambda s: None,
+                                          send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    assert calls["n"] == 1, "a live late seat is performed EXACTLY once"
+    assert out is not None
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert aj.get("late") is True, aj
+    assert isinstance(aj.get("age_s"), (int, float)), aj
+    assert aj["age_s"] > 10, aj
+    # a SECOND run is a no-op (already performed)
+    calls["n"] = 0
+    out2 = rot.run_after_join_for_seat(tmp_path, "seat-live")
+    assert out2 is None and calls["n"] == 0
+
+
+def test_fresh_live_seat_unchanged_no_late(tmp_path, monkeypatch):
+    """(b)+(4) a FRESH live seat (age within budget) is unchanged: recorded no
+    later than its budget so NO `late` key is written, and the record is
+    performed normally with the promised template delay."""
+    import agi.bin.rotate as rot
+    now = time.time()
+    rec_ts = datetime.fromtimestamp(now - 30, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")  # 30 s ago
+    rec_path = _seed_rotation(tmp_path, name="seat-fresh",
+                              recorded_at=rec_ts)
+    tmpl = {"startup": _startup(after_join=[], delay_s=5)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True})
+    rot.run_after_join_for_seat(tmp_path, "seat-fresh",
+                                sleep_impl=lambda s: None,
+                                send_dm=lambda to, text: None)
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert "late" not in aj, f"fresh seat must not be tagged late: {aj}"
+    assert aj.get("delay_s") == 5, aj
+
+
+def test_delay_s_is_template_promise_performed_after_s_is_measured(
+        tmp_path, monkeypatch):
+    """(c)+(5) the record's `delay_s` equals the TEMPLATE's after_join_delay_s
+    (the promised run), never `delay_s: 0` as a claim of promptness; and
+    `performed_after_s` is the MEASURED now-recorded_at age (>= 0), a separate
+    key."""
+    import agi.bin.rotate as rot
+    now = time.time()
+    rec_ts = datetime.fromtimestamp(now - 120, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")  # 120 s ago
+    rec_path = _seed_rotation(tmp_path, name="seat-delay", recorded_at=rec_ts)
+    tmpl = {"startup": _startup(after_join=[], delay_s=37)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True})
+    rot.run_after_join_for_seat(tmp_path, "seat-delay",
+                                sleep_impl=lambda s: None,
+                                send_dm=lambda to, text: None)
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert aj["delay_s"] == 37, \
+        f"delay_s must be the TEMPLATE promise, got {aj['delay_s']}"
+    assert aj["delay_s"] != 0, "delay_s 0 must never be written as promptness"
+    assert aj.get("performed_after_s") is not None, \
+        "the measured performed_after_s key must be present"
+    assert aj["performed_after_s"] >= 0, aj
+    assert abs(aj["performed_after_s"] - 120) < 5, \
+        f"performed_after_s should be ~120 s measured: {aj}"
+
+
+def test_ack_stamp_emits_no_utcnow_deprecation(tmp_path, monkeypatch):
+    """(e) the ack stamp uses datetime.now(timezone.utc) — cmd_ack emits NO
+    DeprecationWarning. (goal:g15.25 SL7.74)
+
+    PARENT REVIEW: the first cut asserted this under
+    `warnings.simplefilter("error", DeprecationWarning)`, which does NOT
+    discriminate on this box — `datetime.utcnow()` is a DeprecationWarning
+    only from Python 3.12, and the interpreter here is 3.11.15, where
+    `-W error::DeprecationWarning` and the simplefilter both pass on the
+    PRE-FIX code too (measured: `python3 -W error::DeprecationWarning -c
+    'datetime.utcnow()'` exits 0). The real falsifier is to make `utcnow`
+    ASSERT its own call: a `datetime` subclass whose `utcnow` raises replaces
+    the module-level `rotate.datetime` for the WHOLE cmd_ack path, so ANY
+    utcnow reached from the ack — today or later in the same call tree —
+    fails the test on every Python."""
+    import warnings
+
+    class _NoUtcnowDatetime(datetime):
+        @classmethod
+        def utcnow(cls):  # pragma: no cover - only runs on a regression
+            raise AssertionError(
+                "cmd_ack reached datetime.utcnow() — use datetime.now(timezone.utc)")
+
+    ack_path = rotate._ack_path(tmp_path, "s")
+    ack_path.parent.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rotate, "datetime", _NoUtcnowDatetime)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        code = rotate.cmd_ack(SimpleNamespace(
+            seat="s", gen=1, ref="abc123", answer="continue", text=""),
+            tmp_path)
+    assert code == 0, f"cmd_ack failed under -W error::DeprecationWarning: {code}"
+    assert Path(ack_path).exists()
+    ack = json.loads(ack_path.read_text(encoding="utf-8"))
+    assert ack["ts"].endswith("Z"), ack["ts"]
+
+
+def test_for_seat_gen_resolves_from_row_when_record_lacks_gen_after(tmp_path,
+                                                                    monkeypatch):
+    """(a) run_after_join_for_seat (the PRODUCTION service entry) resolves the
+    ack gen from the SEAT ROW's generation cell when the record has no
+    gen_after (a pre-key record / crash-recovery record), not 0. (goal:g15.25
+    SL7.74)"""
+    import agi.bin.rotate as rot
+    calls = {}
+
+    def _fake_run_after_join(root, *, seat, gen, startup, values,
+                             record_path, sleep_impl, send_dm,
+                             delay_override, gen_unresolved_reason=None,
+                             **kw):  # SL7.72/76 add performer/late/age kwargs
+        calls["gen"] = gen
+        calls["gen_unresolved_reason"] = gen_unresolved_reason
+        return {"gen": gen}
+
+    rec_path = Path(tmp_path) / "s.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        # no gen_after on purpose
+        "recorded_at": "2020-01-01T00:00:00.000000Z"}), encoding="utf-8")
+    tmpl = _startup(after_join=[], delay_s=0)
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()),
+                            str(rec_path)))
+    monkeypatch.setattr(
+        rot, "_find_seat",
+        lambda root, name: {"role": "parent", "generation": 9,
+                            "pid": os.getpid()})  # live under SL7.76's gate
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join", _fake_run_after_join)
+    rot.run_after_join_for_seat(Path(tmp_path), "s")
+    assert calls["gen"] == 9, calls
+    assert calls["gen_unresolved_reason"] is None
+
+
+def test_for_seat_gen_refused_when_neither_record_nor_row(tmp_path,
+                                                          monkeypatch):
+    """(a) run_after_join_for_seat passes gen_unresolved_reason (which refuses
+    the ack ENTRY) when the record lacks gen_after AND the row lacks a
+    generation cell — 0 is never passed. (goal:g15.25 SL7.74)"""
+    import agi.bin.rotate as rot
+    calls = {}
+
+    def _fake_run_after_join(root, *, seat, gen, startup, values,
+                             record_path, sleep_impl, send_dm,
+                             delay_override, gen_unresolved_reason=None,
+                             **kw):  # SL7.72/76 add performer/late/age kwargs
+        calls["gen"] = gen
+        calls["gen_unresolved_reason"] = gen_unresolved_reason
+        return {"gen": gen}
+
+    rec_path = Path(tmp_path) / "s.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "recorded_at": "2020-01-01T00:00:00.000000Z"}), encoding="utf-8")
+    tmpl = _startup(after_join=[], delay_s=0)
+    monkeypatch.setattr(
+        rot, "_latest_rotate_record",
+        lambda root, seat: (json.loads(rec_path.read_text()),
+                            str(rec_path)))
+    monkeypatch.setattr(
+        rot, "_find_seat",
+        lambda root, name: {"role": "parent",
+                            "pid": os.getpid()})  # live under SL7.76's gate  # no generation cell
+    monkeypatch.setattr(
+        rot, "_resolve_template",
+        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join", _fake_run_after_join)
+    rot.run_after_join_for_seat(Path(tmp_path), "s")
+    assert calls["gen"] == "", calls
+    assert calls["gen_unresolved_reason"] == (
+        "gen unresolved for s: no gen_after on the record and "
+        "no generation on the row"), calls

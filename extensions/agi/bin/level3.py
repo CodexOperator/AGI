@@ -202,17 +202,35 @@ def default_project_root() -> Path | None:
     directory the run happens to start in. The env value passes through the
     SAME resolve-or-refuse as the cwd leg, never accepted unchecked
     (hypothesis:l4-level3-checks-the-env-spelled-root-by-name-exactly-as-it-
-    checks-the-cwd-leg): a variable pointing at a directory that is not a
-    project root resolves to None and is refused by name — it must not be
-    scanned as an authoritative stray tree. A valid env root — a graph root or
-    a repo root, either of which `locations.project_root_from_env` may already
-    descend into `.agi/` — resolves exactly as before. None reaches `main`,
-    which refuses by name rather than scan a stray `<cwd>/nodes/...` tree as
-    authoritative.
+    checks-the-cwd-leg), and never ASCENDS: the value is accepted only when it
+    is itself a project root (its own graph root, or a repo/legacy root whose
+    descent `project_root_from_env` already performed). A value naming a subdir
+    of a project would ascend to the enclosing root and is refused, matching
+    the docstring (hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+    with-the-docstring). A variable pointing at a directory that is not
+    itself a project root resolves to None and is refused by name — it must
+    not be scanned as an authoritative stray tree. A valid env root — a graph
+    root or a repo root, either of which `locations.project_root_from_env` may
+    already descend into `.agi/` — resolves exactly as before. None reaches
+    `main`, which refuses by name rather than scan a stray `<cwd>/nodes/...`
+    tree as authoritative.
     """
     env_root = locations.project_root_from_env()
     if env_root is not None:
-        return resolve_project_root(env_root)
+        # Accept the env value ONLY when it is ITSELF a project root — its own
+        # graph root, or a repo/legacy root whose descent
+        # `project_root_from_env` already performed (`_graph_dir_in`). It must
+        # never ASCEND (goal:g15, hypothesis:l4-level3s-env-refusal-and-env-
+        # root-ascent-agree-with-the-docstring): `resolve_project_root` walks
+        # UP, so an env value naming a subdir of a project would otherwise
+        # silently reach the enclosing root, against
+        # `locations.project_root_from_env`'s docstring. A value that resolves
+        # to a DIFFERENT path (a subdir ascending, or nothing at all) is
+        # refused — None reaches `main`, which names the variable.
+        resolved = resolve_project_root(env_root)
+        if resolved == env_root:
+            return resolved
+        return None
     return resolve_project_root(Path.cwd())
 
 
@@ -1215,9 +1233,12 @@ def main(argv: list[str] | None = None) -> int:
             env_hit = next((v for v in locations.PROJECT_ROOT_ENV_VARS
                             if os.environ.get(v)), None)
             if env_hit:
-                print(f"ERR: no graph root at or above "
-                      f"{Path.cwd().resolve()}"
-                      f" (no .agi/ and no nodes/) — env {env_hit}="
+                # The env spell was the only thing that failed. The cwd clause
+                # is deliberately absent: the cwd may be a real project, so
+                # "no .agi/ and no nodes/" would be false there (goal:g15,
+                # hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+                # with-the-docstring). Name the variable and its value.
+                print(f"ERR: env {env_hit}="
                       f"{os.environ[env_hit]} does not resolve to a project root",
                       file=sys.stderr)
             else:

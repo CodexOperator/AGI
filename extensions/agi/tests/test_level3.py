@@ -1120,7 +1120,10 @@ def test_nof_flag_default_refuses_a_rootless_env_root_by_name(tmp_path):
     2, naming the variable and its value — never accepted unchecked and scanned
     as an authoritative stray tree. Cwd is a real project so the cwd leg alone
     would resolve; the refusal must blame the env spell, proving the env leg
-    did not bypass the resolve-or-refuse check the cwd leg already has."""
+    did not bypass the resolve-or-refuse check the cwd leg already has — and
+    the refusal must NOT print the false cwd clause `no .agi/ and no nodes/`
+    (hypothesis:l4-level3s-env-refusal-...): the cwd is a real project here,
+    so only the env failed."""
     imposter = tmp_path / "imposter"
     imposter.mkdir()
     proj = tmp_path / "proj"
@@ -1140,7 +1143,66 @@ def test_nof_flag_default_refuses_a_rootless_env_root_by_name(tmp_path):
     assert r.returncode == 2, r.stderr
     assert f"env AGI_TREE_PROJECT_ROOT={imposter}" in r.stderr
     assert "does not resolve to a project root" in r.stderr
-    assert "no .agi/ and no nodes/" in r.stderr
+    assert "no .agi/ and no nodes/" not in r.stderr
+
+
+def test_nof_flag_env_subdir_of_project_refuses_by_name(tmp_path):
+    """goal:g15, hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+    with-the-docstring — an env override naming a SUBDIR of a real project
+    (e.g. `<root>/extensions`, which holds no `.agi/` and no `nodes/`) is
+    REFUSED by name, exit 2, because accepting it would ASCEND to the enclosing
+    project root against `locations.project_root_from_env`'s docstring. Only a
+    value that is ITSELF a project root is accepted."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    (proj / "extensions").mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    subdir = proj / "extensions"
+    env["AGI_TREE_PROJECT_ROOT"] = str(subdir)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(proj), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 2, r.stderr
+    assert f"env AGI_TREE_PROJECT_ROOT={subdir}" in r.stderr
+    assert "does not resolve to a project root" in r.stderr
+
+
+def test_nof_flag_env_naming_graph_root_itself_resolves(tmp_path):
+    """goal:g15, hypothesis:l4-level3s-env-refusal-and-env-root-ascent-agree-
+    with-the-docstring — the DESCENT case is preserved: `AGI_TREE_PROJECT_ROOT`
+    naming the graph root itself (`<root>/.agi`) is ITSELF a project root
+    (holds `nodes/`), so it resolves and the run writes there, even from a
+    rootless cwd."""
+    proj = tmp_path / "proj"
+    (proj / ".agi" / "nodes" / "build").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text('{"id": "test-proj"}\n')
+    rootless = tmp_path / "rootless"
+    rootless.mkdir()
+    engine = tmp_path / "engine"
+    (engine / "extensions" / "agi" / "bin").mkdir(parents=True)
+    (engine / "extensions/agi/bin/a.py").write_text("import os\n")
+    subprocess.run(["git", "init", "-q"], cwd=engine, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=engine, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("AGI_PROJECT_ROOT", "AGI_TREE_PROJECT_ROOT",
+                        "AUTORESEARCH_TREE_PROJECT_ROOT", "PROJECT_ROOT")}
+    graph_root = proj / ".agi"
+    env["AGI_TREE_PROJECT_ROOT"] = str(graph_root)
+    cmd = [sys.executable, str(BIN), "--dry-run", "--engine-root", str(engine)]
+    r = subprocess.run(cmd, cwd=str(rootless), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 0, r.stderr
+    assert f"target dir: {graph_root / 'nodes' / 'build'}" in r.stdout
+
+
+
 
 
 def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):

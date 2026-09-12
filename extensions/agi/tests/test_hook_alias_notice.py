@@ -6,9 +6,15 @@ config:seats).
 
 The deprecated-alias notice is written to the CONSUMER's stderr by
 `geometry_config` (a literal `--seat` on a shared parser fires
-`_FLAG_DEP_MSG`; using AGI_SEAT fires `_ENV_DEP_MSG`; the seats.md fallback
-fires `_FILE_DEP_MSG`). The acceptance criterion is framed at the
-observable boundary of a real hook RUN: run the hook once with a deprecated
+`_FLAG_DEP_MSG`; using AGI_SEAT fires `_ENV_DEP_MSG`). The seats.md/file
+fallback is SILENT by design — the file-level deprecation notice was
+DELETED, not merely silenced, and greps for its symbol now return nothing
+(hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-exists): on
+a seats-only tree posts.md is absent, so a file-notice naming the
+migration target could only fire where its advice was untakeable. The
+notice family is therefore exactly the caller-chosen deprecated spellings
+(`--seat` flag, `AGI_SEAT` env), never the file fallback. The acceptance
+criterion is framed at the observable boundary of a real hook RUN: run the hook once with a deprecated
 env spelling in use (AGI_SEAT, no AGI_POST) and once with only the current
 spelling (AGI_POST), and assert the notice appears at most once across the
 two runs and NEVER on the run that uses no deprecated spelling.
