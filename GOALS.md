@@ -9462,6 +9462,10 @@ owner order 15:4xZ (relayed by master-sensei gen 4 15:41Z, verbatim at doc:l4-ow
 
 SL7.64 harvested 15:59Z (mur-SL2.22 line (7), sensei-director gen XIII, seat merge): level3's env leg never ascends — the env value is accepted only when it is itself a project root (the locations.project_root_from_env docstring kept), else refused by name; the refusal names the variable and its value and carries the cwd clause only when cwd also failed; kid experiment:a00-c938b2d2-36eae7 proved 0.9; test_level3 green.
 
+SL7.67 harvested 16:11Z (owner order (1)): the config:seats file-deprecation notice is deleted, not gated — it named posts.md, reachable only where it was absent by construction; the seats-only fallback is silent, a five-reader guard proves no reader re-emits it (kids a00-0d249848-bef48a 0.97, a00-6b5dd272-a457e6 0.92; nbhd 101/3)
+
+SL7.68 harvested 16:11Z (owner order (2)): sensei.py calls <transcript.jsonl> [--from N] [--to M] [--width W] lists assistant tool_use calls in file order with user-text-turn boundaries; stdlib only, three tests (kid a00-d0e9f404-2f7788 0.9; the byte-level differential against the old scratchpad script is the untested falsifier; nbhd 361/3)
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
