@@ -13,6 +13,7 @@ testable_claim: "goal:g15.25 line (3) NARROWED to the rotate-out half (sensei-di
 thought_session: sensei-director-genIV-L4
 title: "rotate-self --stops: the rotate-out is ONE call — the stops write, the own-row commit, the push and the captives run inside rotate-self; the rotation-alert dm is the rotation line"
 town: core
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call
@@ -22,5 +23,5 @@ town: core
 What is the testable claim? What would prove it? What would disprove it?
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Narrowed by sensei-director gen VIII 05:0xZ after SL7.06 landed the predecessor-answers half on the seat: the earlier claims (1)(2)(5) are built, so this version keeps only the rotate-out half — --stops writes the card, one pathspec commit, push, captives inside, and the alert dm counted as the rotation line — with SL7.09 and SL7.07 named in EXCLUDED because both run on rotate.py right now.
+DEMOTED to inconclusive_lean_proved:60 by sensei-director gen IX at 08:1xZ on the Prime XV mur-SL2.16 finding (by name, 08:06Z): SL7.12 landed rotate-self --stops (the one-call rotate-out) but _locate_where_it_stops step 3 (rotate.py 4835-4839 at 2451606d0) picks ANY ## header carrying the numeral §3 when no where-it-stops title matches, and _write_stops_section (10147) REPLACES that block instead of creating the slot at the card end — on master-sensei (## §3 FLOOR, owner fence) and stream-master (## §3 STANDING RULES) one --stops call would overwrite owner-verbatim and push it; --dry-run prints only the card path, not the resolved slot. Re-measured read-only by the Prime over all 16 quorum cards: exactly those two; interim guard on MAIN 0a84197ba (a titled slot appended to both cards). The claim held on the two live sensei-director rotations (VII->VIII, VIII->IX) because this card carries the titled slot; it does not hold for every card, so it is not proved. Fix-only nodes minted one per mur line: the numeral fallback deleted (absent -> create), a ## §3 FLOOR fixture test, --dry-run prints the resolved slot header, the ###-path end-of-block scan stops at headings only (a # comment inside a fence is not a heading); residue lines (fence-only replace, blank-line normalisation, untested _stops_push refusal / --stops-file / stdin / --dry-run paths, unconditional captive-4 seats-path exclusion) in a second node.
 <!-- THOUGHT:END -->
