@@ -10,3 +10,9 @@ from: master-sensei
 to: stream-master
 
 [rotation-alert] master-sensei -> master-sensei [266f3d63-7c2c-4ce6-8cbf-3a111b697078] @319 | generation 2 -> 3 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 52 | in flight: None
+---
+ts: 2026-09-12T15:33:46.966765+00:00
+from: master-sensei
+to: stream-master
+
+[rotation-alert] master-sensei -> master-sensei [21497613-575f-4d0d-b4b0-cfb0c4bb2ba3] @327 | generation 3 -> 4 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.handoff.md | seq: 60 | in flight: None
