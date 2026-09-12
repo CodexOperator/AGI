@@ -61,7 +61,7 @@ class Town:
 
     @property
     def derives(self) -> list[str]:
-        """The town's derived branch names — `core/main` .. loops, from cells."""
+        """The town's derived branch names (the ruling's table), from cells."""
         return derive_names(self.slug, self.season)
 
 
@@ -222,7 +222,7 @@ def load_towns(root) -> list[Town]:
                 )
 
     if not towns:
-        raise TownError("no town:* nodes found under nodes/town/ (or deprecated/town/)")
+        raise TownError("no town:* nodes found under nodes/town (or nodes/deprecated/town)")
 
     row_map = _read_council_rows(root)
     _resolve_visions(root, towns)
@@ -259,27 +259,27 @@ def town_tuples(root) -> list[dict]:
 
 def derive_names(town: str, season: int, post: str = "", loop_round: str = "",
                  agent: str = "") -> list[str]:
-    """The DERIVED branch names of a town, from its cells — the ruling's table:
+    """The DERIVED branch names of a town, from its cells, as the ruling's
+    ordered table (town main, town-season main, then the post main and the
+    loop leaf when `post` / `loop_round` + `agent` are given).
 
-        <town>/main
-        <town>/season<season>/main
-        <town>/season<season>/posts/<post>/main
-        <town>/season<season>/posts/<post>/loops/<loop_round>/<agent>
-
-    Town-relative spelling (the global `season{gs}/` prefix is the ladder's,
-    not the town's). For core: core/main, core/season2/main, core/season2/
-    posts/<post>/main, core/season2/posts/<post>/loops/<round>/<agent>.
-
-    `post`/`loop_round`/`agent` default empty => the post/loop layers are
-    omitted (the town's own Council main). Only the two mains survive without a
-    post; pass a post (+ loop layer) for the fuller table.
+    ONE derivation: this delegates to `branches.derive_names` (I-3a, the
+    grammar module that owns every branch shape) and flattens its dict in
+    table order. Director fix at the L4.332/L4.333 harvest: the round's own
+    f-string table was a second hand-spelled derivation that the spelling
+    grep pinned as debt; now no shape is spelled here.
     """
-    base = [f"{town}/main", f"{town}/season{season}/main"]
+    from branches import derive_names as _derive  # sibling module, same dir
+
+    d = _derive(town, season, post or None,
+                loop_round or None if post else None,
+                agent or None if post else None)
+    out = [d["town_main"], d["town_season_main"]]
     if post:
-        base.append(f"{town}/season{season}/posts/{post}/main")
-        if loop_round and agent:
-            base.append(f"{town}/season{season}/posts/{post}/loops/{loop_round}/{agent}")
-    return base
+        out.append(d["post_main"])
+        if "loop" in d:
+            out.append(d["loop"])
+    return out
 
 
 def _main(argv=None) -> int:
