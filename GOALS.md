@@ -9620,6 +9620,8 @@ SL7.109 HARVESTED (a00-00ab0971, proved 0.9 x2): zoom.py --tier parent renders t
 
 SL7.112 HARVESTED (a00-928a039a; proved 0.9 + lean_proved:70): dispatch.py exits 4 scaffolded-but-unregistered and deprecates its own scaffold when the Popen registration fails; the ProvisioningError and KeyError/NotImplementedError seams share the ONE reporter. Residue: a child that dies after Popen but before it registers still returns 0 — measured out of scope, on experiment:a00-eee66150-01712e
 
+SL7.110 HARVESTED (a00-d94d023f; proved 0.85/0.9/0.95): cli.py done for tier parent refuses >= lean_proved:50 without one parent-run negative probe per claim conjunct (probes: six keys, classes auth/gate/wire; --dry-run prints the decision); [experiment] schema gains probes:. Seat fix-up: the SL7.111 parent prose now names auth/gate/wire — one vocabulary with the gate
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
