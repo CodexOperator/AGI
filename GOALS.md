@@ -9560,6 +9560,8 @@ SL7.95 brief 18:56Z (FIX-ONLY, Prime XVII 18:48Z line (8)): hypothesis:l4-sensei
 
 SL7.97 brief 18:56Z (TEST-ONLY, Prime XVII 18:48Z test-only line): hypothesis:l4-test-only-templates-read-startup-delivery-after-join-roots-are-tmp-paths-read-ack-payers-poll-fast-and-test-grid-keeps-git-stderr — four test files, behaviour-preserving, wall time measured
 
+SL7.90 HARVESTED 19:05Z on the sensei-director post: the closeout captive-step list is chosen by SEAT KIND — PRIME_CLOSEOUT_STEPS (g17_1_note, render, push), MAIN_POST_CLOSEOUT_STEPS (pathspec_commit, push), the worktree list otherwise; template closeout.steps still wins; worktree=None keeps the legacy list, an explicit '' is a MAIN post; kid proved 0.9, +tests in test_rotate_closeout_steps.py; nbhd 530/3. Closes the SL7.84 near miss; SL7.92 (real runners merge-up in MAIN) dispatched next
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
