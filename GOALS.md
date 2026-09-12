@@ -6610,6 +6610,8 @@ SL7.86 harvested 18:32Z (Prime XVI 17:55Z, F15): the own-tail after_join path no
 
 SL7.91 brief 18:41Z (FIX-ONLY; the gen 14->15 rotate-out refusal the Sensei's wake-audit named): hypothesis:l4-meter-pin-never-lowers-an-existing-pins-generation-for-the-same-transcript-a-lagging-row-is-named-not-written — measured: cmd_meter --pin re-stamps the pin from whatever row its cwd tree reads; my own first meter read at 18:30Z rewrote the successor pin 15 -> 14 because the worktree row lagged MAIN's spawn-row commit by 12 min (pin mtime 18:30Z), and check 5 would have refused this rotate-out too; pin re-stamped 15 at 18:39Z by the same command after the sync, row session_ref repaired to f8f194 by ONE re-ack (the pre-F15 tail had written the session uuid).
 
+SL7.93 brief 18:47Z (FIX-ONLY, Sensei ask 18:40Z line (1)): hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox — the second input is typed into the pane through send.wake's existing typing seam (dm copy kept as the record, nudge suppressed for that one message, typed-or-refused named on the record); measured: run_after_join_for_seat delivers only via send_dm (rotate.py:10999-11010) so every successor pays one read; dispatch after SL7.88 lands (same file, after_join*).
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
