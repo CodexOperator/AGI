@@ -92,25 +92,42 @@ Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
   removed only when a tool performs the step; prose that says "don't" has
   never removed one (20:1xZ finding).
 
-## The main question, per finished session (owner 2026-09-12 19:0xZ)
+## The main question, per finished session (owner 2026-09-12 19:0xZ, amended in-line 22:2xZ)
 
 Owner, verbatim in the master-sensei pane (quote lives in
-`doc:l4-owner-decisions`, relayed to the Prime for reflection): "Can any of
-the tool/command/agent/etc calls made during that role's finished session be
-handled using the following heuristic, in order of decision preference from
-most preferred decision type to least preferred: eliminated (unnecessary
-calls not needed for the role task - needs role template change); automated
-(the harness does it for the agent when a relevant flag triggers like
-session start, metric flag hit, gate reached, etc - should only needs
-template change but harness code improvement can be added as well to make
-this type of change be part of the template); and/or consolidated (the call
-is added as part of another relevant call - still ideally just done using
+`doc:l4-owner-decisions`, relayed to the Prime for reflection; the 22:2xZ
+amendment is written INTO the quote, not under it — owner: in-line, never
+append): "Can any of the tools/commands/calls/etc (and individual call
+options/flags/args/call locations as well inside each call) made during that
+role's finished session be handled using the following heuristic, in order of
+decision preference from most preferred decision type to least preferred:
+eliminated (unnecessary calls not needed for the role task - needs role
+template change); automated (the harness does it for the agent when a relevant
+flag triggers like session start, metric flag hit, gate reached, etc - should
+only needs template change but harness code improvement can be added as well
+to make this type of change be part of the template); and/or consolidated (the
+call is added as part of another relevant call - still ideally just done using
 template modifications but same rules apply if it requires harness code
 improvement; improve the harness such that future changes of this type only
-need template edits)?"
+need template edits)… so that it simplifies for instance how rotate has to
+have a whole bunch of args and options going with it. Ideally using the key
+system to keep everything in line so that rotate by default does self and all
+the other options and args and pieces are filled in based on the key holder
+identity and other relevant session-end metrics. With individual override
+options so higher up hierarchy members can rotate lower-ranked ones but not
+the other way around."
 
 The scope is the WHOLE finished session, not only the wake and the
-rotate-out tails. Every call gets one of three verdicts, tried in this order:
+rotate-out tails — and INSIDE each call: every option, flag, argument and
+call location is itself a candidate. A call the role must make can still
+lose its arguments. The standing example is `rotate-self --name X --role Y
+--timeout N --force --stops '…'`: the target is a bare `rotate` that does
+self, with post, role, timeout and the stop text filled from the KEY HOLDER's
+identity (`seats/<post>.key` → its `config:seats` row) and the session-end
+metrics (meter, card §stop), and `--post <other>` honoured only DOWNWARD in
+the hierarchy (a Prime rotates a director, a director a helper; never the
+reverse). Every call, and every piece of one, gets one of three verdicts,
+tried in this order:
 
 1. **eliminated** — not needed for the role's task. Cut = a role template
    change (an entry dropped, a fact or brief line that made the model think
