@@ -1323,7 +1323,18 @@ def _fallback_pids(rec: dict) -> list[int]:
     pids: list[int] = []
     s12 = rec.get("s12_self_reap")
     if isinstance(s12, dict) and isinstance(s12.get("chain"), list):
-        pids += [p for p in s12["chain"] if isinstance(p, int)]
+        for entry in s12["chain"]:
+            # goal:g15.25 (SL7.40 (c)) — `_reap_chain` appends DICTS
+            # `{'pid': int, ...}` (rotate.py `_reap_chain`), so a bare-int
+            # filter returned [] on the very chain the ONE reap section
+            # stores. Read `entry['pid']` from a dict entry AND still accept
+            # a bare int (a record written before this cut).
+            if isinstance(entry, dict):
+                p = entry.get("pid")
+                if isinstance(p, int) and p > 0:
+                    pids.append(p)
+            elif isinstance(entry, int) and entry > 0:
+                pids.append(entry)
     return pids
 
 
