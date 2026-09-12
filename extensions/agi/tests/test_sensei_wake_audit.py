@@ -145,17 +145,25 @@ class TestClassifyCall:
         assert label is None
 
 
-def _write_root(tmp_path: Path, tools_and_cmds):
-    """Write a synthetic graph root with config:seats + config:rotations +
-    a synthetic CC transcript of the given `(tool, cmd)` calls."""
+def _write_root(tmp_path: Path, tools_and_cmds, *, posts: bool = False):
+    """Write a synthetic graph root with config:seats (or, when `posts`,
+    a post-first config:posts) + config:rotations + a synthetic CC transcript
+    of the given `(tool, cmd)` calls."""
     graph = tmp_path / ".agi"
     nodes = graph / "nodes"
     (nodes / ".geometry").mkdir(parents=True, exist_ok=True)
     (nodes / "config").mkdir(parents=True, exist_ok=True)
-    # config:seats — the seat + its role (mirrors the real frontmatter shape)
-    seats = (nodes / ".geometry" / "seats.md")
-    seats.write_text(
-        "---\nid: config:seats\ntype: config\nseats:\n"
+    # the one-season geometry config: seats.md / config:seats (`seats:`)
+    # by default; posts.md / config:posts (`posts:`) on a post-first tree.
+    # ONLY the chosen file is written -- no fallback present -- so the audit
+    # proves it resolves the row through geometry_config.resolve either way.
+    cfg_name = "posts" if posts else "seats"
+    cfg = (nodes / ".geometry" / f"{cfg_name}.md")
+    cfg.write_text(
+        "---\n"
+        f"id: config:{cfg_name}\n"
+        "type: config\n"
+        f"{cfg_name}:\n"
         f'  - {{"name": "{SEAT}", "role": "director", "tier": 1}}\n'
         "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
     rot = (nodes / ".geometry" / "rotations.md")
@@ -173,7 +181,7 @@ def _write_root(tmp_path: Path, tools_and_cmds):
         "- F1 (by hand): a worktree seat's record; one call proves it -- "
         "`python3 extensions/agi/bin/rotate.py status --seat <seat> --record latest`\n"
         "- F2 (by hand): the seat registry; `whois` or "
-        "`grep \"name\": \"<seat>\" .agi/nodes/.geometry/seats.md`\n"
+        f'`grep "name": "<seat>" .agi/nodes/.geometry/{cfg_name}.md`\n'
         "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n",
         encoding="utf-8")
     # people who pass --transcript explicitly skip the pin/slug resolution,
@@ -278,6 +286,51 @@ def _ack_window_blocks(seed: str = "20260911T120000Z"):
                    "input": {"command": "python3 -m pytest "
                               "extensions/agi/tests/test_sensei.py -q"}})
     return blocks
+
+
+def _cfg_window_blocks(cfg_name: str):
+    """The ack-window fixture bound to ONE config spelling (`seats` or
+    `posts`): the closing Read touches the config file at that spelling and
+    the sealing `git commit` names it at that spelling. Proves the audit
+    resolves the row AND seals the seating on either a seats-only or a
+    posts-only tree (hypothesis:l4-a-seat-is-a-post-everywhere)."""
+    blocks = [{"type": "tool_use", "name": "Bash",
+               "input": {"command": "git status -sb"}}]
+    # a Read/Grep of the live config at THIS spelling is a by-hand read (b)
+    blocks.append({"type": "tool_use", "name": "Read",
+                   "input": {"path": f".agi/nodes/.geometry/{cfg_name}.md"}})
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": f"python3 extensions/agi/bin/"
+                              f"rotate.py ack --seat {SEAT} --ref abc123 "
+                              "continue"}})
+    blocks.append({"type": "tool_use", "name": "Bash",
+                   "input": {"command": f"git add HANDOFF.md {cfg_name}.md "
+                              "&& git commit -q -m 'seat row'"}})
+    return blocks
+
+
+@pytest.mark.parametrize("posts", [True, False])
+def test_wake_audit_finds_rows_and_seals_on_either_config_spelling(tmp_path, posts):
+    """Only ONE geometry config file exists (posts.md on a post-first tree,
+    seats.md on a one-season tree). The audit must resolve the seat row through
+    `geometry_config.resolve`, classify the config Read as a by-hand read, and
+    extend the wake window to the `git commit` that names that spelling — on
+    BOTH spellings."""
+    cfg_name = "posts" if posts else "seats"
+    graph, _ = _write_root(tmp_path, [("Bash", "true")], posts=posts)
+    # only the chosen file exists; the other spelling must be ABSENT
+    other = "seats" if posts else "posts"
+    assert not (graph / "nodes" / ".geometry" / f"{other}.md").exists()
+    tr = graph / "ack.jsonl"
+    tr.write_text(_events(_cfg_window_blocks(cfg_name)), encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0                       # the row resolved through resolve()
+    # git status(d) + cfg Read(b) + ack(b) + row commit = 4 calls, window
+    # ends at the commit that names THIS spelling
+    assert len(calls) == 4
+    assert counts["window_reason"] == "ack call 3 + row commit 4"
+    assert calls[1]["cat"] == "b"          # the config Read is a by-hand read
+    assert calls[3]["cat"] == "d"          # the gap: sealing commit is real (d)
 
 
 def test_wake_ack_ends_window_inclusive_and_extends_to_the_row_commit(tmp_path):
