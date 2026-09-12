@@ -197,8 +197,11 @@ def test_dry_run_delete_old_changes_nothing(repo: Path):
     assert not list((repo / ".agi" / "sessions").glob("*.json"))
 
 
-# ---- test 4: plain --dry-run (no --delete-old) still writes ONLY the plan --
-def test_plain_dry_run_writes_only_the_plan_file(repo: Path):
+# ---- test 4: plain --dry-run (no --delete-old) writes NOTHING (I-3a-2) ----
+# Old behaviour: plain --dry-run wrote the gitignored resumability plan file.
+# The round moves the plan-file write to --apply / an explicit --plan-out PATH,
+# so --dry-run is a pure preview again: no plan file, no baseline, nothing.
+def test_plain_dry_run_writes_nothing(repo: Path):
     before = _snapshot(repo)
     plan = repo / ".agi" / "sessions" / "branch-reshuffle-plan.json"
     assert not plan.exists()
@@ -206,16 +209,12 @@ def test_plain_dry_run_writes_only_the_plan_file(repo: Path):
     res = _run_cli(repo / ".agi", "--dry-run", "--kinds",
                    "main,posts,towns,loops")
     assert res.returncode == 0, res.stderr
-    # exactly the one gitignored plan file appeared
-    assert plan.exists(), "plain --dry-run must write the resumability plan"
     after = _snapshot(repo)
-    # the plan file itself is the only diff (it is under .agi/sessions/, which
-    # the tree digest includes, so re-write its bytes into a snapshot == before)
-    plan_saved = plan.read_bytes()
-    plan.unlink()
-    after_without_plan = _snapshot(repo)
-    assert before == after_without_plan, (before, after_without_plan)
-    plan.write_bytes(plan_saved)
+    # the dry run changes NOTHING, and writes no plan/baseline file either
+    assert before == after, (before, after)
+    assert not plan.exists(), "--dry-run must NOT write the resumability plan"
+    assert not list((repo / ".agi" / "sessions").glob("*.json")), \
+        "--dry-run must leave the sessions dir clean of JSON"
 
 
 # ---- test 5: never force; master still on origin after the planned pass ----
@@ -258,3 +257,317 @@ def test_push_helper_allows_remote_visible(repo: Path):
     _push_remote_visible(repo, "core/main", "master")
     ls = _git(repo, "ls-remote", "origin", "refs/heads/core/main").stdout
     assert ls.strip(), "remote-visible name must push cleanly"
+
+# --------------------------------------------------------------------------
+# I-3a-2 Region A — the v3 TOWN-FIRST plan (hypothesis:l4-the-reshuffle-
+# plans-the-final-town-first-tree-from-the-town-tuples-and-the-mirror-line-
+# lands-inert). These fixture proofs cover kinds main/towns/posts planning:
+# the TOWN SET source (town:* nodes vs ladder fallback), every planned town
+# name == branches.derive_names(...) output, the trunk-pair CREATE + the
+# assert_remote_visible-first push lines, the local-only v3 post renames,
+# --dry-run writing nothing, and the --plan-out semantics. No apply, no
+# delete, no live tree.
+# --------------------------------------------------------------------------
+
+_FALLBACK_TOWNS = [("core", 2), ("streaming-suite", 1), ("web-app-suite", 1)]
+
+
+def _v3_repo(tmp_path: Path, with_town_nodes: bool) -> Path:
+    """Real git repo with a bare origin carrying the live-ish head set and a
+    graph root that either HAS a town:* node (town_tuples path) or does not
+    (ladder fallback path)."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    for name in ["season2/main",
+                 "season2/streaming-suite/season1/main",
+                 "season2/web-app-suite/season1/main",
+                 "season2/posts/sanctuary-director",
+                 "season2/posts/sanctuary-helper"]:
+        _git(r, "branch", name)
+        _git(r, "push", "-q", "origin", f"master:refs/heads/{name}")
+    _git(r, "fetch", "-q", "origin")
+    agi = r / ".agi"
+    # loot ladder: current_season + the towns: list the FALLBACK path reads
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite]\n---\n")
+    if with_town_nodes:
+        _write(r, ".agi/nodes/.geometry/posts.md",
+               "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
+               "  - name: web-app-suite\n---\n")
+        for town, season in _FALLBACK_TOWNS:
+            _write(r, f".agi/nodes/town/{town}.md",
+                   f"---\nid: town:{town}\ntype: town\nvisions: "
+                   f"[vision:{town}]\ncouncil: {town}\nseason: "
+                   f"{season}\n---\n")
+    return r
+
+
+def _v3_plan_stdout(root: Path, kinds: str) -> str:
+    res = _run_cli(root, "--dry-run", "--kinds", kinds)
+    assert res.returncode == 0, res.stdout + res.stderr
+    return res.stdout
+
+
+def test_v3_town_set_uses_town_nodes_when_present(tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    out = _v3_plan_stdout(r / ".agi", "towns")
+    assert "town set: town:* nodes (3 towns)" in out, out
+
+
+def test_v3_town_set_falls_back_to_ladder_without_town_nodes(tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=False)
+    out = _v3_plan_stdout(r / ".agi", "towns")
+    assert "town set: ladder fallback (3 towns; no town:* node)" in out, out
+
+
+def test_v3_planned_town_names_equal_derive_names_output(tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    out = _v3_plan_stdout(r / ".agi", "towns")
+    for town, season in _FALLBACK_TOWNS:
+        d = branches.derive_names(town, season)
+        for target in (d["town_main"], d["town_season_main"]):
+            assert f"git branch {target} " in out, (target, out)
+            assert f"git push -u origin {target}" in out, (target, out)
+    # the trunk pair per level is remote-visible: every push line names one
+    for ln in out.splitlines():
+        if "git push -u origin " in ln:
+            name = ln.split("git push -u origin ", 1)[1].strip()
+            assert branches.is_remote_visible(name), \
+                f"planned push of a NON-remote-visible name: {name!r}"
+
+
+def test_v3_planned_post_renames_are_local_and_derive_names_targets(
+        tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    out = _v3_plan_stdout(r / ".agi", "posts")
+    for p in ["sanctuary-director", "sanctuary-helper"]:
+        target = branches.derive_names("core", 2, p)["post_main"]
+        # the plan names the v3 rename target derived from the same tuple
+        assert f"git branch -m season2/posts/{p} {target}" in out, (p, out)
+        # local-only: NO push of the post name, and its upstream is UNSET
+        assert f"git push -u origin {target}" not in out, out
+        assert f"git branch --unset-upstream {target}" in out, out
+    # a --kinds posts plan has NO push lines at all (posts are not
+    # remote-visible; the trunk-pair push belongs to kinds towns)
+    assert "git push " not in out, out
+
+
+def test_v3_main_kind_keep_line(tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=False)
+    out = _v3_plan_stdout(r / ".agi", "main")
+    assert "v3 main: season<n>/main stays (remote-visible); master " \
+           "add-only, kept (frozen season-1 name)" in out, out
+
+
+def test_v3_dry_run_writes_nothing_and_plan_out_is_explicit(tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    root = r / ".agi"
+    sessions = root / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    default_plan = sessions / "branch-reshuffle-plan.json"
+
+    # plain --dry-run: no plan file anywhere
+    _v3_plan_stdout(root, "towns")
+    assert not default_plan.exists(), "dry-run must not write the plan"
+    assert not [p for p in sessions.glob("*.json") if p.name], \
+        "dry-run must leave the sessions dir free of plan JSON"
+
+    # --plan-out writes EXACTLY that file and nothing else
+    out_path = root / "sessions" / "explicit-plan.json"
+    res = _run_cli(root, "--dry-run", "--kinds", "towns", "--plan-out",
+                   str(out_path))
+    assert res.returncode == 0, res.stderr
+    assert out_path.exists(), "--plan-out must write the named file"
+    assert not default_plan.exists(), \
+        "--plan-out must not ALSO write the default plan path"
+
+
+# --------------------------------------------------------------------------
+# I-3a-2 Region A — the v3 APPLY (the target node's PROOF: --apply on the
+# fixture yields EXACTLY the planned refs, worktree HEADs follow the post
+# renames, and the local-only post branches have NO upstream afterwards).
+# Runs ONLY against the tmp fixture (never the live tree — no live push, no
+# live ref change). --dry-run then --apply with --kinds main,posts,towns:
+#   * refs/heads after == before | {trunk-pair creates} | {renamed post
+#     mains} MINUS {old post sources} (for-each-ref), and each new trunk
+#     points at its planned source tip;
+#   * a linked worktree whose HEAD is an old post source is re-pointed onto
+#     the renamed post main;
+#   * the renamed local post branch has NO upstream (`@ {u}` fails).
+# --------------------------------------------------------------------------
+
+def _heads(repo: Path) -> set[str]:
+    out = _git(repo, "for-each-ref", "--format=%(refname:short)",
+               "refs/heads").stdout
+    return {b for b in out.split() if b}
+
+
+def _v3_apply_repo(tmp_path: Path) -> Path:
+    """_v3_repo plus (a) two linked worktrees ON the v3 post SOURCE branches,
+    so the apply re-point path is exercised, and (b) the default checkout
+    moved OFF master: master is the add-only v2 job whose LOCAL rename target
+    (season1/main) is never created, so leaving the default worktree on master
+    would make the v2 worktree re-point attempt `git checkout season1/main`
+    (a missing branch) and fail the apply."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _git(r, "worktree", "add", "-q", str(r / "wt-director"),
+         "season2/posts/sanctuary-director")
+    _git(r, "worktree", "add", "-q", str(r / "wt-helper"),
+         "season2/posts/sanctuary-helper")
+    _git(r, "checkout", "-q", "season2/main")
+    return r
+
+
+def test_v3_apply_creates_trunk_pairs_renames_posts_locally_and_repoints(
+        tmp_path: Path):
+    r = _v3_apply_repo(tmp_path)
+    root = r / ".agi"
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+
+    gs = 2  # the fixture's ladder current_season
+    # planned NEW refs, derived through the SAME grammar the impl uses
+    trunk_pairs: set[str] = set()
+    for town, season in _FALLBACK_TOWNS:
+        d = branches.derive_names(town, season)
+        trunk_pairs.add(d["town_main"])
+        trunk_pairs.add(d["town_season_main"])
+    post_renames = {
+        old: branches.derive_names("core", gs, p)["post_main"]
+        for old, p in [("season2/posts/sanctuary-director",
+                        "sanctuary-director"),
+                       ("season2/posts/sanctuary-helper", "sanctuary-helper")]
+    }
+    old_posts = set(post_renames)
+
+    before = _heads(r)
+
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+
+    after = _heads(r)
+    # EXACTLY the planned set: before + new trunks + renamed post mains,
+    # with the old post source names gone
+    expected = (before | trunk_pairs | set(post_renames.values())) - old_posts
+    assert after == expected, (sorted(after), sorted(expected),
+                               res.stdout + res.stderr)
+
+    # each new trunk branch points at its planned source tip
+    for town, season in _FALLBACK_TOWNS:
+        tip = (f"season{gs}/main" if season == gs
+               else f"season{gs}/{town}/season{season}/main")
+        d = branches.derive_names(town, season)
+        for target in (d["town_main"], d["town_season_main"]):
+            got = _git(r, "rev-parse", f"{target}^{{commit}}").stdout.strip()
+            want = _git(r, "rev-parse", f"{tip}^{{commit}}").stdout.strip()
+            assert got == want, (target, got, want)
+
+    # linked worktree HEADs follow the renamed post main
+    wt_dir = _git(r / "wt-director", "branch", "--show-current").stdout.strip()
+    assert wt_dir == post_renames["season2/posts/sanctuary-director"], wt_dir
+    wt_hlp = _git(r / "wt-helper", "branch", "--show-current").stdout.strip()
+    assert wt_hlp == post_renames["season2/posts/sanctuary-helper"], wt_hlp
+
+    # the renamed LOCAL post branch has NO upstream: `@ {u}` must fail
+    for old, new in post_renames.items():
+        up = _git(r, "rev-parse", "--abbrev-ref", f"{new}@{{u}}")
+        assert up.returncode != 0, (new, up.stdout, up.stderr)
+        assert "_post_rename" not in up.stdout
+
+
+# --------------------------------------------------------------------------
+# I-3a-2 Region B — the KIND LOOPS plan (dry-only). A v3 town-first loop
+# branch is classified by the EXISTING loop-prune rule over the SAME derived
+# post_main: merged (ancestor of the post) -> a would-prune [DRY ] line;
+# unmerged -> NOT pruned by name; a legacy loop (loop/...@s<N> or
+# season<N>/loops/...) -> HELD BY NAME. --dry-run writes nothing and changes
+# no ref, and the loop plan emits NO push line. Only a tmp fixture — never the
+# live tree.
+# --------------------------------------------------------------------------
+
+def _v3_loops_repo(tmp_path: Path) -> Path:
+    """_v3_repo plus a v3 post_main for sanctuary-director, a MERGED v3 loop,
+    an UNMERGED v3 loop and two LEGACY loop branches."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    post_main = "core/season2/posts/sanctuary-director/main"
+    base = _git(r, "rev-parse",
+                "season2/posts/sanctuary-director^{commit}").stdout.strip()
+    _git(r, "branch", post_main, base)
+
+    # MERGED loop: points at the post_main's OWN commit (equal = ancestor, so
+    # merge-base --is-ancestor rc 0).
+    merged = "core/season2/posts/sanctuary-director/loops/L4.333/a00-m"
+    _git(r, "branch", merged, base)
+
+    # UNMERGED loop: a divergent commit NOT an ancestor of post_main.
+    _git(r, "checkout", "-q", "-b", "tmp-fork")
+    _write(r, "fork.txt", "unmerged\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "fork")
+    fork_sha = _git(r, "rev-parse", "HEAD").stdout.strip()
+    unmerged = "core/season2/posts/sanctuary-director/loops/L4.333/a00-u"
+    _git(r, "branch", unmerged, fork_sha)
+    _git(r, "checkout", "-q", "master")
+
+    # LEGACY loops: never a v3 shape (HELD BY NAME).
+    _git(r, "branch", "loop/hypothesis-l4-foo@s2", base)
+    _git(r, "branch", "season2/loops/hypothesis-l4-bar-a00-zzz", base)
+    return r
+
+
+def test_v3_loops_plan_merged_unmerged_held_by_name(tmp_path: Path):
+    r = _v3_loops_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    merged = "core/season2/posts/sanctuary-director/loops/L4.333/a00-m"
+    unmerged = "core/season2/posts/sanctuary-director/loops/L4.333/a00-u"
+    post_main = "core/season2/posts/sanctuary-director/main"
+    # (a) merged -> would-prune line
+    assert f"[DRY ] loop prune: {merged}" in out, out
+    # (b) unmerged -> named NOT pruned
+    assert f"unmerged: {unmerged} -> NOT pruned: {post_main}" in out, out
+    # (c) legacy loops -> HELD BY NAME
+    assert "HELD BY NAME: loop/hypothesis-l4-foo@s2" in out, out
+    assert "HELD BY NAME: season2/loops/hypothesis-l4-bar-a00-zzz" in out, out
+    # the loop plan NEVER pushes or deletes a v3 loop name, and never
+    # mutates for real
+    assert not any("git push" in ln and name in ln
+                   for ln in out.splitlines()
+                   for name in (merged, unmerged)), out
+    assert "git branch -d" not in out, out
+    # the unmerged loop still exists after (dry-run is a plan)
+    assert _git(r, "rev-parse", "--verify",
+                f"{unmerged}^{{commit}}").returncode == 0, \
+        "unmerged loop must survive the dry-run"
+
+
+def test_v3_loops_dry_run_writes_nothing_changes_no_ref(tmp_path: Path):
+    r = _v3_loops_repo(tmp_path)
+    root = r / ".agi"
+    sessions = root / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    before_refs = _git(r, "for-each-ref").stdout
+    res = _run_cli(root, "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    # (d) --dry-run leaves refs byte-identical and the sessions dir plan-free
+    after_refs = _git(r, "for-each-ref").stdout
+    assert before_refs == after_refs, "dry-run must not change any ref"
+    assert not list(sessions.glob("*.json")), \
+        "dry-run must not write a plan JSON into the sessions dir"
