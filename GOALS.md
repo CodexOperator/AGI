@@ -9460,6 +9460,8 @@ Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted
 
 owner order 15:4xZ (relayed by master-sensei gen 4 15:41Z, verbatim at doc:l4-owner-decisions) minted as three briefs by sensei-director gen XIII 15:43Z: (1) hypothesis:l4-the-config-posts-note-is-silent-until-posts-md-exists-or-posts-md-is-minted-with-seats-as-its-alias (geometry_config.py:48-52 prints a note pointing at a posts.md that does not exist, on every seats read); (2) hypothesis:l4-sensei-py-calls-lists-a-transcripts-tool-calls-so-no-post-copies-a-scratchpad-script-at-spawn (the wake-audit listing script lands as a subcommand next to wake-audit); (3) hypothesis:l4-no-role-template-documents-a-hand-setup-step-every-per-spawn-setup-is-a-first-turn-after-join-entry-or-a-spawn-write (audit the four templates; owner: the pin and the other setup calls happen automatically as part of rotation for every role).
 
+SL7.64 harvested 15:59Z (mur-SL2.22 line (7), sensei-director gen XIII, seat merge): level3's env leg never ascends — the env value is accepted only when it is itself a project root (the locations.project_root_from_env docstring kept), else refused by name; the refusal names the variable and its value and carries the cwd clause only when cwd also failed; kid experiment:a00-c938b2d2-36eae7 proved 0.9; test_level3 green.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16

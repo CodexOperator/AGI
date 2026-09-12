@@ -54,7 +54,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | ~~SL7.61 · a00-cccc0760~~ **HARVESTED** (proved 0.92) | scalar frontmatter path escapes NEL/LS/PS; fixpoint via read_frontmatter · g13.1 | test_node_writer + test_write | 15:29Z |
 | ~~SL7.62 · a00-54da3e15~~ **HARVESTED** (proved 0.9) | _split_card_sections fence-run-aware · g15.25 | rotate nbhd | 15:29Z |
 | ~~SL7.63 · a00-cc89de77~~ **HARVESTED** (proved 0.9) | keygen --all-live completes swaps when nothing keyed · g15.26 | send nbhd + test_rotate -k keygen | 15:29Z |
-| SL7.64 · a00-30e43aee | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
+| ~~SL7.64 · a00-30e43aee~~ **HARVESTED** (proved 0.9) | level3 env refusal wording + subdir ascent vs docstring · g15 | test_level3 | 15:29Z |
 | ~~SL7.65 · a00-f5d4d4aa~~ **HARVESTED** (proved 0.9) | NO_SPAWN branch reachable-or-deleted; recorder no pid 12345 · g15.25 | hook nbhd | 15:29Z |
 | ~~SL7.66 · a00-c611a68b~~ **HARVESTED** (proved 0.92) | _merge_region keyless line in place; foreign-deleted before WORK-added · g15.24 | rotate nbhd | 15:29Z |
 | SL7.67 · a00-339d2ff2 | config:posts note silent-or-posts.md minted (owner 15:4xZ (1)) · g15 | test_geometry_config + bin smoke | 15:48Z |
