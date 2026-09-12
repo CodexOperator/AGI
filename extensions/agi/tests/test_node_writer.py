@@ -1230,3 +1230,66 @@ def test_a_preescaped_container_entry_normalizes_once_to_literal(project):
     text = d.read_text(encoding="utf-8")
     assert "a—b" in text, "escaped entry did not normalize to the literal char"
     assert "\\u2014" not in text, "the legacy escape survived the write"
+
+
+# --------------------------------------------------------------------------
+# L4 — the scalar (plain, non-container) frontmatter path escapes NEL/LS/PS
+# and the FIXPOINT is a test through read_frontmatter
+# (hypothesis:l4-the-scalar-frontmatter-path-escapes-nel-ls-ps-and-the-
+# fixpoint-is-a-test-through-read-frontmatter). The last node over-stated
+# itself because its test asserted through yaml.safe_load instead of the
+# reader every engine path uses (frontmatter.read_frontmatter). These assert
+# through the real reader and the real write verb (update_node).
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_scalar_round_trips_yaml_linebreak_cp_via_the_reader(project, cp):
+    """A plain scalar carrying U+0085/U+2028/U+2029 must render as one line
+    and read back to the exact code points through read_frontmatter — the
+    reader every engine path uses, not yaml.safe_load bare.
+    """
+    from frontmatter import read_frontmatter
+
+    val = "a" + chr(cp) + "b"
+    res = nw.update_node(project, "idea:i1", set_fm={"note": val})
+    assert res.status == nw.UPDATED, res.reason
+    data = (project / "nodes" / "idea" / "i1.md").read_bytes()
+    assert chr(cp).encode("utf-8") not in data, \
+        f"U+{cp:04X} was emitted literally, escaping it is the whole point"
+    back = read_frontmatter(data.decode("utf-8"))
+    assert back["note"] == val, \
+        f"U+{cp:04X} must survive the round trip byte-identical"
+
+
+@pytest.mark.parametrize("cp", [0x85, 0x2028, 0x2029])
+def test_a_scalar_write_is_fixpoint_through_the_writer(project, cp):
+    """The acceptance criterion: when the engine writer re-renders the whole
+    frontmatter (any unrelated key change forces a full render_frontmatter),
+    the escaped scalar bytes are identical to the previous write — no
+    re-quote churn, no loss, across an arbitrary number of writes.
+    """
+    val = "a" + chr(cp) + "b"
+    p = project / "nodes" / "idea" / "i1.md"
+    r1 = nw.update_node(project, "idea:i1",
+                        set_fm={"note": val, "other": "x"})
+    assert r1.status == nw.UPDATED, r1.reason
+    b1 = p.read_bytes()
+    import frontmatter as fm_src
+    back = fm_src.read_frontmatter(b1.decode("utf-8"))
+    assert back["note"] == val, f"U+{cp:04X} first write read back wrong"
+    # Change an unrelated key: the whole frontmatter MUST re-render, and the
+    # escaped scalar must come out byte-identical (the fixpoint).
+    r2 = nw.update_node(project, "idea:i1", set_fm={"other": "y"})
+    assert r2.status == nw.UPDATED, r2.reason
+    b2 = p.read_bytes()
+    # Strip the unrelated key's line; the rest of the frontmatter is unchanged.
+    note_line = [l for l in b2.decode("utf-8").split("\n") if l.startswith("note:")][0]
+    b1_note = [l for l in b1.decode("utf-8").split("\n") if l.startswith("note:")][0]
+    assert note_line == b1_note, \
+        f"U+{cp:04X} escaped scalar re-rendered differently (the fixpoint failed)"
+    assert fm_src.read_frontmatter(b2.decode("utf-8"))["note"] == val, \
+        f"U+{cp:04X} second write lost the scalar"
+    # A third, identical write is a clean no-op — still byte-identical.
+    r3 = nw.update_node(project, "idea:i1", set_fm={"other": "y"})
+    assert r3.status == nw.UNCHANGED, r3.reason
+    assert p.read_bytes() == b2
