@@ -7470,8 +7470,8 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 #: key is a template bug and must be named.
 STARTUP_PLACEHOLDERS = {
     "seat", "succ_ref", "succ_name", "succ_transcript", "pin_ref", "gen",
-    "prime_ref", "prime_key", "prime_seat", "worktree", "repo",
-    "tmux_session", "pred_pids",
+    "prime_ref", "prime_key", "prime_seat", "prime_from", "worktree",
+    "repo", "tmux_session", "pred_pids",
 }
 
 #: Per-placeholder CODE fallbacks: a used `{key}` whose value is EMPTY is
@@ -8570,6 +8570,39 @@ def _first_seating_startup(root: Path, *, seat: str, role: str,
     return block
 
 
+def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
+    """The prime row for the startup placeholder map, read the way whois
+    reads it — ONE reader: the PUSHED season ref first (`send._pushed_seats`,
+    the SAME ref whois authorizes against, fetch included), the working-tree
+    seat row only as a FALLBACK when the pushed ref is unreachable, and the
+    SOURCE named either way (prime_from). A deferred-key window (a pending
+    key persisted when the push FAILED, SL7.22) leaves the ROTATING worktree's
+    prime row carrying a key the PUSHED authority does not — so a startup
+    {prime_key} read from the worktree can name a key the pushed row never
+    carries and read NO-MATCH/RETIRED for a live Prime
+    (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
+    sig-resolves-the-sig-row-by-pubkey). Returns (row, source) with source
+    ``"pushed"`` or ``"worktree (pushed ref unreachable)"``."""
+    import send  # local: same dir (send.py pattern, no import cycle)
+
+    def _pick(rows):
+        for row in (rows or []):
+            if row.get("role") == "prime_director":
+                return row
+        return None
+
+    try:
+        seeded = send._pushed_seats(root, send._PUSHED_SEATS, True)
+    except Exception:                                       # noqa: BLE001
+        seeded = None
+    if seeded is not None:
+        rows, _sha, _ref = seeded
+        return _pick(rows), "pushed"
+    # Pushed authority unreachable — the FALLBACK, named as such so a reader
+    # never mistakes a rotation-local key for the pushed prime.
+    return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
+
+
 def _first_turn_values(root: Path, *, seat: str, gen: int,
                        succ_name: str, succ_ref: str = "",
                        succ_transcript: str = "",
@@ -8594,20 +8627,28 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
     prime_ref = ""
     prime_key = ""
     prime_seat = ""
-    for row in _load_seats(root):
-        if row.get("role") == "prime_director":
-            if row.get("session_ref"):
-                prime_ref = str(row["session_ref"])
-            # The prime row's pubkey and name ARE filled at every rotation
-            # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are
-            # the by-key fallback axes a startup entry with an EMPTY prime
-            # session_ref declares (hypothesis:l4-prime-authority-resolves-by-
-            # key-when-the-prime-rows-session-ref-is-empty...).
-            if row.get("pubkey"):
-                prime_key = str(row["pubkey"])
-            if row.get("name"):
-                prime_seat = str(row["name"])
-            break
+    # The prime row is read the way whois reads it — ONE reader: the PUSHED
+    # season ref first, the working-tree seat row only as a fallback when the
+    # ref is unreachable, and the SOURCE named (prime_from). A deferred-key
+    # window (a pending key persisted when the push FAILED, SL7.22) leaves the
+    # ROTATING worktree's prime row carrying a key the PUSHED authority does
+    # not — a {prime_key} read from the worktree would name a key the pushed
+    # row never carries and read NO-MATCH/RETIRED for a live Prime
+    # (hypothesis:l4-prime-key-is-read-from-the-pushed-ref-and-whois-key-with-
+    # sig-resolves-the-sig-row-by-pubkey).
+    prime_row, prime_from = _prime_row_authority(root)
+    if prime_row is not None:
+        if prime_row.get("session_ref"):
+            prime_ref = str(prime_row["session_ref"])
+        # The prime row's pubkey and name ARE filled at every rotation
+        # (SL4.07 / SL7.09 key_history), so {prime_key}/{prime_seat} are the
+        # by-key fallback axes a startup entry with an EMPTY prime session_ref
+        # declares (hypothesis:l4-prime-authority-resolves-by-key-when-the-
+        # prime-rows-session-ref-is-empty...).
+        if prime_row.get("pubkey"):
+            prime_key = str(prime_row["pubkey"])
+        if prime_row.get("name"):
+            prime_seat = str(prime_row["name"])
     return {
         "seat": seat,
         "succ_ref": succ_ref or "",
@@ -8618,6 +8659,7 @@ def _first_turn_values(root: Path, *, seat: str, gen: int,
         "prime_ref": prime_ref,
         "prime_key": prime_key,
         "prime_seat": prime_seat,
+        "prime_from": prime_from,
         "worktree": str(worktree),
         "repo": str(repo),
         "tmux_session": tmux_session,
