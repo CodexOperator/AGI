@@ -16,3 +16,9 @@ from: belam
 to: master-sensei
 
 [rotation-alert] belam -> belam-S1-L4-XIII [ff648e] @311 | generation 12 -> 13 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 44 | in flight: None
+---
+ts: 2026-09-12T03:20:05.170130+00:00
+from: belam
+to: master-sensei
+
+[rotation-alert] belam -> belam-S1-L4-XIV [92eda4] @314 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 47 | in flight: None
