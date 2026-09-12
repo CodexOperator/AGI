@@ -4739,6 +4739,28 @@ def _latest_rotation_record(root: Path, seat: str) -> dict | None:
         return None
 
 
+def _seat_has_live_session(row: dict | None, joined: dict | None) -> bool:
+    """True when a seat still has a LIVE session to run its after_join
+    against (goal:g15.25 SL7.76 (a)): either the registry join resolved one
+    (`joined.found`), or the ROW itself carries a live handle — an ALIVE pid,
+    else a session_id/window_id. A row with NO pid AND NO session_id AND NO
+    window_id, and no join result, is a DEAD seat: the after_join has nothing
+    live to run against and must be skipped (never performed as-if-fresh, no
+    dm, no fabricated pid). A pid present but no longer alive / unparseable is
+    dead even if a session/window id lingers."""
+    if joined and joined.get("found"):
+        return True
+    if not row:
+        return False
+    pid = row.get("pid")
+    if pid not in (None, ""):
+        try:
+            return not _pid_gone(int(pid))
+        except (TypeError, ValueError):
+            return False
+    return bool(row.get("session_id") or row.get("window_id"))
+
+
 def _record_join(rec: dict) -> dict:
     """ONE accessor for a rotation record's successor-join identity, accepting
     BOTH record shapes (mur-SL2.13 part 6):
@@ -9274,6 +9296,13 @@ STARTUP_DONE_LINE = ("## STARTUP DONE — every startup step has a "
 DEFAULT_AFTER_JOIN_DELAY_S = 20
 DEFAULT_AFTER_JOIN_TIMEOUT_S = 60
 DEFAULT_AFTER_JOIN_POLL_S = 1.0
+# (goal:g15.25 SL7.76 (b)) the AGE BUDGET: a rotation record older than this
+# is never performed as-if-fresh. A LIVE seat's after_join still runs once,
+# tagged `late: true`; a seat with NO live session is skipped and (when long
+# past the budget) marked `after_join: {skipped: ...}` ONCE so the next
+# restart does not re-visit it. Config key `startup.after_join_max_age_s`
+# (per-template) overrides; default 300 s.
+DEFAULT_AFTER_JOIN_MAX_AGE_S = 300
 
 
 def _inline_reaper_enabled(root: Path) -> bool:
@@ -9622,7 +9651,9 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                    send_dm=None, timeout_s: int | None = None,
                    byte_cap: int | None = None,
                    poll_interval: float | None = None,
-                   poll_turn_fn=None, confirm_model=None) -> dict:
+                   poll_turn_fn=None, confirm_model=None,
+                   late: bool = False,
+                   performed_after_s: float | None = None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
     service-and-the-hook-fires-at-turn-one, owed (i)).
@@ -9641,9 +9672,15 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
     record/send failure — each surfaces as a result / return field."""
     startup = startup or {}
     entries = startup.get("after_join") or []
+    # (goal:g15.25 SL7.76 (c)) what the run PROMISES — the template's OWN
+    # `after_join_delay_s`, written into the record. `delay_override` (0 from
+    # the service, whose wait was already consumed before this call) is a
+    # no-wait convenience, NEVER a written claim of promptness: `delay_s: 0`
+    # must never land in a record as if the run were instant.
+    promised_delay_s = int(startup.get("after_join_delay_s")
+                           or DEFAULT_AFTER_JOIN_DELAY_S)
     delay_s = (delay_override if delay_override is not None
-               else int(startup.get("after_join_delay_s")
-                        or DEFAULT_AFTER_JOIN_DELAY_S))
+               else promised_delay_s)
     timeout = timeout_s or (startup.get("first_turn_timeout_s")
                             or DEFAULT_AFTER_JOIN_TIMEOUT_S)
     cap = byte_cap or (startup.get("byte_cap") or DEFAULT_STARTUP_BYTE_CAP)
@@ -9725,10 +9762,21 @@ def run_after_join(root, *, seat: str, gen: int, startup: dict,
                         join_poll_secs=int(inter))
                 rec["after_join"] = {
                     "performed_by": "service",
-                    "delay_s": delay_s,
+                    "delay_s": promised_delay_s,
                     "results": results,
                     "dm": dm,
                 }
+                # (SL7.76 (b)(c)) age honesty: `performed_after_s` is the
+                # MEASURED now-recorded_at delay (separate from the promised
+                # `delay_s`); a run past its age budget carries `late: true`
+                # and the measured `age_s`.
+                if performed_after_s is not None:
+                    rec["after_join"]["performed_after_s"] = float(
+                        performed_after_s)
+                if late:
+                    rec["after_join"]["late"] = True
+                    if performed_after_s is not None:
+                        rec["after_join"]["age_s"] = float(performed_after_s)
                 rp.write_text(json.dumps(rec, indent=2) + "\n",
                               encoding="utf-8")
                 appended = True
@@ -9797,9 +9845,29 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # prime row change read the new row (the first/first_turn values build
     # below refetches). `_prime_rows_fetch_clear` had NO production caller.
     _prime_rows_fetch_clear()
-    delay_s = int((rec.get("after_join") or {}).get("delay_s")
+    # (SL7.76) resolve the role template UP FRONT so the age budget and the
+    # promised delay come from the SAME `startup` block the after_join runs.
+    row = _find_seat(root, seat)
+    role = (row or {}).get("role") or "parent"
+    # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
+    # (None = role default) so `_resolve_template(root, role, None)` matches
+    # its 4-arg signature — the old 2-arg call raised TypeError every run.
+    tmpl, _name, _src = _resolve_template(root, role, None)
+    startup = (tmpl.get("startup") if tmpl else None) or {}
+    delay_s = int(startup.get("after_join_delay_s")
                   or DEFAULT_AFTER_JOIN_DELAY_S)
+    gen = rec.get("gen_after")
+    # (SL7.76 (b)) the AGE BUDGET: how old a rotation record may be and still
+    # be performed as-if-fresh. Config key `startup.after_join_max_age_s`
+    # (default 300).
+    max_age = int(startup.get("after_join_max_age_s")
+                  or DEFAULT_AFTER_JOIN_MAX_AGE_S)
+    # (b) measure age in UTC. `recorded_at` is a UTC instant (isoformat +
+    # trailing Z), never a naive LOCAL wall clock; strptime's literal `Z`
+    # yields a naive datetime, so stamp it UTC explicitly before comparing. A
+    # record with NO parseable `recorded_at` gets NO fabricated age.
     rec_ts = rec.get("recorded_at", "")
+    age_s = None
     if rec_ts:
         try:
             ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -9808,27 +9876,13 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                 ts = datetime.strptime(rec_ts, "%Y-%m-%dT%H:%M:%SZ")
             except ValueError:
                 ts = None
-        # (goal:g15.25 SL7.54) a rotation record's `recorded_at` is a UTC
-        # instant (isoformat + trailing Z), never a naive LOCAL wall clock.
-        # strptime's literal `Z` yields a NAIVE datetime; timestamp() then
-        # interprets it in the box's local zone — a 4 h skew on an EDT host —
-        # so a record stamped within its delay in UTC read not-due until
-        # hours later. Stamp it UTC explicitly, then compare in UTC.
         if ts is not None and ts.tzinfo is None:
             ts = ts.replace(tzinfo=timezone.utc)
         if ts is not None:
             now = now if now is not None else time.time()
+            age_s = max(0.0, now - ts.timestamp())
             if (ts.timestamp() + delay_s) > now:
                 return None  # not yet due
-
-    row = _find_seat(root, seat)
-    role = (row or {}).get("role") or "parent"
-    # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
-    # (None = role default) so `_resolve_template(root, role, None)` matches
-    # its 4-arg signature — the old 2-arg call raised TypeError every run.
-    tmpl, _name, _src = _resolve_template(root, role, None)
-    startup = (tmpl.get("startup") if tmpl else None) or {}
-    gen = rec.get("gen_after")
     # (l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-
     # autopsy-share-one-pid) key the after_join successor on the RECORD's
     # captured join window @id, re-joined through the SAME `_join_successor` so
@@ -9843,6 +9897,31 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     if window_id:
         joined = _join_successor(root=root, seat=seat, window_id=window_id,
                                  poll_secs=REGISTRY_JOIN_POLL_S)
+    if not _seat_has_live_session(row, joined):
+        # (SL7.76 (a)(b)) a seat with NO live session is SKIPPED — no record
+        # perform, no dm, exactly one log line (heal logs `after_join skipped
+        # for <seat>: no live session` when the return carries `skipped`). A
+        # record long past its age budget is marked `after_join:
+        # {skipped, age_s}` ONCE so the next restart does not re-visit it
+        # (the already-performed guard then holds). No measurable age -> no
+        # marker, just the per-run skip.
+        late = age_s is not None and age_s > max_age
+        if late:
+            try:
+                rp = Path(path)
+                if rp.exists():
+                    mark = dict(rec)
+                    mark["after_join"] = {
+                        "skipped": "no live session",
+                        "age_s": age_s,
+                    }
+                    rp.write_text(json.dumps(mark, indent=2) + "\n",
+                                  encoding="utf-8")
+            except (OSError, ValueError, json.JSONDecodeError):
+                pass  # best-effort: the skip still happened
+        return {"skipped": "no live session", "age_s": age_s,
+                "late": bool(late), "record_path": str(path)}
+
     if joined.get("found"):
         pid = joined.get("pid")
         session_id = joined.get("session_id")
@@ -9865,10 +9944,16 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # stay refused by _resolve_startup_placeholders regardless.
     values["pid"] = pid
     values["session_id"] = session_id
+    # (SL7.76 (b)) a LIVE seat long past its age budget is performed EXACTLY
+    # ONCE, the record's after_join carrying `late: true` and the measured
+    # `age_s` (no as-if-fresh pretense) alongside the promised `delay_s` and
+    # the measured `performed_after_s`.
+    late = age_s is not None and age_s > max_age
     return run_after_join(
         root, seat=seat, gen=int(gen) if gen is not None else 0,
         startup=startup, values=values, record_path=str(path),
-        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0)
+        sleep_impl=sleep_impl, send_dm=send_dm, delay_override=0,
+        late=late, performed_after_s=age_s)
 
 
 def _startup_step_list(startup) -> list:
