@@ -48,12 +48,14 @@ VALUES = {
 }
 
 
-def _startup(after_join=None, delay_s=None):
+def _startup(after_join=None, delay_s=None, max_age=None):
     s = {}
     if after_join is not None:
         s["after_join"] = after_join
     if delay_s is not None:
         s["after_join_delay_s"] = delay_s
+    if max_age is not None:
+        s["after_join_max_age_s"] = max_age
     return s
 
 
@@ -315,6 +317,10 @@ def test_after_join_seat_no_join_key_falls_back_to_record_transcript():
         rot._join_successor = lambda *a, **k: (joins.append(k) or {"found": True})
         rot.run_after_join = lambda *a, **kw: (
             record.append((a, kw)) or {"record_path": kw.get("record_path")})
+        # (SL7.76) the seat row must be LIVE for the after_join to run at all:
+        # a dead row (no pid/session/window, join not attempted) is skipped.
+        # A live pid keeps this test on the transcript-fallback path.
+        rot._find_seat = lambda root, name: {"role": "director", "pid": os.getpid()}
         rot.run_after_join_for_seat(Path("."), "seat-b")
         assert joins == [], \
             "no window_id in the record => no registry join attempted"
@@ -804,7 +810,8 @@ def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch)
         lambda root, seat: (json.loads(rec_path.read_text()),
                             str(rec_path)))
     monkeypatch.setattr(rot, "_find_seat",
-                        lambda root, name: {"role": "parent"})
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
     monkeypatch.setattr(
         rot, "_resolve_template",
         lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
@@ -812,6 +819,9 @@ def test_run_after_join_for_seat_clears_pushed_seats_memo(tmp_path, monkeypatch)
                         lambda *a, **k: {"found": False})
     monkeypatch.setattr(rot, "run_after_join",
                         lambda *a, **kw: {"model_confirm": "ran"})
+    # (SL7.76) the row carries a LIVE pid (os.getpid) so this seat is NOT
+    # skipped as a dead seat — the memo-clear is what this test measures, and
+    # the liveness gate must not turn an old record into a one-shot skip.
     out = rot.run_after_join_for_seat(Path(tmp_path), "c")
     assert out is not None
     assert len(cleared) == 1, cleared
@@ -1199,3 +1209,220 @@ def test_after_join_key_never_empty(tmp_path, monkeypatch):
                                startup={}, values=VALUES,
                                record_path=str(done_path), performer="tail")
     assert not hit, "the tail must NOT call run_after_join on an already-\n            performed record"
+
+
+# ── goal:g15.25 (SL7.76) — liveness skip + age budget + honest delay ──────
+# Parent claim: the after_join catch-up SKIPS a seat with no live session and
+# MARKS a late run past its age budget. Four claims: (a) skip a dead seat with
+# one log line, record nothing; (b) age budget `startup.after_join_max_age_s`
+# (default 300) — a late LIVE seat runs once tagged late, a late DEAD seat is
+# marked skipped once; (c) recorded `delay_s` is the TEMPLATE's promise and
+# `performed_after_s` is the measured age; (d) the tail path inherits (a)-(c)
+# through the SAME run_after_join_for_seat (no second gate — covered by (a)).
+def _seed_rotation(tmp_path, name="seat-d", recorded_at="2020-01-01T00:00:00Z",
+                   window_id="@42"):
+    rec_path = tmp_path / f"{name}.20200101T000000Z.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": name, "result": "success",
+        "gen_after": 7, "recorded_at": recorded_at,
+        "handover": {"join": {"window_id": window_id,
+                               "transcript": "/tmp/x.jsonl"}}}),
+        encoding="utf-8")
+    return rec_path
+
+
+def test_dead_seat_skipped_no_record_no_dm_one_log(tmp_path, monkeypatch):
+    """(a)+(1) a seat row with NO pid, NO session_id, NO window_id, and no
+    registry join result, is a DEAD seat: run_after_join_for_seat returns a
+    skip, writes NO after_join and NO dm into the record (a fresh-age record
+    gets no skip marker either), and heal's loop logs exactly ONE line
+    `after_join skipped for <seat>: no live session`."""
+    import agi.bin.rotate as rot
+    # a FRESH dead seat (age within budget) proves test-1's "record nothing"
+    now = time.time()
+    fresh = datetime.fromtimestamp(now - 30, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")
+    rec_path = _seed_rotation(tmp_path, name="dead", window_id="@42",
+                              recorded_at=fresh)
+    tmpl = {"startup": _startup(after_join=[{"label": "ack", "cmd": "echo x"}],
+                                delay_s=5)}
+    calls = {"aj": 0, "dm": 0}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent"})  # dead row
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: (calls.__setitem__("aj",
+                                                            calls["aj"] + 1)
+                                          or {"results": [], "appended": True,
+                                              "sent": True}))
+    out = rot.run_after_join_for_seat(
+        tmp_path, "dead", send_dm=lambda to, text: calls.__setitem__(
+            "dm", calls["dm"] + 1))
+    assert out is not None and out.get("skipped") == "no live session", out
+    assert calls["aj"] == 0, "dead seat must never reach run_after_join"
+    assert calls["dm"] == 0, "dead seat must never send a dm"
+    saved = json.loads(rec_path.read_text())
+    assert "after_join" not in saved, \
+        "a fresh-age dead seat records nothing at all"
+    # heal's loop emits exactly ONE skip line for this seat
+    logged = []
+    import rotate as hrot
+    monkeypatch.setattr(hrot, "_inline_reaper_enabled", lambda root: False)
+    monkeypatch.setattr(hrot, "_load_seats",
+                        lambda root: [{"name": "dead"}])
+    monkeypatch.setattr(heal, "_watch_log", lambda line: logged.append(line))
+    monkeypatch.setattr(hrot, "run_after_join_for_seat",
+                        lambda root, seat: out)
+    heal._run_pending_after_joins(tmp_path)
+    assert logged == [f"after_join skipped for 'dead': no live session"], logged
+
+
+def test_second_run_dead_late_seat_is_noop_once_marker_holds(tmp_path,
+                                                             monkeypatch):
+    """(b)+(2) a DEAD seat whose record is long past its age budget is marked
+    `after_join: {skipped: 'no live session', age_s: N}` ONCE; a SECOND run
+    over that same dead seat returns None (no-op) because the already-
+    performed guard now holds."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="dead-late")  # 2020 -> very old
+    tmpl = {"startup": _startup(after_join=[], delay_s=5)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent"})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": False})
+    monkeypatch.setattr(rot, "run_after_join",
+                        lambda *a, **kw: {"results": []})
+    out = rot.run_after_join_for_seat(tmp_path, "dead-late")
+    assert out is not None and out["skipped"] == "no live session", out
+    assert out.get("late") is True, "2020 record is far past the age budget"
+    saved = json.loads(rec_path.read_text())
+    assert saved["after_join"]["skipped"] == "no live session", saved
+    assert isinstance(saved["after_join"]["age_s"], (int, float)), saved
+    # second run: the skip marker holds -> no-op
+    out2 = rot.run_after_join_for_seat(tmp_path, "dead-late")
+    assert out2 is None, "after the once-marked skip, a re-run is a no-op"
+
+
+def test_live_late_seat_performed_once_tagged_late(tmp_path, monkeypatch):
+    """(b)+(3) a LIVE seat whose record is past its age budget is performed
+    EXACTLY once, its record's after_join carrying `late: true` and a numeric
+    `age_s` — never performed as-if-fresh."""
+    import agi.bin.rotate as rot
+    rec_path = _seed_rotation(tmp_path, name="seat-live")  # 2020 -> old
+    tmpl = {"startup": _startup(after_join=[], delay_s=5,
+                                max_age=10)}
+    calls = {"n": 0}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})  # LIVE row
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True, "pid": os.getpid(),
+                                         "session_id": "live"})
+    real_aj = rot.run_after_join
+
+    def _aj(*a, **kw):
+        calls["n"] += 1
+        return real_aj(*a, **kw)
+    monkeypatch.setattr(rot, "run_after_join", _aj)
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(out=cmd[1])
+    try:
+        out = rot.run_after_join_for_seat(tmp_path, "seat-live",
+                                          sleep_impl=lambda s: None,
+                                          send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    assert calls["n"] == 1, "a live late seat is performed EXACTLY once"
+    assert out is not None
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert aj.get("late") is True, aj
+    assert isinstance(aj.get("age_s"), (int, float)), aj
+    assert aj["age_s"] > 10, aj
+    # a SECOND run is a no-op (already performed)
+    calls["n"] = 0
+    out2 = rot.run_after_join_for_seat(tmp_path, "seat-live")
+    assert out2 is None and calls["n"] == 0
+
+
+def test_fresh_live_seat_unchanged_no_late(tmp_path, monkeypatch):
+    """(b)+(4) a FRESH live seat (age within budget) is unchanged: recorded no
+    later than its budget so NO `late` key is written, and the record is
+    performed normally with the promised template delay."""
+    import agi.bin.rotate as rot
+    now = time.time()
+    rec_ts = datetime.fromtimestamp(now - 30, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")  # 30 s ago
+    rec_path = _seed_rotation(tmp_path, name="seat-fresh",
+                              recorded_at=rec_ts)
+    tmpl = {"startup": _startup(after_join=[], delay_s=5)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True})
+    rot.run_after_join_for_seat(tmp_path, "seat-fresh",
+                                sleep_impl=lambda s: None,
+                                send_dm=lambda to, text: None)
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert "late" not in aj, f"fresh seat must not be tagged late: {aj}"
+    assert aj.get("delay_s") == 5, aj
+
+
+def test_delay_s_is_template_promise_performed_after_s_is_measured(
+        tmp_path, monkeypatch):
+    """(c)+(5) the record's `delay_s` equals the TEMPLATE's after_join_delay_s
+    (the promised run), never `delay_s: 0` as a claim of promptness; and
+    `performed_after_s` is the MEASURED now-recorded_at age (>= 0), a separate
+    key."""
+    import agi.bin.rotate as rot
+    now = time.time()
+    rec_ts = datetime.fromtimestamp(now - 120, timezone.utc)\
+        .isoformat().replace("+00:00", "Z")  # 120 s ago
+    rec_path = _seed_rotation(tmp_path, name="seat-delay", recorded_at=rec_ts)
+    tmpl = {"startup": _startup(after_join=[], delay_s=37)}
+    monkeypatch.setattr(rot, "_latest_rotate_record",
+                        lambda root, seat: (json.loads(rec_path.read_text()),
+                                            str(rec_path)))
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"role": "parent",
+                                            "pid": os.getpid()})
+    monkeypatch.setattr(rot, "_resolve_template",
+                        lambda root, role, explicit=None, **kw: (tmpl, "parent", "test"))
+    monkeypatch.setattr(rot, "_join_successor",
+                        lambda *a, **k: {"found": True})
+    rot.run_after_join_for_seat(tmp_path, "seat-delay",
+                                sleep_impl=lambda s: None,
+                                send_dm=lambda to, text: None)
+    saved = json.loads(rec_path.read_text())
+    aj = saved["after_join"]
+    assert aj["delay_s"] == 37, \
+        f"delay_s must be the TEMPLATE promise, got {aj['delay_s']}"
+    assert aj["delay_s"] != 0, "delay_s 0 must never be written as promptness"
+    assert aj.get("performed_after_s") is not None, \
+        "the measured performed_after_s key must be present"
+    assert aj["performed_after_s"] >= 0, aj
+    assert abs(aj["performed_after_s"] - 120) < 5, \
+        f"performed_after_s should be ~120 s measured: {aj}"
