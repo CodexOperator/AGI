@@ -1525,6 +1525,36 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     return rc, shell_cmd
 
 
+def _seat_liveness_note(seat: str | None, *, row_pid, argv_pid,
+                        tmux_session: str, window_path) -> str | None:
+    """The ONE liveness read both the spawn gate and the seating autopsy
+    reason from (hypothesis:l4-after-join-keys-on-the-records-window-id-and-
+    the-spawn-gate-and-autopsy-share-one-pid, claim (1) of l4-the-spawn-gate-
+    refuses-both-directions): the seat is ALIVE iff the ROW's pid OR the
+    `--pid` is alive, or a live tmux window is up for the seat. Refuses in
+    BOTH directions — a live `--pid` over a dead row AND a dead `--pid` over
+    a live row (the SL7.03 inverse hole: `--pid` won and masked a live row).
+    A genuine first seating (NO row pid, NO `--pid`) is never gated — no
+    predecessor liveness to read, no window probe. Returns a one-line note
+    ('pid <N>' / 'window <id>') or None when the seat is dead."""
+    for _tag, _p in (("row", row_pid), ("pid", argv_pid)):
+        if _p is None:
+            continue
+        try:
+            _g = int(_p)
+        except (TypeError, ValueError):
+            continue
+        if not _pid_gone(_g):
+            return f"pid {_g}"
+    if row_pid is None and argv_pid is None:
+        # a genuine first seating (no row, no --pid) is never gated
+        return None
+    _lwid = _successor_window_id(seat, tmux_session, window_path)
+    if _lwid is not None:
+        return f"window {_lwid}"
+    return None
+
+
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command."""
 
@@ -1574,31 +1604,26 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # write or window (hypothesis:l4-a-spawn-writes-only-onto-a-dead-
         # seat-and-no-season-literal-remains): a spawn onto a seat whose
         # predecessor pid is still running, or where a live tmux window is
-        # already up for the seat, is refused. `_pred_pid` was derived once
-        # above (`--pid` when given, else the row); this gate and the autopsy
-        # block both read it — the liveness read is never a second derivation
-        # (hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-
+        # already up for the seat, is refused. `_pred_pid` stays the SINGLE
+        # predecessor the autopsy pre-fills (`--pid` when given, else the
+        # row). The GATE reads, in addition, the row's OWN pid — so a dead
+        # `--pid` can never mask a live ROW and a live `--pid` can never mask
+        # a dead row: both directions refuse (claim (1) of
+        # hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-hand-
+        # seating-commits-its-row-and-answers-the-ack; the SL7.03 inverse
+        # hole). One shared helper, both the gate and the autopsy reason from
+        # it (hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-
         # spawn-gate-and-autopsy-share-one-pid).
-        if _pred_pid is None and root is not None:
-            _pred_pid = (_find_seat(root, seat) or {}).get("pid")
+        _row_pid = None
+        if root is not None:
+            _row_pid = (_find_seat(root, seat) or {}).get("pid")
+            if _pred_pid is None:
+                _pred_pid = _row_pid
         _alive_note = None
-        if root is not None and _pred_pid is not None:
-            try:
-                _gpid = int(_pred_pid)
-            except (TypeError, ValueError):
-                _gpid = None
-            if _gpid is not None:
-                # the pid names a predecessor process: the seat is ALIVE iff
-                # that pid is still running, or a live window is up for the
-                # seat (test_rotate.py test_spawn_first_seating... proves a
-                # seat with NO row pid — a genuine first seating — is never
-                # gated).
-                if not _pid_gone(_gpid):
-                    _alive_note = f"pid {_gpid}"
-                else:
-                    _lwid = _successor_window_id(seat, tmux_session, args.window_path)
-                    if _lwid is not None:
-                        _alive_note = f"window {_lwid}"
+        if root is not None:
+            _alive_note = _seat_liveness_note(
+                seat, row_pid=_row_pid, argv_pid=getattr(args, "pid", None),
+                tmux_session=tmux_session, window_path=args.window_path)
         if _alive_note is not None:
             print(f"ERR: seat {seat!r} is alive ({_alive_note}); refusing "
                   f"spawn — the seat is already up (goal:g15.21)",
@@ -1703,6 +1728,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # rotation-does): after the window is up, emit the trigger: first-
         # seating dm + write the gen-1 seating record. Non-fatal — a failure
         # never fails the seating.
+        ask_diff = bool(getattr(args, "ask_diff", False))
         if seat is not None and root is not None:
             try:
                 _first_seating_announce(
@@ -1711,7 +1737,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                     tmux_session=tmux_session,
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
-                    registry_dir=getattr(args, "registry_dir", None))
+                    registry_dir=getattr(args, "registry_dir", None),
+                    ask_diff=ask_diff)
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
                       file=sys.stderr)
@@ -1728,10 +1755,36 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # None). Non-fatal: a pin/ack failure never fails the seating.
         if seat is not None and root is not None:
             try:
-                _first_seating_spawn_writes(
-                    root=root, seat=seat, generation=_spawn_gen)
-            except Exception as exc:                        # noqa: BLE001
+                _window_id = _successor_window_id(
+                    seat, tmux_session, getattr(args, "window_path", None))
+            except Exception:                       # noqa: BLE001
+                _window_id = ""
+            try:
+                _fs_writes = _first_seating_spawn_writes(
+                    root=root, seat=seat, generation=_spawn_gen,
+                    ask_diff=ask_diff, role=_fs_role,
+                    session_id="", window=_window_id or "",
+                    pid=getattr(args, "pid", None))
+            except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
+                      file=sys.stderr)
+            # Claim (2): a hand seating COMMITS its own seating row through
+            # `_commit_spawn_row` (own-row-scoped; `verb="seating row"` -- a
+            # first seating's commit is its own `seating row` write, mirror
+            # to rotate-self's `spawn row` but named for what it is) and
+            # pushes through `_push_season_branch` inside the helper -- so
+            # MAIN is left CLEAN after the hand seating (falsifier: "a
+            # seating leaves seats.md dirty in MAIN"). Best-effort, never
+            # fails the seating; a gitless root / clean-unmodified row skips.
+            try:
+                _commit_spawn_row(
+                    root, seat=seat, generation=_spawn_gen,
+                    session_id="",
+                    window=_window_id or "",
+                    pid=getattr(args, "pid", None),
+                    verb="seating row")
+            except Exception as exc:                # noqa: BLE001
+                print(f"warn: first-seating seating-row commit failed: {exc}",
                       file=sys.stderr)
     return 0
 
@@ -3435,7 +3488,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        in_flight: str, live_names: list[str],
                        successor_ref: str = "",
                        successor_window: str = "",
-                       seating: dict | None = None) -> list[str]:
+                       seating: dict | None = None,
+                       ask_diff: bool = False) -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -3459,7 +3513,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             pid=seating.get("pid"),
             session_id=seating.get("session_id") or "",
             transcript_path=seating.get("transcript_path") or "",
-            seq=seq, in_flight=in_flight)
+            seq=seq, in_flight=in_flight, ask_diff=ask_diff)
     else:
         text = _compose_announcement(
             seat=seat, successor=successor, gen_before=gen_before,
@@ -3674,7 +3728,8 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
                                   pid=None, session_id: str = "",
                                   transcript_path: str = "",
                                   seq: int = 0,
-                                  in_flight: str = "") -> str:
+                                  in_flight: str = "",
+                                  ask_diff: bool = False) -> str:
     """The first-seating `[rotation-alert]` payload — one message, never more.
 
     Carries seat, window @id, ref (when the join has it, else the NAMED
@@ -3682,6 +3737,13 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
     reach), the bounded pid, session id and transcript path (absent fields
     render as `-`, honest pre-join), the durable sequence number, and what is
     in flight. Pure formatting; runs nothing.
+
+    WITH `--ask-diff` (SL7.06's answer contract, reused never a third shape)
+    the alert appends the successor's ONE wake call -- the exact
+    `rotate.py ack --seat S --gen 1 --ref <ref> diff --text -` line, NEVER
+    `--gen 0`, never a bare `(pending ack)` without the line (the seating
+    falsifier "an alert that says generation 0 -> 1 with no ack line or with
+    --gen 0").
     """
     w = str(window_id or "").lstrip("@")
     addr = seat
@@ -3692,12 +3754,17 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
     else:
         addr += " ref: (pending ack)"
     pid_s = str(pid) if pid is not None else "-"
-    return (f"{ROTATION_ALERT_TAG} first seating {addr} | "
+    body = (f"{ROTATION_ALERT_TAG} first seating {addr} | "
             f"generation 0 -> {FIRST_SEATING_GEN} | "
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
             f"transcript: {transcript_path or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
+    if ask_diff:
+        _ref = ref or "<your ListAgents ref>"
+        body += (f"\nrotate.py ack --seat {seat} --gen {FIRST_SEATING_GEN} "
+                 f"--ref {_ref} diff --text -")
+    return body
 
 
 def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
@@ -3706,7 +3773,8 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
                             ref: str = "", first_turn=None,
                             live_names=None, registry_dir=None,
                             pid=None, session_id: str = "",
-                            transcript_path: str = "") -> list[str]:
+                            transcript_path: str = "",
+                            ask_diff: bool = False) -> list[str]:
     """Write the ONE seating record and emit the SAME rotation-alert dm a
     rotation emits (trigger: first-seating) to the derived live recipients.
 
@@ -3743,34 +3811,55 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         handoff_path="first seating: no predecessor handoff",
         in_flight=in_flight, live_names=live_list,
         successor_ref=ref, successor_window=window_id or "",
-        seating=seating)
+        seating=seating, ask_diff=ask_diff)
 
 
 def _first_seating_spawn_writes(*, root: Path, seat: str,
                                 generation: int = FIRST_SEATING_GEN,
-                                transcript: str = "") -> dict:
+                                transcript: str = "",
+                                ask_diff: bool = False,
+                                role: str = "prime_director",
+                                session_id: str = "",
+                                window: str = "",
+                                pid: int | None = None) -> dict:
     """A spawn's rotate-self-step-2 TWO writes, for a FIRST seating
     (hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor): pin
     the seat's meter at ITS generation (the SAME `_pin_successor_meter`
     rotate-self uses, never a second pin format) and write
-    seats/<seat>.ack.json with `answer: continue, source: predecessor` (F8's
+    seats/<seat>.ack.json with `answer: continue, source: seating` (F8's
     contract, the same `_write_ack`; the seating writer answers its OWN ack
     so a hand seating's post also wakes at 0 -- its alert/brief prints no ack
-    line unless `--ask-diff`). These are the SPAWN's writes -- rotate-self
-    step 2's -- NOT the autopsy's (which runs read-only only); they are the
-    spawn occupying its own meter and opening its ack channel.
+    line unless `--ask-diff`, which instead writes `answer: diff-requested,
+    source: seating` and lets the hand seating print the ONE
+    `rotate.py ack ... diff --text -` line). These are the SPAWN's writes --
+    rotate-self step 2's -- NOT the autopsy's (which runs read-only only);
+    they are the spawn occupying its own meter and opening its ack channel.
+
+    Claim (2) of hypothesis:l4-the-spawn-gate-refuses...: a first seating
+    ALSO writes its OWN identity row into MAIN (the same `_successor_row_write`
+    rotate-self uses -- generation, session_id, window, pid into the seat's
+    own seats row), so `cmd_spawn` can `_commit_spawn_row` it (the `seating
+    row` commit) and `_commit_spawn_row` pushes through `_push_season_branch`
+    -- a hand seating leaves MAIN clean, never a dirty row riding to the next
+    merge-up. When the seat has no registry row (a THROWAWAY seat) the row
+    write skips and there is nothing to commit; harmless.
 
     The transcript is the caller's known one -- EMPTY for a fresh first
     seating (there is no successor transcript from a JOIN yet); rotate-self
     repoints the pin at the successor's transcript when a rotation joins at
     gen 2. An empty-target pin is safe: `find_pin_log` still resolves it and
     `_read_pin_target` returns None until a transcript lands. Returns
-    {meter_pin, ack_path}."""
+    {meter_pin, ack_path, row}."""
     mp = _pin_successor_meter(root, seat=seat, generation=generation,
                               transcript=transcript)
+    _answer = "diff-requested" if ask_diff else "continue"
     ap = _write_ack(root=root, seat=seat, gen_after=generation,
-                    session_ref="", answer="continue")
-    return {"meter_pin": mp, "ack_path": str(ap)}
+                    session_ref="", answer=_answer, source="seating")
+    row = _successor_row_write(
+        root, actor=seat, seat=seat, role=role, session_ref="",
+        generation=generation, window=window, pid=pid,
+        session_id=session_id or None)
+    return {"meter_pin": mp, "ack_path": str(ap), "row": row}
 
 
 def _remove_first_seating_record(root: Path, seat: str) -> bool:
@@ -5622,7 +5711,8 @@ def _push_season_branch(root: Path) -> str:
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                       session_id: str | None = None,
                       window: str = "",
-                      pid: int | None = None) -> str:
+                      pid: int | None = None,
+                      verb: str = "spawn row") -> str:
     """g15.24 (Sensei's pick, fix (a)) — rotate-self COMMITS its own s6.1
     spawn-row write, so the successor's ONE required wake act (`rotate.py
     ack --gen N --ref X continue`) finds seats.md CLEAN and the r3b gate
@@ -5686,7 +5776,7 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     if _head_content and _head_content == new_content:
         return ("spawn_row_commit: SKIPPED — seats.md already clean after "
                 "the write (row was byte-identical); nothing committed")
-    msg = (f"{seat} spawn row: gen {generation}, session_id "
+    msg = (f"{seat} {verb}: gen {generation}, session_id "
            f"{session_id or ''}, window {window or ''}, pid {pid or ''}")
     import tempfile  # noqa: PLC0415  (local, mirrors _ack_commit_seats)
     fd, tmp_index = tempfile.mkstemp(prefix="spawnrow-idx-")
@@ -11383,6 +11473,14 @@ def main(argv: list[str] | None = None) -> int:
                              "seating otherwise appends to `[seating]` "
                              "(hypothesis:l4-a-recovery-seating-gets-its-"
                              "predecessor-autopsy-pre-filled-from-files)")
+    p_spawn.add_argument("--ask-diff", "--successor-diff",
+                        action="store_true",
+                        help="the first-seating writer leaves `diff-requested` "
+                             "and the seating alert prints the exact "
+                             "`rotate.py ack --seat S --gen 1 --ref <ref> "
+                             "diff --text -` line (SL7.06's answer contract, "
+                             "reused never a third shape); default answers "
+                             "`continue, source: seating` so the post wakes at 0")
     p_spawn.add_argument("--dry-run", action="store_true",
                         help="print the command instead of running it")
     p_spawn.set_defaults(func=cmd_spawn)
