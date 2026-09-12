@@ -144,6 +144,12 @@ class Edit:
     replace_range: str = ""
     replace_from: str = ""
     replace_text: str = ""
+    # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
+    # signatures backing a non-self-row config write that a `ring:`-declaring
+    # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
+    # record's canonical bytes, verified through the seatsig Scheme
+    # interface (`seatsig/rings.py`). Absent list -> no quorum demanded.
+    signatures: list = field(default_factory=list)
     # hypothesis:l3-node-without-mint-id -- `adopt` mints a first mint_id on
     # a node written outside node_writer. Deliberately NOT a `set_fm` entry:
     # `mint_id` is PROTECTED (goal:g2.5), and adopting is not setting it, it
@@ -1074,11 +1080,47 @@ def _enforce_master_sensei_facts_body(root, node_id, actor, new_body):
                 f"out-for-master-sensei-templates)")
 
 
+def _ring_pubkey_for_post(root):
+    """Resolve a ring member's CURRENT pubkey for the write gate: the posts/
+    seats geometry rows' `pubkey` cell under the graph root, or None when the
+    post has no resolvable key (a ring then reads UNKEYED for it and it does
+    not count toward m).
+    """
+    try:
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        rows = []
+
+    cache = {r.get("name"): (r.get("pubkey") or None) for r in rows}
+
+    def resolver(post):
+        return cache.get(post)
+
+    return resolver
+
+
+def _config_write_fields(where, set_fm):
+    """The FULL config-write decision fields a ring's signatures cover: the
+    node id AND every row field being written, its value string-serialized by
+    rings.json_field -- NO truncation (hypothesis:l4-a-ring-decision-carries-
+    m-of-n-signatures claim (2), HOLE 2: the signed bytes must cover the
+    decision they authorise, so a signature for one row cannot authorise a
+    different one). The sign side, the gate, and the persisted record all use
+    these same bytes."""
+    from seatsig import rings as _rings  # noqa: PLC0415
+    fields = {"node": where}
+    for k, v in (set_fm or {}).items():
+        fields[k] = _rings.json_field(v)
+    return fields
+
+
 def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         set_fm: dict | None = None,
                         unset_fm: list | None = None,
                         allow_self_row: bool = False,
-                        has_body: bool = False):
+                        has_body: bool = False,
+                        signatures: list | None = None,
+                        out_decision: dict | None = None):
     """Refuse a write when the node type's OWN schema declares a restricted
     writer (hypothesis:l4-moral-written-by-carrier).
 
@@ -1184,6 +1226,42 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                 f"{node_type} nodes ({where}): a seated role may update only "
                 f"its OWN row and only the declared fields; {refusal}. "
                 f"(L4.110 prime ruling B)")
+
+    # RUNG 2 ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures). OPT-IN: only a schema that declares `ring: <name>` — the
+    # ring whose quorum governs NON-SELF-ROW config writes to this node type
+    # — demands a quorum, and only for a config-row edit (set_fm/unset_fm),
+    # never a body-only or self-row write (those returned above). The quorum
+    # is verified through the SAME seatsig Scheme interface send.py uses
+    # (seatsig/rings.py), never the gate's own crypto; a record short of m is
+    # REFUSED BY NAME with the m-of-n count.
+    ring_name = schema.frontmatter.get("ring")
+    if ring_name and (set_fm or unset_fm):
+        try:
+            from seatsig import rings as _rings
+
+            rings_rows = _rings.load_rings(root)
+            ring = _rings.ring_by_name(rings_rows, ring_name)
+        except Exception:  # noqa: BLE001
+            ring = None
+        if ring is not None:
+            fields = _config_write_fields(where, set_fm)
+            canonical = _rings.canonical_bytes("config-write", fields)
+            res = _rings.verify_ring(
+                ring, canonical, signatures or [],
+                pubkey_for_post=_ring_pubkey_for_post(root))
+            if not res.ok:
+                raise EditError(
+                    f"{node_type} nodes ({where}): {res.refused}. "
+                    f"(rung 2 multisig ring)")
+            # RUNG 2 claim (2): hand the admitted config-write decision
+            # (kind + signed fields + signatures) back to the caller so it
+            # can be persisted onto the node the write sanctions -- a reader
+            # then re-verifies m-of-n from disk, never argv.
+            if out_decision is not None:
+                out_decision["cell"] = _rings.decision_cell(
+                    ring_name, "config-write", fields, signatures or [])
+            return  # ring quorum satisfied -> admit
 
     raise EditError(        
         f"{node_type} nodes ({where}) may be hand-edited only by "
@@ -1291,15 +1369,24 @@ def submit(root, edit: Edit, actor: str = "", session: str = "", role: str = "")
     # it for its --dry-run preview, and this must not read stdin a second time.
     _resolve_replace_text(edit)
 
+    _ring_out: dict = {}
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
                         edit.node_id, role,
                         set_fm=edit.set_fm, unset_fm=edit.unset_fm,
                         allow_self_row=True,
                         has_body=bool(edit.body_append or edit.thought
                                       or edit.body_patch_diff
-                                      or edit.replace_target == "body"))
+                                      or edit.replace_target == "body"),
+                        signatures=getattr(edit, "signatures", []),
+                        out_decision=_ring_out)
 
     set_fm = dict(edit.set_fm)
+    # RUNG 2 claim (2): when a `ring:`-declaring schema admitted this
+    # config-row write by a quorum, the verified decision (kind + signed
+    # fields + signatures) is persisted onto the node's own frontmatter so the
+    # node on disk carries them and a reader re-verifies m-of-n without argv.
+    if _ring_out.get("cell"):
+        set_fm["ring_decision"] = _ring_out["cell"]
     set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
     if session:
         set_fm[PROVENANCE_SESSION] = session
@@ -1831,6 +1918,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="the session that produced it (thought_session)")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the accumulated edit and write nothing")
+    ap.add_argument("--ring-sig", dest="ring_sigs", action="append",
+                    default=[],
+                    help="repeatable; a `<post>:<scheme>:<sig_hex>` signature "
+                         "backing a config write that a `ring:`-declaring "
+                         "schema demands (rung 2, seatsig/rings.py)")
     args = ap.parse_args(argv)
 
     if args.node_id == "create":
@@ -2036,6 +2128,7 @@ def main(argv: list[str] | None = None) -> int:
         edit.body_patch_diff = sys.stdin.read()
 
     try:
+        edit.signatures = args.ring_sigs
         res = submit(root, edit, actor=args.actor, session=args.session,
                      role=args.role)
     except (EditError, FileNotFoundError) as exc:
