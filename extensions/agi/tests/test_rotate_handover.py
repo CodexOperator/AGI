@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import time
 from types import SimpleNamespace
 
@@ -210,6 +211,44 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     # the active template names it, else the housekeeping fallback "4.5".
     step_markers = rec["steps_reached"]
     assert ("handover" in step_markers or "4.5" in step_markers)
+
+
+def test_rotate_self_sweeps_dead_hook_latch_before_spawning(
+        _fix, tmp_path, monkeypatch):
+    """A dead `hook-<seat>-gen*.lock` under sessions/rotations is unlinked by
+    rotate-self ITSELF before it spawns the successor (hypothesis:l4-rotate-
+    self-sweeps-dead-hook-latches-before-spawning) — never left for a Prime to
+    remove by hand."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    rot = tmp_path / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    # a PROVED-dead pid: spawn, reap — never a hard-coded 999999.
+    dead_proc = subprocess.Popen(
+        [sys.executable, "-c", "import time; time.sleep(2)"])
+    dead_proc.wait(timeout=10)
+    latch = rot / "hook-adv-alive-gen1.lock"
+    latch.write_text(f"pid {dead_proc.pid} hook\n", encoding="utf-8")
+    with pytest.raises(ProcessLookupError):
+        os.kill(dead_proc.pid, 0)  # prove dead to the same idiom _pid_alive
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    # the dead latch is GONE before/at the spawn — the rotation swept it
+    # rather than leaving a Prime to unlink it by hand (P4).
+    assert not latch.exists()
 
 
 def test_handover_without_session_ref_records_skipped(_fix, tmp_path,
@@ -1512,6 +1551,40 @@ def test_rotate_self_pre_turn_confirm_records_deferred_not_skipped(
     assert isinstance(mc, str) and mc.startswith("deferred: after_join"), mc
     assert not mc.startswith("skipped:"), \
         "a turn-less probe must read deferred, never a skipped verdict"
+
+
+def test_rotate_self_pre_turn_probe_skipped_when_no_performer_can_run(
+        _fix, tmp_path, monkeypatch):
+    """(goal:g15.25 SL7.54 fix 4) with the successor turn-less AND NO captive
+    after_join performer — inline_reaper off and the persistent heal watch
+    unit declared DOWN (`reaper.unit_enabled=false`) — the (s5) probe records
+    the honest `skipped: <reason>`, never a `deferred: after_join` LIE that a
+    future confirm will land on a record nobody will touch."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    monkeypatch.setattr(
+        rotate, "_confirm_successor_model",
+        lambda **k: "skipped: no assistant turn in the successor transcript")
+    # no fallback performer, persistent unit down -> nothing will run it
+    monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: False)
+    # the root's own legacy config declares the watch unit DOWN
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"reaper": {"unit_enabled": False}}), encoding="utf-8")
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             session_ref=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    mc = rec["handover"]["model_confirm"]
+    assert isinstance(mc, str) and mc.startswith("skipped:"), mc
+    assert "no captive after_join performer" in mc, mc
 
 
 def test_rotate_self_fallback_after_join_overwrites_with_real_verdict_and_fills_bootstrap(

@@ -91,6 +91,13 @@ def _build_repo(tmp_path: Path):
     _git(r, "push", "-q", "origin", "season/s2", "seat/post-a@s2", "loop/x@s2",
          "town/core/season/s2")
     _git(r, "fetch", "-q", "origin")  # create origin/* tracking refs
+    # L4.320 (KID A): seed the DEFECT'S precondition — every legacy branch
+    # TRACKS origin/<old>. The old truthy gate (`if not _post_rename_upstream`)
+    # never re-pointed a branch that carried origin/<old> through `git branch
+    # -m`; without the tracking these fixtures made that gate test green.
+    for _legacy in ["season/s2", "seat/post-a@s2", "loop/x@s2",
+                    "town/core/season/s2"]:
+        _git(r, "branch", "--set-upstream-to", f"origin/{_legacy}", _legacy)
     return r
 
 
@@ -214,6 +221,49 @@ def test_reshuffle_kinds_parses_aliases_and_refuses_unknown():
         cli._reshuffle_kinds("bogus")
 
 
+# ---- L4.319 residue (mur-46, verbatim): an explicit --kinds that parses ----
+# ---- to the EMPTY set (`,`, ` , `, any separator/whitespace string) is ----
+# ---- NOT the absent case. It refuses BY NAME, exit 1, never unfiltered. ---
+def test_explicit_empty_kinds_refuses_by_name_and_lists_nothing(repo: Path):
+    for spec in [",", " , ", ",,,"]:
+        res = _run_cli(repo / ".agi", "--dry-run", "--kinds", spec)
+        assert res.returncode == 1, (spec, res.stdout, res.stderr)
+        assert f"--kinds: {spec!r} parsed to no kinds" in res.stderr, \
+            (spec, res.stderr)
+        assert "one of main, posts, loops, towns" in res.stderr, res.stderr
+        # no jobs listed, no defaulting line, nothing about a default
+        assert "branch rename" not in res.stdout, (spec, res.stdout)
+        assert "defaulted to kinds" not in res.stdout, (spec, res.stdout)
+        assert res.stdout.strip() == "", (spec, res.stdout)
+
+
+def test_explicit_empty_kinds_refuses_under_delete_old(repo: Path):
+    # --delete-old is where the UNFILTERED hazard is worst; the empty set
+    # must refuse there too, before any delete step is considered.
+    res = _run_cli(repo / ".agi", "--delete-old", "--kinds", ",")
+    assert res.returncode == 1, (res.stdout, res.stderr)
+    assert "--kinds: ',' parsed to no kinds" in res.stderr, res.stderr
+    assert "defaulted to kinds" not in res.stdout, res.stdout
+
+
+def test_unknown_kind_still_refuses_by_name(repo: Path):
+    # L4.319 behaviour, unchanged: an UNKNOWN word is refused inside
+    # _reshuffle_kinds, before any plan is produced.
+    res = _run_cli(repo / ".agi", "--dry-run", "--kinds", "posts,bogus")
+    assert res.returncode == 1, (res.stdout, res.stderr)
+    assert "--kinds: unknown kind 'bogus'" in res.stderr, res.stderr
+    assert "branch rename" not in res.stdout, res.stdout
+
+
+def test_absent_kinds_still_defaults_and_prints(repo: Path):
+    # L4.319 behaviour, unchanged: an ABSENT --kinds defaults to posts,towns
+    # and PRINTS the defaulting line.
+    res = _run_cli(repo / ".agi", "--dry-run")
+    assert res.returncode == 0, res.stderr
+    assert "defaulted to kinds posts,towns" in res.stdout, res.stdout
+    assert "--kinds" not in res.stderr, res.stderr
+
+
 def test_reshuffle_kind_of_canonical_names():
     assert cli._reshuffle_kind("season2/main") == "main"
     assert cli._reshuffle_kind("season2/posts/foo") == "post"
@@ -234,7 +284,27 @@ def _town_alias_repo(tmp_path: Path):
 
 
 # ---- defect 1: --delete-old actually EXECUTES the listed deletes --------
+def _apply_kinds(root: Path, kinds: str) -> None:
+    """Run `--apply` for a specific kind list (mirroring what the matching
+    --delete-old would gate on), so exactly those branches are renamed and
+    re-pointed while the others stay local legacy."""
+    res = _run_cli(root, "--apply", "--kinds", kinds)
+    assert res.returncode == 0, res.stdout + res.stderr
+
+
+def _apply_all(root: Path) -> None:
+    """Run `--apply` with the explicit full kind list so every legacy branch
+    is renamed and its upstream re-pointed onto origin/<new>. B2 (L4.320)
+    gates --delete-old on that upstream, so any delete test must migrate first
+    just like the live run does (repoint --apply, THEN the final delete)."""
+    _apply_kinds(root, "main,posts,towns,loops")
+
+
 def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
+    # migrate ONLY posts,towns (the default delete set) so main+loop branches
+    # stay local legacy -- the delete default then mirrors the apply set and
+    # leaves their origin refs untouched.
+    _apply_kinds(repo / ".agi", "posts,towns")
     (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (repo / ".agi/sessions/verified.stamp").write_text("green")
 
@@ -242,7 +312,7 @@ def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
     # posts,towns — it touches NO loop and NO main/master branch, the default
     # is printed, and the delete set equals posts,towns.
     res = _run_cli(repo / ".agi", "--delete-old")
-    assert res.returncode == 0, res.stderr
+    assert res.returncode == 0, res.stdout + res.stderr
     assert "defaulted to kinds posts,towns" in res.stdout, res.stdout
     origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
     for old in ["seat/post-a@s2", "town/core/season/s2"]:
@@ -250,19 +320,35 @@ def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
     # loop and main are NOT delete jobs under the default
     assert "origin/loop/x@s2" in origin, "default must NOT delete the loop"
     assert "origin/season/s2" in origin, "default must NOT delete the main"
-    # remote-only: local legacy branches stay (a later decide renames those)
+    # remote-only: the non-renamed local legacy branches stay
     local = _git(repo, "branch", "--format=%(refname:short)").stdout
-    assert "season/s2" in local and "seat/post-a@s2" in local
+    assert "season/s2" in local and "loop/x@s2" in local, local
 
 
 # ---- prime ruling window-46: --kinds loops is the ONLY way a loop deletes --
 def test_delete_old_loop_deletes_only_under_explicit_loops(repo: Path):
+    # the explicit full list still means ALL FOUR (ruling forbids the
+    # UNFILTERED default, not an explicit full list) -- checked on an
+    # UN-migrated tree, where every legacy branch is still present to list.
+    res0 = _run_cli(repo / ".agi", "--dry-run", "--kinds",
+                    "main,posts,towns,loops")
+    assert res0.returncode == 0, res0.stderr
+    assert "defaulted to kinds posts,towns" not in res0.stdout, res0.stdout
+    for old, new in [("season/s2", "season2/main"),
+                     ("seat/post-a@s2", "season2/posts/post-a"),
+                     ("loop/x@s2", "season2/loops/x"),
+                     ("town/core/season/s2", "season2/core/season2/main")]:
+        assert f"[DRY ] branch rename (local): git branch -m {old} {new}" \
+            in res0.stdout, (old, new, res0.stdout)
+
+    # migrate ONLY the loop (the kind --delete-old --kinds loops will gate on)
+    _apply_kinds(repo / ".agi", "loops")
     (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (repo / ".agi/sessions/verified.stamp").write_text("green")
 
     # `--kinds loops` lists ONLY the loop for deletion (no post/town/main)
     res = _run_cli(repo / ".agi", "--delete-old", "--kinds", "loops")
-    assert res.returncode == 0, res.stderr
+    assert res.returncode == 0, res.stdout + res.stderr
     assert "origin --delete loop/x@s2" in res.stdout, res.stdout
     assert "origin --delete seat/post-a@s2" not in res.stdout, res.stdout
     assert "origin --delete town/core/season/s2" not in res.stdout, res.stdout
@@ -272,19 +358,6 @@ def test_delete_old_loop_deletes_only_under_explicit_loops(repo: Path):
     for kept in ["origin/seat/post-a@s2", "origin/town/core/season/s2",
                  "origin/season/s2"]:
         assert kept in origin, kept
-
-    # the explicit full list still means ALL FOUR (ruling forbids the
-    # UNFILTERED default, not an explicit full list)
-    res4 = _run_cli(repo / ".agi", "--dry-run", "--kinds",
-                    "main,posts,towns,loops")
-    assert res4.returncode == 0, res4.stderr
-    assert "defaulted to kinds posts,towns" not in res4.stdout, res4.stdout
-    for old, new in [("season/s2", "season2/main"),
-                     ("seat/post-a@s2", "season2/posts/post-a"),
-                     ("loop/x@s2", "season2/loops/x"),
-                     ("town/core/season/s2", "season2/core/season2/main")]:
-        assert f"[DRY ] branch rename (local): git branch -m {old} {new}" \
-            in res4.stdout, (old, new, res4.stdout)
 
 
 # ---- defect 2: --apply is RESUMABLE + defect 3: upstream re-pointed ----
@@ -305,6 +378,41 @@ def test_apply_sets_upstream_and_is_resumable(repo: Path):
                     "main,posts,towns,loops")
     assert res2.returncode == 0, res2.stderr
     assert "already renamed" in res2.stdout
+
+
+# ---- L4.320 (KID A): carried-upstream re-point (falsifier for A1) ----
+def test_apply_repoints_a_branch_that_carried_origin_old(repo: Path):
+    # A branch that ALREADY TRACKED origin/<old> before --apply must be
+    # re-pointed onto origin/<new>. The old truthy gate (`if not
+    # _post_rename_upstream`) skipped any Truthy carried-origin/<old> upstream,
+    # so it stayed stale. FAILS before A1, PASSES after.
+    assert _git(repo, "rev-parse", "--abbrev-ref",
+                "season/s2@{upstream}").stdout.strip() == "origin/season/s2"
+    res = _run_cli(repo / ".agi", "--apply", "--kinds",
+                   "main,posts,towns,loops")
+    assert res.returncode == 0, res.stderr
+    up = _git(repo, "rev-parse", "--abbrev-ref",
+              "season2/main@{upstream}").stdout.strip()
+    assert up == "origin/season2/main", up
+
+
+# ---- L4.320 (KID A): master is ADD-ONLY in --apply too (A4) -----------
+def test_apply_keeps_master_standing_and_pushes_new_name_from_its_tip(
+        tmp_path):
+    r = _master_repo(tmp_path)
+    master_tip = _git(r, "rev-parse", "master").stdout.strip()
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stderr
+    # local master still stands (never `git branch -m`'d), no local season1/main
+    local = _git(r, "branch", "--format=%(refname:short)").stdout
+    assert "master" in local, local
+    assert "season1/main" not in local, local
+    # the new name (season1/main) got master's tip on origin
+    ls = _git(r, "ls-remote", "origin", "refs/heads/season1/main").stdout.split()
+    assert ls and ls[0] == master_tip, (ls, master_tip)
+    # master still tracks origin/master
+    up = _git(r, "rev-parse", "--abbrev-ref", "master@{upstream}").stdout.strip()
+    assert up == "origin/master", up
 
 
 def test_apply_refuses_origin_moved_by_name(tmp_path: Path):
@@ -362,6 +470,7 @@ def _master_repo(tmp_path: Path):
     _git(r, "branch", "master")
     _git(r, "push", "-q", "origin", "master")
     _git(r, "fetch", "-q", "origin")
+    _git(r, "branch", "--set-upstream-to", "origin/master", "master")
     return r
 
 
@@ -371,6 +480,7 @@ def _first(haystack: str, needle: str) -> int:
 
 def test_delete_old_orders_posts_towns_mains_and_keeps_master(tmp_path: Path):
     r = _master_repo(tmp_path)
+    _apply_all(r / ".agi")
     (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (r / ".agi/sessions/verified.stamp").write_text("green")
 
@@ -398,27 +508,58 @@ def test_delete_old_orders_posts_towns_mains_and_keeps_master(tmp_path: Path):
         assert f"origin/{old}" not in origin, (old, origin)
 
 
-# ---- KID 2: a refused delete names its job and the run CONTINUES --------
-def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
+# ---- KID 2 (B2, L4.320): --delete-old is GATED on upstream=origin/<new> --
+def test_delete_old_refuses_by_name_and_deletes_nothing_when_unpointed(tmp_path: Path):
+    """(B2) AFTER a full migration, if ANY delete target's upstream drifts
+    back to its carried origin/<old>, `--delete-old` REFUSES by NAME and
+    deletes NOTHING — not even the branches that ARE still pointed (the gate
+    is all-or-nothing, so a stranded branch can never be deleted/stripped).
+    This is the falsifier for the B2 gate: drop the gate and this test's
+    `assert origin/seat/post-a@s2 still present` flips."""
     r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
     (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (r / ".agi/sessions/verified.stamp").write_text("green")
-    # make the (last-ordered) LOOP delete fail: drop origin/loop/x@s2
-    # out-of-band, so `git push origin --delete loop/x@s2` is refused.
-    _git(r, "push", "origin", "--delete", "loop/x@s2")
+    # sabotage ONE migration target's upstream back to the carried old name
+    _git(r, "branch", "--set-upstream-to", "origin/seat/post-a@s2",
+         "season2/posts/post-a")
+    for name in ["season2/main", "season2/core/season2/main",
+                 "season2/loops/x"]:
+        assert _git(r, "rev-parse", "--abbrev-ref",
+                    f"{name}@{{upstream}}").stdout.strip() == f"origin/{name}", name
 
     res = _run_cli(r / ".agi", "--delete-old", "--kinds",
                    "main,posts,towns,loops")
-    assert res.returncode == 1, res.stdout
-    assert "loop/x@s2" in res.stderr, res.stderr
-    # the run did NOT abort at the refusal: earlier + later jobs were deleted
+    assert res.returncode == 1, res.stdout + res.stderr
+    assert "season2/posts/post-a" in res.stderr, res.stderr
+    # ALL-OR-NOTHING: the well-pointed branches are NOT deleted either
     origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
-    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2"]:
-        assert f"origin/{old}" not in origin, (old, origin)
-    # local legacy branches stay (delete is remote-only)
-    local = _git(r, "branch", "--format=%(refname:short)").stdout
-    for old in ["loop/x@s2", "season/s2", "seat/post-a@s2"]:
-        assert old in local, old
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert f"origin/{old}" in origin, (old, origin)
+
+
+# ---- KID 2 (B1, L4.320): --dry-run --delete-old prints [DRY ] runs none --
+def test_delete_old_dry_run_prints_zero_runs(tmp_path: Path):
+    """(B1) `--dry-run --delete-old` prints every delete as a `[DRY ]` line
+    and runs NONE of them — the remote still holds every old branch, and the
+    run needs no green-suite stamp (a dry run deletes nothing)."""
+    r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
+    res = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "dry-run: nothing changed" in res.stdout, res.stdout
+    # every legacy branch names its [DRY ] delete line
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert f"[DRY ] branch delete (remote): git push origin --delete {old}" \
+            in res.stdout, (old, res.stdout)
+    # ...and NONE executed: the remote still holds every old branch
+    origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert f"origin/{old}" in origin, (old, origin)
 
 
 # ---- KID 2: the origin-moved refusal never re-baselines -----------------
