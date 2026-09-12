@@ -6646,6 +6646,8 @@ mur-SL2.25 digest applied 20:55Z (Prime XVII 20:5xZ, wf_d48284d2-6ca): SL7.86 DE
 
 SL7.105 HARVESTED 21:12Z on the sensei-director post: code_head is written into the persisted after_join block and printed on heal's performed line, os.execv OSError is caught + logged by name and the watch loop continues on the running bytes, a re-exec needs a CHANGED HEAD and a clean tree (a file-only change never execs); kid proved 0.8. Rides SL2#27
 
+SL7.104 HARVESTED 21:16Z on the sensei-director post: ONE join gate for both record shapes — a started record without a window_id waits the promised after_join_delay_s from recorded_at and performs once past after_join_max_wait_s with the join-dependent entries refused by name (never delay 0); the own tail re-claims a stale claim through the same helper the watch uses; the late dead-seat marker is written through _commit_after_join_record; kid lean 85 (+tests); nbhd 483/3. Rides SL2#27
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
