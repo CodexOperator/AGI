@@ -2290,3 +2290,144 @@ def test_meter_fact_join_only_pending_then_filled(tmp_path):
     assert doc2["telemetry"]["meter"].startswith("0.0020 (2000/1000000 tokens)")
     assert not doc2["telemetry"]["meter"].startswith("pending:")
     assert doc2["telemetry"]["meter"] != "SKIPPED: no handover derivation for meter"
+
+
+# --- SL7.100: join_pending derivation, post-join unresolved, pin gen check ---
+
+def test_write_bootstrap_meter_estimate_resolves_after_join_marker(tmp_path):
+    """(a) the meter est. case is reachable THROUGH _write_bootstrap for a
+    join_pending key: the caller holds the successor's composed first-input
+    bytes, so the writer derives `est. N tokens = ... (resolved after join)`
+    (SL7.100). Before the fix the join_pending set membership short-circuited
+    before any derivation, so the estimator was never tried and the key was
+    stamped `pending: resolved after join` while the hook printed an estimate
+    on the same prompt."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = tr / "succ.jsonl"
+    tx.write_text("{}\n", encoding="utf-8")  # a transcript with no assistant usage
+    _meter_pin(tmp_path, "mseat", str(tx))
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["ack", "meter"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        meter_first_input_bytes=4000)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["meter"] == (
+        "est. 1000 tokens = first input 4000 bytes/4 "
+        "(head + brief + STARTUP) (resolved after join)")
+
+
+def test_write_bootstrap_join_key_without_estimator_still_pending(tmp_path):
+    """(b) a join_pending key whose derivation cannot resolve (no estimator,
+    no pinned usage) still writes `pending: resolved after join` — never a
+    bare SKIPPED, never blank. The SL7.100 fix keeps the PRE-join pending
+    contract; only a resolvable derivation changes the line."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = tr / "succ.jsonl"
+    tx.write_text("{}\n", encoding="utf-8")
+    _meter_pin(tmp_path, "mseat", str(tx))
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["meter", "successor_address"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS))
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["meter"] == "pending: resolved after join"
+    assert doc["telemetry"]["successor_address"] == "pending: resolved after join"
+
+
+def test_write_bootstrap_post_join_rewrite_names_unresolved_reason(tmp_path):
+    """(c) the post-join rewrite (join_poll_secs set) re-derives a still-
+    pending key and stamps `unresolved: <named reason>` FROM the derivation —
+    never the old bare `unresolved: join found nothing within <N>s`. The
+    derivation itself names why."""
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["successor_live_model"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        join_poll_secs=30)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    assert doc["telemetry"]["successor_live_model"] == (
+        "unresolved: successor live model is known only after the @id join "
+        "(after_join)")
+    assert "join found nothing within" not in \
+        doc["telemetry"]["successor_live_model"]
+
+
+def test_write_bootstrap_cross_generation_pin_names_reason_no_number(tmp_path):
+    """(d) a cross-generation seat pin is refused in the bootstrap path: the
+    fact line carries the named reason (the same seat_pin-stale wording
+    cmd_meter prints, RETURNED through _read_seat_pin) and NO number — a
+    predecessor's stale pin never yields a confident fraction."""
+    tr = tmp_path / "sessions"
+    tr.mkdir(parents=True, exist_ok=True)
+    tx = _cc_transcript(tr / "succ.jsonl", input_tokens=2000)
+    _meter_pin(tmp_path, "mseat", str(tx), gen=5)  # a DIFFERENT generation's pin
+    _write = rotate._write_bootstrap(
+        tmp_path, seat="mseat", generation=1,
+        telemetry=["meter"], verification=None,
+        join_pending=set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS),
+        join_poll_secs=30)
+    doc = json.loads(Path(_write).read_text(encoding="utf-8"))
+    val = doc["telemetry"]["meter"]
+    assert val.startswith("unresolved: meter pin is stale: seat_pin-stale:5:1")
+    assert "tokens" not in val
+    assert "0.00" not in val
+
+
+def test_golden_non_join_facts_byte_identical_across_four_writers(tmp_path,
+                                                                  monkeypatch):
+    """(e) the four production writers' call shapes write EVERY non-join-only
+    (non-meter) fact line byte-identical to the override or the direct
+    derivation — the SL7.100 change re-derives join_pending keys (meter's
+    path) and must not touch the fixed facts. Golden compare over the four
+    writers' outputs for every non-meter key."""
+    row = {"name": "mseat", "generation": 1, "seed": "seed123",
+           "model": "claude-opus-5", "effort": "max", "window": "main",
+           "worktree": "/wt", "prev_gen": 0}
+    monkeypatch.setattr(rotate, "_find_seat", lambda r, name: row)
+    tele = list(rotate.BOOTSTRAP_FIXED_FACTS)
+
+    def _golden(key, overrides):
+        if key in overrides:
+            return overrides[key]
+        v, r = rotate._derive_bootstrap_fact(
+            key, root=tmp_path, seat="mseat", seat_row=row, commit=None)
+        return f"SKIPPED: {r}" if v is None else v
+
+    join = set(rotate.BOOTSTRAP_JOIN_ONLY_FACTS)
+    ack1 = "continue (source first-seating, gen 1) — this post acks once itself"
+    ack2 = "continue (source predecessor, gen 1)"
+    writers = [
+        ("first-seating", {"ack": ack1},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None, join_pending=join, overrides={"ack": ack1})),
+        ("pre-spawn", {"ack": ack2},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification={"skipped": "x"}, join_pending=join,
+             overrides={"ack": ack2})),
+        ("post-join", {"successor_address": "12"},
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None,
+             join_pending=(join - {"successor_address"}),
+             overrides={"successor_address": "12"}, join_poll_secs=30)),
+    ]
+    all_overrides = {k: _golden(k, {}) for k in tele if k not in join}
+    writers.append(
+        ("fill", all_overrides,
+         rotate._write_bootstrap(
+             tmp_path, seat="mseat", generation=1, telemetry=tele,
+             verification=None, overrides=all_overrides,
+             join_pending=join)))
+    for tag, ov, wpath in writers:
+        doc = json.loads(Path(wpath).read_text(encoding="utf-8"))
+        for key in tele:
+            if key in join:
+                continue
+            assert doc["telemetry"][key] == _golden(key, ov), (
+                f"{tag}: non-join fact {key!r} changed: "
+                f"{doc['telemetry'][key]!r} != {_golden(key, ov)!r}")

@@ -824,9 +824,11 @@ def test_fill_bootstrap_join_facts_touches_only_join_facts_byte_identical(
 def test_fill_bootstrap_join_facts_unresolved_when_join_found_nothing(
         tmp_path):
     """fix 3 (unresolved): when the join RESOLVED NOTHING (no live model),
-    the threaded join_poll_secs writes `unresolved: join found nothing within
-    <N>s` for the unresolved join fact — never the PRE-join `pending: resolved
-    after join` lie that a future join will fix it."""
+    the threaded join_poll_secs writes `unresolved: <named reason>` (the
+    derivation's own reason) for the unresolved join fact — never the PRE-
+    join `pending: resolved after join` lie that a future join will fix it.
+    (SL7.100: the reason is named by the derivation, never the bare old
+    `join found nothing within`.)"""
     import agi.bin.rotate as rot
     bpath = tmp_path / "sessions" / "seats" / "seat-y.bootstrap.json"
     tele = {
@@ -842,9 +844,15 @@ def test_fill_bootstrap_join_facts_unresolved_when_join_found_nothing(
     assert ok
     b = json.loads(bpath.read_text())
     t = b["telemetry"]
-    assert t["successor_live_model"] == "unresolved: join found nothing within 30s", t
+    _v, _r = rot._derive_bootstrap_fact(
+        "successor_live_model", root=tmp_path, seat="seat-y",
+        seat_row={}, commit=None)
+    assert t["successor_live_model"] == f"unresolved: {_r}", t
+    _v2, _r2 = rot._derive_bootstrap_fact(
+        "model_refusal_fallback", root=tmp_path, seat="seat-y",
+        seat_row={}, commit=None)
     assert t["model_refusal_fallback"] == (
-        "unresolved: join found nothing within 30s"), t
+        f"unresolved: {_r2}"), t
     for k in ("ack", "model", "effort"):
         assert t[k] == tele[k], (k, t[k])
 
