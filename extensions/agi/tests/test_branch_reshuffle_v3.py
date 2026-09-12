@@ -571,3 +571,203 @@ def test_v3_loops_dry_run_writes_nothing_changes_no_ref(tmp_path: Path):
     assert before_refs == after_refs, "dry-run must not change any ref"
     assert not list(sessions.glob("*.json")), \
         "dry-run must not write a plan JSON into the sessions dir"
+
+# --------------------------------------------------------------------------
+# I-3a-3 (g15 fix-only) — the LEGACY job stream YIELDS to the v3 plan
+# (hypothesis:l4-the-legacy-job-stream-yields-to-the-v3-plan-and-no-push-
+# leaves-the-trunk-pair). On a tree with a DECLARED town set the legacy
+# season-first renames of loop/post/town aliases are NOT performed: a legacy
+# loop is HELD BY NAME exactly once (the v3 loop section), a legacy post/seat
+# is folded into the v3 posts LOCAL rename (no push, upstream UNSET), a legacy
+# town maps ONLY to the v3 create pair, and only main-kind jobs keep the old
+# rename+push — while EVERY push line the planner emits passes
+# branches.assert_remote_visible first (a non-remote-visible push is refused
+# by name). Each legacy alias source name appears exactly once. --dry-run
+# writes nothing. The v2 fixtures above exercise the town-less (v3-OFF) path,
+# where the old season-first-only stream stays and the header says the yield
+# is inert.
+# --------------------------------------------------------------------------
+
+def _v3_yield_repo(tmp_path: Path) -> Path:
+    """_v3_repo (a DECLARED town set + canonical season2/main + season2/posts
+    + town mains) PLUS legacy alias branches the v2 stream would season-first-
+    rename: a legacy loop, a legacy post/seat alias, and a legacy town alias,
+    each pushed + tracked so they resolve to reshuffle jobs. Only main-kind
+    job is `master -> season1/main` (the init default branch), kept add-only."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    for name in ("loop/legacy-report-a00-x@s2",
+                 "seat/legacy-post@s2",
+                 "town/streaming-suite@s2"):
+        _git(r, "branch", name)
+        _git(r, "push", "-q", "origin", name)
+    _git(r, "fetch", "-q", "origin")
+    for name in ("loop/legacy-report-a00-x@s2",
+                 "seat/legacy-post@s2",
+                 "town/streaming-suite@s2"):
+        _git(r, "branch", "--set-upstream-to", f"origin/{name}", name)
+    return r
+
+
+def _push_targets(out: str) -> list[str]:
+    """The handled push targets named by `branch push (new)` lines (the v3
+    `-u origin <new>` form and the plain `origin <new>` form; master's
+    `origin <old>:<new>` yields its post-colon target)."""
+    targets = []
+    for ln in out.splitlines():
+        if "branch push (new)" not in ln or "git push" not in ln:
+            continue
+        _, cmd = ln.split("branch push (new):", 1)
+        parts = cmd.split()
+        tok = parts[-1] if parts and parts[-1] != "-u" else None
+        if tok:
+            targets.append(tok.split(":", 1)[-1])
+        elif len(parts) >= 3 and parts[-1] == "-u":
+            # unreachable: a `-u` line always carries the ref after origin
+            continue
+    return targets
+
+
+def test_v3_yield_routes_legacy_stream_by_kind(tmp_path: Path):
+    r = _v3_yield_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    # the legacy loop / post / town aliases are NOT season-first-renamed (the
+    # v2 FULL command is absent), and no season2/loops or season2/posts name
+    # is pushed
+    assert "git branch -m loop/legacy-report-a00-x@s2 " \
+        "season2/loops/legacy-report-a00-x" not in out, out
+    assert "git push origin season2/loops/" not in out, out
+    assert "git branch -m seat/legacy-post@s2 season2/posts/legacy-post" \
+        not in out, out
+    assert "git push origin season2/posts/" not in out, out
+    assert "git branch -m town/streaming-suite@s2 " \
+        "season2/streaming-suite/season1/main" not in out, out
+    # the legacy loop is HELD BY NAME exactly once (the v3 loop section)
+    assert out.count("HELD BY NAME: loop/legacy-report-a00-x@s2") == 1, out
+    # the legacy post/seat alias was folded into the v3 posts LOCAL rename:
+    # upstream unset, and its derived post_main is never pushed
+    assert "git branch --unset-upstream " \
+           "core/season2/posts/legacy-post/main" in out, out
+    assert "git push -u origin core/season2/posts/legacy-post/main" not in out, out
+    # the legacy town alias maps ONLY to the v3 create pair (routing note)
+    assert "legacy town town/streaming-suite@s2" in out, out
+    assert "git branch town/streaming-suite@s2" not in out, out
+    # EVERY push target the planner emits is remote-visible
+    targets = _push_targets(out)
+    assert targets, "a full-kinds plan must plan at least one push: " + out
+    for t in targets:
+        assert branches.is_remote_visible(t), (t, out)
+
+
+def test_v3_yield_each_legacy_branch_named_exactly_once(tmp_path: Path):
+    r = _v3_yield_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    # loop in its HELD line, post in its v3 rename, town in its routing note —
+    # never in two sections and never both renamed and held
+    for src in ("loop/legacy-report-a00-x@s2",
+                "seat/legacy-post@s2",
+                "town/streaming-suite@s2"):
+        assert out.count(src) == 1, (src, out)
+
+
+def test_v3_yield_header_declares_active_and_dry_run_writes_nothing(
+        tmp_path: Path):
+    r = _v3_yield_repo(tmp_path)
+    root = r / ".agi"
+    before = _snapshot(r)
+    res = _run_cli(root, "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    assert "v3 YIELD active (declared town set)" in out, out
+    after = _snapshot(r)
+    assert before == after, "the yield dry-run must change no ref and write nothing"
+    assert not list((root / "sessions").glob("*.json")), \
+        "--dry-run must not write the plan JSON"
+
+
+# --------------------------------------------------------------------------
+# I-3a-3 coherence (g15 fix-only) — the post/seat COALESCE collision. A
+# legacy `post/<p>@s<N>` and `seat/<p>@s<N>` BOTH canonically season-first
+# rename to the SAME `season<N>/posts/<p>`, so when a canonical branch of
+# that name already exists (the normal post-rename state — the v3 post
+# rename section already renames `season<N>/posts/<p> -> <post_main>` and
+# the fold-in dedupes the aliases away), BOTH aliases fold to NOTHING and
+# vanish from the plan — a coherence hole. The fix: a post-kind job whose
+# target is already owned is a DEPRECATED DUPLICATE, named BY NAME in a
+# routing line (left to --delete-old), never renamed onto the owned target
+# (two refs -> one name) and never pushed. This fixture reproduces the
+# real-tree shape: a canonical `season2/posts/legacy-post` PLUS a post and a
+# seat alias that both collide onto it.
+# --------------------------------------------------------------------------
+
+def _v3_yield_collision_repo(tmp_path: Path) -> Path:
+    """_v3_repo (declared town set + remote names) PLUS a canonical post
+    source with BOTH colliding legacy aliases: post/<p>@s2 AND seat/<p>@s2,
+    each pushed + tracked so they resolve to reshuffle jobs. The canonical
+    season2/posts/legacy-post owns the post_main target, so neither alias
+    can fold into the v3 rename — each is a deprecated duplicate."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    for name in ("season2/posts/legacy-post",
+                 "post/legacy-post@s2", "seat/legacy-post@s2"):
+        _git(r, "branch", name)
+        _git(r, "push", "-q", "origin", name)
+    _git(r, "fetch", "-q", "origin")
+    for name in ("post/legacy-post@s2", "seat/legacy-post@s2"):
+        _git(r, "branch", "--set-upstream-to", f"origin/{name}", name)
+    return r
+
+
+def _v3_cli_jobs(repo: Path) -> list[dict]:
+    """The SAME job set the CLI plans from (in-process, read-only)."""
+    sys.path.insert(0, str(BIN))
+    import cli  # noqa: E402  (same-dir module, like the other branches imports)
+    return cli._reshuffle_jobs(repo, 0)
+
+
+def test_v3_yield_every_job_old_named_at_least_once(tmp_path: Path):
+    """The coherence hole as a count over ALL jobs, not a sample: every
+    legacy job old-name must be NAMED somewhere in the dry-run plan (a
+    vanished alias is a hole). Uses the collision fixture so the post/seat
+    coalesce case is exercised. At-least-once, not literal-exactly-once:
+    `master` also appears in the v3 main-keep notice prose and a town alias's
+    name can repeat inside the ladder/rotations cell re-spelling proposals
+    — extra PROSE occurrences are not a second fate, so the assertion is the
+    strong one that matters: no job may be ABSENT."""
+    r = _v3_yield_collision_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    missing = [j["old"] for j in _v3_cli_jobs(r) if out.count(j["old"]) == 0]
+    assert not missing, f"legacy jobs never named in the plan: {missing}"
+
+
+def test_v3_yield_colliding_post_seat_aliases_named_duplicate_each(
+        tmp_path: Path):
+    """The exact hole's fix: BOTH colliding aliases (post/x@s2 and seat/x@s2
+    onto the SAME canonical) appear EXACTLY once, as a named deprecated
+    duplicate left to --delete-old; the canonical is the ONE that renames to
+    the derived post_main; no alias is renamed (two refs would collide onto
+    one target) and no post/seat alias is pushed."""
+    r = _v3_yield_collision_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    for src in ("post/legacy-post@s2", "seat/legacy-post@s2"):
+        # each appears exactly once, in ITS OWN routing line
+        assert out.count(src) == 1, (src, out)
+        assert f"legacy post {src} -> duplicate of " \
+               "season2/posts/legacy-post; left to --delete-old" in out, \
+            (src, out)
+        # never renamed onto the owned target (two refs -> one name)
+        assert f"git branch -m {src} " not in out, (src, out)
+        assert f"git push origin {src}" not in out, (src, out)
+    # the canonical source is the ONE branch that renames to the post_main
+    target = "core/season2/posts/legacy-post/main"
+    assert f"git branch -m season2/posts/legacy-post {target}" in out, out
+    # the derived post_main is never pushed
+    assert f"git push -u origin {target}" not in out, out
