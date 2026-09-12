@@ -752,6 +752,14 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         push = rotate._push_season_branch(root)
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
+        # g15.26 claim (b): a successful all-live push means origin now
+        # carries every keyed row's committed pubkey -- so for each seat
+        # this pass keyed, any deferred `<seat>.key.pending` swap (written
+        # when an earlier push FAILED) now COMPLETES through rotate's ONE
+        # shared helper (each only flips when its committed row matches the
+        # pending pubkey). Best-effort; never raises.
+        for _seat in keyed_names:
+            rotate._finish_pending_swap_on_push(root, _seat, push)
         return _l
     except Exception as exc:  # noqa: BLE001
         _l = f"note: {note} row commit/push skipped ({exc})"
