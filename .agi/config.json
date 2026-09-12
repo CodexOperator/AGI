@@ -116,7 +116,7 @@
   "goal_body_cap": 0,
   "comms": {
     "lockdown": false,
-    "verify": "informational"
+    "verify": "enforcing"
   },
   "locations": {
     "comms_root": "comms/season-2",
