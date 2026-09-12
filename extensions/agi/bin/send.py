@@ -2683,6 +2683,30 @@ def _print_deferred_block(root: Path, me: str, deferred: dict,
     print(body, end="")
 
 
+def _own_inbox_or_refuse(target: str, me: str) -> bool:
+    """Refuse a positional `read <target>` whose target is not the resolved
+    sender (`me`). True = it is your own inbox (proceed); False = the one
+    refusal line went to stderr and NO file was touched (hypothesis:l4-send-
+    py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-
+    open, claim 1). `peek` never consults this gate - it reads without
+    consuming, so it stays open to any target (claim 2). `me` is the RESOLVED
+    sender (`_detect_sender`), never `args.me`: `--me` names read positions
+    in rooms/dms, not inbox identity, and must not widen the gate (claim 4).
+    A resolved sender of 'unknown' (no AGI_AGENT_ID, no AGI_SEAT, no --from)
+    refuses every positional target (claim 3).
+    """
+    if me != "unknown" and target == me:
+        return True
+    remedy = (f"read: target '{target}' is not you ('{me}'); "
+              f"to read your own inbox: send.py read {me}; "
+              f"to look at {target}'s without consuming it: "
+              f"send.py peek {target}; a dm is --dm {target}")
+    if me == "unknown":
+        remedy += "; pass --from <seat> if you are that seat"
+    print(remedy, file=sys.stderr)
+    return False
+
+
 def read(root: Path, me: str, sender: str | None,
          wrap: int = 160) -> None:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
@@ -3859,6 +3883,12 @@ def main(argv: list[str] | None = None) -> int:
             print("ERR: read needs a target (inbox) or --room/--dm",
                   file=sys.stderr)
             return 1
+        # Inbox identity is the RESOLVED sender, never `args.me` (claim 4):
+        # `--me` names read positions in rooms/dms, not whose inbox a
+        # positional read may consume. Refuse a foreign target (claim 1).
+        resolved = _detect_sender(sender)
+        if not _own_inbox_or_refuse(args.target, resolved):
+            return 2
         read(root, args.target, sender, wrap=wrap)
         return 0
 
