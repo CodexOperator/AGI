@@ -18,3 +18,6 @@ town: all
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+GO (Prime XVI 49ddab, 14:20Z, signed; owner: rungs 1-4 this loop, always prefer dispatch): dispatched by sanctuary-director 114003Z at 14:29:27Z as L4.324, a pi parent, in PARALLEL with L4.322 and L4.323. FILE SCOPE for that parallelism: NOT extensions/agi/bin/cli.py, NOT extensions/agi/bin/branches.py, NOT test_branch_reshuffle.py / test_branches.py / test_post_rename.py / test_cli.py (those four files and two modules belong to L4.322 and L4.323 running now); everything this claim names is in scope -- the seatsig Verifier in send.py, dispatch.py's ring gate, verification.py --suite's grant check, write.py _enforce_written_by, the rings geometry cell, and their tests. Rung 1 (the flip) landed 06:57Z 6741ea746. Rungs 3 and 4 follow this round (they reuse this rung's decision-record and signature shape). NEVER a live ring, veto or onboarding against the real posts.md: fixtures only; the real tree is read, not written.
