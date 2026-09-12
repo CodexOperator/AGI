@@ -3512,6 +3512,7 @@ def test_inbox_dir_resolves_to_main_from_a_linked_worktree(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 FAKE_SHA = "deadbeef0123456789"
+FAKE_REF = "origin/season2/main"   # canonical pushed ref; default for stubs
 FAKE_ROWS = [
     {"name": "belam", "role": "prime_director", "tier": 3,
      "session_ref": "7902ac"},
@@ -3523,8 +3524,13 @@ FAKE_ROWS = [
 
 
 def _stub_pushed(monkeypatch, result):
-    """Point _pushed_seats at a canned (rows, sha) or None (unreachable), so
-    the whois path runs with no real git and no real tmux."""
+    """Point _pushed_seats at a canned (rows, sha[, resolved_ref]) or None
+    (unreachable), so the whois path runs with no real git and no real tmux.
+    A 2-tuple defaults the resolved ref to the canonical source (the common
+    case); the real resolved-ref behavior is covered by the bare-origin test
+    (hypothesis:l4-whois-names-the-ref-it-read)."""
+    if result is not None and len(result) == 2:
+        result = (result[0], result[1], FAKE_REF)
     monkeypatch.setattr(send_mod, "_pushed_seats",
                         lambda root, ref, do_fetch: result)
 
@@ -3538,6 +3544,38 @@ def test_whois_claim_yes_has_provenance(monkeypatch):
     # provenance in the answer: the ref it read and the commit sha it used
     assert "origin/season2/main" in text
     assert FAKE_SHA in text
+
+
+def test_whois_names_the_ref_it_actually_read_from_bare_origin(
+        tmp_path, monkeypatch):
+    """hypothesis:l4-whois-names-the-ref-it-read: whois prints the ref it
+    ACTUALLY read -- the member of branches.ref_candidates that resolved --
+    never the unresolved canonical candidate. With a bare origin carrying
+    ONLY season/s2 (no season2/main), the provenance line must read
+    `verified against origin/season/s2 @ <sha>`, not the nonexistent
+    origin/season2/main -- so a reader verifying authority against the graph
+    is never told a ref that does not exist."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    root = _git_project(
+        tmp_path,
+        [{"name": "seat-a", "role": "director", "session_ref": "7902ac"}],
+        branch="season/s2")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin",
+                    "season/s2"], check=True)
+    # fixture sanity: origin carries season/s2 and NOT season2/main, so only
+    # the legacy spelling can resolve.
+    br = subprocess.run(["git", "-C", str(root), "branch", "-r"],
+                        capture_output=True, text=True)
+    assert "season/s2" in br.stdout, br.stdout
+    assert "season2/main" not in br.stdout, br.stdout
+    rc, text = send_mod.whois(root, "7902ac", claim="seat-a")
+    assert rc == 0, text
+    assert "verified against origin/season/s2 @" in text, text
+    assert "origin/season2/main" not in text, text
 
 
 def test_whois_claim_yes_by_seat_name(monkeypatch):
@@ -3677,7 +3715,8 @@ def test_whois_exit_codes_distinguish_every_negative_answer(monkeypatch,
     import send as _send
     rows = _whois_rows()
     monkeypatch.setattr(_send, "_pushed_seats",
-                        lambda root, ref, fetch: (rows, "cafe123"))
+                        lambda root, ref, fetch: (rows, "cafe123",
+                                                  "origin/season2/main"))
 
     assert _send.whois(tmp_path, "7902ac", None)[0] == _send.WHOIS_OK
     assert _send.whois(tmp_path, "9d073a", "sanctuary-helper")[0] == \
@@ -3704,6 +3743,11 @@ def test_whois_unverified_outranks_a_working_tree_answer(monkeypatch,
     code, text = _send.whois(tmp_path, "7902ac", "belam")
     assert code == _send.WHOIS_UNVERIFIED, text
     assert "NOT authoritative" in text
+    # hypothesis:l4-whois-names-the-ref-it-read: the UNVERIFIED line names the
+    # CANDIDATES the resolver tried (canonical first, legacy fallback), never a
+    # single unresolved name the reader cannot act on.
+    assert "origin/season2/main" in text, text
+    assert "origin/season/s2" in text, text
 
 
 # ── hypothesis:l4-a-truncated-deferred-body-delivers-once ──────────────────
@@ -3935,7 +3979,8 @@ class _DummyScheme:
 def _stub_seat_rows(monkeypatch, rows):
     """Point _pushed_seats (whois's resolver) at canned rows, no git."""
     monkeypatch.setattr(send_mod, "_pushed_seats",
-                        lambda root, ref, do_fetch: (rows, "deadbeef"))
+                        lambda root, ref, do_fetch: (rows, "deadbeef",
+                                                     "origin/season2/main"))
 
 
 def _seat_key_file(project, seat):
@@ -6001,7 +6046,8 @@ def test_empty_pushed_set_reads_none_never_dirty_copy(
     # the pushed authority is reachable but EMPTY; the dirty working copy
     # (the committed row is present on disk) must NOT be read.
     monkeypatch.setattr(send_mod, "_pushed_seats",
-                        lambda r, ref, do_fetch: ([], "deadbeef"))
+                        lambda r, ref, do_fetch: ([], "deadbeef",
+                                                  "origin/season2/main"))
     assert send_mod._locally_loaded_rows(root), (
         "fixture sanity: the working copy DOES hold rows, so a wrong "
         "fallback would find them")

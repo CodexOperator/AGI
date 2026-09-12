@@ -66,6 +66,7 @@ def _build_repo(tmp_path: Path):
            "---\nid: config:ladder\ncurrent_season: 2\n---\n\ncells:\n  core: season/s2\n")
     _write(r, ".agi/nodes/.geometry/rotations.md",
            "---\nid: config:rotations\n---\n\n- F14: merge `season/s2` into your worktree\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
     _git(r, "add", "-A")
     _git(r, "commit", "-qm", "seed")
 
@@ -210,3 +211,102 @@ def test_reshuffle_kind_of_canonical_names():
     assert cli._reshuffle_kind("season2/loops/x-a00-12345678") == "loop"
     assert cli._reshuffle_kind("season2/web-app-suite/season1/main") == "town_main"
     assert cli._reshuffle_kind("not/a/grammar/name/at/all/@@") == ""
+
+def _town_alias_repo(tmp_path: Path):
+    """The live-tree legacy town spelling (town/<t>@s2 — the mur-44 defect-4
+    name that the old second-parser regex could NOT match)."""
+    r = _build_repo(tmp_path)
+    _git(r, "branch", "town/streaming-suite@s2")
+    _git(r, "branch", "town/web-app-suite@s2")
+    _git(r, "push", "-q", "origin", "town/streaming-suite@s2",
+         "town/web-app-suite@s2")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+# ---- defect 1: --delete-old actually EXECUTES the listed deletes --------
+def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
+    (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (repo / ".agi/sessions/verified.stamp").write_text("green")
+
+    res = _run_cli(repo / ".agi", "--delete-old")
+    assert res.returncode == 0, res.stderr
+    origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "loop/x@s2",
+                "town/core/season/s2"]:
+        assert f"origin/{old}" not in origin, (old, origin)
+    # remote-only: local legacy branches stay (a later decide renames those)
+    local = _git(repo, "branch", "--format=%(refname:short)").stdout
+    assert "season/s2" in local and "seat/post-a@s2" in local
+
+
+# ---- defect 2: --apply is RESUMABLE + defect 3: upstream re-pointed ----
+def test_apply_sets_upstream_and_is_resumable(repo: Path):
+    res = _run_cli(repo / ".agi", "--apply")
+    assert res.returncode == 0, res.stderr
+    for old, new in [("season/s2", "season2/main"),
+                     ("seat/post-a@s2", "season2/posts/post-a")]:
+        up = _git(repo, "rev-parse", "--abbrev-ref",
+                  f"{new}@{{upstream}}").stdout.strip()
+        assert up == f"origin/{new}", (new, up)
+    # re-running --apply after a full apply RESUMES: origin still lists the
+    # legacy names (delete-old is separate), so each job is skipped BY NAME as
+    # already renamed -- never a hard fail on git branch -m.
+    res2 = _run_cli(repo / ".agi", "--apply")
+    assert res2.returncode == 0, res2.stderr
+    assert "already renamed" in res2.stdout
+
+
+def test_apply_refuses_origin_moved_by_name(tmp_path: Path):
+    r = _build_repo(tmp_path)
+    root = r / ".agi"
+    # baseline the dry-run plan (records each old branch's origin tip)
+    res_dry = _run_cli(root, "--dry-run")
+    assert res_dry.returncode == 0, res_dry.stderr
+    # move origin's season/s2 tip externally
+    _write(r, "moved", "x\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "move origin tip")
+    _git(r, "push", "-q", "origin", "HEAD:refs/heads/season/s2")
+
+    res = _run_cli(root, "--apply")
+    assert res.returncode == 1, res.stdout
+    assert "REFUSES season/s2" in res.stderr, res.stderr
+    # the refused branch was not renamed; the tree was not swept wholesale
+    local = _git(r, "branch", "--format=%(refname:short)").stdout
+    assert "season/s2" in local
+
+
+# ---- defect 4: --kinds towns matches the LIVE legacy town spelling -------
+def test_dry_run_plans_live_legacy_town_at_alias(tmp_path: Path):
+    r = _town_alias_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "towns")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert "town/streaming-suite@s2" in out
+    assert "season2/streaming-suite/season1/main" in out
+    assert "town/web-app-suite@s2" in out
+    assert "season2/web-app-suite/season1/main" in out
+
+
+# ---- defect 5: branch-reshuffle COMPOSES after post-rename --------------
+def test_post_rename_output_post_at_composes(tmp_path: Path):
+    r = _build_repo(tmp_path)
+    _git(r, "branch", "post/post-x@s2")
+    _git(r, "push", "-q", "origin", "post/post-x@s2")
+    _git(r, "fetch", "-q", "origin")
+    res = _run_cli(r / ".agi", "--dry-run")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert "post/post-x@s2" in out
+    assert "season2/posts/post-x" in out
+
+
+# ---- KID D contract: last line of --dry-run is the one-line runbook note --
+def test_dry_run_last_line_is_runbook_note(repo: Path):
+    res = _run_cli(repo / ".agi", "--dry-run")
+    assert res.returncode == 0, res.stderr
+    nonempty = [ln for ln in res.stdout.splitlines() if ln.strip()]
+    assert nonempty, "dry-run output empty"
+    assert nonempty[-1].startswith("runbook:"), nonempty[-1]
+

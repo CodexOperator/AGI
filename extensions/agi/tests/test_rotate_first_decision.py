@@ -170,6 +170,31 @@ def _make_round(repo: Path, wt: Path, slug: str, agent: str,
     return branch
 
 
+def _make_canonical_round(repo: Path, wt: Path, slug: str, agent: str,
+                          node_id: str, verdict: str = "proved",
+                          base: str = "seat/sanctuary-director@s2",
+                          manifest: bool = True) -> str:
+    """Cut one OPEN round branch on the CANONICAL grammar
+    `season2/loops/<slug>-<agent>` (what dispatch.py mints today), from
+    `base`, with a committed kid node, and the agent recorded into the seat
+    manifest for the manifest-join. Returns the branch name."""
+    if manifest:
+        _manifest_add(repo, [agent])
+    branch = f"season2/loops/{slug}-{agent}"
+    rwt = repo.parent / f"round-{agent}"
+    _git(repo, "worktree", "add", "-b", branch, str(rwt), base)
+    kid = rwt / ".agi" / "nodes" / "experiment" / f"{node_id}.md"
+    kid.parent.mkdir(parents=True, exist_ok=True)
+    fm = ("---\nid: experiment:" + node_id + "\ntype: experiment\n")
+    if verdict:
+        fm += "verdict: " + verdict + "\n"
+    fm += "---\n\nround kid\n"
+    kid.write_text(fm, encoding="utf-8")
+    _git(rwt, "add", "-A")
+    _git(rwt, "commit", "-m", f"kid {agent}")
+    return branch
+
+
 def _args(repo: Path, *, seat="sanctuary-director", answers=None):
     return SimpleNamespace(seat=seat, answers=answers, root=str(repo / ".agi"))
 
@@ -341,6 +366,57 @@ def test_cut_answer_prints_dispatch_line(tmp_path, capsys):
     assert "--target hypothesis:l4-some-next-node" in out
     # no merge line was emitted for a cut.
     assert "git merge --no-ff" not in out
+
+def test_canonical_loop_round_listed_alongside_legacy(tmp_path, capsys):
+    """hypothesis:l4-branches-follow-the-season-grammar — a round cut on the
+    canonical `season2/loops/<slug>-<agent>` spelling (which dispatch mints
+    today) must be VISIBLE to first-decision alongside the legacy
+    `loop/<slug>-<agent>@s2` spelling, both through branches.parse. The old
+    eager glob `loop/*@s2` (plus the `loop/` startswith) only ever matched
+    the LEGACY spelling, so a canonical round was invisible — the live
+    defect where the point saw no open rounds though the round branch was
+    `season2/loops/...`. RED on the pre-fix code: only the legacy round is
+    listed."""
+    repo, wt = _make_repo(tmp_path)
+    legacy = _make_round(repo, wt, "l4-legacy", "a00-1111",
+                         "a00-1111-deadbeef")
+    canon = _make_canonical_round(repo, wt, "l4-canon", "a00-2222",
+                                  "a00-2222-cafebabe")
+
+    rc, out = _run(repo, capsys)
+
+    assert rc == 0
+    # BOTH spellings are the seat's open rounds, each listed by its EXACT
+    # git name, with the owned-manifest join honoured.
+    assert out.count("round: ") == 2
+    assert f"round: {legacy}" in out
+    assert f"round: {canon}" in out
+    # the canonical round's kid node + verdict are pre-filled.
+    assert "experiment:a00-2222-cafebabe (proved)" in out
+    # parent names the seat branch the canonical round was cut from.
+    assert "parent: seat/sanctuary-director@s2" in out
+
+
+def test_merged_canonical_round_is_skipped(tmp_path, capsys):
+    """hypothesis:l4-branches-follow-the-season-grammar — a canonical
+    season2/loops round ALREADY MERGED into the seat branch is CLOSED (its
+    tip is an ancestor of the seat) and must be SKIPPED, exactly as a legacy
+    round is. The is-ancestor discriminator is preserved for both spellings.
+    """
+    repo, wt = _make_repo(tmp_path)
+    canon = _make_canonical_round(repo, wt, "l4-merged", "a00-3333",
+                                  "a00-3333-deadbeef")
+    # merge the canonical round into the seat branch (--no-ff as harvest does)
+    _git(wt, "merge", "--no-ff", canon, "-m", f"merge {canon}")
+    assert _git(repo, "merge-base", "--is-ancestor", canon,
+                "seat/sanctuary-director@s2").returncode == 0  # now an ancestor
+
+    rc, out = _run(repo, capsys)
+
+    assert rc == 0
+    assert "no open rounds for this seat" in out
+    assert canon not in out
+
 
 def _make_repo_post(tmp_path: Path) -> tuple[Path, Path]:
     """Same shape as `_make_repo` but the seat is renamed to a POST

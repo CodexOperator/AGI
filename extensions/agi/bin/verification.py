@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import commands  # noqa: E402
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
+import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
 
 #: Per-check wall-clock ceiling. A check that hangs past this is a failure the
 #: successor must see, not a run that never returns.
@@ -222,45 +223,69 @@ def _is_ancestor(groot: Path, sha: str) -> bool | None:
     return None
 
 
-def _integration_branch(groot: Path) -> str | None:
-    """The integration branch these bytes merge up to, from the ladder's
-    `town_branches` — NEVER hardcoded (goal:g10.2). Core's branch (season2/main)
-    is the declared default; a non-core town's own branch is used when the
-    graph resolves to that town. Any single declared branch else None."""
+def _integration_branch_candidates(groot: Path) -> list[str] | None:
+    """The refs [canonical, legacy] these bytes may sit on and be pushed to,
+    from the ladder's `town_branches` — canonical first, then the declared
+    spelling as a one-season fallback (branches.ref_candidates), so a read
+    survives the season rename either way round: while the tree still declares
+    the legacy `season/s<N>`, and after it has been flipped to the canonical
+    `season<N>/main`. NEVER hardcoded (goal:g10.2); the season is whatever the
+    declared value resolves to. Core's branch is the default; a non-core
+    town's own branch is used when the graph resolves to that town. None when
+    no branch is declared."""
     tb = rotate.load_ladder_field(groot, "town_branches", None)
+    declared = None
     if isinstance(tb, dict):
         if tb.get("core"):
-            return str(tb["core"])
-        for b in tb.values():
-            return str(b)
-    return None
+            declared = str(tb["core"])
+        else:
+            for b in tb.values():
+                declared = str(b)
+                break
+    if declared is None:
+        return None
+    return branches.ref_candidates(declared)
+
+
+def _integration_branch(groot: Path) -> str | None:
+    """The CANONICAL integration branch these bytes merge up to — the [0] of
+    `_integration_branch_candidates`, so callers that need ONE stable name
+    (the tip label, `origin/<branch>`) keep using the resolved form rather
+    than the raw declared spelling. None when no branch is declared."""
+    cands = _integration_branch_candidates(groot)
+    return cands[0] if cands else None
 
 
 def _stamp_context(groot: Path) -> tuple[bool, str | None, str]:
     """(can_stamp, head_sha, reason) for THIS run's bytes.
 
     KEPT means the read is on the declared integration branch AND HEAD is an
-    ancestor of the pushed `origin/<branch>` — a kept merge is pushed, while
-    a worktree or a seat branch (not on the declared branch) is not. The
-    check is branch + reachability only: an uncommitted working tree whose
-    HEAD is already pushed still counts as kept here. A read that cannot
-    stamp still COMPARES (it just never writes the baseline).
+    ancestor of a pushed `origin/<candidate>` — a kept merge is pushed, while
+    a worktree or a seat branch (not on the declared branch, in either the
+    canonical or legacy spelling) is not. The check is branch + reachability
+    only: an uncommitted working tree whose HEAD is already pushed still
+    counts as kept here. A read that cannot stamp still COMPARES (it just
+    never writes the baseline).
     """
-    branch = _integration_branch(groot)
-    if branch is None:
+    cands = _integration_branch_candidates(groot)
+    if not cands:
         return False, None, "no integration branch declared in the ladder"
     cur = _git(groot, ["rev-parse", "--abbrev-ref", "HEAD"])
     if cur is None:
         return False, None, "not a git tree"
-    if cur != branch:
-        return False, None, f"not on integration branch {branch!r} (on {cur!r})"
+    if cur not in cands:
+        names = " ".join(repr(c) for c in cands)
+        return False, None, f"not on integration branch ({names}) (on {cur!r})"
     head = _git(groot, ["rev-parse", "HEAD"])
     if head is None:
         return False, None, "not a git tree"
-    if _git(groot, ["merge-base", "--is-ancestor", "HEAD",
-                    f"origin/{branch}"]) is None:
-        return False, head, f"unpushed — HEAD not an ancestor of origin/{branch}"
-    return True, head, f"kept (on {branch}, HEAD pushed)"
+    pushed = next((c for c in cands
+                   if _git(groot, ["merge-base", "--is-ancestor", "HEAD",
+                                   f"origin/{c}"]) is not None), None)
+    if pushed is None:
+        names = ", ".join(f"origin/{c}" for c in cands)
+        return False, head, f"unpushed — HEAD not an ancestor of {names}"
+    return True, head, f"kept (on {cur!r}, pushed to origin/{pushed})"
 
 
 def _read_state(groot: Path) -> dict | None:
@@ -724,9 +749,20 @@ def render_window(groot: Path, grant: str | None = None) -> str:
         lines.append(f"lock: held by {holder} since {since}")
     else:
         lines.append("lock: free")
-    # tip
-    branch = _integration_branch(groot)
-    tip = _git(groot, ["rev-parse", f"origin/{branch}"]) if branch else None
+    # tip: pick the FIRST candidate whose origin ref actually resolves, so a
+    # tree still pushed under the legacy spelling (not yet renamed) shows a
+    # real tip instead of an unresolved canonical that only exists after the
+    # flip. Same canonical-first order the stamp uses.
+    candidates = _integration_branch_candidates(groot)
+    branch = tip = None
+    if candidates:
+        for c in candidates:
+            tip = _git(groot, ["rev-parse", f"origin/{c}"])
+            if tip is not None:
+                branch = c
+                break
+        if branch is None:
+            branch = candidates[0]
     # MAIN's real HEAD, resolved through `git_common_root`. The tip line labels
     # the head "MAIN HEAD", so it must BE main's HEAD -- a seat WORKTREE's own
     # HEAD is a different commit and must never wear that label. When root IS

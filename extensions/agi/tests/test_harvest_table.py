@@ -407,6 +407,35 @@ def test_season_resolved_seat_ref_is_the_diff_base(tmp_path: Path) -> None:
     assert "seat-owned.txt" not in out   # the seat's own file NEVER leaks in
 
 
+def test_canonical_round_branch_is_attributed(tmp_path: Path) -> None:
+    """hypothesis:l4-branches-follow-the-season-grammar — a round cut on the
+    canonical `season2/loops/<slug>-<parent-id>` spelling (what dispatch.py
+    mints today) must be attribute-able by harvest-table. The old
+    `for-each-ref refs/heads/loop` glob + `^.*-(a00-<hex>)@s<N>` regex
+    never saw the canonical spelling, so the branch fact and the season
+    fallback (`max` over the discovered loop seasons) were blind to it. RED
+    on the pre-fix code: the canonical branch is not discovered, the season
+    resolves to nothing, and the row cannot separate the round's own kid
+    from the manifest base."""
+    repo = make_project_repo(tmp_path)
+    cbranch = "season2/loops/hypothesis-branches-follow-the-seas-a00-feedbeef"
+    wt = repo / ".agi" / "worktrees" / PARENT
+    _git(repo, "worktree", "add", "-b", cbranch, str(wt), "master")
+    commit_kid_node(wt)
+    write_seat_manifest(repo, "96", status="done", branch=cbranch)
+    # sanity: git resolves the canonical branch, and the parsed loop carries
+    # the parent agent (so the manifest-join / branch fact agree with git).
+    assert _git(repo, "rev-parse", "--verify", "--quiet",
+                cbranch).stdout.strip() != ""
+
+    res = run_harvest(repo, "--seat", SEAT, "--round", "96")
+    assert res.returncode == 0, res.stderr
+    out = res.stdout
+    assert cbranch in out                     # canonical branch fact
+    assert "experiment:a00-kid" in out        # kid node id fact
+    assert ".agi/nodes/experiment/a00-kid.md" in out  # diffstat names the node
+
+
 def test_post_seat_ref_is_the_diff_base(tmp_path: Path) -> None:
     """hypothesis:l4-a-seat-is-a-post-everywhere — the seasonal seat ref,
     once renamed to a POST, is still resolved as the round's diff base. The

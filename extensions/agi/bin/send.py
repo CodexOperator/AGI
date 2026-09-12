@@ -2306,7 +2306,7 @@ def _load_rows(root: Path) -> list | None:
     stays authoritative (a stale MAIN key never overrides origin)."""
     seeded = _pushed_seats(root, _PUSHED_SEATS, True)
     if seeded is not None:
-        rows, _sha = seeded
+        rows, _sha, _resolved_ref = seeded
         if rows:
             return _merge_main_committed_keys(root, rows)
         # hypothesis:l4-the-main-committed-reader... — an EMPTY pushed row
@@ -3454,7 +3454,11 @@ def _pushed_seats(root: Path, ref: str, do_fetch: bool):
             break
     if shown is None or shown.returncode != 0:
         return None
-    return _load_seats_rows(shown.stdout), sha.stdout.strip()
+    # hypothesis:l4-whois-names-the-ref-it-read: return the ref that ACTUALLY
+    # resolved (the member of ref_candidates rev-parse accepted), so a whois
+    # reader is told the real branch it verified against -- never the
+    # canonical candidate, which may not exist on origin yet.
+    return _load_seats_rows(shown.stdout), sha.stdout.strip(), live_ref
 
 
 def _locally_loaded_rows(root: Path) -> list:
@@ -3749,7 +3753,16 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # unauthoritative answer must never exit 0.
         local = _locally_loaded_rows(root)
         _code, answer = _resolve_rows(local, session_ref, claim)
-        text = (f"UNVERIFIED {session_ref}: pushed ref {source!r} unreachable; "
+        # hypothesis:l4-whois-names-the-ref-it-read: name the CANDIDATES the
+        # resolver tried (canonical first, legacy fallback) -- never a single
+        # unresolved name a reader cannot act on.
+        if source.startswith("origin/"):
+            tried = ", ".join(
+                "origin/" + c
+                for c in branches.ref_candidates(source[len("origin/"):]))
+        else:
+            tried = source
+        text = (f"UNVERIFIED {session_ref}: pushed ref(s) {tried} unreachable; "
                 f"reading working tree, NOT authoritative — treat as unproven\n"
                 + answer)
         label = _whois_sig_label(root, local, session_ref, sig_line, msg_text)
@@ -3765,9 +3778,11 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # caller must not act on an answer we could not authenticate, even a
         # negative one.
         return WHOIS_UNVERIFIED, text
-    rows, sha = seeded
+    rows, sha, live_ref = seeded
     code, answer = _resolve_rows(rows, session_ref, claim)
-    text = f"{answer}  (verified against {source} @ {sha})"
+    # hypothesis:l4-whois-names-the-ref-it-read: name the ref that ACTUALLY
+    # resolved, never the unresolved canonical candidate.
+    text = f"{answer}  (verified against {live_ref} @ {sha})"
     # INFORMATIONAL signature label: never part of the exit decision -- EXCEPT
     # clause (3)'s enforced FORGED refusal, checked below.
     label = _whois_sig_label(root, rows, session_ref, sig_line, msg_text)
@@ -3941,7 +3956,7 @@ def main(argv: list[str] | None = None) -> int:
              "with --all-live, the prime keys every LIVE row that has no "
              "pubkey (hypothesis:l4-every-live-row-is-keyed...)",
         epilog=_LOCKDOWN_RESERVED_HELP)
-    p_keygen.add_argument("--seat", "--post", default=None, help="seat name")
+    p_keygen.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None, help="seat name")
     p_keygen.add_argument("--scheme", default=seatsig.DEFAULT_SCHEME,
                           help="swappable scheme name (default "
                                f"{seatsig.DEFAULT_SCHEME})")
