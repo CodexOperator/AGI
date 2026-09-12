@@ -6420,6 +6420,8 @@ Minted 2026-09-11 22:2xZ (loop L5). Serial after SL5.02 + merge-up SL2#7; brief 
 
 SL5.04 harvested 23:22Z into the seat: the enforcing CODE is in — under comms.verify=enforcing a read/peek withholds a FORGED block (one REFUSED FORGED line, bytes appended verbatim to inbox/quarantine/<seat>.md, never deleted), VERIFIED/UNSIGNED/RETIRED print in full, informational output is byte-identical, whois --sig exits 2 on FORGED; the season/s2 value is still informational. Kids lean-proved 85/90; caveat for the named review: a repeated peek of the same FORGED block re-appends it (append-only, duplicates accumulate) — a dedupe by (ts, from, sig) is the obvious fix-only if the review wants it. The VALUE flip is the Prime one-line edit after that review.
 
+2026-09-12T00:29Z Prime XIII ruling (00:16Z grant dm): comms.verify stays informational until BOTH land and a mur-SL2.x reviews them by name — (a) a rotation's pubkey + key_history are identity cells riding the ONE writer to MAIN (folded into SL6.01 under g15.24, named test: MAIN row pubkey == the minted key after a worktree rotate); (b) a sig against a row with no key on file reads UNKEYED, never FORGED (send.py 2069-2073 returns the bare FORGED for an empty pubkey/sig_scheme, so enforcing would withhold every freshly rotated post's dms) — briefed as hypothesis:l4-a-sig-against-a-row-with-no-key-on-file-reads-unkeyed-never-forged, round SL6.03, send.py only, file-disjoint from SL6.01/02. Do not flip.
+
 ### G16.1 — The seven success metrics, instrumented — status: active
 
 <!-- BODY:BEGIN -->
