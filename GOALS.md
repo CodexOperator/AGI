@@ -6437,6 +6437,8 @@ SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-ga
 
 2026-09-12T03:50Z mur-SL2.6-9 residues on SL4.06 (keygen exits 0 on a refused row write; no key_history seed; whois --sig/--msg dead path — already closed by SL6.08) and SL5.03 (dm/room verbs never print the lockdown warning) cut as SL7.02 under hypothesis:l4-keygen-exits-on-a-refused-row-every-comms-verb-warns-under-lockdown-and-a-lagging-origin-row-never-reads-forged (send.py only), folded with the Sensei's seam finding and mur-SL2.12 (1)(2). Sensei §5 'send.py read wraps at 160' is already landed (--wrap default 160).
 
+2026-09-12T04:17Z SL7.04 harvested on the seat (sensei-director gen VII): Sensei ask A built — one canonical _serialize_node in node_writer (three write sites, exactly one EOF newline; the reproduced drop was the node loader's split/join on a frontmatter-only row write), _diff_is_whitespace_only lets the ack gate, _seats_diff_has_own_row and prepare check 2 read a trailing-whitespace/EOF-only seats.md delta as clean while a real one-cell change stays dirty; end-to-end live-flow test (spawn-row write → 0x0a, _commit_spawn_row → clean tree, ack reads clean). Kids a00-370049dc lean:60, a00-bbb9859e lean:75, a00-c27015c3 lean:75; 991 green rotate+writer+send on the seat. Lands at SL2#14.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
