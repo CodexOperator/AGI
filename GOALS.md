@@ -9600,6 +9600,8 @@ mur-SL2.25 digest applied 20:55Z (Prime XVII 20:5xZ): SL7.90 DEMOTED (experiment
 
 SL7.107 HARVESTED 21:12Z on the sensei-director post: cmd_spawn initialises _rowgen before the seat branch (no UnboundLocalError seat-less non-dry), sensei.py _display_cmd resolves the column by key presence (an explicit empty command prints '-'; docstring rewritten), _preserve_swept_latches never presents an inherited sweep list as measured (marked inherited); kid proved 0.9. Rides SL2#27
 
+SL7.106 HARVESTED 21:17Z on the sensei-director post (test-only): the AGI_REAL_JUDGE opt-in is captured before conftest's AGI_ strip and proved through a child pytest that really executes the strip (the old mechanism test was vacuous); every --pin test stubs fresh_spend_status under a socket guard so no test reaches OpenRouter; kids proved 0.9 x2. Rides SL2#27
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
