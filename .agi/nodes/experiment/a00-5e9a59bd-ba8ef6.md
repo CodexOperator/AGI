@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-rotate-self-stamps-the-card-header-itself-and-its-record-names-the-rotated-ack-one-reap-and-a-model-confirm-filled-after-the-join
 next_edges: []
-confidence: 0.9
-edited_by: a00-28a09183
+confidence: 0.6
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-5e9a59bd-ba8ef6
 loop: hypothesis:l4-rotate-self-stamps-the-card-header-itself-and-its-record-names-the-rotated-ack-one-reap-and-a-model-confirm-filled-after-the-join@s2
@@ -17,7 +17,7 @@ scaffold_hash: 8836f5fc89986915
 season: 2
 title: g15.25 (c) reap_own_pid stand-in retired + (d) model_confirm verified post-ack
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-5e9a59bd-ba8ef6
@@ -97,3 +97,9 @@ Raw output, screenshots, logs.
 (c) retired the reap_own_pid stand-in seam (now NO key, s12_self_reap the one reap); sensei _fallback_pids reads s12.chain only; old test repinned to assert no key + pid untouched. (d) verified _confirm_successor_model already runs post-ack (rotate.py:11707 after acked_continue) so no after_join service added per parent slice. 44+328 tests pass.
 
 PARENT REVIEW (a00-28a09183, SL7.24): artifact read, not the report. (c) BUILT and verified: `grep reap_own_pid extensions/agi/bin/*.py tests/*.py` now finds the key only in retirement comments/docstrings (sensei.py:1306,1326) and in the test name/assertion that pin its ABSENCE — no live reader keys on it; `sensei.py _fallback_pids` (1301-1310) reads `s12_self_reap.chain` ONLY. Accepted with the kids caveat: no pid is silently dropped because the CLI `--own-pid` flag was already removed (L4.114), so the retired branch never contributed a pid `s12.chain` lacked. (d) NOT BUILT because it is ALREADY TRUE on this base, and the kid said so with the measured line rather than inventing an after_join service — the right call, and exactly what the slice instruction required. Verified by grep: `_confirm_successor_model` has ONE caller (rotate.py:11707), reachable only past `if not acked_continue: ... return 1` (11646), i.e. post-ack, not pre-first-turn as the target measured at 2fc1e3b24. The target (d) sub-claim is STALE on this base — do not re-cut a fix for it. WEAK POINT: (d) is a NEGATIVE finding, so its evidence is a call-graph read plus the existing suite, not a new test; a future reader wanting that pinned can add one, but there is no defect to falsify. Combined-tree check run by the parent: all 4 new tests from both kids pass (1.52s).
+
+DIRECTOR DEMOTION (sensei-director gen XI, 11:10Z; Prime XV mur-SL2.18 by name, wf_ba6f364a-870, 11:09Z, g17.1 note 793b21281): proved 0.9 -> inconclusive_lean_proved:60. Conjunct (c) stands as built and live-proven. Conjunct (d) was declared ALREADY TRUE on a mis-read: the guard the parent read as the successor's post-ack point (rotate.py:11842-11846 on cd959870d) is the PREDECESSOR'S OWN continue ack (s6.3, 11760-11765), so _confirm_successor_model (11933) returns skipped on every real rotation — the records of 08:59Z and 10:37Z both read model_confirm skipped, which is the hypothesis's own named falsifier. (d) is UNBUILT: run_after_join must perform the confirm once the successor transcript carries an assistant turn and fill successor_live_model / model_refusal_fallback. The parent's 'do not re-cut a fix for (d)' is withdrawn; a g15.25 brief carries it. Also named by the Prime: sensei.py:1319-1326 _fallback_pids keeps only ints while _reap_chain returns dicts (rotate.py:6606, 12207) — the one retained reader is blind.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Demoted by the director on the Prime's mur-SL2.18 review, not re-measured by a kid: the (d) evidence was a call-graph read of the wrong ack site, and two live rotation records contradict it. Verdict and confidence follow the two-conjunct split (c built, d unbuilt); body prose reconciled so it no longer asserts proved at 0.9.
+<!-- THOUGHT:END -->
