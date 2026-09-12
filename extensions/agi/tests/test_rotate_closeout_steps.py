@@ -721,22 +721,25 @@ def test_merge_up_real_runner_merges_seat_branch_into_season2_main_in_main(
         tmp_path):
     """(1) merge_up: --no-ff of the seat branch into MAIN's checked-out
     season2/main (a merge commit whose SECOND parent is the seat tip), gated
-    on MAIN's branch + clean tracked tree; refuses BY NAME when MAIN is on
-    another branch, dirty, or the one constant is tampered away from
-    season2/main."""
+    on MAIN's branch + a clean tracked tree; refuses BY NAME when MAIN is on
+    another branch, dirtied ON a path the merge touches, or the one constant
+    is tampered away from season2/main. (A dirty path the merge does NOT
+    touch no longer blocks -- the claim's gate.)"""
     import subprocess as sp
     g, main, seat, seat_branch = _merge_fixture(tmp_path)
     record = {"gen_before": 7, "gen_after": 8,
               "recorded_at": "2026-09-12T09:00:00.123456Z"}
     seams = rotate._make_closeout_seams(g, record, seat=seat)
 
-    # (a) MAIN dirty -> refuse by name (a clean tree is a merge pre-req)
-    (main / "b.txt").write_text("b\nDIRTY\n", encoding="utf-8")
+    # (a) MAIN dirty ON a path the merge TOUCHES -> refuse, naming it
+    sp.run(["git", "-C", str(main), "checkout", "-q", seat_branch, "--",
+            "card.md"], check=True)
+    (main / "card.md").write_text("# adv\nDIRTY\n", encoding="utf-8")
     ok, result, detail = seams["merge_up"]()
     assert ok is False and result == "refused"
     assert "dirty" in detail and "merge_up" in detail
-    sp.run(["git", "-C", str(main), "checkout", "-q", "--", "b.txt"],
-           check=True)
+    assert "card.md" in detail
+    sp.run(["git", "-C", str(main), "reset", "-q", "--hard"], check=True)
 
     # (b) MAIN on another branch -> refuse by name (never a blind merge)
     sp.run(["git", "-C", str(main), "checkout", "-q", "master"], check=True)
@@ -912,3 +915,151 @@ def test_push_real_runner_pushes_season2_main_then_refgrids_from_main(
     assert pushed[0][2] == str(main) and pushed[1][2] == str(main)  # -C MAIN
     assert pushed[0][4:] == ["origin", "season2/main"]
     assert pushed[1][4:] == ["origin", "refs/grid/*:refs/grid/*"]
+
+
+# --- hypothesis:l4-the-closeout-merge-up-gate-ignores-cron-owned-dirty- ---
+# paths-and-blocks-only-on-a-dirty-path-the-merge-touches: the merge_up
+# gate must (a) ignore cron-owned dirty paths, (b) block only on a dirty
+# path the MERGE actually TOUCHES (real `git diff --name-only`), (d) refuse
+# an unmeasurable tree, and (e) carry ONE spelling of the prefixes. The
+# "touched" set is decided by real git on the shared fixture, never a
+# hand-passed list.
+
+
+def test_closeout_cron_owned_prefixes_single_spelling():
+    """(e) ONE spelling of the cron-owned prefixes: the closeout constant is
+    DERIVED from the prepare churn constants, so a re-spelled literal breaks
+    this assert (the falsifier), and the value is what F20 names."""
+    assert rotate.CLOSEOUT_CRON_OWNED_PREFIXES == (
+        rotate.PREPARE_CHURN_PREFIXES + rotate.PREPARE_CHURN_DIRS)
+    assert rotate.CLOSEOUT_CRON_OWNED_PREFIXES == (
+        ".agi/comms/", ".agi/sessions/rotations/")
+
+
+def test_closeout_merge_up_rename_row_judged_on_new_path(tmp_path):
+    """A RENAME row (`R old -> new`) of a cron-owned path is judged on the
+    NEW path via _porcelain_path (the one extractor the prepare captive and
+    this gate share), so the renamed file stays cron-owned and is NOT a
+    blocker. Before the fix the raw `line[3:]` yielded 'old -> new', which
+    matches no prefix and no merge-touch path."""
+    import subprocess as sp
+    g, main, _seat, seat_branch = _merge_fixture(tmp_path)
+    comm = main / ".agi/comms/season-2/dm"
+    comm.mkdir(parents=True)
+    (comm / "x.md").write_text("hi\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", ".agi"], check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "cron files"],
+           check=True)
+    sp.run(["git", "-C", str(main), "mv",
+            ".agi/comms/season-2/dm/x.md",
+            ".agi/comms/season-2/dm/y.md"], check=True)
+    # the rename row is staged in the porcelain; the gate's extractor must
+    # reduce it to the NEW path so the prefix match still lands
+    clean, blockers, ignored = rotate._closeout_main_clean(main, seat_branch)
+    assert clean is True and blockers == [], (blockers, ignored)
+    assert ignored == 1
+
+
+def test_closeout_merge_up_ignores_cron_owned_dirty_paths_untouched_by_merge(
+        tmp_path):
+    """(a) two cron-owned dirty paths (.agi/comms/ dm file, .agi/sessions/
+    rotations/sequence.json), NEITHER touched by the merge -> merge_up RUNS
+    and its detail names the 2 cron-owned paths it ignored."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    comm = main / ".agi/comms/season-2/dm"
+    sess = main / ".agi/sessions/rotations"
+    comm.mkdir(parents=True)
+    sess.mkdir(parents=True)
+    (comm / "x.md").write_text("hi\n", encoding="utf-8")
+    (sess / "sequence.json").write_text("[]\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", ".agi"], check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "cron files"],
+           check=True)
+    # the cron writes them -- dirty, and the seat merge touches neither
+    (comm / "x.md").write_text("hi\ndirty\n", encoding="utf-8")
+    (sess / "sequence.json").write_text("[1]\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is True and res == "merged", det
+    assert "2 cron-owned dirty path(s) ignored" in det
+
+
+def test_closeout_merge_up_runs_on_dirty_path_untouched_by_merge(tmp_path):
+    """(b) a NON-cron dirty tracked path the merge does NOT touch -> merge_up
+    RUNS. x.py lives identically on BOTH branches (brought into the seat
+    branch so the seat-change diff excludes it), then is dirtied in MAIN."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    wt = tmp_path / "wt-adv"
+    xdir = main / "extensions/agi/bin"
+    xdir.mkdir(parents=True)
+    (xdir / "x.py").write_text("def x(): pass\n", encoding="utf-8")
+    sp.run(["git", "-C", str(main), "add", "extensions/agi/bin/x.py"],
+           check=True)
+    sp.run(["git", "-C", str(main), "commit", "-q", "-m", "x on main"],
+           check=True)
+    # bring x.py into the seat branch so `diff season2/main..seat` excludes it
+    sp.run(["git", "-C", str(wt), "merge", "-q", "-m", "sync x",
+            "season2/main"], check=True)
+    (main / "extensions/agi/bin/x.py").write_text(
+        "def x(): pass\nDIRTY\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is True and res == "merged", det
+
+
+def test_closeout_merge_up_refuses_naming_dirty_path_touched_by_merge(
+        tmp_path):
+    """(c) a NON-cron dirty path the merge DOES touch -> merge_up REFUSES
+    NAMING it (extensions/agi/bin/x.py, added on the seat branch and dirtied
+    in MAIN)."""
+    import subprocess as sp
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    wt = tmp_path / "wt-adv"
+    xd = wt / "extensions/agi/bin"
+    xd.mkdir(parents=True)
+    (xd / "x.py").write_text("def x(): pass\n", encoding="utf-8")
+    sp.run(["git", "-C", str(wt), "add", "extensions/agi/bin/x.py"],
+           check=True)
+    sp.run(["git", "-C", str(wt), "commit", "-q", "-m", "touch x"],
+           check=True)
+    # x.py IS touched by the merge -- dirty it IN MAIN to force the refusal
+    sp.run(["git", "-C", str(main), "checkout", "-q", "season2/posts/adv",
+            "--", "extensions/agi/bin/x.py"], check=True)
+    (main / "extensions/agi/bin/x.py").write_text(
+        "def x(): pass\nDIRTY\n", encoding="utf-8")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is False and res == "refused", det
+    assert "extensions/agi/bin/x.py" in det
+    assert "path(s) the merge touches" in det
+
+
+def test_closeout_merge_up_refuses_an_unmeasurable_tree(tmp_path,
+                                                     monkeypatch):
+    """(d) a tree git cannot measure REFUSES: at the seam,
+    _closeout_main_clean reports clean=None for a non-repo dir (git rc != 0);
+    at the seam table, an unresolvable/unmeasurable MAIN refuses merge_up by
+    name. The clean-is-None arm names that the tree could NOT be MEASURED
+    (claim 3: still refuses, with a truthful reason -- not "dirty")."""
+    import shutil
+    import subprocess as sp
+    not_repo = tmp_path / "not-a-repo"
+    not_repo.mkdir()
+    (not_repo / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    clean, blockers, ignored = rotate._closeout_main_clean(not_repo, "b")
+    assert clean is None and blockers == [] and ignored == 0
+    g, main, _seat, _sb = _merge_fixture(tmp_path)
+    shutil.rmtree(main / ".git")
+    seams = rotate._make_closeout_seams(g, {}, seat="adv")
+    ok, res, det = seams["merge_up"]()
+    assert ok is False and res == "refused" and "merge_up" in det
+    # force the clean-is-None arm on a still-resolvable MAIN and assert the
+    # wording says it was not measurable, not that it is dirty
+    monkeypatch.setattr(rotate, "_closeout_main_clean", lambda *a: (None, [], 0))
+    g2, _m2, _s2, _sb2 = _merge_fixture(tmp_path / "second")
+    seams2 = rotate._make_closeout_seams(g2, {}, seat="adv")
+    ok2, res2, det2 = seams2["merge_up"]()
+    assert ok2 is False and res2 == "refused"
+    assert "could not be measured" in det2
