@@ -796,6 +796,40 @@ def test_dry_run_names_both_while_seats_delete_pending(repo):
     assert plan == applied, (f"dry-run plan {plan} != apply pathspec {applied}")
 
 
+def test_dry_run_unmigrated_matches_apply_commit(repo):
+    """(L4.323) On an UNMIGRATED tree (seats.md present, posts.md absent -- the
+    DEFAULT fixture and the live tree), the --dry-run step-3 pathspec must name
+    BOTH posts.md and seats.md, because --apply's own `git mv` WILL stage the
+    seats.md delete; and --apply's step-3 COMMIT must carry exactly that same
+    file set. The dry-run predicts the apply's writes on the SAME tree state,
+    so the dry-run pathspec EQUALS the committed file set."""
+    g = repo / ".agi"
+    seats = g / "nodes" / ".geometry" / "seats.md"
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    assert seats.exists() and not posts.exists()      # the unmigrated state
+
+    plan = _step3_paths(_run_cli(g, "--dry-run"), "DRY ")
+    names = {p.rsplit("/", 1)[-1] for p in plan}
+    assert "posts.md" in names and "seats.md" in names, (
+        f"unmigrated dry-run must name BOTH posts.md and seats.md: {plan}")
+
+    R = _run_cli(g, "--apply")
+    assert R.returncode == 0, R.stdout + R.stderr
+    # The head commit --apply really created carries the authoritative set.
+    # Read it RENAME-AWARE: on an unmigrated tree the step-3 commit is a git
+    # RENAME R068 seats.md->posts.md, which `git show --name-only` collapses
+    # to the new path only -- both sides of the rename are paths the commit
+    # carried, so use --name-status and take every path field.
+    diff = _git(repo, "diff-tree", "--no-commit-id", "--name-status", "-r",
+                "HEAD")
+    committed = set()
+    for line in diff.stdout.splitlines():
+        fields = line.split("\t")
+        committed.update(p.rsplit("/", 1)[-1] for p in fields[1:])
+    assert names == committed, (
+        f"dry-run pathspec {names} != apply commit file set {committed}")
+
+
 def test_dry_run_names_only_posts_after_seats_delete_committed(repo):
     """(Region A/b) Once the seats.md DELETE is already COMMITTED (mv + commit
     done), the --dry-run step-3 pathspec names ONLY posts.md — never a stale
