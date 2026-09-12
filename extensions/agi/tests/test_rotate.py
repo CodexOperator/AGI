@@ -7372,3 +7372,80 @@ def test_own_row_cut_swapped_pair_keeps_own_added_line(tmp_path):
             l for l in head_blob.splitlines() if '"name": "other"' in l)
         assert foreign_head in staged, \
             "the foreign row must appear byte-identical to HEAD"
+
+
+def test_own_row_cut_work_only_added_row_keeps_walk_position(tmp_path):
+    """goal:g15.24 (ii) / SL7.52 THE falsifier: a WORK-only added row — an
+    own row this seat's write INSERTED into seats.md that HEAD lacks (here
+    `belam` is the NEW seat, absent from HEAD) — sits in WORK BETWEEN the
+    two HEAD rows (`alpha`, `other`), all three inside ONE replace opcode
+    (alpha and other are both edited, so difflib folds them). The SL7.38
+    removed-first walk flushed WORK-only added lines at the region END, so
+    the staged buffer put the own inserted row LAST — a byte-order change in
+    seats.md relative to the tree's own file, pinned by no fixture. The cut
+    must keep the own inserted row at its WALK position: right where it sits
+    between the two HEAD rows, foreign edits reverted byte-identical to HEAD.
+    FALSIFIER: the staged output has the own added row AFTER `other`."""
+    root, top = _empty_row_git_root(tmp_path, ["alpha", "other"])
+    seats = rotate._ack_seats_path(root)
+    rows = [
+        {"name": "alpha", "role": "p2", "model": "x", "effort": "max",
+         "settings": ""},
+        {"name": "belam", "role": "prime_director", "model": "x",
+         "effort": "max", "settings": ""},
+        {"name": "other", "role": "director", "edited_by": "x",
+         "model": "x", "effort": "max", "settings": ""},
+    ]
+    body = "---\nid: config:seats\ntype: config\nseats:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    seats.write_text(body, encoding="utf-8")
+    staged = rotate._seats_ownrow_content(root, top, "belam")
+    assert staged is not None, "an own-row insert must build content"
+    lines = staged.splitlines()
+    # the OWN inserted row is kept at its WALK position BETWEEN the two HEAD
+    # rows — not flushed to the region end (the SL7.38 defect).
+    yes = [i for i, l in enumerate(lines) if '"name": "belam"' in l]
+    assert yes, "the own inserted row must be staged"
+    row_i = yes[0]
+    assert row_i < next(i for i, l in enumerate(lines)
+                        if '"name": "other"' in l), \
+        "the own added row must precede `other`, not flush to the end"
+    assert row_i > next(i for i, l in enumerate(lines)
+                        if '"name": "alpha"' in l), \
+        "the own added row must follow `alpha` (its walk position)"
+    # FOREIGN edits around it are reverted byte-identical to HEAD: alpha's
+    # role change and other's `edited_by` cell never stage.
+    assert '"name": "alpha", "role": "director"' in staged, \
+        "alpha's role change must be reverted to HEAD"
+    assert '"edited_by": "x"' not in staged, \
+        "the foreign `edited_by` cell must never be staged as own"
+    assert '"role": "p2"' not in staged, \
+        "a foreign row's role change must be reverted"
+
+
+def _empty_row_git_root(tmp_path, names):
+    """A committed git root whose seats.md carries the rows NAMED in `names`
+    (all foreign to the seat under test, which is ABSENT — the seat's own row
+    is the WORK-only insert). Returns (root, top)."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
+                    "ack@test"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name",
+                    "ack test"], check=True)
+    (tmp_path / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = _proj(tmp_path)
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "project marker"], check=True, capture_output=True)
+    _write_seats_sheet(root, [{"name": n, "role": "director", "model": "x",
+                               "effort": "max", "settings": ""}
+                              for n in names])
+    rel = os.path.relpath(rotate._ack_seats_path(root), tmp_path)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "--", rel],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
+                    "rows"], check=True, capture_output=True)
+    return root, tmp_path
