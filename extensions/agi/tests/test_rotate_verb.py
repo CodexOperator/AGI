@@ -11,6 +11,8 @@
 # `_add_rotate_self_flags` (asserted by the parity test), so the delegated
 # namespace carries every attribute the built bytes read.
 import argparse
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -235,3 +237,123 @@ def test_dry_run_stops_file_and_closeout_no_traceback(tmp_path, monkeypatch,
         assert tok in out                # truthful token, not len(None)
         assert captured["ns"].dry_run is True
         assert getattr(captured["ns"], field) == value   # carried unchanged
+
+
+# --- SL7.116 stale where-it-stops gate -------------------------------------
+# goal:g15.25 residue (SL7.115): a DERIVED default that is byte-identical to
+# the slot at the seat's most recent rotate-out commit is a STALE predecessor
+# block, refused BY NAME (exit 2) -- NOT handed to the successor as fresh.
+# These tests run cmd_rotate against a tmp GIT repo whose card is committed
+# under the exact `_commit_stops_row` message shape, so the gate's
+# `git log --grep='^<seat> rotate-out gen '` finds it.
+
+def _git_init(tmp_path):
+    subprocess.run(["git", "-C", str(tmp_path), "init", "-q"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "t@t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "t"],
+                   check=True, capture_output=True)
+
+
+def _commit_all(tmp_path, msg):
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m", msg],
+                   check=True, capture_output=True)
+
+
+# --- (10) unchanged slot since the predecessor's rotate-out -> exit 2 ------
+def test_stale_stops_slot_refuses_by_name_not_delegated(tmp_path, monkeypatch,
+                                                        capsys):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")  # predecessor text
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    # the current card is UNCHANGED (same slot text): STALE, refuse by name.
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    called = []
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (called.append(ns), 0)[1])
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 2
+    err = capsys.readouterr().err
+    assert "STALE" in err
+    assert "rotate-out gen 4->5" in err        # the gen pair is named
+    assert "write the card where-it-stops section or pass --stops" in err
+    assert called == []                         # NOTHING delegated
+
+
+# --- (11) rewritten slot during this generation -> delegated ---------------
+def test_rewritten_slot_delegates(tmp_path, monkeypatch):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")  # predecessor text
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    _stops_card(tmp_path, "prime", "hand off the round")         # REWRITTEN
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 0
+    assert captured["ns"].stops == "hand off the round"
+    # the geared sha256 rides the delegated namespace for the started record.
+    import hashlib
+    assert captured["ns"].stops_sha256 == hashlib.sha256(
+        "hand off the round".encode()).hexdigest()
+
+
+# --- (12) no rotate-out commit (a first seating) -> delegated --------------
+def test_no_rotate_out_commit_delegates(tmp_path, monkeypatch):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")
+    _commit_all(tmp_path, "init")              # NOT a rotate-out message
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 0                            # no rotate-out commit -> None
+    assert captured["ns"].stops == "run the suite and report"
+
+
+# --- (13) explicit --stops with a STALE slot -> delegated (gate skipped) ----
+def test_explicit_stops_with_stale_slot_delegates(tmp_path, monkeypatch):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")  # stale slot
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse(["--stops", "fresh handoff"]), tmp_path)
+    assert code == 0                            # explicit --stops never gated
+    assert captured["ns"].stops == "fresh handoff"
+
+
+# --- (14) the started record seals stops_sha256 and a rewrite keeps it -----
+def test_started_record_seals_stops_sha256(tmp_path):
+    import hashlib
+    stops = "run the suite and report"
+    target = hashlib.sha256(stops.encode()).hexdigest()
+    path = tmp_path / "rec.json"
+    rotate._write_rotate_self_started(path, seat="prime", steps=["handoff"],
+                                      stops_sha256=target)
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    assert rec["stops_sha256"] == target
+    # a LATER rebuild of the SAME file (no arg) must not drop it (preserve):
+    rotate._write_rotate_self_started(path, seat="prime",
+                                      steps=["handoff", "spawn"])
+    rec2 = json.loads(path.read_text(encoding="utf-8"))
+    assert rec2["stops_sha256"] == target
