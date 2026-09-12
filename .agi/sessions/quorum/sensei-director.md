@@ -34,7 +34,7 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | | |
 |---|---|
 | seat | `seat/sensei-director@s2` — in sync with origin/season/s2 at 692dbec5c (merged, never rebased); pushed |
-| merge-ups this loop | **SL2#10 LANDED 00:28Z** 6e484c126 (SL5.06 g15.14 prepare P1+P2 · SL5.09 g15.23 alert path #2), ALL 11 GREEN 3590/14, **2322/195/2517**, stamp on the Prime's 692dbec5c; MAIN's sensei-director row now carries pubkey b3a8e407 |
+| merge-ups this loop | **SL2#10 LANDED 00:28Z** 6e484c126 (SL5.06 g15.14 prepare P1+P2 · SL5.09 g15.23 alert path #2), ALL 11 GREEN 3590/14, **2322/195/2517**, stamp on the Prime's 692dbec5c; Prime-verified PASS 10/10 on b6f93d971, floor raised; MAIN's sensei-director row now carries pubkey b3a8e407 |
 | wake | 17 calls (floor 4): the ack refused twice on MAIN's dirty seats.md — the hunk was my OWN spawn row (L4.291 writes MAIN, SL5.01 commits the worktree copy) → SL6.01 fixes the source |
 | graph | goals **180** · 0 broken links · GOALS.md byte-identical · +6 experiment +3 hypothesis this loop |
 | spend | 3 deepseek rounds cut 00:30Z (~$0.5-1 each); floor $1.00 never lowered |
@@ -47,7 +47,9 @@ Rules: message the Prime ONLY for a goal report, merge-up numbers, a Prime-only 
 | Sensei wake-audit 00:08Z/00:10Z (source → belt → small) + Prime XIII (a) pubkey rides the ONE writer | `goal:g15.24` fix-only (b) | `hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-own-row` | **SL6.01** a00-5010cd64 · `loop/hypothesis-l4-the-spawn-row-writ-a00-5010cd64@s2` | RUNNING 00:30Z — rotate.py only; harvest = rotate neighbourhood; expect a seam with SL6.02 in NO file |
 | Sensei side finding: reaper wrote `detected` for gen 4 after the success record | `goal:g15.23` fix-only #3 | `hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-before-declaring-a-crash` | **SL6.02** a00-fcdbdec1 · `loop/hypothesis-l4-the-watcher-reads--a00-fcdbdec1@s2` | RUNNING 00:30Z — heal.py only; harvest = hook + send + heal (test_heal_watch `_rot_shim` may need attrs the seat's heal.py reads — fix the fake) |
 | Prime XIII (b): sig against an unkeyed row reads UNKEYED, never FORGED | `goal:g15.26` gate | `hypothesis:l4-a-sig-against-a-row-with-no-key-on-file-reads-unkeyed-never-forged` | **SL6.03** a00-fd7ca60b · `loop/hypothesis-l4-a-sig-against-a-ro-a00-fd7ca60b@s2` | RUNNING 00:30Z — send.py only; harvest = send neighbourhood. RULING: comms.verify stays informational until (a)+(b) land AND a mur-SL2.x reviews them by name — never flip |
-| g15.25 lines (3) (4) | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | → SL6.04 / SL6.05 | queued behind SL6.01-03 (line (3) touches the ack path SL6.01 owns — cut only after SL6.01 lands) |
+| Prime XIII 00:33Z P2: cmd_spawn --seat ignores the row's model/effort/settings (owner: 'No surprise fable please.') | `goal:g15.15` | `hypothesis:l4-cmd-spawn-with-a-seat-takes-the-rows-model-effort-and-settings-never-the-tier-default` | → SL6.04 | briefed; rotate.py → dispatch only after SL6.01 lands |
+| g15.19 P2 (recorded, not cut): run_after_join_for_seat feeds an empty succ_transcript/succ_ref — key on the record's window_id | `goal:g15.19` | — | — | brief after the P1 rounds land |
+| g15.25 lines (3) (4) | `goal:g15.25` | `hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call` · `hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up` | → SL6.05 / SL6.06 | queued behind SL6.01-04 (line (3) touches the ack path SL6.01 owns — cut only after SL6.01 lands) |
 | Prime owes | mur-SL2.6-10 reviews by name (SL5.01-09) | — | — | findings → fix-only briefs, measured on the merge-up commit it names |
 
 ### 🔴 Where it stops — the next command (stamp 00:31Z)
