@@ -279,6 +279,15 @@ def _needs_quoting(sval: str) -> bool:
     # itself is a document marker and so MUST be quoted too.
     if "---" in sval:
         return True
+    # YAML 1.1 line-break code points (U+0085 NEL, U+2028 LS, U+2029 PS):
+    # as a plain scalar PyYAML raises ScannerError on the next read, and
+    # even double-quoted NEL folds to a space — both are lossy or fatal. The
+    # only lossless form is double-quoted WITH the escape applied, so any
+    # scalar carrying one must be forced into the quoting path (which then
+    # runs the one shared escape table). Every other non-ASCII code point is
+    # left to the plain form untouched.
+    if any(c in sval for c in _YAML_LINEBREAK_ESCAPES):
+        return True
     # Negative number (`-N` or `-N.N`): valid YAML plain scalar, no quoting.
     # Bare `-` or `- ` would be a block sequence indicator.
     if sval[0] == "-" and len(sval) > 1 and (sval[1].isdigit() or sval[1] == "."):
@@ -293,6 +302,10 @@ def _scalar(v) -> str:
     sval = str(v).replace("\n", " ").strip()
     if _needs_quoting(sval):
         esc = sval.replace("\\", "\\\\").replace('"', '\\"')
+        # The ONE shared escape table (also used by the container path) —
+        # `\u0085`/`\u2028`/`\u2029` are valid YAML double-quoted escapes
+        # that read back to the exact code points.
+        esc = _escape_yaml_linebreaks(esc)
         sval = f'"{esc}"'
     return sval
 

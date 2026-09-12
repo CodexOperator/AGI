@@ -796,7 +796,10 @@ def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
 #: which is exactly how c1f01e920 happened: a live rotate-self --stops for the
 #: sensei-director seat launched from a kid's pytest. A test that goes through
 #: this seam proves the argv on the built bytes without ever reaching
-#: subprocess.Popen.
+#: subprocess.Popen. The NO_SPAWN suppression (AGI_HOOK_NO_SPAWN) is gate (e)
+#: in the ONE caller `_gated_rotate` — it prints the decline and returns
+#: BEFORE this seam, so an out-of-process run (fresh interpreter, seam
+#: not patchable) never reaches a REAL subprocess.Popen under NO_SPAWN.
 _Popen = subprocess.Popen
 
 def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
@@ -804,20 +807,15 @@ def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
     ZERO calls — the hook ITSELF is the rotate-out). Detached, devnull, so the
     hook returns immediately and NEVER blocks the prompt (P7); `--timeout 900`
     bounds the rotate-self. Returns the pid, or None on any failure (never
-    raises). Launch goes through the ONE seam `_Popen` (see above); sets an
-    env-var short-circuit so an out-of-process test (fresh interpreter, seam
-    not patchable) can never fire a REAL rotate-self from a pytest."""
+    raises). Launch goes through the ONE seam `_Popen` (see above). There is
+    ONE NO_SPAWN check (AGI_HOOK_NO_SPAWN, operator suppression) and it lives
+    in the CALLER — gate (e) of `_gated_rotate` — which prints the decline and
+    returns 'no-spawn' before any latch is claimed or this seam reached, so an
+    out-of-process run (fresh interpreter, seam not patchable) can never fire
+    a REAL rotate-self from a pytest. This helper carries NO short-circuit of
+    its own (dead code that read as a fix — one check, not two)."""
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
     argv = _rotate_self_argv(bin_dir, seat, stops)
-    if os.environ.get("AGI_HOOK_NO_SPAWN"):
-        # Out-of-process safety (c1f01e920) AND operator suppression — the
-        # DEFENSE-IN-DEPTH net under the gate (e) guard in `_gated_rotate`
-        # (which prints the decline and writes NO latch). If a caller reaches
-        # this seam directly under NO_SPAWN, return None — NEVER a recorder
-        # pid: a None is unlatched by the caller's spawn-failed path, so no
-        # phantom pid can ever land in a latch. The argv stays provable via
-        # the `_rotate_self_argv` builder (never reached, nothing lost).
-        return None
     try:
         proc = _Popen(argv, stdout=subprocess.DEVNULL,
                       stderr=subprocess.DEVNULL,
