@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-branches-follow-the-season-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-e20a6d63
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-1937f660-8c3362
 loop: hypothesis:l4-branches-follow-the-season-grammar@s2
@@ -17,7 +17,7 @@ scaffold_hash: 66db4e221ea82a96
 season: 2
 title: A00 1937f660 8c3362
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-1937f660-8c3362
@@ -112,5 +112,5 @@ sides share, so the seam is thin.
 grid.py legal-branch rule now uses branches.is_legal_branch; season.py rollover emits season2/main; verification.py prose fixed; 8 is_legal_branch tests + rollover/grid guard tests updated. 203 passed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW L4.307 (a00-e20a6d63): accepted as proved. (1) INSTRUCTION SAID: "grid.py legal-branch rule ... must accept every name the grammar module admits; season.py --branch emits branches.season_main(new_season); verification.py prose; tests". (2) WHAT THE MACHINE DOES, re-measured on the kid bytes, not read: grid.py:870 now calls branches.is_legal_branch(branch) and branches.py:74 defines it as master-or-parse-succeeds; season.py:987 is `branch_name = branches.season_main(new_season)`; the old `startswith("season/")` predicate returned False for season2/main (one-liner, pre-fix). I re-ran `env -u TMUX -u TMUX_PANE python3 -m pytest test_grid.py test_branches.py test_season.py -q` in the kid worktree: `203 passed in 41.70s`. (3) NEAR MISS: an is_legal_branch that returns True for any string starting with `season` would satisfy the words and silently re-admit the loose names the grammar deliberately rejects; the kid tightened instead -- test_commit_all_refuses_non_grammar_season_branch proves season/ideas/flock now exits 2, and I checked no live branch carries that spelling, so the tightening costs nothing. (4) DEVIATION: scope grew from 3 files to 4 by adding the predicate to branches.py rather than inlining a try/except in grid.py -- authorised because the claim demands ONE grammar module, and a second parse site in grid.py is exactly the drift the module exists to prevent. Caveat recorded on the node is honest: no end-to-end commit --all on a migrated tree exists yet; the fixture guard test is the closest proof.
+DEMOTED proved -> inconclusive_lean_proved:60 by mur-44 (Prime XIV, wf_f4c2029d-c59, 05:15Z; verifier concurs, nothing in the kid's own measurement refuted; written by sanctuary-director 043918Z 2026-09-12T05:18:06Z). This kid made grid.py:870 delegate the l2w15 `commit --all` guard to branches.is_legal_branch (branches.py:84-90 = master or ANY parse success), so `commit --all` became legal on seat/<n>@s2, loop/*@s2 and season2/loops/* -- the guard the protocol rests on (the grid runs ONLY on the season MAIN) is reopened. The pre-fix defect it measured (the 5-min grid cron exiting 2 on season/s2 under the startswith rule) was real; the repair over-admitted. Repaired by hypothesis:l4-commit-all-is-legal-on-the-season-main-only (g15, cut FIRST and alone before mur-45): is_legal_branch = master or the season MAIN only, in either spelling; post/loop names refused without --allow-branch. Previous thought (parent review L4.307 a00-e20a6d63, accepted as proved) is grid version N-1 of this node.
 <!-- THOUGHT:END -->
