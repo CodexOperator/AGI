@@ -72,22 +72,36 @@ def _check_town(town: str) -> None:
 
 
 def is_legal_branch(name: str) -> bool:
-    """True for `master` or any name the season grammar admits; else False.
+    """True ONLY for `master` or the season MAIN — canonical `season<N>/main`
+    or its one-season alias `season/s<N>`; False for everything else.
 
-    A single predicate replacing the old `branch == "master" or
-    branch.startswith("season/")` rule, which broke on the canonical spelling
-    (`"season2/main".startswith("season/")` is False). Accepts master and
-    every canonical/legacy-alias name parse() admits; refuses feature
-    branches, malformed season names, and empty/detached-HEAD names via the
-    ValueError parse() raises.
+    The grid's `commit --all` runs unattended under a 5-min cron and writes the
+    same ref namespace from any worktree, so it may only run on a branch every
+    node's refs resolve identically on — the season main (or master, inherited
+    from the l2w15 guard). A post, loop or town-main branch in EITHER spelling
+    (season2/posts/x | season2/loops/x | season2/<t>/season<k>/main, and their
+    legacy seat/…@s<N>, loop/…@s<N>, town/… forms), a feature branch, a
+    malformed season name, and empty/detached-HEAD names are all refused. The
+    refusal is a real decision, not the old `startswith("season/")` rule
+    (which both admitted every live branch AND broke on the canonical
+    `"season2/main".startswith("season/")`).
     """
     if name == "master":
         return True
     try:
-        parse(name)
-        return True
+        p = parse(name)
     except ValueError:
         return False
+    if p.get("kind") == "alias":
+        # One-season alias: legal only for the core season main (season/s<N>).
+        # A town alias (town/<t>/season/s<k>, town/<t>@s<N>) canonicalises to
+        # a town_main, a post/loop alias (seat/x@s<N>, loop/x-a@s<N>) to a
+        # post/loop — all of those stay refused.
+        try:
+            return parse(p["canonical"]).get("kind") == "main"
+        except ValueError:
+            return False
+    return p.get("kind") == "main"
 
 
 def ref_candidates(branch: str) -> list[str]:
