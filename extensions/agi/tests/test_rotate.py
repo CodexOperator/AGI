@@ -3062,6 +3062,67 @@ def test_locate_where_it_stops_never_numeral(tmp_path):
     assert _r._locate_where_it_stops(secs3) == "ambiguous"
 
 
+def test_split_card_sections_fenced_hash_heading_not_a_section():
+    """goal:g15.25 (iii) FALSIFIER — a `## ` line QUOTED inside a four-
+    backtick code fence is CONTENT, never a section header: the splitter is
+    fence-run aware (the SL7.48 fix ported from the stops scan to the card
+    reader), so a card with one fenced `## ` yields exactly its REAL
+    heading count, and the fenced heading stays inside its section's body.
+    On the pre-fix bytes the fenced `## ` split the card, giving one MORE
+    section than the real headings."""
+    from agi.bin import rotate as _r
+    card = (
+        "# title\n\n"
+        "## Real A\n"
+        "before\n\n"
+        "````\n"
+        "## not a heading\n"
+        "inside four-backtick fence\n"
+        "````\n\n"
+        "## Real B\n"
+        "after\n"
+    )
+    preamble, secs = _r._split_card_sections(card)
+    headers = [h for h, _ in secs]
+    assert headers == ["## Real A", "## Real B"]     # the 2 REAL headings
+    # the fenced `## ` stays inside section A's body, never a section header
+    assert "## not a heading\ninside four-backtick fence" in secs[0][1]
+    assert preamble == "# title\n"
+
+
+def test_split_card_sections_fenced_heading_round_trips_byte_identical():
+    """goal:g15.25 (iii) — a card whose fenced block contains a `## `
+    heading round-trips through split + `_render_card` BYTE-IDENTICAL, and
+    the round-trip does NOT change the card (the splitter never dropped or
+    invented a section boundary)."""
+    from agi.bin import rotate as _r
+    card = (
+        "# title\n\n"
+        "## Real A\n"
+        "before\n\n"
+        "```\n"
+        "## quoted\n"
+        "inside\n"
+        "```\n\n"
+        "## Real B\n"
+        "after\n"
+    )
+    preamble, secs = _r._split_card_sections(card)
+    assert _r._render_card(preamble, secs) == card    # byte-identical
+
+
+def test_split_card_sections_unfenced_hash_heading_still_splits():
+    """goal:g15.25 (iii) guard — the fence tracking only SUPPRESSES `## `
+    lines inside a fence; an ordinary unfenced `## ` header MUST still
+    split the card exactly as before (the existing split semantics are
+    unchanged)."""
+    from agi.bin import rotate as _r
+    preamble, secs = _r._split_card_sections(
+        "# t\n\n## One\na\n\n## Two\nb\n\n## Three\nc\n")
+    assert [h for h, _ in secs] == ["## One", "## Two", "## Three"]
+    assert [b for _, b in secs] == ["a\n\n", "b\n\n", "c\n"]
+
+
 def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
     """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
     `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
