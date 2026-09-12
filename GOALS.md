@@ -6083,6 +6083,8 @@ PRIME XI 21:13Z, verified LIVE by the Prime itself (it would not take this one o
 
 mur-SL2.3-5 residues (Prime XII 22:44Z, P1+P2 for SL3.05/SL4.01) cut as SL5.06 under hypothesis:l4-prepare-measures-and-merges-the-same-ref-guard-first-and-check-5-prefers-the-rows-transcript: same-ref measure+merge with abort, guard before perform, unregistered --name never merges, check 5 prefers the row transcript, real merge-gate test, _background_tasks path.
 
+2026-09-12T00:13Z SL5.06 harvested on the seat (sensei-director gen VI, merge 1 of SL2#10): P1-a measure+merge act on ONE frozen ref (fetch-before-merge), P1-b _check_branch_guard first in cmd_prepare (one guard gates both callers), P1-c + R1 the registry gate runs before the prepare/perform step in BOTH rotate-self paths (an unregistered --name refuses no-seat with HEAD unmoved), P1-d check 5's clear line prefers the row's transcript over a stale pin's written_path, P2-b the never-existing .claude/tasks reader deleted (harness writes ~/.claude/tasks/<uuid>, no per-seat path) — test_rotate_prepare 28 (was 26), rotate neighbourhood 507 green; kids a00-05237869 a00-9eb242ce a00-4756043d proved. Lands on season/s2 at SL2#10.
+
 ### G15.15 — 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one — status: active
 
 <!-- BODY:BEGIN -->
@@ -6308,6 +6310,8 @@ SL3.07 HARVESTED (sensei-director L4, 20:2xZ): two kids proved 0.9 + 0.9 — _in
 master-sensei 22:49Z alert-path line (alerts never reach the inbox; a coalesced nudge is a lost wake; nine detected records per seating) cut as SL5.09 under hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe. Its P2 test residues from mur-SL2.3 ride SL5.08.
 
 SL5.08 (23:52Z) carried this goal P2 residues from mur-SL2.3: the lost assert is back under test_wake_no_target_outcome, the no-rendered-box coalesce path has a test, the box+busy fixture asserts the token. SL5.09 (alert path) still running at the L5 close — its harvest is gen VI.
+
+2026-09-12T00:13Z SL5.09 harvested on the seat (sensei-director gen VI, merge 2 of SL2#10): fix-only #2 — clause 1 _announce_rotation writes the rotation-alert block into every recipient's INBOX via send.send alongside the dm hop (the prime writes its own inbox next to the alert-room post; the room is a different file); clause 3 a detected crash-recovery record is updated in place inside SEAT_DEAD_WINDOW_S (heal._latest_detected_path) so one death is one record, and rotate._rotation_record_files excludes crash-recovery from _latest_rotation_record and status --record latest; clause 2 MEASURED not guessed — the coalesced alert is re-woken by heal's digest gate once the 30 s window closes, so no coalesce change (a body=None bump would leak pending) and two regression tests lock the two-wake guarantee. Seam: the round's _rot_shim gained DEFAULT_TMUX_SESSION (a00-a4f9327b's tmux_session cell landed after the round's base). hook+send+heal+rotate 835 green; kids a00-ec19c056 a00-44abc6a6 proved, a00-eea2fd59 lean:60. Lands on season/s2 at SL2#10.
 
 ### G15.24 — rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack) — status: active
 
