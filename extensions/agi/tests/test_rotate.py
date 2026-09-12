@@ -714,6 +714,10 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     err = _io.StringIO()
     args = _rotate_self_args(tmp_path, window_path=str(win),
                              session_ref="adv-alive-9")
+    # the season-ahead commit-tree above landed AFTER _init_git_remote's
+    # card refresh; refresh once more so the card captive measures the
+    # merge-push claim, not a second boundary (see _init_git_remote).
+    os.utime(quorum / "adv-alive.md", None)
     with _c.redirect_stderr(err):
         rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, err.getvalue()
@@ -2373,6 +2377,18 @@ def _init_git_remote(tmp_path, branch="master"):
                     "fixture"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(tmp_path), "push", "-u", "origin",
                     branch], check=True, capture_output=True)
+    # Every card a test wrote BEFORE this fixture commit is now older than
+    # it whenever the write and the commit straddle a whole-second boundary
+    # (the captive "card older than last commit" compares the card's float
+    # mtime against the commit's %ct, rotate.py _prepare_checks): a fixture
+    # race, likelier under suite load, that a live rotate-out never has
+    # because its stops write refreshes the card. Refresh every card here,
+    # bytes unchanged. A test that lays MORE commits after this fixture
+    # refreshes its card again before driving the checklist.
+    quorum = tmp_path / "sessions" / "quorum"
+    if quorum.is_dir():
+        for _card in quorum.glob("*.md"):
+            os.utime(_card, None)
     return bare
 
 
