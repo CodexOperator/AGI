@@ -6361,6 +6361,105 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _latch_holder_pid_read(latch: Path) -> int | None:
+    """The `pid <n>` recorded in a hook latch file, or None when unreadable.
+
+    The latch names the ROTATE-SELF process it spawned (never the hook's own,
+    which exits the instant it spawns). One implementation, duplicated in
+    rotate.py because the hooks dir is not importable from bin (the hook's
+    `_latch_holder_pid` in rotation_alert.py is the same two-line read, kept
+    in lockstep with this). A latch content that is not `pid <n>` (empty,
+    malformed, unreadable) returns None."""
+    try:
+        for ln in latch.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"pid\s+(\d+)", ln)
+            if m:
+                return int(m.group(1))
+    except (OSError, ValueError):
+        return None
+    return None
+
+
+def _hook_latch_path(root: Path, seat: str, gen: int) -> Path:
+    """A once-per-generation `hook-<seat>-gen<gen>.lock` latch path under the
+    seat's OWN tree's rotations dir -- the exact shape the rotation_alert hook
+    writes (rotation_alert.py `_latch_path`, same `rotations/` subdir),
+    duplicated here because the hook module is not importable from bin (the
+    sweep needs to find the latches the hook left).
+
+    The hook keys the latch to the seat's OWN tree's sessions dir --
+    `root / "sessions"` -- explicitly NOT the shared MAIN-sessions dir
+    (rotation_alert._latch_path docstring), so a linked-worktree seat's dead
+    latch must be swept from its own tree, not the shared room.
+    """
+    return root / "sessions" / ROTATIONS_DIR_NAME / f"hook-{seat}-gen{gen}.lock"
+
+
+def _latches_dirs(root: Path, seat: str) -> list[Path]:
+    """Both dirs a `hook-<seat>-gen*.lock` latch can sit in, deduped.
+
+    The hook writes its transient latch to the seat's OWN tree
+    (`root/sessions/rotations`, `_hook_latch_path`); `_rotations_dir(root)`
+    routes through the SHARED MAIN sessions dir. For a linked-worktree seat
+    these are TWO physical dirs and a dead latch may be left in either; for
+    the main checkout they are the SAME dir and one is enough. A latch is
+    swept exactly once, so dedupe by resolved path.
+    """
+    own = _hook_latch_path(root, seat, 0).parent  # gen does not move the dir
+    shared = _rotations_dir(root)
+    dirs: list[Path] = []
+    seen: set[Path] = set()
+    for d in (own, shared):
+        try:
+            key = Path(os.path.realpath(d))
+        except OSError:  # pragma: no cover -- realpath is best-effort
+            key = d
+        if key in seen:
+            continue
+        seen.add(key)
+        dirs.append(d)
+    return dirs
+
+
+def _sweep_dead_hook_latches(root: Path, seat: str) -> int:
+    """Sweep the seat's dead `hook-<seat>-gen*.lock` latches before spawning
+    the successor (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-
+    spawning).
+
+    A latch left by a rotate-self that DIED (or whose pid was reused) holds a
+    dead pid: it blocks nothing (the hook's own release fires only on the
+    hook's NEXT run, and a completed rotation bumps the generation so the next
+    prompt reads a new latch key anyway), but it sits there until the hook
+    fires again -- and a Prime that notices it spends a WAKE call removing it
+    by hand (the P4 code-line edit the sensei made by hand at belam XV->XVI
+    141419Z). The sweep therefore unlinks every `hook-<seat>-gen*.lock` for
+    THIS seat whose holder pid is not alive (`_pid_alive` fails, or the pid is
+    unparseable/None), printing ONE stderr line naming each swept file. A
+    latch whose holder pid IS alive is left alone (its rotate-self is still
+    mid-flight). Best-effort: a read or unlink failure NEVER refuses the
+    rotation and never raises.
+
+    Returns the number of latches swept. Matches the hook's own dead-vs-live
+    judgement (`_latch_held`), kept in lockstep so the sweep and the hook's
+    release can never disagree."""
+    swept = 0
+    for latch_dir in _latches_dirs(root, seat):
+        latches = sorted(latch_dir.glob(f"hook-{seat}-gen*.lock"))
+        for latch in latches:
+            pid = _latch_holder_pid_read(latch)
+            holder = "unreadable" if pid is None else str(pid)
+            if pid is not None and _pid_alive(pid):
+                continue  # a live rotate-self still holds it; leave it alone
+            try:
+                latch.unlink()
+                swept += 1
+                print(f"swept dead hook latch {latch.name} (holder {holder})",
+                      file=sys.stderr)
+            except OSError:
+                pass  # an unlink we cannot do must not refuse the rotation
+    return swept
+
+
 def _short_ps(pid: int) -> str:
     """`ps -o pid=,cmd= -p <pid>` output, or '' when absent/failed."""
     try:
@@ -11923,6 +12022,19 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             telemetry=tmpl.get("telemetry"), verification=verification,
             join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS),
             overrides={"ack": f"{_ack_answer} (source predecessor, gen {gen})"})
+
+    # (2.8) SWEEP the seat's dead hook-*.lock latches before the spawn
+    #     (hypothesis:l4-rotate-self-sweeps-dead-hook-latches-before-spawning).
+    #     A latch left by a rotate-self that DIED (or whose pid was reused)
+    #     sits under sessions/rotations until the hook fires again; a Prime
+    #     that notices it spends a wake call removing it BY HAND instead of
+    #     the mechanism (the P4 line a sensei edited by hand). rotate-self
+    #     unlinks every hook-<seat>-gen*.lock whose holder pid is not alive
+    #     BEFORE spawning the successor. Best-effort: never refuses the
+    #     rotation, and a dry-run touches nothing (no real spawn to sweep
+    #     around).
+    if not args.dry_run:
+        _sweep_dead_hook_latches(root, seat)
 
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
