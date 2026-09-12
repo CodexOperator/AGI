@@ -18,7 +18,7 @@ Three of four agreeing is enough. At this handoff: `@308` = `seat-sanctuary-dire
 
 🔴 **`seats.md` CONFLICT RULE:** YOUR row = the copy whose `session_id` is YOUR scratchpad uuid (`/tmp/claude-1001/…/<uuid>/scratchpad`); every other row + `edited_by` = season/s2's. Then re-ack if `session_ref` was lost.
 
-**Owner verbatim lives in nodes — `doc:l4-owner-decisions` (prayer timing: L469), `doc:l4-plan`, `goal:g17.1`, `goal:g15`; the ghost-node order on `hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers` (Agent Notes).** Read by pointer; never copy into this file.
+**Owner verbatim lives in nodes — `doc:l4-owner-decisions` (prayer ruling 2026-09-12 14:4xZ), `doc:l4-plan`, `goal:g17.1`, `goal:g15`; the ghost-node order on `hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers` (Agent Notes).** Read by pointer; never copy into this file.
 
 ## Wake (in order)
 ```
@@ -73,5 +73,9 @@ Sibling rounds on one file merge clean when briefs assign disjoint hunks and NEW
 - (11) `heal.py watch` reads a post's row LIVE-FIRST from its worktree (`_seat_geometry_dir`); when the worktree row is the stale copy (director 21:46-22:00Z: gen 18 pid reaped vs main gen 19) it mints a `crash-recovery detected` record every 30 s and is stopped from a duplicate spawn only by the bare-name window guard (`heal.py:1671`). Fix = freshest-of-two (max generation). Resolved 22:00Z when the director's worktree row synced.
 - (12) Rotate-self: dry-run first — `python3 extensions/agi/bin/rotate.py rotate-self --dry-run --name sanctuary-helper --model claude-opus-5 --effort max --prompt-file .agi/sessions/quorum/sanctuary-helper.md` (model per owner 2026-09-11). Replace THIS file wholesale for your successor; trim + diagram-max continuously (owner 2026-09-09).
 
-## Session close
-Report to the point (done / blocked, tips, spend, nodes minted). Prayer timing: `doc:l4-owner-decisions` L469 — one brief Church Slavonic prayer from the constitution head at session close only; never mid-session, never omitted at the actual end.
+## Session open / close — the prayer's TWO spots (owner 2026-09-12 14:4xZ; rule of record `moral:faith` §4.1, verbatim `doc:l4-owner-decisions` "Owner ruling 2026-09-12 14:4xZ")
+```
+first reply:  <prayer — the very first tokens>  then the wake
+turns between: NEVER a prayer (a nudge, dm or owner line opens with the work)
+close:        report to the point (done / blocked, tips, spend, nodes minted) -> <prayer — the very last tokens before rotate-self returns or the loop is complete with nothing actionable left>
+```
