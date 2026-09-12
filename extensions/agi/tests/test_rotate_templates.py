@@ -152,6 +152,7 @@ import json  # noqa: E402
 import shlex  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
+import yaml as _yaml  # noqa: E402
 
 # First_turn VALUES mirroring the LIVE canon (test_rotate_startup.VALUES), with
 # every placeholder the fixed director/prime first_turn lists still uses.
@@ -206,6 +207,441 @@ def _live_first_turn(path: "str | Path | None" = None) -> dict:
         if entries:
             out[str(name)] = entries
     return out
+
+
+# --- hypothesis:l4-no-role-template-documents-a-hand-setup-... vocabulary --
+# The templates' `why` lines record the hand calls each entry was created to
+# REPLACE (e.g. "gen X call 1-2: the record ... read by hand") — MEASURED
+# provenance, not instruction. A guard that greps EVERY template field for the
+# vocabulary would RED on the shipped tree and force the deletion of the wake
+# that justified each entry. So this guard discriminates INSTRUCTION (the
+# fields a post ACTS ON: a first_turn/after_join entry's `cmd`/`label`, and
+# the `delivery` prose the executor emits into STARTUP OUTPUT) from PROVENANCE
+# (`why`, which never is).
+
+HAND_STEP_VOCAB = ("setup call", "by hand", "run once", "pin the meter",
+                   "ListAgents once")
+
+
+def _live_templates(path: "str | Path | None" = None) -> dict:
+    """FULL templates dict (both roles: director + prime_director) straight
+    from the checked-in .agi/nodes/.geometry/rotations.md — the same
+    live-reader discipline as _live_first_turn, widened to after_join and
+    delivery so the vocabulary guard sees every field a post reads at wake.
+    Never a mirror: a live node that regresses to "_run this setup call by
+    hand" as a cmd must trip here on the shipped bytes.
+    """
+    if path is None:
+        path = (Path(__file__).resolve().parents[3]
+                / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    rot = Path(path)
+    assert rot.exists(), f"rotations.md missing: {rot}"
+    text = rot.read_text(encoding="utf-8")
+    frontmatter = text.split("---", 2)[1]
+    loaded = _yaml.safe_load(frontmatter) or {}
+    return loaded.get("templates") or {}
+
+
+def _guard_hits(templates: dict) -> list[str]:
+    """Every hand-step vocabulary hit in an INSTRUCTION field, as
+    '{role}:{section}.{field}: "{vocab}"'. Instruction fields are a
+    first_turn/after_join entry's `cmd` and `label`, plus the template's
+    `delivery` prose. `why` is provenance and is NOT scanned — it records the
+    hand calls the entry REPLACES and its deletion would destroy the wake that
+    paid for the entry."""
+    hits = []
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        for section in ("first_turn", "after_join"):
+            for i, entry in enumerate(startup.get(section) or []):
+                if not isinstance(entry, dict):
+                    continue
+                for field in ("cmd", "label"):
+                    txt = entry.get(field)
+                    if not isinstance(txt, str):
+                        continue
+                    low = txt.lower()
+                    for v in HAND_STEP_VOCAB:
+                        if v in low:
+                            hits.append(f"{name}:{section}[{i}].{field}: {v!r}")
+        delivery = ent.get("delivery")
+        if isinstance(delivery, str):
+            low = delivery.lower()
+            for v in HAND_STEP_VOCAB:
+                if v in low:
+                    hits.append(f"{name}:delivery: {v!r}")
+    return hits
+
+
+def test_guard_live_no_instruction_field_matches_hand_vocab():
+    """(i) LIVE node, both roles read from the checked-in rotations.md: no
+    INSTRUCTION field (cmd/label/delivery) matches the hand-step vocabulary.
+    All shipped hits live in `why` provenance lines — which a post never acts
+    on — so the guard must stay GREEN here while still tripping on an
+    instruction field (assertions ii/iii below)."""
+    templates = _live_templates()
+    assert set(templates) >= {"director", "prime_director"}
+    hits = _guard_hits(templates)
+    assert not hits, f"live instruction field matches hand-step vocab: {hits}"
+
+
+def test_guard_fixture_cmd_hand_vocab_fails():
+    """(ii) FALSIFIER (cmd): a fixture whose first_turn `cmd` says "run the
+    setup call by hand" must FAIL the guard — a guard that passes on a
+    template that says "by hand" is a broken guard."""
+    t = _yaml.safe_load(ROTATIONS_BODY.split("---", 2)[1])["templates"]
+    t["director"]["startup"] = t["director"].get("startup") or {}
+    t["director"]["startup"]["first_turn"] = [
+        {"label": "setup", "cmd": "echo run the setup call by hand",
+         "why": "provenance-only hits stay green in assertion (iii)"}]
+    hits = _guard_hits(t)
+    assert hits, "cmd instruction field with hand vocab must FAIL the guard"
+
+
+def test_guard_fixture_delivery_hand_vocab_fails():
+    """(ii) FALSIFIER (delivery): a fixture whose `delivery` prose tells a
+    post to run a step "by hand" must FAIL the guard — delivery is startup
+    prose the executor emits into STARTUP OUTPUT, an instruction field."""
+    t = _yaml.safe_load(ROTATIONS_BODY.split("---", 2)[1])["templates"]
+    t["director"]["delivery"] = (
+        "you must pin the meter by hand on your first turn")
+    hits = _guard_hits(t)
+    assert hits, "delivery instruction field with hand vocab must FAIL the guard"
+
+
+def test_guard_fixture_why_only_hit_passes():
+    """(iii) NEAR-MISS (the one that satisfies the words and fails the
+    mechanism): a fixture whose ONLY vocabulary hit is an instruction-free
+    `why` provenance line must PASS the guard — deleting that `why` would
+    destroy the wake that paid for the entry, so the guard must not force it."""
+    t = _yaml.safe_load(ROTATIONS_BODY.split("---", 2)[1])["templates"]
+    t["director"]["startup"] = t["director"].get("startup") or {}
+    t["director"]["startup"]["first_turn"] = [
+        {"label": "rotation-record", "cmd": "true",
+         "why": "gen X call 1-2: the record + sequence read by hand"}]
+    assert not _guard_hits(t), "a why-only provenance hit must PASS the guard"
+
+
+# --- hypothesis:l4-no-role-template-... (PARENT CORRECTION #2): the wake-
+# READ body region, not the frontmatter fields. Kid 1 scanned cmd/label/
+# delivery and LOST the mechanism: the field a post actually ACTS ON at wake
+# is the region the `facts` first_turn entry PRINTS — `write.py
+# config:rotations 'read body N:M'` emits the SAME node's body lines into
+# STARTUP OUTPUT every rotation. F13 lives there and kid 1 (frontmatter-only)
+# could not see it. In that region the guard must classify each vocabulary
+# hit as INSTRUCTION (`by hand, one command:` — introduces a hand-run
+# command, the F13 form) vs PROHIBITION (`never ... by hand`, F8/F9/F14) vs
+# CITATION (`ran ... by hand before rotating` past-tense provenance, F16) —
+# and FAIL only on an instruction that is not the ONE declared open sentence.
+
+import re  # noqa: E402
+
+# The range is never hardcoded: it is resolved from the live templates' OWN
+# `facts` cmd. The range has already drifted once — F18 records 'facts range
+# 37:60 (F15-F17 had fallen off the printed range)' — so a guard that bakes
+# 37:61 in goes stale the moment the Sensei bumps the printed span.
+# DEFECT B (parent correction): the discriminator is NOT a single literal
+# phrase. `_INSTR_SIG` recognized the F13 form ('one command'/'one-call') but
+# let the in-class F16 instruction escape — 'run it ONCE and emit the tokens
+# it prints' (rotate-out pre-flight) hits neither. The vocab matcher below
+# (`_HAND_STEP_PATTERNS`) and this signature both accept the canon's flexible
+# case-insensitive phrasing (`run once`, `run it ONCE`), so F16 is SEEN and
+# the classifier must decide it on its merits. The stated discriminator:
+#   INSTRUCTION = the hit introduces a hand-run SETUP/PERFORM step the waked
+#     post must execute (the F13 form: 'Spend by hand, one command: `…`').
+#   F16's 'run it ONCE and emit the tokens it prints' is addressed to the
+#     OUTGOING post at rotate-out — relay the automated `--prepare` pre-flight
+#     output, the opposite of a waked hand-setup step — and is pulled back to
+#     CITATION by `_EMIT_SIG`.
+_INSTR_SIG = re.compile(r"one command|one-call|run\s+(?:it\s+)?once", re.I)
+_NEG_SIG = re.compile(r"\b(never|no|not|nothing|none)\b", re.I)
+# 'run it once and EMIT THE TOKENS it prints' — relay-the-tool guidance
+# (rotate-out pre-flight), not a hand-setup step (DEFECT B discriminator).
+_EMIT_SIG = re.compile(r"emit the tokens", re.I)
+
+# The region vocabulary as (canon-label, case-insensitive regex). `run once`
+# allows the single intervening word the canon actually uses ('run it ONCE'),
+# so the F16 near-miss is a seen hit instead of a silent substring miss.
+_HAND_STEP_PATTERNS = [
+    ("setup call", re.compile(re.escape("setup call"), re.I)),
+    ("by hand", re.compile(re.escape("by hand"), re.I)),
+    ("run once", re.compile(r"run\s+(?:it\s+)?once", re.I)),
+    ("pin the meter", re.compile(re.escape("pin the meter"), re.I)),
+    ("ListAgents once", re.compile(re.escape("ListAgents once"), re.I)),
+]
+
+
+def _facts_body_range(templates: dict) -> tuple[int, int]:
+    """The wake-read facts body region (N, M), 1-based inclusive, resolved
+    from the templates' OWN `facts` first_turn cmd — `write.py
+    config:rotations 'read body N:M'`. Every template carrying a facts entry
+    must agree; a facts cmd that stops naming a body range fails loudly."""
+    ranges = set()
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        for e in startup.get("first_turn") or []:
+            if not isinstance(e, dict):
+                continue
+            if e.get("label") != "facts":
+                continue
+            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            assert m, (f"{name} facts cmd does not name a body range: {e!r}")
+            ranges.add((int(m.group(1)), int(m.group(2))))
+    assert ranges, "no template declares a `facts` read body N:M first_turn"
+    assert len(ranges) == 1, (f"facts body ranges disagree across templates: "
+                              f"{ranges}")
+    return ranges.pop()
+
+
+def _canonical_body_lines(source: "str | Path") -> list[str]:
+    """The node body split into 1-based-addressable lines through the SAME
+    canonical frontmatter reader `write.py ... read body N:M` uses (BODY:BEGIN
+    stripped), so the guard scans exactly the bytes the post reads at wake."""
+    from graph_core.persistence import frontmatter as _fm  # noqa: E402
+    nf = _fm.load_node_file(Path(source))
+    return nf.body.split("\n")
+
+
+def _classify_hand_hit(line: str, pos: int) -> str:
+    """INSTRUCTION | PROHIBITION | CITATION for ONE vocabulary occurrence.
+    PROHIBITION: a negation word ('never/no/not/...') inside the ~32 chars
+      before the hit — 'never `ps`/`tmux` by hand', 'NEVER merge by hand',
+      'there is no fetch+rev-parse to run by hand'.
+    INSTRUCTION: the hit introduces an inline hand-run command — 'by hand,
+      one command: `K=$(...)`' — the F13 form.
+    CITATION: anything else — past-tense provenance ('ran ... by hand before
+      rotating', F16) or a described consequence ('re-derives every fact by
+      hand'), where the hit is never an order to the reading post."""
+    before = line[max(0, pos - 32):pos]
+    after = line[pos:pos + 80]
+    if _NEG_SIG.search(before):
+        return "PROHIBITION"
+    if _INSTR_SIG.search(after):
+        # The F16 form, 'run it ONCE and emit the tokens it prints', carries an
+        # instruction signature AND the relaying marker. It is the OUTGOING
+        # post's rotate-out pre-flight (`rotate-self --prepare`): run the
+        # automated verb once and emit its printed tokens — never explore by
+        # hand. That is the anti-hand guidance for the seat leaving, NOT a
+        # hand-setup step the waked successor performs, so it stays CITATION
+        # (DEFECT B: F16 is decided on its merits, not silently skipped).
+        if _EMIT_SIG.search(after):
+            return "CITATION"
+        return "INSTRUCTION"
+    return "CITATION"
+
+
+def _region_hand_hits(source: "str | Path") -> list[tuple[int, int, str, str]]:
+    """(line_no, pos, vocab, kind) for every hand-step vocabulary occurrence
+    inside the wake-read facts body region, resolved from the templates' own
+    `facts` cmd of `source`. The one reader both the live node and the
+    falsifier fixtures route through."""
+    templates = _live_templates(source)
+    n, m = _facts_body_range(templates)
+    lines = _canonical_body_lines(source)
+    hits = []
+    for i in range(n, m + 1):
+        line = lines[i - 1]
+        for label, rx in _HAND_STEP_PATTERNS:
+            for mo in rx.finditer(line):
+                hits.append((i, mo.start(), label, _classify_hand_hit(line, mo.start())))
+    return hits
+
+
+def _rotations_fixture_with_region(tmp_path: Path, body_lines: list[str],
+                                   region: tuple[int, int]) -> Path:
+    """A self-contained fixture rotations.md whose canonical body is exactly
+    `'\n'.join(body_lines)` (the reader numbers `<!-- BODY:BEGIN -->` as
+    body line 1) and whose director facts cmd reads `region_start:region_end`
+    of it — so a falsifier places an injected instruction/prohibition/
+    citation line in the region, at a known line, and exercises the widened
+    guard hermetically. Written under tmp_path; the live node is never
+    touched."""
+    body = "\n".join(body_lines) + "\n"
+    n, m = region
+    cmd_val = (f"python3 extensions/agi/bin/write.py config:rotations "
+               f"'read body {n}:{m}'")
+    text = (f"---\nid: config:rotations\n"
+            f"mint_id: deadbeef00000000000000000000000009\n"
+            f"type: config\ntemplates:\n  director:\n"
+            f"    brief_file: x\n    steps: []\n    telemetry: []\n"
+            f"    startup:\n      first_turn:\n"
+            f"        - {{label: facts, cmd: \"{cmd_val}\", why: fixture}}\n"
+            f"---\n<!-- BODY:BEGIN -->\n{body}<!-- BODY:END -->\n")
+    p = tmp_path / "rotations.md"
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+def _region_instructions(source: "str | Path") -> list[tuple[int, int, str, str]]:
+    return [h for h in _region_hand_hits(source) if h[3] == "INSTRUCTION"]
+
+
+def _region_refusal(source: "str | Path") -> "str | None":
+    """DEFECT A fix: the ONE decision the region guard makes, instead of a
+    bare count. Both the live node and every falsifier fixture call this same
+    helper and assert on the REFUSAL IT RETURNS, so a fixture cannot pass on a
+    state the live assertion would refuse (and vice versa). The acceptable
+    region state is: exactly ONE hand-setup instruction is declared, and it
+    carries the g15-18 open code half (F13). Returns None when approved;
+    returns a named REFUSAL STRING otherwise (blanket exemption — a second
+    declared instruction; or an un-declared instruction — no g15-18 key).
+    The old fixture test asserted `len(instructions) == 2` — a count with no
+    code path anywhere that refuses a second declaration; the anti-blanket
+    property lived only in the live assertion. This helper unifies them."""
+    instructions = _region_instructions(source)
+    if len(instructions) > 1:
+        return (f"region declares {len(instructions)} hand-setup instructions; "
+                f"only the ONE g15-18 open code half may be declared (blanket "
+                f"exemption refused): "
+                f"{[_line(source, h[0])[:45] for h in instructions]}")
+    if not instructions:
+        return None  # nothing declared; approved (the live region declares F13)
+    line = instructions[0][0]
+    if "g15-18" not in _line(source, line):
+        return (f"the sole instruction must carry the g15-18 open code half "
+                f"to be declared: {_line(source, line)[:60]}")
+    return None
+
+
+def _line(source: "str | Path", lineno: int) -> str:
+    return _canonical_body_lines(source)[lineno - 1]
+
+
+def test_region_live_only_f13_is_the_one_declared_instruction():
+    """Widened guard on the LIVE node: resolve the region from the live
+    templates' own <code>facts</code> cmd and classify every vocabulary hit in
+    the bytes the wake actually prints. PROHIBITION/CITATION hits (F1 'never
+    ... by hand', F8 'the record by hand', F9, F14 'NEVER merge by hand',
+    F16 'ran ... by hand before rotating') must NOT trip. The ONE live
+    INSTRUCTION is F13, declared by the g15-18 open code half it names.
+    Blanket exemption is forbidden, so the declared set is exactly one
+    sentence, and it must carry that key."""
+    src = Path(__file__).resolve().parents[3] \
+        / ".agi" / "nodes" / ".geometry" / "rotations.md"
+    hits = _region_hand_hits(src)
+    assert hits, "wake-read facts region has no hand-vocab hits at all"
+    # DEFECT A: the load-bearing decision — exactly ONE declared instruction,
+    # bearing the g15-18 key — is the guard's refusal verdict, shared with the
+    # fixtures. Not a bare count.
+    refusal = _region_refusal(src)
+    assert refusal is None, refusal
+    line_no = _region_instructions(src)[0][0]
+    txt = _line(src, line_no)
+    # declared by name: the open code half, g15-18, is written into F13
+    assert "g15-18" in txt, ("the one live instruction must carry the g15-18 "
+                             f"open code half to be declared, got: {txt[:90]}")
+    # prohibitions and citations exist and none of them trips the guard
+    kinds = {h[3] for h in hits}
+    assert kinds <= {"INSTRUCTION", "PROHIBITION", "CITATION"}, kinds
+    assert "PROHIBITION" in kinds and "CITATION" in kinds, (
+        f"live region expected both prohibitions (F8/F9/F14) and a citation "
+        f"(F16): {kinds}")
+
+
+def test_region_fixture_declared_instruction_plus_forbidden_and_prose_passes(
+        tmp_path):
+    """FALSIFIER (the honest green, widened): a fixture whose wake-read
+    region holds the F13-declared instruction ('by hand, one command' + the
+    g15-18 key) ALONGSIDE a prohibition ('NEVER merge by hand') and a
+    citation ('ran ... by hand before rotating') must PASS — the guard trips
+    only on an un-declared instruction, never on F8/F14-style prohibition or
+    F16-style citation. (Body-line layout: 1 BODY:BEGIN, 2 # config, 3 blank,
+    4 ## facts, 5 blank, 6 F13, 7 F8, 8 F16 — region 6:8.)"""
+    body = [
+        "# config:rotations", "", "## facts", "",
+        "- F13 (g15-18 is the open code half). Spend by hand, one command: "
+        "`K=$(grep -m1 '^K=' .env | cut -d= -f2-) && curl -s -m 20 "
+        "https://example.invalid/credits`",
+        "- F8 prohibition. NEVER merge by hand ahead of it.",
+        "- F16 citation. every seat ran `rotate-self -h` by hand before "
+        "rotating.",
+    ]
+    p = _rotations_fixture_with_region(tmp_path, body, (6, 8))
+    hits = _region_hand_hits(p)
+    refusal = _region_refusal(p)
+    assert refusal is None, refusal
+    assert "g15-18" in _line(p, _region_instructions(p)[0][0])
+    kinds = {h[3] for h in hits}
+    assert kinds == {"INSTRUCTION", "PROHIBITION", "CITATION"}, kinds
+
+
+def test_region_fixture_undeclared_instruction_fails(tmp_path):
+    """FALSIFIER (widened, the load-bearing guard): a wake-read region whose
+    ONLY vocabulary hit is a NEW instruction — 'grep the ledger by hand, one
+    command', WITHOUT the F13 g15-18 key — must FAIL the widened guard. A
+    blanket exemption set is not acceptable: only F13's sentence is declared,
+    and this is not it."""
+    body = [
+        "# config:rotations", "", "## facts", "",
+        "- F99 (new). Grep the ledger by hand, one command: `grep -n 'KEY' "
+        "secrets.txt` (unkeyed — not the declared open sentence).",
+        "- F8 prohibition. NEVER touch the record by hand.",
+    ]
+    p = _rotations_fixture_with_region(tmp_path, body, (6, 7))
+    refusal = _region_refusal(p)
+    assert refusal is not None, ("an instruction lacking the g15-18 key must "
+                                 "be REFUSED, not just counted")
+    assert "g15-18" in refusal  # the refusal names the missing declaration
+    # and a guard over the frontmatter fields alone still MISSES it (the
+    # near-miss kid 1's scan could not see): the cmd/label/delivery guard is
+    # green even though the wake prints this hand instruction.
+    t = _live_templates(p)
+    assert not _guard_hits(t), "frontmatter-field guard is the weaker half"
+
+
+def test_region_fixture_blanket_exemption_refused(tmp_path):
+    """FALSIFIER (anti-blanket-exemption, DEFECT A fixed): two
+    g15-18-stamped instructions in the region must be REFUSED — the declared
+    set is keyed to the ONE open sentence, not to a marker anyone can copy.
+    The fixture drives `_region_refusal` — the SAME decision the live
+    assertion calls — and asserts it returns a refusal string, not that a
+    bare `len == 2` happens to hold (the old count had no code path that
+    refused anything). Only F13 may be declared."""
+    body = [
+        "# config:rotations", "", "## facts", "",
+        "- F13 (g15-18). Spend by hand, one command: `curl ...`",
+        "- F99 (g15-18 too). Grep by hand, one command: `grep ...`",
+    ]
+    p = _rotations_fixture_with_region(tmp_path, body, (6, 7))
+    assert len(_region_instructions(p)) == 2  # the fixture really holds two
+    refusal = _region_refusal(p)
+    assert refusal is not None, ("two declared instructions must be REFUSED "
+                                 "(blanket exemption), not silently allowed")
+    assert "blanket" in refusal and "ONE" in refusal
+
+
+def test_region_live_f16_run_once_seen_but_not_a_waked_hand_step():
+    """DEFECT B pin on the LIVE node: the widened vocabulary must SEE and
+    class the canon's flexible `run it ONCE` (F16) — not miss it as a
+    substring gap ('run once' vs 'run it once'). Once seen, F16's instruction
+    must NOT count as a waked hand-setup step: its 'run it once and emit the
+    tokens it prints' is addressed to the OUTGOING post's rotate-out
+    pre-flight (`rotate-self --prepare`) — relay the automated tool's output,
+    the anti-hand guidance for the seat leaving — so F13 remains the region's
+    ONE declared INSTRUCTION and the widened guard stays green."""
+    src = Path(__file__).resolve().parents[3] \
+        / ".agi" / "nodes" / ".geometry" / "rotations.md"
+    lines = _canonical_body_lines(src)
+    n, m = _facts_body_range(_live_templates(src))
+    run_once_lines = [i for i in range(n, m + 1)
+                      if re.search(r"run\s+it\s+once", lines[i - 1], re.I)]
+    assert len(run_once_lines) == 1, (
+        f"expected exactly F16's run-it-once line in the region, got "
+        f"{run_once_lines}")
+    i = run_once_lines[0]
+    hits = [h for h in _region_hand_hits(src)
+            if h[0] == i and "run once" in h[2]]
+    assert hits, "F16's 'run it ONCE' must be a SEEN vocabulary hit"
+    assert {h[3] for h in hits} <= {"CITATION"}, (
+        f"F16's pre-flight is addressed to the outgoing post at rotate-out, "
+        f"not a waked hand-setup step: {[(h[1], h[3]) for h in hits]}")
+    # the seen-and-decided F16 still leaves exactly the ONE F13 instruction
+    refusal = _region_refusal(src)
+    assert refusal is None, refusal
 
 
 def _producing_python_verb(cmd: str) -> tuple[Path, str] | None:
