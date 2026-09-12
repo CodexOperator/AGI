@@ -9614,6 +9614,8 @@ Sensei ask 22:02Z (owner ask via the point 22:0xZ — the PARENT role passed ove
 
 SL7.111 HARVESTED (a00-51a9cacc, proved 0.85): zoom.py --tier parent renders a PARENT review section in the small composer's Your Task (kid text byte-identical); dispatch.py threads --tier; brief.py parent step says a kid's tests are its claim, read the DIFF, one negative probe per conjunct. Residue: the parent text names probe classes absent-input/wrong-input-type/boundary while SL7.110's gate is briefed on auth/gate/wire — unify at the 110 harvest
 
+SL7.109 HARVESTED (a00-00ab0971, proved 0.9 x2): zoom.py --tier parent renders the target full + goal chain + claim conjuncts + own kids (no sibling dump); off --level small it refuses by name; dispatch passes the tier. Unioned with SL7.111 at harvest: one --tier, 111's parent prose inside 109's PARENT SLOT
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
