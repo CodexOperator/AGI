@@ -447,8 +447,11 @@ def test_apply_refuses_origin_moved_by_name(tmp_path: Path):
     root = r / ".agi"
     # explicit all-four kinds so season/s2 (kind main) is a job under the ruling
     kinds = ["main,posts,towns,loops"]
-    # baseline the dry-run plan (records each old branch's origin tip)
-    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds)
+    # baseline the dry-run plan (records each old branch's origin tip). I-3a-2:
+    # --dry-run writes NOTHING by default, so the baseline is captured to the
+    # plan path explicitly with --plan-out, then --apply reads it from there.
+    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds, "--plan-out",
+                       str(root / "sessions" / "branch-reshuffle-plan.json"))
     assert res_dry.returncode == 0, res_dry.stderr
     # move origin's season/s2 tip externally
     _write(r, "moved", "x\n")
@@ -740,7 +743,9 @@ def test_apply_refuses_origin_moved_a_second_time_same_branch(tmp_path: Path):
     r = _build_repo(tmp_path)
     root = r / ".agi"
     kinds = ["main,posts,towns,loops"]
-    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds)
+    # I-3a-2: baseline captured explicitly (--dry-run writes nothing by default)
+    res_dry = _run_cli(root, "--dry-run", "--kinds", *kinds, "--plan-out",
+                       str(root / "sessions" / "branch-reshuffle-plan.json"))
     assert res_dry.returncode == 0, res_dry.stderr
     # move origin's season/s2 tip externally, AFTER the baseline was taken
     _write(r, "moved", "x\n")
