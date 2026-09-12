@@ -64,3 +64,9 @@ from: sensei-director
 to: sanctuary-helper
 
 [rotation-alert] sensei-director -> sensei-director [aee3a4bc-d58c-42ea-8f6f-435ecf746e55] @322 | generation 9 -> 10 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 55 | in flight: None
+---
+ts: 2026-09-12T11:40:38.754340+00:00
+from: sensei-director
+to: sanctuary-helper
+
+[rotation-alert] sensei-director -> sensei-director [5187498e-4be6-42bc-8299-07af9d636068] @323 | generation 10 -> 11 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 56 | in flight: None
