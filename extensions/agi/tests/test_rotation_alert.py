@@ -18,6 +18,7 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -42,6 +43,34 @@ def _no_inherited_seat(monkeypatch):
     here); a test that NEEDS a particular seat sets AGI_SEAT explicitly.
     """
     monkeypatch.delenv("AGI_SEAT", raising=False)
+
+
+#: EVERY test records (and does NOT really run) the hook's background rotate-
+#: self calls. goal:g15.25 line (4) made an over-line identifiable seat trigger
+#: `_spawn_rotate_self`, so any over-line seat fixture would otherwise launch a
+#: REAL detached rotate-self against the tmp fixture (a gitless root — a real
+#: subprocess that does real writes and exits 3). That must never happen in a
+#: test that is not about rotating. This recorder replaces the spawn for every
+#: test; the rotation tests read `_SPAWNS` back as the proof.
+_SPAWNS: list[list[str]] = []
+
+
+@pytest.fixture(autouse=True)
+def _no_real_spawn(monkeypatch):
+    """Patch `hook._spawn_rotate_self` to a recorder for every test.
+
+    The recorder builds the SAME argv the production path would (`_rotate_self_argv`)
+    and returns a fake pid, so the rotation claim is proved on the built bytes
+    without ever running a real rotate-self against a gitless tmp fixture.
+    """
+    _SPAWNS.clear()
+
+    def _record(root, seat, stops):
+        bin_dir = Path(Path(hook.__file__).resolve().parents[1] / "bin")
+        _SPAWNS.append(hook._rotate_self_argv(bin_dir, seat, stops))
+        return 12345
+
+    monkeypatch.setattr(hook, "_spawn_rotate_self", _record)
 
 
 @pytest.fixture
@@ -764,3 +793,311 @@ def test_module_agiseat_is_cleared_at_entry():
     ... -q` is green). This assertion is trivially true in a clean shell; its
     PROOF is the whole module going green under `env AGI_SEAT=x`."""
     assert "AGI_SEAT" not in os.environ
+
+# --------------------------------------------------------------------------
+# Round SL7.23 — the meter hook ROTATES at threshold (goal:g15.25 line (4)),
+# hypothesis:l4-the-meter-hook-rotates-at-threshold-never-mid-merge-up.
+# Build order, not measurement: each gate that HOLDS (card age / merge-up in
+# flight / prepare captives / once-per-generation latch) makes the hook do
+# NOTHING and print its reason; every gate clean makes the hook background
+# `rotate.py rotate-self --stops` ONCE (rotate-out ZERO calls — the hook IS
+# the rotate-out). The spawn is the `_no_real_spawn` recorder; `_SPAWNS` is
+# read back as the proof. The merge-up gate is THE point of the node — its
+# test comes first.
+# --------------------------------------------------------------------------
+
+def _over_line_seat_fixture(tmp_path):
+    """A single-tree graph fixture whose seat `probe-director` (AGI_SEAT) has
+    rotate_at 0.4, with a worktree cwd. Transcript 45_000 / window 100_000 =
+    0.45 >= 0.4 → over the line. Gitless: every gate's measurement degrades to
+    clean, so gates (b)(c)(d) pass and gate (a) passes unless a card is made
+    stale — the fixture for the CLEAN state that must rotate."""
+    outer = tmp_path / "outer"
+    graph = outer / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n"
+        "  - {\"name\": \"probe-director\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/seat-probe-director\", "
+        "\"rotate_at\": 0.4}\n---\n")
+    cwd = graph / "worktrees" / "seat-probe-director"
+    cwd.mkdir(parents=True, exist_ok=True)
+    return graph, cwd
+
+
+# --- gate (b) FIRST — the merge-up-in-flight gate is THE point of the node ---
+def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys):
+    """A LIVE verify-suite lock holds gate (b): the hook prints the deferral
+    and does NOT rotate. A rotation landing mid-merge is worse than one extra
+    tool call — this is the FALSIFIER that must hold."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    lock = graph / "sessions" / "verify-suite.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text(str(os.getpid()))   # THIS test's own LIVE pid
+    tp = tmp_path / "lock.jsonl"
+    _write_transcript(tp, 45_000)       # 0.45 >= 0.4 -> over the line
+    state_dir = tmp_path / "state-lock"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-lock", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out          # the over-line banner still shows
+    assert ("rotation deferred: merge-up in flight "
+            "(verify-suite lock live)") in out, out
+    assert _SPAWNS == []                   # the hook does NOT rotate
+    assert "rotation: spawned" not in out
+
+
+# --- gate (a) card-age captive ----------------------------------------------
+def test_stale_card_delays_and_prints_card_line(tmp_path, run_hook, monkeypatch, capsys):
+    """A card OLDER than the last WORK commit holds gate (a): the hook prints
+    the card line to write and does NOT rotate (the hook never rotates a seat
+    whose card is stale)."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    # fake a WORK commit far in the FUTURE so the freshly-past card is stale.
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    card = graph / "sessions" / "quorum" / "probe-director.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# probe-director card (stale)\n")
+    os.utime(card, (1, 1))                # mtime far in the PAST
+    tp = tmp_path / "stale.jsonl"
+    _write_transcript(tp, 45_000)
+    state_dir = tmp_path / "state-stale"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-stale", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    assert "card-age captive" in out, out
+    assert "rotate.py handoff --driven --seat probe-director" in out, out
+    assert _SPAWNS == []                   # the hook does NOT rotate a stale card
+
+
+# --- ALL GATES CLEAN -> the hook IS the rotate-out (ZERO calls) -------------
+def test_over_line_clean_state_rotates_from_hook(tmp_path, run_hook, monkeypatch, capsys):
+    """A fake seat over its line with a CLEAN state rotates from the hook with
+    ZERO rotate-out calls: exactly one background `rotate.py rotate-self
+    --stops` snapshot, the spawn + card printed, and the once-per-generation
+    latch written so a slow spawn is never doubled."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    tp = tmp_path / "clean.jsonl"
+    _write_transcript(tp, 45_000)
+    state_dir = tmp_path / "state-clean"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-clean", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    # rotate-out ZERO calls: the hook runs rotate-self ITSELF, exactly once.
+    assert len(_SPAWNS) == 1, _SPAWNS
+    argv = _SPAWNS[0]
+    assert "rotate-self" in argv, argv
+    assert argv[argv.index("--name") + 1] == "probe-director"
+    assert argv[argv.index("--role") + 1] == "director"
+    assert argv[argv.index("--timeout") + 1] == "900"
+    assert "--force" in argv
+    stops = argv[argv.index("--stops") + 1]
+    assert stops.startswith("stops: "), stops   # NEVER empty (line (4) FALSIFIER)
+    # what the hook did is PRINTED -- the operator sees the spawn + the card.
+    assert "rotation: spawned rotate-self" in out, out
+    assert "probe-director" in out
+    # once-per-generation latch under the shared sessions dir.
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    assert latch.exists(), "once-per-generation latch not written"
+    assert "rotation deferred" not in out
+
+
+# --- gate (d) once-per-generation latch -------------------------------------
+def test_latch_prevents_double_rotation(tmp_path, run_hook, monkeypatch, capsys):
+    """Gate (d): once a spawn for seat + generation has happened (latch present),
+    a next prompt does NOT re-spawn — a slow spawn is never doubled."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch.parent.mkdir(parents=True, exist_ok=True)
+    latch.write_text("pid 1\n")          # as if a spawn had just started
+    tp = tmp_path / "once.jsonl"
+    _write_transcript(tp, 45_000)
+    state_dir = tmp_path / "state-once"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-once", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "already rotating probe-director gen 0" in out, out
+    assert _SPAWNS == []                  # a slow spawn is NEVER doubled
+
+
+# --------------------------------------------------------------------------
+# SL7.23 continuation — gate (b) is THE point: prove ALL THREE merge-up
+# signals HOLD (not just the suite lock), and choose+prove the latch-stale-
+# on-failure behaviour. gate (b)'s MERGE_HEAD and unpushed-commit signals
+# require a REAL git repo (a gitless fixture degrades only to "clean", which
+# proves gates do not FALSELY hold but not that a real blocker Holds).
+# --------------------------------------------------------------------------
+
+def _git_run(repo: Path, *args: str):
+    subprocess.run(["git", "-C", str(repo), *args], check=True,
+                   capture_output=True, text=True)
+
+
+def _real_repo_with_seat(tmp_path):
+    """A REAL git repo at `<tmp>/outer/repo` whose graph root is `<repo>/.agi`
+    and which carries the over-line `probe-director` seat — git measurements
+    no longer degrade to clean, so gate (b)'s git-backed signals can HOLD."""
+    outer = tmp_path / "outer"
+    repo = outer / "repo"
+    repo.mkdir(parents=True)
+    _git_run(repo, "init", "-q", "-b", "master")
+    _git_run(repo, "config", "user.email", "t@example.com")
+    _git_run(repo, "config", "user.name", "t")
+    (repo / "seed").write_text("x\n")
+    _git_run(repo, "add", "seed")
+    _git_run(repo, "commit", "-q", "-m", "seed")
+
+    graph = repo / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n"
+        "  - {\"name\": \"probe-director\", \"role\": \"director\", "
+        "\"worktree\": \".agi/worktrees/seat-probe-director\", "
+        "\"rotate_at\": 0.4}\n---\n")
+    cwd = graph / "worktrees" / "seat-probe-director"
+    cwd.mkdir(parents=True, exist_ok=True)
+    return repo, graph, cwd
+
+
+def _over_line_run(graph, cwd, tp, state_dir, tmp_path, run_hook, monkeypatch, capsys):
+    """Write an over-line transcript and run the hook (seat from AGI_SEAT)."""
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    _write_transcript(tp, 45_000)          # 0.45 >= 0.4 -> over the line
+    state_dir.mkdir(exist_ok=True)
+    return run_hook(_payload(graph, tp, "sess-gb", cwd=str(cwd)),
+                    state_dir, monkeypatch, capsys)
+
+
+def test_merge_head_present_holds_rotation(tmp_path, run_hook, monkeypatch, capsys):
+    """Signal (1) of gate (b): a REAL `.git/MERGE_HEAD` on the main checkout
+    (a merge-up being performed RIGHT NOW) defers the rotation — the hook
+    prints the deferral and does NOT rotate (_SPAWNS == [])."""
+    repo, graph, cwd = _real_repo_with_seat(tmp_path)
+    # a real merge state: MERGE_HEAD names a valid commit (HEAD).
+    head = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True, check=True).stdout.strip()
+    (repo / ".git" / "MERGE_HEAD").write_text(head + "\n")
+    tp = tmp_path / "mh.jsonl"
+    code, out, err = _over_line_run(graph, cwd, tp, tmp_path / "state-mh",
+                                    tmp_path, run_hook, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out          # the over-line banner still shows
+    assert ("rotation deferred: merge-up in flight "
+            "(merge in progress on MAIN)") in out, out
+    assert _SPAWNS == []                   # the hook does NOT rotate mid-merge
+
+
+def test_unpushed_merge_commit_holds_rotation(tmp_path, run_hook, monkeypatch, capsys):
+    """Signal (3) of gate (b): an UNPUSHED commit on the season branch (the
+    `origin/<season>..<season>` non-zero the claim names) defers the rotation —
+    the hook prints the deferral and does NOT rotate (_SPAWNS == []). No
+    MERGE_HEAD, no suite lock: the season-ahead signal ALONE holds the gate."""
+    repo, graph, cwd = _real_repo_with_seat(tmp_path)
+    # the season branch, with a remote origin pushed and then one commit AHEAD.
+    _git_run(repo, "checkout", "-q", "-b", "season/s2")
+    bare = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+    _git_run(repo, "remote", "add", "origin", str(bare))
+    _git_run(repo, "push", "-q", "-u", "origin", "season/s2")
+    (repo / "season-note").write_text("ahead\n")
+    _git_run(repo, "add", "season-note")
+    _git_run(repo, "commit", "-q", "-m", "unpushed merge commit")
+    # sanity: origin/season/s2..season/s2 really is non-zero
+    n = subprocess.run(["git", "-C", str(repo), "rev-list", "--count",
+                        "origin/season/s2..season/s2"],
+                       capture_output=True, text=True, check=True).stdout.strip()
+    assert n == "1", n
+    tp = tmp_path / "up.jsonl"
+    code, out, err = _over_line_run(graph, cwd, tp, tmp_path / "state-up",
+                                    tmp_path, run_hook, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    assert ("rotation deferred: merge-up in flight "
+            "(unpushed merge commit on the season branch)") in out, out
+    assert _SPAWNS == []                   # the hook does NOT rotate
+
+
+def test_clean_real_git_repo_rotates(tmp_path, run_hook, monkeypatch, capsys):
+    """A REAL git repo with NO merge-up signal (no MERGE_HEAD, no suite lock,
+    nothing ahead of origin) and a genuinely CLEAN tree + fresh card: every
+    gate honestly passes, and the hook DOES rotate — proving the deferrals
+    above were the signals HOLDING, not an always-git-deferral."""
+    repo, graph, cwd = _real_repo_with_seat(tmp_path)
+    # the graph + a fresh card, COMMITTED so the tree is genuinely clean, and
+    # master pushed to origin so gate (c)'s `no upstream` captive is cleared.
+    card = graph / "sessions" / "quorum" / "probe-director.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# probe-director card (fresh)\n")
+    _git_run(repo, "add", "-A")
+    _git_run(repo, "commit", "-q", "-m", "graph + card")
+    bare = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+    _git_run(repo, "remote", "add", "origin", str(bare))
+    _git_run(repo, "push", "-q", "-u", "origin", "master")
+    # card mtime bumped past the last WORK commit -> gate (a) reads it fresh.
+    os.utime(card, (2_000_000_000, 2_000_000_000))
+    # sanity: the same gates the hook runs are clean
+    assert hook._merge_head_present(graph) is False
+    assert hook._suite_lock_held(graph) is False
+    assert hook._season_unpushed(graph) is False
+    assert hook._prepare_other_captives(graph, "probe-director") == []
+    tp = tmp_path / "cl.jsonl"
+    code, out, err = _over_line_run(graph, cwd, tp, tmp_path / "state-cl",
+                                    tmp_path, run_hook, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    assert len(_SPAWNS) == 1, _SPAWNS     # clean real repo rotates exactly once
+    assert "rotation: spawned rotate-self" in out, out
+    assert "rotation deferred" not in out
+
+
+# --- latch-stale-on-failure: a DEAD holder releases, a LIVE one holds --------
+def test_dead_latch_is_released_and_rerotates(tmp_path, run_hook, monkeypatch, capsys):
+    """The latch records the ROTATE-SELF pid. A latch whose holder pid is DEAD
+    (a rotate-self that FAILED mid-flight — the exact hole the parent named)
+    is released as stale, and a clean-state seat re-rotates on the NEXT prompt
+    instead of being latched out of auto-retry for the whole generation."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    tp = tmp_path / "dead.jsonl"
+    _write_transcript(tp, 45_000)            # 0.45 >= 0.4 -> over the line
+    # FIRST prompt: clean -> rotates, leaves a latch naming the rotate-self pid.
+    state_dir = tmp_path / "state-dead"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-dead", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out, out
+    assert len(_SPAWNS) == 1, (out, _SPAWNS)
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    assert latch.exists()
+    assert hook._latch_holder_pid(latch) == 12345   # the ROTATE-SELF pid
+
+    # SIMULATE the mid-flight failure: its holder dies.
+    monkeypatch.setattr(hook, "_pid_alive", lambda pid: False)
+    # _SPAWNS is read back by the run; clear for the second prompt's proof.
+    _SPAWNS.clear()
+    code, out, err = run_hook(_payload(graph, tp, "sess-dead", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    # NOT deferred by a stale latch — the seat retries.
+    assert "already rotating" not in out, out
+    assert len(_SPAWNS) == 1, _SPAWNS     # the failed generation is NOT latched
+    assert "rotation: spawned rotate-self" in out, out
