@@ -43,6 +43,9 @@ __all__ = [
     "merge_target",
     "ref_candidates",
     "is_legal_branch",
+    "derive_names",
+    "is_remote_visible",
+    "assert_remote_visible",
     "RESERVED",
 ]
 
@@ -57,6 +60,16 @@ _POST_AT_RE = re.compile(r"^post/(.+?)@s(\d+)$")
 _LOOP_AT_RE = re.compile(r"^loop/(.+?)@s(\d+)$")
 _TOWN_S_RE = re.compile(r"^town/(.+?)/season/s(\d+)$")
 _TOWN_AT_RE = re.compile(r"^town/(.+?)@s(\d+)$")
+
+# v3 TOWN-FIRST trunk leaves (derive_names). These three regexes ARE the
+# grammar's own remote-visible trunk shapes: the season main (`season<n>/main`,
+# the same spell parse() and _canonical_to_old() recognise) plus the two
+# town-first leaves (`<town>/main`, `<town>/season<m>/main`). No second
+# hand-spelled list of branch shapes exists to drift from them — the predicate
+# and the builder share one set.
+_SEASON_MAIN_RE   = re.compile(r"^season(\d+)/main$")
+_V3_TOWN_MAIN_RE  = re.compile(r"^([^/]+)/main$")
+_V3_TOWN_SEASON_RE = re.compile(r"^([^/]+)/season(\d+)/main$")
 
 _ALIASES = {
     "master": ("season1/main", "master -> season1/main"),
@@ -108,6 +121,39 @@ def is_legal_branch(name: str) -> bool:
     return p.get("kind") == "main"
 
 
+def _v3_season_first(p: dict) -> list[str]:
+    """The SEASON-FIRST spelling(s) a LIVE tree may still carry for a v3
+    TOWN-FIRST record, derived from the same ONE tuple (town, town_season,
+    post, round, agent). A v3 input resolved by ref_candidates must ALSO try
+    the season-first form -- the live tree is held by the owner mid-rename,
+    so a reader that only resolves v3 names breaks the live tree.
+
+    A bare town main (`<town>/main`) is omitted: it carries NO season number,
+    so no season-first town spelling is derivable, and inventing a parent or
+    town season would be a guess. Everything else maps `<town>/season<m>/...`
+    onto the season-first `season<m>/...` form the `derive_names` tuple's one
+    season implies, and a v3 POST/LOOP falls back to the season-level
+    `season<m>/posts/<p>` / `season<m>/loops/<round>-<agent>` (the v3 town
+    qualifier is dropped -- the old world's live branch for a town's post is
+    a post under that season's main). One spelling per shape, deduped at the
+    caller; the one-season aliases of each are derived by _canonical_to_old.
+    """
+    kind = p.get("kind")
+    town = p.get("town")
+    n = p.get("town_season")
+    if kind == "v3_town_main" or n is None:
+        return []
+    if kind == "v3_town_season_main":
+        # season<m>: the tuple's ONE season fills both the parent and town
+        # season of the season-first town main.
+        return [f"season{n}/{town}/season{n}/main"]
+    if kind == "v3_post":
+        return [f"season{n}/posts/{p['name']}"]
+    if kind == "v3_loop":
+        return [f"season{n}/loops/{p['name']}"]
+    return []
+
+
 def ref_candidates(branch: str) -> list[str]:
     """The ref names a reader should try, CANONICAL FIRST then the legacy
     one-season spellings, for a `branch` that may be new, intermediate, or
@@ -140,6 +186,19 @@ def ref_candidates(branch: str) -> list[str]:
         if cand in out:
             continue
         out.append(cand)
+    # v3 TOWN-FIRST input: as-written already first (canonical == branch for a
+    # v3 kind). Append the season-first spelling(s) a live tree may still
+    # carry, then each of THOSE one-season aliases -- a reader handed a v3
+    # name must still reach the season-first live branch until the rename
+    # lands (hypothesis l4-every-branch-name-derives-from-one-tuple-...).
+    if p.get("kind", "").startswith("v3"):
+        for sf in _v3_season_first(p):
+            if sf not in out:
+                out.append(sf)
+            for cand in (*_canonical_to_old(sf),
+                         *_canonical_to_old(sf, legacy_seat=True)):
+                if cand not in out:
+                    out.append(cand)
     return out
 
 
@@ -211,6 +270,85 @@ def post_branch(season: int, name: str) -> str:
 def loop_branch(season: int, slug: str, agent: str) -> str:
     """season<n>/loops/<slug>-<agent> — a loop branch merging up into season<n>/main."""
     return f"season{season}/loops/{slug}-{agent}"
+
+
+def derive_names(town: str, town_season: int,
+                 post: str | None = None,
+                 round: str | None = None,
+                 agent: str | None = None) -> dict:
+    """v3 TOWN-FIRST branch names, all derived from the ONE tuple
+    (town, town_season, post, round, agent).
+
+    Keys and values:
+      town_main        -> "<town>/main"
+      town_season_main -> "<town>/season<m>/main"
+      post_main        -> "<town>/season<m>/posts/<post>/main"  (post given)
+      loop             -> "<town>/season<m>/posts/<post>/loops/<round>/<agent>"
+                          (post AND round AND agent given)
+
+    `town` is validated by the module's own `_check_town` (RESERVED =
+    main/posts/loops refused). `town_season` is an int >= 1. A key is PRESENT
+    only when its inputs are present; town_main and town_season_main are
+    always present. Every level is a DIR with a `main` leaf because git
+    forbids a ref that is both leaf and dir — hence `<town>/main`, never a
+    bare `<town>`. This is the grammar-only half of the round; the live
+    SEASON-FIRST spellings (parse/_canonical_to_old) are unchanged and added
+    alongside, never replaced.
+    """
+    _check_town(town)
+    if not isinstance(town_season, int) or isinstance(town_season, bool) \
+            or town_season < 1:
+        raise ValueError(
+            f"town_season must be an int >= 1, got {town_season!r}")
+    out = {
+        "town_main": f"{town}/main",
+        "town_season_main": f"{town}/season{town_season}/main",
+    }
+    if post is not None:
+        out["post_main"] = \
+            f"{town}/season{town_season}/posts/{post}/main"
+        if round is not None and agent is not None:
+            out["loop"] = \
+                f"{town}/season{town_season}/posts/{post}/loops/{round}/{agent}"
+    return out
+
+
+def is_remote_visible(name: str) -> bool:
+    """True for EXACTLY `master`, `season<n>/main`, `<town>/main`,
+    `<town>/season<m>/main` — the trunk pair per level that reaches origin.
+    Everything else (a post, loop, feature branch, a reserved or malformed
+    town, a bare town with no leaf) is False. NEVER raises: a name that does
+    not parse is simply not remote-visible, and returning False for it is
+    correct. `season<n>/main` stays visible (it is the Prime's leaf), which is
+    why `is_remote_visible("season2/main") is True` while
+    `is_remote_visible("season2/posts/x") is False`.
+    """
+    if not isinstance(name, str) or not name:
+        return False
+    if name == "master":
+        return True
+    if _SEASON_MAIN_RE.fullmatch(name):
+        return True
+    m = _V3_TOWN_MAIN_RE.fullmatch(name)
+    if m and m.group(1) not in RESERVED:
+        return True
+    m = _V3_TOWN_SEASON_RE.fullmatch(name)
+    if m and m.group(1) not in RESERVED:
+        return True
+    return False
+
+
+def assert_remote_visible(name: str) -> None:
+    """Raise ValueError naming the branch AND the rule when `name` is not
+    remote-visible — the 'push of any sub-top-level name to refs/heads is
+    refused by name' falsifier. Returns None when the branch is remote-visible.
+    """
+    if not is_remote_visible(name):
+        raise ValueError(
+            f"branch {name!r} refused by name: only the trunk pair per level "
+            f"(master, season<n>/main, <town>/main, <town>/season<m>/main) "
+            f"reaches origin, so {name!r} is not remote-visible")
+    return None
 
 
 def merge_target(branch: str) -> str:
@@ -296,6 +434,39 @@ def parse(name: str) -> dict:
         if parts[3] == "loops":
             return {"kind": "loop", "season": n, "town": parts[1],
                     "town_season": k, "name": parts[4]}
+
+    # --- v3 TOWN-FIRST shapes (derive_names: the ONE tuple) ---
+    # Reached only when parts[0] is NOT a season prefix, so these cannot
+    # shadow the season-first rules above. New kinds so the existing
+    # `kind == "main"` contract (is_legal_branch, verification's
+    # _integration_branch_candidates) is untouched.
+    if len(parts) == 2 and parts[1] == "main" and not parts[0].startswith("season"):
+        _check_town(parts[0])
+        return {"kind": "v3_town_main", "town": parts[0], "name": parts[0]}
+    if len(parts) == 3 and parts[2] == "main" and parts[1].startswith("season") \
+            and not parts[0].startswith("season"):
+        m = re.fullmatch(r"season(\d+)", parts[1])
+        if m:
+            _check_town(parts[0])
+            return {"kind": "v3_town_season_main", "town": parts[0],
+                    "town_season": int(m.group(1)), "name": parts[0]}
+    if len(parts) == 5 and parts[4] == "main" and parts[2] == "posts" \
+            and parts[1].startswith("season") and not parts[0].startswith("season"):
+        m = re.fullmatch(r"season(\d+)", parts[1])
+        if m:
+            _check_town(parts[0])
+            return {"kind": "v3_post", "town": parts[0], "name": parts[3],
+                    "town_season": int(m.group(1))}
+    if len(parts) == 7 and parts[2] == "posts" and parts[4] == "loops" \
+            and parts[1].startswith("season") and not parts[0].startswith("season"):
+        m = re.fullmatch(r"season(\d+)", parts[1])
+        if m:
+            _check_town(parts[0])
+            # the tuple's round and agent are separate segments; the
+            # season-first loop spelling joins them with a dash.
+            return {"kind": "v3_loop", "town": parts[0], "name":
+                    f"{parts[5]}-{parts[6]}",
+                    "town_season": int(m.group(1))}
 
     raise ValueError(f"unrecognised branch name: {name!r}")
 
