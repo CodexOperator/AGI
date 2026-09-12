@@ -6451,6 +6451,8 @@ SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-ga
 
 SL7.15 harvested 07:05Z (sensei-director gen IX, brief B, kid experiment:a00-09c7d0d3-502c37 proved): cmd_ack continue is a no-op ONLY when the ack file gen_after equals --gen, else it prints the stale line naming both gens and falls through to the write plus back-fill path; _rotate_ack_file renames seats/<seat>.ack.json to .ack.gen<N>.json at rotate-self success and in heal._recover_seat before spawn; heal crash-recovery end-to-end takes identity (session_ref back-filled); the bootstrap ack fact reads the ack FILE (ack: none when absent). Lines (3)(9) closed on the seat, to land at SL2#16. Parent caveats kept as residue: the double-rotate guard is inert (no writer sets consumed_at); rotated .ack.gen<N>.json files accumulate with no GC.
 
+07:2xZ Sensei ask (wake-audit belam XIV->XV, 07:05Z): the first live --ask-diff rotation never ran the diff — the gate prose offered continue and the Prime took it (wake 6, target 1). Brief minted: hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-stands-the-handoff (SL7.06 fix-up — drop the offer; an empty-text diff completes the rotation as success with reply_decision diff-empty, a non-empty one halts as today). Dispatch as SL7.18 after SL2#16 lands and SL7.16 (brief C) is harvested — rotate.py owners. The --ref ListAgents cost on the diff path is recorded as residue for the SL7.16 line, not built here.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
