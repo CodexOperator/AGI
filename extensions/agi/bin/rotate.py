@@ -14657,6 +14657,41 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (hypothesis:...-lists-the-seats-live-background-tasks)
     print(f"background tasks: {_background_tasks(root, seat)}",
           file=sys.stderr)
+    # goal:g15.25 SL7.113 rot-push -- when the ONLY prepare blocker is check
+    # 1 in a MEASURED-unpushed spelling (`unpushed commits` or `unpushed
+    # commits vs origin/<branch>`; NEVER `no upstream for <branch>`, whose
+    # clear sets an upstream and stays a BLOCK), rotate-self PERFORMS the
+    # push through `_stops_push(label='unpushed')` -- the ONE helper, never
+    # a third implementation -- prints that push line, completes any
+    # deferred pending swap on OK, and CONTINUES: the refusal already names
+    # `git push`, so exit 3 would be a call spent to type it (belam XVII
+    # paid 2 at 21:59Z). A refused push stays a BLOCK by name (exit 3,
+    # nothing rotated); two or more blockers are byte-identical to today; a
+    # `--dry-run` performs nothing and prints its would-push line. The
+    # measured-spelling test: the clear is the bare `git push` (the
+    # no-upstream clear is `git push -u origin <branch>`, its own name).
+    if _blocks and len(_blocks) == 1:
+        _only_name, _only_clear = _blocks[0][1], _blocks[0][2]
+        _measured_unpushed = (_only_name == "unpushed commits"
+                              or _only_name.startswith(
+                                  "unpushed commits vs origin/"))
+        _bare_clear = _only_clear.strip() == "git push"
+        if _measured_unpushed and _bare_clear:
+            if getattr(args, "dry_run", False):
+                _dry_b = _git_maybe(root, "rev-parse", "--abbrev-ref",
+                                    "HEAD")
+                _dry_br = (_dry_b[0].strip() if _dry_b else "HEAD")
+                print(f"(--dry-run) would push: {_dry_br} "
+                      f"(unpushed commits)", file=sys.stderr)
+            else:
+                _perr = _stops_push(root, label="unpushed")
+                if _perr:
+                    print(f"rotate-self refused: {_perr} — clear it, then "
+                          f"re-run (nothing rotated).", file=sys.stderr)
+                    return 3
+                _finish_pending_swap_on_push(root, seat, "push: OK")
+            _blocks = []  # consumed -- continue, no refusal
+
     if _blocks:
         for _b, _nm, _cl in _blocks:
             print(f"rotate-self blocked: {_nm} — {_cl}", file=sys.stderr)
