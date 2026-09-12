@@ -3913,22 +3913,23 @@ def test_ack_diff_answer_never_commits(tmp_path, monkeypatch, capsys):
     assert "ack: committed" not in out
 
 
-def test_ack_dirty_seats_refused_before_write(tmp_path, monkeypatch, capsys):
-    """r3b (4): a pre-dirtied seats.md (unrelated hunk in THAT file) makes
-    the committing `continue` exit non-zero (3) with seats.md byte-identical
-    and no commit — the ack never bundles someone else's row change."""
+def test_ack_own_row_pre_dirty_refused_before_write(tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2b): a pre-dirtied OWN row in seats.md (this seat's own
+    row carries an uncommitted hunk) makes the committing `continue` exit
+    non-zero (3) with seats.md byte-identical and no commit — a guard, never
+    lowered: the ack refuses to double-write a row someone was mid-edit on."""
     root, top = _ack_seed_git(tmp_path)
     monkeypatch.chdir(root)
     seats = rotate._ack_seats_path(root)
     pristine = seats.read_text(encoding="utf-8")
-    # unrelated dirty hunk in seats.md before the ack
-    seats.write_text(pristine + "unrelated-dirty-hunk\n", encoding="utf-8")
+    dirty = pristine.replace('"name": "belam"', '"name": "belam", "role": "pre-dirty"')
+    seats.write_text(dirty, encoding="utf-8")
     before = _git_head(top)
     code = rotate.cmd_ack(SimpleNamespace(
-        seat="belam", gen=7, ref="f52a4c", answer="continue", text=""),
-        root)
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=0), root)
     assert code == 3
-    assert seats.read_text(encoding="utf-8") == pristine + "unrelated-dirty-hunk\n"
+    assert seats.read_text(encoding="utf-8") == dirty
     assert _git_head(top) == before               # no commit
     # row was NOT back-filled (refused before any write)
     belam = next(r for r in rotate._load_seats(root)
@@ -3936,7 +3937,395 @@ def test_ack_dirty_seats_refused_before_write(tmp_path, monkeypatch, capsys):
     assert belam.get("session_ref") == ""
     err = capsys.readouterr().err
     assert "dirty" in err and "refuse" in err
-    assert "!" not in rotate._ack_seats_dirty(root, top).split()[0]
+    # the OWN row is what the gate names as dirty (rel), never clean.
+    assert rotate._ack_seats_dirty(root, top, "belam")
+
+
+def test_ack_foreign_dirty_row_does_not_block(tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2b): a dirty FOREIGN row (another seat's hunk in the
+    same seats.md) NEVER blocks the ack — the own row is clean, so the
+    committing `continue` proceeds rc 0 and lands its own commit, leaving the
+    foreign hunk byte-untouched and unstaged."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    belam_line = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    text2 = text.replace(belam_line, belam_line + "\n" + foreign)
+    seats.write_text(text2, encoding="utf-8")
+    subprocess.run(["git", "-C", str(top), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "-m", "two rows"],
+                   check=True, capture_output=True)
+    # dirty the FOREIGN row only: other's role -> a hunk that owns NO seat's
+    # own row for belam.
+    dirty_text = text2.replace('"name": "other", "role": "director"',
+                               '"name": "other", "role": "parent"')
+    seats.write_text(dirty_text, encoding="utf-8")
+    foreign_dirty = seats.read_bytes()
+    assert rotate._ack_seats_dirty(root, top, "belam") is None, \
+        "a FOREIGN-row hunk must not make the OWN row look dirty"
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=0), root)
+    assert code == 0, capsys.readouterr().err
+    # the foreign row stays byte-untouched and unstaged after the ack: its
+    # dirty value (role parent) is still in the working tree, and `git diff`
+    # (unstaged) still shows it changed.
+    now = seats.read_text(encoding="utf-8")
+    assert '"name": "other", "role": "parent"' in now, \
+        "the foreign row's dirty value must survive the ack (byte-untouched)"
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True).stdout
+    assert staged.strip() == "", "the foreign hunk must stay UNSTAGED"
+    unstaged = subprocess.run(["git", "-C", str(top), "diff", "--", rel],
+                              capture_output=True, text=True).stdout
+    assert '"name": "other"' in unstaged, \
+        "the foreign hunk must still be present (unstaged) after the ack"
+    # only the OWN row hunk was committed by the ack commit.
+    head = _git_head(top)
+    assert head != before
+    commit_diff = subprocess.run(
+        ["git", "-C", str(top), "show", "--format=", head, "--", rel],
+        capture_output=True, text=True).stdout
+    changed = [ln for ln in commit_diff.splitlines()
+               if ln.startswith(("+", "-"))
+               and not ln.startswith(("+++", "---", "@@"))]
+    assert any('"name": "belam"' in ln for ln in changed)
+    assert not any('"name": "other"' in ln for ln in changed), \
+        "the ack commit must not change the foreign row"
+
+
+def test_ack_commits_only_own_row_leaves_foreign_unstaged(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2a/2b) FALSIFIER: two rows dirty in one seats.md (this
+    seat's own via the ack back-fill, plus a foreign spawn-row hunk pre-
+    written) -> the committing ack stages and commits ONLY its own-row hunks;
+    the foreign hunk is still present and byte-unchanged after the ack."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    belam_line = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    text2 = text.replace(belam_line, belam_line + "\n" + foreign)
+    seats.write_text(text2, encoding="utf-8")
+    subprocess.run(["git", "-C", str(top), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "-m", "two rows"],
+                   check=True, capture_output=True)
+    # pre-write a FOREIGN spawn-row hunk (other's row): owns NO seat's own row.
+    dirty_text = text2.replace('"name": "other", "role": "director"',
+                               '"name": "other", "role": "parent"')
+    seats.write_text(dirty_text, encoding="utf-8")
+    foreign_dirty = seats.read_bytes()
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=0), root)
+    assert code == 0, capsys.readouterr().err
+    # the ack landed ONE own-row commit ...
+    head = _git_head(top)
+    assert head != before
+    # ... and the foreign hunk is STILL present and byte-unchanged in the tree
+    # (its row now carries belam's ack back-fill too, but the foreign line is
+    # exactly as we left it) ...
+    now = seats.read_text(encoding="utf-8")
+    assert '"name": "other", "role": "parent"' in now, \
+        "foreign spawn-row hunk must still be present after the ack"
+    # ... and unstaged, never bundled into the ack's commit.
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True, text=True).stdout
+    assert staged.strip() == "", "foreign hunk must stay UNSTAGED after the ack"
+    # the ack commit changes ONLY belam's row line; the foreign row appears
+    # only as an unchanged context line and is never a +/- change of the commit.
+    commit_diff = subprocess.run(
+        ["git", "-C", str(top), "show", "--format=", head, "--", rel],
+        capture_output=True, text=True).stdout
+    changed = [ln for ln in commit_diff.splitlines()
+               if ln.startswith(("+", "-"))
+               and not ln.startswith(("+++", "---", "@@"))]
+    assert any('"name": "belam"' in ln for ln in changed), \
+        "the ack commit must change belam's own row"
+    assert not any('"name": "other"' in ln for ln in changed), \
+        "the ack commit must not change the foreign spawn-row hunk"
+
+
+def test_ack_commit_stages_index_only_never_writes_seats(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 belt mechanism: `_ack_commit_seats` stages the OWN-row content
+    into the INDEX ONLY — the shared seats.md working tree is NEVER written
+    by the ack commit, not even transiently, so a concurrent writer can never
+    be clobbered by a restore. FALSIFIER: the prior transient-write
+    implementation called `seats.write_text(new)` then `seats.write_bytes(
+    orig)`, so any write touching the seats path during the commit now fails
+    this test. Also proves a dirty foreign hunk stays byte-untouched and
+    unstaged and survives while the own row lands exactly one commit."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    belam_line = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    text2 = text.replace(belam_line, belam_line + "\n" + foreign)
+    seats.write_text(text2, encoding="utf-8")
+    subprocess.run(["git", "-C", str(top), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    # dirty the FOREIGN row (a pre-written spawn-row hunk that owns no seat's
+    # own row) AND the own row (as a normal back-fill would) so there is a
+    # commit to make with a foreign hunk beside it.
+    dirty_text = text2.replace('"name": "other", "role": "director"',
+                               '"name": "other", "role": "parent"')
+    own_dirty = dirty_text.replace(
+        '"name": "belam", "role": "prime_director"',
+        '"name": "belam", "role": "prime_director", '
+        '"session_ref": "f52a4c"')
+    seats.write_text(own_dirty, encoding="utf-8")
+    seatsp = str(seats)
+    before_bytes = seats.read_bytes()
+    before = _git_head(top)
+
+    written = []
+    real_wt, real_wb = Path.write_text, Path.write_bytes
+
+    def _wt(self, *a, **k):
+        written.append(str(self))
+        return real_wt(self, *a, **k)
+
+    def _wb(self, *a, **k):
+        written.append(str(self))
+        return real_wb(self, *a, **k)
+
+    monkeypatch.setattr(Path, "write_text", _wt)
+    monkeypatch.setattr(Path, "write_bytes", _wb)
+    ok, out = rotate._ack_commit_seats(
+        root, "belam", SimpleNamespace(gen=7), "f52a4c")
+    monkeypatch.setattr(Path, "write_text", real_wt)
+    monkeypatch.setattr(Path, "write_bytes", real_wb)
+    assert ok, out
+    # byte-identical BEFORE and AFTER the ack commit, and NO write ever
+    # targets it DURING (the transient-write implementation fails here).
+    assert seats.read_bytes() == before_bytes, \
+        "seats.md must be byte-identical after the ack commit"
+    assert not any(p == seatsp for p in written), \
+        f"the ack commit must never write the seats file, wrote: {written}"
+    # exactly one own-row commit landed, the foreign hunk stays unstaged,
+    # and the own-row change is no longer staged/unstaged.
+    head = _git_head(top)
+    assert head != before
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True,
+                            text=True).stdout
+    assert staged.strip() == "", "foreign hunk must stay UNSTAGED"
+    unstaged = subprocess.run(["git", "-C", str(top), "diff", "--", rel],
+                              capture_output=True, text=True).stdout
+    assert '"name": "other"' in unstaged, \
+        "dirty foreign hunk must still be present (unstaged)"
+    unstaged_changed = [ln for ln in unstaged.splitlines()
+                        if ln.startswith(("+", "-"))
+                        and not ln.startswith(("+++", "---", "@@"))]
+    assert not any('"name": "belam"' in ln for ln in unstaged_changed), \
+        "own-row change must be committed, not left unstaged"
+    assert any('"name": "other"' in ln for ln in unstaged_changed), \
+        "the dirty foreign hunk must be the only remaining change"
+    commit_diff = subprocess.run(
+        ["git", "-C", str(top), "show", "--format=", head, "--", rel],
+        capture_output=True, text=True).stdout
+    changed = [ln for ln in commit_diff.splitlines()
+               if ln.startswith(("+", "-"))
+               and not ln.startswith(("+++", "---", "@@"))]
+    assert any('"name": "belam"' in ln for ln in changed)
+    assert not any('"name": "other"' in ln for ln in changed), \
+        "the ack commit must not change the foreign row"
+
+
+def test_ack_foreign_edited_by_only_restamp_not_committed(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 own-row predicate fix: a FOREIGN row whose ONLY change is its
+    `edited_by` provenance restamp must NOT be bundled as the acking seat's
+    own row. The own-row cut keys on the `name` cell ALONE, so a foreign
+    edited_by change neither blocks the ack's dirty gate nor leaks into the
+    ack commit — it stays byte-untouched and unstaged in the working tree,
+    even though it sits adjacent to the own row's own write."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    belam_line = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    text2 = text.replace(belam_line, belam_line + "\n" + foreign)
+    seats.write_text(text2, encoding="utf-8")
+    subprocess.run(["git", "-C", str(top), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    # dirty the FOREIGN row by restamping ONLY its edited_by provenance cell
+    # (the own row stays clean, and the ack's own back-fill then dirties it).
+    dirty_text = text2.replace('"name": "other"',
+                               '"name": "other", "edited_by": "other-ed"')
+    seats.write_text(dirty_text, encoding="utf-8")
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=0, no_commit=False), root)
+    assert code == 0, capsys.readouterr().err
+    head = _git_head(top)
+    assert head != before, "the own-row back-fill must still be committed"
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    commit_diff = subprocess.run(
+        ["git", "-C", str(top), "show", "--format=", head, "--", rel],
+        capture_output=True, text=True).stdout
+    changed = [ln for ln in commit_diff.splitlines()
+               if ln.startswith(("+", "-"))
+               and not ln.startswith(("+++", "---", "@@"))]
+    assert any('"name": "belam"' in ln for ln in changed), \
+        "the ack commit must still land the own row's write"
+    assert not any('"name": "other"' in ln for ln in changed), \
+        "the ack commit must not bundle a foreign edited_by-only restamp"
+    # the foreign edited_by restamp stays byte-untouched and unstaged.
+    now = seats.read_text(encoding="utf-8")
+    assert '"name": "other", "edited_by": "other-ed"' in now
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True,
+                            text=True).stdout
+    assert staged.strip() == "", "foreign restamp must stay UNSTAGED"
+    unstaged = subprocess.run(["git", "-C", str(top), "diff", "--", rel],
+                              capture_output=True, text=True).stdout
+    assert '"edited_by": "other-ed"' in unstaged, \
+        "foreign edited_by restamp must still show as an unstaged change"
+
+
+def test_ack_pre_staged_foreign_row_not_committed_and_unstaged(
+        tmp_path, monkeypatch, capsys):
+    """g15.24 belt hole (THIRD round): a FOREIGN row that was STAGED before
+    the ack must NOT ride the ack's own-row commit. The own-row cut's base is
+    HEAD (not the index), so a pre-staged foreign hunk is outside the base and
+    cannot be bundled: rc 0, the new commit's changed lines name ONLY the own
+    row, and the foreign change is still present in the working tree but now
+    UNSTAGED (git diff shows it, git diff --cached is empty)."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    belam_line = next(l for l in text.splitlines()
+                      if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    text2 = text.replace(belam_line, belam_line + "\n" + foreign)
+    seats.write_text(text2, encoding="utf-8")
+    subprocess.run(["git", "-C", str(top), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    # PRE-STAGE a FOREIGN row change: other's role director -> parent, staged
+    # into the real index (working tree and index agree on the dirty value).
+    staged_text = text2.replace('"name": "other", "role": "director"',
+                                '"name": "other", "role": "parent"')
+    seats.write_text(staged_text, encoding="utf-8")
+    rel = os.path.relpath(rotate._ack_seats_path(root), top)
+    subprocess.run(["git", "-C", str(top), "add", "--", rel], check=True,
+                   capture_output=True)
+    # the pre-staged foreign hunk is NOT the own row, so the gate stays open.
+    assert rotate._ack_seats_dirty(root, top, "belam") is None, \
+        "a pre-staged FOREIGN-row hunk must not block the own-row ack"
+    before = _git_head(top)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=0), root)
+    assert code == 0, capsys.readouterr().err
+    head = _git_head(top)
+    assert head != before, "the own-row back-fill must still be committed"
+    # the new commit changes ONLY belam's own row -- never the foreign one.
+    commit_diff = subprocess.run(
+        ["git", "-C", str(top), "show", "--format=", head, "--", rel],
+        capture_output=True, text=True).stdout
+    changed = [ln for ln in commit_diff.splitlines()
+               if ln.startswith(("+", "-"))
+               and not ln.startswith(("+++", "---", "@@"))]
+    assert any('"name": "belam"' in ln for ln in changed), \
+        "the ack commit must land the own row's write"
+    assert not any('"name": "other"' in ln for ln in changed), \
+        "a pre-staged foreign row must never ride the ack commit"
+    # the foreign change is still in the working tree, now UNSTAGED.
+    now = seats.read_text(encoding="utf-8")
+    assert '"name": "other", "role": "parent"' in now, \
+        "the foreign row's dirty value must survive, bytes preserved"
+    staged = subprocess.run(["git", "-C", str(top), "diff", "--cached",
+                             "--", rel], capture_output=True,
+                            text=True).stdout
+    assert staged.strip() == "", \
+        "the pre-staged foreign hunk must be UNSTAGED after the ack"
+    unstaged = subprocess.run(["git", "-C", str(top), "diff", "--", rel],
+                              capture_output=True, text=True).stdout
+    assert '"name": "other"' in unstaged, \
+        "the foreign change must still show as an unstaged diff"
+    # belam's own row is not left staged either.
+    assert staged.strip() == "", "no own-row diff may remain staged"
+
+
+def test_ack_wait_repolls_until_dirt_clears(tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2c): `ack --wait N` RE-POLLS the own-row gate every 5 s up
+    to N s — when the own-row dirt clears on a later poll, the ack proceeds rc 0
+    instead of refusing. Sleep is stubbed (no real wait); the second poll sees a
+    clean own row."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    calls = {"n": 0}
+    real = rotate._ack_seats_dirty
+
+    def _flaky(r, t, s):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return os.path.relpath(rotate._ack_seats_path(r), t)
+        return real(r, t, s)
+
+    monkeypatch.setattr(rotate, "_ack_seats_dirty", _flaky)
+    monkeypatch.setattr(rotate.time, "sleep", lambda s: None)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=6), root)
+    assert code == 0, capsys.readouterr().err
+    assert calls["n"] >= 2, "--wait must re-poll the own-row gate"
+    belam = next(r for r in rotate._load_seats(root)
+                 if r.get("name") == "belam")
+    assert belam.get("session_ref") == "f52a4c"
+
+
+def test_ack_wait_refuses_when_still_dirty_after_poll(tmp_path, monkeypatch, capsys):
+    """g15.24 belt (2c): when the own-row gate STAYS dirty, `ack --wait N`
+    re-polls (>=2 checks) then refuses with exit 3 — one short wait, no long
+    sleep."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    pristine = seats.read_text(encoding="utf-8")
+    seats.write_text(pristine.replace(
+        '"name": "belam"', '"name": "belam", "role": "pre-dirty"'),
+        encoding="utf-8")
+    calls = {"n": 0}
+    real = rotate._ack_seats_dirty
+
+    def _always_dirty(r, t, s):
+        calls["n"] += 1
+        return os.path.relpath(rotate._ack_seats_path(r), t)
+
+    monkeypatch.setattr(rotate, "_ack_seats_dirty", _always_dirty)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        wait=1), root)   # one short real wait (~1s), then refuse
+    assert code == 3
+    assert calls["n"] >= 2, "--wait must re-poll the own-row gate before refusing"
 
 
 def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
@@ -4012,23 +4401,23 @@ def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
     assert "commit failed" not in out, "error must NOT go to STDOUT"
 
 
-def test_ack_failed_git_add_exits_nonzero_and_no_staged_diff(
+def test_ack_failed_commit_cmd_exits_nonzero_and_no_staged_diff(
         tmp_path, monkeypatch, capsys):
-    """g15.24 P1 (second integrity test): a FORCED `git add` failure (a
-    mocked subprocess returning rc 1 for the ack's `git add -- seats.md`) also
-    makes the ack exit NON-ZERO (3) with NO staged diff on seats.md."""
+    """g15.24 P1 (second integrity test): a FORCED `git commit` failure (a
+    mocked subprocess returning rc 1 for the ack's own-row commit) makes the
+    ack exit NON-ZERO (3) with NO staged diff on seats.md."""
     root, top = _ack_seed_git(tmp_path)
     monkeypatch.chdir(root)
     rel = os.path.relpath(rotate._ack_seats_path(root), top)
     real_run = subprocess.run
 
-    def _fail_add(cmd, *a, **k):
-        if cmd and cmd[0] == "git" and "add" in cmd:
+    def _fail_commit(cmd, *a, **k):
+        if cmd and cmd[0] == "git" and "commit" in cmd:
             return subprocess.CompletedProcess(
-                cmd, 1, "", "index is read-only (forced)")
+                cmd, 1, "", "forced commit failure")
         return real_run(cmd, *a, **k)
 
-    monkeypatch.setattr(rotate.subprocess, "run", _fail_add)
+    monkeypatch.setattr(rotate.subprocess, "run", _fail_commit)
     code = rotate.cmd_ack(SimpleNamespace(
         seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
         registry_dir=None, window_path=None), root)
@@ -4036,11 +4425,11 @@ def test_ack_failed_git_add_exits_nonzero_and_no_staged_diff(
     cached = subprocess.run(["git", "-C", str(top), "diff", "--cached",
                              "--", rel], capture_output=True, text=True)
     assert cached.stdout.strip() == "", \
-        "git add failure must not leave seats.md staged"
+        "git commit failure must not leave seats.md staged"
     out, err = capsys.readouterr()
-    assert "git add" in err and "failed" in err, \
-        "git add error must go to STDERR"
-    assert "git add" not in out, "git add error must NOT go to STDOUT"
+    assert "commit failed" in err, "git commit error must go to STDERR"
+    assert "commit failed" not in out, \
+        "git commit error must NOT go to STDOUT"
 
 
 # ── hypothesis:l4-rotate-self-commits-its-own-spawn-row-write-so-the-ack- ──
@@ -4102,7 +4491,7 @@ def test_rotate_self_commits_own_spawn_row_write_then_ack_passes(
         session_ref="", pid=4242, session_id="sess-123",
         generation=3, window="@w9")
     assert wrote.startswith("config:seats row")
-    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root)), \
+    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root), "belam"), \
         "PRE-FIX: spawn-row write must leave seats.md dirty (the exit-3)"
 
     # (b) THE FIX: rotate-self commits its OWN spawn-row write, seats.md only.
@@ -4111,7 +4500,7 @@ def test_rotate_self_commits_own_spawn_row_write_then_ack_passes(
         window="@w9", pid=4242)
     assert outcome.startswith("spawn_row_commit: committed"), outcome
     # seats.md clean again -> the ack's dirty gate has nothing to refuse.
-    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root)) is None
+    assert rotate._ack_seats_dirty(root, rotate._git_toplevel(root), "belam") is None
     st = subprocess.run(["git", "-C", str(top), "status", "--porcelain",
                          "--", "proj/nodes/.geometry/seats.md"],
                         capture_output=True, text=True)
