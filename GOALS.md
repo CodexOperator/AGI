@@ -6652,6 +6652,8 @@ SL7.102 HARVESTED 21:22Z on the sensei-director post (SL7.86 re-cut): the predec
 
 SL7.113 (Sensei 22:12Z (1)): rotate-self pushes and continues when the ONLY prepare blocker is unpushed commits — brief hypothesis:l4-rotate-self-pushes-and-continues-when-the-only-prepare-blocker-is-unpushed-commits; belam XVII paid 2 calls at 21:59Z for a push the refusal already named
 
+SL7.114 (OWNER ORDER 22:2xZ via the Sensei 22:26Z, doc:l4-owner-decisions:719 — rotate by key): round 1 of 2 = the resolvers (caller post from the held key, ranks + per-role timeout from config:rotations template-first, default stops from the card slot) — brief hypothesis:l4-rotate-by-key-resolvers-caller-post-ranks-role-timeout-and-default-stops-from-the-card; round 2 = the bare rotate verb + --post rank gate, briefed when 114 lands
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
