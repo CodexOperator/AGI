@@ -49,6 +49,7 @@ templates:
       - window
       - worktree
       - ack
+      - meter
     startup:
       byte_cap: 8000
       first_turn:
@@ -88,6 +89,7 @@ templates:
       - worktree
       - ack
       - prev_gen
+      - meter
     startup:
       byte_cap: 40000
       first_turn:
