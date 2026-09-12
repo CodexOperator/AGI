@@ -6846,3 +6846,102 @@ def test_whois_key_with_sig_verifies_pubkey_selected_row(project, monkeypatch):
                                 sig_line=sig_line, msg_text=canonical,
                                 target=("key", pub_b[:12]))
     assert "FORGED" in text2, text2
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-the-after-join-record-names-the-  ──
+# sender-and-signature-the-send-returned...) — send.send reports the pair it
+# actually used: the sender after _detect_sender and whether the envelope was
+# signed (a usable key -> signed; a key file present but MALFORMED -> not).
+def test_send_returns_sender_signed_pair(project: Path):
+    """send.send returns (sender_used, signed). A usable key reports SIGNED; a
+    key file present but MALFORMED (no priv_hex) reports UNSIGNED — a key-file
+    existence check alone would lie about the envelope (the running fix makes
+    run_after_join record its dm's sender/signed FROM this pair)."""
+    scheme = send_mod.seatsig.get("ed25519")
+    priv, _pub = scheme.keygen()
+    who = "kid-signed"
+    _seat_key_write(project, who, priv.hex())
+    sender, signed = send_mod.send(project, "director", "hello world", who)
+    assert sender == who, sender
+    assert signed is True, "a usable key signs"
+
+    bad = "kid-bad"
+    badf = send_mod._seat_key_path(project, bad)
+    badf.parent.mkdir(parents=True, exist_ok=True)
+    badf.write_text(json.dumps({"scheme": "ed25519"}))  # no priv_hex -> unusable
+    sender2, signed2 = send_mod.send(project, "director", "hello world", bad)
+    assert sender2 == bad, sender2
+    assert signed2 is False, "a present-but-malformed key does NOT sign"
+
+
+# ── hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors- ──
+# pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox
+# type_input(root, to, text) — the wake typing seam — delivers the after_join
+# SECOND input by TYPING it into the successor's pane as the input itself: a
+# successor pays ZERO reads (no nudge pointer). Reuses the wake chunking
+# (probe-D shape): text via one `send-keys -l`, a pause, then Enter in a
+# SEPARATE call — never `text Enter` in one call and never Enter-only.
+def test_type_input_no_tmux_returns_false_by_name(project, monkeypatch):
+    """(d) send.type_input on a fixture with no tmux / no resolvable pane
+    returns False BY NAME — the pane cannot be resolved (a windowless
+    recipient or tmux absent), so the caller falls back to the dm+nudge path.
+    Never raises."""
+    assert send_mod.type_input(project, "nobody", "hello there") is False
+    assert send_mod.type_input(project, "nobody", "x") is False
+
+
+def test_type_input_types_chunk_then_separate_enter(project, monkeypatch):
+    """(e) send.type_input's argv through a subprocess seam = the wake
+    chunking: ONE literal `send-keys -l <text>` call carrying the WHOLE text,
+    a pause, then Enter in a SEPARATE call (never `text Enter` in one call,
+    never Enter-only). The pane submits the body as one turn."""
+    pane = _FixturePane()
+    sleeps: list = []
+    calls = _fake_tmux_pane(monkeypatch, ["director"], pane, sleeps)
+    body = "your second input: join; pin; then ack. one record."
+    ok = send_mod.type_input(project, "director", body)
+    assert ok is True
+    typed, enters = _typed(calls), _enters(calls)
+    assert len(typed) == 1 and len(enters) == 1, calls
+    assert typed[0][:5] == ["tmux", "send-keys", "-l", "-t", "agi-rc:director"]
+    assert typed[0][5] == body, "the whole body is typed as ONE literal chunk"
+    assert "Enter" not in typed[0], "never `text Enter` in one call"
+    assert enters[0] == ["tmux", "send-keys", "-t", "agi-rc:director", "Enter"]
+    assert calls.index(typed[0]) < calls.index(enters[0])
+    assert sleeps and sleeps[0] >= 0.3, sleeps   # the pause, not a bare Enter
+    assert pane.submitted == [body] and pane.input == "", pane.input
+
+
+# ── goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
+# cell...): whois resolves a session_name (the F3 harness registry name,
+# e.g. agi-d7) EXACTLY as it resolves a session_ref — one lookup over both
+# cells — so whois agi-d7 names the seat; a row that ALSO carries a
+# session_name still resolves by its session_ref unchanged (additive).
+# ---------------------------------------------------------------------------
+NAME_ROWS = [
+    {"name": "belam", "role": "prime_director", "tier": 3,
+     "session_ref": "7902ac", "session_name": "agi-d7"},
+    {"name": "sanctuary-director", "role": "director", "tier": 1,
+     "session_ref": "6f9bb5", "session_name": "agi-e1"},
+]
+
+
+def test_whois_resolves_by_session_name(monkeypatch):
+    """(e) claim: whois <session_name> resolves the seat — one lookup over
+    both cells, so F3's SendMessage-by-ref join can address agi-d7."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "agi-d7", claim=None)
+    assert rc == send_mod.WHOIS_OK
+    assert "belam" in text
+
+
+def test_whois_by_session_ref_unaffected_by_session_name(monkeypatch):
+    """(f) claim: a row that also carries session_name still resolves by its
+    session_ref unchanged — the session_name lookup is additive. A
+    session_name matching NO row still NO-MATCHes (never a guess)."""
+    _stub_pushed(monkeypatch, (NAME_ROWS, FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "7902ac", claim="prime_director")
+    assert rc == send_mod.WHOIS_OK
+    assert "IS-AUTHORIZED" in text
+    rc2, text2 = send_mod.whois(Path("."), "agi-ghost", claim=None)
+    assert rc2 == send_mod.WHOIS_NO_MATCH

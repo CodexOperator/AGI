@@ -236,6 +236,14 @@ def _live_templates(path: "str | Path | None" = None) -> dict:
                 / ".agi" / "nodes" / ".geometry" / "rotations.md")
     rot = Path(path)
     assert rot.exists(), f"rotations.md missing: {rot}"
+    # (SL7.97) when `rot` is a live `.agi/nodes/.geometry/rotations.md` the
+    # templates are read through rotate.py's OWN reader (`rotate._load_templates`
+    # -- the accessor `rotate._resolve_template` resolves the brief/startup from)
+    # so the guard scans `startup.delivery` exactly as rotate-self reads it,
+    # never through a second YAML parser. A fixture rotations.md (written by a
+    # test, not a node file) still uses the direct reader below.
+    if rot.parts[-4:] == (".agi", "nodes", ".geometry", "rotations.md"):
+        return rotate._load_templates(rot.parents[2])
     text = rot.read_text(encoding="utf-8")
     frontmatter = text.split("---", 2)[1]
     loaded = _yaml.safe_load(frontmatter) or {}
@@ -266,7 +274,10 @@ def _guard_hits(templates: dict) -> list[str]:
                     for v in HAND_STEP_VOCAB:
                         if v in low:
                             hits.append(f"{name}:{section}[{i}].{field}: {v!r}")
-        delivery = ent.get("delivery")
+        # (SL7.97) delivery is nested UNDER startup in the live node (same
+        # indent as first_turn/after_join) — reading a top-level key never
+        # scanned the shipped prose. Read it where rotate-self's reader puts it.
+        delivery = startup.get("delivery")
         if isinstance(delivery, str):
             low = delivery.lower()
             for v in HAND_STEP_VOCAB:
@@ -305,7 +316,7 @@ def test_guard_fixture_delivery_hand_vocab_fails():
     post to run a step "by hand" must FAIL the guard — delivery is startup
     prose the executor emits into STARTUP OUTPUT, an instruction field."""
     t = _yaml.safe_load(ROTATIONS_BODY.split("---", 2)[1])["templates"]
-    t["director"]["delivery"] = (
+    t["director"].setdefault("startup", {})["delivery"] = (
         "you must pin the meter by hand on your first turn")
     hits = _guard_hits(t)
     assert hits, "delivery instruction field with hand vocab must FAIL the guard"
@@ -627,12 +638,15 @@ def test_region_live_f16_run_once_seen_but_not_a_waked_hand_step():
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     lines = _canonical_body_lines(src)
     n, m = _facts_body_range(_live_templates(src))
-    run_once_lines = [i for i in range(n, m + 1)
-                      if re.search(r"run\s+it\s+once", lines[i - 1], re.I)]
-    assert len(run_once_lines) == 1, (
-        f"expected exactly F16's run-it-once line in the region, got "
-        f"{run_once_lines}")
-    i = run_once_lines[0]
+    # (SL7.97) locate F16 by its FACT ID, never by the vocab phrase — a regex
+    # on 'run it once' is phrase-keyed and would either red for the wrong
+    # reason or silently miss if the canon reworded F16 in the region.
+    f16_lines = [i for i in range(n, m + 1)
+                 if re.match(r"-\s*F16\b", lines[i - 1])]
+    assert len(f16_lines) == 1, (
+        f"expected exactly one F16 fact line in the region, got "
+        f"{f16_lines}")
+    i = f16_lines[0]
     hits = [h for h in _region_hand_hits(src)
             if h[0] == i and "run once" in h[2]]
     assert hits, "F16's 'run it ONCE' must be a SEEN vocabulary hit"

@@ -1393,7 +1393,11 @@ def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
 def test_meter_line_prints_below_first_band(agi_project, run_hook, tmp_path, monkeypatch, capsys):
     """D1 — a prompt below the first band (currently silent in the body)
     prints the [meter] line as its WHOLE stdout. The meter is unconditional;
-    the band escalation is what stays quiet below the line."""
+    the band escalation is what stays quiet below the line. The fixture seat
+    is resolved (AGI_SEAT + computable pin) because claim (2) of
+    experiment:a00-deae9b09-fb6c31 makes a seat-None prompt print `no-post`
+    with NO fraction — the D1 fraction-line only belongs to a RESOLVED post."""
+    monkeypatch.setenv("AGI_SEAT", "meter-director")
     transcript = tmp_path / "below.jsonl"
     _write_transcript(transcript, 5_000)          # 0.05 < band 0 (0.10)
     state_dir = tmp_path / "state-below"
@@ -1403,6 +1407,7 @@ def test_meter_line_prints_below_first_band(agi_project, run_hook, tmp_path, mon
     lines = [ln for ln in out.splitlines() if ln.strip()]
     assert lines, out
     assert lines[-1].startswith("[meter]"), out
+    assert "post=meter-director" in lines[-1], lines[-1]
     assert "0.0500" in lines[-1], lines[-1]        # a real fraction, not est.
     assert "approaching rotation" not in out, out  # no band block below band
     assert "--session-log" not in lines[-1], lines[-1]  # meter never the command
@@ -1411,7 +1416,9 @@ def test_meter_line_prints_below_first_band(agi_project, run_hook, tmp_path, mon
 def test_meter_line_last_stdout_line_after_band_crossing(agi_project, run_hook, tmp_path, monkeypatch, capsys):
     """D2 — a band-crossing prompt prints the band block AND the [meter] line,
     and the [meter] line is the LAST stdout line (asserted on the last
-    non-empty line, not an `in`)."""
+    non-empty line, not an `in`). Resolved seat: claim (2) makes a seat-None
+    prompt print `no-post` with NO fraction."""
+    monkeypatch.setenv("AGI_SEAT", "meter-director")
     transcript = tmp_path / "band.jsonl"
     _write_transcript(transcript, 20_000)         # 0.20 -> crosses band 0.70
     state_dir = tmp_path / "state-band"
@@ -1422,13 +1429,17 @@ def test_meter_line_last_stdout_line_after_band_crossing(agi_project, run_hook, 
     assert "--session-log" in out
     lines = [ln for ln in out.splitlines() if ln.strip()]
     assert lines[-1].startswith("[meter]"), out    # meter is the LAST line
+    assert "post=meter-director" in lines[-1], lines[-1]
     assert "0.2000" in lines[-1], lines[-1]
 
 
 def test_turn_one_estimates_and_labels_meter(agi_project, run_hook, tmp_path, monkeypatch, capsys):
     """D3 — turn 1 (no assistant usage yet) prints a labelled `est.` fraction
     as the [meter] line, never a blank, never a bare unlabelled 0.0000. The
-    estimate is informational: NO band block fires from an estimate."""
+    estimate is informational: NO band block fires from an estimate. Resolved
+    seat (AGI_SEAT): claim (2) makes a seat-None prompt print `no-post` with
+    NO fraction, so the estimate-fraction belongs to a RESOLVED post."""
+    monkeypatch.setenv("AGI_SEAT", "meter-director")
     transcript = tmp_path / "turn1.jsonl"
     transcript.parent.mkdir(parents=True, exist_ok=True)
     # a transcript with ONLY a user message — no assistant usage to measure.
@@ -1441,6 +1452,7 @@ def test_turn_one_estimates_and_labels_meter(agi_project, run_hook, tmp_path, mo
     lines = [ln for ln in out.splitlines() if ln.strip()]
     assert lines, out
     assert lines[-1].startswith("[meter]"), out
+    assert "post=meter-director" in lines[-1], lines[-1]
     assert "est." in lines[-1], lines[-1]          # labelled estimate
     assert "0.0000" not in out, out                # never a bare unlabelled zero
     assert "approaching rotation" not in out, out  # no band block from estimate
@@ -1563,3 +1575,134 @@ def test_mid_read_oserror_is_p7_silence_not_claim(agi_project, run_hook,
     assert "[meter]" not in out         # a number we could not read: never
     assert out == ""
     assert "cannot read transcript" in err      # fail-closed reason, on stderr
+
+# --------------------------------------------------------------------------
+# Round SL7.94 — experiment:a00-deae9b09-fb6c31 (hypothesis:l4-the-rotation-
+# alert-hook-checks-the-project-first-prints-no-fraction-without-a-post-
+# estimates-from-the-prompt-field-and-imports-rotate-lazily). Four FIX-ONLY
+# edits to pointer the hook at claim (1)-(4):
+#   (1) P7 outside-project check runs BEFORE the rc-3 no-transcript refusal —
+#       outside a project the hook exits 0 and prints NOTHING whatever the
+#       payload (tests a1/a2 below);
+#   (2) no post resolved = NO fraction — the [meter] reads `post=n/a no-post`
+#       (test c2);
+#   (3) the turn-1 estimate counts len(payload['prompt']) + transcript bytes,
+#       never the whole JSON envelope (test d2);
+#   (4) `import rotate` is deferred to the over-line paths that need it — a
+#       pin-only prompt must not execute it (test e2 poisons the import).
+# Existing test (b) `test_b_missing_transcript_fails_closed` (rc 3 inside a
+# project, kept) and test (f) `test_missing_pin_prints_refusal_reason_not_
+# fraction` (known seat, pin absent -> `no-pin`, kept) already cover claims
+# (1)-inside and (2)-pin-missing; they are unchanged.
+# --------------------------------------------------------------------------
+
+def test_a1_outside_project_no_transcript_is_silent(run_hook, tmp_path,
+                                                    monkeypatch, capsys):
+    """claim (1) / P7 — outside an agi project the hook exits 0 and prints
+    NOTHING whatever the payload, even ONE with no transcript_path. Pre-fix
+    this returned rc 3 with a `[meter] no-transcript-path` refusal; the fix
+    runs the P7 project check FIRST so a non-project session is never
+    bothered. FALSIFIER: any stdout (a refusal or a [meter]) outside a
+    project."""
+    outside = tmp_path / "plain-no-agi"
+    outside.mkdir(exist_ok=True)
+    payload = {"hook_event_name": "UserPromptSubmit", "session_id": "s-a1",
+               "cwd": str(outside)}            # NO transcript_path
+    state_dir = tmp_path / "state-a1"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert out == ""                            # P7 silence, whatever payload
+    assert "no-transcript-path" not in out
+
+
+def test_a2_inside_project_no_transcript_refuses(run_hook, tmp_path,
+                                                 monkeypatch, capsys):
+    """claim (1) — the rc-3 no-transcript refusal is KEPT, but only INSIDE an
+    agi project. Same payload as test_a1 with a project root."""
+    inside = tmp_path / "proj" / "graph" / ".agi"
+    inside.mkdir(parents=True)
+    (inside / "config.json").write_text("{}")
+    payload = {"hook_event_name": "UserPromptSubmit", "session_id": "s-a2",
+               "cwd": str(inside)}             # NO transcript_path
+    state_dir = tmp_path / "state-a2"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 3, err
+    assert "no \"transcript_path\"" in err or "fail-closed" in err
+    assert "--session-log" not in out           # no command, no fraction
+
+
+def test_c2_no_post_prints_unresolved_label_no_fraction(agi_project, run_hook,
+                                                       tmp_path, monkeypatch,
+                                                       capsys):
+    """claim (2) FALSIFIER — with NO post resolved the [meter] reads the
+    unresolved label (`post=n/a`) and the refusal `no-post`, with NO decimal
+    where a fraction would go. Pre-fix, seat None (bool(seat) False) made
+    pin_missing False, so a FRACTION was printed for an unresolved seat."""
+    transcript = tmp_path / "nopost.jsonl"
+    _write_transcript(transcript, 5_000)        # 0.05 -> below first band
+    state_dir = tmp_path / "state-nopost"
+    # AGI_SEAT is cleared by the autouse fixture: the agi_project cwd is not
+    # a seat-/post-* worktree, so NO seat resolves.
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-nopost"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines and lines[-1].startswith("[meter]"), out
+    assert "post=n/a" in lines[-1], lines[-1]     # the unresolved label
+    after = lines[-1].split("post=n/a ", 1)[1]
+    assert after.startswith("no-post"), lines[-1]  # the refusal reason
+    assert not after[7:8].isdigit(), lines[-1]     # no digit in the fraction slot
+
+
+def test_d2_est_counts_prompt_field_not_envelope(agi_project, tmp_path,
+                                                 monkeypatch, capsys):
+    """claim (3) — the turn-1 estimate counts len(payload['prompt']) + the
+    transcript BYTES, NEVER len(raw) (the whole JSON envelope). Assert the
+    exact `<est>/<window>` from a KNOWN prompt length and a KNOWN transcript
+    size. Pre-fix est = int((len(raw) + bytes)/4) included the ~200-byte
+    envelope, so a 10-char prompt overestimated by the envelope each turn."""
+    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    tp = tmp_path / "turn1-est.jsonl"
+    content = json.dumps({"message": {"role": "user", "content": "hi"}}) + "\n"
+    tp.write_text(content, encoding="utf-8")
+    size = len(content.encode("utf-8"))           # KNOWN transcript bytes
+    prompt = "p" * 37                             # KNOWN prompt length
+    state_dir = tmp_path / "state-est"
+    monkeypatch.setenv("AGI_ROTATION_STATE_DIR", str(state_dir))
+    payload = {"hook_event_name": "UserPromptSubmit", "session_id": "s-est",
+               "transcript_path": str(tp), "cwd": str(agi_project),
+               "prompt": prompt}
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    code = hook.main([])
+    cap = capsys.readouterr()
+    assert code == 0, cap.err
+    lines = [ln for ln in cap.out.splitlines() if ln.strip()]
+    assert lines and lines[-1].startswith("[meter]"), cap.out
+    est = int((len(prompt) + size) / 4)           # the PROMPT, not the envelope
+    assert f"({est}/100000)" in lines[-1], lines[-1]
+    assert "est." in lines[-1], lines[-1]
+
+
+def test_e2_poisoned_rotate_import_still_prints_pin_only(agi_project, run_hook,
+                                                         tmp_path, monkeypatch,
+                                                         capsys):
+    """claim (4) FALSIFIER — `import rotate` must NOT be reachable from the
+    pin-only prompt. Poison sys.modules['rotate'] = None so the next
+    `import rotate` raises ImportError: a below-band prompt with a resolved
+    post and a computable pin must STILL print the [meter] fraction. Pre-fix,
+    `_canonical_pin` imported rotate on every prompt, so the poison broke it
+    into a `no-pin` refusal."""
+    monkeypatch.setenv("AGI_SEAT", "meter-director")
+    monkeypatch.setitem(sys.modules, "rotate", None)   # any `import rotate` raises
+    transcript = tmp_path / "pinonly.jsonl"
+    _write_transcript(transcript, 5_000)               # 0.05 -> pin-only path
+    state_dir = tmp_path / "state-pinonly"
+    code, out, err = run_hook(_payload(agi_project, transcript, "sess-pinonly"),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines and lines[-1].startswith("[meter]"), out
+    after = lines[-1].split("post=meter-director ", 1)[1]
+    assert after[:1].isdigit(), lines[-1]              # a real fraction, from the pin
+    assert "no-pin" not in lines[-1], lines[-1]        # the pin was computable
+    assert "no-post" not in lines[-1], lines[-1]
