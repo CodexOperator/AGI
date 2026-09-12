@@ -50,7 +50,7 @@ Harvested this gen: SL7.15 · SL7.17 (→ SL2#16) · **SL7.16 07:33Z (on the sea
 3. Line (6) open halves: rotations.md first-seating REFUSED (the Sensei's) + sensei.py 728-733 by-hand classification (brief when the Sensei confirms the template side).
 
 ### 🔴 Where it stops — the next command (stamp 07:3xZ)
-Five parents live (SL7.18-22); SL7.16 harvested on the seat. Next: harvest whichever is gone → SL2#17 window ask.
+stops: n/a | last dm: 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **Your shell carries `AGI_SEAT`/`AGI_POST` (rotate-self's export chain) and `send._detect_sender` reads them AHEAD of `--from`** — every `send.py send` from this window signs as sensei-director whatever `--from` says (fine), and BEFORE 680f07be2 the suite read 81/274 red in test_send.py from any seat window. Fixed in tests/conftest (pops AGI_AGENT_ID/AGI_SEAT/AGI_POST); a NEW test that needs a sender sets it with monkeypatch.
 - 🔴 **The card is `.agi/sessions/quorum/sensei-director.md`** (the row's `handoff_file` is the 4-line rotate-self stub, not the card) — write here.
