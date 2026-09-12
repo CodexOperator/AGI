@@ -57,20 +57,31 @@ _SPAWNS: list[list[str]] = []
 
 @pytest.fixture(autouse=True)
 def _no_real_spawn(monkeypatch):
-    """Patch `hook._spawn_rotate_self` to a recorder for every test.
+    """Patch the ONE launch seam `hook._Popen` (a module attribute — never the
+    whole function) to a recorder for every test, so no test reaches a REAL
+    subprocess.Popen with a rotate-self argv.
 
-    The recorder builds the SAME argv the production path would (`_rotate_self_argv`)
-    and returns a fake pid, so the rotation claim is proved on the built bytes
-    without ever running a real rotate-self against a gitless tmp fixture.
+    `_spawn_rotate_self` builds the argv via `hook._rotate_self_argv` and calls
+    `_Popen(argv, ...)`, returning `proc.pid`. The recorder records that argv
+    (the exact bytes the production path would spawn) into `_SPAWNS` and
+    returns a fake proc with pid 12345, so the rotation claim is proved on the
+    built bytes without ever running a real rotate-self against a gitless tmp
+    fixture (a real subprocess does real writes and exits 3 — that must never
+    happen in a test not about rotating). Patching the SEAM, not the function,
+    is what keeps an out-of-process run honest: a fresh interpreter imports
+    this module with the REAL subprocess.Popen, so the out-of-process test
+    declines via AGI_HOOK_NO_SPAWN instead.
     """
     _SPAWNS.clear()
 
-    def _record(root, seat, stops):
-        bin_dir = Path(Path(hook.__file__).resolve().parents[1] / "bin")
-        _SPAWNS.append(hook._rotate_self_argv(bin_dir, seat, stops))
-        return 12345
+    class _FakeProc:
+        pid = 12345
 
-    monkeypatch.setattr(hook, "_spawn_rotate_self", _record)
+    def _record(argv, **_kw):
+        _SPAWNS.append(argv)
+        return _FakeProc()
+
+    monkeypatch.setattr(hook, "_Popen", _record)
 
 
 @pytest.fixture
@@ -319,7 +330,14 @@ def test_the_emitted_command_is_actually_runnable(tmp_path, monkeypatch):
         [_sys.executable, str(_HOOK)], input=_json.dumps(payload),
         capture_output=True, text=True,
         env={**dict(**{k: v for k, v in __import__("os").environ.items()}),
-             "AGI_ROTATION_STATE_DIR": str(tmp_path / "state")})
+             "AGI_ROTATION_STATE_DIR": str(tmp_path / "state"),
+             # Out-of-process safety (c1f01e920): a fresh interpreter imports
+             # this module with the REAL subprocess.Popen, which the in-process
+             # `_no_real_spawn` seam-patch cannot reach — so an over-line seat
+             # must never fire a live rotate-self from a pytest. The hook
+             # short-circuits at `_spawn_rotate_self` and records a fake pid
+             # instead of touching Popen when this is set.
+             "AGI_HOOK_NO_SPAWN": "1"})
     assert proc.returncode == 0, proc.stderr
     out = proc.stdout
     assert "ROTATION OWED NOW" in out, out
@@ -1101,3 +1119,117 @@ def test_dead_latch_is_released_and_rerotates(tmp_path, run_hook, monkeypatch, c
     assert "already rotating" not in out, out
     assert len(_SPAWNS) == 1, _SPAWNS     # the failed generation is NOT latched
     assert "rotation: spawned rotate-self" in out, out
+
+# --------------------------------------------------------------------------
+# SL7.32 — the meter hook's latch never lands as tracked churn in MAIN, the
+# stale-latch release runs BEFORE gate (c), a worktree seat never writes its
+# latch into MAIN's tree, and the rotate-self launch goes through ONE seam no
+# test can fire live (hypothesis:l4-the-meter-hook-latch-is-ignored-...).
+# FIX-ONLY build round: each test FAILS the pre-fix bytes and passes the built
+# ones. Fixtures name a THROWAWAY seat (probe-director), never a registered
+# one (the c1f01e920 incident: a live rotate-self --stops for the
+# sensei-director seat fired from a kid's pytest).
+# --------------------------------------------------------------------------
+
+
+def test_latch_path_resolves_to_seats_own_tree_not_main(tmp_path):
+    """Fix #3 — a worktree seat's hook latch resolves OUTSIDE MAIN's tree (its
+    OWN `<root>/sessions`), so a hook run in a worktree never writes its
+    `hook-*.lock` into MAIN's checkout. The shared MAIN-sessions dir is what
+    the pre-fix `_latch_path` used, so every worktree hook run left untracked
+    churn under MAIN."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ra_latch", _HOOK)
+    ra = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ra)
+
+    main_root = tmp_path / "repo" / ".agi"
+    (main_root / "nodes" / ".geometry").mkdir(parents=True)
+    (main_root / "config.json").write_text("{}")
+    worktree = main_root / "worktrees" / "seat-demo" / ".agi"
+    (worktree / "nodes" / ".geometry").mkdir(parents=True)
+    (worktree / "config.json").write_text("{}")
+
+    latch = ra._latch_path(worktree, "demo", 3)
+    assert latch.name == "hook-demo-gen3.lock", latch
+    # the latch lives in the SEAT's OWN sessions dir ...
+    assert str(latch).startswith(str((worktree / "sessions").resolve())), latch
+    # ... and NEVER under MAIN's sessions dir (the pre-fix shared-sessions
+    # target that made every worktree hook run leave untracked churn in MAIN).
+    assert not str(latch).startswith(str((main_root / "sessions").resolve())), latch
+
+
+def test_dead_latch_released_before_gate_c_captive(tmp_path, run_hook, monkeypatch, capsys):
+    """Fix #2 — the stale-latch release (dead holder pid) runs BEFORE gate (c),
+    so a dead-pid latch is released even on a prompt where a prepare captive
+    HOLDS the rotation. Pre-fix the unlink sat inside gate (d), AFTER gate (c)
+    returned, so a dead latch stranded behind a captive blocked every later
+    rotation until a human removed it by hand."""
+    repo, graph, cwd = _real_repo_with_seat(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    # a DIRTY tree makes gate (c) prepare's 'dirty' captive HOLD (listed,
+    # never performed) while gate (b) stays clean.
+    (repo / "dirty-marker").write_text("uncommitted\n")
+    # a DEAD-pid latch (999999 is not alive) for this seat + generation 0.
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch.parent.mkdir(parents=True, exist_ok=True)
+    latch.write_text("pid 999999\n")
+    tp = tmp_path / "gc.jsonl"
+    _write_transcript(tp, 45_000)                 # 0.45 >= 0.4 → over the line
+    state_dir = tmp_path / "state-gc"
+    state_dir.mkdir(exist_ok=True)
+    code, out, err = run_hook(_payload(graph, tp, "sess-gc", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "ROTATION OWED" in out
+    # gate (c) held → no rotation, no spawn.
+    assert _SPAWNS == [], (out, _SPAWNS)
+    # ... BUT the dead latch is GONE: the stale release ran even though a
+    # captive held below it (pre-fix it would still be sitting there).
+    assert not latch.exists(), "dead latch was NOT released before gate (c)"
+
+
+def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """Fix #4 — `_spawn_rotate_self` launches through the ONE `_Popen` seam,
+    and AGI_HOOK_NO_SPAWN short-circuits BEFORE the seam so no test (in- or
+    out-of-process) can fire a REAL rotate-self. Pre-fix the production path
+    called subprocess.Popen directly (c1f01e920: a live rotate-self --stops
+    for the sensei-director seat fired from a kid's pytest)."""
+    graph, cwd = _over_line_seat_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    calls = []
+
+    class _Fake:
+        pid = 424242
+
+    def _record(argv, **kw):
+        calls.append((argv, kw))
+        return _Fake()
+
+    monkeypatch.setattr(hook, "_Popen", _record)
+    tp = tmp_path / "ns.jsonl"
+    _write_transcript(tp, 45_000)
+    state_dir = tmp_path / "state-ns"
+    state_dir.mkdir(exist_ok=True)
+
+    # With NO_SPAWN set, the seam is NOT even reached: rotation proceeds and
+    # records a fake pid, never touching subprocess.Popen.
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    code, out, err = run_hook(_payload(graph, tp, "sess-ns", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "rotation: spawned rotate-self" in out, out
+    assert calls == [], "AGI_HOOK_NO_SPAWN must short-circuit BEFORE _Popen"
+
+    # Without it, the SEAM (not a raw subprocess.Popen) is the launch point,
+    # carrying the exact argv + detach flags the production path needs.
+    monkeypatch.delenv("AGI_HOOK_NO_SPAWN")
+    code, out, err = run_hook(_payload(graph, tp, "sess-ns", cwd=str(cwd)),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls, "production spawn did not go through the _Popen seam"
+    argv, kw = calls[-1]
+    assert "rotate-self" in argv, argv
+    assert kw.get("start_new_session") is True, kw
+    assert kw.get("stdout") is subprocess.DEVNULL, kw
