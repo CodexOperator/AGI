@@ -1457,6 +1457,33 @@ def _resolve_conflicted(git_root: Path, branch: str) -> int:
 _ROUND_BRANCH_RE = re.compile(r"^loop/.+-[0-9a-fA-F]{8}@s\d+$")
 
 
+def _refuse_untrusted_merge(root: Path, branch: str) -> str | None:
+    """REFUSE merging a branch whose owning config:posts row is 'untrusted'.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (b) -- the untrusted lane's branch is never merged: the
+    merge-up recipe refuses it by name. The owning row is matched by the
+    branch equalling the untrusted row's `name` or its `worktree` cell.
+    Returns a stderr line naming the tier, or None to admit. Fail-open on an
+    unreadable config -- the ownership/base resolution above this is
+    untouched.
+    """
+    try:
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("tier") != "untrusted":
+            continue
+        if (branch == row.get("name")
+                or branch == (row.get("worktree") or "")):
+            return (f"REFUSED: branch {branch!r} belongs to post "
+                    f"{row.get('name')!r} which is untrusted (tier "
+                    f"'untrusted') -- the untrusted lane's branch is never "
+                    f"merged")
+    return None
+
+
 def cmd_merge_kids(root: Path, args) -> int:
     """`season.py merge-kids <kid-branch> ...` -- merge kid branches --no-ff
     into the CURRENT branch, one at a time, union-resolving node-file
@@ -1508,6 +1535,14 @@ def cmd_merge_kids(root: Path, args) -> int:
     suite = args.suite or DEFAULT_SUITE
     branches = args.branches
     for branch in branches:
+        # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung
+        # 4 conjunct 2 (b) -- refuse an untrusted post's branch BEFORE touch-
+        # ing it, so it is not merged at all. Refused by name, naming the
+        # tier; the ownership/base resolution above this is untouched.
+        _ut_merge = _refuse_untrusted_merge(root, branch)
+        if _ut_merge:
+            print(_ut_merge, file=sys.stderr)
+            return 1
         ahead = _git(work_root, "rev-list", "--count", f"{cur}..{branch}")
         if ahead.returncode != 0:
             print(f"ERR cannot count {branch} ahead of {cur}: "

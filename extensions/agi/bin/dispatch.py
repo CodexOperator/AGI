@@ -111,6 +111,35 @@ def _resolved_seat(args_seat: str | None) -> str | None:
     return geometry_config.resolved_seat_env()
 
 
+def _refuse_untrusted_spawner(root: Path, seat: str | None) -> str | None:
+    """REFUSE a spawner whose config:posts row tier is 'untrusted'.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (a) -- the untrusted lane may write only inside its own
+    worktree; it must never dispatch, spawn, take a spawn-budget lease, a
+    session dir or a credential. Returns a stderr line naming the tier, or
+    None to admit. Fail-open on an absent seat or an unreadable config -- a
+    gate that refuses everything proves nothing; the trusted-row negative
+    control is the point (test_untrusted_lane.py).
+    """
+    if not seat:
+        return None
+    try:
+        rows = geometry_config.load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("name") != seat:
+            continue
+        if row.get("tier") == "untrusted":
+            return (f"REFUSED: post {seat!r} is untrusted (tier "
+                    f"'untrusted') -- the untrusted lane may write only its "
+                    f"own worktree and may not dispatch (no lease, session "
+                    f"dir or credential)")
+        return None  # first matching row that is not untrusted admits
+    return None
+
+
 # --- secret redaction for the debugger's spawn.json (hypothesis:l4-dispatch-
 # echoes-less-than-it-knows) ---------------------------------------------
 # Redaction is by NAME pattern (KEY, TOKEN, SECRET, PASSWORD) AND by VALUE
@@ -1548,6 +1577,15 @@ def main() -> int:
     # inherits the shared runtime key exactly as before, and nothing here
     # changes shape.
     cred_limit, cred_ttl = provisioning.settings(cfg)
+    # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    # conjunct 2 (c) -- when the acting post (the resolved seat) is an
+    # untrusted row, its per-key budget cap is the row's `budget` cell instead
+    # of the configured default. post_limit_usd returns None for a trusted
+    # post or a capped-less untrusted row, so the default stands exactly.
+    _ut_limit = provisioning.post_limit_usd(
+        _resolved_seat(args.seat), cfg, root)
+    if _ut_limit is not None:
+        cred_limit = _ut_limit
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
     if issuing:
@@ -1612,6 +1650,17 @@ def main() -> int:
             code, msg = refused
             print(msg, file=sys.stderr)
             return code
+
+    # hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    # conjunct 2 (a) -- refuse an UNTRUSTED spawner before any lease, session
+    # dir, manifest, scaffold or credential is taken. The untrusted lane may
+    # write only its own worktree; it never dispatches. The acting post is
+    # the resolved seat (--seat > AGI_SEAT); absent a seat the gate fails
+    # open (nothing to prove).
+    _ut_spawner = _refuse_untrusted_spawner(root, _resolved_seat(args.seat))
+    if _ut_spawner:
+        print(_ut_spawner, file=sys.stderr)
+        return 2
 
     # hypothesis:l3-dispatch-dry-run — a dry run resolves everything the live
     # path resolves (target, tier, role, ladder tier, brief tier via

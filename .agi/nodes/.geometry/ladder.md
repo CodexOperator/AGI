@@ -14,7 +14,7 @@ caps_vision_scope: town
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam-S1-L4-VII
+edited_by: a00-c8e181cc
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -54,7 +54,7 @@ tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}
   - {"tier": 2, "plan_types": ["vision"], "report_type": "overview", "judged_against": "its vision", "lens": "the morals above", "cadence": "season rollover (quarterly)"}
-  - {"tier": 3, "plan_types": ["moral"], "report_type": null, "judged_against": "\u2014", "lens": "\u2014", "cadence": "never by machine; hand only"}
+  - {"tier": 3, "plan_types": ["moral"], "report_type": null, "judged_against": "—", "lens": "—", "cadence": "never by machine; hand only"}
 title: Season ladder declaration
 town_branches:
   core: season/s2
@@ -64,6 +64,7 @@ towns:
   - core
   - streaming-suite
   - web-app-suite
+untrusted_promotion_threshold: 1
 zoom: numeric
 ---
 # ladder:ladder
