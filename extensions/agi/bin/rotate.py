@@ -2328,7 +2328,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     ack = _read_ack(ack_path, gen_after=None, timeout=args.timeout)
     if ack is not None:
         answer = ack.get("answer")
-        if answer == "diff":
+        # A `diff` with a NON-EMPTY text means the handoff needs change: halt it
+        # for inspection (result: diff). A `diff` with an EMPTY/whitespace text is
+        # the reviewed-no-change answer the --ask-diff gate names — the handoff
+        # STANDS exactly like a `continue`
+        # (hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-
+        # diff-stands-the-handoff).
+        if answer == "diff" and (ack.get("text") or "").strip():
             _write_rotation_record(root, _loop_record(
                 name=name, result="diff", succ=succ,
                 readback_log=Path(ack_path).expanduser().resolve(),
@@ -2340,12 +2346,16 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
                 print("  " + txt.strip().replace("\n", "\n  "),
                       file=sys.stderr)
             return 0
-        # answer == continue
+        # answer == continue, OR diff with an EMPTY text: the handoff stands.
+        reply = "diff-empty" if answer == "diff" else "continue"
         _write_rotation_record(root, _loop_record(
             name=name, result="success", succ=succ,
             readback_log=Path(ack_path).expanduser().resolve(),
-            reply_decision="continue"))
-        print("handoff stood: successor acked `continue`.", file=sys.stderr)
+            reply_decision=reply))
+        print("handoff stood: successor acked an EMPTY diff (no change)."
+              if reply == "diff-empty"
+              else "handoff stood: successor acked `continue`.",
+              file=sys.stderr)
         import send  # local: same dir
         _announce_rotation(
             root=root,
@@ -3318,7 +3328,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
                         succ=None, pred=None, readback_log=None,
                         cursor_offset: int | None = None,
                         handover: dict | None = None,
-                        steps_reached: list[str] | None = None) -> dict:
+                        steps_reached: list[str] | None = None,
+                        reply_decision: str | None = None) -> dict:
     """One durable JSON record for a rotate-self rotation: observations (a)-(e)
     of hypothesis:l3-rotation-record-and-predecessor-guarantee, each an
     observed fact with the command output that established it.
@@ -3342,6 +3353,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
             "note": "only bytes AFTER start_offset can confirm the successor; "
                     "a stale pre-spawn `continue` at/before the cursor is refused",
         }
+    if reply_decision is not None:
+        obs["d_reply_decision"] = reply_decision
     if pred is not None:
         # `pred` carries name (the renamed aside window) + the observed list.
         obs["e_predecessor_alive"] = {
@@ -10729,7 +10742,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} "
             f"--gen {gen} --ref <your own ListAgents ref> diff --text -` -- "
             "run it to review the handoff (the predecessor has NOT answered "
-            "it). Answer `continue` instead if the handoff needs no change."
+            "it). The handoff STANDS on an EMPTY diff text (`--text -` with "
+            "no stdin, or `--text ''`); a non-empty diff text halts it for "
+            "inspection."
         )
     else:
         ack_gate = (
@@ -11228,16 +11243,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # kept as a fallback (a debug logger cannot carry prose).
     ack = _read_ack(_ack_path(root, seat), gen_after=gen, timeout=timeout)
     acked_continue = False
+    reply_decision = None
     if ack is not None and ack.get("answer") == "continue":
         acked_continue = True
     elif ack is not None and ack.get("answer") == "diff":
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
-            succ=succ, readback_log=Path(_ack_path(root, seat)).expanduser(),
-            refusal="successor acked diff: handoff needs change"), path=rec_path)
-        print("successor acked diff (handoff needs change); leaving the "
-              "renamed window in place for inspection.", file=sys.stderr)
-        return 1
+        # A `diff` with an EMPTY/whitespace text is the reviewed-no-change
+        # answer the --ask-diff gate names: the handoff STANDS, on the same
+        # success path as `continue`. A non-empty diff text means the handoff
+        # needs change and halts (hypothesis:l4-the-ask-diff-gate-offers-no-
+        # continue-and-an-empty-diff-stands-the-handoff).
+        if not (ack.get("text") or "").strip():
+            acked_continue = True
+            reply_decision = "diff-empty"
+        else:
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
+                succ=succ,
+                readback_log=Path(_ack_path(root, seat)).expanduser(),
+                refusal="successor acked diff: handoff needs change"),
+                path=rec_path)
+            print("successor acked diff (handoff needs change); leaving the "
+                  "renamed window in place for inspection.", file=sys.stderr)
+            return 1
 
     # Three realities (ACKED / PRESENT-BUT-SILENT / ABSENT): the window was
     # confirmed present above and no ack arrived -> PRESENT-BUT-SILENT, the
@@ -11332,7 +11359,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
-        handover=handover, steps_reached=steps_reached), path=rec_path)
+        handover=handover, steps_reached=steps_reached,
+        reply_decision=reply_decision), path=rec_path)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack

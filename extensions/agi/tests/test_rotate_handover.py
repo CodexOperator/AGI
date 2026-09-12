@@ -239,6 +239,100 @@ def test_handover_without_session_ref_records_skipped(_fix, tmp_path,
     assert "SKIPPED: grid commit illegal" in rec["handover"]["button_down"]
 
 
+# ── l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-stands-the-
+#    handoff (the --ask-diff gate + the empty-diff read-back) ────────────────
+
+
+def test_ask_diff_gate_names_only_diff_and_empty_stands(_fix, tmp_path,
+                                                        monkeypatch, capsys):
+    """FALSIFIER (a): WITH `--ask-diff` the rotate-self gate prose names the
+    ONE diff call and nothing else — the word `continue` is GONE from the gate
+    (its placeholder is the empty-diff text), which must re-state that an
+    EMPTY diff text is the reviewed-no-change answer that stands the handoff
+    (hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-
+    stands-the-handoff)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    captured = {}
+
+    def rec_spawn(**kw):
+        captured["extra"] = kw.get("extra", "")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", rec_spawn)
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             ask_diff=True, dry_run=True)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    gate = captured["extra"]
+    assert "diff --text -" in gate        # the ONE call is named
+    assert "continue" not in gate          # no continue placeholder in the gate
+    assert "EMPTY diff text" in gate       # the empty-diff answer is named
+    # the s6.3 spelling and the first-seating spelling stay byte-identical
+    assert "--ref <your own ListAgents ref> diff --text -" in gate
+
+
+def test_rotate_self_diff_empty_completes_rotation(_fix, tmp_path,
+                                                   monkeypatch):
+    """FALSIFIER (b) rotate-self: an acked `diff` with an EMPTY text is the
+    reviewed-no-change answer — the handoff STANDs: rc 0, `result: success`
+    with `d_reply_decision: diff-empty`, and the ack file is rotated to
+    `.ack.gen1.json` exactly as a `continue` would (hypothesis:l4-the-ask-
+    diff-gate-offers-no-continue-and-an-empty-diff-stands-the-handoff)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "diff", "text": ""})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "success"
+    assert rec["observations"]["d_reply_decision"] == "diff-empty"
+    # the ack file was rotated exactly like a `continue`: no live ack remains.
+    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    assert rot.exists()
+    assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
+
+
+def test_rotate_self_diff_nonempty_halts(_fix, tmp_path, monkeypatch):
+    """FALSIFIER (b): a NON-empty diff text still halts exactly as today —
+    `result: diff`, rc 1, the renamed window left for inspection
+    (hypothesis:l4-the-ask-diff-gate-offers-no-continue-and-an-empty-diff-
+    stands-the-handoff)."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "diff", "text": "move \u00a73"})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 1
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "diff"
+
+
 # PRIME RULING (L4.110): the seats-row write is admitted by DATA (the
 # self_row declaration), never a code branch. Prove the mechanism: with the
 # config schema's self_row present on a fixture root, the own-row declared
