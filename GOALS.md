@@ -6632,6 +6632,8 @@ SL7.100 HARVESTED 19:43Z on the sensei-director post: _write_bootstrap tries the
 
 SL7.93 HARVESTED 19:50Z on the sensei-director post (f1572e413): the after_join second input is TYPED into the successor's pane through send.type_input (the wake typing seam — text chunks then a separate Enter; production default resolved as a closure over root), the dm copy stays the signed record, the pane nudge is suppressed for that one message (send.send nudge=False), delivery named typed / dm+nudge with the refusal reason; kid 2 (proved 0.95) caught kid 1's production default calling type_input with the wrong arity (TypeError live — the SL7.40 shape) and fixed it; lean 70 + proved 0.95. Merge vs SL7.99 unioned by function: type first, then send-first with the closure honouring nudge_suppressed and returning the (sender, signed) pair, the record carrying delivery + dm_sender + dm_signed; nbhd 757/3. Rides SL2#26
 
+SL7.98 HARVESTED 19:54Z on the sensei-director post (4553ce08c): every after_join performer derives pred_pids through _derive_pred_pids (the record's s12 reap chain, else the predecessor row; the dry-run branch names the refusal instead of dry: True), the rotate-self own tail routes through run_after_join_for_seat's liveness/age gate (late / age_s / performed_after_s, performer tail, its own join passed so the dead-seat skip cannot fire, its own delay honoured), _seat_has_live_session reads the row's window cell pid-first; kids lean 60 + proved 0.9; one signature hunk vs SL7.93 unioned (type_input + the tail kwargs); nbhd 872/3. Rides SL2#26
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
