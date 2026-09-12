@@ -4105,6 +4105,88 @@ def test_read_deferred_only_no_empty_and_no_inbox_touch(project: Path, capsys):
         "reading a deferred dm must not fabricate an inbox file"
 
 
+# ── hypothesis:l4-sign-exactly-the-bytes-the-reader-parses... (SL6.06) ─────
+# One canonical form: the reader must parse back EXACTLY the bytes whose
+# signature was computed, so a LEGITIMATE body never reads FORGED. Four named
+# tests: LF-terminated, ---line, CRLF bodies each sign->store->read->VERIFIED,
+# plus the TAMPER guard that must still read FORGED (never lowered).
+
+def test_lf_terminated_body_verifies_not_forged(project, capsys, monkeypatch):
+    """A body whose text legitimately ends in "\\n" must read VERIFIED, never
+    FORGED. The writer appends EXACTLY one "\\n" after text; the reader must
+    strip exactly that one (its exact inverse), never rstrip every trailing LF
+    -- rstrip eats a genuine trailing LF and the sig no longer covers the
+    signed bytes, so a genuine body reads FORGED."""
+    send_mod.keygen(project, "seat-lf")
+    body = "line one\nline two\n"
+    pub_hex = _seat_pubkey_hex(project, "seat-lf")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-lf", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-lf")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_dash_dash_dash_body_line_verifies_not_forged(project, capsys,
+                                                      monkeypatch):
+    """A body containing a line equal to the block separator "---" must read
+    VERIFIED, never FORGED, and stay ONE block. The splitter must only split on
+    a separator that is followed by a header ("ts:"), never on a body line
+    equal to "---" (which currently fragments one signed block -- the head
+    carries the sig over the WHOLE body, so the split tail verifies against
+    nothing and reads FORGED)."""
+    send_mod.keygen(project, "seat-dash")
+    body = "before\n---\nafter\n"
+    pub_hex = _seat_pubkey_hex(project, "seat-dash")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-dash", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-dash")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_crlf_body_verifies_not_forged(project, capsys, monkeypatch):
+    """A body containing CRLF pairs round-trips byte-exact and reads VERIFIED,
+    never FORGED (newline='' on both sides already preserves CR; the parser
+    splits on "\\n" alone, so every "\\r" survives)."""
+    send_mod.keygen(project, "seat-crlf")
+    body = "line1\r\nline2\r\nline3\r\n"
+    pub_hex = _seat_pubkey_hex(project, "seat-crlf")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-crlf", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", body, "seat-crlf")
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED" in out, out
+    assert "FORGED" not in out, out
+
+
+def test_tampered_body_still_reads_forged(project, capsys, monkeypatch):
+    """GUARD (never lowered): bytes changed AFTER signing must still read
+    FORGED -- a signature that no longer covers the stored bytes is exactly
+    what FORGED means."""
+    send_mod.keygen(project, "seat-tamp")
+    pub_hex = _seat_pubkey_hex(project, "seat-tamp")
+    _stub_seat_rows(monkeypatch, [
+        {"name": "seat-tamp", "sig_scheme": "ed25519", "pubkey": pub_hex},
+    ])
+    send_mod.send(project, "recv", "original bytes", "seat-tamp")
+    inbox = project / ".agi" / "sessions" / "inbox" / "recv.md"
+    blob = inbox.read_text().replace("original bytes", "tampered bytes")
+    inbox.write_text(blob)
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "FORGED" in out, out
+    assert "VERIFIED" not in out, out
+
+
 # ── hypothesis:l4-every-live-row-is-keyed-every-send-is-signed... clause (1) ──
 # keygen now WRITES the seat-row cells it prints (pubkey, sig_scheme,
 # enc_scheme: none) through write.submit (the sanctioned writer), with the
