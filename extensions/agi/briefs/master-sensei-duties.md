@@ -65,3 +65,27 @@ thread that reaches the prime's seat). Any other named `rotated_by` → a dm to
 that seat. No `rotated_by` → no supervisor thread. Non-circular: the Master
 Sensei is itself rotated by sanctuary-master, so no Master can block its own
 teacher.
+## Rotation cost floors (owner standing order, 2026-09-12 03:2xZ)
+
+Owner, verbatim, in the master-sensei pane: "New sensei standing order aim for
+floor of 1 call when rotating out and 0 calls on wake." Quote lives in
+`doc:l4-owner-decisions`; `config:rotations` carries it as F18 and (when the
+Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
+
+- **Wake floor = 0.** No ListAgents, no ack, no push: the ack is answered by
+  the hook (`--stops`/`--diff`), the ref rides the successor key, the row
+  commit and push are the rotating side's. Every successor call before its
+  first work act is a finding.
+- **Out floor = 1.** `rotate-self` alone: the card is always current (written
+  during the work, never at the end), the merge and `--prepare` run inside
+  it, the alert and the row commit are its side effects. Every predecessor
+  call after its last work act, other than that one, is a finding.
+- **Measured against every post, every rotation, every seating** — prime,
+  point, helper, sensei-director, stream-master, this post. The 2026-09-11
+  table (wake 3/2, out 3/1) is the history the series is read against, not
+  the target.
+- **Method unchanged:** both sides per the card's §2 — draft under
+  `.agi/sessions/sensei/drafts/`, the cut routed to sensei-director in one
+  dm (code) or applied by this post (template, facts, prose). A call is
+  removed only when a tool performs the step; prose that says "don't" has
+  never removed one (20:1xZ finding).

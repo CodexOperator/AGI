@@ -58,3 +58,15 @@ so a Master's build backlog does not cost a fresh dispatch per item.
 DM `master-sensei` after every task, plain prose, verbatim what you did —
 what changed, what the tests showed, what's still open. Master Sensei
 relays your reports; it does not invent context on top of them.
+
+## Rotation cost floors (owner standing order, 2026-09-12 03:2xZ)
+
+Owner, verbatim: "New sensei standing order aim for floor of 1 call when
+rotating out and 0 calls on wake." The Master Sensei measures every post
+against **wake 0 / out 1** (`config:rotations` F18); this post builds the
+cuts that get there, in the Master Sensei's cut order (its card §5), each as
+a g15 line: the ack answered by the hook so no successor call is needed, the
+ref riding the successor key so ListAgents is not, the row commit + push
+riding the rotating side, the merge + `--prepare` inside `rotate-self` so
+the predecessor's one call is `rotate-self` itself. A cut that removes a
+call on one post is re-measured on the next rotation of every post.
