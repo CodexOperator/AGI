@@ -72,13 +72,6 @@ def _ps_table(monkeypatch, table):
     def fake_run(argv, *a, **k):
         if argv[:2] == ["ps", "-e"] and any("pid=,ppid=" in t for t in argv):
             return SimpleNamespace(stdout=lines)
-        # L4.307 (hypothesis:l4-branches-follow-the-season-grammar): the
-        # prepare step now READS the checked-out branch name to pick its
-        # merge target (`_prepare_merge_target`). A read of HEAD's name is
-        # not a process the self-reap could kill; answer it with the season
-        # main so the guard keeps forbidding everything else.
-        if argv[-3:] == ["rev-parse", "--abbrev-ref", "HEAD"]:
-            return SimpleNamespace(returncode=0, stdout="season/s2\n", stderr="")
         raise AssertionError(f"unexpected subprocess in this test: {argv!r}")
 
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)

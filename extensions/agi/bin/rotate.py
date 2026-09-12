@@ -8461,15 +8461,12 @@ def _prepare_merge_target(root: Path) -> str:
     unparseable branch keeps `season_branch(root)` (the season main) as the
     fallback, so this never changes season_branch's own callers.
     """
-    branch = ""
-    try:
-        br = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=30)
-        if br.returncode == 0:
-            branch = br.stdout.strip()
-    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
-        branch = ""
+    # Read HEAD's name through `_git_maybe`, the prepare path's own idiom:
+    # it answers None (never raises) when git is absent or faked, so a
+    # fixture that forbids subprocesses in the self-reap path keeps the
+    # season-main fallback (L4.307 director fix-up).
+    lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD") or []
+    branch = lines[0].strip() if lines else ""
     if branch and branch != "HEAD":
         try:
             parsed = branches.parse(branch)
