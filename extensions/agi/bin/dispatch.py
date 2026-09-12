@@ -181,7 +181,8 @@ def _redact_env_map(env: dict) -> dict:
 
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None, push_further: bool = False) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False,
+                 tier: str | None = None) -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -205,6 +206,13 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
         # id so a continuation kid composes from the parent's push_further
         # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
         cmd.append("--push-further")
+    # hypothesis:l4-the-parent-task-section-says-a-kids-tests-are-its-claim-and-hands-the-parent-the-kid-diff-not-its-result-file
+    # zoom.py's small composer keys its "Your Task" PARENT section on a --tier
+    # arg that did not exist on this base, so a --tier parent spawn threads its
+    # tier through here; any other tier (or absence) leaves the kid text
+    # byte-identical (SL7.109 may later land its own keying).
+    if tier:
+        cmd.extend(["--tier", tier])
     return cmd
 
 
@@ -1955,7 +1963,7 @@ def main() -> int:
         engine_paths = child_engine_paths(child_graph)
 
         zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
-                               push_further=args.push_further)
+                               push_further=args.push_further, tier=args.tier)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
