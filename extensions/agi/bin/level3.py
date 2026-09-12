@@ -169,8 +169,10 @@ DEFAULT_ENGINE_ROOT = BIN_DIR.parents[2]
 #: instead of `<repo>/.agi/nodes/build` — creating a second, stray node tree
 #: beside the real one. Combined with the boundary bug fixed in
 #: `payload_boundary.is_the_graph_itself`, that stray tree then became input to
-#: the next scan.
-PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
+#: the next scan. Computed per-run in `main`, never at import: a module-import
+#: time `project_root_from_env()`/`getcwd()` bakes the *importing* process's
+#: cwd in, and tests import level3 from anywhere.
+PROJECT_ROOT: Path | None = None
 
 
 def resolve_project_root(path: Path) -> Path | None:
@@ -186,6 +188,24 @@ def resolve_project_root(path: Path) -> Path | None:
     if (p / "nodes").is_dir():
         return p
     return locations.find_project_root(p)
+
+
+def default_project_root() -> Path | None:
+    """The graph root for a no-`--project` run, or None when there is no graph.
+
+    Resolves through the SAME `resolve_project_root` as the `--project` flag so
+    the two spells cannot disagree (goal:g15, hypothesis:l4-level3-no-flag-
+    default-refuses-a-rootless-cwd-and-the-sl7-25-body-names-its-missing-and-
+    orphan-counts): the env override first (it may descend into `.agi/` — see
+    `locations.project_root_from_env`), else the cwd. Env-first is deliberate:
+    a caller that already exported a project root is never overridden by the
+    directory the run happens to start in. None reaches `main`, which refuses
+    by name rather than scan a stray `<cwd>/nodes/...` tree as authoritative.
+    """
+    env_root = locations.project_root_from_env()
+    if env_root is not None:
+        return env_root
+    return resolve_project_root(Path.cwd())
 
 
 def _set_project_root(path: Path) -> None:
@@ -1165,11 +1185,23 @@ def main(argv: list[str] | None = None) -> int:
                          % 'prefix | mvp:<id>')
     args = ap.parse_args(argv)
 
+    resolved: Path | None
     if args.project:
         resolved = resolve_project_root(args.project)
         if resolved is None:
             print(f"ERR: no graph root at or above "
                   f"{Path(args.project).resolve()}"
+                  f" (no .agi/ and no nodes/)", file=sys.stderr)
+            return 2
+        _set_project_root(resolved)
+    else:
+        # No `--project`: resolve through the SAME resolver as the flag, and
+        # refuse by name when it finds no graph — never scan the raw cwd's
+        # `<cwd>/nodes` tree as authoritative (goal:g15).
+        resolved = default_project_root()
+        if resolved is None:
+            print(f"ERR: no graph root at or above "
+                  f"{Path.cwd().resolve()}"
                   f" (no .agi/ and no nodes/)", file=sys.stderr)
             return 2
         _set_project_root(resolved)
