@@ -2022,6 +2022,29 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                     _prev_gen = _pa.get("gen_after")
         except (OSError, ValueError):
             pass
+        # g15.24 FIX-ONLY (hypothesis:l4-ack-continue-is-refused-on-an-ask-
+        # diff-path-with-the-exact-diff-line): someone rotated with
+        # `--ask-diff` and left `answer: diff-requested` WITH the exact
+        # `rotate.py ack ... diff --text -` line in the STARTUP alert. The
+        # writer is the predecessor rotation AND the FIRST-SEATING
+        # --ask-diff path (rotate.py:4049 sets `answer: diff-requested`,
+        # `source: seating`) — both leave the identical pending state, so the
+        # gate must NOT be source-qualified or a hand-seated successor that
+        # skims past the STARTUP line acks continue, the diff is never
+        # inspected. A successor that answers `continue` was previously
+        # ACCEPTED (SL7.41-era make empty-diff stand continue, but the
+        # reverse never refused) and the handoff was never inspected.
+        # REFUSE: exit 3, ONE stderr line carrying the real seat/gen/ref and
+        # the exact diff command the successor must run instead; NOTHING is
+        # written (this gate is before the ack write below). Source-agnostic:
+        # any pending `diff-requested` for this seat+gen refuses a continue.
+        if (_prev_ans == "diff-requested" and _prev_gen == args.gen):
+            _ref = args.ref or "<your ListAgents ref>"
+            print("REFUSED: the predecessor asked for a diff \u2014 run: "
+                  f"python3 extensions/agi/bin/rotate.py ack --seat {seat} "
+                  f"--gen {args.gen} --ref {_ref} diff --text -",
+                  file=sys.stderr)
+            return 3
         if _prev_src == "predecessor" and _prev_ans == "continue":
             if _prev_gen == args.gen:
                 print("ack: already answered continue by your predecessor -- "
