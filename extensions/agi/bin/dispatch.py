@@ -367,6 +367,22 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
         branch = ""
     if not branch or branch == "HEAD":
         return None  # detached HEAD or unreadable branch; nothing to map
+    # hypothesis:l4-branches-follow-the-season-grammar clause (5) — a
+    # spawner sitting on a CANONICAL post/loop branch under a town
+    # (`season2/<town>/season1/loops/...`) maps by EXACT string to no ladder
+    # `town_branches` value, so the old reverse lookup returned None and the
+    # spawn fell back to the CORE main instead of that town's main
+    # (`season2/<town>/season1/main`). The grammar module's `merge_target`
+    # resolves the leaf it sits under for BOTH canonical and legacy
+    # spellings; prefer it when the branch parses as a post/loop, keep the
+    # town lookup (and its None fallback) otherwise. Fail open: an
+    # unparseable branch keeps today's value.
+    try:
+        _parsed = branches.parse(branch)
+    except ValueError:
+        _parsed = None
+    if _parsed is not None and _parsed["kind"] in ("post", "loop"):
+        return branches.merge_target(branch)
     town = spawn_gate.town_of_branch(nodes_dir, branch)
     if not town:
         return None

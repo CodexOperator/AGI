@@ -130,6 +130,20 @@ def test_merge_target_town_main():
         "season2/web-app-suite/season1/main"
 
 
+def test_merge_target_legacy_loop_alias_to_season_main():
+    # The one-season deprecated `loop/<slug>@s<N>` spelling resolves through
+    # its canonical to the season main it sits under.
+    assert b.merge_target("loop/xx-yy@s2") == "season2/main"
+
+
+def test_merge_target_leaf_is_its_own_target():
+    # Sitting ON a main leaf returns that leaf unchanged -- a core main and a
+    # town main are each their own merge target.
+    assert b.merge_target("season2/main") == "season2/main"
+    assert b.merge_target("season2/web-app-suite/season1/main") == \
+        "season2/web-app-suite/season1/main"
+
+
 # --- ref_candidates (the season-grammar reader resolver) ---
 
 

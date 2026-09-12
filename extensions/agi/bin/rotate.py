@@ -8449,6 +8449,37 @@ def _background_tasks(root: Path, seat: str) -> str:
     return ", ".join(parts) if parts else "unmeasured"
 
 
+def _prepare_merge_target(root: Path) -> str:
+    """The merge target `_prepare_checks` measures-and-merges against.
+
+    hypothesis:l4-branches-follow-the-season-grammar clause (5): a seat's
+    current branch is a post/loop branch under the main it merges up into.
+    Resolve through `branches.merge_target(<current branch>)` so a canonical
+    town loop/post (`season2/<town>/season1/loops/...`) targets that town's
+    main (`season2/<town>/season1/main`), not a literal core main -- the
+    exact-string town lookup used nowhere here. A main, town-main, or
+    unparseable branch keeps `season_branch(root)` (the season main) as the
+    fallback, so this never changes season_branch's own callers.
+    """
+    branch = ""
+    try:
+        br = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=30)
+        if br.returncode == 0:
+            branch = br.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        branch = ""
+    if branch and branch != "HEAD":
+        try:
+            parsed = branches.parse(branch)
+        except ValueError:
+            parsed = None
+        if parsed is not None and parsed["kind"] in ("post", "loop"):
+            return branches.merge_target(branch)
+    return season_branch(root)
+
+
 def _prepare_checks(root: Path, seat: str, perform: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
@@ -8522,8 +8553,11 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                    "git commit -m '<msg>' -- <the files you changed>"))
 
     # 3 behind origin/season/sX (N commits) -- branch from the ladder via
-    # season_branch, never a hardcoded season.
-    _sb = season_branch(root)
+    # season_branch, never a hardcoded season. The merge target resolves
+    # through branches.merge_target when the seat's branch is a post/loop
+    # (clause 5 of hypothesis:l4-branches-follow-the-season-grammar), so a
+    # town seat targets its own town main, not a literal core main.
+    _sb = _prepare_merge_target(root)
     behind = _git_count_maybe(root, "rev-list", "--count",
                               f"HEAD..origin/{_sb}")
     # The clear command MERGES, never rebases: `never rebase` is a standing

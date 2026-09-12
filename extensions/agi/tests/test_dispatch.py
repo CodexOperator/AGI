@@ -2119,3 +2119,38 @@ def test_reap_pass_mirrors_terminal_record_in_inline_lane(tmp_path, monkeypatch)
     e = m["agents"][0]
     assert e["status"] == "done" and e["finished_at"] == 7, e
     assert adapter.calls == [], "a terminal record must never be restarted"
+
+
+# --- hypothesis:l4-branches-follow-the-season-grammar clause (5) ---
+# dispatch's integration branch for the stale-base guard must resolve a
+# spawner on a canonical TOWN post/loop branch to that TOWN's main via the
+# grammar module's merge_target -- the exact-string town reverse-lookup
+# matches no ladder value for a canonical loop/post spelling, so the old
+# code fell back to the CORE main instead.
+
+
+def test_current_town_branch_prefers_merge_target_for_loop(tmp_path):
+    # A spawner on a canonical town loop branch: merge_target runs BEFORE the
+    # town reverse-lookup (which would return None for this exact string), so
+    # the returned integration is the TOWN main, not a core main.
+    repo = _git_repo_on_branch(tmp_path, "season2/web-app-suite/season1/loops/xx-yy")
+    # nodes_dir is pointless here: a post/loop branch resolves via merge_target
+    # without ever consulting the ladder reverse-lookup.
+    assert dispatch._current_town_branch(repo, tmp_path / "scratch") == \
+        "season2/web-app-suite/season1/main"
+
+
+def _git_repo_on_branch(tmp_path: Path, branch: str) -> Path:
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", branch],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+    return repo
