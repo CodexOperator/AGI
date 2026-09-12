@@ -1154,3 +1154,20 @@ def test_wait_without_iter_is_an_argparse_error(root, capsys):
     assert "usage:" in err, err
     assert "--wait requires --iter" in err, err
 
+
+def test_agent_status_finds_record_under_a_post_worktree(root: Path):
+    """hypothesis:l4-a-seat-is-a-post-everywhere — the worktree label accepts
+    the seat's post- rename: a PARENT agent.json under a `post-<name>`
+    worktree sessions dir is named `post:<name>` (the `seat-<name>` alias
+    still labels `seat:<name>`)."""
+    _mk_project(root)
+    main_graph = root / ".agi"
+    wt_graph = main_graph / "worktrees" / "post-sanctuary-director" / ".agi"
+    wt_graph.mkdir(parents=True, exist_ok=True)
+    (wt_graph / "config.json").write_text("{}")
+    ajson = wt_graph / "sessions" / "iter-L4.193" / "a00-06c44930" / "agent.json"
+    ajson.parent.mkdir(parents=True)
+    ajson.write_text('{"status": "running"}')
+    status, src, overdue = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
+    assert status == "running", status
+    assert src == "post:sanctuary-director", src

@@ -65,6 +65,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import geometry_config  # noqa: E402
+import branches  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -199,20 +200,61 @@ def load_ladder_field(root: Path, field: str, default):
         return default
 
 
+def _season_ref_on_origin(root: Path, ref: str) -> bool:
+    """Whether `ref` exists on the remote `origin` for `root` (a git tree).
+
+    Reads the LOCAL remote-tracking ref via `rev-parse --verify` on
+    `refs/remotes/origin/<ref>` — a read-only, no-network probe that returns
+    True exactly when `origin/<ref>` is known present (True) vs absent
+    (False). A local tracking ref is the same answer `git ls-remote
+    --exit-code origin <ref>` gives for the refs this tree has ever seen,
+    but it stays on the autopsy's read-only git whitelist (hypothesis:l4-a-
+    recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files:
+    autopsy runs only rev-list / rev-parse / status / log / show — no
+    network, no writes). An absent ref degrades to False, which falls
+    through to the LEGACY season spelling — the SAFE direction: a canonical
+    name is only ever emitted when its origin ref is verifiably present
+    (hypothesis:l4-branches-follow-the-season-grammar). Never raises."""
+    return bool(_git_maybe(root, "rev-parse", "-q", "--verify",
+                            f"refs/remotes/origin/{ref}"))
+
+
 def season_branch(root: Path | None) -> str:
-    """THE ONE resolver for the season branch name:
-    `season/s{current_season}` from the ladder, `season/s2` only as the
-    fallback when the ladder is unreadable (load_ladder_field already	warns).
+    """THE ONE resolver for the season branch name.
+
+    Starts from `season/s{current_season}` in the ladder (`season/s2` only
+    when the ladder is unreadable — load_ladder_field already warns), then
+    accepts BOTH spellings and emits the canonical name ONLY when it exists
+    on origin (hypothesis:l4-branches-follow-the-season-grammar).
+
+    `branches.ref_candidates(branch)` returns the canonical first (`season
+    N/main`) then the legacy alias (`season/sN`) as the one-season deprecated
+    fallback; the first candidate that resolves on origin is returned, so on
+    a pre-migration tree — where only `origin/season/sN` exists and
+    `origin/season<N>/main` does NOT — the legacy spelling is emitted and a
+    canonical name that would resolve nowhere is never printed. A tree where
+    NO candidate resolves falls back to the input branch unchanged (never a
+    name that does not exist; readers address it as `origin/{season}`). With
+    `root is None` (no git) the origin probe is skipped and the ladder
+    spelling is returned directly.
+
     Every literal `season/s2` site in rotate.py routes through this so a
-    season change is ONL Y the ladder's `current_season` (hypothesis l4-the-
+    season change is ONLY the ladder's `current_season` (hypothesis l4-the-
     prepare-captives-measure-generation-upstream-and-season-and-the-gate-
     is-not-a-test-seam, piece 4: printed lines change text only by the
     season number)."""
     s = load_ladder_field(root, "current_season", None) if root is not None \
         else None
     if s is None:
-        return "season/s2"
-    return f"season/s{s}"
+        branch = "season/s2"
+    else:
+        branch = f"season/s{s}"
+    if root is None:
+        return branch
+    for cand in branches.ref_candidates(branch):
+        if _season_ref_on_origin(root, cand):
+            return cand
+    return branch
 
 
 def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
@@ -1134,7 +1176,7 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     if seat is not None:
         wrap = " ".join(shlex.quote(c) for c in (
             _launch_wrapper_argv(seat, claude_cmd)))
-        cmd = f"export AGI_SEAT={shlex.quote(seat)} && " + wrap
+        cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
@@ -8494,6 +8536,34 @@ def _background_tasks(root: Path, seat: str) -> str:
     return ", ".join(parts) if parts else "unmeasured"
 
 
+def _prepare_merge_target(root: Path) -> str:
+    """The merge target `_prepare_checks` measures-and-merges against.
+
+    hypothesis:l4-branches-follow-the-season-grammar clause (5): a seat's
+    current branch is a post/loop branch under the main it merges up into.
+    Resolve through `branches.merge_target(<current branch>)` so a canonical
+    town loop/post (`season2/<town>/season1/loops/...`) targets that town's
+    main (`season2/<town>/season1/main`), not a literal core main -- the
+    exact-string town lookup used nowhere here. A main, town-main, or
+    unparseable branch keeps `season_branch(root)` (the season main) as the
+    fallback, so this never changes season_branch's own callers.
+    """
+    # Read HEAD's name through `_git_maybe`, the prepare path's own idiom:
+    # it answers None (never raises) when git is absent or faked, so a
+    # fixture that forbids subprocesses in the self-reap path keeps the
+    # season-main fallback (L4.307 director fix-up).
+    lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD") or []
+    branch = lines[0].strip() if lines else ""
+    if branch and branch != "HEAD":
+        try:
+            parsed = branches.parse(branch)
+        except ValueError:
+            parsed = None
+        if parsed is not None and parsed["kind"] in ("post", "loop"):
+            return branches.merge_target(branch)
+    return season_branch(root)
+
+
 def _prepare_checks(root: Path, seat: str, perform: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
@@ -8567,8 +8637,11 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                    "git commit -m '<msg>' -- <the files you changed>"))
 
     # 3 behind origin/season/sX (N commits) -- branch from the ladder via
-    # season_branch, never a hardcoded season.
-    _sb = season_branch(root)
+    # season_branch, never a hardcoded season. The merge target resolves
+    # through branches.merge_target when the seat's branch is a post/loop
+    # (clause 5 of hypothesis:l4-branches-follow-the-season-grammar), so a
+    # town seat targets its own town main, not a literal core main.
+    _sb = _prepare_merge_target(root)
     behind = _git_count_maybe(root, "rev-list", "--count",
                               f"HEAD..origin/{_sb}")
     # The clear command MERGES, never rebases: `never rebase` is a standing
@@ -8924,7 +8997,8 @@ def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
       1. the checked-out HEAD of the seat's worktree, from the config:seats
          `worktree` field (resolved against the MAIN checkout, so a relative
          `.agi/worktrees/seat-<S>` resolves like the live rows),
-      2. a local `seat/<seat>@s<s>` branch (convention fallback),
+      2. a local `post/<seat>@s<s>` / `season<n>/posts/<seat>` branch (with
+         the deprecated `seat/<seat>@s<s>` alias as a fallback),
       3. None.
 
     A worktree seat works on its own checked-out branch; the seat's open
@@ -8939,14 +9013,20 @@ def _fd_seat_branch(root: Path, main: Path, seat: str) -> str | None:
             rc, br, _ = _fd_git(cand, "rev-parse", "--abbrev-ref", "HEAD")
             if rc == 0 and br and br != "HEAD":
                 return br
-    rc, out, _ = _fd_git(main, "branch", "--list", "seat/*")
-    if rc == 0:
-        for line in out.splitlines():
-            # `git branch --list` prefixes `*` for the current branch and `+`
-            # for a branch checked out in a linked worktree; strip all of it.
-            name = line.strip().lstrip("*+").strip()
-            if name.startswith(f"seat/{seat}@s"):
-                return name
+    # Convention fallback, resolved in rename order (hypothesis:l4-a-seat-is-
+    # a-post-everywhere): post/<seat>@s* first, then the canonical
+    # season<n>/posts/<seat>, then the deprecated seat/<seat>@s* alias. Return
+    # the ACTUAL spelling git reports.
+    for pat in (f"post/{seat}@s*", f"season*/posts/{seat}",
+                f"seat/{seat}@s*"):
+        rc, out, _ = _fd_git(main, "branch", "--list", pat)
+        if rc == 0:
+            for line in out.splitlines():
+                # `git branch --list` prefixes `*` for the current branch and
+                # `+` for a branch checked out in a linked worktree; strip all.
+                name = line.strip().lstrip("*+").strip()
+                if name:
+                    return name
     return None
 
 
@@ -8995,9 +9075,10 @@ def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
     """The seat's OWN worktree directory, resolved in strict order:
 
       1. the config:seats `worktree` field (resolved against the MAIN
-         checkout, so a relative `.agi/worktrees/seat-<S>` resolves like the
-         live rows) when it is a directory,
-      2. the convention `.agi/worktrees/seat-<S>` under the main checkout,
+         checkout, so a relative `.agi/worktrees/seat-<S>` / `post-<S>`
+         resolves like the live rows) when it is a directory,
+      2. the convention `.agi/worktrees/post-<S>` (else the deprecated
+         `seat-<S>`) under the main checkout,
       3. None.
 
     Mirrors how `_fd_seat_branch` resolves the worktree; the seat's dispatch
@@ -9010,6 +9091,12 @@ def _fd_seat_worktree(root: Path, main: Path, seat: str) -> Path | None:
         cand = p if p.is_absolute() else (main / wt)
         if cand.is_dir():
             return cand
+    # Convention fallback (hypothesis:l4-a-seat-is-a-post-everywhere): a
+    # post-renamed seat lives at `.agi/worktrees/post-<seat>`; accept that
+    # beside the deprecated `seat-<seat>` name, preferring post-.
+    post = main / ".agi" / "worktrees" / f"post-{seat}"
+    if post.is_dir():
+        return post
     conv = main / ".agi" / "worktrees" / f"seat-{seat}"
     return conv if conv.is_dir() else None
 
@@ -9195,8 +9282,9 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     main = locations.git_common_root(root)
     seat_branch = _fd_seat_branch(root, main, seat)
     if not seat_branch:
-        print(f"ERR: no worktree branch or seat/{seat}@s* branch resolves "
-              f"for seat {seat!r}.", file=sys.stderr)
+        print(f"ERR: no worktree branch or post/{seat}@s* (alias "
+              f"seat/{seat}@s*) branch resolves for seat {seat!r}.",
+              file=sys.stderr)
         return 1
     rows = _fd_rounds(root, main, seat, seat_branch)
     _fd_print_table(rows)
@@ -10707,9 +10795,15 @@ def _harvest_round_dirs(main: Path, seat: str | None = None) -> list[Path]:
     if wt_root.is_dir():
         # The named seat's own copy first.
         if seat:
-            s = wt_root / f"seat-{seat}" / ".agi" / "sessions"
-            if s.is_dir():
-                for d in sorted(s.iterdir()):
+            # The named seat's own copy (hypothesis:l4-a-seat-is-a-post-
+            # everywhere): accept `.agi/worktrees/post-<seat>` beside the
+            # deprecated `seat-<seat>`, reading whichever exists and
+            # preferring post- when both are present.
+            owned = wt_root / f"post-{seat}" / ".agi" / "sessions"
+            if not owned.is_dir():
+                owned = wt_root / f"seat-{seat}" / ".agi" / "sessions"
+            if owned.is_dir():
+                for d in sorted(owned.iterdir()):
                     _absorb(d, 1)
         # Then any worktree manifest that still carries a parent-tier record
         # (parent worktrees and the other seats), so a parent-named round is
@@ -10880,11 +10974,19 @@ def cmd_harvest_table(args: argparse.Namespace, root: Path | None) -> int:
 
     # The seat branch the claim names as the diff base, when --seat is given
     # and that ref exists (hypothesis:harvest-table-subcommand item (d)).
-    seat_base = (f"seat/{want_seat}@s{season}" if (want_seat and season)
-                 else "")
-    if seat_base and not _git_out(main, "rev-parse", "--verify", "--quiet",
-                                  seat_base).strip():
-        seat_base = ""
+    # The seat ref named as the diff base, resolved to its ACTUAL spelling
+    # (hypothesis:l4-a-seat-is-a-post-everywhere): post/<seat>@s<n> first,
+    # then the canonical season<n>/posts/<seat>, then the deprecated
+    # seat/<seat>@s<n> alias.
+    seat_base = ""
+    if want_seat and season:
+        for cand in (f"post/{want_seat}@s{season}",
+                     f"season{season}/posts/{want_seat}",
+                     f"seat/{want_seat}@s{season}"):
+            if _git_out(main, "rev-parse", "--verify", "--quiet",
+                        cand).strip():
+                seat_base = cand
+                break
 
     header = ("round | agent | branch | worktree | diffstat-vs-merge-base | "
               "kids | verdicts")

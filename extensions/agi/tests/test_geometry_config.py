@@ -283,3 +283,133 @@ def test_send_shared_seats_path_falls_back_to_posts_md(tmp_path):
     lines = r.stdout.splitlines()
     assert lines[0] == "post posts.md", lines
     assert lines[1] == "fallback posts.md", lines
+
+# --------------------------------------------------------------------------- #
+# kid 1 (L4.306) READER-ROUTE fix: the three sites that still hardcoded the   #
+# deprecated config:seats / `seats` must route through geometry_config.resolve#
+# post-first, with a seats.md-only fallback (hypothesis:l4-a-seat-is-a-post-  #
+# everywhere). A residual literal to seats.md/seats: would fail a posts-only  #
+# fixture by reading empty/absent.                                            #
+# --------------------------------------------------------------------------- #
+def test_send_row_write_submit_routes_posts_md_first(tmp_path):
+    """send._row_write_submit builds the node id and verb key from
+    geometry_config.resolve: on a posts.md-only graph the write targets
+    `config:posts` / `posts`, never a literal `config:seats`/`seats`."""
+    g = _graph(tmp_path)
+    _write_posts(g)
+    r = _py(
+        "import send\n"
+        "import write as _w\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "cap = {}\n"
+        "def fake_submit(graph, edit, actor='', role='', **kw):\n"
+        "    cap['node'] = edit.node_id\n"
+        "    cap['keys'] = list(edit.set_fm)\n"
+        "_w.submit = fake_submit\n"
+        "ok = send._row_write_submit(ROOT, [{'name':'a'},{'name':'b'}], "
+        "actor='x', role='kid')\n"
+        "print('ok', ok)\n"
+        "print('node', cap.get('node'))\n"
+        "print('keys', cap.get('keys'))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    lines = r.stdout.splitlines()
+    assert lines[0] == "ok True", lines
+    assert lines[1] == "node config:posts", lines
+    assert lines[2] == "keys ['posts']", lines
+
+
+def test_send_row_write_submit_falls_back_to_seats_md(tmp_path):
+    """A seats.md-only graph: _row_write_submit still resolves via the alias to
+    `config:seats` / `seats` (the one-season fallback must keep working)."""
+    g = _graph(tmp_path)
+    _write_seats(g)
+    r = _py(
+        "import send\n"
+        "import write as _w\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "cap = {}\n"
+        "def fake_submit(graph, edit, actor='', role='', **kw):\n"
+        "    cap['node'] = edit.node_id\n"
+        "    cap['keys'] = list(edit.set_fm)\n"
+        "_w.submit = fake_submit\n"
+        "ok = send._row_write_submit(ROOT, [{'name':'a'}], actor='x', role='kid')\n"
+        "print('ok', ok)\n"
+        "print('node', cap.get('node'))\n"
+        "print('keys', cap.get('keys'))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    lines = r.stdout.splitlines()
+    assert lines[0] == "ok True", lines
+    assert lines[1] == "node config:seats", lines
+    assert lines[2] == "keys ['seats']", lines
+
+
+def test_sensei_load_seats_reads_posts_md(tmp_path):
+    """sensei.load_seats resolves posts.md when it is the only geometry config:
+    the ~7 callers get the two rows, not the [] a hardcoded config:seats
+    lookup would return once posts.md exists."""
+    g = _graph(tmp_path)
+    _write_posts(g)
+    r = _py(
+        "import sensei\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "print(len(sensei.load_seats(ROOT)))\n"
+        "print(sensei.load_seats(ROOT)[0].get('name'))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    lines = r.stdout.splitlines()
+    assert lines[0] == "2", lines
+    assert lines[1] == "seatA", lines
+
+
+def test_sensei_load_seats_falls_back_to_seats_md(tmp_path):
+    """A seats.md-only graph: load_seats still returns the rows via the alias."""
+    g = _graph(tmp_path)
+    _write_seats(g)
+    r = _py(
+        "import sensei\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "print(len(sensei.load_seats(ROOT)))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == "2", r.stdout
+
+
+def test_viewport_anchor_index_reads_posts_md(tmp_path):
+    """viewport._anchor_index builds the AnchorIndex from posts.md when that is
+    the only geometry config file (two rows -> two unanchored anchors), not the
+    empty list a literal config:seats lookup would report once posts.md exists."""
+    g = _graph(tmp_path)
+    _write_posts(g)
+    r = _py(
+        "import viewport\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "idx = viewport._anchor_index(ROOT, {})\n"
+        "print(len(idx.anchored) + len(idx.unanchored))\n"
+        "print(len(idx.unanchored))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    lines = r.stdout.splitlines()
+    assert lines[0] == "2", lines
+    assert lines[1] == "2", lines
+
+
+def test_viewport_anchor_index_falls_back_to_seats_md(tmp_path):
+    """A seats.md-only graph: _anchor_index still reads the rows via the alias."""
+    g = _graph(tmp_path)
+    _write_seats(g)
+    r = _py(
+        "import viewport\n"
+        "from pathlib import Path as _P\n"
+        f"ROOT=_P({str(g)!r})\n"
+        "idx = viewport._anchor_index(ROOT, {})\n"
+        "print(len(idx.anchored) + len(idx.unanchored))\n"
+    )
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == "2", r.stdout

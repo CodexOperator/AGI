@@ -219,7 +219,7 @@ def _is_ancestor(groot: Path, sha: str) -> bool | None:
 
 def _integration_branch(groot: Path) -> str | None:
     """The integration branch these bytes merge up to, from the ladder's
-    `town_branches` — NEVER hardcoded (goal:g10.2). Core's branch (season/s2)
+    `town_branches` — NEVER hardcoded (goal:g10.2). Core's branch (season2/main)
     is the declared default; a non-core town's own branch is used when the
     graph resolves to that town. Any single declared branch else None."""
     tb = rotate.load_ladder_field(groot, "town_branches", None)

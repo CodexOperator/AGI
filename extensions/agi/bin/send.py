@@ -63,6 +63,7 @@ import locations  # noqa: E402
 import spawn_gate  # noqa: E402
 import seatsig  # noqa: E402
 import geometry_config  # noqa: E402
+import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
@@ -345,16 +346,18 @@ def _mint_seat_key(root: Path, seat: str,
 
 
 def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
-    """Write the ``config:seats`` rows through write.submit (the sanctioned
-    writer). Returns True on success, False when the write could not be
-    admitted (no config node, no admitted actor, no seating) -- a keygen
-    never fails to mint a key because the row could not be written, and it
-    never prints the private seed either way.
+    """Write the ``config:posts`` rows through write.submit (the sanctioned
+    writer; ``config:seats``/``seats`` is the one-season alias). Returns True
+    on success, False when the write could not be admitted (no config node,
+    no admitted actor, no seating) -- a keygen never fails to mint a key
+    because the row could not be written, and it never prints the private
+    seed either way.
     """
     try:
         import write as write_mod  # local; write.py imports no send.py
-        e = write_mod.Edit("config:seats")
-        write_mod.verb_set(e, "seats", json.dumps(rows))
+        _, list_key = geometry_config.resolve(graph)
+        e = write_mod.Edit(f"config:{list_key}")
+        write_mod.verb_set(e, list_key, json.dumps(rows))
         write_mod.submit(graph, e, actor=actor, role=role)
         return True
     except Exception as exc:                                   # noqa: BLE001
@@ -3022,7 +3025,7 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #: one-season alias. The prime updates and pushes it at every rotation, so its
 #: HEAD is the authoritative answer after a fetch — never the local working
 #: tree.
-_PUSHED_SEATS = "origin/season/s2"
+_PUSHED_SEATS = "origin/" + branches.season_main(2)
 #: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
 #: first that `git show` succeeds on wins.
 _SEATS_REPO_PATHS = (
@@ -3068,17 +3071,40 @@ def _run_git(root: Path, args: list):
 def _pushed_seats(root: Path, ref: str, do_fetch: bool):
     """Return (rows, commit_sha) read from the PUSHED ref, or None if the
     pushed authority cannot be reached. Fetches first (unless disabled), then
-    `git rev-parse` for the provenance sha and `git show` for the file."""
-    if do_fetch:
-        fetch = _run_git(root, ["fetch", "origin", "season/s2"])
-        if fetch is None or fetch.returncode != 0:
-            return None
-    sha = _run_git(root, ["rev-parse", ref])
-    if sha is None or sha.returncode != 0:
+    `git rev-parse` for the provenance sha and `git show` for the file. The
+    live spelling is resolved via ref_candidates (CANONICAL first, the old
+    `origin/season/s<N>` as the one-season fallback), so a tree that has not
+    been renamed yet still reads its pushed seats — the rename window never
+    silently returns None."""
+    if ref.startswith("origin/"):
+        local_candidates = branches.ref_candidates(ref[len("origin/"):])
+        probe_prefix = "origin/"
+    else:
+        # an opaque non-origin ref is used exactly as given (no fetch: it is
+        # not a remote-tracking ref). Parent integration fix L4.306 -- the
+        # ref_candidates refactor made the probe prefix unconditional, which
+        # contradicted this comment and broke non-origin refs.
+        local_candidates = [ref]
+        probe_prefix = ""
+    sha = None
+    live_ref = None
+    for name in local_candidates:
+        probe = f"{probe_prefix}{name}"
+        if do_fetch and probe_prefix:
+            fetch = _run_git(root, ["fetch", "origin", name])
+            if fetch is None or fetch.returncode != 0:
+                continue
+        cand = _run_git(root, ["rev-parse", probe])
+        if cand is None or cand.returncode != 0:
+            continue
+        sha = cand
+        live_ref = probe
+        break
+    if sha is None:
         return None
     shown = None
     for path in _SEATS_REPO_PATHS:
-        shown = _run_git(root, ["show", f"{ref}:{path}"])
+        shown = _run_git(root, ["show", f"{live_ref}:{path}"])
         if shown is not None and shown.returncode == 0:
             break
     if shown is None or shown.returncode != 0:
@@ -3506,8 +3532,8 @@ def main(argv: list[str] | None = None) -> int:
                          help="claimed seat name or role; answer whether this "
                               "ref IS that row (impersonation check)")
     p_whois.add_argument("--source", default=_PUSHED_SEATS,
-                         help="git ref to read seats from (default: pushed "
-                              "origin/season/s2)")
+                         help=f"git ref to read seats from (default: pushed "
+                              f"{_PUSHED_SEATS})")
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",
                          help="skip the `git fetch` before reading")
     p_whois.add_argument("--sig", dest="sig", default=None,
