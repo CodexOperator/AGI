@@ -409,8 +409,10 @@ def test_reap_pid_refuses_own_or_invalid(_fix, tmp_path):
     assert out0["reaped"] is False
 
 
-def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
-    """The full rotate-self call reaps the stand-in own pid handed it."""
+def test_handover_no_reap_own_pid_stand_in(_fix, tmp_path, monkeypatch):
+    """g15.25 (c): the `reap_own_pid` stand-in seam is RETIRED — a full
+    rotate-self call leaves NO `reap_own_pid` key in the rotation record,
+    even when the seam injects an own pid (only `s12_self_reap` reaps now)."""
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
@@ -430,10 +432,10 @@ def test_handover_reaps_own_pid_stand_in(_fix, tmp_path, monkeypatch):
         rc = rotate.cmd_rotate_self(args, tmp_path)
         assert rc == 0
         rec = _latest_record(tmp_path, "adv-alive")
-        hp = rec["handover"]["reap_own_pid"]
-        assert hp["reaped"] is True
-        assert hp["gone_after"] is True
-        assert hp["pid"] == pid
+        # the stand-in is gone: the record never claims a reap it did not do.
+        assert "reap_own_pid" not in rec["handover"]
+        # the injected pid was NOT TERM'd (the stand-in that reaped it gone).
+        assert rotate._pid_alive(pid)
     finally:
         if rotate._pid_alive(pid):
             os.kill(pid, signal.SIGKILL)
@@ -1387,3 +1389,76 @@ class _FakeTime(object):
 
     def sleep(self, s):
         self.t += 2.0
+
+
+# ── SL7.29 part (c): the bootstrap ack fact, END-TO-END at spawn ────────────
+# The part (b) test calls `_write_bootstrap` with hand-copied call args. This
+# test EXECUTES the real `cmd_rotate_self` and reads the bootstrap file AT THE
+# SPAWN INSTANT (inside the spawn seam, before s6.3's `_write_ack` runs), for
+# BOTH modes — so an edit that drops the `overrides=` kwarg from the real
+# pre-spawn call site is caught, never only re-covered by re-copying kwargs.
+
+
+@pytest.mark.parametrize("ask_diff", [False, True])
+def test_rotate_self_bootstrap_ack_verbatim_at_spawn(_fix, tmp_path,
+                                                     monkeypatch, ask_diff):
+    """The bootstrapped ack fact, observed at SPAWN through the REAL
+    cmd_rotate_self, not a hand-copied call: with a rotations.md template
+    whose `telemetry:` NAMES `ack`, the record on disk at the spawn instant
+    carries `telemetry.ack == <answer> (source predecessor, gen 1)` for both
+    the default (`continue`) and `--ask-diff` (`diff-requested`) modes, and
+    rendering that record through the hook reader `_bootstrap_block` shows
+    `- ack: <answer> (source predecessor, gen 1)` verbatim — never `ack: ack:`,
+    never `ack: none`. (The empty-telemetry template would only re-cover the
+    trivial no-ack case.)"""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    g = tmp_path / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  parent:\n    brief_file: .agi/sessions/quorum/{seat}.md\n"
+        "    steps: [handoff, rename, spawn, handover, readback, record, kill]\n"
+        "    telemetry: [ack, seat]\n---\n", encoding="utf-8")
+    transcript = tmp_path / "succ-transcript.jsonl"
+    transcript.write_text("{}", encoding="utf-8")
+
+    answer = "diff-requested" if ask_diff else "continue"
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    at_spawn = {}
+
+    def read_spawn(**kw):
+        # runs at the spawn instant, BEFORE s6.3's `_write_ack` -- the
+        # TURN-ONE record the successor reads, not the post-join rewrite.
+        with open(ft.win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")  # successor window appears (as fake_spawn)
+        at_spawn["doc"] = json.loads(
+            (tmp_path / "sessions" / "seats" / "adv-alive.bootstrap.json")
+            .read_text(encoding="utf-8"))
+        block, reason = rotate._bootstrap_block(tmp_path, "adv-alive")
+        assert reason is None
+        at_spawn["block"] = block
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", read_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": ("diff" if ask_diff else "continue"),
+                          "text": ""})
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000",
+        successor_transcript=str(transcript), ask_diff=ask_diff)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0, f"ask_diff={ask_diff} rc={rc}"
+
+    assert at_spawn["doc"]["telemetry"]["ack"] == \
+        f"{answer} (source predecessor, gen 1)"
+    ack_lines = [ln for ln in at_spawn["block"].splitlines()
+                 if ln.strip().startswith("- ack")]
+    assert ack_lines, f"no ack line at spawn for ask_diff={ask_diff}"
+    assert ack_lines == [f"- ack: {answer} (source predecessor, gen 1)"]
+    assert "ack: ack:" not in at_spawn["block"]
+    assert "ack: none" not in at_spawn["block"]
