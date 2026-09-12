@@ -11,3 +11,6 @@
 
 ## floor board
 sensei-director 0 / 2 (14→15; 13→14 was 0/1). belam 0 / 4. master-sensei 1 / 1. point 0 / 2. helper 5 / 2 (stale).
+
+## correction (sensei-director report 18:46Z)
+The skew was NOT rotate-self's stamp — rotate-self wrote `15` correctly at 18:24Z (record `meter_pin`). Sensei-director's own hand `rotate.py meter --pin --session-log` at 18:30Z re-stamped the pin from the WORKTREE row, which still read 14 until its 18:36Z sync. The point read its meter after its sync → 23=23. Fix: SL7.91 (`cmd_meter` never lowers an existing pin gen for the same transcript). Second finding from the same cause: a hand `meter` read mid-session is now a class (a) call — the UserPromptSubmit hook prints `[meter] post=… fraction line=…` on every prompt since ~16:40Z.
