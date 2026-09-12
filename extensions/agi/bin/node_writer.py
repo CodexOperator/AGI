@@ -335,7 +335,7 @@ def _render_value(key: str, v, indent: str = "") -> list[str]:
                 # A list of containers has no single-line spelling here, and
                 # inventing one would be another silent lossy branch. JSON is
                 # valid YAML and round-trips exactly.
-                out.append(f"{indent}  - {json.dumps(i)}")
+                out.append(f"{indent}  - {json.dumps(i, ensure_ascii=False)}")
             else:
                 out.append(f"{indent}  -" if i is None
                            else f"{indent}  - {i}")
