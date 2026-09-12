@@ -1462,3 +1462,94 @@ def test_rotate_self_bootstrap_ack_verbatim_at_spawn(_fix, tmp_path,
     assert ack_lines == [f"- ack: {answer} (source predecessor, gen 1)"]
     assert "ack: ack:" not in at_spawn["block"]
     assert "ack: none" not in at_spawn["block"]
+
+
+# ── goal:g15.25 (SL7.40 (b)) — the PRE-TURN confirm records `deferred` ─────
+# On a real rotation the successor has NO assistant turn yet when rotate-self
+# probes (the own-window kill follows). A skip there must read DEFERRED, not
+# `skipped:` — the ONE real confirm runs in run_after_join and overwrites it
+# in place, so a reader can tell pre-turn deferral from a real verdict.
+
+def test_rotate_self_pre_turn_confirm_records_deferred_not_skipped(
+        _fix, tmp_path, monkeypatch):
+    """With the successor still turn-less, the (s5) probe records
+    `deferred: after_join`, never a `skipped:` verdict — the after_join
+    confirm is the one that fires once a transcript carries a turn."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    # the successor has produced no assistant turn yet (the real probe reads
+    # none at this point in a rotation) -> the probe returns a skip
+    monkeypatch.setattr(
+        rotate, "_confirm_successor_model",
+        lambda **k: "skipped: no assistant turn in the successor transcript — "
+                    "cannot confirm model/effort")
+    # no persistent service, no forced run: after_join stays DEFERRED to the
+    # service at the (6.4) gate, so the pre-turn deferral is what the record
+    # carries — the after_join confirm overwrites it only when IT runs.
+    monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: False)
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             session_ref=None)
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    mc = rec["handover"]["model_confirm"]
+    assert isinstance(mc, str) and mc.startswith("deferred: after_join"), mc
+    assert not mc.startswith("skipped:"), \
+        "a turn-less probe must read deferred, never a skipped verdict"
+
+
+def test_rotate_self_fallback_after_join_overwrites_with_real_verdict_and_fills_bootstrap(
+        _fix, tmp_path, monkeypatch):
+    """gap (3): the rotate-self FALLBACK path (rotate.py ~12194) reaches the
+    ONE real after_join confirm. With the successor transcript already
+    carrying an assistant turn + a model_refusal_fallback event and the
+    after_join forced onto the rotate-self fallback (an inline reaper is the
+    fallback performer), the FINAL record's handover.model_confirm reads a
+    real `confirm_at: after_join` verdict — overwriting the pre-turn probe in
+    place (never left `deferred:`) — and the bootstrap record's TWO join-only
+    facts (`successor_live_model`, `model_refusal_fallback`) are filled
+    through the seam."""
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "x", "effort": "max", "settings": ""}])
+    tr = tmp_path / "succ.jsonl"
+    tr.write_text(
+        '{"type":"assistant","message":{"role":"assistant",'
+        '"content":[]},"model":"claude-sonnet-5"}\n'
+        '{"type":"system","subtype":"model_refusal_fallback",'
+        '"timestamp":"2026-09-12T10:00:00.000Z",'
+        '"apiRefusalCategory":"safety","requestId":"req-42"}\n',
+        encoding="utf-8")
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "adv-alive", "gen_after": 1,
+                          "answer": "continue"})
+    # an inline reaper is the rotate-self fallback performer — the after_join
+    # runs HERE, with the successor transcript already answerable at tick 0.
+    monkeypatch.setattr(rotate, "_inline_reaper_enabled", lambda root: True)
+    args = _rotate_self_args(tmp_path, window_path=str(ft.win), timeout=5,
+                             session_ref=None, successor_transcript=str(tr))
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 0
+    rec = _latest_record(tmp_path, "adv-alive")
+    mc = rec["handover"]["model_confirm"]
+    assert isinstance(mc, dict) and mc.get("confirm_at") == "after_join", mc
+    assert not (isinstance(mc, str) and mc.startswith("deferred:")), mc
+    b = json.loads(
+        (tmp_path / "sessions" / "seats" / "adv-alive.bootstrap.json")
+        .read_text())
+    tele = b["telemetry"]
+    assert tele["successor_live_model"] == str({"model": "claude-sonnet-5"}), \
+        tele
+    assert tele["model_refusal_fallback"] == (
+        "ts=2026-09-12T10:00:00.000Z category=safety requestId=req-42"), \
+        tele
