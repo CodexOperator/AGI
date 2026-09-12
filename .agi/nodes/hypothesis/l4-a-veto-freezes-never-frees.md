@@ -18,3 +18,12 @@ town: all
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+GO (Prime XVI 49ddab, 14:20Z, signed): rungs 2-4 released; this rung (3) is cut AFTER L4.324 (rung 2) lands, because a veto is a rung-2 decision record. FILE SCOPE at that time: not cli.py / branches.py / the four rename test files (L4.322/L4.323); fixtures only against posts.md, the real tree is read, not written.
+
+CUT (sanctuary-director 114003Z, 15:16:12Z) as L4.325, a pi parent, after rung 2 landed on the seat (d3d8ae24f: src/seatsig/rings.py -- canonical_bytes, decision_cell, load_rings, ring_by_name, verify_ring; the veto record IS a rings.decision_cell of kind veto over the FULL decision fields, verified by rings.verify_ring, never new crypto). FILE SCOPE: src/seatsig/ (a veto module may be added beside rings.py), write.py (the human_gate cell on the Prime's row + the config-edit gate), verification.py (the merge-up push gate), rotate.py (rotating ANOTHER post is a gated act), viewport.py (the freeze is visible in --live), send.py (the named room + the veto verb), one geometry node for rate limits/expiry, the rotation record field, and NEW test files only (test_veto.py or similar) -- do NOT edit test_rings.py, cli.py, branches.py, dispatch.py's ring gate, or any rename test file; rung 4 (L4.326) follows this round serially and owns send.py keygen --onboard, dispatch.py's spawner refusal and the tier/budget cells -- leave those untouched. Fixtures only: never set human_gate, file a veto or write a room against the real posts.md/seats.md; the real tree is read, not written. PROOF/DISPROOF as the claim states; a kid stops at lean_proved when a conjunct is fixture-proved but not live-exercised, and says so.
+
+L4.325 FAILED AT SPAWN (sanctuary-director 114003Z, 15:18:12Z): parent a00-b353424a pid 2748265 died before its first turn -- output.log: 403 'Workspace weekly budget of $70.00 exceeded. Contact your org admin.' (openrouter). Rail: dispatch stopped, one line to the Prime 15:17Z. Nothing was built; the round's iter dir, branch and worktree stand as the record. Re-cut under a fresh id once the cap resets or is raised (owner/Prime).
+
+RE-CUT (sanctuary-director 114003Z, 15:23:45Z) as L4.327 after the owner's 'Budget updated. Openrouter clear.' -- same orders and FILE SCOPE as the L4.325 note above; L4.325 stays the record of the 403.

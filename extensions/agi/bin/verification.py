@@ -508,15 +508,31 @@ def _read_suite_ts(groot: Path) -> float | None:
         return None
 
 
-def _record_suite_ts(groot: Path) -> None:
+def _record_suite_ts(groot: Path, decision: dict | None = None) -> None:
     """Persist the suite-completed timestamp (same idiom as _write_state).
 
     Written to the SHARED sessions dir (see `_suite_ts_path`), so a first
     `--suite` run on the main checkout is immediately visible to every seat
-    branch -- the round-trip falsifier (g3) of this round's item 3."""
+    branch -- the round-trip falsifier (g3) of this round's item 3. When a
+    `--suite-ring` gate admitted this run, its mastered ``decision`` cell
+    (hypothesis:l4-a-ring-decision-carries-m-of-n-signatures claim (2)) is
+    merged into the SAME record the suite already writes -- not a second
+    ledger -- so a later reader loads it from disk and re-verifies m-of-n
+    WITHOUT argv, and a tampered record reads short-of-m by name."""
     path = _suite_ts_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"suite_ran_at": time.time()}), encoding="utf-8")
+    doc = {"suite_ran_at": time.time()}
+    if decision is not None:
+        doc["ring_decision"] = decision
+    # Merge over any existing record so the grant decision is not lost when a
+    # second --suite (no ring) refreshes the timestamp.
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(existing, dict):
+            doc = {**existing, **doc}
+    except (OSError, ValueError, TypeError):
+        pass
+    path.write_text(json.dumps(doc), encoding="utf-8")
 
 
 def check_bin_freshness(groot: Path, *, bin_dir: Path | None = None,
@@ -952,6 +968,53 @@ def render_json(level: str, suite: bool, results: list[CheckResult],
     }
 
 
+def _suite_grant_fields(groot: Path, level: str, ring_name: str) -> dict:
+    """The FULL suite-grant decision fields a ring's signatures cover -- the
+    same bytes the gate signs, the suite persists, and a reader re-verifies
+    (hypothesis:l4-a-ring-decision-carries-m-of-n-signatures, HOLE 2: the
+    signed bytes must cover the decision it authorises, so a quorum for one
+    level/groot/ring cannot replay onto another).
+    """
+    return {"level": level, "root": str(groot), "ring": ring_name}
+
+
+def _ring_gate_refusal(groot: Path, ring_name: str, level: str,
+                       signatures: list) -> str | None:
+    """Rung 2 suite-ring gate: refuse the suite/merge grant when its record
+    lacks the named ring's m valid signatures. Returns the refusal line (naming
+    the m-of-n count) or None to admit. OPT-IN: a ring the geometry does not
+    name is not demanded. Verified through seatsig/rings.py (the SAME Scheme
+    interface send.py's verify labels against), never this gate's own crypto."""
+    try:
+        from seatsig import rings as _rings
+
+        rings_rows = _rings.load_rings(groot)
+        ring = _rings.ring_by_name(rings_rows, ring_name)
+    except Exception:  # noqa: BLE001
+        ring = None
+    if ring is None:
+        return None  # no such ring declared -> opt-in means nothing demanded
+    canonical = _rings.canonical_bytes(
+        "suite-grant", _suite_grant_fields(groot, level, ring_name))
+
+    def resolver(post):
+        try:
+            import geometry_config  # noqa: PLC0415
+
+            for row in geometry_config.load_rows(groot):
+                if row.get("name") == post:
+                    return row.get("pubkey") or None
+        except Exception:  # noqa: BLE001
+            return None
+        return None
+
+    res = _rings.verify_ring(ring, canonical, signatures or [],
+                             pubkey_for_post=resolver)
+    if res.ok:
+        return None
+    return (f"merge grant short of {ring_name!r} ring quorum: {res.refused}")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=__doc__.splitlines()[0],
@@ -977,6 +1040,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="show per-check output even when it passes")
     ap.add_argument("--root", default=".",
                     help="any path inside the project")
+    ap.add_argument("--suite-ring", default=None, metavar="RING",
+                    help="rung 2: with `--suite`, demand the quorum of this "
+                         "ring (an approval record the merge grant needs) "
+                         "before the suite window opens; short of m the "
+                         "suite is REFUSED by name with the count (opt-in)")
+    ap.add_argument("--ring-sig", dest="ring_sigs", action="append",
+                    default=[],
+                    help="rung 2: repeatable; a `<post>:<scheme>:<sig_hex>` "
+                         "signature over the suite-grant record backing "
+                         "`--suite-ring` (seatsig/rings.py)")
     args = ap.parse_args(argv)
 
     groot = locations.find_project_root(Path(args.root).resolve())
@@ -1026,6 +1099,31 @@ def main(argv: list[str] | None = None) -> int:
             print(refusal)
             return EXIT_SUITE_LOCKED
 
+    # RUNG 2 suite-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
+    # signatures). OPT-IN: only when `--suite-ring <name>` is given AND the
+    # geometry names that ring is the suite-window/merge grant gated on the
+    # ring's quorum -- verified through the SAME seatsig Scheme interface
+    # send.py uses (seatsig/rings.py), never this gate's own crypto; a
+    # short-of-m grant is REFUSED BY NAME with the m-of-n count and the suite
+    # never runs.
+    if args.suite and args.suite_ring:
+        refusal = _ring_gate_refusal(groot, args.suite_ring,
+                                     args.level, args.ring_sigs)
+        if refusal is not None:
+            print(f"suite-ring: {refusal}")
+            return 1
+        # RUNG 2 claim (2): the admitted suite-grant signatures are persisted
+        # onto the ONE record the suite already writes (see _record_suite_ts)
+        # so a later reader re-verifies m-of-n from disk, never argv. The
+        # canonical fields are the same bytes the gate just signed.
+        from seatsig import rings as _rings  # noqa: PLC0415
+        _suite_decision = _rings.decision_cell(
+            args.suite_ring, "suite-grant",
+            _suite_grant_fields(groot, args.level, args.suite_ring),
+            args.ring_sigs)
+    else:
+        _suite_decision = None
+
     results = run_level(groot, args.level, args.suite, args.verbose,
                         stamp=args.stamp)
     if args.suite:
@@ -1033,7 +1131,7 @@ def main(argv: list[str] | None = None) -> int:
         # freshness check answers "has the suite run since this file
         # changed", not "did it pass" -- pass/fail is the suite's own
         # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
-        _record_suite_ts(groot)
+        _record_suite_ts(groot, _suite_decision)
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,
