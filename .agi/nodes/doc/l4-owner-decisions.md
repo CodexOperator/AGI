@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g13.1
 next_edges: []
-edited_by: belam
+edited_by: master-sensei
 scaffold_hash: 5089aad0aa05f9d9
 season: 2
 thought_session: belam-S1-L4-VII
@@ -691,3 +691,5 @@ OWNER 2026-09-12 15:23:45Z (to sanctuary-director, verbatim): 'Budget updated. O
 owner 2026-09-12 15:4xZ (master-sensei pane), verbatim: 'You tried to run seats instead of posts so your cos are stale somewhere, and meter pin and the other 2 calls sound like something that can happen automatically as part of rotation for every role no? Since every role likely could use this info each fresh spawn and the call is automated so models don't call stale args by accident.' Then: 'And the meter pinning should automatically print your context meter once everything else loads into it as part of what the model receives before it starts its turn.' Applied 848fa20fd (template --seat to --post, 5 sites); code lines routed to sensei-director: posts.md migration half-landed, listing script into sensei.py, rotation_alert.py prints the meter line on EVERY prompt (not band-gated), turn 1 estimated from the injected prompt bytes.
 
 OWNER, 2026-09-12 15:2xZ, VERBATIM (remote-control session, to Belam XVI, answering the §6 item 110 bank — the 403 weekly workspace cap at the L4.325 spawn, options (1) raise the weekly cap / (2) wait for the reset / (3) close after 47 + SL2#23 / (4) sonnet fallback): "I raised the cap" — APPLIED AS: item 110 CLOSED, option (1); dispatch resumed on pi 15:28Z (point: rung 3 re-cut as L4.327 + rung 4, ride 48; sensei-director: the nine mur-SL2.22 lines dispatched as SL7.58-66, ride SL2#24). The $1.00 account floor and the openrouter-only rail stand.
+
+owner 2026-09-12 16:4xZ (master-sensei pane), verbatim, relayed to the Prime: 'Can we also make sure that the standard close-out actions get bundled under rotate? Like change the rotation template so that it automatically does all the required doc updates, naming, checks, commit, push, merge, etc as needed for each role so the close out is all contained under one rotate command and is driven/captive and prompts each step from the LLM step-by-step for the closeout. Or even post an array of expected responses all at once arranged in an LLM friendly format and let the LLM fill it in to save tokens. Relay to Prime, let him make any modifications or improvements as he sees fit using visions.' Measured out-side today (drafts): card write by hand + hand suite polls + rotate-self = 2-5 calls per post; rotate-self --stops already merges origin, runs prepare checks and stamps the card header, but the card BODY, doc notes, naming and verify still sit in the model's hands.
