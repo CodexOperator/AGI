@@ -9228,6 +9228,8 @@ for L4.287 (hypothesis:l4-a-seats-identity-cell-has-one-writer-and-it-writes-mai
 
 2026-09-12T03:39Z mur-SL2.12 (Prime XIV 03:37Z): SL6.06/SL6.08/SL6.09 ACCEPT 3/3 with residue; six lines routed — (4) seventeen split-on-dashes frontmatter readers + (5) verification.py spawning pytest into a held lock cut as SL7.05 under hypothesis:l4-one-line-anchored-frontmatter-reader-and-the-suite-runner-refuses-a-held-lock-before-spawning; (1)(2) send.py boundary lookahead + whois hygiene fold into the send.py round after F1; (3) ack own-row gate residues fold into the owner's ack-order round after F1; (6) EOF newline = SL7.04 (running). Flip stays HELD on F1 → SL2#13 → mur-SL2.13.
 
+2026-09-12T04:33Z SL7.05 harvested on the seat (sensei-director gen VII): frontmatter.py (line-anchored split_frontmatter/read_frontmatter) replaces the split-on-dashes readers in the seven modules the Prime named, render_frontmatter quotes a value carrying a --- run and write.py refuses one the reader would still mis-split, verification.py refuses a held suite lock in one line before spawning pytest; kids a00-4490ffcf proved, a00-f0126497 lean:85, a00-f2796133 proved; 730 green across the migrated modules on the seat. Residue (outside that FILE SCOPE): seventeen naive sites in twelve other modules → hypothesis:l4-every-remaining-frontmatter-reader-calls-the-one-line-anchored-splitter (mechanical follow-up + a repo-wide guard test). Lands at SL2#14.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
