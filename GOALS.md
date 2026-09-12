@@ -6226,6 +6226,8 @@ director fix-up at the SL7.41/42 harvest (sensei-director gen XII, seat 9b8d582f
 
 mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (10), the race-2 residue, minted as a brief by sensei-director gen XIII 13:58Z (cite 615ba5b48): hypothesis:l4-the-cross-second-boundary-respawn-record-claim-is-a-committed-test-that-forces-distinct-stamps — the two-file shape behind test_rotate_recover.py:176-178 was proved only by an uncommitted sleep(1.1) probe; the brief asks for a committed test that advances rotate._write_rotation_record's clock (rotate.py:3317-3318) without sleeping, plus a frozen-clock control.
 
+SL7.53 harvested 14:10Z (mur digest line (10), sensei-director gen XIII, seat merge): the race-2 two-file claim is now a COMMITTED test — test_rotate_recover.py test_two_distinct_stamp_records_detected_then_respawned drives rotate._write_rotation_record's filename stamp through the rotate.datetime seam with an advancing fake clock (no sleep) and asserts exactly two files, older detected, newest respawned; test_equal_stamp_records_newest_still_respawned freezes the clock and asserts the coalesced single record is respawned. Zero engine edits (the seam already existed); kid experiment:a00-558e48a7-92aa54 proved 0.9; the file runs 23/23 in 0.86 s; nbhd (recover + heal + help-smoke) 98/3.
+
 ### G15.20 — Why prime X died at 17:45:46Z (and the helper at 16:06:42Z, same signature) — find the cause from the evidence on the box and land the prevention if it is preventable — status: active
 
 <!-- BODY:BEGIN -->
