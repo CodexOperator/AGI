@@ -4048,7 +4048,8 @@ def main(argv: list[str] | None = None) -> int:
                               "of a row's pubkey instead of by session_ref "
                               "(the prime row's pubkey is filled at every "
                               "rotation when its session_ref is empty)")
-    p_whois.add_argument("--seat", default=None,
+    p_whois.add_argument("--seat", "--post", action=geometry_config.SeatAction,
+                         default=None,
                          help="resolve by a row's seat name instead of by "
                               "session_ref")
     p_whois.add_argument("--claim", default=None,

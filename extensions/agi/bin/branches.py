@@ -21,7 +21,10 @@ Reserved leaves: main, posts, loops are NEVER a town name — refused.
 Old names (`master`, `season/s<N>`, `seat/<name>@s<N>`, `loop/<slug>-<agent>@s<N>`,
 `town/<town>/season/s<k>`, `town/<town>@s<N>`) are accepted as a DEPRECATED
 alias for one season: parse() returns kind="alias" plus `canonical`, prints
-one line per process, never raises.
+one line per process, never raises. `post/<name>@s<N>` is the INTERMEDIATE
+alias of a post (the seat->post rename's mid-point) and resolves the same way
+to `season<N>/posts/<name>`.
+
 
 Self-contained: stdlib only. Readers import THIS module — it never imports
 them.
@@ -50,6 +53,7 @@ _warned = False
 
 _MAIN_RE = re.compile(r"^season/s(\d+)$")
 _SEAT_RE = re.compile(r"^seat/(.+?)@s(\d+)$")
+_POST_AT_RE = re.compile(r"^post/(.+?)@s(\d+)$")
 _LOOP_AT_RE = re.compile(r"^loop/(.+?)@s(\d+)$")
 _TOWN_S_RE = re.compile(r"^town/(.+?)/season/s(\d+)$")
 _TOWN_AT_RE = re.compile(r"^town/(.+?)@s(\d+)$")
@@ -117,13 +121,13 @@ def ref_candidates(branch: str) -> list[str]:
         return [branch]
     if p.get("kind") == "alias":
         canonical = p["canonical"]
-    old = _canonical_to_old(canonical)
+    old = _canonical_to_old(canonical, legacy_seat=True)
     if old is None or old == canonical:
         return [canonical]
     return [canonical, old]
 
 
-def _canonical_to_old(name: str) -> str | None:
+def _canonical_to_old(name: str, *, legacy_seat: bool = False) -> str | None:
     """The one-season DEPRECATED spelling of a canonical branch, or None.
     Inverts the alias table so readers can fall back to the old name while a
     live tree has not been renamed yet."""
@@ -140,14 +144,22 @@ def _canonical_to_old(name: str) -> str | None:
     m = re.fullmatch(r"season(\d+)/loops/(.+)", name)
     if m:
         return f"loop/{m.group(2)}@s{m.group(1)}"
-    # season<n>/posts/<name> -> seat/<name>@s<n>
-    # A `seat/<name>@s<N>` is the legacy spelling of a POST under that
-    # season's main (branches.py parse: _SEAT_RE keys on the post branch, not
-    # a town). Keep the old name so a reader handed a canonical POST name on
-    # a pre-migration tree still finds the live seat branch.
+    # season<n>/posts/<name> -> post/<name>@s<n>
+    # The INTERMEDIATE spelling the seat->post rename moves through (cli.py
+    # branch --apply renames `seat/<n>@s2` to `post/<n>@s2`, then re-points
+    # onto the canonical `season<n>/posts/<n>`). It is the reverse of the
+    # `_POST_AT_RE` intermediate rule added in L4.319. The even-older
+    # `seat/<name>@s<N>` DEPRECATED spelling is kept reachable via
+    # `legacy_seat=True` (ref_candidates passes it, so a reader handed a
+    # canonical POST name on a PRE-migration tree still finds the live seat
+    # branch; `_SEAT_RE` also still parses it as an input). Default returns
+    # the intermediate, per the g17.1 ruling that `post/<n>@sN` is the
+    # intermediate alias to season<n>/posts/<n>.
     m = re.fullmatch(r"season(\d+)/posts/(.+)", name)
     if m:
-        return f"seat/{m.group(2)}@s{m.group(1)}"
+        spell = f"seat/{m.group(2)}@s{m.group(1)}" if legacy_seat \
+            else f"post/{m.group(2)}@s{m.group(1)}"
+        return spell
     return None
 
 
@@ -281,6 +293,12 @@ def _alias_canonical(name: str) -> str | None:
     m = _SEAT_RE.fullmatch(name)
     if m:
         # A `seat/<name>@s<N>` is a POST branch under that season's main.
+        return f"season{int(m.group(2))}/posts/{m.group(1)}"
+
+    m = _POST_AT_RE.fullmatch(name)
+    if m:
+        # A `post/<name>@s<N>` is a POST branch under that season's main —
+        # the intermediate spelling the seat->post rename moves through.
         return f"season{int(m.group(2))}/posts/{m.group(1)}"
 
     m = _LOOP_AT_RE.fullmatch(name)

@@ -226,15 +226,16 @@ fi
 # wakes KNOWING its state and spends zero tool calls deriving it. Injected
 # when — and only when — the record exists for the seat AND is not stale
 # (`_bootstrap_stale`: a measured fact not at HEAD is MARKED stale per its
-# `fact_bounds` entry and still emitted, never withheld). A seat is named by AGI_SEAT (set by the spawner for a seat
-# session); with no AGI_SEAT this is a silent no-op, exactly like every
+# `fact_bounds` entry and still emitted, never withheld). A seat is named by AGI_POST (set by the spawner for a
+# seat session) with the deprecated AGI_SEAT as a fallback; when neither is set this is a silent no-op, exactly like
+# every
 # other optional section of this hook. rotate.py returns 0+block on emit,
 # 1+silence on refuse — SILENCE is the safe direction (no stale state, no
 # banner on a non-seat session).
 BOOTSTRAP_SEAT="${AGI_POST:-${AGI_SEAT:-}}"
 if [[ -n "$BOOTSTRAP_SEAT" ]]; then
   BOOTSTRAP_BLOCK="$(AGI_PROJECT_ROOT="$PROJECT_ROOT" python3 \
-    "$PLUGIN_ROOT/bin/rotate.py" bootstrap-block --seat "$BOOTSTRAP_SEAT" \
+    "$PLUGIN_ROOT/bin/rotate.py" bootstrap-block --post "$BOOTSTRAP_SEAT" \
       --root "$PROJECT_ROOT" 2>/dev/null || true)"
   if [[ -n "$BOOTSTRAP_BLOCK" ]]; then
     echo "$BOOTSTRAP_BLOCK"
