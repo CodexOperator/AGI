@@ -214,6 +214,20 @@ def load_crons_node(root: Path) -> dict:
                 f"expression, got {schedule!r}"
             )
         jobs[name] = {"enabled": enabled, "every_mins": every_mins, "schedule": schedule}
+        if name == "grid_sync":
+            # The town MIRROR flag (item 2 of the I-3a-2 order): when true,
+            # `render_managed_lines` appends one GUARDED push per declared
+            # town publishing `refs/heads/<town>/*` -> `refs/agi/<town>/*`.
+            # Declared under the grid_sync cadence so the mirror runs on the
+            # same 5-minute heartbeat as the grid ref push. Absent means
+            # false. Any non-bool value is refused BY NAME.
+            mirror = job.get("mirror_towns", False)
+            if not isinstance(mirror, bool):
+                raise CronsError(
+                    f"{path}: cadences.grid_sync.mirror_towns must be "
+                    f"true/false, got {mirror!r}"
+                )
+            jobs[name]["mirror_towns"] = mirror
 
     # Optional `services:` table — systemd unit files rendered from the graph
     # the way the crontab is (hypothesis:l4-the-reaper-is-one-persistent-
@@ -299,6 +313,51 @@ def _require_dir(path: Path, why: str) -> None:
         raise CronsError(f"{path}: no such directory — needed for {why}")
 
 
+# --- the town mirror -----------------------------------------------------
+
+
+def _mirror_towns(root: Path) -> list[str]:
+    """The town set the mirror renders: `towns.town_tuples(root)` when a
+    `town:*` node exists, else the ladder.md `towns:` fallback — the SAME
+    resolution `cli.py::_rs_town_set` uses, so the mirror describes the same
+    towns the branch reshuffle plans (single source of truth, per the round;
+    never a hardcoded app town, goal:g8.2). Imported lazily so grid_sync's
+    5-minute cron does not pay cli.py's import cost unless the node asks for
+    the mirror.
+
+    Returns `[]` (no mirror lines) when the set is undeclared — a graph with
+    no `town:*` node AND no ladder `towns:` list — or when the town set
+    cannot be resolved. A corrupt geometry must not brick the crontab apply:
+    the mirror is a best-effort publication helper, its lines are guarded
+    no-ops until town refs exist anyway, and the live crontab is the higher-
+    order invariant."""
+    try:
+        import cli  # local: same bin dir (may be absent or fail to import)
+        tuples, _, declared = cli._rs_town_set(root)
+        if not declared:
+            return []
+        return [t["town"] for t in tuples]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _mirror_push_line(town: str, root: Path, repo_root: Path, log: Path,
+                      sched: str) -> str:
+    """One guarded push line rendering every `refs/heads/<town>/*` to
+    `refs/agi/<town>/*` on `origin`. The shape (pinned byte-for-byte by
+    test_crons_mirror.py): the `for-each-ref` guard runs BEFORE the push, so
+    with no `<town>` refs the whole line is a NO-OP — rc 0, nothing pushed,
+    nothing logged. Pushes ONLY under `refs/agi/<town>/*`, never
+    `refs/heads/...` (the hidden namespace, restored by
+    `git config --add remote.origin.fetch '+refs/agi/*:refs/agi/*'`)."""
+    return (
+        f"{sched} cd {root} && if git -C {repo_root} for-each-ref "
+        f"--format='%(refname)' refs/heads/{town}/ | grep -q .; then "
+        f"git -C {repo_root} push -q origin "
+        f"'refs/heads/{town}/*:refs/agi/{town}/*' >> {log} 2>&1; fi"
+    )
+
+
 # --- rendering -----------------------------------------------------------
 
 
@@ -380,6 +439,18 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             f"python3 {crons_py} apply --unit-dir {udir} >> {log} 2>&1"
         )
         lines.append(f"{sched} cd {root} && {cmd}")
+
+        # The town MIRROR (item 2): when grid_sync's `mirror_towns` is true,
+        # append one GUARDED push per declared town. Runs on the same
+        # grid_sync schedule. Each line is inert (rc 0, no push, no log
+        # noise) while no `refs/heads/<town>/*` exists — the live state
+        # today — and lands under `refs/agi/<town>/*` only when the branch
+        # reshuffle actually creates town branches.
+        if jobs["grid_sync"].get("mirror_towns"):
+            for tn in _mirror_towns(root):
+                lines.append(
+                    _mirror_push_line(tn, root, repo_root, log, sched)
+                )
 
     if "branch_push" in jobs and jobs["branch_push"]["enabled"]:
         _require_git_repo(repo_root, "branch_push")
