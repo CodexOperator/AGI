@@ -456,10 +456,16 @@ def _run_pending_after_joins(root: Path) -> None:
                   file=sys.stderr)
             continue
         if result is not None:
-            _watch_log(f"watch: after_join performed for seat {seat!r} "
-                       f"({len(result.get('results') or [])} command(s); "
-                       f"record appended: {result.get('appended')}, "
-                       f"dm sent: {result.get('sent')})")
+            if result.get("skipped"):
+                # (goal:g15.25 SL7.76 (a)) exactly ONE line for a definitely-
+                # dead seat with no live session — no record append, no dm.
+                _watch_log(f"after_join skipped for {seat!r}: "
+                           f"{result['skipped']}")
+            else:
+                _watch_log(f"watch: after_join performed for seat {seat!r} "
+                           f"({len(result.get('results') or [])} command(s); "
+                           f"record appended: {result.get('appended')}, "
+                           f"dm sent: {result.get('sent')})")
 
 
 def _sweep_season(branch: str) -> int | None:
