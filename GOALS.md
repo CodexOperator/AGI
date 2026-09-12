@@ -6576,6 +6576,8 @@ SL7.70 harvested 16:23Z (owner second order): the rotation-alert hook prints one
 
 SL7.75 harvested 16:32Z (Prime line (3)): the service after_join dm is sent by a declared sender — the seat itself when its key exists (signed, self-addressed from the seat's own service) else heal (named, unsigned; enforcing verify refuses only FORGED) — never from: unknown; one helper for the watch and the tail; record carries dm_sender + dm_signed; send.py untouched (kid a00-0a7759b5-134b9e 0.9; nbhd 412/3)
 
+SL7.73 harvested 16:37Z (Prime line (1) / Sensei line (2)): an after_join entry using a placeholder that resolves EMPTY is refused by name with a per-placeholder reason (pred_pids: no predecessor chain; succ_ref: row session_ref empty; gen: no generation resolved) and never executed — reap-proof on a MAIN post with no chain records the refusal, no grep -E '' over the process table; fallback precedence as first_turn; generic to every entry (kid a00-e95c7ff6-23ee98 0.9); residue: the dry-run branch still resolves empties to '' (executes nothing); seat fix-up: the never-run thrower guards _run_units_no_shell; nbhd 554/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
