@@ -498,6 +498,176 @@ def test_v3_apply_creates_trunk_pairs_renames_posts_locally_and_repoints(
 
 
 # --------------------------------------------------------------------------
+# l4-apply-runs-the-v3-tail (claim a): --apply with ZERO legacy rename jobs
+# must NOT be bypassed by the zero-legacy early return — the v3 apply tail
+# (trunk-pair creates / local post renames) is INDEPENDENT of the v2 renames,
+# so an empty legacy list still runs the v3 plan. Only a tmp fixture.
+# --------------------------------------------------------------------------
+
+def _v3_zero_legacy_repo(tmp_path: Path) -> Path:
+    """_v3_repo (declared town set) with the ONE legacy alias erased: the
+    default `master` ref is a season-grammar alias (master -> season1/main),
+    so deleting it after moving the checkout leaves ZERO legacy rename jobs —
+    exactly the zero-jobs surface claim (a) guards. Every other branch is a
+    canonical season name (never an alias)."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _git(r, "checkout", "-q", "season2/main")
+    _git(r, "branch", "-D", "master")
+    return r
+
+
+def test_v3_apply_zero_legacy_jobs_still_runs_the_v3_tail(tmp_path: Path):
+    # claim (a): with jobs == [] under --apply, the zero-legacy early return
+    # must still reach the v3 apply tail (rc-honest, dry=False) — the
+    # local-only v3 post renames perform even when there is nothing to rename
+    # in the v2 legacy stream.
+    r = _v3_zero_legacy_repo(tmp_path)
+    root = r / ".agi"
+    posts = {"season2/posts/sanctuary-director",
+             "season2/posts/sanctuary-helper"}
+    before = _heads(r)
+    assert posts <= before, before
+    assert "master" not in before, before  # the zero-jobs premise
+
+    res = _run_cli(root, "--apply", "--kinds", "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    # the zero-jobs notice AND the v3 APPLY tail both appear
+    assert "no legacy branches to reshuffle" in res.stdout, res.stdout
+    assert "[APPLY] branch rename (local, v3)" in res.stdout, res.stdout
+    assert "apply: local renames + worktree re-points done; remote legacy " \
+        "branches NOT deleted (see --delete-old)" in res.stdout, res.stdout
+    # the local-only v3 post renames ACTUALLY happened (sources gone, v3
+    # post_mains present), all on the tmp fixture with its bare origin
+    after = _heads(r)
+    assert posts.isdisjoint(after), (posts & after, sorted(after))
+    for new in ("core/season2/posts/sanctuary-director/main",
+                "core/season2/posts/sanctuary-helper/main"):
+        assert new in after, (new, sorted(after))
+        up = _git(r, "rev-parse", "--abbrev-ref", f"{new}@{{u}}")
+        assert up.returncode != 0, (new, up.stdout, up.stderr)  # no upstream
+
+
+# --------------------------------------------------------------------------
+# l4-apply-runs-the-v3-tail (claims b/c/d): the FIX-ONLY round's remaining
+# residues -- trunk-pair create resumability (c), the master leg pushing by
+# SHA with no local ref (d), and the --delete-old B2 gate admitting a v3-LOCAL
+# post (b). Fixture-proofs on tmp bare-origin repos; never the live tree.
+# --------------------------------------------------------------------------
+
+def test_v3_apply_resume_skips_finished_trunk_pairs(tmp_path: Path):
+    # claim (c): a re-run of --apply after a completed (or partial) first pass
+    # must NOT abort at the first pre-existing <town>/main "already exists" --
+    # it treats each finished trunk as a [SKIP] already-at-tip job and
+    # completes the rest, never force-moving a trunk. Here the first apply
+    # completes, so the second is a full resume: every planned trunk skips.
+    r = _v3_apply_repo(tmp_path)
+    root = r / ".agi"
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402  (same-dir module, like the other tests)
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    res2 = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    assert "[SKIP]" in res2.stdout and "already at tip" in res2.stdout, \
+        res2.stdout
+    assert "already exists" not in res2.stderr, res2.stderr
+    # every planned trunk is present and still at its planned tip (no drift)
+    gs = 2
+    for town, season in _FALLBACK_TOWNS:
+        tip = (f"season{gs}/main" if season == gs
+               else f"season{gs}/{town}/season{season}/main")
+        d = branches.derive_names(town, season)
+        for target in (d["town_main"], d["town_season_main"]):
+            got = _git(r, "rev-parse", f"{target}^{{commit}}").stdout.strip()
+            want = _git(r, "rev-parse", f"{tip}^{{commit}}").stdout.strip()
+            assert got == want, (target, got, want)
+
+
+def test_v3_apply_refuses_a_trunk_at_wrong_tip(tmp_path: Path):
+    # claim (c) refusal half: a trunk that exists at a DIFFERENT tip than the
+    # plan is refused BY NAME, never force-moved -- but run on an orphan temp
+    # branch so the town node files (untracked) are never swept into a commit.
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _git(r, "checkout", "-q", "--orphan", "tmpw")
+    _write(r, "xtra.txt", "x\n")
+    _git(r, "add", "-q", "xtra.txt")
+    _git(r, "commit", "-qm", "wrong")
+    _git(r, "checkout", "-q", "season2/main")
+    _git(r, "branch", "core/main", "tmpw")
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 1, res.stdout
+    assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
+
+
+def test_v3_apply_master_leg_pushes_by_sha_with_no_local_master(tmp_path: Path):
+    # claim (d): the ADD-ONLY master leg must push master's tip BY SHA when
+    # the checkout has ONLY origin/master (no local `master` ref -- the live
+    # tree's measured state), never the bare ref name `master` as the push
+    # source (which fails 'src refspec master does not match any').
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _git(r, "push", "-q", "origin", "master:refs/heads/master")
+    _git(r, "checkout", "-q", "season2/main")
+    _git(r, "branch", "-D", "master")  # drop LOCAL master, keep origin/master
+    assert "master" not in _heads(r), _heads(r)
+    assert "origin/master" in \
+        _git(r, "for-each-ref", "--format=%(refname:short)",
+             "refs/remotes").stdout, "premise: origin/master must exist"
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season1/main").stdout.strip()
+    assert got, "season1/main missing on origin"
+    mt = _git(r, "rev-parse", "origin/master^{commit}").stdout.strip()
+    assert got.split("\t")[0] == mt, (got, mt)
+
+
+def test_v3_apply_master_leg_with_local_master_same_code_path(tmp_path: Path):
+    # claim (d) second fixture: when a LOCAL master also exists (the
+    # _v3_apply_repo default), the SAME pushed-by-SHA outcome lands -- the
+    # impl must not fork behavior on which ref happens to be present.
+    r = _v3_apply_repo(tmp_path)
+    assert "master" in _heads(r), "premise: local master present"
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season1/main").stdout.strip()
+    assert got, "season1/main missing on origin"
+    mt = _git(r, "rev-parse", "master^{commit}").stdout.strip()
+    assert got.split("\t")[0] == mt, (got, mt)
+
+
+def test_v3_delete_old_admits_a_local_post_and_removes_its_origin_alias(
+        tmp_path: Path):
+    # claim (b): --delete-old's B2 upstream gate must EXEMPT a v3-LOCAL post
+    # (upstream UNSET by contract, never pushed) from the 'unpointed' refusal
+    # and delete its OLD origin alias -- the actual delete-old target -- rather
+    # than blocking on the one property v3 posts are designed never to have.
+    # Reproduces the pre-fix refusal: after a v3 apply the legacy origin
+    # aliases fold into local posts with no upstream, and the gate read them
+    # as 'unpointed' (ERR: --delete-old REFUSES ... season2/posts/...).
+    r = _v3_apply_repo(tmp_path)
+    for alias in ("post/sanctuary-director@s2", "post/sanctuary-helper@s2"):
+        _git(r, "branch", alias)
+        _git(r, "push", "-q", "origin", f"{alias}:refs/heads/{alias}")
+    root = r / ".agi"
+    stamp = root / "sessions/verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    res2 = _run_cli(root, "--delete-old", "--kinds", "posts,towns")
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    assert "REFUSES" not in res2.stdout, res2.stdout
+    # the v3 post's OLD origin alias is actually removed (the delete target)
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert not gone, gone
+    gone2 = _git(r, "ls-remote", "origin",
+                 "refs/heads/post/sanctuary-director@s2").stdout.strip()
+    assert not gone2, gone2
+
+
+# --------------------------------------------------------------------------
 # I-3a-2 Region B — the KIND LOOPS plan (dry-only). A v3 town-first loop
 # branch is classified by the EXISTING loop-prune rule over the SAME derived
 # post_main: merged (ancestor of the post) -> a would-prune [DRY ] line;

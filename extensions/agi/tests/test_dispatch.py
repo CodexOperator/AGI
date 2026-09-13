@@ -2270,6 +2270,44 @@ def test_parent_kid_ceiling_gate_fails_open_without_agent_id(monkeypatch):
     assert dispatch._parent_kid_ceiling_gate(_kid_manifest(50), _kid_cfg(5), 1) is None
 
 
+def _live_manifest(parent_id, parent_pid):
+    return {"iter": 1, "agents": [{"id": parent_id, "pid": parent_pid}]}
+
+
+def test_kid_of_live_manifest_parent_is_account_floor_exempt(monkeypatch):
+    """l4-a-kid-spawn... — a kid whose parent (AGI_AGENT_ID) is a manifest
+    record with a LIVE pid is exempt from the ACCOUNT floor: the helper
+    returns the parent id+pid so the pre-flight prints the exempt line and
+    skips check_account_floor (the key floor still runs)."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    monkeypatch.setattr(dispatch.spawn_budget, "_pid_alive", lambda pid: True)
+    got = dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999))
+    assert got == ("parent-a", 999)
+
+
+def test_kid_with_no_manifest_parent_is_not_account_floor_exempt(monkeypatch):
+    """A kid whose parent id is NOT in the iter manifest must read the floor
+    as today (refused, floor named) — no record, no exemption."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    assert dispatch._kid_account_floor_exemption({"agents": []}) is None
+
+
+def test_kid_of_a_dead_parent_is_not_account_floor_exempt(monkeypatch):
+    """A dead parent (pid not alive) must NOT grant the exemption — the round
+    is gone, so its kids read the floor like any other spawn."""
+    monkeypatch.setenv("AGI_AGENT_ID", "parent-a")
+    monkeypatch.setattr(dispatch.spawn_budget, "_pid_alive", lambda pid: False)
+    assert dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999)) is None
+
+
+def test_non_kid_spawner_without_agent_id_is_not_account_floor_exempt(monkeypatch):
+    """A director or human at a shell (no AGI_AGENT_ID) is never exempt —
+    the account floor applies to a top-level spawn exactly as before, which is
+    what a kid tier with no caller identity would look like too."""
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    assert dispatch._kid_account_floor_exemption(_live_manifest("parent-a", 999)) is None
+
+
 def test_parent_kid_ceiling_gate_passes_with_no_manifest_agents(monkeypatch):
     monkeypatch.setenv("AGI_AGENT_ID", "P")
     assert dispatch._parent_kid_ceiling_gate({"agents": []}, _kid_cfg(5), 1) is None

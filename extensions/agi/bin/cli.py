@@ -2201,6 +2201,65 @@ def _post_rename_has_branch(repo: Path, branch: str) -> bool:
     return bool((r.stdout or "").strip())
 
 
+def _rs_local_commit(repo: Path, ref: str) -> str:
+    """The commit sha of local/tracking `ref` (rev-parse `<ref>^{commit}`),
+    or '' when the ref does not resolve (no such branch / unborn). One read
+    shared by the v3 trunk-pair create idempotency check (claim c: "already
+    at tip" vs "different tip") and the master-leg SHA push (claim d: local
+    `master` when it exists, else `origin/master`)."""
+    r = subprocess.run(["git", "rev-parse", f"{ref}^{{commit}}"],
+                       cwd=repo, capture_output=True, text=True)
+    if r.returncode != 0:
+        return ""
+    return (r.stdout or "").strip()
+
+
+def _rs_master_tip(repo: Path) -> str:
+    """master's commit sha for the ADD-ONLY master leg of --apply. Resolves
+    a local `master` ref when one exists, ELSE `origin/master` — the live
+    tree has NO local master (only origin/master; measured read-only), so
+    the bare ref name 'master' must never be the push source
+    (hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-
+    master-pushes-by-sha, claim d). Push by SHA: <sha>:refs/heads/<new>.
+    '' when neither the local ref nor origin/master resolves."""
+    if _post_rename_has_branch(repo, "master"):
+        return _rs_local_commit(repo, "master")
+    return _rs_local_commit(repo, "origin/master")
+
+
+def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> bool:
+    """True when `branch` is the season-first SOURCE of a v3-LOCAL post: the
+    branch that USED to be `branch` was renamed by the v3 posts plan into the
+    town-first post_main that now exists locally with NO upstream — the v3
+    LOCAL contract (never pushed, upstream UNSET; hypothesis:
+    l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-master-pushes-
+    by-sha, claim b). The --delete-old B2 gate must NOT read such a source as
+    'unpointed': deleting the OLD origin alias is exactly the delete-old
+    target for a v3 post, and the local post is contractually never pointed
+    at any remote. Detect by deriving the post_main through
+    branches.derive_names from `branch`'s OWN tuple (the same grammar
+    _rs_v3_posts_renames uses) and checking that the derived post_main
+    EXISTS — never by the presence of `branch` itself (it is GONE after the
+    v3 rename), and never on a branch that carries an upstream (that one is a
+    real live migration and must still satisfy the gate)."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        p = branches.parse(branch)
+    except ValueError:
+        return False
+    if p.get("kind") != "post":
+        return False
+    name, season = p.get("name"), p.get("season")
+    if not name or not season or not tuples:
+        return False
+    try:
+        target = branches.derive_names(
+            _rs_v3_core_town(tuples), season, name)["post_main"]
+    except ValueError:
+        return False
+    return _post_rename_has_branch(repo, target)
+
+
 def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
     """True when `ref` (e.g. refs/heads/post/a@s2) exists on origin."""
     r = subprocess.run(["git", "ls-remote", "origin", ref], cwd=repo,
@@ -3451,11 +3510,33 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
-            # every planned name is a derive_names trunk-pair output and the
-            # block is already gated on "town_main" in kinds, so no further
-            # per-name kind filter (the grammar kind reads v3_town_main, which
-            # is NOT the alias-resolved towns kind — filtering on it here would
-            # silently drop every create).
+            # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-
+            # posts-and-master-pushes-by-sha (claim c): the trunk-pair create
+            # is RESUMABLE. Before planning/running the create, resolve the
+            # pre-existing-trunk state: a trunk that already exists AND
+            # already points at the planned tip is a FINISHED JOB on a
+            # resumed run (skip with a [SKIP] line, never an error); one that
+            # exists at a DIFFERENT tip is REFUSED BY NAME (a trunk is never
+            # force-moved). Read-only in dry mode and skipped there, so
+            # --dry-run output is byte-identical.
+            resume_state = ""
+            if not dry and has_origin and _post_rename_has_branch(
+                    repo, town_name):
+                cur = _rs_local_commit(repo, town_name)
+                want = _rs_local_commit(repo, tip)
+                if cur and cur == want:
+                    resume_state = "skip"
+                else:
+                    resume_state = "wrong"
+            if resume_state == "skip":
+                print(f"    [SKIP] {town_name} already at tip (resumed run)")
+                continue
+            if resume_state == "wrong":
+                print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
+                      f"already exists at a DIFFERENT tip than the planned "
+                      f"{tip}; a trunk-pair create never force-moves a trunk",
+                      file=sys.stderr)
+                return 1
             print(f"    [{'DRY ' if dry else 'APPLY'}] branch create (v3): "
                   f"git branch {town_name} {tip}")
             # the push line: assert_remote_visible FIRST, then the line.
@@ -3650,6 +3731,17 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             if _rs_v3_run(repo, root, kinds, True, has_origin):
                 return 1
             print("dry-run: nothing changed")
+            return 0
+        if apply and kinds & {"town_main", "main", "post", "loop"}:
+            # l4-apply-runs-the-v3-tail (claim a): the v3 apply tail must run
+            # even when there are ZERO legacy rename jobs — the trunk-pair
+            # creates + v3 post renames are INDEPENDENT of the v2 renames, so
+            # an empty legacy list must not bypass the v3 plan. rc-honest like
+            # the main apply tail: a failed git run returns 1 and names it.
+            if _rs_v3_run(repo, root, kinds, False, has_origin):
+                return 1
+            print("apply: local renames + worktree re-points done; remote "
+                  "legacy branches NOT deleted (see --delete-old)")
             return 0
         if not (apply or delete_old):
             print("dry-run: nothing changed")
@@ -3853,6 +3945,15 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                 if not new:  # v3 sub-top-level: no rename target, direct delete
                     continue
                 if _post_rename_upstream(repo, new) != f"origin/{new}":
+                    # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-
+                    # v3-posts-and-master-pushes-by-sha (claim b): a
+                    # v3-LOCAL post source is upstream-UNSET BY CONTRACT
+                    # (never pushed) — deleting its OLD origin alias is
+                    # EXACTLY the delete-old target for a v3 post, so it is
+                    # never 'unpointed'; delete it. Only this exemption — any
+                    # other branch that carries no upstream still refuses.
+                    if _rs_v3_local_post_source(repo, _rs_tuples, new):
+                        continue
                     unpointed.append(new)
             if unpointed:
                 print(f"ERR: --delete-old REFUSES {len(unpointed)} branch(es) "
@@ -3932,9 +4033,17 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             # and leave master standing.
             if old == "master":
                 if has_origin:
+                    tip = _rs_master_tip(repo)
+                    if not tip:
+                        print(f"ERR: --apply master leg: could not resolve "
+                              f"master's tip (no local `master` and no "
+                              f"`origin/master`); nothing pushed for {new}",
+                              file=sys.stderr)
+                        return 1
                     pr = subprocess.run(["git", "push", "origin",
-                                         f"{old}:{new}"], cwd=repo,
-                                        capture_output=True, text=True)
+                                         f"{tip}:refs/heads/{new}"],
+                                        cwd=repo, capture_output=True,
+                                        text=True)
                     if pr.returncode != 0:
                         print(f"ERR: git push origin {new} failed: "
                               f"{pr.stderr.strip()}", file=sys.stderr)
