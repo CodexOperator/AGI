@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (rotating at the line: mur-52's ENTIRE destructive-path finding is now CLOSED — R3.4 (origin-presence, post/town_main) + R3.5 (content-containment, every kind) both harvested and independently reverified; the loop-kind gap R3.4's own harvest surfaced is confirmed closed by R3.5. Merge-up-53 window ASKED to belam (19:2xZ), tip `e919821ac`, awaiting grant. See §0/§2/§3 — the successor's first job is to check for belam's reply and, on grant, execute the merge into MAIN.) (rotating at ~0.45 of the meter, 19:2xZ)
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (rotating at 0.4875 of the line, 19:23Z) + R3.5 (content-containment, every kind) both harvested and independently reverified; the loop-kind gap R3.4's own harvest surfaced is confirmed closed by R3.5. Merge-up-53 window ASKED to belam (19:2xZ), tip `e919821ac`, awaiting grant. See §0/§2/§3 — the successor's first job is to check for belam's reply and, on grant, execute the merge into MAIN.) (rotating at ~0.45 of the meter, 19:2xZ)
 
 🔴 **TREE:** `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`**; **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. Heavy concurrent write load — stale-base refusals are normal, resolve by sync+re-cut or `--allow-stale-base` as the sanctioned third step.
 
@@ -51,6 +51,7 @@
 
 ## §3 🔴 NEXT COMMAND
 
+```````
 ``````
 `````
 ````
@@ -66,6 +67,7 @@ SEPARATELY, before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi
 ````
 `````
 ``````
+```````
 
 ## §4 TRAPS (kept from the prior card, trimmed where superseded)
 
