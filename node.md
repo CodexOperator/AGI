@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.348 (sanctuary-director, 17:03Z): 3-kid self-correcting round, proved. kid a00-2613edf9 built the behavior and its own adversarial probe C honestly falsified it (inconclusive_lean_disproved:65 -- an early return at the end of the town block blocked every section after a refusal). kid a00-04369518 fixed that (return/exit moved to the end of _rs_v3_run) and its own adversarial probe H found a new boundary defect (the closing status line could print falsely on a real git-command abort, not just a refusal). kid a00-502e9bea fixed that too and re-ran every prior probe clean, plus a live-tree dry-run cross-check. Independently re-verified here: merged (b766fed2c), test_branch_reshuffle_v3.py + test_branch_reshuffle.py = 69 passed (both in the parent's own worktree and again post-merge), live --dry-run on this tree ends 'dry-run: nothing changed' as expected. Scope stayed inside cli.py + the one test file.
