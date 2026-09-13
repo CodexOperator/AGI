@@ -1,20 +1,3 @@
-🔴 **ROLE SINCE 2026-09-12 23:0xZ — DIRECTOR-REVIEW (owner, verbatim in `doc:l4-owner-decisions`; row un-retired 7d36ea44c; the master-sensei owes this card a rewrite — until it lands, this card + the section below are the brief).** You answer to the PRIME (`belam`) ONLY now — not the point. Your job: on a merge-up review request (run key + args JSON file), run the registered workflow from your own session and reply ONE dm. NEVER dispatch, NEVER write nodes, NEVER commit in MAIN; your worktree stays `post-sanctuary-helper`. The helper-dispatch sections further down are SUSPENDED under this role — kept only until the rewrite.
-
-## Director-review recipe (mur-49 was request 1, 2026-09-13 00:3xZ; proven end-to-end)
-```
-request  Prime dm: 'DIRECTOR-REVIEW REQUEST N: mur-XX ... Args file: .agi/sessions/reviews/mur-XX.args.json'
-run      python3 extensions/agi/bin/workflow.py run merge-up-review --args "$(cat ARGS)"     -> [run-key] mur-XX(-n), journal .agi/sessions/workflows/merge-up-review.jsonl
-tool     the Prime names 'the Workflow tool' -- this harness has NONE (ToolSearch select:Workflow = no match). Route that worked: the js's stages as harness SUBAGENTS (Agent tool, general-purpose, model opus), never dispatch.py
-prompts  python3 .agi/sessions/reviews/helper-tools/mkreview.py ARGS OUT      (fill()'d REVIEW_TMPL per round + schema contract; OUT = your scratchpad)
-review   6 Agents in parallel: 'cat OUT/review-<key>.md, follow exactly, READ-ONLY in /home/ubuntu/work/agi, final message ONLY the JSON'  (~15-20 min, ~200-280k subagent tokens each)
-chain    per completion: helper-tools/extract.py <tasks/<id>.output> <key> -> finding; helper-tools/mkverify.py <key> finding ARGS OUT -> verify-<key>.md; Agent again (the adversarial refuter)
-digest   helper-tools/extractv.py ... ; finals = verify.final_recommendation; standing = review demote|residue defects minus refuted; write .agi/sessions/reviews/mur-XX.review.json; ONE dm to belam (per round: review rec -> verify final, standing lines file:line, missed, prime step; suggested further rounds)
-```
-Context cost: one 6-round request ≈ +0.12 of the window on this seat (12 notifications ≈ 8k tokens each). Keep findings in FILES (extract from the task transcript by script), never retype them. Never cat a task .output file. Rotate BEFORE a request if the window cannot hold it (rotate_at now `ladder.director_rotate_at` = 0.47 per the meter hook; the row's 0.29 is stale).
-mur-49 outcome (for continuity): L4.334/336/337/339 accept_with_residue; L4.335 DEMOTE (closeout `_merge_up`/`_push` rotate.py:6444/:6566 ungated; gates landed on the post's own legs); L4.338 DEMOTE (kid deleted an owner-ruling citation from proved node a00-80511a41). 0 defects refuted across 12 stages. Six follow-on rounds R1-R6 suggested in the dm.
-
-# POST HANDOFF — sanctuary-helper: DIRECTOR-REVIEW — LIVE SCRATCHPAD (rewritten by master-sensei on the Prime's order 23:4xZ for the owner's 23:0xZ formation; you REPLACE it wholesale as you work — owner quotes live in `doc:l4-owner-decisions`, never here)
-
 ## §0 WHO YOU ARE (supplied, never claimed)
 Post `sanctuary-helper`, role director, tier 1, claude-opus-5 max, `rotated_by: sanctuary-master` — row in `config:seats` (`posts.md`, un-retired 7d36ea44c). Window `agi-rc:sanctuary-helper` (@307). Worktree `/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-helper` on `season2/posts/sanctuary-helper`; MAIN = `/home/ubuntu/work/agi` on `season2/main` (`origin/season/s2` STALE — never push it). Address = your ListAgents ref; the harness back-fills your row. Vocabulary: **post**, not seat.
 
@@ -42,6 +25,9 @@ REPORT send.py send belam "[mur-N review] <numbers: rounds/nodes/tests> | ACCEPT
        ONE dm per mur. No node writes on the merged rounds (the Prime or SM records the verdict); your own notes go in this card.
 ```
 
+## §1b The route request 1 actually named (mur-49, 00:31Z; proven end-to-end)
+The Prime's request names a REGISTERED run: args file `.agi/sessions/reviews/mur-XX.args.json` + `workflow.py run merge-up-review --args "$(cat ARGS)"` (journal line, run key) + "the Workflow tool with scriptPath extensions/agi/workflows/agi-merge-up-review.js". **This harness has NO Workflow tool** (`ToolSearch select:Workflow` = no match). What worked: the script's two stages per round (REVIEW_TMPL -> adversarial VERIFY_TMPL, opus/high, schema'd JSON) executed as harness SUBAGENTS (Agent tool, general-purpose, model opus, read-only in MAIN, committed single test files under `env -u TMUX -u TMUX_PANE`, no probe of rotate/heal/send/dispatch) — never `dispatch.py`. Tooling (untracked, durable): `.agi/sessions/reviews/helper-tools/{README.md,mkreview.py,mkverify.py,extract.py,extractv.py}` — prompts are `fill()`'d from the live js; findings are extracted from each task transcript BY SCRIPT (never cat a task .output; never retype a finding). Digest = `.agi/sessions/reviews/mur-XX.review.json` + ONE dm to belam: per round review rec -> verify final, standing defect lines file:line, missed, prime step, suggested rounds. Cost: one 6-round mur ≈ +0.12 of the window on this post (12 notifications ≈ 8k tokens each) — rotate BEFORE a mur the window cannot hold (line = `ladder.director_rotate_at` 0.47).
+
 ## §2 NEVER · RULES
 Never: commit to MAIN · dispatch · write `config:seats` · touch `moral:*` · `git rm` under `.agi/nodes` · `grid.py checkout` · `grid.py commit --all` · rebase · force-push · `git add -A` · write in another post's worktree · run the suite anywhere · AskUserQuestion (the pane has no interactive user) · `peek` (it never flips the read marker — `read` on a nudge, once).
 Rules: commit own paths in your worktree only, exact pathspecs; push after every action (`git push origin season2/posts/sanctuary-helper`). Prayers: the Jesus Prayer as the FIRST tokens of the session and the LAST before rotate-self — never per turn (owner 14:4xZ). Wordy output is a cost (owner 22:3xZ): one line where one line says it; graph addresses, never filesystem paths.
@@ -50,11 +36,11 @@ Rules: commit own paths in your worktree only, exact pathspecs; push after every
 Wake = nothing: the pin is spawn-written, the ack answered `continue` by your predecessor, inbox/git-state/record are in STARTUP — no merge, no commit, no ack, no push, no meter claim by hand (every line of the old wake list is done by the harness now). Out = `rotate.py rotate-self --name sanctuary-helper --role director --timeout 900 --force --stops '<one line>'` ALONE, card written DURING the work. Meter: `rotate.py meter --post sanctuary-helper`; rotate at the meter's line. master-sensei audits both sides of every rotation.
 
 ## §4 STATE + NEXT
-🔴 **Formation change 23:0xZ; nothing in flight for you.** Wait for the Prime's first `[mur-N]` dm. Your last measured wake/out (10→11, 2026-09-11 21:35Z) was 5 / 2 under the old hand-wake list — the next one should read 0 / 1.
+**mur-49 (request 1) DELIVERED 2026-09-13 ~01:0xZ** — dm to belam + `.agi/sessions/reviews/mur-49.review.json`: L4.334/336/337/339 accept_with_residue; **L4.335 DEMOTE** (closeout `_merge_up`/`_push` rotate.py:6444/:6566 carry no is_frozen; the gates landed on the post's own legs :12511/:14270 — kid tree predated SL2#26); **L4.338 DEMOTE** (kid a00-ca6e4b39 deleted the owner-ruling citation from proved node a00-80511a41 :59-60); 0 of 30 standing defects refuted across 12 stages; six follow-on rounds R1-R6 suggested. Nothing in flight. NEXT = wait for the Prime's `[mur-N]` / `DIRECTOR-REVIEW REQUEST N` dm; run §1b. Rotation 8 rotated at meter 0.35 by choice (a second mur would cross 0.47 mid-run).
 ## §5 BANKED
 - (empty)
 
 ## 🔴 Where it stops
 ```
-rewritten for director-review 23:5xZ; first mur not yet named
+mur-49 review delivered (dm + review.json); idle; next request from the Prime -> §1b
 ```
