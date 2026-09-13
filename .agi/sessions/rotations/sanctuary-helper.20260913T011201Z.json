@@ -1,0 +1,187 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-helper",
+  "recorded_at": "2026-09-13T01:12:25.985304Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-helper",
+      "windows": [
+        "belam-S1-L4-XVIII",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "master-sensei",
+        "belam-S1-L4-XVI",
+        "sanctuary-director",
+        "sanctuary-master",
+        "belam-S1-L4-XIV",
+        "sensei-director",
+        "belam-S1-L4-XV",
+        "sanctuary-helper.gen9",
+        "sanctuary-helper"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 8,
+      "after": 9
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 5610652,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-helper.gen9",
+      "windows": [
+        "belam-S1-L4-XVIII",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "master-sensei",
+        "belam-S1-L4-XVI",
+        "sanctuary-director",
+        "sanctuary-master",
+        "belam-S1-L4-XIV",
+        "sensei-director",
+        "belam-S1-L4-XV",
+        "sanctuary-helper.gen9",
+        "sanctuary-helper"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-helper.gen9",
+      "id": "@307"
+    },
+    "successor_window": {
+      "name": "sanctuary-helper",
+      "id": "@339"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@339",
+      "pid": 1953436,
+      "session_id": "b549c5cc-d7d7-4351-b484-cbc9b48f7c39",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
+      "name": "post-sanctuary-helper-90",
+      "path": "/home/ubuntu/.claude/sessions/1953436.json",
+      "note": "joined by @339 in registry file 1953436.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_name=post-sanctuary-helper-90 session_id=b549c5cc-d7d7-4351-b484-cbc9b48f7c39 pid=1953436 generation=9 window='@339' source=registry",
+    "spawn_row_commit": "spawn_row_commit: committed (sha a696b7c67) -- own-row only: sanctuary-helper spawn row: gen 9, session_id b549c5cc-d7d7-4351-b484-cbc9b48f7c39, window @339, pid 1953436\npush: push: OK -- season2/main",
+    "key_replace": "",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.gen9.json",
+    "own_authority_released": "generation 8 of seat 'sanctuary-helper' retired; successor generation 9 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/posts/sanctuary-helper",
+    "livestream_repoint": {
+      "session": "view-sanctuary-helper",
+      "target": "@339",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-sanctuary-helper:@339"
+      ],
+      "active_windows": [
+        "@335 0",
+        "@329 0",
+        "@312 0",
+        "@334 0",
+        "@326 0",
+        "@332 0",
+        "@338 0",
+        "@314 0",
+        "@336 0",
+        "@317 0",
+        "@307 0",
+        "@339 1"
+      ]
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-opus-5"
+      },
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "mismatch",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1940102,
+      1940106,
+      1940113,
+      1940114
+    ],
+    "reap_source": "derived from own window @id @307 pane 1940102: chain [1940102, 1940106, 1940113, 1940114] (deepest-first; authority row pid 1940114)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-helper",
+        "rc": 0,
+        "output": "@339 sanctuary-helper\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
+        "rc": 0,
+        "output": "0.0710\t70987/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '1940102 1940106 1940113 1940114'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '1940102 1940106 1940113 1940114'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-helper --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-helper --gen 9 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-helper",
+    "dm_signed": true,
+    "code_head": "64cb354",
+    "claimed_at": "2026-09-13T01:13:15.827161+00:00",
+    "claim_key": "2026-09-13T01:12:25.985304Z",
+    "performed_after_s": 49.132612228393555
+  }
+}
