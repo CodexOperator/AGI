@@ -58,6 +58,7 @@ def _default_tier_for_role(role):
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
 from dispatch import pi_model_args, _reap_pass, _reap_one, _death_class  # noqa: E402
+from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid tolerance; ONE death predicate
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
@@ -180,7 +181,7 @@ def _main_heal() -> int:
                 entry["status"] = status
             if status in TERMINAL:
                 continue
-            spid = int(rec.get("pid", 0))
+            spid = _rec_pid(rec)
             # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-
             # pid-resolves-like-a-dead-running-record (claim b): a `stalled`
             # record (stamped by stall_detect) whose pid is PROVABLY gone is
@@ -189,6 +190,12 @@ def _main_heal() -> int:
             stalled_dead = (status == "stalled") and spid > 0 \
                 and not _pid_alive(spid)
             if status != "running" and not stalled_dead:
+                # Residue (iii): a LIVE-stalled record still holds its lease,
+                # so the round is NOT terminal. Without this the loop fell
+                # through to `all_terminal=True` and exited 0 while the lease
+                # lived. A dead-stalled record is resolved below instead.
+                if status == "stalled":
+                    all_terminal = False
                 continue
             elapsed = int(time.time()) - int(rec.get("started_at", 0))
             if stalled_dead:
@@ -206,6 +213,13 @@ def _main_heal() -> int:
                 entry["status"] = rec["status"]
                 print(f"agent {agent_id} resolved (stalled, pid {spid} gone) "
                       f"-> {rec['status']}")
+                # ONE death predicate, shared with the dead-running branch
+                # below (never a fail_reason string match): a stalled-dead
+                # resolution IS a death, so it alarms and logs identically.
+                if _is_death(rec):
+                    print(f"agent {agent_id} marked DEAD (stalled, pid "
+                          f"{spid} gone; {rec.get('fail_reason') or '-'})")
+                    _alarm_dispatcher(rec, args.iter_n, "death", root)
             else:
                 all_terminal = False
                 if elapsed > timeout_s and agent_id not in healed_already:
@@ -218,7 +232,7 @@ def _main_heal() -> int:
                     _alarm_dispatcher(rec, args.iter_n, "timeout", root)
                 else:
                     # Also detect if pid is dead w/o status update → mark failed.
-                    pid = int(rec.get("pid", 0))
+                    pid = _rec_pid(rec)
                     if pid > 0 and not _pid_alive(pid):
                         rec["status"] = "failed"
                         rec["finished_at"] = int(time.time())
@@ -385,7 +399,7 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         elapsed = int(time.time()) - started
         if elapsed <= timeout_s:
             continue
-        pid = int(rec.get("pid", 0) or 0)
+        pid = _rec_pid(rec)
         # Residue (a): a dead pid past its deadline is DEATH, never a timeout
         # overwrite. `_reap_pass` may have seen it alive and left it in
         # `still`; if it has since died, record the death (one status, one dm)
@@ -2790,7 +2804,7 @@ def _heal_cwd(root: Path, rec: dict) -> Path:
 
 
 def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
-    pid = int(rec.get("pid", 0))
+    pid = _rec_pid(rec)
     print(f"healer: agent {agent_id} timed out (pid={pid}), killing + spawning healer")
     if pid > 0 and _pid_alive(pid):
         try:

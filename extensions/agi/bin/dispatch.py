@@ -140,6 +140,35 @@ def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
             "dirty_paths": dirty, "kids": kids}
 
 
+def _rec_pid(rec: dict) -> int:
+    """The record's pid as an int, tolerant of null / non-int pids.
+
+    A committed manifest record can carry `"pid": null` (or `"abc"`), which
+    the old `int(rec.get("pid", 0))` turned into a TypeError and took the
+    watch / reap pass down with it. Absent, null and unparseable all read 0,
+    which every caller already treats as "unknown pid".
+    """
+    try:
+        return int(rec.get("pid") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _is_death(rec: dict) -> bool:
+    """ONE death predicate every terminal resolution shares.
+
+    A record is a DEATH when it is `failed` and carries the `death` class set
+    by `_reap_one` — both the dead-running lane (`restart_ok=False`) and the
+    stalled-dead lane (`never_restart=True`) set it, so the watcher dms
+    exactly ONE death and writes ONE reaper-log line for either.
+
+    RULE: a new terminal-resolution branch reuses this predicate, never
+    string-matches a `fail_reason` message. Mirror-only resolutions
+    (`done-unreported`, restarts) carry no `death` and are not deaths.
+    """
+    return rec.get("status") == "failed" and "death" in rec
+
+
 def _node_verdict(worktree, node_id):
     """The `verdict` cell of the node file for `node_id` under `worktree`."""
     if not (worktree and node_id):
@@ -2653,7 +2682,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
         except (json.JSONDecodeError, OSError):
             continue
         status = rec.get("status", "running")
-        pid = int(rec.get("pid", 0))
+        pid = _rec_pid(rec)
         # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
         # -- a `stalled` record (stamped by stall_detect) whose pid is PROVABLY
         # gone is ADMITTED to the reap path, so the dead-pid resolution rules in
@@ -2732,9 +2761,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
             # `_reap_one`'s restart_ok=False branch). Those ids are surfaced
             # separately so the watcher can dm ONE death per agent and never
             # let a dead pid be re-interpreted as a timeout later in the pass.
-            if not restart_ok and rec.get("status") == "failed" \
-                    and outcome["record"]["fail_reason"].startswith(
-                        f"pid {pid} died"):
+            if not restart_ok and _is_death(rec):
                 died.append(agent_id)
             print(f"reaper: {outcome['message']}")
 
@@ -2958,6 +2985,15 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "finished_at": int(time.time()),
                 "fail_reason": (f"stalled; pid {pid} disappeared without "
                                 f"completion signal"),
+                # The SHARED death predicate rides on this key: a stalled-dead
+                # resolution IS a death exactly as the dead-running branch is,
+                # so the watcher dms ONE death and writes ONE reaper-log line.
+                # Without it the old `died` membership string-matched
+                # `fail_reason` and this whole branch fell silently out.
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
             },
             "message": (f"agent {agent_id} failed (stalled; pid {pid} gone — "
                         f"NEVER restarted)"),

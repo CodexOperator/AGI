@@ -2390,7 +2390,8 @@ def _git_repo_on_branch(tmp_path: Path, branch: str) -> Path:
 
 
 def _stall_pass(tmp_path, monkeypatch, rec_status="stalled", agent_pid=999,
-                node_complete=False, branch_committed=False, alive_pid=None):
+                node_complete=False, branch_committed=False, alive_pid=None,
+                restart_ok=True):
     import json
     d = _load_dispatch()
     graph = _reap_project(tmp_path)
@@ -2415,7 +2416,7 @@ def _stall_pass(tmp_path, monkeypatch, rec_status="stalled", agent_pid=999,
     else:
         adapter = _FakeAdapter(pid=111)
     out = d._reap_pass(graph, iter_dir, adapter, cap=1, cfg={},
-                       restart_ok=True)
+                       restart_ok=restart_ok)
     rec = json.loads((iter_dir / "a00-stl" / "agent.json").read_text())
     return d, out, rec, adapter
 
@@ -2456,3 +2457,44 @@ def test_stalled_alive_pid_stays_stalled_not_reaped(tmp_path, monkeypatch):
     assert rec["status"] == "stalled", rec
     assert out["marked"] == [], out
     assert adapter.calls == [], "a live stalled record must never be reaped"
+
+
+# --- hypothesis:l4-the-reaper-tolerates-a-null-pid… — the ONE pid reader ---
+
+def test_rec_pid_tolerates_null_missing_and_non_int():
+    """`int(rec.get("pid", 0))` raised TypeError on a committed record whose
+    pid was null or a non-int, taking the whole reap pass down. `_rec_pid`
+    reads every such shape as 0 = unknown."""
+    d = _load_dispatch()
+    assert d._rec_pid({"pid": None}) == 0
+    assert d._rec_pid({}) == 0
+    assert d._rec_pid({"pid": "abc"}) == 0
+    assert d._rec_pid({"pid": ""}) == 0
+    assert d._rec_pid({"pid": 4242}) == 4242
+    assert d._rec_pid({"pid": "4242"}) == 4242
+
+
+def test_is_death_predicate_covers_stalled_and_dead_running():
+    """The ONE death predicate: both terminal resolutions that lose a pid are
+    deaths, and a mirror-only resolution is not. This is what the `died`
+    membership is driven off instead of a `fail_reason` string match."""
+    d = _load_dispatch()
+    assert d._is_death({"status": "failed", "death": {"class": "died-no-work"}})
+    assert d._is_death({"status": "failed", "death": {"class": "died-after-work"}})
+    assert not d._is_death({"status": "failed"})            # no death class
+    assert not d._is_death({"status": "done-unreported",
+                            "fail_reason": "pid 1 disappeared, but ... complete"})
+    assert not d._is_death({"status": "running"})
+
+
+def test_stalled_dead_in_service_lane_lands_in_died(tmp_path, monkeypatch):
+    """A stalled-dead record reaped in the SERVICE lane (`restart_ok=False`)
+    must surface under `died` — that is what makes the watcher dm it and log
+    the reaper line. The old string-match on `fail_reason` never matched the
+    `stalled; …` reason, so `died` stayed empty."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       restart_ok=False)
+    assert rec["status"] == "failed", rec
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+    assert out["died"] == ["a00-stl"], out
+    assert adapter.calls == [], "a stalled record must never be restarted"
