@@ -176,7 +176,9 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     own = next(r for r in rows if r["name"] == "adv-alive")
     assert own["session_ref"] == ""
     assert own["session_id"] == "00000000-0000-4000-8000-000000000000"
-    assert own["generation"] == 1
+    # goal:g15.25 claim (6-rows): a NON-prime row is generation-less — the
+    # internal rotation generation lives only in the handoff header below.
+    assert "generation" not in own
     assert own["window"] == "adv-alive"
 
     # meter pin: at ITS transcript, generation-tagged seat pin.
@@ -555,8 +557,8 @@ def test_rotate_self_belam_cap_records_decision(_fix, tmp_path,
 def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
     """(a) The JOIN matches the successor's WINDOW @id in a registry file
     whose content is `view-x:@9.%9` — the session prefix is IGNORED, only the
-    @id is the key. The row write carries session_id/pid/window/generation
-    with source=registry (b)."""
+    @id is the key. The row write carries session_id/pid/window (and NO
+    `generation` cell for this non-prime role) with source=registry (b)."""
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "claude-sonnet-5", "effort": "max",
@@ -599,13 +601,14 @@ def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
     assert join["session_id"] == "00000000-0000-4000-8000-000000000001"
     assert join["pid"] == 48123
     assert "48123.json" in join["note"]   # matched INSIDE `view-x:@9.%9`
-    # (b) row write carries session_id/pid/window/generation, source=registry.
+    # (b) row write carries session_id/pid/window, source=registry — and NO
+    # `generation` cell for this non-prime role (goal:g15.25 claim (6-rows)).
     assert "source=registry" in rec["handover"]["successor_row"]
     rows = rotate._load_seats(tmp_path)
     own = next(r for r in rows if r["name"] == "adv-alive")
     assert own["session_id"] == "00000000-0000-4000-8000-000000000001"
     assert own["pid"] == 48123
-    assert own["generation"] == 1
+    assert "generation" not in own
     # merge-up 24 residue (W): the row's `window` cell is the WINDOW @id, not
     # the name — so send.py `_nudge_window` can address it without the
     # L4.120 name-resolution hazard.
