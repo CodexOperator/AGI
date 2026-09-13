@@ -26,6 +26,7 @@ import json
 import os
 import random
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -181,7 +182,8 @@ def _redact_env_map(env: dict) -> dict:
 
 
 def zoom_command(root: Path, iter_n: int, agent_id: str,
-                 level: str, target: str | None, push_further: bool = False) -> list[str]:
+                 level: str, target: str | None, push_further: bool = False,
+                 tier: str = "kid") -> list[str]:
     """The `zoom.py` invocation for one kid's context bundle.
 
     **`--runtime pi` is explicit and must stay that way (goal:s8).** Without it
@@ -198,6 +200,13 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     """
     cmd = ["python3", str(ZOOM_PY), str(root), str(iter_n), agent_id,
            "--level", level, "--runtime", "pi"]
+    if tier in ("parent", "director"):
+        # hypothesis:l4-a-parents-zoom-is-its-target-goal-chain-claim-conjuncts-
+        # and-own-kids-never-the-sibling-hypothesis-dump — pass the tier
+        # dispatch already received through to zoom so a parent gets the
+        # compact parent shape, not the 75-90 KB sibling dump. kid is zoom's
+        # default, so a kid spawn stays byte-identical to today.
+        cmd.extend(["--tier", tier])
     if level == "small" and target:
         cmd.extend(["--target", target])
     if push_further:
@@ -205,6 +214,8 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
         # id so a continuation kid composes from the parent's push_further
         # text and stamps `pushed_from: <target>` (see _scaffold_node_for_agent).
         cmd.append("--push-further")
+    # (SL7.111 threaded --tier here too, for the parent "Your Task" prose;
+    # SL7.109's block above is the ONE pass-through -- unioned at harvest.)
     return cmd
 
 
@@ -1936,7 +1947,7 @@ def main() -> int:
         engine_paths = child_engine_paths(child_graph)
 
         zoom_cmd = zoom_command(child_graph, args.iter_n, agent_id, level, target,
-                               push_further=args.push_further)
+                               push_further=args.push_further, tier=args.tier)
         try:
             ctx_path = subprocess.run(
                 zoom_cmd, capture_output=True, text=True, check=True
@@ -2143,6 +2154,12 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
+            # A node was already scaffolded for this agent and the spawn died
+            # before minting, so no agent record will follow: deprecate the
+            # scaffold and name it the same way every other failure seam does.
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"could not mint a credential: {exc}")
             return 1
         except (KeyError, NotImplementedError) as exc:
             # A tier with no model, or a declared-but-unimplemented harness.
@@ -2153,6 +2170,13 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
+            # Same shared shape: scaffolded node, no agent record will follow,
+            # a config error (missing model / unimplemented harness) killed the
+            # spawn before the registration step. Deprecate and name it.
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"harness {harness_name!r} cannot spawn tier "
+                       f"{args.tier!r}: {exc}")
             return 1
         log_file = sess_dir / "output.log"
         try:
@@ -2174,7 +2198,16 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
-            raise
+            # hypothesis:l4-dispatch-exits-non-zero-and-deprecates-the-scaffold-
+            # when-no-agent-record-follows-a-scaffolded-node -- a node was
+            # scaffolded for this agent but the registration step (the Popen
+            # that hands the slot to a pid) failed, so no agent record will
+            # exist. L4.327 measured dispatch reporting success over exactly
+            # this: a parent paid 480s on a spawn that never registered.
+            # Name it: deprecate the scaffold (never left live) and exit a
+            # NAMED code -- never 0 over an orphan.
+            _report_unregistered_scaffold(root, scaffold_info, agent_id)
+            return 4
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
         # Until this line the reservation is held by THIS process; after it,
         # by the agent. That is what makes the bound survive a dispatcher
@@ -3301,6 +3334,79 @@ def _node_type_for(level: str, target: str | None, role: str | None) -> str:
         "outcome": "bigger_outcome",
     }
     return step.get(target.split(":", 1)[0], "hypothesis")
+
+
+def _deprecate_orphan_scaffold(root: Path, node_id: str, agent_id: str) -> bool:
+    """Retire a scaffolded-but-unregistered node so a failed spawn never
+    leaves a live orphan (hypothesis:l4-dispatch-exits-non-zero-and-
+    deprecates-the-scaffold-when-no-agent-record-follows-a-scaffolded-node).
+
+    Reuses `node_writer.update_node` -- the one gated routine that edits an
+    existing node and logs its write -- to stamp `status: deprecated` plus a
+    note naming the failed spawn, then physically moves the file to
+    `nodes/deprecated/<type>/` (the retirement layout, CLAUDE.md). Returns
+    False rather than raising: deprecation failing must not turn a named
+    spawn failure into a different crash.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    npath = node_writer.find_node_file(root, node_id)
+    if npath is None:
+        return False
+    try:
+        nf = fm_reader.load_node_file(npath)
+    except Exception:
+        return False
+    ntype = node_writer.canonical_node_type(
+        nf.frontmatter.get("type") or npath.parent.name)
+    note = (f"orphan scaffold: dispatch {agent_id} scaffolded this node but no "
+            f"agent record followed in the spawn's registration step")
+    up = node_writer.update_node(
+        root, node_id,
+        set_fm={"status": "deprecated", "deprecated_note": note},
+        announce=False)
+    if up.status not in (node_writer.UPDATED, node_writer.UNCHANGED):
+        return False
+    dep = root / "nodes" / "deprecated" / ntype
+    dep.mkdir(parents=True, exist_ok=True)
+    try:
+        shutil.move(str(npath), str(dep / npath.name))
+    except OSError:
+        return False
+    return True
+
+
+def _report_unregistered_scaffold(root: Path, scaffold_info, agent_id: str,
+                                  detail: str | None = None) -> dict | None:
+    """The ONE post-scaffold failure reporter shared by every seam that can
+    leave a scaffolded node with no agent record behind it
+    (hypothesis:l4-dispatch-exits-non-zero-and-deprecates-the-scaffold-when-
+    no-agent-record-follows-a-scaffolded-node).
+
+    Deprecates the orphan scaffold (never left live) and emits the SAME named
+    JSON issue line -- {"issue": "scaffolded-but-unregistered", "node_id",
+    "agent_id", "detail"} -- so a reader of ANY seam sees one shape naming the
+    node id and the missing record. Returns the issue dict, or None when no
+    scaffold was written (nothing to deprecate, nothing to name). Failure to
+    deprecate is reported in `detail`, never raised -- a named spawn failure
+    must not turn into a different crash.
+    """
+    if not scaffold_info:
+        return None
+    node_id = scaffold_info.get("node_id")
+    deprecated = _deprecate_orphan_scaffold(root, node_id, agent_id)
+    detail = detail or (
+        "scaffold deprecated; no agent record followed the spawn's "
+        "registration step" if deprecated else
+        "scaffold could not be deprecated")
+    issue = {
+        "issue": "scaffolded-but-unregistered",
+        "node_id": node_id,
+        "agent_id": agent_id,
+        "detail": detail,
+    }
+    print(json.dumps(issue))
+    return issue
 
 
 def _scaffold_node_for_agent(
