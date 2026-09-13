@@ -1,6 +1,6 @@
 # Sensei Director — duties brief
 
-(seat `sensei-director`, `config:seats` row minted by Sanctuary Master
+(post `director-sanctuary`, `config:posts` row minted by Sanctuary Master
 2026-09-08, `rotated_by: master-sensei`, `owning_goal: goal:g16`, worktree
 `.agi/worktrees/seat-master-sensei` on branch `seat/master-sensei`.)
 
