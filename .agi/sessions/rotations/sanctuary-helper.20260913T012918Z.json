@@ -111,7 +111,7 @@
         "@344 0"
       ]
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
     "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
   },
@@ -129,8 +129,46 @@
     "reap_source": "derived from own window @id @344 pane 1985760: chain [1985760, 1985761, 1985817, 1985823] (deepest-first; authority row pid 1985823)"
   },
   "after_join": {
-    "claimed_at": "2026-09-13T01:30:18.211583+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-13T01:29:47.792081Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-helper",
+        "rc": 0,
+        "output": "@347 sanctuary-helper\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl",
+        "rc": 0,
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl (via claude-code transcript (explicit)).",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '1985760 1985761 1985817 1985823'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '1985760 1985761 1985817 1985823'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-helper --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-helper --gen 11 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-helper",
+    "dm_signed": true,
+    "code_head": "cc974df",
+    "claimed_at": "2026-09-13T01:30:18.211583+00:00",
+    "claim_key": "2026-09-13T01:29:47.792081Z",
+    "performed_after_s": 28.738771677017212
   }
 }
