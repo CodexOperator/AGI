@@ -322,9 +322,14 @@ def test_dead_seat_respawns_and_writes_row_and_dms(graph, monkeypatch):
 
     assert len(acted) == 1 and acted[0]["respawned"] is True
     assert len(launch_recs) == 1 and launch_recs[0]["name"] == "dir-1"
-    # row rewrite via the seat's own rule: plain seat -> same name, gen 2->3.
+    # row rewrite via the seat's own rule: plain seat -> same name. goal:g15.25
+    # claim (6-rows): a NON-prime row is generation-less, so the row writer no
+    # longer writes a `generation` cell — the stale fixture value (2) is left
+    # exactly where it was (the Prime 0a drop is a later kid); the rotation's
+    # OWN generation lives only in the crash-recovery record below.
     row = _row(graph, "dir-1")
-    assert row["generation"] == 3
+    assert row["generation"] == 2, \
+        "the non-prime row writer no longer writes generation"
     assert row["pid"] == 515151
     assert row["window"] == "@777"
     assert row.get("session_ref", "") == "", "session_ref stays empty (ack)"
@@ -422,7 +427,10 @@ def test_respawned_record_is_a_bounded_guard_not_forever(graph):
     assert len(pass3) == 1 and pass3[0]["respawned"] is True, \
         "an old respawned record must not suppress a later death"
     assert len(recs3) == 1
-    assert _row(graph, "seat-b")["generation"] == 3
+    # goal:g15.25 claim (6-rows): the non-prime row writer no longer writes a
+    # `generation` cell, so the row keeps its stale fixture value (1); the
+    # recovery's own counter lives in the record, not the row.
+    assert _row(graph, "seat-b")["generation"] == 1
 
 
 def test_crash_loop_is_named_not_respawned(graph, monkeypatch):
@@ -870,7 +878,10 @@ def test_worktree_seat_recovery_launches_in_and_writes_main_only(graph, tmp_path
     assert launch_recs[0]["cwd"] == str(wt_dir), \
         "the recovered successor launches inside its own seat worktree"
     main_row = _row(gdir, "wt")
-    assert main_row["generation"] == 3, "MAIN row generation advanced to 3"
+    # goal:g15.25 claim (6-rows): the role-less (non-prime) row writer no
+    # longer writes `generation`, so MAIN's row keeps its stale value (2).
+    assert main_row["generation"] == 2, \
+        "a non-prime row is never advanced by the recovery row write"
     assert main_row["window"] == "@777"
     wt_copy = _row(wt_dir / ".agi", "wt")
     assert wt_copy["pid"] == 987654 and wt_copy.get("window") == "@50", \
