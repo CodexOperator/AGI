@@ -1092,3 +1092,43 @@ def test_m3_template_source_recorded(tmp_path):
     assert "by 2 commit(s)" in doc["template_source"]
     assert doc["result"] == "started"
     assert doc["steps_reached"] == ["handoff"]
+
+
+def test_live_facts_region_fits_under_every_template_byte_cap_with_headroom():
+    """A first_turn entry whose output exceeds its `byte_cap` is a DELIVERY
+    FAILURE, never a truncation (Prime rule, g17.1, 2026-09-13 17:1xZ). The
+    director template's `facts` entry printed `read body 37:61` under
+    `byte_cap: 8000` while the section had grown to 15 KB — F14-F27 were
+    silently cut from every director wake for ~20 h, and three early
+    rotations on director-point followed (master-sensei audit 17:09Z).
+    Guard on the LIVE node: the rendered facts region (the exact bytes
+    `write.py config:rotations 'read body N:M'` prints, plus one trailing
+    newline) must fit under EVERY facts-carrying template's byte_cap with
+    10% headroom, so a fact added past the cap turns this red before a
+    wake pays for it. If the set outgrows the cap, the answer is a second
+    entry (facts-2), never a drop."""
+    src = Path(__file__).resolve().parents[3] \
+        / ".agi" / "nodes" / ".geometry" / "rotations.md"
+    templates = _live_templates(src)
+    n, m = _facts_body_range(templates)
+    lines = _canonical_body_lines(src)
+    assert m <= len(lines), f"facts range {n}:{m} runs past the body ({len(lines)} lines)"
+    rendered = ("\n".join(lines[n - 1:m]) + "\n").encode("utf-8")
+    checked = 0
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        entries = startup.get("first_turn") or []
+        if not any(isinstance(e, dict) and e.get("label") == "facts"
+                   for e in entries):
+            continue
+        cap = int(startup.get("byte_cap") or 4000)
+        limit = int(cap * 0.9)
+        assert len(rendered) <= limit, (
+            f"template {name!r}: facts region {n}:{m} renders to "
+            f"{len(rendered)} bytes, over the 10%-headroom limit {limit} of "
+            f"byte_cap {cap} — the wake would receive a TRUNCATED facts "
+            f"section; compact it or add a facts-2 entry, never drop")
+        checked += 1
+    assert checked >= 1, "no template carries a facts first_turn entry"
