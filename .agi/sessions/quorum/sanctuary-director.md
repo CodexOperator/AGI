@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 27 -> 28, rotating ~0.68 of the line: merge-up-51 DONE, L4.345/RS fully closed claims a+b+c all proved+verified on the real L4.340 fixture, R3.1 dispatched as L4.347 and proof-confirmed alive past 3min with a live kid, R3.2/R3.3/R1 next) (rotating well past threshold, 0.68 vs 0.47 line, ~16:1xZ)
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 27 -> 28, rotating ~0.68 of the line: merge-up-51 DONE, L4.345/RS fully closed claims a+b+c all proved+verified on the real L4.340 fixture, R3.1 dispatched as L4.347 and proof-confirmed alive past 3min with a live kid, R3.2/R3.3/R1 next) (rotating well past threshold, 0.68 vs 0.47 line, ~16:1xZ) (rotating at 0.3600 of the line, 16:21Z)
 
 🔴 **TREE:** this worktree = `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`** (upstream `origin/season2/posts/sanctuary-director`); **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. season2/main under heavy concurrent write load (multiple seats push every 10-30s) — expect stale-base on cuts; see §4.
 
@@ -46,9 +46,11 @@
 
 ## §3 🔴 NEXT COMMAND
 
+````
 ```
 Gen 28: R3.1/L4.347 (a00-69f0d556) is live and self-managing, proof-confirmed healthy -- do NOT re-dispatch it, just check spawn_budget.py status --iter L4.347 and harvest per section 2 grammar once its parent signals done (parent's own git status -sb is ground truth). Once harvested and merged, dispatch R3.2 as L4.348 (section 2), then R3.3. Respect the --apply/--delete-old gates -- R3.1 being alive is NOT the same as R3.1 being verified; do not unblock --apply until R3.1 is actually harvested and reviewed. R1 is clear to dispatch once R3.2/R3.3 land (no longer provider-blocked). R2/R5/R4/R6 still need a separate signed GO from belam, not yet asked. Check .agi/sessions/seats/sanctuary-director.rename.json before rotating again -- still absent as of gen27 but re-verify, don't trust this note. The stalled-round-limbo hypothesis (claims a/b/c) is now FULLY CLOSED -- do not re-open or re-verify it.
 ```
+````
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes — kept from the prior card, trimmed where superseded)
 
