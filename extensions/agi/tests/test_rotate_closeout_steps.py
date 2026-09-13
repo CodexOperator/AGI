@@ -1184,3 +1184,165 @@ def test_push_real_runner_refuses_by_name_on_a_gitless_fixture(tmp_path):
     ok, result, detail = seams["push"]()
     assert ok is False and result == "refused"
     assert "push" in detail and "MAIN" in detail
+
+
+# ── RUNG 4 (mur-49): the human gate belongs on the closeout merge_up/push ──
+# hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-
+# and-the-gate-sits-on-the-merge-up-push (RUNG 4 re-cut). Prime XVIII's
+# mur-49 review demoted L4.335: the is_frozen(prime) gate had landed on the
+# rotate-self-ONLY helpers (`_stops_push` / `_perform_season_merge`) while
+# the REAL closeout `_merge_up`/`_push` in `_make_closeout_seams` -- the
+# steps `_closeout_run_steps` actually drives into MAIN -- carried none.
+# These prove the gate now sits on the merge-up seam and nowhere else.
+
+_SEAM_SRC = (_BIN / "rotate.py").read_text(encoding="utf-8")
+
+
+def _top_level_fn_src(name):
+    import re
+    m = re.search(rf"^def {name}\b.*?(?=^def )", _SEAM_SRC, re.S | re.M)
+    return m.group(0) if m else ""
+
+
+def test_falsifier_closeout_seams_carry_at_least_two_is_frozen():
+    """mur-49's own falsifier command, as a regression test: `sed -n
+    '/^def _make_closeout_seams/,/^def _closeout_run_steps/p' rotate.py |
+    grep -c is_frozen` printed 0 before the fix and must now be >= 2 (the
+    `_merge_up` gate and the `_push` gate)."""
+    body = _SEAM_SRC.split("def _make_closeout_seams", 1)[1] \
+                   .split("def _closeout_run_steps", 1)[0]
+    assert body.count("is_frozen") >= 2, (
+        "the closeout merge_up/push seams must consult is_frozen(prime)")
+
+
+def test_misplaced_rotate_self_gates_are_gone():
+    """The L4.335 gates on `_stops_push` and `_perform_season_merge` are
+    REMOVED (rescoped to the real merge-up seams above): a non-prime post's
+    own rotate-self catch-up merge/push is never held by a frozen prime."""
+    for fn in ("_stops_push", "_perform_season_merge"):
+        assert "is_frozen" not in _top_level_fn_src(fn), \
+            f"{fn} must not carry the human gate (RUNG 4 rescope)"
+
+
+class _FakeProc:
+    def __init__(self, rc, out="", err=""):
+        self.returncode = rc
+        self.stdout = out
+        self.stderr = err
+
+
+def _faked_closeout_git(root, monkeypatch, calls, *, frozen, push_rc=0):
+    """Patch rotate's git + MAIN resolution seams so the REAL
+    `_make_closeout_seams` merge_up/push runners run hermetically, and
+    `seatsig.veto.is_frozen` returns `frozen` for scope prime. `calls`
+    records the `_git_proc` argv tuples (the merge/push attempts)."""
+    monkeypatch.setattr(rotate, "_shared_graph_root", lambda r: r)
+    monkeypatch.setattr(rotate, "_closeout_main", lambda r: root)
+    monkeypatch.setattr(rotate, "_closeout_branch", lambda cwd: "season2/main")
+    monkeypatch.setattr(rotate, "_fd_seat_branch",
+                        lambda r, main, seat: "season2/posts/adv")
+    monkeypatch.setattr(rotate, "_closeout_main_clean",
+                        lambda main, sb: (True, [], 0))
+
+    def fake_git_proc(cwd, *args):
+        calls.append(args)
+        if args and args[0] == "push":
+            return _FakeProc(push_rc)
+        return _FakeProc(0)
+
+    monkeypatch.setattr(rotate, "_git_proc", fake_git_proc)
+    monkeypatch.setattr(
+        rotate, "_git_maybe",
+        lambda cwd, *a: ["abc1234"] if a[:1] == ("rev-parse",) else None)
+    import seatsig.veto as _veto
+    monkeypatch.setattr(
+        _veto, "is_frozen",
+        lambda r, s, **kw: ((True, "prime FROZEN by a human gate")
+                            if frozen else
+                            (False, "scope 'prime' is not under a human gate")))
+
+
+def test_frozen_prime_holds_the_closeout_merge_up(tmp_path, monkeypatch):
+    """A FROZEN prime scope stops `_closeout_run_steps`, driven with the
+    REAL merge_up/push seams, at `merge_up` -- result `refused`, detail a
+    `HELD` line -- and NEVER attempts a git merge or push. The unfrozen twin
+    reaches the faked merge/push (next test)."""
+    calls = []
+    _faked_closeout_git(tmp_path, monkeypatch, calls, frozen=True)
+    seams = rotate._make_closeout_seams(tmp_path, {}, seat="adv")
+    entries, err = rotate._closeout_run_steps(
+        tmp_path, "adv", "parent",
+        template={"closeout": {"steps": ["merge_up", "push"]}}, seams=seams)
+    assert err is not None and "merge_up" in err
+    assert [e["step"] for e in entries] == ["merge_up"]
+    assert entries[-1]["result"] == "refused"
+    assert "HELD" in entries[-1]["detail"]
+    assert "merge_up" in entries[-1]["detail"]
+    assert calls == [], "frozen scope must not touch git at all"
+
+
+def test_unfrozen_prime_reaches_the_closeout_merge_up_and_push(
+        tmp_path, monkeypatch):
+    """The UNFROZEN twin: the REAL merge_up and push runners both run --
+    merge --no-ff and the push carry through -- so the gate is conditional,
+    not a blanket refusal."""
+    calls = []
+    _faked_closeout_git(tmp_path, monkeypatch, calls, frozen=False)
+    seams = rotate._make_closeout_seams(tmp_path, {}, seat="adv")
+    entries, err = rotate._closeout_run_steps(
+        tmp_path, "adv", "parent",
+        template={"closeout": {"steps": ["merge_up", "push"]}}, seams=seams)
+    assert err is None, err
+    assert [e["step"] for e in entries] == ["merge_up", "push"]
+    assert entries[0]["result"] == "merged"
+    assert entries[1]["result"] == "ok"
+    verbs = [c[0] for c in calls]
+    assert "merge" in verbs and "push" in verbs
+
+
+def test_nonprime_rotateself_merge_and_push_proceed_while_prime_frozen(
+        tmp_path, monkeypatch):
+    """Conjunct 2 both directions: while prime is FROZEN a non-prime post's
+    OWN rotate-self catch-up merge (`_perform_season_merge`) and push
+    (`_stops_push`) PROCEED -- never HELD -- and a GENUINE push failure is
+    still reported as a real refusal, never conflated with HELD."""
+    import seatsig.veto as _veto
+    monkeypatch.setattr(
+        _veto, "is_frozen",
+        lambda r, s, **kw: (True, "prime FROZEN by a human gate"))
+
+    # own catch-up merge proceeds under the frozen scope
+    merge_calls = []
+    monkeypatch.setattr(
+        rotate, "_git_proc",
+        lambda cwd, *a: merge_calls.append(a) or _FakeProc(0))
+    monkeypatch.setattr(
+        rotate, "_git_maybe",
+        lambda cwd, *a: ["abc1234"] if a[:1] == ("rev-parse",) else None)
+    assert rotate._perform_season_merge(tmp_path, "season/s2") == "abc1234"
+    assert merge_calls == [("merge", "--no-edit", "origin/season/s2")]
+
+    # own push proceeds under the frozen scope
+    monkeypatch.setattr(rotate, "_git_toplevel", lambda r: tmp_path)
+    push_calls = []
+
+    def fake_run(argv, **kw):
+        push_calls.append(argv)
+        if "rev-parse" in argv:
+            return _FakeProc(0, "season2/posts/adv")
+        return _FakeProc(0)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    assert rotate._stops_push(tmp_path, "merge") is None
+    assert any("push" in c for c in push_calls)
+
+    # a GENUINE push failure is a real refusal, never a HELD line
+    def failing_run(argv, **kw):
+        if "rev-parse" in argv:
+            return _FakeProc(0, "season2/posts/adv")
+        return _FakeProc(1, "", "remote rejected")
+
+    monkeypatch.setattr(rotate.subprocess, "run", failing_run)
+    refused = rotate._stops_push(tmp_path, "merge")
+    assert refused is not None and "push refused" in refused
+    assert "HELD" not in refused
