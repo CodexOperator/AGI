@@ -6700,6 +6700,8 @@ SM.13 harvested gen 21 (2nd-attempt work, via its orphaned kid a00-d24065b4 whic
 
 SM.21 harvested: reaped-parent death-class + staged-work record + cli.py done --salvage, plus the rotate.py immediate-join spawn_to_registry_s half. 4 kids reviewed by the parent from bytes, not self-reports; one real bug caught and correctly demoted (a00-b3c4538a claimed proved, dry-run preserve returned the wrong tree sha -- demoted to inconclusive_lean_disproved:45), fixed by a00-d3882a20 (probe now passes, proved). a00-23a08668: inconclusive_lean_disproved:35 (wrong field for kid detection, missed an HTTP 500 pattern). a00-9e6f1eef: inconclusive_lean_proved:60 (both probes fixed; preserve/finalize still unbuilt). Round verdict pending, --owns all four. Caveat: total delta ~350 lines vs the briefs <=100-line ceiling (~3.5x overage) -- reported to SM. 636 tests green on the touched files plus the rotate neighbourhood.
 
+SM.141 (SMs SM.14a) harvested, hand-extracted per her ruling after a 300+ line overage against the <=10-line ceiling: only rotation_alert.py three print-site wording fix + tests landed (49/49 green); kid2 killed mid-run, never merged; a plausible but unscoped rotate.py card-header stamp fix (same bug family) preserved on the round loop branch for a possible future brief, not merged.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
