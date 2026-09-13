@@ -2517,7 +2517,17 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
         except (json.JSONDecodeError, OSError):
             continue
         status = rec.get("status", "running")
-        if status != "running":
+        pid = int(rec.get("pid", 0))
+        # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
+        # -- a `stalled` record (stamped by stall_detect) whose pid is PROVABLY
+        # gone is ADMITTED to the reap path, so the dead-pid resolution rules in
+        # `_reap_one_impl` (node complete, branch advanced) decide its fate
+        # exactly as they would for a dead `running` record. A `stalled` record
+        # with a LIVE pid is still holding its lease and stays mirror-only.
+        # The `stalled` status itself is never added to spawn_budget.TERMINAL.
+        stalled_dead = (status == "stalled") and pid > 0 \
+            and not adapter.is_alive(pid)
+        if status != "running" and not stalled_dead:
             # hypothesis:l4-the-manifest-mirrors-terminal-agent-status — any
             # NON-RUNNING agent.json (done, done-unreported, failed, timeout,
             # pending, hung-healed, or an unknown status) whose manifest entry
@@ -2548,13 +2558,14 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
                 updated = True
                 mirrored.append(agent_id)
             continue
-        all_terminal = False
-        still.append(agent_id)
+        if status == "running":
+            all_terminal = False
+            still.append(agent_id)
 
-        pid = int(rec.get("pid", 0))
         if pid > 0 and not adapter.is_alive(pid):
             outcome = _reap_one(root, iter_dir, adapter, rec, agent_id, pid,
-                                cap=cap, cfg=cfg, restart_ok=restart_ok)
+                                cap=cap, cfg=cfg, restart_ok=restart_ok,
+                                never_restart=stalled_dead)
             rec.update(outcome["record"])
             agent_json_path.write_text(json.dumps(rec, indent=2))  # session artefact: agent.json
             entry["status"] = rec["status"]
@@ -2723,7 +2734,7 @@ def _branch_has_done_commit(root, rec, agent_id) -> bool:
 
 
 def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
-             restart_ok: bool = True):
+             restart_ok: bool = True, never_restart: bool = False):
     """Decide what a dead agent's death means. Returns `{record, message}`.
 
     **The filesystem is consulted before the restart, and that ordering is the
@@ -2742,7 +2753,8 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
     climbed.
     """
     out = _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid,
-                         cap=cap, cfg=cfg, restart_ok=restart_ok)
+                         cap=cap, cfg=cfg, restart_ok=restart_ok,
+                         never_restart=never_restart)
     commits = _commits_ahead(root, rec)
     if commits is not None:
         out["record"]["commits_ahead"] = commits
@@ -2750,7 +2762,7 @@ def _reap_one(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
 
 
 def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
-                   restart_ok: bool = True):
+                   restart_ok: bool = True, never_restart: bool = False):
     import completion
 
     node_id = rec.get("node_id") or ""
@@ -2795,6 +2807,24 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
             },
             "message": (f"agent {agent_id} died with its round already "
                         f"committed — NOT restarted"),
+        }
+
+    # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
+    # -- a `stalled` record whose pid is PROVABLY gone is NEVER respawned.
+    # `_reap_pass` admitted it only because the pid is dead; both completion
+    # checks above have already fired, so it resolves to `done-unreported` when
+    # the work landed (node complete or branch advanced), and to `failed` with
+    # the stall named otherwise. No restart path is reachable from here.
+    if never_restart:
+        return {
+            "record": {
+                "status": "failed",
+                "finished_at": int(time.time()),
+                "fail_reason": (f"stalled; pid {pid} disappeared without "
+                                f"completion signal"),
+            },
+            "message": (f"agent {agent_id} failed (stalled; pid {pid} gone — "
+                        f"NEVER restarted)"),
         }
 
     # hypothesis:l4-the-reaper-is-one-persistent-service — the SERVICE lane
