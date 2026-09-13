@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.03b (sanctuary-master, review of SL2#28): the INBOX conjunct is unmet — the inbox read position is the READ_MARKER line (send.py:103, rewritten at :3163-3166), not a .state.json; rewind_read_cursors reads _load_state on the inbox -> old=0 -> no rewind. CLAIM b: in rewind_read_cursors, for the inbox path, re-place READ_MARKER after the last block whose ts < since_ts (remove the old marker; when the marker already sits at or before that block, untouched; when no marker, untouched); the returned tuple for the inbox = (name, old_block_index, new_block_index); dry_run writes nothing; the rewrite goes through the same newline="" read the reader uses (:3159, CR preserved). TESTS (test_send_rewind.py +2): inbox with marker after block 4 and since_ts before blocks 3-4 -> marker after block 2, and send.py read then shows blocks 3-4 as unread; marker before since -> untouched. CEILING <= 25 lines, 2 tests.
