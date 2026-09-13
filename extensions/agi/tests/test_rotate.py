@@ -5318,22 +5318,33 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
 def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
         monkeypatch, tmp_path):
     room_posts = []
+    sent = []
     import send as _send  # the SAME top-level module rotate's lazy import binds to
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"},
+                                 {"name": "kid-a", "role": "director"}])
     monkeypatch.setattr(_send, "send_room",
                         lambda croot, room, text, sender: room_posts.append(
                             (room, text)) or tmp_path)
+    monkeypatch.setattr(_send, "send",
+                        lambda root, recv, text, sender=None: sent.append(
+                            (recv, text)) or tmp_path)
+    monkeypatch.setattr(_send, "wake", lambda root, recv: None)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="prime",
         successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
         handoff_path=".agi/sessions/belam-III.log", in_flight="none",
         live_names=["kid-a", "prime"])
-    assert delivered == [rotate.ROTATION_ALERT_ROOM]
-    assert len(room_posts) == 1
+    # the prime now DELIVERS to its derived receivers, not just the room
+    assert delivered == ["kid-a"], f"prime must reach its receivers: {delivered}"
+    assert len(room_posts) == 1, "room post stays as the record"
     room, text = room_posts[0]
     assert room == rotate.ROTATION_ALERT_ROOM
     assert "quorum" not in room
     assert "generation 2 -> 3" in text
     assert "trigger: --force" in text
+    # each receiver is told via send.send (the inbox writer -- send.send_dm
+    # refuses prime ORIGIN), plus the prime's own inbox copy.
+    assert sent == [("prime", text), ("kid-a", text)], sent
 
 
 # ── clause 1 of hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
@@ -5386,25 +5397,32 @@ def test_announce_rotation_prime_lands_alert_in_own_inbox(
     prime restriction -- it IS the inbox-only writer -- so a prime-specific
     send() puts the same [rotation-alert] block into the prime's OWN inbox
     alongside the shared room post, never into quorum."""
-    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"}])
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"},
+                                 {"name": "kid-a", "role": "director"}])
     room_posts = []
+    sent = []
     import send as _send
     monkeypatch.setattr(_send, "send_room",
                         lambda croot, room, text, sender: room_posts.append(
                             (room, text)) or tmp_path)
+    monkeypatch.setattr(_send, "send",
+                        lambda root, recv, text, sender=None: sent.append(
+                            (recv, text)) or tmp_path)
+    monkeypatch.setattr(_send, "wake", lambda root, recv: None)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="prime",
         successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
         handoff_path=".agi/sessions/belam-III.log", in_flight="none",
         live_names=["kid-a", "prime"])
-    assert delivered == [rotate.ROTATION_ALERT_ROOM]
+    assert delivered == ["kid-a"], f"prime must deliver to its receivers: {delivered}"
     assert len(room_posts) == 1
-    prime_inbox = tmp_path / "sessions" / "inbox" / "prime.md"
-    assert prime_inbox.is_file(), f"no prime inbox: {prime_inbox}"
-    body = prime_inbox.read_text(encoding="utf-8")
-    assert "[rotation-alert]" in body
-    assert "generation 2 -> 3" in body
-    assert "trigger: --force" in body
+    # the prime's OWN inbox copy is the FIRST send (own-inbox first, then each
+    # receiver) -- the `send.send` stub captures both as (recv, text) pairs.
+    assert [r for r, _ in sent] == ["prime", "kid-a"], sent
+    _, text = sent[0]
+    assert "[rotation-alert]" in text
+    assert "generation 2 -> 3" in text
+    assert "trigger: --force" in text
 
 
 def test_loop_success_announces_exactly_once_refusal_never(
