@@ -480,8 +480,30 @@ def _suite_lock_guard():
 # test_stream_master_blind_measure_v2.py -- ONE name, ONE helper, never two
 # spellings. A present OPENROUTER_API_KEY alone spends nothing: the suite is
 # fixture-only unless AGI_REAL_JUDGE=1 is set AND a key is present.
+#
+# The `_no_openrouter` autouse fixture below is the second half of the SAME
+# rule and shares the SAME opt-in flag, AGI_REAL_JUDGE: when it is NOT "1",
+# every meter/pin balance GET to openrouter.ai is stubbed and the key env is
+# dropped, so a developer box that has a key never spends or hits the
+# network; when it IS "1" (the real-judge ModelJudge tests run), the stub
+# stands down so the real measurement still works.
 
 REAL_JUDGE_FLAG = "AGI_REAL_JUDGE"
+
+#: Import-time snapshot of the opt-in flag, the ONLY value `_no_openrouter`
+#: may read it from. The parent `extensions/agi/conftest.py` `_agi_env_stripped`
+#: is SESSION-scoped and autouse, so it strips every AGI_* var (including
+#: AGI_REAL_JUDGE) from the LIVE os.environ BEFORE any function-scoped
+#: fixture's body runs. A live `os.environ.get(AGI_REAL_JUDGE)` inside
+#: `_no_openrouter` (a runtime fixture) is therefore ALWAYS None once the
+#: suite is up, even when the operator launched `AGI_REAL_JUDGE=1` -- the
+#: opt-in escape would be dead under the suite (measured: pytest_runtest_-
+#: setup saw flag='1' and the key, the fixture body saw flag=None and then
+#: DELETED the key anyway). The fix: conftest import runs during collection,
+#: BEFORE any session fixture body, so this snapshot taken here captures the
+#: launched value ahead of the strip. Default-off is unchanged: unset at
+#: launch -> _REAL_JUDGE_ON=False, exactly what the fixture behaved as before.
+_REAL_JUDGE_ON = os.environ.get(REAL_JUDGE_FLAG) == "1"
 
 
 def real_judge_skip():
@@ -520,3 +542,64 @@ def _no_pin_socket(monkeypatch):
 
     monkeypatch.setattr(socket, "socket", _refuse)
     monkeypatch.setattr(socket, "create_connection", _refuse)
+
+
+@pytest.fixture(autouse=True)
+def _no_openrouter(monkeypatch):
+    """hypothesis:l4-the-suite-never-reaches-openrouter-one-autouse-stub-on-
+    openrouter-get-unless-the-real-judge-flag-is-set -- the suite never
+    reaches openrouter.ai. rotate reaches a live balance through
+    `_openrouter_get` whenever `_openrouter_key` resolves a key (env first,
+    then the repo `.env`), so a developer box that has a key makes every
+    `meter --pin` run two real HTTP calls -- measured on this tree with a
+    junk key exported: fresh_spend_status opened urlopen to
+    openrouter.ai/api/v1/key and /credits. This autouse fixture is the
+    suite-wide second line (alongside the real-judge gate above): unless the
+    SAME opt-in flag AGI_REAL_JUDGE=="1" is set, it (a) drops the key env so
+    `_openrouter_key` resolves nothing even for a test that forgot to stub,
+    and (b) stubs `rotate._openrouter_get` to return None so spend-status
+    takes its no-key shape without touching urllib. rotate may not be
+    importable in every test env, so both imports are lazy and gated by
+    try/except ImportError -- the delenv always runs.
+
+    THE FLAG IS READ FROM THE IMPORT-TIME SNAPSHOT `_REAL_JUDGE_ON`, NOT a
+    live `os.environ.get` here. The parent `extensions/agi/conftest.py`
+    `_agi_env_stripped` is SESSION-scoped and autouse, so it strips every
+    AGI_* var from the LIVE env before any function-scoped fixture body runs
+    -- a live read inside THIS fixture would always see None, silently
+    killing the opt-in escape even when launched `AGI_REAL_JUDGE=1`. The
+    snapshot is taken at conftest import (collection), which runs before the
+    session strip, and is the one value this fixture trusts.
+
+    TWO aliases are patched, never one: the test files load rotate as
+    `from agi.bin import rotate` while this conftest's own `import rotate`
+    resolves a DIFFERENT module object for the same file, and `fresh_spend_
+    status` closes over the module-global `_openrouter_get` of whichever
+    object is actually exercising it -- patching only one alias is exactly
+    the per-module-alias trap `_no_real_tmux` avoids by patching the shared
+    stdlib leaf. `_openrouter_get` has no shared leaf, so both module
+    objects get the stub. A test that needs a real key or a real stub sets
+    it in its own BODY after this fixture's setup; monkeypatch is
+    function-scoped and shared, so the later setenv/setattr wins for the
+    test's duration (same ordering fact as `_no_real_tmux`).
+    """
+    if _REAL_JUDGE_ON:
+        return
+    for _k in ("OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"):
+        monkeypatch.delenv(_k, raising=False)
+    _patched = False
+    try:
+        import rotate  # noqa: PLC0415 -- may not be importable in every env
+        monkeypatch.setattr(rotate, "_openrouter_get", lambda url, key: None)
+        _patched = True
+    except ImportError:
+        pass
+    try:
+        from agi.bin import rotate as _agi_rotate  # noqa: PLC0415
+        monkeypatch.setattr(_agi_rotate, "_openrouter_get", lambda url, key: None)
+        _patched = True
+    except ImportError:
+        pass
+    if not _patched:
+        # no rotate module importable here; nothing to stub, delenv stands.
+        return
