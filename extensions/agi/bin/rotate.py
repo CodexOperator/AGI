@@ -2918,11 +2918,520 @@ def _load_seats(root: Path | None) -> list[dict]:
     return geometry_config.load_rows(root)
 
 
-def _find_seat(root: Path | None, name: str) -> dict | None:
+def _rename_aliases(root: Path | None) -> dict:
+    """The posts.md frontmatter `aliases:` table (old -> new), or {} when
+    absent. ONE table, Prime-written; every old-name reader resolves through
+    it for one season (hypothesis:l4-rename-post-reuses-...). Falsifier: an
+    alias whose target equals its key is dropped (never self-loop)."""
+    path, _key = geometry_config.resolve(root)
+    if path is None or not path.exists():
+        return {}
+    try:
+        nf = frontmatter.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return {}
+    al = nf.frontmatter.get("aliases") or {}
+    if not isinstance(al, dict):
+        return {}
+    out = {}
+    for k, v in al.items():
+        k, v = str(k), str(v)
+        if k and v and k != v:
+            out[k] = v
+    return out
+
+
+def _seat_by_name(root: Path | None, name: str) -> dict | None:
+    if root is None:
+        return None
     for row in _load_seats(root):
         if row.get("name") == name:
             return row
     return None
+
+
+def _find_seat(root: Path | None, name: str) -> dict | None:
+    """Resolve a seat row by name, falling back through the one-season
+    `aliases:` table (old -> new). An alias hit prints `deprecated alias
+    used: old -> new` on stderr, the branches.py pattern (branches.py:83).
+    Never raises; aliases never refuse."""
+    row = _seat_by_name(root, name)
+    if row is not None:
+        return row
+    canon = _rename_aliases(root).get(name)
+    if canon:
+        row = _seat_by_name(root, canon)
+        if row is not None:
+            print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
+            return row
+    return None
+
+
+def _dm_participants(root: Path, old: str, new: str):
+    """(log, sidecar) paths + the sidecar's JSON top-level keys that carry
+    `old`, for every dm in comms/season-*/dm/ whose participant pair names
+    `old`. Yields (kind, src, dst, extra) for the surface table."""
+    out = []
+    seasons = Path(root) / "comms"
+    if not seasons.is_dir():
+        return out
+    if "/" in old or "\\" in old:
+        return out
+    for season in sorted(seasons.glob("season-*")):
+        ddir = season / "dm"
+        if not ddir.is_dir():
+            continue
+        for p in sorted(ddir.iterdir()):
+            nm = p.name
+            if nm.endswith(".state.json"):
+                continue
+            if not nm.endswith(".md"):
+                continue
+            base = nm[:-3]
+            if "--" not in base:
+                continue
+            a, b = base.split("--", 1)
+            if old not in (a, b):
+                continue
+            other = b if a == old else a
+            leaf = "--".join(sorted((new, other))) + ".md"
+            out.append(("dm log", str(p), str(ddir / leaf), {}))
+            sidecar = Path(str(p) + ".state.json")
+            if sidecar.is_file():
+                out.append(("dm state file", str(sidecar),
+                            str(ddir / (leaf + ".state.json")), {}))
+                try:
+                    data = json.loads(sidecar.read_text())
+                except Exception:  # noqa: BLE001
+                    data = {}
+                if isinstance(data, dict):
+                    for k in data:
+                        if isinstance(k, str) and k == old:
+                            out.append(("dm state key", f"{sidecar}::{old}",
+                                        new, {"file": str(sidecar),
+                                              "key": old}))
+    return out
+
+
+def _seam_git(cmd, *args):
+    """Default git seam: the rename ROUND never touches the live git ref, so
+    the default records the would-run command on stderr and does nothing. A
+    caller with git privileges (a fixture, or the later live rotation) injects
+    a callable that acts on the tuple."""
+    print(f"[seam-git] would-run: git {' '.join([cmd] + list(args))}",
+          file=sys.stderr)
+
+
+def _seam_tmux(cmd, *args):
+    """Default tmux seam: never touch the live tmux server (the fixture swaps
+    this for a recorder). Records the would-run command on stderr."""
+    print(f"[seam-tmux] would-run: tmux {' '.join([cmd] + list(args))}",
+          file=sys.stderr)
+
+
+def _live_git(root, *a):
+    """Real git executor for the `rename-post --live` path (KID 4). Runs
+    `git <args>` in the given root, prints `git <args> -> rc N` to stderr, and
+    surfaces a non-zero exit loudly (stderr text + RuntimeError) so a caller
+    cannot mistake a failed rename for success. Used ONLY under `--live`;
+    every other path keeps the print-only `_seam_git`. Calls through
+    `subprocess.run` so tests monkeypatch it, never a real repository."""
+    cmd = ["git", "-C", str(root)] + list(a)
+    r = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    print(f"git {' '.join(list(a))} -> rc {r.returncode}", file=sys.stderr)
+    if r.returncode != 0:
+        if r.stderr:
+            print(r.stderr.strip(), file=sys.stderr)
+        raise RuntimeError(
+            f"rename-post: git {' '.join(list(a))} failed (rc {r.returncode})")
+    return r
+
+
+def _live_tmux(root, *a):
+    """Real tmux executor for the `rename-post --live` path (KID 4). Runs
+    `tmux <args>` in the live server and RETURNS each command's stdout text --
+    so `_resolve_tmux_id` can parse the list-windows/list-sessions listing and
+    rename by a real @id/$id. Prints `tmux <args> -> rc N` to stderr and
+    surfaces a non-zero exit loudly. Used ONLY under `--live`; the default
+    keeps the print-only `_seam_tmux`. Whitelisted callers (the Prime, at
+    merge-up) run this through `--live`; it is never exercised in tests."""
+    cmd = ["tmux"] + list(a)
+    r = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    print(f"tmux {' '.join(list(a))} -> rc {r.returncode}", file=sys.stderr)
+    if r.returncode != 0:
+        if r.stderr:
+            print(r.stderr.strip(), file=sys.stderr)
+        raise RuntimeError(
+            f"rename-post: tmux {' '.join(list(a))} failed (rc {r.returncode})")
+    return r.stdout
+
+
+def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
+    """Enumerate EVERY surface the post name `old` touches as {kind, src,
+    dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
+    surface set the claim names -- session files, dm logs + .state.json
+    sidecar files AND their JSON keys, the worktree dir, the git branch
+    (+origin), the tmux window + view-session + stream-follow, the posts.md
+    row name/cells (incl. every rotated_by/pin_ref/worktree/handoff
+    reference), mentions in rotations.md and the Prime brief belam.md, and
+    alerts.edges keys+values. Each carries an `action`:
+      rename-file  -- pure filesystem move (performed for real, idempotent)
+      rename-key   -- sidecar JSON key rewrite (performed for real)
+      seam-git     -- git ref/worktree/tmux surface, routed through a seam
+      ship         -- a write.py line is PRINTED (the round never writes
+                      config: seats rows, rotations.md, belam.md)
+    Never writes config; never touches git/tmux/live tree. Dedupes by src."""
+    seen: dict[str, dict] = {}
+
+    def add(kind: str, src: str, dst: str, action: str, **extra) -> None:
+        if not src or src == dst:
+            return
+        item = {"kind": kind, "src": src, "dst": dst, "action": action}
+        item.update(extra)
+        seen.setdefault(src, item)
+
+    sessions = _sessions_dir(root)
+    for sub in ("", "seats", "quorum", "inbox"):
+        base = sessions if not sub else sessions / sub
+        dirs = [base] if base.is_dir() else []
+        if not dirs:
+            continue
+        for p in sorted(base.glob(f"{old}*")):
+            if not p.is_file():
+                continue
+            dst = p.parent / (p.name.replace(old, new, 1))
+            add("session-file", str(p), str(dst), "rename-file")
+
+    # dm logs + .state.json sidecars (files AND the keys that carry old)
+    for kind, src, dst, extra in _dm_participants(root, old, new):
+        if kind == "dm state key":
+            add(kind, src, dst, "rename-key", **extra)
+        else:
+            add(kind, src, dst, "rename-file")
+
+    # names in the row surface (ONE row write, never in-set here)
+    cols = ("rotated_by", "pin_ref", "worktree", "handoff_file")
+    for row in _load_seats(root):
+        nm = row.get("name")
+        if nm == old:
+            add("row name", f"row {old} name", f"row {new} name", "ship",
+                print_line=f"write.py {nm} 'set name {new}'")
+            for k, v in row.items():
+                if k != "name" and str(v) == old and k in cols:
+                    add(f"row cell {k}", f"row {old}.{k}", f"row {new}.{k}",
+                        "ship",
+                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+        elif nm == new:
+            for k, v in row.items():
+                if str(v) == old and k in cols and k != "name":
+                    add(f"row cell {k}", f"row {new}.{k}",
+                        f"row {new}.{k}->{new}", "ship",
+                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+
+    add("worktree dir", f".agi/worktrees/post-{old}",
+        f".agi/worktrees/post-{new}", "seam-git")
+    add("branch", f"season2/posts/{old}", f"season2/posts/{new}", "seam-git")
+    add("branch (origin)", f"origin/season2/posts/{old}",
+        f"origin/season2/posts/{new}", "seam-git")
+    add("tmux window", old, new, "seam-tmux")
+    add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
+    add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
+
+    # prose mentions the round NEVER writes (config / prime brief): ship lines
+    for path in (_rotations_node_path(root),
+                 Path(root) / "sessions" / "quorum" / "belam.md"):
+        if not path.exists():
+            continue
+        for n, line in enumerate(path.read_text(
+                encoding="utf-8", errors="replace").splitlines(), 1):
+            if old in line:
+                add(f"{path.name} mention",
+                    f"{path.name}:{n}", f"{path.name}:{n}(edited)", "ship",
+                    print_line=(
+                        f"write.py {path.stem} 'patch'  # line {n}: {old} -> {new}"))
+
+    # alerts.edges keys AND values (read-time rewrite in _load_alerts, not a
+    # config write here). audit/silent are name lists too.
+    alerts = _load_alerts_raw(root)
+    edges = alerts.get("edges")
+    if isinstance(edges, dict):
+        for k, v in edges.items():
+            if isinstance(k, str) and k == old:
+                add("alerts.edges key", f"alerts.edges[{old}]",
+                    f"alerts.edges[{new}]", "ship",
+                    print_line="# _load_alerts rewrites this key at read time")
+            if isinstance(v, list):
+                for m in v:
+                    if m == old:
+                        add("alerts.edges value",
+                            f"alerts.edges[{k}] member {old}",
+                            f"alerts.edges[{k}] member {new}", "ship",
+                            print_line=(
+                                "# _load_alerts rewrites this value at read time"))
+    for lstkey in ("audit", "silent"):
+        lst = alerts.get(lstkey)
+        if isinstance(lst, list) and old in lst:
+            add(f"alerts.{lstkey} member", f"alerts.{lstkey}:{old}",
+                f"alerts.{lstkey}:{new}", "ship",
+                print_line="# _load_alerts rewrites this name at read time")
+
+    return list(seen.values())
+
+
+def _resolve_tmux_id(kind: str, src: str, run_tmux) -> str | None:
+    """Resolve a tmux surface's NAME to its numeric `@N`/`$N` id by listing
+    windows or sessions through the seam and name-matching, so the rename/
+    set-option targets a real id (tmux window ids are `@N`, session ids
+    `$N`; `@<name>` is NOT an id). Returns None when the seam returns no
+    listing (the print-only default) or no name matches -- the caller then
+    skips/refuses BY NAME. The window and stream-follow surfaces resolve
+    through the primary session's window list; a tmux session surface
+    resolves through the server's session list. The default seam never
+    touches the live tmux server (it returns None), so nothing is renamed
+    unless a fixture injects a recorder that returns a listing."""
+    if kind == "tmux session":
+        listing = run_tmux("list-sessions", "-F",
+                           "#{session_id} #{session_name}")
+    else:
+        listing = run_tmux("list-windows", "-t", DEFAULT_TMUX_SESSION,
+                           "-F", "#{window_id} #{window_name}")
+    if not listing:
+        return None
+    name = src[8:] if src.startswith("#stream:") else src
+    for ln in str(listing).splitlines():
+        ln = ln.strip()
+        if not ln:
+            continue
+        ident, _, wname = ln.partition(" ")
+        if wname.strip() == name:
+            return ident.strip()
+    return None
+
+
+def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
+                    run_git=None, run_tmux=None) -> tuple[int, int]:
+    """ONE function, ONE pass over the surface table. Pure-filesystem
+    surfaces (session files, dm logs, dm .state.json sidecar FILES, and their
+    JSON KEYS) are renamed FOR REAL, each step idempotent (skip by name when
+    already done, never clobber). Git/tmux surfaces are routed through the
+    `run_git`/`run_tmux` SEAMS (defaults print the would-run command and do
+    nothing -- the round never touches the live git ref or tmux server; a
+    fixture injects a recorder). The old branch is deleted ONLY under
+    `delete_old` (a seam push `:old`). "ship" surfaces (row cells,
+    rotations.md, belam.md) are never written: the exact write.py line is
+    PRINTED. Returns (applied, skipped). Never writes config."""
+    run_git = run_git or _seam_git
+    run_tmux = run_tmux or _seam_tmux
+    applied = skipped = 0
+
+    # Pass 1: sidecar JSON KEY rewrites FIRST, so each sidecar is still at its
+    # recorded path before pass 2 renames the sidecar FILE.
+    for s in surfaces:
+        if s["action"] != "rename-key":
+            continue
+        sp = Path(s["file"])
+        if not sp.exists():
+            skipped += 1
+            continue
+        try:
+            data = json.loads(sp.read_text())
+        except Exception:  # noqa: BLE001
+            skipped += 1
+            continue
+        oldk = s["key"]
+        if oldk not in data or newk_present_in(data, s["dst"]):
+            skipped += 1
+            continue
+        data[s["dst"]] = data.pop(oldk)
+        sp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        applied += 1
+
+    # Pass 2: files (session + dm + dm sidecar), git/tmux seams, ships.
+    for s in surfaces:
+        kind, act = s["kind"], s["action"]
+        dst = s["dst"]
+        if act == "rename-key":
+            continue  # pass 1 already did it
+        if act == "rename-file":
+            src = Path(s["src"])
+            dpath = Path(dst)
+            if not src.exists():
+                skipped += 1
+                continue
+            if dpath.exists():
+                skipped += 1  # collision: never clobber, idempotent no-op
+                continue
+            src.rename(dpath)
+            applied += 1
+        elif act == "seam-git":
+            if kind == "branch":
+                run_git("branch", "-m", s["src"], dst)
+                applied += 1
+            elif kind == "branch (origin)":
+                _dst = (dst.split("/", 1)[1] if dst.startswith("origin/")
+                        else dst)
+                _src = (s["src"].split("/", 1)[1]
+                        if s["src"].startswith("origin/") else s["src"])
+                run_git("push", "origin", _dst)
+                if delete_old:
+                    run_git("push", "origin", f":{_src}")
+                applied += 1
+            elif kind == "worktree dir":
+                run_git("worktree", "move", s["src"], dst)
+                applied += 1
+            else:
+                skipped += 1
+        elif act == "seam-tmux":
+            # Resolve the NAME to its numeric @id/$id FIRST, then rename by
+            # id (the claim's contract). The default seam returns None from
+            # list-windows/list-sessions (print-only), so the surface is
+            # skipped BY NAME, never renamed -- a fixture injects a recorder
+            # that returns a listing to drive the rename by id.
+            ident = _resolve_tmux_id(kind, s["src"], run_tmux)
+            if ident is None:
+                print(f"rename-post: tmux {kind} '{s['src']}' not live; "
+                      f"skipped by name (no @id/$id from "
+                      f"list-windows/list-sessions)", file=sys.stderr)
+                skipped += 1
+                continue
+            if kind == "tmux window":
+                run_tmux("rename-window", "-t", ident, dst)
+            elif kind == "tmux session":
+                run_tmux("rename-session", "-t", ident, dst)
+            else:  # stream-follow
+                run_tmux("set-option", "-t", ident, "stream", dst)
+            applied += 1
+        elif act == "ship":
+            print(s.get("print_line", f"# {kind}: {s['src']}->{dst}"),
+                  file=sys.stderr)
+            skipped += 1
+        else:
+            skipped += 1
+    return applied, skipped
+
+
+def newk_present_in(data: dict, newk: str) -> bool:
+    """True when the sidecar already holds `newk` (idempotent skip; orphans
+    the old key rather than clobbering the renamed value)."""
+    return newk in data
+
+
+def _apply_staged(root: Path, old: str, delete_old: bool = False,
+                  run_git=None, run_tmux=None) -> int:
+    """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
+    apply EVERY appliable surface in ONE pass. This is what the next
+    rotate-self of `old` runs between the predecessor rotate-out and the
+    successor spawn, so the successor seats under the NEW name (never
+    mid-generation). The rotating predecessor IS the live holder of the
+    pid when it runs this, so there is deliberately NO liveness refusal
+    here (that gate lives on the --now/--apply operator path in
+    cmd_rename_post). A privileged caller (the Prime, at merge-up) may pass
+    run_git=lambda *a: rotate._live_git(root, *a) (and the tmux analog) to
+    run the boundary apply for REAL; the default (None) keeps the print-only
+    seams. Returns 0 when applied or already applied (stage gone -> no-op),
+    1 on a malformed stage."""
+    stage = _sessions_dir(root) / "seats" / f"{old}.rename.json"
+    if not stage.exists():
+        return 0  # already applied / never staged -> no-op
+    try:
+        data = json.loads(stage.read_text())
+    except Exception:  # noqa: BLE001
+        print(f"rename-post: malformed stage {stage}", file=sys.stderr)
+        return 1
+    surfaces = data.get("surfaces") or []
+    # The boundary apply runs inside the rotating predecessor's OWN rotate-
+    # self, between its rotate-out and the successor spawn -- i.e. always on
+    # a LIVE pid (the caller's own). A live-pid refusal therefore refuses
+    # exactly the window this function exists to serve. The liveness gate
+    # belongs to the --now/--apply OPERATOR verb (cmd_rename_post), not
+    # here: this path applies the staged table UNCONDITIONALLY and consumes
+    # it on success (a second call, stage gone, is a no-op).
+    _apply_surfaces(root, surfaces, delete_old=delete_old,
+                    run_git=run_git, run_tmux=run_tmux)
+    # consume the stage once applied so the next boundary call is a no-op
+    if stage.exists():
+        stage.unlink()
+    return 0
+
+
+def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py rename-post <old> <new>` -- the RENAME ROUND (SM.18),
+    round 2: --dry-run prints the FULL surface table (every surface the
+    claim names, round 1 only listed a subset), (still) touching nothing;
+    the default STAGES the rename as `.agi/sessions/seats/<old>.rename.json`
+    (NOT renames/) applied by the next boundary (`_apply_staged`);
+    --now/--apply apply every APPLIABLE surface in one pass, refusing under a
+    live pid; with --live those also run the git/tmux renames for REAL, while
+    the default (no --live) keeps git/tmux on a print-only seam and runs no
+    subprocess. Git/tmux surfaces ride a seam; row/prose surfaces PRINT their
+    write.py line -- the round never writes config."""
+    old, new = args.old_name, args.new_name
+    if getattr(args, "root", None):
+        root = Path(args.root)
+    if not old or not new or old == new:
+        print(f"rename-post: old and new must differ and be non-empty "
+              f"({old!r} -> {new!r})", file=sys.stderr)
+        return 2
+
+    row = _find_seat(root, old)
+    surfaces = _rename_surfaces(root, old, new)
+    if not surfaces:
+        print(f"rename-post: no surfaces found for {old!r} -> {new!r}",
+              file=sys.stderr)
+        return 1
+
+    if args.dry_run:
+        print(f"rename-post: {len(surfaces)} surfaces for {old} -> {new}:")
+        for s in surfaces:
+            scope = "now" if s["action"] in ("rename-file", "rename-key") \
+                else "round 2"
+            print(f"  {s['kind']}: {s['src']} -> {s['dst']}  [{scope}]")
+        print("rename-post: dry-run, nothing changed")
+        return 0
+
+    if args.now or args.apply:
+        pid = (row or {}).get("pid") if row else None
+        if args.now and args.apply:
+            print("rename-post: --now and --apply are mutually exclusive",
+                  file=sys.stderr)
+            return 2
+        if args.now and pid:
+            print(f"rename-post: refused by name -- post {old} has live pid "
+                  f"{pid}; rename at the next rotation boundary",
+                  file=sys.stderr)
+            return 3
+        # --live (KID 4): with the flag, git/tmux seams are swapped for REAL
+        # executors so a caller can actually rename the branch/worktree/tmux
+        # in one pass. The DEFAULT (no --live) keeps the print-only seams and
+        # calls subprocess.run ZERO times. --live is the Prime's / merge-up
+        # landing; every fixture/test path runs the default seams.
+        live = bool(getattr(args, "live", False))
+        applied, skipped = _apply_surfaces(
+            root, surfaces, delete_old=bool(getattr(args, "delete_old", False)),
+            run_git=(lambda *a: _live_git(root, *a)) if live else None,
+            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None)
+        nship = sum(1 for s in surfaces if s["action"] == "ship")
+        ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
+        print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
+              f"{skipped} skipped/idempotent, {nship} shipped (write.py "
+              f"line printed, config untouched), {ngit} git-seam surface(s)"
+              + (" [LIVE]", "")[not live])
+        return 0
+
+    # default: STAGE as .agi/sessions/seats/<old>.rename.json (round 1 put it
+    # in renames/ -- the claim's path is seats/, and the boundary reader
+    # `_apply_staged` reads seats/.)
+    seats_dir = _sessions_dir(root) / "seats"
+    seats_dir.mkdir(parents=True, exist_ok=True)
+    staged = {"new": new, "ordered_by": "sanctuary-master",
+              "staged_at": datetime.now(timezone.utc).isoformat(),
+              "surfaces": surfaces}
+    (seats_dir / f"{old}.rename.json").write_text(
+        json.dumps(staged, indent=2), encoding="utf-8")
+    print(f"rename-post: staged {old} -> {new} ({len(surfaces)} surfaces) at "
+          f"{seats_dir / (old + '.rename.json')}; applied at the next rotation "
+          f"boundary of {old} (rename-post: _apply_staged)")
+    return 0
 
 
 # --- rotation templates (.geometry/rotations.md) ---------------------------
@@ -3958,17 +4467,20 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
 
-def _load_alerts(root: Path) -> dict:
+def _load_alerts_raw(root: Path) -> dict:
     """config:rotations frontmatter top-level `alerts:` -- the ONE routing
     matrix the Prime writes once at merge-up as a single write.py `set alerts
-    {…}` line (the round never writes it); {} when absent or not a map. A
+    {\u2026}` line (the round never writes it); {} when absent or not a map. A
     quoted-JSON cell (the shape write.py produces for a nested map, exactly
     like `rotate_defaults:`) yields a str, parsed here so the shape survives
     either spelling. Shape:
         {"audit": [<names>], "edges": {<seat>: [<names>]},
          "silent": [<names>]}
-    A receiver list for a seat = (audit ∪ edges[seat]); `silent` removes a
-    name from EVERY machine-alert send (_alert_allowed -> False)."""
+    A receiver list for a seat = (audit \u222a edges[seat]); `silent` removes a
+    name from EVERY machine-alert send (_alert_allowed -> False). Returns the
+    matrix AS STORED (no alias rewrite) -- the enumeration uses this so it can
+    SEE the old names before `_load_alerts` resolves them.
+    """
     path = _rotations_node_path(root)
     val = None
     if path.exists():
@@ -3984,7 +4496,7 @@ def _load_alerts(root: Path) -> dict:
             parsed = None
         if isinstance(parsed, dict):
             return parsed
-        # P4 falsified the shipped `set alerts {…}` line: write.py._coerce
+        # P4 falsified the shipped `set alerts {\u2026}` line: write.py._coerce
         # keeps an unquoted-key flow map (audit:[...],edges:{...}) as a STR
         # (only pure JSON parses), node_writer._render_value then QUOTES it,
         # and the active parse (json.loads) is rejected on a JSON string
@@ -3998,8 +4510,43 @@ def _load_alerts(root: Path) -> dict:
         if isinstance(parsed, dict):
             return parsed
     if isinstance(val, dict):
-        return val
+        return dict(val)
     return {}
+
+
+def _alias_rewrite_alerts(root: Path, alerts: dict) -> dict:
+    """Rewrite the routing matrix through the ONE `aliases:` table at READ
+    time (hypothesis P4, round 2): an `alerts.edges` KEY old->new, every
+    edges VALUE member old->new, and each `audit`/`silent` member old->new.
+    No config edit happens at rename -- the matrix reads the NEW name once
+    the alias is written."""
+    aliases = _rename_aliases(root)
+    if not aliases:
+        return alerts
+    out = dict(alerts)
+    edges = out.get("edges")
+    if isinstance(edges, dict):
+        nedges = {}
+        for k, v in edges.items():
+            kk = aliases.get(str(k), k)
+            vv = ([aliases.get(str(m), m) for m in v]
+                  if isinstance(v, list) else v)
+            nedges[kk] = vv
+        out["edges"] = nedges
+    for lstkey in ("audit", "silent"):
+        lst = out.get(lstkey)
+        if isinstance(lst, list):
+            out[lstkey] = [aliases.get(str(m), m) for m in lst]
+    return out
+
+
+def _load_alerts(root: Path) -> dict:
+    """The READ-time routing matrix: `_load_alerts_raw` rewritten through the
+    ONE `aliases:` table (hypothesis P4, round 2) so an edges KEY old->new,
+    every edges VALUE member, and each `audit`/`silent` member read under the
+    new name. No config edit happens at rename -- the alias carries it."""
+    return _alias_rewrite_alerts(root, _load_alerts_raw(root))
+
 
 
 def _alert_silent(root: Path) -> set:
@@ -17833,6 +18380,41 @@ def main(argv: list[str] | None = None) -> int:
     p_r.set_defaults(func=cmd_rotate)
 
 
+    # rename-post <old> <new>: the rename round (SM.18), round 1 — dry-run
+    # prints the surface table, default stages <old>.rename.json applied at
+    # the next rotation boundary, --now/--apply apply the session-file
+    # surface (refusing under a live pid); row/branch/tmux are listed+staged
+    # and shipped round 2. No config write this round.
+    p_rp = sub.add_parser(
+        "rename-post", help="rename a post name across its surfaces: "
+                             "--dry-run prints the table, default stages "
+                             "<old>.rename.json, --now/--apply apply the "
+                             "session-file surface (refusing under a live "
+                             "pid)")
+    p_rp.add_argument("old_name", metavar="old", help="current post name")
+    p_rp.add_argument("new_name", metavar="new", help="replacement name")
+    p_rp.add_argument("--dry-run", action="store_true",
+                      help="print every surface and touch nothing")
+    p_rp.add_argument("--now", action="store_true",
+                      help="apply the session-file surface immediately "
+                           "(refused when a live pid is on the row)")
+    p_rp.add_argument("--apply", action="store_true",
+                      help="apply the session-file surface now "
+                           "(--now, same path)")
+    p_rp.add_argument("--live", action="store_true",
+                      help="with --now/--apply: run the git/tmux renames for "
+                           "REAL (branch -m + push, worktree move, tmux "
+                           "rename by @id/$id). DANGEROUS: a privileged "
+                           "landing (the Prime, at merge-up). WITHOUT it the "
+                           "default prints the would-run git/tmux lines and "
+                           "runs no subprocess.")
+    p_rp.add_argument("--delete-old", dest="delete_old", action="store_true",
+                      help="after pushing the new branch name, also delete "
+                           "the old one (only under this flag)")
+    p_rp.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_rp.set_defaults(func=cmd_rename_post)
+
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
     p_bb = sub.add_parser(
@@ -17946,7 +18528,7 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "rotate", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision", "autopsy", "closeout"):
+                    "first-decision", "autopsy", "closeout", "rename-post"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)
