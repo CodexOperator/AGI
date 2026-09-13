@@ -5,6 +5,7 @@ type: config
 parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
+alerts: "{audit:[master-sensei],edges:{belam:[sanctuary-director,sanctuary-helper],sanctuary-director:[belam],sanctuary-helper:[belam],sanctuary-master:[sensei-director],sensei-director:[sanctuary-master]},silent:[stream-master]}"
 edited_by: belam
 fact_bounds:
   model: permanent
