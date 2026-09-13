@@ -12624,16 +12624,64 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+def _git_unquote_path(s: str) -> str:
+    """Decode ONE git `core.quotePath`-escaped path back to its literal name.
+
+    When git must quote a path (it wraps it in `"` and octal-escapes
+    non-ASCII / control bytes, backslash and quote), the SAME spelling appears
+    in `git status --porcelain` and in `git diff --name-only` — so the dirty
+    list and the merge touch-set must BOTH be unquoted through THIS function
+    or the two sets never intersect for a quoted name and a touched dirty
+    file is misread as `foreign dirt` and passes unblocked (goal:g15.25). A
+    path with no wrapping quotes is returned VERBATIM (never `.strip('"')`
+    alone: that eats a leading/trailing quote that is a real path byte).
+
+    git's escaping (builtin/quote.c) is BYTE-wise: `\\ooo` is one 3-digit
+    octal byte, `\\\\` a literal backslash and `\\"` a literal double-quote.
+    Grouping the escaped bytes back into a bytearray and UTF-8-decoding it is
+    what turns `\\303\\251` into `é` (the two UTF-8 bytes of U+00E9) rather
+    than the mojibake `chr()` would give per byte. Unescaped characters (git
+    only emits ASCII in quoted output) pass through byte-for-byte."""
+    if not (len(s) >= 2 and s.startswith('"') and s.endswith('"')):
+        return s
+    inner = s[1:-1]
+    if "\\" not in inner:
+        return inner
+    out = bytearray()
+    i, n = 0, len(inner)
+    while i < n:
+        c = inner[i]
+        if c == "\\" and i + 1 < n:
+            nxt = inner[i + 1]
+            if nxt in "01234567" and i + 3 < n:
+                out.append(int(inner[i + 1:i + 4], 8))
+                i += 4
+                continue
+            if nxt == "\\":
+                out.append(0x5C)
+                i += 2
+                continue
+            if nxt == '"':
+                out.append(0x22)
+                i += 2
+                continue
+        out.extend(c.encode("utf-8"))  # unknown escape / plain char: literal
+        i += 1
+    return out.decode("utf-8", errors="replace")
+
+
 def _porcelain_path(porcelain_line: str) -> str:
     """The path a `git status --porcelain` line names — the two-column
     status prefix stripped, any `old -> new` rename reduced to the new path,
-    surrounding quotes removed. One extractor; `_prepare_churn_path` and the
-    dirty-tree captive both use it so a churn filter and a name always agree
-    on what a line's path IS."""
+    then `core.quotePath`-unquoted. One extractor; `_prepare_churn_path` and
+    the dirty-tree captive both use it so a churn filter and a name always
+    agree on what a line's path IS. Unquoting through `_git_unquote_path`
+    (the SAME normalizer `_merge_touch_set` applies) is what makes a quoted
+    dirty path and its touch-set twin spell IDENTICALLY (goal:g15.25)."""
     path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
     if " -> " in path:
         path = path.split(" -> ", 1)[1]
-    return path.strip().strip('"')
+    return _git_unquote_path(path.strip())
 
 
 def _prepare_churn_path(porcelain_line: str) -> bool:
@@ -12670,6 +12718,33 @@ def _prepare_dirty_paths(porcelain: list[str] | None,
                 continue
             paths.append(path)
     return paths
+
+
+def _merge_touch_set(root: Path, sb: str) -> set[str] | None:
+    """The SET of paths a merge of `origin/<sb>` would bring in or overwrite
+    — `git diff --name-only HEAD...origin/<sb>` (THREE-dot: the symmetric
+    diff from the merge base, which is what a merge actually changes; a
+    two-dot diff is the WRONG set). None when unmeasurable (no
+    `origin/<sb>`, an opaque git refusal) — caller treats None as today.
+
+    goal:g15.25 (hypothesis:l4-the-dirty-tree-gate...): this is the one
+    mechanical reason the dirty-tree gate must block on a SHARED MAIN
+    checkout — git refuses to overwrite a dirty WORKING file the merge
+    touches. A dirty path OUTSIDE this set is another post's uncommitted
+    work: named `foreign dirt`, never a block."""
+    lines = _git_maybe(root, "diff", "--name-only", f"HEAD...origin/{sb}")
+    if lines is None:
+        return None
+    out: set[str] = set()
+    for ln in lines:
+        # unquote through `_git_unquote_path` — the SAME normalizer
+        # `_porcelain_path` applies — so a quoted path (non-ASCII / backslash
+        # / quote, as git `core.quotePath` renders it) intersects the dirty
+        # list IFF the merge would actually touch it (goal:g15.25).
+        s = _git_unquote_path(ln.strip())
+        if s:
+            out.add(s)
+    return out
 
 
 def _merge_applies_clean(root: Path, sb: str) -> bool | None:
@@ -12955,9 +13030,36 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if p and _path_delta_whitespace_only(root, top, p) \
                     and p not in ws_only:
                 ws_only.append(p)
+    # goal:g15.25 (hypothesis:l4-the-dirty-tree-gate...) — on a SHARED MAIN
+    # checkout the dirty-tree gate must NAMED-block a rotate-out ONLY when a
+    # dirty path intersects what a merge would ACTUALLY touch. The mechanical
+    # reason dirt must block is git refusing to overwrite a dirty WORKING
+    # file the merge touches; a path OUTSIDE the merge's touch-set is another
+    # post's uncommitted work, named `foreign dirt`, never a block, never a
+    # stop_commit. The partition runs ONLY on a MAIN post (row `worktree`
+    # cell empty — a worktree post's dirt is its own, all of it blocks, as
+    # today); a touch-set that cannot be measured (None) falls back to today
+    # (all dirt blocks) and says `touch-set unmeasured`. `_sb` is hoisted
+    # here so check 3 measures + merges the SAME ref.
+    _sb = _prepare_merge_target(root)
+    _row = _find_seat(root, seat)
+    # a MAIN post has a row whose `worktree` cell is EMPTY; a seat with NO
+    # row at all has no worktree cell, so the g15.25 partition does NOT run
+    # for it — its dirt all blocks, exactly as today (conservative fallback
+    # to the letter of the claim: the partition runs only when the row
+    # worktree cell is empty).
+    _main_post = bool(_row) and not (_row.get("worktree") or "").strip()
+    _touch: set[str] | None = None
+    if dirty_paths and _main_post:
+        _touch = _merge_touch_set(root, _sb)
+    _block_paths = list(dirty_paths)
+    _foreign: list[str] = []
+    if _touch is not None:
+        _foreign = [p for p in dirty_paths if p not in _touch]
+        _block_paths = [p for p in dirty_paths if p in _touch]
     if dirty_paths:
         shown: list[str] = []
-        for p in dirty_paths:
+        for p in _block_paths:
             if len(shown) >= 5:
                 break
             # claim 6a: an index-only real change (staged edit, working copy
@@ -12967,14 +13069,26 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if _index_staged_real_change(root, top, p):
                 shown.append(f"{p}: staged change (index differs from HEAD)")
             else:
-                shown.append(p)
-        suffix = (f", +{len(dirty_paths) - 5} more"
-                  if len(dirty_paths) > 5 else "")
+                shown.append(p + (f" (touched by origin/{_sb})"
+                                  if _touch is not None else ""))
+        suffix = (f", +{len(_block_paths) - 5} more"
+                  if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
+        if _touch is None and _main_post:
+            dirty_name += " (touch-set unmeasured)"
     else:
         dirty_name = "dirty tree"
-    checks.append((bool(dirty_paths), dirty_name,
+    checks.append((bool(_block_paths), dirty_name,
                    "git commit -m '<msg>' -- <the files you changed>"))
+    # foreign dirt on a MAIN post: another post's uncommitted work the merge
+    # would NOT touch — NAMED as one never-blocking line (capped at 5, then
+    # `+N more`), never a block, never a stop_commit (goal:g15.25).
+    if _foreign:
+        _fs = _foreign[:5]
+        _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
+        checks.append((False,
+                       "foreign dirt (not in the merge): "
+                       + ", ".join(_fs) + _suf, ""))
     # claim 2 benign naming: each whitespace-only-delta path is named on ONE
     # never-blocking (ok) line so prepare both passes AND says why the path
     # was not a blocker. Name relative to the repo top so the familiar
@@ -12989,8 +13103,8 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # season_branch, never a hardcoded season. The merge target resolves
     # through branches.merge_target when the seat's branch is a post/loop
     # (clause 5 of hypothesis:l4-branches-follow-the-season-grammar), so a
-    # town seat targets its own town main, not a literal core main.
-    _sb = _prepare_merge_target(root)
+    # town seat targets its own town main, not a literal core main. `_sb`
+    # was hoisted into check 2 (the same merge target, resolved ONCE).
     # claim (hypothesis:l4-prepare-fetches-before-it-measures-behind...):
     # when perform is True, the ONE `fetch origin <sb>` runs BEFORE the
     # behind count, so a worktree whose local origin/<sb> has not moved since
