@@ -9,9 +9,10 @@ fields:
   season: {type: int}            # the town's OWN counter (core 2, streaming-suite 1, web-app-suite 1 — owner ruling)
   season_history: {type: list}   # [{season, global_season, opened, closed}]
   written_by: {type: list}       # [prime_director, owner] — never a kid
-  branches: {type: str, refuse: "DERIVED, never a cell — towns.py refuses this key BY NAME at read time; see body"}  # branch names fall out of the cells, never a cell
+  branches: {type: str, refuse: "DERIVED, never a cell — refused BY NAME at MINT (write.py create gate) and at READ (towns.py loader); see body"}  # branch names fall out of the cells, never a cell
 validation:
   required: [visions, council, season]
+  required_nonempty: [visions]   # a town with an EMPTY or ABSENT `visions` cell is refused BY NAME at MINT (write.py create gate, rc=2, nothing written) — never warned-and-written into a node `towns.load_towns` then refuses at READ
   types:
     visions: list
     council: str
@@ -35,14 +36,18 @@ what `crons.py apply` does for `crons.md`; the towns are the declared rows.
 
 ## `branches:` is DERIVED, NEVER a cell
 
-The schema REFUSES `branches:` as a frontmatter cell by name. A town's branch
-names (`core/main`, `core/season2/main`, `core/season2/posts/<post>/main`,
+The schema REFUSES `branches:` as a frontmatter cell by name — at BOTH mint
+and read. A town's branch names (`core/main`, `core/season2/main`,
+`core/season2/posts/<post>/main`,
 `core/season2/posts/<post>/loops/<round>/<agent>`) fall out of the town's
 cells — `season`, `council` (post name), and the loop/agent layers — and are
 rendered by `towns.derive_names`. Storing them would let the cells and the
 branches drift apart; the whole point of the super node is that the branch
-names are a view over the cells. If a `branches:` key ever appears, `towns.py`
-refuses the node by name.
+names are a view over the cells. The CREATE gate (`write.py create`
+`--set branches=…`, driven GENERICALLY by this field's `refuse:` annotation)
+refuses the key BY NAME at MINT and writes nothing; and if a `branches:` key
+still ever appears, `towns.load_towns` refuses the node by name at READ time.
+The gate refuses what the loader refuses — the same cell, the same ground.
 
 ## `visions: auto`
 

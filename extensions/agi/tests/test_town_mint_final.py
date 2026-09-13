@@ -187,6 +187,27 @@ def test_block_reconstructs_the_deliverable():
             f"{got}")
 
 
+def test_block_lines_carry_seat_actor_and_explicit_role():
+    """The corrected lines name the ACTOR as the seat (`belam`) and the ROLE
+    explicitly (`--role prime_director`) — never a bare `--actor prime_director`
+    that smuggles the role in under the actor flag. A regression back to the
+    old spelling fails here, and the fixture mint (below) proves the spelling
+    resolves and is admitted."""
+    for line in _read_node_block_lines():
+        toks = shlex.split(line)
+        assert "--actor" in toks and "--role" in toks, line
+        actor_i = toks.index("--actor")
+        role_i = toks.index("--role")
+        assert toks[actor_i + 1] == "belam", (
+            f"actor must be the seat (belam), got {toks[actor_i + 1]!r}: "
+            f"{line}")
+        assert toks[role_i + 1] == "prime_director", (
+            f"role must be explicit prime_director, got {toks[role_i + 1]!r}: "
+            f"{line}")
+        # --role must follow its --actor, never a bare --actor prime_director.
+        assert role_i > actor_i, f"--role must follow --actor: {line}"
+
+
 def test_delivered_lines_mint_the_ruling_cells(tmp_path, monkeypatch):
     """The EXACT node-block strings, run through a real subprocess on a
     fixture whose vision ids are the REAL five, mint the ruling table."""
@@ -261,4 +282,17 @@ def test_why_meaning_the_negative_is_cited_not_duplicated():
     kid 2's test_town_mint.py::test_season_set_is_overridden_at_mint_time
     (node_writer.py:770-777). The corrected lines here are the FIX; the
     citation is the reason the season control is load-bearing."""
-    assert True  # the citation is recorded in the module docstring
+    # The citation must really resolve to a test that ASSERTS the override —
+    # otherwise the FIX above is unreasoned and the season control untested.
+    # Read the sibling module's source so the citation cannot drift into a
+    # name that asserts nothing (this is the assertion that replaces the
+    # old vacuous `assert True`).
+    from pathlib import Path as _Path
+    src = (_Path(__file__).resolve().parent / "test_town_mint.py").read_text()
+    assert "def test_season_set_is_overridden_at_mint_time" in src, (
+        "the cited negative-corner test no longer exists in test_town_mint.py")
+    body = src.split("def test_season_set_is_overridden_at_mint_time", 1)[1]
+    body = body.split("\n\ndef ", 1)[0]
+    assert "assert" in body and "== 2" in body and "_mint" in body, (
+        "the cited test must really assert the season override (== 2) via a "
+        "mint, not merely name it")

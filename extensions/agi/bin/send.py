@@ -4183,16 +4183,115 @@ def veto_gate_status(root: Path, scope: str) -> str:
             f"answers in the {room!r} room when one is filed)")
 
 
+def _veto_pubkey_for_post(root: Path):
+    """The pubkey resolver for a ring decision's signatures (the rung-2b
+    answer path): each member post resolves to its config:posts row's pubkey
+    -- the SAME row source this build's verify labels against. The verify
+    side NEVER reads a signer's private key."""
+    graph = _veto_graph_root(root)
+
+    def resolve(post: str):
+        try:
+            for row in geometry_config.load_rows(graph):
+                if row.get("name") == post:
+                    return row.get("pubkey") or None
+        except Exception:  # noqa: BLE001 (an unreadable row set resolves nothing)
+            return None
+        return None
+
+    return resolve
+
+
+def _veto_answer_decision(root: Path, block: str, scope: str):
+    """A ring-DECISION answer (rung 2b path of defect 1e): the answer is an
+    inline JSON decision cell ({kind, ring, fields, signatures}). The ring is
+    resolved off the rings geometry cell, the m-of-n quorum is re-verified
+    over the FULL signed fields through rings.verify_decision, and the
+    decision's ``scope`` field must NAME the gated scope. A no-ring, minority,
+    tampered, or wrong-scope decision is REFUSED BY NAME and clears nothing.
+    Returns (ok, refusal, owner_text)."""
+    from seatsig import rings as _rings
+
+    graph = _veto_graph_root(root)
+    try:
+        decision = json.loads(block)
+    except (ValueError, TypeError):
+        return (False, "the ring-decision answer is not valid JSON", "")
+    ring_name = decision.get("ring")
+    try:
+        ring = _rings.ring_by_name(_rings.load_rings(graph), ring_name)
+    except Exception:  # noqa: BLE001 (a broken rings cell admits nothing)
+        ring = None
+    if ring is None:
+        return (False,
+                f"no ring {ring_name!r} is declared for an answer decision; "
+                "a ring-less answer clears nothing", "")
+    flds = decision.get("fields") or {}
+    if flds.get("scope") != scope:
+        return (False,
+                f"answer refused: the ring decision's scope is "
+                f"{flds.get('scope')!r}, not the gated {scope!r}", "")
+    try:
+        res = _rings.verify_decision(
+            decision, ring, pubkey_for_post=_veto_pubkey_for_post(root))
+    except Exception:  # noqa: BLE001 (a broken decision never clears)
+        return (False, "answer refused: a broken answer decision clears "
+                       "nothing", "")
+    if not res.ok:
+        return (False, f"answer refused: {res.refused}", "")
+    return (True, "", f"owner answer (ring decision {ring_name})")
+
+
+def _veto_answer_authorized(root: Path, scope: str, answer: str):
+    """(ok, refusal, owner_text) -- the ONE authorization for an owner answer.
+
+    An answer is accepted ONLY as a SIGNED line -- ``comms.verify`` over the
+    seat key of a row whose ROLE is ``owner`` -- or a valid ring DECISION
+    (rung 2b, :func:`_veto_answer_decision`). An UNSIGNED ``--answer`` is
+    refused BY NAME and frees nothing; a signed answer from a NON-OWNER row
+    is refused BY NAME (defect 1e, hypothesis:l4-...gate-sits-on-the-merge-up-
+    push). Only an owner-role signature (or a valid ring decision) clears the
+    gate."""
+    block = answer.strip()
+    if block.startswith("{"):
+        return _veto_answer_decision(root, block, scope)
+    meta, text = _parse_block(block)
+    if "sig" not in meta:
+        return (False,
+                "an owner answer must be a SIGNED line (a dm block with a "
+                "`sig:` header over the owner's seat key); an UNSIGNED "
+                "--answer clears nothing", "")
+    rows = _load_rows(root)
+    frm = meta.get("from", "")
+    row = _row_for_label(root, rows, frm) if rows else None
+    if row is None:
+        return (False, f"answer refused: from {frm!r} belongs to no seat row",
+                "")
+    role = str(row.get("role") or "")
+    if role != "owner":
+        return (False,
+                f"answer refused: only an OWNER-role signature clears the "
+                f"gate; {row.get('name', frm)!r} is role {role!r}", "")
+    label = _verify_block(root, rows, meta, text)
+    if not label.startswith("VERIFIED"):
+        return (False, f"answer refused: the signature does not verify "
+                       f"({label})", "")
+    return (True, "", text)
+
+
 def veto_answer(root: Path, scope: str, answer: str) -> str:
     """An OWNER ANSWER clears the freeze on `scope` -- the ONE and only
-    release. The geometry is loaded, the current active gate for `scope` is
-    checked (nothing to answer if it is already free), the answer is recorded
-    (veto.record_answer fills the gate's `answered` AND the veto log's
-    `answer`, so the lifecycle filed -> frozen -> answered stays in ONE file),
-    and the state is written back through veto.save. The answer is also
-    posted to the named veto_room (the comms room the claim names), so the
-    wire surface and the durable log agree. Returns the printed line; raises
-    nothing (a broken cell answers the owner by name)."""
+    release. The answer is accepted ONLY as a SIGNED line verifies over the
+    seat key of a row whose role is owner (or a valid ring decision) -- an
+    UNSIGNED or non-owner-signed answer is REFUSED BY NAME and frees nothing
+    (defect 1e). On accept the geometry is loaded, the current active gate
+    for `scope` is checked (nothing to answer if it is already free), the
+    answer is recorded (veto.record_answer fills the gate's `answered` AND the
+    veto log's `answer`, so the lifecycle filed -> frozen -> answered stays in
+    ONE file), and the state is written back through veto.save. The answer is
+    also posted to the named veto_room (the comms room the claim names), so
+    the wire surface and the durable log agree. Returns the printed line;
+    raises nothing (a broken cell answers the owner by name)."""
     from seatsig import veto as _veto
 
     graph = _veto_graph_root(root)
@@ -4203,39 +4302,97 @@ def veto_answer(root: Path, scope: str, answer: str) -> str:
     if not frozen:
         return (f"veto: scope {scope!r} is not under an active gate; "
                 "nothing to answer")
-    freed = _veto.record_answer(g, scope, answer.strip())
+    ok, refusal, owner_text = _veto_answer_authorized(root, scope, answer)
+    if not ok:
+        return f"veto: REFUSED -- {refusal}"
+    freed = _veto.record_answer(g, scope, owner_text.strip() or "owner answer")
     try:
         _veto.save(graph, freed)
     except Exception:  # noqa: BLE001  (never crash the verb on a save failure)
         pass
     room = g.get("veto_room") or "veto"
-    return (f"veto: ANSWERED -- an owner answer cleared scope {scope!r}; the "
-            f"gate is released and the answer is logged to the {room!r} "
-            "room and the vetoes geometry node. Never auto-released -- only "
-            "an owner answer.")
+    return (f"veto: ANSWERED -- a VERIFIED owner-role signature cleared scope "
+            f"{scope!r}; the gate is released and the answer is logged to the "
+            f"{room!r} room and the vetoes geometry node. Never "
+            "auto-released -- only an owner answer.")
+
+
+def veto_file(root: Path, scope: str, decision: dict) -> str:
+    """FILE a veto through seatsig.veto.evaluate_veto -- the ONE non-test
+    caller of the rings m-of-n veto gate (defect 1a,
+    hypothesis:l4-...gate-sits-on-the-merge-up-push). ``decision`` is a rings
+    DECISION CELL (kind 'veto', fields the signatures covered) from a
+    council+Keep majority; the ring is resolved by ``decision['ring']`` off the
+    rings geometry cell and the QUORUM verifies over the seat pubkeys
+    (config:posts rows). On accept the new geometry (logged veto + active
+    freeze) is persisted through veto.save; a no-ring / minority / expired /
+    rate-limited / tampered veto is REFUSED BY NAME and gates NOTHING -- a
+    no-ring veto never sets a human gate."""
+    from seatsig import veto as _veto
+    from seatsig import rings as _rings
+
+    graph = _veto_graph_root(root)
+    g = _veto.read(graph)
+    ring = None
+    try:
+        ring = _rings.ring_by_name(_rings.load_rings(graph),
+                                   decision.get("ring"))
+    except Exception:  # noqa: BLE001 (a broken rings cell admits nothing)
+        ring = None
+    refusal, new = _veto.evaluate_veto(
+        g, scope, decision, ring=ring,
+        pubkey_for_post=_veto_pubkey_for_post(root))
+    if refusal is not None:
+        return f"veto: REFUSED -- {refusal} (gates nothing)"
+    try:
+        _veto.save(graph, new)
+    except Exception:  # noqa: BLE001 (never misreport a veto as filed)
+        return ("veto: REFUSED -- the accepted veto could not be persisted; "
+                "nothing was filed")
+    _frozen, _why = _veto.is_frozen(graph, scope, geom=new)
+    if _frozen:
+        return (f"veto: FILED -- scope {scope!r} is now FROZEN by a human "
+                f"gate; {_why}")
+    return f"veto: FILED -- scope {scope!r} recorded (no active freeze)"
 
 
 def _cli_veto(croot: Path, root: Path, args) -> int:
     """The `veto` verb: status by default, or an OWNER ANSWER that clears a
     frozen scope (claim (1): wait for an owner line; the answer is posted to
-    the named room and the freeze is released in the one geometry log)."""
+    the named room and the freeze is released in the one geometry log) -- or
+    `--file` FILE a veto from a rings decision cell through evaluate_veto
+    (defect 1a: the non-test caller of the rings m-of-n veto gate)."""
     scope = getattr(args, "scope", None) or "prime"
+    decision_file = getattr(args, "file", None)
+    if decision_file:
+        import json as _json
+
+        try:
+            decision = _json.loads(Path(decision_file).read_text())
+        except (OSError, ValueError):
+            print(f"veto: REFUSED -- could not read a decision cell from "
+                  f"{decision_file!r} (missing or not valid JSON)",
+                  file=sys.stderr)
+            return 1
+        print(veto_file(root, scope, decision))
+        return 0
     if getattr(args, "answer", None):
         line = veto_answer(root, scope, args.answer)
         print(line)
-        dropped = args.answer.strip()
-        # post the owner line to the named room (best-effort comms surface)
-        try:
-            room = getattr(args, "room", None)
-            if not room:
-                from seatsig import veto as _veto
-                room = (_veto.read(_veto_graph_root(root)).get("veto_room")
-                        or "veto")
-            print(send_room(croot, room, dropped, _detect_sender(
-                getattr(args, "from_id", None))).resolve())
-        except Exception:  # noqa: BLE001  (the gate release already happened)
-            pass
-        return 0 if dropped else 1
+        ok = line.startswith("veto: ANSWERED")
+        if ok:
+            # post the owner line to the named room (best-effort comms surface)
+            try:
+                room = getattr(args, "room", None)
+                if not room:
+                    from seatsig import veto as _veto
+                    room = (_veto.read(_veto_graph_root(root)).get("veto_room")
+                            or "veto")
+                print(send_room(croot, room, args.answer.strip(), _detect_sender(
+                    getattr(args, "from_id", None))).resolve())
+            except Exception:  # noqa: BLE001  (the gate release already happened)
+                pass
+        return 0 if ok else 3
     print(veto_gate_status(root, scope))
     return 0
 
@@ -4482,6 +4639,10 @@ def main(argv: list[str] | None = None) -> int:
     p_veto.add_argument("--room", default=None,
                         help="named room to post the owner answer into "
                              "(default: the geometry veto_room)")
+    p_veto.add_argument("--file", default=None, metavar="DECISION.json",
+                        help="FILE a veto from a rings decision cell (JSON) "
+                             "through evaluate_veto -- the wire that gives "
+                             "the rings m-of-n veto gate a real caller")
 
     args = ap.parse_args(argv)
 

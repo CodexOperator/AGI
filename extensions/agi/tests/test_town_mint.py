@@ -25,19 +25,25 @@ Measured, and asserted here:
     REJECTED (rc=2) with the allowed shape named ("allowed: ['ladder']"). A
     PHANTOM parent id (a node that doesn't exist) is UNVERIFIED — the node is
     written, because the gate cannot resolve the id's type.
-  * VISIONS OMITTED: the gate does NOT refuse — it APPROVES and writes the
-    node with only a SCHEMA-WARNING (goal:s31 scaffold-born-valid). The
-    node is born WITHOUT `visions`; `towns.load_towns` REFUSES it at READ time
-    ("town with no visions: '...'"). The write admits; the reader refuses.
+  * VISIONS OMITTED: the schema now opts that field into `validation.
+    required_nonempty` (a schema-DECLARED rule, the town deliberately opting
+    out of goal:s31's warn-and-write on `validation.required` alone), so the
+    CREATE GATE refuses it BY NAME at mint (rc=2) and NOTHING is written — a
+    town with no `visions` is no longer born only for `towns.load_towns` to
+    refuse it at READ time ("town with no visions"). `visions=[]` (explicitly
+    empty) refuses too. A schema declaring NO `required_nonempty` keeps the
+    warn-and-write rule for its own missing-required (goal:s31 unbroken).
   * NON-PRIME ACTOR: hard REFUSED by `_enforce_written_by` naming the
     admitted roles — "may be hand-edited only by admitted roles owner,
     prime_director".
-  * `branches:` CELL: the gate ADMITS it (nothing reads the schema's
-    `refuse:` annotation on the field), and the node is born with
-    `branches: [core/main]` in the frontmatter. `towns.load_towns` REFUSES it
-    at READ time ("`branches:` is DERIVED, never a cell: town:'...'"). So the
-    schema file's "refuses BY NAME" claim is TRUE OF THE LOADER, not OF THE
-    CREATE GATE — the gate admits the cell, the reader refuses it.
+  * `branches:` CELL: the CREATE GATE now enforces the schema's field-level
+    `refuse:` annotation GENERICALLY (hypothesis:l4-the-town-create-gate-
+    refuses-what-the-loader-refuses-...): a `--set branches=…` refuses BY
+    NAME at mint (rc=2) with the schema's own ground quoted, and nothing is
+    written — the loader's `DERIVED, never a cell` refusal moves INTO the
+    gate, so the write no longer admits a cell only for a later reader to
+    reject it. The same gate also refuses a non-`int` under a declared
+    `int` type (`season=abc`, `season=true`) by name, never a traceback.
 
 Every assertion runs against a FRESH fixture project under tmp_path and never
 touches the live tree.
@@ -86,6 +92,7 @@ def _fixture(tmp_path: Path) -> Path:
     Layout (the G11 shape):
         <proj>/.agi/config.json
         <proj>/.agi/context/schemas/[town].md      (unwieldy - the LIVE schema)
+        <proj>/.agi/context/schemas/[notown].md    (a fixture schema with a required field but NO required_nonempty — goal:s31 control)
         <proj>/.agi/nodes/.geometry/ladder.md      (current_season 2 + towns)
         <proj>/.agi/nodes/.geometry/posts.md       (prime_director + 3 councils)
         <proj>/.agi/nodes/ladder/ladder.md         (so the gate resolves ladder:ladder)
@@ -95,6 +102,10 @@ def _fixture(tmp_path: Path) -> Path:
     g = proj / ".agi"
     _write(g, "config.json", "{}\n")
     _write(g, "context/schemas/[town].md", _real_schema())
+    _write(g, "context/schemas/[notown].md",
+           "---\nname: notown\nfields:\n  thing: {type: str}\n"
+           "validation:\n  required: [thing]\n"
+           "spawn:\n  allowed_parents: [ladder]\n  min_parents: 1\n  max_parents: 1\n---\n")
     _write(g, "nodes/.geometry/ladder.md",
            "---\nid: ladder:ladder\ncurrent_season: 2\n"
            "towns: [core, streaming-suite, web-app-suite]\n---\nbody\n")
@@ -111,7 +122,8 @@ def _fixture(tmp_path: Path) -> Path:
            + "\n".join(f"  - {json.dumps(r)}" for r in posts) + "\n---\n")
     _write(g, "nodes/ladder/ladder.md",
            "---\nid: ladder:ladder\ntype: ladder\n---\nbody\n")
-    for v in ("vision:a", "vision:b", "vision:c"):
+    for v in ("vision:a", "vision:b", "vision:c",
+              "vision:streaming-suite", "vision:web-app-suite"):
         _write(g, f"nodes/vision/{v.split(':')[-1]}.md",
                f"---\nid: {v}\ntype: vision\ntitle: x\n---\nbody\n")
     return proj
@@ -141,23 +153,26 @@ def _mint(monkeypatch, proj: Path, slug: str, *, visions,
     return write.main(argv)
 
 
-def test_dry_run_and_illegal_parent_and_branches_bypass_the_gate(tmp_path, monkeypatch):
-    """`--dry-run` returns 0 BEFORE create() runs (write.py:2062-2070) — it
-    exercises no spawn gate, no schema validation, no written_by check. So an
-    illegal parent and a `branches:` cell BOTH dry-run happily: parse-only."""
+def test_dry_run_bypasses_spawn_gate_but_not_the_schema_refuse_gate(tmp_path, monkeypatch):
+    """`--dry-run` returns 0 BEFORE create() runs (write.py:2062-2070), so it
+    exercises no spawn gate — an illegal parent still dry-runs happily. But the
+    schema field-level `refuse:` gate now sits BEFORE the dry-run short-circuit,
+    because a dry run is a simulation of the mint and refuses what the real
+    mint would refuse: a `branches:` cell refuses by name even under --dry-run."""
     proj = _fixture(tmp_path)
     # Illegal parent that WOULD hard-refuse for real (vision:a resolves):
     rc = _mint(monkeypatch, proj, "dryrun-bad", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
                parent="vision:a", dry_run=True)
     assert rc == 0, "dry-run must not run the spawn gate (write.py:2062-2070)"
-    # A branches cell that WOULD be refused by towns.py at read time:
+    # A branches cell IS refused even under a dry run (schema gate pre-dry-run):
     rc2 = _mint(monkeypatch, proj, "dryrun-branches", visions=["vision:a"],
                 council="council-core", season=2, agi_season="2",
                 extra_sets={"branches": "[core/main]"}, dry_run=True)
-    assert rc2 == 0, "dry-run must not run schema validation either"
+    assert rc2 == 2, "the schema refuse: gate must fire before the dry-run return"
     # Nothing was minted by a dry run:
     assert not (proj / ".agi" / "nodes" / "town" / "dryrun-bad.md").exists()
+    assert not (proj / ".agi" / "nodes" / "town" / "dryrun-branches.md").exists()
 
 
 def test_three_create_lines_mint_and_readback_equal_ruling(tmp_path, monkeypatch):
@@ -240,12 +255,14 @@ def test_phantom_parent_is_unverified_not_refused(tmp_path, monkeypatch):
     assert rc == 0, "an unresolvable parent id is UNVERIFIED, not rejected"
 
 
-def test_visions_omitted_admitted_by_gate_refused_by_loader(tmp_path, monkeypatch):
-    """The mint path does NOT hard-refuse a missing `visions` — `validation.
-    required` is reported as a SCHEMA-WARNING and the node is written
-    (goal:s31 scaffold-born-valid). The refusal happens at READ time, in
-    `towns.load_towns` ('town with no visions'). The write admits; the reader
-    refuses — the honest split to record."""
+def test_visions_omitted_refused_by_create_gate_by_name(tmp_path, monkeypatch, capsys):
+    """A town whose schema declares `visions` on `validation.required_nonempty`
+    and whose create leaves `visions` ABSENT is REFUSED BY NAME at mint (rc=2),
+    and NOTHING is written. This is the schema-DECLARED own of goal:s31's
+    missing-required warn-and-write: `validation.required` alone stays a
+    SCHEMA-WARNING and the node is written (other types), but a field a type
+    opts into `required_nonempty` refuses at MINT — so the write no longer
+    admits a town only for `towns.load_towns` to refuse it at read."""
     proj = _fixture(tmp_path)
     g = proj / ".agi"
     import os as _os
@@ -256,11 +273,49 @@ def test_visions_omitted_admitted_by_gate_refused_by_loader(tmp_path, monkeypatc
                      "--actor", "prime_director",
                      "--set", "council=council-core",
                      "--set", "season=2"])
-    assert rc == 0, "the mint gate admits a town with no visions (+warning)"
-    assert (g / "nodes" / "town" / "novisions.md").is_file()
-    with pytest.raises(towns.TownError) as e:
-        towns.load_towns(g)
-    assert "no visions" in str(e.value) and "novisions" in str(e.value)
+    assert rc == 2, "the mint gate must refuse a town with no visions (absent)"
+    err = capsys.readouterr().err
+    assert "refused by name" in err
+    assert "'visions'" in err
+    assert "required_nonempty" in err
+    assert not (g / "nodes" / "town" / "novisions.md").exists(), \
+        "a refused mint must leave no node behind"
+
+
+def test_visions_explicitly_empty_refused_by_create_gate_by_name(tmp_path, monkeypatch, capsys):
+    """`--set visions=[]` — an EXPLICITLY EMPTY visions cell — refuses BY NAME
+    at mint (rc=2) under the same `required_nonempty` rule, and nothing is
+    written. An empty list is as un-owning as an absent one."""
+    proj = _fixture(tmp_path)
+    g = proj / ".agi"
+    rc = _mint(monkeypatch, proj, "empty-visms", visions=[],
+               council="council-core", season=2, agi_season="2")
+    assert rc == 2, "visions=[] must refuse at mint"
+    err = capsys.readouterr().err
+    assert "refused by name" in err
+    assert "'visions'" in err
+    assert "empty" in err
+    assert not (g / "nodes" / "town" / "empty-visms.md").exists(), \
+        "an empty-visions mint must leave no node behind"
+
+
+def test_no_required_nonempty_schema_still_warns_and_writes(tmp_path, monkeypatch, capsys):
+    """goal:s31 is NOT broken: a schema declaring `validation.required` but NO
+    `required_nonempty` keeps the standing warn-and-write for a MISSING required
+    field — the node is ALIVE with a SCHEMA-WARNING and rc=0, never refused.
+    The new refusal is a schema-OPT-IN, not a blanket flip of missing-required
+    into rc=2."""
+    proj = _fixture(tmp_path)
+    g = proj / ".agi"
+    monkeypatch.delenv("AGI_SEASON", raising=False)
+    rc = write.main(["create", "notown", "missing-thing",
+                     "--parent", "ladder:ladder",
+                     "--root", str(proj),
+                     "--actor", "prime_director"])
+    assert rc == 0, ("a required-missing field on a schema without "
+                     "required_nonempty must warn-and-write (goal:s31)")
+    assert (g / "nodes" / "notown" / "missing-thing.md").is_file(), \
+        "the warned node must be written"
 
 
 def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch):
@@ -277,23 +332,48 @@ def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch):
     assert not (proj / ".agi" / "nodes" / "town" / "kidtown.md").exists()
 
 
-def test_branches_cell_admitted_by_gate_refused_by_loader(tmp_path, monkeypatch):
-    """A `branches:` cell is ADMITTED by the mint gate — nothing reads the
-    schema's `refuse:` annotation on the field — and the node is born with
-    `branches: [core/main]` in the frontmatter. `towns.load_towns` refuses it
-    at READ time. So the correct claim is 'the gate admits it; towns.py
-    refuses it at read time', NOT 'the schema refuses it at create'."""
+def test_branches_cell_refused_by_create_gate_by_name(tmp_path, monkeypatch, capsys):
+    """The schema's field-level `refuse:` annotation is now a GENERIC gate
+    rule on the create path: a `--set branches=...` refuses BY NAME at mint
+    (rc=2) naming the key and quoting the schema's own ground, and NO node is
+    born. What the loader used to catch at read time the gate now refuses at
+    write time — for any schema declaring a `refuse:`, not a town special
+    case."""
     proj = _fixture(tmp_path)
     g = proj / ".agi"
     rc = _mint(monkeypatch, proj, "with-branches", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
                extra_sets={"branches": "[core/main]"})
-    assert rc == 0, "the mint gate admits a branches: cell"
-    node_path = g / "nodes" / "town" / "with-branches.md"
-    assert node_path.is_file()
-    assert "branches:" in node_path.read_text(encoding="utf-8"), \
-        "the born node carries the branches: cell in its frontmatter"
-    with pytest.raises(towns.TownError) as e:
-        towns.load_towns(g)
-    assert "DERIVED, never a cell" in str(e.value)
-    assert "with-branches" in str(e.value)
+    assert rc == 2, "a branches: cell must be refused at mint, not admitted"
+    err = capsys.readouterr().err
+    assert "refused by name" in err
+    assert "'branches'" in err
+    assert "DERIVED, never a cell" in err
+    assert not (g / "nodes" / "town" / "with-branches.md").exists(), \
+        "a refused spawn must leave no node behind"
+
+
+def test_non_int_season_refused_by_name_at_mint(tmp_path, monkeypatch, capsys):
+    """A non-`int` under the schema's declared `season: int` refuses BY NAME at
+    mint (rc=2), never a traceback. `season=abc` (a bare string) and
+    `season=true` (a bool, a subclass of int that is not a season) both
+    refuse; `season=2` passes. Generic across every schema that declares an
+    `int` type."""
+    proj = _fixture(tmp_path)
+    g = proj / ".agi"
+
+    for bad in ("abc", "true", "2.5"):
+        rc = _mint(monkeypatch, proj, "bad-season", visions=["vision:a"],
+                   council="council-core", season=bad, agi_season="2")
+        assert rc == 2, f"season={bad!r} must refuse at mint"
+        err = capsys.readouterr().err
+        assert "refused by name" in err, bad
+        assert "'season'" in err, bad
+        assert "must be an integer" in err, bad
+        assert not (g / "nodes" / "town" / "bad-season.md").exists(), bad
+
+    # The positive corner: a real int season still mints.
+    rc = _mint(monkeypatch, proj, "good-season", visions=["vision:a"],
+               council="council-core", season=2, agi_season="2")
+    assert rc == 0
+    assert (g / "nodes" / "town" / "good-season.md").is_file()
