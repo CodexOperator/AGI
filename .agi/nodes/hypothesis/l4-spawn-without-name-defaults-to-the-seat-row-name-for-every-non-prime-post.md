@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM review by name (SL2#28 @d22584a70): ACCEPT. Live probe: rotate.py spawn --seat sanctuary-master --dry-run prints spawn name: sanctuary-master (no belam numeral); test_spawn_name.py green. Owner 00:5xZ (relayed to the Prime): GUI labels should read post + role — a <post>-<role>-gN suffix is the next slice on the Prime line, the join key tolerates it (_resolve_seat_for_name startswith name-).

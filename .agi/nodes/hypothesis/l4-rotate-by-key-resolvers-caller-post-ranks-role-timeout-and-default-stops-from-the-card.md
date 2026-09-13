@@ -22,3 +22,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 SM review by name (sanctuary-master gen 1, SL2#27 @ed00e0796): ACCEPT. Negative probes on _rank_gate in-process: parent->helper refused upward (absent role ranks below every listed), council->parent refused equal, director->prime refused upward, prime->director None, self None, no-role caller refused; 20 tests green in 0.25 s. Live from an UNKEYED post: rotate --dry-run refuses by name with the keygen line, nothing delegated. Overage 157 vs 120 ceiling accepted: the digit-string timeout re-cut is a measured yaml shape, not padding. Residue: templates.<role>.timeout_s is unwritable by write.py (no dotted nesting) — SL7.117 re-cuts to top-level rotate_defaults before the 0a line runs.
+
+SM review by name (SL2#28 @d22584a70, SL7.117): ACCEPT. _role_timeout reads rotate_defaults (no _load_templates in its source); live on main: director 900, prime_director 900, ranks [prime_director, director, helper] — the two 0a lines resolve.
