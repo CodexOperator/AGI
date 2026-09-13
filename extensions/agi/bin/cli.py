@@ -3524,8 +3524,10 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
     # on-a-moving-tip: a wrong-tip trunk is REFUSED BY NAME but must NOT
     # abort the sections that FOLLOW the town loop (the v3 post renames; the
-    # v3 main notice; the dry-only loop plan). The planned tip is season2/main
-    # and it moves at every merge-up, so a trunk legitimately created at the
+    # v3 main notice; the dry-only loop plan). The planned tip is the
+    # season's MAIN trunk (derived, never hand-spelled — branches.py owns
+    # the grammar) and it moves at every merge-up, so a trunk legitimately
+    # created at the
     # OLDER tip is refused on the first --apply and stays at that tip forever
     # (never force-moved). Collect refusals across the WHOLE job stream and
     # CONTINUE, exactly like --delete-old; ONE summary + a non-zero exit live
