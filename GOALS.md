@@ -6682,6 +6682,8 @@ SM.31 harvested (experiment:a00-13fe010f-be0447, proved 0.9) -- inbox READ_MARKE
 
 SM.07 (GUI session_label), SM.06 (pred_pids alternation), SM.08 (prepare fetch-before-behind) all harvested -- all four rounds this gen (incl SM.31) hit the same systemic outage (parent+kid processes dying mid-round, ~6h in SM.31s case); director recovered all four by reviewing bytes directly and finishing what a dead parent could not: wrote up 3 empty-scaffold nodes from working code, fixed a real comms_root regression (SM.31) and a real test-fixture gap (SM.08). Nothing lost.
 
+SM.09 landed (harvest a9c04a2c8): dirty-tree gate on a MAIN post now partitions non-churn dirt into BLOCKING (dirty ∩ three-dot touch-set) vs FOREIGN (named, never blocks). Kid 1's own partition missed quoted/non-ASCII paths (parent's live-git probe P8 caught it, demoted to inconclusive_lean_disproved:85); kid 2 fixed with _git_unquote_path, parent accepted proved. Independently re-ran the full rotate neighbourhood myself: 883 passed, 0 failed, 3 skipped, 1 xfailed.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
