@@ -1811,6 +1811,33 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
 # ---- assemble ---------------------------------------------------------------
 
 
+def _orders_section() -> str | None:
+    """goal:g15.25 SM.26 -- the dispatch-orders channel.
+
+    A parent's brief is rebuilt fresh from its target node every dispatch, so
+    a director's dispatch-time scope/coupling instruction had NO channel: the
+    SM.141 trap (a parent read a whole shared node as its claim) and the SM.24
+    cherry-pick coupling both needed one. dispatch.py reads `--orders <file>`
+    and exports the bytes through the environment (the same seam
+    `AGI_ADVISOR_GOAL` uses, so no adapter signature moves), and this renders
+    them VERBATIM as the LAST section of the parent brief under ONE heading.
+
+    Returns None -- and therefore renders no heading -- when the file is
+    absent or empty, so an orders-free spawn is byte-identical to before.
+    Read from the environment rather than a kwarg for the same reason the
+    advisor goal is: every harness adapter already calls `assemble`, and
+    none of them has to learn a new parameter to carry the director's word.
+    """
+    text = os.environ.get("AGI_ORDERS_TEXT")
+    if not text:
+        return None
+    sender = (os.environ.get("AGI_ORDERS_FROM")
+              or os.environ.get("AGI_POST") or "unspecified")
+    ts = os.environ.get("AGI_ORDERS_TS") or ""
+    where = f"from {sender}, {ts}" if ts else f"from {sender}"
+    return f"## DISPATCH ORDERS ({where})\n\n{text}"
+
+
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
              target: str | None = None, parallel: int = 1,
@@ -1920,6 +1947,12 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        source_root=str(source_root) if source_root else None,
                        project_root=project_root)
         segs = [s for s in segs if s is not None]
+        # goal:g15.25 SM.26 -- the director's dispatch-time word rides the
+        # parent brief as its LAST section, one heading, verbatim. Absent or
+        # empty orders render nothing (byte-identical brief).
+        _orders = _orders_section()
+        if _orders:
+            segs.append(_orders)
         return _prepend_head(segs, tier=tier)
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
