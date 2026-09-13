@@ -770,20 +770,26 @@ class TestSLO8PrescribedFacts:
 
 class TestSLO8WhosPrefix:
     def test_item2_live_f2_whois_rederive_is_category_a_with_live_facts(self):
-        # a test of LIVE config reads the live node, never a copied list: the
-        # LIVE F2 cites the multi-token shape `send.py whois <ref>` WITHOUT the
-        # invocation prefix, and LIVE F15's PROSE `whois` ("`whois` matches by
-        # prefix on it") must not shadow it — so the live whois re-derive lands
-        # on (a, F2), not on (a, F15) (goal:g15.13 / item 2's falsifier).
+        # a test of LIVE config reads the live node, never a copied list: ONE
+        # live fact cites the multi-token shape `send.py whois <token>` WITHOUT
+        # the invocation prefix (F2 until the 2026-09-13 compaction folded it
+        # into F3 — the NUMBER is incidental, the shape is the contract), and a
+        # fact whose PROSE says `whois` ("`whois` matches by prefix on it") must
+        # not shadow it — so the live whois re-derive lands on (a, <the fact
+        # carrying the shape>), never on the prose one (goal:g15.13 / item 2).
         live = _live_rotations_facts()
         if live is None:
             pytest.skip("live config:rotations not resolvable from this test")
         facts = sensei._parse_facts(live)
+        carriers = sorted({lab for lab, shapes in facts
+                           if any(sh.startswith("send.py whois") for sh in shapes)})
+        assert len(carriers) == 1, (
+            f"exactly one live fact must cite `send.py whois <token>`: {carriers}")
         cat, label = sensei.classify_call(
             "python3 extensions/agi/bin/send.py whois 8.8.8.8",
             "Bash", SEAT, [], facts)
         assert cat == "a"
-        assert label == "F2"
+        assert label == carriers[0]
 
     def test_item2_bare_verb_fact_shape_matches_a_live_call_carrying_launch_prefix(self):
         # a fact whose cited shape is the BARE verb (`whois`) must match a live
