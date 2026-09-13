@@ -20,6 +20,15 @@
 - 🔴 **OWNER-ORDERED RENAME, check before EVERY rotate-self:** `test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json` — checked at the top of ROTATING YOURSELF below, re-run fresh, do not trust this note.
 - **Tree:** synced repeatedly this session, clean each time. Post branch tip `e919821ac`. `commands.py run verify`: 9/10 (bin-suite-fresh red, expected), active=2828 deprecated=198 total=3026, broken_links=0.
 
+## §0.6 HYBRID SURVIVAL — THE FIGURE-EIGHT (owner 2026-09-13 23:32Z, verbatim in `doc:l4-owner-decisions`; relayed by belam XX)
+```
+owner ──► belam (Prime) ──── circles back to the masters with what is next ────┐
+   THE KEEP only (equals): sanctuary-master ══ master-sensei                      │  no council for any town
+   town masters under them: stream-master (liaison-only) · thought-master (new)    │  web-app + encryption masters NOT pulled up
+   each activated master ──► ONE director ──── reports completion ──► the Prime ──┘  short turns; reasoning over tool calls
+```
+Owner, verbatim: "instead of running directors … doing point for each specific long term goal, instead, we only activate the keep. Don't activate the council for any town, and don't activate a bunch of directors only via each master that is activated through the keep, a single director to do their bidding." — "the masters tell the directors what to do. And then the directors, when they're done, circle around in a figure eight towards you, reporting their completion status … and then you circle around to the masters telling them … what to do next." — "Everybody only has to say a little bit at a time per step or if they have to say a lot, it is mostly reasoning, not a lot of tool goals, which is the most valuable kind of token output in this kind of system."
+
 ## §1 LANDED
 
 **R3.1+R3.2+R3.3** (merge-up-52, `bef788a5e`) and **R1/L4.350** (rotate.py closeout gate, `8f9589eab`): done earlier this session, full detail in git log + each node's HARVEST note.
