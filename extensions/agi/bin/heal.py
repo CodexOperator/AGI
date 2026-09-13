@@ -1283,6 +1283,20 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
                f"rotate.py {identity.get('files', {}).get('rotate.py', (0, 0))[0]}")
     while True:
         _write_watch_heartbeat(root)
+        # hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-
+        # average-bound...: once per pass, when the box is load-bound-over,
+        # name the load so a stall is MEASURED, not inferred. Silent under the
+        # bound (and when the knob is not configured) — never a per-pass noise
+        # line.
+        _bnd_cfg_path = locations.config_path(root)
+        _bnd_cfg = json.loads(_bnd_cfg_path.read_text()) if _bnd_cfg_path else {}
+        _bnd = spawn_budget.load_bound(_bnd_cfg)
+        if _bnd > 0:
+            _lv = spawn_budget._loadavg_tuple()
+            if _lv and _lv[0] > _bnd:
+                _watch_log(f"watch: load {round(_lv[0], 2)} over bound "
+                           f"{round(_bnd, 2)} — above "
+                           f"spawn.max_load_per_core x cores")
         rounds = _discover_rounds(root)
         for iter_dir, _mp in rounds:
             _watch_round(root, iter_dir, adapter)

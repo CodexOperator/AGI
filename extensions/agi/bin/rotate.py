@@ -4209,6 +4209,21 @@ def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
     steps.append(name if name in tmpl_steps else fallback)
 
 
+def _box_fact() -> dict | None:
+    """The hosting box's load snapshot for a rotation/seating record's `box`
+    fact (hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-
+    average-bound-and-every-record-carries-spawn-to-registry-latency-and-
+    load): `{loadavg: [1min, 5min, 15min], cores: N}`. Best-effort — `None`
+    when the box cannot report its own load — so a recorded box is never a
+    crash and never blocks a spawn.
+    """
+    try:
+        loadv = [round(float(x), 3) for x in os.getloadavg()]
+    except (OSError, AttributeError):
+        return None
+    return {"loadavg": loadv, "cores": os.cpu_count() or 1}
+
+
 def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
                                gen_after: int | None = None,
@@ -4236,6 +4251,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
         "result": "started",
         "steps_reached": sorted(steps),
     }
+    box = _box_fact()
+    if box is not None:
+        rec["box"] = box
     if template_source is not None:
         rec["template_source"] = template_source
     if stops_sha256 is not None:
@@ -4812,6 +4830,9 @@ def _seating_record(*, seat: str, role: str, source: str,
         "gen_after": generation,
         "trigger": "first-seating",
     }
+    box = _box_fact()
+    if box is not None:
+        rec["box"] = box
     if window_id:
         rec["window_id"] = window_id
     if ref:

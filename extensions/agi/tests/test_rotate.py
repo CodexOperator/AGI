@@ -4061,6 +4061,29 @@ def test_rotate_self_refuses_when_predecessor_window_gone(fake_ladder, tmp_path,
     assert "predecessor" in rec["refusal_reason"]
 
 
+def test_rotation_and_seating_records_carry_the_box_fact(tmp_path):
+    """hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-average-
+    bound-and-every-record-carries-spawn-to-registry-latency-and-load — (3):
+    a fresh rotation/seating record names the box it spawned on
+    (`box: {loadavg: [1,5,15], cores}`) so the NEXT stall is measured, not
+    inferred. Falsifier (d): a record without `box` on a fresh rotation.
+    """
+    p = tmp_path / "box.json"
+    rotate._write_rotate_self_started(p, seat="box", steps=[])
+    rec = json.loads(p.read_text(encoding="utf-8"))
+    box = rec.get("box")
+    assert box is not None, "rotate-self started record carries no box"
+    assert box["cores"] == (os.cpu_count() or 1)
+    assert len(box["loadavg"]) == 3
+    seating = rotate._seating_record(
+        seat="box", role="r", source="test", window_id=None,
+        ref="", pid=None, session_id="", transcript_path=None,
+        first_turn=None)
+    sbox = seating.get("box")
+    assert sbox is not None, "seating record carries no box"
+    assert len(sbox["loadavg"]) == 3
+
+
 def test_rotate_self_interrupted_after_spawn_leaves_started_record(
         fake_ladder, tmp_path, monkeypatch):
     """A non-`continue` read-back reply must leave a durable TERMINAL record
