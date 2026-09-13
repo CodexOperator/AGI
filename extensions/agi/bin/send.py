@@ -2571,6 +2571,32 @@ def _seat_row_in(rows: list, from_id: str) -> dict | None:
     return None
 
 
+def _alias_canon(root: Path, name: str) -> str | None:
+    """The ONE `aliases:` table (posts.md frontmatter `old -> new`), the same
+    table rotate._find_seat reads, so an old director name resolves through
+    it for one season in send.py too (send/read/peek/whois/wake). Returns the
+    canonical name and prints `deprecated alias used: old -> new` on stderr
+    when `name` is an alias; None when not."""
+    try:
+        path, _key = geometry_config.resolve(root)
+    except Exception:  # noqa: BLE001
+        path = None
+    if path is None or not path.exists():
+        return None
+    try:
+        nf = _fm.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return None
+    al = nf.frontmatter.get("aliases") or {}
+    if not isinstance(al, dict):
+        return None
+    canon = al.get(name)
+    if canon and str(canon) != name:
+        print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
+        return str(canon)
+    return None
+
+
 def _load_rows(root: Path) -> list | None:
     """The seat rows, through the SAME resolver whois uses: the PUSHED ref
     first, then the working-tree rows as the fallback. Returns None when
@@ -4713,7 +4739,8 @@ def main(argv: list[str] | None = None) -> int:
                 print("ERR: message text is required for send --to",
                       file=sys.stderr)
                 return 1
-            print(send_dm(croot, _detect_sender(sender), args.dm_to, text,
+            to = _alias_canon(root, args.dm_to) or args.dm_to
+            print(send_dm(croot, _detect_sender(sender), to, text,
                           sender).resolve())
             return 0
         # unchanged: inbox send -- first token is the target, the rest is text
@@ -4726,7 +4753,7 @@ def main(argv: list[str] | None = None) -> int:
         if not text:
             print("ERR: message text is required for send", file=sys.stderr)
             return 1
-        send(root, target, text, sender)
+        send(root, _alias_canon(root, target) or target, text, sender)
         return 0
 
     if args.verb == "read":
@@ -4739,8 +4766,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
             return 0
         if args.dm is not None:
-            for line in read_dm(croot, me, args.dm, args.since, sender, all_,
-                                wrap=wrap):
+            for line in read_dm(croot, me, _alias_canon(root, args.dm) or args.dm,
+                                args.since, sender, all_, wrap=wrap):
                 print(line)
             return 0
         if not args.target:
@@ -4751,9 +4778,11 @@ def main(argv: list[str] | None = None) -> int:
         # `--me` names read positions in rooms/dms, not whose inbox a
         # positional read may consume. Refuse a foreign target (claim 1).
         resolved = _detect_sender(sender)
-        if not _own_inbox_or_refuse(args.target, resolved):
+        if not _own_inbox_or_refuse(_alias_canon(root, args.target) or args.target,
+                                    resolved):
             return 2
-        read(root, args.target, sender, wrap=wrap)
+        read(root, _alias_canon(root, args.target) or args.target, sender,
+             wrap=wrap)
         return 0
 
     if args.verb == "peek":
@@ -4766,15 +4795,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
             return 0
         if args.dm is not None:
-            for line in peek_dm(croot, me, args.dm, args.since, all_,
-                                wrap=wrap):
+            for line in peek_dm(croot, me, _alias_canon(root, args.dm) or args.dm,
+                                args.since, all_, wrap=wrap):
                 print(line)
             return 0
         if not args.target:
             print("ERR: peek needs a target (inbox) or --room/--dm",
                   file=sys.stderr)
             return 1
-        peek(root, args.target, wrap=wrap)
+        peek(root, _alias_canon(root, args.target) or args.target, wrap=wrap)
         return 0
 
     if args.verb == "rooms":
@@ -4851,7 +4880,10 @@ def main(argv: list[str] | None = None) -> int:
             target = ("key", args.key)
         elif args.seat is not None:
             target = ("seat", args.seat)
-        rc, text = whois(root, given[0], args.claim, args.source,
+        ref = given[0]
+        if target is None or target[0] != "key":
+            ref = _alias_canon(root, ref) or ref
+        rc, text = whois(root, ref, args.claim, args.source,
                          not args.no_fetch, sig_line=args.sig,
                          msg_text=args.msg, target=target)
         print(text)
@@ -4865,7 +4897,8 @@ def main(argv: list[str] | None = None) -> int:
         # exit 0 ONLY when the wake actually delivered a token/strand/deferred
         # to a pane; 1 otherwise. heal.py/rotate.py call send.wake() directly
         # and deliberately ignore the value; only this verb path returns it.
-        return 0 if wake(root, args.target) else 1
+        return 0 if wake(root, _alias_canon(root, args.target) or
+                         args.target) else 1
 
     if args.verb == "escalate":
         text = " ".join(args.text) if args.text else ""
