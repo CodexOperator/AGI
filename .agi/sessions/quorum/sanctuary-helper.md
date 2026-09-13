@@ -42,5 +42,5 @@ Wake = nothing: the pin is spawn-written, the ack answered `continue` by your pr
 
 ## 🔴 Where it stops
 ```
-mur-49 review delivered (dm + review.json); idle; next request from the Prime -> §1b
+mur-49 review delivered (dm + reviews/mur-49.review.json); L4.335 + L4.338 demote; idle; next request from the Prime -> card §1b
 ```
