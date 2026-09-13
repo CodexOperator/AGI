@@ -414,15 +414,35 @@ def test_b_band_pct_is_own_fraction(agi_project, run_hook, tmp_path, monkeypatch
 # --- (c) the fraction line names BOTH the window and the line ---------------
 def test_c_fraction_line_names_window_and_line(agi_project, run_hook, tmp_path, monkeypatch, capsys):
     tp = tmp_path / "c.jsonl"
-    _write_transcript(tp, 10_000)          # fraction 0.10 = 0.40 of the line
+    _write_transcript(tp, 10_000)          # fraction 0.10 at threshold 0.25
     code, out, err = _fraction_test(agi_project, tp, "sess-c", tmp_path / "state-c",
                                     run_hook, monkeypatch, capsys)
     assert code == 0
-    assert "of the window" in out, out
     assert "of the line" in out, out
-    # the arithmetic is explicit, not just the words: 0.10/0.25 -> .4000
-    assert "0.1000 of the window" in out, out
-    assert "0.4000 of the line" in out, out
+    # SM.14a shape: <frac> of <thr> window (<pct>% of the line)
+    assert "0.1000 of 0.250 window" in out, out
+    assert "40.00% of the line" in out, out
+
+
+# --- (c2) SM.14a: the gen-27 misread pair renders BOTH referents -----------
+def test_c2_meter_phrase_names_window_and_line_referents(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """SM.14a — the measured disease: window fraction 0.3183 at a 0.470
+    threshold printed only `0.6772 of the line`, read by the Prime as past
+    the line. The fix prints `<frac> of <thr> window (N% of the line)` so
+    each number is labelled with what it is a fraction of."""
+    graph = tmp_path / "outer" / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.47\n---\n")
+    tp = tmp_path / "c2.jsonl"
+    _write_transcript(tp, 31_830)          # 0.3183 of the window
+    code, out, err = _fraction_test(graph, tp, "sess-c2",
+                                    tmp_path / "state-c2", run_hook,
+                                    monkeypatch, capsys)
+    assert code == 0
+    assert "0.3183 of 0.470 window (67.72% of the line)" in out, out
 
 
 # --- (d) a fixture worktree seat is measured against its OWN rotate_at ------
