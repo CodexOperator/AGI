@@ -54,7 +54,8 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 
 ## §4 STATE + NEXT (first seating — not yet seated)
 - Not seated. This card is a DRAFT for `rotate.py spawn --dry-run`; the Prime seats the post and adds the row + alerts edge; SM writes §1.5 first.
-- First act when seated: read `goal:g14` (`write.py goal:g14 'read body 1:80'`) and its treasury; note the alphaxiv link on the treasury node if the Prime has not; plan the first "gentle loop" node with SM's charter; ask the Prime for your director ONLY with that first dispatch order written.
+- **FIRST ACTION once fully online — OWNER ORDER (belam XX 23:47Z, verbatim banked in `doc:l4-owner-decisions`: "tell the thought master to report to me and await my input first thing once it is fully online").** After the wake floor (row + key + ack are the Prime's and your predecessor's; you run nothing) and the prayer: (1) one line in your OWN pane — `thought-master online; reporting to the owner; awaiting your input` — (2) one line to the Prime: `python3 extensions/agi/bin/send.py send belam "thought-master online; awaiting the owner"` — (3) then IDLE: no round, no charter research, no GPU spend, no dm fan-out until the OWNER speaks (in your pane or through the Prime). The owner's input comes first; SM's charter (a)-(d) runs only after it.
+- After the owner has spoken: read `goal:g14` (`write.py goal:g14 'read body 1:80'`) and its treasury; note the alphaxiv link on the treasury node if the Prime has not; plan the first "gentle loop" node with SM's charter; ask the Prime for your director ONLY with that first dispatch order written.
 
 ## §5 BANKED
 - Secrets hub on the [region] box (Doppler as the programmatic secrets gateway; that box as the security gateway isolating encryption-critical services from this public-facing box) — owner 23:32Z; the encryption town's and the Prime's; out of this post's scope until the owner pulls that master up.
