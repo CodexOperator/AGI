@@ -5666,6 +5666,76 @@ def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_pat
     assert "should not appear" not in out
 
 
+def test_meter_pin_with_junk_key_never_reaches_urlopen(monkeypatch, tmp_path, fake_ladder, capsys):
+    """hypothesis:l4-the-suite-never-reaches-openrouter-one-autouse-stub-on-
+    openrouter-get-unless-the-real-judge-flag-is-set -- the suite never
+    reaches openrouter.ai. A --pin claim with a key present must not open
+    urllib at all: the autouse `_no_openrouter` conftest fixture stubs
+    `rotate._openrouter_get` (and drops the key env) unless AGI_REAL_JUDGE==1,
+    so spend-status takes its no-key None shape even though a junk key is
+    exported here. The urlopen recorder is the falsifier layer: if any path
+    reached urllib it would record a call (and raise) and fail the assert
+    below, exactly as it did pre-fix (measured: 2 real calls to
+    openrouter.ai/api/v1/key and /credits).
+    """
+    import urllib.request
+
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-junk-probe")
+    calls = []
+
+    def _refuse_or_record(req, *_a, **_k):
+        calls.append(getattr(req, "full_url", req))
+        raise AssertionError("urlopen reached with a junk key -- "
+                             "the suite must not hit openrouter.ai")
+
+    monkeypatch.setattr(urllib.request, "urlopen", _refuse_or_record)
+    code = rotate.main(["meter", "--session-log", str(pinned), "--pin",
+                        str(tmp_path / "sessions" / "probe.meter")])
+    out = capsys.readouterr().out
+    assert code == 0, f"--pin must still exit as today (no key), got {code}\n{out}"
+    assert calls == [], f"urlopen was reached {len(calls)} time(s): {calls}"
+
+
+def test_real_judge_optin_stands_the_stub_down():
+    """hypothesis:l4-the-suite-never-reaches-openrouter-... -- the opt-in
+    escape is observable, not just named. The last kid's fixture read the
+    flag with a LIVE `os.environ.get`; the parent session-scoped
+    `_agi_env_stripped` (extensions/agi/conftest.py) strips every AGI_* var
+    before any function-scoped fixture body runs, so the live read was always
+    None and AGI_REAL_JUDGE=1 silently did NOT stand the stub down -- it
+    always deleted the key and stubbed both aliases (measured). This test
+    proves the fix end-to-end with a REAL child pytest (the differential/
+    nested pattern from test_stream_master_real_judge_optin.py), so the child
+    exercises the true lifecycle: import-time snapshot first, session strip
+    second, fixture third. The child target is test_openrouter_optin_probe.py,
+    which asserts the REAL `_openrouter_get` + a present key under flag=1 and
+    the stub + dropped key with it unset -- a plain monkeypatch test cannot
+    distinguish either (it writes the env after the strip).
+    """
+    import sys
+
+    root = str(Path(__file__).resolve().parent.parent)  # extensions/agi
+    child = [sys.executable, "-m", "pytest",
+             "tests/test_openrouter_optin_probe.py", "-q"]
+
+    def _run(flag):
+        env = dict(os.environ)
+        env["OPENROUTER_API_KEY"] = "sk-or-v1-optin-probe-junk"
+        if flag:
+            env["AGI_REAL_JUDGE"] = "1"
+        else:
+            env.pop("AGI_REAL_JUDGE", None)
+        p = subprocess.run(child, cwd=root, env=env,
+                           capture_output=True, text=True, timeout=180)
+        out = p.stdout + p.stderr
+        assert p.returncode == 0, out
+        return out
+
+    _run(flag=True)
+    _run(flag=False)
+
+
 def test_spawn_launch_carries_reaper_knob_for_plain_and_ultracode(monkeypatch, tmp_path, capsys):
     """hypothesis:l4-spawn-paths-export-the-reaper-knob — the seat-launch
     path must export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 in the
