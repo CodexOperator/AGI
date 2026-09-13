@@ -257,6 +257,101 @@ def test_watch_dead_pid_past_deadline_is_a_death_not_timeout(
     assert "reason=timeout" not in text
 
 
+def _round_raw_pid(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid) -> None:
+    """A round whose record carries whatever `pid` is handed (null, "abc")."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_tolerates_null_and_non_int_pid_records(
+        graph_project, monkeypatch):
+    """hypothesis:l4-the-reaper-tolerates-a-null-pid… — a committed record
+    with `"pid": null` and one with a non-int pid must flow through the watch
+    / reap loop without raising, and read as pid 0/unknown (here: overdue,
+    not a death). Before the fix `int(None)` raised TypeError and took the
+    whole pass down."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_raw_pid(graph_project, "N", "kid-null", timeout_s=1,
+                   started_ago=5, pid=None)
+    _round_raw_pid(graph_project, "X", "kid-abc", timeout_s=1,
+                   started_ago=5, pid="abc")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0  # no TypeError from either record
+
+    for nm, aid in (("N", "kid-null"), ("X", "kid-abc")):
+        rec = json.loads((graph_project / "sessions" / f"iter-{nm}" / aid
+                          / "agent.json").read_text())
+        assert rec["status"] == "running", rec["status"]
+        assert rec.get("overdue_since"), "pid 0 = unknown, so overdue"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 2
+    assert "reason=death" not in text
+
+
+def _round_stalled(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid: int) -> None:
+    """A round whose agent.json is `stalled` and whose pid is DEAD."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "stalled",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "stalled", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_stalled_dead_alarms_through_the_shared_death_predicate(
+        graph_project, monkeypatch):
+    """The stalled-dead branch must produce the SAME dm + reaper-log line the
+    dead-running branch does, driven by the shared `_is_death` predicate
+    rather than a `fail_reason` string match. Before the fix its
+    `"stalled; pid N disappeared…"` reason never matched `startswith("pid N
+    died")`, so no dm and no log line were ever emitted."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled(graph_project, "S", "kid-s", timeout_s=1000,
+                   started_ago=5, pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    rec = json.loads((graph_project / "sessions" / "iter-S" / "kid-s"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed"
+    assert rec["fail_reason"].startswith("stalled;"), rec["fail_reason"]
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm"
+    assert "reason=death" in text
+    log_text = log.read_text()
+    assert "marked DEAD" in log_text, log_text
+    assert "kid-s" in log_text
+
+
 def test_watch_death_not_double_dm_on_second_pass(graph_project, monkeypatch):
     """A second `--once` pass over an already-recorded death must not re-send
     the death dm — the watcher stays idempotent across passes."""
@@ -1998,3 +2093,58 @@ def test_late_reap_prime_five_reaps_none(graph_project, tmp_path,
         pids_for=lambda n: [1], rot=rot, now=1)
     assert out.get("action") == "nothing-to-reap", out
     assert calls == [], "a five-or-fewer prime chain must reap NOTHING"
+
+
+def _round_stalled_and_dead(graph: Path, name: str, timeout_s: int,
+                            stalled_id: str, dead_id: str) -> None:
+    """ONE iter dir with a stalled-dead record AND a running-dead record.
+
+    The legacy inline lane `_main_heal` (heal.py positional CLI, driven by
+    driver.sh) carries its own copy of both terminal branches. The stalled
+    branch must alarm through the SAME `_is_death` predicate the dead-running
+    branch uses — before the fix it resolved silently, producing no dm.
+    """
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    now = int(time.time())
+    agents = []
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        agents.append({"id": aid, "status": status,
+                       "dispatched_by": "director", "pid": _dead_pid(),
+                       "started_at": now})
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s, "agents": agents}, indent=2))
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        adir = it / aid
+        adir.mkdir(parents=True, exist_ok=True)
+        (adir / "agent.json").write_text(json.dumps({
+            "id": aid, "status": status, "dispatched_by": "director",
+            "started_at": now, "pid": _dead_pid()}, indent=2))
+
+
+def test_main_heal_stalled_dead_alarms_once_via_shared_predicate(
+        graph_project, monkeypatch):
+    """FALSIFIER for the legacy lane: `_main_heal` over a manifest carrying
+    BOTH a stalled-dead record and a running-dead record must dm `reason=death`
+    exactly ONCE for EACH — the stalled-dead resolution shares `_is_death`
+    with the dead-running branch and is never double-counted. Probe D measured
+    the pre-fix state: only `('kid-dead','death')` was alarmed."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled_and_dead(graph_project, "L4.99", timeout_s=10 ** 6,
+                            stalled_id="kid-stl", dead_id="kid-dead")
+    monkeypatch.setattr(sys, "argv", [
+        "heal.py", str(graph_project), "L4.99",
+        "--max-wait-mins", "1", "--poll-interval-s", "1"])
+    assert heal._main_heal() == 0
+
+    stl = json.loads((graph_project / "sessions" / "iter-L4.99" / "kid-stl"
+                      / "agent.json").read_text())
+    assert stl["status"] == "failed"
+    assert stl["fail_reason"].startswith("stalled;"), stl["fail_reason"]
+    assert "death" in stl, "stalled-dead must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=death") == 2, text
+    assert "agent=kid-stl" in text
+    assert "agent=kid-dead" in text
