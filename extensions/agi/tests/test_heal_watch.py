@@ -257,6 +257,101 @@ def test_watch_dead_pid_past_deadline_is_a_death_not_timeout(
     assert "reason=timeout" not in text
 
 
+def _round_raw_pid(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid) -> None:
+    """A round whose record carries whatever `pid` is handed (null, "abc")."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_tolerates_null_and_non_int_pid_records(
+        graph_project, monkeypatch):
+    """hypothesis:l4-the-reaper-tolerates-a-null-pid… — a committed record
+    with `"pid": null` and one with a non-int pid must flow through the watch
+    / reap loop without raising, and read as pid 0/unknown (here: overdue,
+    not a death). Before the fix `int(None)` raised TypeError and took the
+    whole pass down."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_raw_pid(graph_project, "N", "kid-null", timeout_s=1,
+                   started_ago=5, pid=None)
+    _round_raw_pid(graph_project, "X", "kid-abc", timeout_s=1,
+                   started_ago=5, pid="abc")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0  # no TypeError from either record
+
+    for nm, aid in (("N", "kid-null"), ("X", "kid-abc")):
+        rec = json.loads((graph_project / "sessions" / f"iter-{nm}" / aid
+                          / "agent.json").read_text())
+        assert rec["status"] == "running", rec["status"]
+        assert rec.get("overdue_since"), "pid 0 = unknown, so overdue"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 2
+    assert "reason=death" not in text
+
+
+def _round_stalled(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid: int) -> None:
+    """A round whose agent.json is `stalled` and whose pid is DEAD."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "stalled",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "stalled", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_stalled_dead_alarms_through_the_shared_death_predicate(
+        graph_project, monkeypatch):
+    """The stalled-dead branch must produce the SAME dm + reaper-log line the
+    dead-running branch does, driven by the shared `_is_death` predicate
+    rather than a `fail_reason` string match. Before the fix its
+    `"stalled; pid N disappeared…"` reason never matched `startswith("pid N
+    died")`, so no dm and no log line were ever emitted."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled(graph_project, "S", "kid-s", timeout_s=1000,
+                   started_ago=5, pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    rec = json.loads((graph_project / "sessions" / "iter-S" / "kid-s"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed"
+    assert rec["fail_reason"].startswith("stalled;"), rec["fail_reason"]
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm"
+    assert "reason=death" in text
+    log_text = log.read_text()
+    assert "marked DEAD" in log_text, log_text
+    assert "kid-s" in log_text
+
+
 def test_watch_death_not_double_dm_on_second_pass(graph_project, monkeypatch):
     """A second `--once` pass over an already-recorded death must not re-send
     the death dm — the watcher stays idempotent across passes."""
@@ -381,6 +476,100 @@ def test_watch_dead_past_deadline_alive_at_reap_then_dead(graph_project,
     ltext = log.read_text()
     assert "marked DEAD past deadline" in ltext
     assert "marked timeout" not in ltext
+
+
+def test_death_class_stream_error_names_its_evidence_line(tmp_path: Path):
+    """A provider/stream error in the agent's output.log -> class
+    infra-stream-error with the matching log line as evidence; fail_reason
+    text is never touched by the classifier."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-X" / "kid-s"
+    adir.mkdir(parents=True)
+    lines = [f"chatter {i}" for i in range(60)]
+    lines.append("Upstream error from Together: Stream error: h2 protocol "
+                 "error: error reading a body from connection")
+    (adir / "output.log").write_text("\n".join(lines) + "\n")
+    d = heal._death_class(str(wt), "kid-s", 97.5, agent_dir=adir)
+    assert d["class"] == "infra-stream-error", d
+    assert "h2 protocol error" in d["evidence"], d
+    assert d["runtime_s"] == 97.5
+
+
+def test_death_class_kid_verdict_means_died_after_work(tmp_path: Path):
+    """A kid experiment node with a verdict -> died-after-work, and the
+    verdict cell is reported in `kids` (the salvage precondition).
+
+    PROBE A fix: the fixture uses `spawned_by_agent`, the field
+    dispatch.py:2360-2368 ACTUALLY writes for the spawning agent. The first
+    cut matched only `dispatched_by` (the seat to alarm), so on a real
+    record the kid list came back empty."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Y" / "parent-p"
+    kid = wt / "sessions" / "iter-Y" / "kid-k"
+    for d in (adir, kid, wt / ".agi" / "nodes" / "experiment"):
+        d.mkdir(parents=True)
+    (kid / "agent.json").write_text(json.dumps(
+        {"id": "kid-k", "spawned_by_agent": "parent-p",
+         "dispatched_by": "sensei-director",
+         "node_id": "experiment:kid-1"}))
+    (wt / ".agi" / "nodes" / "experiment" / "exp-kid-1.md").write_text(
+        "---\nid: experiment:kid-1\ntype: experiment\nverdict: proved\n---\n")
+    d = heal._death_class(str(wt), "parent-p", 12, agent_dir=adir)
+    assert d["class"] == "died-after-work", d
+    assert d["kids"] == [{"id": "experiment:kid-1", "verdict": "proved"}], d
+
+
+def test_death_class_http_1_1_5xx_is_infra(tmp_path: Path):
+    """PROBE B fix: the canonical provider line
+    'HTTP/1.1 500 Internal Server Error' is infra-stream-error, not
+    died-no-work. The first regex required the digit straight after `http`."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-H" / "kid-h"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text(
+        "working\n< HTTP/1.1 500 Internal Server Error\n")
+    for line in ("< HTTP/1.1 500 Internal Server Error", "HTTP 500 err",
+                 "http500 oops", "HTTP/1.1 503 Service Unavailable"):
+        (adir / "output.log").write_text("working\n" + line + "\n")
+        d = heal._death_class(str(wt), "kid-h", 3, agent_dir=adir)
+        assert d["class"] == "infra-stream-error", (line, d)
+        assert d["evidence"] == line, (line, d)
+
+
+def test_death_class_empty_round_is_died_no_work(tmp_path: Path):
+    """Nothing staged, no error line -> died-no-work; no evidence."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Z" / "kid-e"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text("starting\nworking\n")
+    d = heal._death_class(str(wt), "kid-e", 5, agent_dir=adir)
+    assert d["class"] == "died-no-work", d
+    assert d["evidence"] is None
+
+
+def test_watch_death_record_carries_death_class(graph_project, monkeypatch):
+    """The death-past-deadline writer attaches the class BESIDE fail_reason
+    (fail_reason text unchanged) on BOTH agent.json and the manifest."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _round_alive_then_dead(graph_project, "J", "kid-j", timeout_s=1,
+                           started_ago=5, pid=424244)
+    adir = graph_project / "sessions" / "iter-J" / "kid-j"
+    (adir / "output.log").write_text(
+        "work\nUpstream error from Together: Stream error: h2 protocol "
+        "error: error reading a body from connection\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((adir / "agent.json").read_text())
+    assert rec["fail_reason"] == "pid 424244 died (detected by reaper)", rec
+    assert rec["death"]["class"] == "infra-stream-error", rec["death"]
+    man = json.loads((graph_project / "sessions" / "iter-J"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "kid-j")
+    assert entry["death"]["class"] == "infra-stream-error", entry
 
 
 def test_watch_dead_past_deadline_no_double_dm_on_second_pass(
@@ -1696,3 +1885,266 @@ def test_head_touches_engine_directly(monkeypatch):
     assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
     probe[0] = ([], 0)          # empty old_head (first pass) -> touches
     assert heal._head_touches_engine(None, "", "bbbbbbb") is True
+
+# --- hypothesis:l4-the-heal-watch-performs-the-late-s12-reap --------------
+def _mk_skipped(seat, own_name, own_id, succ_name, succ_id, role="director",
+                recorded_at="2026-09-13T01:00:00Z"):
+    return {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": recorded_at,
+        "result": "skipped",
+        "refusal_reason": ("registry file for @" + succ_id.lstrip("@")
+                           + " not found in X within the bounded join poll"),
+        "handover": {
+            "own_window": {"name": own_name, "id": own_id},
+            "successor_window": {"name": succ_name, "id": succ_id},
+        },
+        "observations": {},
+        "_rows_role": role,
+    }
+
+
+def _write_winpath(tmp_path, names):
+    p = tmp_path / "windows.txt"
+    lines = []
+    for i, nm in enumerate(names, 1):
+        lines.append("@" + str(i) + " " + nm)
+    p.write_text("\n".join(lines) + "\n")
+    return str(p)
+
+
+def _reg_file(reg_dir, succ_id, pid="424242"):
+    reg_dir.mkdir(parents=True, exist_ok=True)
+    fp = reg_dir / (pid + ".json")
+    fp.write_text('{"window_id":"' + succ_id + '","session_id":"s1"}\n')
+    return fp
+
+
+def _reap_recorder():
+    calls = []
+
+    def _fake(pids, **kw):
+        calls.append(list(pids))
+        return {"order": "deepest-first",
+                "chain": [{"pid": p, "paired": True} for p in pids]}
+    return calls, _fake
+
+
+def _role_rows(record):
+    return [{"name": record["seat"], "role": record["_rows_role"],
+             "pid": 31337}]
+
+
+
+def test_late_reap_registry_absent_no_reap_waiting(graph_project, tmp_path,
+                                                   monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="",
+        window_path=_write_winpath(tmp_path,
+                                   ["belam-S1-L4-V", "belam-S1-L4-VI"]),
+        registry_dir=str(tmp_path / "no-reg-dir"),
+        pids_for=lambda n: [1], rot=rot, now=1234)
+    assert out.get("action") == "waiting", out
+    assert calls == [], "no reap may fire for an absent registry"
+
+
+def test_late_reap_non_prime_reaps_all_older_and_flips(graph_project,
+                                                       tmp_path, monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rec_path = tmp_path / "belam.rec.json"
+    rec_path.write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    asked = []
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105], base + "VI": [999]}
+    def _pidfor(name):
+        asked.append(name)
+        return pmap.get(name, [])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec, record_path=rec_path,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=_pidfor, rot=rot, now=1234)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101, 102, 103, 104, 105]], calls
+    assert base + "VI" not in asked, "successor window must never be reaped"
+    doc = json.loads(rec_path.read_text())
+    assert doc["result"] == "success_late", doc["result"]
+    assert doc["s12_self_reap"]["performer"] == "watch"
+    assert doc["s12_self_reap"]["reaped_late_at"] == 1234
+    assert doc["s12_self_reap"]["pids"] == [101, 102, 103, 104, 105]
+    assert "spawn_to_registry_s" in doc["observations"]
+    assert "loadavg_1_5_15" in doc["observations"]
+
+
+def test_late_reap_successor_own_pid_never_in_reap(graph_project, tmp_path,
+                                                   monkeypatch):
+    """FALSIFIER: the successor's own pid is never in a reap -- even when the
+    successor name shares the base, its line is not OLDER than itself."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    winpath = _write_winpath(tmp_path, ["belam-S1-L4-V", "belam-S1-L4-VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: {"belam-S1-L4-V": [7], "belam-S1-L4-VI": [8]}[n],
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert all(8 not in c for c in calls), "successor pid must never be reaped"
+    assert all(7 in c for c in calls)
+
+
+def test_late_reap_driver_second_pass_no_second_reap(graph_project, tmp_path,
+                                                     monkeypatch):
+    """FALSIFIER: a second pass over an already success_late record reaps
+    nothing -- the driver scans, the result is no longer `skipped`."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rot_dir = rot._rotations_dir(graph_project)
+    rot_dir.mkdir(parents=True, exist_ok=True)
+    (rot_dir / "belam.t1.json").write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    pmap = {base + "I": [1], base + "II": [2], base + "III": [3],
+            base + "IV": [4], base + "V": [5], base + "VI": [6]}
+    def _pidfor(name):
+        return pmap.get(name, [])
+    for _ in range(2):
+        heal._late_reap_skipped_pass(
+            graph_project, window_path=winpath, registry_dir=str(reg_dir),
+            rot=rot, pids_for=_pidfor)
+    assert len(calls) == 1, "exactly ONE reap across two driver passes"
+
+
+def test_late_reap_prime_six_reaps_only_oldest(graph_project, tmp_path,
+                                               monkeypatch):
+    """FALSIFIER: a prime_director record with SIX older chain windows reaps
+    exactly the OLDEST one (oldest beyond the five newest survivors)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@7")
+    rec = _mk_skipped("belam", "belam-S1-L4-VI", "@6",
+                      "belam-S1-L4-VII", "@7", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III", base + "IV",
+        base + "V", base + "VI", base + "VII"])
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105],
+            base + "VI": [106], base + "VII": [107]}
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=lambda n: pmap.get(n, []),
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101]], calls
+
+
+def test_late_reap_prime_five_reaps_none(graph_project, tmp_path,
+                                         monkeypatch):
+    """FALSIFIER: a prime_director record with FIVE or fewer older chain
+    windows reaps NONE of them (the five newest stay alive to answer)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: [1], rot=rot, now=1)
+    assert out.get("action") == "nothing-to-reap", out
+    assert calls == [], "a five-or-fewer prime chain must reap NOTHING"
+
+
+def _round_stalled_and_dead(graph: Path, name: str, timeout_s: int,
+                            stalled_id: str, dead_id: str) -> None:
+    """ONE iter dir with a stalled-dead record AND a running-dead record.
+
+    The legacy inline lane `_main_heal` (heal.py positional CLI, driven by
+    driver.sh) carries its own copy of both terminal branches. The stalled
+    branch must alarm through the SAME `_is_death` predicate the dead-running
+    branch uses — before the fix it resolved silently, producing no dm.
+    """
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    now = int(time.time())
+    agents = []
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        agents.append({"id": aid, "status": status,
+                       "dispatched_by": "director", "pid": _dead_pid(),
+                       "started_at": now})
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s, "agents": agents}, indent=2))
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        adir = it / aid
+        adir.mkdir(parents=True, exist_ok=True)
+        (adir / "agent.json").write_text(json.dumps({
+            "id": aid, "status": status, "dispatched_by": "director",
+            "started_at": now, "pid": _dead_pid()}, indent=2))
+
+
+def test_main_heal_stalled_dead_alarms_once_via_shared_predicate(
+        graph_project, monkeypatch):
+    """FALSIFIER for the legacy lane: `_main_heal` over a manifest carrying
+    BOTH a stalled-dead record and a running-dead record must dm `reason=death`
+    exactly ONCE for EACH — the stalled-dead resolution shares `_is_death`
+    with the dead-running branch and is never double-counted. Probe D measured
+    the pre-fix state: only `('kid-dead','death')` was alarmed."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled_and_dead(graph_project, "L4.99", timeout_s=10 ** 6,
+                            stalled_id="kid-stl", dead_id="kid-dead")
+    monkeypatch.setattr(sys, "argv", [
+        "heal.py", str(graph_project), "L4.99",
+        "--max-wait-mins", "1", "--poll-interval-s", "1"])
+    assert heal._main_heal() == 0
+
+    stl = json.loads((graph_project / "sessions" / "iter-L4.99" / "kid-stl"
+                      / "agent.json").read_text())
+    assert stl["status"] == "failed"
+    assert stl["fail_reason"].startswith("stalled;"), stl["fail_reason"]
+    assert "death" in stl, "stalled-dead must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=death") == 2, text
+    assert "agent=kid-stl" in text
+    assert "agent=kid-dead" in text

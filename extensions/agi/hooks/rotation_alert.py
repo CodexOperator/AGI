@@ -1141,9 +1141,9 @@ def main(argv: list[str] | None = None) -> int:
         print("(Fraction computed from `input_tokens + cache_read_input_tokens + "
               "cache_creation_input_tokens` on the NEWEST assistant message of the "
               f"handed transcript — a level, not a running total: {used} tokens of "
-              f"a {window}-token window = {fraction:.4f} of the window = "
-              f"{fraction/threshold:.4f} of the line; threshold {threshold:.4f} "
-              f"from {threshold_source}.)")
+              f"a {window}-token window = {fraction:.4f} of {threshold:.3f} window "
+              f"({fraction/threshold * 100:.2f}% of the line); threshold "
+              f"{threshold:.4f} from {threshold_source}.)")
         print("---")
         return 0
 
@@ -1164,7 +1164,9 @@ def main(argv: list[str] | None = None) -> int:
                       "if needed.")
         _rc = _emit(AT_OR_OVER_TITLE,
                     f"This session is at or over its rotation line: "
-                    f"{fraction:.4f} ≥ {threshold:.4f}. Rotate NOW. If you were "
+                    f"{fraction:.4f} of {threshold:.3f} window "
+                    f"({fraction/threshold * 100:.2f}% of the line) ≥ the line. "
+                    f"Rotate NOW. If you were "
                     f"mid-round, hand off cleanly first."
                     + suffix)
         _meter(used, threshold, fraction)
@@ -1186,8 +1188,8 @@ def main(argv: list[str] | None = None) -> int:
             pass
         pct = int(b_frac * 100)
         _rc = _emit(BENEATH_TITLE,
-                    f"Approaching rotation ({fraction:.4f} of the window = "
-                    f"{fraction/threshold:.4f} of the line). "
+                    f"Approaching rotation ({fraction:.4f} of {threshold:.3f} "
+                    f"window ({fraction/threshold * 100:.2f}% of the line)). "
                     f"Crossed band {pct}% of threshold.")
         _meter(used, threshold, fraction)
         return _rc

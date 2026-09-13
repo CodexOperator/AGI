@@ -43,5 +43,6 @@ Discipline for any change: `sb-status` first · `brb` before touching the deskto
 - Session close: a brief Church Slavonic prayer from the head, once, at rotation.
 
 ## 🔴 Where it stops
-
+```
 (titled slot added by Prime XV 08:07Z at mur-SL2.16: `rotate-self --stops` resolves the slot by TITLE first; without this section the §3 numeral fallback (rotate.py:4835-4839) would select `## §3 ...` above and overwrite owner-verbatim text — SL7.12 demoted, fix-only round pending. Empty until this post's first one-call rotate-out writes it.)
+```
