@@ -1704,6 +1704,53 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             _rowgen = _seat_row_generation(root, seat)
             if _rowgen is not None:
                 _spawn_gen = _rowgen
+            # goal:g15.25 (hypothesis:l4-a-re-seat-after-a-dead-predecessor-
+            # rewinds-the-posts-read-cursors-to-the-dead-sessions-seating-time):
+            # a RE-SEAT whose predecessor DIED rewinds the seat's read cursors
+            # (its inbox + every dm/room state carrying the seat key) to the
+            # dead session's seating/rotation record `recorded_at`, so the
+            # STARTUP [inbox] block composed NEXT re-carries what the killed
+            # session consumed (measured: the re-seat's STARTUP [inbox] paid 2
+            # grep calls hunting two intake dms). Runs BEFORE `_first_seating_run`
+            # so the composed STARTUP reflects the rewind. Only on a DEAD
+            # predecessor with a real root; a live predecessor, `--no-autopsy`
+            # and `--dry-run` never WRITE state (dry-run prints the would-rewind
+            # lines, writes nothing). Fall back to the dead session's death ts;
+            # when neither the record nor the death ts resolves, print one line
+            # and SKIP -- never rewind to 0. Best-effort: a rewind failure never
+            # fails the seating.
+            if (_pred_pid is not None
+                    and not getattr(args, "no_autopsy", False)):
+                try:
+                    if _pid_gone(int(_pred_pid)):
+                        _pr = None
+                        try:
+                            _pr = _latest_rotate_record(root, seat)
+                        except Exception:           # noqa: BLE001
+                            _pr = None
+                        _since = (str(_pr[0].get("recorded_at") or "")
+                                  if _pr else "")
+                        if not _since:
+                            _pdata = _registry_read(
+                                getattr(args, "registry_dir", None),
+                                int(_pred_pid))
+                            _since = _death_timestamp(_pdata, None)
+                        if not _since or _since == "-":
+                            print(
+                                "[seating] rewind: no dead-session "
+                                "seating/rotation record and no death ts — "
+                                "skipping read-cursor rewind",
+                                file=sys.stderr)
+                        else:
+                            import send  # local: same dir (send.py pattern)
+                            _tag = "would-rewind" if args.dry_run else "rewound"
+                            for _conv, _old, _new in send.rewind_read_cursors(
+                                    root, seat, _since,
+                                    dry_run=args.dry_run):
+                                print(f"[seating] {_tag} "
+                                      f"{_conv} {_old}->{_new}")
+                except Exception:                   # noqa: BLE001
+                    pass
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
                 tmux_session=tmux_session, dry_run=args.dry_run,
