@@ -174,4 +174,17 @@ def test_why_meaning_the_negative_is_cited_not_duplicated():
     (node_writer.py:770-777). Duplicating it here would fork the one
     measurement; the corrected lines above are the FIX, and the citation is
     the reason the season control is load-bearing."""
-    assert True  # the reason is the citation, recorded in the docstring
+    # The citation must really resolve to a test that ASSERTS the override —
+    # otherwise the FIX above is unreasoned and the season control untested.
+    # Read the sibling module's source so the citation cannot drift into a
+    # name that asserts nothing (this is the assertion that replaces the
+    # old vacuous `assert True`).
+    from pathlib import Path as _Path
+    src = (_Path(__file__).resolve().parent / "test_town_mint.py").read_text()
+    assert "def test_season_set_is_overridden_at_mint_time" in src, (
+        "the cited negative-corner test no longer exists in test_town_mint.py")
+    body = src.split("def test_season_set_is_overridden_at_mint_time", 1)[1]
+    body = body.split("\n\ndef ", 1)[0]
+    assert "assert" in body and "== 2" in body and "_mint" in body, (
+        "the cited test must really assert the season override (== 2) via a "
+        "mint, not merely name it")

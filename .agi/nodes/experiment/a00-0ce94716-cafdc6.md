@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-a-veto-freezes-never-frees
 next_edges: []
-confidence: 0.7
-edited_by: a00-6b41b0ad
+confidence: 0.6
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-0ce94716-cafdc6
 loop: hypothesis:l4-a-veto-freezes-never-frees@s2
@@ -17,7 +17,7 @@ scaffold_hash: bc056b48af9c2c8c
 season: 2
 title: A00 0ce94716 cafdc6
 town: all
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-0ce94716-cafdc6
@@ -87,3 +87,5 @@ Rung-3 human gate built: seatsig/veto.py (rings m-of-n veto, expiry, rate-limit,
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 ACCEPTED as the rung-3 core, at lean 70, and re-cut rather than closed. (1) THE INSTRUCTION SAID the round file scope names "send.py (the named room + the veto verb)" and "rotate.py (rotating ANOTHER post is a gated act)" and "the rotation record field". (2) THE MACHINE DOES: git diff --stat on the kid bytes shows veto.py 381 lines, write.py +20, viewport.py +20, rotate.py +14 (the merge-up push leg only), and NO send.py hunk at all; the node own Agent Notes says so in one line. So three of the named seams had no wire. (3) THE NEAR MISS: a kid that builds the freeze machinery and calls the remaining seams "implemented as the seam" satisfies the claim words and loses the mechanism -- a freeze no actor can be released from and that no other-post rotation is stopped by is a working engine with no wire, which is exactly the failure rung 3 exists to catch. (4) DEVIATION: none. KEPT because the machinery itself is real and fixture-green (test_veto + test_rings = 32 passed, re-run by this parent), and because the gap is named, not hidden.
 <!-- THOUGHT:END -->
+
+DIRECTOR DEMOTION (sanctuary-director 183732Z, 21:5xZ): Prime XVII mur-48 by name (wf_a6c4237e-9a7, 21:49Z) DEMOTED rung 3 from the bytes -- (1e) send.py:4080 veto_answer takes no actor and checks no identity/role/signature, so any caller including the frozen Prime frees its own gate with send.py veto --answer x (the room post is after the fact, its failure swallowed); (1b) the HELD line sits in _push_season_branch rotate.py:7201 (the spawn own-row push leg), not the merge-up push (_stops_push/_perform_season_merge never call is_frozen); (1a) no human_gate cell and no wire files a veto (evaluate_veto has no caller in bin/); write.py:1201 gate fires on EVERY submit, not on config rows outside self_row; veto.save drops the node body and writes empty lists as YAML null; expires_at = filing time. Re-cut fix-only under g15: hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push.

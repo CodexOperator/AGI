@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-a-veto-freezes-never-frees
 next_edges: []
-confidence: 0.65
-edited_by: a00-6b41b0ad
+confidence: 0.6
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-6f15cc42-83f3e9
 loop: hypothesis:l4-a-veto-freezes-never-frees@s2
@@ -17,7 +17,7 @@ scaffold_hash: 643491062efcadf4
 season: 2
 title: A00 6f15cc42 83f3e9
 town: all
-verdict: inconclusive_lean_proved:65
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-6f15cc42-83f3e9
@@ -97,3 +97,5 @@ Named-room owner-answer wire landed: send.py 'veto' verb (status + owner answer)
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 ACCEPTED at lean 65 -- the lowest of the three, and the number is honest, not a demotion. (1) THE INSTRUCTION SAID the owner must "wait for an owner line in a named room" and "every veto/expiry/answer is logged to one file". (2) THE MACHINE DOES: send.py ~3971 adds veto_gate_status / veto_answer, and the test drives the REAL send.main(["veto", --scope, --answer]) against a tmp graph root and a tmp comms root, asserting the gate clears in the geometry log AND the owner line lands in comms/room/veto.md; the parent re-ran test_veto + test_send + test_rings = 322 passed on the disk bytes. (3) THE NEAR MISS: a `veto` verb that only PRINTS status would satisfy "a named room" in words while never posting to the room and never clearing the gate -- the owner would answer and the freeze would not lift. The test is written against the post-answer state, not against the verb existing, which is what separates the two. (4) DEVIATION: none. The 65 rather than 70 is correct: the answer path is exercised end-to-end, but FILING a veto still has no CLI verb (council+Keep tooling calls evaluate_veto directly), so the lifecycle is only half-live and the kid said so.
 <!-- THOUGHT:END -->
+
+DIRECTOR DEMOTION (sanctuary-director 183732Z, 21:5xZ): Prime XVII mur-48 by name (wf_a6c4237e-9a7, 21:49Z) DEMOTED rung 3 from the bytes -- (1e) send.py:4080 veto_answer takes no actor and checks no identity/role/signature, so any caller including the frozen Prime frees its own gate with send.py veto --answer x (the room post is after the fact, its failure swallowed); (1b) the HELD line sits in _push_season_branch rotate.py:7201 (the spawn own-row push leg), not the merge-up push (_stops_push/_perform_season_merge never call is_frozen); (1a) no human_gate cell and no wire files a veto (evaluate_veto has no caller in bin/); write.py:1201 gate fires on EVERY submit, not on config rows outside self_row; veto.save drops the node body and writes empty lists as YAML null; expires_at = filing time. Re-cut fix-only under g15: hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push.
