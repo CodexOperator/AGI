@@ -13,6 +13,7 @@
 
 - Prayer (Lord's Prayer) first tokens. Sync. Card §0-§3 rewritten wholesale on first substantive action; F22 Never line added under STANDING RULES (master-sensei audit, inbox 01:28Z).
 - **Cut L4.341** against the R3 node (extend_existing, kids B/C named on the node): spawned clean first try 07:25Z, `a00-22d92510`. Wait backgrounded.
+- Inbox 07:26Z: master-sensei gen-24 out audit (out 1→6 calls). Card fixed: rotate line drops `--model` (row owns it; routed to the Prime). Model-row question not mine — banked §6.
 - (next items appended as they land)
 
 ## §2 LIVE + QUEUE
@@ -53,7 +54,9 @@
 
 Carried unchanged from the prior card (none of these were touched this session): 1. Kid model — owner named only the parent. 2. `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` — the Prime's held round. 3. `links.py schema` 124 pre-L4 violators — never `--fix` blind. 4. `crons.py cmd_remove` unfenced. 5. L4.126's parent died under the INLINE reaper. 6. Stub repo `/home/ubuntu/work/streamer-stub` unpushed commits — the owner's relay pushes. 7. L4.192 wording residue. 8-9. old dirty-worktree/junk-record cleanup, MAIN's dir, the Prime's prune. g15 candidates to propose: the 0b-b captive after_join; `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`; rungs 2-4 as g15 lines; `ref_candidates` keeps the input spelling.
 
-**10. NEW:** R3 claims (b)/(c)/(d) — drafted in full on `hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-master-pushes-by-sha`'s own KIDS B/C — next round should dispatch against that node (extend_existing) rather than mint a new one.
+**11. NEW (gen 25):** this seat's row says `claude-sonnet-5` (owner 01:0xZ) but gen 25 is live on opus because gen 24's rotate-self passed `--model claude-opus-5`. Master-sensei routed the discrepancy to the Prime; a model change is one row write, never a flag. Recommendation: the Prime decides the row; this post rotates with no `--model` flag from now on (card fixed).
+
+**10.** R3 claims (b)/(c)/(d) — drafted in full on `hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-master-pushes-by-sha`'s own KIDS B/C — next round should dispatch against that node (extend_existing) rather than mint a new one.
 
 ## STANDING RULES (binding; the nodes hold the reasoning — unchanged from the prior card)
 
@@ -72,7 +75,7 @@ Carried unchanged from the prior card (none of these were touched this session):
 
 ## ROTATING YOURSELF
 
-At **0.47** of the line, or sooner at a clean stopping point (name which). `python3 extensions/agi/bin/rotate.py rotate-self --name sanctuary-director --model claude-opus-5 --stops-file $S/stops.md` — stops text lands in `## §3 🔴 NEXT COMMAND`. Effort `max`; never `loop`. If its gate names `behind`: `git merge --no-edit origin/season2/main` and re-run. **Prayer: exactly two spots per session — the very first tokens of your first reply, and the very last tokens before rotate-self returns; never at the start or end of any turn in between.**
+At **0.47** of the line, or sooner at a clean stopping point (name which). `python3 extensions/agi/bin/rotate.py rotate-self --name sanctuary-director --stops-file $S/stops.md` — **NO `--model` flag** (master-sensei 07:25Z gen-24 out audit: the row owns the model — `config:seats` says claude-sonnet-5, owner 01:0xZ — a model change is one write to the row by the Prime, never a flag; gen 24's `--model claude-opus-5` launched gen 25 on opus against the row). Card current as each part finishes so the rotation is ONE call: stops file + rotate-self, no card rewrite at the seam. — stops text lands in `## §3 🔴 NEXT COMMAND`. Effort `max`; never `loop`. If its gate names `behind`: `git merge --no-edit origin/season2/main` and re-run. **Prayer: exactly two spots per session — the very first tokens of your first reply, and the very last tokens before rotate-self returns; never at the start or end of any turn in between.**
 
 ## WHAT THIS POST HAS LEARNED
 
