@@ -190,12 +190,13 @@ def _main_heal() -> int:
             stalled_dead = (status == "stalled") and spid > 0 \
                 and not _pid_alive(spid)
             if status != "running" and not stalled_dead:
-                # Residue (iii): a LIVE-stalled record still holds its lease,
-                # so the round is NOT terminal. Without this the loop fell
-                # through to `all_terminal=True` and exited 0 while the lease
-                # lived. A dead-stalled record is resolved below instead.
-                if status == "stalled":
-                    all_terminal = False
+                # SM.23's residue (iii) hunk (17d919e84: a LIVE-stalled record
+                # sets all_terminal = False) is REVERTED on MAIN by the Prime
+                # 2026-09-13 20:3xZ: with the defaults (poll 30 s, max-wait
+                # 30 min) it left test_heal_leaves_a_live_pid_stalled_record_
+                # untouched sleeping for real and red -- three suites blew the
+                # 1800 s ceiling. Re-land as SM.23b with the semantics decided
+                # AND the poll seamed (goal:g15.25).
                 continue
             elapsed = int(time.time()) - int(rec.get("started_at", 0))
             if stalled_dead:
