@@ -21,6 +21,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -689,6 +690,162 @@ def _parent_probe_gate(root: Path, rec: dict, args, verdict: str):
     return msg, True, sorted(covered)
 
 
+def _salvage_gate(manifest: dict, agent_id: str):
+    """hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-
+    staged-work-and-done-salvage-finalizes-a-complete-round-from-the-record
+    — the `done --salvage` ADMISSION gate, pure and unit-testable.
+
+    A reaped parent's round may be finalized from its record ONLY when the
+    manifest entry for `agent_id` carries `death.class == "died-after-work"`
+    and EVERY kid named there already has a verdict. Anything else refuses
+    BY NAME, before any write.
+
+    Returns `(ok, msg, kids)`. `ok` True means admitted (msg empty). `ok`
+    False means refuse: msg is the one-line reason, already prefixed `ERR`.
+    """
+    entries = manifest.get("agents") if isinstance(manifest, dict) else None
+    if not isinstance(entries, list):
+        return (False, "ERR salvage: round manifest has no agents list; "
+                       "nothing to finalize from the record", [])
+    entry = next((e for e in entries if e.get("id") == agent_id), None)
+    if entry is None:
+        return (False, f"ERR salvage: no manifest record for agent {agent_id!r}; "
+                       f"redispatch the round", [])
+    death = entry.get("death")
+    if not isinstance(death, dict) or not death.get("class"):
+        return (False, f"ERR salvage: agent {agent_id} carries no death class "
+                       f"(reaper has not classified it); redispatch the round",
+                [])
+    cls = death.get("class")
+    if cls != "died-after-work":
+        ev = death.get("evidence") or "none"
+        return (False, f"ERR salvage: agent {agent_id} died {cls!r}, not "
+                       f"'died-after-work' (evidence: {ev}); nothing staged "
+                       f"to salvage — redispatch the round", [])
+    kids = [k for k in (death.get("kids") or []) if isinstance(k, dict)]
+    if not kids:
+        return (False, f"ERR salvage: agent {agent_id} died after work but "
+                       f"names no kids; nothing to finalize", [])
+    missing = [str(k.get("id") or "?") for k in kids if not k.get("verdict")]
+    if missing:
+        return (False, f"ERR salvage: kid verdict(s) not present: "
+                       f"{', '.join(missing)}; a round finalizes only when "
+                       f"EVERY kid verdict is recorded", [])
+    return (True, "", kids)
+
+
+def _salvage_worktree(root: Path, entry: dict, agent_rec: dict,
+                      agent_id: str) -> Path | None:
+    """The linked worktree a REAPED round ran in, or None.
+
+    Preference order: the record's own `worktree` cell (manifest mirror
+    first, then the agent record -- dispatch.py writes it), then the
+    deterministic `.agi/worktrees/<agent>` under the MAIN checkout's common
+    root. `None` when neither resolves: a salvage that cannot find the
+    round's worktree must REFUSE, never fall back to the shared main checkout
+    (that is the goal:g4.1 `add -A` hazard, exactly).
+    """
+    for src in (entry, agent_rec):
+        wt = (src or {}).get("worktree")
+        if wt and Path(wt).is_dir():
+            return Path(wt)
+    try:
+        common = locations.git_common_root(root)
+    except (OSError, subprocess.SubprocessError):
+        common = None
+    if common is not None:
+        cand = Path(common) / ".agi" / "worktrees" / agent_id
+        if cand.is_dir():
+            return cand
+    return None
+
+
+def _salvage_preserve(worktree: Path | None, agent_id: str,
+                      dry_run: bool = False):
+    """Commit a reaped round's staged bytes onto its own loop branch FIRST.
+
+    hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-
+    work-and-done-salvage-finalizes-a-complete-round-from-the-record, clause
+    (3) second half -- the SM.17 preserve shape: `git -C <worktree> add -A`
+    then ONE commit whose subject begins `salvage: staged bytes preserved at
+    <sha>`. `<sha>` is the TREE sha of the preserved bytes: the only sha
+    knowable BEFORE the commit that names it (`git show <sha>` and
+    `git ls-tree <sha>` both resolve it, and the commit's own tree is that
+    sha). Returns `(sha, msg)`: `sha` is the tree sha, or None when the
+    worktree is clean (nothing to preserve -- a NO-OP, not a skip); `msg`
+    begins `ERR ` on refusal. `dry_run` stages into a THROWAWAY index under
+    /tmp, so it names the would-preserve sha and still writes nothing to the
+    round's worktree, index, or history.
+    """
+    if worktree is None or not Path(worktree).is_dir():
+        return (None, f"ERR salvage: no worktree on disk for agent "
+                      f"{agent_id} to preserve staged bytes from")
+    wt = Path(worktree)
+
+    def _g(*argv, env=None):
+        return subprocess.run(["git", "-C", str(wt), *argv],
+                              capture_output=True, text=True, env=env)
+
+    try:
+        st = _g("status", "--porcelain")
+    except (OSError, subprocess.SubprocessError) as exc:
+        return (None, f"ERR salvage: cannot read worktree {wt}: {exc}")
+    if st.returncode != 0:
+        return (None, f"ERR salvage: {wt} is not a git worktree: "
+                      f"{st.stderr.strip() or '(no stderr)'}")
+    dirty = [l for l in st.stdout.splitlines() if l.strip()]
+    if not dirty:
+        return (None, "")   # clean -> nothing to preserve
+
+    env = None
+    tmp_index = None
+    if dry_run:
+        fd, tmp_index = tempfile.mkstemp(prefix="agi-salvage-index-")
+        os.close(fd)
+        os.unlink(tmp_index)
+        env = dict(os.environ, GIT_INDEX_FILE=tmp_index)
+        seed = _g("read-tree", "HEAD", env=env)
+        if seed.returncode != 0:
+            os.unlink(tmp_index)
+            return (None, f"ERR salvage: cannot seed throwaway index: "
+                          f"{seed.stderr.strip() or '(no stderr)'}")
+        # Stage the working tree into the THROWAWAY index so `write-tree`
+        # names the would-preserve bytes rather than HEAD's tree. Without
+        # this the dry-run sha equals HEAD^{tree} -- the pre-change tree,
+        # which is not what a real preserve would commit. GIT_INDEX_FILE is
+        # still pointed at /tmp, so nothing real is touched.
+        dadd = _g("add", "-A", env=env)
+        if dadd.returncode != 0:
+            os.unlink(tmp_index)
+            return (None, f"ERR salvage: git add failed in dry-run index: "
+                          f"{dadd.stderr.strip() or '(no stderr)'}")
+    else:
+        add = _g("add", "-A")
+        if add.returncode != 0:
+            return (None, f"ERR salvage: git add failed in {wt}: "
+                          f"{add.stderr.strip() or '(no stderr)'}")
+    tree = _g("write-tree", env=env)
+    if tmp_index:
+        try:
+            os.unlink(tmp_index)
+        except OSError:
+            pass
+    if tree.returncode != 0 or not tree.stdout.strip():
+        return (None, f"ERR salvage: git write-tree failed in {wt}: "
+                      f"{tree.stderr.strip() or '(no stderr)'}")
+    sha = tree.stdout.strip()
+    subject = f"salvage: staged bytes preserved at {sha[:12]}"
+    if dry_run:
+        return (sha, f"would preserve {len(dirty)} path(s) at {sha[:12]}")
+    commit = _g("-c", "user.email=agi@local", "-c", "user.name=agi",
+                "commit", "-qm", subject)
+    if commit.returncode != 0:
+        return (None, f"ERR salvage: preserve commit failed in {wt}: "
+                      f"{commit.stderr.strip() or '(no stderr)'}")
+    print(f"salvage: preserved {len(dirty)} staged path(s) in {wt}: {subject}")
+    return (sha, subject)
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -789,6 +946,57 @@ def cmd_done(args: argparse.Namespace) -> int:
     verdict = gate.verdict
 
     rec = json.loads(ap.read_text())
+
+    # hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-
+    # work-and-done-salvage-finalizes-a-complete-round-from-the-record --
+    # `--salvage` finalizes a REAPED parent's round from the record instead
+    # of from a live agent. The admission gate runs BEFORE any rec mutation:
+    # a death class other than `died-after-work`, or a kid without a verdict,
+    # refuses BY NAME and the redispatch line, writing nothing. `--dry-run`
+    # prints the death class + the would-finalize summary and exits 0.
+    if getattr(args, "salvage", False):
+        _mpath = ap.parent.parent / "manifest.json"
+        try:
+            _manifest = json.loads(_mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            print(f"ERR salvage: no readable manifest at {_mpath}",
+                  file=sys.stderr)
+            return 2
+        _ok, _msg, _kids = _salvage_gate(_manifest, args.agent_id)
+        _entry = next((e for e in (_manifest.get("agents") or [])
+                       if e.get("id") == args.agent_id), {})
+        _death = _entry.get("death") or {}
+        # The reaped round's own worktree -- resolved from the record, never
+        # assumed to be the caller's tree. A salvage runs FROM THE MAIN TREE
+        # against this worktree.
+        _wt = _salvage_worktree(root, _entry, rec, args.agent_id)
+        if bool(getattr(args, "dry_run", False)):
+            _sha, _pmsg = _salvage_preserve(_wt, args.agent_id, dry_run=True)
+            print(f"[dry-run] salvage {args.agent_id}: death.class="
+                  f"{_death.get('class') or 'none'} "
+                  f"evidence={_death.get('evidence') or 'none'} "
+                  f"kids={[k.get('id') for k in _kids]}")
+            print(f"[dry-run] preserve: {_pmsg or 'nothing staged'}"
+                  + (f" sha={_sha[:12]}" if _sha else ""))
+            if _ok:
+                print(f"[dry-run] would finalize: verdict={args.verdict} "
+                      f"confidence={args.confidence} "
+                      f"node={args.node_id or '-'} "
+                      f"evidence_runs={args.evidence_runs or '-'}")
+            else:
+                print(f"[dry-run] {_msg}")
+            return 0
+        if not _ok:
+            print(_msg, file=sys.stderr)
+            return 2
+        # Clause (3): PRESERVE FIRST. The staged bytes are committed onto the
+        # round's loop branch before the record is finalized; a preserve that
+        # cannot run refuses the whole salvage and writes NOTHING -- the
+        # falsifier "a salvage that skips the preserve commit" is closed here.
+        _sha, _pmsg = _salvage_preserve(_wt, args.agent_id)
+        if _pmsg.startswith("ERR"):
+            print(_pmsg, file=sys.stderr)
+            return 2
 
     # hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-verdict-...
     # -- refuse (nothing written) before recording a parent verdict that
@@ -4273,9 +4481,18 @@ def main() -> int:
              "required (refused by name, nothing written) for a tier-parent "
              "recording a verdict >= inconclusive_lean_proved:50 or proved.")
     p_done.add_argument(
+        "--salvage", action="store_true",
+        help="finalize a REAPED parent's round from its manifest death "
+             "record instead of from a live agent. Admission requires "
+             "death.class == 'died-after-work' with every kid verdict "
+             "present; anything else refuses by name (hypothesis:l4-a-reaped-"
+             "parent-record-names-its-death-class-and-staged-work-and-done-"
+             "salvage-finalizes-a-complete-round-from-the-record).")
+    p_done.add_argument(
         "--dry-run", action="store_true",
-        help="print the tier-parent probe gate's decision without writing "
-             "anything (refusal shows the missing conjunct numbers).")
+        help="print the tier-parent probe gate's decision (and, under "
+             "--salvage, the death class + would-finalize summary) without "
+             "writing anything.")
     p_done.set_defaults(func=cmd_done)
 
     p_pend = sub.add_parser("pending")

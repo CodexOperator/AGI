@@ -4209,6 +4209,21 @@ def _rs_mark(steps: list[str], tmpl_steps: list[str], name: str,
     steps.append(name if name in tmpl_steps else fallback)
 
 
+def _box_fact() -> dict | None:
+    """The hosting box's load snapshot for a rotation/seating record's `box`
+    fact (hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-
+    average-bound-and-every-record-carries-spawn-to-registry-latency-and-
+    load): `{loadavg: [1min, 5min, 15min], cores: N}`. Best-effort — `None`
+    when the box cannot report its own load — so a recorded box is never a
+    crash and never blocks a spawn.
+    """
+    try:
+        loadv = [round(float(x), 3) for x in os.getloadavg()]
+    except (OSError, AttributeError):
+        return None
+    return {"loadavg": loadv, "cores": os.cpu_count() or 1}
+
+
 def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
                                gen_after: int | None = None,
@@ -4236,6 +4251,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
         "result": "started",
         "steps_reached": sorted(steps),
     }
+    box = _box_fact()
+    if box is not None:
+        rec["box"] = box
     if template_source is not None:
         rec["template_source"] = template_source
     if stops_sha256 is not None:
@@ -4812,6 +4830,9 @@ def _seating_record(*, seat: str, role: str, source: str,
         "gen_after": generation,
         "trigger": "first-seating",
     }
+    box = _box_fact()
+    if box is not None:
+        rec["box"] = box
     if window_id:
         rec["window_id"] = window_id
     if ref:
@@ -5202,6 +5223,30 @@ def _registry_read(registry_dir: str | None, pid: int) -> dict:
         return data if isinstance(data, dict) else {}
     except (OSError, ValueError):
         return {}
+
+
+def _spawn_to_registry_s(record: dict, pid, registry_dir=None) -> float | None:
+    """The spawn->registry latency for `record`'s successor, or None when the
+    successor never registered. Mirrors the heal.py late-join shape
+    (heal.py:~659): `<registry_dir>/<pid>.json`'s mtime minus the record's
+    `recorded_at` (the spawn instant), rounded to 3 decimals. A None result
+    means the caller OMITS the key -- never writes it null (hypothesis:l4-
+    spawn-admission-refuses-by-name-above-a-load-average-bound-and-every-
+    record-carries-spawn-to-registry-latency-and-load)."""
+    if pid is None:
+        return None
+    try:
+        fp = _registry_file_path(registry_dir, int(pid))
+    except (TypeError, ValueError):
+        return None
+    if fp is None:                       # never registered -> OMIT the key
+        return None
+    try:
+        ts = datetime.fromisoformat(
+            str(record.get("recorded_at", ""))).timestamp()
+        return round(fp.stat().st_mtime - ts, 3)
+    except (ValueError, TypeError, OSError):
+        return None
 
 
 def _pid_gone(pid: int) -> bool:
@@ -17098,12 +17143,21 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
 
     # (6) the record is the deliverable — write it, durably, BEFORE the own
     #     window is killed, so it survives regardless of what the kill does.
-    record_path = _write_rotation_record(root, _rotate_self_record(
+    #     The successor's spawn->registry latency is attached HERE (its own
+    #     join/ack record), the same fact heal.py's late-join writes: measured
+    #     only when the successor actually registered, OMITTED (never null)
+    #     otherwise.
+    _rec = _rotate_self_record(
         seat=seat, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
         handover=handover, steps_reached=steps_reached,
-        reply_decision=reply_decision), path=rec_path)
+        reply_decision=reply_decision)
+    _lat = _spawn_to_registry_s(_rec, succ_pid,
+                                getattr(args, "registry_dir", None))
+    if _lat is not None:
+        _rec.setdefault("observations", {})["spawn_to_registry_s"] = _lat
+    record_path = _write_rotation_record(root, _rec, path=rec_path)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack

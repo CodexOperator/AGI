@@ -931,3 +931,263 @@ def test_done_parent_bare_conjunct_probe_covers_nothing(tmp_path, monkeypatch,
     err = capsys.readouterr().err
     assert "claim conjunct(s): 1, 2, 3, 4" in err, err
     assert "missing key(s)" in err, err
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-work-
+# and-done-salvage-finalizes-a-complete-round-from-the-record
+# --------------------------------------------------------------------------
+
+def test_salvage_gate_admits_died_after_work_with_all_kid_verdicts():
+    cli = _load_cli()
+    manifest = {"agents": [{"id": "parent-p", "death": {
+        "class": "died-after-work", "evidence": None, "dirty_paths": 2,
+        "kids": [{"id": "experiment:k1", "verdict": "proved"},
+                 {"id": "experiment:k2", "verdict": "disproved"}]}}]}
+    ok, msg, kids = cli._salvage_gate(manifest, "parent-p")
+    assert ok is True, (ok, msg)
+    assert msg == ""
+    assert [k["id"] for k in kids] == ["experiment:k1", "experiment:k2"]
+
+
+def test_salvage_gate_refuses_infra_death_by_name():
+    cli = _load_cli()
+    manifest = {"agents": [{"id": "parent-p", "death": {
+        "class": "infra-stream-error",
+        "evidence": "HTTP/1.1 500 Internal Server Error", "kids": []}}]}
+    ok, msg, kids = cli._salvage_gate(manifest, "parent-p")
+    assert ok is False
+    assert "infra-stream-error" in msg and "died-after-work" in msg, msg
+    assert "redispatch" in msg, msg
+
+
+def test_salvage_gate_refuses_a_kid_without_a_verdict():
+    cli = _load_cli()
+    manifest = {"agents": [{"id": "parent-p", "death": {
+        "class": "died-after-work",
+        "kids": [{"id": "experiment:k1", "verdict": "proved"},
+                 {"id": "experiment:k2", "verdict": None}]}}]}
+    ok, msg, kids = cli._salvage_gate(manifest, "parent-p")
+    assert ok is False
+    assert "experiment:k2" in msg, msg
+    assert "EVERY kid verdict" in msg, msg
+
+
+def test_salvage_gate_refuses_a_record_with_no_death_class():
+    cli = _load_cli()
+    ok, msg, _ = cli._salvage_gate({"agents": [{"id": "parent-p"}]}, "parent-p")
+    assert ok is False and "no death class" in msg, msg
+    ok, msg, _ = cli._salvage_gate({"agents": []}, "parent-p")
+    assert ok is False and "no manifest record" in msg, msg
+
+
+def _salvage_project(tmp_path, death):
+    import json as _json
+    graph, rec = _parent_probe_project(tmp_path, tier="kid")
+    manifest = {"agents": [{"id": "a00-p", "status": "failed", "death": death}]}
+    (graph / "sessions" / "iter-001" / "manifest.json").write_text(
+        _json.dumps(manifest))
+    return graph, rec
+
+
+def test_done_salvage_dry_run_prints_death_class_and_would_finalize(
+        tmp_path, monkeypatch, capsys):
+    """`done --salvage --dry-run` prints the death class + the would-finalize
+    summary and mutates nothing."""
+    cli = _load_cli()
+    graph, rec = _salvage_project(tmp_path, {
+        "class": "died-after-work", "evidence": None,
+        "kids": [{"id": "experiment:backer", "verdict": "proved"}]})
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, verdict="inconclusive_lean_proved:60",
+                       salvage=True, dry_run=True)
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "death.class=died-after-work" in out, out
+    assert "would finalize" in out and "experiment:backer" in out, out
+    import json as _json
+    assert _json.loads(rec.read_text())["status"] == "running", \
+        "dry-run must not write"
+
+
+def test_done_salvage_refuses_an_infra_death_and_writes_nothing(
+        tmp_path, monkeypatch, capsys):
+    """`done --salvage` on an infra-stream-error death refuses by name before
+    any write."""
+    cli = _load_cli()
+    graph, rec = _salvage_project(tmp_path, {
+        "class": "infra-stream-error", "evidence": "HTTP/1.1 500 x", "kids": []})
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, verdict="inconclusive_lean_proved:60",
+                       salvage=True)
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "infra-stream-error" in err and "died-after-work" in err, err
+    import json as _json
+    assert _json.loads(rec.read_text())["status"] == "running", \
+        "a refused salvage must not write"
+
+
+def _salvage_worktree_repo(tmp_path, name="wt"):
+    """A throwaway git repo with one committed file and one staged change --
+    the reaped round's worktree shape (`git -C <wt> add -A` has work to do)."""
+    import subprocess
+    wt = tmp_path / name
+    wt.mkdir()
+
+    def g(*a):
+        return subprocess.run(["git", "-C", str(wt), *a],
+                              capture_output=True, text=True)
+
+    g("init", "-q")
+    g("config", "user.email", "t@t")
+    g("config", "user.name", "t")
+    (wt / "staged.txt").write_text("before\n")
+    g("add", "-A")
+    g("commit", "-qm", "base")
+    (wt / "staged.txt").write_text("after\n")
+    return wt
+
+
+def _salvage_project_with_worktree(tmp_path):
+    """`_salvage_project` (admitted death) whose manifest names a real
+    worktree carrying a staged change."""
+    import json as _json
+    graph, rec = _salvage_project(tmp_path, {
+        "class": "died-after-work", "evidence": None,
+        "kids": [{"id": "experiment:backer", "verdict": "proved"}]})
+    wt = _salvage_worktree_repo(tmp_path)
+    mpath = graph / "sessions" / "iter-001" / "manifest.json"
+    m = _json.loads(mpath.read_text())
+    m["agents"][0]["worktree"] = str(wt)
+    mpath.write_text(_json.dumps(m))
+    return graph, rec, wt
+
+
+def test_done_salvage_preserves_staged_bytes_then_finalizes(
+        tmp_path, monkeypatch, capsys):
+    """An ADMITTED salvage commits the reaped round's staged bytes onto its
+    own loop branch with the SM.17 subject, THEN finalizes the record."""
+    import json as _json
+    import subprocess
+    cli = _load_cli()
+    graph, rec, wt = _salvage_project_with_worktree(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, verdict="inconclusive_lean_proved:60",
+                       salvage=True)
+
+    assert cli.cmd_done(args) == 0
+    subject = subprocess.run(
+        ["git", "-C", str(wt), "log", "-1", "--format=%s"],
+        capture_output=True, text=True).stdout.strip()
+    assert subject.startswith("salvage: staged bytes preserved at "), subject
+    # The preserved commit carries the STAGED bytes, and the tree is clean.
+    blob = subprocess.run(["git", "-C", str(wt), "show", "HEAD:staged.txt"],
+                          capture_output=True, text=True).stdout
+    assert blob == "after\n", blob
+    assert subprocess.run(["git", "-C", str(wt), "status", "--porcelain"],
+                          capture_output=True, text=True).stdout.strip() == ""
+    assert "salvage: preserved 1 staged path(s)" in capsys.readouterr().out
+    assert _json.loads(rec.read_text())["status"] == "done"
+
+
+def test_done_salvage_refuses_and_finalizes_nothing_when_preserve_cannot_run(
+        tmp_path, monkeypatch, capsys):
+    """PRESERVE IS FIRST: an admitted death whose worktree cannot be found
+    refuses the whole salvage and writes NOTHING -- the record is not
+    finalized."""
+    import json as _json
+    cli = _load_cli()
+    graph, rec = _salvage_project(tmp_path, {
+        "class": "died-after-work", "evidence": None,
+        "kids": [{"id": "experiment:backer", "verdict": "proved"}]})
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, verdict="inconclusive_lean_proved:60",
+                       salvage=True)
+
+    assert cli.cmd_done(args) == 2
+    err = capsys.readouterr().err
+    assert "no worktree" in err, err
+    assert _json.loads(rec.read_text())["status"] == "running", \
+        "no preserve commit -> nothing finalized"
+
+
+def test_done_salvage_dry_run_names_the_would_preserve_sha_and_writes_nothing(
+        tmp_path, monkeypatch, capsys):
+    """`--dry-run` names the would-preserve sha by staging into a throwaway
+    index: no commit, no index change, no record write."""
+    import json as _json
+    import subprocess
+    cli = _load_cli()
+    graph, rec, wt = _salvage_project_with_worktree(tmp_path)
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = _probe_args(node_id=None, verdict="inconclusive_lean_proved:60",
+                       salvage=True, dry_run=True)
+
+    assert cli.cmd_done(args) == 0
+    out = capsys.readouterr().out
+    assert "[dry-run] preserve: would preserve 1 path(s) at " in out, out
+    assert "would finalize" in out, out
+    log = subprocess.run(["git", "-C", str(wt), "log", "--format=%s"],
+                         capture_output=True, text=True).stdout
+    assert "salvage:" not in log, "dry-run must not commit"
+    assert subprocess.run(["git", "-C", str(wt), "status", "--porcelain"],
+                          capture_output=True, text=True).stdout.strip() != "", \
+        "dry-run must not touch the real index"
+    assert _json.loads(rec.read_text())["status"] == "running"
+
+
+def test_salvage_preserve_dry_run_names_the_preserved_tree_sha(tmp_path):
+    """The dry-run sha must be the tree of the WOULD-PRESERVE bytes -- the
+    same tree the real preserve commits -- never HEAD^{tree}, which is the
+    pre-change tree. Regression: the dry-run branch seeded the throwaway
+    index with `read-tree HEAD` and never ran `add -A` into it, so
+    `write-tree` returned HEAD unchanged and `--dry-run` named the wrong
+    sha. Also proves the dry-run writes nothing: no commit, real index and
+    working tree untouched."""
+    import os
+    import subprocess
+    import tempfile
+    cli = _load_cli()
+    wt = _salvage_worktree_repo(tmp_path)
+
+    def g(*a, env=None):
+        return subprocess.run(["git", "-C", str(wt), *a],
+                              capture_output=True, text=True, env=env)
+
+    head_tree = g("rev-parse", "HEAD^{tree}").stdout.strip()
+    before_log = g("log", "--format=%H").stdout
+    before_index = g("diff", "--cached", "--name-only").stdout
+
+    # The reference sha, computed independently with the same throwaway-index
+    # recipe: read-tree HEAD + add -A + write-tree into a /tmp index.
+    fd, ref_index = tempfile.mkstemp(prefix="agi-test-ref-index-")
+    os.close(fd)
+    os.unlink(ref_index)
+    renv = dict(os.environ, GIT_INDEX_FILE=ref_index)
+    try:
+        assert g("read-tree", "HEAD", env=renv).returncode == 0
+        assert g("add", "-A", env=renv).returncode == 0
+        ref_sha = g("write-tree", env=renv).stdout.strip()
+    finally:
+        try:
+            os.unlink(ref_index)
+        except OSError:
+            pass
+
+    sha, msg = cli._salvage_preserve(wt, "ag", dry_run=True)
+    assert sha == ref_sha, (sha, ref_sha)
+    assert sha != head_tree, (sha, head_tree)
+    # The named tree carries the working bytes, not HEAD's.
+    assert g("show", f"{sha}:staged.txt").stdout == "after\n"
+    # Dry-run wrote nothing: no commit, real index untouched, tree dirty.
+    assert g("log", "--format=%H").stdout == before_log
+    assert g("diff", "--cached", "--name-only").stdout == before_index
+    assert g("status", "--porcelain").stdout.strip() != ""
+
+    # The real preserve commits exactly that tree -- dry-run and real agree.
+    real_sha, _ = cli._salvage_preserve(wt, "ag")
+    assert real_sha == sha, (real_sha, sha)
+    assert g("rev-parse", "HEAD^{tree}").stdout.strip() == sha

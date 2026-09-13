@@ -57,7 +57,8 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, _reap_pass, _reap_one  # noqa: E402
+from dispatch import pi_model_args, _reap_pass, _reap_one, _death_class  # noqa: E402
+from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid tolerance; ONE death predicate
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
@@ -180,7 +181,7 @@ def _main_heal() -> int:
                 entry["status"] = status
             if status in TERMINAL:
                 continue
-            spid = int(rec.get("pid", 0))
+            spid = _rec_pid(rec)
             # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-
             # pid-resolves-like-a-dead-running-record (claim b): a `stalled`
             # record (stamped by stall_detect) whose pid is PROVABLY gone is
@@ -189,6 +190,12 @@ def _main_heal() -> int:
             stalled_dead = (status == "stalled") and spid > 0 \
                 and not _pid_alive(spid)
             if status != "running" and not stalled_dead:
+                # Residue (iii): a LIVE-stalled record still holds its lease,
+                # so the round is NOT terminal. Without this the loop fell
+                # through to `all_terminal=True` and exited 0 while the lease
+                # lived. A dead-stalled record is resolved below instead.
+                if status == "stalled":
+                    all_terminal = False
                 continue
             elapsed = int(time.time()) - int(rec.get("started_at", 0))
             if stalled_dead:
@@ -206,6 +213,13 @@ def _main_heal() -> int:
                 entry["status"] = rec["status"]
                 print(f"agent {agent_id} resolved (stalled, pid {spid} gone) "
                       f"-> {rec['status']}")
+                # ONE death predicate, shared with the dead-running branch
+                # below (never a fail_reason string match): a stalled-dead
+                # resolution IS a death, so it alarms and logs identically.
+                if _is_death(rec):
+                    print(f"agent {agent_id} marked DEAD (stalled, pid "
+                          f"{spid} gone; {rec.get('fail_reason') or '-'})")
+                    _alarm_dispatcher(rec, args.iter_n, "death", root)
             else:
                 all_terminal = False
                 if elapsed > timeout_s and agent_id not in healed_already:
@@ -218,7 +232,7 @@ def _main_heal() -> int:
                     _alarm_dispatcher(rec, args.iter_n, "timeout", root)
                 else:
                     # Also detect if pid is dead w/o status update → mark failed.
-                    pid = int(rec.get("pid", 0))
+                    pid = _rec_pid(rec)
                     if pid > 0 and not _pid_alive(pid):
                         rec["status"] = "failed"
                         rec["finished_at"] = int(time.time())
@@ -385,7 +399,7 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         elapsed = int(time.time()) - started
         if elapsed <= timeout_s:
             continue
-        pid = int(rec.get("pid", 0) or 0)
+        pid = _rec_pid(rec)
         # Residue (a): a dead pid past its deadline is DEATH, never a timeout
         # overwrite. `_reap_pass` may have seen it alive and left it in
         # `still`; if it has since died, record the death (one status, one dm)
@@ -395,6 +409,10 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                 "status": "failed",
                 "finished_at": int(time.time()),
                 "fail_reason": f"pid {pid} died (detected by reaper)",
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
             }
             rec.update(death)
             rec_path.write_text(json.dumps(rec, indent=2))
@@ -403,6 +421,7 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                     entry["status"] = "failed"
                     entry["finished_at"] = rec["finished_at"]
                     entry["fail_reason"] = rec["fail_reason"]
+                    entry["death"] = rec["death"]
             manifest_path.write_text(json.dumps(manifest, indent=2))
             _alarm_dispatcher(rec, iter_dir.name, "death", root)
             _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
@@ -502,6 +521,219 @@ def _run_pending_after_joins(root: Path) -> None:
                            f"record appended: {result.get('appended')}, "
                            f"dm sent: {result.get('sent')}, "
                            f"code_head={result.get('code_head') or '?'})")
+
+
+def _registry_now_has(rot, succ_id, registry_dir):
+    """First registry file whose content matches succ_id by @id, else None."""
+    reg = Path(registry_dir or rot.REGISTRY_DEFAULT_DIR).expanduser()
+    if not reg.is_dir():
+        return None
+    try:
+        for fp in sorted(reg.glob("*.json")):
+            try:
+                data = json.loads(fp.read_text(encoding="utf-8", errors="replace"))
+            except Exception:
+                continue
+            if isinstance(data, dict) and rot._registry_matches_window_id(data, succ_id):
+                return fp
+    except OSError:
+        return None
+    return None
+
+
+
+def _late_reap_window_pids(rot, name, tmux_session, window_path, pids_for):
+    """Pids to TERM for one chain window: pane pid -> whole descendant chain.
+    pids_for (test seam) supplies pids directly and never touches tmux."""
+    if pids_for is not None:
+        return [int(p) for p in (pids_for(name) or [])]
+    try:
+        window_id = rot._successor_window_id(name, tmux_session, window_path)
+        pane_pid = rot._pane_pid(window_id) if window_id else None
+    except Exception:
+        pane_pid = None
+    if not pane_pid:
+        return []
+    try:
+        return rot._descendant_chain(pane_pid)
+    except Exception:
+        return []
+
+
+
+def _late_reap_for_skipped(root, record, *, record_path=None,
+                           rows=None, tmux_session="", window_path=None,
+                           registry_dir=None, pids_for=None, rot=None,
+                           loadavg=None, dry_run=False, now=None):
+    """The per-record late s12 reap. Returns {action: ...}; never raises.
+    rot is the rotate-module seam (default lazy import)."""
+    if rot is None:
+        try:
+            import rotate as rot
+        except Exception:
+            return {"action": "skip", "reason": "no-rotate-module"}
+    refusal = record.get("refusal_reason")
+    if record.get("result") != "skipped" or not isinstance(refusal, str) \
+            or "registry file for @" not in refusal:
+        return {"action": "skip", "reason": "not-a-registry-miss"}
+    hov = record.get("handover") or {}
+    own = hov.get("own_window") or {}
+    succ = hov.get("successor_window") or {}
+    succ_id = succ.get("id")
+    own_name = own.get("name")
+    succ_name = succ.get("name")
+    if not succ_id or not own_name or not succ_name:
+        return {"action": "skip", "reason": "no-handover-identity"}
+    if now is None:
+        now = time.time()
+    reg_file = _registry_now_has(rot, succ_id, registry_dir)
+    if reg_file is None:
+        return {"action": "waiting", "window_id": succ_id}
+
+
+    base, _own_line = rot._split_roman_suffix(own_name)
+    _b, succ_line = rot._split_roman_suffix(succ_name)
+    chain = []
+    try:
+        existing = rot._existing_windows(tmux_session, window_path) or []
+    except Exception:
+        existing = []
+    for wname in existing:
+        wbase, wline = rot._split_roman_suffix(wname)
+        if wbase == base and wline < succ_line:
+            chain.append(wname)
+    chain.sort(key=lambda w: rot._split_roman_suffix(w)[1])
+    if rows is None:
+        try:
+            rows = rot._load_seats(root) or []
+        except Exception:
+            rows = []
+    seat = record.get("seat")
+    role = next((r.get("role") for r in rows if r.get("name") == seat), None)
+    if role == "prime_director":
+        reap = chain[:-5] if len(chain) > 5 else []
+    else:
+        reap = chain
+    if not reap:
+        return {"action": "nothing-to-reap", "role": role, "chain": chain}
+
+
+    pids = []
+    windows = []
+    for wname in reap:
+        wpids = _late_reap_window_pids(rot, wname, tmux_session,
+                                       window_path, pids_for)
+        if wpids:
+            windows.append(wname)
+            pids.extend(wpids)
+    if not pids:
+        return {"action": "nothing-to-reap", "role": role, "chain": reap,
+                "reason": "no-pids"}
+    if dry_run:
+        return {"action": "report-only", "role": role, "chain": reap,
+                "pids": pids}
+    try:
+        observed = rot._reap_chain(pids)
+    except Exception as exc:
+        return {"action": "reap-failed", "error": str(exc)}
+    if record_path:
+        try:
+            doc = json.loads(Path(record_path).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            doc = dict(record)
+        doc["result"] = "success_late"
+        doc["s12_self_reap"] = {
+            "order": observed.get("order") or "deepest-first",
+            "performer": "watch",
+            "reaped_late": True,
+            "reaped_late_at": int(now),
+            "successor_id": succ_id,
+            "role": role,
+            "windows": windows,
+            "pids": pids,
+            "chain": observed.get("chain"),
+        }
+
+
+        lat = None
+        try:
+            ts = datetime.datetime.fromisoformat(
+                str(record.get("recorded_at", ""))).timestamp()
+            lat = round(reg_file.stat().st_mtime - ts, 3)
+        except (ValueError, TypeError, OSError):
+            lat = None
+        loadv = None
+        try:
+            loadv = (loadavg() if loadavg else os.getloadavg())
+            loadv = [round(float(x), 3) for x in loadv]
+        except Exception:
+            loadv = None
+        obs = doc.setdefault("observations", {})
+        if lat is not None:
+            obs["spawn_to_registry_s"] = lat
+        if loadv is not None:
+            obs["loadavg_1_5_15"] = loadv
+        try:
+            Path(record_path).write_text(json.dumps(doc, indent=2) + "\n",
+                                         encoding="utf-8")
+        except OSError:
+            pass
+    return {"action": "reaped", "role": role, "chain": reap,
+            "windows": windows, "pids": pids}
+
+
+
+def _late_reap_skipped_pass(root, *, window_path=None,
+                            registry_dir=None, rot=None, loadavg=None,
+                            pids_for=None):
+    """Watch-pass driver: scan every rotation record for a SKIPPED join and
+    run the late reap on each. One waiting line per still-absent record."""
+    if rot is None:
+        try:
+            import rotate as rot
+        except Exception:
+            return
+    try:
+        rows = rot._load_seats(root) or []
+    except Exception:
+        rows = []
+    try:
+        rot_dir = rot._rotations_dir(root)
+    except Exception:
+        return
+    if not rot_dir.is_dir():
+        return
+    for p in sorted(rot_dir.glob("*.json")):
+        try:
+            rec = json.loads(p.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError, TypeError):
+            continue
+        if not isinstance(rec, dict):
+            continue
+        hov = rec.get("handover") or {}
+        succ = hov.get("successor_window") or {}
+        if rec.get("result") != "skipped":
+            continue
+        refusal = rec.get("refusal_reason")
+        if not (isinstance(refusal, str) and "registry file for @" in refusal):
+            continue
+        if not (hov.get("own_window") and succ.get("id")):
+            continue
+        try:
+            outcome = _late_reap_for_skipped(
+                root, rec, record_path=p, rows=rows, tmux_session="",
+                window_path=window_path, registry_dir=registry_dir,
+                pids_for=pids_for, rot=rot, loadavg=loadavg)
+        except Exception as exc:
+            _watch_log(f"watch: late reap failed for {p.name}: {exc}")
+            continue
+        if outcome.get("action") == "waiting":
+            _watch_log(f"late s12 reap waiting for {rec.get('seat')}: "
+                       f"successor registry for @{succ.get('id')} still absent")
+        elif outcome.get("action") == "reaped":
+            _watch_log(f"watch: LATE s12 reap for {rec.get('seat')} "
+                       f"(role={outcome.get('role')}, "
+                       f"reaped {outcome.get('pids')})")
 
 
 def _sweep_season(branch: str) -> int | None:
@@ -1095,6 +1327,20 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
                f"rotate.py {identity.get('files', {}).get('rotate.py', (0, 0))[0]}")
     while True:
         _write_watch_heartbeat(root)
+        # hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-
+        # average-bound...: once per pass, when the box is load-bound-over,
+        # name the load so a stall is MEASURED, not inferred. Silent under the
+        # bound (and when the knob is not configured) — never a per-pass noise
+        # line.
+        _bnd_cfg_path = locations.config_path(root)
+        _bnd_cfg = json.loads(_bnd_cfg_path.read_text()) if _bnd_cfg_path else {}
+        _bnd = spawn_budget.load_bound(_bnd_cfg)
+        if _bnd > 0:
+            _lv = spawn_budget._loadavg_tuple()
+            if _lv and _lv[0] > _bnd:
+                _watch_log(f"watch: load {round(_lv[0], 2)} over bound "
+                           f"{round(_bnd, 2)} — above "
+                           f"spawn.max_load_per_core x cores")
         rounds = _discover_rounds(root)
         for iter_dir, _mp in rounds:
             _watch_round(root, iter_dir, adapter)
@@ -1107,6 +1353,7 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # operator. The reaper logic above is untouched.
         _repair_stranded_wakes(root)
         _run_pending_after_joins(root)
+        _late_reap_skipped_pass(root)
         # hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human
         # (kid 1 of 2): the SAME seat rows the wake repair reads are now
         # scanned for a DEAD seat each pass — pid gone, window @id gone (the
@@ -2557,7 +2804,7 @@ def _heal_cwd(root: Path, rec: dict) -> Path:
 
 
 def _heal(root: Path, iter_n: int | str, agent_id: str, rec: dict) -> None:
-    pid = int(rec.get("pid", 0))
+    pid = _rec_pid(rec)
     print(f"healer: agent {agent_id} timed out (pid={pid}), killing + spawning healer")
     if pid > 0 and _pid_alive(pid):
         try:

@@ -25,6 +25,7 @@ import fcntl
 import json
 import os
 import random
+import re
 import shlex
 import shutil
 import subprocess
@@ -56,6 +57,136 @@ from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
 config_path = locations.config_path
+
+
+# hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-work-
+# and-done-salvage-finalizes-a-complete-round-from-the-record — ONE death
+# classifier, shared by both writers of the reaper's death string (heal.py's
+# death-past-deadline path and this module's `restart_ok=False` branch).
+# Two implementations of a class would drift; this is the single one.
+_DEATH_STREAM_RE = re.compile(
+    # `http` then an OPTIONAL `/major[.minor]` version, then optional space,
+    # then a 5xx status. Covers "HTTP 500", "http500" AND the canonical
+    # provider line "HTTP/1.1 500 Internal Server Error" -- the form the
+    # first cut missed because it required the digit straight after `http`.
+    r"stream error|h2 protocol error|upstream error|"
+    r"http(?:/\d+(?:\.\d+)?)?\s*5\d\d", re.I)
+
+
+def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
+    """Classify one reaped agent's death from the bytes it left on disk.
+
+    `class` is `infra-stream-error` when the last 40 lines of the agent's
+    `output.log` match a provider/stream error pattern (`evidence` is that
+    exact line), else `died-after-work` when the round staged anything (a kid
+    verdict exists, or the worktree is dirty), else `died-no-work`.
+    `dirty_paths` is None and `kids` [] when the worktree is unknown. Never
+    raises: a death record is written when something is already broken.
+    """
+    from pathlib import Path as _Path
+    wt = _Path(worktree) if worktree else None
+    adir = _Path(agent_dir) if agent_dir else None
+    if adir is None and wt is not None and wt.is_dir():
+        hits = [p for p in (wt / "sessions").glob(f"*/{agent_id}") if p.is_dir()]
+        if hits:
+            adir = max(hits, key=lambda p: p.stat().st_mtime)
+    evidence = None
+    log = (adir / "output.log") if adir else None
+    if log is not None and log.is_file():
+        try:
+            tail = log.read_text(errors="replace").splitlines()[-40:]
+        except OSError:
+            tail = []
+        for line in reversed(tail):
+            line = line.strip()
+            if line and _DEATH_STREAM_RE.search(line):
+                evidence = line
+                break
+    dirty = None
+    if wt is not None and wt.is_dir():
+        try:
+            r = subprocess.run(
+                ["git", "-C", str(wt), "status", "--porcelain"],
+                capture_output=True, text=True, timeout=20)
+            if r.returncode == 0:
+                dirty = len([l for l in r.stdout.splitlines() if l.strip()])
+        except (OSError, subprocess.SubprocessError):
+            dirty = None
+    kids = []
+    sess = adir.parent if adir else (wt / "sessions" if wt else None)
+    if sess is not None and sess.is_dir():
+        for ap in sorted(sess.glob("*/agent.json")):
+            try:
+                krec = json.loads(ap.read_text())
+            except (OSError, ValueError):
+                continue
+            # The SPAWNING agent is `spawned_by_agent` (dispatch.py:2368);
+            # `dispatched_by` names the SEAT to alarm. Match the real field
+            # first, and keep `dispatched_by` as a fallback for any record
+            # written before spawned_by_agent existed -- an agent id never
+            # equals a seat id, so the fallback cannot double-count.
+            if (krec.get("spawned_by_agent") != agent_id
+                    and krec.get("dispatched_by") != agent_id):
+                continue
+            kids.append({"id": krec.get("node_id") or ap.parent.name,
+                         "verdict": _node_verdict(wt, krec.get("node_id"))})
+    if evidence is not None:
+        cls = "infra-stream-error"
+    elif dirty or any(k.get("verdict") for k in kids):
+        cls = "died-after-work"
+    else:
+        cls = "died-no-work"
+    return {"class": cls, "evidence": evidence, "runtime_s": runtime_s,
+            "dirty_paths": dirty, "kids": kids}
+
+
+def _rec_pid(rec: dict) -> int:
+    """The record's pid as an int, tolerant of null / non-int pids.
+
+    A committed manifest record can carry `"pid": null` (or `"abc"`), which
+    the old `int(rec.get("pid", 0))` turned into a TypeError and took the
+    watch / reap pass down with it. Absent, null and unparseable all read 0,
+    which every caller already treats as "unknown pid".
+    """
+    try:
+        return int(rec.get("pid") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _is_death(rec: dict) -> bool:
+    """ONE death predicate every terminal resolution shares.
+
+    A record is a DEATH when it is `failed` and carries the `death` class set
+    by `_reap_one` — both the dead-running lane (`restart_ok=False`) and the
+    stalled-dead lane (`never_restart=True`) set it, so the watcher dms
+    exactly ONE death and writes ONE reaper-log line for either.
+
+    RULE: a new terminal-resolution branch reuses this predicate, never
+    string-matches a `fail_reason` message. Mirror-only resolutions
+    (`done-unreported`, restarts) carry no `death` and are not deaths.
+    """
+    return rec.get("status") == "failed" and "death" in rec
+
+
+def _node_verdict(worktree, node_id):
+    """The `verdict` cell of the node file for `node_id` under `worktree`."""
+    if not (worktree and node_id):
+        return None
+    from pathlib import Path as _Path
+    import frontmatter as _fm
+    root = _Path(worktree) / ".agi" / "nodes"
+    for d in (root / "experiment", root / "deprecated" / "experiment"):
+        if not d.is_dir():
+            continue
+        for f in d.glob("*.md"):
+            try:
+                fm = _fm.read_frontmatter(f.read_text(errors="replace"))
+            except OSError:
+                continue
+            if isinstance(fm, dict) and fm.get("id") == node_id:
+                return fm.get("verdict")
+    return None
 
 
 # Env vars Claude Code injects so its own agent can use the user's Anthropic
@@ -2551,7 +2682,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
         except (json.JSONDecodeError, OSError):
             continue
         status = rec.get("status", "running")
-        pid = int(rec.get("pid", 0))
+        pid = _rec_pid(rec)
         # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid-resolves-like-a-dead-running-record
         # -- a `stalled` record (stamped by stall_detect) whose pid is PROVABLY
         # gone is ADMITTED to the reap path, so the dead-pid resolution rules in
@@ -2621,7 +2752,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
             # way to notice was that the two disagreed. Measured on
             # iter-L4.57 and iter-L4.58 before this line existed.
             for k in ("restart_count", "restart_of", "restarted_at",
-                      "fail_reason", "finished_at"):
+                      "fail_reason", "finished_at", "death"):
                 if k in rec:
                     entry[k] = rec[k]
             updated = True
@@ -2630,9 +2761,7 @@ def _reap_pass(root, iter_dir, adapter, cap=1, cfg=None,
             # `_reap_one`'s restart_ok=False branch). Those ids are surfaced
             # separately so the watcher can dm ONE death per agent and never
             # let a dead pid be re-interpreted as a timeout later in the pass.
-            if not restart_ok and rec.get("status") == "failed" \
-                    and outcome["record"]["fail_reason"].startswith(
-                        f"pid {pid} died"):
+            if not restart_ok and _is_death(rec):
                 died.append(agent_id)
             print(f"reaper: {outcome['message']}")
 
@@ -2856,6 +2985,15 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "finished_at": int(time.time()),
                 "fail_reason": (f"stalled; pid {pid} disappeared without "
                                 f"completion signal"),
+                # The SHARED death predicate rides on this key: a stalled-dead
+                # resolution IS a death exactly as the dead-running branch is,
+                # so the watcher dms ONE death and writes ONE reaper-log line.
+                # Without it the old `died` membership string-matched
+                # `fail_reason` and this whole branch fell silently out.
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
             },
             "message": (f"agent {agent_id} failed (stalled; pid {pid} gone — "
                         f"NEVER restarted)"),
@@ -2876,6 +3014,13 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "status": "failed",
                 "finished_at": int(time.time()),
                 "fail_reason": f"pid {pid} died (detected by reaper)",
+                # hypothesis:l4-a-reaped-parent-record-names-its-death-class-
+                # and-staged-work… — the class rides BESIDE fail_reason; the
+                # fail_reason text is deliberately unchanged.
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
             },
             "message": (f"agent {agent_id} failed (pid {pid} died — death "
                         f"recorded by the reaper service)"),
