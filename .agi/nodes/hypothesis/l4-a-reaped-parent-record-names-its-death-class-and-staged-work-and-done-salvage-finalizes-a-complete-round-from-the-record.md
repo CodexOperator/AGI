@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+FOLDED IN (SM.13 gap, 14:33Z): clause (5) — on the join (and the late join), the rotation/seating record gains spawn_to_registry_s = registry file mtime − spawn ts (None when never registered); the SM.13 box{loadavg,cores} half landed, this is the other half; +1 test.
