@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+RE-CUT BEFORE MERGE-UP (Prime XIX 10:43Z, measured on the sensei-director 07:55Z rotation: the worktree rotate.py wrote session_label at spawn, schemas/[config].md self_row did not declare it, the spawn-row write was REFUSED WHOLE — record successor_row: FAILED … field session_label — and the successor row silently kept gen 18 until 10:4xZ, meter refused as pin-stale; the Prime resynced the row 27cb58b9a and declared session_label in self_row on MAIN). Three clauses added to the claim: (7) a writer that adds a row field ships the self_row declaration in the SAME change (this round carries the [config].md self_row line — merge with the Prime MAIN edit, not a duplicate); (8) NEW test: every field the spawn-row writer emits (enumerate from the writer, not a hand list) is declared in self_row — a field added without its declaration fails the suite; (9) a refused spawn-row write FAILS LOUD in the rotation tail: record result != success (successor_row: FAILED …), one dm to the supervisor (the alerts matrix audit + edges, SM.16; until it lands: the rotated_by post), and rotate-self exits non-zero — never a silently stale row. +2 tests, +30 lines to the ceiling (80 / 7). Rides #29 only with 7-9 in.
