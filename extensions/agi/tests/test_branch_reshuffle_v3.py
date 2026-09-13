@@ -599,6 +599,273 @@ def test_v3_apply_refuses_a_trunk_at_wrong_tip(tmp_path: Path):
     assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
 
 
+# --------------------------------------------------------------------------
+# l4-branch-reshuffle-apply-collect-refusals-and-continue-on-a-moving-tip
+# (R3.2): a wrong-tip trunk is REFUSED BY NAME but must NOT abort the create
+# of every LATER town's trunk-pair. Pre-fix the wrong-tip arm `return 1`ed on
+# the FIRST wrong town, so --apply could not survive a moving season2/main
+# tip. The refused trunk stays refused (never force-moved); only the ABORT is
+# what this round removes. Fixture-proofs on a tmp bare origin only.
+# --------------------------------------------------------------------------
+
+def _wrong_tip_trunk(r: Path, branch: str) -> str:
+    """Point `branch` at a commit that is NOT its planned tip (a throwaway
+    orphan commit) and return that commit's sha. The wrong tip is a real
+    commit, never a missing ref."""
+    _git(r, "checkout", "-q", "--orphan", "tmpw")
+    _write(r, "xtra.txt", "x\n")
+    _git(r, "add", "-q", "xtra.txt")
+    _git(r, "commit", "-qm", "wrong")
+    sha = _git(r, "rev-parse", "HEAD").stdout.strip()
+    _git(r, "checkout", "-q", "season2/main")
+    _git(r, "branch", branch, "tmpw")
+    return sha
+
+
+def test_v3_apply_wrong_tip_trunk_collects_refusals_and_continues(
+        tmp_path: Path):
+    # R3.2 falsifier 1: with core/main pre-created at a DIFFERENT tip, the run
+    # must (a) refuse core/main BY NAME, (b) STILL create every other town's
+    # trunk-pair, and (c) exit non-zero. Pre-fix, (b) never happens.
+    r = _v3_apply_repo(tmp_path)
+    wrong_sha = _wrong_tip_trunk(r, "core/main")
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    # the wrong trunk is named in a refusal (ERR + summary)
+    assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
+    assert "different tip" in res.stderr or "DIFFERENT tip" in res.stderr, \
+        res.stderr
+
+    after = _heads(r)
+    after_remote = _remote_heads(r)
+    # the run CONTINUED: every OTHER planned trunk-pair was created (local)
+    # and pushed (remote). core/main stays the one refused target.
+    for target, _tip in _planned_trunks():
+        if target == "core/main":
+            continue
+        assert target in after, ("later local trunk not created", target,
+                                 sorted(after))
+        assert target in after_remote, ("later remote trunk not pushed",
+                                        target, sorted(after_remote))
+    # refused, never force-moved: core/main is still at the wrong sha
+    assert _git(r, "rev-parse", "core/main^{commit}").stdout.strip() == \
+        wrong_sha, "a refused trunk must never be force-moved"
+
+
+def test_v3_apply_wrong_tip_summary_names_every_refusal(tmp_path: Path):
+    # two towns wrong at once -> ONE summary line naming both, and the run
+    # still creates the remaining town's trunk-pair.
+    r = _v3_apply_repo(tmp_path)
+    _wrong_tip_trunk(r, "core/main")
+    # second wrong town: streaming-suite's planned town_main (derive from the
+    # same grammar so the name is never hand-spelled)
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    second = branches.derive_names("streaming-suite", 1)["town_main"]
+    _git(r, "branch", second, "tmpw")
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    summary = [ln for ln in res.stderr.splitlines()
+               if "remote delete(s) refused" in ln or "refused" in ln.lower()]
+    # the collected summary names both refused towns on one line
+    joined = "\n".join(summary)
+    assert "core/main" in joined and second in joined, (summary, res.stderr)
+    # the third town's trunk-pair still got created
+    third = branches.derive_names("web-app-suite", 1)["town_main"]
+    assert third in _heads(r), ("remaining town not created",
+                                third, sorted(_heads(r)))
+
+
+def test_v3_apply_wrong_tip_trunk_still_runs_the_post_section(
+        tmp_path: Path):
+    # R3.2 falsifier (MOVING TIP): the planned tip is season2/main, which moves
+    # at every merge-up, so core/main legitimately ends up at an OLD tip and is
+    # refused. The run must still reach the v3 POST section that FOLLOWS the
+    # town loop. Pre-fix the town block's summary `return 1`ed, so the post
+    # renames never ran on ANY retry (core/main stays wrong and is never
+    # force-moved) and the migration could never complete.
+    r = _v3_apply_repo(tmp_path)
+    wrong_sha = _wrong_tip_trunk(r, "core/main")
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    # (a) the refusal is still named and rc-honest
+    assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
+    assert "trunk(s) refused" in res.stderr and "core/main" in res.stderr, \
+        res.stderr
+    # (b) the section AFTER the refusal RAN: the v3 post renames were applied
+    assert "[APPLY] branch rename (local, v3)" in res.stdout, res.stdout
+    assert "apply: local renames + worktree re-points done;" in res.stdout, \
+        res.stdout
+    after = _heads(r)
+    for new in ("core/season2/posts/sanctuary-director/main",
+                "core/season2/posts/sanctuary-helper/main"):
+        assert new in after, (new, sorted(after))
+    # (c) the refused trunk is still NEVER force-moved
+    assert _git(r, "rev-parse", "core/main^{commit}").stdout.strip() == \
+        wrong_sha, "a refused trunk must never be force-moved"
+
+
+def test_v3_apply_v3_git_failure_does_not_print_the_done_line(
+        tmp_path: Path):
+    # R3.2 falsifier 3 (tier parent's P7b probe): when a v3 git command ABORTS
+    # _rs_v3_run before the post section, --apply must NOT print the closing
+    # "local renames ... done" line -- a line claiming work that did not
+    # happen. Break the create leg by deleting the LOCAL tip source branch the
+    # second town's trunk is created from (origin keeps it, so ONLY the local
+    # `git branch` fails and the run aborts before the post section).
+    r = _v3_apply_repo(tmp_path)
+    _git(r, "branch", "-D", "season2/streaming-suite/season1/main")
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    # the failed git command is named on stderr
+    assert "ERR: git branch" in res.stderr, res.stderr
+    # the v3 post section NEVER ran, so the closing line must NOT print
+    assert "[APPLY] branch rename (local, v3)" not in res.stdout, res.stdout
+    assert "apply: local renames + worktree re-points done;" not in \
+        res.stdout, res.stdout
+
+
+def test_v3_apply_zero_legacy_prints_the_refs_grid_line(tmp_path: Path):
+    # R3.2 falsifier 2: the zero-legacy apply path returns BEFORE the shared
+    # `grid_before = _reshuffle_refs_grid(repo)` line, so the
+    # `refs/grid: IDENTICAL|CHANGED before/after --apply` line never printed
+    # there. It must print, exactly once, with the same wording.
+    r = _v3_zero_legacy_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    marker = "refs/grid: IDENTICAL before/after --apply (expected IDENTICAL)"
+    assert marker in res.stdout, res.stdout
+    assert res.stdout.count("refs/grid:") == 1, res.stdout
+
+
+def test_v3_apply_main_path_prints_the_refs_grid_line_once(tmp_path: Path):
+    # the NON-zero-legacy apply path must still print the line EXACTLY once
+    # (no double print after the zero-legacy arm gained its own).
+    r = _v3_apply_repo(tmp_path)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert res.stdout.count("refs/grid:") == 1, res.stdout
+
+
+def test_v3_trunk_create_never_forces():
+    # R3.2 falsifier 3: no branch-create / create-push command in the
+    # town_main block may carry --force / -f. The fix collects refusals; it
+    # never force-moves a trunk.
+    src = (BIN / "cli.py").read_text(encoding="utf-8")
+    start = src.index('if "town_main" in kinds and town_tuples:')
+    end = src.index('if "post" in kinds and town_tuples:', start)
+    block = src[start:end]
+    assert "--force" not in block, block
+    for token in ('"-f"', "' -f '", "branch -f", "push -f"):
+        assert token not in block, (token, block)
+
+
+# --------------------------------------------------------------------------
+# l4-trunk-create-resume-ls-remote-gates-push-if-remote-absent (mur-50
+# residue (c), R3.1): the trunk-create resume must NOT read a LOCAL-ONLY
+# trunk at the planned tip as a finished job. Pre-fix, the resume printed
+# [SKIP] and `continue`d past the push, stranding a trunk a dead first pass
+# left between `git branch` and `git push -u origin`. Fixture proofs on a
+# tmp bare origin, never the live tree.
+# --------------------------------------------------------------------------
+
+def _planned_trunks() -> list[tuple[str, str]]:
+    """[(<town>/main|season main, tip)] exactly as _rs_v3_towns_plan
+    derives them for the fixture's _FALLBACK_TOWNS."""
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    out: list[tuple[str, str]] = []
+    for town, season in _FALLBACK_TOWNS:
+        tip = ("season2/main" if season == 2
+               else f"season2/{town}/season{season}/main")
+        d = branches.derive_names(town, season)
+        out.append((d["town_main"], tip))
+        out.append((d["town_season_main"], tip))
+    return out
+
+
+def _remote_heads(repo: Path) -> dict[str, str]:
+    """{ref: sha} for refs/heads on origin, read via ls-remote."""
+    out = _git(repo, "ls-remote", "--heads", "origin").stdout
+    refs: dict[str, str] = {}
+    for ln in out.splitlines():
+        if not ln.strip():
+            continue
+        sha, _, ref = ln.partition("\t")
+        refs[ref.strip().removeprefix("refs/heads/")] = sha.strip()
+    return refs
+
+
+def test_v3_apply_resume_pushes_a_local_only_trunk(tmp_path: Path):
+    # the parent claim's falsifier: a first pass that died between
+    # `git branch <town>` and `git push -u origin <town>` leaves the trunk at
+    # the planned tip with NO remote ref. Pre-creating exactly that state is
+    # byte-identical to the kill, and the resume must RE-PUSH it -- not skip.
+    r = _v3_apply_repo(tmp_path)
+    planned = _planned_trunks()
+    before = _remote_heads(r)
+    for target, tip in planned:
+        assert target not in before, ("premise: remote-absent", target)
+        _git(r, "branch", target, tip)
+        assert target in _heads(r), target
+    assert all(t not in _remote_heads(r) for t, _ in planned), \
+        "premise: every planned trunk is LOCAL-ONLY"
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "[APPLY] branch push (v3, resume)" in res.stdout, res.stdout
+
+    after = _remote_heads(r)
+    for target, tip in planned:
+        assert target in after, ("trunk not re-pushed by resume", target,
+                                 sorted(after))
+        want = _git(r, "rev-parse", f"{tip}^{{commit}}").stdout.strip()
+        assert after[target] == want, (target, after[target], want)
+
+
+def test_v3_apply_resume_remote_present_is_a_noop(tmp_path: Path):
+    # the complement: when the trunk IS already on origin, the resume is a
+    # genuine no-op -- the on-origin skip line appears and no remote tip moves.
+    r = _v3_apply_repo(tmp_path)
+    first = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert first.returncode == 0, first.stdout + first.stderr
+    before = _remote_heads(r)
+
+    second = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert second.returncode == 0, second.stdout + second.stderr
+    assert "already at tip and on origin (resumed run)" in second.stdout, \
+        second.stdout
+    assert _remote_heads(r) == before, "a present-trunk resume moved a tip"
+
+
+def test_v3_apply_resume_ls_remote_failure_refuses_by_name(tmp_path: Path):
+    # rc-honesty: a FAILED ls-remote is UNKNOWN, never read as absent. The
+    # resume must refuse BY NAME, exit non-zero, and push nothing. A fixture
+    # with ZERO legacy rename jobs reaches the v3 tail directly, so the only
+    # ls-remote in the path is the trunk probe under test.
+    r = _v3_zero_legacy_repo(tmp_path)
+    planned = _planned_trunks()
+    for target, tip in planned:
+        _git(r, "branch", target, tip)
+    bare = tmp_path / "origin.git"
+    before = _git(bare, "for-each-ref", "--format=%(refname:short)",
+                  "refs/heads").stdout
+
+    _git(r, "remote", "set-url", "origin", str(tmp_path / "bogus.git"))
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "ls-remote" in res.stderr and planned[0][0] in res.stderr, \
+        res.stderr
+    assert "NOT skipped" in res.stderr, res.stderr
+    after = _git(bare, "for-each-ref", "--format=%(refname:short)",
+                 "refs/heads").stdout
+    assert after == before, "a failed probe must push nothing"
+
+
 def test_v3_apply_master_leg_pushes_by_sha_with_no_local_master(tmp_path: Path):
     # claim (d): the ADD-ONLY master leg must push master's tip BY SHA when
     # the checkout has ONLY origin/master (no local `master` ref -- the live
@@ -665,6 +932,51 @@ def test_v3_delete_old_admits_a_local_post_and_removes_its_origin_alias(
     gone2 = _git(r, "ls-remote", "origin",
                  "refs/heads/post/sanctuary-director@s2").stdout.strip()
     assert not gone2, gone2
+
+
+def test_v3_delete_old_refuses_a_post_main_carrying_a_foreign_upstream(
+        tmp_path: Path):
+    # FALSIFIER for hypothesis:l4-b-exemption-calls-the-upstream-check-its-
+    # docstring-promises. `_rs_v3_local_post_source`'s docstring promises the
+    # exemption is denied "on a branch that carries an upstream (that one is a
+    # real live migration and must still satisfy the gate)" -- but its body
+    # only checked that the derived post_main EXISTS. A v3-LOCAL post is
+    # defined by upstream UNSET; a post_main whose upstream is the carried OLD
+    # alias is a live migration, so it must hit the B2 'unpointed' refusal and
+    # NO origin ref may be deleted. Pre-fix on HEAD the exemption admitted it
+    # and both the old season-first alias and the intermediate alias vanished
+    # from origin.
+    r = _v3_apply_repo(tmp_path)
+    for alias in ("post/sanctuary-director@s2", "post/sanctuary-helper@s2"):
+        _git(r, "branch", alias)
+        _git(r, "push", "-q", "origin", f"{alias}:refs/heads/{alias}")
+    root = r / ".agi"
+    stamp = root / "sessions/verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    # the town-first post main now carries the OLD alias as its upstream --
+    # the 'real live migration' the docstring says must still satisfy the
+    # gate. (Set AFTER the apply, mirroring the parent's HEAD reproduction.)
+    _git(r, "fetch", "-q", "origin")
+    _git(r, "branch", "--set-upstream-to",
+         "origin/post/sanctuary-director@s2",
+         "core/season2/posts/sanctuary-director/main")
+    up = _git(r, "rev-parse", "--abbrev-ref",
+              "core/season2/posts/sanctuary-director/main@{upstream}")
+    assert up.returncode == 0 and up.stdout.strip() == \
+        "origin/post/sanctuary-director@s2", (up.stdout, up.stderr)
+
+    res2 = _run_cli(root, "--delete-old", "--kinds", "posts,towns")
+    assert res2.returncode != 0, res2.stdout + res2.stderr
+    assert "REFUSES" in res2.stderr, res2.stdout + res2.stderr
+    # NOTHING was deleted from origin: the old season-first alias and the
+    # intermediate alias both still exist (the guard refused by name).
+    for ref in ("refs/heads/season2/posts/sanctuary-director",
+                "refs/heads/post/sanctuary-director@s2"):
+        got = _git(r, "ls-remote", "origin", ref).stdout.strip()
+        assert got, f"{ref} was deleted despite a foreign upstream: {got!r}"
 
 
 # --------------------------------------------------------------------------
