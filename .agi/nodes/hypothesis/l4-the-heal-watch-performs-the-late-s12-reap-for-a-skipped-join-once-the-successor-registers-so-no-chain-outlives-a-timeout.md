@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+RULE CORRECTION before the cut (Prime XIX 07:24Z, owner rule): the PRIME chain is KEPT — cap FIVE, the oldest goes at each prime rotation, predecessors idle to answer the successor. So for a prime_director skipped record the late s12 enforces the CAP ONLY: reap beyond five, oldest first (numeral order), exactly what the live s12 does for the chain — never the whole chain; for every other post the full late reap in the claim stands. Measurement correction: my line "no belam-S1-L4 process remains" was an argv name-grep — a window name lives in tmux, never in argv; measure a chain by PANE PID (tmux list-panes -F pane_pid + window id), which is also the pid source the reap must use. XV @317, XVI @326, XVII @329, XVIII @335 alive at 07:24Z; XIV reaped by hand 07:20Z. Tests: add one — a prime record with six chain windows reaps exactly the oldest one; a prime record with five reaps none.
