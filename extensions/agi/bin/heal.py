@@ -57,7 +57,7 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, _reap_pass  # noqa: E402
+from dispatch import pi_model_args, _reap_pass, _reap_one  # noqa: E402
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
@@ -180,31 +180,56 @@ def _main_heal() -> int:
                 entry["status"] = status
             if status in TERMINAL:
                 continue
-            if status != "running":
+            spid = int(rec.get("pid", 0))
+            # hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-
+            # pid-resolves-like-a-dead-running-record (claim b): a `stalled`
+            # record (stamped by stall_detect) whose pid is PROVABLY gone is
+            # admitted to the dead-pid path; a stalled record with a LIVE pid
+            # is still holding its lease and stays mirror-only.
+            stalled_dead = (status == "stalled") and spid > 0 \
+                and not _pid_alive(spid)
+            if status != "running" and not stalled_dead:
                 continue
-            all_terminal = False
             elapsed = int(time.time()) - int(rec.get("started_at", 0))
-            if elapsed > timeout_s and agent_id not in healed_already:
-                _heal(root, args.iter_n, agent_id, rec)
-                healed_already.add(agent_id)
-                # hypothesis:l4-a-round-alarms-its-dispatcher-by-default — the
-                # TIMEOUT event: exactly ONE dm to the seat that dispatched it,
-                # naming the reason. No flag; the stamp came from dispatch.
-                _alarm_dispatcher(rec, args.iter_n, "timeout", root)
+            if stalled_dead:
+                # ONE resolution rule, never a second copy: the dispatch
+                # reaper decides (node complete / branch advanced →
+                # done-unreported, else failed; NEVER restarted). Resolves
+                # terminal THIS pass, so it must not leave the round looking
+                # still-running — it never sets all_terminal False.
+                outcome = _reap_one(root, iter_dir, _WatcherAdapter(), rec,
+                                    agent_id, spid, cap=1, cfg=None,
+                                    restart_ok=False, never_restart=True)
+                rec.update(outcome["record"])
+                ap_file.write_text(json.dumps(rec, indent=2))
+                # Sync to manifest too
+                entry["status"] = rec["status"]
+                print(f"agent {agent_id} resolved (stalled, pid {spid} gone) "
+                      f"-> {rec['status']}")
             else:
-                # Also detect if pid is dead w/o status update → mark failed.
-                pid = int(rec.get("pid", 0))
-                if pid > 0 and not _pid_alive(pid):
-                    rec["status"] = "failed"
-                    rec["finished_at"] = int(time.time())
-                    rec["fail_reason"] = "pid disappeared without completion signal"
-                    ap_file.write_text(json.dumps(rec, indent=2))
-                    # Sync to manifest too
-                    entry["status"] = "failed"
-                    print(f"agent {agent_id} marked failed (pid {pid} gone)")
+                all_terminal = False
+                if elapsed > timeout_s and agent_id not in healed_already:
+                    _heal(root, args.iter_n, agent_id, rec)
+                    healed_already.add(agent_id)
                     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default —
-                    # the DEATH event: exactly ONE dm naming the reason.
-                    _alarm_dispatcher(rec, args.iter_n, "death", root)
+                    # the TIMEOUT event: exactly ONE dm to the seat that
+                    # dispatched it, naming the reason. No flag; the stamp came
+                    # from dispatch.
+                    _alarm_dispatcher(rec, args.iter_n, "timeout", root)
+                else:
+                    # Also detect if pid is dead w/o status update → mark failed.
+                    pid = int(rec.get("pid", 0))
+                    if pid > 0 and not _pid_alive(pid):
+                        rec["status"] = "failed"
+                        rec["finished_at"] = int(time.time())
+                        rec["fail_reason"] = "pid disappeared without completion signal"
+                        ap_file.write_text(json.dumps(rec, indent=2))
+                        # Sync to manifest too
+                        entry["status"] = "failed"
+                        print(f"agent {agent_id} marked failed (pid {pid} gone)")
+                        # hypothesis:l4-a-round-alarms-its-dispatcher-by-default —
+                        # the DEATH event: exactly ONE dm naming the reason.
+                        _alarm_dispatcher(rec, args.iter_n, "death", root)
         # Persist manifest so post_wire sees current status
         manifest_path.write_text(json.dumps(manifest, indent=2))
         if all_terminal:
