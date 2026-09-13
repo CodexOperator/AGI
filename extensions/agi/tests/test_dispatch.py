@@ -2136,9 +2136,12 @@ def test_stale_base_canonical_town_main_reaches_legacy_literal_origin(tmp_path):
     (`season2/streaming-suite/season1/main` — what `_current_town_branch`
     returns for a spawner on that town's canonical post/loop) must still
     resolve on an origin that carries ONLY the literal `town/streaming-suite@s2`
-    legacy branch. That literal form is NOT what the grammar's ref_candidates
-    derives back (it yields `town/<t>/season/s<k>`), so the guard must also
-    try it — an unreachable-name 404 must never masquerade as "unchecked"."""
+    legacy branch. That literal form is derived by the grammar's own
+    ref_candidates/_canonical_to_old for a k==1 town main (hypothesis:
+    l4-every-reader-resolves-a-branch-through-branches-py: every resolving
+    spelling comes from branches.py, never hand-spelled in dispatch) — an
+    unreachable-name 404 must never masquerade as "unchecked" only because
+    the resolver stopped routing through the grammar."""
     repo = _git_repo(tmp_path, branch="season/s2")
     _git(repo, "branch", "town/streaming-suite@s2")
     _git(repo, "checkout", "-q", "town/streaming-suite@s2")
@@ -2158,6 +2161,49 @@ def test_stale_base_canonical_town_main_reaches_legacy_literal_origin(tmp_path):
     assert resolved.returncode == 0, (
         "the legacy literal ref must have been fetched and resolved: "
         f"{resolved.stdout} {resolved.stderr}")
+
+
+def test_stale_base_multiseason_town_main_invents_no_town_at_alias(tmp_path):
+    """A MULTI-season town main (`season3/core/season5/main`) must NOT be
+    measured against the invented literal `town/core@s3` — that spelling
+    resolves to the season-one branch `season3/core/season1/main`, a
+    DIFFERENT branch, so fetching it would be measuring a fork. The pre-fix
+    hand-spelled resolver (_town_at_legacy, removed) emitted exactly that
+    wrong alias; the grammar's ref_candidates derives the one-season town
+    alias only for k==1 town mains, so routing through it drops the bogus
+    candidate by construction (hypothesis:
+    l4-every-reader-resolves-a-branch-through-branches-py)."""
+    repo = _git_repo(tmp_path, branch="season3/main")
+    _git(repo, "branch", "season3/core/season5/main")
+    _git(repo, "checkout", "-q", "season3/core/season5/main")
+    (repo / "README").write_text("x5")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "multiseason town ahead")
+    # The fork a pre-migration tree might carry: a season-ONE branch plus the
+    # town-at alias `town/core@s3` that points AT it — a DIFFERENT branch from
+    # the guard's multi-season main. The guard must never fetch it.
+    _git(repo, "branch", "season3/core/season1/main")
+    _git(repo, "checkout", "-q", "season3/core/season1/main")
+    (repo / "README").write_text("x1")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "season one fork")
+    _git(repo, "branch", "town/core@s3", "season3/core/season1/main")
+    _git(repo, "checkout", "-q", "season3/core/season5/main")
+    _origin_bare(tmp_path, repo,
+                 only_refs=["season3/core/season5/main", "town/core@s3"],
+                 head_ref="season3/core/season5/main")
+    out = dispatch._stale_base_spawn(
+        repo, season=3, town_branch="season3/core/season5/main")
+    assert out["status"] == "current", out
+    # The guard resolved against the canonical multi-season main — never the
+    # `town/core@s3` alias of the season-one branch, which is NOT the origin
+    # it is behind.
+    wrong = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+         "origin/town/core@s3^{commit}"], capture_output=True, text=True)
+    assert wrong.returncode != 0, (
+        "a multi-season town main must never be measured against the "
+        "season-one town-at alias: origin/town/core@s3 was fetched")
 
 
 # ---------------------------------------------------------------------------

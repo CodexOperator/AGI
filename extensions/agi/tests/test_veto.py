@@ -269,15 +269,40 @@ def _frozen_geom():
     }
 
 
+def _owner_row(owner="owner", role="owner"):
+    """A keyed config:posts row whose signature the answer must verify over.
+    Uses the registered fixture scheme (no real crypto) -- same shape
+    send.py's ``_verify_block``/``_row_for_label`` read."""
+    scheme = get("fixture")
+    priv, _pub = scheme.keygen()
+    return {**{"name": owner, "role": role, "pubkey": priv.hex(),
+               "sig_scheme": "fixture"}, "_priv": priv}
+
+
+def _signed_answer(priv, text="owner: understood, cleared",
+                   from_id="owner", to="veto", ts="2026-09-12T00:00:00Z"):
+    """A dm-style signed answer block (ts/from/to/sig + body) over the SAME
+    canonical bytes send.py's ``_canonical_msg`` covers."""
+    msg = f"{ts}\n{from_id}\n{to}\n\n{text}".encode()
+    sig = get("fixture").sign(priv, msg).hex()
+    return (f"ts: {ts}\nfrom: {from_id}\nto: {to}\n"
+            f"sig: fixture:owner:{sig}\n\n{text}")
+
+
 def test_send_veto_helpers_status_and_answer(tmp_path, monkeypatch):
-    """The `veto` verb's two helpers: status reports the freeze by name, and
-    an OWNER ANSWER is the ONLY release -- it clears the gate and logs the
-    whole filed->frozen->answered lifecycle into the ONE geometry file."""
+    """The `veto` verb's two helpers: status reports the freeze by name; an
+    UNSIGNED or NON-OWNER answer is REFUSED BY NAME (frees nothing); and an
+    OWNER-role SIGNED answer is the ONLY release -- it clears the gate and
+    logs the whole filed->frozen->answered lifecycle into the ONE geometry
+    file (defect 1e, hypothesis:l4-...gate-sits-on-the-merge-up-push)."""
     send = _load_send()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
     # pin the verb's graph-root resolution to the tmp graph (main identity)
     monkeypatch.setattr(send, "_main_graph_root", lambda r: r)
+    owner = _owner_row()
+    nonowner = _owner_row("other", "director")
+    monkeypatch.setattr(send, "_load_rows", lambda r: [owner, nonowner])
 
     from seatsig import veto as _veto
     cell = Path("nodes") / ".geometry" / "vetoes.md"
@@ -286,7 +311,21 @@ def test_send_veto_helpers_status_and_answer(tmp_path, monkeypatch):
     status = send.veto_gate_status(root, "prime")
     assert "GATE-FROZEN" in status and "prime" in status
 
-    out = send.veto_answer(root, "prime", "owner: understood, cleared")
+    # (a) an UNSIGNED answer is refused by name and frees nothing
+    unsigned = send.veto_answer(root, "prime", "owner: understood, cleared")
+    assert "REFUSED" in unsigned and "UNSIGNED" in unsigned
+    assert _veto.is_frozen(None, "prime", geom=_veto.read(root, cell))[0] is True
+
+    # (b) a signed NON-OWNER answer is refused by name and frees nothing
+    non_owner_block = _signed_answer(
+        nonowner["_priv"], text="other: understood", from_id="other")
+    refused = send.veto_answer(root, "prime", non_owner_block)
+    assert "REFUSED" in refused and "OWNER-role" in refused
+    assert _veto.is_frozen(None, "prime", geom=_veto.read(root, cell))[0] is True
+
+    # (c) an OWNER signed answer is the ONE release
+    block = _signed_answer(owner["_priv"])
+    out = send.veto_answer(root, "prime", block)
     assert "ANSWERED" in out
     reloaded = _veto.read(root, cell)
     frozen, _why = _veto.is_frozen(None, "prime", geom=reloaded)
@@ -295,26 +334,30 @@ def test_send_veto_helpers_status_and_answer(tmp_path, monkeypatch):
     assert all(g.get("answered") for g in reloaded["active_gates"])
 
     # answering a scope with no gate is a named no-op, never a crash
-    out2 = send.veto_answer(root, "sanctuary-director", "owner: n/a")
+    out2 = send.veto_answer(root, "sanctuary-director", block)
     assert "not under an active gate" in out2
 
 
 def test_send_veto_verb_cli_posts_room_and_releases(tmp_path, monkeypatch):
-    """`send.py veto --scope prime --answer ...` (the real CLI dispatch): the
-    gate is released in the geometry log AND the owner line lands in the
-    named veto_room comms file."""
+    """`send.py veto --scope prime --answer <signed-block>` (the real CLI
+    dispatch): the OWNER-signed answer releases the gate in the geometry log
+    AND the owner line lands in the named veto_room comms file; an UNSIGNED
+    answer exits 3 and leaves the gate frozen."""
     send = _load_send()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
     croot = tmp_path / "comms"
     monkeypatch.setattr(send, "_main_graph_root", lambda r: r)
     monkeypatch.setattr(send, "_project_root", lambda: root)
+    owner = _owner_row()
+    monkeypatch.setattr(send, "_load_rows", lambda r: [owner])
 
     from seatsig import veto as _veto
     cell = Path("nodes") / ".geometry" / "vetoes.md"
     _veto.save(root, _frozen_geom(), cell)
 
-    rc = send.main(["veto", "--scope", "prime", "--answer", "owner: ok",
+    block = _signed_answer(owner["_priv"], text="owner: ok")
+    rc = send.main(["veto", "--scope", "prime", "--answer", block,
                     "--comms-root", str(croot), "--from", "owner"])
     assert rc == 0
 
@@ -325,6 +368,14 @@ def test_send_veto_verb_cli_posts_room_and_releases(tmp_path, monkeypatch):
     room = croot / "room" / "veto.md"
     assert room.is_file()
     assert "owner: ok" in room.read_text()
+
+    # an UNSIGNED answer exits non-zero and leaves the gate frozen
+    _veto.save(root, _frozen_geom(), cell)
+    rc_bad = send.main(["veto", "--scope", "prime",
+                        "--answer", "owner: nope",
+                        "--comms-root", str(croot), "--from", "owner"])
+    assert rc_bad != 0
+    assert _veto.is_frozen(None, "prime", geom=_veto.read(root, cell))[0] is True
 
 
 # ---- RUNG 3 claim (1)+(3): a rotation of ANOTHER post is GATED ---------
@@ -477,3 +528,178 @@ def test_veto_fresh_stale_refused_by_name(council_and_keep, geom):
       # nothing froze, nothing logged
     assert new["active_gates"] == []
     assert new["vetoes"] == []
+
+
+# ---- DEFECT 5 (hypothesis:l4-...gate-sits-on-the-merge-up-push) --------
+# save() round-trips the node BODY and writes EMPTY lists as `[]` (never YAML
+# null), and the FILED veto's logged expires_at is the EFFECTIVE expiry
+# (the once-dead `_effective_expiry` is actually called on the filing path) --
+# never the bare filing instant.
+def test_save_round_trips_empty_lists_and_body(tmp_path):
+    """save() writes `active_gates`/`vetoes` empty lists as `[]` (never YAML
+    null, which re-read as None and silently erased the opt-in state) and
+    preserves an authored node BODY byte-for-byte across a save."""
+    root = tmp_path
+    p = Path("nodes") / ".geometry" / "vetoes.md"
+    (root / p).parent.mkdir(parents=True, exist_ok=True)
+    cell = root / p
+    cell.write_text(
+        "---\nid: config:vetoes\ntype: config\nactive_gates:\n---\n\n"
+        "# config:vetoes\n\nfixture body line one\nbody line two\n")
+    geom = {"veto_room": "veto", "rate_limit_per_window": 2,
+            "window_seconds": 3600, "expiry_seconds": 86400,
+            "active_gates": [], "vetoes": []}
+    veto.save(root, geom, p)
+    text = cell.read_text()
+    assert "active_gates: []" in text and "vetoes: []" in text
+    assert "fixture body line one\nbody line two" in text  # body preserved
+    reloaded = veto.read(root, p)
+    assert reloaded["active_gates"] == []
+    assert reloaded["vetoes"] == []
+
+
+def test_filed_veto_logs_effective_expiry(council_and_keep):
+    """The LOGGED expires_at on the filing path is the EFFECTIVE expiry (now +
+    expiry_seconds for a veto with no explicit window) -- so `_effective_expiry`
+    is actually called -- never the bare filing instant."""
+    import datetime as _dt
+
+    geom = {"veto_room": "veto", "rate_limit_per_window": 2,
+            "window_seconds": 3600, "expiry_seconds": 86400,
+            "active_gates": [], "vetoes": []}
+    now = _dt.datetime(2026, 9, 12, 0, 0, 0, tzinfo=_dt.timezone.utc)
+    cell = _veto_cell(council_and_keep, "prime", reason="expiry window")
+    refusal, new = veto.evaluate_veto(geom, "prime", cell,
+                                      ring=council_and_keep["ring"],
+                                      pubkey_for_post=council_and_keep["resolve"],
+                                      now=now)
+    assert refusal is None
+    logged = new["vetoes"][0]
+    assert logged["expires_at"] != logged["filed_at"]  # NOT the filing time
+    exp = veto._parse_iso(logged["expires_at"])
+    expect = now + _dt.timedelta(seconds=86400)
+    assert abs((exp - expect).total_seconds()) < 2
+
+
+# ---- DEFECT 1a: `evaluate_veto` has a real (non-test) caller -- the
+# `veto ==file` wire in send.py files a council+Keep decision cell through it.
+def test_veto_file_is_non_test_evaluate_caller(tmp_path, monkeypatch,
+                                               council_and_keep):
+    """send.veto_file is the one NON-TEST caller of evaluate_veto: filing a
+    council+Keep majority decision cell through the `veto --file` wire sets
+    the human gate; a NO-RING decision gates nothing."""
+    send = _load_send()
+    root = tmp_path / "graph"
+    root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(send, "_main_graph_root", lambda r: r)
+
+    posts = root / "nodes" / ".geometry"
+    posts.mkdir(parents=True, exist_ok=True)
+    rows = [{"name": m, "role": "member",
+             "pubkey": council_and_keep["pubkeys"][m]}
+            for m in council_and_keep["members"]]
+    (posts / "posts.md").write_text(
+        "---\nid: config:posts\ntype: config\nposts:\n" +
+        "\n".join(f"  - {r!r}" for r in rows) + "\n---\n")
+    ring = council_and_keep["ring"]
+    (posts / "rings.md").write_text(
+        "---\nid: config:rings\ntype: config\nrings:\n"
+        f"  - {ring!r}\n---\n")
+
+    cell = _veto_cell(council_and_keep, "prime", reason="majority freeze")
+    out = send.veto_file(root, "prime", cell)
+    assert "FILED" in out
+    cell_path = Path("nodes") / ".geometry" / "vetoes.md"
+    _frozen, _why = veto.is_frozen(None, "prime", geom=veto.read(root, cell_path))
+    assert _frozen is True
+
+    # a NO-RING decision (opt-in) gates nothing -- refused by name
+    free = {"veto_room": "veto", "rate_limit_per_window": 2,
+            "window_seconds": 3600, "expiry_seconds": 86400,
+            "active_gates": [], "vetoes": []}
+    veto.save(root, free, cell_path)
+    poison = rings.decision_cell("nope", "veto", {"scope": "prime"}, [])
+    out2 = send.veto_file(root, "prime", poison)
+    assert "REFUSED" in out2
+    _frozen2, _why2 = veto.is_frozen(None, "prime", geom=veto.read(root, cell_path))
+    assert _frozen2 is False
+
+
+# ---- DEFECT 1b: the MERGE-UP push is a GATED Prime-scope act. A FROZEN
+# prime scope refuses `_stops_push(root, label="merge")` by name
+# (`push: HELD -- ...`); an UNFROZEN merge-up push passes (reaches the real
+# push layer and returns None, never a HELD line).
+def test_rotate_merge_up_push_gated_when_frozen(tmp_path, monkeypatch, capsys):
+    rot = _load_rotate()
+    root = tmp_path / "graph"
+    root.mkdir(parents=True, exist_ok=True)
+
+    # frozen prime scope -> refused by name exactly like the spawn own-row leg
+    _write_rot_vetoes(root, _frozen_geom())
+    held = rot._stops_push(root, label="merge")
+    assert held is not None and held.startswith("push: HELD")
+    assert "merge-up push is a gated act" in held
+    capsys.readouterr()  # flush the HELD line so the frozen leg does not leak
+
+    # unfrozen -> the merge-up push proceeds (git layer faked to a success)
+    # and returns None; NEVER a HELD line.
+    (root / "nodes" / ".geometry" / "vetoes.md").unlink()
+
+    def fake_run(cmd, **kw):
+        class _R:
+            def __init__(s, rc, out=""):
+                s.returncode, s.stdout, s.stderr = rc, out, ""
+        if "--show-toplevel" in cmd:
+            return _R(0, str(root) + "\n")
+        if "--abbrev-ref" in cmd:
+            return _R(0, "main\n")
+        return _R(0)
+
+    monkeypatch.setattr(rot.subprocess, "run", fake_run)
+    res = rot._stops_push(root, label="merge")
+    assert res is None
+    err = capsys.readouterr().err
+    assert "merge push: OK" in err
+    assert "HELD" not in err
+
+
+def test_veto_answer_accepts_ring_decision(tmp_path, monkeypatch,
+                                           council_and_keep):
+    """defect 1e: an answer may also be a valid ring DECISION (rung 2b) -- a
+    scope-matching council+Keep decision cell verified through the declared
+    ring clears the gate; a minority / wrong-scope decision refuses by name."""
+    send = _load_send()
+    root = tmp_path / "graph"
+    root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(send, "_main_graph_root", lambda r: r)
+    posts = root / "nodes" / ".geometry"
+    posts.mkdir(parents=True, exist_ok=True)
+    rows = [{"name": m, "role": "member",
+             "pubkey": council_and_keep["pubkeys"][m]}
+            for m in council_and_keep["members"]]
+    (posts / "posts.md").write_text(
+        "---\nid: config:posts\ntype: config\nposts:\n" +
+        "\n".join(f"  - {r!r}" for r in rows) + "\n---\n")
+    ring = council_and_keep["ring"]
+    (posts / "rings.md").write_text(
+        "---\nid: config:rings\ntype: config\nrings:\n"
+        f"  - {ring!r}\n---\n")
+    cell_path = Path("nodes") / ".geometry" / "vetoes.md"
+    veto.save(root, _frozen_geom(), cell_path)
+
+    # a valid majority ring decision over the gated scope clears
+    decision = _veto_cell(council_and_keep, "prime", reason="clear via ring")
+    out = send.veto_answer(root, "prime", json.dumps(decision))
+    assert "ANSWERED" in out
+    frozen, _why = veto.is_frozen(None, "prime", geom=veto.read(root, cell_path))
+    assert frozen is False
+
+    # a NON-majority (minority) decision refuses by name and clears nothing
+    veto.save(root, _frozen_geom(), cell_path)
+    minority = _veto_cell(council_and_keep, "prime", reason="minority",
+                          signers=("council-core",))
+    out2 = send.veto_answer(root, "prime", json.dumps(minority))
+    assert "REFUSED" in out2
+    frozen2, _why2 = veto.is_frozen(None, "prime",
+                                    geom=veto.read(root, cell_path))
+    assert frozen2 is True

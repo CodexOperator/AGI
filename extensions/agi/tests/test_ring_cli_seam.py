@@ -20,7 +20,8 @@ Acceptance A-F. Signing is the SAME seatsig fixture scheme test_rings.py /
 test_write_ring_cli.py register (name `fixture`, hash-16), the members'
 pubkeys resolve from a fixture posts.md -- never a real key, never live
 geometry, always a tmp project root (the worktree must not gain a
-`nodes/.geometry/ring-nonces.json`).
+`nodes/.geometry/ring-nonces.json`; the ledger lives under the shared
+sessions dir -- RUNG 2b clause 5).
 """
 from __future__ import annotations
 
@@ -120,7 +121,9 @@ def _ring_root(tmp_path):
 
 
 def _ledger(root):
-    return root / "nodes" / ".geometry" / "ring-nonces.json"
+    # RUNG 2b clause 5: the ledger lives under the SHARED SESSIONS dir, never
+    # under `<root>/nodes/.geometry` (committed graph content).
+    return root / "sessions" / "ring-nonces.json"
 
 
 def _canonical_hex(out):

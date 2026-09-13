@@ -125,11 +125,20 @@ def _load_one(path: Path) -> Town:
     mint_id = str(fm.get("mint_id", ""))
     if season is None:
         season = 0
+    elif not isinstance(season, int):
+        # Refuse a NON-INT season BY NAME at READ time — a bare `int(season)`
+        # raised an unhandled ValueError traceback on `season: abc`.
+        try:
+            season = int(season)
+        except (TypeError, ValueError):
+            raise TownError(
+                f"non-integer season refused: town:{slug} season={season!r}"
+            )
     return Town(
         slug=slug,
         visions=list(visions) if isinstance(visions, list) else [],
         council=str(council or ""),
-        season=int(season) if isinstance(season, int) else int(season or 0),
+        season=season,
         season_history=list(season_history),
         mint_id=mint_id,
         visions_was_auto=(visions == AUTO),
@@ -162,15 +171,30 @@ def _all_vision_ids(root: Path) -> set[str]:
 def _resolve_visions(root: Path, all_towns: list[Town]) -> None:
     """Resolve explicit + auto lists into each town's OWNED set.
 
-    Explicit vision ids must not be claimed by two towns (refusal 3). An
-    `auto` town resolves to every VISION NODE no other town claims,
-    computed by the loader over nodes/vision — never hardcoded.
+    Explicit vision ids must resolve to a live-or-deprecated vision node
+    (a dangling id is refused BY NAME) and must not be claimed by two
+    towns. At most ONE town may spell `visions: auto`; a second is refused
+    BY NAME. An `auto` town resolves to every VISION NODE no other town
+    claims, computed by the loader over nodes/vision — never hardcoded.
     """
-    explicit: dict[str, str] = {}   # vision id -> town slug (for dup check)
+    all_vision_ids = _all_vision_ids(root)
+    auto_towns = [t for t in all_towns if t.visions_was_auto]
+    if len(auto_towns) > 1:
+        names = ", ".join(repr(t.slug) for t in auto_towns)
+        raise TownError(
+            f"at most one town may spell `visions: auto`, found "
+            f"{len(auto_towns)} ({names})"
+        )
+    explicit: dict[str, str] = {}   # vision id -> town slug (dup + dangling)
     for t in all_towns:
         if t.visions_was_auto:
             continue
         for vid in list(t.visions):
+            if vid not in all_vision_ids:
+                raise TownError(
+                    f"vision id {vid!r} in town:{t.slug} resolves to no vision "
+                    f"node under nodes/vision (live or deprecated)"
+                )
             owner = explicit.get(vid)
             if owner is not None and owner != t.slug:
                 raise TownError(
@@ -178,7 +202,6 @@ def _resolve_visions(root: Path, all_towns: list[Town]) -> None:
                     f"{t.slug!r} (town:{t.slug})"
                 )
             explicit[vid] = t.slug
-    all_vision_ids = _all_vision_ids(root)
     for t in all_towns:
         if t.visions_was_auto:
             claimed = set(explicit)
