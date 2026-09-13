@@ -8,6 +8,7 @@ cadences:
   grid_sync:
     every_mins: 5
     enabled: true
+    mirror_towns: true
   branch_push:
     schedule: 7 * * * *
     enabled: true

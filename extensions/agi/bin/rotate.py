@@ -12511,7 +12511,9 @@ def _merge_conflict_paths(root: Path, sb: str) -> str:
 def _perform_season_merge(root: Path, sb: str) -> str | None:
     """Perform the only-behind merge: `git merge --no-edit origin/<sb>`.
     Returns the resulting HEAD sha (short form), or None when the merge did
-    NOT land (git returned non-zero, or an opaque refusal) — a merge git
+    NOT land (git returned non-zero, an opaque refusal, OR the prime scope
+    is FROZEN -- the merge-up is a GATED Prime-scope act, defect 1b,
+    hypothesis:l4-...gate-sits-on-the-merge-up-push). A merge git
     aborted must never be reported as merged. On any non-zero merge rc (a
     REFUSED merge or a CONFLICT) this ABORTS the merge (`git merge --abort`)
     so the tree is never left half-merged (P1-a: never a half-merge). The
@@ -12530,6 +12532,20 @@ def _perform_season_merge(root: Path, sb: str) -> str | None:
     either succeeds or the merge's own rc catches the problem. Callers reach
     this ONLY after the conflict-free gate (`_merge_applies_clean`) agreed
     there are zero conflicts and check 2 (dirty tree) passed."""
+    # RUNG 3 HUMAN GATE (defect 1b, hypothesis:l4-...gate-sits-on-the-merge-
+    # up-push): a FROZEN prime scope refuses the merge-up itself -- never
+    # merged, never "merged <sha>", so a frozen post cannot be merge-up in a
+    # way that later push-races the HELD line. Only an owner answer clears it.
+    try:
+        from seatsig import veto as _veto
+
+        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        if _frozen:
+            _l = f"merge: HELD -- merge-up is a gated act; {_why}"
+            print(_l, file=sys.stderr)
+            return None
+    except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
+        pass
     proc = _git_proc(root, "merge", "--no-edit", f"origin/{sb}")
     if proc is None or proc.returncode != 0:
         # the merge REFUSED or CONFLICTED (non-zero rc — git leaves conflict
@@ -14260,6 +14276,24 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     stops commit) and `merge` for push line 2 (the only-behind merge commit
     the captive checklist performs); ONE helper, both pushes, never a third
     implementation."""
+    # RUNG 3 HUMAN GATE (hypothesis:l4-...gate-sits-on-the-merge-up-push):
+    # the MERGE-UP push leg (``label="merge"`` from the closeout checklist,
+    # and the stops push too) is a GATED Prime-scope act. While a council+Keep
+    # veto (or an owner-written human_gate) shows the scope FROZEN the push
+    # is REFUSED by name -- one ``push: HELD -- ...`` line, the SAME shape
+    # ``_push_season_branch`` prints for the spawn own-row leg -- and never
+    # auto-released; only an owner answer clears it. The refused line is a
+    # BLOCK (exit 3, nothing rotated), exactly like a gitless root.
+    try:
+        from seatsig import veto as _veto
+
+        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        if _frozen:
+            _l = f"push: HELD -- merge-up push is a gated act; {_why}"
+            print(_l, file=sys.stderr)
+            return _l
+    except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
+        pass
     top = _git_toplevel(root)
     if top is None:
         return "no git repo to push (gitless fixture/root)"

@@ -299,12 +299,14 @@ def _stale_base_spawn(root: Path, season: int, town_branch: str | None = None) -
         # must not silently become "unchecked" while the old name resolves.
         # The town branch may already BE a legacy literal (an opaque ladder
         # value such as `town/<t>@s2`), so the as-written name is tried too, and
-        # the grammar's ref_candidates yields canonical + the derived legacy; a
-        # town main carries a SECOND legacy spelling (`town/<t>@s<N>`) that
-        # ref_candidates does not derive back, added by _town_at_legacy.
+        # the grammar's ref_candidates yields canonical + the derived legacy —
+        # including the one-season town alias `town/<t>@s<N>` for a k==1 town
+        # main (hypothesis:l4-every-reader-resolves-a-branch-through-branches-
+        # py: every resolving spelling derives through branches.py, never
+        # hand-spelled here; a multi-season town main bears NO such alias
+        # because that spelling would resolve to a DIFFERENT branch).
         _ref_candidates = _dedupe_ordered(
-            [town_branch] + branches.ref_candidates(town_branch)
-            + _town_at_legacy(town_branch))
+            [town_branch] + branches.ref_candidates(town_branch))
     else:
         # Grammar-branch integration, canonical first then the old `season/s<N>`
         # as a one-season deprecated fallback, so a live tree that has NOT been
@@ -379,33 +381,6 @@ def _dedupe_ordered(names: list[str]) -> list[str]:
             seen.add(n)
             out.append(n)
     return out
-
-
-def _town_at_legacy(town_branch: str) -> list[str]:
-    """The `town/<t>@s<N>` legacy spelling of a town main, or [] otherwise.
-
-    The grammar's `_canonical_to_old` derives the `town/<t>/season/s<k>` form
-    from a canonical town main but NOT this second legacy spelling, which is
-    the ACTUAL literal a pre-migration tree carries on origin. Listed here so
-    the stale guard can reach a not-yet-renamed town main through its real
-    remote name."""
-    try:
-        p = branches.parse(town_branch)
-    except ValueError:
-        return []
-    if p.get("kind") == "alias":
-        try:
-            p = branches.parse(p["canonical"])
-        except ValueError:
-            return []
-    if p.get("kind") != "town_main":
-        return []
-    season = p.get("season")
-    town = p.get("town")
-    if season is None or town is None:
-        return []
-    legacy = f"town/{town}@s{season}"
-    return [] if legacy == town_branch else [legacy]
 
 
 def _stale_base_record(stale: dict, season: int,
@@ -1195,10 +1170,16 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
         # FRESH (kid B): the quorum is satisfied; the round must still sit
         # inside its replay window and not carry a spent nonce.
         seen, remember_fn = _rings.nonce_ledger(root)
-        fr = _rings.freshness_refusal(
-            fields,
-            max_age_s=_rings._effective_max_age_s(ring),
-            seen=seen, remember=remember_fn if remember else None)
+        # RUNG 2b clause 3: a failed ledger write (LedgerWriteError) refuses
+        # BY NAME -- the nonce was not remembered, so the decision is not
+        # admitted (a nonce is never spent silently).
+        try:
+            fr = _rings.freshness_refusal(
+                fields,
+                max_age_s=_rings._effective_max_age_s(ring),
+                seen=seen, remember=remember_fn if remember else None)
+        except _rings.LedgerWriteError as le:
+            return (f"round {ring_name!r} refused: {le}")
         if fr:
             return (f"round {ring_name!r} refused: freshness {fr}")
         return None

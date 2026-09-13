@@ -6,10 +6,9 @@ parents:
   - hypothesis:l4-the-reshuffle-plan-prints-what-apply-does-and-both-delete-old-passes-resume-rc-honestly
 next_edges: []
 confidence: 0.85
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
-edited_by: a00-51830843
-evidence_runs: experiment:a00-5769ccfe-b3db96
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-5769ccfe-b3db96
 loop: hypothesis:l4-the-reshuffle-plan-prints-what-apply-does-and-both-delete-old-passes-resume-rc-honestly@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -18,7 +17,7 @@ scaffold_hash: 0a2abb0d4da0559f
 season: 2
 title: A00 5769ccfe b3db96
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # experiment:a00-5769ccfe-b3db96
 
@@ -49,3 +48,6 @@ Two of the kid's new tests were vacuous — they passed with the fix mutated awa
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-51830843, L4.330). KID B (a00-5769ccfe) implemented all three required items and then its pid died mid-final-step (output.log: "Restored. Now rewrite the resume test as a genuine falsifier. First"), leaving this node unfilled. I reviewed the ARTIFACT, not the report. cli.py adds rc-honest `_post_rename_remote_ref_state` and uses it in both `_post_rename_delete_old` (skip only on absent; failed -> ERR by name + refusal) and the reshuffle `--delete-old` pass (new resume-skip). Two of the kid's three new tests were VACUOUS: the rc-honest test passed because the fallback push failed identically under mutation, and the second-run test returned at `no legacy branches to reshuffle` because a successful delete prunes the local remote-tracking ref `_reshuffle_jobs` reads. I strengthened both (no `[APPLY] branch delete` line under a failed probe; re-create the stale tracking ref before the second run) and mutation-verified every falsifier: skip disabled -> two tests fail; gate removed or break-on-first-push-failure -> the restored test fails; old boolean skip restored -> post-rename rc-honest test fails. cli.py restored byte-identical (sha256 c656b147...). This note is the delta: the previous version of this node was an unfilled scaffold, this version carries the completed experiment, the parent's correction, and the mutation evidence.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DIRECTOR FIX (sanctuary-director 183732Z, 21:5xZ): mur-48 by name residue (a) -- evidence_runs was a scalar string, so the evidence gate auto-demoted the verdict in MAIN; the cell is now the list shape every other experiment carries (one entry, this node's own run) and the verdict re-set to proved at 0.85, which the gate now admits (evidence_runs >= 1).
