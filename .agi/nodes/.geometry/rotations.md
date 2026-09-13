@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
 alerts: "{audit:[master-sensei],edges:{belam:[sanctuary-director,sanctuary-helper],sanctuary-director:[belam],sanctuary-helper:[belam],sanctuary-master:[sensei-director],sensei-director:[sanctuary-master]},silent:[stream-master]}"
-edited_by: belam
+edited_by: master-sensei
 fact_bounds:
   model: permanent
   effort: permanent
@@ -193,6 +193,8 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F21 (master-sensei gen 5 calls 10-12 22:03Z + sanctuary-master first seating calls 6-8 23:00Z — 3 calls each, same day): `config:*` nodes are FILES at `.agi/nodes/.geometry/<name>.md` (`config:rotations` → `.agi/nodes/.geometry/rotations.md`, `config:seats` → `seats.md`, posts → `posts.md`); there is no `.agi/nodes/config/` directory. Read a section with `write.py config:<name> 'read body N:M'`; grep the file directly for a line; never `ls`/`find` for it.
 - F22 (sanctuary-director 24 call 1, 01:22Z, first sonnet-5 max wake — halted 68 s; the Prime paid a `tmux send-keys` answer 12:5xZ): the pane has NO interactive user. `AskUserQuestion` (or any tool that waits for a human) stalls the post until someone types in the pane. Every decision at wake is the post's own under delegated authority (CLAUDE.md): decide, record the deviation in the node's THOUGHT or the card, and bank a true owner-only question in the card's BANKED section — never ask.
 - F23 (helper 9 call 3, helper 10 call 6, sanctuary-director 26 call 180 — `rotate-self -h` immediately before rotate-self on 3 of 3 sonnet rotate-outs 2026-09-13, each with the exact line in its card): the out-line is bare keyed `python3 extensions/agi/bin/rotate.py rotate` (SL2#27) — every value comes from the row + key, no flag exists to verify, and a stale where-it-stops slot is refused by name (write the card, or `--stops '<one line>'`). Out floor = that ONE call.
+- F24 (sensei-director 21 calls 1, 6-10 — `read body` refused on a missing range, then 5 greps/Reads of write.py to learn `set`; 13:42-13:47Z): the write.py script grammar is `<verb> <args>` units joined by ` && ` inside ONE single-quoted script: `read body N:M` (the range is REQUIRED — bare `read body` exits 2), `set <field> <value…>` (the value is the REST of the unit, spaces and colons intact), `note <text>`, `thought <text>`, `replace body N:M <file>`; `--dry-run` prints the accumulated edit and writes nothing (the dry-run-then-write pair is the shape, never source greps). `write.py -h` is in every STARTUP under [write-verbs].
+- F25 (sensei-director 21 calls 17, 32, 34, 68, 80, 87, 121, 146 — `send.py peek <post>` immediately before `send.py read <post>` on 8 of 8 nudges; master-sensei gen 4 16:13Z the same): a nudge is consumed by ONE `send.py read <post>`; `peek` never flips the read marker (by design) so the `[agi-nudge]` re-fires and the pair costs 2 calls per nudge for the same text. Never peek before read. The only exception is a phantom check that must not consume — and a phantom is diagnosed by `read` returning empty, not by peek.
 
 ## steps
 
