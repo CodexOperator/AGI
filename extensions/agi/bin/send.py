@@ -1054,6 +1054,44 @@ def _save_state(path: Path, state: dict) -> None:
     Path(str(path) + STATE_SUFFIX).write_text(json.dumps(state))
 
 
+def _rewind_inbox_marker(path: Path, since_ts: str, *,
+                         dry_run: bool = False) -> tuple[int, int] | None:
+    """Rewind ONE seat inbox's READ_MARKER to sit after exactly the blocks
+    older than `since_ts`.
+
+    The seat inbox has NO `.state.json` -- its read position IS the marker
+    line (`# read up to here`), which send.py `read` rewrites. A re-seat after
+    a DEAD predecessor must rewind that marker so the re-seat's STARTUP
+    [inbox] re-carries what the killed session consumed: blocks at/after
+    `since_ts` become UNREAD again, blocks older stay read. A REWIND ONLY:
+    when the marker already sits at/before that count (or there is NO marker,
+    so every block is unread), nothing changes -- never advance the read
+    position, which would silently mark unread mail as read. Counts block
+    headers only, never bodies. Returns (old_read_count, new_read_count) or
+    None when nothing changes."""
+    text = path.open("r", newline="").read()
+    lines = text.splitlines(keepends=True)
+    marker_char = -1
+    for i, ln in enumerate(lines):
+        if ln == READ_MARKER:
+            marker_char = sum(len(x) for x in lines[:i])
+            break
+    if marker_char < 0:
+        return None                    # no marker: all unread, never invent a position
+    older = sum(1 for b in _conv_blocks(path)
+                if not _after_or_eq(str(b.get("ts", "")), since_ts))
+    starts = [m.start() for m in _MSG_BOUNDARY_RE.finditer(text)]
+    old = sum(1 for s in starts if s < marker_char)
+    if not (older < old):               # rewind ONLY, never advance
+        return None
+    text_clean = text[:marker_char] + text[marker_char + len(READ_MARKER):]
+    insert = starts[older]              # older < old <= len(starts), so in range
+    new_text = text_clean[:insert] + READ_MARKER + text_clean[insert:]
+    if not dry_run:
+        path.open("w", newline="").write(new_text)
+    return old, older
+
+
 def rewind_read_cursors(root: Path, seat: str, since_ts: str, *,
                         dry_run: bool = False) -> list[tuple[str, int, int]]:
     """Rewind `seat`'s read cursor on every conversation it participates in.
@@ -1062,18 +1100,25 @@ def rewind_read_cursors(root: Path, seat: str, since_ts: str, *,
     the-posts-read-cursors-to-the-dead-sessions-seating-time): a re-seat after
     a DEAD predecessor rewinds the post's read cursors to the dead session's
     seating time, so the re-seat's STARTUP [inbox] re-carries what the killed
-    session consumed. For every conversation file the seat participates in
-    (its own inbox + every dm/room state sidecar carrying the seat key),
-    RE-count the blocks older than `since_ts` and, when that count is LOWER
-    than the stored cursor, lower the cursor to it -- never below the count
-    of messages older than `since_ts`, never to 0. Returns
+    session consumed. The seat's INBOX is rewound by moving its READ_MARKER
+    (`_rewind_inbox_marker`); for every dm/room state sidecar carrying the
+    seat key, RE-count the blocks older than `since_ts` and, when that count
+    is LOWER than the stored cursor, lower the cursor to it -- never below
+    the count of messages older than `since_ts`, never to 0. Returns
     (conversation, old, new) per change. Other participants' keys and rooms
     where the seat is not a key are untouched. Counts block headers only --
-    never dm bodies. `dry_run` prints the changes but writes no state.
+    never dm bodies. `dry_run` returns the changes but writes no state.
     """
-    convs: set[Path] = {_inbox_path(root, seat)}
+    changes: list[tuple[str, int, int]] = []
+    inbox = _inbox_path(root, seat)
+    if inbox.is_file():
+        res = _rewind_inbox_marker(inbox, since_ts, dry_run=dry_run)
+        if res is not None:
+            old, new = res
+            changes.append((inbox.name, old, new))
+    croot = comms_root(root)
     for d in ("dm", "room"):
-        dd = root / d
+        dd = croot / d
         if not dd.is_dir():
             continue
         for sp in dd.glob("*" + STATE_SUFFIX):
@@ -1082,19 +1127,17 @@ def rewind_read_cursors(root: Path, seat: str, since_ts: str, *,
             except Exception:                      # noqa: BLE001
                 continue
             if isinstance(st, dict) and seat in st:
-                convs.add(Path(str(sp)[:-len(STATE_SUFFIX)]))
-    changes: list[tuple[str, int, int]] = []
-    for path in sorted(convs, key=lambda p: str(p)):
-        blocks = _conv_blocks(path)
-        older = sum(1 for b in blocks
-                    if not _after_or_eq(str(b.get("ts", "")), since_ts))
-        state = _load_state(path)
-        old = int(state.get(seat, 0) or 0)
-        if older < old:
-            state[seat] = older
-            if not dry_run:
-                _save_state(path, state)
-            changes.append((path.name, old, older))
+                path = Path(str(sp)[:-len(STATE_SUFFIX)])
+                blocks = _conv_blocks(path)
+                older = sum(1 for b in blocks
+                            if not _after_or_eq(str(b.get("ts", "")), since_ts))
+                state = _load_state(path)
+                old = int(state.get(seat, 0) or 0)
+                if older < old:
+                    state[seat] = older
+                    if not dry_run:
+                        _save_state(path, state)
+                    changes.append((path.name, old, older))
     return changes
 
 
