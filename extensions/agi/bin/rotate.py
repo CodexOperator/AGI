@@ -57,6 +57,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -802,6 +803,24 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
     return f"{best_base}-{_int_to_roman(best_val + 1)}"
 
 
+def _session_label(row: dict | None, gen: int) -> str | None:
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    the app-GUI session label of a non-prime post = `<name>-<label_word>-g<gen>`
+    when the row cell `label_word` is a non-empty string, else `<name>-g<gen>`.
+    A prime_director row (and an absent row) has NO label — return None and
+    let the caller keep the chain numeral / window name unchanged. Derived
+    ONLY from the row (the config:posts `label_word` cell — a formation fact
+    the Prime writes), never from a card, never a hand flag."""
+    if not row or row.get("role") == "prime_director":
+        return None
+    _nm = (row.get("name") or "").strip()
+    _lw = (row.get("label_word") or "").strip()
+    if _lw:
+        return f"{_nm}-{_lw}-g{gen}"
+    return f"{_nm}-g{gen}"
+
+
 # ---- successor command ----------------------------------------------------
 
 
@@ -825,10 +844,17 @@ def _build_claude_command(name: str, prompt_text: str, debug_file: str,
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
-                       effort, settings, debug_file: str, extra: str = "") -> list[str]:
+                       effort, settings, debug_file: str, extra: str = "",
+                       rc_name: str | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
-    model/effort/settings appended as flags."""
+    model/effort/settings appended as flags.
+
+    `rc_name` (goal:g15.25, hypothesis:l4-the-gui-session-label-...): the
+    app-GUI session LABEL passed as the `--remote-control NAME` argv when a
+    caller supplies it — the tmux WINDOW name (`name`) is DECOUPLED from the
+    RC NAME, which is what the GUI session label reads. Only this argv
+    changes; `{name}` substitution and every other use stay on `name`."""
     body = Path(prompt_file).read_text(encoding="utf-8").replace("{name}", name)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn, right after the head
@@ -839,13 +865,14 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
     prompt_text = brief.successor_prompt(tier=tier, body=body)
-    return _build_claude_command(name, prompt_text, debug_file,
+    return _build_claude_command(rc_name or name, prompt_text, debug_file,
                                  model=model, effort=effort, settings=settings)
 
 
 def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  settings, debug_file: str,
                                  extra: str = "",
+                                 rc_name: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -868,7 +895,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = ULTRACODE_KEYWORD + "\n" + body
     if extra:
         body += "\n\n" + extra
-    return _build_claude_command(name, body, debug_file,
+    return _build_claude_command(rc_name or name, body, debug_file,
                                  model=model, effort=effort, settings=settings)
 
 
@@ -1475,6 +1502,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  dry_run: bool = False, debug_file: str | None = None,
                  extra: str = "",
                  seat: str | None = None,
+                 rc_name: str | None = None,
                  successor_argv: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
@@ -1499,6 +1527,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     back from the successor's own debug file). It is impossible to trip by
     accident: it only takes effect when an explicit override string is passed,
     so the DEFAULT is byte-for-byte today's real `claude --remote-control`.
+
+    `rc_name` (goal:g15.25, hypothesis:l4-the-gui-session-label-is-post-word-
+    gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    the app-GUI session LABEL from `_session_label(row, gen)` — the value
+    passed as `claude --remote-control NAME`. The tmux WINDOW name stays
+    `name` (seat / numeral), so a labeled GUI session never renames its
+    window (pane addressing keeps working); absent/None -> the window name
+    is also the RC name, today's behavior byte-for-byte.
 
     Returns `(exit_code, shell_cmd)`. On dry-run the shell line is printed
     and (0, shell_cmd) returned; every failure prints its ERR and returns
@@ -1542,7 +1578,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # explicit --prompt-file, are untouched.
         if prompt_file is None and tier != "prime_director":
             claude_cmd = _assembled_successor_command(
-                name=name, tier=tier, model=model, effort=effort,
+                name=name, rc_name=rc_name, tier=tier, model=model,
+                effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
             )
         else:
@@ -1553,7 +1590,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
                 return 1, ""
             claude_cmd = _successor_command(
-                name=name, tier=tier, prompt_file=str(pf),
+                name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
                 extra=extra,
             )
@@ -1634,6 +1671,24 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         name = _row_nm or _derive_successor_name(existing, prefix="belam")
     if args.dry_run and not args.name:
         print(f"spawn name: {name!r}")
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the app-GUI session label for this spawn = `_session_label` of the seat
+    # row at the row's generation; STORED on the row as `session_label` by the
+    # same spawn row write. None for a seat-less / prime spawn (today's name).
+    _seat = getattr(args, "seat", None)
+    _lbl = None
+    # an explicit --name always wins: only a DERIVED name (no --name) is
+    # replaced by the GUI label on the RC argv (today's --name trivially
+    # wins, test_spawn_explicit_name_wins_over_seat). The row still stores its
+    # own session_label regardless.
+    if _seat is not None and root is not None and not getattr(args, "name", None):
+        _lr = _find_seat(root, _seat)
+        if _lr is not None:
+            _lbl = _session_label(
+                _lr, _seat_row_generation(root, _seat) or FIRST_SEATING_GEN)
+            if _lbl and args.dry_run:
+                print(f"label: {_lbl!r}")
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     seat = getattr(args, "seat", None)
@@ -1787,6 +1842,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
+        rc_name=_lbl,
         successor_argv=getattr(args, "successor_argv", None),
         seat=seat,
         extra=startup_block,
@@ -2767,6 +2823,11 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                 print(f"session_ref: {_sref}")
             if row.get("session_name"):
                 print(f"session_name: {row['session_name']}")
+            # goal:g15.25 (hypothesis:l4-the-gui-session-label-...): status
+            # prints the row's `session_label` when present, the line beside
+            # `session_name` — the GUI label and the stored cell are one.
+            if row.get("session_label"):
+                print(f"session_label: {row['session_label']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
         # call left above the wake floor was a fetch + behind check, because
         # F9's "the refusal IS the behind check" was not trusted. The record
@@ -2857,11 +2918,521 @@ def _load_seats(root: Path | None) -> list[dict]:
     return geometry_config.load_rows(root)
 
 
-def _find_seat(root: Path | None, name: str) -> dict | None:
+def _rename_aliases(root: Path | None) -> dict:
+    """The posts.md frontmatter `aliases:` table (old -> new), or {} when
+    absent. ONE table, Prime-written; every old-name reader resolves through
+    it for one season (hypothesis:l4-rename-post-reuses-...). Falsifier: an
+    alias whose target equals its key is dropped (never self-loop)."""
+    path, _key = geometry_config.resolve(root)
+    if path is None or not path.exists():
+        return {}
+    try:
+        nf = frontmatter.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return {}
+    al = nf.frontmatter.get("aliases") or {}
+    if not isinstance(al, dict):
+        return {}
+    out = {}
+    for k, v in al.items():
+        k, v = str(k), str(v)
+        if k and v and k != v:
+            out[k] = v
+    return out
+
+
+def _seat_by_name(root: Path | None, name: str) -> dict | None:
+    if root is None:
+        return None
     for row in _load_seats(root):
         if row.get("name") == name:
             return row
     return None
+
+
+def _find_seat(root: Path | None, name: str) -> dict | None:
+    """Resolve a seat row by name, falling back through the one-season
+    `aliases:` table (old -> new). An alias hit prints `deprecated alias
+    used: old -> new` on stderr, the branches.py pattern (branches.py:83).
+    Never raises; aliases never refuse."""
+    row = _seat_by_name(root, name)
+    if row is not None:
+        return row
+    canon = _rename_aliases(root).get(name)
+    if canon:
+        row = _seat_by_name(root, canon)
+        if row is not None:
+            print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
+            return row
+    return None
+
+
+def _dm_participants(root: Path, old: str, new: str):
+    """(log, sidecar) paths + the sidecar's JSON top-level keys that carry
+    `old`, for every dm in comms/season-*/dm/ whose participant pair names
+    `old`. Yields (kind, src, dst, extra) for the surface table."""
+    out = []
+    seasons = Path(root) / "comms"
+    if not seasons.is_dir():
+        return out
+    if "/" in old or "\\" in old:
+        return out
+    for season in sorted(seasons.glob("season-*")):
+        ddir = season / "dm"
+        if not ddir.is_dir():
+            continue
+        for p in sorted(ddir.iterdir()):
+            nm = p.name
+            if nm.endswith(".state.json"):
+                continue
+            if not nm.endswith(".md"):
+                continue
+            base = nm[:-3]
+            if "--" not in base:
+                continue
+            a, b = base.split("--", 1)
+            if old not in (a, b):
+                continue
+            other = b if a == old else a
+            leaf = "--".join(sorted((new, other))) + ".md"
+            out.append(("dm log", str(p), str(ddir / leaf), {}))
+            sidecar = Path(str(p) + ".state.json")
+            if sidecar.is_file():
+                out.append(("dm state file", str(sidecar),
+                            str(ddir / (leaf + ".state.json")), {}))
+                try:
+                    data = json.loads(sidecar.read_text())
+                except Exception:  # noqa: BLE001
+                    data = {}
+                if isinstance(data, dict):
+                    for k in data:
+                        if isinstance(k, str) and k == old:
+                            out.append(("dm state key", f"{sidecar}::{old}",
+                                        new, {"file": str(sidecar),
+                                              "key": old}))
+    return out
+
+
+def _seam_git(cmd, *args):
+    """Default git seam: the rename ROUND never touches the live git ref, so
+    the default records the would-run command on stderr and does nothing. A
+    caller with git privileges (a fixture, or the later live rotation) injects
+    a callable that acts on the tuple."""
+    print(f"[seam-git] would-run: git {' '.join([cmd] + list(args))}",
+          file=sys.stderr)
+
+
+def _seam_tmux(cmd, *args):
+    """Default tmux seam: never touch the live tmux server (the fixture swaps
+    this for a recorder). Records the would-run command on stderr."""
+    print(f"[seam-tmux] would-run: tmux {' '.join([cmd] + list(args))}",
+          file=sys.stderr)
+
+
+def _live_git(root, *a):
+    """Real git executor for the `rename-post --live` path (KID 4). Runs
+    `git <args>` in the given root, prints `git <args> -> rc N` to stderr, and
+    surfaces a non-zero exit loudly (stderr text + RuntimeError) so a caller
+    cannot mistake a failed rename for success. Used ONLY under `--live`;
+    every other path keeps the print-only `_seam_git`. Calls through
+    `subprocess.run` so tests monkeypatch it, never a real repository."""
+    cmd = ["git", "-C", str(root)] + list(a)
+    r = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    print(f"git {' '.join(list(a))} -> rc {r.returncode}", file=sys.stderr)
+    if r.returncode != 0:
+        if r.stderr:
+            print(r.stderr.strip(), file=sys.stderr)
+        raise RuntimeError(
+            f"rename-post: git {' '.join(list(a))} failed (rc {r.returncode})")
+    return r
+
+
+def _live_tmux(root, *a):
+    """Real tmux executor for the `rename-post --live` path (KID 4). Runs
+    `tmux <args>` in the live server and RETURNS each command's stdout text --
+    so `_resolve_tmux_id` can parse the list-windows/list-sessions listing and
+    rename by a real @id/$id. Prints `tmux <args> -> rc N` to stderr and
+    surfaces a non-zero exit loudly. Used ONLY under `--live`; the default
+    keeps the print-only `_seam_tmux`. Whitelisted callers (the Prime, at
+    merge-up) run this through `--live`; it is never exercised in tests."""
+    cmd = ["tmux"] + list(a)
+    r = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603
+    print(f"tmux {' '.join(list(a))} -> rc {r.returncode}", file=sys.stderr)
+    if r.returncode != 0:
+        if r.stderr:
+            print(r.stderr.strip(), file=sys.stderr)
+        raise RuntimeError(
+            f"rename-post: tmux {' '.join(list(a))} failed (rc {r.returncode})")
+    return r.stdout
+
+
+def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
+    """Enumerate EVERY surface the post name `old` touches as {kind, src,
+    dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
+    surface set the claim names -- session files, dm logs + .state.json
+    sidecar files AND their JSON keys, the worktree dir, the git branch
+    (+origin), the tmux window + view-session + stream-follow, the posts.md
+    row name/cells (incl. every rotated_by/pin_ref/worktree/handoff
+    reference), mentions in rotations.md and the Prime brief belam.md, and
+    alerts.edges keys+values. Each carries an `action`:
+      rename-file  -- pure filesystem move (performed for real, idempotent)
+      rename-key   -- sidecar JSON key rewrite (performed for real)
+      seam-git     -- git ref/worktree/tmux surface, routed through a seam
+      ship         -- a write.py line is PRINTED (the round never writes
+                      config: seats rows, rotations.md, belam.md)
+    Never writes config; never touches git/tmux/live tree. Dedupes by src."""
+    seen: dict[str, dict] = {}
+
+    def add(kind: str, src: str, dst: str, action: str, **extra) -> None:
+        if not src or src == dst:
+            return
+        item = {"kind": kind, "src": src, "dst": dst, "action": action}
+        item.update(extra)
+        seen.setdefault(src, item)
+
+    sessions = _sessions_dir(root)
+    for sub in ("", "seats", "quorum", "inbox"):
+        base = sessions if not sub else sessions / sub
+        dirs = [base] if base.is_dir() else []
+        if not dirs:
+            continue
+        for p in sorted(base.glob(f"{old}*")):
+            if not p.is_file():
+                continue
+            dst = p.parent / (p.name.replace(old, new, 1))
+            add("session-file", str(p), str(dst), "rename-file")
+
+    # dm logs + .state.json sidecars (files AND the keys that carry old)
+    for kind, src, dst, extra in _dm_participants(root, old, new):
+        if kind == "dm state key":
+            add(kind, src, dst, "rename-key", **extra)
+        else:
+            add(kind, src, dst, "rename-file")
+
+    # names in the row surface (ONE row write, never in-set here)
+    cols = ("rotated_by", "pin_ref", "worktree", "handoff_file")
+    for row in _load_seats(root):
+        nm = row.get("name")
+        if nm == old:
+            add("row name", f"row {old} name", f"row {new} name", "ship",
+                print_line=f"write.py {nm} 'set name {new}'")
+            for k, v in row.items():
+                if k != "name" and str(v) == old and k in cols:
+                    add(f"row cell {k}", f"row {old}.{k}", f"row {new}.{k}",
+                        "ship",
+                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+        elif nm == new:
+            for k, v in row.items():
+                if str(v) == old and k in cols and k != "name":
+                    add(f"row cell {k}", f"row {new}.{k}",
+                        f"row {new}.{k}->{new}", "ship",
+                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+
+    add("worktree dir", f".agi/worktrees/post-{old}",
+        f".agi/worktrees/post-{new}", "seam-git")
+    add("branch", branches.post_branch(2, old), branches.post_branch(2, new),
+        "seam-git")
+    add("branch (origin)", f"origin/{branches.post_branch(2, old)}",
+        f"origin/{branches.post_branch(2, new)}", "seam-git")
+    add("tmux window", old, new, "seam-tmux")
+    add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
+    add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
+
+    # prose mentions the round NEVER writes (config / prime brief): ship lines
+    for path in (_rotations_node_path(root),
+                 Path(root) / "sessions" / "quorum" / "belam.md"):
+        if not path.exists():
+            continue
+        for n, line in enumerate(path.read_text(
+                encoding="utf-8", errors="replace").splitlines(), 1):
+            if old in line:
+                add(f"{path.name} mention",
+                    f"{path.name}:{n}", f"{path.name}:{n}(edited)", "ship",
+                    print_line=(
+                        f"write.py {path.stem} 'patch'  # line {n}: {old} -> {new}"))
+
+    # alerts.edges keys AND values (read-time rewrite in _load_alerts, not a
+    # config write here). audit/silent are name lists too.
+    alerts = _load_alerts_raw(root)
+    edges = alerts.get("edges")
+    if isinstance(edges, dict):
+        for k, v in edges.items():
+            if isinstance(k, str) and k == old:
+                add("alerts.edges key", f"alerts.edges[{old}]",
+                    f"alerts.edges[{new}]", "ship",
+                    print_line="# _load_alerts rewrites this key at read time")
+            if isinstance(v, list):
+                for m in v:
+                    if m == old:
+                        add("alerts.edges value",
+                            f"alerts.edges[{k}] member {old}",
+                            f"alerts.edges[{k}] member {new}", "ship",
+                            print_line=(
+                                "# _load_alerts rewrites this value at read time"))
+    for lstkey in ("audit", "silent"):
+        lst = alerts.get(lstkey)
+        if isinstance(lst, list) and old in lst:
+            add(f"alerts.{lstkey} member", f"alerts.{lstkey}:{old}",
+                f"alerts.{lstkey}:{new}", "ship",
+                print_line="# _load_alerts rewrites this name at read time")
+
+    return list(seen.values())
+
+
+def _resolve_tmux_id(kind: str, src: str, run_tmux) -> str | None:
+    """Resolve a tmux surface's NAME to its numeric `@N`/`$N` id by listing
+    windows or sessions through the seam and name-matching, so the rename/
+    set-option targets a real id (tmux window ids are `@N`, session ids
+    `$N`; `@<name>` is NOT an id). Returns None when the seam returns no
+    listing (the print-only default) or no name matches -- the caller then
+    skips/refuses BY NAME. The window and stream-follow surfaces resolve
+    through the primary session's window list; a tmux session surface
+    resolves through the server's session list. The default seam never
+    touches the live tmux server (it returns None), so nothing is renamed
+    unless a fixture injects a recorder that returns a listing."""
+    if kind == "tmux session":
+        listing = run_tmux("list-sessions", "-F",
+                           "#{session_id} #{session_name}")
+    else:
+        listing = run_tmux("list-windows", "-t", DEFAULT_TMUX_SESSION,
+                           "-F", "#{window_id} #{window_name}")
+    if not listing:
+        return None
+    name = src[8:] if src.startswith("#stream:") else src
+    for ln in str(listing).splitlines():
+        ln = ln.strip()
+        if not ln:
+            continue
+        ident, _, wname = ln.partition(" ")
+        if wname.strip() == name:
+            return ident.strip()
+    return None
+
+
+def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
+                    run_git=None, run_tmux=None) -> tuple[int, int]:
+    """ONE function, ONE pass over the surface table. Pure-filesystem
+    surfaces (session files, dm logs, dm .state.json sidecar FILES, and their
+    JSON KEYS) are renamed FOR REAL, each step idempotent (skip by name when
+    already done, never clobber). Git/tmux surfaces are routed through the
+    `run_git`/`run_tmux` SEAMS (defaults print the would-run command and do
+    nothing -- the round never touches the live git ref or tmux server; a
+    fixture injects a recorder). The old branch is deleted ONLY under
+    `delete_old` (a seam push `:old`). "ship" surfaces (row cells,
+    rotations.md, belam.md) are never written: the exact write.py line is
+    PRINTED. Returns (applied, skipped). Never writes config."""
+    run_git = run_git or _seam_git
+    run_tmux = run_tmux or _seam_tmux
+    applied = skipped = 0
+
+    # Pass 1: sidecar JSON KEY rewrites FIRST, so each sidecar is still at its
+    # recorded path before pass 2 renames the sidecar FILE.
+    for s in surfaces:
+        if s["action"] != "rename-key":
+            continue
+        sp = Path(s["file"])
+        if not sp.exists():
+            skipped += 1
+            continue
+        try:
+            data = json.loads(sp.read_text())
+        except Exception:  # noqa: BLE001
+            skipped += 1
+            continue
+        oldk = s["key"]
+        if oldk not in data or newk_present_in(data, s["dst"]):
+            skipped += 1
+            continue
+        data[s["dst"]] = data.pop(oldk)
+        sp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        applied += 1
+
+    # Pass 2: files (session + dm + dm sidecar), git/tmux seams, ships.
+    for s in surfaces:
+        kind, act = s["kind"], s["action"]
+        dst = s["dst"]
+        if act == "rename-key":
+            continue  # pass 1 already did it
+        if act == "rename-file":
+            src = Path(s["src"])
+            dpath = Path(dst)
+            if not src.exists():
+                skipped += 1
+                continue
+            if dpath.exists():
+                skipped += 1  # collision: never clobber, idempotent no-op
+                continue
+            src.rename(dpath)
+            applied += 1
+        elif act == "seam-git":
+            if kind == "branch":
+                run_git("branch", "-m", s["src"], dst)
+                applied += 1
+            elif kind == "branch (origin)":
+                _dst = (dst.split("/", 1)[1] if dst.startswith("origin/")
+                        else dst)
+                _src = (s["src"].split("/", 1)[1]
+                        if s["src"].startswith("origin/") else s["src"])
+                run_git("push", "origin", _dst)
+                if delete_old:
+                    run_git("push", "origin", f":{_src}")
+                applied += 1
+            elif kind == "worktree dir":
+                run_git("worktree", "move", s["src"], dst)
+                applied += 1
+            else:
+                skipped += 1
+        elif act == "seam-tmux":
+            # Resolve the NAME to its numeric @id/$id FIRST, then rename by
+            # id (the claim's contract). The default seam returns None from
+            # list-windows/list-sessions (print-only), so the surface is
+            # skipped BY NAME, never renamed -- a fixture injects a recorder
+            # that returns a listing to drive the rename by id.
+            ident = _resolve_tmux_id(kind, s["src"], run_tmux)
+            if ident is None:
+                print(f"rename-post: tmux {kind} '{s['src']}' not live; "
+                      f"skipped by name (no @id/$id from "
+                      f"list-windows/list-sessions)", file=sys.stderr)
+                skipped += 1
+                continue
+            if kind == "tmux window":
+                run_tmux("rename-window", "-t", ident, dst)
+            elif kind == "tmux session":
+                run_tmux("rename-session", "-t", ident, dst)
+            else:  # stream-follow
+                run_tmux("set-option", "-t", ident, "stream", dst)
+            applied += 1
+        elif act == "ship":
+            print(s.get("print_line", f"# {kind}: {s['src']}->{dst}"),
+                  file=sys.stderr)
+            skipped += 1
+        else:
+            skipped += 1
+    return applied, skipped
+
+
+def newk_present_in(data: dict, newk: str) -> bool:
+    """True when the sidecar already holds `newk` (idempotent skip; orphans
+    the old key rather than clobbering the renamed value)."""
+    return newk in data
+
+
+def _apply_staged(root: Path, old: str, delete_old: bool = False,
+                  run_git=None, run_tmux=None) -> int:
+    """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
+    apply EVERY appliable surface in ONE pass. This is what the next
+    rotate-self of `old` runs between the predecessor rotate-out and the
+    successor spawn, so the successor seats under the NEW name (never
+    mid-generation). The rotating predecessor IS the live holder of the
+    pid when it runs this, so there is deliberately NO liveness refusal
+    here (that gate lives on the --now/--apply operator path in
+    cmd_rename_post). A privileged caller (the Prime, at merge-up) may pass
+    run_git=lambda *a: rotate._live_git(root, *a) (and the tmux analog) to
+    run the boundary apply for REAL; the default (None) keeps the print-only
+    seams. Returns 0 when applied or already applied (stage gone -> no-op),
+    1 on a malformed stage."""
+    stage = _sessions_dir(root) / "seats" / f"{old}.rename.json"
+    if not stage.exists():
+        return 0  # already applied / never staged -> no-op
+    try:
+        data = json.loads(stage.read_text())
+    except Exception:  # noqa: BLE001
+        print(f"rename-post: malformed stage {stage}", file=sys.stderr)
+        return 1
+    surfaces = data.get("surfaces") or []
+    # The boundary apply runs inside the rotating predecessor's OWN rotate-
+    # self, between its rotate-out and the successor spawn -- i.e. always on
+    # a LIVE pid (the caller's own). A live-pid refusal therefore refuses
+    # exactly the window this function exists to serve. The liveness gate
+    # belongs to the --now/--apply OPERATOR verb (cmd_rename_post), not
+    # here: this path applies the staged table UNCONDITIONALLY and consumes
+    # it on success (a second call, stage gone, is a no-op).
+    _apply_surfaces(root, surfaces, delete_old=delete_old,
+                    run_git=run_git, run_tmux=run_tmux)
+    # consume the stage once applied so the next boundary call is a no-op
+    if stage.exists():
+        stage.unlink()
+    return 0
+
+
+def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py rename-post <old> <new>` -- the RENAME ROUND (SM.18),
+    round 2: --dry-run prints the FULL surface table (every surface the
+    claim names, round 1 only listed a subset), (still) touching nothing;
+    the default STAGES the rename as `.agi/sessions/seats/<old>.rename.json`
+    (NOT renames/) applied by the next boundary (`_apply_staged`);
+    --now/--apply apply every APPLIABLE surface in one pass, refusing under a
+    live pid; with --live those also run the git/tmux renames for REAL, while
+    the default (no --live) keeps git/tmux on a print-only seam and runs no
+    subprocess. Git/tmux surfaces ride a seam; row/prose surfaces PRINT their
+    write.py line -- the round never writes config."""
+    old, new = args.old_name, args.new_name
+    if getattr(args, "root", None):
+        root = Path(args.root)
+    if not old or not new or old == new:
+        print(f"rename-post: old and new must differ and be non-empty "
+              f"({old!r} -> {new!r})", file=sys.stderr)
+        return 2
+
+    row = _find_seat(root, old)
+    surfaces = _rename_surfaces(root, old, new)
+    if not surfaces:
+        print(f"rename-post: no surfaces found for {old!r} -> {new!r}",
+              file=sys.stderr)
+        return 1
+
+    if args.dry_run:
+        print(f"rename-post: {len(surfaces)} surfaces for {old} -> {new}:")
+        for s in surfaces:
+            scope = "now" if s["action"] in ("rename-file", "rename-key") \
+                else "round 2"
+            print(f"  {s['kind']}: {s['src']} -> {s['dst']}  [{scope}]")
+        print("rename-post: dry-run, nothing changed")
+        return 0
+
+    if args.now or args.apply:
+        pid = (row or {}).get("pid") if row else None
+        if args.now and args.apply:
+            print("rename-post: --now and --apply are mutually exclusive",
+                  file=sys.stderr)
+            return 2
+        if args.now and pid:
+            print(f"rename-post: refused by name -- post {old} has live pid "
+                  f"{pid}; rename at the next rotation boundary",
+                  file=sys.stderr)
+            return 3
+        # --live (KID 4): with the flag, git/tmux seams are swapped for REAL
+        # executors so a caller can actually rename the branch/worktree/tmux
+        # in one pass. The DEFAULT (no --live) keeps the print-only seams and
+        # calls subprocess.run ZERO times. --live is the Prime's / merge-up
+        # landing; every fixture/test path runs the default seams.
+        live = bool(getattr(args, "live", False))
+        applied, skipped = _apply_surfaces(
+            root, surfaces, delete_old=bool(getattr(args, "delete_old", False)),
+            run_git=(lambda *a: _live_git(root, *a)) if live else None,
+            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None)
+        nship = sum(1 for s in surfaces if s["action"] == "ship")
+        ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
+        print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
+              f"{skipped} skipped/idempotent, {nship} shipped (write.py "
+              f"line printed, config untouched), {ngit} git-seam surface(s)"
+              + (" [LIVE]", "")[not live])
+        return 0
+
+    # default: STAGE as .agi/sessions/seats/<old>.rename.json (round 1 put it
+    # in renames/ -- the claim's path is seats/, and the boundary reader
+    # `_apply_staged` reads seats/.)
+    seats_dir = _sessions_dir(root) / "seats"
+    seats_dir.mkdir(parents=True, exist_ok=True)
+    staged = {"new": new, "ordered_by": "sanctuary-master",
+              "staged_at": datetime.now(timezone.utc).isoformat(),
+              "surfaces": surfaces}
+    (seats_dir / f"{old}.rename.json").write_text(
+        json.dumps(staged, indent=2), encoding="utf-8")
+    print(f"rename-post: staged {old} -> {new} ({len(surfaces)} surfaces) at "
+          f"{seats_dir / (old + '.rename.json')}; applied at the next rotation "
+          f"boundary of {old} (rename-post: _apply_staged)")
+    return 0
 
 
 # --- rotation templates (.geometry/rotations.md) ---------------------------
@@ -3897,26 +4468,163 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
 
+def _load_alerts_raw(root: Path) -> dict:
+    """config:rotations frontmatter top-level `alerts:` -- the ONE routing
+    matrix the Prime writes once at merge-up as a single write.py `set alerts
+    {\u2026}` line (the round never writes it); {} when absent or not a map. A
+    quoted-JSON cell (the shape write.py produces for a nested map, exactly
+    like `rotate_defaults:`) yields a str, parsed here so the shape survives
+    either spelling. Shape:
+        {"audit": [<names>], "edges": {<seat>: [<names>]},
+         "silent": [<names>]}
+    A receiver list for a seat = (audit \u222a edges[seat]); `silent` removes a
+    name from EVERY machine-alert send (_alert_allowed -> False). Returns the
+    matrix AS STORED (no alias rewrite) -- the enumeration uses this so it can
+    SEE the old names before `_load_alerts` resolves them.
+    """
+    path = _rotations_node_path(root)
+    val = None
+    if path.exists():
+        try:
+            val = frontmatter.load_node_file(path).frontmatter.get("alerts")
+        except Exception:  # noqa: BLE001
+            val = None
+    if isinstance(val, str) and val.strip().startswith("{"):
+        text = val.strip()
+        try:
+            parsed = json.loads(text)
+        except Exception:  # noqa: BLE001
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+        # P4 falsified the shipped `set alerts {\u2026}` line: write.py._coerce
+        # keeps an unquoted-key flow map (audit:[...],edges:{...}) as a STR
+        # (only pure JSON parses), node_writer._render_value then QUOTES it,
+        # and the active parse (json.loads) is rejected on a JSON string
+        # literal OR rejected on the unquoted spelling -- either way it used
+        # to return {} -> matrix treated as absent -> broadcast. yaml.safe_load
+        # parses this exact write.py-emitted spelling into the dict.
+        try:
+            parsed = yaml.safe_load(text)
+        except Exception:  # noqa: BLE001
+            return {}
+        if isinstance(parsed, dict):
+            return parsed
+    if isinstance(val, dict):
+        return dict(val)
+    return {}
+
+
+def _alias_rewrite_alerts(root: Path, alerts: dict) -> dict:
+    """Rewrite the routing matrix through the ONE `aliases:` table at READ
+    time (hypothesis P4, round 2): an `alerts.edges` KEY old->new, every
+    edges VALUE member old->new, and each `audit`/`silent` member old->new.
+    No config edit happens at rename -- the matrix reads the NEW name once
+    the alias is written."""
+    aliases = _rename_aliases(root)
+    if not aliases:
+        return alerts
+    out = dict(alerts)
+    edges = out.get("edges")
+    if isinstance(edges, dict):
+        nedges = {}
+        for k, v in edges.items():
+            kk = aliases.get(str(k), k)
+            vv = ([aliases.get(str(m), m) for m in v]
+                  if isinstance(v, list) else v)
+            nedges[kk] = vv
+        out["edges"] = nedges
+    for lstkey in ("audit", "silent"):
+        lst = out.get(lstkey)
+        if isinstance(lst, list):
+            out[lstkey] = [aliases.get(str(m), m) for m in lst]
+    return out
+
+
+def _load_alerts(root: Path) -> dict:
+    """The READ-time routing matrix: `_load_alerts_raw` rewritten through the
+    ONE `aliases:` table (hypothesis P4, round 2) so an edges KEY old->new,
+    every edges VALUE member, and each `audit`/`silent` member read under the
+    new name. No config edit happens at rename -- the alias carries it."""
+    return _alias_rewrite_alerts(root, _load_alerts_raw(root))
+
+
+
+def _alert_silent(root: Path) -> set:
+    """The `silent:` name list of config:rotations `alerts:` -- posts that
+    receive ZERO machine alert lines (_alert_allowed -> False) -- or empty
+    when absent. Read from the `alerts:` map only; a name in `silent` is
+    removed from EVERY machine sender's delivered set, while direct
+    send.py-send / owner messages never pass through this helper."""
+    return set(_load_alerts(root).get("silent") or [])
+
+
+def _alert_allowed(root: Path, receiver: str) -> bool:
+    """True when `receiver` may receive a MACHINE alert line (rotation
+    alert, first-seating alert, or the after_join dm). The ONE gate the three
+    machine senders all consult (hypothesis:l4-rotation-alerts-follow-a-
+    routing-matrix...): `silent:` in config:rotations `alerts:` removes the
+    name from all of them. Owner-initiated messages (`send.py send`) never
+    pass through this helper."""
+    return bool(receiver) and receiver not in _alert_silent(root)
+
+
 def _derive_receivers(root: Path, *, seat: str,
                       live_names: list[str]) -> list[str]:
-    """Every live seat to be told of a rotation: config:seats rows
-    intersected with live tmux windows, minus the rotating seat itself.
+    """Every live seat to be told of a rotation.
 
-    A seat whose tmux window is absent — never lived or already killed —
-    drops out of the set: there is no point announcing to a corpse. Derived,
-    never hand-typed, so shelter-master owns the registry and this stays in
-    lock-step with it. Returns sorted for determinism.
+    With config:rotations `alerts:` PRESENT the set is the ROUTING MATRIX:
+    sorted((audit ∪ edges[seat]) ∩ live − {seat} − silent). A post absent
+    from `edges` alerts the `audit` list only. With `alerts:` ABSENT the
+    function returns today's BROADCAST, byte-identical (config:seats rows
+    intersected with live tmux windows, minus the rotating seat itself). A
+    seat whose tmux window is absent -- never lived or already killed --
+    drops out of the set either way: there is no point announcing to a
+    corpse. `_alert_allowed` is the shared silent gate the three machine
+    senders all consult. Returns sorted for determinism.
     """
+    alerts = _load_alerts(root)
     live = set(live_names or [])
-    out = []
-    for row in _load_seats(root):
-        name = row.get("name")
-        if not name or name == seat:
-            continue
-        if live and name not in live:
-            continue
-        out.append(name)
-    return sorted(out)
+    if alerts:
+        audit = set(alerts.get("audit") or [])
+        edges = alerts.get("edges") or {}
+        edge = (set(edges.get(seat, []) or [])
+                if isinstance(edges, dict) else set())
+        out = (audit | edge) & live
+    else:
+        out = set()
+        for row in _load_seats(root):
+            name = row.get("name")
+            if not name or name == seat:
+                continue
+            if live and name not in live:
+                continue
+            out.add(name)
+    out.discard(seat)
+    return sorted(n for n in out if _alert_allowed(root, n))
+
+
+def _announce_stamp_announced_to(root: Path, record_path: str | None,
+                                 delivered: list) -> None:
+    """Conjunct 4 (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-...):
+    the ROTATION record carries `announced_to` = the recipients the announce
+    actually reached (the returned delivered list), written in place (best-
+    effort, never a gate -- the announcement is the proof, not a blocker).
+    A reader following a completed rotation never has to guess who it told.
+    """
+    if not record_path:
+        return
+    rp = Path(record_path)
+    if not rp.exists():
+        return
+    try:
+        rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
+        if isinstance(rec, dict):
+            rec["announced_to"] = delivered
+            _write_rotation_record(root, rec, path=rp)
+    except Exception as exc:  # noqa: BLE001 -- best-effort record enrichment
+        print(f"warn: could not stamp announced_to on rotation record: {exc}",
+              file=sys.stderr)
 
 
 def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
@@ -3925,7 +4633,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        successor_ref: str = "",
                        successor_window: str = "",
                        seating: dict | None = None,
-                       ask_diff: bool = False) -> list[str]:
+                       ask_diff: bool = False,
+                       record_path: str | None = None) -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -3937,11 +4646,19 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     """
     import send  # local: same dir
     seq = _next_sequence(root)
+    # The receiver set is computed BEFORE the record is written so the record
+    # can name who the announce told (dedup: the Sensei appears ONCE in the
+    # matrix-derived set, so an audit receiver gets exactly one line per
+    # rotation -- hypothesis:l4-rotation-alerts-follow-a-routing-matrix...).
+    receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seating is not None:
         # A FIRST SEATING: the ONE seating record is written here, at the same
         # moment the alert is emitted, so the alert and the record provably
         # share a single record (hypothesis:l4-a-first-seating-sends-the-
-        # sensei-the-same-alert-a-rotation-does, g15.17 item 3).
+        # sensei-the-same-alert-a-rotation-does, g15.17 item 3). The record
+        # names `announced_to` (the derived receivers) so a reader can see the
+        # ONE announce a seating emitted.
+        seating["announced_to"] = receivers
         _write_seating_record(root, seating)
         # The alert dm names the SAME gen_after the record just wrote
         # (goal:g15.25): a re-spawn's record and its alert can never disagree,
@@ -3963,28 +4680,50 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             in_flight=in_flight, seq=seq, successor_ref=successor_ref,
             successor_window=successor_window)
     declared = "first seating" if seating is not None else "rotation"
-    receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
-        # CLAUSE 1 (hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
-        # coalesced-nudge-still-wakes-and-detected-records-dedupe): the room
-        # is NOT the petition's inbox -- `send.py read` reads
-        # `<sessions>/inbox/<seat>.md`, a different file -- so a prime-specific
-        # write is needed for the alert to satisfy "lands in the inbox". The
-        # prime is inbox-only, but send.send() imposes no prime restriction
-        # (only dm/room do), so it is the exact inbox-only path: land the SAME
-        # [rotation-alert] block in the prime's OWN inbox in addition to the
-        # shared alert-room post.
+        # OWNER ORDER (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-
+        # ...): the prime now DELIVERS to its derived receivers (the
+        # audit/edges set, `_derive_receivers`) like every other post, instead
+        # of only posting to the alert room. send.send_dm REFUSES prime
+        # ORIGIN ("a dm may not originate from the prime"), so the prime
+        # reaches each receiver through send.send -- the inbox writer, which
+        # imposes no prime restriction and physically types its own wake.
+        # The shared room post STAYS as the record with NO nudge (send_room
+        # never nudges: it only appends the block to the room file -- there is
+        # no `_nudge_window` call in send_room, measured). The own-inbox copy
+        # also stays (CLause 1: the room is not the prime's inbox -- `send.py
+        # read` reads `<sessions>/inbox/<seat>.md`, a different file).
+        delivered = []
         try:
-            send.send(root, seat, text, sender=seat)
-            path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
-                                  sender=seat)
-            print(f"announced {declared} -> {ROTATION_ALERT_ROOM} ({path})",
+            send.send(root, seat, text, sender=seat)  # own-inbox copy stays
+        except SystemExit as exc:
+            print(f"warn: {declared} own-inbox write for {seat!r} failed: "
+                  f"{exc}", file=sys.stderr)
+        try:
+            send.send_room(croot, ROTATION_ALERT_ROOM, text, sender=seat)
+            print(f"announced {declared} -> {ROTATION_ALERT_ROOM} (record)",
                   file=sys.stderr)
-            return [ROTATION_ALERT_ROOM]
         except SystemExit as exc:
             print(f"warn: {declared} announcement to {ROTATION_ALERT_ROOM!r} "
                   f"failed: {exc}", file=sys.stderr)
-            return []
+        for recv in receivers:
+            try:
+                send.send(root, recv, text, sender=seat)
+                delivered.append(recv)
+            except SystemExit as exc:
+                print(f"warn: could not tell {recv!r} the {declared}: {exc}",
+                      file=sys.stderr)
+                continue
+        print(f"announced {declared} -> {len(delivered)} recipient(s) "
+              f"{delivered!r}", file=sys.stderr)
+        for recv in delivered:
+            try:
+                send.wake(root, recv)
+            except Exception as exc:                          # noqa: BLE001
+                print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
+                      file=sys.stderr)
+        _announce_stamp_announced_to(root, record_path, delivered)
+        return delivered
     delivered = []
     for recv in receivers:
         try:
@@ -4024,6 +4763,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         except Exception as exc:                          # noqa: BLE001
             print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
                   file=sys.stderr)
+    _announce_stamp_announced_to(root, record_path, delivered)
     return delivered
 
 
@@ -7045,6 +7785,20 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the row's `session_label` = `_session_label` of the seat's OWN row at
+    # the generation being written — the SAME string this rotation passes as
+    # the successor's --remote-control NAME, so the GUI session label and the
+    # stored cell agree (claim (3)). Written ALWAYS (empty for a prime /
+    # throwaway row with no label) so the cell exists from the seat's own
+    # first spawn write, beside session_name; the ack back-fill never passes
+    # it, so it stays what the spawn row write set.
+    import write as _w  # local: same dir (send.py pattern, no import cycle)
+    cells["session_label"] = _session_label(
+        next((r for r in _w._load_seats(_shared_graph_root(root))
+              if r.get("name") == seat), {}), generation) or ""
+
     if pid is not None:
         cells["pid"] = pid
     # goal:g15.25 line (2): the successor half's cells ride the SAME one row
@@ -7075,6 +7829,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
               if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_name={session_name} "
+            f"session_label={cells.get('session_label', '')} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry{_extra}")
 
@@ -10794,17 +11549,45 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
+def _pred_pids_alternation(pids: list[str]) -> str:
+    """WORD-BOUNDED ERE for `grep -E '{pred_pids}'`: each pid must match as a
+    WHOLE field, never as a substring of a longer pid. [1234, 5678] ->
+    `\b(1234|5678)\b`; [1234] -> `\b1234\b` (hypothesis:l4-pred-pids-is-an-
+    alternation...)."""
+    if len(pids) == 1:
+        return "\\b%s\\b" % pids[0]
+    return "\\b(%s)\\b" % "|".join(pids)
+
+
+def _row_pred_pid_usable(root: Path, seat: str,
+                         record: dict | None) -> bool:
+    """Generation guard on the predecessor ROW fallback. The row is the
+    SUCCESSOR's once it is rewritten to the record's `gen_after` (the
+    rotate-self own-tail case) — its pid MUST NOT be reaped. The row is used
+    only while its generation still equals the record's `gen_before` (the row
+    not yet re-written); a row at `gen_after`, or a record with no
+    `gen_before` to compare, falls to ''. Callers with no record (a dry-run
+    of a NEW rotation) stay on the old row-read path."""
+    if record is None:
+        return True
+    gb = record.get("gen_before")
+    if gb is None:
+        return False
+    g = _seat_row_generation(root, seat)
+    return g is not None and g == gb
+
+
 def _derive_pred_pids(root: Path, seat: str,
                       record: dict | None) -> str:
     """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
-    space-joined pid list this rotation REAPED, else the predecessor row's own
-    `pid`, else ''. ONE reader, shared by every after_join performer
-    (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-performer-derives-
-    pred-pids...): the watch/service, the rotate-self own tail and the
-    dry-run plan. Before this helper each caller passed NO pred_pids, so the
-    placeholder resolved '' and the reap-proof entry was refused with the
-    named `no predecessor chain` on EVERY real rotation instead of running
-    against the reaped chain.
+    WORD-BOUNDED ERE ALTERNATION over the pids THIS rotation reaped, else the
+    predecessor row's own `pid`, else ''. ONE reader, shared by every
+    after_join performer (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-
+    performer-derives-pred-pids...): the watch/service, the rotate-self own
+    tail and the dry-run plan. Before this helper each caller passed NO
+    pred_pids, so the placeholder resolved '' and the reap-proof entry was
+    refused with the named `no predecessor chain` on EVERY real rotation
+    instead of running against the reaped chain.
 
     Order:
       1. the record's `s12_self_reap.chain` — the pids THIS rotation just
@@ -10812,10 +11595,12 @@ def _derive_pred_pids(root: Path, seat: str,
          `_rotation_identity` reads as the retired predecessor's identity).
          Written AFTER the own tail performs (step 7 vs the tail's 6.4), so
          the service/watch path is where it fires; earlier a chain element is
-         an int or a `{pid}` dict, both accepted.
-      2. the predecessor ROW's own `pid` (best-effort `_find_seat`; at
-         rotate-self tail time the s12 section is not yet written, so the row
-         is what gives the tail a non-empty value).
+         an int or a `{pid}` dict, both accepted. Formed as an alternation so
+         each pid matches a whole field, never a longer pid's substring.
+      2. the predecessor ROW's own `pid` (`_find_seat`), used ONLY while the
+         row's generation equals the record's `gen_before` — a row already at
+         `gen_after` (the rotate-self own-tail case) is the SUCCESSOR's and is
+         never read.
       3. '' — which the startup placeholder mech refuses BY NAME
          (`no predecessor chain`), never running `grep -E ''` over the whole
          process table.
@@ -10829,12 +11614,12 @@ def _derive_pred_pids(root: Path, seat: str,
                 if pid is not None and str(pid).lstrip("-").isdigit():
                     pids.append(str(pid))
             if pids:
-                return " ".join(pids)
+                return _pred_pids_alternation(pids)
     try:
         row = _find_seat(root, seat)
     except Exception:  # noqa: BLE001  best-effort source
         row = None
-    if row is not None:
+    if row is not None and _row_pred_pid_usable(root, seat, record):
         pid = row.get("pid")
         if pid is not None and str(pid).lstrip("-").isdigit():
             return str(pid)
@@ -11894,6 +12679,16 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     nudge_suppressed = False
     if dry_run:
         delivery = {"mode": "none", "nudge": "n/a"}
+    elif not _alert_allowed(root, seat):
+        # (hypothesis:l4-rotation-alerts-follow-a-routing-matrix... conjunct 5)
+        # a SILENT successor (config:rotations `alerts:`.silent) gets ZERO
+        # machine lines from the after_join too -- the typing seam NEVER FIRES
+        # into its pane, so nothing leaks a line BEFORE the send_dm gate
+        # (in production the second input is TYPED into the pane and send_dm is
+        # never reached, so gating send_dm alone leaked the typed body). `seat`
+        # is the RECEIVER here (the successor the after_join addresses), the
+        # same name the default and injected send_dm gates consult.
+        delivery = {"mode": "silent-refused", "nudge": "suppressed"}
     else:
         typed_ok = False
         typing_refused = None
@@ -11935,10 +12730,19 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     # record then keeps the DECLARED sender, unsigned). The record NEVER reads
     # a key file for dm_signed (hypothesis:l4-the-after-join-record-names-the-
     # sender-and-signature-the-send-returned...).
+    _dm_ret = None
     sent = False
     if not dry_run and send_dm is None:
         def send_dm(to: str, text: str):
             import send as _send
+            # silent gate (hypothesis:l4-rotation-alerts-follow-a-routing-
+            # matrix...): a receiver NAME in config:rotations `alerts:`.silent
+            # gets ZERO machine lines from the after_join sender too -- refuse
+            # the send outright (the record then keeps the declared sender,
+            # unsigned). `_alert_allowed` consults the shared helper the three
+            # machine senders all use.
+            if not _alert_allowed(root, to):
+                return None
             # a NAMED sender (never None): send.py falls to `unknown` only when
             # no --from flag AND no seat env is exported — the after_join dm
             # now always passes a declared sender, so `from: unknown` cannot
@@ -11953,7 +12757,11 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                 return _send.send(root, to, text, sender, nudge=False)
             return _send.send(root, to, text, sender)
     if not dry_run and send_dm is not None:
-        _dm_ret = send_dm(seat, dm)
+        # the silent gate applies to an INJECTED seam too (a caller that runs
+        # the REAL send): a silent successor's dm is refused before any seam
+        # fires, so the after_join sends zero machine lines to a silent post.
+        if _alert_allowed(root, seat):
+            _dm_ret = send_dm(seat, dm)
         sent = True
         if (isinstance(_dm_ret, tuple) and len(_dm_ret) == 2
                 and isinstance(_dm_ret[0], str)):
@@ -12519,16 +13327,64 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+def _git_unquote_path(s: str) -> str:
+    """Decode ONE git `core.quotePath`-escaped path back to its literal name.
+
+    When git must quote a path (it wraps it in `"` and octal-escapes
+    non-ASCII / control bytes, backslash and quote), the SAME spelling appears
+    in `git status --porcelain` and in `git diff --name-only` — so the dirty
+    list and the merge touch-set must BOTH be unquoted through THIS function
+    or the two sets never intersect for a quoted name and a touched dirty
+    file is misread as `foreign dirt` and passes unblocked (goal:g15.25). A
+    path with no wrapping quotes is returned VERBATIM (never `.strip('"')`
+    alone: that eats a leading/trailing quote that is a real path byte).
+
+    git's escaping (builtin/quote.c) is BYTE-wise: `\\ooo` is one 3-digit
+    octal byte, `\\\\` a literal backslash and `\\"` a literal double-quote.
+    Grouping the escaped bytes back into a bytearray and UTF-8-decoding it is
+    what turns `\\303\\251` into `é` (the two UTF-8 bytes of U+00E9) rather
+    than the mojibake `chr()` would give per byte. Unescaped characters (git
+    only emits ASCII in quoted output) pass through byte-for-byte."""
+    if not (len(s) >= 2 and s.startswith('"') and s.endswith('"')):
+        return s
+    inner = s[1:-1]
+    if "\\" not in inner:
+        return inner
+    out = bytearray()
+    i, n = 0, len(inner)
+    while i < n:
+        c = inner[i]
+        if c == "\\" and i + 1 < n:
+            nxt = inner[i + 1]
+            if nxt in "01234567" and i + 3 < n:
+                out.append(int(inner[i + 1:i + 4], 8))
+                i += 4
+                continue
+            if nxt == "\\":
+                out.append(0x5C)
+                i += 2
+                continue
+            if nxt == '"':
+                out.append(0x22)
+                i += 2
+                continue
+        out.extend(c.encode("utf-8"))  # unknown escape / plain char: literal
+        i += 1
+    return out.decode("utf-8", errors="replace")
+
+
 def _porcelain_path(porcelain_line: str) -> str:
     """The path a `git status --porcelain` line names — the two-column
     status prefix stripped, any `old -> new` rename reduced to the new path,
-    surrounding quotes removed. One extractor; `_prepare_churn_path` and the
-    dirty-tree captive both use it so a churn filter and a name always agree
-    on what a line's path IS."""
+    then `core.quotePath`-unquoted. One extractor; `_prepare_churn_path` and
+    the dirty-tree captive both use it so a churn filter and a name always
+    agree on what a line's path IS. Unquoting through `_git_unquote_path`
+    (the SAME normalizer `_merge_touch_set` applies) is what makes a quoted
+    dirty path and its touch-set twin spell IDENTICALLY (goal:g15.25)."""
     path = porcelain_line[3:] if len(porcelain_line) > 3 else ""
     if " -> " in path:
         path = path.split(" -> ", 1)[1]
-    return path.strip().strip('"')
+    return _git_unquote_path(path.strip())
 
 
 def _prepare_churn_path(porcelain_line: str) -> bool:
@@ -12565,6 +13421,33 @@ def _prepare_dirty_paths(porcelain: list[str] | None,
                 continue
             paths.append(path)
     return paths
+
+
+def _merge_touch_set(root: Path, sb: str) -> set[str] | None:
+    """The SET of paths a merge of `origin/<sb>` would bring in or overwrite
+    — `git diff --name-only HEAD...origin/<sb>` (THREE-dot: the symmetric
+    diff from the merge base, which is what a merge actually changes; a
+    two-dot diff is the WRONG set). None when unmeasurable (no
+    `origin/<sb>`, an opaque git refusal) — caller treats None as today.
+
+    goal:g15.25 (hypothesis:l4-the-dirty-tree-gate...): this is the one
+    mechanical reason the dirty-tree gate must block on a SHARED MAIN
+    checkout — git refuses to overwrite a dirty WORKING file the merge
+    touches. A dirty path OUTSIDE this set is another post's uncommitted
+    work: named `foreign dirt`, never a block."""
+    lines = _git_maybe(root, "diff", "--name-only", f"HEAD...origin/{sb}")
+    if lines is None:
+        return None
+    out: set[str] = set()
+    for ln in lines:
+        # unquote through `_git_unquote_path` — the SAME normalizer
+        # `_porcelain_path` applies — so a quoted path (non-ASCII / backslash
+        # / quote, as git `core.quotePath` renders it) intersects the dirty
+        # list IFF the merge would actually touch it (goal:g15.25).
+        s = _git_unquote_path(ln.strip())
+        if s:
+            out.add(s)
+    return out
 
 
 def _merge_applies_clean(root: Path, sb: str) -> bool | None:
@@ -12778,7 +13661,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     prompting it, but ONLY when it is mechanical: check 2 (dirty tree) passed
     AND `_merge_applies_clean` reports zero conflicts. A conflicting merge
     stays a BLOCK naming the paths; an unperformed behind stays a BLOCK with
-    the merge command."""
+    the merge command.
+
+    Concerning the fetch order: when `perform` is True, the ONE `fetch origin
+    <sb>` runs BEFORE the behind count, so a worktree whose local
+    remote-tracking ref has not moved since its last fetch still measures a
+    FRESH behind and can fast-forward itself to main inside the gate -- the
+    hand fetch+merge every worktree rotation (rotations.md:186) is retired.
+    `prepare`/`--dry-run` (perform False) run NO fetch -- fetch is a NETWORK
+    WRITE (the rotate.py:9600 producing allowlist holds; F14) -- and measure
+    against the local ref as today. A fetch that FAILS (network, 403) never
+    blocks: check 3 reports `behind origin/<sb> (unmeasured: fetch failed
+    <rc>)` and the rotation continues with the stale ref, exactly as today."""
     checks: list[tuple[bool, str, str]] = []
 
     # 1 unpushed commits on the checked-out branch. When `@{u}` does not
@@ -12839,9 +13733,36 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if p and _path_delta_whitespace_only(root, top, p) \
                     and p not in ws_only:
                 ws_only.append(p)
+    # goal:g15.25 (hypothesis:l4-the-dirty-tree-gate...) — on a SHARED MAIN
+    # checkout the dirty-tree gate must NAMED-block a rotate-out ONLY when a
+    # dirty path intersects what a merge would ACTUALLY touch. The mechanical
+    # reason dirt must block is git refusing to overwrite a dirty WORKING
+    # file the merge touches; a path OUTSIDE the merge's touch-set is another
+    # post's uncommitted work, named `foreign dirt`, never a block, never a
+    # stop_commit. The partition runs ONLY on a MAIN post (row `worktree`
+    # cell empty — a worktree post's dirt is its own, all of it blocks, as
+    # today); a touch-set that cannot be measured (None) falls back to today
+    # (all dirt blocks) and says `touch-set unmeasured`. `_sb` is hoisted
+    # here so check 3 measures + merges the SAME ref.
+    _sb = _prepare_merge_target(root)
+    _row = _find_seat(root, seat)
+    # a MAIN post has a row whose `worktree` cell is EMPTY; a seat with NO
+    # row at all has no worktree cell, so the g15.25 partition does NOT run
+    # for it — its dirt all blocks, exactly as today (conservative fallback
+    # to the letter of the claim: the partition runs only when the row
+    # worktree cell is empty).
+    _main_post = bool(_row) and not (_row.get("worktree") or "").strip()
+    _touch: set[str] | None = None
+    if dirty_paths and _main_post:
+        _touch = _merge_touch_set(root, _sb)
+    _block_paths = list(dirty_paths)
+    _foreign: list[str] = []
+    if _touch is not None:
+        _foreign = [p for p in dirty_paths if p not in _touch]
+        _block_paths = [p for p in dirty_paths if p in _touch]
     if dirty_paths:
         shown: list[str] = []
-        for p in dirty_paths:
+        for p in _block_paths:
             if len(shown) >= 5:
                 break
             # claim 6a: an index-only real change (staged edit, working copy
@@ -12851,14 +13772,26 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if _index_staged_real_change(root, top, p):
                 shown.append(f"{p}: staged change (index differs from HEAD)")
             else:
-                shown.append(p)
-        suffix = (f", +{len(dirty_paths) - 5} more"
-                  if len(dirty_paths) > 5 else "")
+                shown.append(p + (f" (touched by origin/{_sb})"
+                                  if _touch is not None else ""))
+        suffix = (f", +{len(_block_paths) - 5} more"
+                  if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
+        if _touch is None and _main_post:
+            dirty_name += " (touch-set unmeasured)"
     else:
         dirty_name = "dirty tree"
-    checks.append((bool(dirty_paths), dirty_name,
+    checks.append((bool(_block_paths), dirty_name,
                    "git commit -m '<msg>' -- <the files you changed>"))
+    # foreign dirt on a MAIN post: another post's uncommitted work the merge
+    # would NOT touch — NAMED as one never-blocking line (capped at 5, then
+    # `+N more`), never a block, never a stop_commit (goal:g15.25).
+    if _foreign:
+        _fs = _foreign[:5]
+        _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
+        checks.append((False,
+                       "foreign dirt (not in the merge): "
+                       + ", ".join(_fs) + _suf, ""))
     # claim 2 benign naming: each whitespace-only-delta path is named on ONE
     # never-blocking (ok) line so prepare both passes AND says why the path
     # was not a blocker. Name relative to the repo top so the familiar
@@ -12873,8 +13806,22 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # season_branch, never a hardcoded season. The merge target resolves
     # through branches.merge_target when the seat's branch is a post/loop
     # (clause 5 of hypothesis:l4-branches-follow-the-season-grammar), so a
-    # town seat targets its own town main, not a literal core main.
-    _sb = _prepare_merge_target(root)
+    # town seat targets its own town main, not a literal core main. `_sb`
+    # was hoisted into check 2 (the same merge target, resolved ONCE).
+    # claim (hypothesis:l4-prepare-fetches-before-it-measures-behind...):
+    # when perform is True, the ONE `fetch origin <sb>` runs BEFORE the
+    # behind count, so a worktree whose local origin/<sb> has not moved since
+    # its last fetch reads a FRESH behind, not a stale-behind-zero. A failed
+    # fetch (network, 403) never blocks -- reported `(unmeasured: fetch
+    # failed <rc>)` and the rotation continues with the stale ref. perform
+    # False (`prepare`/`--dry-run`) runs NO fetch at all (fetch is a NETWORK
+    # WRITE, the rotate.py:9600 allowlist holds; F14). ONE fetch only -- the
+    # old perform-branch fetch IS this one.
+    _fetch_failed: int | None = None
+    if perform:
+        _fp = _git_proc(root, "fetch", "origin", _sb)
+        if _fp is not None and _fp.returncode != 0:
+            _fetch_failed = _fp.returncode
     behind = _git_count_maybe(root, "rev-list", "--count",
                               f"HEAD..origin/{_sb}")
     # The clear command MERGES, never rebases: `never rebase` is a standing
@@ -12887,16 +13834,23 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         # an unmeasurable behind (no origin ref to count against) stays ok and
         # says so plainly, never a fabricated number
         checks.append((False, f"behind origin/{_sb} (unmeasured)", behind_clear))
+    elif _fetch_failed is not None:
+        # a failed fetch (network, 403) does NOT block: name the rc, treat the
+        # behind as unmeasured, and let the rotation continue on the stale ref
+        # exactly as it did before this claim.
+        checks.append((False,
+                       f"behind origin/{_sb} (unmeasured: fetch failed "
+                       f"{_fetch_failed})", behind_clear))
     elif perform and not dirty_paths and behind > 0:
         # `--perform` (rotate-self defaults ON): check 2 passed (tree clean)
         # and we are measurably behind. PERFORM the merge ONLY if it is
         # mechanical -- zero conflicts. A conflicting merge is exactly the
         # judgement-free-not case: stays a BLOCK naming the paths.
-        # MEASURE AND MERGE THE SAME REF (P1-a): fetch FIRST so the local
-        # `origin/<sb>` is fresh, then measure the conflict-free gate and
-        # merge THAT SAME ref. Measuring against a stale local ref and then
-        # merging the refreshed one was a DIFFERENT merge with no abort path.
-        _git_maybe(root, "fetch", "origin", _sb)
+        # MEASURE AND MERGE THE SAME REF (P1-a): the fetch already ran above
+        # (the ONE fetch), so `origin/<sb>` is fresh here; measure the
+        # conflict-free gate and merge THAT SAME ref. Measuring against a
+        # stale local ref and then merging the refreshed one was a DIFFERENT
+        # merge with no abort path.
         cf = _merge_applies_clean(root, _sb)
         if cf is True:
             merged = _perform_season_merge(root, _sb)
@@ -14744,6 +15698,47 @@ def _rotate_human_gate(root: Path, seat: str,
     return None, None
 
 
+def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
+    """CLAUSE 9 (goal:g15.25) — ONE dm to the supervisor when a rotate-self
+    spawn-row write was REFUSED.
+
+    The supervising post of `seat` is the seat OWN row's `rotated_by` cell
+    (the post that rotated the seat — the same name `rotate.py alarms` meters
+    against). Until the routing matrix (SM.16) lands a failure channel, this
+    one dm IS the fail-loud delivery: a refused spawn-row write must never be
+    a silently stale row, so the supervisor is told once, the refusal already
+    failed the rotation (record `result: refused` + rc 1). Delivery never
+    raises (the rotation already failed; a lost alert must not crash the
+    reporter) and returns a one-line outcome the record / stderr can name.
+    Prime-origin dms are refused by send.send_dm, so a prime caller reaches
+    its supervisor through send.send (the inbox writer) exactly as
+    `_announce_rotation` does for the prime.
+    """
+    sup = None
+    try:
+        for r in _load_seats(_shared_graph_root(root)):
+            if r.get("name") == seat:
+                sup = (str(r.get("rotated_by") or "").strip() or None)
+                break
+    except Exception:  # noqa: BLE001  (a broken row read never blocks reporting)
+        sup = None
+    if not sup or sup == seat:
+        return (f"no rotated_by supervisor addressable for seat {seat!r}; "
+                f"refusal recorded and rc non-zero")
+    import send  # local: same dir
+    croot = send.comms_root(root)
+    text = (f"[rotation-failed] spawn-row write REFUSED for seat {seat!r}: "
+            f"{reason}")
+    try:
+        if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
+            send.send(root, sup, text, sender=seat)
+        else:
+            send.send_dm(croot, seat, sup, text, sender=seat)
+        return f"rotation-failed dm sent to supervisor {sup!r}"
+    except Exception as exc:  # noqa: BLE001
+        return f"rotation-failed dm to supervisor {sup!r} FAILED: {exc}"
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -15461,6 +16456,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             log_path=_seat_hands(root) / f"{seat}.wrapper.log")
         _record_swept_latches(rec_path, swept_latches)
 
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the successor's app-GUI session LABEL = `_session_label` of the seat row
+    # at the successor generation, passed as the --remote-control NAME. The
+    # tmux WINDOW name stays `spawn_name` (seat / numeral) — decoupled here,
+    # never renames the window (pane addressing keys on the window name).
+    _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -15471,6 +16473,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
+        rc_name=_rc_label,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -15483,6 +16486,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
+    if args.dry_run and _rc_label:
+        # g15.25 (hypothesis:l4-the-gui-session-label-...): the dry-run names
+        # the two strings SEPARATELY — the tmux window name (`spawn_name`) and
+        # the app-GUI session label (`label`), so a test reads them apart
+        # without tmux (a labeled GUI session never renames its window).
+        print(f"    label: {_rc_label!r} (window stays {spawn_name!r})")
 
     if args.dry_run:
         # L4.118 (R1) — the dry-run ENUMERATES every step live would execute,
@@ -15778,6 +16787,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 key_rotation=_key_rotation)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
+        # goal:g15.25 CLAUSE 9 — a REFUSED spawn-row write FAILS LOUD, never a
+        #     silently stale successor row that keeps the old generation while
+        #     the rotation reports success (the sensei-director 07:55Z
+        #     incident: the row write was refused whole for an undeclared
+        #     session_label field, and the successor row silently kept gen 18
+        #     until the Prime resynced it). The rotation tail halts HERE: one
+        #     dm to the supervisor (the seat row's `rotated_by` post), a
+        #     `refused` record naming the refusal, rc non-zero. A THROWAWAY
+        #     seat (`successor_row` = `skipped: ...`) and a legitimately
+        #     written row both fall through unchanged.
+        if handover.get("successor_row", "").startswith("FAILED"):
+            handover["spawn_row_failed_dm"] = _dm_rotation_spawn_row_failed(
+                root, seat, handover["successor_row"])
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, result="refused",
+                gen_before=gen_before, gen_after=gen, succ=succ,
+                handover=handover,
+                readback_log=Path(dbg).expanduser().resolve(),
+                refusal=(f"spawn-row write REFUSED: "
+                         f"{handover['successor_row']}")), path=rec_path)
+            print(f"ERR: {handover['successor_row']}; spawn-row write REFUSED, "
+                  f"rotation NOT reported success.", file=sys.stderr)
+            return 1
         # (g15.24, Sensei's pick, fix (a)): rotate-self COMMITS the s6.1
         # spawn-row write ITSELF, immediately after `_successor_row_write`
         # succeeds and before anything else runs — ONE plain `git commit` in
@@ -16237,7 +17269,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # session_id 27179681-…, ListAgents ref caa927). So the announce
         # carries the ACK's ref, and NAMES pre-join when the ack had none.
         successor_ref=((ack or {}).get("session_ref") or ""),
-        successor_window=succ_window_id or "")
+        successor_window=succ_window_id or "",
+        record_path=(record_path if record_path else None))
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
     #     r4 / e / D / r5): after the record is written and (6.5) announced:
@@ -17412,6 +18445,41 @@ def main(argv: list[str] | None = None) -> int:
     p_r.set_defaults(func=cmd_rotate)
 
 
+    # rename-post <old> <new>: the rename round (SM.18), round 1 — dry-run
+    # prints the surface table, default stages <old>.rename.json applied at
+    # the next rotation boundary, --now/--apply apply the session-file
+    # surface (refusing under a live pid); row/branch/tmux are listed+staged
+    # and shipped round 2. No config write this round.
+    p_rp = sub.add_parser(
+        "rename-post", help="rename a post name across its surfaces: "
+                             "--dry-run prints the table, default stages "
+                             "<old>.rename.json, --now/--apply apply the "
+                             "session-file surface (refusing under a live "
+                             "pid)")
+    p_rp.add_argument("old_name", metavar="old", help="current post name")
+    p_rp.add_argument("new_name", metavar="new", help="replacement name")
+    p_rp.add_argument("--dry-run", action="store_true",
+                      help="print every surface and touch nothing")
+    p_rp.add_argument("--now", action="store_true",
+                      help="apply the session-file surface immediately "
+                           "(refused when a live pid is on the row)")
+    p_rp.add_argument("--apply", action="store_true",
+                      help="apply the session-file surface now "
+                           "(--now, same path)")
+    p_rp.add_argument("--live", action="store_true",
+                      help="with --now/--apply: run the git/tmux renames for "
+                           "REAL (branch -m + push, worktree move, tmux "
+                           "rename by @id/$id). DANGEROUS: a privileged "
+                           "landing (the Prime, at merge-up). WITHOUT it the "
+                           "default prints the would-run git/tmux lines and "
+                           "runs no subprocess.")
+    p_rp.add_argument("--delete-old", dest="delete_old", action="store_true",
+                      help="after pushing the new branch name, also delete "
+                           "the old one (only under this flag)")
+    p_rp.add_argument("--root", default=None,
+                      help="project root override (default: resolve from cwd)")
+    p_rp.set_defaults(func=cmd_rename_post)
+
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
     p_bb = sub.add_parser(
@@ -17525,7 +18593,7 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "rotate", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision", "autopsy", "closeout"):
+                    "first-decision", "autopsy", "closeout", "rename-post"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)

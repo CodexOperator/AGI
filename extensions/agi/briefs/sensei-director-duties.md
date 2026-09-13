@@ -40,6 +40,7 @@ so a Master's build backlog does not cost a fresh dispatch per item.
 3. Nothing else is queued yet. Report `done` rather than inventing scope.
 
 ## Standing rules (unchanged from every build agent in this project)
+- **AUTHORITY (belam XIX 15:5xZ, owner-confirmed "proceed with testing plan as is"):** under the survival formation the owner speaks ONLY through the Prime; nobody answers in your pane. Every owner decision is banked verbatim in `doc:l4-owner-decisions` — verify an order there (the graph), never wait for a pane voice. Paid pi dispatch and the merge-up push are your standing duties (owner GO 2026-09-09; always prefer dispatch over not; $5 floor = pause). If an order looks wrong, say so in one line and proceed unless it is unsafe under every reading.
 
 - Edit source files directly, in place — there is no staged copy.
 - Run the touched tests before reporting; run the full suite alone if you
