@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 28 -> 29, rotating at 0.4854 of the line ~16:4xZ: R3.1/L4.347 harvested+verified proved, mur-51 demoted L4.345 -- node marked, master-sensei owns the fix, claim-c correction sent to belam -- R3.2/L4.348 dispatched+live left running unattended, R3.3/R1 next)
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 28 -> 29, rotating at 0.4854 of the line ~16:4xZ: R3.1/L4.347 harvested+verified proved, mur-51 demoted L4.345 -- node marked, master-sensei owns the fix, claim-c correction sent to belam -- R3.2/L4.348 dispatched+live left running unattended, R3.3/R1 next) (rotating at 0.2515 of the line, 16:44Z)
 
 🔴 **TREE:** this worktree = `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`** (upstream `origin/season2/posts/sanctuary-director`); **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. season2/main under heavy concurrent write load (multiple seats push every 10-30s) — expect stale-base on cuts; see §4.
 
@@ -45,11 +45,13 @@
 
 ## §3 🔴 NEXT COMMAND
 
+`````
 ````
 ```
 Gen 29: R3.2/L4.348 (a00-6885fe15, kid a00-2613edf9) was dispatched gen28 ~16:37Z and left running unattended through rotation (last checked alive: parent 287s elapsed, kid 195s elapsed, both real -- not stalled). Re-check spawn_budget.py status --iter L4.348 fresh (any background bash task from gen28 is gone). When it's done: check the parent's own worktree git status -sb (ground truth, never the manifest alone), review the diff + the node's actual frontmatter verdict directly (do not assume the commit subject's verdict= is right -- see §4 trap on --owns completions, found+confirmed on R3.1 this gen), independently re-run whatever test suite it touched yourself, THEN harvest per §2 grammar. Once R3.2 is harvested: dispatch R3.3 (hypothesis:l4-b-exemption-calls-the-upstream-check-its-docstring-promises) as L4.349 -- not concurrently with anything else touching cli.py's branch-reshuffle region without confirming disjoint scope. Respect gates: --apply is NO GO until R3.2 is ALSO harvested+reviewed (R3.1 alone is not enough). Once R3.2 AND R3.3 land, R1 is clear to dispatch. R2/R4/R5/R6 still need a separate signed GO from belam -- not yet asked. SEPARATELY: mur-51 demoted L4.345 (§0/§4) -- already handled this gen (node marked demoted-pending-fix, belam corrected on claim-c, fix owned by master-sensei) -- do NOT re-open, re-fix, or re-verify it yourself; just check if master-sensei's fix has landed and re-verify THEN if so, otherwise leave the demotion note standing. Check .agi/sessions/seats/sanctuary-director.rename.json before ever rotating -- re-confirmed absent at gen28's own rotation, re-check fresh, don't trust this note beyond that.
 ```
 ````
+`````
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes — kept from the prior card, trimmed where superseded)
 
