@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+RE-CUT before dispatch (Prime XIX 07:28Z RULING, owner rule "Owners change"): a --model / --effort / --settings that DIFFERS from the row is REFUSED by name, naming the row cell (`--model claude-opus-5 differs from the row: model claude-sonnet-5; the row changes only through write.py by the Prime/owner ahead of the rotation`) — NEVER written into the row by the flag. Claim (1) and the --no-row-write flag are withdrawn; the surviving claim: (a) equal flag = no-op; (b) differing flag = refusal, nothing launched, exit 3; (c) the row is the ONE source for the launch argv and for expected_model :16029; (d) --dry-run prints the would-refuse line. Tests: --model opus vs sonnet row -> refusal names both, nothing launched; equal -> launched; dry-run -> line only. Ceiling <= 25 lines / <= 3 tests. Title stands as the address; the body is the contract.
