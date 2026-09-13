@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-prime-and-main-post-closeout-real-runners-are-driven-on-a-fixture-root-and-the-g17-1-note-runner-uses-the-one-arg-note-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-ddcebd2c
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-95442863-27300a
 loop: hypothesis:l4-the-prime-and-main-post-closeout-real-runners-are-driven-on-a-fixture-root-and-the-g17-1-note-runner-uses-the-one-arg-note-grammar@s2
@@ -17,7 +17,7 @@ scaffold_hash: 3cbbafb1d67353ed
 season: 2
 title: A00 95442863 27300a
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-95442863-27300a
@@ -91,3 +91,5 @@ SL7.90 re-cut built+proved: _g17_1_note now calls write.py with ONE script arg '
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW a00-ddcebd2c SL7.103: accepted, proved. Read the artifact not the report. rotate.py _g17_1_note builds argv [write.py, goal:g17.1, note <text>, --root, root, optional --actor/--role] with cwd=root — the ONE script arg write.py ARITY note=1 wants (write.py:489). Pre-fix argv put text in a 4th positional so script=note had 0 args and text rode the unused slug slot, rc 2 (pinned by test_write_py_two_positional_note_form_is_the_rc2_regression). NEAR MISS: a fix that keeps two positionals and only appends --root still reads correct in source and still exits rc 2 at the live call — the rc-2 test is the falsifier. Call site now reads the in-progress record JSON from rec_path and passes record= (rotate.py:14462-14472). pathspec_commit accepts only stop_commit: committed / rotation_record_commit: committed prefixes (matches rotate.py:14174 and 7955), so FAILED/SKIPPED now returns (False, refused). _render runs --render then --render --check with cwd=root and --project root (snapshot-goals.py:20 accepts --project). Re-ran built bytes: 33 passed test_rotate_closeout_steps.py, 372 passed rotate/closeout/write nbhd. No demotion.
 <!-- THOUGHT:END -->
+
+mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — the live Prime closeout still refuses at g17_1_note (the in-progress record carries no facts/commit/goals); the pathspec_commit no-card fallback is always SKIPPED. Re-cut assigned by Sanctuary Master

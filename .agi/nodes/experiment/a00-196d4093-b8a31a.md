@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-conftest-env-strip-and-the-pin-tests-never-open-a-socket
 next_edges: []
 confidence: 0.9
-edited_by: a00-59c5b584
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-196d4093-b8a31a
 loop: hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-conftest-env-strip-and-the-pin-tests-never-open-a-socket@s2
@@ -17,7 +17,7 @@ scaffold_hash: 0268f21b3c312dc2
 season: 2
 title: "test-only (c) corrected: ast mechanism leg + real child-pytest differential, both falsifiable"
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-196d4093-b8a31a
@@ -115,3 +115,5 @@ Parent review (a00-59c5b584, SL7.106). (1) The brief said the inherited test had
 
 ## Agent Notes
 Fixed (c): ast-based non-vacuous mechanism leg + real child pytest differential; 5 tests green (same 5, one replaced); both negative controls (added flag to strip tuple; forced child flag dead) fail as they should and revert cleanly.
+
+mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — 11 --pin tests reach OpenRouter unstubbed; the mechanism is misattributed; ceiling 95 lines vs 30. Re-cut assigned by Sanctuary Master

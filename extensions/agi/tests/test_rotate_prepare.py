@@ -1017,3 +1017,237 @@ def test_rotate_self_prepare_unregistered_name_refuses_without_merge(
     assert "season.txt" not in _git(root, "ls-files").stdout
     assert _git(root, "status", "--porcelain").stdout.strip() == ""
 
+
+
+# =====================================================================
+# hypothesis:l4-rotate-self-pushes-and-continues-when-the-only-prepare-
+# blocker-is-unpushed-commits (SL7.113) — the refusal already names `git
+# push`, so exit 3 would be a call spent to type it (belam XVII paid 2 at
+# 21:59Z). When the checklist's blockers are EXACTLY ONE entry and it is
+# check 1 in a MEASURED-unpushed spelling (`unpushed commits` or `unpushed
+# commits vs origin/<branch>` — NEVER `no upstream for <branch>`), rotate-
+# self PERFORMS the push through `_stops_push(label='unpushed')` (the ONE
+# helper, never a third implementation), completes any deferred pending
+# swap on OK, and CONTINUES (no refusal). A refused push stays a BLOCK by
+# name; two or more blockers are byte-identical to today; a `--dry-run`
+# performs nothing and prints its would-push line. RED FIRST: written
+# before the code; the push seam is the monkeypatched `_stops_push`
+# recording its label.
+# =====================================================================
+
+
+def _real_unpushed_rotate_repo(tmp_path):
+    """A REAL git repo with a bare origin and an upstreamed branch whose
+    checked-out HEAD is ONE commit AHEAD of origin (the classic `git push`
+    beltam paid to type). NOTHING is dirty, behind, or stale — the single
+    prepare blocker is exactly check 1 measured-unpushed. The card is
+    refreshed AFTER the unpushed commit so check 4 measures clean. Mirrors
+    test_rotate's `_init_git_remote` + the rotate-self e2e fixtures so the
+    post-push tail reaches spawn."""
+    root = tmp_path
+    (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    (root / "nodes").mkdir(parents=True, exist_ok=True)
+    g = root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        "  parent:\n    brief_file: extensions/agi/briefs/parent-successor.md\n"
+        "    steps: [handoff, rename, spawn]\n    telemetry: [seat]\n"
+        "---\n\nbody\n", encoding="utf-8")
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - {\"name\": \"adv-alive\", "
+        "\"role\": \"parent\", \"generation\": 1}\n---\n", encoding="utf-8")
+    sess = root / "sessions"
+    (sess / "seats").mkdir(parents=True)
+    (sess / "quorum").mkdir(parents=True)
+    (sess / "seats" / "adv-alive.handoff.md").write_text(
+        "seat: adv-alive\ngeneration: 1\n", encoding="utf-8")
+    card = sess / "quorum" / "adv-alive.md"
+    card.write_text("# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
+    win = root / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    bare = root / "remote.git"
+    subprocess.run(["git", "init", "--bare", str(bare)], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(root), "init"], check=True,
+                   capture_output=True)
+    (root / ".gitignore").write_text(
+        "remote.git/\nwindows.txt\nsessions/seats/\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "remote", "add", "origin",
+                    str(bare)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.email", "t@t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "config", "user.name", "t"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "fixture"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "push", "-u", "origin", "master"],
+                   check=True, capture_output=True)
+    # the ONE unpushed commit: HEAD is now ahead of origin/master by exactly 1
+    (root / "unpushed.txt").write_text("x\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "add", "unpushed.txt"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "unpushed"],
+                   check=True, capture_output=True)
+    # refresh the card so check 4 sees it NEWER than the unpushed commit
+    import os as _os
+    _os.utime(card, None)
+    return root, win
+
+
+def test_rotate_self_pushes_only_unpushed_blocker_and_continues(
+        tmp_path, monkeypatch, capsys):
+    """SL7.113 claim (1): with the ONE prepare blocker being check 1 measured
+    `unpushed commits`, rotate-self PERFORMS the push through
+    `_stops_push(label='unpushed')` (the ONE helper, never a new one), prints
+    that push line, fires `_finish_pending_swap_on_push` (push: OK), and
+    CONTINUES to the spawn — no refusal, exit 0. FALSIFIERS: a push on a
+    multi-blocker refusal, a second push implementation, exit 3 instead of
+    continuing."""
+    root, win = _real_unpushed_rotate_repo(tmp_path)
+    pushes = []
+
+    def fake_push(root, label="stops"):
+        # mirror the real `_stops_push` success line so the should-print push
+        # line is asserted; label records which push site fired.
+        pushes.append(label)
+        print(f"{label} push: OK -- seat/x", file=sys.stderr)
+        return None
+
+    monkeypatch.setattr(rotate, "_stops_push", fake_push)
+    finishes = []
+    monkeypatch.setattr(rotate, "_finish_pending_swap_on_push",
+                        lambda r, s, pl: finishes.append(pl) or "")
+
+    def fake_spawn(**kw):
+        # the post-spawn success check asserts the successor window exists
+        # in `win` (the window_path seam reads it for the presence check).
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    import io as _io
+    import contextlib as _c
+    args = _rotate_self_args(window_path=str(win), session_ref="adv-alive-9")
+    err = _io.StringIO()
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(args, root)
+    err_text = err.getvalue()
+    assert rc == 0, err_text
+    # exactly ONE push, the 'unpushed' label (the stops/merge sites never ran)
+    assert pushes == ["unpushed"], pushes
+    assert "unpushed push: OK" in err_text
+    # the deferred-swap helper fired AT this site with push: OK
+    assert finishes == ["push: OK"], finishes
+    # the refusal is gone: neither the blocked nor the refused line appears
+    assert "rotate-self blocked:" not in err_text
+    assert "rotate-self refused:" not in err_text
+
+
+def test_rotate_self_unpushed_plus_dirty_refuses_no_push(
+        prep_root, capsys, monkeypatch):
+    """SL7.113 claim (3): TWO or more blockers (unpushed + dirty) -> the
+    refusal is byte-identical to today (all names, exit 3) and NO push runs —
+    the push seam is never called."""
+    _seat_row(prep_root, 3)          # registry gate
+    gm = {("status", "--porcelain"): [" M rotate.py"],
+          ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["1"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    pushes = []
+    monkeypatch.setattr(rotate, "_stops_push",
+                        lambda root, label="stops": pushes.append(label) or None)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self blocked: unpushed commits" in err
+    assert "rotate-self blocked: dirty tree" in err
+    assert "rotate-self refused: clear" in err
+    assert pushes == [], pushes
+
+
+def test_rotate_self_no_upstream_block_unchanged_no_push(
+        prep_root, capsys, monkeypatch):
+    """SL7.113 claim (1) NEVER-clause: a sole blocker whose clear sets an
+    UPSTREAM (`no upstream for <branch>`) is NOT auto-pushed — its clear is
+    `git push -u origin <branch>`, whose side effect (setting the upstream) is
+    exactly what must stay a human BLOCK. Refusal unchanged, exit 3, push seam
+    never called."""
+    _seat_row(prep_root, 3)
+    gm = {("status", "--porcelain"): [],
+          ("rev-parse", "--abbrev-ref", "HEAD"): ["fresh/unpushed"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    pushes = []
+    monkeypatch.setattr(rotate, "_stops_push",
+                        lambda root, label="stops": pushes.append(label) or None)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self blocked: no upstream for fresh/unpushed" in err
+    assert "git push -u origin fresh/unpushed" in err
+    assert pushes == [], pushes
+
+
+def test_rotate_self_refused_push_exit3_no_spawn(
+        tmp_path, prep_root, capsys, monkeypatch):
+    """SL7.113 claim (2): a refused push stays a BLOCK by name —
+    `rotate-self refused: <push error> — clear it, then re-run (nothing
+    rotated)`, exit 3, nothing else touched (the spawn is never reached)."""
+    _seat_row(prep_root, 3)
+    gm = {("status", "--porcelain"): [],
+          ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["1"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    monkeypatch.setattr(
+        rotate, "_stops_push",
+        lambda root, label="stops": "push refused out: remote rejected")
+    spawned = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: spawned.append(1) or (0, "echo hi"))
+    rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
+    err = capsys.readouterr().err
+    assert rc == 3
+    assert "rotate-self refused: push refused out: remote rejected — clear it," \
+        in err
+    assert "nothing rotated" in err
+    assert spawned == [], "a refused push must never reach the spawn"
+
+
+def test_rotate_self_dry_run_unpushed_prints_would_push_no_seam(
+        prep_root, capsys, monkeypatch):
+    """SL7.113 claim (4): `--dry-run` performs nothing and prints ONE line
+    `(--dry-run) would push: <branch> (unpushed commits)` — the push seam is
+    never called, exit 0 (the dry-run plan continues). FALSIFIER: a dry-run
+    that pushes."""
+    _seat_row(prep_root, 3)
+    # prep_root has no rotations.md template -> resolve a parent template so
+    # the (dry-run) plan tail past the would-push line does not refuse. A
+    # step list of [handoff, spawn] keeps the dry-run plan short.
+    monkeypatch.setattr(
+        rotate, "_resolve_template",
+        lambda *a, **k: ({"brief_file": "x.md", "steps": ["handoff",
+                        "spawn"], "telemetry": []}, "parent", "test"))
+    gm = {("status", "--porcelain"): [],
+          ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["1"],
+          ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    pushes = []
+    monkeypatch.setattr(rotate, "_stops_push",
+                        lambda root, label="stops": pushes.append(label) or None)
+    rc = rotate.cmd_rotate_self(_rotate_self_args(dry_run=True), prep_root)
+    cap = capsys.readouterr()
+    assert rc == 0, cap.err
+    assert "(--dry-run) would push: seat/x (unpushed commits)" in cap.err
+    assert pushes == [], "a dry-run must never push"
+    assert "rotate-self blocked:" not in cap.err

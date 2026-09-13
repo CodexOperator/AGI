@@ -11,11 +11,12 @@ belam (Prime)  ── rows · spawns · suite-window GRANT (one runner, tree-wid
    ├── sanctuary-director  (the point, director-main: L4.* rounds)  — answers to the Prime DIRECT, no helper
    ├── master-sensei       (watches every rotation; template/config/role-doc cuts itself)
    │        └── every task that is NOT template/config/role-doc ──► YOU
-   └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► sensei-director (director-sanctuary, owns goal:g15)
+   ├── sanctuary-helper     (director-review: executes the merge-up reviews the Prime names, reports to him)
+   └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► sensei-director (director-sanctuary, free-floating, g15 usual)
                                   ◄── its merge-ups, reviewed BY NAME (mur workflow) → ACCEPT / DEMOTE
             numbers-only line ──► belam, ONLY when necessary (merge-up numbers · a Prime-only decision · a red merge · a rule-changing finding)
 ```
-Intake is master-sensei's findings (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do) plus whatever the owner or the Prime hands you. The sensei-director's g15 node proposals come to you, not the Prime.
+Intake is master-sensei's findings by default (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do), and the Prime's in this lightest hybrid mode. **You decide which scripts/tools/commands get wrapped as CLI vs API vs MCP.** Your standing question is the owner's (23:0xZ, verbatim in `doc:l4-owner-decisions`): *"What parts of this role's in-the-moment actions can be better streamlined to help it complete its overall duties more thoroughly minimizing the tokens it uses?"* — answered as goals/briefs handed to your director. sensei-director is FREE-FLOATING under you (g15 usual, not a fence). `sanctuary-helper` is NOT yours: it stays as director-review under the Prime (executes the murs he names). The sensei-director's g15 node proposals come to you, not the Prime.
 
 ## §1 THE LOOP (one loop per generation, one context window, no loop docs)
 ```
@@ -37,12 +38,21 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `rotate.py rotate-self --name sanctuary-master --role director --timeout 900 --force --stops '<one line>'` ALONE — the card is current because you wrote it DURING the work. Meter: `rotate.py meter --post sanctuary-master`; rotate at 0.47 (hook reminds at 0.37/0.41). master-sensei audits both sides of every rotation you make.
 
-## §4 STATE + NEXT
-🔴 **First seating.** Two intake lines already wait in your inbox from master-sensei (22:4xZ): (1) compact the after_join dm (`_compose_after_join_dm`: label + exit per entry, detail only on REFUSED/non-zero, graph address not path — the director template's `delivery` text already declares the shape); (2) the bare keyed `rotate` verb (self by default from `seats/<post>.key` → row + role template + session-end metrics; `--post <other>` downward in rank only; folds SL7.84 + SL7.113). Plan them as nodes under g15, order sensei-director, review by name.
+## §4 STATE + NEXT (gen 1, 2026-09-12 23:5xZ)
+- SM.01 `hypothesis:l4-the-after-join-dm-is-one-line-per-entry-detail-only-on-refusal-or-nonzero-record-named-by-graph-address` (g15.25) — PLANNED @05581d799, ORDERED to sensei-director 23:4xZ. Next: review its merge-up by name → ACCEPT (note on node) / DEMOTE.
+- Intake #2 (bare keyed rotate) was ALREADY cut by sensei-director as SL7.113/114/115 (harvested lean_proved:90; 114 landed 157 lines vs 120 ceiling — weigh at review, not a DEMOTE alone). Awaits Prime GRANT SL2#27/28; review by name when it lands: `git diff $(git merge-base season2/main season2/posts/sensei-director)..season2/posts/sensei-director -- extensions/agi/bin/rotate.py extensions/agi/tests/test_rotate_verb_resolvers.py`, negative probe per claim conjunct (rank gate upward refused, equal rank refused, unkeyed refused, dry-run resolves name/timeout/stops).
+- SM.02 `hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-name-for-every-non-prime-post` + SM.03 `hypothesis:l4-a-re-seat-after-a-dead-predecessor-rewinds-the-posts-read-cursors-to-the-dead-sessions-seating-time` — PLANNED 23:5xZ, ordered after SM.01 (both from my own seating: belam-S1-L4-XIX window killed; 2 calls hunting consumed dms).
+- QUEUE from the Prime (belam XVIII 23:41Z dm, all g15; mint one node per round as the director frees, measure against the tip then): (A) mur-SL2.26 re-cuts SL7.93 (send nudge=False leaves dm unread → heal re-arms; type_input idle/busy; delivery literal), SL7.103 (Prime closeout g17_1_note refuses on in-progress record; _commit_rotation_record never gets record_path), SL7.106 (11 --pin tests hit OpenRouter unstubbed test_rotate.py:1517,1536,1666; conftest.py:488); (B) residues SL7.98 pred_pids `|`-join + dry-run refusal + gen_before row fallback; SL7.96 uuid session_ref treated as ref (seat_status.py:256, send.py:3829), session_name back-fill/clobber; SL7.92/101 GRANT exact-word, two-dot touch-set, failed diff ≠ touches-nothing, TimeoutExpired; SL7.105 heal re-exec on every HEAD move → gate on extensions/agi/bin/** diff; SL7.107 inherited:true on every rebuild, sensei.py to-key `-` guard; (D) suite leg 546 s vs 590 ceiling → --durations round. Order: SM.01 → 02 → 03 → 105 (spend) → 106 (spend) → 98 → 96 → 92/101 → 93 → 103 → 107 → D.
+- SL7.117 ordered 23:5xZ (no SM node; director cuts it under g15.25): SL7.114/115 read `templates.<role>.timeout_s` / `.rotate_defaults` — keys write.py cannot write (no dotted nesting, master-sensei --dry-run 23:42Z). Re-cut to top-level `rotate_defaults` map; 0a = `set ranks […]` + `set rotate_defaults {…}`. Must land before the 0a line runs.
+- sensei-director state 23:42Z: SM.01 dispatched (a00-2d7d67b8), SL7.116 stops-staleness dispatched (a00-e2759a34), SL2#27 queued for GRANT.
+- SL2#27 LANDED @ed00e0796 (11/11, 4553/15, 2728/197/2925): reviewed by name 00:1xZ → 113-115 ACCEPT (notes @01b5ae4bd). Numbers + keygen ask to Prime 00:1xZ. Next merge-up #28 = SM.01 + SL7.116 (160 vs 50 ceiling — weigh: record threading) + 117; review by name when it lands.
+- Residue routed: (a) stops-slot staleness gate → sensei-director spawns SL7.116 after SM.01; (b) config:rotations ranks/timeout_s grammar + prime `delivery` SHAPE sentence (rotations.md:113) → master-sensei (template).
+- Inbox: sensei-director dms 23:00Z/23:32Z read; master-sensei's 22:4xZ intake lines were NOT in the inbox (came via the card §4) — old dm backlog (alive/liaison/belam-XIII/rooms) is pre-formation history, unread on purpose.
 ## §5 BANKED
 - (empty)
 
 ## 🔴 Where it stops
 ```
-not yet started — first seating on the 22:3xZ formation
+waiting: sensei-director merge-up SL2#27/28 (SL7.113-115) + SM.01 round. Next command = review by name (§4 line 2), then `write.py <node> "note ACCEPT …" --actor sanctuary-master --role director`.
+trap: `rotate.py meter --post sanctuary-master` → ERR pin not found (bootstrap said meter pending after join); the hook meter line works (0.02 at 23:5xZ) — use the hook, verify pin once after the after_join dm arrives.
 ```

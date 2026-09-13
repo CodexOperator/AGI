@@ -552,6 +552,143 @@ def _mirror_terminal_into_manifest(ap: Path, rec: dict, agent_id: str) -> None:
               "manifest (best-effort)", file=sys.stderr)
 
 
+# hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-verdict-without-
+# one-parent-run-negative-probe-per-claim-conjunct -- a PARENT that records a
+# verdict asserting its kids' claims are proved (>= inconclusive_lean_proved:50,
+# or proved) owes one parent-run negative probe per CLAIM CONJUNCT of the
+# target hypothesis. `done` refuses the record by name until those probes exist.
+# disproved and leans below 50 assert nothing to prove, so they need none.
+_PROBE_REQUIRED_RE = re.compile(
+    r"^(proved|inconclusive_lean_proved:(?:[5-9]\d|100))$"
+)
+#: The six fields a parent-run NEGATIVE probe must carry to count as covering
+#: its conjunct (hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-
+#: verdict-without-one-parent-run-negative-probe-per-claim-conjunct, claim 5).
+#: A bare {"conjunct": n} satisfies the letter of the schema and loses the
+#: mechanism -- the point is a parent actually RAN a probe.
+_PROBE_KEYS = {"conjunct", "class", "cmd", "expected", "observed", "result"}
+#: `class` is one of the three probe kinds the gate can name.
+_PROBE_CLASSES = {"auth", "gate", "wire"}
+
+
+def _probe_defect(p) -> str:
+    """Why probe dict `p` does not count as a parent-run negative probe, or
+    '' when it is valid. Names a missing key or an out-of-range `class` so a
+    refusal can tell the parent which probe to fix."""
+    if not isinstance(p, dict):
+        return "not a dict"
+    missing = sorted(_PROBE_KEYS - set(p))
+    if missing:
+        return "missing key(s): " + ", ".join(missing)
+    cls = p.get("class")
+    if cls not in _PROBE_CLASSES:
+        return "invalid class %r (want one of auth/gate/wire)" % (cls,)
+    return ""
+#: The numbered `(1) (2) (3) ...` CLAIM items of a hypothesis node = its
+#: conjuncts. Same reading the sensei-director's L4.327 draft counts against.
+_CLAIM_ITEM_RE = re.compile(r"\(\s*(\d+)\s*\)")
+
+
+def _parse_probes(value):
+    """Accept `--probes` as a JSON list of probe dicts (a single dict is
+    tolerated too). Returns the list, or None when absent/unparseable."""
+    if not value:
+        return None
+    try:
+        data = json.loads(value)
+    except Exception:
+        return None
+    if isinstance(data, dict):
+        return [data]
+    if isinstance(data, list):
+        return data
+    return None
+
+
+def _target_hypothesis_node(root: Path, parent, node_id):
+    """Resolve the hypothesis node whose numbered CLAIM items the probe gate
+    counts conjuncts against: `--parent` when it is a hypothesis, else
+    `--node-id`. Returns the file path, or None when neither resolves."""
+    for pid in (parent, node_id):
+        if pid and str(pid).startswith("hypothesis:"):
+            nf = _find_node_file(root, pid)
+            if nf and nf.exists():
+                return nf
+    return None
+
+
+def _claim_conjunct_numbers(node_file: Path) -> list:
+    """The distinct numbered claim-item numbers across the hypothesis's
+    `testable_claim` frontmatter field and its body -- its conjunct set."""
+    nums = []
+    try:
+        text = node_file.read_text()
+        fm = frontmatter.read_frontmatter(text)
+        tc = fm.get("testable_claim") if isinstance(fm, dict) else None
+        if isinstance(tc, str):
+            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(tc)]
+        parts = frontmatter.split_frontmatter(text)
+        if len(parts) >= 2:
+            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(parts[1])]
+    except Exception:
+        return []
+    return sorted(set(nums))
+
+
+def _parent_probe_gate(root: Path, rec: dict, args, verdict: str):
+    """Decide whether a tier-parent `done` asserting provedness can be recorded.
+
+    Returns (error, active, covered):
+      error  -- a refusal string when the gate blocks, else None;
+      active -- True when the gate applied at all (tier parent, decisive
+                verdict, a target hypothesis with conjuncts resolved);
+      covered -- the sorted conjunct numbers the given probes cover.
+    A probe only covers its conjunct when it carries all six fields and a
+    legal `class`; malformed probes are named but not counted, so the refusal
+    tells the parent which probe to fix. `--dry-run` lets the caller print the
+    decision (pass or refusal) without any write."""
+    if rec.get("tier") != "parent":
+        return None, False, []
+    if not _PROBE_REQUIRED_RE.match(verdict):
+        return None, False, []
+    target = _target_hypothesis_node(root, args.parent, args.node_id)
+    if target is None:
+        return (f"ERR: tier-parent verdict '{verdict}' requires one negative "
+                f"probe per claim conjunct of the target hypothesis, but no "
+                f"hypothesis node resolved from --parent/--node-id to count "
+                f"conjuncts against."), True, []
+    conjuncts = _claim_conjunct_numbers(target)
+    if not conjuncts:
+        return None, False, []
+    covered = set()
+    defects = []  # (conjunct, why) for probes not counted
+    _given = _parse_probes(getattr(args, "probes", None)) or rec.get("probes") or []
+    for p in _given:
+        c = p.get("conjunct") if isinstance(p, dict) else None
+        d = _probe_defect(p)
+        if d:
+            defects.append((c, d))
+            continue
+        if isinstance(c, int):
+            covered.add(c)
+    missing = sorted(n for n in conjuncts if n not in covered)
+    if not missing:
+        return None, True, sorted(covered)
+    names = ", ".join(str(n) for n in missing)
+    msg = (f"ERR: tier-parent verdict '{verdict}' recorded without a "
+            f"parent-run negative probe for claim conjunct(s): {names}. "
+            f"Each numbered CLAIM item of the target hypothesis needs at "
+            f"least one probe {{\"conjunct\",\"class\",\"cmd\",\"expected\","
+            f"\"observed\",\"result\"}} -- pass --probes '[{{\"...\"}}]' "
+            f"or --dry-run to preview.")
+    if defects:
+        bad = ", ".join(
+            f"conjunct {c}: {d}" if c is not None else f"? : {d}"
+            for (c, d) in defects)
+        msg += f" Malformed probe(s) not counted: {bad}."
+    return msg, True, sorted(covered)
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -652,6 +789,46 @@ def cmd_done(args: argparse.Namespace) -> int:
     verdict = gate.verdict
 
     rec = json.loads(ap.read_text())
+
+    # hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-verdict-...
+    # -- refuse (nothing written) before recording a parent verdict that
+    # asserts provedness without one negative probe per target claim conjunct.
+    _probe_err, _probe_active, _probe_covered = _parent_probe_gate(root, rec, args, verdict)
+    if _probe_err is not None:
+        if bool(getattr(args, "dry_run", False)):
+            print(f"[dry-run] {_probe_err}")
+            return 0
+        print(_probe_err, file=sys.stderr)
+        return 2
+    # DEFECT 1 (claim clause 4): a dry-run flag must never mutate -- the pass
+    # path printed nothing and fell straight through to a write. Any `done`
+    # under `--dry-run` exits 0 here before rec mutation or any write, whether
+    # the probe gate refuses (above) or passes (below).
+    # DEFECT 2 (claim clause 4): the dry-run exit above (refusal) and below
+    # (PASS / not-applicable) is unconditional on the gate's ACTIVITY. The
+    # earlier guard was scoped `and _probe_active`, so whenever the gate did
+    # not apply -- kid tier, `disproved`, a lean below :50 -- control fell
+    # through to `rec["status"] = "done"` and a real write. The parent ran
+    # `--dry-run` on a disproved verdict and got a mutated agent.json. A
+    # dry-run flag that mutates is worse than no flag; it must exit 0 HERE,
+    # before any rec mutation, before ap.write_text, before the manifest
+    # mirror, and before _append_verdict_to_node -- for EVERY tier and EVERY
+    # verdict.
+    if bool(getattr(args, "dry_run", False)):
+        if _probe_active:
+            cov = ", ".join(str(n) for n in _probe_covered)
+            print(f"[dry-run] tier-parent probe gate: PASS "
+                  f"({len(_probe_covered)} probe(s) cover conjunct(s) {cov})")
+        else:
+            if rec.get("tier") != "parent":
+                _why = f"tier={rec.get('tier') or '?'}"
+            elif not _PROBE_REQUIRED_RE.match(verdict):
+                _why = f"verdict={verdict}"
+            else:
+                _why = "target hypothesis has no claim conjuncts to count"
+            print(f"[dry-run] tier-parent probe gate: not applicable ({_why})")
+        return 0
+
     rec["status"] = "done"
     rec["finished_at"] = int(time.time())
     rec["verdict"] = verdict
@@ -667,6 +844,9 @@ def cmd_done(args: argparse.Namespace) -> int:
     # evidenced verdict would fail its own gate on the next read. The count is
     # derived; the ids are the evidence.
     rec["evidence_runs"] = list(runs) if isinstance(runs, (list, tuple)) else gate.evidence_runs
+    _probes = _parse_probes(getattr(args, "probes", None))
+    if _probes:  # recorded like evidence_runs -- same record, same commit
+        rec["probes"] = _probes
     if gate.demoted:
         rec["demoted_from"] = gate.original
         rec["demote_reason"] = gate.reason
@@ -687,7 +867,8 @@ def cmd_done(args: argparse.Namespace) -> int:
                                     args.next_edge, gate, root=root,
                                     node_id=args.node_id,
                                     evidence_runs=args.evidence_runs,
-                                    push_further=getattr(args, "push_further", None))
+                                    push_further=getattr(args, "push_further", None),
+                                    probes=_parse_probes(getattr(args, "probes", None)))
             # goal:s31 -- the completion half. A scaffold is born with what the
             # engine can derive from a slug; the rest is content only the kid
             # has, and the kid wrote it into the BODY because a kid writing
@@ -997,7 +1178,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                             root: Path | None = None,
                             node_id: str | None = None,
                             evidence_runs: list | tuple | None = None,
-                            push_further: str | None = None) -> None:
+                            push_further: str | None = None,
+                            probes: list | None = None) -> None:
     """Add verdict frontmatter fields to an existing node file.
 
     `root`/`node_id` are how this reaches `node_writer.update_node`; both
@@ -1026,6 +1208,11 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
         # node citing itself as evidence survives a later grid-commit re-check.
         # Store the raw cited ids (the node IDs), not the resolved count.
         set_fm["evidence_runs"] = list(evidence_runs)
+    if probes:
+        # hypothesis:l4-cli-done-for-tier-parent-refuses-... — the parent's
+        # negative probes are recorded like evidence_runs: same commit, same
+        # node, so a later reader of the frontmatter can weigh the claim.
+        set_fm["probes"] = probes
     if gate is not None:
         if gate.demoted:
             set_fm["demoted_from"] = gate.original
@@ -3870,6 +4057,18 @@ def main() -> int:
         "--no-spawn-gate", action="store_true",
         help="LOUDLY bypass the S17 spawn gate on the fallback verdict-node "
              "path. Stamps 'spawn_gate: bypassed'; treat as unreviewed.")
+    p_done.add_argument(
+        "--probes", default=None,
+        help="JSON list of the parent-run negative probes, one per claim "
+             "conjunct of the target hypothesis: [{'conjunct':1,"
+             "'class':'wire','cmd':...,'expected':...,'observed':...,"
+             "'result':'refused'}]. Hypothesis:l4-cli-done-for-tier-parent-...: "
+             "required (refused by name, nothing written) for a tier-parent "
+             "recording a verdict >= inconclusive_lean_proved:50 or proved.")
+    p_done.add_argument(
+        "--dry-run", action="store_true",
+        help="print the tier-parent probe gate's decision without writing "
+             "anything (refusal shows the missing conjunct numbers).")
     p_done.set_defaults(func=cmd_done)
 
     p_pend = sub.add_parser("pending")
