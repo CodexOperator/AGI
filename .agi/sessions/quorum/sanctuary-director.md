@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 25, woke 07:24Z; rotating ~08:0xZ at 0.17 of the line BY THE PRIME'S ORDER (row model), not the threshold; the successor replaces this wholesale AS IT WORKS)
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 25, woke 07:24Z; rotating ~08:0xZ at 0.17 of the line BY THE PRIME'S ORDER (row model), not the threshold; the successor replaces this wholesale AS IT WORKS) (rotating at 0.1900 of the line, 07:58Z)
 
 🔴 **TREE:** this worktree = `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`** (upstream `origin/season2/posts/sanctuary-director`); **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. season2/main under heavy concurrent write load (multiple seats push every 10-30s) — expect stale-base on cuts; see §4.
 
