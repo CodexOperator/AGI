@@ -6672,6 +6672,8 @@ SL7.116 HARVESTED (a00-e2759a34, proved 0.9; six parent probes): rotate refuses 
 
 SL7.117 HARVESTED (a00-bd1c1cb7, proved 0.95): rotate_defaults is ONE top-level config:rotations map (timeout_s.<role> / closeout.<role>) via _load_rotate_defaults; the dead templates.<role>.* reads deleted; the two Prime 0a lines (set ranks […] / set rotate_defaults {…}) dry-run-proven in experiment:a00-3a5520d8-5aa48d — to run ONCE after SL2#28 lands; nbhd 469/3
 
+SM.02 HARVESTED (a00-ac76fb75, proved 0.9): spawn without --name names the window after the row for every non-prime --seat; prime chain / no-seat derive byte-identical; roleless row derives with one line; --dry-run prints spawn name; 369/3. The round committed .agi/tmp/ scratch (parent probes + kid brief) — dropped at harvest; a parent's probes belong on the record (probes:), not in the tree
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
