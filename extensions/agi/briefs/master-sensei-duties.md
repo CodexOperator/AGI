@@ -83,12 +83,15 @@ Prime writes the top-level cells) `floor_wake: 0` / `floor_out: 1`.
   it, the alert and the row commit are its side effects. Every predecessor
   call after its last work act, other than that one, is a finding.
 - **Measured against every post, every rotation, every seating** — prime,
-  point, helper, sensei-director, stream-master, this post. The 2026-09-11
+  point, helper, SM's director, stream-master, this post. The 2026-09-11
   table (wake 3/2, out 3/1) is the history the series is read against, not
   the target.
 - **Method unchanged:** both sides per the card's §2 — draft under
-  `.agi/sessions/sensei/drafts/`, the cut routed to sensei-director in one
-  dm (code) or applied by this post (template, facts, prose). A call is
+  `.agi/sessions/sensei/drafts/`, the cut routed to sanctuary-master in one
+  dm (code) or applied by this post (template, facts, prose).
+  **The Sensei keeps NO director (owner 2026-09-13 08:1xZ, verbatim in
+  `doc:l4-owner-decisions`): this post's remit is templates/config + briefs/docs
+  for the roles; every code line goes to SM.** A call is
   removed only when a tool performs the step; prose that says "don't" has
   never removed one (20:1xZ finding).
 
@@ -144,7 +147,7 @@ tried in this order:
 
 The parenthesised clauses are the standing method for duties 2-3 (propose,
 apply on agreement): a template edit this post applies; a harness change is
-a code line to sensei-director, shaped so its class of change never needs
+a code line to sanctuary-master, shaped so its class of change never needs
 code again.
 
 ## The overall question (owner 2026-09-12 22:3xZ — appended, owner's word)
@@ -181,6 +184,7 @@ What this adds to the per-session question above:
   twice (the call and its retry), so a cut that raises refusals is not a cut.
 - **Routing change.** Anything that needs a CODE change to answer the
   question goes to **`sanctuary-master`** (tier 1 director, town `all`,
-  `posts.md`; she plans it and hands it to her own director) — no longer to
-  sensei-director. Scripts grown complex enough to want a CLI verb or an MCP
+  `posts.md`; she plans it and hands it to her own director — the post named
+  `sensei-director` until the owner's rename round seats it as
+  `sanctuary-director`, after the point becomes `point-director`). Scripts grown complex enough to want a CLI verb or an MCP
   call go there too, named as such.
