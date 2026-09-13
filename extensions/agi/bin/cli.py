@@ -3651,6 +3651,17 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                 return 1
             print("dry-run: nothing changed")
             return 0
+        if apply and kinds & {"town_main", "main", "post", "loop"}:
+            # l4-apply-runs-the-v3-tail (claim a): the v3 apply tail must run
+            # even when there are ZERO legacy rename jobs — the trunk-pair
+            # creates + v3 post renames are INDEPENDENT of the v2 renames, so
+            # an empty legacy list must not bypass the v3 plan. rc-honest like
+            # the main apply tail: a failed git run returns 1 and names it.
+            if _rs_v3_run(repo, root, kinds, False, has_origin):
+                return 1
+            print("apply: local renames + worktree re-points done; remote "
+                  "legacy branches NOT deleted (see --delete-old)")
+            return 0
         if not (apply or delete_old):
             print("dry-run: nothing changed")
         return 0

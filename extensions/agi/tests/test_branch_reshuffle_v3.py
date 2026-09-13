@@ -498,6 +498,56 @@ def test_v3_apply_creates_trunk_pairs_renames_posts_locally_and_repoints(
 
 
 # --------------------------------------------------------------------------
+# l4-apply-runs-the-v3-tail (claim a): --apply with ZERO legacy rename jobs
+# must NOT be bypassed by the zero-legacy early return — the v3 apply tail
+# (trunk-pair creates / local post renames) is INDEPENDENT of the v2 renames,
+# so an empty legacy list still runs the v3 plan. Only a tmp fixture.
+# --------------------------------------------------------------------------
+
+def _v3_zero_legacy_repo(tmp_path: Path) -> Path:
+    """_v3_repo (declared town set) with the ONE legacy alias erased: the
+    default `master` ref is a season-grammar alias (master -> season1/main),
+    so deleting it after moving the checkout leaves ZERO legacy rename jobs —
+    exactly the zero-jobs surface claim (a) guards. Every other branch is a
+    canonical season name (never an alias)."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _git(r, "checkout", "-q", "season2/main")
+    _git(r, "branch", "-D", "master")
+    return r
+
+
+def test_v3_apply_zero_legacy_jobs_still_runs_the_v3_tail(tmp_path: Path):
+    # claim (a): with jobs == [] under --apply, the zero-legacy early return
+    # must still reach the v3 apply tail (rc-honest, dry=False) — the
+    # local-only v3 post renames perform even when there is nothing to rename
+    # in the v2 legacy stream.
+    r = _v3_zero_legacy_repo(tmp_path)
+    root = r / ".agi"
+    posts = {"season2/posts/sanctuary-director",
+             "season2/posts/sanctuary-helper"}
+    before = _heads(r)
+    assert posts <= before, before
+    assert "master" not in before, before  # the zero-jobs premise
+
+    res = _run_cli(root, "--apply", "--kinds", "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    # the zero-jobs notice AND the v3 APPLY tail both appear
+    assert "no legacy branches to reshuffle" in res.stdout, res.stdout
+    assert "[APPLY] branch rename (local, v3)" in res.stdout, res.stdout
+    assert "apply: local renames + worktree re-points done; remote legacy " \
+        "branches NOT deleted (see --delete-old)" in res.stdout, res.stdout
+    # the local-only v3 post renames ACTUALLY happened (sources gone, v3
+    # post_mains present), all on the tmp fixture with its bare origin
+    after = _heads(r)
+    assert posts.isdisjoint(after), (posts & after, sorted(after))
+    for new in ("core/season2/posts/sanctuary-director/main",
+                "core/season2/posts/sanctuary-helper/main"):
+        assert new in after, (new, sorted(after))
+        up = _git(r, "rev-parse", "--abbrev-ref", f"{new}@{{u}}")
+        assert up.returncode != 0, (new, up.stdout, up.stderr)  # no upstream
+
+
+# --------------------------------------------------------------------------
 # I-3a-2 Region B — the KIND LOOPS plan (dry-only). A v3 town-first loop
 # branch is classified by the EXISTING loop-prune rule over the SAME derived
 # post_main: merged (ancestor of the post) -> a would-prune [DRY ] line;
