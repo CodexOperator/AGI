@@ -6678,6 +6678,8 @@ SM.03 HARVESTED (a00-c90274bc, proved 0.8; four parent probes): a re-seat after 
 
 SM.04 HARVESTED (a00-241401ad, proved 0.85; SL7.105 re-cut): heal watch re-execs only when a head move touches extensions/agi/bin AND the tree is clean; prose-only move adopts with one line; dirty tree keeps the old identity; heal nbhd 141/3
 
+SM.31 harvested (experiment:a00-13fe010f-be0447, proved 0.9) -- inbox READ_MARKER rewind closes SM.03b; parent died mid-round, director recovered + fixed a comms_root gap the kids own test exposed. kid2 (a00-f0e96d95) crashed on an upstream model error, verdict pending, no content.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
