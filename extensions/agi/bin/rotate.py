@@ -8356,6 +8356,49 @@ def _ack_seats_dirty(root: Path, top: Path, seat: str) -> str | None:
     return None
 
 
+_NO_CELL = object()
+
+
+def _ack_row_cells(diff_text: str):
+    """g15.25 clause (1): the CHANGED cells of the ack's own-row commit as
+    ``<cell>: <old> -> <new>`` lines, sorted by cell name, values cut at 40
+    chars with an ellipsis and ``key_history`` summarised as ``N -> M
+    entries``. None when the diff is not exactly one old and one new JSON row
+    (a parse failure / non-row diff) -- the caller falls back, never a
+    traceback."""
+    def _val(v):
+        s = "(absent)" if v is _NO_CELL else (
+            v if isinstance(v, str) else json.dumps(v))
+        return s if len(s) <= 40 else s[:40] + "\u2026"
+
+    old, new = [], []
+    for ln in diff_text.splitlines():
+        raw = ln[1:].strip()
+        if ln[:1] not in "-+" or not raw.startswith("- "):
+            continue
+        try:
+            row = json.loads(raw[2:])
+        except ValueError:
+            continue
+        if isinstance(row, dict):
+            (old if ln[:1] == "-" else new).append(row)
+    if len(old) != 1 or len(new) != 1:
+        return None
+    a, b = old[0], new[0]
+    out = []
+    for c in sorted(set(a) | set(b)):
+        ov, nv = a.get(c, _NO_CELL), b.get(c, _NO_CELL)
+        if ov == nv:
+            continue
+        if c == "key_history":
+            out.append("key_history: %d -> %d entries" % (
+                len(ov) if isinstance(ov, list) else 0,
+                len(nv) if isinstance(nv, list) else 0))
+        else:
+            out.append("%s: %s -> %s" % (c, _val(ov), _val(nv)))
+    return out or ["no cell changed"]
+
+
 def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
                       ref: str) -> tuple[bool, str]:
     """r3b/g15.24 belt — `rotate.py ack ... continue` (no `--no-commit`)
@@ -8454,14 +8497,20 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     show = subprocess.run(["git", "-C", str(top), "show", "--format=",
                            head.stdout.strip(), "--", rel],
                           capture_output=True, text=True)
-    lines = []
-    for ln in (show.stdout if show.returncode == 0 else "").splitlines():
-        if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
-            continue
-        if ln.startswith(("+", "-")):
-            lines.append(ln)
-    return (True, "ack: committed own row write (" + str(rel) + "):\n"
-            + "\n".join(lines) + f"\ngit -C {top} push")
+    show_text = show.stdout if show.returncode == 0 else ""
+    cells = _ack_row_cells(show_text)
+    if cells is None:
+        # a JSON parse failure / non-row diff: fall back to the WHOLE-ROW
+        # +/- output, byte-identical to before this cell printer.
+        cells = [ln for ln in show_text.splitlines()
+                 if ln.startswith(("+", "-"))
+                 and not ln.startswith(("+++", "---", "@@", "diff --git",
+                                        "index "))]
+        return (True, "ack: committed own row write (" + str(rel) + "):\n"
+                + "\n".join(cells) + f"\ngit -C {top} push")
+    prefix = "ack: committed own row write (" + str(rel) + "): "
+    return (True, "\n".join(prefix + c for c in cells)
+            + f"\ngit -C {top} push")
 
 
 def _push_season_branch(root: Path) -> str:
@@ -15029,18 +15078,21 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
             f"push={_push!r})")
 
 
-def _stamp_rotating_header(full: str, frac: float, hmz: str) -> str:
+def _stamp_rotating_header(full: str, frac: float, hmz: str,
+                           threshold: float) -> str:
     """Stamp the card's OWN `# SESSION HANDOFF` header with the rotation
     fact, in the SAME write that lands the where-it-stops slot.
 
     goal:g15.25 line (3) (hypothesis:l4-rotate-self-stamps-the-card-header-
     itself... (a)): the FIRST line matching `^# SESSION HANDOFF` gains exactly
-    ONE trailing parenthetical ` (rotating at <frac> of the line, <HH:MMZ>)`;
+    ONE trailing parenthetical ` (rotating at <frac> of <thr> window
+    (<pct>% of the line), <HH:MMZ>)`;
     when such a ` (rotating at` parenthetical is ALREADY present it is
     REPLACED, never double-appended (a second run re-stamps). A card with NO
     `# SESSION HANDOFF` header is returned byte-identical (never invent a
     header). Operates on the fully rendered card text."""
-    stamp = f" (rotating at {frac:.4f} of the line, {hmz})"
+    stamp = (f" (rotating at {frac:.4f} of {threshold:.3f} window "
+             f"({frac / threshold * 100:.2f}% of the line), {hmz})")
     lines = full.splitlines()
     for i, ln in enumerate(lines):
         if ln.startswith("# SESSION HANDOFF"):
@@ -15152,7 +15204,8 @@ def _stops_replace_fenced_region(lines: list[str], block: str):
 
 def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                          diff_gap: str | None = None,
-                         frac: float | None = None):
+                         frac: float | None = None,
+                         threshold: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
     own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
     any header whose title `_locate_where_it_stops` keys on -- 'where it
@@ -15180,7 +15233,7 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         full = full.rstrip("\n") + "\n\n" + extra + "\n"
         if frac is not None:
             full = _stamp_rotating_header(
-                full, frac, datetime.utcnow().strftime("%H:%MZ"))
+                full, frac, datetime.utcnow().strftime("%H:%MZ"), threshold)
         card_path.parent.mkdir(parents=True, exist_ok=True)
         card_path.write_text(full, encoding="utf-8")
         return full, "created"
@@ -15222,7 +15275,7 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
     full = _render_card(preamble, sections)
     if frac is not None:
         full = _stamp_rotating_header(
-            full, frac, datetime.utcnow().strftime("%H:%MZ"))
+            full, frac, datetime.utcnow().strftime("%H:%MZ"), threshold)
     card_path.parent.mkdir(parents=True, exist_ok=True)
     card_path.write_text(full, encoding="utf-8")
     return full, "replaced"
@@ -15976,8 +16029,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             #     already reads -- never re-derived), and passed down so the
             #     rotate-out is ONE card write + ONE commit.
             _frac = _seat_fraction(root, row)
+            _thr = load_ladder_field(root, "director_rotate_at",
+                                     DEFAULT_DIRECTOR_ROTATE_AT)
             _full, _slot = _write_stops_section(
-                _card, seat, _stops_text, diff_gap=_gap, frac=_frac)
+                _card, seat, _stops_text, diff_gap=_gap, frac=_frac,
+                threshold=_thr)
             if _full is None:
                 print(f"ERR: rotate-self --stops: {_slot}", file=sys.stderr)
                 return 2

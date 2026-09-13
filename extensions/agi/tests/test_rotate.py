@@ -3201,7 +3201,8 @@ def test_rotate_self_stops_dry_run_touches_nothing(
 def test_write_stops_section_stamps_rotating_header(tmp_path):
     """goal:g15.25 line (3) (a) — when a meter fraction is supplied the
     card's OWN `# SESSION HANDOFF` header is stamped in the SAME write:
-    exactly ONE ` (rotating at <frac> of the line, <HH:MMZ>)` parenthetical,
+    exactly ONE ` (rotating at <frac> of <thr> window (<pct>% of the
+    line), <HH:MMZ>)` parenthetical,
     REPLACED (not appended) on a second run, and a card with NO such header
     is left byte-identical apart from the stops slot."""
     from agi.bin import rotate as _r
@@ -3209,23 +3210,26 @@ def test_write_stops_section_stamps_rotating_header(tmp_path):
     card.parent.mkdir(parents=True)
     card.write_text("# SESSION HANDOFF — 2026-09-12 scratchpad\n\n"
                     "## Intro\nkeep this\n", encoding="utf-8")
-    body, slot = _r._write_stops_section(card, "s", "fix seat-3", frac=0.4)
+    body, slot = _r._write_stops_section(card, "s", "fix seat-3", frac=0.4,
+                                         threshold=0.8)
     assert slot == "created"
     head = body.splitlines()[0]
-    assert "rotating at 0.4000 of the line, " in head
+    assert "rotating at 0.4000 of 0.800 window (50.00% of the line), " in head
     assert head.count("rotating at") == 1
     assert "keep this" in body
     # a SECOND stamp REPLACES the parenthetical — never a second one
-    body2, _ = _r._write_stops_section(card, "s", "now this", frac=0.5)
+    body2, _ = _r._write_stops_section(card, "s", "now this", frac=0.5,
+                                       threshold=0.8)
     head2 = body2.splitlines()[0]
     assert head2.count("rotating at") == 1
-    assert "rotating at 0.5000 of the line, " in head2
+    assert "rotating at 0.5000 of 0.800 window (62.50% of the line), " in head2
     assert "rotating at 0.4000" not in head2
     # a card with NO `# SESSION HANDOFF` header: never invent one
     plain = tmp_path / "quorum" / "p.md"
     plain.write_text("# plain pitch\n\n## Intro\ncarried\n",
                      encoding="utf-8")
-    pbody, _ = _r._write_stops_section(plain, "s", "fix", frac=0.5)
+    pbody, _ = _r._write_stops_section(plain, "s", "fix", frac=0.5,
+                                       threshold=0.8)
     assert "rotating at" not in pbody
     assert "carried" in pbody
     assert plain.read_text(encoding="utf-8").count("### 🔴 Where it stops")\
@@ -3517,7 +3521,7 @@ def test_rotate_self_stops_stamps_header_once_in_commit(
          "HEAD:sessions/quorum/adv-alive.md"],
         capture_output=True, text=True).stdout
     head_line = committed.splitlines()[0]
-    assert "rotating at 0.0100 of the line, " in head_line
+    assert "rotating at 0.0100 of 0.250 window (4.00% of the line), " in head_line
     assert head_line.count("rotating at") == 1
     # the committed card carries the where-it-stops text too, in the SAME
     # one write+commit
@@ -6542,8 +6546,8 @@ def test_ack_continue_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert msg == "belam ack: gen 7, session_ref f52a4c, window , pid"
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "session_ref:  -> f52a4c" in out        # only the CHANGED cell
+    assert '"name": "belam"' not in out          # never the whole row
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
 
@@ -6642,8 +6646,8 @@ def test_ack_diff_empty_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert files == ["proj/nodes/.geometry/seats.md"]   # seats.md ONLY
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "session_ref:  -> f52a4c" in out        # only the CHANGED cell
+    assert '"name": "belam"' not in out          # never the whole row
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
 
@@ -6882,6 +6886,66 @@ def test_ack_commit_stages_index_only_never_writes_seats(
     assert any('"name": "belam"' in ln for ln in changed)
     assert not any('"name": "other"' in ln for ln in changed), \
         "the ack commit must not change the foreign row"
+
+
+def test_ack_commit_prints_only_changed_cells(tmp_path, monkeypatch, capsys):
+    """g15.25 clause (1): the ack's own-row commit prints one line per
+    CHANGED cell — `<cell>: <old> -> <new>` sorted by cell — plus the exact
+    `git push` line, and NEVER the whole JSON row twice as +/-."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"session_ref": ""', '"session_ref": "f52a4c", "pid": 4242'),
+        encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam", SimpleNamespace(gen=7), "f52a4c")
+    assert ok, out
+    lines = out.splitlines()
+    assert lines[-1] == "git -C {0} push".format(top)
+    cell = [ln for ln in lines if " -> " in ln]
+    assert len(cell) == 2, out                     # exactly TWO cell lines
+    assert cell[0].endswith("pid: (absent) -> 4242"), out
+    assert cell[1].endswith("session_ref:  -> f52a4c"), out
+    assert all(len(ln) <= 120 for ln in lines), out
+    assert '"name": "belam"' not in out           # no whole-row line
+
+
+def test_ack_commit_summarises_key_history(tmp_path, monkeypatch, capsys):
+    """g15.25 clause (1): a `key_history` change prints the `N -> M
+    entries` summary, never the list itself."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"session_ref": ""',
+        '"session_ref": "f52a4c", '
+        '"key_history": [{"gen": 1}, {"gen": 2}]'), encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam", SimpleNamespace(gen=7), "f52a4c")
+    assert ok, out
+    assert "key_history: 0 -> 2 entries" in out, out
+    assert '"gen": 1' not in out and '"gen": 2' not in out, out
+
+
+def test_ack_commit_non_json_diff_falls_back(tmp_path, monkeypatch, capsys):
+    """g15.25 clause (1): a non-JSON diff makes the cell printer return None
+    (never a traceback) and the commit falls back to the old whole-row +/-
+    output."""
+    assert rotate._ack_row_cells(
+        "diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n"
+        "-old\n+new\n") is None
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"session_ref": ""', '"session_ref": "f52a4c"'), encoding="utf-8")
+    monkeypatch.setattr(rotate, "_ack_row_cells", lambda _t: None)
+    ok, out = rotate._ack_commit_seats(
+        root, "belam", SimpleNamespace(gen=7), "f52a4c")
+    assert ok, out
+    assert '"name": "belam"' in out               # whole row, old format
+    assert out.splitlines()[-1] == "git -C {0} push".format(top)
 
 
 def test_ack_foreign_edited_by_only_restamp_not_committed(
