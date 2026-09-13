@@ -1,0 +1,120 @@
+{
+  "rotation": "rotate-self",
+  "seat": "stream-master",
+  "recorded_at": "2026-09-13T19:14:14.488806Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "stream-master",
+      "windows": [
+        "belam-S1-L4-XVIII",
+        "belam-S1-L4-XVII",
+        "stream-master.gen2",
+        "sanctuary-helper",
+        "belam-S1-L4-XVI",
+        "stream-master",
+        "sanctuary-master",
+        "sensei-director",
+        "sanctuary-director",
+        "belam-S1-L4-XV",
+        "master-sensei",
+        "belam-S1-L4-XIX"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 1,
+      "after": 2
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/stream-master.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1287932,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "stream-master.gen2",
+      "windows": [
+        "belam-S1-L4-XVIII",
+        "belam-S1-L4-XVII",
+        "stream-master.gen2",
+        "sanctuary-helper",
+        "belam-S1-L4-XVI",
+        "stream-master",
+        "sanctuary-master",
+        "sensei-director",
+        "sanctuary-director",
+        "belam-S1-L4-XV",
+        "master-sensei",
+        "belam-S1-L4-XIX"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -38.3
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "stream-master.gen2",
+      "id": "@312"
+    },
+    "successor_window": {
+      "name": "stream-master",
+      "id": "@361"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@361",
+      "pid": 317533,
+      "session_id": "5ba55bce-a1d9-434d-b660-5bd0d8c934c8",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5ba55bce-a1d9-434d-b660-5bd0d8c934c8.jsonl",
+      "name": "agi-90",
+      "path": "/home/ubuntu/.claude/sessions/317533.json",
+      "note": "joined by @361 in registry file 317533.json"
+    },
+    "successor_row": "config:seats row 'stream-master': session_ref= session_name=agi-90 session_label=stream-master-g2 session_id=5ba55bce-a1d9-434d-b660-5bd0d8c934c8 pid=317533 generation=2 window='@361' source=registry pubkey=aa3bcee9586f1aab... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 11e4e4656) -- own-row only: stream-master spawn row: gen 2, session_id 5ba55bce-a1d9-434d-b660-5bd0d8c934c8, window @361, pid 317533\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/stream-master.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/stream-master.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/stream-master.ack.gen2.json",
+    "own_authority_released": "generation 1 of seat 'stream-master' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/main",
+    "livestream_repoint": {
+      "session": "view-stream-master",
+      "target": "@361",
+      "skipped": "view session view-stream-master absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/stream-master.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/stream-master.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3364701,
+      3364706,
+      3364722,
+      3364723
+    ],
+    "reap_source": "derived from own window @id @312 pane 3364701: chain [3364701, 3364706, 3364722, 3364723] (deepest-first; authority row pid 3364723)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-13T19:14:38.332676+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-13T19:14:14.488806Z"
+  }
+}
