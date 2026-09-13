@@ -1616,11 +1616,24 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             print(guard, file=sys.stderr)
             return 1
 
+    # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
+    # name-for-every-non-prime-post): a NON-prime --seat names the window.
     name = args.name
     if not name:
         existing = _existing_windows(args.tmux_session or DEFAULT_TMUX_SESSION,
                                      args.window_path)
-        name = _derive_successor_name(existing, prefix="belam")
+        _seat = getattr(args, "seat", None)
+        _row_nm = None
+        if _seat is not None and root is not None:
+            _rw = _find_seat(root, _seat)
+            if _rw is not None and not _rw.get("role"):
+                print(f"spawn: seat {_seat!r} has no role cell; deriving a "
+                      f"belam numeral", file=sys.stderr)
+            elif _rw is not None and _rw.get("role") != "prime_director":
+                _row_nm = _rw.get("name")
+        name = _row_nm or _derive_successor_name(existing, prefix="belam")
+    if args.dry_run and not args.name:
+        print(f"spawn name: {name!r}")
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     seat = getattr(args, "seat", None)
