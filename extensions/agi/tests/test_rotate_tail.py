@@ -597,7 +597,7 @@ def test_reap_chain_refuses_own_pid(_fix, tmp_path):
 def test_rotate_self_kills_window_by_id_full_flow(_fix, tmp_path,
                                                   monkeypatch):
     """The full rotate-self call kills the predecessor window BY its @id: the
-    window-path line `@5 adv-alive.gen1` (the renamed own window) is dropped,
+    window-path line `@5 adv-alive.prev` (the renamed own window) is dropped,
     the successor's plain-name line survives."""
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
@@ -605,7 +605,7 @@ def test_rotate_self_kills_window_by_id_full_flow(_fix, tmp_path,
     win = tmp_path / "windows.txt"
     # the renamed own window carries its @id (s2 capture); the successor is
     # the plain name below it.
-    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    win.write_text("@5 adv-alive.prev\nadv-alive\n", encoding="utf-8")
 
     def fake_spawn(**kw):            # successor appears under the plain name
         with open(win, "a", encoding="utf-8") as fh:
@@ -623,7 +623,7 @@ def test_rotate_self_kills_window_by_id_full_flow(_fix, tmp_path,
         rc = rotate.cmd_rotate_self(args, tmp_path)
         assert rc == 0
         after = win.read_text(encoding="utf-8")
-        assert "adv-alive.gen1" not in after      # own window reaped by @id
+        assert "adv-alive.prev" not in after      # own window reaped by @id
         assert "adv-alive" in after               # successor survives
         assert not rotate._pid_alive(proc.pid)    # chain reap happened
         rec = _latest_record(tmp_path, "adv-alive")

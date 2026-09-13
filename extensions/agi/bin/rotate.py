@@ -804,21 +804,17 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
 
 
 def _session_label(row: dict | None, gen: int) -> str | None:
-    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
-    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
-    the app-GUI session label of a non-prime post = `<name>-<label_word>-g<gen>`
-    when the row cell `label_word` is a non-empty string, else `<name>-g<gen>`.
-    A prime_director row (and an absent row) has NO label — return None and
-    let the caller keep the chain numeral / window name unchanged. Derived
-    ONLY from the row (the config:posts `label_word` cell — a formation fact
-    the Prime writes), never from a card, never a hand flag."""
+    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
+    every-surface-seatings-key-on-session-id-and-the-label-is-the-post-name-
+    alone): the app-GUI session label of a non-prime post is the ROW NAME
+    ALONE — no `label_word`, no `-g<gen>`. `gen` is accepted for call-site
+    compatibility and read by nothing. A prime_director row (and an absent
+    row) has NO label — return None and let the caller keep the chain numeral
+    / window name unchanged. Derived ONLY from the row's `name`, never from a
+    card, never a hand flag, never `label_word` (that cell is retired)."""
     if not row or row.get("role") == "prime_director":
         return None
-    _nm = (row.get("name") or "").strip()
-    _lw = (row.get("label_word") or "").strip()
-    if _lw:
-        return f"{_nm}-{_lw}-g{gen}"
-    return f"{_nm}-g{gen}"
+    return (row.get("name") or "").strip() or None
 
 
 # ---- successor command ----------------------------------------------------
@@ -3977,6 +3973,25 @@ def _seat_hands(root: Path) -> Path:
     seat here: `<S>.handoff.md`, carrying `seat`, `generation`, `rotated_at`,
     `predecessor_session`."""
     return _sessions_dir(root) / "seats"
+
+
+#: The ONE role that keeps a generation chain. Everything else is
+#: generation-less (goal:g15.25, hypothesis:l4-non-prime-posts-are-generation-
+#: less-on-every-surface-...): a non-prime seating is keyed on session_id +
+#: pid + window + timestamp, and its seat row never carries a `generation`
+#: cell. The internal rotation generation survives the row only in the
+#: handoff header (the `_generation_measured` fallback), never on a surface a
+#: human or model reads as identity.
+PRIME_ROLES = ("prime", "prime_director")
+
+
+def _is_prime_role(role: str | None) -> bool:
+    """Whether `role` is the Prime — the one role whose seat row keeps a
+    `generation` cell. A non-prime role (director, helper, throwaway) is
+    generation-less: its row is written without the cell (claim (6-rows) of
+    the parent hypothesis). Never inferred from a seat NAME; the role is
+    supplied by the caller from the seat row (or --role for a throwaway)."""
+    return str(role or "") in PRIME_ROLES
 
 
 def _seat_row_generation(root: Path | None, name: str) -> int | None:
@@ -7791,8 +7806,11 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          key_rotation: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
-    Sets the seat's own row's `session_ref`/`session_id`/`generation`/`window`/
-    `pid`. L4.114 (s6): the source of the identity is the registry JOIN —
+    Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
+    for a PRIME role only — `generation` (goal:g15.25 claim (6-rows): a
+    non-prime row is generation-less, so the cell is skipped and
+    `_read_generation` resolves through the handoff header instead).
+    L4.114 (s6): the source of the identity is the registry JOIN —
     `source: registry` is recorded in the handover (the row itself carries no
     `source` field; the L4.110/r3 self_row declaration admits exactly
     [session_ref, session_id, generation, window, pid]).
@@ -7818,8 +7836,17 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     the cells ride `_write_identity_cells` like every other identity cell,
     so they land in MAIN too). `pubkey`/`key_history`/`sig_scheme` are
     declared self_row fields, so admission holds."""
-    cells: dict = {"session_ref": session_ref, "generation": generation,
-                   "window": window}
+    # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-every-
+    # surface-...), claim (6-rows): the spawn/ack row writers never write a
+    # `generation` cell for a NON-prime row. A non-prime seating is keyed on
+    # session_id + pid + window; the internal rotation generation stays in the
+    # handoff header (`_generation_measured` falls back to it when the row
+    # carries no cell), so `_read_generation` still resolves. The prime chain
+    # is byte-identical: `_is_prime_role("prime_director")` is True and the
+    # cell is written exactly as before.
+    cells: dict = {"session_ref": session_ref, "window": window}
+    if _is_prime_role(role):
+        cells["generation"] = generation
     # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
     # cell...): the row's `session_name` is the harness registry NAME the
     # registry JOIN resolved (join['name'], e.g. agi-d7), '' when the join
@@ -7872,10 +7899,12 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
+    _gen_field = (f"generation={generation}" if _is_prime_role(role)
+                  else "generation=(none: non-prime is generation-less)")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_name={session_name} "
             f"session_label={cells.get('session_label', '')} "
-            f"session_id={session_id} pid={pid} generation={generation} "
+            f"session_id={session_id} pid={pid} {_gen_field} "
             f"window={window!r} source=registry{_extra}")
 
 
@@ -14709,7 +14738,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         try:
             _cn = _commit_spawn_row(
                 root, seat=seat,
-                generation=int(row.get("generation") or 0),
+                generation=_read_generation(root, seat),
                 session_id=str(row.get("session_id") or ""),
                 window=str(row.get("window") or ""),
                 pid=int(row.get("pid") or 0))
@@ -16257,13 +16286,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                       if own_chain_name else _read_generation(root, seat))
         spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
         _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
-        new_name = None   # .gen<N> own-window rename is plain-seat only
+        new_name = None   # the own-window rename is plain-seat only
     else:
         gen_before = _read_generation(root, seat)
         gen = gen_before + 1
         spawn_name = seat
         own_chain_name = None
-        new_name = f"{seat}.gen{gen}"
+        # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
+        # every-surface-...): the own window is renamed `<seat>.prev` — ONE
+        # predecessor window at a time, no generation in the name. The
+        # kill-by-@id path (s12) is unchanged.
+        new_name = f"{seat}.prev"
     # `pred_name` is the window that will be killed by @id at s12 after the
     # successor is confirmed: the renamed own window (plain seat) or the
     # predecessor's own numeral window (chain seat).

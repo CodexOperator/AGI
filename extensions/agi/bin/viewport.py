@@ -502,14 +502,17 @@ def load_seat_rows(root: Path, fm_by_id: dict):
     return list(rows), present
 
 
-_ROTATING_RE = re.compile(r"^(.+)\.gen\d+$")
+_ROTATING_RE = re.compile(r"^(.+)\.(?:gen\d+|prev)$")
 
 
 def rotating_seat(seat_rows: list, windows: list):
-    """`(holder, seat)` for the seat whose tmux window is renamed `<seat>.genN`.
+    """`(holder, seat)` for the seat whose tmux window is renamed aside.
 
-    The rotation loop names a rotating seat's window `<seat>.gen<digits>`
-    (`l3w4-seat-rotation-loops`); resolve that to the row's `rotated_by`
+    goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-...): the
+    rotation loop now names a rotating NON-PRIME seat's window `<seat>.prev`
+    (one predecessor window at a time, no generation); the LEGACY `<seat>.
+    gen<digits>` spelling (`l3w4-seat-rotation-loops`, still emitted by the
+    prime chain) is accepted too. Resolve either to the row's `rotated_by`
     holder. Never invented: no matching window returns `None`.
     """
     names = {str(r.get("name") or ""): r for r in seat_rows or []}
