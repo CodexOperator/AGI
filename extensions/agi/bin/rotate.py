@@ -12778,7 +12778,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     prompting it, but ONLY when it is mechanical: check 2 (dirty tree) passed
     AND `_merge_applies_clean` reports zero conflicts. A conflicting merge
     stays a BLOCK naming the paths; an unperformed behind stays a BLOCK with
-    the merge command."""
+    the merge command.
+
+    Concerning the fetch order: when `perform` is True, the ONE `fetch origin
+    <sb>` runs BEFORE the behind count, so a worktree whose local
+    remote-tracking ref has not moved since its last fetch still measures a
+    FRESH behind and can fast-forward itself to main inside the gate -- the
+    hand fetch+merge every worktree rotation (rotations.md:186) is retired.
+    `prepare`/`--dry-run` (perform False) run NO fetch -- fetch is a NETWORK
+    WRITE (the rotate.py:9600 producing allowlist holds; F14) -- and measure
+    against the local ref as today. A fetch that FAILS (network, 403) never
+    blocks: check 3 reports `behind origin/<sb> (unmeasured: fetch failed
+    <rc>)` and the rotation continues with the stale ref, exactly as today."""
     checks: list[tuple[bool, str, str]] = []
 
     # 1 unpushed commits on the checked-out branch. When `@{u}` does not
@@ -12875,6 +12886,20 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # (clause 5 of hypothesis:l4-branches-follow-the-season-grammar), so a
     # town seat targets its own town main, not a literal core main.
     _sb = _prepare_merge_target(root)
+    # claim (hypothesis:l4-prepare-fetches-before-it-measures-behind...):
+    # when perform is True, the ONE `fetch origin <sb>` runs BEFORE the
+    # behind count, so a worktree whose local origin/<sb> has not moved since
+    # its last fetch reads a FRESH behind, not a stale-behind-zero. A failed
+    # fetch (network, 403) never blocks -- reported `(unmeasured: fetch
+    # failed <rc>)` and the rotation continues with the stale ref. perform
+    # False (`prepare`/`--dry-run`) runs NO fetch at all (fetch is a NETWORK
+    # WRITE, the rotate.py:9600 allowlist holds; F14). ONE fetch only -- the
+    # old perform-branch fetch IS this one.
+    _fetch_failed: int | None = None
+    if perform:
+        _fp = _git_proc(root, "fetch", "origin", _sb)
+        if _fp is not None and _fp.returncode != 0:
+            _fetch_failed = _fp.returncode
     behind = _git_count_maybe(root, "rev-list", "--count",
                               f"HEAD..origin/{_sb}")
     # The clear command MERGES, never rebases: `never rebase` is a standing
@@ -12887,16 +12912,23 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         # an unmeasurable behind (no origin ref to count against) stays ok and
         # says so plainly, never a fabricated number
         checks.append((False, f"behind origin/{_sb} (unmeasured)", behind_clear))
+    elif _fetch_failed is not None:
+        # a failed fetch (network, 403) does NOT block: name the rc, treat the
+        # behind as unmeasured, and let the rotation continue on the stale ref
+        # exactly as it did before this claim.
+        checks.append((False,
+                       f"behind origin/{_sb} (unmeasured: fetch failed "
+                       f"{_fetch_failed})", behind_clear))
     elif perform and not dirty_paths and behind > 0:
         # `--perform` (rotate-self defaults ON): check 2 passed (tree clean)
         # and we are measurably behind. PERFORM the merge ONLY if it is
         # mechanical -- zero conflicts. A conflicting merge is exactly the
         # judgement-free-not case: stays a BLOCK naming the paths.
-        # MEASURE AND MERGE THE SAME REF (P1-a): fetch FIRST so the local
-        # `origin/<sb>` is fresh, then measure the conflict-free gate and
-        # merge THAT SAME ref. Measuring against a stale local ref and then
-        # merging the refreshed one was a DIFFERENT merge with no abort path.
-        _git_maybe(root, "fetch", "origin", _sb)
+        # MEASURE AND MERGE THE SAME REF (P1-a): the fetch already ran above
+        # (the ONE fetch), so `origin/<sb>` is fresh here; measure the
+        # conflict-free gate and merge THAT SAME ref. Measuring against a
+        # stale local ref and then merging the refreshed one was a DIFFERENT
+        # merge with no abort path.
         cf = _merge_applies_clean(root, _sb)
         if cf is True:
             merged = _perform_season_merge(root, _sb)
