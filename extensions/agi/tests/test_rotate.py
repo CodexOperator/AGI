@@ -816,6 +816,40 @@ def _seed_key_history_graph(root, rows):
     return graph
 
 
+def test_session_label_derives_from_row_word_and_gen(tmp_path):
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    `_session_label` = `<name>-<label_word>-g<gen>` for a non-prime row with a
+    `label_word` cell, `<name>-g<gen>` without one, and None for a prime row
+    / absent row (the caller keeps the chain numeral unchanged). Derived from
+    the ROW only — never a card, never a hand flag."""
+    assert rotate._session_label(
+        {"name": "post", "role": "director", "label_word": "main"},
+        3) == "post-main-g3"
+    assert rotate._session_label(
+        {"name": "post", "role": "director"}, 3) == "post-g3"
+    assert rotate._session_label(
+        {"name": "prime-win", "role": "prime_director"}, 3) is None
+    assert rotate._session_label(None, 3) is None
+
+
+def test_successor_row_write_stores_session_label(tmp_path):
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-...): the spawn row
+    write stores the seat's `session_label` = `_session_label(row, generation)`
+    beside session_name — the SAME string the rotation passes as the
+    --remote-control NAME. A prime/throwaway row stores '' (no label); the
+    ack back-fill never touches it."""
+    rows = [{"name": "s1", "role": "director", "label_word": "main"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=2, window="w")
+    assert "session_label=s1-main-g2" in out
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert own["session_label"] == "s1-main-g2"
+
+
 def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
     """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
     spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
