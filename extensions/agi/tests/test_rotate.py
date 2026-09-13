@@ -8439,3 +8439,31 @@ def test_status_flags_uuid_session_ref_as_stale(tmp_path, capsys):
     out = capsys.readouterr().out
     assert uid in out and "stale" in out and "session id" in out
     assert "agi-d7" in out  # session_name printed when present
+
+
+# hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-work-
+# and-done-salvage-finalizes-a-complete-round-from-the-record (clause 5) --
+# rotate.py's own join/ack record gains spawn_to_registry_s, omitted when the
+# successor never registered. Mirrors the heal.py late-join shape.
+
+def test_spawn_to_registry_s_measures_registry_mtime_minus_record(tmp_path):
+    import datetime as _dt
+    from agi.bin import rotate as _r
+    now = _dt.datetime.now(_dt.timezone.utc)
+    rec = {"recorded_at": (now - _dt.timedelta(seconds=4)).isoformat().replace(
+        "+00:00", "Z")}
+    fp = tmp_path / "4242.json"
+    fp.write_text("{}")
+    # force the registry file's mtime to ~2s after the record's recorded_at
+    target = (now - _dt.timedelta(seconds=2)).timestamp()
+    import os as _os
+    _os.utime(fp, (target, target))
+    lat = _r._spawn_to_registry_s(rec, 4242, registry_dir=str(tmp_path))
+    assert lat is not None and abs(lat - 2.0) < 0.01, lat
+
+
+def test_spawn_to_registry_s_omitted_when_never_registered(tmp_path):
+    from agi.bin import rotate as _r
+    rec = {"recorded_at": "2026-09-13T00:00:00Z"}
+    assert _r._spawn_to_registry_s(rec, 9999, registry_dir=str(tmp_path)) is None
+    assert _r._spawn_to_registry_s(rec, None, registry_dir=str(tmp_path)) is None
