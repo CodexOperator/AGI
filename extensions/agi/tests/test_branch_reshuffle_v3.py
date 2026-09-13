@@ -1259,3 +1259,298 @@ def test_v3_yield_colliding_post_seat_aliases_named_duplicate_each(
     assert f"git branch -m season2/posts/legacy-post {target}" in out, out
     # the derived post_main is never pushed
     assert f"git push -u origin {target}" not in out, out
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-delete-old-new-is-none-arm-bypasses-b2-and-would-delete-five-
+# live-branches. A `new is None` (direct-delete) job used to SKIP the whole
+# origin-presence gate, so a live season-first post / town branch with no v3
+# successor on origin was queued for unconditional `git push origin --delete`.
+# The gate now derives the job's remote-visible v3 successor and refuses by
+# name (all-or-nothing, nothing deleted) unless it is PRESENT on origin.
+# --------------------------------------------------------------------------
+
+_LIVE_DIRECT_DELETE = (
+    "season2/posts/sanctuary-director",
+    "season2/posts/sanctuary-helper",
+    "season2/streaming-suite/season1/main",
+    "season2/web-app-suite/season1/main",
+)
+
+
+def test_v3_delete_old_refuses_a_live_post_whose_successor_is_absent(
+        tmp_path: Path):
+    """SAFETY FALSIFIER: no v3 --apply has run, so no v3 trunk pair exists on
+    origin. Every live season-first post / town branch is a `new is None`
+    direct-delete job; the B2 successor gate must REFUSE them by name and
+    delete NOTHING. Pre-fix each printed `[APPLY] branch delete (remote)` and
+    was removed from the bare origin."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    root = r / ".agi"
+    stamp = root / "sessions/verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+    # precondition: the v3 successors really are absent on origin
+    for succ in ("core/season2/main", "streaming-suite/season1/main",
+                 "web-app-suite/season1/main"):
+        got = _git(r, "ls-remote", "origin",
+                   f"refs/heads/{succ}").stdout.strip()
+        assert not got, (succ, got)
+
+    res = _run_cli(root, "--delete-old", "--kinds", "posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "REFUSES" in res.stderr, res.stdout + res.stderr
+    for name in _LIVE_DIRECT_DELETE:
+        assert name in res.stderr, (name, res.stderr)
+        got = _git(r, "ls-remote", "origin",
+                   f"refs/heads/{name}").stdout.strip()
+        assert got, f"{name} was deleted despite an absent v3 successor"
+
+
+def test_v3_delete_old_dry_run_previews_the_successor_refusal(
+        tmp_path: Path):
+    """A --dry-run --delete-old preview must be HONEST: it names the refusal
+    for a live branch whose v3 successor is absent on origin and does NOT
+    print an unconditional `[DRY ] ... git push origin --delete <old>` line
+    for it (while still deleting nothing and exiting 0, as a dry run does)."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    res = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    for name in _LIVE_DIRECT_DELETE:
+        assert f"git push origin --delete {name}" not in out, (name, out)
+        assert "REFUSE branch delete (remote, v3 successor absent on " \
+               f"origin): {name}" in out, (name, out)
+    assert "would REFUSE 4 branch(es)" in res.stderr, res.stderr
+    assert "dry-run: nothing changed" in out, out
+    origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    for name in _LIVE_DIRECT_DELETE:
+        assert f"origin/{name}" in origin, (name, origin)
+
+
+def test_v3_delete_old_admits_when_the_successor_is_present_on_origin(
+        tmp_path: Path):
+    """POSITIVE TWIN: once a v3 --apply has pushed the town trunk the post
+    migrates into (`core/season2/main`), the season-first post alias is
+    ADMITTED by the gate and deleted exactly as before — the fix refuses an
+    UNMIGRATED branch, never a genuinely-migrated one."""
+    r = _v3_apply_repo(tmp_path)
+    root = r / ".agi"
+    stamp = root / "sessions/verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/core/season2/main").stdout.strip()
+    assert got, "fixture precondition: core/season2/main must reach origin"
+
+    res2 = _run_cli(root, "--delete-old", "--kinds", "posts,towns")
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    assert "REFUSES" not in res2.stderr, res2.stdout + res2.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert not gone, gone
+    gone_w = _git(
+        r, "ls-remote", "origin",
+        "refs/heads/season2/web-app-suite/season1/main").stdout.strip()
+    assert not gone_w, gone_w
+
+
+# --------------------------------------------------------------------------
+# mur-52 residues folded into the delete-old successor round:
+#   2a  a failed resume ls-remote probe / resume-push is COLLECTED and the
+#       run CONTINUES (post section runs), never an abort.
+#   2b  the refs/grid IDENTICAL|CHANGED line prints from the SAME position on
+#       BOTH apply arms, once, whether or not the v3 tail refuses.
+# --------------------------------------------------------------------------
+
+def test_v3_apply_failed_probe_collects_and_runs_the_post_section(
+        tmp_path: Path):
+    """Residue 2a: a failed resume probe must NOT abort before the post
+    section. Pre-fix it `return 1`ed at the FIRST failed trunk probe, so the
+    local post renames never ran. Post-fix the probe is refused by name,
+    collected, and the post section still renames the season-first posts."""
+    r = _v3_zero_legacy_repo(tmp_path)
+    planned = _planned_trunks()
+    for target, tip in planned:
+        _git(r, "branch", target, tip)  # local-only trunks -> resume probe leg
+    _git(r, "remote", "set-url", "origin", str(tmp_path / "bogus.git"))
+    root = r / ".agi"
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "ls-remote" in res.stderr, res.stderr
+    # the post section RAN despite the probe failures (residue 2a)
+    for post in ("sanctuary-director", "sanctuary-helper"):
+        target = f"core/season2/posts/{post}/main"
+        assert target in _heads(r), (target, sorted(_heads(r)))
+
+
+def test_v3_apply_failed_resume_push_collects_and_continues(
+        tmp_path: Path):
+    """Residue 2a (second site): a resume-push REJECTED by origin is
+    COLLECTED and the run continues to the next trunk and the post section.
+    A pre-receive hook rejects only `core/main`; a LATER trunk is still
+    pushed and the posts are still renamed -- neither happens if the failed
+    push `return 1`s."""
+    r = _v3_zero_legacy_repo(tmp_path)
+    planned = _planned_trunks()
+    for target, tip in planned:
+        _git(r, "branch", target, tip)  # all local-only -> resume-push leg
+    hook = (
+        "#!/bin/sh\n"
+        "while read old new ref; do\n"
+        "  if [ \"$ref\" = \"refs/heads/core/main\" ]; then\n"
+        "    echo 'blocked' >&2\n"
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    hooks_dir = tmp_path / "origin.git" / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    pre_receive = hooks_dir / "pre-receive"
+    pre_receive.write_text(hook)
+    pre_receive.chmod(0o755)
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "core/main" in res.stderr, res.stderr
+    remote = _remote_heads(r)
+    assert "core/main" not in remote, remote
+    # a LATER trunk was pushed in the SAME run => collect-and-continue
+    assert "core/season2/main" in remote, sorted(remote)
+    assert "streaming-suite/main" in remote, sorted(remote)
+    # ...and the post section ran
+    assert "core/season2/posts/sanctuary-director/main" in _heads(r)
+
+
+def test_v3_apply_zero_legacy_prints_refs_grid_line_on_refusal(tmp_path: Path):
+    """Residue 2b: the zero-legacy arm must print the refs/grid line from the
+    SAME position as the main arm -- BEFORE the v3 tail -- even when the tail
+    refuses (pre-fix the `return 1` skipped the print entirely)."""
+    r = _v3_zero_legacy_repo(tmp_path)
+    planned = _planned_trunks()
+    target = planned[0][0]
+    # a trunk pre-exists at a DIFFERENT tip -> a wrong-tip refusal (rc 1)
+    tree = _git(r, "rev-parse", "season2/main^{tree}").stdout.strip()
+    other = _git(r, "commit-tree", tree, "-m", "other").stdout.strip()
+    _git(r, "branch", target, other)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "REFUSED" in res.stderr, res.stderr
+    assert "refs/grid: IDENTICAL before/after --apply" in res.stdout, \
+        res.stdout
+    assert res.stdout.count("refs/grid:") == 1, res.stdout
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-
+# successor-or-trunk (SAFETY-CRITICAL, mur-52). Origin PRESENCE and content
+# CONTAINMENT are two different questions: even a branch whose v3 successor is
+# present (or which R3.4's presence gate never reaches, like a season-first
+# LOOP job) must have its origin tip be an ancestor of its successor or of the
+# season trunk main, or the delete is refused by name. A stray commit pushed
+# to an old name after its local rename is destroyed unchecked without this.
+# --------------------------------------------------------------------------
+
+def _containment_repo(tmp_path: Path, diverged: bool) -> Path:
+    """A bare-origin fixture with `season2/main` at the seed and a season-first
+    LOOP branch (kind the presence gate does not reach). `diverged=True` puts
+    the loop tip on a commit `season2/main` does not contain; False leaves it
+    at the shared seed (contained)."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite]\n---\n")
+    # a DECLARED town set so `_v3_on` is True and the containment gate (whose
+    # scope this claim fixes) actually runs.
+    for town, _ts in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/vision/{town}.md",
+               f"---\nid: vision:{town}\ntype: vision\ntitle: {town}\n---\n")
+    _write(r, ".agi/nodes/.geometry/posts.md",
+           "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
+           "  - name: web-app-suite\n---\n")
+    for town, season in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/town/{town}.md",
+               f"---\nid: town:{town}\ntype: town\nvisions: "
+               f"[vision:{town}]\ncouncil: {town}\nseason: {season}\n---\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    _git(r, "branch", "season2/main")
+    _git(r, "push", "-q", "origin", "season2/main:refs/heads/season2/main")
+    _git(r, "checkout", "-q", "-b", "season2/loops/x-a00-1")
+    if diverged:
+        _write(r, "loop.txt", "unmerged loop work\n")
+        _git(r, "add", "-A")
+        _git(r, "commit", "-qm", "loop work")
+    _git(r, "push", "-q", "origin",
+         "season2/loops/x-a00-1:refs/heads/season2/loops/x-a00-1")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def _containment_stamp(r: Path) -> None:
+    stamp = r / ".agi" / "sessions" / "verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+
+
+def test_delete_old_refuses_a_loop_whose_content_is_not_contained(
+        tmp_path: Path):
+    """SAFETY FALSIFIER: a season-first loop branch whose tip is NOT an
+    ancestor of the season trunk main must be REFUSED by name and NOT
+    deleted (pre-fix it was an unconditional `[APPLY] ... --delete`)."""
+    r = _containment_repo(tmp_path, diverged=True)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/loops/x-a00-1" in res.stderr, res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert got, "a diverged loop branch must survive --delete-old"
+
+
+def test_delete_old_dry_run_previews_the_containment_refusal(tmp_path: Path):
+    """Honest preview: a --dry-run --delete-old names the containment refusal
+    and does NOT print an unconditional delete line for it."""
+    r = _containment_repo(tmp_path, diverged=True)
+    name = "season2/loops/x-a00-1"
+    res = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    assert f"git push origin --delete {name}" not in out, out
+    assert f"[DRY ] REFUSE branch delete (remote, content not contained): " \
+           f"{name}" in out, out
+    assert "would REFUSE 1 branch(es) whose content is NOT contained" \
+           in res.stderr, res.stderr
+
+
+def test_delete_old_admits_a_contained_loop(tmp_path: Path):
+    """POSITIVE TWIN: the SAME kind, whose tip IS an ancestor of the season
+    trunk main, is ADMITTED and deleted exactly as before — the fix refuses
+    diverged content, never a genuinely-merged branch."""
+    r = _containment_repo(tmp_path, diverged=False)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSES" not in res.stderr, res.stdout + res.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert not gone, gone
+    kept = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/main").stdout.strip()
+    assert kept, "the season trunk main must never be a delete target"

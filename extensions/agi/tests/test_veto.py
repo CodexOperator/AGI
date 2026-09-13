@@ -625,26 +625,34 @@ def test_veto_file_is_non_test_evaluate_caller(tmp_path, monkeypatch,
     assert _frozen2 is False
 
 
-# ---- DEFECT 1b: the MERGE-UP push is a GATED Prime-scope act. A FROZEN
-# prime scope refuses `_stops_push(root, label="merge")` by name
-# (`push: HELD -- ...`); an UNFROZEN merge-up push passes (reaches the real
-# push layer and returns None, never a HELD line).
+# ---- RUNG 4 (mur-49): the CLOSEOUT merge-up/push seams in
+# `_make_closeout_seams` are the GATED Prime-scope acts. A FROZEN prime scope
+# refuses `seams["push"]()` / `seams["merge_up"]()` by name (`push: HELD --`
+# / `merge_up: HELD --`); the rotate-self-only `_stops_push` carries NO gate
+# and a post's OWN catch-up push always proceeds (never a HELD line).
 def test_rotate_merge_up_push_gated_when_frozen(tmp_path, monkeypatch, capsys):
+    """RUNG 4 (mur-49): the human gate sits on the REAL closeout
+    `_make_closeout_seams` merge_up/push runners -- the steps the driver
+    actually drives into MAIN -- and is ABSENT from the rotate-self-only
+    `_stops_push`, so a post's OWN routine catch-up push is never held."""
     rot = _load_rotate()
     root = tmp_path / "graph"
     root.mkdir(parents=True, exist_ok=True)
 
-    # frozen prime scope -> refused by name exactly like the spawn own-row leg
+    # frozen prime scope -> the CLOSEOUT merge_up/push seams refuse by name
     _write_rot_vetoes(root, _frozen_geom())
-    held = rot._stops_push(root, label="merge")
-    assert held is not None and held.startswith("push: HELD")
-    assert "merge-up push is a gated act" in held
-    capsys.readouterr()  # flush the HELD line so the frozen leg does not leak
+    seams = rot._make_closeout_seams(root, {})
+    ok_p, result_p, detail_p = seams["push"]()
+    assert ok_p is False and result_p == "refused"
+    assert detail_p.startswith("push: HELD") and "gated act" in detail_p
+    ok_m, result_m, detail_m = rot._make_closeout_seams(root, {})["merge_up"]()
+    assert ok_m is False and result_m == "refused"
+    assert detail_m.startswith("merge_up: HELD") and "gated act" in detail_m
+    capsys.readouterr()  # flush the HELD lines so they do not leak
 
-    # unfrozen -> the merge-up push proceeds (git layer faked to a success)
-    # and returns None; NEVER a HELD line.
-    (root / "nodes" / ".geometry" / "vetoes.md").unlink()
-
+    # ... but the SAME frozen scope NEVER holds a post's OWN rotate-self
+    # push: `_stops_push` carries no gate (RUNG 4 rescope) and proceeds to
+    # the git layer (faked to success), returning None -- never a HELD line.
     def fake_run(cmd, **kw):
         class _R:
             def __init__(s, rc, out=""):

@@ -327,23 +327,38 @@ def _apply_all(root: Path) -> None:
     _apply_kinds(root, "main,posts,towns,loops")
 
 
-def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
-    # migrate ONLY posts,towns (the default delete set) so main+loop branches
-    # stay local legacy -- the delete default then mirrors the apply set and
-    # leaves their origin refs untouched.
+def test_delete_old_refuses_on_a_v3_off_tree_with_no_containment_target(
+        repo: Path):
+    # L4.352 (hypothesis:l4-delete-old-requires-content-containment-every-job-
+    # ancestor-of-successor-or-trunk): the content-containment gate is now
+    # UNCONDITIONAL, so it runs on this v3-OFF fixture too. This fixture
+    # declares no town set (no v3 successor) and carries the LEGACY main
+    # `season/s2` on origin, not `season2/main` -- so the season-first names
+    # --apply just pushed (`season2/posts/post-a`, `season2/core/season2/main`)
+    # match NONE of the three ordered candidates (no rename target, no v3
+    # successor, no season2/main trunk). The claim mandates a REFUSAL by name
+    # when no target resolves ("a probe failure ... is a REFUSAL"), so the
+    # all-or-nothing pass refuses and NOTHING is deleted. The old expectation
+    # (rc 0, legacy refs removed) was the `_v3_on`-scoped hole parent PROBE-E
+    # named: it left the delete unchecked on exactly this kind of tree. The
+    # positive twin lives in `test_delete_old_admits_a_contained_post_on_a_
+    # v3_off_tree` (a tree whose trunk IS on origin).
     _apply_kinds(repo / ".agi", "posts,towns")
     (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (repo / ".agi/sessions/verified.stamp").write_text("green")
 
-    # prime ruling window-46: an UNFILTERED --delete-old defaults to
-    # posts,towns — it touches NO loop and NO main/master branch, the default
-    # is printed, and the delete set equals posts,towns.
+    # prime ruling window-46 (unchanged): an UNFILTERED --delete-old still
+    # defaults to posts,towns and PRINTS the default.
     res = _run_cli(repo / ".agi", "--delete-old")
-    assert res.returncode == 0, res.stdout + res.stderr
+    assert res.returncode != 0, res.stdout + res.stderr
     assert "defaulted to kinds posts,towns" in res.stdout, res.stdout
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/posts/post-a" in res.stderr, res.stderr
+    assert "season2/core/season2/main" in res.stderr, res.stderr
     origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
+    # nothing deleted: the legacy refs the old run removed SURVIVE
     for old in ["seat/post-a@s2", "town/core/season/s2"]:
-        assert f"origin/{old}" not in origin, (old, origin)
+        assert f"origin/{old}" in origin, (old, origin)
     # loop and main are NOT delete jobs under the default
     assert "origin/loop/x@s2" in origin, "default must NOT delete the loop"
     assert "origin/season/s2" in origin, "default must NOT delete the main"
@@ -352,8 +367,9 @@ def test_delete_old_executes_deletes_when_stamp_present(repo: Path):
     assert "season/s2" in local and "loop/x@s2" in local, local
 
 
-# ---- prime ruling window-46: --kinds loops is the ONLY way a loop deletes --
-def test_delete_old_loop_deletes_only_under_explicit_loops(repo: Path):
+# ---- prime ruling window-46: --kinds loops is the ONLY way a loop is gated --
+def test_delete_old_loop_is_scoped_by_explicit_kinds_and_refused_without_target(
+        repo: Path):
     # the explicit full list still means ALL FOUR (ruling forbids the
     # UNFILTERED default, not an explicit full list) -- checked on an
     # UN-migrated tree, where every legacy branch is still present to list.
@@ -373,18 +389,127 @@ def test_delete_old_loop_deletes_only_under_explicit_loops(repo: Path):
     (repo / ".agi/sessions").mkdir(parents=True, exist_ok=True)
     (repo / ".agi/sessions/verified.stamp").write_text("green")
 
-    # `--kinds loops` lists ONLY the loop for deletion (no post/town/main)
+    # `--kinds loops` scopes the wall to the loop jobs only: no post/town/main
+    # job is listed. On this v3-OFF fixture the season-first loop names match
+    # no containment candidate (see the no-target refusal test above), so the
+    # pass REFUSES by name and NOTHING is deleted -- including `loop/x@s2`,
+    # whose own target (`season2/loops/x`) DOES resolve and is contained. The
+    # all-or-nothing wall is the claim's mandated fail-closed shape: ONE
+    # uncontained job refuses the whole pass. The explicit-kinds scope is
+    # still proven by what the refusal does NOT name (only loop jobs).
     res = _run_cli(repo / ".agi", "--delete-old", "--kinds", "loops")
-    assert res.returncode == 0, res.stdout + res.stderr
-    assert "origin --delete loop/x@s2" in res.stdout, res.stdout
-    assert "origin --delete seat/post-a@s2" not in res.stdout, res.stdout
-    assert "origin --delete town/core/season/s2" not in res.stdout, res.stdout
-    assert "origin --delete season/s2" not in res.stdout, res.stdout
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/loops/x" in res.stderr, res.stderr
+    for other in ["seat/post-a@s2", "town/core/season/s2", "season/s2"]:
+        err_lines = [ln for ln in res.stderr.splitlines()
+                     if ln.startswith("ERR:")]
+        assert err_lines and all(other not in ln for ln in err_lines), \
+            (other, res.stderr)
     origin = _git(repo, "branch", "-r", "--format=%(refname:short)").stdout
-    assert "origin/loop/x@s2" not in origin
+    assert "origin/loop/x@s2" in origin, "a refused pass deletes nothing"
     for kept in ["origin/seat/post-a@s2", "origin/town/core/season/s2",
                  "origin/season/s2"]:
         assert kept in origin, kept
+
+
+# ---- L4.352: the UNCONDITIONAL content-containment gate on a v3-OFF tree ----
+# hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-
+# successor-or-trunk. Parent PROBE-E: with the gate scoped under `_v3_on`, a
+# tree declaring no v3 town set destroyed a post carrying a stray commit the
+# trunk never had. These fixtures declare NO town set (`_v3_on` False) and put
+# the v3 trunk `season2/main` ON origin, so the ordered candidate chain ends at
+# `branches.season_main(2)` and the containment probe has a real commit graph
+# to walk. `stray=True` is the PROBE-E hazard; `stray=False` is its positive
+# twin.
+def _v3_off_containment_repo(tmp_path: Path, stray: bool) -> Path:
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    # current_season but NO `towns:` list and NO town:* node => no declared v3
+    # town set, so `_v3_on` is False and R3.4's presence gate is inert; only
+    # the unconditional containment gate this claim adds runs.
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\nid: config:ladder\ncurrent_season: 2\n---\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    _git(r, "branch", "season2/main")
+    _git(r, "push", "-q", "origin", "season2/main")
+    _git(r, "checkout", "-q", "-b", "season2/posts/p1")
+    if stray:
+        _write(r, "stray.txt", "unmerged post work\n")
+        _git(r, "add", "-A")
+        _git(r, "commit", "-qm", "stray")
+    _git(r, "push", "-q", "origin", "season2/posts/p1")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def _green_stamp(r: Path) -> None:
+    stamp = r / ".agi" / "sessions" / "verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+
+
+def test_delete_old_refuses_a_stray_post_on_a_v3_off_tree(tmp_path: Path):
+    """THE PARENT PROBE-E FALSIFIER: with NO declared v3 town set, a post
+    whose tip `season2/main` does not contain must be REFUSED by name and NOT
+    deleted. Pre-fix (`_v3_on`-scoped containment) it was an unconditional
+    remote delete."""
+    r = _v3_off_containment_repo(tmp_path, stray=True)
+    _green_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/posts/p1" in res.stderr, res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season2/posts/p1").stdout.strip()
+    assert got, "a stray post must survive --delete-old"
+    # the trunk is remote-visible and can never be a delete target
+    assert _git(r, "ls-remote", "origin",
+                "refs/heads/season2/main").stdout.strip()
+
+
+def test_delete_old_dry_run_previews_the_v3_off_containment_refusal(
+        tmp_path: Path):
+    """Honest preview: a --dry-run --delete-old on a v3-OFF tree names the
+    containment refusal and prints NO unconditional delete line for it."""
+    r = _v3_off_containment_repo(tmp_path, stray=True)
+    res = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "git push origin --delete season2/posts/p1" not in res.stdout, \
+        res.stdout
+    assert "[DRY ] REFUSE branch delete (remote, content not contained): " \
+           "season2/posts/p1" in res.stdout, res.stdout
+    assert "would REFUSE 1 branch(es) whose content is NOT contained" \
+           in res.stderr, res.stderr
+
+
+def test_delete_old_admits_a_contained_post_on_a_v3_off_tree(
+        tmp_path: Path):
+    """POSITIVE TWIN: the same kind and tree whose tip IS an ancestor of
+    `season2/main` is ADMITTED and deleted -- the unconditional gate refuses
+    only genuinely-diverged content, never a branch already merged into the
+    trunk."""
+    r = _v3_off_containment_repo(tmp_path, stray=False)
+    _green_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSES" not in res.stderr, res.stdout + res.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/posts/p1").stdout.strip()
+    assert not gone, gone
+    assert _git(r, "ls-remote", "origin",
+                "refs/heads/season2/main").stdout.strip()
 
 
 # ---- defect 2: --apply is RESUMABLE + defect 3: upstream re-pointed ----
