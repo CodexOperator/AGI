@@ -1696,3 +1696,211 @@ def test_head_touches_engine_directly(monkeypatch):
     assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
     probe[0] = ([], 0)          # empty old_head (first pass) -> touches
     assert heal._head_touches_engine(None, "", "bbbbbbb") is True
+
+# --- hypothesis:l4-the-heal-watch-performs-the-late-s12-reap --------------
+def _mk_skipped(seat, own_name, own_id, succ_name, succ_id, role="director",
+                recorded_at="2026-09-13T01:00:00Z"):
+    return {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": recorded_at,
+        "result": "skipped",
+        "refusal_reason": ("registry file for @" + succ_id.lstrip("@")
+                           + " not found in X within the bounded join poll"),
+        "handover": {
+            "own_window": {"name": own_name, "id": own_id},
+            "successor_window": {"name": succ_name, "id": succ_id},
+        },
+        "observations": {},
+        "_rows_role": role,
+    }
+
+
+def _write_winpath(tmp_path, names):
+    p = tmp_path / "windows.txt"
+    lines = []
+    for i, nm in enumerate(names, 1):
+        lines.append("@" + str(i) + " " + nm)
+    p.write_text("\n".join(lines) + "\n")
+    return str(p)
+
+
+def _reg_file(reg_dir, succ_id, pid="424242"):
+    reg_dir.mkdir(parents=True, exist_ok=True)
+    fp = reg_dir / (pid + ".json")
+    fp.write_text('{"window_id":"' + succ_id + '","session_id":"s1"}\n')
+    return fp
+
+
+def _reap_recorder():
+    calls = []
+
+    def _fake(pids, **kw):
+        calls.append(list(pids))
+        return {"order": "deepest-first",
+                "chain": [{"pid": p, "paired": True} for p in pids]}
+    return calls, _fake
+
+
+def _role_rows(record):
+    return [{"name": record["seat"], "role": record["_rows_role"],
+             "pid": 31337}]
+
+
+
+def test_late_reap_registry_absent_no_reap_waiting(graph_project, tmp_path,
+                                                   monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="",
+        window_path=_write_winpath(tmp_path,
+                                   ["belam-S1-L4-V", "belam-S1-L4-VI"]),
+        registry_dir=str(tmp_path / "no-reg-dir"),
+        pids_for=lambda n: [1], rot=rot, now=1234)
+    assert out.get("action") == "waiting", out
+    assert calls == [], "no reap may fire for an absent registry"
+
+
+def test_late_reap_non_prime_reaps_all_older_and_flips(graph_project,
+                                                       tmp_path, monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rec_path = tmp_path / "belam.rec.json"
+    rec_path.write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    asked = []
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105], base + "VI": [999]}
+    def _pidfor(name):
+        asked.append(name)
+        return pmap.get(name, [])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec, record_path=rec_path,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=_pidfor, rot=rot, now=1234)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101, 102, 103, 104, 105]], calls
+    assert base + "VI" not in asked, "successor window must never be reaped"
+    doc = json.loads(rec_path.read_text())
+    assert doc["result"] == "success_late", doc["result"]
+    assert doc["s12_self_reap"]["performer"] == "watch"
+    assert doc["s12_self_reap"]["reaped_late_at"] == 1234
+    assert doc["s12_self_reap"]["pids"] == [101, 102, 103, 104, 105]
+    assert "spawn_to_registry_s" in doc["observations"]
+    assert "loadavg_1_5_15" in doc["observations"]
+
+
+def test_late_reap_successor_own_pid_never_in_reap(graph_project, tmp_path,
+                                                   monkeypatch):
+    """FALSIFIER: the successor's own pid is never in a reap -- even when the
+    successor name shares the base, its line is not OLDER than itself."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    winpath = _write_winpath(tmp_path, ["belam-S1-L4-V", "belam-S1-L4-VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: {"belam-S1-L4-V": [7], "belam-S1-L4-VI": [8]}[n],
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert all(8 not in c for c in calls), "successor pid must never be reaped"
+    assert all(7 in c for c in calls)
+
+
+def test_late_reap_driver_second_pass_no_second_reap(graph_project, tmp_path,
+                                                     monkeypatch):
+    """FALSIFIER: a second pass over an already success_late record reaps
+    nothing -- the driver scans, the result is no longer `skipped`."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rot_dir = rot._rotations_dir(graph_project)
+    rot_dir.mkdir(parents=True, exist_ok=True)
+    (rot_dir / "belam.t1.json").write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    pmap = {base + "I": [1], base + "II": [2], base + "III": [3],
+            base + "IV": [4], base + "V": [5], base + "VI": [6]}
+    def _pidfor(name):
+        return pmap.get(name, [])
+    for _ in range(2):
+        heal._late_reap_skipped_pass(
+            graph_project, window_path=winpath, registry_dir=str(reg_dir),
+            rot=rot, pids_for=_pidfor)
+    assert len(calls) == 1, "exactly ONE reap across two driver passes"
+
+
+def test_late_reap_prime_six_reaps_only_oldest(graph_project, tmp_path,
+                                               monkeypatch):
+    """FALSIFIER: a prime_director record with SIX older chain windows reaps
+    exactly the OLDEST one (oldest beyond the five newest survivors)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@7")
+    rec = _mk_skipped("belam", "belam-S1-L4-VI", "@6",
+                      "belam-S1-L4-VII", "@7", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III", base + "IV",
+        base + "V", base + "VI", base + "VII"])
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105],
+            base + "VI": [106], base + "VII": [107]}
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=lambda n: pmap.get(n, []),
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101]], calls
+
+
+def test_late_reap_prime_five_reaps_none(graph_project, tmp_path,
+                                         monkeypatch):
+    """FALSIFIER: a prime_director record with FIVE or fewer older chain
+    windows reaps NONE of them (the five newest stay alive to answer)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: [1], rot=rot, now=1)
+    assert out.get("action") == "nothing-to-reap", out
+    assert calls == [], "a five-or-fewer prime chain must reap NOTHING"
