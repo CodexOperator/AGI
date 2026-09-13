@@ -7,8 +7,8 @@ Post `master-sensei`, role director, tier 1, claude-opus-5 high, tmux `agi-rc` w
 ```
 owner (in your pane) ──── answer directly
                 │
-master-sensei ──┼── asks / template+prose findings ──► sensei-director  (send.py send sensei-director "…" --from master-sensei)
-                │                 mints g15 nodes · dispatches pi parents · merges up · relays to Prime/point
+master-sensei ──┼── template/facts: apply yourself · prose: one dm to the live post to self-edit  (the Sensei keeps NO director — owner 08:1xZ 2026-09-13)
+                │                 RENAME ROUND pending (belam XIX 08:1xZ): point sanctuary-director → point-director, then sensei-director → sanctuary-director, each at that post's next boundary; surfaces in drafts/rename-round-surfaces.md
                 ├── EVERY task that is not template/config/role-doc (code, CLI-verb/MCP candidates, plans) ──► sanctuary-master (owner 22:3xZ via belam XVIII; SM plans, assigns to sensei-director, reviews by name)
                 └── rule-changing lines only ──► belam (send.py send belam "…"); owner's explicit order overrides
 ```

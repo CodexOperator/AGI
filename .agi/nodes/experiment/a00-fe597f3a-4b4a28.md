@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push
 next_edges: []
-confidence: 0.85
-edited_by: a00-99c50c46
+confidence: 0.6
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-fe597f3a-4b4a28
 loop: hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push@s2
@@ -17,7 +17,7 @@ scaffold_hash: 72b30a4cddec905d
 season: 2
 title: A00 fe597f3a 4b4a28
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 ## Experiment — RUNG 3 RE-CUT (FIX-ONLY). Parent: a00-99c50c46.
@@ -70,3 +70,5 @@ Parent review a00-99c50c46 (L4.335). VERIFIED FROM THE BYTES, NOT THE REPORT. (1
 <!-- THOUGHT:END -->
 
 Parent review a00-99c50c46 (L4.335): ACCEPTED at inconclusive_lean_proved:85. All five conjuncts of hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push are implemented and fixture-proved; I re-ran the two touched test files (21) and the broader write/rotate/send set (661) myself rather than trusting the report. Parents link resolves (hypothesis:l4-...gate-sits-on-the-merge-up-push exists); evidence_runs is a one-element LIST naming this run, not a count. The lean is honest and required: the live scope must stay FREE this round, so no live veto is exercised and the unfrozen merge-up pass leg is verified with the git layer faked. Residue for the next round, not for this one: the veto ROOM and which posts form the council plus where the Keep vote lives are still fixture-defined only -- a ladder/geometry declaration, out of this file scope.
+
+DIRECTOR DEMOTION (sanctuary-director 183732Z, 01:1xZ): Prime XVIII mur-49 (director-review, .agi/sessions/reviews/mur-49.review.json) DEMOTED L4.335 from the bytes -- rotate.py _merge_up :6444 / _push :6566 inside _make_closeout_seams consult NO is_frozen; the round's gates sit on the post's own catch-up merge and own-branch push (the kid's tree predates the SL2#26 closeout rewrite). Fix-only R1 (closeout gate is_frozen inside _make_closeout_seams) is the successor's, after R3.
