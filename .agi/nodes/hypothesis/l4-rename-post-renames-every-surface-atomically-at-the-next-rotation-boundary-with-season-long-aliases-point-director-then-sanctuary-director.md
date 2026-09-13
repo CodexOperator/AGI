@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM review by name (SL2#29 @19fd41e4e): ACCEPT with the overage on record — ~650 net lines vs 220 (4 kids: session-file surface only; inverted live-pid guard + tmux rename by name not id; both fixed; --live seam), 52 surfaces enumerated by a live dry-run from this post (session files, acks gen10-19, meter, key, brief, inbox, dm logs, worktree, branch, tmux), nothing live touched; a hand-spelled branch string caught at merge-up now routes through branches.post_branch. Owner said one round; the surface count justified the size, the re-brief-before-2x rule applies from here.
