@@ -640,10 +640,16 @@ def test_prepare_perform_merge_refused_blocks_not_merged(
     (the `rev-parse --short HEAD` read is never consulted — reaching it
     would report the stale pre-merge sha)."""
     gm = _merge_seam(prep_root)
-    # the merge is REFUSED: non-zero rc, so NO further git reads happen. The
-    # `rev-parse --short HEAD` key in gm would report the pre-merge sha if it
-    # were consulted (the false ok); it must never be read on a failed merge.
-    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok(rc=1))
+    # the merge is REFUSED: non-zero rc on the MERGE call ONLY (the claim
+    # fetch and the merge-tree gate return rc 0, or the fetch would read as
+    # fetch-failed and this scenario would never reach the merge). So NO
+    # further git reads happen after the refused merge -- the `rev-parse
+    # --short HEAD` key in gm would report the pre-merge sha if it were read.
+    def _refuse_merge(cwd, *args):
+        # args like ("merge", "--no-edit", "origin/season/s2")
+        rc = 1 if (args and args[0] == "merge") else 0
+        return SimpleNamespace(returncode=rc, stdout="")
+    monkeypatch.setattr(rotate, "_git_proc", _refuse_merge)
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: True)
@@ -663,6 +669,7 @@ def test_prepare_perform_conflict_stays_block_names_path(prep_root, capsys,
     the merge (`_perform_season_merge` would raise if touched)."""
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: False)
     monkeypatch.setattr(rotate, "_merge_conflict_paths",
@@ -686,6 +693,7 @@ def test_prepare_perform_skips_merge_on_dirty_tree(prep_root, capsys,
     gm = _merge_seam(prep_root)
     gm[("status", "--porcelain")] = [" M rotate.py"]
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: True)   # would merge IF consulted
     def _no_merge(*a, **k):
@@ -787,6 +795,10 @@ def _real_repo(prep_root, conflict):
     fresh (check 4). Returns the repo root."""
     root = prep_root
     _git(root, "init", "-q")
+    _git(root, "remote", "add", "origin", str(root))   # self-remote: makes
+    # `git fetch origin <branch>` (the pre-count fetch) exit 0 instead of 128
+    # ("origin does not appear to be a git repository"); a bare `fetch` with
+    # no configured refspec never rewrites the hand-set origin/* refs below.
     _git(root, "config", "user.email", "test@example.com")
     _git(root, "config", "user.name", "test")
     _git(root, "config", "commit.gpgsign", "false")
