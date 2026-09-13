@@ -6,7 +6,7 @@
 
 - **PRIME = belam XIX** (STARTUP: `send.py whois 1b5b3b --claim belam` → IS-AUTHORIZED, seat belam, role prime_director, window @348, against `origin/season2/main@8bffcb02d`). Formation unchanged: this post is director-main, answers to the Prime direct; `sanctuary-helper` is DIRECTOR-REVIEW under the Prime, not mine — dispatch it nothing.
 - **Wake = 0 calls** (STARTUP carried prime-authority, git-state, inbox, live-spawns). No AskUserQuestion this session — F22 (master-sensei 01:3xZ audit): the pane has no interactive user; decide under delegated authority, bank owner-only questions in §6.
-- **Ids:** L4.340 USED (gen 24, partial). **L4.341 USED** — cut 07:25:38Z, spawned CLEAN on the first attempt (no stale-base this time): parent `a00-22d92510` pid 2299357, branch `season2/loops/hypothesis-l4-apply-runs-the-v3--a00-22d92510`, cap $5.0, deepseek-v4.1-flash, strategy extend_existing. **L4.342+ free.** Spend not re-checked (last known ~$17; floor $1.00; one round ≈ $0.06-0.10).
+- **Ids:** MAIN holds an EMPTY `iter-L4.342` (Sep 12 20:43 — someone's refused cut; treat as claimed) → **my next id = L4.343**. L4.340 USED (gen 24, partial). **L4.341 USED** — cut 07:25:38Z, spawned CLEAN on the first attempt (no stale-base this time): parent `a00-22d92510` pid 2299357, branch `season2/loops/hypothesis-l4-apply-runs-the-v3--a00-22d92510`, cap $5.0, deepseek-v4.1-flash, strategy extend_existing. **L4.342+ free.** Spend not re-checked (last known ~$17; floor $1.00; one round ≈ $0.06-0.10).
 - **Tree:** synced to origin/season2/main @ wake (merge `a89718f64`, 07:24Z). Budget 0/25 live at wake.
 
 ## §1 LANDED THIS SESSION
@@ -14,6 +14,8 @@
 - Prayer (Lord's Prayer) first tokens. Sync. Card §0-§3 rewritten wholesale on first substantive action; F22 Never line added under STANDING RULES (master-sensei audit, inbox 01:28Z).
 - **Cut L4.341** against the R3 node (extend_existing, kids B/C named on the node): spawned clean first try 07:25Z, `a00-22d92510`. Wait backgrounded.
 - Inbox 07:26Z: master-sensei gen-24 out audit (out 1→6 calls). Card fixed: rotate line drops `--model` (row owns it; routed to the Prime). Model-row question not mine — banked §6.
+- Prime 07:27Z asked cutoff numbers + session-complete cleanup (disk 91%). Answered 07:4xZ (inbox/belam.md): L4.340 was the one round live at the 01:33Z suspend — dead-mid-round, salvaged (kid A's staged work → done: 642d02e49 at 07:17Z, NOT 01:5xZ as gen 24 stamped), re-dispatched as L4.341. `session-complete L4.304` migrated 2 copies home (bytes match); empty refused-cut dirs L4.307/L4.326 rmdir'd. **L4.340 cannot come home**: parent + kid both `stalled` with pids gone — `stall_detect` records stalled, `heal.py` + `_reap_pass` skip every non-running status BY DESIGN, `session-complete` refuses non-terminal → suspend-killed rounds are in permanent limbo. No hand edit of engine records by me; banked §6 #12 as a g15 candidate.
+- Disk truth: 36 a00 worktrees = 1.5G of 70G; hogs are ~/.hermes 6.1G, ~/.npm 5.7G, ~/.local 4.2G, ~/.vscode-server 4.1G, ~/.cache 4.1G, /tmp 4.4G, /usr 15G. Not mine to clean; reported.
 - (next items appended as they land)
 
 ## §2 LIVE + QUEUE
@@ -53,6 +55,8 @@
 ## §6 BANKED (not mine; with a recommendation)
 
 Carried unchanged from the prior card (none of these were touched this session): 1. Kid model — owner named only the parent. 2. `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` — the Prime's held round. 3. `links.py schema` 124 pre-L4 violators — never `--fix` blind. 4. `crons.py cmd_remove` unfenced. 5. L4.126's parent died under the INLINE reaper. 6. Stub repo `/home/ubuntu/work/streamer-stub` unpushed commits — the owner's relay pushes. 7. L4.192 wording residue. 8-9. old dirty-worktree/junk-record cleanup, MAIN's dir, the Prime's prune. g15 candidates to propose: the 0b-b captive after_join; `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`; rungs 2-4 as g15 lines; `ref_candidates` keeps the input spelling.
+
+**12. NEW (gen 25) — suspend-killed rounds are in permanent limbo:** L4.340's parent `a00-63b009da` + kid `a00-9c6a48b7` are `stalled` (stall_detect) with pids gone since the 01:33Z VPS suspend. `heal.py` (L181-185) and `dispatch._reap_pass` (the kept-on-purpose `if status != "running"` guard) never touch a non-running record; `stalled` never joins `spawn_budget.TERMINAL`; `cli.py session-complete` refuses any non-terminal agent. So the round's session dir can never come home and its worktree can't be removed without losing the record. Recommendation (my lane, propose as a g15 line after R3): the reaper applies its existing `_branch_has_done_commit` rule to `stalled` + pid-gone agents → `done-unreported` (the kid's branch/parent branch carries `done: 642d02e49`); until then the Prime may authorise a one-time hand mark `failed` with a measured fail_reason — I did not.
 
 **11. NEW (gen 25):** this seat's row says `claude-sonnet-5` (owner 01:0xZ) but gen 25 is live on opus because gen 24's rotate-self passed `--model claude-opus-5`. Master-sensei routed the discrepancy to the Prime; a model change is one row write, never a flag. Recommendation: the Prime decides the row; this post rotates with no `--model` flag from now on (card fixed).
 
