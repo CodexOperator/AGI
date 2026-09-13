@@ -934,6 +934,51 @@ def test_v3_delete_old_admits_a_local_post_and_removes_its_origin_alias(
     assert not gone2, gone2
 
 
+def test_v3_delete_old_refuses_a_post_main_carrying_a_foreign_upstream(
+        tmp_path: Path):
+    # FALSIFIER for hypothesis:l4-b-exemption-calls-the-upstream-check-its-
+    # docstring-promises. `_rs_v3_local_post_source`'s docstring promises the
+    # exemption is denied "on a branch that carries an upstream (that one is a
+    # real live migration and must still satisfy the gate)" -- but its body
+    # only checked that the derived post_main EXISTS. A v3-LOCAL post is
+    # defined by upstream UNSET; a post_main whose upstream is the carried OLD
+    # alias is a live migration, so it must hit the B2 'unpointed' refusal and
+    # NO origin ref may be deleted. Pre-fix on HEAD the exemption admitted it
+    # and both the old season-first alias and the intermediate alias vanished
+    # from origin.
+    r = _v3_apply_repo(tmp_path)
+    for alias in ("post/sanctuary-director@s2", "post/sanctuary-helper@s2"):
+        _git(r, "branch", alias)
+        _git(r, "push", "-q", "origin", f"{alias}:refs/heads/{alias}")
+    root = r / ".agi"
+    stamp = root / "sessions/verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+    res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    # the town-first post main now carries the OLD alias as its upstream --
+    # the 'real live migration' the docstring says must still satisfy the
+    # gate. (Set AFTER the apply, mirroring the parent's HEAD reproduction.)
+    _git(r, "fetch", "-q", "origin")
+    _git(r, "branch", "--set-upstream-to",
+         "origin/post/sanctuary-director@s2",
+         "core/season2/posts/sanctuary-director/main")
+    up = _git(r, "rev-parse", "--abbrev-ref",
+              "core/season2/posts/sanctuary-director/main@{upstream}")
+    assert up.returncode == 0 and up.stdout.strip() == \
+        "origin/post/sanctuary-director@s2", (up.stdout, up.stderr)
+
+    res2 = _run_cli(root, "--delete-old", "--kinds", "posts,towns")
+    assert res2.returncode != 0, res2.stdout + res2.stderr
+    assert "REFUSES" in res2.stderr, res2.stdout + res2.stderr
+    # NOTHING was deleted from origin: the old season-first alias and the
+    # intermediate alias both still exist (the guard refused by name).
+    for ref in ("refs/heads/season2/posts/sanctuary-director",
+                "refs/heads/post/sanctuary-director@s2"):
+        got = _git(r, "ls-remote", "origin", ref).stdout.strip()
+        assert got, f"{ref} was deleted despite a foreign upstream: {got!r}"
+
+
 # --------------------------------------------------------------------------
 # I-3a-2 Region B — the KIND LOOPS plan (dry-only). A v3 town-first loop
 # branch is classified by the EXISTING loop-prune rule over the SAME derived
