@@ -383,6 +383,100 @@ def test_watch_dead_past_deadline_alive_at_reap_then_dead(graph_project,
     assert "marked timeout" not in ltext
 
 
+def test_death_class_stream_error_names_its_evidence_line(tmp_path: Path):
+    """A provider/stream error in the agent's output.log -> class
+    infra-stream-error with the matching log line as evidence; fail_reason
+    text is never touched by the classifier."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-X" / "kid-s"
+    adir.mkdir(parents=True)
+    lines = [f"chatter {i}" for i in range(60)]
+    lines.append("Upstream error from Together: Stream error: h2 protocol "
+                 "error: error reading a body from connection")
+    (adir / "output.log").write_text("\n".join(lines) + "\n")
+    d = heal._death_class(str(wt), "kid-s", 97.5, agent_dir=adir)
+    assert d["class"] == "infra-stream-error", d
+    assert "h2 protocol error" in d["evidence"], d
+    assert d["runtime_s"] == 97.5
+
+
+def test_death_class_kid_verdict_means_died_after_work(tmp_path: Path):
+    """A kid experiment node with a verdict -> died-after-work, and the
+    verdict cell is reported in `kids` (the salvage precondition).
+
+    PROBE A fix: the fixture uses `spawned_by_agent`, the field
+    dispatch.py:2360-2368 ACTUALLY writes for the spawning agent. The first
+    cut matched only `dispatched_by` (the seat to alarm), so on a real
+    record the kid list came back empty."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Y" / "parent-p"
+    kid = wt / "sessions" / "iter-Y" / "kid-k"
+    for d in (adir, kid, wt / ".agi" / "nodes" / "experiment"):
+        d.mkdir(parents=True)
+    (kid / "agent.json").write_text(json.dumps(
+        {"id": "kid-k", "spawned_by_agent": "parent-p",
+         "dispatched_by": "sensei-director",
+         "node_id": "experiment:kid-1"}))
+    (wt / ".agi" / "nodes" / "experiment" / "exp-kid-1.md").write_text(
+        "---\nid: experiment:kid-1\ntype: experiment\nverdict: proved\n---\n")
+    d = heal._death_class(str(wt), "parent-p", 12, agent_dir=adir)
+    assert d["class"] == "died-after-work", d
+    assert d["kids"] == [{"id": "experiment:kid-1", "verdict": "proved"}], d
+
+
+def test_death_class_http_1_1_5xx_is_infra(tmp_path: Path):
+    """PROBE B fix: the canonical provider line
+    'HTTP/1.1 500 Internal Server Error' is infra-stream-error, not
+    died-no-work. The first regex required the digit straight after `http`."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-H" / "kid-h"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text(
+        "working\n< HTTP/1.1 500 Internal Server Error\n")
+    for line in ("< HTTP/1.1 500 Internal Server Error", "HTTP 500 err",
+                 "http500 oops", "HTTP/1.1 503 Service Unavailable"):
+        (adir / "output.log").write_text("working\n" + line + "\n")
+        d = heal._death_class(str(wt), "kid-h", 3, agent_dir=adir)
+        assert d["class"] == "infra-stream-error", (line, d)
+        assert d["evidence"] == line, (line, d)
+
+
+def test_death_class_empty_round_is_died_no_work(tmp_path: Path):
+    """Nothing staged, no error line -> died-no-work; no evidence."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Z" / "kid-e"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text("starting\nworking\n")
+    d = heal._death_class(str(wt), "kid-e", 5, agent_dir=adir)
+    assert d["class"] == "died-no-work", d
+    assert d["evidence"] is None
+
+
+def test_watch_death_record_carries_death_class(graph_project, monkeypatch):
+    """The death-past-deadline writer attaches the class BESIDE fail_reason
+    (fail_reason text unchanged) on BOTH agent.json and the manifest."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _round_alive_then_dead(graph_project, "J", "kid-j", timeout_s=1,
+                           started_ago=5, pid=424244)
+    adir = graph_project / "sessions" / "iter-J" / "kid-j"
+    (adir / "output.log").write_text(
+        "work\nUpstream error from Together: Stream error: h2 protocol "
+        "error: error reading a body from connection\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((adir / "agent.json").read_text())
+    assert rec["fail_reason"] == "pid 424244 died (detected by reaper)", rec
+    assert rec["death"]["class"] == "infra-stream-error", rec["death"]
+    man = json.loads((graph_project / "sessions" / "iter-J"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "kid-j")
+    assert entry["death"]["class"] == "infra-stream-error", entry
+
+
 def test_watch_dead_past_deadline_no_double_dm_on_second_pass(
         graph_project, monkeypatch):
     """A second pass over the already-recorded death-past-deadline must not

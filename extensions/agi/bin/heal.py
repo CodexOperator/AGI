@@ -57,7 +57,7 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, _reap_pass, _reap_one  # noqa: E402
+from dispatch import pi_model_args, _reap_pass, _reap_one, _death_class  # noqa: E402
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
@@ -395,6 +395,10 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                 "status": "failed",
                 "finished_at": int(time.time()),
                 "fail_reason": f"pid {pid} died (detected by reaper)",
+                "death": _death_class(
+                    rec.get("worktree") or "", agent_id,
+                    int(time.time()) - int(rec.get("started_at", 0) or 0),
+                    agent_dir=iter_dir / agent_id),
             }
             rec.update(death)
             rec_path.write_text(json.dumps(rec, indent=2))
@@ -403,6 +407,7 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                     entry["status"] = "failed"
                     entry["finished_at"] = rec["finished_at"]
                     entry["fail_reason"] = rec["fail_reason"]
+                    entry["death"] = rec["death"]
             manifest_path.write_text(json.dumps(manifest, indent=2))
             _alarm_dispatcher(rec, iter_dir.name, "death", root)
             _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} marked "
