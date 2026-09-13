@@ -43,5 +43,5 @@ Wake = nothing: the pin is spawn-written, the ack answered `continue` by your pr
 
 ## 🔴 Where it stops
 ```
-mur-49 review delivered (dm + reviews/mur-49.review.json); L4.335 + L4.338 demote; idle; next request from the Prime -> card §1b
+mur-49 accepted+applied by the Prime XVIII (01:2xZ); directors -> claude-sonnet-5 max (owner 01:0xZ, 0458ae2c1) from this rotation; idle; next request after the point's R3 lands -> card §1b
 ```
