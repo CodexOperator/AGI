@@ -640,10 +640,16 @@ def test_prepare_perform_merge_refused_blocks_not_merged(
     (the `rev-parse --short HEAD` read is never consulted — reaching it
     would report the stale pre-merge sha)."""
     gm = _merge_seam(prep_root)
-    # the merge is REFUSED: non-zero rc, so NO further git reads happen. The
-    # `rev-parse --short HEAD` key in gm would report the pre-merge sha if it
-    # were consulted (the false ok); it must never be read on a failed merge.
-    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok(rc=1))
+    # the merge is REFUSED: non-zero rc on the MERGE call ONLY (the claim
+    # fetch and the merge-tree gate return rc 0, or the fetch would read as
+    # fetch-failed and this scenario would never reach the merge). So NO
+    # further git reads happen after the refused merge -- the `rev-parse
+    # --short HEAD` key in gm would report the pre-merge sha if it were read.
+    def _refuse_merge(cwd, *args):
+        # args like ("merge", "--no-edit", "origin/season/s2")
+        rc = 1 if (args and args[0] == "merge") else 0
+        return SimpleNamespace(returncode=rc, stdout="")
+    monkeypatch.setattr(rotate, "_git_proc", _refuse_merge)
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: True)
@@ -663,6 +669,7 @@ def test_prepare_perform_conflict_stays_block_names_path(prep_root, capsys,
     the merge (`_perform_season_merge` would raise if touched)."""
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map(_merge_seam(prep_root)))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: False)
     monkeypatch.setattr(rotate, "_merge_conflict_paths",
@@ -686,6 +693,7 @@ def test_prepare_perform_skips_merge_on_dirty_tree(prep_root, capsys,
     gm = _merge_seam(prep_root)
     gm[("status", "--porcelain")] = [" M rotate.py"]
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
     monkeypatch.setattr(rotate, "_merge_applies_clean",
                         lambda root, sb: True)   # would merge IF consulted
     def _no_merge(*a, **k):
@@ -787,6 +795,10 @@ def _real_repo(prep_root, conflict):
     fresh (check 4). Returns the repo root."""
     root = prep_root
     _git(root, "init", "-q")
+    _git(root, "remote", "add", "origin", str(root))   # self-remote: makes
+    # `git fetch origin <branch>` (the pre-count fetch) exit 0 instead of 128
+    # ("origin does not appear to be a git repository"); a bare `fetch` with
+    # no configured refspec never rewrites the hand-set origin/* refs below.
     _git(root, "config", "user.email", "test@example.com")
     _git(root, "config", "user.name", "test")
     _git(root, "config", "commit.gpgsign", "false")
@@ -859,13 +871,21 @@ def test_prepare_perform_conflict_blocks_real_fixture(prep_root, capsys):
         == "seat work"
 
 
-def test_prepare_check2_whitespace_only_delta_clean(prep_root, capsys):
+def test_prepare_check2_whitespace_only_delta_clean(prep_root, capsys,
+                                                    monkeypatch):
     """CLAIM-2 prepare check 2, real fixture: a tracked seats.md whose ONLY
     delta vs HEAD is a missing EOF newline (the one-serializer EOJ dirt)
     reads CLEAN — named on ONE never-blocking line (`seats.md: whitespace-only
     delta, treated as clean`) and prepare exits 0. FALSIFIER: a REAL one-cell
     change in the same file still names a dirty-tree BLOCK (exit 3) — the
-    gate is never weakened for a real change."""
+    gate is never weakened for a real change. The fixture sits on a post's
+    own `seat/x` branch, so it is a WORKTREE post (row worktree non-empty) —
+    its dirt is its own and ALL of it blocks, exactly as before the g15.25
+    partition."""
+    # a WORKTREE post: dirty-tree partition (MAIN-post only) never runs.
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, name: {"name": "adv-alive",
+                                            "worktree": "/some/wt"})
     root = _real_repo(prep_root, conflict=False)
     (root / "seats.md").write_text("name\trole\nbelam\tprime\n",
                                    encoding="utf-8")
@@ -891,14 +911,20 @@ def test_prepare_check2_whitespace_only_delta_clean(prep_root, capsys):
     assert "[BLOCK] dirty tree: seats.md" in out
 
 
-def test_prepare_check2_index_only_real_change_blocks(prep_root, capsys):
+def test_prepare_check2_index_only_real_change_blocks(prep_root, capsys,
+                                                      monkeypatch):
     """CLAIM (6a/SL7.17, hypothesis:l4-prepare-check-2-reads-the-index-blob...):
     a STAGED real edit whose working copy is restored to HEAD bytes must read
     DIRTY, never whitespace-only — prepare check 2 BLOCKS naming it
     'seats.md: staged change (index differs from HEAD)' so a rotation never
     proceeds over an unrecorded staged edit. FALSIFIER (pre-fix):
     `_path_delta_whitespace_only` compared HEAD against the WORKING file only,
-    so the restored copy read whitespace-only and prepare exited 0."""
+    so the restored copy read whitespace-only and prepare exited 0. The
+    fixture is a WORKTREE post (row worktree non-empty): its dirt blocks as
+    today, the g15.25 partition never runs."""
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, name: {"name": "adv-alive",
+                                            "worktree": "/some/wt"})
     root = _real_repo(prep_root, conflict=False)
     (root / "seats.md").write_text("name\trole\nbelam\tprime\n",
                                    encoding="utf-8")
@@ -1251,3 +1277,200 @@ def test_rotate_self_dry_run_unpushed_prints_would_push_no_seam(
     assert "(--dry-run) would push: seat/x (unpushed commits)" in cap.err
     assert pushes == [], "a dry-run must never push"
     assert "rotate-self blocked:" not in cap.err
+
+
+# --- goal:g15.25 the dirty-tree gate on a shared MAIN checkout ---------------
+# hypothesis:l4-the-dirty-tree-gate-on-a-shared-main-checkout-blocks-only-on-
+# dirt-the-merge-would-touch-foreign-dirt-is-named-never-a-block: on a MAIN
+# post (row `worktree` empty) check 2 blocks ONLY when a dirty path is IN the
+# merge touch-set (`git diff --name-only HEAD...origin/<sb>`, three-dot); a
+# dirty path OUTSIDE it is another post's uncommitted work, named `foreign
+# dirt`, never a block, never a stop_commit.
+
+
+def test_prepare_check2_main_post_dirty_in_touch_set_blocks_naming_both(
+        prep_root, capsys, monkeypatch):
+    """FALSIFIER clause 1 — a dirty path IN the merge touch-set must still
+    BLOCK on a MAIN post, named with BOTH facts (`<p>: dirty AND touched by
+    origin/<sb>` in the dirty-tree line)."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): [" M a.py", " M b.py"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): ["a.py"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree: a.py" in out, out
+    assert "touched by origin/season/s2" in out, out
+    # b.py is foreign -> its own line, NAMED, never a blocker
+    assert "[ok] foreign dirt (not in the merge): b.py" in out, out
+
+
+def test_prepare_check2_main_post_dirty_outside_touch_is_foreign_no_block(
+        prep_root, capsys, monkeypatch):
+    """CLAIM (1)(2) — a dirty path OUTSIDE the touch-set on a MAIN post is
+    NAMED `foreign dirt` on a never-blocking line: prepare exits 0, no
+    dirty-tree BLOCK, no stop_commit path (nothing to refuse)."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): [" M other.py"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert "[ok] dirty tree" in out, out
+    assert "[ok] foreign dirt (not in the merge): other.py" in out, out
+
+
+def test_prepare_check2_main_post_touch_unmeasured_falls_back_to_today(
+        prep_root, capsys, monkeypatch):
+    """CLAIM (1)(2) — touch-set None (unmeasurable) on a MAIN post falls back
+    to TODAY: every dirty path blocks, named with `(touch-set unmeasured)`."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post, no touch answer
+    gm = {("status", "--porcelain"): [" M a.py"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree: a.py" in out, out
+    assert "touch-set unmeasured" in out, out
+
+
+def test_prepare_check2_worktree_post_dirt_blocks_even_outside_touch(
+        prep_root, capsys, monkeypatch):
+    """CLAIM (4) — a WORKTREE post (row `worktree` non-empty) is unchanged:
+    its dirt is its own, ALL of it blocks; the partition never runs and no
+    foreign line appears even when the touch-set would exclude the path."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    row = {"name": "adv-alive", "role": "parent", "generation": 3,
+           "worktree": "/some/wt"}
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        encoding="utf-8")
+    gm = {("status", "--porcelain"): [" M seats.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree: seats.md" in out, out
+    assert "foreign dirt" not in out, out
+
+
+def test_prepare_check2_main_post_behind_zero_touch_empty_no_block(
+        prep_root, capsys, monkeypatch):
+    """CLAIM (5) — behind == 0 (nothing to merge) -> the touch-set is empty
+    -> the seat's dirty paths are all foreign -> no dirty-tree block; exit 0."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): [" M seats.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert "[ok] foreign dirt (not in the merge): seats.md" in out, out
+
+
+def test_prepare_check2_quoted_dirty_path_touch_set_real_fixture(
+        prep_root, capsys):
+    """FALSIFIER the last round missed (goal:g15.25, ONE failing clause): a
+    dirty path git must QUOTE (`core.quotePath` — non-ASCII bytes, e.g.
+    `caf\303\251.py` = café.py) must intersect the three-dot touch-set IFF
+    the merge would actually touch it. On a REAL repo, (a) a quoted dirty
+    file that `origin/season/s2` ALSO changed BLOCKS, named `touched by`;
+    (b) the SAME quoted spelling dirty ONLY on the seat branch is FOREIGN and
+    never blocks. Before the fix `_porcelain_path` stripped the quotes but did
+    NOT decode git's octal escapes, so the dirty path `caf\\303\\251.py`
+    never equalled the raw touch-set `"caf\\303\\251.py"` and scenario (a)
+    passed block-less — the mechanical reason a rotation could clobber
+    another post's uncommitted work.
+
+    Both git sources are unquoted through the SAME `_git_unquote_path`, so
+    the property that matters holds: dirty ∩ touch-set is non-empty when the
+    merge would overwrite the file, for quoted names and plain ones alike."""
+    def _build(root, season_adds_cafe):
+        # the fixture graph seed the runs read (meter pin, handoff, card) —
+        # mirroring _real_repo, but in a fresh sub-root per scenario so the
+        # touch-set membership can differ between them.
+        (root / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+        sess = root / "sessions"
+        (sess / "seats").mkdir(parents=True)
+        (sess / "quorum").mkdir(parents=True)
+        (sess / "seats" / "adv-alive.handoff.md").write_text(
+            "seat: adv-alive\ngeneration: 3\n", encoding="utf-8")
+        (sess / "adv-alive.meter").write_text(
+            "3\t/some/transcript.jsonl\n", encoding="utf-8")
+        (sess / "quorum" / "adv-alive.md").write_text(
+            "# SESSION HANDOFF — fixture\n\n## §3 🔴 NEXT COMMAND\nbash next\n",
+            encoding="utf-8")
+        _seat_row(root, 3)   # worktree "" -> a MAIN post
+        _git(root, "init", "-q")
+        _git(root, "remote", "add", "origin", str(root))
+        _git(root, "config", "user.email", "test@example.com")
+        _git(root, "config", "user.name", "test")
+        _git(root, "config", "commit.gpgsign", "false")
+        (root / "base.txt").write_text("base\n", encoding="utf-8")
+        _git(root, "add", "-A")
+        _git(root, "commit", "-qm", "base")
+        base = _git(root, "rev-parse", "HEAD").stdout.strip()
+        # season/s2 — ONE commit ahead of the merge base (+café.py in A)
+        _git(root, "checkout", "-qb", "season/s2", base)
+        if season_adds_cafe:
+            (root / "café.py").write_text("season\n", encoding="utf-8")
+        else:
+            (root / "season.txt").write_text("season\n", encoding="utf-8")
+        _git(root, "add", "-A")
+        _git(root, "commit", "-qm", "season work")
+        _git(root, "update-ref", "refs/remotes/origin/season/s2", "HEAD")
+        # seat/x — ONE commit ahead of the merge base, diverged
+        _git(root, "checkout", "-qb", "seat/x", base)
+        (root / "seat.txt").write_text("seat\n", encoding="utf-8")
+        if not season_adds_cafe:
+            # a quoted-name file living ONLY on the seat branch -> it is dirty
+            # AND outside the touch-set -> foreign, never a blocker.
+            (root / "café.py").write_text("seat-only\n", encoding="utf-8")
+        _git(root, "add", "-A")
+        _git(root, "commit", "-qm", "seat work")
+        _git(root, "update-ref", "refs/remotes/origin/seat/x",
+             _git(root, "rev-parse", "HEAD").stdout.strip())
+        _git(root, "config", "branch.seat/x.remote", "origin")
+        _git(root, "config", "branch.seat/x.merge", "refs/heads/seat/x")
+        # the checked-out seat/x working copy: café.py, spelled how git quotes
+        (root / "café.py").write_text(
+            ("season-and-seat\n" if season_adds_cafe else "dirt\n"),
+            encoding="utf-8")
+        # re-touch the card so its mtime is NEWER than the last commit
+        (sess / "quorum" / "adv-alive.md").write_text(
+            "# SESSION HANDOFF — fixture\n\n## §3 🔴 NEXT COMMAND\nbash next\n",
+            encoding="utf-8")
+        return root
+    # (a) quoted dirty path IS in the touch-set -> BLOCK, named `touched by`
+    root_a = _build(prep_root / "a", season_adds_cafe=True)
+    out_a = capsys.readouterr().out  # drain any earlier output
+    rc_a = rotate.cmd_prepare(_args(), root_a)
+    out_a = capsys.readouterr().out
+    assert rc_a == 3, out_a
+    assert "[BLOCK] dirty tree: café.py" in out_a, out_a
+    assert "touched by origin/season/s2" in out_a, out_a
+    # (b) same quoted spelling, dirty but NOT in the touch-set -> the dirty-
+    # tree gate does NOT block on it: named FOREIGN on a never-blocking line.
+    # rc here is 3 only because the auto-merge that --perform would run is
+    # gated on a CLEAN tree (`perform and not dirty_paths`) and foreign dirt
+    # still counts, so behind>0 then blocks; the dirty-tree check itself
+    # passes, which is the claim (2) this falsifier guards.
+    root_b = _build(prep_root / "b", season_adds_cafe=False)
+    rc_b = rotate.cmd_prepare(_args(perform=True), root_b)
+    out_b = capsys.readouterr().out
+    assert "[BLOCK] dirty tree" not in out_b, out_b
+    assert "[ok] dirty tree" in out_b, out_b
+    assert "[ok] foreign dirt (not in the merge): café.py" in out_b, out_b
+    assert rc_b == 3, out_b
+    assert "[BLOCK] behind" in out_b, out_b
