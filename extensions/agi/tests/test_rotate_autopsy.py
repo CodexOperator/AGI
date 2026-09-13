@@ -716,3 +716,47 @@ def test_reaper_log_resolves_to_fixture_not_home(tmp_path, monkeypatch):
     envlog.write_text("", encoding="utf-8")
     monkeypatch.setenv("AGI_REAPER_LOG", str(envlog))
     assert rotate._reaper_log_path(root) == envlog
+
+
+def test_spawn_dead_rewind_dry_run_prints_would_and_writes_nothing(
+        tmp_path, monkeypatch, capsys):
+    """(hypothesis:l4-a-re-seat-after-a-dead-predecessor-rewinds-the-posts-
+    read-cursors-to-the-dead-sessions-seating-time) A RE-spawn of a seat whose
+    predecessor DIED rewinds the seat's read cursors (here: a dm the killed
+    session had consumed to cursor 12, whose last two messages post-date the
+    death ts) back to the dead session's seating time so the STARTUP [inbox]
+    re-carries them -- 12 -> 10. `--dry-run` PRINTS the would-rewind lines and
+    writes NO state file. Only the DEAD peek triggers the block at all."""
+    root, reg, _tp = _fixture(tmp_path, seat="rewindseat")
+    _run_fake_git(monkeypatch)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **k: (0, "x"))
+    monkeypatch.setattr(rotate, "_first_seating_announce", lambda *a, **k: [])
+    monkeypatch.setattr(rotate, "_current_sequence", lambda root: 7)
+    # a dm the killed session consumed (cursor 12); messages 11-12 are AFTER
+    # the death ts, so a rewind to the death time lands at 10
+    dm = root / "dm" / "rewindseat--other.md"
+    dm.parent.mkdir(parents=True, exist_ok=True)
+    text = ""
+    for i in range(1, 13):
+        hh = "14:00:%02d" % i if i <= 10 else "16:00:%02d" % i
+        text += (f"---\nts: 2026-09-11T{hh}Z\nfrom: master\n"
+                 f"to: rewindseat\n\nmsg-{i}\n")
+    dm.write_text(text, encoding="utf-8")
+    Path(str(dm) + ".state.json").write_text(
+        json.dumps({"rewindseat": 12}), encoding="utf-8")
+
+    base = dict(name="rewindseat", tier="parent", prompt_file=None,
+                model=None, effort=None, settings=None, successor_argv=None,
+                seat="rewindseat", tmux_session="t", window_path=None,
+                dry_run=True, registry_dir=str(reg),
+                no_autopsy=False, pid=DEAD_PID)
+    rc = rotate.cmd_spawn(SimpleNamespace(**base), root)
+    out = capsys.readouterr().out
+    err = capsys.readouterr().err
+    assert rc == 0
+    assert "[seating] would-rewind rewindseat--other.md 12->10" in out, out
+    # never the no-since skip line, never a silent 0 rewind
+    assert "skipping read-cursor rewind" not in err
+    # dry-run: the state file on disk is UNTOUCHED
+    assert json.loads(Path(str(dm) + ".state.json").read_text()) == \
+        {"rewindseat": 12}
