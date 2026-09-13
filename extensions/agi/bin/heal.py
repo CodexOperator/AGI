@@ -987,19 +987,47 @@ def _reexec(argv: list[str]) -> None:
         os.execv(sys.executable, [sys.executable] + argv)
 
 
+# (goal:g15.25 SL7.105 re-cut) at most ONE 'waiting (dirty)' line per
+# (old,new) head pair — the 30 s loop polls constantly and a persistent
+# dirty period must not spam the reaper log.
+_WAITING_LOGGED: set[tuple[str, str]] = set()
+
+
+def _head_touches_engine(root: Path, old_head: str, new_head: str) -> bool:
+    """True when the engine HEAD move <old>..<new> touched a file under
+    extensions/agi/bin/ (`git diff --name-only`, two-dot; non-empty => True).
+    FAIL-OPEN BY DESIGN: a failed git call (broken repo / bad ref) returns
+    True so a broken diff never silences a real code change, and an empty
+    old_head (non-repo root / first pass, no ancestry to diff against)
+    returns True because we cannot prove the move was prose-only."""
+    if not old_head or not new_head:
+        return True
+    lines, rc = _git(
+        ["diff", "--name-only", f"{old_head}..{new_head}",
+         "--", "extensions/agi/bin/"], root)
+    if rc != 0:
+        return True
+    return bool(lines)
+
+
 def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
     """Re-read the code identity each pass. THE RULE: the watch re-execs
-    ITSELF only when the engine HEAD CHANGED **and** the tree is clean for
-    heal.py/rotate.py — a file-only identity change (mtime/size touched,
-    HEAD unchanged) NEVER execs. A changed HEAD with a clean tree -> ONE
-    '[watch] code changed <old>-><new>: re-exec' line then re-exec; a dirty
-    tree logs a 'waiting' line and does NOT exec. An execv that raises
-    OSError is caught, logged by name + errno, and the loop continues on the
-    running bytes (no retry storm: the fresh identity is adopted, so the
-    next attempt waits for the NEXT clean-tree HEAD change). Under `--once`
-    the change is never acted on (a fresh process per run; the seam is
-    exercised by the tests). Always returns the newly-read identity unless
-    re-exec happened (then it is unreachable)."""
+    ITSELF only when the engine HEAD CHANGED **and** that move touched a file
+    under extensions/agi/bin/ **and** the tree is clean for heal.py/rotate.py
+    — a file-only identity change (mtime/size touched, HEAD unchanged) NEVER
+    execs. A code-touching HEAD move with a clean tree -> ONE
+    '[watch] code changed <old>-><new>: re-exec' line then re-exec; a head
+    move that touched nothing under extensions/agi/bin/ (a prose commit)
+    logs ONE '[watch] head moved <old>-><new>: no engine change' line and
+    ADOPTS the fresh identity (no exec, no wait); a dirty tree returns the
+    OLD identity (never adopts) so the next CLEAN pass execs, logging the
+    'waiting (dirty)' line at most once per (old,new) pair. An execv that
+    raises OSError is caught, logged by name + errno, and the loop continues
+    on the running bytes (no retry storm: the fresh identity is adopted, so
+    the next attempt waits for the NEXT clean-tree HEAD change). Under
+    `--once` the change is never acted on (a fresh process per run; the seam
+    is exercised by the tests). Always returns the newly-read identity
+    unless re-exec happened (then it is unreachable)."""
     if once:
         return identity
     fresh = _code_identity(root)
@@ -1011,6 +1039,10 @@ def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
     # keeps re-running the bytes it is actually running.
     if fresh.get("head") == identity.get("head"):
         return fresh
+    if not _head_touches_engine(root, identity.get("head") or "",
+                                fresh.get("head") or ""):
+        _watch_log(f"watch: head moved {old7}->{new7}: no engine change")
+        return fresh
     if _code_files_clean(root):
         _watch_log(f"watch: code changed {old7}->{new7}: re-exec")
         try:
@@ -1020,8 +1052,11 @@ def _check_code_change(root: Path, identity: dict, once: bool) -> dict:
                        f"errno {_exc.errno}): continuing on running bytes")
             return fresh
         return fresh  # unreachable under real execv; the seam returns here
-    _watch_log(f"watch: code changed {old7}->{new7}: waiting (dirty)")
-    return fresh
+    key = (old7, new7)
+    if key not in _WAITING_LOGGED:
+        _WAITING_LOGGED.add(key)
+        _watch_log(f"watch: code changed {old7}->{new7}: waiting (dirty)")
+    return identity
 
 
 def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
