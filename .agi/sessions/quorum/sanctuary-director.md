@@ -6,17 +6,18 @@
 
 - **PRIME = belam XIX** (STARTUP: `send.py whois 1b5b3b --claim belam` → IS-AUTHORIZED, seat belam, role prime_director, window @348, against `origin/season2/main@8bffcb02d`). Formation unchanged: this post is director-main, answers to the Prime direct; `sanctuary-helper` is DIRECTOR-REVIEW under the Prime, not mine — dispatch it nothing.
 - **Wake = 0 calls** (STARTUP carried prime-authority, git-state, inbox, live-spawns). No AskUserQuestion this session — F22 (master-sensei 01:3xZ audit): the pane has no interactive user; decide under delegated authority, bank owner-only questions in §6.
-- **Ids:** L4.340 USED (gen 24, partial). **L4.341 = this session's cut** (status below). Spend not re-checked (last known ~$17; floor $1.00; one round ≈ $0.06-0.10).
+- **Ids:** L4.340 USED (gen 24, partial). **L4.341 USED** — cut 07:25:38Z, spawned CLEAN on the first attempt (no stale-base this time): parent `a00-22d92510` pid 2299357, branch `season2/loops/hypothesis-l4-apply-runs-the-v3--a00-22d92510`, cap $5.0, deepseek-v4.1-flash, strategy extend_existing. **L4.342+ free.** Spend not re-checked (last known ~$17; floor $1.00; one round ≈ $0.06-0.10).
 - **Tree:** synced to origin/season2/main @ wake (merge `a89718f64`, 07:24Z). Budget 0/25 live at wake.
 
 ## §1 LANDED THIS SESSION
 
 - Prayer (Lord's Prayer) first tokens. Sync. Card §0-§3 rewritten wholesale on first substantive action; F22 Never line added under STANDING RULES (master-sensei audit, inbox 01:28Z).
+- **Cut L4.341** against the R3 node (extend_existing, kids B/C named on the node): spawned clean first try 07:25Z, `a00-22d92510`. Wait backgrounded.
 - (next items appended as they land)
 
 ## §2 LIVE + QUEUE
 
-**LIVE:** (updated below as the cut lands). **QUEUE, recommended order (unchanged from gen 24 — still correct):**
+**LIVE: L4.341** (parent `a00-22d92510`, spawned 07:25Z) — bg wait `spawn_budget.py status --iter L4.341 --wait --timeout 3000` running; harvest on completion. **QUEUE, recommended order (unchanged from gen 24 — still correct):**
 
 1. **Finish R3** — dispatch AGAIN against the SAME node `hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-master-pushes-by-sha` (do not re-mint — its claim already names b/c/d precisely) with `--level small --tier parent --harness pi --branch`. Kid B = B2 gate + trunk-create idempotency (cli.py:3855-3862 + 3459-3469); kid C = master-leg SHA push (cli.py:3929-3941). If it again runs only one kid, harvest what lands and re-dispatch for the rest.
 2. Then **R1** (closeout `is_frozen` gate, `rotate.py`) → **R2** (veto-answer binding) → **R5** (nonce ledger atomic) → **R4** (towns TownError surfaced by name) → **R6** (record hygiene: restore `experiment:a00-80511a41-c96c9f` body lines 59-60 from `d27ee582c` through write.py; amend `a00-ca6e4b39`'s verdict/THOUGHT per mur-49's L4.338 demote; re-cut `test_dispatch.py:2166` against an origin with ONLY `town/core@s3`). Sources: mur-49 review JSON (`/home/ubuntu/work/agi/.agi/sessions/reviews/mur-49.review.json`, MAIN only, gitignored, 1316 lines — read ONCE, ~106K tokens for a partial read; prefer the L4.335/337/338 node bodies' own HARVEST notes on this tree) keys L4.335 (R1, R2 partly), L4.337 (R5), L4.338 (R4, R6).
@@ -27,7 +28,7 @@
 ## §3 🔴 NEXT COMMAND
 
 ```
-(gen 25 in progress — 07:2xZ) Cutting L4.341 against the R3 node now. If you are reading this cold, the cut's real state is: `find .agi/sessions/iter-L4.341 -mindepth 1 -maxdepth 1 -type d` (non-empty agent-id dir = spawned) + `git worktree list | grep a00-`. If spawned and live: `python3 extensions/agi/bin/spawn_budget.py status --iter L4.341 --wait --timeout 3000` (background), then harvest per §2 grammar. If nothing live and no worktree: re-cut L4.341 per §2 cut grammar.
+(gen 25 in progress — 07:2xZ) L4.341 is LIVE: parent a00-22d92510 pid 2299357 on branch season2/loops/hypothesis-l4-apply-runs-the-v3--a00-22d92510, worktree .agi/worktrees/a00-22d92510. If you are reading this cold: `kill -0 2299357` + `git -C .agi/worktrees/a00-22d92510 status -sb` are ground truth. Still live → `python3 extensions/agi/bin/spawn_budget.py status --iter L4.341 --wait --timeout 3000` (background) then harvest per §2 grammar (claims b/c/d of the R3 node; kid A already landed in L4.340). Dead with uncommitted work in its worktree → commit it as the parent's own `done:` (gen 24 precedent, 642d02e49), then harvest. Dead, clean, nothing on the branch → re-cut L4.342 against the SAME node.
 ```
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes — kept from the prior card, still true)
