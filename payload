@@ -2240,8 +2240,13 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
     branches.derive_names from `branch`'s OWN tuple (the same grammar
     _rs_v3_posts_renames uses) and checking that the derived post_main
     EXISTS — never by the presence of `branch` itself (it is GONE after the
-    v3 rename), and never on a branch that carries an upstream (that one is a
-    real live migration and must still satisfy the gate)."""
+    v3 rename). The upstream check the docstring always promised is now
+    actually CALLED, on BOTH `branch` and the derived `target`: a v3-LOCAL
+    post's post_main is upstream-UNSET by contract, so any branch that carries
+    an upstream (the carried old alias — a real live migration) denies the
+    exemption and must still satisfy the B2 gate
+    (hypothesis:l4-b-exemption-calls-the-upstream-check-its-docstring-
+    promises)."""
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
     try:
         p = branches.parse(branch)
@@ -2256,6 +2261,15 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
         target = branches.derive_names(
             _rs_v3_core_town(tuples), season, name)["post_main"]
     except ValueError:
+        return False
+    # A branch that CARRIES an upstream is a real live migration, never a
+    # v3-LOCAL post (whose local contract is upstream UNSET). `branch` is
+    # usually GONE after the rename so its own probe is '' and the real
+    # falsifier is `target`'s upstream — exactly the check the docstring
+    # promised. Probe BOTH so neither spelling can slip through:
+    # `_post_rename_upstream` is rc-honest ('' on a missing/dead branch).
+    if _post_rename_upstream(repo, branch) \
+            or _post_rename_upstream(repo, target):
         return False
     return _post_rename_has_branch(repo, target)
 
@@ -3507,6 +3521,19 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "no ladder towns: list); only the v2 migration applies — run "
               "--dry-run to see the planned v3 tree")
         return 0
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: a wrong-tip trunk is REFUSED BY NAME but must NOT
+    # abort the sections that FOLLOW the town loop (the v3 post renames; the
+    # v3 main notice; the dry-only loop plan). The planned tip is the
+    # season's MAIN trunk (derived, never hand-spelled — branches.py owns
+    # the grammar) and it moves at every merge-up, so a trunk legitimately
+    # created at the
+    # OLDER tip is refused on the first --apply and stays at that tip forever
+    # (never force-moved). Collect refusals across the WHOLE job stream and
+    # CONTINUE, exactly like --delete-old; ONE summary + a non-zero exit live
+    # at the very END of this function so the run stays rc-honest without
+    # blocking the rest of the migration.
+    refused: list[str] = []
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
@@ -3529,14 +3556,51 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
                 else:
                     resume_state = "wrong"
             if resume_state == "skip":
-                print(f"    [SKIP] {town_name} already at tip (resumed run)")
+                # hypothesis:l4-trunk-create-resume-ls-remote-gates-push-if-
+                # remote-absent: a local trunk AT the planned tip is NOT by
+                # itself a finished job. A first pass that died between
+                # `git branch <town>` and `git push -u origin <town>` leaves
+                # the trunk LOCAL-ONLY, and the old unconditional skip then
+                # `continue`d past the push, stranding it until an operator
+                # pushed it (mur-50 residue (c), REAL). So GATE the skip on
+                # origin, reusing `_post_rename_remote_ref_state` exactly the
+                # way the delete-old resume leg does: 'present' = finished
+                # (skip); 'absent' = resume the push the dead pass never
+                # reached; 'failed' = rc-honest refusal (a failed probe is
+                # UNKNOWN and must never read as absent OR present).
+                rstate = _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{town_name}")
+                if rstate == "failed":
+                    print(f"ERR: ls-remote origin {town_name} failed; cannot "
+                          f"confirm it is already pushed — NOT skipped",
+                          file=sys.stderr)
+                    return 1
+                if rstate == "present":
+                    print(f"    [SKIP] {town_name} already at tip and on "
+                          f"origin (resumed run)")
+                    continue
+                # absent: the trunk is LOCAL-ONLY — this is the push the dead
+                # first pass never got to. rc-gated, exactly like the create
+                # leg's push.
+                print(f"    [APPLY] branch push (v3, resume): git push -u "
+                      f"origin {town_name}")
+                pr = subprocess.run(["git", "push", "-u", "origin",
+                                     town_name], cwd=repo, capture_output=True,
+                                    text=True)
+                if pr.returncode != 0:
+                    print(f"ERR: git push -u origin {town_name} failed: "
+                          f"{pr.stderr.strip()}", file=sys.stderr)
+                    return 1
                 continue
             if resume_state == "wrong":
+                # refused BY NAME, but NEVER force-moved and NEVER an abort:
+                # collect and continue to the next planned pair.
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
                       f"already exists at a DIFFERENT tip than the planned "
                       f"{tip}; a trunk-pair create never force-moves a trunk",
                       file=sys.stderr)
-                return 1
+                refused.append(town_name)
+                continue
             print(f"    [{'DRY ' if dry else 'APPLY'}] branch create (v3): "
                   f"git branch {town_name} {tip}")
             # the push line: assert_remote_visible FIRST, then the line.
@@ -3613,6 +3677,27 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "cut):")
         if _rs_v3_loops_plan(repo):
             return 1
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the closing apply line prints IF AND ONLY IF it is
+    # TRUE -- i.e. this run reached the END of its job stream (the v3 post
+    # renames ran/were attempted and NO git command aborted early). Printing
+    # it HERE, not in the callers, is what makes a broken v3 git command (an
+    # early `return 1`) stop claiming work that did not happen. `not dry`
+    # keeps --dry-run byte-identical (the line was already absent there).
+    if not dry:
+        print("apply: local renames + worktree re-points done; remote legacy "
+              "branches NOT deleted (see --delete-old)")
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the ONE summary + non-zero exit for the WHOLE job
+    # stream. Every section above ran to completion first, so a refused trunk
+    # never blocks the v3 post renames, the v3 main notice or the loop plan.
+    # Measured BEFORE this move: the summary `return 1`ed at the end of the
+    # town block, so `--apply --kinds main,posts,towns` on a moved tip never
+    # reached the post section on ANY retry.
+    if refused:
+        print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
+              f"{', '.join(refused)}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -3738,10 +3823,19 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             # creates + v3 post renames are INDEPENDENT of the v2 renames, so
             # an empty legacy list must not bypass the v3 plan. rc-honest like
             # the main apply tail: a failed git run returns 1 and names it.
+            # l4-branch-reshuffle-apply-collect-refusals-and-continue-on-a-
+            # moving-tip (fix 2): this zero-legacy arm returns BEFORE the
+            # shared grid_before at the main apply path, so the
+            # refs/grid IDENTICAL|CHANGED line never printed here. Measure
+            # around the v3 run and print the SAME one-line message.
+            grid_before = _reshuffle_refs_grid(repo)
             if _rs_v3_run(repo, root, kinds, False, has_origin):
                 return 1
-            print("apply: local renames + worktree re-points done; remote "
-                  "legacy branches NOT deleted (see --delete-old)")
+            grid_after = _reshuffle_refs_grid(repo)
+            same = "IDENTICAL" if grid_after == grid_before else "CHANGED"
+            print(f"refs/grid: {same} before/after --apply (expected IDENTICAL)")
+            # the closing line now prints from INSIDE _rs_v3_run, and only
+            # when that run reached the end of its job stream.
             return 0
         if not (apply or delete_old):
             print("dry-run: nothing changed")
@@ -4104,12 +4198,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # non-remote-visible push is REFUSED BY NAME) and the local-only v3
         # post renames (no push, upstream UNSET, worktrees re-pointed). The
         # remote delete stays the separate --delete-old step. rc-honest: any
-        # git failure returns 1 and names the failed command.
-        if _rs_v3_run(repo, root, kinds, False, has_origin):
-            return 1
-        print("apply: local renames + worktree re-points done; remote legacy "
-              "branches NOT deleted (see --delete-old)")
-        return 0
+        # git failure returns 1 and names the failed command, and a
+        # collected wrong-tip refusal returns 1 from the SUMMARY at the very
+        # end of _rs_v3_run -- AFTER every section ran (R3.2). Either way the
+        # closing line reports the v2 renames + worktree re-points that
+        # completed ABOVE this call; the v3 failures are named on stderr.
+        v3_rc = _rs_v3_run(repo, root, kinds, False, has_origin)
+        # the closing line now prints from INSIDE _rs_v3_run (R3.2), gated on
+        # the run reaching the end of its job stream -- so a v3 git failure
+        # that `return 1`s early never prints the false "done" status.
+        return v3_rc
 
     # defect 5 contract owed to the crons region (KID D): the LAST line of
     # --dry-run must be the runbook note, kept to one line.
