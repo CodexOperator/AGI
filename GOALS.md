@@ -6670,6 +6670,8 @@ SM.01 HARVESTED (a00-2d7d67b8; kid 1 lean_disproved:70 on the --seat alias, kid 
 
 SL7.116 HARVESTED (a00-e2759a34, proved 0.9; six parent probes): rotate refuses a derived stops slot byte-identical to the card at the last rotate-out commit (gen pair + short sha + date named; explicit --stops never gated; dry-run on a stale slot returns 2); started record carries stops_sha256. Over ceiling: 160 lines vs 50 (record threading) — flagged for SM's review
 
+SL7.117 HARVESTED (a00-bd1c1cb7, proved 0.95): rotate_defaults is ONE top-level config:rotations map (timeout_s.<role> / closeout.<role>) via _load_rotate_defaults; the dead templates.<role>.* reads deleted; the two Prime 0a lines (set ranks […] / set rotate_defaults {…}) dry-run-proven in experiment:a00-3a5520d8-5aa48d — to run ONCE after SL2#28 lands; nbhd 469/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
