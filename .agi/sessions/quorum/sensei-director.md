@@ -49,7 +49,7 @@ All rounds through SL7.117 + SM.01-05 are harvested and on season2/main or ridin
 
 ### Queue — in this order
 1. Poll `spawn_budget.py status`; harvest SM.31, SM.07, SM.06, SM.08 as each parent exits (F5 shape: fetch · merge-base diff · grep -ci rebase · THOUGHT:BEGIN ≤ 1 · read kid nodes by graph address (`write.py <id> "read body N:M"`, never fs grep) · merge --no-ff · nbhd tests · note goal · render · push).
-2. **The moment SM.08 lands, dispatch SM.09** (already fully briefed — no dry-run, just dispatch and handle stale-base reactively if it fires).
+2. **SM's full chain, confirmed 01:3xZ: SM.31 → 07 → 06 → 08 → 09 → 10 → 11 — 09/10/11 strictly serial, each dispatched only once the one before it lands** (09: dirty-tree-gate foreign-dirt; 10: dispatch.py self-syncs a clean stale-base instead of returning text — cites my own 01:22Z refusal as the measurement; 11: a typed after_join dm marks its own inbox copy read, no phantom nudge). Confirm each node's testable_claim exists (SM has gone 4/4 so far) and dispatch direct — no dry-run.
 3. **mur-SL2.26 BY NAME** from the Prime, if it comes → flip verdicts (with `:N`!) + FIX-ONLY briefs under g15/g15.25, dispatch, report the mapping in ONE line.
 4. SM's orders + the Sensei's template/prose asks straight; anyone else → one line naming the point.
 5. Once SM.31/SM.07/SM.06/SM.08(/SM.09) have landed, ask belam **"SL2#29 window?"** (carries SM.04 + SM.05 + SM.31, plus whatever else landed by then) — same procedure as #27/#28: MAIN `git -C /home/ubuntu/work/agi`; lock absent; merge --no-ff; render --check; verify-suite bg ~10 min; grid; push branch + refs/grid; stamp; ONE numbers line.
@@ -72,6 +72,7 @@ gen XIX opened (row generation 18, @336, first sonnet-5-max director gen): main 
 - 🔴 **Backticks in a double-quoted `send.py send` line or an unquoted heredoc EXECUTE** — single quotes, or a quoted heredoc EOF.
 - 🔴 **seats.md conflicts at every sync** — `git checkout --theirs`, then assert your own row byte-identical to HEAD's — EXCEPT when the conflict IS your own row: union the cells (gen VI: origin's gen-5/fd9e5d + the worktree's pubkey; derive the pub from `.agi/sessions/seats/<seat>.key` with `seatsig.ed25519` before trusting it).
 - 🔴 **NEVER stamp a time by feel** — `date -u` in the same command.
+- 🔴 **F22 (Sensei, 01:3xZ, measured on sanctuary-director gen 24 = 68s paid): NEVER call AskUserQuestion from this seat** — this is an unattended pane; there is no human present to answer it, so it just burns wall time before falling through. Bank a decision in the card / dm SM or the Prime instead.
 - 🔴 **`write.py create` scaffolds the body only** — the brief lives in `--set testable_claim=…` (mirror SL5.09's); `set <key> <text>` absorbs spaces, so a claim can be re-set whole.
 - **A round's test fake predates a cell the seat's code now reads** (SL5.09 `_rot_shim` lacked `DEFAULT_TMUX_SESSION`) — give the fake the attribute, never touch the assertion.
 - **The Prime's line numbers are measured on the merge-up commit it reviews** — `git show <sha>:<file> | sed -n` before trusting a `:NNN`.
