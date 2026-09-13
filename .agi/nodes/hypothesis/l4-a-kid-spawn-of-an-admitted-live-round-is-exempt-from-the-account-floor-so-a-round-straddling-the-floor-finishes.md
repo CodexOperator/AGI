@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM review by name (SL2#29 @19fd41e4e): ACCEPT — test_dispatch.py green in the five-file run (199 passed); the exemption is kid-only with a manifest parent + live pid, key floor untouched. Landed with the account above the $5 floor.

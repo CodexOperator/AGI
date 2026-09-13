@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM review by name (SL2#29 @19fd41e4e): ACCEPT. Live probe from this MAIN post with the Prime uncommitted posts.md/rotations.md edits in the tree: [ok] dirty tree: (empty) / [ok] foreign dirt (not in the merge): posts.md, rotations.md / [ok] behind 0 — named, not a block. Evidence-gate demote of SM.06/SM.08 noted (no evidence_runs list on the kid) — a harvest defect, not a claim defect; re-verify their runs at the next merge-up.
