@@ -46,6 +46,70 @@ def _spawn_name(tmp_path, monkeypatch, capsys, argv_extra):
     return out, capsys.readouterr().err
 
 
+def _labeled_spawn(tmp_path, monkeypatch, capsys, rows, argv_extra):
+    """goal:g15.25 label tests — seed a row set WITH `label_word` cells and
+    run `spawn --dry-run`, returning (out, err)."""
+    root = tmp_path / "root"
+    _write_seats(root, rows)
+    prompt = root / "prompt.md"
+    prompt.write_text("Hello {name}")
+    windows = root / "windows.txt"
+    windows.write_text("belam-S1\n", encoding="utf-8")
+    base = dict(name=None, tier="director", model=None, effort=None,
+                settings=None, prompt_file=str(prompt), successor_argv=None,
+                seat=None, tmux_session="t", window_path=str(windows), pid=None,
+                no_autopsy=False, ask_diff=False, dry_run=True)
+    base.update(argv_extra)
+    rc = rotate.cmd_spawn(Namespace(**base), root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    return out, capsys.readouterr().err
+
+
+def _label_line(out):
+    for ln in out.splitlines():
+        if ln.startswith("label: "):
+            return ln.split("label: ", 1)[1]
+    return None
+
+
+def test_spawn_labeled_seat_prints_label_and_window_separately(
+        monkeypatch, tmp_path, capsys):
+    # g15.25 (hypothesis:l4-the-gui-session-label-...): a non-prime row with a
+    # `label_word` cell gets `<name>-<label_word>-g<gen>` as the GUI label
+    # while the tmux WINDOW keeps the plain seat name — read apart on the
+    # dry-run lines, no tmux.
+    out, _ = _labeled_spawn(
+        tmp_path, monkeypatch, capsys,
+        [{"name": "director-post", "role": "director", "model": "x",
+          "label_word": "main"}],
+        {"seat": "director-post"})
+    assert _resolved(out) == "'director-post'"     # the tmux window name
+    assert _label_line(out) == "'director-post-main-g1'"
+
+
+def test_spawn_labeled_seat_without_label_word_prints_bare_label(
+        monkeypatch, tmp_path, capsys):
+    # no `label_word` cell -> `<name>-g<gen>` (no dangling `-word-`)
+    out, _ = _labeled_spawn(
+        tmp_path, monkeypatch, capsys,
+        [{"name": "director-post", "role": "director", "model": "x"}],
+        {"seat": "director-post"})
+    assert _resolved(out) == "'director-post'"
+    assert _label_line(out) == "'director-post-g1'"
+
+
+def test_spawn_prime_seat_prints_no_label_line(monkeypatch, tmp_path, capsys):
+    # a prime_director row has NO label — the chain numeral stays the name and
+    # no `label:` line is printed (nothing to decouple).
+    out, _ = _labeled_spawn(
+        tmp_path, monkeypatch, capsys,
+        [{"name": "prime-win", "role": "prime_director", "model": "y"}],
+        {"seat": "prime-win"})
+    assert _resolved(out) == "'belam-S1-II'"
+    assert _label_line(out) is None
+
+
 def _resolved(out):
     for ln in out.splitlines():
         if ln.startswith("spawn name: "):

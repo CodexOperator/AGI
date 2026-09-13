@@ -1393,6 +1393,8 @@ def test_watch_code_change_clean_tree_reexecs_once(monkeypatch, tmp_path):
     monkeypatch.setattr(heal, "_code_identity",
                         lambda root: id_b)   # every read sees the NEW head
     monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
     monkeypatch.setattr(heal, "_reexec", fake_reexec)
     reaper = tmp_path / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
@@ -1413,10 +1415,13 @@ def test_watch_code_change_dirty_tree_waiting_no_reexec(monkeypatch, tmp_path):
     def fake_reexec(argv):
         calls.append(list(argv))
 
+    heal._WAITING_LOGGED.clear()
     id_a = {"head": "aaaaaaa", "files": {}}
     id_b = {"head": "bbbbbbb", "files": {}}
     monkeypatch.setattr(heal, "_code_identity", lambda root: id_b)
     monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
     monkeypatch.setattr(heal, "_reexec", fake_reexec)
     reaper = tmp_path / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
@@ -1424,7 +1429,7 @@ def test_watch_code_change_dirty_tree_waiting_no_reexec(monkeypatch, tmp_path):
     returned = heal._check_code_change(tmp_path, id_a, once=False)
 
     assert calls == [], f"dirty tree must NEVER re-exec: {calls}"
-    assert returned == id_b
+    assert returned == id_a, "dirty wait must keep the OLD identity (no adopt)"
     log = reaper.read_text()
     assert "code changed aaaaaaa->bbbbbbb: waiting (dirty)" in log, log
 
@@ -1511,6 +1516,8 @@ def test_watch_reexec_oserror_is_caught_loop_continues(monkeypatch, tmp_path):
     monkeypatch.setattr(heal, "_code_identity",
                         lambda root: {"head": "bbbbbbb", "files": {}})
     monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
     monkeypatch.setattr(heal, "_reexec", boom)
     ret = heal._check_code_change(
         tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
@@ -1544,3 +1551,148 @@ def test_watch_unchanged_head_never_reexecs(monkeypatch, tmp_path):
     assert ret["head"] == "aaaaaaa"
     log = reaper.read_text() if reaper.exists() else ""
     assert "re-exec" not in log, f"no re-exec line for a file-only change:\n{log}"
+
+
+# --- goal:g15.25 SL7.105 RE-CUT (mur-SL2.26): exec ONLY when a HEAD move
+# touches extensions/agi/bin/**, and a dirty wait keeps the OLD identity. A
+# prose-only commit (nodes/, cards, comms) must never restart the watcher;
+# a dirty wait must still be acted on once the tree is clean. `_git` is
+# monkeypatched exactly as the pre-existing tests do (never touches git). ---
+
+def test_watch_prose_head_move_no_exec_adopts_one_line(monkeypatch, tmp_path):
+    """FALSIFIER (the core claim): a HEAD change whose diff touches NOTHING
+    under extensions/agi/bin/ (a prose commit) must NOT re-exec, must ADOPT
+    the fresh identity, and must log exactly ONE 'no engine change' line."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: False)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert calls == [], f"prose-only HEAD move must never exec: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}, \
+        "no-engine-change adopt the fresh identity"
+    log = reaper.read_text()
+    assert "head moved aaaaaaa->bbbbbbb: no engine change" in log, log
+    assert "waiting (dirty)" not in log, \
+        "a prose move must not wait — it is not a wait, it is an adopt"
+
+
+def test_watch_code_head_touching_engine_reexecs(monkeypatch, tmp_path):
+    """A HEAD move whose two-dot diff NAMES extensions/agi/bin/rotate.py,
+    clean tree -> exactly one re-exec, fresh identity adopted."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert len(calls) == 1, f"engine-touching clean move must exec: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}
+    assert "code changed aaaaaaa->bbbbbbb: re-exec" in reaper.read_text()
+
+
+def test_watch_dirty_wait_keeps_old_then_clean_execs(monkeypatch, tmp_path):
+    """CLAIM (3) + FALSIFIER: a dirty wait returns the OLD identity; a
+    subsequent CLEAN pass (same head pair) then execs — the change is never
+    silently dropped because the tree transiently dirtied."""
+    heal._WAITING_LOGGED.clear()
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: True)
+    # PASS 1: dirty -> old identity, no exec.
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    old = {"head": "aaaaaaa", "files": {}}
+    ret = heal._check_code_change(tmp_path, old, once=False)
+    assert ret == old, "dirty wait must keep the OLD identity (never adopt)"
+    assert calls == [], "dirty pass must not exec"
+    # PASS 2: same head pair, now CLEAN -> exec.
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    ret2 = heal._check_code_change(tmp_path, ret, once=False)
+    assert len(calls) == 1, "clean pass after a dirty wait must exec: {calls}"
+    assert ret2 == {"head": "bbbbbbb", "files": {}}
+    log = reaper.read_text()
+    assert "waiting (dirty)" in log
+    assert "re-exec" in log
+
+
+def test_watch_dirty_wait_logged_once_per_pair(monkeypatch, tmp_path):
+    """FALSIFIER (no spam): a persistent dirty tree across MANY passes logs
+    the 'waiting (dirty)' line at most ONCE for the same (old,new) pair —
+    the 30 s loop must not spam."""
+    heal._WAITING_LOGGED.clear()
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    old = {"head": "aaaaaaa", "files": {}}
+    for _ in range(4):  # four passes, still dirty
+        ret = heal._check_code_change(tmp_path, old, once=False)
+        assert ret == old
+    log = reaper.read_text()
+    assert log.count("waiting (dirty)") == 1, \
+        f"waiting must be logged once per pair, not 4x:\n{log}"
+    assert calls == []
+
+
+def test_watch_git_diff_refusal_is_fail_open_touches(monkeypatch, tmp_path):
+    """FALSIFIER (claim 1): `_git` REFUSING the diff (nonzero rc, broken repo)
+    must be treated as TOUCHES (fail-open), so a real code change is never
+    silenced by a git failure — a clean tree then execs."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(
+        heal, "_git", lambda args, cwd: (["dummy"], 128))
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert len(calls) == 1, \
+        f"git refusal must stay fail-open => exec on clean tree: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}
+    assert "re-exec" in reaper.read_text()
+
+
+def test_head_touches_engine_directly(monkeypatch):
+    """Unit: `_head_touches_engine` returns False for an empty diff, True for
+    a diff naming extensions/agi/bin/, True on a git refusal, True on an
+    empty old_head (non-repo / first pass — no ancestry to prove prose)."""
+    probe = [([], 0)]
+    monkeypatch.setattr(heal, "_git",
+                        lambda args, cwd: probe[0])
+    probe[0] = ([], 0)          # empty diff -> no touch
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is False
+    probe[0] = (["extensions/agi/bin/rotate.py"], 0)
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
+    probe[0] = ([], 128)        # git refusal -> fail-open touches
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
+    probe[0] = ([], 0)          # empty old_head (first pass) -> touches
+    assert heal._head_touches_engine(None, "", "bbbbbbb") is True
