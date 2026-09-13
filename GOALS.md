@@ -6702,6 +6702,8 @@ SM.21 harvested: reaped-parent death-class + staged-work record + cli.py done --
 
 SM.141 (SMs SM.14a) harvested, hand-extracted per her ruling after a 300+ line overage against the <=10-line ceiling: only rotation_alert.py three print-site wording fix + tests landed (49/49 green); kid2 killed mid-run, never merged; a plausible but unscoped rotate.py card-header stamp fix (same bug family) preserved on the round loop branch for a possible future brief, not merged.
 
+SM.23 harvested: the reaper tolerates a null pid on every manifest record via one shared _rec_pid helper, and stalled-dead alarms through the SAME death predicate as dead-running. 2 kids; the parents own probe D (the claims named falsifier) caught kid1s self-reported proved missing a real gap and correctly demoted it, kid2 closed the gap and was accepted proved. 182 tests green per the parents own run (directors independent re-run still finishing in the background under heavy concurrent load). SM confirmed the 66-line size legitimate mid-round and raised the ceiling to 80. This round needs its own dedicated Prime merge-up window before the reaper unit restarts -- not yet requested.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
