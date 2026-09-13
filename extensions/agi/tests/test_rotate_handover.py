@@ -408,7 +408,8 @@ def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
     (schemas / "[config].md").write_text(
         "---\nname: config\nwritten_by: [owner, prime_director]\n"
         "self_row: {list_key: seats, match_key: name, "
-        "fields: [session_ref, session_name, generation, window]}\n---\nbody\n",
+        "fields: [session_ref, session_name, generation, window, "
+        "session_label]}\n---\nbody\n",
         encoding="utf-8")
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
