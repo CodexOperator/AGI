@@ -3507,6 +3507,17 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "no ladder towns: list); only the v2 migration applies — run "
               "--dry-run to see the planned v3 tree")
         return 0
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: a wrong-tip trunk is REFUSED BY NAME but must NOT
+    # abort the sections that FOLLOW the town loop (the v3 post renames; the
+    # v3 main notice; the dry-only loop plan). The planned tip is season2/main
+    # and it moves at every merge-up, so a trunk legitimately created at the
+    # OLDER tip is refused on the first --apply and stays at that tip forever
+    # (never force-moved). Collect refusals across the WHOLE job stream and
+    # CONTINUE, exactly like --delete-old; ONE summary + a non-zero exit live
+    # at the very END of this function so the run stays rc-honest without
+    # blocking the rest of the migration.
+    refused: list[str] = []
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
@@ -3566,11 +3577,14 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
                     return 1
                 continue
             if resume_state == "wrong":
+                # refused BY NAME, but NEVER force-moved and NEVER an abort:
+                # collect and continue to the next planned pair.
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
                       f"already exists at a DIFFERENT tip than the planned "
                       f"{tip}; a trunk-pair create never force-moves a trunk",
                       file=sys.stderr)
-                return 1
+                refused.append(town_name)
+                continue
             print(f"    [{'DRY ' if dry else 'APPLY'}] branch create (v3): "
                   f"git branch {town_name} {tip}")
             # the push line: assert_remote_visible FIRST, then the line.
@@ -3647,6 +3661,27 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "cut):")
         if _rs_v3_loops_plan(repo):
             return 1
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the closing apply line prints IF AND ONLY IF it is
+    # TRUE -- i.e. this run reached the END of its job stream (the v3 post
+    # renames ran/were attempted and NO git command aborted early). Printing
+    # it HERE, not in the callers, is what makes a broken v3 git command (an
+    # early `return 1`) stop claiming work that did not happen. `not dry`
+    # keeps --dry-run byte-identical (the line was already absent there).
+    if not dry:
+        print("apply: local renames + worktree re-points done; remote legacy "
+              "branches NOT deleted (see --delete-old)")
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the ONE summary + non-zero exit for the WHOLE job
+    # stream. Every section above ran to completion first, so a refused trunk
+    # never blocks the v3 post renames, the v3 main notice or the loop plan.
+    # Measured BEFORE this move: the summary `return 1`ed at the end of the
+    # town block, so `--apply --kinds main,posts,towns` on a moved tip never
+    # reached the post section on ANY retry.
+    if refused:
+        print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
+              f"{', '.join(refused)}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -3772,10 +3807,19 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             # creates + v3 post renames are INDEPENDENT of the v2 renames, so
             # an empty legacy list must not bypass the v3 plan. rc-honest like
             # the main apply tail: a failed git run returns 1 and names it.
+            # l4-branch-reshuffle-apply-collect-refusals-and-continue-on-a-
+            # moving-tip (fix 2): this zero-legacy arm returns BEFORE the
+            # shared grid_before at the main apply path, so the
+            # refs/grid IDENTICAL|CHANGED line never printed here. Measure
+            # around the v3 run and print the SAME one-line message.
+            grid_before = _reshuffle_refs_grid(repo)
             if _rs_v3_run(repo, root, kinds, False, has_origin):
                 return 1
-            print("apply: local renames + worktree re-points done; remote "
-                  "legacy branches NOT deleted (see --delete-old)")
+            grid_after = _reshuffle_refs_grid(repo)
+            same = "IDENTICAL" if grid_after == grid_before else "CHANGED"
+            print(f"refs/grid: {same} before/after --apply (expected IDENTICAL)")
+            # the closing line now prints from INSIDE _rs_v3_run, and only
+            # when that run reached the end of its job stream.
             return 0
         if not (apply or delete_old):
             print("dry-run: nothing changed")
@@ -4138,12 +4182,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # non-remote-visible push is REFUSED BY NAME) and the local-only v3
         # post renames (no push, upstream UNSET, worktrees re-pointed). The
         # remote delete stays the separate --delete-old step. rc-honest: any
-        # git failure returns 1 and names the failed command.
-        if _rs_v3_run(repo, root, kinds, False, has_origin):
-            return 1
-        print("apply: local renames + worktree re-points done; remote legacy "
-              "branches NOT deleted (see --delete-old)")
-        return 0
+        # git failure returns 1 and names the failed command, and a
+        # collected wrong-tip refusal returns 1 from the SUMMARY at the very
+        # end of _rs_v3_run -- AFTER every section ran (R3.2). Either way the
+        # closing line reports the v2 renames + worktree re-points that
+        # completed ABOVE this call; the v3 failures are named on stderr.
+        v3_rc = _rs_v3_run(repo, root, kinds, False, has_origin)
+        # the closing line now prints from INSIDE _rs_v3_run (R3.2), gated on
+        # the run reaching the end of its job stream -- so a v3 git failure
+        # that `return 1`s early never prints the false "done" status.
+        return v3_rc
 
     # defect 5 contract owed to the crons region (KID D): the LAST line of
     # --dry-run must be the runbook note, kept to one line.
