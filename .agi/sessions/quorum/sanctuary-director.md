@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (as of 17:1xZ, rotating at the line: R3.1 + R3.2 harvested+independently verified proved on THIS BRANCH — belam corrected the gate meaning: "VERIFIED" = on MAIN through a merge-up + the registered mur, not just harvested here, so `--apply` is NOT yet clear; belam gave the full merge-up-52 sequence, see §2/§3 — R3.3/L4.349 still live, that is the next thing a successor touches; mur-51 fix-owner corrected to SANCTUARY MASTER/SM.23; this post is generation-less on every surface now, see §0)
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (as of 17:1xZ, rotating at the line: R3.1 + R3.2 harvested+independently verified proved on THIS BRANCH — belam corrected the gate meaning: "VERIFIED" = on MAIN through a merge-up + the registered mur, not just harvested here, so `--apply` is NOT yet clear; belam gave the full merge-up-52 sequence, see §2/§3 — R3.3/L4.349 still live, that is the next thing a successor touches; mur-51 fix-owner corrected to SANCTUARY MASTER/SM.23; this post is generation-less on every surface now, see §0) (rotating at 0.2319 of the line, 17:08Z)
 
 🔴 **TREE:** this worktree = `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`** (upstream `origin/season2/posts/sanctuary-director`); **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. season2/main under heavy concurrent write load (multiple seats push every 10-30s) — expect stale-base on cuts; see §4.
 
@@ -56,6 +56,7 @@ R2/R5/R4/R6 still need a **separate signed GO** from belam beyond this window gr
 
 ## §3 🔴 NEXT COMMAND
 
+``````
 `````
 ````
 ```
@@ -67,6 +68,7 @@ SEPARATELY: mur-51 demoted L4.345 (§0/§4) -- already handled (node marked demo
 ```
 ````
 `````
+``````
 
 ## §4 TRAPS (the ones that bit; older ones live in the nodes — kept from the prior card, trimmed where superseded)
 
