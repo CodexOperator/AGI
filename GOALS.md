@@ -9656,6 +9656,8 @@ SL7.112 HARVESTED (a00-928a039a; proved 0.9 + lean_proved:70): dispatch.py exits
 
 SL7.110 HARVESTED (a00-d94d023f; proved 0.85/0.9/0.95): cli.py done for tier parent refuses >= lean_proved:50 without one parent-run negative probe per claim conjunct (probes: six keys, classes auth/gate/wire; --dry-run prints the decision); [experiment] schema gains probes:. Seat fix-up: the SL7.111 parent prose now names auth/gate/wire — one vocabulary with the gate
 
+SM.05 HARVESTED (a00-70702192; kid 1 lean_disproved:70 — the opt-in flag was read after the session env strip; kid 2 proved 0.85 — flag snapshotted at conftest import): ONE autouse fixture stubs rotate._openrouter_get and delenvs the OPENROUTER keys unless AGI_REAL_JUDGE=1; test-only; pin tests 24/1.5s
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
