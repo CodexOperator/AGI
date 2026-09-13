@@ -123,7 +123,7 @@
         "model": "claude-opus-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json",
     "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.ack.json"
@@ -179,8 +179,46 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-13T01:25:35.546471+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-13T01:25:13.144124Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep master-sensei",
+        "rc": 0,
+        "output": "@346 master-sensei\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/master-sensei.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/23b5c428-e31d-44f5-b705-43591e805b61.jsonl",
+        "rc": 0,
+        "output": "0.0829\t82901/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '1982432 3634188 3634187 3634084 3634081'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '1982432 3634188 3634187 3634084 3634081'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post master-sensei --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post master-sensei --gen 6 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "master-sensei",
+    "dm_signed": true,
+    "code_head": "d0ec3b4",
+    "claimed_at": "2026-09-13T01:25:35.546471+00:00",
+    "claim_key": "2026-09-13T01:25:13.144124Z",
+    "performed_after_s": 21.64589262008667
   }
 }
