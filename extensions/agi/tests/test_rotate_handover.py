@@ -1765,3 +1765,111 @@ def test_rotate_self_tail_defers_when_watch_alive(_fix, tmp_path,
     assert "after_join deferred to the persistent service" in \
         (out.out + out.err)
 
+
+
+# ── goal:g15.25 CLAUSE 8 — the spawn-row writer fields vs self_row ────────
+
+
+def _shipped_config_schema():
+    """The LIVE shipped [config].md schema (extensions/agi/tests/ ->
+    parents[3] is the repo/worktree root), never a copied declaration list."""
+    import frontmatter as _fm  # same dir (under test)
+    path = (Path(__file__).resolve().parents[3]
+            / ".agi" / "context" / "schemas" / "[config].md")
+    fm = _fm.read_frontmatter(path.read_text(encoding="utf-8")) or {}
+    return (fm.get("self_row") or {})
+
+
+def test_spawn_row_writer_fields_all_declared_in_self_row(
+        _fix, tmp_path, monkeypatch):
+    """CLAUSE 8 (goal:g15.25) — GENERIC: every field the spawn-row writer
+    (`_successor_row_write`) emits is declared in the shipped schema's
+    `self_row.fields`. The emitted set is enumerated FROM THE WRITER at
+    runtime (capture the `cells` dict it hands `_write_identity_cells`),
+    never a hand list; the declaration is read from the LIVE shipped
+    [config].md. A row field added to the writer without its self_row
+    declaration FAILS this suite (a regression a hand-written successful
+    `_successor_row_write` test would miss)."""
+    declared = set(_shipped_config_schema().get("fields") or [])
+    assert declared, "shipped [config].md must declare self_row.fields"
+
+    captured: dict = {}
+    real = rotate._write_identity_cells
+
+    def _cap(root, *, seat, actor, role, cells, **kw):
+        captured.update(cells)          # enumerate FROM THE WRITER's output
+        return real(root, seat=seat, actor=actor, role=role, cells=cells,
+                    **kw)
+
+    monkeypatch.setattr(rotate, "_write_identity_cells", _cap)
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent", "model": "x"}])
+    # the FULL argument set so `cells` carries every field the writer can
+    # emit (id + pid + the key-rotation cells ride the same one row write).
+    out = rotate._successor_row_write(
+        tmp_path, actor="adv-alive", seat="adv-alive", role="parent",
+        session_ref="abc", generation=1, window="adv-alive",
+        session_id="00000000-0000-4000-8000-000000000000", pid=777,
+        session_name="agi-x",
+        key_rotation={"successor_pub": "PUBCAFE", "scheme": "ed25519",
+                      "retired": {"from": "kold", "to": "knew", "sig": "s"}})
+    assert out.startswith("config:seats row"), out
+    emitted = set(captured)
+    missing = emitted - declared
+    assert not missing, (
+        "spawn-row writer emits fields absent from the schema's self_row "
+        f"declaration: {sorted(missing)}")
+
+
+# ── goal:g15.25 CLAUSE 9 — a REFUSED spawn-row write fails loud ────────────
+
+
+def test_refused_spawn_row_write_fails_loud(_fix, tmp_path, monkeypatch,
+                                            capsys):
+    """CLAUSE 9 (goal:g15.25) — a REFUSED spawn-row write FAILS LOUD in the
+    rotation tail: rotate-self exits NON-ZERO, records `result: refused`
+    naming the refusal (never `success`), and dms the supervisor (the seat
+    row's `rotated_by` post) exactly once. The falsifier it fixes: the
+    07:55Z sensei-director rotation wrote a row whose session_label was
+    undeclared in self_row, the write was refused whole, and the successor
+    row silently kept gen 18 while the rotation reported rc 0."""
+    import send as _send  # the SAME top-level module rotate's lazy import binds to
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent", "model": "x",
+                         "effort": "max", "settings": "",
+                         "rotated_by": "master-sensei"}])
+    ft = _FakeTmux(tmp_path, initial=["adv-alive"])
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+
+    def _refused(*a, **k):
+        raise RuntimeError("field session_label is not in the self-row fields "
+                           "declared by the node's schema")
+
+    monkeypatch.setattr(rotate, "_successor_row_write", _refused)
+    sent = []
+    monkeypatch.setattr(_send, "send_dm",
+                        lambda croot, me, other, text, sender=None:
+                        sent.append((other, text)) or tmp_path)
+    args = _rotate_self_args(
+        tmp_path, window_path=str(ft.win), timeout=5,
+        session_ref="00000000-0000-4000-8000-000000000000")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    assert rc == 1, f"a refused spawn-row write must fail loud, got rc {rc}"
+    # the record is a REFUSAL, never a success.
+    rec = _latest_record(tmp_path, "adv-alive")
+    assert rec["result"] == "refused", rec.get("result")
+    assert "spawn-row write REFUSED" in (rec.get("refusal_reason") or ""), \
+        rec.get("refusal_reason")
+    # the supervisor was dmed once (the rotated_by post).
+    assert len(sent) == 1, f"exactly ONE supervisor dm, got {sent}"
+    _to, text = sent[0]
+    assert _to == "master-sensei"
+    assert "rotation-failed" in text and "spawn-row write REFUSED" in text
+    # the successor row was NOT silently rotated: generation is untouched.
+    rows = rotate._load_seats(tmp_path)
+    own = next(r for r in rows if r["name"] == "adv-alive")
+    assert own.get("generation") in (None, ""), \
+        f"successor row must not advance on a refused write: {own}"
+    # the refusal is named on stderr.
+    err = capsys.readouterr().err
+    assert "spawn-row write REFUSED" in err
