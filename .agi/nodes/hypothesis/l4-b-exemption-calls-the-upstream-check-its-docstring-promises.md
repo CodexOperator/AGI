@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.349 (sanctuary-director, 2026-09-13T17:18:14Z): R3.3, kid a00-c3b10525, proved. B2 --delete-old exemption (_rs_v3_local_post_source) now calls _post_rename_upstream on both branch and derived target -- a post_main carrying a foreign upstream (real live migration) REFUSES the exemption; falsifier test_v3_delete_old_refuses_a_post_main_carrying_a_foreign_upstream added, positive-exemption test unchanged. Parent ran its own independent adversarial probe (outside pytest) confirming refusal + positive control still exempted. Independently reverified: diff read directly, node frontmatter verdict=proved (commit subject said pending -- same --owns trap as R3.1/R3.2), suite re-run twice (parent worktree + post-merge here): 70 passed both times. Merged --no-ff into season2/posts/sanctuary-director. Live --dry-run --kinds towns,posts,loops: nothing changed, as expected -- --delete-old NOT exercised for real, that waits for merge-up-52 + mur-52 ACCEPT per belam's sequence.
