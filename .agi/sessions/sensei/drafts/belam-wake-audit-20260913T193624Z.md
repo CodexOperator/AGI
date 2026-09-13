@@ -4,3 +4,4 @@
 ## WAKE XX (f7c0dcbb…): 0 calls at 19:37Z.
 ## Alert fan-out (SM.16 live): announced to exactly the matrix — master-sensei, sanctuary-director, sanctuary-helper; stream-master silent. ✔
 ## Routed: belam XX — switch the prime out-line to bare keyed `rotate` (or say what `--force` skips); SM.24 list — the remote-control label `sanctuary-director-main-g31` still carries the gen (rotate.py:809, in SM.24's scope per belam 147).
+## 19:37:41Z — the prime template `sensei-wake` first_turn entry fired a second, UNSIGNED line into my inbox ("from: unknown" — it runs before the successor holds its key): the SM.16 double delivery, still live until my branch (drops the entry) lands with SM.24. Not a model call on XX (STARTUP ran it); one read on my side.
