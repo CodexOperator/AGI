@@ -2240,8 +2240,13 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
     branches.derive_names from `branch`'s OWN tuple (the same grammar
     _rs_v3_posts_renames uses) and checking that the derived post_main
     EXISTS — never by the presence of `branch` itself (it is GONE after the
-    v3 rename), and never on a branch that carries an upstream (that one is a
-    real live migration and must still satisfy the gate)."""
+    v3 rename). The upstream check the docstring always promised is now
+    actually CALLED, on BOTH `branch` and the derived `target`: a v3-LOCAL
+    post's post_main is upstream-UNSET by contract, so any branch that carries
+    an upstream (the carried old alias — a real live migration) denies the
+    exemption and must still satisfy the B2 gate
+    (hypothesis:l4-b-exemption-calls-the-upstream-check-its-docstring-
+    promises)."""
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
     try:
         p = branches.parse(branch)
@@ -2256,6 +2261,15 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
         target = branches.derive_names(
             _rs_v3_core_town(tuples), season, name)["post_main"]
     except ValueError:
+        return False
+    # A branch that CARRIES an upstream is a real live migration, never a
+    # v3-LOCAL post (whose local contract is upstream UNSET). `branch` is
+    # usually GONE after the rename so its own probe is '' and the real
+    # falsifier is `target`'s upstream — exactly the check the docstring
+    # promised. Probe BOTH so neither spelling can slip through:
+    # `_post_rename_upstream` is rc-honest ('' on a missing/dead branch).
+    if _post_rename_upstream(repo, branch) \
+            or _post_rename_upstream(repo, target):
         return False
     return _post_rename_has_branch(repo, target)
 
