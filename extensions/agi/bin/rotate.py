@@ -3130,9 +3130,10 @@ def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
 
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    add("branch", f"season2/posts/{old}", f"season2/posts/{new}", "seam-git")
-    add("branch (origin)", f"origin/season2/posts/{old}",
-        f"origin/season2/posts/{new}", "seam-git")
+    add("branch", branches.post_branch(2, old), branches.post_branch(2, new),
+        "seam-git")
+    add("branch (origin)", f"origin/{branches.post_branch(2, old)}",
+        f"origin/{branches.post_branch(2, new)}", "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
