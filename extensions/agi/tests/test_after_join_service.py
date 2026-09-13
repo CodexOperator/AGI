@@ -45,7 +45,8 @@ VALUES = {
     "worktree": "/wt",
     "repo": "/repo",
     "tmux_session": "agi-rc",
-    "pred_pids": "123 456",
+    # the new alternation SHAPE: word-bounded ERE for `grep -E '{pred_pids}'`
+    "pred_pids": "\\b(123|456)\\b",
 }
 
 
@@ -1143,11 +1144,13 @@ def test_empty_succ_ref_ack_entry_refused_named_never_runs():
 
 def test_non_empty_pred_pids_runs():
     """A non-empty `{pred_pids}` resolves and the entry RUNS (rc present, no
-    refusal)."""
-    entry = {"label": "reap-proof", "cmd": "echo poll {pred_pids}"}
+    refusal). The alternation value must be carried verbatim into the resolved
+    command (quoted, as the real reap-proof `grep -E '{pred_pids}'` template
+    uses it — an UNQUOTED alternation would split on `|`)."""
+    entry = {"label": "reap-proof", "cmd": "printf '%s' '{pred_pids}'"}
     r = rotate._run_after_join_command(entry, VALUES, 60, 4000)
     assert "rc" in r and "refused" not in r, r
-    assert "123 456" in r.get("output", ""), r
+    assert "\\b(123|456)\\b" in r.get("output", ""), r
 
 
 def test_first_seating_named_value_runs_not_refusal():
@@ -1168,9 +1171,10 @@ def test_derive_pred_pids_from_s12_chain():
     THIS rotation reaped, the reap-proof's real predecessor set. Empty/missing
     chain falls through to the row fallback, never raises."""
     rec = {"s12_self_reap": {"chain": [111, 222, {"pid": 333}]}}
-    assert rotate._derive_pred_pids(Path("."), "s", rec) == "111 222 333"
+    assert (rotate._derive_pred_pids(Path("."), "s", rec)
+            == "\\b(111|222|333)\\b")
     rec2 = {"s12_self_reap": {"chain": [{"pid": "9"}, {"pid": 8}]}}
-    assert rotate._derive_pred_pids(Path("."), "s", rec2) == "9 8"
+    assert rotate._derive_pred_pids(Path("."), "s", rec2) == "\\b(9|8)\\b"
 
 
 def test_derive_pred_pids_from_predecessor_row(monkeypatch):
@@ -1183,6 +1187,47 @@ def test_derive_pred_pids_from_predecessor_row(monkeypatch):
     monkeypatch.setattr(rotate, "_find_seat",
                         lambda root, name: {"role": "parent"})
     assert rotate._derive_pred_pids(Path("."), "s", {}) == ""
+
+
+def test_pred_pids_alternation_is_word_bounded():
+    """(FALSIFIER) the derived value is a WORD-BOUNDED ERE for
+    `grep -E '{pred_pids}'`: each pid matches as a WHOLE field, never as a
+    longer pid's substring. `\b(1234|5678)\b` and `\b1234\b` must NOT match
+    12345 / 56789."""
+    import re
+    mult = rotate._derive_pred_pids(
+        Path("."), "s", {"s12_self_reap": {"chain": [1234, 5678]}})
+    assert mult == "\\b(1234|5678)\\b", mult
+    ps = "12345 56789 1234 5678 9999"
+    assert re.findall(mult, ps) == ["1234", "5678"], ps
+    assert re.search(mult, "12345 56789") is None, "substring must NOT match"
+    single = rotate._derive_pred_pids(
+        Path("."), "s", {"s12_self_reap": {"chain": [1234]}})
+    assert single == "\\b1234\\b", single
+    assert re.findall(single, ps) == ["1234"]
+    assert re.search(single, "112345") is None, "substring must NOT match"
+
+
+def test_row_fallback_refuses_successor_row_at_gen_after(monkeypatch):
+    """(FALSIFIER) the ROW fallback is generation-guarded: a row already
+    rewritten to the record's `gen_after` (the rotate-self own-tail case) is
+    the SUCCESSOR's row and its pid is REFUSED (''), never reaped. Only a row
+    still at the record's `gen_before` supplies the fallback pid."""
+    import agi.bin.rotate as rot
+    rec = {"gen_before": 5, "gen_after": 6}
+    # row at gen_after == the successor's rewritten row -> refused
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"pid": "777", "generation": 6})
+    assert rot._derive_pred_pids(Path("."), "s", rec) == ""
+    # row still at gen_before == the predecessor -> used
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"pid": "777", "generation": 5})
+    assert rot._derive_pred_pids(Path("."), "s", rec) == "777"
+    # a record carrying a real reap chain wins regardless of row generation
+    rec2 = dict(rec, s12_self_reap={"chain": [911, 822]})
+    monkeypatch.setattr(rot, "_find_seat",
+                        lambda root, name: {"pid": "777", "generation": 6})
+    assert rot._derive_pred_pids(Path("."), "s", rec2) == "\\b(911|822)\\b"
 
 
 def test_reap_proof_runs_with_derived_pred_pids_end_to_end(tmp_path,

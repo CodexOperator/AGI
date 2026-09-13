@@ -10794,17 +10794,45 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     return _pick(_load_seats(root)), "worktree (pushed ref unreachable)"
 
 
+def _pred_pids_alternation(pids: list[str]) -> str:
+    """WORD-BOUNDED ERE for `grep -E '{pred_pids}'`: each pid must match as a
+    WHOLE field, never as a substring of a longer pid. [1234, 5678] ->
+    `\b(1234|5678)\b`; [1234] -> `\b1234\b` (hypothesis:l4-pred-pids-is-an-
+    alternation...)."""
+    if len(pids) == 1:
+        return "\\b%s\\b" % pids[0]
+    return "\\b(%s)\\b" % "|".join(pids)
+
+
+def _row_pred_pid_usable(root: Path, seat: str,
+                         record: dict | None) -> bool:
+    """Generation guard on the predecessor ROW fallback. The row is the
+    SUCCESSOR's once it is rewritten to the record's `gen_after` (the
+    rotate-self own-tail case) — its pid MUST NOT be reaped. The row is used
+    only while its generation still equals the record's `gen_before` (the row
+    not yet re-written); a row at `gen_after`, or a record with no
+    `gen_before` to compare, falls to ''. Callers with no record (a dry-run
+    of a NEW rotation) stay on the old row-read path."""
+    if record is None:
+        return True
+    gb = record.get("gen_before")
+    if gb is None:
+        return False
+    g = _seat_row_generation(root, seat)
+    return g is not None and g == gb
+
+
 def _derive_pred_pids(root: Path, seat: str,
                       record: dict | None) -> str:
     """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
-    space-joined pid list this rotation REAPED, else the predecessor row's own
-    `pid`, else ''. ONE reader, shared by every after_join performer
-    (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-performer-derives-
-    pred-pids...): the watch/service, the rotate-self own tail and the
-    dry-run plan. Before this helper each caller passed NO pred_pids, so the
-    placeholder resolved '' and the reap-proof entry was refused with the
-    named `no predecessor chain` on EVERY real rotation instead of running
-    against the reaped chain.
+    WORD-BOUNDED ERE ALTERNATION over the pids THIS rotation reaped, else the
+    predecessor row's own `pid`, else ''. ONE reader, shared by every
+    after_join performer (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-
+    performer-derives-pred-pids...): the watch/service, the rotate-self own
+    tail and the dry-run plan. Before this helper each caller passed NO
+    pred_pids, so the placeholder resolved '' and the reap-proof entry was
+    refused with the named `no predecessor chain` on EVERY real rotation
+    instead of running against the reaped chain.
 
     Order:
       1. the record's `s12_self_reap.chain` — the pids THIS rotation just
@@ -10812,10 +10840,12 @@ def _derive_pred_pids(root: Path, seat: str,
          `_rotation_identity` reads as the retired predecessor's identity).
          Written AFTER the own tail performs (step 7 vs the tail's 6.4), so
          the service/watch path is where it fires; earlier a chain element is
-         an int or a `{pid}` dict, both accepted.
-      2. the predecessor ROW's own `pid` (best-effort `_find_seat`; at
-         rotate-self tail time the s12 section is not yet written, so the row
-         is what gives the tail a non-empty value).
+         an int or a `{pid}` dict, both accepted. Formed as an alternation so
+         each pid matches a whole field, never a longer pid's substring.
+      2. the predecessor ROW's own `pid` (`_find_seat`), used ONLY while the
+         row's generation equals the record's `gen_before` — a row already at
+         `gen_after` (the rotate-self own-tail case) is the SUCCESSOR's and is
+         never read.
       3. '' — which the startup placeholder mech refuses BY NAME
          (`no predecessor chain`), never running `grep -E ''` over the whole
          process table.
@@ -10829,12 +10859,12 @@ def _derive_pred_pids(root: Path, seat: str,
                 if pid is not None and str(pid).lstrip("-").isdigit():
                     pids.append(str(pid))
             if pids:
-                return " ".join(pids)
+                return _pred_pids_alternation(pids)
     try:
         row = _find_seat(root, seat)
     except Exception:  # noqa: BLE001  best-effort source
         row = None
-    if row is not None:
+    if row is not None and _row_pred_pid_usable(root, seat, record):
         pid = row.get("pid")
         if pid is not None and str(pid).lstrip("-").isdigit():
             return str(pid)
