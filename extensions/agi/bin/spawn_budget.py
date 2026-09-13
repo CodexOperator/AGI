@@ -56,6 +56,17 @@ TERMINAL = {"done", "done-unreported", "pending", "hung-healed", "failed"}
 #: Fallback when neither `spawn.max_live` nor `spawn.parallel` is configured.
 DEFAULT_MAX_LIVE = 1
 
+#: Per-core load ceiling `spawn.max_load_per_core` defaults to when a project
+#: enables the load gate (hypothesis:l4-spawn-admission-refuses-by-name-
+#: above-a-load-average-bound...): a 1-min load average past this many cpu-
+#: seconds of work per core refuses new admission BY NAME — a refusal, never
+#: a wait. The gate is CONFIG-DRIVEN, never always-on: it engages only when
+#: `spawn.max_load_per_core` appears in config (the knob the Prime writes),
+#: where `0` disables and any positive value x cpu-cores is the bound. When
+#: absent the gate stays off, so a project that never heard of the knob keeps
+#: exactly its old admission behaviour.
+DEFAULT_MAX_LOAD_PER_CORE = 3.0
+
 #: How long `status --iter` sleeps sampling CPU ticks before judging a round
 #: stalled. The director's stall definition (8 s) — a module constant, not a
 #: bare literal, so a test can read it and shrink it.
@@ -170,6 +181,46 @@ def max_live(cfg: dict, default: int = DEFAULT_MAX_LIVE) -> int:
         return int(spawn["parallel"])
     legacy = cfg.get("agent_dispatch") or {}
     return int(legacy.get("claude_max_parallel", default))
+
+
+def _max_load_per_core(cfg: dict) -> float | None:
+    """`spawn.max_load_per_core` when the config knob is present, else `None`.
+
+    `None` means "gate not configured" — the load bound stays DISABLED, so a
+    project is never load-gated behind a module constant it never asked for
+    (hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-average-
+    bound...: the gate is config-driven, never always-on).
+    """
+    spawn = cfg.get("spawn") or {}
+    if "max_load_per_core" not in spawn:
+        return None
+    return float(spawn["max_load_per_core"])
+
+
+def load_bound(cfg: dict) -> float:
+    """The load ceiling `acquire` refuses above: `spawn.max_load_per_core`
+    (default 3.0 when the knob IS set) x cpu cores. `spawn.max_load_per_core: 0`
+    disables (bound 0 -> `acquire` never refuses on load). A knob that never
+    appears in config keeps the gate off entirely (bound 0). Best-effort
+    against a missing cpu count (`os.cpu_count` can return None on exotic
+    systems; 1 avoids a divide-by-zero-style empty bound).
+    """
+    per_core = _max_load_per_core(cfg)
+    if per_core is None or per_core <= 0:
+        return 0.0
+    return per_core * (os.cpu_count() or 1)
+
+
+def _loadavg_tuple() -> tuple[float, float, float] | None:
+    """`os.getloadavg()` as a 3-tuple, or `None` when it is unavailable
+    (non-POSIX, `AttributeError`, or an `OSError`). The load gate is
+    best-effort — it must never crash a spawner because the box cannot
+    report its own load.
+    """
+    try:
+        return os.getloadavg()
+    except (OSError, AttributeError):
+        return None
 
 
 def parent_max_kids(cfg: dict, default: int = 4) -> int:
@@ -387,6 +438,28 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
         print(f"spawn_budget: refusing {agent_id} — dispatch paused "
               f"({reason}); spawn_budget.py resume to lift", file=sys.stderr)
         return None
+    # Load gate — a refusal by NAME, never a wait, when the 1-min load
+    # average is past `spawn.max_load_per_core` x cores (hypothesis:l4-spawn-
+    # admission-refuses-by-name-above-a-load-average-bound...). Engineered
+    # CONFIG-DRIVEN: the knob must be read from config (the falsifier "the
+    # knob read from anywhere but config"), so an unconfigured project is
+    # never load-gated. `max_load_per_core: 0` disables. A refused admission
+    # returns None exactly like a full tree — the spawner skips the slot and
+    # says so; it never sleeps.
+    cfg_path = locations.config_path(
+        locations.find_project_root(root) or root)
+    cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
+    bound = load_bound(cfg)
+    if bound > 0:
+        loadv = _loadavg_tuple()
+        if loadv and loadv[0] > bound:
+            per_core = _max_load_per_core(cfg)
+            cores = os.cpu_count() or 1
+            print(f"spawn_budget: refusing {agent_id} — "
+                  f"load {loadv[0]:.1f} > bound {bound:.1f} "
+                  f"({per_core:.1f} x {cores} cores): no admission",
+                  file=sys.stderr)
+            return None
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
         if len(live) >= cap:
@@ -945,7 +1018,16 @@ def main(argv: list[str] | None = None) -> int:
         why = f": {paused['reason']}" if paused.get("reason") else ""
         print(f"🔴 PAUSED{who}{why} — acquire() and reaper restarts are "
               f"refused; `spawn_budget.py resume` to lift")
-    print(f"budget: {len(live)}/{cap} live  dir={budget_dir(root)}")
+    loadseg = ""
+    loadv = _loadavg_tuple()
+    if loadv is not None:
+        lo, md, hi = (round(float(x), 1) for x in loadv)
+        bound = load_bound(cfg)
+        if bound > 0:
+            loadseg = f"  load {lo}/{md}/{hi} bound {bound:.1f}"
+        else:
+            loadseg = f"  load {lo}/{md}/{hi}"
+    print(f"budget: {len(live)}/{cap} live{loadseg}  dir={budget_dir(root)}")
     for rec in live:
         it = rec.get("iter")
         # hypothesis:l3-killed-agent-restarts-unattributed — a live lease with
