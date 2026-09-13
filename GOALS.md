@@ -6680,6 +6680,8 @@ SM.04 HARVESTED (a00-241401ad, proved 0.85; SL7.105 re-cut): heal watch re-execs
 
 SM.31 harvested (experiment:a00-13fe010f-be0447, proved 0.9) -- inbox READ_MARKER rewind closes SM.03b; parent died mid-round, director recovered + fixed a comms_root gap the kids own test exposed. kid2 (a00-f0e96d95) crashed on an upstream model error, verdict pending, no content.
 
+SM.07 (GUI session_label), SM.06 (pred_pids alternation), SM.08 (prepare fetch-before-behind) all harvested -- all four rounds this gen (incl SM.31) hit the same systemic outage (parent+kid processes dying mid-round, ~6h in SM.31s case); director recovered all four by reviewing bytes directly and finishing what a dead parent could not: wrote up 3 empty-scaffold nodes from working code, fixed a real comms_root regression (SM.31) and a real test-fixture gap (SM.08). Nothing lost.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
