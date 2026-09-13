@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -172,3 +173,90 @@ def test_heal_without_a_ladder_still_uses_config(tmp_path):
     args = heal._pi_model_args(graph, "parent", "parent")
     assert "--model" in args
     assert args[args.index("--model") + 1] == "z-ai/glm-5.3-flash"
+
+
+# --- hyp:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid- ----
+# resolves-like-a-dead-running-record (claim b): the SECOND live admission
+# point -- `_main_heal`'s per-agent block, the loop driver.sh runs as
+# `heal.py <root> <iter_n>`. Even with the dispatch fix live, a `stalled`
+# record found by THIS loop used to die at the `status != "running"` guard
+# (L183 pre-fix) and never resolve. These tests drive the REAL `_main_heal`
+# path, not a copy of its block.
+
+
+def _stalled_round(tmp_path: Path, pid: int) -> tuple[Path, Path]:
+    """A tmp graph with one round carrying a single `stalled` agent whose
+    pid is `pid`. Returns `(root, agent_json_path)`."""
+    root = tmp_path
+    graph = root / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    iter_dir = graph / "sessions" / "iter-001"
+    (iter_dir / "a00-s").mkdir(parents=True, exist_ok=True)
+    (iter_dir / "manifest.json").write_text(json.dumps({
+        "iter": 1,
+        "timeout_seconds": 600,
+        "agents": [{"id": "a00-s", "status": "running"}],
+    }, indent=2))
+    aj = iter_dir / "a00-s" / "agent.json"
+    aj.write_text(json.dumps({
+        "id": "a00-s",
+        "status": "stalled",
+        "pid": pid,
+        "started_at": int(time.time()) - 100,
+        "node_id": "hypothesis:h1",
+    }, indent=2))
+    return root, aj, iter_dir / "manifest.json"
+
+
+# the real dispatch module heal's `_reap_one` closes over, so patching on it
+# is the ONLY patch that reaches the resolution rule heal actually calls.
+import dispatch as real_dispatch  # noqa: E402 -- cached module heal imported
+
+
+def test_heal_resolves_stalled_dead_pid_to_failed(monkeypatch, tmp_path):
+    """A `stalled` record with a PROVABLY dead pid reaches the dead-pid path
+    in `_main_heal` and resolves through dispatch._reap_one to `failed` with
+    the stall named (no completion, no branch advance -> never restarted),
+    and the manifest mirrors it."""
+    root, aj, mp = _stalled_round(tmp_path, 999999)
+    monkeypatch.setattr(heal, "_pid_alive", lambda pid: False)
+    monkeypatch.setattr(sys, "argv", ["heal.py", str(root), "1"])
+    assert heal.main() == 0  # resolved THIS pass -> all terminal
+    rec = json.loads(aj.read_text(encoding="utf-8"))
+    assert rec["status"] == "failed"
+    assert "stalled" in rec["fail_reason"]
+    manifest = json.loads(mp.read_text(encoding="utf-8"))
+    assert manifest["agents"][0]["status"] == "failed"
+
+
+def test_heal_resolves_stalled_dead_to_done_unreported_on_branch_advance(
+        monkeypatch, tmp_path):
+    """Same admission, but the work landed: when the round branch advanced,
+    dispatch._reap_one still resolves the stalled-dead record to
+    `done-unreported` (never restarted)."""
+    root, aj, mp = _stalled_round(tmp_path, 999999)
+    monkeypatch.setattr(heal, "_pid_alive", lambda pid: False)
+    monkeypatch.setattr(real_dispatch, "_branch_has_done_commit",
+                        lambda root, rec, agent_id: True)
+    monkeypatch.setattr(sys, "argv", ["heal.py", str(root), "1"])
+    assert heal.main() == 0
+    rec = json.loads(aj.read_text(encoding="utf-8"))
+    assert rec["status"] == "done-unreported"
+    manifest = json.loads(mp.read_text(encoding="utf-8"))
+    assert manifest["agents"][0]["status"] == "done-unreported"
+
+
+def test_heal_leaves_a_live_pid_stalled_record_untouched(monkeypatch, tmp_path):
+    """A `stalled` record whose pid is LIVE keeps its lease: it must not be
+    marked failed and must not be restarted -- exactly today's behaviour for a
+    live stalled record, which the old guard skipped."""
+    root, aj, mp = _stalled_round(tmp_path, 987654)
+    monkeypatch.setattr(heal, "_pid_alive", lambda pid: True)
+    monkeypatch.setattr(sys, "argv", ["heal.py", str(root), "1"])
+    assert heal.main() == 0
+    rec = json.loads(aj.read_text(encoding="utf-8"))
+    assert rec["status"] == "stalled"
+    assert "fail_reason" not in rec
+    assert "finished_at" not in rec
