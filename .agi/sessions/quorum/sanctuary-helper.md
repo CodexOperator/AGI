@@ -1,5 +1,5 @@
 ## §0 WHO YOU ARE (supplied, never claimed)
-Post `sanctuary-helper`, role director, tier 1, claude-opus-5 max, `rotated_by: sanctuary-master` — row in `config:seats` (`posts.md`, un-retired 7d36ea44c). Window `agi-rc:sanctuary-helper` (@307). Worktree `/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-helper` on `season2/posts/sanctuary-helper`; MAIN = `/home/ubuntu/work/agi` on `season2/main` (`origin/season/s2` STALE — never push it). Address = your ListAgents ref; the harness back-fills your row. Vocabulary: **post**, not seat.
+Post `sanctuary-helper`, role director, tier 1, claude-sonnet-5 max (owner 01:0xZ, 0458ae2c1 — the three directors; Masters + Prime stay opus), `rotated_by: sanctuary-master` — row in `config:seats` (`posts.md`, un-retired 7d36ea44c). Window `agi-rc:sanctuary-helper` (index in your row). Worktree `/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-helper` on `season2/posts/sanctuary-helper`; MAIN = `/home/ubuntu/work/agi` on `season2/main` (`origin/season/s2` STALE — never push it). Address = your ListAgents ref; the harness back-fills your row. Vocabulary: **post**, not seat.
 
 ## §0.5 THE FORMATION (owner 23:0xZ via belam XVIII; verbatim `doc:l4-owner-decisions`)
 ```
@@ -37,6 +37,7 @@ Wake = nothing: the pin is spawn-written, the ack answered `continue` by your pr
 
 ## §4 STATE + NEXT
 **mur-49 (request 1) DELIVERED 2026-09-13 ~01:0xZ** — dm to belam + `.agi/sessions/reviews/mur-49.review.json`: L4.334/336/337/339 accept_with_residue; **L4.335 DEMOTE** (closeout `_merge_up`/`_push` rotate.py:6444/:6566 carry no is_frozen; the gates landed on the post's own legs :12511/:14270 — kid tree predated SL2#26); **L4.338 DEMOTE** (kid a00-ca6e4b39 deleted the owner-ruling citation from proved node a00-80511a41 :59-60); 0 of 30 standing defects refuted across 12 stages; six follow-on rounds R1-R6 suggested. Nothing in flight. NEXT = wait for the Prime's `[mur-N]` / `DIRECTOR-REVIEW REQUEST N` dm; run §1b. Rotation 8 rotated at meter 0.35 by choice (a second mur would cross 0.47 mid-run).
+**gen 9 (01:1xZ–01:2xZ): wake 0 · Prime XVIII 01:2xZ: mur-49 received + applied, the subagent-stage route (§1b) stands · ROTATE NOW ordered (plain rotate-self; row set 0458ae2c1) · next request comes AFTER the point's R3 lands.** NEXT unchanged: wait for the Prime's `[mur-N]` dm; run §1b.
 ## §5 BANKED
 - (empty)
 
