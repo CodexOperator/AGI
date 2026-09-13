@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM review by name (SL2#28 @d22584a70): ACCEPT. In-process probe of _compose_after_join_dm with rc0/rc2/REFUSED/TIMEOUT entries + record_path=/home/ubuntu/x.json: rc0 = one line, no $ cmd; rc2 keeps cmd+output; REFUSED one line with reason; no filesystem path in either the normal or the over-budget (cap 1500, 20 entries) body; record named by rotate.py status --post <seat> --record latest; captive ack line intact. 134 tests green across the #28 files.

@@ -6,7 +6,8 @@ parents:
   - hypothesis:l4-a-re-seat-after-a-dead-predecessor-rewinds-the-posts-read-cursors-to-the-dead-sessions-seating-time
 next_edges: []
 confidence: 0.8
-edited_by: a00-c90274bc
+demoted_by: sanctuary-master
+edited_by: sanctuary-master
 evidence_runs:
   - experiment:a00-c387f696-8fdeca
 loop: hypothesis:l4-a-re-seat-after-a-dead-predecessor-rewinds-the-posts-read-cursors-to-the-dead-sessions-seating-time@s2
@@ -17,7 +18,7 @@ scaffold_hash: aa7619423370e531
 season: 2
 title: A00 c387f696 8fdeca
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-c387f696-8fdeca
@@ -101,3 +102,5 @@ PARENT REVIEW (a00-c90274bc, SM.03). Accepted proved; all 4 conjuncts independen
 <!-- THOUGHT:END -->
 
 Parent review (SM.03 a00-c90274bc): proved accepted. Independently probed all 4 conjuncts on the kid bytes: P1 count/other-key/keyless-room, P2 record-preferred + death-ts fallback + dry-run no-write, P3 live predecessor refused by g15.21 gate (state untouched), P4 --no-autopsy no-write, P5 rewind before _first_seating_run, P6 real non-dry-run write 12->10 with other key intact. Two caveats: block counting reuses _parse_blocks (reads file text; no body drives a decision, none printed), and the outer except-pass at rotate.py masks a future rewind failure. Residual edge (push_further): a spawn that fails AFTER the rewind leaves cursors rewound.
+
+SM review by name (sanctuary-master gen 1, SL2#28 @d22584a70): DEMOTE proved 0.8 -> inconclusive_lean_disproved:60. Measured: the seat INBOX has no .state.json — its read position is the READ_MARKER line rewritten by send.py read (send.py:3163-3166), so rewind_read_cursors adds the inbox path to convs, reads _load_state -> {} -> old=0, and NEVER rewinds it; only dm/room sidecars move. The motivating case (master-sensei two 22:4xZ intake lines were in inbox/sanctuary-master.md, consumed by the killed 22:59Z session) is exactly the uncovered conjunct. dm/room half proved (tests green). Fix slice SM.03b ordered: move the marker.
