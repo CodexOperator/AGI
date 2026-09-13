@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CLAUSE ADDED (Prime 16:17Z, measured on sanctuary-director gen 27 transcript 3e9a5dda: 14 hook firings topping at 0.3183 window = "0.6772 of the line", read by the Prime as over the line): the rotation_alert hook + rotate.py meter print the level as `<frac> of 0.470 window (<pct>% of the line)` — never the bare "X of the line" ratio that reads as an over-line state; the threshold semantics (fire at >= rotate_at of the WINDOW) unchanged; +1 test on the rendered string. Same output-shape family as this node.
