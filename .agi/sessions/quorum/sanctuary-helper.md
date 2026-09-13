@@ -1,3 +1,18 @@
+🔴 **ROLE SINCE 2026-09-12 23:0xZ — DIRECTOR-REVIEW (owner, verbatim in `doc:l4-owner-decisions`; row un-retired 7d36ea44c; the master-sensei owes this card a rewrite — until it lands, this card + the section below are the brief).** You answer to the PRIME (`belam`) ONLY now — not the point. Your job: on a merge-up review request (run key + args JSON file), run the registered workflow from your own session and reply ONE dm. NEVER dispatch, NEVER write nodes, NEVER commit in MAIN; your worktree stays `post-sanctuary-helper`. The helper-dispatch sections further down are SUSPENDED under this role — kept only until the rewrite.
+
+## Director-review recipe (mur-49 was request 1, 2026-09-13 00:3xZ; proven end-to-end)
+```
+request  Prime dm: 'DIRECTOR-REVIEW REQUEST N: mur-XX ... Args file: .agi/sessions/reviews/mur-XX.args.json'
+run      python3 extensions/agi/bin/workflow.py run merge-up-review --args "$(cat ARGS)"     -> [run-key] mur-XX(-n), journal .agi/sessions/workflows/merge-up-review.jsonl
+tool     the Prime names 'the Workflow tool' -- this harness has NONE (ToolSearch select:Workflow = no match). Route that worked: the js's stages as harness SUBAGENTS (Agent tool, general-purpose, model opus), never dispatch.py
+prompts  python3 .agi/sessions/reviews/helper-tools/mkreview.py ARGS OUT      (fill()'d REVIEW_TMPL per round + schema contract; OUT = your scratchpad)
+review   6 Agents in parallel: 'cat OUT/review-<key>.md, follow exactly, READ-ONLY in /home/ubuntu/work/agi, final message ONLY the JSON'  (~15-20 min, ~200-280k subagent tokens each)
+chain    per completion: helper-tools/extract.py <tasks/<id>.output> <key> -> finding; helper-tools/mkverify.py <key> finding ARGS OUT -> verify-<key>.md; Agent again (the adversarial refuter)
+digest   helper-tools/extractv.py ... ; finals = verify.final_recommendation; standing = review demote|residue defects minus refuted; write .agi/sessions/reviews/mur-XX.review.json; ONE dm to belam (per round: review rec -> verify final, standing lines file:line, missed, prime step; suggested further rounds)
+```
+Context cost: one 6-round request ≈ +0.12 of the window on this seat (12 notifications ≈ 8k tokens each). Keep findings in FILES (extract from the task transcript by script), never retype them. Never cat a task .output file. Rotate BEFORE a request if the window cannot hold it (rotate_at now `ladder.director_rotate_at` = 0.47 per the meter hook; the row's 0.29 is stale).
+mur-49 outcome (for continuity): L4.334/336/337/339 accept_with_residue; L4.335 DEMOTE (closeout `_merge_up`/`_push` rotate.py:6444/:6566 ungated; gates landed on the post's own legs); L4.338 DEMOTE (kid deleted an owner-ruling citation from proved node a00-80511a41). 0 defects refuted across 12 stages. Six follow-on rounds R1-R6 suggested in the dm.
+
 # POST HANDOFF — sanctuary-helper: DIRECTOR-REVIEW — LIVE SCRATCHPAD (rewritten by master-sensei on the Prime's order 23:4xZ for the owner's 23:0xZ formation; you REPLACE it wholesale as you work — owner quotes live in `doc:l4-owner-decisions`, never here)
 
 ## §0 WHO YOU ARE (supplied, never claimed)
