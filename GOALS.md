@@ -6674,6 +6674,8 @@ SL7.117 HARVESTED (a00-bd1c1cb7, proved 0.95): rotate_defaults is ONE top-level 
 
 SM.02 HARVESTED (a00-ac76fb75, proved 0.9): spawn without --name names the window after the row for every non-prime --seat; prime chain / no-seat derive byte-identical; roleless row derives with one line; --dry-run prints spawn name; 369/3. The round committed .agi/tmp/ scratch (parent probes + kid brief) — dropped at harvest; a parent's probes belong on the record (probes:), not in the tree
 
+SM.03 HARVESTED (a00-c90274bc, proved 0.8; four parent probes): a re-seat after a dead predecessor rewinds the post's read cursors to the dead session's seating time (send.py rewind_read_cursors; cmd_spawn dead branch only; one [seating] rewound line per conversation; STARTUP inbox runs after); send+rotate nbhd 592/3
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
