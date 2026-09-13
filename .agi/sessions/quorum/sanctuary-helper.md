@@ -44,5 +44,5 @@ Wake = nothing: the pin is spawn-written, the ack answered `continue` by your pr
 
 ## 🔴 Where it stops
 ```
-gen10 rotate-out: belam XVIII order 01:3xZ — row carries settings: ultracode (8c9e1e066), successor launches with CLAUDE_CODE_WORKFLOWS=1 + Workflow tool; wake 0; idle; next mur dm carries keyword "ultracode" on line 1 -> use Workflow tool BY NAME (§1b), subagent route only if ToolSearch finds none
+belam XVIII 01:3xZ: rotate for ultracode/Workflow-tool row (8c9e1e066); wake 0; next mur dm carries keyword ultracode
 ```
