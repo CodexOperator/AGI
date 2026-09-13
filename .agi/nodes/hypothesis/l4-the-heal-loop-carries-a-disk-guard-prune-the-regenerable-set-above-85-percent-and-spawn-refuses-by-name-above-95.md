@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER CLAUSE (via Prime XIX 07:51Z), added to the claim as (5): the disk guard FIRST run (and every run above high) also sweeps the LOOP-WORKTREE BACKLOG — for every existing .agi/worktrees/a00-* (36 now, 1.6 G): drop it (git worktree remove + the branch stays) when BOTH its branch is merged into the trunk (`git branch --merged <trunk>` names it, trunk = branches.season_main) AND its session dir is home (`.agi/sessions/iter-<N>` exists in MAIN and the worktree copy is byte-identical or absent — the session-complete verify) AND `git -C <wt> status --porcelain` is empty; a worktree with unmerged commits or uncommitted bytes is LISTED by name with the reason, never dropped; one summary line `backlog: dropped N (M bytes), kept K (reasons)`; measured here on the 36: my line owns 8 (241401ad 70702192 ac76fb75 c90274bc harvested + 4 salvaged) — the test fixture = three worktrees: merged+home+clean (dropped), unmerged (kept), dirty (kept). +2 tests, +25 lines to the ceiling (105 / 8). The backlog sweep runs regardless of the 85% threshold on the FIRST pass after this lands (so the 36 go now), then only above high.
