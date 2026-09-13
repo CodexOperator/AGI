@@ -212,6 +212,50 @@ def test_parent_brief_names_the_carry_forward_lever():
 
 
 
+def test_orders_render_verbatim_as_the_last_parent_section(monkeypatch):
+    """goal:g15.25 SM.26 -- `dispatch.py --orders <file>` threads the director's
+    word into the PARENT brief (a parent brief is rebuilt fresh from its target
+    node, so node prose alone carries no dispatch-time scope/coupling
+    instruction). The bytes land VERBATIM as the LAST section, under ONE
+    heading naming sender and timestamp -- never merged into the claim text."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT",
+                       "SCOPE: only dispatch.py.\nCOUPLE: cherry-pick SM.24.")
+    monkeypatch.setenv("AGI_ORDERS_FROM", "sanctuary-director")
+    monkeypatch.setenv("AGI_ORDERS_TS", "1757789000")
+    segs = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                          dispatch_py="/x/dispatch.py", target="t:1")
+    assert segs[-1].startswith(
+        "## DISPATCH ORDERS (from sanctuary-director, 1757789000)"), (
+        "orders must be the LAST section under the one heading")
+    assert "SCOPE: only dispatch.py.\nCOUPLE: cherry-pick SM.24." in segs[-1]
+
+
+def test_absent_or_empty_orders_leaves_the_parent_brief_byte_identical(
+        monkeypatch):
+    """No orders (flag absent) or EMPTY orders must render NO heading, so an
+    orders-free spawn is byte-identical to before -- the channel may only ADD
+    a section when bytes are actually supplied."""
+    for k in ("AGI_ORDERS_TEXT", "AGI_ORDERS_FROM", "AGI_ORDERS_TS"):
+        monkeypatch.delenv(k, raising=False)
+    base = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                          dispatch_py="/x/dispatch.py", target="t:1")
+    assert not any("DISPATCH ORDERS" in s for s in base)
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "")
+    empty = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                           dispatch_py="/x/dispatch.py", target="t:1")
+    assert empty == base, "an empty orders file must not change the brief"
+
+
+def test_orders_never_reach_a_kid_brief(monkeypatch):
+    """Falsifier: orders reaching a kid without the parent passing them. The
+    channel is parent-only; a kid receives orders ONLY when the parent runs a
+    kid spawn with --orders/--prompt-file (the carry-forward)."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "SECRET SCOPE LINE")
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "DISPATCH ORDERS" not in kid
+    assert "SECRET SCOPE LINE" not in kid
+
+
 def test_parent_brief_names_overdue_as_still_working():
     """hypothesis:l4-the-parent-brief-names-the-overdue-record-as-readers-
     print-it — heal.py keeps a live past-deadline kid's status `running` and
