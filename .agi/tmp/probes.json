@@ -1,0 +1,6 @@
+[
+ {"conjunct":1,"class":"wire","cmd":"python3 .agi/tmp/probe_spawn_name.py (P1: spawn --seat director-post, no --name, real cmd_spawn)","expected":"launcher name and dry-run printed name both == director-post, never belam-*","observed":"launcher name='director-post', printed name='director-post'","result":"pass"},
+ {"conjunct":2,"class":"auth","cmd":"python3 .agi/tmp/probe_spawn_name.py (P2: spawn --seat prime-win role=prime_director; and no --seat)","expected":"both keep the derived belam numeral, prime row never takes the row name","observed":"belam-S1-II both paths","result":"pass"},
+ {"conjunct":3,"class":"gate","cmd":"python3 .agi/tmp/probe_spawn_name.py (P3: spawn --seat nokey-post, row exists with no role cell)","expected":"fall to belam derive and exactly one stderr line naming the missing role cell","observed":"name=belam-S1-II, exactly 1 stderr line 'has no role cell'","result":"pass"},
+ {"conjunct":4,"class":"wire","cmd":"python3 .agi/tmp/probe_spawn_name.py (P4: dry-run two different seats)","expected":"'spawn name:' line exists and tracks the resolved name, not a hardcoded string","observed":"director-post vs belam-S1-II differ","result":"pass"}
+]
