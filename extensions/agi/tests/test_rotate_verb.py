@@ -3,7 +3,8 @@
 # `rotate` IS `rotate-self` for the post whose key the caller holds, with
 # every default (name/timeout/force/stops/trigger) derived through the
 # SL7.114 resolvers, every rotate-self flag an override, --post rank-gated
-# downward only, closeout template-first. These tests monkeypatch
+# downward only, closeout from the ONE top-level rotate_defaults map. These
+# tests monkeypatch
 # `rotate.cmd_rotate_self` to CAPTURE the delegated Namespace and return 0, so
 # they assert the RESOLUTION + the delegation contract without a real spawn.
 # The falsifier "a hand-built Namespace missing a rotate-self attribute" is
@@ -23,7 +24,7 @@ from agi.bin import rotate
 from agi.bin import send
 
 
-def _write_geo(tmp_path, rows):
+def _write_geo(tmp_path, rows, rotations=None):
     """Fixture root: tmp_path IS the graph dir, seats at
     <root>/nodes/.geometry/posts.md (post-first). A row carries
     name/role/worktree/pubkey."""
@@ -39,6 +40,8 @@ def _write_geo(tmp_path, rows):
             lines.append(f"    pubkey: {r['pubkey']}")
     lines.append("---")
     (geo / "posts.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    if rotations is not None:
+        (geo / "rotations.md").write_text(rotations, encoding="utf-8")
 
 
 def _mint(root, seat):
@@ -213,6 +216,35 @@ def test_flag_parity_rotate_is_rotate_self_superset():
     assert rs._actions and any(
         a.dest == "name" and a.required for a in rs._actions)
     assert not any(a.dest == "name" and a.required for a in ro._actions)
+
+# --- (10) closeout default from the ONE rotate_defaults map (SL7.117) ----
+def test_closeout_default_from_rotate_defaults_map(tmp_path, monkeypatch):
+    """cmd_rotate reads the closeout boolean PER ROLE from the top-level
+    rotate_defaults.closeout map -- true, false, or absent -- never from
+    templates.<role>.rotate_defaults (the per-template cell write.py cannot
+    nest on config:rotations)."""
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _stops_card(tmp_path, "prime", "close out the round")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    def _run(rotations, want):
+        _write_geo(tmp_path, rows, rotations=rotations)
+        captured = {}
+        monkeypatch.setattr(
+            rotate, "cmd_rotate_self",
+            lambda ns, root: (captured.update(ns=ns), 0)[1])
+        code = rotate.cmd_rotate(_parse([]), tmp_path)
+        assert code == 0
+        assert getattr(captured["ns"], "closeout") is want
+
+    # true -> closeout; false -> not; absent role -> not
+    _run("---\nid: config:rotations\nrotate_defaults:\n"
+         "  closeout:\n    prime_director: true\n---\n", True)
+    _run("---\nid: config:rotations\nrotate_defaults:\n"
+         "  closeout:\n    prime_director: false\n---\n", False)
+    _run("---\nid: config:rotations\nrotate_defaults:\n  closeout: {}\n---\n",
+         False)   # absent role -> False, never a fallback to templates
 
 # --- (9) --dry-run never len(None): --stops-file / --closeout (SL7.115) -----
 def test_dry_run_stops_file_and_closeout_no_traceback(tmp_path, monkeypatch,
