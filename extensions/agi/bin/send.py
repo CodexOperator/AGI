@@ -2863,7 +2863,22 @@ def _seam_main_committed(root: Path, row: dict, seat_name: str,
     # origin's is not provably the successor, so a stale-bound-equal MAIN must
     # not override a keyed origin row (hypothesis falsifier: a pushed key
     # stays authoritative over a not-fresher MAIN key).
-    if _row_generation(crow) <= _row_generation(row):
+    #
+    # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
+    # every-surface-...): a NON-prime row is generation-less (claim (6-rows)),
+    # so the committed successor row can never be provably "fresher" by
+    # generation (0, absent, or a stale leftover value). For a row whose
+    # EXPLICIT role is non-prime the KEY is the authority -- fall through to
+    # the consult below, which VERIFIES only (a sig that verifies under no key
+    # still returns FORGED, so a real forgery is never softened). A
+    # prime_director row, and a row with NO role field (legacy / a bare
+    # fixture), keeps the strict generation test byte-for-byte -- the
+    # g15.26 clause (1) falsifier (a pushed key stays authoritative over a
+    # stale MAIN key) still holds for a role-less row.
+    _role = str(crow.get("role") or "")
+    _nonprime = bool(_role) and _role not in ("prime", "prime_director")
+    if (not _nonprime
+            and _row_generation(crow) <= _row_generation(row)):
         return "FORGED"
     sub = _label_for_sig(crow, sig_scheme, fp, sig_bytes, msg, seat_name)
     if sub.startswith("VERIFIED"):
