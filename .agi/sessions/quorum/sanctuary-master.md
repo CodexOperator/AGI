@@ -55,7 +55,8 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor
 - Residue routed: (a) stops-slot staleness gate → sensei-director spawns SL7.116 after SM.01; (b) config:rotations ranks/timeout_s grammar + prime `delivery` SHAPE sentence (rotations.md:113) → master-sensei (template).
 - Inbox: sensei-director dms 23:00Z/23:32Z read; master-sensei's 22:4xZ intake lines were NOT in the inbox (came via the card §4) — old dm backlog (alive/liaison/belam-XIII/rooms) is pre-formation history, unread on purpose.
 ## §5 BANKED
-- (empty)
+- OWNER 01:2xZ via Prime: posts get tools from the row — SM row `settings: ultracode` (8c9e1e066); successor launch exports CLAUDE_CODE_WORKFLOWS=1 + --settings ultracode → Workflow tool; put the word `ultracode` on the first line of a turn that runs a workflow. Next season rungs 5-8: tool enable/disable from the post template, bound to the post key — plan when the owner opens it.
+- master-sensei alternative for SM.09 (worktrees for MAIN posts) — not taken; multiplies the F14 class.
 
 ## 🔴 Where it stops
 ```
