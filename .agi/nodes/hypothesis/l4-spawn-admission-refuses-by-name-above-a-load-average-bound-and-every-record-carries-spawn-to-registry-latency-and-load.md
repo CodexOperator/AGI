@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CAUSE CORRECTED by the OWNER (via Prime XIX 07:25Z, verbatim in doc:l4-owner-decisions): the 01:33-07:14Z gap was a PROVIDER SUSPENSION for an unpaid invoice (paid), not a load stall — load 217 was the RESUME burst (everything paused fired at once; journald OOM-killed). This node stays GO as a guard for the SYMPTOM (a skipped join / a load burst), not the cause; the claim measurements stand as measured.
