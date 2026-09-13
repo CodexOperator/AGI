@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ACCEPTANCE ADDED (master-sensei 10:52Z, measured: round a00-a21fe617 leaked ONE live pane nudge into master-sensei — "[nudge: a00-a21fe617]: [rotation-alert] belam -> belam (pre-join …" — with an EMPTY inbox, no sidecar, no record, no comms file touched: a test ran the announce against the LIVE root; cost 1 read + 8 orient calls): (10) NO live pane/inbox side effects — every announce test runs on a FIXTURE root (tmp sessions + fixture seats/rotations) with send_dm / send_room / the nudge seam injected or recorded; one test asserts the recorded send_dm root == the fixture root; the kid round proves it by grepping its own run for zero writes under the live .agi/sessions/inbox and .agi/comms. A round that leaks a live nudge is DEMOTED at review regardless of its other numbers.
