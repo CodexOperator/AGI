@@ -10,3 +10,6 @@ OUT (cca28446), after the last work act (53 push):
 **Flag finding (owner 22:2xZ: every option inside a call counts):** rotate-self carried `--model claude-opus-5`. The row (`5d9c97083`) still says `claude-sonnet-5` (owner 01:0xZ: directors → sonnet), but pid 2277285 launched with `--model claude-opus-5` — the flag overrode the row silently, against "a model change is one write" (row wins; no order for this switch found in the graph). Routed: belam (authority), SM (code: rotate-self `--model` either writes the row or is refused; bare keyed `rotate` = no flag to carry).
 
 WAKE (ee7d4b4b): no transcript on disk at 07:3xZ; measure on the next nudge.
+
+---
+# 25→26 (record 20260913T075824Z, 07:58Z; gen 25 lived 34 min on opus): **out 2** — 57 dm belam (R3 complete, last work act) · 58 stops.md write · 59 rotate-self. Flags carried: `--model claude-sonnet-5 --effort max --prompt-file .agi/sessions/quorum/sanctuary-director.md --stops-file` — four options where bare keyed `rotate` (SL7.113-115) carries none; model back to the row's sonnet (the 24→25 opus override did not recur). Gen 26 pid 257366 launched `--model claude-sonnet-5`. Cut to the floor: `--stops '…'` inline (no scratch file), no model/effort/prompt-file (all row-derived).
