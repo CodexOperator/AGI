@@ -802,6 +802,24 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
     return f"{best_base}-{_int_to_roman(best_val + 1)}"
 
 
+def _session_label(row: dict | None, gen: int) -> str | None:
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    the app-GUI session label of a non-prime post = `<name>-<label_word>-g<gen>`
+    when the row cell `label_word` is a non-empty string, else `<name>-g<gen>`.
+    A prime_director row (and an absent row) has NO label — return None and
+    let the caller keep the chain numeral / window name unchanged. Derived
+    ONLY from the row (the config:posts `label_word` cell — a formation fact
+    the Prime writes), never from a card, never a hand flag."""
+    if not row or row.get("role") == "prime_director":
+        return None
+    _nm = (row.get("name") or "").strip()
+    _lw = (row.get("label_word") or "").strip()
+    if _lw:
+        return f"{_nm}-{_lw}-g{gen}"
+    return f"{_nm}-g{gen}"
+
+
 # ---- successor command ----------------------------------------------------
 
 
@@ -825,10 +843,17 @@ def _build_claude_command(name: str, prompt_text: str, debug_file: str,
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
-                       effort, settings, debug_file: str, extra: str = "") -> list[str]:
+                       effort, settings, debug_file: str, extra: str = "",
+                       rc_name: str | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
-    model/effort/settings appended as flags."""
+    model/effort/settings appended as flags.
+
+    `rc_name` (goal:g15.25, hypothesis:l4-the-gui-session-label-...): the
+    app-GUI session LABEL passed as the `--remote-control NAME` argv when a
+    caller supplies it — the tmux WINDOW name (`name`) is DECOUPLED from the
+    RC NAME, which is what the GUI session label reads. Only this argv
+    changes; `{name}` substitution and every other use stay on `name`."""
     body = Path(prompt_file).read_text(encoding="utf-8").replace("{name}", name)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn, right after the head
@@ -839,13 +864,14 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
     prompt_text = brief.successor_prompt(tier=tier, body=body)
-    return _build_claude_command(name, prompt_text, debug_file,
+    return _build_claude_command(rc_name or name, prompt_text, debug_file,
                                  model=model, effort=effort, settings=settings)
 
 
 def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  settings, debug_file: str,
                                  extra: str = "",
+                                 rc_name: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -868,7 +894,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = ULTRACODE_KEYWORD + "\n" + body
     if extra:
         body += "\n\n" + extra
-    return _build_claude_command(name, body, debug_file,
+    return _build_claude_command(rc_name or name, body, debug_file,
                                  model=model, effort=effort, settings=settings)
 
 
@@ -1475,6 +1501,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  dry_run: bool = False, debug_file: str | None = None,
                  extra: str = "",
                  seat: str | None = None,
+                 rc_name: str | None = None,
                  successor_argv: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
@@ -1499,6 +1526,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     back from the successor's own debug file). It is impossible to trip by
     accident: it only takes effect when an explicit override string is passed,
     so the DEFAULT is byte-for-byte today's real `claude --remote-control`.
+
+    `rc_name` (goal:g15.25, hypothesis:l4-the-gui-session-label-is-post-word-
+    gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    the app-GUI session LABEL from `_session_label(row, gen)` — the value
+    passed as `claude --remote-control NAME`. The tmux WINDOW name stays
+    `name` (seat / numeral), so a labeled GUI session never renames its
+    window (pane addressing keeps working); absent/None -> the window name
+    is also the RC name, today's behavior byte-for-byte.
 
     Returns `(exit_code, shell_cmd)`. On dry-run the shell line is printed
     and (0, shell_cmd) returned; every failure prints its ERR and returns
@@ -1542,7 +1577,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # explicit --prompt-file, are untouched.
         if prompt_file is None and tier != "prime_director":
             claude_cmd = _assembled_successor_command(
-                name=name, tier=tier, model=model, effort=effort,
+                name=name, rc_name=rc_name, tier=tier, model=model,
+                effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
             )
         else:
@@ -1553,7 +1589,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
                 return 1, ""
             claude_cmd = _successor_command(
-                name=name, tier=tier, prompt_file=str(pf),
+                name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
                 extra=extra,
             )
@@ -1634,6 +1670,24 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         name = _row_nm or _derive_successor_name(existing, prefix="belam")
     if args.dry_run and not args.name:
         print(f"spawn name: {name!r}")
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the app-GUI session label for this spawn = `_session_label` of the seat
+    # row at the row's generation; STORED on the row as `session_label` by the
+    # same spawn row write. None for a seat-less / prime spawn (today's name).
+    _seat = getattr(args, "seat", None)
+    _lbl = None
+    # an explicit --name always wins: only a DERIVED name (no --name) is
+    # replaced by the GUI label on the RC argv (today's --name trivially
+    # wins, test_spawn_explicit_name_wins_over_seat). The row still stores its
+    # own session_label regardless.
+    if _seat is not None and root is not None and not getattr(args, "name", None):
+        _lr = _find_seat(root, _seat)
+        if _lr is not None:
+            _lbl = _session_label(
+                _lr, _seat_row_generation(root, _seat) or FIRST_SEATING_GEN)
+            if _lbl and args.dry_run:
+                print(f"label: {_lbl!r}")
 
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     seat = getattr(args, "seat", None)
@@ -1787,6 +1841,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run,
+        rc_name=_lbl,
         successor_argv=getattr(args, "successor_argv", None),
         seat=seat,
         extra=startup_block,
@@ -2767,6 +2822,11 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                 print(f"session_ref: {_sref}")
             if row.get("session_name"):
                 print(f"session_name: {row['session_name']}")
+            # goal:g15.25 (hypothesis:l4-the-gui-session-label-...): status
+            # prints the row's `session_label` when present, the line beside
+            # `session_name` — the GUI label and the stored cell are one.
+            if row.get("session_label"):
+                print(f"session_label: {row['session_label']}")
         # Sensei 182119Z audit (relayed via sensei-director L2): the one hand
         # call left above the wake floor was a fetch + behind check, because
         # F9's "the refusal IS the behind check" was not trusted. The record
@@ -7045,6 +7105,20 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     cells["session_name"] = session_name
     if session_id is not None:
         cells["session_id"] = session_id
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the row's `session_label` = `_session_label` of the seat's OWN row at
+    # the generation being written — the SAME string this rotation passes as
+    # the successor's --remote-control NAME, so the GUI session label and the
+    # stored cell agree (claim (3)). Written ALWAYS (empty for a prime /
+    # throwaway row with no label) so the cell exists from the seat's own
+    # first spawn write, beside session_name; the ack back-fill never passes
+    # it, so it stays what the spawn row write set.
+    import write as _w  # local: same dir (send.py pattern, no import cycle)
+    cells["session_label"] = _session_label(
+        next((r for r in _w._load_seats(_shared_graph_root(root))
+              if r.get("name") == seat), {}), generation) or ""
+
     if pid is not None:
         cells["pid"] = pid
     # goal:g15.25 line (2): the successor half's cells ride the SAME one row
@@ -7075,6 +7149,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
               if key_rotation else "")
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_name={session_name} "
+            f"session_label={cells.get('session_label', '')} "
             f"session_id={session_id} pid={pid} generation={generation} "
             f"window={window!r} source=registry{_extra}")
 
@@ -15461,6 +15536,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             log_path=_seat_hands(root) / f"{seat}.wrapper.log")
         _record_swept_latches(rec_path, swept_latches)
 
+    # goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    # derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    # the successor's app-GUI session LABEL = `_session_label` of the seat row
+    # at the successor generation, passed as the --remote-control NAME. The
+    # tmux WINDOW name stays `spawn_name` (seat / numeral) — decoupled here,
+    # never renames the window (pane addressing keys on the window name).
+    _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -15471,6 +15553,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                            else None)),
         tmux_session=tmux_session, window_path=args.window_path, root=root,
         dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
+        rc_name=_rc_label,
         successor_argv=getattr(args, "successor_argv", None),
     )
     if rc != 0:
@@ -15483,6 +15566,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
+    if args.dry_run and _rc_label:
+        # g15.25 (hypothesis:l4-the-gui-session-label-...): the dry-run names
+        # the two strings SEPARATELY — the tmux window name (`spawn_name`) and
+        # the app-GUI session label (`label`), so a test reads them apart
+        # without tmux (a labeled GUI session never renames its window).
+        print(f"    label: {_rc_label!r} (window stays {spawn_name!r})")
 
     if args.dry_run:
         # L4.118 (R1) — the dry-run ENUMERATES every step live would execute,
