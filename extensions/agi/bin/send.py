@@ -1116,7 +1116,10 @@ def rewind_read_cursors(root: Path, seat: str, since_ts: str, *,
         if res is not None:
             old, new = res
             changes.append((inbox.name, old, new))
-    croot = comms_root(root)
+    try:                        # fail-soft: a root with no resolvable graph
+        croot = comms_root(root)  # config (a minimal/synthetic root, e.g. a
+    except Exception:            # unit-test fixture) falls back to the plain
+        croot = root              # root, exactly like every caller saw before
     for d in ("dm", "room"):
         dd = croot / d
         if not dd.is_dir():
