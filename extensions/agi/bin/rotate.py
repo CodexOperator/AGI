@@ -57,6 +57,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -3957,26 +3958,125 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
 
+def _load_alerts(root: Path) -> dict:
+    """config:rotations frontmatter top-level `alerts:` -- the ONE routing
+    matrix the Prime writes once at merge-up as a single write.py `set alerts
+    {…}` line (the round never writes it); {} when absent or not a map. A
+    quoted-JSON cell (the shape write.py produces for a nested map, exactly
+    like `rotate_defaults:`) yields a str, parsed here so the shape survives
+    either spelling. Shape:
+        {"audit": [<names>], "edges": {<seat>: [<names>]},
+         "silent": [<names>]}
+    A receiver list for a seat = (audit ∪ edges[seat]); `silent` removes a
+    name from EVERY machine-alert send (_alert_allowed -> False)."""
+    path = _rotations_node_path(root)
+    val = None
+    if path.exists():
+        try:
+            val = frontmatter.load_node_file(path).frontmatter.get("alerts")
+        except Exception:  # noqa: BLE001
+            val = None
+    if isinstance(val, str) and val.strip().startswith("{"):
+        text = val.strip()
+        try:
+            parsed = json.loads(text)
+        except Exception:  # noqa: BLE001
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+        # P4 falsified the shipped `set alerts {…}` line: write.py._coerce
+        # keeps an unquoted-key flow map (audit:[...],edges:{...}) as a STR
+        # (only pure JSON parses), node_writer._render_value then QUOTES it,
+        # and the active parse (json.loads) is rejected on a JSON string
+        # literal OR rejected on the unquoted spelling -- either way it used
+        # to return {} -> matrix treated as absent -> broadcast. yaml.safe_load
+        # parses this exact write.py-emitted spelling into the dict.
+        try:
+            parsed = yaml.safe_load(text)
+        except Exception:  # noqa: BLE001
+            return {}
+        if isinstance(parsed, dict):
+            return parsed
+    if isinstance(val, dict):
+        return val
+    return {}
+
+
+def _alert_silent(root: Path) -> set:
+    """The `silent:` name list of config:rotations `alerts:` -- posts that
+    receive ZERO machine alert lines (_alert_allowed -> False) -- or empty
+    when absent. Read from the `alerts:` map only; a name in `silent` is
+    removed from EVERY machine sender's delivered set, while direct
+    send.py-send / owner messages never pass through this helper."""
+    return set(_load_alerts(root).get("silent") or [])
+
+
+def _alert_allowed(root: Path, receiver: str) -> bool:
+    """True when `receiver` may receive a MACHINE alert line (rotation
+    alert, first-seating alert, or the after_join dm). The ONE gate the three
+    machine senders all consult (hypothesis:l4-rotation-alerts-follow-a-
+    routing-matrix...): `silent:` in config:rotations `alerts:` removes the
+    name from all of them. Owner-initiated messages (`send.py send`) never
+    pass through this helper."""
+    return bool(receiver) and receiver not in _alert_silent(root)
+
+
 def _derive_receivers(root: Path, *, seat: str,
                       live_names: list[str]) -> list[str]:
-    """Every live seat to be told of a rotation: config:seats rows
-    intersected with live tmux windows, minus the rotating seat itself.
+    """Every live seat to be told of a rotation.
 
-    A seat whose tmux window is absent — never lived or already killed —
-    drops out of the set: there is no point announcing to a corpse. Derived,
-    never hand-typed, so shelter-master owns the registry and this stays in
-    lock-step with it. Returns sorted for determinism.
+    With config:rotations `alerts:` PRESENT the set is the ROUTING MATRIX:
+    sorted((audit ∪ edges[seat]) ∩ live − {seat} − silent). A post absent
+    from `edges` alerts the `audit` list only. With `alerts:` ABSENT the
+    function returns today's BROADCAST, byte-identical (config:seats rows
+    intersected with live tmux windows, minus the rotating seat itself). A
+    seat whose tmux window is absent -- never lived or already killed --
+    drops out of the set either way: there is no point announcing to a
+    corpse. `_alert_allowed` is the shared silent gate the three machine
+    senders all consult. Returns sorted for determinism.
     """
+    alerts = _load_alerts(root)
     live = set(live_names or [])
-    out = []
-    for row in _load_seats(root):
-        name = row.get("name")
-        if not name or name == seat:
-            continue
-        if live and name not in live:
-            continue
-        out.append(name)
-    return sorted(out)
+    if alerts:
+        audit = set(alerts.get("audit") or [])
+        edges = alerts.get("edges") or {}
+        edge = (set(edges.get(seat, []) or [])
+                if isinstance(edges, dict) else set())
+        out = (audit | edge) & live
+    else:
+        out = set()
+        for row in _load_seats(root):
+            name = row.get("name")
+            if not name or name == seat:
+                continue
+            if live and name not in live:
+                continue
+            out.add(name)
+    out.discard(seat)
+    return sorted(n for n in out if _alert_allowed(root, n))
+
+
+def _announce_stamp_announced_to(root: Path, record_path: str | None,
+                                 delivered: list) -> None:
+    """Conjunct 4 (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-...):
+    the ROTATION record carries `announced_to` = the recipients the announce
+    actually reached (the returned delivered list), written in place (best-
+    effort, never a gate -- the announcement is the proof, not a blocker).
+    A reader following a completed rotation never has to guess who it told.
+    """
+    if not record_path:
+        return
+    rp = Path(record_path)
+    if not rp.exists():
+        return
+    try:
+        rec = json.loads(rp.read_text(encoding="utf-8", errors="replace"))
+        if isinstance(rec, dict):
+            rec["announced_to"] = delivered
+            _write_rotation_record(root, rec, path=rp)
+    except Exception as exc:  # noqa: BLE001 -- best-effort record enrichment
+        print(f"warn: could not stamp announced_to on rotation record: {exc}",
+              file=sys.stderr)
 
 
 def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
@@ -3985,7 +4085,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        successor_ref: str = "",
                        successor_window: str = "",
                        seating: dict | None = None,
-                       ask_diff: bool = False) -> list[str]:
+                       ask_diff: bool = False,
+                       record_path: str | None = None) -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -3997,11 +4098,19 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     """
     import send  # local: same dir
     seq = _next_sequence(root)
+    # The receiver set is computed BEFORE the record is written so the record
+    # can name who the announce told (dedup: the Sensei appears ONCE in the
+    # matrix-derived set, so an audit receiver gets exactly one line per
+    # rotation -- hypothesis:l4-rotation-alerts-follow-a-routing-matrix...).
+    receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seating is not None:
         # A FIRST SEATING: the ONE seating record is written here, at the same
         # moment the alert is emitted, so the alert and the record provably
         # share a single record (hypothesis:l4-a-first-seating-sends-the-
-        # sensei-the-same-alert-a-rotation-does, g15.17 item 3).
+        # sensei-the-same-alert-a-rotation-does, g15.17 item 3). The record
+        # names `announced_to` (the derived receivers) so a reader can see the
+        # ONE announce a seating emitted.
+        seating["announced_to"] = receivers
         _write_seating_record(root, seating)
         # The alert dm names the SAME gen_after the record just wrote
         # (goal:g15.25): a re-spawn's record and its alert can never disagree,
@@ -4023,28 +4132,50 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             in_flight=in_flight, seq=seq, successor_ref=successor_ref,
             successor_window=successor_window)
     declared = "first seating" if seating is not None else "rotation"
-    receivers = _derive_receivers(root, seat=seat, live_names=live_names)
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
-        # CLAUSE 1 (hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
-        # coalesced-nudge-still-wakes-and-detected-records-dedupe): the room
-        # is NOT the petition's inbox -- `send.py read` reads
-        # `<sessions>/inbox/<seat>.md`, a different file -- so a prime-specific
-        # write is needed for the alert to satisfy "lands in the inbox". The
-        # prime is inbox-only, but send.send() imposes no prime restriction
-        # (only dm/room do), so it is the exact inbox-only path: land the SAME
-        # [rotation-alert] block in the prime's OWN inbox in addition to the
-        # shared alert-room post.
+        # OWNER ORDER (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-
+        # ...): the prime now DELIVERS to its derived receivers (the
+        # audit/edges set, `_derive_receivers`) like every other post, instead
+        # of only posting to the alert room. send.send_dm REFUSES prime
+        # ORIGIN ("a dm may not originate from the prime"), so the prime
+        # reaches each receiver through send.send -- the inbox writer, which
+        # imposes no prime restriction and physically types its own wake.
+        # The shared room post STAYS as the record with NO nudge (send_room
+        # never nudges: it only appends the block to the room file -- there is
+        # no `_nudge_window` call in send_room, measured). The own-inbox copy
+        # also stays (CLause 1: the room is not the prime's inbox -- `send.py
+        # read` reads `<sessions>/inbox/<seat>.md`, a different file).
+        delivered = []
         try:
-            send.send(root, seat, text, sender=seat)
-            path = send.send_room(croot, ROTATION_ALERT_ROOM, text,
-                                  sender=seat)
-            print(f"announced {declared} -> {ROTATION_ALERT_ROOM} ({path})",
+            send.send(root, seat, text, sender=seat)  # own-inbox copy stays
+        except SystemExit as exc:
+            print(f"warn: {declared} own-inbox write for {seat!r} failed: "
+                  f"{exc}", file=sys.stderr)
+        try:
+            send.send_room(croot, ROTATION_ALERT_ROOM, text, sender=seat)
+            print(f"announced {declared} -> {ROTATION_ALERT_ROOM} (record)",
                   file=sys.stderr)
-            return [ROTATION_ALERT_ROOM]
         except SystemExit as exc:
             print(f"warn: {declared} announcement to {ROTATION_ALERT_ROOM!r} "
                   f"failed: {exc}", file=sys.stderr)
-            return []
+        for recv in receivers:
+            try:
+                send.send(root, recv, text, sender=seat)
+                delivered.append(recv)
+            except SystemExit as exc:
+                print(f"warn: could not tell {recv!r} the {declared}: {exc}",
+                      file=sys.stderr)
+                continue
+        print(f"announced {declared} -> {len(delivered)} recipient(s) "
+              f"{delivered!r}", file=sys.stderr)
+        for recv in delivered:
+            try:
+                send.wake(root, recv)
+            except Exception as exc:                          # noqa: BLE001
+                print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
+                      file=sys.stderr)
+        _announce_stamp_announced_to(root, record_path, delivered)
+        return delivered
     delivered = []
     for recv in receivers:
         try:
@@ -4084,6 +4215,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         except Exception as exc:                          # noqa: BLE001
             print(f"warn: post-rotation wake to {recv!r} failed: {exc}",
                   file=sys.stderr)
+    _announce_stamp_announced_to(root, record_path, delivered)
     return delivered
 
 
@@ -11999,6 +12131,16 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     nudge_suppressed = False
     if dry_run:
         delivery = {"mode": "none", "nudge": "n/a"}
+    elif not _alert_allowed(root, seat):
+        # (hypothesis:l4-rotation-alerts-follow-a-routing-matrix... conjunct 5)
+        # a SILENT successor (config:rotations `alerts:`.silent) gets ZERO
+        # machine lines from the after_join too -- the typing seam NEVER FIRES
+        # into its pane, so nothing leaks a line BEFORE the send_dm gate
+        # (in production the second input is TYPED into the pane and send_dm is
+        # never reached, so gating send_dm alone leaked the typed body). `seat`
+        # is the RECEIVER here (the successor the after_join addresses), the
+        # same name the default and injected send_dm gates consult.
+        delivery = {"mode": "silent-refused", "nudge": "suppressed"}
     else:
         typed_ok = False
         typing_refused = None
@@ -12040,10 +12182,19 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     # record then keeps the DECLARED sender, unsigned). The record NEVER reads
     # a key file for dm_signed (hypothesis:l4-the-after-join-record-names-the-
     # sender-and-signature-the-send-returned...).
+    _dm_ret = None
     sent = False
     if not dry_run and send_dm is None:
         def send_dm(to: str, text: str):
             import send as _send
+            # silent gate (hypothesis:l4-rotation-alerts-follow-a-routing-
+            # matrix...): a receiver NAME in config:rotations `alerts:`.silent
+            # gets ZERO machine lines from the after_join sender too -- refuse
+            # the send outright (the record then keeps the declared sender,
+            # unsigned). `_alert_allowed` consults the shared helper the three
+            # machine senders all use.
+            if not _alert_allowed(root, to):
+                return None
             # a NAMED sender (never None): send.py falls to `unknown` only when
             # no --from flag AND no seat env is exported — the after_join dm
             # now always passes a declared sender, so `from: unknown` cannot
@@ -12058,7 +12209,11 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                 return _send.send(root, to, text, sender, nudge=False)
             return _send.send(root, to, text, sender)
     if not dry_run and send_dm is not None:
-        _dm_ret = send_dm(seat, dm)
+        # the silent gate applies to an INJECTED seam too (a caller that runs
+        # the REAL send): a silent successor's dm is refused before any seam
+        # fires, so the after_join sends zero machine lines to a silent post.
+        if _alert_allowed(root, seat):
+            _dm_ret = send_dm(seat, dm)
         sent = True
         if (isinstance(_dm_ret, tuple) and len(_dm_ret) == 2
                 and isinstance(_dm_ret[0], str)):
@@ -16502,7 +16657,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # session_id 27179681-…, ListAgents ref caa927). So the announce
         # carries the ACK's ref, and NAMES pre-join when the ack had none.
         successor_ref=((ack or {}).get("session_ref") or ""),
-        successor_window=succ_window_id or "")
+        successor_window=succ_window_id or "",
+        record_path=(record_path if record_path else None))
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
     #     r4 / e / D / r5): after the record is written and (6.5) announced:
