@@ -6696,6 +6696,8 @@ SM.07 fully closed (SM.33 harvest 6369d3502): the last three session_label conju
 
 SM.12 harvested gen 21: heal.py late s12 reap for a skipped-join predecessor chain (prime capped at 5 via chain[:-5], pane-PID never argv), 6 new falsifier tests, 55/55 heal_watch + 763/763 rotate neighbourhood, 0 regressions. Parent a00-9466ea4a died before cli.py done (reaper-detected) but left complete staged work -- reviewed independently, downgraded self-declared proved to inconclusive_lean_proved:75 (two claim clauses -- plain-seat log line, CLI-level --dry-run -- remain unimplemented, named in the experiment node THOUGHT). Finalized from inside the dead parent worktree, merged into season2/posts/sensei-director.
 
+SM.13 harvested gen 21 (2nd-attempt work, via its orphaned kid a00-d24065b4 which outlived its own dead parent): spawn_budget.py load-admission gate (opt-in via config, refusal by name above bound) + rotate.py box{loadavg,cores} fact on rotation/seating records + heal.py once-per-pass load line, 405/405 tests across the full neighbourhood. Verdict inconclusive_lean_proved:85 -- one real gap named (spawn_to_registry_s, claim point 3 second half, never implemented). Correction of record: an earlier report of a confirmed failing test to SM did not reproduce on 5 re-runs -- a stale pytest tmp-dir artifact, not a real bug; corrected before finalizing. SM.13s 1st attempt (97s, zero work, same infra cause) stays discarded; nothing else to harvest from it.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
