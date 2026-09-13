@@ -38,6 +38,7 @@ from types import SimpleNamespace
 import pytest
 
 import rotate  # noqa: E402
+import send  # noqa: E402  (same dir; for comms_root in the rewind test)
 
 
 class _Proc:
@@ -733,8 +734,10 @@ def test_spawn_dead_rewind_dry_run_prints_would_and_writes_nothing(
     monkeypatch.setattr(rotate, "_first_seating_announce", lambda *a, **k: [])
     monkeypatch.setattr(rotate, "_current_sequence", lambda root: 7)
     # a dm the killed session consumed (cursor 12); messages 11-12 are AFTER
-    # the death ts, so a rewind to the death time lands at 10
-    dm = root / "dm" / "rewindseat--other.md"
+    # the death ts, so a rewind to the death time lands at 10. Written under
+    # the RESOLVED comms root (rewind_read_cursors' dm/room loop reads there,
+    # never plain root/dm -- hypothesis:l4-pred-pids-... comms_root fix).
+    dm = send.comms_root(root) / "dm" / "rewindseat--other.md"
     dm.parent.mkdir(parents=True, exist_ok=True)
     text = ""
     for i in range(1, 13):
