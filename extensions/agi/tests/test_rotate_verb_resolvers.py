@@ -155,8 +155,8 @@ def test_role_timeout_from_template_or_default(tmp_path):
     _write_geo(tmp_path, rows)
     assert rotate._role_timeout(tmp_path, "director") == 600  # no cell yet
     _write_geo(tmp_path, rows, rotations=(
-        "---\nid: config:rotations\ntemplates:\n  director:\n"
-        "    timeout_s: 900\n---\n"))
+        "---\nid: config:rotations\nrotate_defaults:\n"
+        "  timeout_s:\n    director: 900\n---\n"))
     assert rotate._role_timeout(tmp_path, "director") == 900
 
 
@@ -182,10 +182,10 @@ def test_role_timeout_digit_string_accepted_other_strings_fall_back(tmp_path, mo
     import rotate as r
     cases = {"900": 900, "9x": 600, " 42 ": 42, "": 600}
     for raw, want in cases.items():
-        monkeypatch.setattr(r, "_load_templates",
-                            lambda root, _raw=raw: {"director": {"timeout_s": _raw}})
+        monkeypatch.setattr(r, "_load_rotate_defaults",
+                            lambda root, _raw=raw: {"timeout_s": {"director": _raw}})
         assert r._role_timeout(tmp_path, "director") == want, raw
-    monkeypatch.setattr(r, "_load_templates", lambda root: {"director": {"timeout_s": 9.5}})
+    monkeypatch.setattr(r, "_load_rotate_defaults", lambda root: {"timeout_s": {"director": 9.5}})
     assert r._role_timeout(tmp_path, "director") == 600
-    monkeypatch.setattr(r, "_load_templates", lambda root: {"director": {"timeout_s": True}})
+    monkeypatch.setattr(r, "_load_rotate_defaults", lambda root: {"timeout_s": {"director": True}})
     assert r._role_timeout(tmp_path, "director") == 600

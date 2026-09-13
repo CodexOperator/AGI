@@ -14397,13 +14397,41 @@ def _rank_gate(caller_row: dict, target_row: dict, ranks: list[str]) -> str | No
     return f"{cap} may not rotate {tap}: refuse upward ({c_role} ranks below {t_role})"
 
 
+def _load_rotate_defaults(root: Path) -> dict:
+    """config:rotations frontmatter top-level `rotate_defaults` -- the ONE
+    map the Prime writes as a single JSON value on config:rotations (shape
+    {"timeout_s": {<role>: int}, "closeout": {<role>: bool}}) -- {} when
+    absent or not a map. A quoted-JSON cell yields a str, parsed here so the
+    shape survives either spelling (write.py nests nothing -- the SL7.114/115
+    per-template reads named keys the Prime can never write, so both reads go
+    through THIS top-level map only)."""
+    path = _rotations_node_path(root)
+    val = None
+    if path.exists():
+        try:
+            val = frontmatter.load_node_file(path).frontmatter.get("rotate_defaults")
+        except Exception:  # noqa: BLE001
+            val = None
+    if isinstance(val, str) and val.strip().startswith("{"):
+        try:
+            val = json.loads(val)
+        except Exception:  # noqa: BLE001
+            return {}
+    if isinstance(val, dict):
+        return val
+    return {}
+
+
 def _role_timeout(root: Path, role: str) -> int:
-    """templates.<role>.timeout_s (config:rotations) when an int -- or a
-    digit-only string, the shape a QUOTED yaml cell yields (seat re-cut at
-    the SL7.114 harvest: accepted by design, not by accident) -- else 600
-    (the CLI default)."""
-    tmpl = _load_templates(root).get(role) or {}
-    t = tmpl.get("timeout_s")
+    """rotate_defaults.timeout_s.<role> (config:rotations top-level) when an
+    int -- or a digit-only string, the shape a QUOTED yaml cell yields (seat
+    re-cut at the SL7.114 harvest: accepted by design, not by accident) --
+    else 600 (the CLI default). The ONE reader on the Prime-writable map; the
+    old templates.<role>.timeout_s cell is DEAD (write.py cannot nest it)."""
+    tmap = _load_rotate_defaults(root).get("timeout_s")
+    if not isinstance(tmap, dict):
+        return 600
+    t = tmap.get(role)
     if isinstance(t, bool):
         return 600
     if isinstance(t, int):
@@ -16698,20 +16726,18 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     args.force = True            # the caller HELD the key into _caller_post
     if args.timeout is None:
         args.timeout = _role_timeout(root, target_row.get("role"))
-    # (4) TEMPLATE-FIRST closeout: templates.<role>.rotate_defaults (a map,
-    # e.g. {closeout: false}) when present, else {closeout: False}; the verb
-    # passes closeout=True ONLY when the template says so or --closeout was
-    # given -- and it NEVER writes config:rotations (read-only, like _ranks).
+    # (4) ONE top-level closeout: rotate_defaults.closeout.<role> (the map the
+    # Prime writes as roadtrip JSON value) when present, else False; the verb
+    # passes closeout=True ONLY when the map says so or --closeout was given --
+    # and it NEVER writes config:rotations (read-only, like _ranks). The old
+    # templates.<role>.rotate_defaults cell is DEAD (write.py cannot nest it).
     _closeout = bool(args.closeout)
-    _rotate_defaults = {}
-    try:
-        _rt = _load_templates(root).get(target_row.get("role")) or {}
-        _rd = _rt.get("rotate_defaults")
-        if isinstance(_rd, dict):
-            _rotate_defaults = _rd
-    except Exception:  # noqa: BLE001
-        _rotate_defaults = {}
-    args.closeout = _closeout or bool(_rotate_defaults.get("closeout", False))
+    _rotate_defaults = _load_rotate_defaults(root)
+    _closeout_map = _rotate_defaults.get("closeout")
+    _closeout_role = False
+    if isinstance(_closeout_map, dict):
+        _closeout_role = bool(_closeout_map.get(target_row.get("role"), False))
+    args.closeout = _closeout or _closeout_role
     # stops: derive from the own card's where-it-stops slot only when none of
     # --stops/--stops-file/--closeout was given; an empty slot refuses BY NAME
     # (exit 2, NOTHING delegated).
