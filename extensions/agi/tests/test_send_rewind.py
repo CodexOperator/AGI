@@ -40,10 +40,19 @@ def project(tmp_path: Path) -> Path:
     return root
 
 
+def _croot(root):
+    """The RESOLVED comms root (the module's own resolver), so dm/room fixture
+    conversations land where production conversations actually live -- never
+    under `root/dm` / `root/room`, which rewind_read_cursors would never see."""
+    return send_mod.comms_root(root)
+
+
 def _make_conv(root, rel: str, n_blocks: int, start_i: int = 1):
     """Write a conversation file with `n_blocks` blocks whose ts are
-    `2026-09-12T09:00:{i:02d}Z` for i = start_i..start_i+n_blocks-1."""
-    p = root / rel
+    `2026-09-12T09:00:{i:02d}Z` for i = start_i..start_i+n_blocks-1. Written
+    under the RESOLVED comms root (the production dm/room layout), never
+    `root/dm` or `root/room`."""
+    p = _croot(root) / rel
     p.parent.mkdir(parents=True, exist_ok=True)
     text = ""
     for i in range(start_i, start_i + n_blocks):
@@ -116,3 +125,97 @@ def test_rewind_dry_run_returns_changes_and_writes_nothing(project):
     assert changes == [("conv5.md", 12, 10)], changes
     state = json.loads(Path(str(p) + send_mod.STATE_SUFFIX).read_text())
     assert state["seat"] == 12                      # not written
+
+
+def test_rewind_reads_dm_under_the_comms_root_not_root_dm(project):
+    """THE PRODUCTION SHAPE (the falsifier P-f): a dm state file carrying the
+    seat key lives under `<graph>/comms/season-<N>/dm`, and `root/dm` never
+    exists -- so a rewind that scanned `root/dm` would rewind NOTHING. Uses
+    the module's own resolver to place the fixture, and asserts the legacy
+    `root/dm` directory is absent to prove there is no other scan site."""
+    croot = _croot(project)
+    assert not (project / "dm").exists()            # no legacy root/dm at all
+    p = _make_conv(project, "dm/conv6.md", 12)
+    assert str(p).startswith(str(croot / "dm")), p
+    _state(p, {"seat": 12})
+    changes = send_mod.rewind_read_cursors(project, "seat", SINCE)
+    assert changes == [("conv6.md", 12, 10)], changes
+    state = json.loads(Path(str(p) + send_mod.STATE_SUFFIX).read_text())
+    assert state["seat"] == 10
+
+
+def _make_inbox(project: Path, seat: str, n_blocks: int,
+                marker_after: int | None = None):
+    """Write an inbox for `seat` with `n_blocks` messages ts 09:00:01.., and
+    the READ_MARKER line after the first `marker_after` blocks (None = no
+    marker, so all unread). The inbox lives at `_inbox_path`, the SAME path
+    send.py `read` rewrites -- this is the exact gap the SM.03b slice must
+    close (a seat inbox has NO `.state.json`; its cursor is the marker)."""
+    p = send_mod._inbox_path(project, seat)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    blocks = [send_mod._block(
+        f"2026-09-12T09:00:{i:02d}Z", "other", seat, f"msg-{i}")
+        for i in range(1, n_blocks + 1)]
+    if marker_after is None:
+        text = "".join(blocks)
+    else:
+        text = ("".join(blocks[:marker_after]) + send_mod.READ_MARKER
+                + "".join(blocks[marker_after:]))
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+def _assert_marker_after(p: Path, count: int):
+    """Assert the READ_MARKER line sits after exactly `count` blocks (one
+    `---` separator precedes every block)."""
+    text = p.read_text()
+    lines = text.splitlines(keepends=False)
+    mi = lines.index(send_mod.READ_MARKER.rstrip("\n"))
+    n = sum(1 for ln in lines[:mi] if ln == send_mod.MSG_SEP.rstrip("\n"))
+    assert n == count, (n, count)
+
+
+INBOX_SINCE = "2026-09-12T09:00:11Z"   # blocks 1..10 older, 11-12 at/after
+
+
+def test_rewind_moves_inbox_marker_back_after_older_blocks(project):
+    """(a) inbox marker after 12 blocks, since before the last two -> the
+    marker now sits after 10: blocks 11-12 become UNREAD (re-carried by the
+    re-seat STARTUP [inbox]); blocks 1-10 stay read."""
+    p = _make_inbox(project, "seat", 12, marker_after=12)
+    changes = send_mod.rewind_read_cursors(project, "seat", INBOX_SINCE)
+    assert changes == [("seat.md", 12, 10)], changes
+    _assert_marker_after(p, 10)
+    unread, _ = send_mod._scan_messages(p)
+    joined = "\n".join(unread)
+    assert "msg-11" in joined and "msg-12" in joined, joined
+    assert "msg-10" not in joined, joined      # exactly the last two re-carried
+
+
+def test_rewind_never_advances_an_already_earlier_marker(project):
+    """(b) a marker already BEFORE N (block 8 < 10 older) is untouched: a
+    rewind must never move the read position FORWARD (that would silently
+    mark unread mail as read). Byte-identical file, no change reported."""
+    p = _make_inbox(project, "seat", 12, marker_after=8)
+    before = p.read_bytes()
+    assert send_mod.rewind_read_cursors(project, "seat", INBOX_SINCE) == []
+    assert p.read_bytes() == before
+
+
+def test_rewind_inbox_dry_run_returns_change_and_writes_nothing(project):
+    """(c) dry_run reports the would-rewind change but writes NO bytes:
+    the marker stays after 12."""
+    p = _make_inbox(project, "seat", 12, marker_after=12)
+    changes = send_mod.rewind_read_cursors(project, "seat", INBOX_SINCE,
+                                           dry_run=True)
+    assert changes == [("seat.md", 12, 10)], changes
+    _assert_marker_after(p, 12)                 # on disk, marker still after 12
+
+
+def test_rewind_leaves_a_no_marker_inbox_alone(project):
+    """(e) an inbox with NO READ_MARKER (every block unread) is left alone:
+    the rewind never invents a read position to lower."""
+    p = _make_inbox(project, "seat", 12)
+    before = p.read_bytes()
+    assert send_mod.rewind_read_cursors(project, "seat", INBOX_SINCE) == []
+    assert p.read_bytes() == before
