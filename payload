@@ -211,6 +211,72 @@ def test_max_live_prefers_its_own_key_then_falls_back_to_parallel():
 
 
 # --------------------------------------------------------------------------
+# The load gate (hypothesis:l4-spawn-admission-refuses-by-name-above-a-load-
+# average-bound-and-every-record-carries-spawn-to-registry-latency-and-load)
+# --------------------------------------------------------------------------
+
+def _gated_root(root: Path, per_core: float | str) -> None:
+    """Write a config that sets `spawn.max_load_per_core` (the knob the load
+    gate reads — CONFIG-DRIVEN, never a module constant)."""
+    (root / ".agi").mkdir(exist_ok=True)
+    (root / ".agi" / "config.json").write_text(
+        '{"spawn": {"max_load_per_core": %s}}' % per_core)
+
+
+def test_acquire_refuses_by_name_when_load_exceeds_the_bound(
+        root, monkeypatch, capsys):
+    """Load 217 > bound 12 (3.0 x 4 cores) is a REFUSAL by NAME naming BOTH
+    numbers — never a wait (falsifier: a wait loop instead of a refusal)."""
+    _gated_root(root, 3.0)
+    monkeypatch.setattr(os, "cpu_count", lambda: 4)
+    monkeypatch.setattr(os, "getloadavg", lambda: (217.0, 117.4, 203.6))
+    assert spawn_budget.load_bound({"spawn": {"max_load_per_core": 3.0}}) == 12.0
+    assert spawn_budget.acquire(root, 25, "a00-heavy") is None
+    err = capsys.readouterr().err
+    assert "a00-heavy" in err, err
+    assert "load 217.0 > bound 12.0" in err, err
+    assert "(3.0 x 4 cores)" in err, err
+    assert "no admission" in err, err
+
+
+def test_acquire_admits_when_load_is_below_the_bound(root, monkeypatch):
+    """A load under the bound admits normally — the gate only refuses over."""
+    _gated_root(root, 3.0)
+    monkeypatch.setattr(os, "cpu_count", lambda: 4)
+    monkeypatch.setattr(os, "getloadavg", lambda: (5.0, 4.0, 3.0))
+    lease = spawn_budget.acquire(root, 25, "a00-light")
+    assert lease is not None
+    assert spawn_budget.live_count(root) == 1
+
+
+def test_acquire_never_refuses_on_load_when_the_knob_is_zero_or_absent(
+        root, monkeypatch):
+    """`spawn.max_load_per_core: 0` disables the gate; an ABSENT knob keeps
+    the gate off entirely (a project is never load-gated behind a module
+    default it never asked for). Both admit under absurd load."""
+    monkeypatch.setattr(os, "cpu_count", lambda: 4)
+    huge = lambda: (999.0, 999.0, 999.0)  # noqa: E731
+    monkeypatch.setattr(os, "getloadavg", huge)
+    _gated_root(root, 0)
+    assert spawn_budget.load_bound({"spawn": {"max_load_per_core": 0}}) == 0.0
+    assert spawn_budget.acquire(root, 25, "a00-zero") is not None
+    (root / ".agi" / "config.json").write_text('{}')
+    assert spawn_budget.load_bound({}) == 0.0
+    assert spawn_budget.acquire(root, 25, "a00-unconfigured") is not None
+
+
+def test_status_prints_the_load_line_beside_the_count(root, monkeypatch, capsys):
+    """`status` prints `load <1>/<5>/<15> bound <bound>` on the budget line
+    (falsifier: the load line shape)."""
+    _gated_root(root, 3.0)
+    monkeypatch.setattr(os, "cpu_count", lambda: 4)
+    monkeypatch.setattr(os, "getloadavg", lambda: (11.9, 117.4, 203.6))
+    spawn_budget.main(["--root", str(root), "status"])
+    out = capsys.readouterr().out
+    assert "load 11.9/117.4/203.6 bound 12.0" in out, out
+
+
+# --------------------------------------------------------------------------
 # The falsifier: the total live population never exceeds the bound
 # --------------------------------------------------------------------------
 
