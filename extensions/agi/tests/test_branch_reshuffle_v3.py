@@ -1443,3 +1443,114 @@ def test_v3_apply_zero_legacy_prints_refs_grid_line_on_refusal(tmp_path: Path):
     assert "refs/grid: IDENTICAL before/after --apply" in res.stdout, \
         res.stdout
     assert res.stdout.count("refs/grid:") == 1, res.stdout
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-
+# successor-or-trunk (SAFETY-CRITICAL, mur-52). Origin PRESENCE and content
+# CONTAINMENT are two different questions: even a branch whose v3 successor is
+# present (or which R3.4's presence gate never reaches, like a season-first
+# LOOP job) must have its origin tip be an ancestor of its successor or of the
+# season trunk main, or the delete is refused by name. A stray commit pushed
+# to an old name after its local rename is destroyed unchecked without this.
+# --------------------------------------------------------------------------
+
+def _containment_repo(tmp_path: Path, diverged: bool) -> Path:
+    """A bare-origin fixture with `season2/main` at the seed and a season-first
+    LOOP branch (kind the presence gate does not reach). `diverged=True` puts
+    the loop tip on a commit `season2/main` does not contain; False leaves it
+    at the shared seed (contained)."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite]\n---\n")
+    # a DECLARED town set so `_v3_on` is True and the containment gate (whose
+    # scope this claim fixes) actually runs.
+    for town, _ts in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/vision/{town}.md",
+               f"---\nid: vision:{town}\ntype: vision\ntitle: {town}\n---\n")
+    _write(r, ".agi/nodes/.geometry/posts.md",
+           "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
+           "  - name: web-app-suite\n---\n")
+    for town, season in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/town/{town}.md",
+               f"---\nid: town:{town}\ntype: town\nvisions: "
+               f"[vision:{town}]\ncouncil: {town}\nseason: {season}\n---\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    _git(r, "branch", "season2/main")
+    _git(r, "push", "-q", "origin", "season2/main:refs/heads/season2/main")
+    _git(r, "checkout", "-q", "-b", "season2/loops/x-a00-1")
+    if diverged:
+        _write(r, "loop.txt", "unmerged loop work\n")
+        _git(r, "add", "-A")
+        _git(r, "commit", "-qm", "loop work")
+    _git(r, "push", "-q", "origin",
+         "season2/loops/x-a00-1:refs/heads/season2/loops/x-a00-1")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def _containment_stamp(r: Path) -> None:
+    stamp = r / ".agi" / "sessions" / "verified.stamp"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("green\n")
+
+
+def test_delete_old_refuses_a_loop_whose_content_is_not_contained(
+        tmp_path: Path):
+    """SAFETY FALSIFIER: a season-first loop branch whose tip is NOT an
+    ancestor of the season trunk main must be REFUSED by name and NOT
+    deleted (pre-fix it was an unconditional `[APPLY] ... --delete`)."""
+    r = _containment_repo(tmp_path, diverged=True)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/loops/x-a00-1" in res.stderr, res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert got, "a diverged loop branch must survive --delete-old"
+
+
+def test_delete_old_dry_run_previews_the_containment_refusal(tmp_path: Path):
+    """Honest preview: a --dry-run --delete-old names the containment refusal
+    and does NOT print an unconditional delete line for it."""
+    r = _containment_repo(tmp_path, diverged=True)
+    name = "season2/loops/x-a00-1"
+    res = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    assert f"git push origin --delete {name}" not in out, out
+    assert f"[DRY ] REFUSE branch delete (remote, content not contained): " \
+           f"{name}" in out, out
+    assert "would REFUSE 1 branch(es) whose content is NOT contained" \
+           in res.stderr, res.stderr
+
+
+def test_delete_old_admits_a_contained_loop(tmp_path: Path):
+    """POSITIVE TWIN: the SAME kind, whose tip IS an ancestor of the season
+    trunk main, is ADMITTED and deleted exactly as before — the fix refuses
+    diverged content, never a genuinely-merged branch."""
+    r = _containment_repo(tmp_path, diverged=False)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSES" not in res.stderr, res.stdout + res.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert not gone, gone
+    kept = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/main").stdout.strip()
+    assert kept, "the season trunk main must never be a delete target"
