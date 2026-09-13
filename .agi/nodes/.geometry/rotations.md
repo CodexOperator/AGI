@@ -27,6 +27,16 @@ fact_bounds:
 floor_out: 1
 floor_wake: 0
 locations: {}
+ranks:
+  - prime_director
+  - director
+  - helper
+rotate_defaults:
+  timeout_s:
+    prime_director: 900
+    director: 900
+    helper: 600
+  closeout: {}
 scaffold_hash: c15eeda9b6db679a
 season: 2
 spawn_check: unverified
