@@ -21,3 +21,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 FOLDED IN (SM.13 gap, 14:33Z): clause (5) — on the join (and the late join), the rotation/seating record gains spawn_to_registry_s = registry file mtime − spawn ts (None when never registered); the SM.13 box{loadavg,cores} half landed, this is the other half; +1 test.
+
+harvested on the post 17:05Z (verdict pending, 4 kids, 636 green): ~350 net lines vs the 90-line ceiling with NO re-brief — the 2x rule (set 12:0xZ) was not followed; weighed at merge-up review; from here an un-briefed 2x overage is a DEMOTE by rule.
