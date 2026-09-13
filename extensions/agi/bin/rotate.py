@@ -15697,6 +15697,47 @@ def _rotate_human_gate(root: Path, seat: str,
     return None, None
 
 
+def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
+    """CLAUSE 9 (goal:g15.25) — ONE dm to the supervisor when a rotate-self
+    spawn-row write was REFUSED.
+
+    The supervising post of `seat` is the seat OWN row's `rotated_by` cell
+    (the post that rotated the seat — the same name `rotate.py alarms` meters
+    against). Until the routing matrix (SM.16) lands a failure channel, this
+    one dm IS the fail-loud delivery: a refused spawn-row write must never be
+    a silently stale row, so the supervisor is told once, the refusal already
+    failed the rotation (record `result: refused` + rc 1). Delivery never
+    raises (the rotation already failed; a lost alert must not crash the
+    reporter) and returns a one-line outcome the record / stderr can name.
+    Prime-origin dms are refused by send.send_dm, so a prime caller reaches
+    its supervisor through send.send (the inbox writer) exactly as
+    `_announce_rotation` does for the prime.
+    """
+    sup = None
+    try:
+        for r in _load_seats(_shared_graph_root(root)):
+            if r.get("name") == seat:
+                sup = (str(r.get("rotated_by") or "").strip() or None)
+                break
+    except Exception:  # noqa: BLE001  (a broken row read never blocks reporting)
+        sup = None
+    if not sup or sup == seat:
+        return (f"no rotated_by supervisor addressable for seat {seat!r}; "
+                f"refusal recorded and rc non-zero")
+    import send  # local: same dir
+    croot = send.comms_root(root)
+    text = (f"[rotation-failed] spawn-row write REFUSED for seat {seat!r}: "
+            f"{reason}")
+    try:
+        if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
+            send.send(root, sup, text, sender=seat)
+        else:
+            send.send_dm(croot, seat, sup, text, sender=seat)
+        return f"rotation-failed dm sent to supervisor {sup!r}"
+    except Exception as exc:  # noqa: BLE001
+        return f"rotation-failed dm to supervisor {sup!r} FAILED: {exc}"
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -16745,6 +16786,29 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 key_rotation=_key_rotation)
         except Exception as exc:  # noqa: BLE001
             handover["successor_row"] = f"FAILED: {exc}"
+        # goal:g15.25 CLAUSE 9 — a REFUSED spawn-row write FAILS LOUD, never a
+        #     silently stale successor row that keeps the old generation while
+        #     the rotation reports success (the sensei-director 07:55Z
+        #     incident: the row write was refused whole for an undeclared
+        #     session_label field, and the successor row silently kept gen 18
+        #     until the Prime resynced it). The rotation tail halts HERE: one
+        #     dm to the supervisor (the seat row's `rotated_by` post), a
+        #     `refused` record naming the refusal, rc non-zero. A THROWAWAY
+        #     seat (`successor_row` = `skipped: ...`) and a legitimately
+        #     written row both fall through unchanged.
+        if handover.get("successor_row", "").startswith("FAILED"):
+            handover["spawn_row_failed_dm"] = _dm_rotation_spawn_row_failed(
+                root, seat, handover["successor_row"])
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, result="refused",
+                gen_before=gen_before, gen_after=gen, succ=succ,
+                handover=handover,
+                readback_log=Path(dbg).expanduser().resolve(),
+                refusal=(f"spawn-row write REFUSED: "
+                         f"{handover['successor_row']}")), path=rec_path)
+            print(f"ERR: {handover['successor_row']}; spawn-row write REFUSED, "
+                  f"rotation NOT reported success.", file=sys.stderr)
+            return 1
         # (g15.24, Sensei's pick, fix (a)): rotate-self COMMITS the s6.1
         # spawn-row write ITSELF, immediately after `_successor_row_write`
         # succeeds and before anything else runs — ONE plain `git commit` in

@@ -3533,6 +3533,22 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     ack contract is untouched."""
     _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
                                    "model": "x", "effort": "max"}])
+    # CLAUSE 9 (goal:g15.25): a refused spawn-row write FAILS LOUD (record
+    # `refused`, rc non-zero) and aborts the rotation BEFORE the ack-file
+    # rotation. So this fixture must make the s6.1 row write SUCCEED — the
+    # graph-root marker write.py's API demands (L4.95) + a [config].md schema
+    # declaring the self_row fields the writer emits (mirrors
+    # test_rotate_handover's `_fix`), else the rotation halts at the refusal
+    # and there is no ack to rotate — exactly the silent-stale failure the
+    # clause outlaws.
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    sd = tmp_path / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    (sd / "[config].md").write_text(
+        "---\nname: config\nself_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, session_name, session_id, generation, window, "
+        "pid, pubkey, sig_scheme, enc_scheme, key_history, session_label]}\n"
+        "---\nbody\n", encoding="utf-8")
     quorum = tmp_path / "sessions" / "quorum"
     quorum.mkdir(parents=True, exist_ok=True)
     (quorum / "adv-alive.md").write_text("# adv-alive card\n",
