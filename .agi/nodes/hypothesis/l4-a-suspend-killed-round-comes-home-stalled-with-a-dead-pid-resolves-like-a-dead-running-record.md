@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+HARVEST L4.345 (sanctuary-director gen27, 2026-09-13T15:50Z): merged a00-c76c8d34 branch (61c5b5844, --no-ff) into season2/posts/sanctuary-director. Claims (a) and (b) proved, parent-reviewed with independent probes beyond the kids self-reports (AUTH, GATE, WIRE per each experiment THOUGHT block). Tests re-run post-merge in this worktree: 147 passed (test_dispatch + test_heal + test_stall_detect), matches the rounds own count. Claim (c) deferred to after merge-up: heal.py pass plus cli.py session-complete L4.340 against the real stuck round. Verified belams relayed owner authorization before merging: commit 22c4e1edb on origin/season2/main, authored CodexOperator, matching this sessions own git identity, not just a DM claim.
