@@ -184,7 +184,6 @@ What this adds to the per-session question above:
   twice (the call and its retry), so a cut that raises refusals is not a cut.
 - **Routing change.** Anything that needs a CODE change to answer the
   question goes to **`sanctuary-master`** (tier 1 director, town `all`,
-  `posts.md`; she plans it and hands it to her own director — the post named
-  `sensei-director` until the owner's rename round seats it as
-  `sanctuary-director`, after the point becomes `point-director`). Scripts grown complex enough to want a CLI verb or an MCP
+  `posts.md`; she plans it and hands it to her own director, `director-sanctuary`;
+  the point is `director-point`, the review post `director-review`). Scripts grown complex enough to want a CLI verb or an MCP
   call go there too, named as such.

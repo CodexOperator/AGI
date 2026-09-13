@@ -45,7 +45,7 @@ rotated by **council-core** once that seat is awake. `role` for all three is
 Every seat row in `config:seats` gains a `town` cell:
 
 - **The Keep's seats carry `town: all`.** The Keep — sanctuary-master,
-  sanctuary-director, sanctuary-helper, master-sensei, sensei-director, the
+  director-point, director-review, master-sensei, director-sanctuary, the
   advisors, policy-master, the quorum directors, belam — serves every town,
   so each existing row grows `town: all`.
 - **A Council row carries its own town** (`core` / `streaming-suite` /

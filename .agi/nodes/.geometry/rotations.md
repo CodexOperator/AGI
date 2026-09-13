@@ -5,7 +5,7 @@ type: config
 parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
-alerts: "{audit:[master-sensei],edges:{belam:[sanctuary-director,sanctuary-helper],sanctuary-director:[belam],sanctuary-helper:[belam],sanctuary-master:[sensei-director],sensei-director:[sanctuary-master]},silent:[stream-master]}"
+alerts: "{audit:[master-sensei],edges:{belam:[director-point,director-review],director-point:[belam],director-review:[belam],sanctuary-master:[director-sanctuary],director-sanctuary:[sanctuary-master]},silent:[stream-master]}"
 edited_by: master-sensei
 fact_bounds:
   model: permanent
@@ -106,7 +106,7 @@ templates:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --post {seat} --record latest", "why": "call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
         - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:61'", "why": "belam calls 5-9, 10-12, 25-26 (ack grammar from source, record polled 18x, lock path grepped) + that wake's F1-F5; master-sensei wake audit 13:1xZ; printed by body range until 0b-b's facts emitter lands"}
         - {"label": "handoff-head", "cmd": "python3 extensions/agi/bin/write.py build:HANDOFF.md 'read payload 1:175'", "why": "belam 093748Z calls 2-3, 140328Z calls 1,3,4,5,7 (a 1,200p read overflowed the tool-result cap, then four ranges): the handoff read by hand in ranges every prime rotation; this IS the range the file's own rule asks for (bare sed is refused: filter-only); byte_cap 40000 truncates a handoff past the trim line, marked (master-sensei, applied by the Prime L4-X 15:4xZ)"}
-        - {"label": "point-record", "cmd": "python3 extensions/agi/bin/rotate.py status --post sanctuary-director --record latest", "why": "belam 140328Z calls 15-16: the point's record read twice by hand; the Prime's first question after its own state is the point's (seat name hardcoded like belam-chain's belam-S1; master-sensei, applied L4-X)"}
+        - {"label": "point-record", "cmd": "python3 extensions/agi/bin/rotate.py status --post director-point --record latest", "why": "belam 140328Z calls 15-16: the point's record read twice by hand; the Prime's first question after its own state is the point's (seat name hardcoded like belam-chain's belam-S1; master-sensei, applied L4-X)"}
         - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "call 7: authority verified against the graph, never the message"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "call 6"}
         - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
@@ -120,7 +120,6 @@ templates:
         - {"label": "pin", "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}", "why": "call 5: the pin claim on the successor's own transcript, path derived from ~/.claude/sessions/<pid>.json"}
         - {"label": "reap-proof", "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'", "why": "(empty output = predecessor chain gone; the || fallback was an unmodeled operator — judge-cleaned by the Prime L4-X 15:4xZ) calls 3, 9: the predecessor's process tree checked twice by hand"}
         - {"label": "belam-chain", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep belam-S1", "why": "the chain must be five"}
-        - {"label": "sensei-wake", "cmd": "python3 extensions/agi/bin/send.py send master-sensei 'rotation-alert: belam gen {gen} is live - audit its wake per your standing order (owner 2026-09-11 14:0xZ)'", "why": "owner 2026-09-11 14:0xZ: the Sensei wakes for helper, point AND Prime rotations; a Prime rotation posts to the rotation-alerts ROOM (no nudge), so the join nudges the Sensei by dm here"}
       delivery: "first_turn outputs are appended to the successor's first input turn after the head and the brief, under `## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)`. after_join is PERFORMED BY THE SERVICE (the persistent watcher, or rotate-self's post-spawn tail) after_join_delay_s after spawn as ONE flow — the agent runs nothing; its outputs are written into the rotation record and delivered as the successor's SECOND input (one dm through the fixed nudge); where a decision remains (only `diff` against the handoff) the dm is CAPTIVE: it prints the exact next tokens to emit (owner 2026-09-11 03:0xZ). The prime's `verify-suite` stays a granted-window command and is NOT run at startup; the Belam chain is kept by predecessor pins (hypothesis:l4-the-pin-is-the-lease), not by a reap step. SHAPE (owner 2026-09-12 22:3xZ, wordy outputs are a cost): one line per entry, label + exit; detail only on REFUSED or non-zero; the record is named as the graph address (`rotate.py status --record latest`), never as a filesystem path."
       after_join_delay_s: 20
       first_turn_timeout_s: 120
