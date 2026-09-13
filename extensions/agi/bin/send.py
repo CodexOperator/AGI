@@ -1054,6 +1054,50 @@ def _save_state(path: Path, state: dict) -> None:
     Path(str(path) + STATE_SUFFIX).write_text(json.dumps(state))
 
 
+def rewind_read_cursors(root: Path, seat: str, since_ts: str, *,
+                        dry_run: bool = False) -> list[tuple[str, int, int]]:
+    """Rewind `seat`'s read cursor on every conversation it participates in.
+
+    Goal:g15.25 (hypothesis:l4-a-re-seat-after-a-dead-predecessor-rewinds-
+    the-posts-read-cursors-to-the-dead-sessions-seating-time): a re-seat after
+    a DEAD predecessor rewinds the post's read cursors to the dead session's
+    seating time, so the re-seat's STARTUP [inbox] re-carries what the killed
+    session consumed. For every conversation file the seat participates in
+    (its own inbox + every dm/room state sidecar carrying the seat key),
+    RE-count the blocks older than `since_ts` and, when that count is LOWER
+    than the stored cursor, lower the cursor to it -- never below the count
+    of messages older than `since_ts`, never to 0. Returns
+    (conversation, old, new) per change. Other participants' keys and rooms
+    where the seat is not a key are untouched. Counts block headers only --
+    never dm bodies. `dry_run` prints the changes but writes no state.
+    """
+    convs: set[Path] = {_inbox_path(root, seat)}
+    for d in ("dm", "room"):
+        dd = root / d
+        if not dd.is_dir():
+            continue
+        for sp in dd.glob("*" + STATE_SUFFIX):
+            try:
+                st = json.loads(sp.read_text())
+            except Exception:                      # noqa: BLE001
+                continue
+            if isinstance(st, dict) and seat in st:
+                convs.add(Path(str(sp)[:-len(STATE_SUFFIX)]))
+    changes: list[tuple[str, int, int]] = []
+    for path in sorted(convs, key=lambda p: str(p)):
+        blocks = _conv_blocks(path)
+        older = sum(1 for b in blocks
+                    if not _after_or_eq(str(b.get("ts", "")), since_ts))
+        state = _load_state(path)
+        old = int(state.get(seat, 0) or 0)
+        if older < old:
+            state[seat] = older
+            if not dry_run:
+                _save_state(path, state)
+            changes.append((path.name, old, older))
+    return changes
+
+
 def _past(blocks: list[dict], since: str | None, read_count: int,
           participant: str, path: Path, commit: bool,
           all_: bool = False) -> list[dict]:
