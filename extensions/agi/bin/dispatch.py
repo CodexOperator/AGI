@@ -966,6 +966,22 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
     import brief as _brief
     import tempfile
 
+    # hypothesis:l4-a-kid-spawn... — a dry run prints the account-floor
+    # exemption decision too, read from the on-disk manifest like the live
+    # path. A kid with a live parent in the manifest is reported exempt.
+    _acc_exempt = None
+    if args.tier == "kid":
+        _mf = locations.iteration_dir(root, args.iter_n) / "manifest.json"
+        if _mf.exists():
+            try:
+                _acc_exempt = _kid_account_floor_exemption(
+                    json.loads(_mf.read_text()))
+            except (json.JSONDecodeError, OSError):
+                _acc_exempt = None
+    if _acc_exempt is not None:
+        print(f"dry-run account floor: exempt — kid of admitted live round "
+              f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
+
     current_season = spawn_gate.read_ladder_season(
         root / "nodes" if root else None)
     if current_season is None:
@@ -1769,6 +1785,16 @@ def main() -> int:
     # Records created by THIS invocation. The authoritative merge happens once,
     # at the end, under lock and against a fresh read -- see `_merge_manifest`.
     new_records: list[dict] = []
+
+    # hypothesis:l4-a-kid-spawn-of-an-admitted-live-round-is-exempt-from-the-
+    # account-floor-so-a-round-straddling-the-floor-finishes — a round admitted
+    # above the floor must not die at its first kid, so a kid whose parent
+    # (AGI_AGENT_ID) is a LIVE record in the current iter manifest skips the
+    # ACCOUNT floor only; the key floor still runs. Computed here (before the
+    # pre-flight) and threaded to the kid's manifest record below.
+    _acc_exempt = None
+    if args.tier == "kid":
+        _acc_exempt = _kid_account_floor_exemption(manifest)
     # goal:g4.8 item 3 — slots the budget refused. Recorded rather than
     # dropped: a slot that silently did not spawn is indistinguishable from
     # one that spawned and died, which is the same invisibility the manifest
@@ -1803,10 +1829,14 @@ def main() -> int:
         # floor cannot see, so a drained account must refuse a spawn the same
         # way a drained key does. Fail-closed on a present reading below,
         # fail-open on absence or a network error (see check_account_floor).
-        _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
-        if not _acc_ok:
-            print(f"ERR: {_acc_msg}", file=sys.stderr)
-            return 1
+        if _acc_exempt is not None:
+            print(f"account floor: exempt — kid of admitted live round "
+                  f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
+        else:
+            _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
+            if not _acc_ok:
+                print(f"ERR: {_acc_msg}", file=sys.stderr)
+                return 1
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -2246,6 +2276,10 @@ def main() -> int:
             # keeps the gate fail-open.
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
         }
+        # hypothesis:l4-a-kid-spawn... — record the exemption on the kid record
+        # so a reader can see the round was admitted on a live-parent grace.
+        if _acc_exempt is not None:
+            agent_record["account_floor"] = "exempt-live-round"
         if _round_ring_decision is not None:
             # The round the ring approved cut this agent; its quorum proof
             # (kind + signed fields + signatures) rides on the SAME record
@@ -3297,6 +3331,27 @@ def _parent_kid_ceiling_gate(manifest: dict, cfg: dict, requested: int):
         return (2, f"ERR parent {caller} has dispatched {already} kids; "
                    f"ceiling spawn.parent_max_kids={ceiling} refuses kid "
                    f"{next_kid}")
+    return None
+
+
+def _kid_account_floor_exemption(manifest: dict) -> tuple[str, int] | None:
+    """(parent id, parent pid) when THIS dispatch is a kid spawned by a live
+    round already admitted in the current iter manifest — the account-floor
+    exemption (skip the ACCOUNT floor only; the key floor still runs).
+    The caller (os.environ AGI_AGENT_ID) must appear as a manifest record
+    whose pid is alive. None otherwise, so every other case — a director or
+    human spawn (no AGI_AGENT_ID), a kid with no manifest parent, a dead
+    parent — reads the floor as today.
+    """
+    caller = os.environ.get("AGI_AGENT_ID")
+    if not caller:
+        return None
+    for a in manifest.get("agents", []):
+        if a.get("id") != caller:
+            continue
+        pid = a.get("pid")
+        if pid and spawn_budget._pid_alive(int(pid)):
+            return (a["id"], int(pid))
     return None
 
 

@@ -816,6 +816,40 @@ def _seed_key_history_graph(root, rows):
     return graph
 
 
+def test_session_label_derives_from_row_word_and_gen(tmp_path):
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
+    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
+    `_session_label` = `<name>-<label_word>-g<gen>` for a non-prime row with a
+    `label_word` cell, `<name>-g<gen>` without one, and None for a prime row
+    / absent row (the caller keeps the chain numeral unchanged). Derived from
+    the ROW only — never a card, never a hand flag."""
+    assert rotate._session_label(
+        {"name": "post", "role": "director", "label_word": "main"},
+        3) == "post-main-g3"
+    assert rotate._session_label(
+        {"name": "post", "role": "director"}, 3) == "post-g3"
+    assert rotate._session_label(
+        {"name": "prime-win", "role": "prime_director"}, 3) is None
+    assert rotate._session_label(None, 3) is None
+
+
+def test_successor_row_write_stores_session_label(tmp_path):
+    """goal:g15.25 (hypothesis:l4-the-gui-session-label-...): the spawn row
+    write stores the seat's `session_label` = `_session_label(row, generation)`
+    beside session_name — the SAME string the rotation passes as the
+    --remote-control NAME. A prime/throwaway row stores '' (no label); the
+    ack back-fill never touches it."""
+    rows = [{"name": "s1", "role": "director", "label_word": "main"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=2, window="w")
+    assert "session_label=s1-main-g2" in out
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert own["session_label"] == "s1-main-g2"
+
+
 def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
     """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
     spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
@@ -3499,6 +3533,22 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     ack contract is untouched."""
     _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
                                    "model": "x", "effort": "max"}])
+    # CLAUSE 9 (goal:g15.25): a refused spawn-row write FAILS LOUD (record
+    # `refused`, rc non-zero) and aborts the rotation BEFORE the ack-file
+    # rotation. So this fixture must make the s6.1 row write SUCCEED — the
+    # graph-root marker write.py's API demands (L4.95) + a [config].md schema
+    # declaring the self_row fields the writer emits (mirrors
+    # test_rotate_handover's `_fix`), else the rotation halts at the refusal
+    # and there is no ack to rotate — exactly the silent-stale failure the
+    # clause outlaws.
+    (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    sd = tmp_path / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    (sd / "[config].md").write_text(
+        "---\nname: config\nself_row: {list_key: seats, match_key: name, "
+        "fields: [session_ref, session_name, session_id, generation, window, "
+        "pid, pubkey, sig_scheme, enc_scheme, key_history, session_label]}\n"
+        "---\nbody\n", encoding="utf-8")
     quorum = tmp_path / "sessions" / "quorum"
     quorum.mkdir(parents=True, exist_ok=True)
     (quorum / "adv-alive.md").write_text("# adv-alive card\n",
@@ -5284,22 +5334,33 @@ def test_announce_rotation_dms_every_derived_recipient(monkeypatch, tmp_path):
 def test_announce_rotation_prime_routes_to_alert_room_never_quorum(
         monkeypatch, tmp_path):
     room_posts = []
+    sent = []
     import send as _send  # the SAME top-level module rotate's lazy import binds to
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"},
+                                 {"name": "kid-a", "role": "director"}])
     monkeypatch.setattr(_send, "send_room",
                         lambda croot, room, text, sender: room_posts.append(
                             (room, text)) or tmp_path)
+    monkeypatch.setattr(_send, "send",
+                        lambda root, recv, text, sender=None: sent.append(
+                            (recv, text)) or tmp_path)
+    monkeypatch.setattr(_send, "wake", lambda root, recv: None)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="prime",
         successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
         handoff_path=".agi/sessions/belam-III.log", in_flight="none",
         live_names=["kid-a", "prime"])
-    assert delivered == [rotate.ROTATION_ALERT_ROOM]
-    assert len(room_posts) == 1
+    # the prime now DELIVERS to its derived receivers, not just the room
+    assert delivered == ["kid-a"], f"prime must reach its receivers: {delivered}"
+    assert len(room_posts) == 1, "room post stays as the record"
     room, text = room_posts[0]
     assert room == rotate.ROTATION_ALERT_ROOM
     assert "quorum" not in room
     assert "generation 2 -> 3" in text
     assert "trigger: --force" in text
+    # each receiver is told via send.send (the inbox writer -- send.send_dm
+    # refuses prime ORIGIN), plus the prime's own inbox copy.
+    assert sent == [("prime", text), ("kid-a", text)], sent
 
 
 # ── clause 1 of hypothesis:l4-a-rotation-alert-lands-in-the-inbox-a-
@@ -5352,25 +5413,32 @@ def test_announce_rotation_prime_lands_alert_in_own_inbox(
     prime restriction -- it IS the inbox-only writer -- so a prime-specific
     send() puts the same [rotation-alert] block into the prime's OWN inbox
     alongside the shared room post, never into quorum."""
-    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"}])
+    _write_seats_sheet(tmp_path, [{"name": "prime", "role": "prime_director"},
+                                 {"name": "kid-a", "role": "director"}])
     room_posts = []
+    sent = []
     import send as _send
     monkeypatch.setattr(_send, "send_room",
                         lambda croot, room, text, sender: room_posts.append(
                             (room, text)) or tmp_path)
+    monkeypatch.setattr(_send, "send",
+                        lambda root, recv, text, sender=None: sent.append(
+                            (recv, text)) or tmp_path)
+    monkeypatch.setattr(_send, "wake", lambda root, recv: None)
     delivered = rotate._announce_rotation(
         root=tmp_path, croot=tmp_path / "comms", seat="prime",
         successor="belam-III", gen_before=2, gen_after=3, trigger="--force",
         handoff_path=".agi/sessions/belam-III.log", in_flight="none",
         live_names=["kid-a", "prime"])
-    assert delivered == [rotate.ROTATION_ALERT_ROOM]
+    assert delivered == ["kid-a"], f"prime must deliver to its receivers: {delivered}"
     assert len(room_posts) == 1
-    prime_inbox = tmp_path / "sessions" / "inbox" / "prime.md"
-    assert prime_inbox.is_file(), f"no prime inbox: {prime_inbox}"
-    body = prime_inbox.read_text(encoding="utf-8")
-    assert "[rotation-alert]" in body
-    assert "generation 2 -> 3" in body
-    assert "trigger: --force" in body
+    # the prime's OWN inbox copy is the FIRST send (own-inbox first, then each
+    # receiver) -- the `send.send` stub captures both as (recv, text) pairs.
+    assert [r for r, _ in sent] == ["prime", "kid-a"], sent
+    _, text = sent[0]
+    assert "[rotation-alert]" in text
+    assert "generation 2 -> 3" in text
+    assert "trigger: --force" in text
 
 
 def test_loop_success_announces_exactly_once_refusal_never(
@@ -5664,6 +5732,76 @@ def test_meter_read_without_pin_does_not_print_spend_status(monkeypatch, tmp_pat
     assert code == 0
     assert called == [], "a plain read (no --pin) must not check spend at all"
     assert "should not appear" not in out
+
+
+def test_meter_pin_with_junk_key_never_reaches_urlopen(monkeypatch, tmp_path, fake_ladder, capsys):
+    """hypothesis:l4-the-suite-never-reaches-openrouter-one-autouse-stub-on-
+    openrouter-get-unless-the-real-judge-flag-is-set -- the suite never
+    reaches openrouter.ai. A --pin claim with a key present must not open
+    urllib at all: the autouse `_no_openrouter` conftest fixture stubs
+    `rotate._openrouter_get` (and drops the key env) unless AGI_REAL_JUDGE==1,
+    so spend-status takes its no-key None shape even though a junk key is
+    exported here. The urlopen recorder is the falsifier layer: if any path
+    reached urllib it would record a call (and raise) and fail the assert
+    below, exactly as it did pre-fix (measured: 2 real calls to
+    openrouter.ai/api/v1/key and /credits).
+    """
+    import urllib.request
+
+    proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-junk-probe")
+    calls = []
+
+    def _refuse_or_record(req, *_a, **_k):
+        calls.append(getattr(req, "full_url", req))
+        raise AssertionError("urlopen reached with a junk key -- "
+                             "the suite must not hit openrouter.ai")
+
+    monkeypatch.setattr(urllib.request, "urlopen", _refuse_or_record)
+    code = rotate.main(["meter", "--session-log", str(pinned), "--pin",
+                        str(tmp_path / "sessions" / "probe.meter")])
+    out = capsys.readouterr().out
+    assert code == 0, f"--pin must still exit as today (no key), got {code}\n{out}"
+    assert calls == [], f"urlopen was reached {len(calls)} time(s): {calls}"
+
+
+def test_real_judge_optin_stands_the_stub_down():
+    """hypothesis:l4-the-suite-never-reaches-openrouter-... -- the opt-in
+    escape is observable, not just named. The last kid's fixture read the
+    flag with a LIVE `os.environ.get`; the parent session-scoped
+    `_agi_env_stripped` (extensions/agi/conftest.py) strips every AGI_* var
+    before any function-scoped fixture body runs, so the live read was always
+    None and AGI_REAL_JUDGE=1 silently did NOT stand the stub down -- it
+    always deleted the key and stubbed both aliases (measured). This test
+    proves the fix end-to-end with a REAL child pytest (the differential/
+    nested pattern from test_stream_master_real_judge_optin.py), so the child
+    exercises the true lifecycle: import-time snapshot first, session strip
+    second, fixture third. The child target is test_openrouter_optin_probe.py,
+    which asserts the REAL `_openrouter_get` + a present key under flag=1 and
+    the stub + dropped key with it unset -- a plain monkeypatch test cannot
+    distinguish either (it writes the env after the strip).
+    """
+    import sys
+
+    root = str(Path(__file__).resolve().parent.parent)  # extensions/agi
+    child = [sys.executable, "-m", "pytest",
+             "tests/test_openrouter_optin_probe.py", "-q"]
+
+    def _run(flag):
+        env = dict(os.environ)
+        env["OPENROUTER_API_KEY"] = "sk-or-v1-optin-probe-junk"
+        if flag:
+            env["AGI_REAL_JUDGE"] = "1"
+        else:
+            env.pop("AGI_REAL_JUDGE", None)
+        p = subprocess.run(child, cwd=root, env=env,
+                           capture_output=True, text=True, timeout=180)
+        out = p.stdout + p.stderr
+        assert p.returncode == 0, out
+        return out
+
+    _run(flag=True)
+    _run(flag=False)
 
 
 def test_spawn_launch_carries_reaper_knob_for_plain_and_ultracode(monkeypatch, tmp_path, capsys):
