@@ -3529,7 +3529,41 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
                 else:
                     resume_state = "wrong"
             if resume_state == "skip":
-                print(f"    [SKIP] {town_name} already at tip (resumed run)")
+                # hypothesis:l4-trunk-create-resume-ls-remote-gates-push-if-
+                # remote-absent: a local trunk AT the planned tip is NOT by
+                # itself a finished job. A first pass that died between
+                # `git branch <town>` and `git push -u origin <town>` leaves
+                # the trunk LOCAL-ONLY, and the old unconditional skip then
+                # `continue`d past the push, stranding it until an operator
+                # pushed it (mur-50 residue (c), REAL). So GATE the skip on
+                # origin, reusing `_post_rename_remote_ref_state` exactly the
+                # way the delete-old resume leg does: 'present' = finished
+                # (skip); 'absent' = resume the push the dead pass never
+                # reached; 'failed' = rc-honest refusal (a failed probe is
+                # UNKNOWN and must never read as absent OR present).
+                rstate = _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{town_name}")
+                if rstate == "failed":
+                    print(f"ERR: ls-remote origin {town_name} failed; cannot "
+                          f"confirm it is already pushed — NOT skipped",
+                          file=sys.stderr)
+                    return 1
+                if rstate == "present":
+                    print(f"    [SKIP] {town_name} already at tip and on "
+                          f"origin (resumed run)")
+                    continue
+                # absent: the trunk is LOCAL-ONLY — this is the push the dead
+                # first pass never got to. rc-gated, exactly like the create
+                # leg's push.
+                print(f"    [APPLY] branch push (v3, resume): git push -u "
+                      f"origin {town_name}")
+                pr = subprocess.run(["git", "push", "-u", "origin",
+                                     town_name], cwd=repo, capture_output=True,
+                                    text=True)
+                if pr.returncode != 0:
+                    print(f"ERR: git push -u origin {town_name} failed: "
+                          f"{pr.stderr.strip()}", file=sys.stderr)
+                    return 1
                 continue
             if resume_state == "wrong":
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "

@@ -599,6 +599,108 @@ def test_v3_apply_refuses_a_trunk_at_wrong_tip(tmp_path: Path):
     assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
 
 
+# --------------------------------------------------------------------------
+# l4-trunk-create-resume-ls-remote-gates-push-if-remote-absent (mur-50
+# residue (c), R3.1): the trunk-create resume must NOT read a LOCAL-ONLY
+# trunk at the planned tip as a finished job. Pre-fix, the resume printed
+# [SKIP] and `continue`d past the push, stranding a trunk a dead first pass
+# left between `git branch` and `git push -u origin`. Fixture proofs on a
+# tmp bare origin, never the live tree.
+# --------------------------------------------------------------------------
+
+def _planned_trunks() -> list[tuple[str, str]]:
+    """[(<town>/main|season main, tip)] exactly as _rs_v3_towns_plan
+    derives them for the fixture's _FALLBACK_TOWNS."""
+    sys.path.insert(0, str(BIN))
+    import branches  # noqa: E402
+    out: list[tuple[str, str]] = []
+    for town, season in _FALLBACK_TOWNS:
+        tip = ("season2/main" if season == 2
+               else f"season2/{town}/season{season}/main")
+        d = branches.derive_names(town, season)
+        out.append((d["town_main"], tip))
+        out.append((d["town_season_main"], tip))
+    return out
+
+
+def _remote_heads(repo: Path) -> dict[str, str]:
+    """{ref: sha} for refs/heads on origin, read via ls-remote."""
+    out = _git(repo, "ls-remote", "--heads", "origin").stdout
+    refs: dict[str, str] = {}
+    for ln in out.splitlines():
+        if not ln.strip():
+            continue
+        sha, _, ref = ln.partition("\t")
+        refs[ref.strip().removeprefix("refs/heads/")] = sha.strip()
+    return refs
+
+
+def test_v3_apply_resume_pushes_a_local_only_trunk(tmp_path: Path):
+    # the parent claim's falsifier: a first pass that died between
+    # `git branch <town>` and `git push -u origin <town>` leaves the trunk at
+    # the planned tip with NO remote ref. Pre-creating exactly that state is
+    # byte-identical to the kill, and the resume must RE-PUSH it -- not skip.
+    r = _v3_apply_repo(tmp_path)
+    planned = _planned_trunks()
+    before = _remote_heads(r)
+    for target, tip in planned:
+        assert target not in before, ("premise: remote-absent", target)
+        _git(r, "branch", target, tip)
+        assert target in _heads(r), target
+    assert all(t not in _remote_heads(r) for t, _ in planned), \
+        "premise: every planned trunk is LOCAL-ONLY"
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "[APPLY] branch push (v3, resume)" in res.stdout, res.stdout
+
+    after = _remote_heads(r)
+    for target, tip in planned:
+        assert target in after, ("trunk not re-pushed by resume", target,
+                                 sorted(after))
+        want = _git(r, "rev-parse", f"{tip}^{{commit}}").stdout.strip()
+        assert after[target] == want, (target, after[target], want)
+
+
+def test_v3_apply_resume_remote_present_is_a_noop(tmp_path: Path):
+    # the complement: when the trunk IS already on origin, the resume is a
+    # genuine no-op -- the on-origin skip line appears and no remote tip moves.
+    r = _v3_apply_repo(tmp_path)
+    first = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert first.returncode == 0, first.stdout + first.stderr
+    before = _remote_heads(r)
+
+    second = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert second.returncode == 0, second.stdout + second.stderr
+    assert "already at tip and on origin (resumed run)" in second.stdout, \
+        second.stdout
+    assert _remote_heads(r) == before, "a present-trunk resume moved a tip"
+
+
+def test_v3_apply_resume_ls_remote_failure_refuses_by_name(tmp_path: Path):
+    # rc-honesty: a FAILED ls-remote is UNKNOWN, never read as absent. The
+    # resume must refuse BY NAME, exit non-zero, and push nothing. A fixture
+    # with ZERO legacy rename jobs reaches the v3 tail directly, so the only
+    # ls-remote in the path is the trunk probe under test.
+    r = _v3_zero_legacy_repo(tmp_path)
+    planned = _planned_trunks()
+    for target, tip in planned:
+        _git(r, "branch", target, tip)
+    bare = tmp_path / "origin.git"
+    before = _git(bare, "for-each-ref", "--format=%(refname:short)",
+                  "refs/heads").stdout
+
+    _git(r, "remote", "set-url", "origin", str(tmp_path / "bogus.git"))
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "ls-remote" in res.stderr and planned[0][0] in res.stderr, \
+        res.stderr
+    assert "NOT skipped" in res.stderr, res.stderr
+    after = _git(bare, "for-each-ref", "--format=%(refname:short)",
+                 "refs/heads").stdout
+    assert after == before, "a failed probe must push nothing"
+
+
 def test_v3_apply_master_leg_pushes_by_sha_with_no_local_master(tmp_path: Path):
     # claim (d): the ADD-ONLY master leg must push master's tip BY SHA when
     # the checkout has ONLY origin/master (no local `master` ref -- the live
