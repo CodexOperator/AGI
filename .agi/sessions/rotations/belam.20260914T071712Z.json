@@ -85,7 +85,7 @@
       "target": "@370",
       "skipped": "view session view-belam absent"
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": "skipped: no assistant turn within 120s (after_join poll waited 120s) \u2014 successor has not answered",
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.bootstrap.json",
     "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json"
   },
@@ -101,8 +101,59 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-14T07:19:29.531997+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-14T07:19:05.994555Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep belam",
+        "rc": 0,
+        "output": "@370 belam-S1-L4-XXI\n@363 belam-S1-L4-XX\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/belam.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
+        "rc": 0,
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl (via claude-code transcript (explicit)).",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'",
+        "refused": "placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name"
+      },
+      {
+        "label": "belam-chain",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep belam-S1",
+        "rc": 0,
+        "output": "@370 belam-S1-L4-XXI\n@363 belam-S1-L4-XX\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "sensei-wake",
+        "cmd": "python3 extensions/agi/bin/send.py send master-sensei 'rotation-alert: belam gen 21 is live - audit its wake per your standing order (owner 2026-09-11 14:0xZ)'",
+        "rc": 0,
+        "output": "/home/ubuntu/work/agi/.agi/sessions/inbox/master-sensei.md\n",
+        "truncated": false,
+        "byte_cap": 40000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] REFUSED \u2014 placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name\n[belam-chain] exit 0\n[sensei-wake] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post belam --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post belam --gen 21 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "belam",
+    "dm_signed": true,
+    "code_head": "ebfede6",
+    "claimed_at": "2026-09-14T07:19:29.531997+00:00",
+    "claim_key": "2026-09-14T07:19:05.994555Z",
+    "performed_after_s": 23.027918815612793
   }
 }
