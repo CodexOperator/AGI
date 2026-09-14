@@ -75,28 +75,41 @@ def _label_line(out):
 
 def test_spawn_labeled_seat_prints_label_and_window_separately(
         monkeypatch, tmp_path, capsys):
-    # g15.25 (hypothesis:l4-the-gui-session-label-...): a non-prime row with a
-    # `label_word` cell gets `<name>-<label_word>-g<gen>` as the GUI label
-    # while the tmux WINDOW keeps the plain seat name — read apart on the
-    # dry-run lines, no tmux.
+    # g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-...): a
+    # non-prime row's GUI label is the ROW NAME ALONE even when a
+    # `label_word` cell is present (that cell is retired); the tmux WINDOW
+    # keeps the plain seat name — read apart on the dry-run lines, no tmux.
     out, _ = _labeled_spawn(
         tmp_path, monkeypatch, capsys,
         [{"name": "director-post", "role": "director", "model": "x",
           "label_word": "main"}],
         {"seat": "director-post"})
     assert _resolved(out) == "'director-post'"     # the tmux window name
-    assert _label_line(out) == "'director-post-main-g1'"
+    assert _label_line(out) == "'director-post'"
 
 
 def test_spawn_labeled_seat_without_label_word_prints_bare_label(
         monkeypatch, tmp_path, capsys):
-    # no `label_word` cell -> `<name>-g<gen>` (no dangling `-word-`)
+    # no `label_word` cell -> the same ROW NAME (no generation suffix)
     out, _ = _labeled_spawn(
         tmp_path, monkeypatch, capsys,
         [{"name": "director-post", "role": "director", "model": "x"}],
         {"seat": "director-post"})
     assert _resolved(out) == "'director-post'"
-    assert _label_line(out) == "'director-post-g1'"
+    assert _label_line(out) == "'director-post'"
+
+
+def test_spawn_label_is_never_gen_or_label_word(monkeypatch, tmp_path, capsys):
+    """g15.25 conjunct (5) falsifier: a non-prime post's GUI label carries
+    NO generation suffix and NO `label_word` — the row name alone."""
+    out, _ = _labeled_spawn(
+        tmp_path, monkeypatch, capsys,
+        [{"name": "post-x", "role": "director", "model": "x",
+          "label_word": "main"}],
+        {"seat": "post-x"})
+    lbl = _label_line(out)
+    assert lbl == "'post-x'"
+    assert "-g1" not in lbl and "main" not in lbl
 
 
 def test_spawn_prime_seat_prints_no_label_line(monkeypatch, tmp_path, capsys):

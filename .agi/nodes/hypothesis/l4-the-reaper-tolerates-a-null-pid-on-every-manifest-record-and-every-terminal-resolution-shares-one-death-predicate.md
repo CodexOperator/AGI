@@ -21,3 +21,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 harvested on the post 18:38Z (2 kids; kid1 over-claim caught by the parent probe, kid2 closed it; 182 green; 66 production lines under the raised 80 ceiling, re-briefed at 2.2x as the rule asks). Residue: heal.py:391 builds its death dict inline rather than calling _is_death (second construction site); cli.py status can show a kid ORIGINAL self-verdict after the parent demotes at node level. Rides the next window; reaper unit restarts only after.
+
+SM review by name (SL2#30 CLOSED @ac12854ca, suite 4766/15/0 in 471 s, nodes 2830/198/3028): ACCEPT for (i) + (ii) — _rec_pid at the four sites, one death predicate, stalled-dead alarms; residue (iii) hunk REVERTED by the Prime @912363623 after it sent a test into a 30-min poll (3 suites over 1800 s) — re-landed as SM.23b. First merge pushed on a parent subset before the full suite; the no-exception rule is now on the director card.

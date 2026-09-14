@@ -186,7 +186,7 @@ def test_rotate_self_s12_skipped_names_tmux_pane(_fix, tmp_path, monkeypatch):
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
     win = tmp_path / "windows.txt"
-    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    win.write_text("@5 adv-alive.prev\nadv-alive\n", encoding="utf-8")
     monkeypatch.setenv("TMUX_PANE", "")
 
     def fake_spawn(**kw):            # successor appears under the plain name
@@ -366,7 +366,7 @@ def test_rotate_self_own_chain_survivor_still_succeeds(_fix, tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
     win = tmp_path / "windows.txt"
-    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    win.write_text("@5 adv-alive.prev\nadv-alive\n", encoding="utf-8")
     monkeypatch.setenv("TMUX_PANE", "")
     gpid = _spawn_nonchild_sigterm_immune()
 
@@ -423,7 +423,7 @@ def test_rotate_self_s12_skip_names_missing_connection(_fix, tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
     win = tmp_path / "windows.txt"
-    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    win.write_text("@5 adv-alive.prev\nadv-alive\n", encoding="utf-8")
     monkeypatch.setenv("TMUX_PANE", "%5")
     # (L4.281 (a)) lift the under-pytest refusal so this fixture tests the
     # DERIVE path itself — a faked ps table (pane 42) means no live pane is
@@ -499,7 +499,7 @@ def test_plain_seat_own_chain_reap_planned_then_observations(_fix, tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
     win = tmp_path / "windows.txt"
-    win.write_text("@5 adv-alive.gen1\nadv-alive\n", encoding="utf-8")
+    win.write_text("@5 adv-alive.prev\nadv-alive\n", encoding="utf-8")
     monkeypatch.setenv("TMUX_PANE", "")
     p1 = subprocess.Popen(["sleep", "2000"])
     try:
@@ -546,7 +546,7 @@ def test_plain_seat_own_chain_reap_planned_then_observations(_fix, tmp_path,
     assert s12["chain"][0]["gone_after"] is True
     assert p1.pid in {c["pid"] for c in s12["chain"]}
     # old plain-seat behaviour unchanged: the OWN window is killed by @id
-    assert "@5 adv-alive.gen1" not in win.read_text(encoding="utf-8")
+    assert "@5 adv-alive.prev" not in win.read_text(encoding="utf-8")
 
 
 def test_plain_seat_dry_run_resolves_own_id_touches_nothing(_fix, tmp_path,
@@ -579,7 +579,7 @@ def test_plain_seat_dry_run_resolves_own_id_touches_nothing(_fix, tmp_path,
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
-    assert "adv-alive.gen1" in out      # the rename target it WOULD kill
+    assert "adv-alive.prev" in out      # the rename target it WOULD kill
     assert "@9" in out                  # the OWN @id resolved from <seat>
     assert "rename preserves the @id" in out
     assert "SKIPPED: no pane pid" in out  # named skip when chain underivable
@@ -684,7 +684,7 @@ def test_plain_seat_dry_run_chain_line_deepest_first(_fix, tmp_path,
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
-    assert "own-window reap WOULD kill 'adv-alive.gen1' (@id @9)" in out
+    assert "own-window reap WOULD kill 'adv-alive.prev' (@id @9)" in out
     # the exact chain line: pane pid + derived chain printed DEEPEST-FIRST.
     assert ("pane pid 500 -> ps -e chain [520, 510], TERM'd DEEPEST-FIRST"
             in out)
@@ -776,7 +776,7 @@ def test_plain_seat_belam_prefix_dry_run_prints_r5_plan(_fix, tmp_path,
     assert ("pane pid 500 -> ps -e chain [520, 510], TERM'd DEEPEST-FIRST"
             in out)
     # and its OWN r4/s12 plan still prints (the plain seat runs BOTH):
-    assert "own-window reap WOULD kill 'adv-alive.gen1' (@id @9)" in out
+    assert "own-window reap WOULD kill 'adv-alive.prev' (@id @9)" in out
     # the r5 plan line is the proof of a REAL chain (the named skip would
     # print 'SKIPPED: no ps -e chain' instead of the chain line):
     assert '[520, 510]' in out and '@10' in out
