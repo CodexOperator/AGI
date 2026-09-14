@@ -903,15 +903,13 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
 
     Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
 
-        copilot [--model M] [--effort E] --allow-all [-i <card>]
+        copilot [--model M] [--effort E] --allow-all --remote -i <card>
 
     `-i, --interactive <prompt>` starts interactive mode (the post stays up
     in the tmux window and `send.py` can type into its input box) and executes
-    the card as the first prompt. There is **no remote-control mode** in this
-    CLI -- no `--remote-control`, no app-GUI session, no debug file -- so the
-    owner watches the post BY TMUX, and `_shell_cmd` gets no rc read-back to
-    route. That absence is the design, not a gap to fill: the pane is the
-    window.
+    the card as the first prompt. `--remote` enables remote control from GitHub
+    web and mobile while the interactive seat remains attached to its tmux
+    pane.
 
     `--allow-all-tools` is required for a non-interactive `-p` run and is kept
     here so the first tool call does not block on a confirmation; `-i` keeps
@@ -923,6 +921,7 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
     if effort:
         args += ["--effort", str(effort)]
     args += ["--allow-all"]
+    args += ["--remote"]
     args += [str(a) for a in (extra_args or [])]
     args += ["-i", prompt_text]
     return args
@@ -1656,10 +1655,10 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     hooks-as-claude-code-and-pi, conjunct 6): the config.json harness id the
     successor is launched under. Absent/`claude-code` builds today's
     `claude --remote-control` argv byte-for-byte; `copilot-cli` builds
-    `copilot --model M --allow-all-tools -i <card>` and resolves the model
+    `copilot --model M --allow-all --remote -i <card>` and resolves the model
     and bin from `harnesses.copilot-cli` alone -- never from the claude-code
-    row. Copilot has NO remote-control mode and no debug file, so the
-    read-back the claude path gets from its RC log is simply skipped here;
+    row. Copilot has no debug file, so the read-back the claude path gets from
+    its RC log is simply skipped here;
     the tmux pane IS the watch surface (`send.py` still works because it is
     pane-based).
     """
@@ -18393,7 +18392,7 @@ def main(argv: list[str] | None = None) -> int:
     p_spawn.add_argument("--harness", default=None,
                         help="config.json harness id to launch under "
                              "(default: claude-code). 'copilot-cli' builds "
-                             "`copilot --model M --allow-all-tools -i <card>` "
+                             "`copilot --model M --allow-all --remote -i <card>` "
                              "and resolves its model/bin from "
                              "harnesses.copilot-cli (hypothesis:l4-copilot-cli-"
                              "is-a-third-harness-with-the-same-hooks-as-"
