@@ -240,7 +240,7 @@ def build_command(
 
     Shape:
 
-        copilot [--model M] [--effort E] --allow-all-tools
+        copilot [--model M] [--effort E] --allow-all
                 [extra_args...]
                 -p "<zoom context + tier brief + skill prompt + closing line>"
 
@@ -270,7 +270,7 @@ def build_command(
     args += model_args(harness, tier)
     # Required for non-interactive mode (measured, `copilot --help`): without
     # it a `-p` run off a TTY waits on the first tool confirmation forever.
-    args += ["--allow-all-tools"]
+    args += ["--allow-all"]
     args += [str(a) for a in (harness.get("extra_args") or [])]
     # The one turn. `-p <text>` is the whole contract Copilot offers a script.
     args += ["-p", prompt]
