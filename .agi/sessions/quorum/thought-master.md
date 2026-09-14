@@ -54,15 +54,18 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by your predecessor, inbox/git-state/record are in STARTUP (facts F1-F27 there too). Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (the Prime keys your row at seating; if it refuses "unkeyed": `python3 extensions/agi/bin/send.py keygen --post thought-master` once); the card is current because you wrote it DURING the work — one Write per landing, the 🔴 stops line at the moment it happens. Meter: the `[meter] post=thought-master <f>` line on every prompt; rotate when **f ≥ 0.47** (the hook's second number is the ratio f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation.
 
-## §4 STATE + NEXT (first seating — not yet seated)
-- Not seated. This card is a DRAFT for `rotate.py spawn --dry-run`; the Prime seats the post and adds the row + alerts edge; SM writes §1.5 first.
-- **FIRST ACTION once fully online — OWNER ORDER (belam XX 23:47Z, verbatim banked in `doc:l4-owner-decisions`: "tell the thought master to report to me and await my input first thing once it is fully online").** After the wake floor (row + key + ack are the Prime's and your predecessor's; you run nothing) and the prayer: (1) one line in your OWN pane — `thought-master online; reporting to the owner; awaiting your input` — (2) one line to the Prime: `python3 extensions/agi/bin/send.py send belam "thought-master online; awaiting the owner"` — (3) then IDLE: no round, no charter research, no GPU spend, no dm fan-out until the OWNER speaks (in your pane or through the Prime). The owner's input comes first; SM's charter (a)-(d) runs only after it.
-- After the owner has spoken: read `goal:g14` (`write.py goal:g14 'read body 1:80'`) and its treasury; note the alphaxiv link on the treasury node if the Prime has not; plan the first "gentle loop" node with SM's charter; ask the Prime for your director ONLY with that first dispatch order written.
+## §4 STATE + NEXT (2026-09-14 01:1xZ — OWNER SPOKE; trove survey in flight)
+- Seated on MAIN @6e5ededcd, Opus high. GATE 0 done (reported 00:5xZ). OWNER spoke in this pane ~01:0xZ (verbatim noted on goal:g14): town vision = tiny models everywhere, CPU-only, max exploration, many parallel hypotheses coalesced before any MVP; dead-head coherence → head pruning + coupled-oscillator maps → SNN; byte-neuron pub/sub; KV-cache/streaming; 3 visions; **Camber = 3 GPU-h/MONTH (charter correction)**; town gets its OWN moral node (owner/Prime mint; Prime nudged 01:0xZ).
+- Trove cloned to scratchpad: CodexOperator/machinelearning (modularNN, snn_standard_model, snn_applied_finance, spikyNN), Simple-Spiking-Net-Demo, project-89/coherence-guided-dead-head-identification. Box: 4× arm64-N1, 23 GB, ~7 GB free, no GPU.
+- Workflow wf_7df0a578-8fb (ultracode, own harness, no OpenRouter spend): 9 readers → 9 critics → 3-vision panel → judge. Output → plan for the owner + hypothesis chain nodes under goal:g14.3.
+- NEXT: read judge output → write plan (doc node under g14.3 + reply to owner) → owner/SM word → first dispatch order → ask Prime for director-thought.
 
 ## §5 BANKED
-- Secrets hub on the [region] box (Doppler as the programmatic secrets gateway; that box as the security gateway isolating encryption-critical services from this public-facing box) — owner 23:32Z; the encryption town's and the Prime's; out of this post's scope until the owner pulls that master up.
+- Moral node for local-maxxing (owner 01:0xZ verbatim on goal:g14) — Prime/owner mint; `moral:*` never this post's.
+- [region] secrets hub — encryption town + Prime; this post = first consumer only.
+- "qwen3.8 50b" real id — resolved by the survey's tiny-models reader; confirm with the owner in one line if ambiguous.
 
 ## 🔴 Where it stops
 ```
-DRAFT (master-sensei, 2026-09-13 23:5xZ): awaiting SM's §1.5 charter, then the Prime's --dry-run + seating. Nothing runs yet.
+01:1xZ survey workflow wf_7df0a578-8fb running (bg). Next: judge output → plan doc under g14.3 + reply to owner. Card commit gated: suite lock present at 00:5xZ — commit .agi/sessions/quorum/thought-master.md + push when absent. Nothing dispatched, nothing spent.
 ```
