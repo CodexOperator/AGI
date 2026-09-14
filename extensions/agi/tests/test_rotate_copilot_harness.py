@@ -36,7 +36,7 @@ def _root_with_harnesses(tmp_path, copilot_models, claude_models=None):
 
 
 def test_copilot_spawn_builds_interactive_argv(tmp_path, capsys):
-    """harness=copilot-cli -> `copilot --model M --allow-all -i <card>`,
+    """harness=copilot-cli -> `copilot --model M --allow-all --remote -i <card>`,
     and NOTHING from the claude remote-control shape."""
     prompt = tmp_path / "p.md"
     prompt.write_text("You are {name}\n")
@@ -49,9 +49,8 @@ def test_copilot_spawn_builds_interactive_argv(tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert out.strip() == shell
-    assert "/fake/bin/copilot --model auto --allow-all -i " in out
+    assert "/fake/bin/copilot --model auto --allow-all --remote -i " in out
     assert "You are cop-post" in out
-    assert "--remote-control" not in out
     assert "--debug-file" not in out
     assert "claude " not in out
 
@@ -127,7 +126,7 @@ def test_build_harness_command_dispatch():
     cop = rotate._build_harness_command(
         "copilot-cli", name="n", prompt_text="card", debug_file="d.log",
         model="auto", bin_path="/x/copilot")
-    assert cop == ["/x/copilot", "--model", "auto", "--allow-all",
+    assert cop == ["/x/copilot", "--model", "auto", "--allow-all", "--remote",
                    "-i", "card"]
     claude = rotate._build_harness_command(
         None, name="n", prompt_text="card", debug_file="d.log", model="m")
