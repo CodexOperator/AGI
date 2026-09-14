@@ -875,7 +875,8 @@ def _pair(wf: Path, name: str, typ: "str | None", stages: list,
 
 def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
     """PROVED-BY: with a workflows.md declaring every live type + per-workflow
-    rows (eight since merge-up-review and desktop-check), `workflow.py list` on the REAL registry shows every registered
+    rows (nine since merge-up-review, desktop-check, and trove-survey),
+    `workflow.py list` on the REAL registry shows every registered
     workflows resolving through the node, each with the LEVEL it came from
     (config row / per-workflow override / per-type override) — no literal.
     The node is a TEMP file the test writes; `_geometry_node_path` is
@@ -895,6 +896,10 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             # the merge-up review runs through the unified router).
             {"name": "merge-up-review", "harness": "claude-code"},
             {"name": "desktop-check", "harness": "claude-code"},
+            # trove-survey: registered by the Prime (owner 2026-09-14 01:38Z,
+            # commit 2c78f3edf, config:workflows row) alongside the
+            # thought-master/local-maxxing town bootstrap.
+            {"name": "trove-survey", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -906,6 +911,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             {"name": "prime-open-questions", "type": "investigate-refute"},
             {"name": "merge-up-review", "type": "merge-up-review"},
             {"name": "desktop-check", "type": "desktop-check"},
+            {"name": "trove-survey", "type": "trove-survey"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
@@ -915,7 +921,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
     txt = buf.getvalue()
     for k in ("deep-search", "drafting", "l3w-route-probe",
               "l4-plan-research", "prime-open-questions", "review",
-              "merge-up-review", "desktop-check"):
+              "merge-up-review", "desktop-check", "trove-survey"):
         assert k in txt, (k, txt)
     assert "config row" in txt, txt          # review/drafting/deep-search rows
     assert "claude-code" in txt, txt         # drafting config row
