@@ -54,6 +54,7 @@ sys.path.insert(0, str(_THIS))
 
 import adapters  # noqa: E402  -- owns the model/provider namespace guard,
 # and the shared (tier, role, harness) ladder resolver (l4-one-write)
+import provisioning  # noqa: E402  -- the ONE mint seam dispatch.py uses
 import spawn_gate  # noqa: E402  -- reads ladder roles for the same resolver
 import locations as _loc  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
@@ -555,7 +556,9 @@ def status_workflow(root: Path, key: str | None = None,
                   f"workflow={r.get('workflow')} harness={r.get('harness')} "
                   f"harness_id={hid} "
                   f"{str(r.get('timestamp') or '')} "
-                  f"ok={r.get('ok')} failed={r.get('failed')}\n")
+                  f"ok={r.get('ok')} "
+                  f"unstructured={r.get('unstructured')} "
+                  f"failed={r.get('failed')}\n")
     return 0
 
 
@@ -878,7 +881,7 @@ def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
 # summary render from the same events, so no presentation detail can appear
 # on one harness and not the other — there is only one source.
 _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
-          "failed": "[✗]", "resolved": "[·]"}
+          "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]"}
 
 
 def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = None) -> None:
@@ -911,6 +914,15 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             "stages": {lb: st["status"] for lb, st in view.state.items()},
             "ok": counts.get("ok", 0),
             "failed": counts.get("failed", 0),
+            # An `unstructured` stage is not a failure: the pi binary ran and
+            # returned prose with no schema-valid JSON. Its text is kept WHOLE
+            # (never the 120-char tree stub) under `returns` so a director can
+            # read the review that was actually written
+            # (hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-
+            # a-dispatched-spawn conjunct (h)).
+            "unstructured": counts.get("unstructured", 0),
+            "returns": {lb: st["detail"] for lb, st in view.state.items()
+                        if st["status"] == "unstructured"},
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -947,7 +959,10 @@ class RunView:
         for i, lb in enumerate(self.order):
             s = self.state[lb]
             branch = "└─" if i == last else "├─"
-            detail = f" — {s['detail']}" if s["detail"] else ""
+            # A stage's detail may be WHOLE prose (an `unstructured` return is
+            # not truncated) — flatten newlines for the tree, never cut it.
+            flat = s["detail"].replace("\n", " ") if s["detail"] else ""
+            detail = f" — {flat}" if flat else ""
             o.write(f"{branch} {_GLYPH[s['status']]} {lb}{detail}\n")
         o.flush()
 
@@ -978,6 +993,15 @@ class RunView:
     def stage_failed(self, label: str, reason: str) -> None:
         self._set(label, "failed", reason.replace("\n", " ")[:120])
 
+    def stage_unstructured(self, label: str, text: str) -> None:
+        """A stage whose pi process succeeded (rc 0) but returned no JSON that
+        validates against its schema. Recorded as its own status, NEVER as a
+        failure: the run continues and the text is carried WHOLE — not the
+        120-char stub `stage_finished` writes for structured returns — so the
+        prose the agent actually wrote is still readable
+        (hypothesis:l4-a-workflow-pi-stage-mints... conjunct (h))."""
+        self._set(label, "unstructured", text)
+
     def summary(self) -> None:
         """The ONE summary both harnesses print. Renders from stage order and
         statuses only — no harness token, no per-harness wording — so two runs
@@ -989,7 +1013,9 @@ class RunView:
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
-                f"ok={counts.get('ok', 0)} failed={counts.get('failed', 0)}\n")
+                f"ok={counts.get('ok', 0)} "
+                f"unstructured={counts.get('unstructured', 0)} "
+                f"failed={counts.get('failed', 0)}\n")
 
 
 def _dispatching_line(st, k):
@@ -1073,6 +1099,79 @@ def _pi_env() -> dict:
     return {k: v for k, v in os.environ.items() if k not in _SCRUB}
 
 
+def _credential_decision(root, cfg: dict, harness: str) -> tuple[bool, str | None]:
+    """Whether this run would issue ONE per-run minted credential, and if not,
+    why not. READS ONLY — `available()` reads the envfile and
+    `needs_credential()` reads the adapter constant, neither touches the
+    network — so the `--dry-run` print and the live mint path share this one
+    decision and cannot disagree (a printed line that differs from the live
+    choice is the trap this exists to close)."""
+    if not provisioning.available(root):
+        return False, "provisioning unavailable"
+    row = (cfg.get("harnesses") or {}).get(harness) or {}
+    if not adapters.needs_credential(row):
+        return False, f"harness {harness} needs no credential"
+    return True, None
+
+
+def _credential_line(would_mint: bool, reason: str | None) -> str:
+    """The ONE line naming the credential decision. `--dry-run` writes it to
+    `out`; the fallback path prints it to stderr under a `workflow.py: `
+    prefix."""
+    return ("[credential] mint per-run" if would_mint
+            else f"[credential] inherited env ({reason})")
+
+
+def _workflow_credential_tier(stages: list) -> str:
+    """The ladder tier a run's single credential is minted under: the first
+    stage's declared tier, else the canonical home tier of its role. One mint
+    per run needs one tier, and the run's first stage is its entry point."""
+    st = stages[0] if stages else {}
+    if st.get("tier"):
+        return str(st["tier"])
+    return str(_tier_for_role(st.get("role") or "kid"))
+
+
+def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
+                                stages: list) -> dict:
+    """The env a pi stage is spawned under. ONE mint per RUN, not per stage:
+    a capped key minted through the SAME seam dispatch.py uses for a
+    dispatched spawn, named `workflow:<run_key>` and carrying the run's ladder
+    tier — so a workflow pi stage no longer inherits whatever dead
+    OPENROUTER_API_KEY the caller shell happened to carry.
+
+    Falls back to the inherited `_pi_env()` — ONE stderr line naming the
+    reason — when provisioning is unavailable, the harness needs no
+    credential, or `mint()` returns None. A `ProvisioningError` with a
+    provisioning key present is a real fault and is named (`ERR: ...`) before
+    the fallback, never swallowed."""
+    would_mint, reason = _credential_decision(root, cfg, harness)
+    if not would_mint:
+        print(f"workflow.py: {_credential_line(False, reason)}",
+              file=sys.stderr)
+        return _pi_env()
+    limit_usd, ttl_minutes = provisioning.settings(cfg)
+    try:
+        minted = provisioning.mint(
+            iter_n=run_key, agent_id=f"workflow:{run_key}",
+            tier=_workflow_credential_tier(stages),
+            limit_usd=limit_usd, ttl_minutes=ttl_minutes,
+            workspace_id=provisioning.workspace(cfg), root=root)
+    except provisioning.ProvisioningError as exc:
+        print(f"ERR: could not mint a workflow credential: {exc}",
+              file=sys.stderr)
+        print(f"workflow.py: {_credential_line(False, f'mint failed: {exc}')}",
+              file=sys.stderr)
+        return _pi_env()
+    if minted is None:
+        print(f"workflow.py: {_credential_line(False, 'mint returned None')}",
+              file=sys.stderr)
+        return _pi_env()
+    env = _pi_env()
+    env[provisioning.RUNTIME_KEY_VAR] = minted.secret
+    return env
+
+
 def _effort_to_thinking(effort: str | None) -> str:
     """Map a workflow effort knob to a pi thinking level. `max`/`high` -> high,
     `low` -> low, anything missing or odd -> medium. A `--args thinking` value
@@ -1096,9 +1195,81 @@ def _parse_last_json(text: str):
     return _json.loads(text[start:end + 1])
 
 
+_FENCED_JSON = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+
+
+def _balanced_brace_spans(text: str):
+    """Yield each balanced `{...}` span in `text`, depth-aware and string-
+    aware. For every `{` scan forward to its MATCHING `}` (tracking nesting and
+    skipping braces inside JSON strings), so one stray brace in prose cannot
+    swallow the rest of the output the way `text.find('{') : text.rfind('}')`
+    did. An unclosed `{` yields nothing."""
+    n = len(text)
+    i = 0
+    while i < n:
+        if text[i] != "{":
+            i += 1
+            continue
+        depth = 0
+        in_str = False
+        esc = False
+        j = i
+        while j < n:
+            c = text[j]
+            if in_str:
+                if esc:
+                    esc = False
+                elif c == "\\":
+                    esc = True
+                elif c == '"':
+                    in_str = False
+            elif c == '"':
+                in_str = True
+            elif c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    yield text[i:j + 1]
+                    break
+            j += 1
+        i += 1
+
+
+def _json_candidates(text: str) -> list[str]:
+    """Every plausible JSON-object candidate in a stage's stdout, in the
+    order they should be trusted: the contents of fenced ```json blocks first
+    (the model was asked for JSON and fenced it explicitly), then every bare
+    balanced-brace span."""
+    cands = [m.group(1).strip() for m in _FENCED_JSON.finditer(text)
+             if m.group(1).strip()]
+    cands.extend(_balanced_brace_spans(text))
+    return cands
+
+
+def _resolve_lenient_return(schema, text: str):
+    """The FIRST candidate in `text` that both parses as JSON and passes
+    `schema` (via `validate_return`), or None when no candidate validates.
+
+    A candidate that parses but violates the schema is SKIPPED, never fatal —
+    a model that emitted a stray JSON snippet before its real answer must not
+    lose the answer (hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-
+    key-like-a-dispatched-spawn conjunct (h)). Prose-only output validates
+    nothing and returns None, which the caller records as `unstructured`."""
+    for cand in _json_candidates(text):
+        try:
+            value = json.loads(cand)
+        except (ValueError, json.JSONDecodeError):
+            continue
+        if not validate_return(schema, value):
+            return value
+    return None
+
+
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
-                  prior: dict | None = None) -> tuple[int, "dict | None"]:
+                  prior: dict | None = None,
+                  spawn_env: dict | None = None) -> tuple[int, "dict | None"]:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
     stdout, parse the last JSON object, and validate it against the stage's
@@ -1109,7 +1280,12 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     on failure. The value is the parsed return, so the caller can thread it
     into a later stage's prompt for the same repeat key. The kid writes any
     artifact (a draft body) itself under the scratch dir the prompt names; the
-    runner does not fabricate it."""
+    runner does not fabricate it.
+
+    `spawn_env` is the env the pi process runs under; when None the inherited
+    `_pi_env()` is used, so a view-less/legacy caller is byte-unchanged. The
+    live pi path passes the ONE per-run env from
+    `_resolve_workflow_spawn_env()`."""
     import subprocess
     k = knobs[stage["label"]]
     prompt = render_stage_prompt(stage, run_args, prior=prior)
@@ -1132,7 +1308,9 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         out.write(f"$ {' '.join(cmd)}\n")
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
-                              env=_pi_env(), timeout=600)
+                              env=(spawn_env if spawn_env is not None
+                                   else _pi_env()),
+                              timeout=600)
     except (OSError, subprocess.SubprocessError) as exc:
         if view is not None:
             view.stage_failed(stage["label"], f"could not start pi: {exc}")
@@ -1148,20 +1326,30 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               file=sys.stderr)
         return 3, None
     try:
-        value = _parse_last_json(output)
+        value = _resolve_lenient_return(stage.get("schema"), output)
     except (ValueError, json.JSONDecodeError) as exc:
+        # `_resolve_lenient_return` swallows per-candidate parse errors; a
+        # raise here is unexpected (a broken schema), so keep it fatal.
         if view is not None:
-            view.stage_failed(stage["label"], f"did not return JSON: {exc}")
-        print(f"workflow.py: stage {stage['label']} did not return JSON: "
-              f"{exc}\n--- output tail ---\n{output[-2000:]}", file=sys.stderr)
+            view.stage_failed(stage["label"], f"return parse error: {exc}")
+        print(f"workflow.py: stage {stage['label']} return parse error: "
+              f"{exc}\n--- output tail ---\n{output[-2000:]}",
+              file=sys.stderr)
         return 4, None
-    violations = validate_return(stage.get("schema"), value)
-    if violations:
+    if value is None:
+        # The pi process SUCCEEDED and returned prose with no schema-valid
+        # JSON. That is `unstructured`, never a failure: the run continues,
+        # the stage's whole text rides the value so the next stage's `prior`
+        # can read it, and the run summary shows it in its own column.
         if view is not None:
-            view.stage_failed(stage["label"], "returned JSON fails its schema")
-        print(f"workflow.py: stage {stage['label']} returned JSON that fails "
-              f"its schema:\n  " + "\n  ".join(violations), file=sys.stderr)
-        return 5, None
+            view.stage_unstructured(stage["label"], output)
+        else:
+            out.write(f"[unstructured] {stage['label']} "
+                      f"({len(output)} chars)\n")
+        print(f"workflow.py: stage {stage['label']} returned no schema-valid "
+              f"JSON; recorded unstructured ({len(output)} chars)",
+              file=sys.stderr)
+        return 0, {"unstructured": output}
     if view is not None:
         view.stage_finished(stage["label"], value)
     else:
@@ -1208,6 +1396,10 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             knobs[st["label"]]["model"] = model
 
     if dry_run:
+        # The credential decision BEFORE the dispatch lines, from the SAME
+        # helper the live path mints through — reads only, never a mint.
+        _would_mint, _reason = _credential_decision(root, cfg, harness)
+        out.write(_credential_line(_would_mint, _reason) + "\n")
         for st in stages:
             out.write(_dispatching_line(st, knobs[st["label"]]) + "\n")
         out.write(f"[summary] workflow={key} harness={harness} "
@@ -1236,6 +1428,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # resolved knobs or the stage prompt, so a real run could not happen
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
+    spawn_env = _resolve_workflow_spawn_env(root, cfg, run_key, harness, stages)
     prior_by_key: dict[tuple, dict] = {}
     for st in stages:
         prior = None
@@ -1248,7 +1441,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             # boundaries; run_args only otherwise.
             prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
         rc, value = _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
-                                  prior=prior)
+                                  prior=prior, spawn_env=spawn_env)
         if rc != 0:
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)

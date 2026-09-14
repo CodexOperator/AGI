@@ -1501,3 +1501,113 @@ def test_bounded_lookup_returns_none_for_a_bare_tmp_root(tmp_path):
     bare = tmp_path / "nested" / "deeper"
     bare.mkdir(parents=True)
     assert provisioning._read_provisioning_key(bare) is None
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-dispatched-
+# spawn conjunct (g). MEASURED 2026-09-14 07:36Z on this Prime: a hand mint of
+# a `pi` workflow stage took DEFAULT_LIMIT_USD ($0.25) while dispatch passes
+# `settings(cfg)` ($5.00), and `check_key_floor` then REFUSED every dispatch
+# with `outstanding minted key ... remaining $0.21 is below the configured
+# floor $1.00` — a key whose CAP is below the floor can never pass it, so one
+# hand mint blocked every dispatch for its whole TTL. Both halves proved from
+# a fixture, no network.
+# --------------------------------------------------------------------------
+
+
+def _mint_call_capture(calls: list[dict]):
+    """A `_call` fake that records the mint payload and returns a 201 body."""
+
+    def fake_call(method, url, key, payload=None, timeout=30):
+        calls.append({"method": method, "url": url, "payload": payload})
+        return 201, {"key": "sk-fake-secret", "data": {
+            "hash": "h-fake", "expires_at": "2099-01-01T00:00:00Z"}}
+
+    return fake_call
+
+
+def test_g_mint_defaults_to_the_configured_limit_when_rooted(tmp_path, monkeypatch):
+    """(g) half one — a mint() that names a root and no limit_usd takes the
+    project's `spawn.credential.per_spawn_limit_usd`, not DEFAULT_LIMIT_USD.
+    This is exactly the L4.367/L4.368 defect: a $0.25 cap against a $1.00
+    floor can never pass, and one such key blocked every dispatch."""
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text(json.dumps(
+        {"spawn": {"credential": {"per_spawn_limit_usd": 5.0}}}))
+
+    calls: list[dict] = []
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", _mint_call_capture(calls))
+    monkeypatch.setattr(provisioning, "can_fund", lambda root=None: (True, None))
+
+    minted = provisioning.mint(iter_n=1, agent_id="workflow:abc", root=tmp_path)
+
+    assert minted is not None
+    assert minted.limit_usd == 5.0, (
+        "a rooted mint must resolve the configured per-spawn limit, not the "
+        "library default")
+    mint_payloads = [c["payload"] for c in calls
+                     if c["method"] == "POST" and c["payload"] is not None]
+    assert mint_payloads, "mint POST never reached"
+    assert mint_payloads[0]["limit"] == 5.0, (
+        f"payload limit was {mint_payloads[0]['limit']!r}, expected 5.0")
+
+
+def test_g_rootless_mint_keeps_the_bare_default(tmp_path, monkeypatch):
+    """(g) half one control — the rootless call is unchanged: no root, no
+    config to read, so `DEFAULT_LIMIT_USD` stands."""
+    calls: list[dict] = []
+    monkeypatch.setattr(provisioning, "_read_provisioning_key",
+                        lambda root=None: "sk-prov")
+    monkeypatch.setattr(provisioning, "_call", _mint_call_capture(calls))
+    monkeypatch.setattr(provisioning, "can_fund", lambda root=None: (True, None))
+
+    minted = provisioning.mint(iter_n=1, agent_id="a00-rootless")
+
+    assert minted is not None
+    assert minted.limit_usd == provisioning.DEFAULT_LIMIT_USD
+    mint_payloads = [c["payload"] for c in calls
+                     if c["method"] == "POST" and c["payload"] is not None]
+    assert mint_payloads[0]["limit"] == provisioning.DEFAULT_LIMIT_USD
+
+
+def test_g_sub_floor_cap_key_is_skipped_not_refused(monkeypatch, capsys):
+    """(g) half two — a minted key whose CAP is below the floor is named and
+    SKIPPED; the pre-flight passes rather than blocking every dispatch for the
+    key's whole TTL. This is the L4.368 falsifier itself: cap 0.25, used 0.04
+    (remaining 0.21 < floor 1.00) must NOT refuse."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterX-kid-a", "limit": 0.25,
+                            "usage": 0.04}])
+
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+
+    assert ok is True and msg is None, (
+        "a sub-floor cap must not refuse a spawn")
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1, f"expected exactly one stderr line, got {err!r}"
+    assert "sub-floor" in err[0]
+    assert "agi-iterX-kid-a" in err[0]
+    assert "$0.25" in err[0] and "$1.00" in err[0]
+
+
+def test_g_above_floor_cap_with_drained_remaining_still_refuses(monkeypatch):
+    """(g) half two control — the skip is ONLY for a cap below the floor. A
+    key capped $5.00 with $4.50 used (remaining $0.50) still refuses exactly
+    as before, so the fix cannot be mistaken for weakening the floor."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterX-kid-b", "limit": 5.0,
+                            "usage": 4.5}])
+
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+
+    assert ok is False
+    assert "agi-iterX-kid-b" in msg
+    assert "$0.50" in msg  # 5.0 - 4.5
