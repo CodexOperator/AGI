@@ -887,6 +887,105 @@ def _detect_sender(from_flag: str | None) -> str:
     return "unknown"
 
 
+def _kid_parent_id(root: Path, agent_id: str) -> str | None:
+    """The id of the agent that spawned this kid, read from the kid's OWN
+    agent record (`spawned_by_agent`, stamped by dispatch.py at spawn).
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round -- a kid may dm only its parent, and the parent is an AGENT id, not
+    the dispatching seat. The record lives under an `iter-*` dir; iteration
+    output is per-worktree but a seat's dirs can also sit in MAIN, so scan
+    the shared sessions dir and the local one and take the newest match.
+    Returns None when no record carries the stamp (a pre-existing round) --
+    the caller then fails OPEN so a kid that must escalate is never stranded.
+    """
+    agent_id = (agent_id or "").strip()
+    if not agent_id or agent_id == "unknown":
+        return None
+    sess_roots: list[Path] = []
+    for resolver in (locations.shared_sessions_dir, locations.sessions_dir):
+        try:
+            sess = resolver(root)
+        except (OSError, ValueError):
+            continue
+        if sess not in sess_roots:
+            sess_roots.append(sess)
+    best: tuple[float, str] | None = None
+    prefix = locations.ITER_DIR_PREFIX
+    for sess in sess_roots:
+        if not sess.is_dir():
+            continue
+        for rec in sess.glob(f"{prefix}*/{agent_id}/agent.json"):
+            try:
+                data = json.loads(rec.read_text())
+            except (OSError, ValueError):
+                continue
+            parent = (data.get("spawned_by_agent") or "").strip()
+            if not parent:
+                continue
+            try:
+                mtime = rec.stat().st_mtime
+            except OSError:
+                mtime = 0.0
+            if best is None or mtime > best[0]:
+                best = (mtime, parent)
+    return best[1] if best else None
+
+
+def _kid_dm_refusal(root: Path, target: str, sender: str | None) -> str | None:
+    """The one-line refusal when a kid dms anything but its own parent, or
+    None when the dm is allowed (non-kid tier, own parent, or no resolvable
+    parent record).
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round -- `AGI_TIER=kid` and a target that is not the kid's
+    `spawned_by_agent` is refused BEFORE any inbox/room write. A kid with no
+    parent record (a round that predates the stamp) fails OPEN with one
+    stderr warning: refusing every send would strand the very escalation the
+    kid brief hands it (`send.py send <parent-id>`).
+    """
+    if (os.environ.get("AGI_TIER") or "").strip() != "kid":
+        return None
+    kid = _detect_sender(sender)
+    parent = _kid_parent_id(root, kid)
+    if not parent:
+        print(f"warn: kid {kid} has no spawned_by_agent record; the dm gate "
+              "fails open (l4-a-kid-reports-to-its-parent-and-the-seat-hears-"
+              "one-dm-)", file=sys.stderr)
+        return None
+    if target == parent:
+        return None
+    return (f"REFUSED: kid {kid} may dm only its parent {parent}, "
+            f"not {target}")
+
+
+def _kid_room_refusal(root: Path, room: str, sender: str | None) -> str | None:
+    """The one-line refusal when a kid posts to ANY room, or None when the
+    post is allowed.
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round (R5) -- the dm gate covered the positional inbox target and `--to`,
+    but `send --room R TEXT` still let a kid post into a room. A room has no
+    single recipient: it addresses every member (and its lines feed the
+    `nudge` path), so a room post is the SAME escalation the dm gate forbids
+    wearing a different address -- it reaches past the parent to whoever is
+    in the room, seats included. Refused BEFORE any room write, exit 3,
+    nothing written. A kid with no `spawned_by_agent` record (a round that
+    predates the stamp) fails OPEN with ONE stderr warning, exactly like the
+    dm path, so a legacy kid is never stranded.
+    """
+    if (os.environ.get("AGI_TIER") or "").strip() != "kid":
+        return None
+    kid = _detect_sender(sender)
+    if not _kid_parent_id(root, kid):
+        print(f"warn: kid {kid} has no spawned_by_agent record; the room gate "
+              "fails open (l4-a-kid-reports-to-its-parent-and-the-seat-hears-"
+              "one-dm-)", file=sys.stderr)
+        return None
+    return (f"REFUSED: kid {kid} may not post to room {room}; a room can "
+            "reach past your parent to a seat -- dm your parent instead")
+
+
 # ── comms root ─────────────────────────────────────────────────────────────
 
 
@@ -4746,6 +4845,12 @@ def main(argv: list[str] | None = None) -> int:
                 print("ERR: message text is required for send --room",
                       file=sys.stderr)
                 return 1
+            # R5: a room reaches past the parent, so the kid gate covers it
+            # exactly like the dm paths -- BEFORE any room write.
+            refusal = _kid_room_refusal(root, args.room, sender)
+            if refusal is not None:
+                print(refusal, file=sys.stderr)
+                return 3
             print(send_room(croot, args.room, text, sender).resolve())
             return 0
         if args.dm_to is not None:
@@ -4755,6 +4860,10 @@ def main(argv: list[str] | None = None) -> int:
                       file=sys.stderr)
                 return 1
             to = _alias_canon(root, args.dm_to) or args.dm_to
+            refusal = _kid_dm_refusal(root, to, sender)
+            if refusal is not None:
+                print(refusal, file=sys.stderr)
+                return 3
             print(send_dm(croot, _detect_sender(sender), to, text,
                           sender).resolve())
             return 0
@@ -4768,7 +4877,15 @@ def main(argv: list[str] | None = None) -> int:
         if not text:
             print("ERR: message text is required for send", file=sys.stderr)
             return 1
-        send(root, _alias_canon(root, target) or target, text, sender)
+        resolved_target = _alias_canon(root, target) or target
+        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+        # per-round -- a kid's dm reaches its parent or no inbox at all. The
+        # refusal is checked BEFORE `send`, so nothing is written on refusal.
+        refusal = _kid_dm_refusal(root, resolved_target, sender)
+        if refusal is not None:
+            print(refusal, file=sys.stderr)
+            return 3
+        send(root, resolved_target, text, sender)
         return 0
 
     if args.verb == "read":

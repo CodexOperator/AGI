@@ -1392,6 +1392,15 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "edits=[{\"oldText\": \"old line\", \"newText\": \"new line\"}])",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
+        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+        # per-round -- the shape, named once, in the brief the kid reads.
+        "You report to your PARENT agent, never to the dispatching seat: your "
+        "completion line dm's `spawned_by_agent` (your parent, the agent id "
+        "that cut you), and under AGI_TIER=kid `send.py send <target>` REFUSES "
+        "any target that is not that parent. The seat hears exactly ONE dm per "
+        "round, from the parent at harvest -- never one per kid "
+        "(hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-"
+        "per-round).",
     ]
     if scaffold:
         parent = (scaffold.get("parent") or "").strip()
@@ -1771,6 +1780,16 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"     python3 {cli_py} done {iter_n} {agent_id} --verdict pending \\\n"
         f"       --owns <kid-node-id> [<kid-node-id> ...]\n"
         f"   `--owns`, NOT `--node-id`. You author no node of your own.",
+        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+        # per-round -- the parent is the round's ONE voice to its seat.
+        "You are the ONLY voice to your dispatching seat. Your kids report to "
+        "YOU (their completion lines dm `spawned_by_agent`, never the seat, "
+        "and a kid's `send.py send <seat>` is refused), so at `done` exactly "
+        "ONE seat dm leaves this round: your harvest line carrying "
+        "accepted/demoted/failed counts, your kids' node ids and your branch "
+        "tip. Never dm the seat more than once per round "
+        "(hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-"
+        "per-round).",
         "YOUR ARTEFACT IS YOUR KIDS' NODES. You are responsible for them the "
         "way a parent is responsible for its children, not for some separate "
         "object of your own. Nothing is scaffolded for you and nothing should "
