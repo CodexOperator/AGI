@@ -1216,12 +1216,16 @@ def test_falsifier_closeout_seams_carry_at_least_two_is_frozen():
 
 
 def test_misplaced_rotate_self_gates_are_gone():
-    """The L4.335 gates on `_stops_push` and `_perform_season_merge` are
-    REMOVED (rescoped to the real merge-up seams above): a non-prime post's
-    own rotate-self catch-up merge/push is never held by a frozen prime."""
-    for fn in ("_stops_push", "_perform_season_merge"):
-        assert "is_frozen" not in _top_level_fn_src(fn), \
-            f"{fn} must not carry the human gate (RUNG 4 rescope)"
+    """RUNG 5 (mur-53) reshapes this: the L4.335 gate stays OFF
+    `_perform_season_merge` (a catch-up merge FROM origin is not a publish),
+    and is back ON `_stops_push` -- CONDITIONALLY, only when its resolved
+    branch is a trunk. The blanket "`_stops_push` must not carry is_frozen"
+    assertion of RUNG 4 is now wrong and is inverted here; the conditional
+    behavior itself is pinned by the two fixtures below."""
+    assert "is_frozen" not in _top_level_fn_src("_perform_season_merge"), \
+        "_perform_season_merge must not carry the human gate (RUNG 4 rescope)"
+    assert "is_frozen" in _top_level_fn_src("_stops_push"), \
+        "_stops_push must consult is_frozen for trunk-branch pushes (RUNG 5)"
 
 
 class _FakeProc:
@@ -1346,3 +1350,72 @@ def test_nonprime_rotateself_merge_and_push_proceed_while_prime_frozen(
     refused = rotate._stops_push(tmp_path, "merge")
     assert refused is not None and "push refused" in refused
     assert "HELD" not in refused
+
+
+def _faked_stops_push_git(monkeypatch, resolved_branch):
+    """Patch the seams `_stops_push` reads so it runs hermetically: a fake
+    `git rev-parse --abbrev-ref HEAD` returns `resolved_branch` (the test's
+    fake for whatever branch the caller has checked out) and returns the
+    argv of every `subprocess.run` call so a push attempt is observable."""
+    calls = []
+    monkeypatch.setattr(rotate, "_git_toplevel", lambda r: Path("/fake"))
+    monkeypatch.setattr(rotate, "_shared_graph_root", lambda r: r)
+
+    def fake_run(argv, **kw):
+        calls.append(argv)
+        if "rev-parse" in argv:
+            return _FakeProc(0, resolved_branch)
+        return _FakeProc(0)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    return calls
+
+
+def _freeze(monkeypatch, frozen):
+    import seatsig.veto as _veto
+    monkeypatch.setattr(
+        _veto, "is_frozen",
+        lambda r, s, **kw: ((True, "prime FROZEN by a human gate")
+                            if frozen else
+                            (False, "scope 'prime' is not under a human "
+                                   "gate")))
+
+
+def _pushed(calls):
+    return any("push" in argv for argv in calls)
+
+
+def test_frozen_prime_holds_a_trunk_resolved_stops_push(
+        tmp_path, monkeypatch):
+    """Conjunct 1: a frozen prime's own rotate-self whose resolved branch is
+    a TRUNK (season2/main) is HELD by name and the push is NEVER attempted --
+    the mur-53 defect (`_stops_push` would publish season2/main first)."""
+    _freeze(monkeypatch, True)
+    for trunk in ("season2/main", "master", "core/main"):
+        calls = _faked_stops_push_git(monkeypatch, trunk)
+        out = rotate._stops_push(tmp_path, "stops")
+        assert out is not None, f"{trunk} push must be HELD under a freeze"
+        assert "HELD" in out and "trunk" in out, out
+        assert (_pushed(calls) is False), \
+            f"frozen prime must not push the {trunk} trunk"
+
+
+def test_frozen_prime_still_pushes_an_ordinary_post_branch(
+        tmp_path, monkeypatch):
+    """Conjunct 2: the SAME frozen prime fixture whose resolved branch is an
+    ordinary post branch still pushes exactly as before -- RUNG 4's fix is
+    not regressed by the conditional gate."""
+    _freeze(monkeypatch, True)
+    calls = _faked_stops_push_git(monkeypatch, "season2/posts/adv")
+    assert rotate._stops_push(tmp_path, "merge") is None
+    assert _pushed(calls), "a post-branch rotate-self push must proceed"
+
+
+def test_unfrozen_prime_pushes_a_trunk_resolved_stops_push(
+        tmp_path, monkeypatch):
+    """The gate is CONDITIONAL, not a blanket refusal: with the veto cell
+    unfrozen, a trunk-resolved push carries through."""
+    _freeze(monkeypatch, False)
+    calls = _faked_stops_push_git(monkeypatch, "season2/main")
+    assert rotate._stops_push(tmp_path, "stops") is None
+    assert _pushed(calls), "an unfrozen prime's trunk push must proceed"
