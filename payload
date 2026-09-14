@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import random
@@ -211,6 +212,13 @@ ENV_VARS_TO_SCRUB = (
     # on, which is strictly worse than the subscription leak the names above
     # close. Same mechanism, one more name.
     provisioning.PROVISIONING_KEY_VAR,
+    # goal:g15.25 SM.26 -- the dispatch-orders bytes are read by THIS process
+    # for the parent brief; a spawned child must never inherit them (they are
+    # the director's word TO the parent, not to its kids). Scrub all three so
+    # a spawned agent can neither read nor re-export the orders text.
+    "AGI_ORDERS_TEXT",
+    "AGI_ORDERS_FROM",
+    "AGI_ORDERS_TS",
 )
 
 
@@ -1074,6 +1082,43 @@ def _read_prompt_file(path: str | None) -> str | None:
     return Path(path).read_text(encoding="utf-8")
 
 
+def _effective_carry_forward(args) -> str | None:
+    """goal:g15.25 SM.26 -- ONE implementation for the per-kid carry-forward.
+
+    At KID tier `--orders` is the same channel as `--prompt-file` (its new,
+    preferred spelling); at PARENT tier `--orders` is the NEW orders channel
+    and is never a carry-forward. `--prompt-file` stays the deprecated kid
+    spelling for one season.
+    """
+    if args.tier == "kid" and getattr(args, "orders", None) is not None:
+        return args.orders
+    return args.prompt_file
+
+
+def apply_orders_env(args) -> str | None:
+    """goal:g15.25 SM.26 -- read `--orders` and export it for the parent
+    brief, exactly as `apply_advisor_goal_env` threads `--goal`.
+
+    Returns the file text (None when absent, or when the tier is not parent).
+    An EMPTY file returns "" and renders no heading (byte-identical brief),
+    but the env stays set so the caller can tell "absent" from "empty".
+    Clears stale keys on every invocation so a second dispatch in one process
+    cannot inherit the previous round's orders.
+    """
+    keys = ("AGI_ORDERS_TEXT", "AGI_ORDERS_FROM", "AGI_ORDERS_TS")
+    if args.tier != "parent" or getattr(args, "orders", None) is None:
+        for k in keys:
+            os.environ.pop(k, None)
+        return None
+    text = _read_prompt_file(args.orders)
+    os.environ["AGI_ORDERS_TEXT"] = text or ""
+    os.environ["AGI_ORDERS_FROM"] = (
+        getattr(args, "orders_from", None)
+        or os.environ.get("AGI_POST") or "")
+    os.environ["AGI_ORDERS_TS"] = str(int(time.time()))
+    return text
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -1159,7 +1204,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 role=args.role, ladder_tier=tier_eff,
             )
             # The env a child WOULD have been spawned with — same exports the
@@ -1210,11 +1255,22 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 session_dir=sess_dir,
                 project_root=root)
         brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
+
+        # goal:g15.25 SM.26 -- a dry run SHOWS the orders section (heading +
+        # first 3 content lines), so a dispatcher can see the exact words a
+        # parent would be handed BEFORE paying for the spawn. The full section
+        # is at the tail of the parent brief, past the report's first 20.
+        _orders_sec = _brief._orders_section()
+        if _orders_sec:
+            _ol = _orders_sec.splitlines()
+            print(f"  orders: {len(_ol)} lines; first 4:")
+            for ln in _ol[:4]:
+                print(f"    {ln}")
 
         print(f"[dry-run] slot={slot} harness={harness_name} "
               f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
@@ -1471,6 +1527,29 @@ def main() -> int:
              "the command line.",
     )
     ap.add_argument(
+        "--orders",
+        default=None,
+        help="goal:g15.25 SM.26 -- dispatch orders. Path to a file (or `-` for "
+             "stdin) whose bytes ride the PARENT brief VERBATIM as its LAST "
+             "section, under ONE heading `## DISPATCH ORDERS (from <post>, "
+             "<ts>)`, and are recorded on the manifest (`orders: {from, "
+             "sha256, bytes, path}`). This is the missing channel for a "
+             "director's dispatch-time scope/coupling instruction -- a "
+             "parent's brief is rebuilt fresh from its target node, so prose "
+             "in the node alone cannot carry it (SM.141 trap; SM.24 "
+             "coupling). At KID tier it is the same per-kid carry-forward as "
+             "`--prompt-file` (one implementation). Read by path, never "
+             "inlined as argv.",
+    )
+    ap.add_argument(
+        "--from",
+        dest="orders_from",
+        default=None,
+        metavar="POST",
+        help="goal:g15.25 SM.26 -- the post the `--orders` heading names as "
+             "their sender. Defaults to $AGI_POST, then `unspecified`.",
+    )
+    ap.add_argument(
         "--ring-gate",
         default=None,
         metavar="RING",
@@ -1563,6 +1642,16 @@ def main() -> int:
     # pinned --goal into the assembled brief through the env (see
     # apply_advisor_goal_env). Set before any build_command runs.
     apply_advisor_goal_env(args.goal)
+
+    # goal:g15.25 SM.26 -- read --orders ONCE per invocation and export it for
+    # the parent brief (brief._orders_section). `_orders_text` is the text the
+    # manifest records and the iter dir copies; the env is what the assembled
+    # brief reads. Set before any build_command runs (dry-run included).
+    _orders_text = apply_orders_env(args)
+    if (args.tier == "kid" and args.prompt_file is not None
+            and args.orders is None):
+        print("note: --prompt-file is deprecated; use --orders (same "
+              "carry-forward channel, one implementation).", file=sys.stderr)
 
     # hypothesis:l3-dispatch-role-default — a bare --tier parent must mean
     # role parent (so it resolves the parent ladder row, never the tier-0
@@ -1877,6 +1966,13 @@ def main() -> int:
             dispatch_harness=dispatch_harness, adapter=adapter,
             args=args, targets=targets, tier_eff=tier_eff)
     iter_dir.mkdir(parents=True, exist_ok=True)
+
+    # goal:g15.25 SM.26 -- the orders file travels WITH the round: copy it into
+    # the iter dir so a worktree/round carries the exact bytes the parent was
+    # told, beside the manifest that hashes them. Only non-empty orders (an
+    # empty file renders no heading, so there is nothing to carry).
+    if _orders_text:
+        (iter_dir / "orders.md").write_text(_orders_text, encoding="utf-8")
 
     # goal:s28 — merge into existing manifest rather than overwriting.
     # A parent dispatch into the same iter dir must not clobber its own
@@ -2204,7 +2300,7 @@ def main() -> int:
                 # hypothesis:l3-parent-never-told-to-iterate, carry-forward
                 # axis (SD.12) -- the per-kid brief channel. Read once per
                 # invocation so the same text threads the whole batch.
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 # hypothesis:l3-cc-tools-by-tier -- who this agent is on the
                 # ladder selects its tool bundle (kids keep the closed list;
                 # advisors/directors add the ultracode/loop tools).
@@ -2407,6 +2503,18 @@ def main() -> int:
             # keeps the gate fail-open.
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
         }
+        # goal:g15.25 SM.26 -- the parent record NAMES what the parent was
+        # told: the sender, the sha256/byte count of the exact orders bytes,
+        # and the source path. A harvest review can then read (and verify) the
+        # director's word from the record, never re-derive it from prose.
+        if _orders_text and args.tier == "parent":
+            _obytes = _orders_text.encode("utf-8")
+            agent_record["orders"] = {
+                "from": os.environ.get("AGI_ORDERS_FROM") or "",
+                "sha256": hashlib.sha256(_obytes).hexdigest(),
+                "bytes": len(_obytes),
+                "path": str(args.orders),
+            }
         # hypothesis:l4-a-kid-spawn... — record the exemption on the kid record
         # so a reader can see the round was admitted on a live-parent grace.
         if _acc_exempt is not None:
@@ -2449,7 +2557,7 @@ def main() -> int:
                 parallel=adapters.parallelism(cfg),
                 max_live=cap,
                 kid_ceiling=spawn_budget.parent_max_kids(cfg),
-                addendum=_read_prompt_file(args.prompt_file),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
                 session_dir=sess_dir)
             _brief_text = "\n\n".join(s.rstrip("\n") for s in _segs)
         except BaseException as exc:  # never let the debug artifact break spawn
