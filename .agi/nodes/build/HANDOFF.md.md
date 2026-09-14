@@ -6,7 +6,7 @@ parents:
   - idea:engine-handoff
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L4-VII
+edited_by: belam
 origin: build-scan
 payload_ref: HANDOFF.md
 season: 1
