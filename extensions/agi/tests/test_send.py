@@ -201,12 +201,17 @@ class _FixturePane:
     PASTE_CHARS = 100
 
     def __init__(self, width: int = 80, busy: bool = False,
-                 cell: bool = False):
+                 cell: bool = False, in_mode: bool = False):
         self.input = ""
         self.submitted: list = []
         self.width = width
         self.busy = busy
         self.cell = cell
+        #: tmux copy mode (`#{pane_in_mode}`). While set, ordinary
+        #: send-keys keystrokes are swallowed as copy-mode navigation and
+        #: the input box does not change -- the 2026-09-14 six-hour stall.
+        #: `send-keys -t <pane> -X cancel` leaves copy mode.
+        self.in_mode = in_mode
 
     def send_keys(self, argv: list) -> None:
         """`argv` = everything after `tmux send-keys`."""
@@ -217,6 +222,16 @@ class _FixturePane:
             args = args[1:]
         assert args[:1] == ["-t"], f"send-keys without -t: {argv}"
         keys = args[2:]
+        # A tmux SUBCOMMAND (`-X cancel`) is not a typed key: it acts on the
+        # pane itself and leaves copy mode. Modelled EXPLICITLY so the
+        # fixture records the cancel and proves the order (clause (1)).
+        if keys[:1] == ["-X"]:
+            if keys[1:2] == ["cancel"]:
+                self.in_mode = False
+            return
+        if self.in_mode:
+            # copy-mode navigation: the keystroke never reaches the input box
+            return
         if literal:                       # -l: text only, no key parsing
             self.input += "".join(keys)
             return
@@ -301,6 +316,10 @@ def _fake_tmux_pane(monkeypatch, window_names, pane: _FixturePane,
         if cmd[:2] == ["tmux", "capture-pane"]:
             return subprocess.CompletedProcess(cmd, 0, stdout=pane.capture(),
                                                stderr="")
+        if cmd[:2] == ["tmux", "display-message"]:
+            # `#{pane_in_mode}` -- the read-only copy-mode query (clause (1))
+            return subprocess.CompletedProcess(
+                cmd, 0, stdout="1" if pane.in_mode else "0", stderr="")
         if cmd[:2] == ["tmux", "send-keys"]:
             pane.send_keys(cmd[2:])
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
@@ -501,9 +520,15 @@ def test_wake_unchanged_inbox_types_once_even_after_window(project: Path,
     assert capsys.readouterr().out.strip() == "typed-token"
 
     # age the coalesce window: only the digest gate keeps the SAME state
-    # quiet once the window no longer would.
+    # quiet once the window no longer would. 60 s lapses the 30 s window but
+    # stays under `comms.nudge_stale_after_minutes` (default 30), so the
+    # marker is NOT stale -- a stale marker is REQUIRED to re-fire
+    # (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
+    # marker, clause (2)), which is a different claim from this digest gate.
+    import datetime as _dt
     send_mod._nudge_marker_path(project, seat).write_text(
-        "2020-01-01T00:00:00+00:00\n")
+        (_dt.datetime.now(_dt.timezone.utc)
+         - _dt.timedelta(seconds=60)).isoformat() + "\n")
     assert send_mod.wake(project, seat) is False
     assert len(_typed(calls)) == 1, \
         "an unchanged unread inbox must not retype the token"
@@ -6945,3 +6970,111 @@ def test_whois_by_session_ref_unaffected_by_session_name(monkeypatch):
     assert "IS-AUTHORIZED" in text
     rc2, text2 = send_mod.whois(Path("."), "agi-ghost", claim=None)
     assert rc2 == send_mod.WHOIS_NO_MATCH
+
+
+# ── hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-marker ──
+# clause (1): cancel copy mode before typing; clause (2): a stale marker
+# re-fires (defeating the announced-digest gate); clause (3): the read-only
+# `status <post>` line; clause (4): the four fixture cases.
+
+
+def test_nudge_no_marker_types_and_sends_no_cancel(project: Path,
+                                                   monkeypatch):
+    """Case 1: no marker -> the nudge types; and the copy-mode cancel FALSIFIER
+    -- when `pane_in_mode != 1` NO `-X cancel` is ever sent (a spurious Escape
+    into a live prompt is the defect, not the fix)."""
+    seat = "adv-alive"
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "hello", "kid")
+    assert len(_typed(calls)) == 1, calls
+    assert pane.submitted, "the token reached the box and was submitted"
+    assert send_mod._last_nudge_age(project, seat) is not None
+    assert not any("-X" in c for c in calls), \
+        "no cancel may be sent when the pane is not in copy mode"
+
+
+def test_nudge_fresh_marker_suppresses_a_second_type(project: Path,
+                                                     monkeypatch, capsys):
+    """Case 2: a FRESH marker suppresses -- a second message moments later
+    types nothing and leaves the marker untouched (no double-typing into a
+    live turn)."""
+    seat = "adv-alive"
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "first", "kid")
+    assert len(_typed(calls)) == 1, calls
+    marker = send_mod._nudge_marker_path(project, seat)
+    stamped = marker.read_text()
+    send_mod.send(project, seat, "second", "kid")
+    assert len(_typed(calls)) == 1, "a fresh marker must suppress a 2nd type"
+    assert marker.read_text() == stamped, "fresh marker must not be re-stamped"
+    assert "nudge: coalesced" in capsys.readouterr().err
+
+
+def test_wake_refires_on_a_stale_marker(project: Path, monkeypatch, capsys):
+    """Case 3: a STALE marker re-fires, re-stamps, and emits exactly ONE log
+    line -- and it DEFEATS the announced-digest gate. The precondition here is
+    the six-hour stall exactly: the unread digest is unchanged AND already
+    announced, so the pre-fix `wake` returned nothing-pending forever."""
+    seat = "adv-alive"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("---\nts: 2026-09-14T02:00:00+00:00\nfrom: prime\n"
+                     "to: adv-alive\n\n hello\n")
+    marker = send_mod._nudge_marker_path(project, seat)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("2020-01-01T00:00:00+00:00\n")
+    # the stall's precondition: this digest was ALREADY announced
+    send_mod._record_announced(project, seat,
+                               send_mod._unread_digest(project, seat))
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    pane = _FixturePane()
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    assert send_mod.wake(project, seat) is True
+    assert len(_typed(calls)) == 1, "a stale marker must re-fire"
+    assert marker.read_text() != "2020-01-01T00:00:00+00:00\n", \
+        "the re-fire must re-stamp the marker"
+    err = capsys.readouterr().err
+    assert err.count("nudge: re-fired (stale marker") == 1, err
+
+
+def test_nudge_cancels_copy_mode_before_typing(project: Path, monkeypatch):
+    """Case 4: `pane_in_mode=1` -> `-X cancel` precedes the typed line, and
+    the typed line then actually reaches the box (the swallowed keystroke of
+    the 2026-09-14 stall)."""
+    seat = "adv-alive"
+    pane = _FixturePane(in_mode=True)
+    calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    send_mod.send(project, seat, "hello", "kid")
+    cancels = [c for c in calls
+               if c[:2] == ["tmux", "send-keys"] and "-X" in c]
+    assert cancels, "copy mode must be cancelled before typing"
+    assert cancels[0] == ["tmux", "send-keys", "-t", f"agi-rc:{seat}",
+                          "-X", "cancel"], cancels
+    typed = _typed(calls)
+    assert typed, "the nudge line must still be typed"
+    assert calls.index(cancels[0]) < calls.index(typed[0]), calls
+    assert not pane.in_mode
+    assert pane.submitted, "the token reached the box and was submitted"
+
+
+def test_status_prints_one_read_only_line(project: Path, monkeypatch):
+    """Clause (3): `status <post>` prints ONE line carrying marker age, pending
+    count, `in_mode`, and last-read -- and it mutates nothing (read-only: it
+    reports copy mode without cancelling it and types nothing)."""
+    seat = "adv-alive"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("---\nts: 2026-09-14T02:00:00+00:00\nfrom: p\n"
+                     "to: adv-alive\n\n hi\n")
+    send_mod._record_nudge(project, seat)
+    send_mod._record_lastread(project, seat)
+    pane = _FixturePane(in_mode=True)
+    _fake_tmux_pane(monkeypatch, [seat], pane, [])
+    line = send_mod.status(project, seat)
+    assert "\n" not in line, line
+    assert "marker=" in line and "pending=" in line, line
+    assert "in_mode=1" in line and "lastread=" in line, line
+    assert pane.in_mode is True, "status must not cancel copy mode"
+    assert not pane.submitted, "status must type nothing"

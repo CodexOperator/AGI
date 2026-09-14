@@ -12,6 +12,8 @@ season: 1
 town: core
 visions:
   - vision:local-maxxing
+  - vision:local-maxxing-smarter
+  - vision:local-maxxing-together
 ---
 <!-- BODY:BEGIN -->
 # town:local-maxxing

@@ -1,6 +1,6 @@
 {
   "name": "trove-survey",
-  "type": "research",
+  "type": "trove-survey",
   "script": "agi-trove-survey.js",
   "description": "Survey a research trove for the local-maxxing town (goal:g14): one reader per source (owner repos, papers, literature, hardware) -> adversarial critic per reading (pipeline, no barrier) -> three-vision hypothesis panel (barrier: needs the whole digest) -> judge + completeness critic. args: {scratch: <dir with cloned sources>, sources?: [{key,prompt}], angles?: [{key,text}]} (defaults = the 2026-09-14 first run). Authored by hand by thought-master 2026-09-14 (workflow.py author refuses mixed simple+repeated stages, by name); script = the run-proven inline script of wf_7df0a578-8fb.",
   "stages": [
