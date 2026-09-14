@@ -61,8 +61,10 @@ NEXT = wait for the Prime's `[mur-N]` dm; run §1b (Workflow tool, confirmed liv
 - (empty)
 
 ## 🔴 Where it stops
+````
 ```
 gen 11 close, clean (not mid-crisis): four murs delivered (mur-50 accept_with_residue x2, mur-51 DEMOTE, mur-52 accept_with_residue x3 + destructive-path NO,
 mur-53 DEMOTE L4.350 + accept_with_residue x2); live --apply landed clean via sanctuary-director, --delete-old blocked pending Prime ruling (correct);
 worktree clean and pushed. wake 0 expected. next mur dm carries keyword ultracode; run via Workflow tool directly (confirmed 4/4 this gen).
 ```
+````
