@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-round0-box-calibration-and-two-kill-tests
 next_edges: []
 confidence: 0.75
-edited_by: a00-48ed5e56
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-0a374caa-7e0acd
 loop: hypothesis:lm-round0-box-calibration-and-two-kill-tests@s2
@@ -22,7 +22,7 @@ scaffold_hash: a2855b295e7d9551
 season: 2
 title: "E3 byte-neuron LUT: best 8-bit LUT 3.5-9.5pct edit distance at beta 0.8, ordering tracks beta^8, level beats flip"
 town: local-maxxing
-verdict: inconclusive_lean_proved:80
+verdict: inconclusive_lean_proved:60
 ---
 <!-- BODY:BEGIN -->
 # KID B / chain 2 E3 — byte-neuron LUT semantics on the owner's LIF chain
