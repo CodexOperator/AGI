@@ -6710,6 +6710,8 @@ SM.23 harvested: the reaper tolerates a null pid on every manifest record via on
 
 SM.24 (clauses 4/5/6-rows, partial, deferred rest documented) + SM.26 (dispatch --orders channel, 5/5 conjuncts, CAVEAT 141 net lines vs 45 ceiling flagged to SM) harvested onto season2/posts/sensei-director; full suite green in-worktree 4774/0/15/1xfail; MAIN merge-up held pending sanctuary-director's branch-reshuffle DONE line
 
+SM.238 (SM.23b) harvested onto seat branch -- heal-wait semantics properly re-landed, verdict proved, 80 heal tests green in 2.2s; still needs its own MAIN merge-up (TOP priority, reaper restart waits on it)
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
