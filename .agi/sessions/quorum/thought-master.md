@@ -81,6 +81,8 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 - [region] secrets hub — encryption town + Prime.
 
 ## 🔴 Where it stops
+````
 ```
 16:2xZ ROTATED on owner order (successor on copilot-cli). Live: director-thought @369 running ORDER 2 (D1 round). Next for you: read director-thought's lap report → accept/demote on the D1 node → next order from the QUEUE; ask the Prime whether L4.368 landed before re-running TM.2. Launch nothing yourself.
 ```
+````
