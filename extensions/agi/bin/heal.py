@@ -142,7 +142,38 @@ def _main_pin_reap() -> int:
     return 0
 
 
+# A live-stalled-only set is NOT terminal, but it must not be waited on: the
+# inline lane returns this NAMED non-zero code in ONE pass instead of polling
+# toward the 30-min deadline (hyp:l4-the-heal-wait-on-a-live-stalled-record-
+# is-a-bounded-seamed-poll-with-declared-semantics-never-a-thirty-minute-sleep).
+NOT_TERMINAL_YET = 3
+
+
+def _sleep(seconds: float) -> None:
+    """The wait loop's ONLY sleep, a module-level seam. Tests inject it with
+    monkeypatch so no test ever calls real `time.sleep`."""
+    time.sleep(seconds)
+
+
+def _now() -> float:
+    """The wait loop's ONLY clock, a module-level seam. Tests inject it with
+    monkeypatch."""
+    return time.time()
+
+
 def _main_heal() -> int:
+    """The inline wait lane (`heal.py <root> <iter_n>`).
+
+    SEMANTICS DECLARED: a record whose pid is LIVE but whose status is
+    `stalled` holds its lease and is NOT terminal — a pass sets
+    `all_terminal = False` for it. A LIVE-stalled-ONLY non-terminal set
+    RETURNS THIS ONE PASS with `NOT_TERMINAL_YET` (`3`); it is never polled
+    toward the `--max-wait-mins` deadline. A `stalled` record whose pid is
+    PROVABLY dead stays terminal through the SM.23 predicate (`stalled_dead`)
+    and resolves through dispatch's reaper in the same pass. Clock and sleep
+    go through the `_now` / `_sleep` seams. Returns 0 when ALL agents are
+    terminal, `NOT_TERMINAL_YET` for a live-stalled-only set, 2 on deadline.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("project_root")
     ap.add_argument("iter_n", type=locations.iteration_id)
@@ -164,11 +195,13 @@ def _main_heal() -> int:
     manifest = json.loads(manifest_path.read_text())
     timeout_s = int(manifest.get("timeout_seconds", 600))
 
-    deadline = time.time() + args.max_wait_mins * 60
+    deadline = _now() + args.max_wait_mins * 60
     healed_already: set[str] = set()
 
-    while time.time() < deadline:
+    while _now() < deadline:
         all_terminal = True
+        saw_live_stalled = False
+        saw_running = False
         for entry in manifest["agents"]:
             agent_id = entry["id"]
             ap_file = iter_dir / agent_id / "agent.json"
@@ -189,16 +222,18 @@ def _main_heal() -> int:
             # is still holding its lease and stays mirror-only.
             stalled_dead = (status == "stalled") and spid > 0 \
                 and not _pid_alive(spid)
-            if status != "running" and not stalled_dead:
-                # SM.23's residue (iii) hunk (17d919e84: a LIVE-stalled record
-                # sets all_terminal = False) is REVERTED on MAIN by the Prime
-                # 2026-09-13 20:3xZ: with the defaults (poll 30 s, max-wait
-                # 30 min) it left test_heal_leaves_a_live_pid_stalled_record_
-                # untouched sleeping for real and red -- three suites blew the
-                # 1800 s ceiling. Re-land as SM.23b with the semantics decided
-                # AND the poll seamed (goal:g15.25).
+            # SM.23b (goal:g15.25): a `stalled` record with a LIVE pid is NOT
+            # terminal — it still holds its lease. Setting all_terminal False
+            # is only half the fix; the watch loop below returns THIS pass for
+            # a live-stalled-only set rather than sleeping 30 min toward the
+            # deadline (which is what made the SM.23 hunk red).
+            if status == "stalled" and spid > 0 and _pid_alive(spid):
+                all_terminal = False
+                saw_live_stalled = True
                 continue
-            elapsed = int(time.time()) - int(rec.get("started_at", 0))
+            if status != "running" and not stalled_dead:
+                continue
+            elapsed = int(_now()) - int(rec.get("started_at", 0))
             if stalled_dead:
                 # ONE resolution rule, never a second copy: the dispatch
                 # reaper decides (node complete / branch advanced →
@@ -223,6 +258,7 @@ def _main_heal() -> int:
                     _alarm_dispatcher(rec, args.iter_n, "death", root)
             else:
                 all_terminal = False
+                saw_running = True
                 if elapsed > timeout_s and agent_id not in healed_already:
                     _heal(root, args.iter_n, agent_id, rec)
                     healed_already.add(agent_id)
@@ -236,7 +272,7 @@ def _main_heal() -> int:
                     pid = _rec_pid(rec)
                     if pid > 0 and not _pid_alive(pid):
                         rec["status"] = "failed"
-                        rec["finished_at"] = int(time.time())
+                        rec["finished_at"] = int(_now())
                         rec["fail_reason"] = "pid disappeared without completion signal"
                         ap_file.write_text(json.dumps(rec, indent=2))
                         # Sync to manifest too
@@ -250,7 +286,12 @@ def _main_heal() -> int:
         if all_terminal:
             print("all agents terminal")
             return 0
-        time.sleep(args.poll_interval_s)
+        if saw_live_stalled and not saw_running:
+            # live-stalled-only: bounded, declared, NAMED — never a 30-min sleep.
+            print("NOT terminal yet: live pid holds a `stalled` record",
+                  file=sys.stderr)
+            return NOT_TERMINAL_YET
+        _sleep(args.poll_interval_s)
 
     print("ERR: max-wait exceeded; some agents still non-terminal", file=sys.stderr)
     return 2
