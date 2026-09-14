@@ -816,38 +816,78 @@ def _seed_key_history_graph(root, rows):
     return graph
 
 
-def test_session_label_derives_from_row_word_and_gen(tmp_path):
-    """goal:g15.25 (hypothesis:l4-the-gui-session-label-is-post-word-gen-
-    derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label):
-    `_session_label` = `<name>-<label_word>-g<gen>` for a non-prime row with a
-    `label_word` cell, `<name>-g<gen>` without one, and None for a prime row
-    / absent row (the caller keeps the chain numeral unchanged). Derived from
-    the ROW only — never a card, never a hand flag."""
+def test_session_label_is_row_name_and_label_word_retired(tmp_path):
+    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
+    every-surface-seatings-key-on-session-id-and-the-label-is-the-post-name-
+    alone): `_session_label` = the ROW NAME ALONE for a non-prime row, with
+    or without a `label_word` cell (that cell is retired, read by nothing),
+    and None for a prime row / absent row (the caller keeps the chain numeral
+    unchanged)."""
     assert rotate._session_label(
         {"name": "post", "role": "director", "label_word": "main"},
-        3) == "post-main-g3"
+        3) == "post"
     assert rotate._session_label(
-        {"name": "post", "role": "director"}, 3) == "post-g3"
+        {"name": "post", "role": "director"}, 3) == "post"
     assert rotate._session_label(
         {"name": "prime-win", "role": "prime_director"}, 3) is None
     assert rotate._session_label(None, 3) is None
 
 
 def test_successor_row_write_stores_session_label(tmp_path):
-    """goal:g15.25 (hypothesis:l4-the-gui-session-label-...): the spawn row
-    write stores the seat's `session_label` = `_session_label(row, generation)`
-    beside session_name — the SAME string the rotation passes as the
-    --remote-control NAME. A prime/throwaway row stores '' (no label); the
+    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-...):
+    the spawn row write stores the seat's `session_label` = `_session_label(
+    row, generation)` beside session_name — the ROW NAME, never a label_word
+    nor a generation suffix. A prime/throwaway row stores '' (no label); the
     ack back-fill never touches it."""
     rows = [{"name": "s1", "role": "director", "label_word": "main"}]
     graph = _seed_key_history_graph(tmp_path, rows)
     out = rotate._successor_row_write(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=2, window="w")
-    assert "session_label=s1-main-g2" in out
+    assert "session_label=s1" in out
     import write as w
     own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
-    assert own["session_label"] == "s1-main-g2"
+    assert own["session_label"] == "s1"
+
+
+def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
+    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
+    every-surface-...), claim (6-rows): the spawn row write NEVER writes a
+    `generation` cell for a non-prime role, and the prime chain is untouched
+    (a prime_director row still carries its numeral generation)."""
+    rows = [{"name": "s1", "role": "director"},
+            {"name": "belam", "role": "prime_director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=2, window="w")
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert "generation" not in own, own
+    assert "generation=(none" in out
+
+    out_p = rotate._successor_row_write(
+        graph, actor="belam", seat="belam", role="prime_director",
+        session_ref="y", generation=7, window="belam-S1-L4-VII")
+    prime = next(r for r in w._load_seats(graph)
+                 if r.get("name") == "belam")
+    assert prime["generation"] == 7, prime
+    assert "generation=7" in out_p
+
+
+def test_read_generation_resolves_through_handoff_when_row_is_generation_less(
+        tmp_path):
+    """goal:g15.25 claim (6-rows) coherence: once a non-prime row carries no
+    `generation` cell, `_read_generation` still resolves the internal
+    rotation generation through the handoff HEADER fallback — the machinery
+    keeps counting while the row stays generation-less."""
+    rows = [{"name": "s1", "role": "director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    assert rotate._seat_row_generation(graph, "s1") is None
+    rotate._write_handoff(graph, "s1", 3)
+    assert rotate._read_generation(graph, "s1") == 3
+    _g, measured, source = rotate._generation_measured(graph, "s1")
+    assert measured is True and source == "handoff header"
 
 
 def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
@@ -2510,7 +2550,7 @@ def test_rotate_self_renames_window_before_respawn(fake_ladder, tmp_path, monkey
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert "adv-alive.gen1" in at_spawn["window_file"]
+    assert "adv-alive.prev" in at_spawn["window_file"]
 
 
 def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
@@ -2535,7 +2575,7 @@ def test_rotate_self_kills_own_window_after_continue(fake_ladder, tmp_path,
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert killed == ["adv-alive.gen1"]
+    assert killed == ["adv-alive.prev"]
 
 
 # ── goal:g15.25 line (3): --stops — the rotate-out is ONE call ──────
@@ -4005,8 +4045,8 @@ def test_rotate_self_writes_record_with_five_observations(fake_ladder, tmp_path,
     assert "start_offset" in obs["d_stale_continue_cursor"]
     # (e) predecessor alive by name
     e = obs["e_predecessor_alive"]
-    assert e["name"] == "adv-alive.gen1" and e["present"] is True
-    assert "adv-alive.gen1" in e["windows"]
+    assert e["name"] == "adv-alive.prev" and e["present"] is True
+    assert "adv-alive.prev" in e["windows"]
 
 
 def test_rotate_self_refuses_when_successor_window_absent(fake_ladder, tmp_path,

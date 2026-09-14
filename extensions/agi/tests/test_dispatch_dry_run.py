@@ -170,6 +170,38 @@ def test_parent_prompt_file_is_refused_and_never_silently_dropped(project, tmp_p
     assert "parent-distinctive-marker" not in r.stdout
 
 
+def test_parent_orders_reach_the_brief_and_are_printed_by_the_dry_run(
+        project, tmp_path):
+    """goal:g15.25 SM.26 -- `--tier parent --orders <file>` threads the
+    director's dispatch-time instruction into the parent brief VERBATIM under
+    one `## DISPATCH ORDERS` heading, and a dry run PRINTS that heading plus
+    its first lines before any spawn is paid for. The old parent refusal was
+    for `--prompt-file`; `--orders` is the new, accepted channel."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\nCOUPLE: SM.24\n")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(orders), "--from", "sanctuary-director")
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "## DISPATCH ORDERS (from sanctuary-director," in r.stdout
+    assert "orders:" in r.stdout
+    assert "SCOPE: touch only dispatch.py" in r.stdout
+
+
+def test_kid_orders_is_the_carry_forward_alias(project, tmp_path):
+    """goal:g15.25 SM.26 -- at KID tier `--orders` is the same per-kid
+    carry-forward as `--prompt-file` (ONE implementation), landing as the
+    labelled `WHAT THE LAST KID PRODUCED` segment, never a parent heading."""
+    f = tmp_path / "kid1.txt"
+    f.write_text("KID1 landed dispatch.py --orders")
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(f))
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "WHAT THE LAST KID PRODUCED" in r.stdout
+    assert "DISPATCH ORDERS" not in r.stdout
+
+
 def test_claude_advisor_dry_run_resolves_model_effort_and_env(project):
     """The verify's advisor case: a tier-3 parent aimed at a vision node gets
     the advisor brief and the full ultracode spawn, resolved without
