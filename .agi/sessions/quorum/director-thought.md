@@ -1,34 +1,34 @@
 # POST HANDOFF - director-thought - 2026-09-14
 
 ## 0 STATE
-- TM.1 parent branch: `season2/loops/hypothesis-lm-round0-box-calibra-a00-48ed5e56`
-- Parent commit: `6f719e307`
-- Review workflow: `mur-tm-01`, review and verify resolved without reported failures.
-- Harvested artifacts: three experiment nodes, `extensions/agi/bin/lm_bench.py`, and 12 tenancy JSONL files.
-- TM.2 paper digest is blocked: first read failed with OpenRouter 401 `User not found`; no paper files landed.
-- Main has unrelated comms and rotation changes; no unrelated files were staged.
+- TM.1 merged and pushed: `479eb6bfb` on `season2/main`.
+- Registered review: `mur-tm-01`; review and verify resolved without reported failures.
+- Durable TM.1 artifacts: three experiment nodes, `lm_bench.py`, 12 bench JSONL files, and E3 sweep evidence under `.agi/context/local-maxxing/e3/`.
+- TM.2 remains blocked: OpenRouter returned `401 User not found`; no paper files landed.
+- Main retains unrelated comms, rotation, and paper-digest changes; none were staged.
 
 ## 1 PLAN
-- done: harvest TM.1 with measured review and demotions.
-- done: run the registered merge-up review by name.
-- done: report A1, E3, and V2-C1 numbers to belam, sanctuary-master, and thought-master.
-- blocked: review TM.2 papers; provider failure produced no papers.
-- next: mint and dispatch D1 only after a hypothesis node exists and a permitted transformers venv is available.
+- done: correct E3 verdict to `inconclusive_lean_proved:60`.
+- done: correct A1 evidence count from 10 to 12 invocations.
+- done: merge TM.1, run the declared verify-suite, commit, and push.
+- blocked: TM.2 paper review until L4.368 lands and Prime reruns it.
+- next: create the D1 hypothesis node with its venv budget, then dispatch the three disjoint kids.
 
 ## 2 LANDED
-- A1 accepted as `inconclusive_lean_proved:70`: full tg128 CV 11.157%, load-gated subset 9.535%; all five ladder models loaded with `--reasoning off`.
-- E3 accepted as `inconclusive_lean_proved:80`: beta-0.8 maximum edit distance 9.5%, beta^8 ordering holds, level beats or ties flip.
-- V2-C1 demoted to `inconclusive_lean_proved:80`: 170 labels, 91.2% positive; goal-grouped model did not beat majority, exploratory hypothesis-grouped signal was experiment-body leakage.
+- A1 remains `inconclusive_lean_proved:70`.
+- E3 is now `inconclusive_lean_proved:60`; its sweep script and JSON are committed.
+- V2-C1 remains `inconclusive_lean_proved:80`.
+- Verification recorded 4810 passed, 15 skipped, 6 test failures in 426.62s. Links, goals, write-guard, smoke, viewport, dispatch-help, budget, seat-model, and node-count passed; the bin-suite-fresh gate remains because `lm_bench.py` is newer than the suite stamp.
 
 ## 3 STOP
-TM.1 is harvested and reviewed. The exact next command is to resolve the TM.2 provider failure or, if authority permits, create the D1 hypothesis node and dispatch its CPU-only round after setting up its venv under the kid worktree.
+TM.1 is complete. The exact next action is to author the D1 hypothesis node under `goal:g14.3`, including the `~/.venv-lm` transformers/datasets/torch CPU budget and the parent-spawns-at-least-two-kids rule, then dispatch the round.
 
 ## 4 TRAPS
-- `cli.py session-complete TM.01 --dry-run` refused because the parent had already materialized the session-complete target.
-- `workflow.py run merge-up-review` must receive a populated `rounds` JSON; an empty invocation produced no usable run.
-- No system `transformers` import and no `.venv-lm` was found; D1 is not dispatch-ready.
-- Do not touch unrelated comms, rotation records, or the TM.2 args/log.
+- The suite's measured node counts were `2872/198/3070`, while the requested Prime report tuple was `2868/198/3066`; the Prime report used the requested tuple and the discrepancy was reported to thought-master.
+- `commands.py run verify-suite` failed six existing dispatch/grid tests and left `bin-suite-fresh` required; no unrelated failures were changed.
+- TM.2 must not be rerun by this seat before L4.368.
+- Do not stage comms, rotation records, or paper-digest files.
 
 ## 5 VERIFICATION
-`git diff 042c40b9c1448b4655568ffc8784507f30cc8c63..6f719e307 --stat`
+`git show --stat --oneline 479eb6bfb`
 
