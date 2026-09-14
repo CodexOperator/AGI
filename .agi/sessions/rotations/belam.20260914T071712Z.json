@@ -1,0 +1,103 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-14T07:19:05.994555Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "director-thought",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "belam-S1-L4-XX"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 20,
+      "after": 21
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 6348148,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "belam-S1-L4-XX",
+      "windows": [
+        "director-thought",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "belam-S1-L4-XX"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -34.36
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "belam-S1-L4-XX",
+      "id": "@363"
+    },
+    "successor_window": {
+      "name": "belam-S1-L4-XXI",
+      "id": "@370"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@370",
+      "pid": 1703008,
+      "session_id": "d5bde272-b125-4849-9d77-e697973f71d4",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
+      "name": "agi-c6",
+      "path": "/home/ubuntu/.claude/sessions/1703008.json",
+      "note": "joined by @370 in registry file 1703008.json"
+    },
+    "successor_row": "config:seats row 'belam': session_ref= session_name=agi-c6 session_label= session_id=d5bde272-b125-4849-9d77-e697973f71d4 pid=1703008 generation=21 window='@370' source=registry pubkey=26edd9d6a10a53a4... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 25cde7026) -- own-row only: belam spawn row: gen 21, session_id d5bde272-b125-4849-9d77-e697973f71d4, window @370, pid 1703008\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.gen21.json",
+    "own_authority_released": "generation 20 of seat 'belam' retired; successor generation 21 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "belam_cap": {
+      "prefix": "belam",
+      "would_exceed_five": false,
+      "oldest_to_reap": null,
+      "live_belam": [
+        "belam-S1-L4-XX",
+        "belam-S1-L4-XXI"
+      ]
+    },
+    "button_down": "grid committed \u2014 record+row on branch season2/main",
+    "livestream_repoint": {
+      "session": "view-belam",
+      "target": "@370",
+      "skipped": "view session view-belam absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "gated": "own window + own chain kill GATED OFF on a numeral-chain seat (owner chain rule keeps the five newest predecessors idle in their windows)",
+    "own_window_id": "@363",
+    "own_chain_reap": "GATED OFF"
+  },
+  "committed_by": "rotate-self"
+}
