@@ -2379,3 +2379,122 @@ def _git_repo_on_branch(tmp_path: Path, branch: str) -> Path:
     subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
                    check=True, capture_output=True)
     return repo
+
+
+# --- hypothesis:l4-a-suspend-killed-round-comes-home-stalled-with-a-dead-pid ---
+# ADMISSION under test THROUGH `_reap_pass` (not just `_reap_one`): a `stalled`
+# record whose pid is provably gone is resolved by the same rules as a dead
+# `running` record (node complete / branch advanced -> done-unreported,
+# otherwise -> failed with the stall named), and is NEVER restarted. A
+# `stalled` record with a LIVE pid stays stalled (mirror-only, not reaped).
+
+
+def _stall_pass(tmp_path, monkeypatch, rec_status="stalled", agent_pid=999,
+                node_complete=False, branch_committed=False, alive_pid=None,
+                restart_ok=True):
+    import json
+    d = _load_dispatch()
+    graph = _reap_project(tmp_path)
+    iter_dir = graph / "sessions" / "iter-stall"
+    (iter_dir / "a00-stl").mkdir(parents=True)
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-stl", "status": "running"}]}))
+    (iter_dir / "a00-stl" / "agent.json").write_text(json.dumps(
+        {"id": "a00-stl", "status": rec_status, "pid": agent_pid,
+         "node_id": "hypothesis:h-stall"}))
+    import completion
+    monkeypatch.setattr(completion, "is_complete",
+                        lambda root, nid: node_complete)
+    monkeypatch.setattr(d, "_branch_has_done_commit",
+                        lambda root, rec, aid: branch_committed)
+    monkeypatch.setattr(d, "stall_detect",
+                        type("NS", (), {"record_stalled_in_iteration":
+                                        lambda *a, **k: None})())
+    if alive_pid is not None:
+        adapter = type("Live", (_FakeAdapter,),
+                       {"is_alive": lambda self, p: p == alive_pid})(pid=111)
+    else:
+        adapter = _FakeAdapter(pid=111)
+    out = d._reap_pass(graph, iter_dir, adapter, cap=1, cfg={},
+                       restart_ok=restart_ok)
+    rec = json.loads((iter_dir / "a00-stl" / "agent.json").read_text())
+    return d, out, rec, adapter
+
+
+def test_stalled_dead_pid_complete_node_resolves_done_unreported(tmp_path, monkeypatch):
+    """A suspend-killed round whose pid is gone but whose node is complete
+    resolves done-unreported, exactly like a dead `running` record, and is
+    never restarted."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       node_complete=True)
+    assert rec["status"] == "done-unreported", rec
+    assert "complete" in rec["fail_reason"], rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_dead_pid_branch_advanced_resolves_done_unreported(tmp_path, monkeypatch):
+    """The parent's completion signal — a commit on its branch — resolves a
+    stalled+dead-pid record done-unreported, never restarted."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       branch_committed=True)
+    assert rec["status"] == "done-unreported", rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_dead_pid_incomplete_node_fails_named_never_restarted(tmp_path, monkeypatch):
+    """No completion signal and no branch advance -> `failed` with the stall
+    named, and NEVER a respawn."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch)
+    assert rec["status"] == "failed", rec
+    assert "stalled" in rec["fail_reason"], rec
+    assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_stalled_alive_pid_stays_stalled_not_reaped(tmp_path, monkeypatch):
+    """A `stalled` record whose pid is still alive is NOT admitted to the reap
+    path — it stays stalled, is not mirrored-as-reaped, and never restarts."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch, alive_pid=999)
+    assert rec["status"] == "stalled", rec
+    assert out["marked"] == [], out
+    assert adapter.calls == [], "a live stalled record must never be reaped"
+
+
+# --- hypothesis:l4-the-reaper-tolerates-a-null-pid… — the ONE pid reader ---
+
+def test_rec_pid_tolerates_null_missing_and_non_int():
+    """`int(rec.get("pid", 0))` raised TypeError on a committed record whose
+    pid was null or a non-int, taking the whole reap pass down. `_rec_pid`
+    reads every such shape as 0 = unknown."""
+    d = _load_dispatch()
+    assert d._rec_pid({"pid": None}) == 0
+    assert d._rec_pid({}) == 0
+    assert d._rec_pid({"pid": "abc"}) == 0
+    assert d._rec_pid({"pid": ""}) == 0
+    assert d._rec_pid({"pid": 4242}) == 4242
+    assert d._rec_pid({"pid": "4242"}) == 4242
+
+
+def test_is_death_predicate_covers_stalled_and_dead_running():
+    """The ONE death predicate: both terminal resolutions that lose a pid are
+    deaths, and a mirror-only resolution is not. This is what the `died`
+    membership is driven off instead of a `fail_reason` string match."""
+    d = _load_dispatch()
+    assert d._is_death({"status": "failed", "death": {"class": "died-no-work"}})
+    assert d._is_death({"status": "failed", "death": {"class": "died-after-work"}})
+    assert not d._is_death({"status": "failed"})            # no death class
+    assert not d._is_death({"status": "done-unreported",
+                            "fail_reason": "pid 1 disappeared, but ... complete"})
+    assert not d._is_death({"status": "running"})
+
+
+def test_stalled_dead_in_service_lane_lands_in_died(tmp_path, monkeypatch):
+    """A stalled-dead record reaped in the SERVICE lane (`restart_ok=False`)
+    must surface under `died` — that is what makes the watcher dm it and log
+    the reaper line. The old string-match on `fail_reason` never matched the
+    `stalled; …` reason, so `died` stayed empty."""
+    d, out, rec, adapter = _stall_pass(tmp_path, monkeypatch,
+                                       restart_ok=False)
+    assert rec["status"] == "failed", rec
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+    assert out["died"] == ["a00-stl"], out
+    assert adapter.calls == [], "a stalled record must never be restarted"

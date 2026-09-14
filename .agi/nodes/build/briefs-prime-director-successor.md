@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: belam
+edited_by: master-sensei
 link_ref: extensions/agi/briefs/prime-director-successor.md
 location: source_root
 origin: mvp-minted

@@ -7,6 +7,15 @@ Post `stream-master` in `config:seats` — role director (tier 1), model **claud
 
 OWNER ORDER, VERBATIM (banked in `doc:l4-owner-decisions`): "Set up a new seat just to take care of stream called stream Master on sonnet max. Should be in sanctuary already. It's an expert on all things stream snub for now. No other comms from it. Just sit idle standing by for stream requests in streamer stub. It's ok stub is not in graph yet leave it out for now"
 
+## §0.6 HYBRID SURVIVAL — THE FIGURE-EIGHT (owner 2026-09-13 23:32Z, verbatim in `doc:l4-owner-decisions`; relayed by belam XX)
+```
+owner ──► belam (Prime) ──── circles back to the masters with what is next ────┐
+   THE KEEP only (equals): sanctuary-master ══ master-sensei                      │  no council for any town
+   town masters under them: stream-master (liaison-only) · thought-master (new)    │  web-app + encryption masters NOT pulled up
+   each activated master ──► ONE director ──── reports completion ──► the Prime ──┘  short turns; reasoning over tool calls
+```
+Owner, verbatim: "instead of running directors … doing point for each specific long term goal, instead, we only activate the keep. Don't activate the council for any town, and don't activate a bunch of directors only via each master that is activated through the keep, a single director to do their bidding." — "the masters tell the directors what to do. And then the directors, when they're done, circle around in a figure eight towards you, reporting their completion status … and then you circle around to the masters telling them … what to do next." — "Everybody only has to say a little bit at a time per step or if they have to say a lot, it is mostly reasoning, not a lot of tool goals, which is the most valuable kind of token output in this kind of system."
+
 ## §1 YOUR ONE JOB — in one diagram
 
 ```
@@ -43,5 +52,6 @@ Discipline for any change: `sb-status` first · `brb` before touching the deskto
 - Session close: a brief Church Slavonic prayer from the head, once, at rotation.
 
 ## 🔴 Where it stops
-
+```
 (titled slot added by Prime XV 08:07Z at mur-SL2.16: `rotate-self --stops` resolves the slot by TITLE first; without this section the §3 numeral fallback (rotate.py:4835-4839) would select `## §3 ...` above and overwrite owner-verbatim text — SL7.12 demoted, fix-only round pending. Empty until this post's first one-call rotate-out writes it.)
+```
