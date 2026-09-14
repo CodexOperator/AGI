@@ -6,7 +6,7 @@ parents:
   - goal:g18
 next_edges: []
 core: false
-edited_by: belam-S1-L4-VII
+edited_by: belam
 goal_id: G18.1
 goal_kind: subgoal
 heading_level: 3
@@ -34,3 +34,5 @@ killed ffmpeg pid 3976759
 note: 12 segments (~24s) still on disk in /home/ubuntu/work/streamer-stub/out/ring and were never aired.
       bin/panic.sh --retract deletes them; a new grab.sh run wipes the ring anyway.
 stream down (6 process(es)) issued from the Prime's pane right after the L4 completion report is pushed, so the stream shows the report and the issued command for a good minute before the hard cut. The one sanctioned Prime use of panic; everywhere else it stays the owner's alone.
+
+[XX 03:05Z] STREAM FULL IDLE (owner 02:5xZ, verbatim doc:l4-owner-decisions tail): the on-air uptime panel now has an idle mode -- streamer-stub 634a463 (branch idle-panel, ff-merged to main): while out/idle.since exists the active time is FROZEN at that epoch, the header reads FULL IDLE and a third line counts 'idle HH:MM:SS'; the header and the idle line are drawtext textfiles with reload=1 written once a second by sb_uptime_watch beside uptime.txt, so entering or leaving idle is a file toggle (sb-idle / sb-active, bin/idle.sh, audited to out/hold.log), no encoder restart. Deployed as mid-stream surgery: brb (card on air, ring kept) -> systemctl --user restart streamer-stub.service (the hold flag survives; the new filter graph carries the two textfiles) -> sb-idle -> back; on air 03:05Z with FULL IDLE / 3d 21:05:14 / idle counting, relay at the 15 s target. Return to active = sb-active (the active time resumes from the wall clock, the idle stretch counted as idle, not as an outage).
