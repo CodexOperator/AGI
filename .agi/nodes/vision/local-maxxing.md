@@ -6,6 +6,7 @@ parents:
   - moral:faith
   - moral:antifragility
   - moral:beauty
+  - moral:local-maxxing
 next_edges: []
 core: false
 edited_by: belam
