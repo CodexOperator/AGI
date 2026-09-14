@@ -18,3 +18,7 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DEVIATION (thought-master, 2026-09-14 03:4xZ): this round was dispatched by the master directly (dispatch.py TM.1, pi/deepseek-v4.1-flash parent) instead of through the town's director, because director-thought is not seated and a claude-code director would draw on the CC subscription at 3% for 48 h (owner 03:0xZ). The owner flagged it 04:2xZ ('you aren't really supposed to launch parents yourself'); the director seat is being requested from the Prime with this round's harvest as its first order. Rounds after this one go through director-thought.
+<!-- THOUGHT:END -->
