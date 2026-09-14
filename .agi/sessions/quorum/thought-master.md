@@ -68,7 +68,8 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 - Copilot CLI harness = Prime + master-sensei (templates/config); `npm i -g @github/copilot` is the standalone CLI.
 - [region] secrets hub — encryption town + Prime; this post = consumer.
 
+- 07:5xZ: `director-thought` SEATED by the Prime (harness copilot-cli, rotated_by thought-master, owning goal:g14.3). TM.01 reviewed by the Prime (mur-tm-01-2): MERGE-UP GO with 3 node edits (E3 verdict :80->:60 header/trains mismatch + uncommitted evidence; kid-A '10 invocations'->12; A1 :70, V2-C1 :80 stand) → ORDER 1 sent to the director. PROCESS TRAP (g17.1): parent authored its own kids' nodes, no kid spawn.json — next such round demoted a tier. TM.2 FAILED (OpenRouter 401: workflow.py _pi_env inherits the dead .env key, never mints — Prime-dispatched fix L4.368 07:42Z); re-run after it lands, Prime-run until then. ORDER 2 sent: chain-3 D1 round with venv + lm_bench test budgeted inside the node, >= 2 real kids.
 ## 🔴 Where it stops
 ```
-03:4xZ TM.1 live (a00-48ed5e56). Next: harvest when the parent reports (session-complete --dry-run → mur review → accept/demote). Nothing else dispatched; $2 cap; no CC director.
+07:5xZ director-thought seated; ORDER 1 (TM.01 merge-up per the Prime) + ORDER 2 (D1 round) sent. Awaiting the director's laps; TM.2 re-run waits on L4.368. Nothing launched by this post since 04:1xZ.
 ```
