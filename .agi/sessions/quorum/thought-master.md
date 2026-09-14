@@ -54,20 +54,19 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by your predecessor, inbox/git-state/record are in STARTUP (facts F1-F27 there too). Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (the Prime keys your row at seating; if it refuses "unkeyed": `python3 extensions/agi/bin/send.py keygen --post thought-master` once); the card is current because you wrote it DURING the work — one Write per landing, the 🔴 stops line at the moment it happens. Meter: the `[meter] post=thought-master <f>` line on every prompt; rotate when **f ≥ 0.47** (the hook's second number is the ratio f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation.
 
-## §4 STATE + NEXT (2026-09-14 02:5xZ — survey landed; plan to the owner)
-- Seated MAIN, keyed (ack agi-f8 + keygen 01:4xZ). Owner spoke 01:0xZ (verbatim on goal:g14): tiny models everywhere, CPU-only, max exploration, coalesce before MVP, dead-head→oscillators→SNN, byte-neuron, KV/streaming, 3 visions, **Camber = 3 GPU-h/MONTH**, town moral node (owner's hand only — schema written_by owner; Prime asked the owner).
-- LANDED: `doc:local-maxxing-trove-survey-2026-09-14` under goal:g14.3 @95483fe5c (payload `.agi/context/local-maxxing/trove-survey-2026-09-14.md`, 441 KB: judge + 9 readings/critiques + 3 panel seats). Workflow `trove-survey` registered (manifest+script @8baa642ef, Prime's config row 01:38Z).
-- Judge headline: 11 chains ranked by knowledge-per-token; round-0 baseline = llama.cpp build + ~5 GB GGUF ladder (Qwen3-0.6B, Qwen3.5-0.8B/2B/4B) + tenancy logging protocol (box is paging: load 16.6, swap 239 MB free); Camber plan = 3 bursts (nvidia-smi 5 min; looped-depth toy train 25-30 min; PRM-7B scoring 20-30 min) ≈ 85-95 of 180 min; 'qwen3.8 50b' = no such id (Qwen3.8-27B / Flash-Next 125B-A6B); dead-head coherence ≠ pruning lever (base-rate lift 1.0, verified from the repo's own JSON); 'exponentially smarter' has no measured instance — restate as marginal accuracy per CPU-second with CI.
-- NEXT: owner's word on the plan → mint the chain-1/2/3/4 first hypotheses as `hypothesis:` nodes under g14.3 → first dispatch order (round 0: CP0 build + ladder + A1 reproducibility + E3 LUT sweep + V2-C1 corpus kill-test, all $0) → ask the Prime for director-thought with that order in hand.
+## §4 STATE + NEXT (2026-09-14 03:4xZ — round TM.1 LIVE)
+- Seated MAIN, keyed. Owner spoke twice (verbatim on goal:g14, 01:0xZ + 03:0xZ). `moral:local-maxxing` minted by the Prime 01:41Z (owner's hand). Survey landed: `doc:local-maxxing-trove-survey-2026-09-14` @95483fe5c. Workflow `trove-survey` registered.
+- OWNER 03:0xZ: Q1 drop the 50B line; Q2 clear to benchmark (load now 0.8); Q3 OK to build llama.cpp + venv installs; datasets may live on the [region] box (~450 GB free). Compute += M3 Air 16 GB, desktop gpu-8g (no HDD; USB/SSD boot; same LAN as [region] box). **CC sub at 3% for 48 h → owner wants GitHub Copilot CLI as a Sanctuary harness ASAP** (relayed to the Prime 03:2xZ; Copilot CLI NOT installed here — only ~/.copilot first-launch marker 2026-08-25). I hold director-thought until the harness question is settled; rounds go through pi.
+- LIVE: round **TM.1** = `hypothesis:lm-round0-box-calibration-and-two-kill-tests` (@8ea85cae6) — parent a00-48ed5e56 pid 1072717, pi/deepseek-v4.1-flash, branch season2/loops/hypothesis-lm-round0-box-calibra-a00-48ed5e56, manifest .agi/sessions/iter-TM.01/manifest.json. Kids: A = llama.cpp build + GGUF ladder + lm_bench.py tenancy protocol + A1 CV; B = E3 LUT semantics (level vs FLIP arm, owner 03:0xZ); C = V2-C1 corpus trainability. Brief cap $2 (key ceiling $5 = provisioning default, noted deviation). OpenRouter $19.88 left at 03:2xZ.
+- NEXT: harvest TM.1 (`cli.py session-complete TM.01 --dry-run` first; diff vs merge-base; review by name via `workflow.py run merge-up-review`), accept/demote on the node, one numbers line to SM; then mint chain-3 D1 (dead-set random + mean-ablation) and chain-2 follow-on 'digital Kuramoto in flip mode' as the next round.
 
 ## §5 BANKED (owner-only)
-- OWNER Q1: 'qwen3.8 50b' — confirm it was Qwen3.8-27B (off-charter under CPU-only) or drop it. Recommend: drop.
-- OWNER Q2: pause firefox/ffmpeg/VNC on this box for benchmark windows, or make the 8 GB [region] box the benchmark host? Recommend: 8 GB box for <5 GB models once its lscpu/flags are known; this box only in paused windows.
-- OWNER Q3: CP0 installs — llama.cpp source build (~10 CPU-min) + `pip install transformers datasets` on this box. Recommend: yes, both, once, recorded in one node.
-- Moral node: owner's hand only.
-- [region] secrets hub — encryption town + Prime; this post = first consumer only.
+- GPU box bring-up (USB/SSD boot vs PXE from the [region] box) + LAN cluster = Prime/owner infra; this post consumes it (the 2070S 8 GB replaces most Camber bursts: the looped-depth toy train fits).
+- DeepSeek + Moonshot optimization papers (owner 03:0xZ): links needed; nobody digests from memory.
+- Copilot CLI harness = Prime + master-sensei (templates/config); `npm i -g @github/copilot` is the standalone CLI.
+- [region] secrets hub — encryption town + Prime; this post = consumer.
 
 ## 🔴 Where it stops
 ```
-02:5xZ survey landed (doc:local-maxxing-trove-survey-2026-09-14 @95483fe5c). Plan sent to the owner in the pane; awaiting the owner's word on Q1-Q3 + the chain order. Nothing dispatched, nothing spent. Next: mint first hypotheses under g14.3, write dispatch order, ask Prime for director-thought.
+03:4xZ TM.1 live (a00-48ed5e56). Next: harvest when the parent reports (session-complete --dry-run → mur review → accept/demote). Nothing else dispatched; $2 cap; no CC director.
 ```
