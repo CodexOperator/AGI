@@ -15431,9 +15431,9 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     # branch is routine housekeeping -- NOT the closeout merge-UP push into
     # MAIN, which is the gated act and lives on `_make_closeout_seams`'s
     # `_push`. That reasoning is TRUE for every non-prime post and FALSE for
-    # the prime itself, whose own checked-out branch IS a trunk (season2/main)
-    # -- so a frozen prime's own rotate-self would publish season2/main first
-    # (mur-53, relayed by belam XX 21:14Z).
+    # the prime itself, whose own checked-out branch IS the season trunk
+    # itself -- so a frozen prime's own rotate-self would publish that trunk
+    # first (mur-53, relayed by belam XX 21:14Z).
     #
     # RUNG 5 (hypothesis:l4-stops-push-gates-on-is-frozen-when-the-resolved-
     # branch-is-a-trunk): the gate is CONDITIONAL on the resolved branch. When
