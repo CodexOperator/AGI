@@ -839,9 +839,119 @@ def _build_claude_command(name: str, prompt_text: str, debug_file: str,
     return cmd
 
 
+def _harness_row(root: Path | None, harness: str | None) -> dict:
+    """The config.json `harnesses.<harness>` row, or `{}`.
+
+    The one reader the non-claude spawn path uses to resolve a seat's bin and
+    model, so a third harness's argv never borrows a cell from
+    `harnesses.claude-code` (hypothesis:l4-copilot-cli-is-a-third-harness-...).
+    """
+    if root is None or not harness:
+        return {}
+    return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
+
+
+# The harness ids rotate.py can actually BUILD an argv for. Anything else is
+# refused by name rather than silently fallen back to claude (goal:g15,
+# hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-
+# claude-code-and-pi). "claude-code" is the built-in default and is always
+# accepted (its argv is today's `claude --remote-control`).
+_KNOWN_HARNESSES = ("claude-code", "copilot-cli")
+
+
+def _validate_harness(root: Path | None,
+                      harness: str | None) -> tuple[int, str]:
+    """Refuse an unknown `--harness` BY NAME, before any command is built.
+
+    Mirrors `adapters.resolve` (dispatch.py): a config.json `harnesses` map
+    that does not declare the named harness is an error, not a fallback. The
+    defect this closes: `--harness does-not-exist` (a typo such as
+    `copilot_cli`) silently seated a CLAUDE post and spent the owner's 3%-left
+    Claude Code budget, which is the cost the whole third-harness claim exists
+    to conserve.
+
+    Returns `(0, "")` when the harness is acceptable (absent / `claude-code`, a
+    declared harness, or -- with no config to consult -- one of the two known
+    ids); otherwise `(1, "")` with the named error already on stderr.
+    """
+    if not harness or harness == "claude-code":
+        return 0, ""
+    if root is None:
+        declared = list(_KNOWN_HARNESSES)
+    else:
+        declared = sorted((_config_json(root).get("harnesses") or {}).keys())
+    if harness not in declared:
+        print(f"ERR: no harness {harness!r} in config; declared: {declared}",
+              file=sys.stderr)
+        return 1, ""
+    if harness not in _KNOWN_HARNESSES:
+        # Declared but not buildable here: `pi` is a dispatch.py harness with
+        # no rotate argv builder, so letting it through would fall to the
+        # claude branch -- the exact silent-claude fallback this validator
+        # exists to stop, one name further out.
+        print(f"ERR: harness {harness!r} is declared but rotate.py cannot "
+              f"build it; buildable: {list(_KNOWN_HARNESSES)}",
+              file=sys.stderr)
+        return 1, ""
+    return 0, ""
+
+
+def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
+                           bin_path: str | None = None,
+                           extra_args=None) -> list[str]:
+    """The interactive GitHub Copilot CLI argv for a seat.
+
+    Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
+
+        copilot [--model M] [--effort E] --allow-all-tools [-i <card>]
+
+    `-i, --interactive <prompt>` starts interactive mode (the post stays up
+    in the tmux window and `send.py` can type into its input box) and executes
+    the card as the first prompt. There is **no remote-control mode** in this
+    CLI -- no `--remote-control`, no app-GUI session, no debug file -- so the
+    owner watches the post BY TMUX, and `_shell_cmd` gets no rc read-back to
+    route. That absence is the design, not a gap to fill: the pane is the
+    window.
+
+    `--allow-all-tools` is required for a non-interactive `-p` run and is kept
+    here so the first tool call does not block on a confirmation; `-i` keeps
+    the session alive, which is what a SEAT (not a fire-and-forget kid) needs.
+    """
+    args = [bin_path or "copilot"]
+    if model:
+        args += ["--model", str(model)]
+    if effort:
+        args += ["--effort", str(effort)]
+    args += ["--allow-all-tools"]
+    args += [str(a) for a in (extra_args or [])]
+    args += ["-i", prompt_text]
+    return args
+
+
+def _build_harness_command(harness: str | None, *, name: str,
+                           prompt_text: str, debug_file: str, model=None,
+                           effort=None, settings=None,
+                           bin_path: str | None = None) -> list[str]:
+    """The argv for the resolved harness, claude by default.
+
+    The ONE seam a third harness enters `spawn_window` through. `harness`
+    absent/`claude-code` returns `_build_claude_command` byte-identically, so
+    every existing spawn line is unchanged; `copilot-cli` returns the
+    interactive copilot argv instead.
+    """
+    if harness == "copilot-cli":
+        return _build_copilot_command(
+            prompt_text=prompt_text, model=model, effort=effort,
+            bin_path=bin_path)
+    return _build_claude_command(name, prompt_text, debug_file, model=model,
+                                 effort=effort, settings=settings)
+
+
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
                        effort, settings, debug_file: str, extra: str = "",
-                       rc_name: str | None = None) -> list[str]:
+                       rc_name: str | None = None,
+                       harness: str | None = None,
+                       bin_path: str | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
     model/effort/settings appended as flags.
@@ -861,14 +971,18 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
     prompt_text = brief.successor_prompt(tier=tier, body=body)
-    return _build_claude_command(rc_name or name, prompt_text, debug_file,
-                                 model=model, effort=effort, settings=settings)
+    return _build_harness_command(
+        harness, name=rc_name or name, prompt_text=prompt_text,
+        debug_file=debug_file, model=model, effort=effort, settings=settings,
+        bin_path=bin_path)
 
 
 def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  settings, debug_file: str,
                                  extra: str = "",
                                  rc_name: str | None = None,
+                                 harness: str | None = None,
+                                 bin_path: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -891,8 +1005,9 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = ULTRACODE_KEYWORD + "\n" + body
     if extra:
         body += "\n\n" + extra
-    return _build_claude_command(rc_name or name, body, debug_file,
-                                 model=model, effort=effort, settings=settings)
+    return _build_harness_command(
+        harness, name=rc_name or name, prompt_text=body, debug_file=debug_file,
+        model=model, effort=effort, settings=settings, bin_path=bin_path)
 
 
 # ---- meter subcommand -----------------------------------------------------
@@ -1499,7 +1614,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  extra: str = "",
                  seat: str | None = None,
                  rc_name: str | None = None,
-                 successor_argv: str | None = None) -> tuple[int, str]:
+                 successor_argv: str | None = None,
+                 harness: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1535,20 +1651,52 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     Returns `(exit_code, shell_cmd)`. On dry-run the shell line is printed
     and (0, shell_cmd) returned; every failure prints its ERR and returns
     a non-zero exit code with an empty string.
+
+    `harness` (hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-
+    hooks-as-claude-code-and-pi, conjunct 6): the config.json harness id the
+    successor is launched under. Absent/`claude-code` builds today's
+    `claude --remote-control` argv byte-for-byte; `copilot-cli` builds
+    `copilot --model M --allow-all-tools -i <card>` and resolves the model
+    and bin from `harnesses.copilot-cli` alone -- never from the claude-code
+    row. Copilot has NO remote-control mode and no debug file, so the
+    read-back the claude path gets from its RC log is simply skipped here;
+    the tmux pane IS the watch surface (`send.py` still works because it is
+    pane-based).
     """
     if not name or not re.match(r"^[A-Za-z0-9_-]+$", name):
         print(f"ERR: invalid name {name!r}. Use letters, digits, hyphens, "
               f"or underscores.", file=sys.stderr)
         return 1, ""
 
+    # Refuse an unknown --harness BEFORE building any command: a typo must not
+    # silently fall back to the claude path and burn the CC budget (see
+    # _validate_harness).
+    hr_rc, _ = _validate_harness(root, harness)
+    if hr_rc:
+        return hr_rc, ""
+
     # Resolve model / effort / settings (caller flags override role defaults)
     if root is not None:
-        if not model:
-            model = load_role(root, tier, "model")
-        if not effort:
-            effort = load_role(root, tier, "effort")
-        if settings is None:
-            settings = load_role(root, tier, "settings")
+        if harness == "copilot-cli":
+            # A third harness's cells live in ITS OWN row. The ladder/claude-
+            # code fallback load_role() resolves would hand a copilot seat a
+            # claude model name, so the whole resolution is owned here.
+            hrow = _harness_row(root, harness)
+            if not model:
+                models = hrow.get("models") or {}
+                model = models.get(tier) or models.get("director") or None
+            if not effort:
+                e = hrow.get("effort")
+                effort = (e.get(tier) if isinstance(e, dict) else e) or None
+            # settings are a Claude Code concept (ultracode); the copilot
+            # argv ignores them. Leave whatever the caller passed untouched.
+        else:
+            if not model:
+                model = load_role(root, tier, "model")
+            if not effort:
+                effort = load_role(root, tier, "effort")
+            if settings is None:
+                settings = load_role(root, tier, "settings")
 
     if root is not None and not debug_file:
         # (w2) route the DEFAULT debug log through `_sessions_dir` (the ONE
@@ -1567,6 +1715,11 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     if successor_argv is not None:
         shell_cmd = successor_argv
     else:
+        # A third harness resolves its own bin (the copilot binary/row); the
+        # claude path passes None and stays byte-identical.
+        _bin = None
+        if harness == "copilot-cli":
+            _bin = _harness_row(root, harness).get("bin") or None
         # A non-prime seat spawned with no explicit --prompt-file gets its body
         # from the assembled brief. assemble() already inserts the constitution
         # head, so we skip successor_prompt() — calling both would double-insert it
@@ -1577,6 +1730,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
+                harness=harness, bin_path=_bin,
             )
         else:
             if prompt_file is None:
@@ -1588,7 +1742,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             claude_cmd = _successor_command(
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
-                extra=extra,
+                extra=extra, harness=harness, bin_path=_bin,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
@@ -1842,6 +1996,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         successor_argv=getattr(args, "successor_argv", None),
         seat=seat,
         extra=startup_block,
+        harness=getattr(args, "harness", None),
     )
     if rc != 0:
         # A FAILED spawn removes the pre-window first-seating bootstrap record
@@ -1857,7 +2012,12 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         return rc
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
-        print(f"  watch at: https://claude.ai/chat (remote-control mode)")
+        if getattr(args, "harness", None) == "copilot-cli":
+            # Copilot has no remote-control mode / app-GUI session to watch.
+            print(f"  watch the tmux window {name!r} directly "
+                  f"(copilot has no remote-control mode)")
+        else:
+            print(f"  watch at: https://claude.ai/chat (remote-control mode)")
         # A recovery seating gets its predecessor autopsy pre-filled from
         # files (hypothesis:l4-a-recovery-seating-gets-its-predecessor-
         # autopsy-pre-filled-from-files): every first seating PRINTS a
@@ -2578,6 +2738,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
         successor_argv=getattr(args, "successor_argv", None),
         seat=getattr(args, "seat", None),
+        harness=getattr(args, "harness", None),
     )
     if rc != 0:
         return rc
@@ -18229,6 +18390,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
+    p_spawn.add_argument("--harness", default=None,
+                        help="config.json harness id to launch under "
+                             "(default: claude-code). 'copilot-cli' builds "
+                             "`copilot --model M --allow-all-tools -i <card>` "
+                             "and resolves its model/bin from "
+                             "harnesses.copilot-cli (hypothesis:l4-copilot-cli-"
+                             "is-a-third-harness-with-the-same-hooks-as-"
+                             "claude-code-and-pi)")
     p_spawn.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                         help="seat successor identity; when given, AGI_SEAT=<name> "
                              "is exported before the claude argv so the SessionStart "
@@ -18311,6 +18480,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="explicit stand-in successor command run verbatim "
                              "instead of the real claude --remote-control "
                              "(hypothesis:l3-rotate-self-successor-override)")
+    p_loop.add_argument("--harness", default=None,
+                        help="config.json harness id to launch under "
+                             "(default: claude-code); see spawn --harness")
     p_loop.add_argument("--tmux-session", default=DEFAULT_TMUX_SESSION,
                         help=f"tmux session (default: {DEFAULT_TMUX_SESSION})")
     p_loop.add_argument("--window-path", default=None,
