@@ -469,6 +469,148 @@ def _normalize_confidence(value: float) -> float:
         "not a percent either)")
 
 
+def _completion_line(iter_n, agent_id, node_id, verdict):
+    """One round's completion line, spelled once."""
+    return (f"iter={iter_n} agent={agent_id} node={node_id or '-'} "
+            f"verdict={verdict}")
+
+
+def _branch_tip(root, branch: str | None) -> str:
+    """`git rev-parse <branch>` from the MAIN checkout (dispatch.py
+    `_commits_ahead` resolves through `locations.git_common_root` the same
+    way). '' when there is no branch or the ref does not resolve.
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round -- the parent harvest dm names its branch tip."""
+    if not branch:
+        return ""
+    try:
+        main = locations.git_common_root(root) or root
+        r = subprocess.run(
+            ["git", "-C", str(main), "rev-parse", branch],
+            capture_output=True, text=True, timeout=30)
+        if r.returncode == 0:
+            return r.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+    return ""
+
+
+def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
+    """hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+    per-round, clause 2 -- the ONE seat dm a parent sends at harvest. Counts
+    and node ids derive from the agent records of kids whose `spawned_by_agent`
+    is this parent (dispatch.py stamps it at spawn), in the same iteration
+    manifest. Status is the terminal signal: `done` accepted, `failed`/
+    `hung-healed` failed, everything else demoted. Branch tip via
+    `_branch_tip`."""
+    kids = [a for a in manifest.get("agents", []) or []
+            if a.get("spawned_by_agent") == agent_id]
+    accepted = demoted = failed = 0
+    node_ids: list[str] = []
+    for k in kids:
+        node_ids.append(str(k.get("node_id") or "-"))
+        status = (k.get("status") or "").strip()
+        if status == "done":
+            accepted += 1
+        elif status in ("failed", "hung-healed"):
+            failed += 1
+        else:
+            demoted += 1
+    branch = row.get("branch") or ""
+    tip = _branch_tip(root, branch)
+    return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
+            f"accepted={accepted} demoted={demoted} failed={failed} "
+            f"kids=[{', '.join(node_ids)}] "
+            f"branch={branch or '-'} tip={tip or '-'}")
+
+
+def _session_manifest_holders(root: Path, iter_n) -> list[Path]:
+    """Every iteration dir that may hold THIS round's manifest, local first.
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round (R1/R3) -- a round's bookkeeping is split across two worktrees. The
+    DISPATCHER writes the PARENT's own row into its own checkout's manifest
+    (in production the shared/MAIN checkout, which
+    `locations.shared_project_root` resolves through `git_common_root`), and
+    the parent then dispatches its KIDS inside its own linked worktree, whose
+    manifest takes the kid rows. Reading only the local manifest (the pre-fix
+    behaviour) finds no parent row; reading only the shared one loses the
+    kids. Return both, deduplicated by path -- a non-worktree root is the
+    identity, so a main-checkout round still yields exactly one holder.
+    """
+    seen: set[str] = set()
+    holders: list[Path] = []
+    candidates: list[Path] = [root]
+    try:
+        shared = locations.shared_project_root(root)
+    except (OSError, ValueError):
+        shared = None
+    if shared is not None and str(shared) != str(root):
+        candidates.append(shared)
+    for r in candidates:
+        try:
+            d = locations.iteration_dir(r, iter_n)
+        except (OSError, ValueError):
+            continue
+        key = str(d)
+        if key in seen or not (d / "manifest.json").is_file():
+            continue
+        seen.add(key)
+        holders.append(d)
+    return holders
+
+
+def _write_kid_report(holders: list[Path], agent_id: str, line: str) -> None:
+    """Append `line` as `report` on the kid's manifest entry, under the
+    SAME lock dispatch uses.
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round (R4) -- the pre-fix write was an unlocked read-modify-write racing
+    `dispatch._manifest_lock` (dispatch.py), so a concurrent dispatch could
+    lose the kid's entry. Two rules keep that safe: the whole cycle runs
+    inside `dispatch._manifest_lock(iter_dir)`, and the lock is NEVER held
+    across `send` -- the caller sends only after this function returns. The
+    row is written to the FIRST holder that carries it (local-first, the
+    order `_session_manifest_holders` returns), the tree the round's output
+    actually lives in. Best-effort: a holder with no such row is skipped, and
+    any failure prints ONE stderr line without disturbing the dm that
+    follows.
+    """
+    import contextlib
+    lock = None
+    try:
+        import dispatch as _dispatch
+        lock = _dispatch._manifest_lock
+    except ImportError:  # pragma: no cover -- dispatch is a sibling module
+        pass
+    for iter_dir in holders:
+        mpath = iter_dir / "manifest.json"
+        try:
+            manifest = json.loads(mpath.read_text())
+        except (OSError, ValueError):
+            continue
+        if not any(a.get("id") == agent_id
+                   for a in manifest.get("agents", [])):
+            continue
+        try:
+            ctx = lock(iter_dir) if lock is not None \
+                else contextlib.nullcontext()
+            with ctx:
+                manifest = json.loads(mpath.read_text())
+                row = next((a for a in manifest.get("agents", [])
+                            if a.get("id") == agent_id), None)
+                if row is None:
+                    return
+                row["report"] = line
+                tmp = iter_dir / "manifest.json.tmp"
+                tmp.write_text(json.dumps(manifest, indent=2))
+                os.replace(tmp, mpath)
+        except (OSError, ValueError) as exc:
+            print(f"warn: could not append kid report to manifest: {exc}",
+                  file=sys.stderr)
+        return
+
+
 def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
     ONE completion dm, sent with NO flag: the dispatcher was stamped into the
@@ -476,19 +618,71 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
     that seat exactly once. ids and numbers only -- iteration, agent, node id,
     verdict. Absent dispatcher -> one stderr line, no crash. An undeliverable
     dm is logged, never fatal to the round (this is called on the done: path,
-    whose job is to record the verdict)."""
+    whose job is to record the verdict).
+
+    hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+    round -- the tier decides WHO hears, because every seat dm wakes a paid
+    pane:
+      * kid (AGI_TIER=kid): dm its `spawned_by_agent` (its parent), never the
+        dispatching seat, and append the completion line to the kid's own
+        manifest entry as `report`. No `spawned_by_agent` (a round that was
+        live before this change) -> ONE stderr warning and the old dispatch.
+      * parent (AGI_TIER=parent): exactly ONE dm to its dispatching seat,
+        carrying harvest counts, kid node ids and the branch tip.
+      * every other tier: the old behaviour, unchanged.
+    """
+    tier = (os.environ.get("AGI_TIER") or "").strip()
     dispatcher = None
     try:
-        sroot = _session_root()
-        iter_dir = locations.iteration_dir(sroot, iter_n)
-        mpath = iter_dir / "manifest.json"
-        if not mpath.is_file():
+        # R1/R3: UNION the local worktree manifest with the DISPATCHER's
+        # (shared/MAIN) one. A parent's own row is written by the dispatcher
+        # into MAIN while its KID rows live in the parent worktree's manifest,
+        # so reading the local manifest alone found no parent row and returned
+        # -- measured at L4.369 as ZERO seat dms. `_merge_manifests` unions the
+        # two by agent id, resolving a conflict with the SAME status rank every
+        # other manifest reader uses.
+        holders = _session_manifest_holders(root, iter_n)
+        if not holders:
             return
-        manifest = json.loads(mpath.read_text())
+        manifest = _merge_manifests(holders)
         row = next((a for a in manifest.get("agents", [])
                     if a.get("id") == agent_id), None)
         if row is None:
             return
+        line = _completion_line(iter_n, agent_id, node_id, verdict)
+
+        if tier == "kid":
+            parent = row.get("spawned_by_agent")
+            if parent:
+                # (a) the round's own record keeps the completion line, so a
+                # parent (or a later reader) harvests it from ONE place. R4:
+                # the read-modify-write takes the SAME lock dispatch holds.
+                _write_kid_report(holders, agent_id, line)
+                # (b) the PARENT hears it, never the seat. The lock is released
+                # before this send -- never hold it across delivery.
+                import send as _send
+                _send.send(root, parent, line, agent_id)
+                return
+            print(f"warn: kid {agent_id}@{iter_n} has no spawned_by_agent "
+                  "stamp; falling back to the dispatcher completion dm "
+                  "(l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-)",
+                  file=sys.stderr)
+            # fall through: a pre-existing live round keeps today's behaviour
+
+        if tier == "parent":
+            dispatcher = row.get("dispatched_by")
+            if not dispatcher:
+                print(f"warn: no dispatcher stamp for {agent_id}@{iter_n}; "
+                      "no completion dm (l4-a-round-alarms-its-dispatcher-)",
+                      file=sys.stderr)
+                return
+            import send as _send
+            _send.send(root, dispatcher,
+                       _parent_harvest_body(root, manifest, iter_n,
+                                            agent_id, row),
+                       agent_id)
+            return
+
         dispatcher = row.get("dispatched_by")
         if not dispatcher:
             print(f"warn: no dispatcher stamp for {agent_id}@{iter_n}; "
@@ -496,11 +690,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
                   file=sys.stderr)
             return
         import send as _send
-        _send.send(
-            root, dispatcher,
-            f"iter={iter_n} agent={agent_id} node={node_id or '-'} "
-            f"verdict={verdict}",
-            agent_id)
+        _send.send(root, dispatcher, line, agent_id)
     except Exception as exc:
         print(f"warn: completion dm to {dispatcher or 'dispatcher'} failed: "
               f"{exc}", file=sys.stderr)

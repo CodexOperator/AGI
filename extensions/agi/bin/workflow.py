@@ -14,7 +14,7 @@ schema). Changing `.agi/config.json workflows.<name>.model` flips the model
 with no script edit — that is the config-maxxed contract.
 
 Usage:
-    workflow.py run <name> [--harness pi|claude-code] [--args JSON] [--dry-run]
+    workflow.py run <name> [--harness NAME] [--args JSON] [--dry-run]
     workflow.py register <name> --script <path> [--from-run <dir>]
     workflow.py list
     workflow.py validate
@@ -29,7 +29,7 @@ Usage:
 
     name      config row key, e.g. `review` or `drafting` (the agi-*.js script
               names also resolve, normalized to the config key)
-    --harness harness to run through (default: config row `provider`, else pi)
+    --harness harness to run through (default: geometry/config resolution)
     --args    JSON of per-run overrides merged OVER the config row
     --dry-run resolve every stage and print one dispatch line per stage, with
               the resolved model/effort, WITHOUT spawning any agent
@@ -838,6 +838,26 @@ def _resolve_pi_model(cfg: dict, stage: dict, args: dict,
     return model
 
 
+def _resolve_harness_model(harness_cfg: dict, stage: dict, args: dict) -> str:
+    """Resolve a model from the selected harness namespace.
+
+    Workflow rows are harness-agnostic.  Once a run selects a harness, its
+    tier model is authoritative; otherwise a Claude alias or Copilot model
+    hint can leak into the wrong namespace.
+    """
+    if args.get("model"):
+        return str(args["model"])
+    role = stage.get("role") or "kid"
+    tier = stage.get("tier") or role
+    models = harness_cfg.get("models") or {}
+    model = models.get(role) or models.get(tier) or models.get("kid")
+    if not model:
+        raise ValueError(
+            f"stage {stage.get('label')!r}: harness declares no model for "
+            f"role {role!r} or tier {tier!r}")
+    return str(model)
+
+
 def _tier_for_role(role: str) -> int:
     """The canonical home tier for a role (mirror of dispatch's default)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
@@ -1172,6 +1192,48 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
     return env
 
 
+def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
+    """Assemble the shared graph context for one live workflow stage.
+
+    The stage prompt remains workflow-specific, but the graph state and role
+    brief come from the same read surfaces used by ordinary dispatched kids.
+    This keeps a workflow stage from inventing a second context assembly path.
+    """
+    import subprocess
+
+    role = str(stage.get("role") or "kid")
+    tier = str(stage.get("tier") or role)
+    if tier not in {"kid", "parent", "advisor", "director",
+                    "prime_director", "liaison"}:
+        tier = "kid"
+    viewport = subprocess.run(
+        [sys.executable, str(_THIS / "viewport.py"), "--emit", "llm",
+         "--depth", "3"],
+        cwd=str(repo), capture_output=True, text=True, timeout=60,
+    )
+    if viewport.returncode != 0:
+        raise RuntimeError(
+            f"viewport --emit llm failed for stage {stage.get('label')!r}: "
+            f"{(viewport.stderr or '').strip()}")
+    brief = subprocess.run(
+        [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
+         "--project-root", str(graph_root)],
+        cwd=str(repo), capture_output=True, text=True, timeout=60,
+    )
+    if brief.returncode != 0:
+        raise RuntimeError(
+            f"brief.py head failed for stage {stage.get('label')!r}: "
+            f"{(brief.stderr or '').strip()}")
+    route = (
+        "WORKFLOW ROUTE CONTRACT:\n"
+        "Use the viewport and brief above as the graph context for this stage. "
+        "If this stage produces a graph node or report, write it only through "
+        "`python3 extensions/agi/bin/write.py`; never hand-edit a node or "
+        "payload. A read-only stage remains read-only.\n"
+    )
+    return f"{brief.stdout.rstrip()}\n\n{viewport.stdout.rstrip()}\n\n{route}"
+
+
 def _effort_to_thinking(effort: str | None) -> str:
     """Map a workflow effort knob to a pi thinking level. `max`/`high` -> high,
     `low` -> low, anything missing or odd -> medium. A `--args thinking` value
@@ -1269,7 +1331,8 @@ def _resolve_lenient_return(schema, text: str):
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
                   prior: dict | None = None,
-                  spawn_env: dict | None = None) -> tuple[int, "dict | None"]:
+                  spawn_env: dict | None = None,
+                  context_text: str | None = None) -> tuple[int, "dict | None"]:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
     stdout, parse the last JSON object, and validate it against the stage's
@@ -1289,6 +1352,8 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     import subprocess
     k = knobs[stage["label"]]
     prompt = render_stage_prompt(stage, run_args, prior=prior)
+    if context_text:
+        prompt = f"{context_text}\n\nSTAGE TASK:\n{prompt}"
     hc = _pi_harness_cfg(cfg)
     thinking = run_args.get("thinking") or _effort_to_thinking(k.get("effort"))
     cmd = [hc["bin"], "-p",
@@ -1380,6 +1445,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # wins, envelope — it is the per-run override the CLI exposes.
     if not harness:
         harness, _level = _resolve_default_harness(root, key, manifest, cfg_row)
+    try:
+        _harness_name, harness_cfg = adapters.resolve(cfg, harness)
+    except adapters.AdapterError as exc:
+        raise ValueError(
+            f"workflow {key!r}: invalid harness override {harness!r}: {exc}"
+        ) from exc
     knobs = {st["label"]: _resolve_knobs(st, cfg_row, args) for st in stages}
     if harness == "pi":
         # The pi model is resolved and namespace-checked here, BEFORE any
@@ -1394,6 +1465,10 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             model = _resolve_pi_model(cfg, st, args, _roles)
             _assert_model_in_provider_namespace(model, hc["provider"])
             knobs[st["label"]]["model"] = model
+    else:
+        for st in stages:
+            knobs[st["label"]]["model"] = _resolve_harness_model(
+                harness_cfg, st, args)
 
     if dry_run:
         # The credential decision BEFORE the dispatch lines, from the SAME
@@ -1403,7 +1478,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         for st in stages:
             out.write(_dispatching_line(st, knobs[st["label"]]) + "\n")
         out.write(f"[summary] workflow={key} harness={harness} "
-                  f"stages={len(stages)} via dispatch.py kids when harness=pi\n")
+                  f"stages={len(stages)} via dispatch.py kids\n")
         return 0
 
     view = RunView(key, stages, harness, out=out)
@@ -1440,8 +1515,10 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             # {answer}, {still_live}, ...). Nothing else on pi crosses stage
             # boundaries; run_args only otherwise.
             prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
-        rc, value = _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
-                                  prior=prior, spawn_env=spawn_env)
+        context_text = _stage_context(repo, root, st)
+        rc, value = _run_stage_pi(
+            cfg, st, knobs, args, out=out, view=view, prior=prior,
+            spawn_env=spawn_env, context_text=context_text)
         if rc != 0:
             print(f"workflow.py: workflow={key} failed at stage "
                   f"{st['label']} (rc={rc})", file=sys.stderr)
@@ -1732,8 +1809,8 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     rp = sub.add_parser("run", help="resolve and run a workflow (the only sanctioned dispatch route)")
     rp.add_argument("name", help="config key (e.g. review, drafting) or agi-*.js script name")
-    rp.add_argument("--harness", default=None, choices=["pi", "claude-code"],
-                    help="harness to run through (default: config row provider, else pi)")
+    rp.add_argument("--harness", default=None,
+                    help="harness declared in .agi/config.json (validated before run)")
     rp.add_argument("--args", default="{}", help="JSON of per-run overrides merged over the config row")
     rp.add_argument("--dry-run", action="store_true",
                     help="print one dispatch per stage with the resolved model, spawn nothing")
@@ -1816,7 +1893,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"workflow.py: --args not valid JSON: {exc}", file=sys.stderr)
             return 2
         return run_workflow(root, args.name, args.harness, run_args, args.dry_run)
-    except WorkflowsNodeError as exc:
+    except (WorkflowsNodeError, ValueError, adapters.AdapterError) as exc:
         print(f"workflow.py: {exc}", file=sys.stderr)
         return 2
 
