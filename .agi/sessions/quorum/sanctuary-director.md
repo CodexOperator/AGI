@@ -1,5 +1,7 @@
 # SESSION HANDOFF — 2026-09-14 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~00:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle CLOSED for the towns kind (2 old town branches deleted, verified independently) — posts+loops old spellings correctly STAY on origin per the Prime's ruling until SM.25 (posts mirror) and the loops-preserve-then-drop round land; NOT mine to chase further. **Live/owed now: mint L4.350b + TOCTOU hypothesis + presence/containment test hypothesis, all under goal:g15, per belam's mur-53 spec — see §2.** See §0/§2/§3.
 
+🔴 **POST RENAME PENDING (owner rulings, `doc:l4-owner-decisions` ~L745, ~L753): this post ("sanctuary-director", the Prime's own director / "the point") is slated to become `director-point` at its NEXT ROTATION BOUNDARY, once SM.18's rename round lands.** (Same round also renames "sensei-director" -> `director-sanctuary` and "sanctuary-helper" -> `director-review`; those may have already landed at THEIR rotations — don't assume symmetry, check fresh.) Mechanism: `test -f .../sanctuary-director.rename.json` — STILL ABSENT as of this check, meaning SM.18 hasn't reached this post yet. Re-check fresh at every rotation attempt; do NOT rename yourself by hand. Also live: a NEW org structure, "Hybrid Survival — the Figure-Eight" (owner 23:32Z, §0.6 below) — only the Keep (sanctuary-master + master-sensei) + their masters are active, each with ONE director reporting back to the Prime in a tight loop. This session's whole pattern (belam tasking sanctuary-director directly, reporting back directly) already matches that shape for the Prime's own director slot.
+
 🔴 **BRANCH RENAME, READ BEFORE ANYTHING ELSE:** this worktree's checked-out branch is **NO LONGER** `season2/posts/sanctuary-director`. The live reshuffle renamed it LOCALLY (no push, no upstream) to **`core/season2/posts/sanctuary-director/main`**. `git branch --show-current` in `$W` will confirm. The OLD name still exists on origin untouched (nothing was deleted) — this is a LOCAL rename only. Sync commands that assume the old branch name may need adjusting; verify fresh, don't assume either name.
 
 🔴 **TREE:** `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` now on **`core/season2/posts/sanctuary-director/main`** (see above); **MAIN `/home/ubuntu/work/agi` = `season2/main`** (unchanged). ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. Heavy concurrent write load — stale-base refusals are normal, resolve by sync+re-cut or `--allow-stale-base` as the sanctioned third step.
@@ -46,7 +48,14 @@ Owner, verbatim: "instead of running directors … doing point for each specific
 
 ## §2 LIVE + QUEUE
 
-**LIVE: mint the 3 mur-53 hypotheses (below), in priority order.** The reshuffle is closed for my part (towns done, posts+loops correctly deferred to SM.25/loops-round — not mine). Nothing is blocking; this is straightforward owed work.
+**LIVE: 3 kids running, dispatched on belam's explicit GO (00:58Z: "GO on all three... cut L4.350b FIRST... then TOCTOU + presence/containment test in parallel").** All verified as real worktrees (not just the printed spawn line), all pi/deepseek parents, level=small:
+- **L4.363** — L4.350b (`_stops_push` trunk gate). Kid `a00-13e22607`, pid 2934058, worktree `/home/ubuntu/work/agi/.agi/worktrees/a00-13e22607`, branch `season2/loops/hypothesis-l4-stops-push-gates-o-a00-13e22607`. HIGHEST PRIORITY (veto freeze unarmed).
+- **L4.364** — TOCTOU lease. Kid `a00-9438b47d`, pid 2938347, worktree `/home/ubuntu/work/agi/.agi/worktrees/a00-9438b47d`, branch `season2/loops/hypothesis-l4-delete-old-lease-g-a00-9438b47d`.
+- **L4.365** — presence-PASS/containment-FAIL test. Kid `a00-b2e311a2`, pid 2939867, worktree `/home/ubuntu/work/agi/.agi/worktrees/a00-b2e311a2`, branch `season2/loops/hypothesis-l4-delete-old-presenc-a00-b2e311a2`.
+
+**NEXT: wait, then harvest each (full GRAMMAR harvest discipline, especially the destructive-path independent-verification step for L4.363 and L4.364 — both touch safety gates directly).** Use `spawn_budget.py status --iter L4.36{3,4,5} --wait --timeout <N>` backgrounded, or check status fresh at wake. Once harvested: commit, then ask belam for a merge-up window (light recipe — announce, don't ask-and-wait) for whichever have landed; don't wait for all three if one finishes well before the others.
+
+**Reshuffle: closed for my part** (towns done, posts+loops correctly deferred to SM.25/loops-round — not mine).
 
 **Posts+loops old-spelling delete: NOT queued.** Only re-attempt after an explicit signal that SM.25 (posts mirror) and the loops-preserve-then-drop round have BOTH landed — check `doc:l4-owner-decisions` / ask, don't assume from silence.
 
@@ -67,13 +76,13 @@ Owner, verbatim: "instead of running directors … doing point for each specific
 `````
 ````
 ```
-Check inbox fresh: python3 extensions/agi/bin/send.py read sanctuary-director (in case belam replied re: cell re-spellings or anything else)
+Check inbox fresh: python3 extensions/agi/bin/send.py read sanctuary-director
 
-Then mint, in priority order, per belam's exact mur-53 spec (quoted in full in §2): (1) L4.350b -- this is real owed work, not busywork. (2) the TOCTOU hypothesis. (3) the presence-PASS/containment-FAIL test hypothesis. Use the GRAMMAR mint command. Each is a mint only at this stage -- whether to also cut/dispatch a round for each, or bank them for a future GO, is a judgement call; L4.350b is safety-relevant (veto freeze unarmed) so leans toward cutting a round once minted, the other two lean toward bank-until-asked given they're explicitly "not a blocker." Decide and document in each node's THOUGHT.
+Check status of L4.363/L4.364/L4.365 (see §2 for kid ids/worktrees): python3 extensions/agi/bin/spawn_budget.py status --iter L4.363 (repeat for 364/365), or --wait --timeout N backgrounded if none are done yet. Harvest whichever have landed, full GRAMMAR discipline -- for L4.363 (frozen-prime gate) and L4.364 (delete-old lease), independently re-verify the actual behavior change, not just green tests, exactly like every prior round in this chain. Then ask belam for a merge-up window per the LIGHT recipe (announce, don't wait for a grant) for each as it's ready -- don't batch-wait for all three if one is ready sooner.
 
-If those are done: R2/R4/R5/R6 status reading (read the mur-49 node bodies, L4.337/L4.338) as further idle-productive work, still not asking for a GO unless truly ready to dispatch.
+If all three are still running with nothing to harvest: R2/R4/R5/R6 status reading (read the mur-49 node bodies, L4.337/L4.338) as idle-productive work, still not asking for a GO unless truly ready to dispatch.
 
-Before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json -- re-check fresh. (2) confirm which branch $W is actually on (git branch --show-current) before trusting any card text about it, including THIS card -- verify, don't assume.
+Before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json -- re-check fresh; if PRESENT, this post's rename to director-point has landed, follow whatever it specifies rather than this card's own name references. (2) confirm which branch $W is actually on (git branch --show-current) before trusting any card text about it, including THIS card -- verify, don't assume.
 ```
 ````
 `````
