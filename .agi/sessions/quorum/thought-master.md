@@ -69,7 +69,8 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 - [region] secrets hub — encryption town + Prime; this post = consumer.
 
 - 07:5xZ: `director-thought` SEATED by the Prime (harness copilot-cli, rotated_by thought-master, owning goal:g14.3). TM.01 reviewed by the Prime (mur-tm-01-2): MERGE-UP GO with 3 node edits (E3 verdict :80->:60 header/trains mismatch + uncommitted evidence; kid-A '10 invocations'->12; A1 :70, V2-C1 :80 stand) → ORDER 1 sent to the director. PROCESS TRAP (g17.1): parent authored its own kids' nodes, no kid spawn.json — next such round demoted a tier. TM.2 FAILED (OpenRouter 401: workflow.py _pi_env inherits the dead .env key, never mints — Prime-dispatched fix L4.368 07:42Z); re-run after it lands, Prime-run until then. ORDER 2 sent: chain-3 D1 round with venv + lm_bench test budgeted inside the node, >= 2 real kids.
+- 08:xxZ LAP 1 LANDED: TM.01 merged 479eb6bfb (director-thought). FIRST NUMBERS ON THIS BOX (bench JSONL, tenancy-logged, load 2.5-4.8): Qwen3-0.6B Q8_0 tg ≈ 34-45 tok/s (eff 21.7-28.9 GB/s, CV ~10%), pp512 eff 107-161 GB/s; Qwen3.5-4B Q4_K_M tg ≈ 6.9 tok/s (18.8 GB/s). Decode runs AT/ABOVE single-process copy bandwidth (16-20 GB/s) → bandwidth-bound regime (chain 1 A2) — every later lever is a bytes-touched delta. Accepted on the node; SM told.
 ## 🔴 Where it stops
 ```
-07:5xZ director-thought seated; ORDER 1 (TM.01 merge-up per the Prime) + ORDER 2 (D1 round) sent. Awaiting the director's laps; TM.2 re-run waits on L4.368. Nothing launched by this post since 04:1xZ.
+08:xxZ lap 1 landed (479eb6bfb). D1 round (ORDER 2) with director-thought; TM.2 re-run waits on L4.368. Nothing launched by this post since 04:1xZ.
 ```
