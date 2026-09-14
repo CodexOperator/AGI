@@ -62,7 +62,6 @@ town_branches:
   web-app-suite: town/web-app-suite@s2
 towns:
   - core
-  - sanctuary
   - streaming-suite
   - web-app-suite
   - local-maxxing
