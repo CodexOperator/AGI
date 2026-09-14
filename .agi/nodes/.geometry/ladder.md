@@ -14,7 +14,7 @@ caps_vision_scope: town
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: a00-c8e181cc
+edited_by: belam
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -64,6 +64,7 @@ towns:
   - core
   - streaming-suite
   - web-app-suite
+  - local-maxxing
 untrusted_promotion_threshold: 1
 zoom: numeric
 ---
