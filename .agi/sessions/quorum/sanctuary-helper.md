@@ -12,6 +12,15 @@ master-sensei ── may dm you a self-fix (a wake/out call it measured) — do 
 ```
 You answer to the Prime only. You **never dispatch**, never cut a round, never mint a lane; you execute the review the Prime sends and return one report.
 
+## §0.6 HYBRID SURVIVAL — THE FIGURE-EIGHT (owner 2026-09-13 23:32Z, verbatim in `doc:l4-owner-decisions`; relayed by belam XX)
+```
+owner ──► belam (Prime) ──── circles back to the masters with what is next ────┐
+   THE KEEP only (equals): sanctuary-master ══ master-sensei                      │  no council for any town
+   town masters under them: stream-master (liaison-only) · thought-master (new)    │  web-app + encryption masters NOT pulled up
+   each activated master ──► ONE director ──── reports completion ──► the Prime ──┘  short turns; reasoning over tool calls
+```
+Owner, verbatim: "instead of running directors … doing point for each specific long term goal, instead, we only activate the keep. Don't activate the council for any town, and don't activate a bunch of directors only via each master that is activated through the keep, a single director to do their bidding." — "the masters tell the directors what to do. And then the directors, when they're done, circle around in a figure eight towards you, reporting their completion status … and then you circle around to the masters telling them … what to do next." — "Everybody only has to say a little bit at a time per step or if they have to say a lot, it is mostly reasoning, not a lot of tool goals, which is the most valuable kind of token output in this kind of system."
+
 ## §1 THE LOOP (one mur at a time)
 ```
 [mur-N] dm from the Prime (merge sha, branch, rounds by name)

@@ -21,6 +21,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -689,6 +690,162 @@ def _parent_probe_gate(root: Path, rec: dict, args, verdict: str):
     return msg, True, sorted(covered)
 
 
+def _salvage_gate(manifest: dict, agent_id: str):
+    """hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-
+    staged-work-and-done-salvage-finalizes-a-complete-round-from-the-record
+    — the `done --salvage` ADMISSION gate, pure and unit-testable.
+
+    A reaped parent's round may be finalized from its record ONLY when the
+    manifest entry for `agent_id` carries `death.class == "died-after-work"`
+    and EVERY kid named there already has a verdict. Anything else refuses
+    BY NAME, before any write.
+
+    Returns `(ok, msg, kids)`. `ok` True means admitted (msg empty). `ok`
+    False means refuse: msg is the one-line reason, already prefixed `ERR`.
+    """
+    entries = manifest.get("agents") if isinstance(manifest, dict) else None
+    if not isinstance(entries, list):
+        return (False, "ERR salvage: round manifest has no agents list; "
+                       "nothing to finalize from the record", [])
+    entry = next((e for e in entries if e.get("id") == agent_id), None)
+    if entry is None:
+        return (False, f"ERR salvage: no manifest record for agent {agent_id!r}; "
+                       f"redispatch the round", [])
+    death = entry.get("death")
+    if not isinstance(death, dict) or not death.get("class"):
+        return (False, f"ERR salvage: agent {agent_id} carries no death class "
+                       f"(reaper has not classified it); redispatch the round",
+                [])
+    cls = death.get("class")
+    if cls != "died-after-work":
+        ev = death.get("evidence") or "none"
+        return (False, f"ERR salvage: agent {agent_id} died {cls!r}, not "
+                       f"'died-after-work' (evidence: {ev}); nothing staged "
+                       f"to salvage — redispatch the round", [])
+    kids = [k for k in (death.get("kids") or []) if isinstance(k, dict)]
+    if not kids:
+        return (False, f"ERR salvage: agent {agent_id} died after work but "
+                       f"names no kids; nothing to finalize", [])
+    missing = [str(k.get("id") or "?") for k in kids if not k.get("verdict")]
+    if missing:
+        return (False, f"ERR salvage: kid verdict(s) not present: "
+                       f"{', '.join(missing)}; a round finalizes only when "
+                       f"EVERY kid verdict is recorded", [])
+    return (True, "", kids)
+
+
+def _salvage_worktree(root: Path, entry: dict, agent_rec: dict,
+                      agent_id: str) -> Path | None:
+    """The linked worktree a REAPED round ran in, or None.
+
+    Preference order: the record's own `worktree` cell (manifest mirror
+    first, then the agent record -- dispatch.py writes it), then the
+    deterministic `.agi/worktrees/<agent>` under the MAIN checkout's common
+    root. `None` when neither resolves: a salvage that cannot find the
+    round's worktree must REFUSE, never fall back to the shared main checkout
+    (that is the goal:g4.1 `add -A` hazard, exactly).
+    """
+    for src in (entry, agent_rec):
+        wt = (src or {}).get("worktree")
+        if wt and Path(wt).is_dir():
+            return Path(wt)
+    try:
+        common = locations.git_common_root(root)
+    except (OSError, subprocess.SubprocessError):
+        common = None
+    if common is not None:
+        cand = Path(common) / ".agi" / "worktrees" / agent_id
+        if cand.is_dir():
+            return cand
+    return None
+
+
+def _salvage_preserve(worktree: Path | None, agent_id: str,
+                      dry_run: bool = False):
+    """Commit a reaped round's staged bytes onto its own loop branch FIRST.
+
+    hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-
+    work-and-done-salvage-finalizes-a-complete-round-from-the-record, clause
+    (3) second half -- the SM.17 preserve shape: `git -C <worktree> add -A`
+    then ONE commit whose subject begins `salvage: staged bytes preserved at
+    <sha>`. `<sha>` is the TREE sha of the preserved bytes: the only sha
+    knowable BEFORE the commit that names it (`git show <sha>` and
+    `git ls-tree <sha>` both resolve it, and the commit's own tree is that
+    sha). Returns `(sha, msg)`: `sha` is the tree sha, or None when the
+    worktree is clean (nothing to preserve -- a NO-OP, not a skip); `msg`
+    begins `ERR ` on refusal. `dry_run` stages into a THROWAWAY index under
+    /tmp, so it names the would-preserve sha and still writes nothing to the
+    round's worktree, index, or history.
+    """
+    if worktree is None or not Path(worktree).is_dir():
+        return (None, f"ERR salvage: no worktree on disk for agent "
+                      f"{agent_id} to preserve staged bytes from")
+    wt = Path(worktree)
+
+    def _g(*argv, env=None):
+        return subprocess.run(["git", "-C", str(wt), *argv],
+                              capture_output=True, text=True, env=env)
+
+    try:
+        st = _g("status", "--porcelain")
+    except (OSError, subprocess.SubprocessError) as exc:
+        return (None, f"ERR salvage: cannot read worktree {wt}: {exc}")
+    if st.returncode != 0:
+        return (None, f"ERR salvage: {wt} is not a git worktree: "
+                      f"{st.stderr.strip() or '(no stderr)'}")
+    dirty = [l for l in st.stdout.splitlines() if l.strip()]
+    if not dirty:
+        return (None, "")   # clean -> nothing to preserve
+
+    env = None
+    tmp_index = None
+    if dry_run:
+        fd, tmp_index = tempfile.mkstemp(prefix="agi-salvage-index-")
+        os.close(fd)
+        os.unlink(tmp_index)
+        env = dict(os.environ, GIT_INDEX_FILE=tmp_index)
+        seed = _g("read-tree", "HEAD", env=env)
+        if seed.returncode != 0:
+            os.unlink(tmp_index)
+            return (None, f"ERR salvage: cannot seed throwaway index: "
+                          f"{seed.stderr.strip() or '(no stderr)'}")
+        # Stage the working tree into the THROWAWAY index so `write-tree`
+        # names the would-preserve bytes rather than HEAD's tree. Without
+        # this the dry-run sha equals HEAD^{tree} -- the pre-change tree,
+        # which is not what a real preserve would commit. GIT_INDEX_FILE is
+        # still pointed at /tmp, so nothing real is touched.
+        dadd = _g("add", "-A", env=env)
+        if dadd.returncode != 0:
+            os.unlink(tmp_index)
+            return (None, f"ERR salvage: git add failed in dry-run index: "
+                          f"{dadd.stderr.strip() or '(no stderr)'}")
+    else:
+        add = _g("add", "-A")
+        if add.returncode != 0:
+            return (None, f"ERR salvage: git add failed in {wt}: "
+                          f"{add.stderr.strip() or '(no stderr)'}")
+    tree = _g("write-tree", env=env)
+    if tmp_index:
+        try:
+            os.unlink(tmp_index)
+        except OSError:
+            pass
+    if tree.returncode != 0 or not tree.stdout.strip():
+        return (None, f"ERR salvage: git write-tree failed in {wt}: "
+                      f"{tree.stderr.strip() or '(no stderr)'}")
+    sha = tree.stdout.strip()
+    subject = f"salvage: staged bytes preserved at {sha[:12]}"
+    if dry_run:
+        return (sha, f"would preserve {len(dirty)} path(s) at {sha[:12]}")
+    commit = _g("-c", "user.email=agi@local", "-c", "user.name=agi",
+                "commit", "-qm", subject)
+    if commit.returncode != 0:
+        return (None, f"ERR salvage: preserve commit failed in {wt}: "
+                      f"{commit.stderr.strip() or '(no stderr)'}")
+    print(f"salvage: preserved {len(dirty)} staged path(s) in {wt}: {subject}")
+    return (sha, subject)
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -789,6 +946,57 @@ def cmd_done(args: argparse.Namespace) -> int:
     verdict = gate.verdict
 
     rec = json.loads(ap.read_text())
+
+    # hypothesis:l4-a-reaped-parent-record-names-its-death-class-and-staged-
+    # work-and-done-salvage-finalizes-a-complete-round-from-the-record --
+    # `--salvage` finalizes a REAPED parent's round from the record instead
+    # of from a live agent. The admission gate runs BEFORE any rec mutation:
+    # a death class other than `died-after-work`, or a kid without a verdict,
+    # refuses BY NAME and the redispatch line, writing nothing. `--dry-run`
+    # prints the death class + the would-finalize summary and exits 0.
+    if getattr(args, "salvage", False):
+        _mpath = ap.parent.parent / "manifest.json"
+        try:
+            _manifest = json.loads(_mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            print(f"ERR salvage: no readable manifest at {_mpath}",
+                  file=sys.stderr)
+            return 2
+        _ok, _msg, _kids = _salvage_gate(_manifest, args.agent_id)
+        _entry = next((e for e in (_manifest.get("agents") or [])
+                       if e.get("id") == args.agent_id), {})
+        _death = _entry.get("death") or {}
+        # The reaped round's own worktree -- resolved from the record, never
+        # assumed to be the caller's tree. A salvage runs FROM THE MAIN TREE
+        # against this worktree.
+        _wt = _salvage_worktree(root, _entry, rec, args.agent_id)
+        if bool(getattr(args, "dry_run", False)):
+            _sha, _pmsg = _salvage_preserve(_wt, args.agent_id, dry_run=True)
+            print(f"[dry-run] salvage {args.agent_id}: death.class="
+                  f"{_death.get('class') or 'none'} "
+                  f"evidence={_death.get('evidence') or 'none'} "
+                  f"kids={[k.get('id') for k in _kids]}")
+            print(f"[dry-run] preserve: {_pmsg or 'nothing staged'}"
+                  + (f" sha={_sha[:12]}" if _sha else ""))
+            if _ok:
+                print(f"[dry-run] would finalize: verdict={args.verdict} "
+                      f"confidence={args.confidence} "
+                      f"node={args.node_id or '-'} "
+                      f"evidence_runs={args.evidence_runs or '-'}")
+            else:
+                print(f"[dry-run] {_msg}")
+            return 0
+        if not _ok:
+            print(_msg, file=sys.stderr)
+            return 2
+        # Clause (3): PRESERVE FIRST. The staged bytes are committed onto the
+        # round's loop branch before the record is finalized; a preserve that
+        # cannot run refuses the whole salvage and writes NOTHING -- the
+        # falsifier "a salvage that skips the preserve commit" is closed here.
+        _sha, _pmsg = _salvage_preserve(_wt, args.agent_id)
+        if _pmsg.startswith("ERR"):
+            print(_pmsg, file=sys.stderr)
+            return 2
 
     # hypothesis:l4-cli-done-for-tier-parent-refuses-a-lean-proved-verdict-...
     # -- refuse (nothing written) before recording a parent verdict that
@@ -2240,8 +2448,13 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
     branches.derive_names from `branch`'s OWN tuple (the same grammar
     _rs_v3_posts_renames uses) and checking that the derived post_main
     EXISTS — never by the presence of `branch` itself (it is GONE after the
-    v3 rename), and never on a branch that carries an upstream (that one is a
-    real live migration and must still satisfy the gate)."""
+    v3 rename). The upstream check the docstring always promised is now
+    actually CALLED, on BOTH `branch` and the derived `target`: a v3-LOCAL
+    post's post_main is upstream-UNSET by contract, so any branch that carries
+    an upstream (the carried old alias — a real live migration) denies the
+    exemption and must still satisfy the B2 gate
+    (hypothesis:l4-b-exemption-calls-the-upstream-check-its-docstring-
+    promises)."""
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
     try:
         p = branches.parse(branch)
@@ -2257,7 +2470,108 @@ def _rs_v3_local_post_source(repo: Path, tuples: list[dict], branch: str) -> boo
             _rs_v3_core_town(tuples), season, name)["post_main"]
     except ValueError:
         return False
+    # A branch that CARRIES an upstream is a real live migration, never a
+    # v3-LOCAL post (whose local contract is upstream UNSET). `branch` is
+    # usually GONE after the rename so its own probe is '' and the real
+    # falsifier is `target`'s upstream — exactly the check the docstring
+    # promised. Probe BOTH so neither spelling can slip through:
+    # `_post_rename_upstream` is rc-honest ('' on a missing/dead branch).
+    if _post_rename_upstream(repo, branch) \
+            or _post_rename_upstream(repo, target):
+        return False
     return _post_rename_has_branch(repo, target)
+
+
+def _rs_v3_successor(tuples: list[dict], job: dict) -> str | None:
+    """The REMOTE-VISIBLE v3 successor name a `new is None` (`direct delete`)
+    job's town-first migration lands under, derived through branches.
+    derive_names — never a hand-spelled name. For a canonical season-first
+    POST (`season<n>/posts/<p>`) the v3 tree that carries the work is the
+    season-owner town's trunk `<core>/season<n>/main` (the post_main itself is
+    local-only by contract and never reaches origin): the town trunk is what
+    the v3 --apply pushes, so its presence on origin is exactly the proof the
+    migration reached origin. For a season-first TOWN MAIN
+    (`season<n>/<t>/season<k>/main`) the successor is the town-first leaf
+    `<t>/season<k>/main`. None for any other kind (a loop, an already
+    town-first name, an unparseable name) — the caller then refuses, never
+    guesses (hypothesis:l4-delete-old-new-is-none-arm-bypasses-b2-and-would-
+    delete-five-live-branches)."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    old = job.get("old") or ""
+    kind = job.get("kind")
+    if kind == "post":
+        m = re.fullmatch(r"season(\d+)/posts/(.+)", old)
+        if not m or not tuples:
+            return None
+        try:
+            return branches.derive_names(
+                _rs_v3_core_town(tuples), int(m.group(1)))["town_season_main"]
+        except (ValueError, KeyError):
+            return None
+    if kind == "town_main":
+        m = re.fullmatch(r"season\d+/([^/]+)/season(\d+)/main", old)
+        if not m:
+            return None
+        try:
+            return branches.derive_names(
+                m.group(1), int(m.group(2)))["town_season_main"]
+        except ValueError:
+            return None
+    return None
+
+
+def _rs_containment_state(repo: Path, old: str,
+                          targets: list) -> tuple[str, str | None]:
+    """Content containment of a `--delete-old` job's origin tip in the first
+    of `targets` that RESOLVES on origin: ('contained', target),
+    ('diverged', target) or ('failed', target|None).
+
+    A target ABSENT on origin is SKIPPED, never read as containment -- that
+    fallback chain exists for exactly this case. The first target that
+    resolves DECIDES: rc 0 => contained, rc 1 => diverged (the old tip
+    carries commits the target does not, so deleting it would destroy
+    content -- REFUSE), any other rc => failed (the probe could not run --
+    REFUSE, never guess). BOTH tips are read from origin via ls-remote so a
+    stale local tracking ref can never certify a containment origin no
+    longer has, and `git merge-base` then walks the local object store: a
+    stray push whose object was never fetched fails the probe rather than
+    reading as containment. This is the rc-honest idiom cmd_loop_prune
+    already uses, applied to the REMOTE tips rather than local branches
+    (hypothesis:l4-delete-old-requires-content-containment-every-job-
+    ancestor-of-successor-or-trunk, mur-52)."""
+    old_sha = _rs_ls_remote_sha(repo, old)
+    if not old_sha:
+        return "failed", None
+    for target in targets:
+        if not target:
+            continue
+        tgt_sha = _rs_ls_remote_sha(repo, target)
+        if not tgt_sha:
+            continue  # absent on origin: try the next target, never guess
+        r = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", old_sha, tgt_sha],
+            cwd=repo, capture_output=True, text=True)
+        if r.returncode == 0:
+            return "contained", target
+        if r.returncode == 1:
+            return "diverged", target
+        return "failed", target
+    return "failed", None
+
+
+def _rs_containment_targets(tuples: list[dict], job: dict,
+                            season: int) -> list:
+    """The ordered content-containment candidates for one delete job: its
+    own rename target (`new`) when it has one, else its derived v3 successor
+    (`_rs_v3_successor`, the SAME derivation the presence gate already uses),
+    else the file's own season trunk main (`branches.season_main(season)` --
+    the ONE grammar source, never a hand-spelled `season<n>/main`).
+    `_rs_containment_state` skips a candidate ABSENT on origin, so the order
+    is a preference among resolvable targets, never a boundary that lets an
+    absent ref read as containment."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    succ = _rs_v3_successor(tuples, job) if tuples else None
+    return [job.get("new"), succ, branches.season_main(season)]
 
 
 def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
@@ -3507,6 +3821,19 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "no ladder towns: list); only the v2 migration applies — run "
               "--dry-run to see the planned v3 tree")
         return 0
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: a wrong-tip trunk is REFUSED BY NAME but must NOT
+    # abort the sections that FOLLOW the town loop (the v3 post renames; the
+    # v3 main notice; the dry-only loop plan). The planned tip is the
+    # season's MAIN trunk (derived, never hand-spelled — branches.py owns
+    # the grammar) and it moves at every merge-up, so a trunk legitimately
+    # created at the
+    # OLDER tip is refused on the first --apply and stays at that tip forever
+    # (never force-moved). Collect refusals across the WHOLE job stream and
+    # CONTINUE, exactly like --delete-old; ONE summary + a non-zero exit live
+    # at the very END of this function so the run stays rc-honest without
+    # blocking the rest of the migration.
+    refused: list[str] = []
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
@@ -3529,14 +3856,63 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
                 else:
                     resume_state = "wrong"
             if resume_state == "skip":
-                print(f"    [SKIP] {town_name} already at tip (resumed run)")
+                # hypothesis:l4-trunk-create-resume-ls-remote-gates-push-if-
+                # remote-absent: a local trunk AT the planned tip is NOT by
+                # itself a finished job. A first pass that died between
+                # `git branch <town>` and `git push -u origin <town>` leaves
+                # the trunk LOCAL-ONLY, and the old unconditional skip then
+                # `continue`d past the push, stranding it until an operator
+                # pushed it (mur-50 residue (c), REAL). So GATE the skip on
+                # origin, reusing `_post_rename_remote_ref_state` exactly the
+                # way the delete-old resume leg does: 'present' = finished
+                # (skip); 'absent' = resume the push the dead pass never
+                # reached; 'failed' = rc-honest refusal (a failed probe is
+                # UNKNOWN and must never read as absent OR present).
+                rstate = _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{town_name}")
+                if rstate == "failed":
+                    # rc-honest refusal COLLECTED, never an abort (mur-52
+                    # residue 2a): a failed probe is UNKNOWN (never 'absent'
+                    # or 'present'), so refuse this trunk BY NAME and
+                    # CONTINUE to the next planned pair -- exactly like the
+                    # wrong-tip branch below and like --delete-old. One
+                    # summary + non-zero exit at the very end of this
+                    # function, after the post section ran.
+                    print(f"ERR: ls-remote origin {town_name} failed; cannot "
+                          f"confirm it is already pushed — NOT skipped",
+                          file=sys.stderr)
+                    refused.append(town_name)
+                    continue
+                if rstate == "present":
+                    print(f"    [SKIP] {town_name} already at tip and on "
+                          f"origin (resumed run)")
+                    continue
+                # absent: the trunk is LOCAL-ONLY — this is the push the dead
+                # first pass never got to. rc-gated, exactly like the create
+                # leg's push.
+                print(f"    [APPLY] branch push (v3, resume): git push -u "
+                      f"origin {town_name}")
+                pr = subprocess.run(["git", "push", "-u", "origin",
+                                     town_name], cwd=repo, capture_output=True,
+                                    text=True)
+                if pr.returncode != 0:
+                    # mur-52 residue 2a: a failed resume-push is COLLECTED
+                    # and the run CONTINUES, never an abort that skips the
+                    # post section. Reuse the in-scope `refused` list.
+                    print(f"ERR: git push -u origin {town_name} failed: "
+                          f"{pr.stderr.strip()}", file=sys.stderr)
+                    refused.append(town_name)
+                    continue
                 continue
             if resume_state == "wrong":
+                # refused BY NAME, but NEVER force-moved and NEVER an abort:
+                # collect and continue to the next planned pair.
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
                       f"already exists at a DIFFERENT tip than the planned "
                       f"{tip}; a trunk-pair create never force-moves a trunk",
                       file=sys.stderr)
-                return 1
+                refused.append(town_name)
+                continue
             print(f"    [{'DRY ' if dry else 'APPLY'}] branch create (v3): "
                   f"git branch {town_name} {tip}")
             # the push line: assert_remote_visible FIRST, then the line.
@@ -3613,6 +3989,27 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
               "cut):")
         if _rs_v3_loops_plan(repo):
             return 1
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the closing apply line prints IF AND ONLY IF it is
+    # TRUE -- i.e. this run reached the END of its job stream (the v3 post
+    # renames ran/were attempted and NO git command aborted early). Printing
+    # it HERE, not in the callers, is what makes a broken v3 git command (an
+    # early `return 1`) stop claiming work that did not happen. `not dry`
+    # keeps --dry-run byte-identical (the line was already absent there).
+    if not dry:
+        print("apply: local renames + worktree re-points done; remote legacy "
+              "branches NOT deleted (see --delete-old)")
+    # hypothesis:l4-branch-reshuffle-apply-collect-refusals-and-continue-
+    # on-a-moving-tip: the ONE summary + non-zero exit for the WHOLE job
+    # stream. Every section above ran to completion first, so a refused trunk
+    # never blocks the v3 post renames, the v3 main notice or the loop plan.
+    # Measured BEFORE this move: the summary `return 1`ed at the end of the
+    # town block, so `--apply --kinds main,posts,towns` on a moved tip never
+    # reached the post section on ANY retry.
+    if refused:
+        print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
+              f"{', '.join(refused)}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -3738,11 +4135,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
             # creates + v3 post renames are INDEPENDENT of the v2 renames, so
             # an empty legacy list must not bypass the v3 plan. rc-honest like
             # the main apply tail: a failed git run returns 1 and names it.
-            if _rs_v3_run(repo, root, kinds, False, has_origin):
-                return 1
-            print("apply: local renames + worktree re-points done; remote "
-                  "legacy branches NOT deleted (see --delete-old)")
-            return 0
+            # mur-52 residue 2b: the refs/grid IDENTICAL|CHANGED summary
+            # prints from the SAME position as the main apply arm -- BEFORE
+            # the v3 tail, exactly once, whether or not the tail refuses.
+            # (The zero-legacy arm has no v2 renames to measure, so the truth
+            # is IDENTICAL; the point is the position is the same on both
+            # arms.) Previously this line was skipped entirely when the v3
+            # run returned 1.
+            print("refs/grid: IDENTICAL before/after --apply "
+                  "(expected IDENTICAL)")
+            return _rs_v3_run(repo, root, kinds, False, has_origin)
         if not (apply or delete_old):
             print("dry-run: nothing changed")
         return 0
@@ -3938,11 +4340,66 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         if "master" in heads:
             print("  master: add-only, remote name kept (frozen season-1 "
                   "name); not deleted")
+        # hypothesis:l4-delete-old-new-is-none-arm-bypasses-b2-and-would-
+        # delete-five-live-branches: a direct-delete job (no rename target)
+        # must NOT skip the origin-presence gate. Derive the job's v3
+        # successor and require it CONFIRMED PRESENT on origin; otherwise the
+        # job is refused. Computed for BOTH modes: a real run folds it into
+        # the all-or-nothing `unpointed` wall, and a --dry-run previews the
+        # same refusal (honest, still deletes nothing). A v3-off tree keeps
+        # the old direct-delete behaviour — there is no v3 successor to
+        # require when the town set is undeclared.
+        v3_gate_refused: list[str] = []
+        if _v3_on:
+            for j in djobs:
+                if j["new"] or j.get("kind") not in ("post", "town_main"):
+                    continue
+                succ = _rs_v3_successor(_rs_tuples, j)
+                if succ is not None and _post_rename_remote_ref_state(
+                        repo, f"refs/heads/{succ}") == "present":
+                    continue
+                j["v3_successor"] = succ
+                v3_gate_refused.append(j["old"])
+        # hypothesis:l4-delete-old-requires-content-containment-every-job-
+        # ancestor-of-successor-or-trunk (SAFETY-CRITICAL, mur-52): origin
+        # PRESENCE (the gate above) and content CONTAINMENT are two DIFFERENT
+        # questions and both must pass. Every job --delete-old would delete,
+        # of EVERY kind -- including the loop jobs the presence gate does not
+        # reach -- must have its origin tip be an ancestor of a target: its
+        # rename target, else its derived v3 successor, else the season trunk
+        # main. Computed for BOTH modes; a real run folds refusals into an
+        # all-or-nothing wall, a dry run previews the same refusal. A job the
+        # presence gate already refused is skipped here (it is refused by
+        # name either way, and its successor is the absent ref).
+        #
+        # SCOPE: this gate is UNCONDITIONAL, deliberately NOT scoped under
+        # `_v3_on` (parent PROBE-E: the earlier `_v3_on` scope left the exact
+        # mur-52 hazard alive on a tree with no declared v3 town set -- a
+        # stray-commit post was destroyed unchecked). The claim says EVERY
+        # job of EVERY kind on EVERY tree. The presence gate above keeps its
+        # own `_v3_on` scope (there is no v3 successor to require when the
+        # town set is undeclared); containment is the independent gate this
+        # claim adds. The target chain still resolves on a v3-off tree:
+        # a legacy rename job's own `new` target is present on origin, so a
+        # genuine rename (old tip an ancestor of new tip) is admitted and a
+        # diverged one is refused by name. A v3 successor is None there and
+        # is skipped; the season trunk main is the final fallback and is
+        # skipped too when absent. No resolvable target at all => refused.
+        contain_refused: list[tuple[str, str, str]] = []
+        for j in djobs:
+            if j["old"] in set(v3_gate_refused):
+                continue
+            state, tgt = _rs_containment_state(
+                repo, j["old"],
+                _rs_containment_targets(_rs_tuples, j, season))
+            if state != "contained":
+                contain_refused.append((j["old"], tgt or "", state))
+        contain_set = {o for o, _t, _s in contain_refused}
         if not dry:
-            unpointed = []
+            unpointed = list(v3_gate_refused)
             for j in djobs:
                 new = j["new"]
-                if not new:  # v3 sub-top-level: no rename target, direct delete
+                if not new:  # v3 sub-top-level: successor gate ran above
                     continue
                 if _post_rename_upstream(repo, new) != f"origin/{new}":
                     # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-
@@ -3957,10 +4414,37 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                     unpointed.append(new)
             if unpointed:
                 print(f"ERR: --delete-old REFUSES {len(unpointed)} branch(es) "
-                      f"whose upstream is not origin/<new>: "
+                      f"whose upstream is not origin/<new> or whose v3 "
+                      f"successor is absent on origin: "
                       f"{', '.join(sorted(unpointed))}; re-point them with "
                       f"--apply before deleting", file=sys.stderr)
                 return 1
+            if contain_refused:
+                # all-or-nothing, exactly like the presence wall: a job whose
+                # content is not contained in any resolvable target refuses
+                # the WHOLE pass and NOTHING is deleted.
+                print(f"ERR: --delete-old REFUSES {len(contain_refused)} "
+                      f"branch(es) whose content is NOT contained in any "
+                      f"successor or the season trunk main (nothing "
+                      f"deleted): "
+                      f"{', '.join(sorted(contain_set))}", file=sys.stderr)
+                return 1
+        else:
+            # dry-run preview of the SAME walls: do not print an
+            # unconditional [DRY ] delete for a branch the real run would
+            # refuse.
+            if v3_gate_refused:
+                print(f"  NOTE: --delete-old would REFUSE "
+                      f"{len(v3_gate_refused)} branch(es) whose v3 successor "
+                      f"is absent on origin: "
+                      f"{', '.join(sorted(v3_gate_refused))}", file=sys.stderr)
+            if contain_refused:
+                print(f"  NOTE: --delete-old would REFUSE "
+                      f"{len(contain_refused)} branch(es) whose content is "
+                      f"NOT contained in any successor or the season trunk "
+                      f"main: {', '.join(sorted(contain_set))}",
+                      file=sys.stderr)
+        v3_gate_set = set(v3_gate_refused)
         # one line per branch, in the refs/heads/<old> namespace, ordered
         # posts -> towns -> mains (dead loops last) within the --kinds set.
         # a refused delete names its job and the run CONTINUES to the next
@@ -3968,6 +4452,22 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         refused: list[str] = []
         for j in djobs:
             old = j["old"]
+            if dry and old in v3_gate_set:
+                # the dry preview names the refusal instead of an
+                # unconditional delete (the real run refuses the whole pass).
+                print(f"[DRY ] REFUSE branch delete (remote, v3 successor "
+                      f"absent on origin): {old} -> would need "
+                      f"{j.get('v3_successor') or '(no derivable successor)'}")
+                continue
+            if dry and old in contain_set:
+                # content-containment preview: the real run refuses the whole
+                # pass for this job, so the preview must not advertise a
+                # delete it would not perform.
+                _tgt = next(t for o, t, _s in contain_refused if o == old)
+                print(f"[DRY ] REFUSE branch delete (remote, content not "
+                      f"contained): {old} -> not an ancestor of "
+                      f"{_tgt or '(no resolvable successor/trunk)'}")
+                continue
             if not dry:
                 # rc-honest resume-skip: before deleting origin/<old>, probe
                 # refs/heads/<old> and distinguish the ref genuinely GONE
@@ -4104,12 +4604,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # non-remote-visible push is REFUSED BY NAME) and the local-only v3
         # post renames (no push, upstream UNSET, worktrees re-pointed). The
         # remote delete stays the separate --delete-old step. rc-honest: any
-        # git failure returns 1 and names the failed command.
-        if _rs_v3_run(repo, root, kinds, False, has_origin):
-            return 1
-        print("apply: local renames + worktree re-points done; remote legacy "
-              "branches NOT deleted (see --delete-old)")
-        return 0
+        # git failure returns 1 and names the failed command, and a
+        # collected wrong-tip refusal returns 1 from the SUMMARY at the very
+        # end of _rs_v3_run -- AFTER every section ran (R3.2). Either way the
+        # closing line reports the v2 renames + worktree re-points that
+        # completed ABOVE this call; the v3 failures are named on stderr.
+        v3_rc = _rs_v3_run(repo, root, kinds, False, has_origin)
+        # the closing line now prints from INSIDE _rs_v3_run (R3.2), gated on
+        # the run reaching the end of its job stream -- so a v3 git failure
+        # that `return 1`s early never prints the false "done" status.
+        return v3_rc
 
     # defect 5 contract owed to the crons region (KID D): the LAST line of
     # --dry-run must be the runbook note, kept to one line.
@@ -4175,9 +4679,18 @@ def main() -> int:
              "required (refused by name, nothing written) for a tier-parent "
              "recording a verdict >= inconclusive_lean_proved:50 or proved.")
     p_done.add_argument(
+        "--salvage", action="store_true",
+        help="finalize a REAPED parent's round from its manifest death "
+             "record instead of from a live agent. Admission requires "
+             "death.class == 'died-after-work' with every kid verdict "
+             "present; anything else refuses by name (hypothesis:l4-a-reaped-"
+             "parent-record-names-its-death-class-and-staged-work-and-done-"
+             "salvage-finalizes-a-complete-round-from-the-record).")
+    p_done.add_argument(
         "--dry-run", action="store_true",
-        help="print the tier-parent probe gate's decision without writing "
-             "anything (refusal shows the missing conjunct numbers).")
+        help="print the tier-parent probe gate's decision (and, under "
+             "--salvage, the death class + would-finalize summary) without "
+             "writing anything.")
     p_done.set_defaults(func=cmd_done)
 
     p_pend = sub.add_parser("pending")
