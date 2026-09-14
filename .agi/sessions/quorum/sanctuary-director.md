@@ -1,46 +1,56 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~20:5xZ) — merge-up-53 (R3.4+R3.5) fully DONE and pushed; a real defect in SM.23 (mur-51's own fix) was found and reverted by the Prime mid-session; posts-local-only is now RULED. mur-53 (adversarial review) is the live next step — not yet run/named. See §0/§2/§3.
+# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~23:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle --apply landed clean and verified; --delete-old is BLOCKED pending a Prime ruling on the posts-local-only arm (safe refusal, nothing deleted, holds released). See §0/§2/§3.
 
-🔴 **TREE:** `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` on **`season2/posts/sanctuary-director`**; **MAIN `/home/ubuntu/work/agi` = `season2/main`**. ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. Heavy concurrent write load — stale-base refusals are normal, resolve by sync+re-cut or `--allow-stale-base` as the sanctioned third step.
+🔴 **BRANCH RENAME, READ BEFORE ANYTHING ELSE:** this worktree's checked-out branch is **NO LONGER** `season2/posts/sanctuary-director`. The live reshuffle renamed it LOCALLY (no push, no upstream) to **`core/season2/posts/sanctuary-director/main`**. `git branch --show-current` in `$W` will confirm. The OLD name still exists on origin untouched (nothing was deleted) — this is a LOCAL rename only. Sync commands that assume the old branch name may need adjusting; verify fresh, don't assume either name.
+
+🔴 **TREE:** `$W=/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director` now on **`core/season2/posts/sanctuary-director/main`** (see above); **MAIN `/home/ubuntu/work/agi` = `season2/main`** (unchanged). ABSOLUTE paths always. Sync = `git fetch && git merge --no-edit origin/season2/main`. Heavy concurrent write load — stale-base refusals are normal, resolve by sync+re-cut or `--allow-stale-base` as the sanctioned third step.
 
 🔴 **HANDOFF.md at the repo root is STALE/LEGACY** — edit the quorum card only.
 
-🔴 **NAMING/TRACKING, owner order 16:4xZ:** no post but the Prime tracks generations. Timestamps/hashes for "when", never `gen N`. **Post renames land in SM.18's bundle — do not rename anything here.**
+🔴 **NAMING/TRACKING, owner order 16:4xZ:** no post but the Prime tracks generations. Timestamps/hashes for "when", never `gen N`. **Post renames land in SM.18's bundle** — this session's rename was the ENGINE's own branch-reshuffle tool under mur-53 GO, a different thing from SM.18's seat-geometry rename; don't confuse the two, and still don't rename anything by hand here.
 
-🔴 **POSTS-LOCAL-ONLY IS RULED (confirmed this session, `doc:l4-owner-decisions` ~L757, owner 18:3xZ / Prime ruling relayed 18:4xZ):** merge-up **drops the window-ask/grant round-trip** — the post takes the advisory suite lock itself when free and tells the Prime ONE line **after**. (Separate infra piece — post branches never pushed as heads, mirrored to `refs/agi/posts/<name>` — is NOT yet built; don't assume it and don't build it yourself, it's SM.18's bundle.) merge-up-53 this session still used the OLD ask/wait recipe because it was already in flight before this confirmed. **Use the light recipe for the next merge-up.** See updated MERGE-UP RECIPE below.
+🔴 **POSTS-LOCAL-ONLY IS RULED AND NOW PARTIALLY LIVE:** the `doc:l4-owner-decisions` ruling (~L757) is implemented by THIS SESSION's reshuffle for 3 posts (sanctuary-director, sanctuary-helper, sensei-director): renamed under `core/season2/posts/<name>/main`, no upstream, mirrored automatically every 5 min by a `crons.py`-installed line (`refs/heads/core/* -> refs/agi/core/*`, confirmed correctly installed, not yet independently confirmed firing). **Old `season2/posts/<name>` branches on origin are UNTOUCHED** — `--delete-old` refused them (see §0) and that refusal is correct/safe, not a bug to route around by hand.
 
 ## §0 STATE (live — updated as work lands)
 
 **AUTHORITY:** owner speaks ONLY through the Prime (belam); every decision banked verbatim in `doc:l4-owner-decisions`.
 
-- **PRIME = belam.** 🔴 **belam itself rotated mid-session (gen 19→20)** — every belam message this session (both generations) arrived signature-`VERIFIED` via `send.py read`, so authenticity was never in question, but note the seat is a new live process now. Re-verify via `send.py whois` only if something feels off; routine VERIFIED-tagged DMs are trustworthy as-is.
-- **Ids:** L4.347-349 = R3.1-R3.3 (merge-up-52). L4.350 = R1 (rotate.py closeout gate). L4.351 = R3.4 (origin-presence gate). L4.352 = R3.5 (content-containment gate). All four harvested and merged prior to this session's own work — see git log. **Next id = L4.353**, not yet assigned.
-- ✅ **merge-up-53 DONE.** Merged `fbe079783` (R3.4 `L4.351` + R3.5 `L4.352`) into MAIN, no conflicts. Full detail + the mur-52/R3.4/R3.5 finding chain: git log, unchanged from before — still worth reading in full before touching branch-reshuffle again (search `harvest L4.351`, `harvest L4.352`).
-- 🔴 **SM.23 (mur-51's own fix) had a REAL DEFECT — do not trust "harvested + merged" as "verified under load."** SM.23 (`17d919e84`) added `if status == stalled: all_terminal = False` to `heal.py`'s wait loop — a stalled record with a live-or-unprovable pid keeps that loop sleeping (`heal.py:252`) up to its **30-minute max-wait**, which is *exactly* `verification.py`'s `SUITE_TIMEOUT=1800s`. Result: 3 full suite runs redlined on `tests` timeout with **zero diagnostic output** (see §4 trap), 2 of them mine. belam (Prime) found the mechanism, reverted the hunk on MAIN (`912363623`, graph nodes kept), and a re-land is planned as **SM.23b** (TOP node `ee72532d7`) with the poll seamed. **SM.23b is not mine — don't touch it, don't restart the reaper.**
-- 🔴 **Coordination incident, resolved, rule learned both ways:** my first verify-suite run (19:27Z, unannounced) collided with director-sanctuary's SL2#30 and blocked it twice (per master-sensei). Prime rule going forward: **announce ONE line to the Prime before running a suite in MAIN**, the advisory lock file alone isn't enough. Counter-rule (Prime, XVIII precedent, also learned this session): **prose/record/comms commits landing on MAIN mid-suite are NON-VOIDING — only code/test-file mutation voids an in-flight run.** Don't kill your own run just because a handoff/comms commit lands; DO stop it if code or test files change under it.
-- **Final verified state, everything pushed:** verify-suite at `ac12854ca` — **all 11 green**, `tests` 471.4s (4766 passed, 15 skipped, 0 failed) — ceiling back to normal post-revert. Rotation stamp at `ee72532d7` — **all 10 green** — active=2830 deprecated=198 total=3028 broken_links=0. `git push` both times reported "Everything up-to-date" (belam's own pushes during the incident already covered it). Reported to belam in one line.
-- **LIVE:** mur-53 (director-review's adversarial workflow) — not yet run or named by anyone. That's the next real step, gated on nothing else.
-- 🔴 **rename flag:** re-checked twice this session, still absent: `test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json` → no.
-- **Post branch** (`season2/posts/sanctuary-director`) tip unchanged at `834549aab` all session — all actual work this session happened directly in MAIN per the merge-up recipe; nothing new minted on the post branch itself until this card commit.
+- **PRIME = belam**, gen 20 live (rotated mid-session from gen 19; all messages both generations arrived signature-`VERIFIED`).
+- ✅ **merge-up-53 DONE** (`fbe079783`, R3.4 `L4.351` + R3.5 `L4.352`), pushed, fully closed. SM.23 defect found+reverted (`912363623`), re-land SM.23b not mine.
+- ✅ **mur-53 VERDICTS IN** (belam 21:14Z, from director-review's report): **ACCEPT L4.351 (R3.4)**, **ACCEPT L4.352 (R3.5) with residue**, **DEMOTE L4.350 (R1)**. L4.350's bug: removed `is_frozen` from `_stops_push`, which pushes the checked-out branch — season2/main for the prime itself — via 3 ungated calls that run BEFORE the now-gated `_make_closeout_seams` push; a frozen prime's rotate-self would publish season2/main first. **RULING: veto FREEZE NOT ARMED until the fix lands.** Demote recorded on the node (`hypothesis:l4-the-veto-answer-is-a-signed-owner-line-or-a-ring-decision-and-the-gate-sits-on-the-merge-up-push`, commit `ed7a16764`). **NOT YET DONE: mint L4.350b + the TOCTOU hypothesis + the presence-PASS/containment-FAIL test hypothesis, all under goal:g15, in that priority order** — see §2 queue, belam's exact spec is quoted there. Not blocking, but genuinely still owed.
+- ✅ **LIVE RESHUFFLE — apply phase DONE, verified independently (not just the printed summary):**
+  - Announced to every known post + belam before starting (13 posts DM'd + belam).
+  - `--dry-run --kinds towns,posts,loops` read in full (542 lines) — town creates additive, 3 post renames local-only, loops uniformly held/untouched.
+  - `--apply` run: 6 new town branches created+pushed (`core/main`, `core/season2/main`, `streaming-suite/main`, `streaming-suite/season1/main`, `web-app-suite/main`, `web-app-suite/season1/main`) — confirmed live on origin via `git ls-remote`. 3 posts renamed locally (sanctuary-director, sanctuary-helper, sensei-director) to `core/season2/posts/<name>/main`, worktrees re-pointed — confirmed via `git branch --show-current` in EACH worktree directly (the tool's own log line for the re-point step was silently absent from stdout; don't trust the printed log alone, see §4). `crons.py apply` run in MAIN: crontab already correctly wired for the new town-prefix mirrors (no-op, expected).
+  - Suite re-verified green TWICE post-apply (4766 passed, 15 skipped, 0 failed both times, ~471-520s each).
+  - `--delete-old --kinds towns,posts,loops`: refused **all-or-nothing, nothing deleted** — `ERR: --delete-old REFUSES 4 branch(es) whose content is NOT contained in any successor or the season trunk main: season2/loops/hypothesis-l4-the-ack-prints-onl-a00-b6b11bd7, season2/posts/sanctuary-director, season2/posts/sanctuary-helper, season2/posts/sensei-director`. **This is R3.5's OWN content-containment gate** (not the B2 upstream gate belam guessed, though same root cause): the local-only v3 rename has no origin presence and nothing to prove containment against, so it fails safe. Independently confirmed via `git ls-remote` that all 4 branches (+ old town sources) are still fully present on origin — genuinely nothing deleted.
+  - **BLOCKED, reported to belam, holds released on all 13 posts + belam.** Awaiting the Prime's ruling on the posts arm (their own framing: mirror-to-refs/agi/posts first, then adjust the containment/presence gate to accept the mirror, or exclude posts kind from it).
+  - **Cell re-spellings NOT applied** — 5 lines in `ladder.md`/`rotations.md`, Prime's job by design, still pending (printed each dry-run/apply, unchanged): `ladder.md:60,61,62,157`, `rotations.md:161` — see the tool's own printed list for exact old→new text, don't hand-copy from memory.
+- rename flag: still absent (re-checked this session).
 
 ## §1 LANDED
 
-**R3.1+R3.2+R3.3, R1, R3.4, R3.5:** all landed before this session's own work began; unchanged detail in git log (search `harvest L4.35x`).
+**merge-up-53 + SM.23 incident:** see git log, unchanged from mid-session.
 
-**merge-up-53 execution (this session):** merge `fbe079783` clean → `snapshot-goals.py --render`+`--check` both clean → verify-suite (first two attempts genuinely FAILED on `tests` timeout, root-caused to SM.23's defect, not to R3.4/R3.5) → belam reverted SM.23's hunk (`912363623`) → verify-suite re-run at `ac12854ca`, **all 11 green** → `grid.py commit --all` (0 new versions, concurrent `grid_sync` cron had already caught it — confirmed via `grid.py versions`, not assumed) → push (already up to date both times) → `verification.py --level rotation --stamp` **all 10 green** at `ee72532d7` → reported to belam.
+**mur-53 handling:** demote recorded on L4.350's node. Reshuffle apply phase executed and independently verified at every step (town creates, post renames, worktree re-points, suite green x2, crontab). delete-old correctly and safely refused; nothing lost.
 
 ## §2 LIVE + QUEUE
 
-**LIVE: mur-53** — director-review's adversarial workflow, not yet run/named. Nothing on my side blocks it; it's the Prime's/director-review's move.
+**LIVE: awaiting belam's ruling on the posts-arm / delete-old block.** Check inbox fresh — don't assume still pending.
 
-**QUEUE once mur-53 ACCEPTs:**
-1. `branch-reshuffle --dry-run --kinds towns,posts,loops` (never `main`) — **read the list BY NAME**, never an expected count.
-2. `--apply` → suite green → `--delete-old` → cell re-spellings (Prime applies) → `verify` → commit.
+**QUEUE once ruled:**
+1. If the ruling is "mirror first, then retry": confirm `refs/agi/core/*` mirror has actually fired (check `git ls-remote origin | grep refs/agi/core` — hadn't fired as of the block, cron is `*/5min`), then re-run `--delete-old` fresh (re-create `verified.stamp` with a FRESH green suite run first — I deleted the stamp on purpose so nobody trusts a stale one; regenerate, don't reuse).
+2. If the ruling adjusts the containment/presence gate itself: that's engine code — mint under goal:g15 same as the L4.350b/TOCTOU items below, don't hand-patch it live under a merge-up.
+3. Either way, once `--delete-old` actually succeeds: cell re-spellings (**Prime applies**, 5 lines, see §0) → `verify` → commit. Announce again before actually deleting, same discipline as before (every post + belam, hold rotation, hold the lock).
 
-**If mur-53 comes back with findings instead of ACCEPT:** read them, fix or bank per the usual harvest discipline — don't assume ACCEPT and don't proceed to branch-reshuffle without it.
+**SEPARATELY, still owed from mur-53 (not blocking, but real work — belam's exact spec):**
+1. **L4.350b** (mint hypothesis, parent goal:g15 + the demoted L4.350 node): `_stops_push` gates on `is_frozen(prime)` whenever its resolved branch is a trunk (season2/main or any `*/main`), reshaping the pinning test (`test_rotate_closeout_steps.py:1218-1224`) to assert the gate PRESENT for trunk pushes and absent for post-branch pushes. Fix lands WITH the test change.
+2. **TOCTOU hypothesis** (goal:g15): `--delete-old` deletes with `--force-with-lease=<ref>:<probed-sha>` on BOTH the R3.4 presence path and the R3.5 containment path (the idiom already guards `--apply`'s moving tip).
+3. **A committed test** for presence-PASS + containment-FAIL (the live mur-52 shape).
+4. Bank only, no round unless it's ever used: `cli.py post-rename --delete-old` has zero ancestry check.
 
-**R2/R4/R5/R6** still need a separate signed GO from belam — not yet asked, unchanged from before. Sources: mur-49 review JSON (`.agi/sessions/reviews/mur-49.review.json`, MAIN only, gitignored) keys L4.337 (R5), L4.338 (R4, R6) — read the relevant node body first, per grammar below.
+**R2/R4/R5/R6** still need a separate signed GO from belam — not yet asked, unchanged.
 
-**GRAMMAR (unchanged):** mint = `write.py create hypothesis <slug> --parent goal:g15 --parent hypothesis:<source> --set town=core --set "title=…" --set "testable_claim=$(cat file)" --actor sanctuary-director --role director` (**no literal `&&` anywhere in generated text**). commit + push. cut = `AGI_SEAT=sanctuary-director AGI_POST=sanctuary-director python3 extensions/agi/bin/dispatch.py . L4.NNN --target hypothesis:<id> --level small --tier parent --harness pi --branch` (sync first; stale-base = sync + prune empty iter dir + re-cut SAME id; `--allow-stale-base "<reason>"` on the 3rd refusal; verify via `find`/`git worktree list`). wait = `spawn_budget.py status --iter L4.NNN --wait --timeout <N>` backgrounded. harvest = diff vs merge-base → review bytes + node directly → check parent worktree `git status -sb` directly → merge `--no-ff -F file` → re-run suites here → for a destructive-path hypothesis, independently re-run the actual read-only command and read its actual output → `write.py <node> "note HARVEST L4.NNN (sanctuary-director, <ts>): …"` → commit + push.
+**GRAMMAR (unchanged):** mint = `write.py create hypothesis <slug> --parent goal:g15 --parent hypothesis:<source> --set town=core --set "title=…" --set "testable_claim=$(cat file)" --actor sanctuary-director --role director` (no literal `&&` in generated text). commit + push. cut/wait/harvest: unchanged, see prior card or git log for the full grammar block.
 
 ## §3 🔴 NEXT COMMAND
 
@@ -51,11 +61,11 @@
 ```
 Check inbox fresh: python3 extensions/agi/bin/send.py read sanctuary-director
 
-If it names mur-53's result: on ACCEPT, run the §2 QUEUE branch-reshuffle live sequence -- dry-run first, read the list BY NAME, then --apply, suite green, --delete-old, cell re-spellings (Prime applies), verify, commit. On anything short of ACCEPT, read the findings and handle per normal harvest discipline before touching branch-reshuffle.
+If belam has ruled on the posts-arm block: follow the §2 QUEUE exactly -- confirm mirror state or engine-fix path per the ruling, regenerate verified.stamp fresh (never reuse a stale one), re-announce before any actual delete, re-run --delete-old, then cell re-spellings (Prime applies) -> verify -> commit.
 
-If nothing new (mur-53 still not run, empty inbox): fine to bank, nothing blocks on it from my side. Productive parallel work: check R2/R4/R5/R6 status per the §2 QUEUE note -- read the relevant mur-49 node body first (L4.337 for R5, L4.338 for R4/R6), not the full review JSON unless the node body is insufficient. Do NOT ask belam for their GO yet unless you're actually about to mint/dispatch -- reading status is fine, asking prematurely is not.
+If not yet ruled: fine to bank, nothing blocks on it from my side (holds are already released, nobody is waiting on me). Productive parallel work, in priority order: (1) mint L4.350b per belam's exact spec in §2 -- this is real owed work, not busywork. (2) the TOCTOU hypothesis. (3) the presence-PASS/containment-FAIL test hypothesis. (4) R2/R4/R5/R6 status reading if the above are done or blocked on something.
 
-SEPARATELY, before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json -- re-check fresh. (2) SM.23b -- check if it landed; not mine, don't touch, just note status. (3) generation-less -- never "gen N". (4) if this post ever takes another merge-up window, use the LIGHT recipe (take the lock yourself when free, tell the Prime ONE line after) -- the ask-and-wait recipe is confirmed superseded.
+Before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json -- re-check fresh. (2) confirm which branch $W is actually on (git branch --show-current) before trusting any card text about it, including THIS card -- verify, don't assume.
 ```
 ````
 `````
@@ -64,82 +74,65 @@ SEPARATELY, before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi
 
 ## §4 TRAPS (kept from the prior card, trimmed where superseded; new ones from this session marked NEW)
 
-- 🔴 **NEW: a piped command's reported exit code is the PIPE'S LAST STAGE, not the real command.** `commands.py run verify-suite | tail -80` reported "completed / exit code 0" from the Bash tool even when the actual suite FAILED (`tests` timed out, `RESULT: FAIL`) — `tail` always exits 0. **Always read the full output body and check its own `RESULT: PASS/FAIL` line**, never trust a wrapper-level completion notification alone. Cost real time twice this session before being caught.
-- 🔴 **NEW: `verification.py`'s `tests` check swallows ALL diagnostic output on a timeout.** `subprocess.run(..., timeout=SUITE_TIMEOUT)` raising `TimeoutExpired` (verification.py:840-845) returns just "timed out after 1800s" — no tail, no hint which test. To diagnose a suite timeout, run `python3 -m pytest extensions/agi/tests/ -q --durations=15` **directly**, backgrounded, no wrapper.
-- 🔴 **NEW: distinguishing "slow under load" from "actually stalled" in a backgrounded process:** check `cat /proc/<pid>/wchan` and `ps --ppid <pid>` for live children. `hrtimer_nanosleep` + no children + `ps -o time=` flat across a full poll interval (not just one reading) = a real stall. One `kill -INT` to a stuck pytest surfaces the exact file:line via the KeyboardInterrupt traceback — costs that run, worth it once for the diagnosis.
-- 🔴 **NEW: a `run_in_background: true` Bash call is NOT killed by its own `timeout` param** — confirmed one ran 30+ minutes to natural completion past a `timeout: 600000` value. Don't rely on `timeout` as a safety ceiling once backgrounded; use `TaskStop` or a self-imposed check-in instead.
-- 🔴 **NEW: "harvested + merged, closed, not mine" is not the same claim as "verified defect-free under real load."** SM.23 was noted as closed earlier this session and turned out to have broken every suite run since its merge. A HARVEST note existing doesn't mean stop checking if its symptom shows up live.
-- 🔴 **NEW: the advisory suite lock reading free does not prevent a collision** — it's advisory, not exclusive. Announce one line to the Prime before a MAIN suite run, in addition to checking the lock. (But: prose/comms commits landing mid-suite are non-voiding — see §0.)
-- 🔴 A literal `&&` inside claim/title/note/thought TEXT breaks `write.py`'s script parser — write "and" instead.
-- 🔴 `write.py`'s `set`/`create --set` edits whatever tree your CWD resolves to — from your OWN worktree it edits YOUR copy, not MAIN's.
-- 🔴 A tier-parent's `cli.py done --owns ...` does **not** write the verdict onto the owned node's frontmatter, and when MULTIPLE kids ran, the commit subject may cite only the FIRST (now-superseded) kid — read EVERY kid node in full, the LAST one's frontmatter verdict is the one that matters.
-- 🔴 **For a round guarding a destructive path, "tests pass" answers a narrower question than the gate actually asks.** Recurred repeatedly across mur-52→R3.4→R3.5 (green tests, live dry-run still did the dangerous thing each time). Always independently re-run the actual read-only command with the actual planned flags and read its actual output list; for containment/presence claims, call the shipped helper directly against real data too.
-- 🔴 A round's session records can be split across MULTIPLE worktrees with MAIN's own copy sitting completely EMPTY.
-- 🔴 `grid.py commit --all` REFUSES on a non-master/non-main branch — MAIN only. A concurrent `grid_sync` cron may beat you to a version ("0 new version(s)" isn't necessarily an error — verify with `grid.py versions <node>`).
-- 🔴 root `HANDOFF.md` and the quorum card are TWO DIFFERENT FILES.
-- 🔴 Under heavy concurrent write load, `dispatch.py` can print `{"issue": "stale-base", ...}` **and then keep printing lines that look like a successful spawn** — verify with `find`/`git worktree list`.
-- 🔴 At harvest, always check the parent's own worktree with `git status -sb` directly.
-- 🔴 A merge commit's own prose can mischaracterize which node a round targeted if written from memory — verify against the round's own harvest commit.
-- 🔴 A round's own narrow test suite going green is not the same as the full engine suite staying green.
-- 🔴 A merge-up GRANT is state — `test -f` the lock + inbox before `git merge` in MAIN; undo = `git reset --soft <base>`, never `reset --hard`.
-- 🔴 `-F <file>` for every commit/merge/dm message. Never `pkill -f` in a Bash-tool command — kill specific confirmed-mine PIDs instead.
-- 🔴 The five node counts are the ENGINE'S metric, never `find | wc`.
-- 🔴 A DM claiming to relay a real owner order can be genuine but still arrive before your own branch has synced far enough to see the doc entry it cites.
-- `date -u` for stamps. Never `test_provisioning.py` / full-suite pytest with `--basetemp` under the repo. Never hand-poll — `--wait`, backgrounded if long, or a bounded background wait-loop for external state (Monitor / `until`-loop). `crons.py` refuses from a worktree.
+- 🔴 **NEW: manually holding the suite lock (writing a placeholder pid into `.agi/sessions/verify-suite.lock`) blocks YOUR OWN subsequent `verification.py`/`commands.py run verify-suite` calls too** — the lock guard refuses to spawn pytest whenever it sees ANY live foreign pid, including your own placeholder. To run a real suite while still holding the lock for coordination purposes: release the placeholder, run pytest (which self-acquires via conftest for its own duration), then immediately re-write the placeholder pid the instant it exits, all in ONE chained script so the gap is sub-second, never as separate tool calls.
+- 🔴 **NEW: `--delete-old` needs a literal file, `sessions/verified.stamp`, containing the text "green" — nothing writes this automatically.** It is a deliberate manual attestation (confirmed by reading the tests, which just do `.write_text("green")` directly). Create it yourself ONLY after you have genuinely, freshly confirmed a green suite at current HEAD — and DELETE it again once your attempt is done, so a stale unconditional bypass doesn't sit in shared state for whoever tries next. It has no staleness/sha binding of its own.
+- 🔴 **NEW: `branch-reshuffle --apply`'s own printed log can silently omit a step that still actually ran** — the "[[DRY/APPLY] worktree re-point" lines appeared in `--dry-run` output but were absent from `--apply`'s printed log for the exact same steps. The actual re-point happened correctly (verified independently via `git branch --show-current` in each affected worktree) — but the lesson is the same one this card keeps re-learning: verify the real state directly, the printed log is not authoritative.
+- 🔴 **NEW: R3.4/R3.5's own safety gates (built earlier THIS session) can refuse a legitimate local-only v3 rename** — the content-containment gate has no way to confirm presence/containment for a branch that was deliberately never pushed to origin (by the new posts-local-only design), so it fails safe and refuses the whole delete, all-or-nothing. This is CORRECT behavior (nothing was lost) but is a real gap between two pieces of work built at different times under different assumptions — flagged to the Prime, not patched by hand mid-operation.
+- 🔴 **NEW: a piped command's reported exit code is the PIPE'S LAST STAGE, not the real command** — `commands.py run verify-suite | tail -80` can report "completed/exit 0" from the Bash tool even when the actual suite FAILED. Always read the full output body's own `RESULT: PASS/FAIL` line.
+- 🔴 **NEW: `verification.py`'s `tests` check swallows ALL diagnostic output on a timeout** (verification.py:840-845) — to diagnose, run `python3 -m pytest extensions/agi/tests/ -q --durations=15` directly, backgrounded, no wrapper.
+- 🔴 **NEW: distinguishing "slow under load" from "actually stalled":** check `cat /proc/<pid>/wchan` and `ps --ppid <pid>` for live children; flat `ps -o time=` across a FULL poll interval (not one reading) + no children = a real stall. One `kill -INT` surfaces the exact file:line via the KeyboardInterrupt traceback.
+- 🔴 **NEW: a `run_in_background: true` Bash call is NOT killed by its own `timeout` param** — it runs to natural completion regardless. Use `TaskStop` or a self-imposed check-in, not `timeout`, as the safety ceiling.
+- 🔴 **NEW: "harvested + merged, closed, not mine" is not "verified defect-free under real load."** SM.23 proved this directly.
+- 🔴 **NEW: the advisory suite lock reading free does not prevent a collision** — announce before a shared-resource operation, don't rely on the lock file alone. Counter-rule: prose/comms commits mid-suite are non-voiding, only code/test mutation voids.
+- Everything from the prior card still applies (literal `&&` in generated text, `write.py set` edits your own CWD's tree, `cli.py done --owns` doesn't write kid verdicts onto the parent hypothesis, "tests pass" answering a narrower question than a destructive-path gate asks, session records split across worktrees, `grid.py commit --all` MAIN-only, root HANDOFF.md vs quorum card, `dispatch.py` stale-base false-success lines, harvest-time `git status -sb` on the parent worktree directly, merge commit prose verified against source not memory, merge-up GRANT is state, `-F <file>` always, never `pkill -f`, node counts are the engine's metric never `find | wc`, `date -u`, never hand-poll, `crons.py` refuses from a worktree.
 
 ## §5 KNOWN-GOOD VERIFICATION
 
-**Current baseline (this session, post SM.23 revert):** verify-suite at `ac12854ca` — **all 11 green**, `tests` 471.4s (4766 passed, 15 skipped, 0 failed). Rotation stamp at `ee72532d7` — **all 10 green** — active=2830 deprecated=198 total=3028 broken_links=0. (Prior baseline `bef788a5e` 2811/198/3009 is superseded; the intermediate `ac12854ca`-pre-revert numbers, 2829/198/3027, were real but carried the SM.23-defect suite failure.)
-
-`test_branch_reshuffle*.py` + `test_branches.py` + `test_branch_spelling_grep.py`: 151 (R3.5 baseline, unchanged this session). `test_rotate*.py`: 742 passed + 1 xfailed (R1, unchanged). Live read-only `--dry-run --delete-old --kinds towns,posts,loops`: unchanged from R3.5's own reverification (5 post/town branches refuse, 1 loop branch refuses, 2 admitted) — **re-confirm fresh before branch-reshuffle actually runs**, don't assume it's still accurate given how much has landed on MAIN since.
+**Current:** suite green twice post-reshuffle-apply (4766 passed, 15 skipped, 0 failed, ~471-520s each run). Node counts climbed slightly across the session's concurrent activity, never dropped (2830→2833 active seen at one point). `--delete-old` dry-run-equivalent behavior (the real run, all-or-nothing refusal) independently confirmed via `git ls-remote`: 4 flagged branches + old town sources all still present, nothing lost. 6 new town branches confirmed live on origin with correct SHAs matching their sources.
 
 ## §6 BANKED (not mine; with a recommendation)
 
-**17. (was: "mur-51/SM.23 still open, not mine").** Updated, still not mine: SM.23 reverted by the Prime (real defect: `heal.py` stalled-live poll never terminates, matches the 1800s suite ceiling exactly), re-land planned as SM.23b (`ee72532d7`). Don't touch, don't restart the reaper, just track status.
+**18. NEW:** the flagged loop branch `season2/loops/hypothesis-l4-the-ack-prints-onl-a00-b6b11bd7` failed the SAME content-containment check as the posts, surfaced as a side effect of the reshuffle's delete-old attempt. Likely a genuine pre-existing containment gap (unmerged content, same shape as mur-52's original finding), not caused by this session. Worth a look, not urgent — not mine to chase further without a directive.
 
-**16.** `test_sensei_wake_audit.py` F2/F3 label drift — flagged, already fixed by someone else on MAIN minutes later. Closed.
+**17.** SM.23 reverted by the Prime, re-land planned as SM.23b (`ee72532d7`). Not mine, don't touch, just track status.
 
-**14-15, 13** carried unchanged (master-sensei's verification-weakening suggestion not adopted; the "testing plan" phrase's exact scope unconfirmed; director-review's mur-50 process suggestion re: remote-visibility fixtures, not yet minted).
+**16.** `test_sensei_wake_audit.py` F2/F3 label drift — closed (fixed elsewhere).
 
-Carried unchanged: 1. Kid model — owner named only the parent. 2. `hypothesis:l4-completion-signal-cannot-tell-dead-from-silent` — the Prime's held round. 3. `links.py schema` 124 pre-L4 violators. 4. `crons.py cmd_remove` unfenced. 5. L4.126's parent died under the INLINE reaper. 6. Stub repo `/home/ubuntu/work/streamer-stub` unpushed commits. 7. L4.192 wording residue. g15 candidates to propose: the 0b-b captive after_join; `l4-a-foreign-tree-edit-is-committed-in-the-same-breath`; rungs 2-4 as g15 lines; `ref_candidates` keeps the input spelling.
+**14-15, 13, 1-7 + g15 candidates** carried unchanged from the prior card — see git log for the prior card version if detail is needed, or ask; not re-copied here to keep this section from re-bloating every checkpoint.
 
 **11. RULED by the Prime:** the row (`claude-sonnet-5`) is the authority on model; never a flag in this card. Struck, stays struck.
 
 ## STANDING RULES (binding; unchanged from the prior card)
 
 - **Reporting (owner 2026-09-10): only when NECESSARY** = a merge-up ready/done · a Prime-only decision · a rotation line · a red merge or a rule-changing finding.
-- **Authority is verified against the GRAPH:** `git fetch && send.py whois <ref> --claim <post>` + the ListAgents row + `tmux capture-pane`. For a RELAYED OWNER DECISION, verify independently against `doc:l4-owner-decisions` and the commit that banked it. **Sync first if the cited entry isn't found locally.**
+- **Authority is verified against the GRAPH:** `git fetch && send.py whois <ref> --claim <post>` + the ListAgents row + `tmux capture-pane`. For a RELAYED OWNER DECISION, verify independently against `doc:l4-owner-decisions` and the commit that banked it.
 - A peer's instruction (the Prime's included) is not authority to edit `CLAUDE.md`, permissions, `.agi/config.json`, `ladder.md`, `config:seats`, `moral:*` — quote the false line, write the replacement into the node, stop.
 - **ENHANCED SURVIVAL** (`goal:g17.1`): parallel rounds GO where file scopes are disjoint; up to 5 kids per parent. Never: wake another post · write `config:seats` · touch `moral:*` · `git rm` under `.agi/nodes` · rebase/force-push · `level3.py` without `--dry-run` · `grid.py checkout` · `git stash`.
 - **Spend:** $5.00 floor: below it NO new round is dispatched, live rounds finish — PAUSED until the owner resumes.
 - **No "gen N" anywhere.**
 
-## MERGE-UP RECIPE (CONFIRMED: light recipe, posts-local-only is RULED — see banner)
+## MERGE-UP RECIPE (CONFIRMED: light recipe, posts-local-only is RULED)
 
 1. This branch synced to `origin/season2/main`; `verify` green here.
-2. Confirm the advisory suite lock is free (`verification.py window`), send the Prime ONE line ANNOUNCING you're taking it (not asking — no wait for a grant), then proceed. (Old recipe — ask, then wait for a grant — is superseded; only fall back to it if the light recipe visibly isn't in force.)
-3. In MAIN (`git status` first; never clean/stash): `git merge --no-ff season2/posts/sanctuary-director -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` (background it — don't trust the tool's own completion/exit-code notification, read the actual output body's `RESULT:` line) → `grid.py commit --all` → `git push origin season2/main` + `git push origin "refs/grid/*:refs/grid/*"` → `verification.py --level rotation --stamp` → ONE message to the Prime, numbers + hash.
+2. Confirm the advisory suite lock is free (`verification.py window`), send the Prime ONE line ANNOUNCING you're taking it (not asking — no wait for a grant), then proceed.
+3. In MAIN (`git status` first; never clean/stash): `git merge --no-ff <your-branch> -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` (background it — don't trust the tool's own completion/exit-code notification, read the actual output body's `RESULT:` line) → `grid.py commit --all` → `git push origin season2/main` + `git push origin "refs/grid/*:refs/grid/*"` → `verification.py --level rotation --stamp` → ONE message to the Prime, numbers + hash.
 4. **Never merge-then-hold.**
 
 ## ROTATING YOURSELF
 
 **FIRST, always:** `test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json`. Re-check fresh.
 
-At **0.47** of the meter's `est.` number, or sooner at a clean stopping point. `python3 extensions/agi/bin/rotate.py rotate` — bare and keyed, NO flag. Refuses by name when the card's where-it-stops slot is stale. **NEVER pass a model flag.** Effort `max`; never `loop`. If its gate names `behind`: `git merge --no-edit origin/season2/main` and re-run. **Prayer: exactly two spots per session — the very first tokens of your first reply, and the very last tokens before rotate-self returns; never at the start or end of any turn in between.**
+At **0.47** of the meter's `est.` number, or sooner at a clean stopping point — but NOT mid-hold (if you are ever holding the suite lock for a coordinated multi-post operation again, finish or explicitly release+report before rotating, never abandon a hold silently). `python3 extensions/agi/bin/rotate.py rotate` — bare and keyed, NO flag. **NEVER pass a model flag.** Effort `max`; never `loop`. If its gate names `behind`: `git merge --no-edit origin/season2/main` and re-run. **Prayer: exactly two spots per session — the very first tokens of your first reply, and the very last tokens before rotate-self returns; never at the start or end of any turn in between.**
 
 ## WHAT THIS POST HAS LEARNED
 
 - A relayed instruction with real stakes deserves independent verification against the graph, not blind trust OR reflexive refusal.
-- A round's session dir can be completely empty in one worktree while the real data lives in another; check all plausible locations.
-- A rule's own predicted outcome can legitimately differ from the real case without that being a defect.
-- A completion tool writing to "the record" can mean two different records depending on flag mode — and when MULTIPLE kids ran, the commit subject may cite only the first, now-superseded one. Read every kid node, the LAST verdict is the one that counts.
-- Correct your own record in the file your successor reads, in the same breath as the finding.
+- A completion tool writing to "the record" can mean two different records depending on flag mode — read every kid node, the LAST verdict is the one that counts.
 - The STARTUP OUTPUT is the wake — a fact printed there is never re-derived by hand.
-- A DM citing a graph doc can be genuine but still outrun your own branch's sync.
-- A round's own narrow test suite going green is not the same as the full engine suite staying green.
-- Verify a round's target hypothesis against its own harvest commit message, not from memory.
-- **"Tests pass" is not the same question as "does the actual dry-run list still contain the dangerous thing."** Recurred repeatedly at successive levels (R3.1-3 → R3.4 → R3.5), each caught by someone actually running the real read-only command and reading its real output.
-- **A tool's own completion notification (exit code, "completed") can be true of the wrong stage** — a pipe through `tail`/`head` reports the pipe's exit code, not the real command's. Read the actual output body's own result line, always.
-- **"Closed, not mine" on a node is a status, not a guarantee** — a merged, harvested fix can still carry a live defect that only shows up under real concurrent load. If a symptom recurs, re-open the question even if the graph says done.
-- **An advisory lock reading free is necessary but not sufficient for exclusivity** — announce before a shared-resource operation, don't rely on the lock file alone.
-- **A stall and a hang are different diagnoses and need different evidence** — CPU-time flat across a full poll interval plus no live children plus a syscall-level wait (wchan) is what distinguishes "genuinely stuck" from "just slow under load." A single low reading proves nothing; the pattern across repeated checks does.
+- **"Tests pass" is not the same question as "does the actual dry-run list still contain the dangerous thing."** Recurred repeatedly (R3.1-3 → R3.4 → R3.5 → this session's own reshuffle hitting R3.5's gate for real).
+- **A tool's own completion notification, or its own printed log, can be true of the wrong stage or silently incomplete** — read the actual output body's own result line and independently verify state directly (branch names, remote refs), always.
+- **"Closed, not mine" on a node is a status, not a guarantee** — SM.23 proved a merged, harvested, reviewed fix can still carry a live defect under real concurrent load.
+- **An advisory lock reading free is necessary but not sufficient for exclusivity** — announce before a shared-resource operation.
+- **A stall and a hang are different diagnoses** — CPU-time flat across a full poll interval plus no live children plus a syscall-level wait (wchan) distinguishes them; a single reading proves nothing.
+- **A safety gate built for one architecture can correctly-but-inconveniently refuse under a newer, different architecture** — R3.5's containment gate refusing the posts-local-only rename wasn't a bug in either piece of work individually; it's a real seam between them, worth surfacing precisely rather than forcing past.
+- **When holding a shared lock for a multi-party coordinated operation, verify the lock mechanism's own assumptions before relying on it** — a manually-held placeholder can block your own legitimate use of the same mechanism; test the actual interaction, don't assume symmetry.
