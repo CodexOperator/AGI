@@ -129,6 +129,7 @@ def test_headless_uses_p_and_allow_all_tools(rig):
     assert args[0] == HARNESS["bin"]
     assert "-p" in args
     assert "--allow-all" in args
+    assert args[args.index("--allow-all") + 1] == "--remote"
     # the prompt is the argument to -p, and it is the LAST element
     assert args[args.index("-p") + 1] == args[-1]
 
