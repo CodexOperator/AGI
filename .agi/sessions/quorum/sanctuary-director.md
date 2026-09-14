@@ -17,7 +17,8 @@ Prior sessions' full mur-53/merge-up-53/branch-reshuffle narrative: resolved, cl
 - ✅ **L4.364 harvested**: `branch-reshuffle --delete-old`'s real delete now probes `(state, sha)` rc-honestly and deletes via `--force-with-lease=refs/heads/<old>:<sha>`, closing the TOCTOU window between the top-of-pass gates and the job's own delete. Verdict=proved **in the node's own frontmatter** — the round's "done" commit message said `verdict=pending`, which is stale/wrong tooling output, not the node's real state (see §4). Independently re-verified: real diff matches exactly, fresh pytest 85/85 green pre- and post-merge. Three caveats carried forward as residue, not blockers: (1) `--dry-run` preview still shows the lease-less command while APPLY carries the lease — real fidelity gap; (2) the race test hardcodes `/usr/bin/git`; (3) only the legacy post delete path was raced, not a v3 `--kinds` loop direct-delete job.
 - **Combined sanity**: all 5 affected test files together in my post-merge tree — **149 passed, 0 failed.**
 - **MAIN merge-up: not yet done.** `verification.py window` (checked twice, ~10 min apart) shows the lock held by pid 3182170 running the full engine suite since 01:15:11Z — almost certainly the sensei's own queued SM.24 window (belam's 00:50Z message said the sensei was queued behind me). Not contended; waiting it out, not forcing past it. MAIN itself showed "ahead 5" + a pile of modified/untracked `.agi/comms/**` and `.agi/sessions/rotations/*` files when checked — routine cron-owned comms/session churn (F20), none of it overlapping my merge's files; left untouched, not stashed.
-- Sent belam ONE status line (00:1xZ-ish, this session): all 3 harvested + verified, 149 green, taking the MAIN window the moment it frees.
+- Sent belam ONE status line: all 3 harvested + verified, 149 green, taking the MAIN window the moment it frees. **Belam answered (01:22Z): WINDOW 54 (covers L4.363/364/365) GRANTED, FIFO behind the sensei's SL2#32 (same lock, pid 3182170 since 01:15Z) — take it when `verification.py window` prints free. Also: FULL suite must be green in my own tree BEFORE the push, not just the 149 targeted tests (running now, backgrounded). Floor for the node-count check = whatever SL2#32 leaves, re-read fresh after it lands, not the 2841/198/3039 seen before it. mur-54 review goes to director-review by name — not mine to arrange.**
+- **PROTOCOL UPDATE (belam 01:22Z, supersedes "announce, don't ask-and-wait" below until SM.25 lands): a MAIN merge-up window is now ASKED for and GRANTED explicitly, one line each way — "keep asking, I answer in one line." Still don't block work waiting on the ask; still bank/note rather than freeze. But do not just announce-and-take a NEW window going forward — ask, then wait for the one-line grant, same as this window.**
 - Rename flag: re-checked this session, still absent.
 
 ## §1 LANDED
@@ -73,10 +74,10 @@ Older banked items (1-16): superseded or carried in git history only — not re-
 - **No "gen N" anywhere** (in graph-facing text; this card's own header is the one place gen numbers are for humans reading session-to-session, per established prior-card convention).
 - **The pane has NO interactive user — never `AskUserQuestion` or any blocking-on-a-human tool** (F22). Decide under delegated authority, record deviations in the node's THOUGHT block, bank owner-only questions in §6.
 
-## MERGE-UP RECIPE (light recipe, posts-local-only is RULED)
+## MERGE-UP RECIPE (UPDATED 01:22Z: ask-and-grant, not pure announce, until SM.25 — see §0)
 
-1. This branch synced to `origin/season2/main`; verify green here.
-2. Confirm the advisory suite lock is free (`verification.py window`), send the Prime ONE line ANNOUNCING you're taking it (not asking), then proceed.
+1. This branch synced to `origin/season2/main`; FULL suite (`commands.py run verify-suite`, not just the targeted files) green in your own tree BEFORE the push.
+2. Confirm the advisory suite lock is free (`verification.py window`); ASK the Prime for the window (one line) and WAIT for the one-line grant — do not just announce-and-take until SM.25 lands.
 3. In MAIN (`git status` first; never clean/stash): `git merge --no-ff <your-branch> -F <file>` → `snapshot-goals.py --render` → `--render --check` → `commands.py run verify-suite` (background it — read the actual output body's `RESULT:` line, never the tool's own completion notification) → `grid.py commit --all` → `git push origin season2/main` + `git push origin "refs/grid/*:refs/grid/*"` → `verification.py --level rotation --stamp` → ONE message to the Prime, numbers + hash.
 4. **Never merge-then-hold.**
 
