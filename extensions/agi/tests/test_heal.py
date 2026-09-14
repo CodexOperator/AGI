@@ -249,14 +249,26 @@ def test_heal_resolves_stalled_dead_to_done_unreported_on_branch_advance(
 
 
 def test_heal_leaves_a_live_pid_stalled_record_untouched(monkeypatch, tmp_path):
-    """A `stalled` record whose pid is LIVE keeps its lease: it must not be
-    marked failed and must not be restarted -- exactly today's behaviour for a
-    live stalled record, which the old guard skipped."""
+    """A `stalled` record whose pid is LIVE is NOT terminal: one pass leaves
+    it untouched (status stalled, no fail_reason, no finished_at), all_terminal
+    is False, and `_main_heal` returns the NAMED non-zero `NOT_TERMINAL_YET`
+    code instead of sleeping toward the 30-min deadline. Clock and sleep are
+    seam-injected, so the pass is bounded and no real sleep happens."""
     root, aj, mp = _stalled_round(tmp_path, 987654)
     monkeypatch.setattr(heal, "_pid_alive", lambda pid: True)
+    slept: list = []
+    monkeypatch.setattr(heal, "_sleep", lambda s: slept.append(s))
+    monkeypatch.setattr(heal, "_now", lambda: 0.0)
     monkeypatch.setattr(sys, "argv", ["heal.py", str(root), "1"])
-    assert heal.main() == 0
+    t0 = time.monotonic()
+    rc = heal.main()
+    assert time.monotonic() - t0 < 1.0
+    assert rc == heal.NOT_TERMINAL_YET
+    assert rc != 0
+    assert slept == []  # returned after one pass; never polled
     rec = json.loads(aj.read_text(encoding="utf-8"))
     assert rec["status"] == "stalled"
     assert "fail_reason" not in rec
     assert "finished_at" not in rec
+    assert json.loads(mp.read_text(encoding="utf-8"))["agents"][0]["status"] \
+        == "stalled"

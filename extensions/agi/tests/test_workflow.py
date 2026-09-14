@@ -268,7 +268,11 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     assert "ANTHROPIC_API_KEY" not in env, env
 
 
-def test_run_stage_pi_rejects_schema_violating_return():
+def test_run_stage_pi_schema_violating_json_is_unstructured():
+    """A JSON object that PARSES but fails its schema is SKIPPED, not fatal.
+    With no other candidate validating, the stage records `unstructured`
+    (rc 0) carrying its whole text -- the run is not cut by a schema miss
+    (hypothesis:l4-a-workflow-pi-stage-mints... conjunct (h))."""
     import subprocess as _sp
     from unittest import mock
 
@@ -281,7 +285,197 @@ def test_run_stage_pi_rejects_schema_violating_return():
     cfg = {"harnesses": {"pi": {}}}
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {})
-    assert rc == 5 and value is None, rc  # schema-violating JSON -> non-zero, no prior value
+    assert rc == 0, rc
+    assert value == {"unstructured": '{"slug": 123}'}, value
+
+
+# ---------- lenient pi stage return: bare / fenced / prose ----------------
+# hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-dispatched-
+# spawn conjunct (h). The strict `find('{') : rfind('}')` parse lost a valid
+# seven-finding review to one stray brace in prose (rc 4, refuter skipped). A
+# pi stage now takes the FIRST balanced candidate that json.loads parses AND
+# its schema validates; prose-only is `unstructured` (rc 0, whole text kept)
+# and the run continues.
+
+# JSON valid under BOTH review stages' schemas (extra keys allowed).
+_REVIEW_BOTH_JSON = (
+    '{"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+    '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+    '"verdict": "v", "overclaims": [], "open_gaps": []}')
+
+# Seven markdown findings with a stray `{` and no schema-valid JSON. The long
+# distinctive tail substring is what a 120/200-char stub would have cut.
+_PROSE_TAIL = "finding seven: the strict parse swallowed this whole review"
+_REVIEW_PROSE = (
+    "## Review findings\n"
+    "1. the guard is { inert under g11\n"
+    "2. links.py reports zero broken links\n"
+    "3. GOALS.md round-trips byte-identically\n"
+    "4. suite counts look sane\n"
+    "5. no overclaims in the parent verdict\n"
+    "6. one open gap remains: the refuter never ran\n"
+    "7. " + _PROSE_TAIL + "\n")
+
+
+def _fake_pi_bin(tmp_path: Path) -> Path:
+    """A real fake pi executable: echoes a fixed stdout chosen by the prompt
+    it is handed, and appends every prompt it receives to $FAKE_PI_CAPTURE so a
+    test can assert what a LATER stage was actually given."""
+    p = tmp_path / "fakepi"
+    p.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        "prompt = sys.argv[-1]\n"
+        "cap = os.environ.get('FAKE_PI_CAPTURE')\n"
+        "if cap:\n"
+        "    with open(cap, 'a', encoding='utf-8') as fh:\n"
+        "        fh.write('===PROMPT===\\n' + prompt + '\\n')\n"
+        "mode = os.environ.get('FAKE_PI_MODE', 'bare')\n"
+        "if 'You review one agi round target window' in prompt:\n"
+        "    mode = 'bare'\n"
+        "if 'prior text follows' in prompt:\n"
+        "    sys.stdout.write('{\"ok\": true}')\n"
+        "    sys.exit(0)\n"
+        "if mode == 'prose':\n"
+        "    sys.stdout.write(" + repr(_REVIEW_PROSE) + ")\n"
+        "elif mode == 'fenced':\n"
+        "    sys.stdout.write('Here is the review:\\n```json\\n'"
+        "                     + " + repr(_REVIEW_BOTH_JSON) + " + '\\n```\\nthanks')\n"
+        "else:\n"
+        "    sys.stdout.write(" + repr(_REVIEW_BOTH_JSON) + ")\n",
+        encoding="utf-8")
+    p.chmod(0o755)
+    return p
+
+
+def _run_review_pi(tmp_path_factory, fake_bin: Path, mode: str,
+                   monkeypatch, args: dict | None = None):
+    """Drive a real pi run on the `review` manifest against `fake_bin`, with
+    the sessions root redirected under tmp. Returns (rc, stdout_text, rows)."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_cfg = _wf._load_config
+
+    def cfg(root):
+        c = json.loads(json.dumps(saved_cfg(root)))
+        c.setdefault("harnesses", {}).setdefault("pi", {})["bin"] = str(fake_bin)
+        return c
+
+    monkeypatch.setenv("FAKE_PI_MODE", mode)
+    monkeypatch.setenv("FAKE_PI_CAPTURE", str(tmp / "prompts.txt"))
+    _wf._load_config = cfg
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "pi",
+                          args or {"targets": [{"window": "t1"}]}, False, out=buf)
+        rows = []
+        path = tmp / "sessions" / "workflows" / "review.jsonl"
+        if path.exists():
+            rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines()]
+        return rc, buf.getvalue(), rows, tmp
+    finally:
+        _wf._load_config = saved_cfg
+        restore()
+
+
+def test_pi_bare_json_stage_is_ok(tmp_path_factory, tmp_path, monkeypatch):
+    fake = _fake_pi_bin(tmp_path)
+    rc, text, rows, _tmp = _run_review_pi(tmp_path_factory, fake, "bare",
+                                          monkeypatch)
+    assert rc == 0, text
+    assert "└─ [✓] review:t1" in text
+    assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
+    assert rows and rows[0]["ok"] == 2 and rows[0]["unstructured"] == 0
+
+
+def test_pi_fenced_json_stage_is_ok_with_prose_around_it(tmp_path_factory,
+                                                          tmp_path, monkeypatch):
+    fake = _fake_pi_bin(tmp_path)
+    rc, text, rows, _tmp = _run_review_pi(tmp_path_factory, fake, "fenced",
+                                          monkeypatch)
+    assert rc == 0, text
+    assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
+    # fenced parse resolves EXACTLY the same object the bare case did
+    assert rows[0]["stages"] == {"global-checks": "ok", "review:t1": "ok"}, rows
+
+
+def test_pi_prose_stage_is_unstructured_not_failed(tmp_path_factory, tmp_path,
+                                                    monkeypatch):
+    """The defect, end to end: seven findings with a stray `{` -> the stage is
+    `unstructured` (rc 0), the NEXT stage still runs, the whole text is carried
+    in the tracking row, and the next stage's prompt received it."""
+    fake = _fake_pi_bin(tmp_path)
+    # A run where the prose stage is CHAINED INTO by a second stage whose
+    # prompt names the whole text, so prior-threading is directly asserted.
+    import workflow as _wf
+    manifest = {
+        "name": "review", "type": "review", "script": "agi-round-review.js",
+        "stages": [
+            {"label": "find", "role": "kid", "model_hint": "sonnet",
+             "effort_hint": "low",
+             "repeat": {"of": "targets", "label_template": "find:{window}"},
+             "prompt": "find things",
+             "schema": {"type": "object", "properties": {"a": {"type": "string"}},
+                        "required": ["a"]}},
+            {"label": "refute", "role": "reviewer", "model_hint": "sonnet",
+             "effort_hint": "medium", "chained_from": "find",
+             "repeat": {"of": "targets", "label_template": "refute:{window}"},
+             "prompt": "prior text follows:\n{unstructured}\nend prior",
+             "schema": {"type": "object", "properties": {"ok": {"type": "boolean"}},
+                        "required": ["ok"]}},
+        ],
+    }
+    saved_manifest = _wf._load_manifest
+
+    def load(repo, key):
+        return manifest
+
+    import workflow as _wf2
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf2)
+    saved_cfg = _wf2._load_config
+
+    def cfg(root):
+        c = json.loads(json.dumps(saved_cfg(root)))
+        c.setdefault("harnesses", {}).setdefault("pi", {})["bin"] = str(fake)
+        return c
+
+    monkeypatch.setenv("FAKE_PI_MODE", "prose")
+    cap = tmp / "prompts.txt"
+    monkeypatch.setenv("FAKE_PI_CAPTURE", str(cap))
+    _wf2._load_manifest = load
+    _wf2._load_config = cfg
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "pi",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        text = buf.getvalue()
+        assert rc == 0, text  # prose is NOT a failure; the chain is not cut
+        assert "[summary] workflow=review stages=2 ok=1 unstructured=1 failed=0" in text
+        assert "[?] find:t1" in text
+        assert "[✓] refute:t1" in text, "the next stage must still run"
+        rows = [json.loads(l) for l in
+                (tmp / "sessions" / "workflows" / "review.jsonl")
+                .read_text(encoding="utf-8").splitlines()]
+        assert rows[0]["unstructured"] == 1 and rows[0]["failed"] == 0
+        assert rows[0]["stages"] == {"find:t1": "unstructured", "refute:t1": "ok"}
+        # the WHOLE text, not a 120/200-char stub
+        assert rows[0]["returns"]["find:t1"] == _REVIEW_PROSE
+        assert _PROSE_TAIL in rows[0]["returns"]["find:t1"]
+        # the next stage's rendered prompt actually carried it
+        prompts = cap.read_text(encoding="utf-8")
+        assert ("prior text follows:\n" + _REVIEW_PROSE) in prompts, prompts
+        # `workflow.py status` surfaces the new column
+        sbuf = io.StringIO()
+        from workflow import status_workflow
+        assert status_workflow(tmp, "review", out=sbuf) == 0
+        assert "unstructured=1" in sbuf.getvalue(), sbuf.getvalue()
+    finally:
+        _wf2._load_manifest = saved_manifest
+        _wf2._load_config = saved_cfg
+        restore()
+
 
 # ---------- stage manifests match the .js Claude Code scripts ---------------
 
@@ -532,7 +726,7 @@ def test_pi_run_chains_investigate_to_refute(tmp_path_factory):
         # the investigate finding reached the refute stage's rendered prompt
         assert any("the guard is inert" in c for c in calls), \
             "refute prompt never carried the investigate finding"
-        assert "[summary] workflow=prime-open-questions stages=2 ok=2 failed=0" \
+        assert "[summary] workflow=prime-open-questions stages=2 ok=2 unstructured=0 failed=0" \
             in buf.getvalue()
     finally:
         _wf._loc.shared_project_root = saved
@@ -581,7 +775,7 @@ def test_run_view_summary_has_no_harness_token():
         v.summary()
         tail = [l for l in buf.getvalue().splitlines()
                 if l.startswith(("[stage]", "[summary]"))]
-        assert tail[-1] == "[summary] workflow=review stages=2 ok=1 failed=1", tail
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=1 unstructured=0 failed=1", tail
         assert all(harness not in l for l in tail), tail
 
 
@@ -634,7 +828,7 @@ def _pi_live_run_body(_sp, mock, run_workflow):
     assert "[~] global-checks" in text and "[~] review:t1" in text
     assert "└─ [✓] review:t1" in text          # final tree: both done
     assert "[stage] global-checks ok" in text and "[stage] review:t1 ok" in text
-    assert "[summary] workflow=review stages=2 ok=2 failed=0" in text
+    assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
     assert "[claude-code]" not in text and "[ok]" not in text
 
 
@@ -659,7 +853,7 @@ def test_claude_code_path_feeds_the_same_view(tmp_path_factory):
         assert "[·] global-checks" in text      # resolved, not executed here
         tail = [l for l in text.splitlines()
                 if l.startswith(("[stage]", "[summary]"))]
-        assert tail[-1] == "[summary] workflow=review stages=2 ok=0 failed=0", tail
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=0 unstructured=0 failed=0", tail
         assert all("claude-code" not in l for l in tail), tail
         # Tracking still happens, but ONLY into the throwaway seam -- one
         # row under tmp, never the real `.agi/sessions/workflows/`.
@@ -875,7 +1069,8 @@ def _pair(wf: Path, name: str, typ: "str | None", stages: list,
 
 def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
     """PROVED-BY: with a workflows.md declaring every live type + per-workflow
-    rows (eight since merge-up-review and desktop-check), `workflow.py list` on the REAL registry shows every registered
+    rows (nine since merge-up-review, desktop-check, and trove-survey),
+    `workflow.py list` on the REAL registry shows every registered
     workflows resolving through the node, each with the LEVEL it came from
     (config row / per-workflow override / per-type override) — no literal.
     The node is a TEMP file the test writes; `_geometry_node_path` is
@@ -895,6 +1090,10 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             # the merge-up review runs through the unified router).
             {"name": "merge-up-review", "harness": "claude-code"},
             {"name": "desktop-check", "harness": "claude-code"},
+            # trove-survey: registered by the Prime (owner 2026-09-14 01:38Z,
+            # commit 2c78f3edf, config:workflows row) alongside the
+            # thought-master/local-maxxing town bootstrap.
+            {"name": "trove-survey", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -906,6 +1105,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             {"name": "prime-open-questions", "type": "investigate-refute"},
             {"name": "merge-up-review", "type": "merge-up-review"},
             {"name": "desktop-check", "type": "desktop-check"},
+            {"name": "trove-survey", "type": "trove-survey"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
@@ -915,7 +1115,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
     txt = buf.getvalue()
     for k in ("deep-search", "drafting", "l3w-route-probe",
               "l4-plan-research", "prime-open-questions", "review",
-              "merge-up-review", "desktop-check"):
+              "merge-up-review", "desktop-check", "trove-survey"):
         assert k in txt, (k, txt)
     assert "config row" in txt, txt          # review/drafting/deep-search rows
     assert "claude-code" in txt, txt         # drafting config row
@@ -1376,3 +1576,231 @@ def test_author_round_trip_keeps_type_and_appends_note(tmp_path, monkeypatch):
     assert carried["description"].startswith("base description"), carried
     assert "(X)" in carried["description"], \
         "the --note must be APPENDED to the existing description"
+
+
+# ---------- per-run minted credential for pi stages -------------------------
+# hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-dispatched
+# -spawn conjuncts (a)-(f): a pi workflow stage used to inherit whatever
+# OPENROUTER_API_KEY the caller shell carried; now ONE capped key is minted
+# per RUN through the same provisioning seam dispatch.py uses.
+
+_GOOD_REVIEW_JSON = (
+    '{"git_status": [], "links_broken": 0, "goals_check_ok": true, '
+    '"summary": "s", "hypothesis": "h", "parent_agent": "p", '
+    '"verdict": "v", "overclaims": [], "open_gaps": []}')
+
+
+def _fake_minted(secret="sk-minted-run"):
+    import workflow as _wf
+    return _wf.provisioning.MintedKey(
+        secret=secret, key_hash="hash-" + secret, name="agi-test-key",
+        limit_usd=5.0, expires_at="2030-01-01T00:00:00Z")
+
+
+def test_pi_run_mints_one_credential_for_all_stages(tmp_path_factory,
+                                                    monkeypatch):
+    """(a)+(c): every pi stage's env carries the MINTED secret, and a
+    two-stage run mints exactly ONCE — one key per run, not per stage. Two
+    keys for one run is an explicit falsifier on the target node."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    seen = []
+
+    def fake_run(cmd, **kw):
+        seen.append(kw.get("env") or {})
+        return _sp.CompletedProcess(cmd, 0, stdout=_GOOD_REVIEW_JSON,
+                                    stderr="")
+
+    calls = []
+
+    def fake_mint(**kw):
+        calls.append(kw)
+        return _fake_minted()
+
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint", fake_mint)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert len(seen) == 2, seen            # global-checks + review:t1
+        for env in seen:
+            assert env.get("OPENROUTER_API_KEY") == "sk-minted-run", env
+        assert len(calls) == 1, calls          # ONE mint for TWO stages
+        # (b) the key NAME carries the run key: `workflow:<run_key>`
+        kw = calls[0]
+        assert kw["agent_id"].startswith("workflow:"), kw
+        assert str(kw["iter_n"]) in kw["agent_id"], kw
+        assert kw["agent_id"] == f"workflow:{kw['iter_n']}", kw
+        # limit/ttl/workspace come from provisioning.settings/workspace(cfg)
+        assert kw["limit_usd"] == 5.0 and kw["ttl_minutes"] == 180, kw
+        assert kw["workspace_id"] == "72750376-2d45-452e-8273-197fdaabae95"
+    finally:
+        restore()
+
+
+def test_pi_dry_run_prints_credential_line_before_dispatch(monkeypatch):
+    """(d): `--dry-run` names the credential decision BEFORE the per-stage
+    dispatch lines, from the SAME decision helper the live path uses — and
+    never mints (available/needs_credential are reads)."""
+    import workflow as _wf
+    from workflow import run_workflow
+    called = []
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint",
+                        lambda **kw: called.append(kw))
+    buf = io.StringIO()
+    rc = run_workflow(REPO / ".agi", "review", "pi",
+                      {"targets": [{"window": "t1"}]}, True, out=buf)
+    assert rc == 0, buf.getvalue()
+    lines = buf.getvalue().splitlines()
+    cred = [i for i, l in enumerate(lines) if l.startswith("[credential]")]
+    disp = [i for i, l in enumerate(lines) if l.startswith("[dispatch]")]
+    assert len(cred) == 1 and disp and cred[0] < disp[0], lines
+    assert lines[cred[0]] == "[credential] mint per-run", lines
+    assert called == [], called
+
+
+def test_dry_run_credential_line_matches_live_decision():
+    """(d) the printed line and the live choice come from one helper — a
+    claude-code harness needs no credential, and its dry-run line says so."""
+    import workflow as _wf
+    from workflow import run_workflow
+    would, reason = _wf._credential_decision(REPO / ".agi",
+                                             _wf._load_config(REPO / ".agi"),
+                                             "claude-code")
+    assert would is False and "needs no credential" in reason, (would, reason)
+    buf = io.StringIO()
+    run_workflow(REPO / ".agi", "review", "claude-code",
+                 {"targets": [{"window": "t1"}]}, True, out=buf)
+    cred = [l for l in buf.getvalue().splitlines()
+            if l.startswith("[credential]")]
+    assert cred == [f"[credential] inherited env ({reason})"], cred
+
+
+def test_pi_fallback_prints_one_named_line_when_provisioning_absent(
+        tmp_path_factory, monkeypatch, capsys):
+    """(a)/(f): provisioning unavailable -> inherited env, EXACTLY ONE stderr
+    line naming the reason, and no mint attempted."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    called = []
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(_wf.provisioning, "mint",
+                        lambda **kw: called.append(kw))
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=lambda cmd, **kw: _sp.CompletedProcess(
+                            cmd, 0, stdout=_GOOD_REVIEW_JSON, stderr="")):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert called == []
+        err = [l for l in capsys.readouterr().err.splitlines() if l.strip()]
+        assert err == ["workflow.py: [credential] inherited env "
+                       "(provisioning unavailable)"], err
+    finally:
+        restore()
+
+
+def test_pi_mint_error_is_named_then_falls_back(tmp_path_factory, monkeypatch,
+                                                capsys):
+    """A ProvisioningError with the key present is a REAL fault: it is printed
+    (`ERR: ...`) before the ONE named fallback line, never swallowed."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+
+    def boom(**kw):
+        raise _wf.provisioning.ProvisioningError("HTTP 401 nope")
+
+    monkeypatch.setattr(_wf.provisioning, "mint", boom)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=lambda cmd, **kw: _sp.CompletedProcess(
+                            cmd, 0, stdout=_GOOD_REVIEW_JSON, stderr="")):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        err = capsys.readouterr().err
+        assert "ERR: could not mint a workflow credential: HTTP 401 nope" in err
+        assert "workflow.py: [credential] inherited env (mint failed:" in err
+    finally:
+        restore()
+
+
+def test_claude_code_path_mints_nothing(tmp_path_factory, monkeypatch):
+    """(e): the claude-code branch never touches the credential seam and its
+    emitted lines are unchanged."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    called = []
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint",
+                        lambda **kw: called.append(kw))
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        assert called == []
+        text = buf.getvalue()
+        assert "workflow review (harness=claude-code)" in text
+        assert "[credential]" not in text
+        tail = [l for l in text.splitlines()
+                if l.startswith(("[stage]", "[summary]"))]
+        assert tail[-1] == "[summary] workflow=review stages=2 ok=0 unstructured=0 failed=0", tail
+    finally:
+        restore()
+
+
+def test_pi_stage_receives_minted_key_across_the_process(tmp_path,
+                                                         tmp_path_factory,
+                                                         monkeypatch):
+    """The fake-pi-bin proof: a REAL subprocess crosses the seam and writes
+    its os.environ out, so the assertion is on the child's actual env, not on
+    a mocked kwarg."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    env_out = tmp_path / "pi-env.json"
+    fake = tmp_path / "fakepi"
+    fake.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, os\n"
+        f"open({str(env_out)!r}, 'w').write(json.dumps(dict(os.environ)))\n"
+        f"print({_GOOD_REVIEW_JSON!r})\n",
+        encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setattr(
+        _wf, "_pi_harness_cfg",
+        lambda cfg: {"bin": str(fake), "provider": "openrouter",
+                     "thinking": "medium"})
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint",
+                        lambda **kw: _fake_minted(secret="sk-real-seam"))
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "pi",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        child_env = json.loads(env_out.read_text(encoding="utf-8"))
+        assert child_env.get("OPENROUTER_API_KEY") == "sk-real-seam", \
+            child_env.get("OPENROUTER_API_KEY")
+        assert "ANTHROPIC_API_KEY" not in child_env
+    finally:
+        restore()
