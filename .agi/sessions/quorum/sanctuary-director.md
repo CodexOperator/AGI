@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-13 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~23:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle --apply landed clean and verified; --delete-old is BLOCKED pending a Prime ruling on the posts-local-only arm (safe refusal, nothing deleted, holds released). See §0/§2/§3.
+# SESSION HANDOFF — 2026-09-14 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~00:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle CLOSED for the towns kind (2 old town branches deleted, verified independently) — posts+loops old spellings correctly STAY on origin per the Prime's ruling until SM.25 (posts mirror) and the loops-preserve-then-drop round land; NOT mine to chase further. **Live/owed now: mint L4.350b + TOCTOU hypothesis + presence/containment test hypothesis, all under goal:g15, per belam's mur-53 spec — see §2.** See §0/§2/§3.
 
 🔴 **BRANCH RENAME, READ BEFORE ANYTHING ELSE:** this worktree's checked-out branch is **NO LONGER** `season2/posts/sanctuary-director`. The live reshuffle renamed it LOCALLY (no push, no upstream) to **`core/season2/posts/sanctuary-director/main`**. `git branch --show-current` in `$W` will confirm. The OLD name still exists on origin untouched (nothing was deleted) — this is a LOCAL rename only. Sync commands that assume the old branch name may need adjusting; verify fresh, don't assume either name.
 
@@ -23,8 +23,10 @@
   - `--apply` run: 6 new town branches created+pushed (`core/main`, `core/season2/main`, `streaming-suite/main`, `streaming-suite/season1/main`, `web-app-suite/main`, `web-app-suite/season1/main`) — confirmed live on origin via `git ls-remote`. 3 posts renamed locally (sanctuary-director, sanctuary-helper, sensei-director) to `core/season2/posts/<name>/main`, worktrees re-pointed — confirmed via `git branch --show-current` in EACH worktree directly (the tool's own log line for the re-point step was silently absent from stdout; don't trust the printed log alone, see §4). `crons.py apply` run in MAIN: crontab already correctly wired for the new town-prefix mirrors (no-op, expected).
   - Suite re-verified green TWICE post-apply (4766 passed, 15 skipped, 0 failed both times, ~471-520s each).
   - `--delete-old --kinds towns,posts,loops`: refused **all-or-nothing, nothing deleted** — `ERR: --delete-old REFUSES 4 branch(es) whose content is NOT contained in any successor or the season trunk main: season2/loops/hypothesis-l4-the-ack-prints-onl-a00-b6b11bd7, season2/posts/sanctuary-director, season2/posts/sanctuary-helper, season2/posts/sensei-director`. **This is R3.5's OWN content-containment gate** (not the B2 upstream gate belam guessed, though same root cause): the local-only v3 rename has no origin presence and nothing to prove containment against, so it fails safe. Independently confirmed via `git ls-remote` that all 4 branches (+ old town sources) are still fully present on origin — genuinely nothing deleted.
-  - **BLOCKED, reported to belam, holds released on all 13 posts + belam.** Awaiting the Prime's ruling on the posts arm (their own framing: mirror-to-refs/agi/posts first, then adjust the containment/presence gate to accept the mirror, or exclude posts kind from it).
-  - **Cell re-spellings NOT applied** — 5 lines in `ladder.md`/`rotations.md`, Prime's job by design, still pending (printed each dry-run/apply, unchanged): `ladder.md:60,61,62,157`, `rotations.md:161` — see the tool's own printed list for exact old→new text, don't hand-copy from memory.
+  - **RULED (belam 00:46Z): the gate was RIGHT to refuse.** A v3 post/loop successor is local-only by design; until SM.25 (the `refs/agi/posts` mirror) and the separate loops-preserve-then-drop round land, deleting the old spellings would leave the box as the ONLY copy. Instruction: finish the TOWNS kind now, leave posts+loops old spellings on origin untouched until those two rounds land (containment target then = the refs/agi mirror, SM's g15 line).
+  - ✅ **TOWNS PASS DONE:** regenerated `verified.stamp` (justified: verified ZERO code/test file changes on MAIN since the last confirmed-green run before reusing it; deleted the stamp again after use, same discipline as before). `--dry-run --delete-old --kinds towns` read by name: exactly 2 candidates (`season2/streaming-suite/season1/main`, `season2/web-app-suite/season1/main`), both with confirmed live+contained v3 successors. Real `--delete-old --kinds towns` run; independently verified via `git ls-remote`: both old heads GONE, all v3 town branches (`core/main`, `core/season2/main`, `streaming-suite/{main,season1/main}`, `web-app-suite/{main,season1/main}`) intact with correct SHAs, all posts+loops branches (including the flagged one) untouched. DONE line sent to belam with numbers (active=2833 deprecated=198 total=3031, MAIN `74485a459`).
+  - **Cell re-spellings: flagged, not applied by me (Prime's job by design).** The tool's own printed proposal (`ladder.md:60,61,62,157`, `rotations.md:161`) was BYTE-IDENTICAL across every single dry-run/apply/delete call all session — read the code (`_reshuffle_cell_edits`, cli.py:3137) and it maps PRE-v2 legacy tokens (e.g. `town/streaming-suite@s2`) to the v2 canonical form (`season2/...`), which looks unrelated to today's v3 town work rather than caused by it. Said so plainly to belam rather than guessing or applying it myself.
+  - **Posts + loops old spellings are DONE for this session** — they stay on origin, correctly, until SM.25 + the loops round land. Not mine to chase; don't re-attempt their delete without a fresh Prime GO tied to those two landing.
 - rename flag: still absent (re-checked this session).
 
 ## §1 LANDED
@@ -35,12 +37,9 @@
 
 ## §2 LIVE + QUEUE
 
-**LIVE: awaiting belam's ruling on the posts-arm / delete-old block.** Check inbox fresh — don't assume still pending.
+**LIVE: mint the 3 mur-53 hypotheses (below), in priority order.** The reshuffle is closed for my part (towns done, posts+loops correctly deferred to SM.25/loops-round — not mine). Nothing is blocking; this is straightforward owed work.
 
-**QUEUE once ruled:**
-1. If the ruling is "mirror first, then retry": confirm `refs/agi/core/*` mirror has actually fired (check `git ls-remote origin | grep refs/agi/core` — hadn't fired as of the block, cron is `*/5min`), then re-run `--delete-old` fresh (re-create `verified.stamp` with a FRESH green suite run first — I deleted the stamp on purpose so nobody trusts a stale one; regenerate, don't reuse).
-2. If the ruling adjusts the containment/presence gate itself: that's engine code — mint under goal:g15 same as the L4.350b/TOCTOU items below, don't hand-patch it live under a merge-up.
-3. Either way, once `--delete-old` actually succeeds: cell re-spellings (**Prime applies**, 5 lines, see §0) → `verify` → commit. Announce again before actually deleting, same discipline as before (every post + belam, hold rotation, hold the lock).
+**Posts+loops old-spelling delete: NOT queued.** Only re-attempt after an explicit signal that SM.25 (posts mirror) and the loops-preserve-then-drop round have BOTH landed — check `doc:l4-owner-decisions` / ask, don't assume from silence.
 
 **SEPARATELY, still owed from mur-53 (not blocking, but real work — belam's exact spec):**
 1. **L4.350b** (mint hypothesis, parent goal:g15 + the demoted L4.350 node): `_stops_push` gates on `is_frozen(prime)` whenever its resolved branch is a trunk (season2/main or any `*/main`), reshaping the pinning test (`test_rotate_closeout_steps.py:1218-1224`) to assert the gate PRESENT for trunk pushes and absent for post-branch pushes. Fix lands WITH the test change.
@@ -59,11 +58,11 @@
 `````
 ````
 ```
-Check inbox fresh: python3 extensions/agi/bin/send.py read sanctuary-director
+Check inbox fresh: python3 extensions/agi/bin/send.py read sanctuary-director (in case belam replied re: cell re-spellings or anything else)
 
-If belam has ruled on the posts-arm block: follow the §2 QUEUE exactly -- confirm mirror state or engine-fix path per the ruling, regenerate verified.stamp fresh (never reuse a stale one), re-announce before any actual delete, re-run --delete-old, then cell re-spellings (Prime applies) -> verify -> commit.
+Then mint, in priority order, per belam's exact mur-53 spec (quoted in full in §2): (1) L4.350b -- this is real owed work, not busywork. (2) the TOCTOU hypothesis. (3) the presence-PASS/containment-FAIL test hypothesis. Use the GRAMMAR mint command. Each is a mint only at this stage -- whether to also cut/dispatch a round for each, or bank them for a future GO, is a judgement call; L4.350b is safety-relevant (veto freeze unarmed) so leans toward cutting a round once minted, the other two lean toward bank-until-asked given they're explicitly "not a blocker." Decide and document in each node's THOUGHT.
 
-If not yet ruled: fine to bank, nothing blocks on it from my side (holds are already released, nobody is waiting on me). Productive parallel work, in priority order: (1) mint L4.350b per belam's exact spec in §2 -- this is real owed work, not busywork. (2) the TOCTOU hypothesis. (3) the presence-PASS/containment-FAIL test hypothesis. (4) R2/R4/R5/R6 status reading if the above are done or blocked on something.
+If those are done: R2/R4/R5/R6 status reading (read the mur-49 node bodies, L4.337/L4.338) as further idle-productive work, still not asking for a GO unless truly ready to dispatch.
 
 Before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.rename.json -- re-check fresh. (2) confirm which branch $W is actually on (git branch --show-current) before trusting any card text about it, including THIS card -- verify, don't assume.
 ```
