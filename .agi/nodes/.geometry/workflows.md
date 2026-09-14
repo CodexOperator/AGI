@@ -6,7 +6,7 @@ parents:
   - goal:g1.14
 next_edges: []
 default_harness: pi
-edited_by: belam-S1-L4-VII
+edited_by: belam
 locations: {}
 scaffold_hash: ecc9a7f9f209d906
 season: 2
@@ -23,6 +23,7 @@ types:
   - {"name": "investigate-refute", "harness": "pi", "stage_shapes": ["investigate:{key}", "refute:{key}"]}
   - {"name": "merge-up-review", "harness": "claude-code", "stage_shapes": ["review:{key}", "verify:{key}"]}
   - {"name": "desktop-check", "harness": "claude-code", "stage_shapes": ["capture-and-read"]}
+  - {"name": "trove-survey", "harness": "claude-code", "stage_shapes": ["read:{key}", "critique:{key}", "panel:{key}", "judge"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
@@ -32,6 +33,7 @@ workflows:
   - {"name": "prime-open-questions", "type": "investigate-refute"}
   - {"name": "merge-up-review", "type": "merge-up-review"}
   - {"name": "desktop-check", "type": "desktop-check"}
+  - {"name": "trove-survey", "type": "trove-survey"}
 ---
 <!-- BODY:BEGIN -->
 # config:workflows
