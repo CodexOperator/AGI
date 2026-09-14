@@ -2602,6 +2602,29 @@ def _post_rename_remote_ref_state(repo: Path, ref: str) -> str:
     return "absent"
 
 
+def _post_rename_remote_ref_state_sha(repo: Path, ref: str) -> tuple:
+    """Returncode-honest state AND tip sha of `ref` on origin: ('present',
+    <sha>) on rc 0 with non-empty stdout, ('absent', '') on rc 0 with empty
+    stdout, ('failed', '') on rc != 0. Same rc-honesty contract as
+    `_post_rename_remote_ref_state`, but the sha is what a lease-guarded delete
+    needs: it is read from the ONE probe immediately preceding the mutating
+    push, then handed to `git push --force-with-lease=<ref>:<sha>` so the push
+    refuses (non-zero, ref PRESERVED) when origin moves between the probe and
+    the push -- closing the TOCTOU window between the top-of-pass gates and
+    this job's own delete (hypothesis:l4-delete-old-lease-guards-the-toctou-
+    window-between-gate-and-delete). A 'failed' probe NEVER yields a sha (no
+    lease on garbage or on an unread state), and an 'absent' probe yields no
+    sha either -- its caller skips the push entirely."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref], cwd=repo,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return "failed", ""
+    line = (r.stdout or "").strip()
+    if not line:
+        return "absent", ""
+    return "present", line.split()[0]
+
+
 def _post_rename_upstream(repo: Path, branch: str) -> str:
     """The upstream of `branch` (e.g. origin/post/a@s2) or '' when unset.
     Returncode-honest: on a non-zero git rc (a dead upstream makes rev-parse
@@ -4468,33 +4491,46 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
                       f"contained): {old} -> not an ancestor of "
                       f"{_tgt or '(no resolvable successor/trunk)'}")
                 continue
-            if not dry:
-                # rc-honest resume-skip: before deleting origin/<old>, probe
-                # refs/heads/<old> and distinguish the ref genuinely GONE
-                # (rc 0, empty stdout) from ls-remote FAILED (rc != 0, e.g. a
-                # bogus origin). On failure the state is UNKNOWN — refuse by
-                # name and never read 'absent' (a failed probe would let a
-                # resuming run report success while deleting nothing).
-                state = _post_rename_remote_ref_state(
-                    repo, f"refs/heads/{old}")
-                if state == "failed":
-                    print(f"ERR: ls-remote origin {old} failed; cannot "
-                          f"confirm it is already deleted — NOT deleted",
-                          file=sys.stderr)
-                    refused.append(old)
-                    continue
-                if state == "absent":
-                    print(f"  skip: origin/{old} already absent (resumed "
-                          f"run)")
-                    continue
-            print(f"[{'DRY ' if dry else 'APPLY'}] branch delete (remote): "
-                  f"git push origin --delete {old}")
             if dry:
+                print(f"[DRY ] branch delete (remote): "
+                      f"git push origin --delete {old}")
                 continue
-            r = subprocess.run(["git", "push", "origin", "--delete", old],
+            # rc-honest resume-skip AND lease probe in one shot: before
+            # deleting origin/<old>, probe refs/heads/<old> and capture BOTH
+            # its state and its CURRENT tip sha. Genuinely GONE (rc 0, empty
+            # stdout) => 'absent' => skip (a resumed run). ls-remote FAILED
+            # (rc != 0, e.g. a bogus origin) => 'failed' => the state is
+            # UNKNOWN, refuse by name and never read 'absent' (a failed probe
+            # would let a resuming run report success while deleting nothing,
+            # and must never become a lease on a garbage/empty sha).
+            state, sha = _post_rename_remote_ref_state_sha(
+                repo, f"refs/heads/{old}")
+            if state == "failed":
+                print(f"ERR: ls-remote origin {old} failed; cannot "
+                      f"confirm it is already deleted — NOT deleted",
+                      file=sys.stderr)
+                refused.append(old)
+                continue
+            if state == "absent":
+                print(f"  skip: origin/{old} already absent (resumed run)")
+                continue
+            # The sha is the one just probed, so the push is lease-guarded:
+            # if another writer moved origin/<old> between the top-of-pass
+            # gates (or between the probe above and this push), git refuses
+            # non-zero and the ref is PRESERVED -- the job is reported like
+            # every other per-job refusal (named, non-fatal to the rest of
+            # the pass, non-zero exit at the end). The printed command is
+            # byte-equal to the argv actually run.
+            lease = f"--force-with-lease=refs/heads/{old}:{sha}"
+            print(f"[APPLY] branch delete (remote): git push origin "
+                  f"{lease} --delete {old}")
+            r = subprocess.run(["git", "push", "origin", lease,
+                                "--delete", old],
                                cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
-                print(f"ERR: git push origin --delete {old} failed: "
+                print(f"ERR: git push origin --delete {old} failed (a "
+                      f"'stale info' rejection means origin/{old} moved "
+                      f"after the fresh lease probe; content PRESERVED): "
                       f"{r.stderr.strip()}", file=sys.stderr)
                 refused.append(old)
         if dry:
