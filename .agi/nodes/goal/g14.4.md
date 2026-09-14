@@ -17,3 +17,6 @@ town: core
 ---
 <!-- BODY:BEGIN -->
 # goal:g14.4
+
+## Agent Notes
+OWNER 23:47Z (via Prime XX): the hub weak point — the old single box recovery path + its inbound-closed posture — is the OWNER to handle; this goal records it as the owner own item and asks nothing.
