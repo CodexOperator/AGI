@@ -428,10 +428,12 @@ def test_sanctuary_theme_shows_no_registry_when_seats_missing():
 
 
 def test_sanctuary_rotating_strand_names_holder_and_seat():
-    """A `<seat>.genN` window resolves the strand to that row's rotated_by."""
+    """A `<seat>.prev` window (the g15.25 non-prime rename) resolves the
+    strand to that row's rotated_by; the legacy `<seat>.genN` spelling from
+    the prime chain still resolves too."""
     rows = _SEAT_ROWS + [{"name": "belam", "role": "prime_director", "tier": 3,
                           "rotated_by": "quorum"}]
-    windows = ["agi-rc:0", "belam.gen2", "dir-g1.gen1"]
+    windows = ["agi-rc:0", "belam.prev", "dir-g1.gen1"]
     rot = V.rotating_seat(rows, windows)
     assert rot == ("quorum", "belam")
     scene = V.sanctuary_frame(rows, [], rot)
@@ -442,9 +444,10 @@ def test_sanctuary_rotating_strand_names_holder_and_seat():
 
 
 def test_sanctuary_non_seat_gen_window_is_ignored():
-    """A `.genN` window that names no seat is not invented into a strand."""
+    """A `.prev`/`.genN` window that names no seat is not invented."""
     rows = [{"name": "belam", "role": "prime_director", "tier": 3}]
     assert V.rotating_seat(rows, ["unknown.gen1"]) is None
+    assert V.rotating_seat(rows, ["unknown.prev"]) is None
 
 
 def test_sanctuary_human_and_llm_state_the_same_spirits_and_wisps():
