@@ -54,18 +54,20 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by your predecessor, inbox/git-state/record are in STARTUP (facts F1-F27 there too). Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (the Prime keys your row at seating; if it refuses "unkeyed": `python3 extensions/agi/bin/send.py keygen --post thought-master` once); the card is current because you wrote it DURING the work — one Write per landing, the 🔴 stops line at the moment it happens. Meter: the `[meter] post=thought-master <f>` line on every prompt; rotate when **f ≥ 0.47** (the hook's second number is the ratio f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation.
 
-## §4 STATE + NEXT (2026-09-14 01:1xZ — OWNER SPOKE; trove survey in flight)
-- Seated on MAIN @6e5ededcd, Opus high. GATE 0 done (reported 00:5xZ). OWNER spoke in this pane ~01:0xZ (verbatim noted on goal:g14): town vision = tiny models everywhere, CPU-only, max exploration, many parallel hypotheses coalesced before any MVP; dead-head coherence → head pruning + coupled-oscillator maps → SNN; byte-neuron pub/sub; KV-cache/streaming; 3 visions; **Camber = 3 GPU-h/MONTH (charter correction)**; town gets its OWN moral node (owner/Prime mint; Prime nudged 01:0xZ).
-- Trove cloned to scratchpad: CodexOperator/machinelearning (modularNN, snn_standard_model, snn_applied_finance, spikyNN), Simple-Spiking-Net-Demo, project-89/coherence-guided-dead-head-identification. Box: 4× arm64-N1, 23 GB, ~7 GB free, no GPU.
-- Workflow wf_7df0a578-8fb (ultracode, own harness, no OpenRouter spend): 9 readers → 9 critics → 3-vision panel → judge. Output → plan for the owner + hypothesis chain nodes under goal:g14.3.
-- NEXT: read judge output → write plan (doc node under g14.3 + reply to owner) → owner/SM word → first dispatch order → ask Prime for director-thought.
+## §4 STATE + NEXT (2026-09-14 02:5xZ — survey landed; plan to the owner)
+- Seated MAIN, keyed (ack agi-f8 + keygen 01:4xZ). Owner spoke 01:0xZ (verbatim on goal:g14): tiny models everywhere, CPU-only, max exploration, coalesce before MVP, dead-head→oscillators→SNN, byte-neuron, KV/streaming, 3 visions, **Camber = 3 GPU-h/MONTH**, town moral node (owner's hand only — schema written_by owner; Prime asked the owner).
+- LANDED: `doc:local-maxxing-trove-survey-2026-09-14` under goal:g14.3 @95483fe5c (payload `.agi/context/local-maxxing/trove-survey-2026-09-14.md`, 441 KB: judge + 9 readings/critiques + 3 panel seats). Workflow `trove-survey` registered (manifest+script @8baa642ef, Prime's config row 01:38Z).
+- Judge headline: 11 chains ranked by knowledge-per-token; round-0 baseline = llama.cpp build + ~5 GB GGUF ladder (Qwen3-0.6B, Qwen3.5-0.8B/2B/4B) + tenancy logging protocol (box is paging: load 16.6, swap 239 MB free); Camber plan = 3 bursts (nvidia-smi 5 min; looped-depth toy train 25-30 min; PRM-7B scoring 20-30 min) ≈ 85-95 of 180 min; 'qwen3.8 50b' = no such id (Qwen3.8-27B / Flash-Next 125B-A6B); dead-head coherence ≠ pruning lever (base-rate lift 1.0, verified from the repo's own JSON); 'exponentially smarter' has no measured instance — restate as marginal accuracy per CPU-second with CI.
+- NEXT: owner's word on the plan → mint the chain-1/2/3/4 first hypotheses as `hypothesis:` nodes under g14.3 → first dispatch order (round 0: CP0 build + ladder + A1 reproducibility + E3 LUT sweep + V2-C1 corpus kill-test, all $0) → ask the Prime for director-thought with that order in hand.
 
-## §5 BANKED
-- Moral node for local-maxxing (owner 01:0xZ verbatim on goal:g14) — Prime/owner mint; `moral:*` never this post's.
+## §5 BANKED (owner-only)
+- OWNER Q1: 'qwen3.8 50b' — confirm it was Qwen3.8-27B (off-charter under CPU-only) or drop it. Recommend: drop.
+- OWNER Q2: pause firefox/ffmpeg/VNC on this box for benchmark windows, or make the 8 GB [region] box the benchmark host? Recommend: 8 GB box for <5 GB models once its lscpu/flags are known; this box only in paused windows.
+- OWNER Q3: CP0 installs — llama.cpp source build (~10 CPU-min) + `pip install transformers datasets` on this box. Recommend: yes, both, once, recorded in one node.
+- Moral node: owner's hand only.
 - [region] secrets hub — encryption town + Prime; this post = first consumer only.
-- "qwen3.8 50b" real id — resolved by the survey's tiny-models reader; confirm with the owner in one line if ambiguous.
 
 ## 🔴 Where it stops
 ```
-01:1xZ survey workflow wf_7df0a578-8fb running (bg). Next: judge output → plan doc under g14.3 + reply to owner. Card commit gated: suite lock present at 00:5xZ — commit .agi/sessions/quorum/thought-master.md + push when absent. Nothing dispatched, nothing spent.
+02:5xZ survey landed (doc:local-maxxing-trove-survey-2026-09-14 @95483fe5c). Plan sent to the owner in the pane; awaiting the owner's word on Q1-Q3 + the chain order. Nothing dispatched, nothing spent. Next: mint first hypotheses under g14.3, write dispatch order, ask Prime for director-thought.
 ```
