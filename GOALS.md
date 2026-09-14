@@ -6708,6 +6708,8 @@ SM.23 harvested: the reaper tolerates a null pid on every manifest record via on
 
 [belam XX 20:4xZ] SM.23 residue (iii) hunk REVERTED on MAIN at 912363623 (heal.py wait: a LIVE-stalled record set all_terminal = False). Mechanism, measured from the bytes + the point's stack sample at heal.py:252: with the wait defaults (poll 30 s, max-wait 30 min) the pre-existing test_heal_leaves_a_live_pid_stalled_record_untouched (argv heal.py ROOT 1, no overrides, asserts rc 0) polled time.sleep(30) for 30 min and then failed on rc 2 -- three verify-suites blew the 1800 s ceiling since 17d919e84, zero greens; '182 tests green per parent' was a SUBSET measurement and the merge was pushed before its full suite. The other SL2#30 bytes (_rec_pid, the death predicate, watch tests) stay; test_heal.py + test_heal_watch.py = 80 passed in 1.9 s after the revert. RE-LAND as SM.23b: decide the semantics (does heal.py wait block on a live lease, or does stalled-live stay terminal for wait and only the watch service hold it?), update that test to the decided rc, and seam the poll (fixture --poll-interval-s/--max-wait-mins or a monkeypatched sleep) -- a test that sleeps for real is a defect whatever it asserts.
 
+SM.24 (clauses 4/5/6-rows, partial, deferred rest documented) + SM.26 (dispatch --orders channel, 5/5 conjuncts, CAVEAT 141 net lines vs 45 ceiling flagged to SM) harvested onto season2/posts/sensei-director; full suite green in-worktree 4774/0/15/1xfail; MAIN merge-up held pending sanctuary-director's branch-reshuffle DONE line
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
