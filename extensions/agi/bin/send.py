@@ -291,6 +291,11 @@ def _graph_root(root: Path) -> Path:
 _COMMS_DEFAULTS = {
     "lockdown": False,
     "verify": "informational",
+    # hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-marker:
+    # a standing per-seat nudge marker older than this many MINUTES is STALE
+    # and the nudge re-fires (marker re-stamped) instead of suppressing. A
+    # marker that is younger than this AND predating no read still suppresses.
+    "nudge_stale_after_minutes": 30,
 }
 
 #: The one warning printed per send and per read/peek when `lockdown` is set.
@@ -1553,6 +1558,113 @@ def _last_nudge_age(root: Path, seat: str) -> float | None:
         return None
 
 
+#: Default minutes after which a standing nudge marker is STALE and the nudge
+#: re-fires (config `comms.nudge_stale_after_minutes`).
+_NUDGE_STALE_AFTER_MINUTES_DEFAULT = 30
+
+
+def _nudge_stale_after_s(root: Path) -> float:
+    """The staleness horizon in SECONDS, from
+    `comms.nudge_stale_after_minutes` (default 30). A malformed / non-positive
+    value falls back to the default -- a config problem never blocks a wake."""
+    try:
+        mins = float(_comms_config(root).get(
+            "nudge_stale_after_minutes", _NUDGE_STALE_AFTER_MINUTES_DEFAULT))
+    except (TypeError, ValueError):
+        mins = float(_NUDGE_STALE_AFTER_MINUTES_DEFAULT)
+    if not mins > 0:
+        mins = float(_NUDGE_STALE_AFTER_MINUTES_DEFAULT)
+    return mins * 60.0
+
+
+def _nudge_lastread_path(root: Path, seat: str) -> Path:
+    """Sidecar recording the ts of the seat's last CONSUMING inbox read --
+    the post's last-read stamp a standing nudge marker is judged STALE
+    against (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
+    marker, clause (2))."""
+    return _inbox_dir(root) / f"{seat}.nudge.lastread"
+
+
+def _record_lastread(root: Path, seat: str) -> None:
+    """Stamp the seat's last-read sidecar; best-effort, never raises."""
+    try:
+        p = _nudge_lastread_path(root, seat)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(_now() + "\n")
+    except OSError:
+        pass
+
+
+def _lastread_age(root: Path, seat: str) -> float | None:
+    """Seconds since the seat's last consuming read, or None when none is
+    recorded."""
+    try:
+        ts = _nudge_lastread_path(root, seat).read_text().strip()
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc)
+                - dt.astimezone(timezone.utc)).total_seconds()
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _nudge_marker_stale(root: Path, seat: str) -> bool:
+    """True when a STANDING nudge marker must NOT suppress: its age is at or
+    beyond `comms.nudge_stale_after_minutes` (default 30), OR the seat has
+    READ since the marker was stamped (the marker announced an unread state a
+    later read already consumed). False when there is no marker (nothing to
+    be stale) or the marker is fresh AND no read followed it.
+
+    hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-marker:
+    the 2026-09-14 six-hour stall was a fresh-looking marker plus an unchanged
+    `_unread_digest`, so `wake` returned nothing-pending forever while the
+    pane sat in copy mode and swallowed every keystroke."""
+    age = _last_nudge_age(root, seat)
+    if age is None:
+        return False
+    if age >= _nudge_stale_after_s(root):
+        return True
+    lr_age = _lastread_age(root, seat)
+    # `_lastread_age` is a time SINCE the read; the marker's age is time SINCE
+    # the stamp. A read that happened AFTER the stamp has a SMALLER age.
+    return lr_age is not None and lr_age < age
+
+
+def _pane_in_mode(target: str) -> bool:
+    """Read-only: is the target pane in tmux copy mode (`#{pane_in_mode}`)?
+    False on any tmux failure. This query never mutates the pane."""
+    try:
+        cp = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", target,
+             "#{pane_in_mode}"],
+            capture_output=True, text=True, timeout=5)
+        if cp.returncode != 0:
+            return False
+        return cp.stdout.strip() == "1"
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def _leave_copy_mode(target: str) -> bool:
+    """Leave tmux copy mode so keystrokes are TYPED, not swallowed as
+    copy-mode navigation. `send-keys -X cancel` is a tmux SUBCOMMAND, not a
+    typed key, so it never routes through `_send_keys`.
+
+    hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-marker,
+    clause (1): the in-mode read is READ-ONLY, and when `pane_in_mode != 1`
+    NO cancel is ever sent (the falsifier: a spurious Escape / cancel into a
+    live prompt). Returns True when the pane is (or was made) typable, False
+    only when a needed cancel failed."""
+    if not _pane_in_mode(target):
+        return True
+    try:
+        cp = subprocess.run(
+            ["tmux", "send-keys", "-t", target, "-X", "cancel"],
+            capture_output=True, text=True, timeout=5)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return cp.returncode == 0
+
+
 def _capture_pane(tmux_session: str, target: str) -> str | None:
     """Read-only snapshot of one tmux pane; None on any tmux failure.
 
@@ -1890,6 +2002,11 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         if resolved is None:
             return False
         target, pid, tmux_session = resolved
+    # hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-marker,
+    # clause (1): leave copy mode BEFORE measuring the pane, or the capture
+    # shows copy-mode content (no box) and every later check reads
+    # "no rendered box" while the keystrokes would have been swallowed.
+    _leave_copy_mode(target)
     # A DM's pending-coalesced count (read now so the delivered/coalesced
     # decision knows whether to carry a `(+N more, read <seat>)` tail). An
     # inbox send never reads it. A DM types the INLINE pane line
@@ -1941,7 +2058,12 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         return False
     # (2) cap: one token per unread batch; a batch of dms yields one token.
     last_age = _last_nudge_age(root, to)
-    if last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S:
+    # clause (2): a STALE marker does NOT suppress -- the nudge re-fires and
+    # the marker is re-stamped. A fresh marker still suppresses (no double-
+    # typing into a live turn).
+    stale = _nudge_marker_stale(root, to)
+    if (last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S
+            and not stale):
         # A DM coalesced inside the window is counted, not typed -- the NEXT
         # delivered nudge carries `(+N more, read <seat>)`.
         if body is not None:
@@ -1987,6 +2109,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # (store/keep the deferred body) and never clear it here. Old bytes
         # ran `_clear_deferred` unconditionally, dropping a deferred body that
         # had never touched the pane.
+        if not _leave_copy_mode(target):
+            return False
         region = _input_region(pane_capture)
         # CLAUSE (a): for an inline DM the head (`[nudge: <from>]:`) identifies
         # only the SENDER, and every dm from that sender shares it -- a stranded
@@ -2107,6 +2231,12 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # alarm dm of 2026-09-10), (C) a later bare Enter submits it, (D) the
     # text as a LITERAL (`-l`) in one call, a pause, then Enter as a
     # SEPARATE call is delivered. So: never `text Enter` in one call.
+    if stale:
+        # EXACTLY ONE log line naming the re-fire (clause (2)).
+        print(f"nudge: re-fired (stale marker {int(last_age)}s)",
+              file=sys.stderr)
+    if not _leave_copy_mode(target):
+        return False
     if not _send_keys(target, text, literal=True):
         # Nothing typed; do not mark delivered, so a retry is not suppressed
         # (F1, same rationale). A deferred render count is NOT recorded here
@@ -2295,6 +2425,10 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         return _wake_outcome("no-target", delivered=False, seat=to)
     target, pid, tms = resolved
     window_id = target.split(":", 1)[1] if ":" in target else None
+    # clause (1): a pane in copy mode must be cancelled BEFORE the read-only
+    # capture, or the capture shows copy-mode content (no box) and the stale
+    # re-fire is blocked behind `no rendered box`.
+    _leave_copy_mode(target)
     pane = _capture_pane(tms, target)
     reason = _nudge_coalesce_reason(pane, _build_nudge_token(to, "idle"),
                                     _registry_status(pid))
@@ -2336,7 +2470,11 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # unchanged unread inbox retype once it lapses under heal's every-seat
     # polling; the digest gate stops that for as long as the state is unchanged.
     digest = _unread_digest(root, to)
-    if _announced_digest(root, to) == digest:
+    # clause (2): a STALE marker must defeat the announced-digest gate -- an
+    # unchanged digest with a stale marker is EXACTLY the six-hour stall, so
+    # it re-fires (the marker is re-stamped, so this terminates).
+    if (_announced_digest(root, to) == digest
+            and not _nudge_marker_stale(root, to)):
         return _wake_outcome("nothing-pending", delivered=False, seat=to,
                              window_id=window_id)
 
@@ -2364,6 +2502,25 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     # window caught it); `_nudge_window` already printed its own line.
     return _wake_outcome("nothing-pending", delivered=False, seat=to,
                          window_id=window_id)
+
+
+def status(root: Path, to: str, tmux_session: str | None = None) -> str:
+    """ONE line naming a seat's nudge state: marker age, pending count,
+    `in_mode`, and last-read age -- so a director sees a stalled post in one
+    line (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
+    marker, clause (3)). READ-ONLY: never types, never cancels, never stamps."""
+    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
+    if resolved is None:
+        in_mode: str = "no-target"
+    else:
+        in_mode = "1" if _pane_in_mode(resolved[0]) else "0"
+
+    def _age(x: float | None) -> str:
+        return "none" if x is None else f"{int(x)}s"
+
+    return (f"status {to}: marker={_age(_last_nudge_age(root, to))} "
+            f"pending={_pending_more(root, to)} in_mode={in_mode} "
+            f"lastread={_age(_lastread_age(root, to))}")
 
 
 def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
@@ -2406,6 +2563,8 @@ def type_input(root: Path, to: str, text: str,
         # @id unfindable): named refusal, never raise
         return False
     target, _pid, tmux_session = resolved
+    if not _leave_copy_mode(target):
+        return False
     if not _send_keys(target, text, literal=True):
         return False
     time.sleep(_NUDGE_ENTER_DELAY_S)
@@ -3255,6 +3414,10 @@ def read(root: Path, me: str, sender: str | None,
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
     _clear_announced(root, me)
+    # clause (2): stamp the post's last-read signal so a STANDING nudge marker
+    # that predates THIS read is judged stale (hypothesis:l4-a-nudge-cancels-
+    # copy-mode-and-re-fires-on-a-stale-marker).
+    _record_lastread(root, me)
     # A consuming read drains the coalesced nudge count too
     # (hypothesis:l4-a-read-clears-the-coalesced-nudge-count): the count is
     # "how many sends coalesced into the one token", and the read has just
@@ -4705,6 +4868,14 @@ def main(argv: list[str] | None = None) -> int:
              "resubmitted-by-typing-not-enter)")
     p_wake.add_argument("target", help="seat name")
 
+    p_status = sub.add_parser(
+        "status", parents=[common],
+        help="ONE read-only line of a seat's nudge state: marker age, "
+             "pending count, in_mode, last-read "
+             "(hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-"
+             "stale-marker, clause (3))")
+    p_status.add_argument("target", help="seat name")
+
     p_esc = sub.add_parser("escalate", parents=[common],
                   help="post a concern, or escalate to owner via liaison")
     p_esc.add_argument("--to", default=None, help="'owner' or omit")
@@ -4914,6 +5085,10 @@ def main(argv: list[str] | None = None) -> int:
         # and deliberately ignore the value; only this verb path returns it.
         return 0 if wake(root, _alias_canon(root, args.target) or
                          args.target) else 1
+
+    if args.verb == "status":
+        print(status(root, _alias_canon(root, args.target) or args.target))
+        return 0
 
     if args.verb == "escalate":
         text = " ".join(args.text) if args.text else ""
