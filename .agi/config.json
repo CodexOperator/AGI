@@ -75,6 +75,22 @@
         "claude-opus-5",
         "claude-fable-5-1"
       ]
+    },
+    "copilot-cli": {
+      "adapter": "copilot_cli",
+      "models": {
+        "kid": "auto",
+        "parent": "auto",
+        "director": "auto",
+        "prime_director": "auto"
+      },
+      "effort": {
+        "kid": "medium",
+        "parent": "high",
+        "director": "max",
+        "prime_director": "max"
+      },
+      "output_format": "json"
     }
   },
   "spawn": {

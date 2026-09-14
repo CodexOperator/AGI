@@ -265,3 +265,34 @@ def needs_credential(harness: dict) -> bool:
         mod = load(adapter_name)
         return mod.needs_credential(harness)
     return True
+
+
+def model_listing(harness: dict) -> dict[str, str]:
+    """Return the selected adapter's configured tier/model listing.
+
+    Adapters may provide a richer listing, but the config model map remains a
+    safe compatibility fallback for older third-party adapters.
+    """
+    adapter_name = harness.get("adapter", "")
+    if adapter_name:
+        mod = load(adapter_name)
+        listing = getattr(mod, "list_models", None)
+        if callable(listing):
+            return dict(listing(harness))
+    return {
+        str(tier): str(model)
+        for tier, model in (harness.get("models") or {}).items()
+        if str(model).strip()
+    }
+
+
+def transcript_path(harness: dict, sess_dir: str | Path,
+                    agent_id: str | None = None) -> Path:
+    """Resolve the adapter-owned transcript/log path for a child."""
+    adapter_name = harness.get("adapter", "")
+    if adapter_name:
+        mod = load(adapter_name)
+        resolver = getattr(mod, "transcript_path", None)
+        if callable(resolver):
+            return Path(resolver(sess_dir=Path(sess_dir), agent_id=agent_id))
+    return Path(sess_dir) / "output.log"
