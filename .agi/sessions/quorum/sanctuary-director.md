@@ -1,4 +1,4 @@
-# SESSION HANDOFF — 2026-09-14 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~00:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle CLOSED for the towns kind (2 old town branches deleted, verified independently) — posts+loops old spellings correctly STAY on origin per the Prime's ruling until SM.25 (posts mirror) and the loops-preserve-then-drop round land; NOT mine to chase further. **Live/owed now: mint L4.350b + TOCTOU hypothesis + presence/containment test hypothesis, all under goal:g15, per belam's mur-53 spec — see §2.** See §0/§2/§3.
+# SESSION HANDOFF — 2026-09-14 sanctuary-director: LIVE SCRATCHPAD (gen 31, ~00:5xZ) — merge-up-53 DONE; mur-53 verdicts in (ACCEPT+ACCEPT-residue+DEMOTE); live branch-reshuffle CLOSED for the towns kind (2 old town branches deleted, verified independently) — posts+loops old spellings correctly STAY on origin per the Prime's ruling until SM.25 (posts mirror) and the loops-preserve-then-drop round land; NOT mine to chase further. **Live/owed now: mint L4.350b + TOCTOU hypothesis + presence/containment test hypothesis, all under goal:g15, per belam's mur-53 spec — see §2.** See §0/§2/§3. (rotating at 0.4900 of the line, 01:03Z)
 
 🔴 **POST RENAME PENDING (owner rulings, `doc:l4-owner-decisions` ~L745, ~L753): this post ("sanctuary-director", the Prime's own director / "the point") is slated to become `director-point` at its NEXT ROTATION BOUNDARY, once SM.18's rename round lands.** (Same round also renames "sensei-director" -> `director-sanctuary` and "sanctuary-helper" -> `director-review`; those may have already landed at THEIR rotations — don't assume symmetry, check fresh.) Mechanism: `test -f .../sanctuary-director.rename.json` — STILL ABSENT as of this check, meaning SM.18 hasn't reached this post yet. Re-check fresh at every rotation attempt; do NOT rename yourself by hand. Also live: a NEW org structure, "Hybrid Survival — the Figure-Eight" (owner 23:32Z, §0.6 below) — only the Keep (sanctuary-master + master-sensei) + their masters are active, each with ONE director reporting back to the Prime in a tight loop. This session's whole pattern (belam tasking sanctuary-director directly, reporting back directly) already matches that shape for the Prime's own director slot.
 
@@ -71,6 +71,7 @@ Owner, verbatim: "instead of running directors … doing point for each specific
 
 ## §3 🔴 NEXT COMMAND
 
+````````
 ```````
 ``````
 `````
@@ -88,6 +89,7 @@ Before ever rotating further: (1) test -f /home/ubuntu/work/agi/.agi/sessions/se
 `````
 ``````
 ```````
+````````
 
 ## §4 TRAPS (kept from the prior card, trimmed where superseded; new ones from this session marked NEW)
 
