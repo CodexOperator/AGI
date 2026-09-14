@@ -7,7 +7,7 @@ Guard the facts the adapter was built on, each read from the installed
    instruction block in the single `-p` turn (the fallback the parent claim
    allowed) -- and every brief segment must still be present, not just the
    first.
-2. `--allow-all-tools` is what makes `-p` non-interactive; without it a spawn
+2. `--allow-all` is what makes `-p` non-interactive; without it a spawn
    off a TTY blocks on the first tool prompt.
 3. `--model` carries the config row's value verbatim (`auto` here), and a
    tier with no model is a named error, never another tier's model.
@@ -128,7 +128,7 @@ def test_headless_uses_p_and_allow_all_tools(rig):
     args = build(rig)
     assert args[0] == HARNESS["bin"]
     assert "-p" in args
-    assert "--allow-all-tools" in args
+    assert "--allow-all" in args
     # the prompt is the argument to -p, and it is the LAST element
     assert args[args.index("-p") + 1] == args[-1]
 
@@ -227,7 +227,7 @@ def test_fake_copilot_on_path_is_the_built_argv_head(monkeypatch, rig,
     proc = subprocess.run(args, capture_output=True, text=True, timeout=20)
     assert proc.returncode == 0
     recorded = Path(str(fake_copilot) + ".args").read_text()
-    assert "--allow-all-tools" in recorded
+    assert "--allow-all" in recorded
     assert "--model" in recorded and "auto" in recorded
 
 

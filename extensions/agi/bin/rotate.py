@@ -903,7 +903,7 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
 
     Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
 
-        copilot [--model M] [--effort E] --allow-all-tools [-i <card>]
+        copilot [--model M] [--effort E] --allow-all [-i <card>]
 
     `-i, --interactive <prompt>` starts interactive mode (the post stays up
     in the tmux window and `send.py` can type into its input box) and executes
@@ -922,7 +922,7 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
         args += ["--model", str(model)]
     if effort:
         args += ["--effort", str(effort)]
-    args += ["--allow-all-tools"]
+    args += ["--allow-all"]
     args += [str(a) for a in (extra_args or [])]
     args += ["-i", prompt_text]
     return args
