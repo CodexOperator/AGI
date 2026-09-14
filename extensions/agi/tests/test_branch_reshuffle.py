@@ -18,6 +18,7 @@ Asserts:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -643,15 +644,19 @@ def test_delete_old_orders_posts_towns_mains_and_keeps_master(tmp_path: Path):
                    "main,posts,towns,loops")
     assert res.returncode == 0, res.stderr
     out = res.stdout
-    # delete order is post(s) -> town(s) -> main(s) -> loop(s), by OLD name
-    posts = "origin --delete seat/post-a@s2"
-    towns = "origin --delete town/core/season/s2"
-    mains = "origin --delete season/s2"
-    loops = "origin --delete loop/x@s2"
+    # delete order is post(s) -> town(s) -> main(s) -> loop(s), by OLD name.
+    # The APPLY line now prints the REAL lease-guarded argv
+    # (`git push origin --force-with-lease=refs/heads/<old>:<sha> --delete
+    # <old>`), so the ordering needle is the `--delete <old>` tail, which is
+    # unique to each line (the lease string carries no `--delete`).
+    posts = "--delete seat/post-a@s2"
+    towns = "--delete town/core/season/s2"
+    mains = "--delete season/s2"
+    loops = "--delete loop/x@s2"
     assert _first(out, posts) < _first(out, towns) < _first(out, mains)\
         < _first(out, loops), out
     # master is add-only: it is NOT a delete job, and the add-only line names it
-    assert "origin --delete master" not in out
+    assert "--delete master" not in out
     assert "master: add-only" in out
     # master's remote name is KEPT
     ls = _git(r, "ls-remote", "origin", "refs/heads/master").stdout
@@ -725,6 +730,8 @@ def test_delete_old_ls_remote_failure_is_rc_honest(tmp_path: Path):
     # by a different route -- which is why the old asserts above passed under
     # mutation. This assert flips.
     assert "[APPLY] branch delete (remote)" not in res.stdout, res.stdout
+    # L4.364: a failed probe must never become a lease on an unread sha
+    assert "--force-with-lease" not in res.stdout, res.stdout
 
 
 def test_delete_old_second_run_resumes_and_exits_zero(tmp_path: Path):
@@ -839,6 +846,119 @@ def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
         "continuation proven: later loop was deleted"
     # the refused (blocked) post survived the run
     assert "origin/seat/post-a@s2" in origin_b, origin_b
+
+
+# ---- L4.364 (KID): --delete-old is LEASE-GUARDED (TOCTOU closed) ----------
+def test_delete_old_lease_refuses_when_origin_moves_between_probe_and_push(
+        tmp_path: Path):
+    """(A) RACE CASE. The top-of-pass gates are satisfied, then origin's ref
+    for a job is moved by a concurrent writer AFTER this job's fresh lease
+    probe but BEFORE its push is transmitted. The lease-guarded delete
+    (`git push origin --force-with-lease=refs/heads/<old>:<probed-sha>
+    --delete <old>`) must REFUSE non-zero, name the branch, and leave the ref
+    (with its NEW content) PRESENT. Pre-fix the unconditional `--delete`
+    destroys the moved content — this test's falsifier is the remote sha
+    still equalling the concurrent writer's commit.
+
+    The concurrent move is injected with a PATH shim for `git`: when the
+    CLI's delete push for this one branch is about to run, the shim first
+    force-pushes a NEW commit onto origin/<old> (a real concurrent writer),
+    then execs the real git. The move therefore lands AFTER the CLI's fresh
+    `ls-remote` probe and BEFORE the delete push even advertises refs — which
+    is exactly the TOCTOU window between the gate/probe and the mutating
+    push. (A pre-push hook fires too late: by then git has already captured
+    the advertised ref value, so even an unguarded delete would reject. The
+    shim is the seam that actually exercises the claimed window; verified
+    against the pre-fix code, which deletes the moved commit.)"""
+    r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+    # the concurrent writer's NEW content: a fresh root commit (HEAD may
+    # already equal the old tip, so re-pushing HEAD would be a no-op)
+    tree = _git(r, "rev-parse", "HEAD^{tree}").stdout.strip()
+    raced = _git(r, "commit-tree", tree, "-m", "race").stdout.strip()
+    assert raced, "fixture must build a concurrent commit"
+    shim = tmp_path / "shim"
+    shim.mkdir()
+    git_shim = shim / "git"
+    git_shim.write_text(
+        "#!/bin/sh\n"
+        "case \"$*\" in\n"
+        "  *\"--delete seat/post-a@s2\"*)\n"
+        "    /usr/bin/git push --no-verify --force -q origin"
+        " \"$RACE_NEW:refs/heads/seat/post-a@s2\" || true\n"
+        "    ;;\n"
+        "esac\n"
+        "exec /usr/bin/git \"$@\"\n")
+    git_shim.chmod(0o755)
+    env = dict(os.environ)
+    env["PATH"] = str(shim) + os.pathsep + env["PATH"]
+    env["RACE_NEW"] = raced
+    res = subprocess.run(
+        [sys.executable, str(CLI), "branch-reshuffle", "--root",
+         str(r / ".agi"), "--delete-old", "--kinds",
+         "main,posts,towns,loops"],
+        capture_output=True, text=True, env=env)
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "seat/post-a@s2" in res.stderr, res.stderr
+    # the moved ref is PRESERVED with the concurrent writer's NEW sha, not the
+    # sha the lease probe read
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/seat/post-a@s2").stdout.strip()
+    assert got, "lease must PRESERVE the moved ref, not delete it"
+    remote_sha = got.split()[0]
+    import re
+    m = re.search(
+        r"--force-with-lease=refs/heads/seat/post-a@s2:([0-9a-f]{40})",
+        res.stdout)
+    assert m, res.stdout
+    assert remote_sha != m.group(1), (remote_sha, m.group(1))
+
+
+def test_delete_old_lease_delete_succeeds_without_a_race(tmp_path: Path):
+    """(B) NO-RACE CASE. With no concurrent writer the lease matches the
+    remote and the delete happens exactly as today: rc 0, the legacy branch is
+    gone from origin, and the APPLY line names a lease over a 40-char sha."""
+    r = _build_repo(tmp_path)
+    _apply_all(r / ".agi")
+    (r / ".agi/sessions").mkdir(parents=True, exist_ok=True)
+    (r / ".agi/sessions/verified.stamp").write_text("green")
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    origin = _git(r, "branch", "-r", "--format=%(refname:short)").stdout
+    for old in ["season/s2", "seat/post-a@s2", "town/core/season/s2",
+                "loop/x@s2"]:
+        assert f"origin/{old}" not in origin, (old, origin)
+    # the lease is over a real 40-hex sha (the fresh probe's), not empty
+    import re
+    assert re.search(
+        r"--force-with-lease=refs/heads/season/s2:[0-9a-f]{40} --delete "
+        r"season/s2", res.stdout), res.stdout
+
+
+def test_delete_old_lease_probe_is_rc_honest_and_never_a_garbage_sha(
+        tmp_path: Path):
+    """(C) FAILED-PROBE REGRESSION GUARD. The state+sha probe must never hand
+    the delete leg an empty/garbage sha to lease on: rc != 0 => 'failed' with
+    NO sha (the caller refuses by name), rc 0 with empty stdout => 'absent'
+    with NO sha (the caller skips), rc 0 with a ref => 'present' with the real
+    sha. This is the property that keeps a failed probe from becoming a lease
+    against a value that was never read."""
+    r = _build_repo(tmp_path)
+    sys.path.insert(0, str(BIN))
+    import cli  # noqa: E402
+    state, sha = cli._post_rename_remote_ref_state_sha(
+        r, "refs/heads/season/s2")
+    assert state == "present" and len(sha) == 40, (state, sha)
+    state, sha = cli._post_rename_remote_ref_state_sha(
+        r, "refs/heads/does-not-exist")
+    assert (state, sha) == ("absent", ""), (state, sha)
+    _git(r, "remote", "set-url", "origin", "/nonexistent/origin.git")
+    state, sha = cli._post_rename_remote_ref_state_sha(
+        r, "refs/heads/season/s2")
+    assert (state, sha) == ("failed", ""), (state, sha)
 
 
 def test_delete_old_dry_run_prints_zero_runs(tmp_path: Path):
