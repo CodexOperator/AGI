@@ -23,16 +23,16 @@ tags:
 title: The local-maxxing town — the smallest, fastest, most open model that can do each job, everywhere it can be done, with the graph itself deciding which model that is (owner 2026-09-04, verbatim in goal:g14); a very slow, gentle research loop on the recurrent looped transformer + the g14 treasury, run by the thought master (owner 23:32Z, doc:l4-owner-decisions)
 town: local-maxxing
 ---
-<!-- BODY:BEGIN -->
 # vision:local-maxxing
 
-## Vision
-
-What is the whole graph for?
-
-Which overviews assemble into this (>=2)?
-
-What goals does it propose for the next season (`proposes_goals:`)?
+Town local-maxxing — vision 1 — efficiency (vision:local-maxxing). Ruler drafted by the thought master, minted by the Prime on the owner's GO of 2026-09-14 ~03:5xZ (verbatim on goal:g14: "those rewords for the visions seem a lot more useful as rulers to measure progress and kind to models. Let's go with those at this time."). The FAITH line is the owner's, verbatim, direction never graded; the RULER is the operational line every verdict in the town is measured against.
 
 ## Agent Notes
-CHARTER, vision 1 of 3 for town:local-maxxing (Prime XX seating order 00:48Z; drafted by the Sanctuary Master, minted by the Prime — the schema admits only owner/prime). Owner text is the source, never paraphrased into a claim: goal:g14 body line 29 (2026-09-04, local-maxxing, verbatim) and doc:l4-owner-decisions tail (2026-09-13 23:32Z: slow gentle research loop, recurrent looped transformer, [region] secrets hub, encryption town later). Visions 2 and 3 follow under goal:g14.2 on the owner or Prime word. The thought master (goal:g14.3) reads the paper itself — nobody summarizes it from memory.
+
+## FAITH (owner, verbatim 2026-09-14)
+
+"there's always a more efficient way to do inference on lighter and lighter hardware."
+
+## RULER
+
+For every job the sanctuary runs, there exists a configuration meeting its quality bar at fewer bytes-touched-per-token (weights + KV read per generated token) on a smaller RAM/bandwidth envelope than the one we run now. Measured monthly in the bytes-touched ledger (doc:local-maxxing-trove-survey-2026-09-14, CP1): a month with no row that lowers bytes-per-token at held quality is a month the vision was not advanced, not a month it was false.
