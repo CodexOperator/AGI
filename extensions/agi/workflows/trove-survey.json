@@ -1,0 +1,359 @@
+{
+  "name": "trove-survey",
+  "type": "research",
+  "script": "agi-trove-survey.js",
+  "description": "Survey a research trove for the local-maxxing town (goal:g14): one reader per source (owner repos, papers, literature, hardware) -> adversarial critic per reading (pipeline, no barrier) -> three-vision hypothesis panel (barrier: needs the whole digest) -> judge + completeness critic. args: {scratch: <dir with cloned sources>, sources?: [{key,prompt}], angles?: [{key,text}]} (defaults = the 2026-09-14 first run). Authored by hand by thought-master 2026-09-14 (workflow.py author refuses mixed simple+repeated stages, by name); script = the run-proven inline script of wf_7df0a578-8fb.",
+  "stages": [
+    {
+      "label": "read",
+      "role": "kid",
+      "effort_hint": "high",
+      "repeat": {
+        "of": "sources",
+        "label_template": "read:{key}"
+      },
+      "prompt": "You are a research reader for the \"local-maxxing\" town of an AI research graph. READ-ONLY: never modify any repo, never install packages, never run training, never rent GPUs, never call paid APIs. You may run small read-only shell commands (ls, cat, grep, wc, python3 -c for JSON inspection) and use WebFetch/WebSearch (load via ToolSearch \"select:WebFetch,WebSearch\"). Quote sources with URL/path + date. Mark every number as MEASURED (from a file/page you read) or ESTIMATE. Never invent results.\nContext the owner gave (verbatim-ish): the town's aim is to maximize the usefulness of ABSOLUTELY TINY models across all layers of the system; everything must run on CPU + ordinary RAM (this box: 4-core ARM arm64-N1 arm-cloud, 23 GB RAM, ~7 GB free, no GPU; a second headless box: 8 GB unified RAM, old Intel HD iGPU; Camber Cloud GPU: ONE extra-small 24 GB VRAM instance, hard budget 3 GPU-HOURS PER MONTH). Three visions: (1) there is always a more efficient way to infer on lighter hardware; (2) there is always a smarter way to infer that scores higher on benchmarks over time; (3) two or more tiny models cooperating are exponentially smarter than the sum. Town moral: not tokens saved, but KNOWLEDGE and WISDOM extracted per token spent, failures included. The owner wants many hypotheses chased in parallel, coalesced into further hypothesis sets sequentially, before any MVP. Owner's specific threads: the dead-head \"coherence\" pruning equation applied to head pruning AND to generating coupled-oscillator maps, imported into a spiking-neural-network architecture; a neuron-as-transistor-byte model (each neuron = a byte; fires by how many/which bits are set, in what order; bits map to upstream neurons' output bits; broadcast/subscribe; one bit out per tick); KV-cache compression + efficient streaming papers folded in; recurrent looped transformers (depth recurrence); candidate model line \"qwen3.8 50b\" (exact id unknown — resolve it).\n\nTASK ({key}): {prompt}\nReturn the structured reading.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "description": "<=400 words, dense"
+          },
+          "key_facts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "each tagged MEASURED or ESTIMATE with the path/URL"
+          },
+          "reusable_assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "code, data, equations, results we can reuse directly, with paths"
+          },
+          "failures_and_lessons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hypothesis_seeds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "claim": {
+                  "type": "string"
+                },
+                "falsifier": {
+                  "type": "string"
+                },
+                "cpu_experiment": {
+                  "type": "string"
+                },
+                "est_cost": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "claim",
+                "falsifier",
+                "cpu_experiment"
+              ]
+            }
+          },
+          "open_questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "source",
+          "summary",
+          "key_facts",
+          "reusable_assets",
+          "failures_and_lessons",
+          "hypothesis_seeds",
+          "open_questions"
+        ]
+      },
+      "model_hint": "opus"
+    },
+    {
+      "label": "critique",
+      "role": "reviewer",
+      "effort_hint": "high",
+      "repeat": {
+        "of": "sources",
+        "label_template": "critique:{key}"
+      },
+      "prompt": "You are a research reader for the \"local-maxxing\" town of an AI research graph. READ-ONLY: never modify any repo, never install packages, never run training, never rent GPUs, never call paid APIs. You may run small read-only shell commands (ls, cat, grep, wc, python3 -c for JSON inspection) and use WebFetch/WebSearch (load via ToolSearch \"select:WebFetch,WebSearch\"). Quote sources with URL/path + date. Mark every number as MEASURED (from a file/page you read) or ESTIMATE. Never invent results.\nContext the owner gave (verbatim-ish): the town's aim is to maximize the usefulness of ABSOLUTELY TINY models across all layers of the system; everything must run on CPU + ordinary RAM (this box: 4-core ARM arm64-N1 arm-cloud, 23 GB RAM, ~7 GB free, no GPU; a second headless box: 8 GB unified RAM, old Intel HD iGPU; Camber Cloud GPU: ONE extra-small 24 GB VRAM instance, hard budget 3 GPU-HOURS PER MONTH). Three visions: (1) there is always a more efficient way to infer on lighter hardware; (2) there is always a smarter way to infer that scores higher on benchmarks over time; (3) two or more tiny models cooperating are exponentially smarter than the sum. Town moral: not tokens saved, but KNOWLEDGE and WISDOM extracted per token spent, failures included. The owner wants many hypotheses chased in parallel, coalesced into further hypothesis sets sequentially, before any MVP. Owner's specific threads: the dead-head \"coherence\" pruning equation applied to head pruning AND to generating coupled-oscillator maps, imported into a spiking-neural-network architecture; a neuron-as-transistor-byte model (each neuron = a byte; fires by how many/which bits are set, in what order; bits map to upstream neurons' output bits; broadcast/subscribe; one bit out per tick); KV-cache compression + efficient streaming papers folded in; recurrent looped transformers (depth recurrence); candidate model line \"qwen3.8 50b\" (exact id unknown — resolve it).\n\nYou are an ADVERSARIAL CRITIC of the reading produced for source \"{key}\" (the read stage's structured output is handed to you). Spot-check it: re-open 2-4 of the cited paths/URLs yourself and verify the quoted numbers and claims. Flag anything unsupported, hype-driven, or contradicting the source. Name angles the reader missed. Judge which hypothesis seed is strongest (highest knowledge-per-token on CPU) and which is weakest. Default to skepticism.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "unsupported_claims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errors_found": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing_angles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "strongest_seed": {
+            "type": "string"
+          },
+          "weakest_seed": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0-1 that the reading is reliable"
+          }
+        },
+        "required": [
+          "source",
+          "unsupported_claims",
+          "errors_found",
+          "missing_angles",
+          "strongest_seed",
+          "weakest_seed",
+          "confidence"
+        ]
+      },
+      "model_hint": "opus"
+    },
+    {
+      "label": "panel",
+      "role": "kid",
+      "effort_hint": "high",
+      "repeat": {
+        "of": "angles",
+        "label_template": "panel:{key}"
+      },
+      "prompt": "You are a research reader for the \"local-maxxing\" town of an AI research graph. READ-ONLY: never modify any repo, never install packages, never run training, never rent GPUs, never call paid APIs. You may run small read-only shell commands (ls, cat, grep, wc, python3 -c for JSON inspection) and use WebFetch/WebSearch (load via ToolSearch \"select:WebFetch,WebSearch\"). Quote sources with URL/path + date. Mark every number as MEASURED (from a file/page you read) or ESTIMATE. Never invent results.\nContext the owner gave (verbatim-ish): the town's aim is to maximize the usefulness of ABSOLUTELY TINY models across all layers of the system; everything must run on CPU + ordinary RAM (this box: 4-core ARM arm64-N1 arm-cloud, 23 GB RAM, ~7 GB free, no GPU; a second headless box: 8 GB unified RAM, old Intel HD iGPU; Camber Cloud GPU: ONE extra-small 24 GB VRAM instance, hard budget 3 GPU-HOURS PER MONTH). Three visions: (1) there is always a more efficient way to infer on lighter hardware; (2) there is always a smarter way to infer that scores higher on benchmarks over time; (3) two or more tiny models cooperating are exponentially smarter than the sum. Town moral: not tokens saved, but KNOWLEDGE and WISDOM extracted per token spent, failures included. The owner wants many hypotheses chased in parallel, coalesced into further hypothesis sets sequentially, before any MVP. Owner's specific threads: the dead-head \"coherence\" pruning equation applied to head pruning AND to generating coupled-oscillator maps, imported into a spiking-neural-network architecture; a neuron-as-transistor-byte model (each neuron = a byte; fires by how many/which bits are set, in what order; bits map to upstream neurons' output bits; broadcast/subscribe; one bit out per tick); KV-cache compression + efficient streaming papers folded in; recurrent looped transformers (depth recurrence); candidate model line \"qwen3.8 50b\" (exact id unknown — resolve it).\n\nYou are one seat of a three-seat hypothesis panel. Your angle: {text}\n\nYou are handed the critiqued digest of the whole research trove (every read + critique). Propose 3-5 hypothesis CHAINS (each 3-6 hypotheses building on one another, autoresearch style: measured claim, falsifier, deciding experiment). Constraints: ~all experiments run on the 4-core ARM box or the 8 GB box; Camber GPU is 3 hours/month TOTAL — name where a single 10-30 minute burst would be decisive, nowhere else; no MVP, research only; maximize KNOWLEDGE per token — every hypothesis states what we learn if it FAILS. Include at least one chain touching the owner's spiking/oscillator/byte-neuron thread frankly (a kill-test is fine). Name coalescence points where chains merge into a second-order hypothesis set. Give 3-6 frank critiques of the owner's plan.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "angle": {
+            "type": "string"
+          },
+          "chains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "chain_title": {
+                  "type": "string"
+                },
+                "why_this_first": {
+                  "type": "string"
+                },
+                "hypotheses": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "claim": {
+                        "type": "string"
+                      },
+                      "falsifier": {
+                        "type": "string"
+                      },
+                      "experiment": {
+                        "type": "string"
+                      },
+                      "hardware": {
+                        "type": "string",
+                        "description": "this box CPU / 8GB box / Camber XS minutes"
+                      },
+                      "est_cost": {
+                        "type": "string"
+                      },
+                      "builds_on": {
+                        "type": "string"
+                      },
+                      "knowledge_if_fails": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "claim",
+                      "falsifier",
+                      "experiment",
+                      "hardware",
+                      "est_cost",
+                      "knowledge_if_fails"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "chain_title",
+                "why_this_first",
+                "hypotheses"
+              ]
+            }
+          },
+          "coalescence_points": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "where chains merge into a second-order hypothesis set before any MVP"
+          },
+          "critique_of_owner_plan": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "angle",
+          "chains",
+          "coalescence_points",
+          "critique_of_owner_plan"
+        ]
+      },
+      "model_hint": "opus"
+    },
+    {
+      "label": "judge",
+      "role": "global",
+      "effort_hint": "high",
+      "prompt": "You are a research reader for the \"local-maxxing\" town of an AI research graph. READ-ONLY: never modify any repo, never install packages, never run training, never rent GPUs, never call paid APIs. You may run small read-only shell commands (ls, cat, grep, wc, python3 -c for JSON inspection) and use WebFetch/WebSearch (load via ToolSearch \"select:WebFetch,WebSearch\"). Quote sources with URL/path + date. Mark every number as MEASURED (from a file/page you read) or ESTIMATE. Never invent results.\nContext the owner gave (verbatim-ish): the town's aim is to maximize the usefulness of ABSOLUTELY TINY models across all layers of the system; everything must run on CPU + ordinary RAM (this box: 4-core ARM arm64-N1 arm-cloud, 23 GB RAM, ~7 GB free, no GPU; a second headless box: 8 GB unified RAM, old Intel HD iGPU; Camber Cloud GPU: ONE extra-small 24 GB VRAM instance, hard budget 3 GPU-HOURS PER MONTH). Three visions: (1) there is always a more efficient way to infer on lighter hardware; (2) there is always a smarter way to infer that scores higher on benchmarks over time; (3) two or more tiny models cooperating are exponentially smarter than the sum. Town moral: not tokens saved, but KNOWLEDGE and WISDOM extracted per token spent, failures included. The owner wants many hypotheses chased in parallel, coalesced into further hypothesis sets sequentially, before any MVP. Owner's specific threads: the dead-head \"coherence\" pruning equation applied to head pruning AND to generating coupled-oscillator maps, imported into a spiking-neural-network architecture; a neuron-as-transistor-byte model (each neuron = a byte; fires by how many/which bits are set, in what order; bits map to upstream neurons' output bits; broadcast/subscribe; one bit out per tick); KV-cache compression + efficient streaming papers folded in; recurrent looped transformers (depth recurrence); candidate model line \"qwen3.8 50b\" (exact id unknown — resolve it).\n\nYou are the JUDGE + COMPLETENESS CRITIC, handed the three panel seats' chains and the critiqued digest. Dedup and merge overlapping chains; rank the top 8-12 by KNOWLEDGE-PER-TOKEN (cheap, decisive, informative-when-failing first); keep every falsifier. Produce: round-0 baseline measurements for this box; the ONLY planned uses of Camber's 3 GPU-hours/month (minutes, priority order); the coalescence plan; merged frank critiques of the owner's plan; what is still missing from the survey.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "ranked_chains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rank": {
+                  "type": "number"
+                },
+                "chain_title": {
+                  "type": "string"
+                },
+                "vision": {
+                  "type": "string"
+                },
+                "score_knowledge_per_token": {
+                  "type": "number"
+                },
+                "first_hypothesis": {
+                  "type": "string"
+                },
+                "first_experiment": {
+                  "type": "string"
+                },
+                "hardware": {
+                  "type": "string"
+                },
+                "est_cost": {
+                  "type": "string"
+                },
+                "why": {
+                  "type": "string"
+                },
+                "full_chain": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "rank",
+                "chain_title",
+                "vision",
+                "score_knowledge_per_token",
+                "first_hypothesis",
+                "first_experiment",
+                "hardware",
+                "est_cost",
+                "why",
+                "full_chain"
+              ]
+            }
+          },
+          "duplicates_merged": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coalescence_plan": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "camber_burst_plan": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "the only uses of the 3 GPU-hours/month, in priority order, with minutes"
+          },
+          "round0_baseline": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "the measurements to take on this box BEFORE any chain runs"
+          },
+          "critiques_of_owner_plan": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "what_is_missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ranked_chains",
+          "duplicates_merged",
+          "coalescence_plan",
+          "camber_burst_plan",
+          "round0_baseline",
+          "critiques_of_owner_plan",
+          "what_is_missing"
+        ]
+      },
+      "model_hint": "opus"
+    }
+  ],
+  "_from_run": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/c6a6718c-28e1-4575-b753-b22076d47497/subagents/workflows/wf_7df0a578-8fb"
+}
