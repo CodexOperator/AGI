@@ -1554,3 +1554,106 @@ def test_delete_old_admits_a_contained_loop(tmp_path: Path):
     kept = _git(r, "ls-remote", "origin",
                 "refs/heads/season2/main").stdout.strip()
     assert kept, "the season trunk main must never be a delete target"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-delete-old-presence-pass-containment-fail-is-a-named-regression
+# (mur-52's original shape, reproduced live on an un-harvested loop branch).
+# The loop fixtures above exercise a kind the PRESENCE gate never reaches. The
+# harder, independent shape is PRESENCE-PASS + CONTAINMENT-FAIL: the job's
+# derived successor genuinely EXISTS on origin, so the presence gate admits the
+# job — yet the old tip carries a stray commit that successor does not contain.
+# Presence alone must never certify deletion; containment is the gate that
+# refuses, by name, and only a branch whose content IS contained is deleted.
+# --------------------------------------------------------------------------
+
+
+def _presence_pass_repo(tmp_path: Path, contained: bool) -> Path:
+    """A bare-origin fixture where a season-first POST is a `new is None`
+    direct-delete job whose v3 successor `core/season2/main` IS present on
+    origin (so the PRESENCE gate passes it). `contained=True` leaves the post
+    tip an ancestor of `core/season2/main`; `contained=False` (mur-52's shape)
+    moves the post tip onto a stray commit the successor does NOT contain, so
+    presence looks fine while containment FAILS."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite]\n---\n")
+    for town, _ts in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/vision/{town}.md",
+               f"---\nid: vision:{town}\ntype: vision\ntitle: {town}\n---\n")
+    _write(r, ".agi/nodes/.geometry/posts.md",
+           "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
+           "  - name: web-app-suite\n---\n")
+    for town, season in _FALLBACK_TOWNS:
+        _write(r, f".agi/nodes/town/{town}.md",
+               f"---\nid: town:{town}\ntype: town\nvisions: "
+               f"[vision:{town}]\ncouncil: {town}\nseason: {season}\n---\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    _git(r, "branch", "season2/main")
+    _git(r, "push", "-q", "origin", "season2/main:refs/heads/season2/main")
+    # the post's v3 successor IS on origin: PRESENCE PASSES.
+    _git(r, "branch", "core/season2/main")
+    _git(r, "push", "-q", "origin",
+         "core/season2/main:refs/heads/core/season2/main")
+    _git(r, "checkout", "-q", "-b", "season2/posts/sanctuary-director")
+    if not contained:
+        # a stray commit the successor does not contain: presence is fine,
+        # containment FAILS — mur-52's exact shape.
+        _write(r, "stray.txt", "unmerged post work\n")
+        _git(r, "add", "-A")
+        _git(r, "commit", "-qm", "stray post work")
+    _git(r, "push", "-q", "origin",
+         "season2/posts/sanctuary-director:refs/heads/"
+         "season2/posts/sanctuary-director")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def test_delete_old_refuses_a_post_whose_content_is_not_contained(
+        tmp_path: Path):
+    """PRESENCE-PASS + CONTAINMENT-FAIL, NAMED (mur-52): the direct-delete
+    post's v3 successor `core/season2/main` IS present on origin — so the
+    presence gate ADMITS the job — yet the post tip carries a stray commit the
+    successor does not. Containment must REFUSE it by name and delete nothing;
+    the separation assertion below proves presence was NEVER the gate that
+    refused (else this would be the already-covered absent-successor case)."""
+    r = _presence_pass_repo(tmp_path, contained=False)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode != 0, res.stdout + res.stderr
+    # SEPARATION: the presence gate did NOT fire (the successor is present)...
+    assert "v3 successor is absent" not in res.stderr, res.stderr
+    # ...containment is the gate that refused, by name.
+    assert "content is NOT contained" in res.stderr, res.stderr
+    assert "season2/posts/sanctuary-director" in res.stderr, res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert got, "a diverged post branch must survive --delete-old"
+
+
+def test_delete_old_admits_a_contained_post_whose_successor_is_present(
+        tmp_path: Path):
+    """POSITIVE CONTROL for the regression above: the SAME presence-PASS
+    fixture, but the post tip IS an ancestor of the present
+    `core/season2/main`, so containment PASSES and the branch is deleted
+    normally — the named regression is not accidentally over-broad."""
+    r = _presence_pass_repo(tmp_path, contained=True)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSES" not in res.stderr, res.stdout + res.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert not gone, gone
