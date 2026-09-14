@@ -1,3 +1,5 @@
+🔴 OWNER 2026-09-14 15:5xZ, verbatim: "They are refusing to spawn parents and fixing everything themselves and butchering it." THE RULE, no exceptions: a director NEVER writes engine code by hand. Kids write code. A director MINTS the g15 node (write.py create hypothesis … --parent goal:g15 --set testable_claim=…), DISPATCHES one pi parent per node (`dispatch.py . <ITER> --target hypothesis:<id> --level small --tier parent --harness pi --branch`), REVIEWS the harvest (workflow.py run merge-up-review --harness pi), MERGES up, and reports numbers. If dispatch.py refuses, dm the Prime the exact refusal line — never build around it. The only hand edits a director makes: its own card, node fields through write.py, and git merges.
+
 ## 🔴 PRIME FALLBACK ON COPILOT — owner order 2026-09-14 15:4xZ (verbatim in doc:l4-owner-decisions tail)
 If the Claude subscription runs out, the Prime pane (`belam-S1-L4-<N>`, tmux session `agi-rc`) stays UP but answers nothing. The thought-master brings the Prime back on the Copilot CLI in two commands, from MAIN (`/home/ubuntu/work/agi`):
 ```bash
