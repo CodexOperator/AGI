@@ -1,0 +1,20 @@
+---
+id: hypothesis:l4-non-prime-genless-remaining-five-identity-records-latch-readers-sensei-handoff
+mint_id: 7064774d3e9d4f35af331dc88d5d70cf
+type: hypothesis
+parents:
+  - goal:g15.25
+next_edges: []
+edited_by: sensei-director
+scaffold_hash: 77e319b6186a5b04
+season: 2
+testable_claim: "goal:g15.25 SM.24b (director-minted from SM.24's own measured deferrals, per SM ruling 21:42Z): the hypothesis:l4-non-prime-posts-are-generation-less-on-every-surface-seatings-key-on-session-id-and-the-label-is-the-post-name-alone claim's remaining FIVE clauses -- (1) IDENTITY, (2) RECORDS, (3) LATCH, (7) READERS, (8) Sensei-template handoff -- clauses (4) WINDOW, (5) LABEL and (6) ROWS are ALREADY BUILT and merged (SM.24, verdicts inconclusive_lean_proved:55/:70). MEASURED by SM.24's own kids: clause (1) touches _ack_path/_rotate_ack_file/_read_ack/cmd_ack, a 370-line function, plus every rotation reader and the F19 predecessor-answer path; clause (2) touches ~280 gen_before/gen_after refs across test_rotate.py, test_rotate_handover.py, test_rotate_recover.py, test_rotate_startup.py -- a multi-file test migration, not a small edit; SM.24's kid2 already extended send.py (send._seam_main_committed) with a non-prime freshness branch that clause (1)'s ack-identity work MUST coordinate with, not duplicate or re-derive. CLAIM: (1) IDENTITY: a non-prime seating is keyed by session_id -- the ack file becomes seats/<seat>.ack.<session_id8>.json and rotate.py ack --post <p> --session <id> continue|diff (--gen refused BY NAME on a non-prime post); the predecessor-answered ack (F19) writes the successor session id it spawned; reuse the existing send.py non-prime branch (SM.24 kid2) rather than re-deriving it. (2) RECORDS: rotation/seating records for non-prime posts carry seated_at + session_id + pid + window and NO gen_before/gen_after; the announce dm line reads [rotation-alert] <post> re-seated <ts> session <id8> -- no 'generation N -> M'; the prime chain stays byte-identical. (3) LATCH: the hook once-per-seating latch keys on session_id (rotation_alert.py:747 signature becomes (root, seat, session_id)); stale-latch release unchanged. (7) READERS: status/meter/whois print no gen for non-prime; rotate.py status --post shows session_id8 + seated_at instead. (8) SENSEI HANDOFF: ship the list of {gen} template placeholders found in cards/briefs/first_turn templates so master-sensei's own template pass (already landed once for the Prime template on season2/sensei/genless-templates@8bb2fff6d) can drop the rest in the same merge-up -- CODE-SIDE LISTING ONLY here, never edit templates/prose directly, that is the Sensei's lane. FALSIFIERS: any non-prime surface still printing gen after this lands; --gen accepted on a non-prime ack; a latch keyed on gen; the prime chain changed in any byte; send.py's non-prime branch duplicated instead of reused. TESTS (test_rotate.py, test_after_join_service.py, test_rotation_alert*.py, test_send.py; migrating an existing gen-asserting test is not 'new'): fixture non-prime rotation ack file by session id, record without gen keys, dm line shape, latch path by session id, status/whois without gen; --gen on a non-prime ack refuses; prime fixture unchanged. FILE SCOPE: rotate.py (ack/record/announce/status/whois), rotation_alert.py (latch), send.py (coordinate only, do not duplicate kid2's branch), the named test files. CEILING: <=300 lines net across 4-6 kids, <=20 tests -- clause (2) RECORDS is KNOWN LARGE (280 refs measured); re-brief sensei-director BEFORE cutting that kid with a size estimate, not after (SM's closed loophole: re-brief on the kid's PLAN, before dispatch). Order: after SM.23b, before SM.25."
+title: SM.24b -- the five clauses SM.24 deferred (identity/records/latch/readers/sensei-handoff), measured and re-briefed proactively on the known-large RECORDS clause
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-non-prime-genless-remaining-five-identity-records-latch-readers-sensei-handoff
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
