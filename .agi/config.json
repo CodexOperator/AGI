@@ -78,16 +78,19 @@
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
-      "bin": "/home/ubuntu/.npm-global/bin/copilot",
       "models": {
         "kid": "auto",
         "parent": "auto",
         "director": "auto",
         "prime_director": "auto"
       },
-      "allowed_extra": [
-        "auto"
-      ]
+      "effort": {
+        "kid": "medium",
+        "parent": "high",
+        "director": "max",
+        "prime_director": "max"
+      },
+      "output_format": "json"
     }
   },
   "spawn": {
