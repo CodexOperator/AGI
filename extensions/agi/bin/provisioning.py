@@ -349,6 +349,10 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     no headroom to guard, and an absent reading is not a refusal. Only keys
     THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
     key, named `agi`, and any hand-made key are never refused here.
+
+    A key whose **cap** is below the floor is SKIPPED with one stderr line,
+    not refused (hypothesis:(g)): a cap below the floor can never pass it, so
+    refusing on its remaining would block every dispatch for the key's TTL.
     """
     # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
     # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
@@ -389,6 +393,19 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
         used = rec.get("usage")
         if limit is None or used is None:
             continue  # uncapped or unreadable → fail-open, no headroom to guard
+        # hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-
+        # dispatched-spawn conjunct (g): a key whose CAP is below the floor can
+        # never pass it — refusing on its REMAINING blocks every dispatch for
+        # the key's whole TTL. Name it and skip; a cap at/above the floor whose
+        # remaining is below it still refuses exactly as before.
+        if float(limit) < floor:
+            print(
+                f"sub-floor minted key {name!r} cap ${float(limit):.2f} is "
+                f"below the floor ${floor:.2f} "
+                f"(provisioning.min_key_remaining_usd) — skipped; a key "
+                f"capped below the floor can never pass it",
+                file=sys.stderr)
+            continue
         remaining = float(limit) - float(used)
         if remaining < floor:
             return False, _below_floor_message(
@@ -592,7 +609,11 @@ def key_name(iter_n: int | str, agent_id: str, tier: str = "kid") -> str:
 # via `find_project_root`, read the real management key from the envfile and
 # mint for real -- blocking every dispatched cut until the key's TTL expired
 # (`outstanding minted key ... remaining $0.25 is below the configured floor
-# $1.00`). The module's REAL seam functions are captured here so the guard can
+# $1.00`). [Since hypothesis:(g) that same key is now SKIPPED by
+# `check_key_floor` as a sub-floor cap rather than refusing, and a rooted
+# `mint()` no longer defaults to the $0.25 cap -- but the guard stays: a test
+# must still not mint, and this is the incident that measured why.]
+# The module's REAL seam functions are captured here so the guard can
 # tell a mocked seam from a live one by identity; monkeypatch / plain
 # assignment changes the module attribute, so `is` against the originals is
 # the honest test.
@@ -631,8 +652,29 @@ def _mutation_guard(op: str) -> None:
             f"provisioning HTTP call can ever fire from a test")
 
 
+def _configured_limit(root: Path | str) -> float:
+    """Resolve the mint cap from the project's config, DEFAULT on any failure.
+
+    hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-
+    dispatched-spawn conjunct (g): a caller that names a `root` gets the same
+    `spawn.credential.per_spawn_limit_usd` a dispatched spawn gets, so a
+    hand/from-inside mint cannot default to a cap ($0.25) below the dispatch
+    floor ($1.00) and block every spawn for its TTL. Only the rootless call
+    keeps the bare library default. Never raises: an unreadable config is not
+    a reason to refuse a mint, only to fall back to the documented default.
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import locations  # noqa: E402
+        graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+        cfg = locations.load_config(graph)
+        return settings(cfg)[0]
+    except Exception:  # noqa: BLE001
+        return DEFAULT_LIMIT_USD
+
+
 def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
-         limit_usd: float = DEFAULT_LIMIT_USD,
+         limit_usd: float | None = None,
          ttl_minutes: int = DEFAULT_TTL_MINUTES,
          workspace_id: str | None = None,
          root: Path | str | None = None) -> MintedKey | None:
@@ -642,12 +684,20 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     absence is a supported state. A *failed* call with a key present does
     raise: that is a real fault and silently falling back to the shared key
     would hide it.
+
+    `limit_usd` unset (None) resolves from the project config when a `root` is
+    given — the same `settings(cfg)[0]` a dispatched spawn uses — and only a
+    rootless call keeps `DEFAULT_LIMIT_USD` (hypothesis:(g)).
     """
     prov = _read_provisioning_key(root)
     if prov is None:
         return None
 
     _mutation_guard("mint")
+
+    if limit_usd is None:
+        limit_usd = (_configured_limit(root) if root is not None
+                     else DEFAULT_LIMIT_USD)
 
     expires = (datetime.datetime.now(datetime.timezone.utc)
                + datetime.timedelta(minutes=ttl_minutes))
