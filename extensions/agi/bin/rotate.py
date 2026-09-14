@@ -15426,14 +15426,25 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
     stops commit) and `merge` for push line 2 (the only-behind merge commit
     the captive checklist performs); ONE helper, both pushes, never a third
     implementation."""
-    # RUNG 4 rescope (hypothesis:l4-...gate-sits-on-the-merge-up-push, mur-49):
-    # this is a post's OWN rotate-self push of its branch -- NOT the closeout
-    # merge-UP push into MAIN, which is the gated act and lives on
-    # `_make_closeout_seams`'s `_push`. A frozen prime scope must NEVER hold
-    # routine rotate-self housekeeping, so the L4.335 gate that sat here is
-    # removed. A push that fails for its OWN reason (remote rejected, network,
-    # detached HEAD) is still reported as that real refusal, never a HELD
-    # line.
+    # RUNG 4 rescope (hypothesis:l4-...gate-sits-on-the-merge-up-push, mur-49)
+    # removed the L4.335 gate here because a post's OWN rotate-self push of its
+    # branch is routine housekeeping -- NOT the closeout merge-UP push into
+    # MAIN, which is the gated act and lives on `_make_closeout_seams`'s
+    # `_push`. That reasoning is TRUE for every non-prime post and FALSE for
+    # the prime itself, whose own checked-out branch IS a trunk (season2/main)
+    # -- so a frozen prime's own rotate-self would publish season2/main first
+    # (mur-53, relayed by belam XX 21:14Z).
+    #
+    # RUNG 5 (hypothesis:l4-stops-push-gates-on-is-frozen-when-the-resolved-
+    # branch-is-a-trunk): the gate is CONDITIONAL on the resolved branch. When
+    # it is a trunk -- the grammar's own remote-visible shapes (`master`,
+    # `season<n>/main`, `<town>/main`, `<town>/season<m>/main`, via
+    # `branches.is_remote_visible`) -- a frozen prime scope refuses by name, so
+    # the caller's checklist stops at the step. When the resolved branch is an
+    # ordinary post/loop branch the helper behaves EXACTLY as before: never
+    # held, so RUNG 4's fix is not regressed. Fail-open on a broken veto cell
+    # mirrors the existing closeout seams (`except Exception: pass`); changing
+    # that is a separate, already-flagged residue, not this round's call.
     top = _git_toplevel(root)
     if top is None:
         return "no git repo to push (gitless fixture/root)"
@@ -15446,6 +15457,17 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
         return f"could not resolve the branch: {exc}"
     if not branch or branch == "HEAD":
         return "detached HEAD, nothing to push"
+    if branches.is_remote_visible(branch):
+        try:
+            from seatsig import veto as _veto
+
+            _frozen, _why = _veto.is_frozen(
+                _shared_graph_root(root), "prime")
+            if _frozen:
+                return (f"push: HELD -- {label} push targets a trunk branch "
+                        f"({branch}) while the prime is frozen; {_why}")
+        except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
+            pass
     try:
         push = subprocess.run(["git", "-C", str(top), "push", "origin",
                                branch], capture_output=True, text=True,
