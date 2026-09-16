@@ -600,7 +600,7 @@ def test_small_path_parent_shape_still_renders_after_guard(tmp_path):
     assert "sibling-1" not in text
 
 
-def test_no_source_comment_cites_an_unresolvable_tier_node_id(tmp_path):
+def test_no_source_comment_cites_an_unresolvable_tier_node_id():
     """Defect 2 — the invented shorthand id must be gone from both comments.
 
     `zoom.py` and `dispatch.py` cited `hypothesis:l4-a-parents-zoom-is-a-`
