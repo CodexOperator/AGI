@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ITEM (6), added 20:4xZ from master-sensei's red on MAIN 130a4475c: test_rotate.py::test_ack_cell_printer_names_only_changed_cells asserts all(len(ln) <= 120) over EVERY stdout line, but two of those lines embed tmp_path ('ack: committed own row write (<path>)' and 'git -C <top> push'), so the test fails whenever the pytest basetemp is long (measured: my run 4 with a 96-char private basetemp -> lengths [177, 101, 169, ...]; MS's gate the same; plain default basetemp passes 3/3 and the whole file 312/312). A test defect, not a rotate.py regression: bound the CELL lines only (the claim's own subject) and assert the push line by equality as it already does. One line, the same kid as item (1).
