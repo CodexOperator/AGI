@@ -665,6 +665,11 @@ def write_node(
         if announce:
             spawn_gate.announce_schema_errors(rules)
 
+    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+    # is-written -- the destination path, computed BEFORE the gate is judged
+    # so the refusal below can tell a genuinely new create from an update.
+    # `node_dir()` is pure: it resolves a path and touches nothing.
+    node_file = node_dir(root, ntype) / f"{slug}.md"
     gate_fm = fm_for_gate if fm_for_gate is not None else (extra_fm or {})
     gate = spawn_gate.check_spawn(
         ntype, plist, rules=rules, type_index=type_index,
@@ -681,6 +686,34 @@ def write_node(
         res.status = REJECTED
         res.reason = gate.reason
         return res
+    # hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+    # is-written -- the gate's UNVERIFIED is deliberate and correct when
+    # something legitimate is being preserved (an existing node whose type
+    # predates any schema, an unresolved parent type, a schema whose
+    # rule_for() finds no variant). It is WRONG for a brand-new CREATE of a
+    # type that has never had a schema: there nothing legitimate is being
+    # preserved, so the write is refused in the SAME REJECTED shape as the
+    # `not gate.ok` branch above -- by name, no file, no directory. Only the
+    # no-active-schema reason qualifies; every other UNVERIFIED cause, and
+    # every pre-existing file, falls through unchanged. `rules.schemas`
+    # non-empty is the second discriminator: a project with NO active schema
+    # loaded at all (a missing/empty schemas dir) cannot tell an unknown type
+    # from an unconfigured one, and check_spawn's fail-open instinct applies
+    # there exactly as it does to an unresolved parent type.
+    if (
+        gate.status == spawn_gate.UNVERIFIED
+        and gate.reason == f"no active schema for type '{ntype}'"
+        and rules.schemas
+        and not node_file.exists()
+    ):
+        res.status = REJECTED
+        res.reason = (
+            f"no active schema for type '{ntype}': a new {ntype} node "
+            f"cannot be created because context/schemas/[{ntype}].md does "
+            "not exist. Declare the type first (bracketed filename = "
+            "active), or update an existing node of it instead."
+        )
+        return res
 
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
     if body is None:
@@ -690,7 +723,6 @@ def write_node(
         # repairs the broken `---` block up to that boundary, never past it.
         scaffold_body = BODY_BEGIN + scaffold_body
     scaffold_body += BODY_PROMPTS.get(ntype, "") if body is None else body
-    node_file = node_dir(root, ntype) / f"{slug}.md"
     res.path = node_file
 
     if node_file.exists():
