@@ -853,3 +853,22 @@ APPLIED the same minute: config:posts rows sanctuary-master + master-sensei → 
 > Also (thought-master pane, ~07:4xZ): "Are workflows being registered and run via workflow.py?" — "It's never the model always the harness"
 
 APPLIED (thought-master, owner GO in its pane): every ingestion = doc:<key> (link_ref -> digest) + idea:<key> under goal:g14, hypotheses hang from the idea; backfill wf_92672d0f; the thought-master mints every hypothesis of its town, the director dispatches. Prime gen 21: the model stockpile is minted as idea:lm-model-stockpile under goal:g14 now — its goal number waits for the town-goal-numbering round (owner 06:02Z: a town hosts its own g1, g2 …), never a global g14.5; hardware numbers only, no addresses in any node or dm; the workflow-author route gap is a g15 round (mint + dispatch by the Sanctuary line).
+
+### OWNER 2026-09-16 07:5xZ — the thought-master thread was a private test of master autonomy (to the Prime belam gen 21, verbatim)
+
+> Oh no I just wanted to share some info with him that is more private as a test of how disparate masters can accomplish things with their directors without needing to have your involvement for context preservation. When they get done I will share what we were working on. Continue as you were, let everything keep building itself.
+
+RULING taken: a master keeps an owner thread in its own town's nodes (doc/idea/hypothesis under the town goal) and relays to the Prime ONLY what changes a rule or needs a Prime decision — the Prime is not the context-preservation hub; "Pause after we have to talk" was not an order to the Prime. Standing: everything keeps building itself.
+
+### OWNER 2026-09-16 ~07:3xZ — parents and kids ceiling (thought-master pane, relayed by the master-sensei 07:41Z, verbatim)
+
+> Also that standing charter is way stale inform sensei. You can have up to 5 pi parents. And each up to 10 kids depending on total limit available
+
+APPLIED by the master-sensei: `.agi/config.json` spawn.parent_max_kids 5 -> 10 (lands when the suite lock clears; the test pin is a fixture); the TM self-applies its charter's cadence text and relays to director-thought; `dispatch.py --level` is zoom, not kid count; parents-live has no knob — spawn max_live 25 stays the tree-wide bound; the $5.00 floor and "check the KEY not the account" stand.
+
+### OWNER 2026-09-16 ~08:1x-08:2xZ — local GPU as an endpoint (thought-master pane, relayed by the thought-master 07:46Z dm ts, verbatim)
+
+> (1) "Also with the bigger gpu we can test slightly or a good bit larger models. Is there a way you can integrate the use of the gpu as an easy-to-use api inference request same as the endpoints we get for cloud providers? Just use your director to execute the upgrade it's square in your town's territory."
+> (2) "Wait it needs a specific one and it's not documented in the docs in <keeper-dir>? And do we need per spawn key, or locally a single key makes sense more? What parallelizes better?"
+
+APPLIED by the thought-master (its town): hypothesis:gpu-local-town-openai-endpoint under goal:g14 (llama-server on the gpu box loopback, ssh tunnel over the documented port, one static api key, parallelism measured as -np slots at 1/2/4 kid contexts; $4 cap, <=2 rounds); order 4 to director-thought concurrently with C2. Engine-tree touch: ONE additive `harnesses.pi-local` row in `.agi/config.json` (kid B) — reviewed by name at its merge-up like any other; the pi provider row is box-local. No secrets in the graph.
