@@ -1433,8 +1433,12 @@ def wake_audit(root: Path, seat: str, gen: int | None,
                                      else None)
     window_counts["_transcript"] = str(log_path)
     window_counts["_calls"] = len(window_calls)
-    window_counts["_window_start"] = 1
-    window_counts["_window_end"] = window_end
+    # the bounds travel in the ONE shared shape (named keys, null where this
+    # side has no such measure), same as the rotate-out side.
+    window_counts["_window_start"] = audit_window_point(call_index=1)
+    window_counts["_window_end"] = audit_window_point(call_index=window_end)
+    # the floor comes from the config:rotations CELL this verb already read.
+    window_counts["_floor"] = _audit_floors(fm)["wake"]
     return 0, window_calls, window_counts
 
 
@@ -1480,23 +1484,69 @@ def redact_text(s: str) -> str:
 # print ONE line naming the finding only when the window is over the floor.
 # The dm to the Prime stays a Sensei act -- the verb never sends one.
 
-# The owner's floors (doc:l4-owner-decisions, owner 2026-09-12 03:2xZ,
-# verbatim: "floor of 1 call when rotating out and 0 calls on wake"). No
-# ladder lookup for these exists in the engine, so they are constants here --
-# ONE dict, ONE reader (`AUDIT_FLOOR[side]`), never a second copy.
-AUDIT_FLOOR = {"wake": 0, "out": 1}
+# The owner's floors live in config:rotations as the frontmatter CELLS
+# `floor_wake` / `floor_out` (doc:l4-owner-decisions, owner 2026-09-12 03:2xZ,
+# verbatim: "floor of 1 call when rotating out and 0 calls on wake").
+# `_audit_floors` reads those cells; this dict is the ONLY fallback, and it is
+# reached only when `config:rotations` exists but a cell is missing or
+# unreadable. It carries the owner's numbers explicitly rather than inventing
+# 0/1 from nowhere, and it is NOT a second live copy: when the cell is present
+# it always wins (hypothesis:l4-a-started-record-keeps-its-audit-and-the-verb-
+# commits-what-it-wrote, part (b)).
+FALLBACK_AUDIT_FLOOR = {"wake": 0, "out": 1}
 
-AUDIT_SIDES = ("wake", "out")
+
+def _audit_floors(fm: str) -> dict:
+    """`{"wake": N, "out": M}` from config:rotations' frontmatter cells.
+
+    `_read_rotations` already hands both audit verbs the frontmatter text, so
+    the floors are read where they are declared and never carried as a second
+    live copy in this file. A missing/unparseable cell falls back to the
+    owner's number recorded in `FALLBACK_AUDIT_FLOOR`. Never raises.
+    """
+    out = dict(FALLBACK_AUDIT_FLOOR)
+    for side, cell in (("wake", "floor_wake"), ("out", "floor_out")):
+        m = re.search(rf"^{cell}:\s*(-?\d+)\s*$", fm or "", re.M)
+        if m:
+            out[side] = int(m.group(1))
+    return out
+
+
+class AuditRefusal(Exception):
+    """The audit verb refuses BY NAME before the rewrite: nothing was
+    written, the caller exits non-zero, and the message is greppable."""
+
+
+#: The exact string the verb prints when the resolved record still reads
+#: `result: started`. The wake audit lands ~20 s after the join and the
+#: record turns success ~60 s later, so an audit of the STARTED bytes would
+#: be dropped by the outcome rewrite; the verb refuses instead of sleeping.
+STARTED_REFUSAL = "record still STARTED; audit after the outcome"
+
+
+def audit_window_point(call_index=None, line=None, ts=None) -> dict:
+    """ONE shape for an audit window's bounds, both sides.
+
+    Before this, `window_start`/`window_end` carried DIFFERENT units under the
+    same key names (wake: 1-based call indexes; out: a transcript line index
+    and an ISO timestamp), so a reader could not tell which it held. Every
+    bound is now this dict with all three named keys present, `null` where
+    that side has no such measure: `call_index` (1-based index over the calls
+    scanned), `line` (0-based transcript line offset), `ts` (ISO-8601 UTC)."""
+    return {"call_index": call_index, "line": line, "ts": ts}
 
 
 def audit_payload(side: str, calls: int, counts: dict, transcript: str,
-                  window_start, window_end) -> dict:
+                  window_start, window_end, floor: int | None = None) -> dict:
     """The `audit[side]` payload: the counts the audit measured, the floor it
     is measured against, the excess over that floor, and the identity of the
     window it read (record stamp, transcript, bounds). `calls` is the number
     of tool_use calls INSIDE the audit window -- the same number the printed
-    line reports, never a second count."""
-    floor = AUDIT_FLOOR[side]
+    line reports, never a second count. `floor` is the config:rotations cell
+    the verb resolved; `None` (a direct caller) uses the recorded fallback."""
+    if floor is None:
+        floor = FALLBACK_AUDIT_FLOOR[side]
+    floor = int(floor)
     return {
         "calls": int(calls),
         "a": int(counts.get("a", 0)),
@@ -1536,11 +1586,27 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
     `audit` is assigned LAST, so a fresh record gains the key after its
     existing keys; on a re-run the existing `audit` dict keeps its position
     and only its OWN side is replaced -- a re-run replaces its side and never
-    grows or duplicates the record."""
+    grows or duplicates the record.
+
+    TWO runtime preconditions refuse BY NAME (raise `AuditRefusal`, write
+    nothing) rather than producing a record the outcome rewrite would drop or
+    a diff would misread:
+
+    * `result: started` -- the outcome rewrite is ~60 s out and an audit of
+      the started bytes is dropped by construction; refuse instead of sleep.
+    * the bytes are not rotate.py's canonical form -- a whole-record reflow
+      formats away exactly the bytes a grid diff reads."""
     p = Path(rec_path)
-    rec = json.loads(p.read_text(encoding="utf-8"))
+    raw = p.read_text(encoding="utf-8")
+    rec = json.loads(raw)
     if not isinstance(rec, dict):
         raise ValueError(f"rotation record {p} is not a JSON object")
+    if rec.get("result") == "started":
+        raise AuditRefusal(f"{STARTED_REFUSAL} -- {p.name}")
+    if json.dumps(rec, indent=2) + "\n" != raw:
+        raise AuditRefusal(
+            f"rotation record {p.name} is not in rotate.py's canonical byte "
+            f"form; refusing to reflow it (audit after normalize)")
     audit = rec.get("audit")
     if not isinstance(audit, dict):
         audit = {}
@@ -1549,18 +1615,97 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
     p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
 
+def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
+                         stamp: str | None, line: str) -> str:
+    """Commit the audited record as ITS OWN one-pathspec commit (g17.1: the
+    Sensei commits the audited record by exact path in the same turn).
+
+    ONE `git commit -q -o -m <msg> -- <record>`, never `-A`, never bundled,
+    never a grid commit, never a push. Precedent: the after_join rewrite in
+    rotate.py commits its own path the same way. Best-effort: a SKIPPED line
+    for a gitless root (a tmp fixture), and the two named REFUSALS leave the
+    rewrite uncommitted with a greppable reason. Never raises.
+    """
+    try:
+        graph = rotate._shared_graph_root(Path(root))
+        top = rotate._git_toplevel(graph) or rotate._git_toplevel(Path(root))
+    except Exception:  # noqa: BLE001
+        top = None
+    if top is None:
+        return ("audit_record_commit: SKIPPED \u2014 no git repo; the audit "
+                "rewrite stays uncommitted (gitless fixture/root)")
+    rp = Path(rec_path)
+    if not rp.exists():
+        return "audit_record_commit: SKIPPED \u2014 no rotation record to commit"
+    try:
+        rel = str(rp.resolve().relative_to(top.resolve()))
+    except ValueError:
+        return ("audit_record_commit: SKIPPED \u2014 record lies outside the "
+                "git repo")
+    merge = subprocess.run(
+        ["git", "-C", str(top), "rev-parse", "-q", "--verify", "MERGE_HEAD"],
+        capture_output=True, text=True, timeout=10)
+    if merge.returncode == 0:
+        return (f"audit_record_commit: REFUSED \u2014 merge in progress "
+                f"(MERGE_HEAD present); {rel} left uncommitted")
+    tracked = subprocess.run(
+        ["git", "-C", str(top), "ls-files", "--error-unmatch", "--", rel],
+        capture_output=True, text=True, timeout=10)
+    if tracked.returncode != 0:
+        return (f"audit_record_commit: REFUSED \u2014 {rel} is not tracked by "
+                f"git; nothing committed")
+    msg = f"audit record: {seat} {side} {stamp or '?'} \u2014 {line}"
+    try:
+        cm = subprocess.run(
+            ["git", "-C", str(top), "commit", "-q", "-o", "-m", msg,
+             "--", rel], capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            dirty = subprocess.run(
+                ["git", "-C", str(top), "diff", "--quiet", "--", rel],
+                capture_output=True, text=True, timeout=10)
+            if dirty.returncode == 0:
+                return (f"audit_record_commit: SKIPPED \u2014 record already "
+                        f"clean after the rewrite")
+            return (f"audit_record_commit: REFUSED \u2014 "
+                    f"{(cm.stderr or cm.stdout or '').strip()}; {rel} left "
+                    f"uncommitted")
+        sha = ""
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(top), "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=10)
+            sha = (out.stdout or "").strip()
+        except Exception:  # noqa: BLE001
+            sha = ""
+        return f"audit_record_commit: committed (sha {sha}) \u2014 {rel}"
+    except Exception as exc:  # noqa: BLE001
+        return f"audit_record_commit: FAILED \u2014 {exc}"
+
+
 def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
                  rec_path, stamp: str | None, transcript: str,
-                 window_start, window_end, no_record: bool) -> str:
+                 window_start, window_end, no_record: bool,
+                 floor: int | None = None) -> str:
     """Write the result into the audited record (unless `--no-record`) and
     return the ONE line to print. The write is keyed on the record PATH the
     audit itself resolved -- never a second selector call that could name a
-    different record."""
+    different record. On a real write the audited record is committed by
+    exact path in the same turn; the commit outcome is printed as its own
+    line (`audit_record_commit: ...`).
+
+    Raises `AuditRefusal` (from `write_audit_into_record`) BEFORE the rewrite
+    when the record is still STARTED or is not byte-canonical; the verb's
+    caller turns that into a non-zero exit with the named reason."""
+    if floor is None:
+        floor = FALLBACK_AUDIT_FLOOR[side]
+    line = audit_finding_line(seat, side, stamp, calls, floor)
     payload = audit_payload(side, calls, counts, transcript,
-                            window_start, window_end)
+                            window_start, window_end, floor)
     if rec_path is not None and not no_record:
         write_audit_into_record(rec_path, side, payload)
-    return audit_finding_line(seat, side, stamp, calls, AUDIT_FLOOR[side])
+        print(_commit_audit_record(root, rec_path, seat=seat, side=side,
+                                   stamp=stamp, line=line))
+    return line
 
 
 def cmd_wake_audit(root: Path, args) -> int:
@@ -1601,11 +1746,17 @@ def cmd_wake_audit(root: Path, args) -> int:
         print("  (no assistant tool_use found in the transcript)")
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
-    print(finish_audit(
-        root, args.seat, "wake", counts.get("_calls", len(calls)), counts,
-        counts.get("_record_path"), counts.get("record"),
-        counts.get("_transcript", ""), counts.get("_window_start", 1),
-        counts.get("_window_end"), getattr(args, "no_record", False)))
+    try:
+        print(finish_audit(
+            root, args.seat, "wake", counts.get("_calls", len(calls)), counts,
+            counts.get("_record_path"), counts.get("record"),
+            counts.get("_transcript", ""),
+            counts.get("_window_start") or audit_window_point(call_index=1),
+            counts.get("_window_end"), getattr(args, "no_record", False),
+            floor=counts.get("_floor")))
+    except AuditRefusal as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 3
     return 0
 
 
@@ -1963,6 +2114,7 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
               "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
               "log_path": str(log_path),
+              "floor": _audit_floors(fm)["out"],
               "window_reason": "predecessor window, bounded by record (rotate-out; "
                               "d is the decision, not a cut)"}
     return 0, calls, counts, window
@@ -2000,10 +2152,17 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         print("  (no assistant tool_use after the last real input)")
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
-    print(finish_audit(
-        root, args.seat, "out", len(calls), counts, window["record_path"],
-        window["record"], window["log_path"], window["start_line"],
-        window["recorded_at"] or None, getattr(args, "no_record", False)))
+    try:
+        print(finish_audit(
+            root, args.seat, "out", len(calls), counts, window["record_path"],
+            window["record"], window["log_path"],
+            audit_window_point(line=window["start_line"],
+                               ts=window["start_ts"] or None),
+            audit_window_point(ts=window["recorded_at"] or None),
+            getattr(args, "no_record", False), floor=window.get("floor")))
+    except AuditRefusal as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 3
     return 0
 
 
