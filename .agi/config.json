@@ -64,6 +64,7 @@
       "adapter": "pi",
       "bin": "/home/ubuntu/.npm-global/bin/pi",
       "provider": "local-town",
+      "credential": "none",
       "models": {
         "kid": "Qwen3.5-9B-Q4_K_M",
         "parent": "Qwen3.5-9B-Q4_K_M"
