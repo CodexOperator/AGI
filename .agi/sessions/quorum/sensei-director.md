@@ -99,7 +99,7 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 
 **This session: SM.70 and SM.71 dispatched, both live, neither harvested yet.** Pre-dispatch: merged+pushed origin/season2/main (picked up a rotation-record commit, no conflicts), re-checked credits ($25 total / $0.127 used, ~$24.87 headroom) and spawn_budget (room to spare) before each dispatch, per standing rule.
 - **SM.70** — pid `2982114`, branch `season2/loops/hypothesis-l4-pi-review-stages-r-a00-46c5a150`, key `agi-iterSM.70-parent-a00-46c5a150` cap $1.5. Target = node B (`hypothesis:l4-pi-review-stages-return-structured-reports-persisted-whole-with-timeouts-named-and-a-private-basetemp`). **Verified before dispatch, byte-level: item 6 (check_key_floor scoping) is NOT landed in code**, despite commit `e175eede1`'s message ("a spawn pre-flight consults only its own credential") reading as if it were done — `git show --stat` on that commit shows it touched ONLY the node file (+2 lines, the Agent Notes item 5/6 text), zero diff to `provisioning.py` or its test, and `.agi/config.json` still reads `min_key_remaining_usd: 0.25` (not restored to 1.0 as item 6's own CLAIM requires "in the same commit"). Left the "dispatch it FIRST on node B" instruction for the parent to read directly from the node body rather than writing a scope-limiting note — it was already there, authored by belam.
-- **SM.71** — pid `2984193`, branch `season2/loops/hypothesis-l4-the-heal-watch-re--a00-49d3d6db`, key `agi-iterSM.71-parent-a00-49d3d6db` cap $1.5. Target = node C (`hypothesis:l4-the-heal-watch-re-execs-on-engine-commits-because-the-pathspec-is-absolute-and-the-record-names-the-loaded-bytes`). Node text unchanged since predecessor last read it. Already spawned its one kid (`a00-a9e1d364`, pid `3016765`) within minutes.
+- **SM.71 — LANDED this session.** pid `2984193` exited ~22:14Z, 1 kid (`experiment:a00-a9e1d364-960fea`), verdict `inconclusive_lean_proved:80`, 3/3 probes pass, 39/45 production lines, 4 new tests. Verified against the real diff (not the completion dm) before merging: `_head_touches_engine` now uses an absolute `bin_dir` pathspec, `_derive_pred_pids` falls back to `s12_self_reap.belam_reap.chain[].pid`, `after_join` stamps `code_loaded` beside `code_head` — all three match the node's CLAIM. Merged `--no-ff` at `d9c68b502`. Full neighbourhood suite (rotate+send+hook+cli/dispatch/heal) run fresh: **1687 passed, 4 skipped, 1 xfailed, 0 failed.** Conjunct (d) — the director hand-restart — done: `systemctl --user restart agi-agi-reaper-2f118e6f.service` at `2026-09-16T22:19:19Z`, new pid `3192854`, rc 0. Noted on `goal:g15` and on the long-running triage node `hypothesis:l4-the-no-reap-pred-pids-placeholder-resolves-to-a-named-non-matching-value-never-a-refusal` (the "9ce689aca" node the brief pointed at — that id is a commit sha, not a node id; found it via `git show --stat 9ce689aca`). Reported to SM. **Production proof is still open**: the next rotation's after_join reap-proof must read a named non-empty value, never the placeholder `{pred_pids} empty` refusal — check that at the next rotation, on this branch and again after merge-up, and note the result on the triage node.
 - **id note:** "SM.70" had been attempted twice last generation but both refusals fired pre-mint (no process, branch or provisioning key was ever created under it) — confirmed via `git log --all`, `git branch -a` and the provisioning ledger all coming up empty for that id — so it was reused rather than skipped. Next free id on this seat's own ledger is now **SM.72**.
 - Both reported to `sanctuary-master` in one dm (delivered, coalesced — her pane was busy).
 - A background wait (`run_in_background`, until-loop on both pids) was armed this session to catch completion; see "Where it stops" below for a cold reader's fallback.
@@ -110,9 +110,9 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 **meter:** ~0.07 of the window at last check inside this session — nowhere near the 0.47 line.
 
 ### Queue for the successor (or this same session, resuming after the wait)
-1. **Harvest SM.70 and SM.71 once each parent process exits.** Confirm with `ps -p 2982114` / `ps -p 2984193` if picking this up cold (don't assume — a live background wait was armed this session but a cold successor has no memory of it). Per §1 HARVEST: `git fetch`, `MB=$(git merge-base HEAD <branch>)`, `git diff --stat $MB <branch>`, grep `THOUGHT:BEGIN` ≤1 per new node, read the kid nodes, `git merge --no-ff`, run the round's tests WITH neighbours (both rounds touch `heal.py`/`rotate.py`/`provisioning.py`/`workflow.py` — pull in the rotate, send AND cli/dispatch/heal neighbourhoods), note the goal, render GOALS.md, push. **SM.70's harvest must explicitly verify `min_key_remaining_usd` is back to 1.0 in the landing commit** — its own CLAIM requires this "in the same commit"; do not let it land silently still at 0.25.
-2. **SM.71's item (d) needs a director hand-restart after landing**: `systemctl --user restart agi-agi-reaper-2f118e6f.service` (the running watch cannot detect a fix to its own detector — self-locking), then cite the NEXT rotation record's reap-proof (rc 0) in the experiment node. This is verification, not code — stays in the director's own scope.
-3. Report each harvest to SM by slug; ACCEPT/DEMOTE is hers to give.
+1. **SM.71 is DONE** (see above — landed, tested, restarted, reported). **Harvest SM.70 once its parent process exits.** Confirm with `ps -p 2982114` if picking this up cold (a live background wait was armed this session but a cold successor has no memory of it). Per §1 HARVEST: `git fetch`, `MB=$(git merge-base HEAD <branch>)`, `git diff --stat $MB <branch>`, grep `THOUGHT:BEGIN` ≤1 per new node, read the kid nodes, `git merge --no-ff`, run the round's tests WITH neighbours (touches `provisioning.py`/`workflow.py` — pull in the rotate, send and cli/dispatch/heal neighbourhoods, plus anything provisioning-specific), note the goal, render GOALS.md, push. **SM.70's harvest must explicitly verify `min_key_remaining_usd` is back to 1.0 in the landing commit** — its own CLAIM requires this "in the same commit"; do not let it land silently still at 0.25.
+2. At the NEXT rotation (whoever runs it), check the after_join reap-proof line and note the result — proved or still failing — on `hypothesis:l4-the-no-reap-pred-pids-placeholder-resolves-to-a-named-non-matching-value-never-a-refusal`. This is the live falsifier for SM.71's conjunct (d); do not skip it.
+3. Report SM.70's harvest to SM by slug; ACCEPT/DEMOTE is hers to give.
 4. Then re-check whether belam granted the merge-up window. If yes: run the actual MERGE-UP sequence (§1). If not: keep banking it, move to the pre-existing backlog untouched across the last two generations: the 20/22/15/17 original queue (`l4-the-harvest-stamps-the-directors-card...`, `l4-dispatch-refuses-a-new-round-when-the-callers-meter...`, `l4-a-launch-model-effort-settings-override...`, `l4-the-heal-loop-carries-a-disk-guard...`) → 4 Prime resume-seating nodes (`l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`) → `hypothesis:l4-author-composes-repeat-then-global-stages` (banked, check it does not already exist first).
 5. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.72.**
 
@@ -120,28 +120,31 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 `````
 ````
 ```
+SM.71 LANDED this session (merged d9c68b502, tested green, reaper service
+hand-restarted, reported to SM) -- see above, nothing left to do for it
+except check the next rotation's reap-proof (item 2 in the queue above).
+
 SM.70 (pid 2982114, node B / pi-review-stages, branch
-season2/loops/hypothesis-l4-pi-review-stages-r-a00-46c5a150) and SM.71 (pid
-2984193, node C / heal-watch, branch
-season2/loops/hypothesis-l4-the-heal-watch-re--a00-49d3d6db) are BOTH LIVE,
-dispatched this session, NEITHER has landed yet. A background wait
-(run_in_background, until-loop on both pids) is armed in this same session
-and will surface a notification on completion -- if you are still this same
-session, just keep working/wait for it, do not re-dispatch either node and
-do not poll with a bare ps in a loop by hand.
+season2/loops/hypothesis-l4-pi-review-stages-r-a00-46c5a150) is STILL LIVE,
+not yet landed. A background wait (run_in_background, until-loop on just
+this pid now) is armed in this same session and will surface a notification
+on completion -- if you are still this same session, just keep
+working/wait for it, do not re-dispatch, do not poll with a bare ps in a
+loop by hand.
 
 IF YOU ARE A COLD SUCCESSOR instead (this session died or rotated before the
-wait resolved): confirm with `ps -p 2982114` and `ps -p 2984193`. Whichever
-is gone, `spawn_budget.py status` will no longer list it and its branch will
-exist on origin -- harvest it per §1 HARVEST. Whichever is still running,
-just wait on it the same way (run_in_background + until-loop), don't
+wait resolved): confirm with `ps -p 2982114`. If it is gone,
+`spawn_budget.py status` will no longer list it and its branch will exist on
+origin -- harvest it per §1 HARVEST (see the queue above, item 1). If still
+running, wait on it the same way (run_in_background + until-loop), don't
 re-dispatch.
 
-Everything landed before this session (SM.65-69) is unchanged: fully merged
-to this seat's own branch, tested, noted on g15, pushed, ACCEPTed by SM, none
-demoted. Merge-up onto MAIN is still requested, still NOT granted -- checked
-again this session via belam's dm traffic (3 old rotation-alert messages
-only, nothing about the grant).
+Everything landed before this session (SM.65-69, plus SM.71 this session) is
+unchanged: fully merged to this seat's own branch, tested, noted on g15,
+pushed, ACCEPTed by SM (SM.71 not yet reviewed by her, just reported). Merge-up
+onto MAIN is still requested, still NOT granted -- checked again this
+session via belam's dm traffic (3 old rotation-alert messages only, nothing
+about the grant).
 
 Also still true: SM.70's own item 6 (check_key_floor scoping + floor
 restored to 1.0) is NOT yet in code -- verified this session by reading the
