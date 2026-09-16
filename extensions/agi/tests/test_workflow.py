@@ -410,6 +410,42 @@ def test_timeout_is_one_attempt_no_retry(monkeypatch):
     assert sleeps == [], sleeps
 
 
+def test_a_timeout_says_timed_out_and_never_could_not_start(monkeypatch):
+    """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
+    says-timed-out-and-the-done-tests-stay-hermetic item (3), from mur-sm-60:
+    30 min of pi spend, the refuter never ran, and the record said "could not
+    start pi" because `TimeoutExpired` IS a `SubprocessError` and the string
+    it carries buries the whole argv -- prompt and all.
+
+    A timeout is its OWN outcome: the budget the CALLER resolved, named
+    first, and never the could-not-start wording. The view's failure line is
+    the same sentence (one surface, two readers).
+    """
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+
+    def fake_run(cmd, **kw):
+        raise _sp.TimeoutExpired(cmd, 42)
+
+    cfg = {"harnesses": {"pi": {}}}
+    st = _retry_stage()
+    view = _wf.RunView("k", [st], "pi", out=io.StringIO())
+    err = io.StringIO()
+    with mock.patch("subprocess.run", side_effect=fake_run), \
+         mock.patch.object(sys, "stderr", err):
+        rc, value = _run_stage_pi(
+            cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {},
+            view=view, timeout_s=42)
+    assert rc == 2 and value is None, (rc, value)
+    msg = err.getvalue()
+    assert "stage draft:a timed out after 42 s" in msg, msg
+    assert "could not start pi" not in msg, msg
+    detail = view.state["draft:a"].get("detail", "")
+    assert "timed out after 42 s" in detail, detail
+    assert "could not start pi" not in detail, detail
+
+
 def test_transient_5xx_exhausts_at_three_attempts(monkeypatch):
     """520 on every attempt -> rc 3 after exactly 3 calls, all named."""
     import subprocess as _sp
