@@ -1288,6 +1288,108 @@ class TestSessionKeyedWakeAudit:
         assert f"seats/{SEAT}.ack.json" in keyed
 
 
+# ── direct unit tests for the two record readers (hypothesis:l4-record-
+# ── transcript-reads-the-top-level-transcript-path-and-join-wins-over-top-
+# ── level-session-id): the top-level `transcript_path` a FIRST-SEATING
+# ── record carries must resolve, with `handover.join.transcript` still
+# ── winning when present, and `_record_matches_session` must mirror
+# ── `rotate._record_join`'s top-level-then-join-overwrites precedence.
+
+class TestRecordTranscriptDirect:
+    def test_top_level_transcript_path_alone_resolves(self):
+        # the first-seating shape (rotate.py _seating_record): the ONLY
+        # spelling such a record carries.
+        assert sensei._record_transcript(
+            {"transcript_path": "/tmp/seat.jsonl"}) == Path("/tmp/seat.jsonl")
+
+    def test_join_transcript_wins_over_top_level_transcript_path(self):
+        # both spellings present -> the join spelling, exactly as
+        # rotate._record_join lets handover.join.* overwrite the top level.
+        assert sensei._record_transcript({
+            "transcript_path": "/tmp/top.jsonl",
+            "handover": {"join": {"transcript": "/tmp/join.jsonl"}},
+        }) == Path("/tmp/join.jsonl")
+
+    def test_join_transcript_alone_still_resolves(self):
+        assert sensei._record_transcript({
+            "handover": {"join": {"transcript": "/tmp/join.jsonl"}},
+        }) == Path("/tmp/join.jsonl")
+
+    def test_session_log_still_wins_over_top_level_transcript_path(self):
+        # no regression: the pre-existing reads keep their order.
+        assert sensei._record_transcript({
+            "session_log": "/tmp/log.jsonl",
+            "transcript_path": "/tmp/top.jsonl",
+        }) == Path("/tmp/log.jsonl")
+
+    def test_c_readback_log_path_is_jsonl_only(self):
+        assert sensei._record_transcript(
+            {"observations": {"c_readback_log_path": "/tmp/dbg.log"}}) is None
+        assert sensei._record_transcript(
+            {"observations": {"c_readback_log_path": "/tmp/dbg.jsonl"}}) \
+            == Path("/tmp/dbg.jsonl")
+
+    def test_record_with_none_of_the_keys_returns_none(self):
+        assert sensei._record_transcript({}) is None
+        assert sensei._record_transcript({"transcript_path": ""}) is None
+
+
+class TestRecordMatchesSessionDirect:
+    A = "aaaaaaaa-1111-2222-3333-444444444444"
+    B = "bbbbbbbb-1111-2222-3333-444444444444"
+
+    def test_join_session_id_wins_over_top_level_session_id(self):
+        # rotate._record_join's rule: top level first, handover.join wins.
+        rec = {"session_id": self.A,
+               "handover": {"join": {"session_id": self.B}}}
+        assert sensei._record_matches_session(rec, self.B) is True
+        assert sensei._record_matches_session(rec, self.A) is False
+
+    def test_top_level_session_id_alone_still_matches(self):
+        # the first-seating shape; no regression.
+        assert sensei._record_matches_session(
+            {"session_id": self.A}, self.A) is True
+
+    def test_empty_caller_id_matches_nothing(self):
+        assert sensei._record_matches_session({"session_id": self.A}, "") \
+            is False
+
+    def test_record_with_neither_spelling_matches_nothing(self):
+        assert sensei._record_matches_session({}, self.A) is False
+        assert sensei._record_matches_session(
+            {"handover": {"join": {}}}, self.A) is False
+
+    def test_full_id_matches_its_eight_char_prefix_and_not_seven(self):
+        rec = {"session_id": self.A}
+        assert sensei._record_matches_session(rec, self.A[:8]) is True
+        assert sensei._record_matches_session(rec, self.A[:7]) is False
+
+
+def test_wake_audit_reads_a_seating_only_records_top_level_transcript(
+        tmp_path):
+    # wire probe for the changed bytes: a FIRST-SEATING record carries ONLY
+    # the top-level `transcript_path` (no session_log, no handover.join), and
+    # the audit must audit it rather than refuse "names no transcript".
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    tr = graph / "seating.jsonl"
+    tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                            "input": {"command": "whois 1.1.1.1"}}]),
+                  encoding="utf-8")
+    d = graph / "sessions" / "rotations"
+    d.mkdir(parents=True, exist_ok=True)
+    sid = "dddddddd-1111-2222-3333-444444444444"
+    (d / f"{SEAT}.20260911T160000Z.seating.json").write_text(json.dumps({
+        "rotation": "first-seating", "seat": SEAT, "session_id": sid,
+        "transcript_path": str(tr),
+        "recorded_at": "20260911T160000Z",
+    }, indent=2) + "\n", encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+    assert code == 0, counts
+    assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+    assert calls[0]["label"] == "F2"
+    assert calls[0]["source"].endswith(".seating.json")
+
+
 def test_wake_audit_help_exits_zero():
     # `sensei.py wake-audit -h` must exit 0 (argparse -h); the --redact flag
     # is part of that surface.
