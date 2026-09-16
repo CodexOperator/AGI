@@ -33,7 +33,10 @@ def test_rotate_key_gate_refuses_keyed_seat_without_key(tmp_path):
     err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": "deadbeef"})
     assert err is not None
     assert "s1" in err
-    assert "keygen s1" in err
+    # the recovery line is the ONE module constant -- never a hand-spelled
+    # positional `keygen s1` (rejected by send.py's argparse; the old tail
+    # sent the operator into a usage error).
+    assert rotate.KEYGEN_LINE.format(seat="s1") in err, err
 
 
 def test_rotate_key_gate_passes_when_key_present(tmp_path):
@@ -8035,6 +8038,119 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "continue" and ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
+
+
+# --- keying a first seating (hypothesis:l4-the-unkeyed-refusal-quotes-the-
+#     exact-keygen-line-and-a-seating-keys-the-successors-row-so-no-post-
+#     reaches-rotate-unkeyed) -----------------------------------------------
+
+
+def test_keygen_line_is_the_one_refusal_spelling_and_its_tail_parses(
+        tmp_path, monkeypatch):
+    """clause (1): every refusal that sends an operator to key a seat quotes
+    the ONE module constant, and the tail it quotes PARSES under send.py's own
+    argparse (`keygen --post <seat>`), dispatching to `_cli_keygen` with the
+    seat resolved -- never a usage error."""
+    import send as _bin_send
+    line = rotate.KEYGEN_LINE.format(seat="belam")
+    assert line == "python3 extensions/agi/bin/send.py keygen --post belam"
+    # the refusal at the rotate-self gate quotes EXACTLY the constant.
+    err = rotate._rotate_key_gate(tmp_path, "belam", {"pubkey": "deadbeef"})
+    assert err is not None and f"`{line}`" in err, err
+    # the quoted tail IS send.py's argv[1:]: it parses and dispatches.
+    seen = {}
+    monkeypatch.setattr(_bin_send, "_cli_keygen",
+                        lambda root, args: seen.update(
+                            verb=args.verb, seat=args.seat) or 0)
+    assert _bin_send.main(line.split()[2:]) == 0
+    assert seen == {"verb": "keygen", "seat": "belam"}, seen
+
+
+def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
+        tmp_path, monkeypatch, capsys):
+    """clause (2): `cmd_spawn` on an UNKEYED real row mints its FIRST key
+    (0600) through the ONE key writer and writes pubkey/sig_scheme/enc_scheme
+    INTO THE SAME seating row write -- ONE `seating row` commit carries the
+    identity cells AND the key cells."""
+    from agi.bin import send as _bin_send
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    rc = rotate.cmd_spawn(_spawn_seat_args(reg, wins, 7777), root)
+    assert rc == 0
+    # the FIRST key landed: 0600, through send's one writer.
+    key_path = _bin_send._seat_key_path(root, "belam")
+    assert key_path.is_file(), key_path
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    # the pubkey cell is on the row the seating wrote (the local row IS the
+    # committed row) and the key file's scheme is the row's sig_scheme.
+    row = rotate._find_seat(root, "belam")
+    assert row and row.get("pubkey"), row
+    assert row.get("sig_scheme") == json.loads(
+        key_path.read_text(encoding="utf-8"))["scheme"]
+    # EXACTLY ONE commit after the seed: the seating row (identity + key
+    # cells together) -- never a second key commit.
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert len(commits) == 2, commits
+    assert "belam seating row:" in commits[0], commits[0]
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert row["pubkey"] in shown, shown
+    # clause (4): the seating record says it keyed the row.
+    rec = json.loads(next(
+        rotate._rotations_dir(root).glob("belam.*.seating.json")
+    ).read_text(encoding="utf-8"))
+    assert rec["handover"]["keyed_at_seating"] is True, rec["handover"]
+
+
+def test_first_seating_leaves_a_keyed_row_untouched(tmp_path):
+    """clause (2), negative half: a row that ALREADY names a pubkey is left
+    alone by the seating -- no key minted (a re-seat never rotates a key),
+    no pubkey cell overwritten, `keyed_at_seating` false."""
+    from agi.bin import send as _bin_send
+    scheme = _bin_send.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row={
+        "name": "belam", "role": "prime_director", "model": "x",
+        "effort": "max", "settings": "", "pubkey": pub.hex(),
+        "sig_scheme": "ed25519"})
+    key_path = _bin_send._seat_key_path(root, "belam")
+    assert not key_path.exists()
+    got = rotate._first_seating_spawn_writes(
+        root=root, seat="belam", generation=1, session_id="sess-1",
+        window="@w9", pid=4242, role="prime_director")
+    assert got["keyed_at_seating"] is False, got
+    assert not key_path.exists(), "a keyed row must never be re-minted"
+    row = rotate._find_seat(root, "belam")
+    assert row.get("pubkey") == pub.hex(), row
+
+
+def test_first_seating_dry_run_prints_would_key_and_writes_nothing(
+        tmp_path, monkeypatch, capsys):
+    """clause (3): `cmd_spawn --dry-run` on an unkeyed row prints the ONE
+    `would key <seat>` plan line and mints / writes NOTHING."""
+    from agi.bin import send as _bin_send
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    _ns = _spawn_seat_args(reg, wins, 7777)
+    _ns.dry_run = True
+    rc = rotate.cmd_spawn(_ns, root)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "would key belam" in out, out
+    assert not _bin_send._seat_key_path(root, "belam").exists()
+    assert not rotate._find_seat(root, "belam").get("pubkey")
 
 
 def _two_row_git_root(tmp_path):
