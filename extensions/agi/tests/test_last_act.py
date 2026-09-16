@@ -146,6 +146,11 @@ def test_rotate_closeout_note_never_restales_the_card_it_just_wrote(
     stales the card; the REAL `_g17_1_note` closeout seam leaves it FRESH."""
     from agi.bin import rotate as _rotate  # noqa: PLC0415
     r, graph, card = _closeout_fixture(tmp_path)
+    # HERMETIC: this agent's own env carries AGI_AGENT_ID/AGI_ACTOR (a spawned
+    # kid has both), and after the resolver reorder they would otherwise beat
+    # the AGI_SEAT these assertions are about.
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_ACTOR", raising=False)
     # the seat resolver: the explicit flag first, then AGI_SEAT; and the
     # engine-internal marker SKIPS the stamp entirely (the closeout's own call).
     monkeypatch.setenv("AGI_SEAT", "seat-env")
@@ -182,3 +187,71 @@ def test_rotate_closeout_note_never_restales_the_card_it_just_wrote(
     assert "42 | abc1234" in (graph / "nodes" / "goal" / "g17.1.md").read_text()
     assert not last_act.stamp_path(graph, "seat-a").exists()
     assert last_act.card_stale(graph, "seat-a", card)[0] is False
+
+
+# ── the SPAWNED AGENT'S OWN ID, never the inherited seat (SM.48b) ─────────
+
+def _seat_graph(tmp_path) -> Path:
+    """A bare graph root the stamp resolves `<root>/sessions/seats/` under."""
+    graph = tmp_path / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    return graph
+
+
+def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
+        tmp_path, monkeypatch):
+    """THE HAZARD (measured at the tip): a spawned kid's env carries BOTH
+    `AGI_AGENT_ID=a00-x` and the dispatching seat's inherited `AGI_SEAT`
+    (dispatch.py survives it through scrubbed_env). Before the reorder the kid
+    stamped the DIRECTOR, the director's card read stale although the director
+    did nothing -- the rotation loop. Also folds in conjunct 4: a stray USER
+    names no seat at all."""
+    graph = _seat_graph(tmp_path)
+    for k in ("AGI_ACTOR",):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("AGI_AGENT_ID", "a00-x")
+    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+
+    assert last_act.env_seat() == "a00-x"
+    assert last_act.touch_env(graph) == "a00-x"
+    assert last_act.stamp_path(graph, "a00-x").exists()
+    assert not last_act.stamp_path(graph, "sensei-director").exists()
+
+    # conjunct 4: USER alone (no agent id, no seat, no actor) is NOT a seat.
+    monkeypatch.delenv("AGI_AGENT_ID")
+    monkeypatch.delenv("AGI_SEAT")
+    monkeypatch.setenv("USER", "sensei-director")
+    assert last_act.env_seat() == ""
+    assert last_act.touch_env(graph) == ""
+    assert not last_act.stamp_path(graph, "sensei-director").exists()
+
+
+def test_only_a_seat_env_stamps_that_seat_itself(tmp_path, monkeypatch):
+    """A director's OWN acts (its harvest, its sends, its notes) still stale
+    its own card: with only AGI_SEAT set the seat is stamped, and it is that
+    seat's stamp, not anyone else's."""
+    graph = _seat_graph(tmp_path)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_ACTOR", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+
+    assert last_act.env_seat() == "sensei-director"
+    assert last_act.touch_env(graph) == "sensei-director"
+    assert last_act.stamp_path(graph, "sensei-director").exists()
+    assert not last_act.stamp_path(graph, "a00-x").exists()
+
+
+def test_explicit_actor_beats_the_agent_id_env(tmp_path, monkeypatch):
+    """A post acting AS ITSELF passes `--actor <post>`; the flag wins over the
+    agent id its own spawn put in env (write.py --actor <post> must still
+    stamp the post, not the agent)."""
+    graph = _seat_graph(tmp_path)
+    monkeypatch.setenv("AGI_AGENT_ID", "a00-x")
+    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+
+    assert last_act.env_seat("master-sensei") == "master-sensei"
+    assert last_act.touch_env(graph, "master-sensei") == "master-sensei"
+    assert last_act.stamp_path(graph, "master-sensei").exists()
+    assert not last_act.stamp_path(graph, "a00-x").exists()
+    assert not last_act.stamp_path(graph, "sensei-director").exists()
