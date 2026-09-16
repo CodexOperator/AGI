@@ -2924,3 +2924,39 @@ def test_watch_performed_then_tail_guard_skips_second(tmp_path, monkeypatch):
     out2 = rot.run_after_join_for_seat(Path(tmp_path), "wt")
     assert called == [], "watch-performed record -> tail does NOT re-perform"
     assert out2 is None, out2
+
+
+def test_after_join_typed_delivery_stamps_the_wake_sidecar(tmp_path, monkeypatch):
+    """hypothesis:l4-the-prime-hears-only-needed-comms: a TYPED after_join
+    is the announcement of that unread state, so the delivery stamps the
+    wake sidecar with the seat's current unread digest (as a typed wake
+    token does); a refused typing (dm+nudge) stamps nothing -- measured
+    re-nudge (wake:idle) of an already-typed after_join, belam gen 21."""
+    import importlib
+    import agi.bin.rotate as rot
+    # rotate.py does `import send as _send_mod` (top-level, sys.path): patch
+    # THAT module object, not the `agi.bin.send` package view.
+    snd = importlib.import_module("send")
+    stamped = []
+    monkeypatch.setattr(snd, "_record_announced",
+                        lambda root, seat, digest: stamped.append((seat, digest)))
+    monkeypatch.setattr(snd, "_unread_digest", lambda root, seat: "digest-of-" + seat)
+    _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}], delay_s=0))
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None,
+        type_input=lambda seat, text: True,
+        send_dm=lambda to, text: None)
+    assert out["delivery"]["mode"] == "typed", out["delivery"]
+    assert stamped == [("d", "digest-of-d")], stamped
+    stamped.clear()
+    _service_delivery_fixture(
+        tmp_path, monkeypatch,
+        _startup(after_join=[{"label": "a", "cmd": "echo {seat}"}], delay_s=0))
+    out = rot.run_after_join_for_seat(
+        Path(tmp_path), "d", sleep_impl=lambda s: None,
+        type_input=lambda seat, text: False,
+        send_dm=lambda to, text: None)
+    assert out["delivery"]["mode"] == "dm+nudge", out["delivery"]
+    assert stamped == [], stamped

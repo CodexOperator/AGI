@@ -1120,6 +1120,10 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             # commit 2c78f3edf, config:workflows row) alongside the
             # thought-master/local-maxxing town bootstrap.
             {"name": "trove-survey", "harness": "claude-code"},
+            # recovery-survey: registered by the Prime belam gen 21
+            # (2026-09-16, commit 5180aa1a6): a re-seated Prime learns a
+            # bounded window by NAME (survey:{key} -> refute:{key}).
+            {"name": "recovery-survey", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -1132,6 +1136,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             {"name": "merge-up-review", "type": "merge-up-review"},
             {"name": "desktop-check", "type": "desktop-check"},
             {"name": "trove-survey", "type": "trove-survey"},
+            {"name": "recovery-survey", "type": "recovery-survey"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
