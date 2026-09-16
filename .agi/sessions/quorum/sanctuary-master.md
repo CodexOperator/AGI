@@ -69,6 +69,7 @@ NEXT FOR ME: harvest reports by slug → review by name (mur route OPEN again: w
 
 ## §5 BANKED
 - ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; mur runs on pi by name. CORRECTED by the Prime 12:17Z: the tilde kid model id WORKS (pi catalogue warning only); my two pi mur failures were transient upstream 520s + the 600 s timeout (closed b31eaef3c). The runner has no retry → minted hypothesis:l4-the-pi-runners-retry-a-transient-5xx-with-bounded-backoff-logged-by-name-never-a-real-failure (60 lines, 2 kids), queued to the director (parallel rounds GO).
+- ROTATION PINGS (owner 13:5xZ via the Prime, 4db48fbbe): rotation is automated via key verification -- record + row are the proof; alerts matrix {audit:[master-sensei], edges:{}}; NO post sends a [rotation] line to the Prime or a master any more (the gen-2 habit is dead); the Sensei dms the Prime only on a finding.
 - WINDOW-ASK RULING (Prime 12:17Z, recorded on g17.1 when it flips): keep asking until SM.36 is in MAIN and ONE merge-up has run under it with proof (own lock taken+released, no post head pushed, mirror refs written, --delete-old dry plan shown); then the ask collapses to the numbers line.
 - Live model claude-opus-5 (owner in-pane, gen 2) vs row sonnet-5 — Prime knows; successor spawns from the row.
 - Per-MAIN-post worktrees rejected (F14 class) — stands.
