@@ -394,3 +394,170 @@ mechanism, not the 196B scale.)*
 ---
 
 *End of digest. Single permitted write for `read:deepseek-v4-1-flash`.*
+
+---
+
+## Idea seed (2026-09-16)
+
+**Appended by a second reader; nothing above was changed.** Spot-check only — the 1.8 MB PDF was
+not re-fetched. Abs page `https://www.alphaxiv.org/abs/2609.deepseek-v4-1-flash` re-fetched
+2026-09-16: HTTP 200, 230,695 bytes (was 256 KB on 2026-09-14; page chrome differs, metadata
+identical: `datePublished` "Thu Sep 10 2026 17:20:23 GMT+0000"). Two numbers checked against those
+bytes, both confirmed verbatim:
+
+1. *"reduce its global KV cache footprint (always in HBM) to 890 bytes per token, roughly 1/4 of
+   the corresponding footprint of DeepSeek-V4-Flash"* (abstract) and *"approximately a 4-fold
+   reduction compared to DeepSeek-V4-Flash and a 437-fold reduction relative to DeepSeek-V1"*
+   (page summary) — matches §3.1 above.
+2. *"comparable to DeepSeek-V4-Pro-Base, using approximately 1/3 of its total parameters and 1/4
+   of its activated parameters"* (page summary) — matches §3.3 above.
+
+### The one lever this town can grade on its own ledger
+
+The paper's whole prize is **KV bytes per token** (T4 FP4 KV: *"nearly halves the storage
+footprint"* vs FP8; global KV 890 B/token). The town's frame is bytes-touched-per-token on a
+bandwidth-bound CPU. Whether those two are the same ledger is exactly what §6 H3 flagged as the
+gating measurement, and it has never been run on the swarm box. This seed sizes it.
+
+**Arithmetic on our iron [ESTIMATE, from public model geometry — verify with the gguf header]:**
+Qwen3-0.6B has 28 layers, 8 KV heads × 128 dim, so K+V per token = 28 × 2 × 1024 values =
+57,344 values = **112 KB/token at f16 KV**. At decode depth 4,096 that is ~**470 MB of KV read per
+generated token**, against ~**0.64 GB of Q8_0 weights** read per token. So at 4K context KV is
+already ~40% of the bytes touched per token; at 8K it is the majority. `q8_0` KV halves it,
+`q4_0` KV (4.5 bit) cuts it to ~130 MB. Pure bandwidth model: tokens/s ∝ 1/(weights + KV), so at
+depth 4,096, `q4_0` KV predicts **~1.4× tg** over f16 KV, and at depth 0 predicts **no change**.
+The measured baseline is tg 34–45 tok/s at short depth (this is a copy-bandwidth figure, so the
+prediction is falsifiable to within the run-to-run noise the town already knows).
+
+- **slug:** `lm-kv-bytes-ledger-q4-cache`
+- **lever (one mechanism, one number):** FP4-class KV cache — the paper's T4 — applied as
+  llama.cpp `-ctk q4_0 -ctv q4_0` on the swarm box, cutting KV bytes read per decode token from
+  ~470 MB to ~130 MB at depth 4,096 for Qwen3-0.6B (~30% fewer total bytes touched per token,
+  incl. weights), predicting ~1.4× tg at that depth with zero training and zero new code.
+- **buys:** if it holds, every agent-length (4–8K) decode on the swarm box gets 1.3–1.6× for a
+  flag; and it *decides* the roadmap — a positive result licenses the KV-bit thread (cross-layer
+  KV reuse T2, and the bit-flip/SNN "1-bit KV floor" the digest's §5-T4 argues about) as
+  bandwidth wins on this iron; a null result says the paper's headline prize is not the town's
+  prize at ≤8K, and the effort belongs to T9 (loop count as effort) and T5 instead.
+- **first falsifier:** on the swarm box, `llama-bench` Qwen3-0.6B Q8_0, `-fa 1`, `-d 4096`,
+  `-ctk/-ctv` ∈ {f16, q8_0, q4_0}, `-r 3`: if `q4_0` tg is **not ≥ 1.2× f16 tg at depth 4,096**
+  (or if depth-0 tg *drops* under q4_0, meaning dequant cost dominates on this 4-core Ampere with
+  no fast int4 dot), KV bytes are not the CPU bottleneck at this context and the lever is dead.
+- **cheapest test on our iron:** one `llama-bench` sweep on the swarm box (3 KV types × depths
+  0/2,048/4,096/8,192 × 3 reps), ~30–45 min wall-clock, **$0**, no GPU, no training; repeat once
+  on Qwen3.5-4B Q4_K_M at depth 4,096 only (6.9 tok/s baseline, ~15 min) to see whether the
+  weight-heavier model dilutes the KV share as the arithmetic predicts.
+- **oscillator/SNN bridge, stated as a bound not a claim:** the ladder f16 → q8_0 → q4_0 → (1-bit
+  sign-K, the bit-flip floor) is monotone in bytes; the q4_0 point *bounds* what any 1-bit KV can
+  buy on this box. If q4_0 moves tg by <1.2×, a bit-KV cannot rescue it by bytes alone and would
+  have to win on some other axis (the paper's own warning: SWA KV *"sensitive to quantization"*,
+  §2.4.4, is the quality cliff to expect long before 1 bit).
+
+---
+
+## Critique (adversarial, 2026-09-16)
+
+**Scope of this pass, per orchestrator:** abs page
+`https://www.alphaxiv.org/abs/2609.deepseek-v4-1-flash` re-fetched 2026-09-16 (HTTP 200,
+230,695 bytes — byte-identical size to the seed's fetch), tag-stripped to 138,211 chars of text;
+the PDF was **not** fetched, so anything the digest cites only to a PDF section is marked
+**[UNVERIFIED-PDF]** below (not refuted, not confirmed). `https://arxiv.org/abs/2609.deepseek-v4-1-flash`
+still returns HTTP 404. Iron facts checked on the swarm box itself (read-only): gguf headers
+in `~/.cache/lm-models/`, `lscpu`, and `llama-bench --help` from the local llama.cpp build.
+
+### What the abs bytes confirm (author abstract, not alphaxiv's generated overview)
+
+- "552B backbone parameters", "contexts of up to one million tokens", "activates 16B parameters
+  per token during decode but only 8B parameters during prefill" — verbatim.
+- "combines cross-layer KV cache reuse in Compressed Sparse Attention 2 (CSA2) with FP4 KV
+  caching. These designs reduce its global KV cache footprint (always in HBM) to 890 bytes per
+  token, roughly 1/4 of the corresponding footprint of DeepSeek-V4-Flash" — verbatim.
+- "SWA Bounded Replay … reduces its persistent KV cache footprint (always on SSD or in host
+  memory) to roughly 1/8 of that of DeepSeek-V4-Flash" — verbatim (so §3.1's 1/8 is in the
+  abstract, not only PDF §3.2.1).
+- "45T tokens" pre-training corpus — verbatim.
+- CED prefill complexity "O(N·L/2 + n_win·L/2)" and "nearly halves the computational overhead for
+  long inputs" — on the abs page.
+- `datePublished` "Thu Sep 10 2026 17:20:23 GMT+0000" — verbatim.
+
+### Errors and over-statements, each with the correction
+
+1. **"confirmed verbatim on the abs page" is overstated for two of the seed's numbers.** The
+   "437-fold reduction relative to DeepSeek-V1" and "approximately 1/3 of its total parameters and
+   1/4 of its activated parameters" sentences live in alphaxiv's *generated* summary/results
+   blocks (`summary:$R[128]=…`, `results:$R[88]=…`), not in the author abstract. They are
+   consistent with the PDF locators the 09-14 digest gives (Fig. 1(b) caption; §4.3.2/Table 1)
+   and with the overview's own "DeepSeek-V1 required nearly 390,000 bytes per token"
+   (390,000 / 890 ≈ 438), but the correct provenance tag is *alphaxiv overview, consistent with
+   PDF*, not *abstract, confirmed*.
+2. **"8 reasoning benchmarks" (returned summary, T9) — number not on the abs page.** The page
+   says "on reasoning-intensive benchmarks improves average Pass@1 from 67.1% to 76.3%". The
+   count "8" is PDF Table 2 **[UNVERIFIED-PDF]**.
+3. **"60–80 recovers most accuracy at <½ the token budget" and "100 adds 1.6–1.8× length" — not on
+   the abs page.** The page's wording is: "The gains are more pronounced in the 60-80 effort
+   range, with diminishing returns at the maximum setting" and "up to 2.5 times more output
+   tokens". The "<½ budget" and "1.6–1.8×" figures are cited to PDF §5.3.2 / Fig. 9
+   **[UNVERIFIED-PDF]**; the returned object presents them as settled.
+4. **FP4 "nearly halves the storage footprint" vs FP8 — not on the abs page.** The page says only
+   "FP4 quantization for the main KV cache to reduce storage footprint … while SWA KV retains
+   FP8 precision. Quantization occurs after RoPE application." The "nearly halves" quote is PDF
+   §2.4.4 **[UNVERIFIED-PDF]**. (Arithmetically 4-bit vs 8-bit *is* ~½, so the claim is safe; the
+   provenance tag is what is wrong.)
+5. **SWA KV kept FP8 because it is "sensitive to quantization" — the reason is not on the abs
+   page.** The page states the fact (SWA KV retains FP8) without a reason. The quoted reason is
+   PDF §2.4.4 **[UNVERIFIED-PDF]**; the seed leans on it as "the paper's own warning".
+6. **The lever's mechanism is the reader's paraphrase, not the paper's.** The paper's T4 is
+   **MXFP4 (E2M1 + E4M3 scale per 16 channels), trained with QAT, applied after RoPE, to the
+   *main* (compressed, cross-layer-shared) KV only**, and the *only* saving it demonstrates is
+   **footprint** (HBM bytes/token, SSD bytes/token). The page contains no tok/s, no latency, no
+   throughput number for FP4 KV anywhere (grep: "tok/s" 0 hits; "tokens per second" hits are a
+   *different* paper in the "similar papers" strip). llama.cpp `-ctk/-ctv q4_0` is int4-symmetric
+   with an f16 scale per 32, post-hoc, no QAT, applied to every layer's full K and V. So the
+   correct statement is: *the source demonstrates 4-bit KV storage is viable at 552B after QAT;
+   the town's bandwidth ledger — not the source — turns bytes into tok/s.* That hypothesis is
+   H3, which the digest already flags as unrun. The test survives; the wording "the paper's T4
+   applied as -ctk q4_0 … predicting ~1.4× tg" does not.
+7. **The seed's pure-bandwidth model silently drops attention compute.** Qwen3-0.6B at depth
+   4,096: attention ≈ 16 heads × 4096 × 128 × 4 × 28 layers ≈ **0.94 GFLOP/token** against
+   ≈ **1.2 GFLOP/token** of weight matmul — attention is ~44% of per-token FLOPs at that depth, so
+   "tokens/s ∝ 1/(weights + KV bytes)" is one bound, not a prediction. The falsifier's depth-0
+   clause partly covers this; the "predicts ~1.4×" should read "≤ ~1.4× if purely
+   bandwidth-bound".
+8. **Iron claim wrong in the seed's falsifier and in §4.3.** "4-core Ampere with no fast int4
+   dot" / "arm64-N1 without i8mm, even INT8 dots are weak": `lscpu` on the swarm box shows
+   `asimddp` (NEON SDOT, the int8 dot-product instruction) **present**, `i8mm` absent, `asimdhp`
+   (fp16 arithmetic) present. llama.cpp's CPU flash-attention path for q4_0 K uses
+   `vec_dot_q4_0_q8_0`, which is SDOT-accelerated on this flag set. No CPU has an int4 dot; the
+   relevant question is whether SDOT on unpacked nibbles beats fp16 dots, and that is exactly
+   what the sweep measures. Don't pre-judge it either way.
+9. **"buys … 1.3–1.6× for 4–8K" mis-states the seed's own model.** Recomputed from the gguf
+   header (below): 1.24× at 2,048, **1.44× at 4,096, 1.75× at 8,192**. The stated range is
+   neither the model's output nor a measurement.
+10. **Provenance drift, trivial:** page engagement is now 44,235 views / 348 likes (was
+    30,960 / 277 on 09-14). Time-varying, not an error.
+
+### Seed numbers that DO check out on this iron
+
+- `Qwen3-0.6B-Q8_0.gguf` header: `qwen3.block_count = 28`, `attention.head_count_kv = 8`,
+  `attention.key_length = attention.value_length = 128` → 28 × 2 × 8 × 128 = **57,344 values/token
+  = 114,688 B = 112 KiB at f16**. Confirmed. File size **639,447,744 B ≈ 0.64 GB**. Confirmed.
+- KV read per decode token (f16 → q4_0 at 4.5 bit): depth 2,048: 235 → 66 MB; **4,096: 470 →
+  132 MB**; 8,192: 940 → 264 MB. Seed's "~470 MB → ~130 MB" confirmed.
+- Tooling: `/home/ubuntu/src/llama.cpp/build/bin/llama-bench` (tree at 093a2f8, 2026-09-14)
+  accepts `-d`, `-ctk`, `-ctv`, `-fa`, `-r`; `-fa 1` parses as truthy; quantized V **requires**
+  flash attention (`src/llama-context.cpp:3710`), so the seed's `-fa 1` is mandatory, not
+  optional. Models are already on disk in `~/.cache/lm-models/`. The test is runnable as written.
+- `Qwen3.5-4B-Q4_K_M.gguf` header: arch `qwen35`, 32 blocks, 4 KV heads × 256 → 65,536
+  values/token = 128 KiB/token at f16 **only if every block carries full-attention KV** — the
+  seed gives no arithmetic for the 4B point, and the `qwen35` architecture's per-layer attention
+  type was not checked here. Do that before claiming "dilution" from the 4B run.
+
+### Verdict on the seed
+
+Keep the experiment; fix the framing. The paper demonstrates *bytes/token*; the town's claim is
+*tok/s from bytes/token*, and that is an unmeasured hypothesis (H3) with a runnable, $0, ~30–45 min
+test. The digest's §4.3 ("likely a net slowdown … unless KV reads dominate") and the seed's
+"predicts ~1.4×" are the two horns of the same unrun measurement and should be stated as such.
+The oscillator/SNN "1-bit floor" bridge remains what §5-T4 said: a bound the q4_0 point sets, not
+a claim the source supports — the source has zero spiking/oscillatory/looped content (grep:
+"spik", "oscillat", "loop", "recurren" all 0 hits on the abs page).
