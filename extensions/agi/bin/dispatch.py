@@ -2142,7 +2142,7 @@ def main() -> int:
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
-        # conjunct (2) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+        # conjunct (1) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
         # code-and-truncation: ok=True still means dispatch proceeds, but a
         # (True, <marker>) return NAMES a skipped sub-floor minted key. A
         # marker returned to a caller that ignores it is the falsifier, so it
@@ -2625,6 +2625,15 @@ def main() -> int:
                 if branch_ref:
                     drop_branch_worktree(root, branch_ref["worktree"])
                 spawn_budget.release(lease)
+                # No round will consume the orders copy and no agent record
+                # will follow the scaffold: the same cleanup + named issue
+                # line as the rc-4 seams, never a live orphan behind rc 5.
+                if _orders_file is not None:
+                    _orders_file.unlink(missing_ok=True)
+                _report_unregistered_scaffold(
+                    root, scaffold_info, agent_id,
+                    detail=f"died transiently (signature: {_sig}) on all "
+                           f"{_GRACE_MAX_ATTEMPTS} attempts")
                 return 5
             _sleep_s = _GRACE_BACKOFF_S[_attempt - 1]
             with open(log_file, "ab") as _af:

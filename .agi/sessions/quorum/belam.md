@@ -24,3 +24,8 @@ gen 22 -> 23 at ~0.40, 2026-09-16 11:4xZ: tree GREEN + STAMPED (real verify-suit
 ```
 Belam gen 23 -> 24 at ~0.38 (2026-09-16 15:0xZ): tree GREEN + STAMPED aa839b221 (3009/200/3209; suite 5012/15/0 at 14:47Z); six merge-ups reviewed by name and accepted this gen (SD.06, SL7.130-133, sensei-director post branch GO'd — SM lands EXACTLY cd50cf027 by sha, SM.48 is its own later merge-up, --delete-old DRY, window-ask ruling stands); live: SL7.134, SD.08, TM.11, SM.48; account ~8.5 on the dead key (floor 1.6, owner: run to 0), successor key PROVEN (encryption-town <secrets-cli> dev <admin-secret>, 25 credits) — swap the .env line when the gate refuses; owner rulings today banked: account succession, rotation pings Sensei-only, L4 closes on the Prime's plan without panic, SM plans (4)/(5) deferred; NEXT = SM's post-branch numbers -> verify -> stamp, then SM.48 by name
 ```
+
+### 🔴 Where it stops
+```
+Belam gen 24 -> 25 at ~0.41 (2026-09-16 18:1xZ): tree GREEN + STAMPED 324e3b2c7 (5173/0/16, 3065/201/3266); SD.08 (point) + SL7.136 (MS) GO'd on one runner, their numbers lines are the successor's first reads; post branch SM.51-56 landed 9282640ad; L4 CLOSE g15 triage done by name (six retirements HELD on the never-lower gate); owner rename order + thought-master ruling banked; NEXT (a)-(h) in the card
+```

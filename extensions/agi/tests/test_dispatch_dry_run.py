@@ -534,6 +534,8 @@ def test_live_spawn_env_hooks_path_is_this_trees_hooks(tmp_path, monkeypatch):
         return real_popen(popenargs, **kwargs)
 
     monkeypatch.setattr(subprocess, "Popen", _patched_popen)
+    # the stub never exits, so the startup grace would poll 20 s for real
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda _s: None)
     monkeypatch.setattr(sys, "argv",
                         [str(BIN / "dispatch.py"), str(tmp_path), "1",
                          "--level", "small", "--harness", "pi",
