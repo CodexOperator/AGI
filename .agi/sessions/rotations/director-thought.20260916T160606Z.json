@@ -94,7 +94,20 @@
       "target": "@401",
       "skipped": "view session view-director-thought absent"
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-sonnet-5"
+      },
+      "live": {
+        "model": "claude-sonnet-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
   },
   "swept_latches": [],
@@ -111,8 +124,43 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-16T16:08:04.926751+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-16T16:07:11.548457Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-thought",
+        "rc": 0,
+        "output": "@401 director-thought\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-thought.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
+        "rc": 0,
+        "output": "0.0791\t79103/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'",
+        "refused": "placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name"
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] REFUSED \u2014 placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-thought --record latest\n",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-thought",
+    "dm_signed": true,
+    "code_head": "bb35c7e",
+    "claimed_at": "2026-09-16T16:08:04.926751+00:00",
+    "claim_key": "2026-09-16T16:07:11.548457Z",
+    "performed_after_s": 52.742090463638306
   }
 }
