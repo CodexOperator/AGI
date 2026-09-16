@@ -9798,6 +9798,8 @@ SM.48 (card-age-captive priority fix, 2 kids) harvested and merged. Per-seat las
 
 SM.49 (SM.48b blocking fix, 2 kids) harvested and merged, 753 tests green, the last_act.py NO_HELP gap from SM.48 is closed. last_act.env_seat is now AGI_TIER-aware: director/prime_director resolve seat-first (their own act still stales their own card), every other tier resolves agent-first (a dispatched kid stamps its own clock, never the seat it inherited) -- closes the blocking residual SM found in SM.48 (a live kid re-staling the directors card on every write). Kid1 self-caught a regression in its own first attempt (a naive global reorder broke a directors own self-stamping) and was honestly demoted to inconclusive_lean_proved:70 rather than hidden; kid2 fixed it properly with the tier split and proved all 5 conjuncts. 17 production lines, under the 10-line ceilings 2x. SM.48 + SM.48b are now both complete on this branch, ready to report to SM for the merge-up line.
 
+SM.51 landed: pred_pids no-reap placeholder now names a regex-inert non-matching value instead of refusing (rotate.py _derive_pred_pids, 6 prod lines/10 ceiling). experiment:a00-8f102c41-bcc0c5 proved. 84+162 kid/parent tests + 974 neighbourhood (0 fail) post-merge.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
