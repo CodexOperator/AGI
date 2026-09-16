@@ -83,6 +83,7 @@ import threading
 import time
 from pathlib import Path
 
+import adapters
 import brief
 import locations
 import provisioning
@@ -382,7 +383,11 @@ def child_env(*, harness: dict, base: dict[str, str],
         # the launch gate for ultracode workflows
         # (hypothesis:l3-rotate-ultracode-env)
         env[ULTRACODE_ENV_VAR] = "1"
-    return env
+    # hypothesis:l4-needs-credential-is-provider-gated -- one shared rule for
+    # every adapter; `needs_credential` is False for claude-code today, so this
+    # drops nothing it did not drop before, but the restart path reaches the
+    # rule through the same `child_env` and the rule stays true if that changes.
+    return adapters.drop_unneeded_credential(env, harness)
 
 
 def needs_credential(harness: dict) -> bool:
