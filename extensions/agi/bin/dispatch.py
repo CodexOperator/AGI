@@ -1476,6 +1476,12 @@ def main() -> int:
              "overview/vision/moral node: the push stops at the quorum.",
     )
     ap.add_argument(
+        "--cap", type=float, default=None,
+        help="per-round mint cap in USD; refused before minting when it "
+             "exceeds pool remaining minus floor minus live caps "
+             "(hypothesis:l4-dispatch-takes-a-per-round-cap...).",
+    )
+    ap.add_argument(
         "--strategy",
         default="extend_existing",
         help="Strategy label recorded for an aimed slot (default: extend_existing)",
@@ -1961,6 +1967,9 @@ def main() -> int:
         _resolved_seat(args.seat), cfg, root)
     if _ut_limit is not None:
         cred_limit = _ut_limit
+    # --cap overrides the standing default and any per-post cap for THIS round.
+    if args.cap is not None:
+        cred_limit = float(args.cap)
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
     # hypothesis:l4-needs-credential-is-provider-gated -- this banner is a
@@ -2152,6 +2161,13 @@ def main() -> int:
             _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
             if not _acc_ok:
                 print(f"ERR: {_acc_msg}", file=sys.stderr)
+                return 1
+        # conjunct (2): a --cap over headroom REFUSES by name before any mint.
+        if args.cap is not None:
+            _cap_ok, _cap_msg = provisioning.cap_headroom(
+                cfg, root, float(args.cap))
+            if not _cap_ok:
+                print(f"ERR: {_cap_msg}", file=sys.stderr)
                 return 1
 
     # goal:g15.25 SM.28 -- the orders copy travels WITH the round, so it is
