@@ -18,6 +18,7 @@ versa) fails these tests.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -69,6 +70,14 @@ def _git_map(lines):
     def fake(cwd, *args):
         return lines.get(args)
     return fake
+
+
+def _stamp(prep_root, ts):
+    """Write the seat's OWN last-act stamp (bin/last_act.py) with `ts`."""
+    p = prep_root / "sessions" / "seats" / "adv-alive.last-act"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(f"{ts}\n", encoding="utf-8")
+    return p
 
 
 def _args(**over):
@@ -172,9 +181,15 @@ def test_prepare_dirty_names_the_non_churn_paths(prep_root, capsys,
     assert "a.py" in out and "b.py" in out and "c.py" in out
     # five shown, eight non-churn dirty -> three more, named count, not bare
     assert ", +3 more" in out
-    # churn paths are never named, and the paths past the +N more cut
-    # (d.py, e.py, f.py) are NOT listed as separate dirty paths either.
-    assert "dm/x.md" not in out and "sequence.json" not in out
+    # SM.40: churn paths ARE named -- but on their OWN never-blocking
+    # `[ok] rotation churn:` line, never in the dirty-tree BLOCK line (a
+    # hidden class was the bug). The paths past the +N more cut (d.py, e.py,
+    # f.py) are still NOT listed.
+    _block_line = next(ln for ln in out.splitlines()
+                       if ln.startswith("[BLOCK] dirty tree"))
+    assert "dm/x.md" not in _block_line and "sequence.json" not in _block_line
+    assert ("[ok] rotation churn: .agi/comms/season-2/dm/x.md, "
+            ".agi/sessions/rotations/sequence.json") in out, out
     assert ", d.py" not in out and ", e.py" not in out and ", f.py" not in out
 
 
@@ -192,102 +207,92 @@ def test_prepare_clean_names_no_paths(prep_root, capsys, monkeypatch):
     assert "dirty tree:" not in out
 
 
-def test_prepare_card_check_reads_the_last_work_commit_only(
+def test_prepare_card_check_reads_the_seats_own_last_act(
         prep_root, capsys, monkeypatch):
-    """Sensei 18:29Z: two porcelain sync commits aged the card and blocked
-    the rotation. The card check now reads the last NON-MERGE commit that
-    touched something other than cron-owned churn (.agi/comms, the rotation
-    records) or the card itself — that spec, and no bare `log -1`. A stale
-    card against THAT commit still blocks."""
-    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    card.parent.mkdir(parents=True, exist_ok=True)
-    card.write_text("# card\n", encoding="utf-8")
+    """Check 4 is the SEAT'S OWN clock (bin/last_act.py), NEVER the repo-wide
+    `git log -1 --no-merges -- .` spec: an unmeasurable own act reads NOT
+    stale (P7), and an own act after the card blocks. A foreign seat's commit
+    is invisible to it (conjunct 2)."""
     import os
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
     os.utime(card, (1000000000, 1000000000))   # long before any commit
-    spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
-            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
-            ":(exclude)sessions/quorum/adv-alive.md")
-    # SL7.30: the seats/posts exclusion is CONDITIONAL on a --stops
-    # rotate-self (test_stops_rotation_flag_controls_seats_exclusion below).
-    # A plain `prepare` carries NO seats exclusion — a seats.md WORK commit
-    # must still age the card (SL7.12 had edited THIS spec tuple to add
-    # `:(exclude)nodes/.geometry/posts.md` to every prepare; that over-
-    # application is the defect this round fixes).
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
-    # the bare `log -1` answer is NOT consulted any more
-    monkeypatch.setattr(rotate, "_git_maybe",
-                        _git_map({**ok, ("log", "-1", "--format=%ct"):
-                                  ["9999999999"]}))
+    seen = []
+    def recorder(cwd, *args):
+        seen.append(args)
+        return ok.get(args)
+    monkeypatch.setattr(rotate, "_git_maybe", recorder)
+    # no own act measurable -> ok, the ancient card is NOT stale (P7).
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
     assert rc == 0, out
     assert "[ok] card older than last commit" in out
-    # the work-commit spec IS, and a card older than it blocks
-    monkeypatch.setattr(rotate, "_git_maybe",
-                        _git_map({**ok, spec: ["9999999999"]}))
+    # an own act AFTER the card blocks.
+    _stamp(prep_root, "9999999999")
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
     assert rc == 3, out
     assert "[BLOCK] card older than last commit" in out
+    # FALSIFIER (no second implementation of the clock): check 4 issues NO
+    # repo-wide `log --no-merges` spec of its own.
+    assert all("--no-merges" not in a for a in seen), seen
 
 
-def test_stops_rotation_flag_controls_seats_exclusion(
+def test_check_4_is_identical_under_stops_and_plain(
         prep_root, capsys, monkeypatch):
-    """SL7.30 — the seats/posts exclusion on check 4 ('card older than last
-    commit') is CONDITIONAL on the run being a --stops rotate-self
-    (goal:g15.25 line (3): the rotate-out's OWN card+seats commit must not
-    re-age the card). A plain prepare (stops_rotation=False) scans WITHOUT
-    the exclusion, so a pure seats.md WORK commit still ages the card and a
-    card older than it BLOCKS; a --stops rotate-self (stops_rotation=True)
-    carries the exclusion so that same commit is invisible and check 4 reads
-    ok. FALSIFIER for SL7.12, which appended the exclusion to EVERY prepare:
-    revert the conditionality and the plain case can no longer block on a
-    seats-only commit."""
+    """The SL7.30 conditional seats/posts exclusion is GONE: the clock is
+    already seat-scoped, so check 4 reads the SAME verdict with and without
+    `stops_rotation`."""
     import os
     card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    os.utime(card, (1000000000, 1000000000))   # older than any injected ts
+    os.utime(card, (1000000000, 1000000000))
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
-    plain_spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
-                  ":(exclude).agi/comms",
-                  ":(exclude).agi/sessions/rotations",
-                  ":(exclude)sessions/quorum/adv-alive.md")
-    stops_spec = plain_spec + (":(exclude)nodes/.geometry/posts.md",)
-    # a seats.md-only WORK commit (the plain scan sees it: ts > card); the
-    # stops scan EXCLUDES seats, so its 'last WORK commit' is older than the
-    # card (ts < card) — check 4 reads ok either way the mtime lands.
-    map_ = dict(ok)
-    map_[plain_spec] = ["9999999999"]
-    map_[stops_spec] = ["900000000"]
-    monkeypatch.setattr(rotate, "_git_maybe", _git_map(map_))
-    # plain prepare: no seats exclusion -> the seats-only commit ages the
-    # card -> BLOCK
-    rc = rotate.cmd_prepare(_args(), prep_root)
-    out = capsys.readouterr().out
-    assert rc == 3, out
-    assert "[BLOCK] card older than last commit" in out
-    # --stops rotate-self: carries the seats exclusion -> the seats-only
-    # commit is invisible to check 4 -> the card is NOT stale
-    checks = rotate._prepare_checks(prep_root, "adv-alive",
-                                    stops_rotation=True)
-    stale = [c for c in checks if c[1] == "card older than last commit"][0]
-    assert not stale[0], stale  # not blocked
-    # and the SAME fixture at stops must still read ok end-to-end; the
-    # flagged spec IS the one consulted
-    seen = []
-    def recorder(_cwd, *args):
-        if args and args[0] == "log":
-            seen.append(args)
-        return map_.get(args)
-    monkeypatch.setattr(rotate, "_git_maybe", recorder)
-    rotate._prepare_checks(prep_root, "adv-alive", stops_rotation=True)
-    assert stops_spec in seen, seen
-    assert plain_spec not in seen  # plain scan is what the OTHER path runs
-    rotate._prepare_checks(prep_root, "adv-alive")
-    assert plain_spec in seen, seen
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(ok))
+    _stamp(prep_root, "9999999999")   # the seat acted after the card
+    plain = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
+             if c[1] == "card older than last commit"][0]
+    stops = [c for c in rotate._prepare_checks(prep_root, "adv-alive",
+                                               stops_rotation=True)
+             if c[1] == "card older than last commit"][0]
+    assert plain[0] is True, plain     # blocked, the own act is newer
+    assert stops == plain, (plain, stops)
+
+
+def test_hook_and_rotate_agree_on_the_card_stale_verdict(prep_root, monkeypatch):
+    """(C) ONE verdict, TWO readers: the hook's gate (a) measure and rotate's
+    `_prepare_checks` check 4 read the SAME seat-scoped clock (`bin/
+    last_act.py`) on the SAME fixture state -- fresh AND stale. A second
+    implementation of the clock is the falsifier; a disagreement between the
+    thing that REFUSES the rotation and the thing that HOLDS it is worse than
+    either being wrong alone."""
+    import os
+    hook_path = _REPO / "extensions" / "agi" / "hooks" / "rotation_alert.py"
+    spec = importlib.util.spec_from_file_location("rotation_alert_agree",
+                                                  hook_path)
+    hook = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    _no_git(monkeypatch)
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
+
+    def verdicts():
+        hook_stale, _line = hook._card_stale_measure(prep_root, "adv-alive",
+                                                     card)
+        rot = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
+               if c[1] == "card older than last commit"][0]
+        return hook_stale, rot[0]
+
+    # FRESH: the stamp is older than the card.
+    _stamp(prep_root, 1)
+    assert verdicts() == (False, False)
+    # STALE: the seat worked AFTER writing the card.
+    os.utime(card, (1000000000, 1000000000))
+    _stamp(prep_root, 2_000_000_000)
+    assert verdicts() == (True, True)
 
 
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
@@ -1474,3 +1479,132 @@ def test_prepare_check2_quoted_dirty_path_touch_set_real_fixture(
     assert "[ok] foreign dirt (not in the merge): café.py" in out_b, out_b
     assert rc_b == 3, out_b
     assert "[BLOCK] behind" in out_b, out_b
+
+
+# SM.40 (hypothesis:l4-rotate-dirty-tree-refusal-partitions-blocking-from-
+# foreign-dirt-like-the-merge-gate) — check 2 on a MAIN post names THREE
+# classes, never one bare list: BLOCKING (merge touch-set PLUS the rotating
+# post's OWN card), ROTATION CHURN (`_prepare_churn_path`'s paths — NAMED,
+# never silently dropped: a hidden class was the bug), FOREIGN (owner guess
+# parsed from the path). Measured defect: master-sensei 2026-09-16 10:04-10:05Z
+# committed `.agi/tmp/kid1_thought.txt` and a root `orders-SL7.126-*.md`
+# leftover to "unblock" a rotate because the bare list hid whose dirt it was.
+# NO `.gitignore` rule: an ignore hides the class, the partition names it.
+# The ROTATING ITER is NOT resolvable at prepare time (MEASURED: `_prepare_checks`
+# receives only `seat`; dispatch.py sets AGI_LOOP to a loop ref like
+# `hypothesis:...@s2`, never the `SL7.126` round slug), so no own-iter
+# own-card BLOCK is shipped — the brief's F2 fallback (named iter owner) is.
+
+
+def test_prepare_check2_untracked_kid_scratch_names_owner_unknown(
+        prep_root, capsys, monkeypatch):
+    """F1 — an untracked scratch file outside the merge
+    (`.agi/tmp/kid1_thought.txt`) exits 0 and the foreign line NAMES it WITH
+    an owner guess. Nothing in the path attributes it, so `[owner: unknown]`
+    is the honest guess — never a bare path a reader commits to unblock."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): ["?? .agi/tmp/kid1_thought.txt"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("[ok] foreign dirt (not in the merge): "
+            ".agi/tmp/kid1_thought.txt [owner: unknown]") in out, out
+
+
+def test_prepare_check2_orders_leftover_names_the_iter_owner(
+        prep_root, capsys, monkeypatch):
+    """F2 (the brief's fallback — the ROTATING iter is not resolvable at
+    prepare time, see the block comment above) — a root-level
+    `orders-<ITER>-*` leftover is FOREIGN, never a block, and its owner guess
+    is parsed from the path: `iter SL7.126`, the master-sensei 10:05Z
+    leftover a director committed to unblock."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              ["?? orders-SL7.126-a00-fabd2604.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("orders-SL7.126-a00-fabd2604.md [owner: iter SL7.126]") in out, out
+
+
+def test_prepare_check2_iter_session_dir_names_its_iter_owner(
+        prep_root, capsys, monkeypatch):
+    """The other iter-owned spelling the brief names: `.agi/sessions/
+    iter-<ITER>/**` -> `iter <ITER>`. A kid's own scratch dir is never a
+    block and never `unknown`."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): ["?? .agi/sessions/iter-SL7.126/note.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "note.md [owner: iter SL7.126]" in out, out
+
+
+def test_prepare_check2_rotation_churn_named_never_silently_dropped(
+        prep_root, capsys, monkeypatch):
+    """F3 — the churn class `_prepare_churn_path` matches (`.agi/comms/**`,
+    `.agi/sessions/rotations/*.json`) is NAMED on one never-blocking
+    `[ok] rotation churn:` line. Before SM.40 it was silently swallowed:
+    prepare printed a plain `[ok] dirty tree` while the tree WAS dirty, and
+    the class a reader most needs to recognise was invisible."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              [" M .agi/sessions/rotations/sequence.json",
+               "?? .agi/comms/season-2/dm/x--y.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("[ok] rotation churn: .agi/sessions/rotations/sequence.json, "
+            ".agi/comms/season-2/dm/x--y.md") in out, out
+
+
+def test_prepare_check2_main_post_own_card_blocks(
+        prep_root, capsys, monkeypatch):
+    """The own-card BLOCK: on a MAIN post a dirty `.agi/sessions/quorum/
+    <seat>.md` is the rotating post's OWN uncommitted work — its owner guess
+    IS this post — so it BLOCKS by name, even though the merge would not
+    touch it. A post must not rotate over its own card."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              [" M .agi/sessions/quorum/adv-alive.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] dirty tree: .agi/sessions/quorum/adv-alive.md"
+            in out), out
+    assert "your own card" in out, out
+
+
+def test_prepare_check2_another_posts_card_is_foreign_named(
+        prep_root, capsys, monkeypatch):
+    """The boundary of the own-card BLOCK, asserted so the rule cannot widen:
+    ANOTHER post's card is foreign, owner-named `post belam`, and never
+    blocks."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): [" M .agi/sessions/quorum/belam.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert (".agi/sessions/quorum/belam.md [owner: post belam]") in out, out

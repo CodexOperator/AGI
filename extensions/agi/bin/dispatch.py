@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
@@ -1212,12 +1213,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # the real values (AGI_*, CLAUDE_CODE_WORKFLOWS) without a spawn.
             env = adapter.child_env(harness=dispatch_harness,
                                     base=scrubbed_env(), tier=args.tier)
-            # hypothesis:l4-needs-credential-is-provider-gated -- a harness
-            # that needs no credential must not be HANDED one either. The
-            # inherited runtime key (scrubbed_env keeps it for the no-
-            # provisioning fallback) is dropped before the env is shown.
-            if not adapters.needs_credential(dispatch_harness):
-                env.pop(provisioning.RUNTIME_KEY_VAR, None)
+            # hypothesis:l4-needs-credential-is-provider-gated -- the
+            # credential-none drop is applied INSIDE child_env now
+            # (`adapters.drop_unneeded_credential`), so the dry-run mirror and
+            # the live spawn share ONE mechanism instead of each re-popping
+            # the inherited runtime key here.
             env["AGI_TIER"] = args.tier
             # hypothesis:l4-spawn-paths-export-the-reaper-knob -- mirror of
             # the live spawn_env export, so the dry report SHOWS the reaper
@@ -2365,13 +2365,14 @@ def main() -> int:
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
-            # hypothesis:l4-needs-credential-is-provider-gated -- a harness
-            # that needs no credential must not be HANDED one either. The
-            # inherited runtime key (scrubbed_env keeps it for the no-
-            # provisioning fallback) is dropped before the child exists, so
-            # a pi-local kid's environment never carries OPENROUTER_API_KEY.
-            if not adapters.needs_credential(dispatch_harness):
-                spawn_env.pop(provisioning.RUNTIME_KEY_VAR, None)
+            # hypothesis:l4-needs-credential-is-provider-gated -- the
+            # credential-none drop lives INSIDE child_env now
+            # (`adapters.drop_unneeded_credential`). A harness that needs no
+            # credential is no longer HANDED one on ANY spawn path -- main,
+            # restart, or a future one -- because the rule is one function the
+            # adapters call, not a pop each call site must remember. The mint
+            # below re-adds the key when `needs_credential` is true, so the
+            # default-mint path is unchanged.
             # hypothesis:l4-spawn-paths-export-the-reaper-knob -- the harness
             # reaps "background" shells on a Bun memoryPressure signal; the
             # only gate is CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (read
@@ -2554,6 +2555,16 @@ def main() -> int:
             "context_file": ctx_path,
             "log_file": str(log_file),
             "harness": harness_name,
+            # hypothesis:l4-needs-credential-is-provider-gated -- the config
+            # row reaches the RESTART path. dispatch.py:restart reads
+            # `rec.get("harness_spec")` but nothing wrote it, so a restarted
+            # pi-local kid got `{}`, `needs_credential({})` answered True, and
+            # the inherited OPENROUTER_API_KEY came back on the one path the
+            # round-2 pop did not cover. Recorded here (the row as dispatched,
+            # after seat/ladder overrides) so the shared child_env rule fires
+            # on restart too. Rows are config, not secrets; the minted key is
+            # never in the row.
+            "harness_spec": dict(dispatch_harness),
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
             # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
@@ -2734,6 +2745,8 @@ def main() -> int:
             cfg=cfg,
         )
 
+    # The DISPATCHING seat's own last act (conjunct 1): a round is cut.
+    last_act.touch_env(root, args.seat)
     return 0
 
 

@@ -176,4 +176,7 @@ def test_shell_cmd_seat_wraps_no_seat_byte_identical():
     assert "export AGI_POST=belam-X AGI_SEAT=belam-X &&" in seated
     # the raw claude argv rides after the wrapper's `--` separator.
     assert " -- claude --remote-control s -prompt" in seated
-    assert seated.index("launch-wrapper") < seated.index("claude")
+    # the binary token is the `-- claude` boundary the wrapper emits, never the bare
+    # substring (a checkout path under /tmp/claude-*/ matches it first;
+    # hypothesis:l4-the-launch-wrapper-order-tests-anchor-on-the-binary-token-not-a-substring-of-the-checkout-path).
+    assert seated.index("launch-wrapper") < seated.index(" -- claude --remote-control")

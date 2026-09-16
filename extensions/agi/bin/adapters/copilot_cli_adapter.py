@@ -53,6 +53,7 @@ import sys
 import time
 from pathlib import Path
 
+import adapters
 import brief
 
 NAME = "copilot-cli"
@@ -157,7 +158,10 @@ def child_env(*, harness: dict, base: dict[str, str],
             env["GH_TOKEN"] = token
     extra = harness.get("env") or {}
     env.update({k: str(v) for k, v in extra.items()})
-    return env
+    # hypothesis:l4-needs-credential-is-provider-gated -- the one shared
+    # credential-none rule; copilot needs no OpenRouter key today, and its
+    # restart path reaches the rule through this same `child_env`.
+    return adapters.drop_unneeded_credential(env, harness)
 
 
 def write_prompt(*, sess_dir: Path, context_file: str, segments: list[str],

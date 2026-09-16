@@ -1399,3 +1399,85 @@ def test_wake_audit_help_exits_zero():
         assert e.code == 0
     else:
         raise AssertionError("argparse -h should have raised SystemExit(0)")
+
+
+# ── clause (3): `--record latest` passes the session gate ──────────────────
+# hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-stamps-by-name-
+# and-latest-passes-the-session-gate: `--record latest` used to return BEFORE
+# `_select_rotation_record`'s session gate, so a wake audit on a post whose
+# newest on-disk record belonged to ANOTHER session audited it and exited 0.
+# `latest` is the default spelled out loud, so it must take the SAME gate the
+# no-flag default does.
+
+class TestRecordLatestPassesTheSessionGate:
+    def test_record_latest_refuses_when_latest_is_another_session(
+            self, tmp_path, capsys):
+        """FALSIFIER F2: the only record on disk carries session B while the
+        row names session A; `--record latest` must refuse BY NAME like the
+        no-flag default, never audit B's wake."""
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid_a = "aaaaaaaa-1111-2222-3333-444444444444"
+        sid_b = "bbbbbbbb-1111-2222-3333-444444444444"
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid_a})
+        tr_b = graph / "latest_b.jsonl"
+        tr_b.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                  "input": {"command": "true"}}]),
+                        encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z",
+                               join_transcript=tr_b, session_id=sid_b,
+                               ts="20260911T100000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None,
+                                                record="latest")
+        assert code == 2
+        assert calls == [] and counts == {}
+        assert sid_a[:8] in capsys.readouterr().err
+
+    def test_record_latest_still_resolves_when_the_session_matches(
+            self, tmp_path):
+        """The gate is an identity gate, not a refusal of `latest`: a record
+        carrying the row's own session still resolves."""
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid = "aaaaaaaa-1111-2222-3333-444444444444"
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid})
+        tr = graph / "latest_ok.jsonl"
+        tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                "input": {"command": "whois 1.1.1.1"}}]),
+                      encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", join_transcript=tr,
+                               session_id=sid, ts="20260911T100000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None,
+                                                record="latest")
+        assert code == 0
+        assert calls[0]["label"] == "F2"
+
+
+# ── the record is resolved ONCE, by the audit, not again by the CLI ───────
+
+def test_wake_audit_resolves_the_rotation_record_once(tmp_path, monkeypatch,
+                                                      capsys):
+    """`cmd_wake_audit` used to re-run `_select_wake_record` just to print the
+    header (a SECOND resolution that could drift from the window's). The
+    audit resolves the record once and hands the CLI the stamp."""
+    from types import SimpleNamespace
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    tr = graph / "once.jsonl"
+    tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                            "input": {"command": "whois 1.1.1.1"}}]),
+                  encoding="utf-8")
+    _write_rotation_record(graph, "20260911T120000Z", join_transcript=tr)
+    real = sensei._select_wake_record
+    seen = []
+
+    def counting(*a, **k):
+        seen.append(a)
+        return real(*a, **k)
+
+    monkeypatch.setattr(sensei, "_select_wake_record", counting)
+    args = SimpleNamespace(seat=SEAT, gen=None, transcript=None, record=None,
+                           redact=True)
+    assert sensei.cmd_wake_audit(graph, args) == 0
+    out = capsys.readouterr().out
+    assert "--record 20260911T120000Z (role director)" in out
+    assert len(seen) == 1, f"record resolved {len(seen)} times, want 1"

@@ -657,19 +657,34 @@ def _write_root_join_absent(tmp_path: Path, shape: str):
     return graph, tr, prev_path
 
 
+def _out_records(graph):
+    """`(records, idx)` — the seat's rotation records and the index of the
+    OUT record (`b_generation.before == GEN`), the record the audit now keys
+    the window on (hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-
+    by-post-and-record-never-by-b-generation: record, never generation)."""
+    records = sensei._seat_rotation_records(graph, SEAT)
+    for i, (_p, r) in enumerate(records):
+        if sensei._gen_bounds(r)[0] == GEN:
+            return records, i
+    raise AssertionError("fixture has no OUT record")
+
+
 @pytest.mark.parametrize("shape",
                          ["near_miss", "first_seating", "seating_merged"])
 def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
     """The near-miss shape (handover present, join absent, top-level path), the
     first-seating shape (top-level `gen_after`) and the merged seating record
     `rotate._seating_record_merge_handover` actually writes ALL resolve to the
-    predecessor's transcript, and the printed `source` names the spelling the
-    chain actually took — never a `handover.join.transcript` lie."""
+    predecessor's transcript, and the printed `source` names BOTH the record
+    stamp it came from and the spelling the chain actually took — never a
+    `handover.join.transcript` lie, and never a generation."""
     graph, tr, _ = _write_root_join_absent(tmp_path, shape)
+    records, idx = _out_records(graph)
     p, source = sensei._resolve_predecessor_transcript(
-        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+        graph, SEAT, records, idx, None)
     assert p == tr, f"{shape}: resolved {p}, expected {tr}"
-    assert source == f"previous record gen_after=={GEN} transcript_path"
+    assert source == f"previous record {PREV_STAMP} transcript_path"
+    assert "gen" not in source
 
 
 @pytest.mark.parametrize("shape",
@@ -683,7 +698,8 @@ def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path, shape):
     code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
     assert code == 0
     assert str(window["log_path"]) == str(tr)
-    assert window["source"] == f"previous record gen_after=={GEN} transcript_path"
+    assert window["source"] == f"previous record {PREV_STAMP} transcript_path"
+    assert window["record"] == OUT_STAMP
     assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
 
 
@@ -697,10 +713,12 @@ def test_predecessor_precedence_join_wins_over_top_level(tmp_path):
     prev = json.loads(prev_path.read_text(encoding="utf-8"))
     prev["handover"]["join"] = {"transcript": str(join_tr)}
     prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    records, idx = _out_records(graph)
     p, source = sensei._resolve_predecessor_transcript(
-        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+        graph, SEAT, records, idx, None)
     assert p == join_tr
-    assert source == f"previous record gen_after=={GEN} handover.join.transcript"
+    assert source == f"previous record {PREV_STAMP} handover.join.transcript"
+    assert "gen" not in source
 
 
 def test_predecessor_never_resolves_the_out_records_own_transcript(tmp_path):
@@ -714,8 +732,9 @@ def test_predecessor_never_resolves_the_out_records_own_transcript(tmp_path):
     decoy.write_text(tr.read_text(encoding="utf-8"), encoding="utf-8")
     out["transcript_path"] = str(decoy)
     out_path.write_text(json.dumps(out), encoding="utf-8")
+    records, idx = _out_records(graph)
     p, _ = sensei._resolve_predecessor_transcript(
-        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+        graph, SEAT, records, idx, None)
     assert p == tr, f"resolved the OUT record's own transcript: {p}"
 
 

@@ -65,6 +65,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
@@ -2044,6 +2045,12 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         if seat is not None and root is not None:
             _remove_first_seating_record(root, seat)
         return rc
+    if args.dry_run and seat is not None and root is not None:
+        # clause (3): the dry-run PLAN names the first key this seating would
+        # mint -- the ONE `would key <seat>` line -- and mints / writes
+        # NOTHING (the seating writes below never run on a dry-run).
+        _first_seating_key(root, seat, dry_run=True)
+
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         if getattr(args, "harness", None) == "copilot-cli":
@@ -2162,12 +2169,33 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # is byte-identical because it never takes this branch.
             if _jpid is None:
                 _jpid = 0
+            # goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-
+            # handoff-generation-header): rotate-self step (1) writes the
+            # successor's identity into seats/<seat>.handoff.md's HEADER. A
+            # first seating wrote no such header, so a seat hand-spawned onto
+            # a row whose HEADER carried an EARLIER rotation's number kept
+            # it (measured: header 32 while the live pin read 31 -- belam,
+            # 09-16) and any reader that falls back to the header when the
+            # row has no `generation:` cell (`_generation_measured` /
+            # `_read_generation`) read the stale number. Rewrite it here, at
+            # the SAME `_spawn_gen` the pin/ack/row below carry, through the
+            # ONE writer `_write_handoff`. Idempotent: an already-correct
+            # header is left byte-identical (no `rotated_at` churn, no
+            # needless diff). Best-effort: a header failure never fails the
+            # seating.
+            try:
+                _first_seating_handoff_write(root, seat, _spawn_gen)
+            except Exception as exc:                # noqa: BLE001
+                print(f"warn: first-seating handoff header failed: {exc}",
+                      file=sys.stderr)
+            _keyed = False
             try:
                 _fs_writes = _first_seating_spawn_writes(
                     root=root, seat=seat, generation=_spawn_gen,
                     ask_diff=ask_diff, role=_fs_role,
                     session_id=_jsess, window=_window_id or "",
                     pid=_jpid)
+                _keyed = bool(_fs_writes.get("keyed_at_seating"))
             except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -2199,11 +2227,18 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # `handover.spawn_row_commit`.
             if _commit:
                 print(_commit, file=sys.stderr)
-                if isinstance(_seating_rec, dict):
-                    _seating_rec["handover"] = dict(
-                        _seating_rec.get("handover") or {})
+            # clause (4): the seating record carries `keyed_at_seating` --
+            # true when THIS seating minted the row's first key, false when
+            # it found the row already keyed -- merged in the SAME one
+            # handover merge the commit outcome rides (a record already
+            # carrying a handover is never double-merged).
+            if isinstance(_seating_rec, dict):
+                _seating_rec["handover"] = dict(
+                    _seating_rec.get("handover") or {})
+                _seating_rec["handover"]["keyed_at_seating"] = _keyed
+                if _commit:
                     _seating_rec["handover"]["seating_row_commit"] = _commit
-                    _seating_record_merge_handover(root, _seating_rec)
+                _seating_record_merge_handover(root, _seating_rec)
     return 0
 
 
@@ -3506,7 +3541,8 @@ def _resolve_tmux_id(kind: str, src: str, run_tmux) -> str | None:
 
 
 def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
-                    run_git=None, run_tmux=None) -> tuple[int, int]:
+                    run_git=None, run_tmux=None, live: bool = False,
+                    ) -> tuple[int, int]:
     """ONE function, ONE pass over the surface table. Pure-filesystem
     surfaces (session files, dm logs, dm .state.json sidecar FILES, and their
     JSON KEYS) are renamed FOR REAL, each step idempotent (skip by name when
@@ -3519,6 +3555,7 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
     PRINTED. Returns (applied, skipped). Never writes config."""
     run_git = run_git or _seam_git
     run_tmux = run_tmux or _seam_tmux
+    live = bool(live)
     applied = skipped = 0
 
     # Pass 1: sidecar JSON KEY rewrites FIRST, so each sidecar is still at its
@@ -3569,10 +3606,58 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                         else dst)
                 _src = (s["src"].split("/", 1)[1]
                         if s["src"].startswith("origin/") else s["src"])
-                run_git("push", "origin", _dst)
-                if delete_old:
-                    run_git("push", "origin", f":{_src}")
-                applied += 1
+                # goal:g15.25 lines (1)+(2) (SM.250 round slice B, B1): a
+                # post/loop branch is LOCAL-ONLY -- the rename-apply mirrors
+                # its NEW tip to `refs/agi/<kind>/<name>` and PROVES the sha
+                # by ls-remote BEFORE the old head is dropped; the head push
+                # of the post branch straight to origin is the clause-(1)
+                # falsifier and is gone. Never delete first. Trunks (an
+                # unrecognised kind) keep today's head rename unchanged.
+                _mirror = branches.mirror_ref_for_branch(_dst)
+                if _mirror and live:
+                    _top = _git_toplevel(root) or Path(root)
+                    # SM.25b defect (3): prove the RENAMED BRANCH'S OWN tip --
+                    # `tip=_dst`, never the caller's toplevel HEAD. A tip that
+                    # cannot resolve is a refusal by name (mirror_and_prove),
+                    # never a silent fall back to HEAD.
+                    _mok, _md, _mi = branches.mirror_and_prove(
+                        _top, _mirror, tip=_dst, run=subprocess.run,
+                        label=f"rename-post mirror {_dst}")
+                    if not _mok:
+                        print(f"rename-post REFUSED: {_md}; old head "
+                              f"{_src} NOT deleted", file=sys.stderr)
+                        return applied, skipped
+                    print(f"rename-post mirror: {_mi['ref']} <- "
+                          f"{_mi['sha']} (proved_by ls-remote)",
+                          file=sys.stderr)
+                    if delete_old:
+                        # clause (4): a REAL origin-head delete only behind a
+                        # containment proof (cli.py's ONE implementation, both
+                        # tips read from origin). No proof => refuse by name and
+                        # delete nothing; the rename itself still stands.
+                        _cok, _cdet = _containment_proof(_top, _src, _mirror)
+                        if _cok:
+                            run_git("push", "origin", f":{_src}")
+                            print(f"rename-post: {_cdet}", file=sys.stderr)
+                        else:
+                            print(f"rename-post REFUSED: {_cdet}; {_src} "
+                                  f"NOT deleted", file=sys.stderr)
+                    applied += 1
+                elif _mirror:
+                    # print-only seam: the additive mirror, never a head push.
+                    # The delete line is a PLAN, not a deletion: this seam
+                    # runs no subprocess, and the live path above is where
+                    # clause (4)'s containment proof gates a real delete.
+                    run_git("push", "origin", f"{_dst}:{_mirror}")
+                    if delete_old:
+                        run_git("push", "origin", f":{_src}")
+                    applied += 1
+                else:
+                    # print-only trunk seam (no mirror, nothing deleted here).
+                    run_git("push", "origin", _dst)
+                    if delete_old:
+                        run_git("push", "origin", f":{_src}")
+                    applied += 1
             elif kind == "worktree dir":
                 run_git("worktree", "move", s["src"], dst)
                 applied += 1
@@ -3614,7 +3699,7 @@ def newk_present_in(data: dict, newk: str) -> bool:
 
 
 def _apply_staged(root: Path, old: str, delete_old: bool = False,
-                  run_git=None, run_tmux=None) -> int:
+                  run_git=None, run_tmux=None, live: bool = False) -> int:
     """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
     apply EVERY appliable surface in ONE pass. This is what the next
     rotate-self of `old` runs between the predecessor rotate-out and the
@@ -3644,7 +3729,7 @@ def _apply_staged(root: Path, old: str, delete_old: bool = False,
     # here: this path applies the staged table UNCONDITIONALLY and consumes
     # it on success (a second call, stage gone, is a no-op).
     _apply_surfaces(root, surfaces, delete_old=delete_old,
-                    run_git=run_git, run_tmux=run_tmux)
+                    run_git=run_git, run_tmux=run_tmux, live=live)
     # consume the stage once applied so the next boundary call is a no-op
     if stage.exists():
         stage.unlink()
@@ -3706,7 +3791,8 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         applied, skipped = _apply_surfaces(
             root, surfaces, delete_old=bool(getattr(args, "delete_old", False)),
             run_git=(lambda *a: _live_git(root, *a)) if live else None,
-            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None)
+            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None,
+            live=live)
         nship = sum(1 for s in surfaces if s["action"] == "ship")
         ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
         print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
@@ -3729,6 +3815,339 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
           f"{seats_dir / (old + '.rename.json')}; applied at the next rotation "
           f"boundary of {old} (rename-post: _apply_staged)")
     return 0
+
+
+# --- merge-up --post <name> (goal:g15.25 line (3), SM.250 slice B2) --------
+# The window ask is RETIRED for posts: this verb takes the advisory suite
+# lock ITSELF, runs the suite, merges --no-ff into the parent season branch,
+# pushes MAIN, mirrors the post branch tip and sends the Prime ONE numbers
+# line. No GRANT card, no wait. The GRANT protocol stays for other acts.
+def _suite_counts(output: str) -> dict:
+    """The suite's pytest counts, from EITHER shape verification.py emits:
+    the raw pytest summary (`2300 passed`) via the shared
+    `verification._parse_pytest_counts`, or the summary bracket that
+    `--suite` actually prints on a PASS (`[passed=2300, skipped=3]`). A
+    caller that only looked for the raw form would report no numbers on a
+    green suite -- the exact silence the numbers line exists to break. Never
+    raises: an unparseable output yields {}."""
+    counts: dict = {}
+    try:
+        import verification  # lazy: verification imports rotate
+        counts = dict(verification._parse_pytest_counts(output or ""))
+    except Exception:  # noqa: BLE001
+        counts = {}
+    for k, v in re.findall(r"(\w+)=(\d+)", output or ""):
+        if k in ("passed", "skipped", "failed", "errors", "deselected"):
+            counts.setdefault(k, int(v))
+    return counts
+
+
+def _node_counts(graph_root: Path) -> tuple[int, int, int] | None:
+    """(active, deprecated, total) counted LIVE from `<graph_root>/nodes`,
+    reusing metrics' ONE definition of 'retired'
+    (`node_lifecycle_stats` over `_iter_frontmatter`) rather than deriving a
+    second predicate. None when the graph has no nodes dir (a fixture root)."""
+    nodes = Path(graph_root) / "nodes"
+    if not nodes.is_dir():
+        return None
+    try:
+        import metrics  # lazy: a heavy-ish import, only for the numbers line
+        total = sum(1 for _ in metrics._iter_frontmatter(nodes))
+        st = metrics.node_lifecycle_stats(nodes, total)
+        return (int(st["active_node_count"]),
+                int(st["deprecated_node_count"]), total)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _merge_up_suite(root: Path, main: Path) -> tuple[bool, str, dict]:
+    """Run `verification.py --level quick --suite` in MAIN WHILE THE CALLER
+    HOLDS THE SUITE LOCK (the falsifier 'a merge-up that runs the suite
+    without holding the lock' must be provably false). We acquired the lock
+    ourselves, so the suite's own conftest -- the ONE live acquirer -- must
+    NO-OP instead of refusing itself against our live pid: SUITE_LOCK_MARKER
+    is exported into the child's env for exactly that. This is the seam the
+    tests monkeypatch so a merge-up test never spawns pytest. Returns
+    (ok, detail, pytest-counts) -- the counts feed the Prime numbers line."""
+    binp = Path(__file__).with_name("verification.py")
+    import verification  # lazy: verification imports rotate
+    env = dict(os.environ)
+    env[verification.SUITE_LOCK_MARKER] = str(os.getpid())
+    sink = Path(_sessions_dir(root)) / "merge-up-suite.log"
+    try:
+        sink.parent.mkdir(parents=True, exist_ok=True)
+        with open(sink, "a", encoding="utf-8") as fh:
+            out = subprocess.run(
+                [sys.executable, str(binp), "--level", "quick", "--suite"],
+                capture_output=True, text=True, timeout=1800, cwd=str(main),
+                env=env)  # noqa: S603
+            fh.write(out.stdout or "")
+            fh.write(out.stderr or "")
+    except Exception as exc:  # noqa: BLE001
+        return False, f"suite could not run: {exc}", {}
+    counts = _suite_counts((out.stdout or "") + (out.stderr or ""))
+    if out.returncode == 0:
+        return True, f"suite passed; log {sink}", counts
+    return False, f"suite failed (rc {out.returncode}); log {sink}", counts
+
+
+def merge_up_plan(root: Path, post: str) -> dict:
+    """The resolved merge-up plan for `post`: {main, branch, target, mirror}.
+    Raises ValueError NAMING the missing piece, never returns a partial
+    plan."""
+    main = _closeout_main(root)
+    if main is None:
+        raise ValueError(f"could not resolve MAIN for post {post!r}")
+    branch = _fd_seat_branch(root, main, post)
+    if not branch:
+        raise ValueError(f"no branch resolves for post {post!r}")
+    mirror = branches.mirror_ref_for_branch(branch)
+    if not mirror:
+        raise ValueError(
+            f"post {post!r} branch {branch!r} has no mirror ref (not a "
+            f"post/loop branch)")
+    return {"main": main, "branch": branch,
+            "target": branches.merge_target(branch), "mirror": mirror}
+
+
+def _drop_origin_post_head(main: Path, branch: str) -> tuple[bool, str]:
+    """Clause (2) migration tail: drop the PRE-EXISTING origin head
+    `refs/heads/<branch>` for a local-only post/loop branch. The CALLER MUST
+    have already proved the `refs/agi/<kind>/<name>` mirror -- this is a
+    delete and the order is load-bearing ('never delete first'). rc-gated:
+    a failed delete is REPORTED by name, never silent, and the head survives
+    it. Additive mirror first, delete second, always."""
+    ref = f"refs/heads/{branch}"
+    proc = _git_proc(main, "push", "origin", f":{ref}")
+    if proc is None:
+        return False, f"could not run push origin :{ref}"
+    if proc.returncode != 0:
+        return False, (f"delete {ref} failed (rc {proc.returncode}): "
+                       f"{(proc.stderr or proc.stdout or '').strip()}")
+    return True, f"{ref} deleted on origin"
+
+
+def _containment_proof(repo: Path, head_branch: str,
+                       mirror: str) -> tuple[bool, str]:
+    """Clause (4)'s containment proof for a real origin-head delete: the
+    `mirror` ref's content CONTAINS the origin tip of `refs/heads/head_branch`.
+    Both tips are read from origin by `ls-remote` (never a stale tracking ref,
+    never a guess) and the walk REUSES cli.py's ONE containment implementation
+    (`_rs_containment_state` -> `merge-base --is-ancestor`) rather than
+    minting a second one. An ls-remote that FAILS is UNKNOWN, never 'absent',
+    and refuses; 'diverged'/'absent'/'failed' all refuse by name."""
+    import cli  # lazy: same dir; cli.py is the ONE containment implementation
+    head = f"refs/heads/{head_branch}"
+    if not cli._rs_ls_remote_sha(repo, head_branch):
+        return False, (f"ls-remote {head} failed or absent -- UNKNOWN, "
+                       f"refusing to delete")
+    state, tgt = cli._rs_containment_state(repo, head_branch, [mirror])
+    if state != "contained":
+        return False, (f"no containment proof for {head} in {mirror} "
+                       f"({state})")
+    return True, f"{head} contained in {tgt}"
+
+
+def _origin_head_delete_gate(repo: Path, branch: str, *,
+                             delete_old: bool) -> tuple[str, str]:
+    """SM.25b clause (4): EVERY origin-head deletion is flag-gated, dry-run by
+    DEFAULT, and refused without a containment proof. Returns
+    ('deleted'|'dry'|'refused', detail) and NEVER deletes unless `delete_old`,
+    the branch resolves a `refs/agi/<kind>/<leaf>` mirror, and that mirror
+    CONTAINS the head's origin tip."""
+    head = f"refs/heads/{branch}"
+    mirror = branches.mirror_ref_for_branch(branch)
+    if not mirror:
+        return "refused", (f"{branch} has no refs/agi mirror (not a post/loop "
+                           f"branch) -- {head} NOT deleted")
+    if not delete_old:
+        return "dry", (f"plan: would delete {head} on origin, justified by "
+                       f"the containment proof in {mirror}; pass "
+                       f"--delete-old to delete")
+    ok, detail = _containment_proof(repo, branch, mirror)
+    if not ok:
+        return "refused", f"{detail} -- {head} NOT deleted"
+    dok, ddetail = _drop_origin_post_head(repo, branch)
+    return ("deleted" if dok else "refused"), ddetail
+
+
+def _suite_lock_state_readonly(groot: Path) -> str:
+    """The dry-run's lock line -- READ-ONLY, touches nothing (a dry run must
+    not create or delete the lock file). Names the holder pid when the file
+    holds a live pid, else 'free'."""
+    import verification  # lazy: verification imports rotate
+    path = Path(groot) / "sessions" / verification.SUITE_LOCK
+    if not path.exists():
+        return "free"
+    try:
+        holder = int(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return "free (stale/unreadable)"
+    if verification._pid_alive(holder):
+        return f"held by pid {holder}"
+    return "free (stale)"
+
+
+def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py merge-up --post <name>` (goal:g15.25 line (3), owner
+    18:4xZ via belam XIX): the post merge-up WITHOUT the window ask. Order:
+      (0)  AUTH (SM.250 slice C1): resolve the caller with _caller_post exactly
+           as rotate does and refuse BY NAME before any git read or the lock;
+           a --post other than the caller's own post must pass the same
+           _rank_gate rotate applies.
+      (i)  --dry-run prints the plan (lock state, suite cmd, merge target,
+           mirror ref) and touches NOTHING (no lock, no suite, no git).
+      (ii) take the advisory suite lock ITSELF when FREE
+           (verification.acquire_suite_lock); when HELD, refuse BY NAME
+           naming the holder pid. The lock is held across the suite and
+           released in a `finally` (even on failure); SUITE_LOCK_MARKER
+           makes the suite's conftest no-op rather than refuse itself.
+      (iii) run the suite (verification.py --level quick --suite) in MAIN.
+      (iv) merge --no-ff the post branch into branches.merge_target in MAIN,
+           push MAIN, mirror the post branch tip (mirror + ls-remote prove),
+           THEN drop the pre-existing origin head for that branch (slice C2
+           migration tail -- never delete before the mirror proves), release
+           the lock, and send the Prime ONE line carrying suite n/n, nodes
+           a/d/t, the tip sha and the mirror ref/sha (slice C3).
+    The locked suite is a BLOCK: a failure or any refusal stops with NOTHING
+    merged and the lock released. Never a force-push, never a delete."""
+    if root is None:
+        print("ERR: merge-up needs an agi project root.", file=sys.stderr)
+        return 1
+    post = getattr(args, "post", None) or getattr(args, "name", None)
+    if not post:
+        print("merge-up refused: --post is required", file=sys.stderr)
+        return 2
+    # (C1) AUTH -- 'bare keyed like rotate'. Resolve the caller EXACTLY as
+    # rotate does and refuse by name BEFORE any git read or the lock: an
+    # unkeyed/foreign caller must not merge a post up and publish MAIN. When
+    # --post differs from the caller's own post, the SAME rank gate rotate
+    # applies decides; the caller's own held key only ever acts on itself or
+    # a strictly lower-ranked post.
+    caller_post, caller_row, how = _caller_post(root)
+    if caller_post is None:
+        print(f"merge-up refused: {how} (nothing merged)", file=sys.stderr)
+        return 3
+    if post != caller_post:
+        target_row = _find_seat(root, post)
+        if target_row is None:
+            print(f"merge-up refused: no seat {post!r} in the seats registry "
+                  f"(nothing merged)", file=sys.stderr)
+            return 3
+        gate = _rank_gate(caller_row, target_row, _ranks(root))
+        if gate:
+            print(f"merge-up refused: {gate} (nothing merged)",
+                  file=sys.stderr)
+            return 3
+    try:
+        plan = merge_up_plan(root, post)
+    except ValueError as exc:
+        print(f"merge-up refused: {exc}", file=sys.stderr)
+        return 3
+    main, branch = plan["main"], plan["branch"]
+    target, mirror = plan["target"], plan["mirror"]
+    groot = _shared_graph_root(root)
+    _suite_cmd = f"{sys.executable} verification.py --level quick --suite"
+    if getattr(args, "dry_run", False):
+        print(f"merge-up plan for {post}: branch {branch} -> target {target} "
+              f"in {main}; mirror {mirror}; suite {_suite_cmd}; "
+              f"suite lock {_suite_lock_state_readonly(groot)}; "
+              f"delete-old plan: refs/heads/{branch} only behind "
+              f"--delete-old AND a containment proof in {mirror}")
+        print("merge-up: dry-run, nothing changed")
+        return 0
+    cur = _closeout_branch(main)
+    if cur != target:
+        print(f"merge-up refused: MAIN is on {cur or '<detached>'!r}, not "
+              f"{target!r} -- nothing merged", file=sys.stderr)
+        return 3
+    clean, blockers, ignored = _closeout_main_clean(main, branch)
+    if clean is None or not clean:
+        named = ", ".join(blockers[:5]) if blockers else "unmeasurable"
+        print(f"merge-up refused: MAIN tracked tree dirty/unknown on "
+              f"{named} -- nothing merged", file=sys.stderr)
+        return 3
+    import verification  # lazy: verification imports rotate
+    lock_path, holder = verification.acquire_suite_lock(groot)
+    if lock_path is None:
+        print(f"merge-up refused: suite lock held by pid {holder} -- "
+              f"nothing merged", file=sys.stderr)
+        return 3
+    try:
+        suite_res = _merge_up_suite(root, main)
+        ok, detail = suite_res[0], suite_res[1]
+        suite_counts = suite_res[2] if len(suite_res) > 2 else {}
+        if not ok:
+            print(f"merge-up refused (lock held, nothing merged): {detail}",
+                  file=sys.stderr)
+            return 3
+        proc = _git_proc(main, "merge", "--no-ff", branch, "-m",
+                         f"merge-up: merge {branch} into {target} "
+                         f"(post {post})")
+        if proc is None or proc.returncode != 0:
+            _git_maybe(main, "merge", "--abort")
+            err = ((proc.stderr or proc.stdout or "nonzero exit").strip()
+                   if proc is not None else "merge could not run")
+            print(f"merge-up refused: merge --no-ff {branch} into {target} "
+                  f"failed (aborted): {err}", file=sys.stderr)
+            return 3
+        lines = _git_maybe(main, "rev-parse", "--short", "HEAD")
+        tip = lines[0].strip() if lines else "?"
+        push = _git_proc(main, "push", "origin", target)
+        if push is None or push.returncode != 0:
+            err = ((push.stderr or push.stdout or "nonzero exit").strip()
+                   if push is not None else "push could not run")
+            print(f"merge-up refused: push origin {target} failed: {err}",
+                  file=sys.stderr)
+            return 3
+        mok, mdetail, minfo = branches.mirror_and_prove(
+            main, mirror, tip=branch, run=subprocess.run,
+            label=f"merge-up mirror {post}")
+        if not mok:
+            print(f"merge-up refused: {mdetail}", file=sys.stderr)
+            return 3
+        # (C2) MIGRATION TAIL -- clause (4): the mirror is PROVED above, so
+        # the legacy origin head for this post may now be dropped -- but ONLY
+        # behind an explicit --delete-old AND a containment proof. Without
+        # the flag this prints the plan and deletes nothing; a failed or
+        # absent ls-remote is UNKNOWN and refuses. Never first: a mirror that
+        # did not prove returned above with the head untouched.
+        _st, _det = _origin_head_delete_gate(
+            main, branch, delete_old=bool(getattr(args, "delete_old", False)))
+        if _st == "refused":
+            print(f"merge-up: {branch} head NOT deleted: {_det} "
+                  f"(merge landed; mirror is the durable ref)", file=sys.stderr)
+        else:
+            print(f"merge-up: {_det}", file=sys.stderr)
+        # (C3) the numbers the claim names: suite n/n, nodes a/d/t, tip sha,
+        # mirror ref/sha -- ONE line to the Prime.
+        sc = suite_counts or {}
+        _passed_n = int(sc.get("passed", 0) or 0)
+        _total_n = _passed_n + sum(int(sc.get(k, 0) or 0)
+                                   for k in ("failed", "errors", "skipped"))
+        suite_s = (f"suite {_passed_n}/{_total_n}" if sc else "suite ok")
+        nc = _node_counts(groot)
+        nodes_s = (f"nodes {nc[0]}/{nc[1]}/{nc[2]}" if nc else "nodes n/a")
+        import send  # local: same dir
+        line = (f"MERGE-UP {post}: {suite_s} | {nodes_s} | merge {branch} "
+                f"-> {target} @{tip} | mirror {minfo['ref']} @{minfo['sha'][:7]} "
+                f"(proved_by ls-remote)")
+        try:
+            send.send(root, _closeout_prime_seat(root), line, sender=post,
+                      nudge=False)
+        except Exception as exc:  # noqa: BLE001
+            print(f"merge-up: landed, but the Prime line could not be sent: "
+                  f"{exc}", file=sys.stderr)
+            return 4
+        print(f"merge-up: {line}")
+        # The seat's OWN last act (conjunct 1): a post merged up.
+        last_act.touch_env(root, post)
+        return 0
+    finally:
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:  # noqa: BLE001
+            pass
 
 
 # --- rotation templates (.geometry/rotations.md) ---------------------------
@@ -4442,6 +4861,39 @@ def _write_handoff(root: Path, name: str, generation: int,
     return hp
 
 
+def _first_seating_handoff_write(root: Path, seat: str,
+                                 generation: int) -> bool:
+    """Rewrite `<seat>.handoff.md`'s generation header to `generation`.
+
+    goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-handoff-
+    generation-header). rotate-self rewrites the header at step (1); a FIRST
+    seating (`rotate.py spawn --seat S`) never did, so the header sat at
+    whatever an EARLIER rotation stamped it and a reader that falls back to
+    the header when the seat row carries no `generation:` cell
+    (`_generation_measured` / `_read_generation`) read an older rotation's
+    number. This writes the SAME `_spawn_gen` the spawn's meter pin, ack and
+    seating row already use, through the ONE writer `_write_handoff`.
+
+    IDEMPOTENT: a header already reading `generation` is left byte-identical
+    -- no `rotated_at` churn, no needless diff. Returns True when the file
+    was written (a missing header is written, never left absent).
+    """
+    hp = _seat_hands(root) / f"{seat}.handoff.md"
+    if hp.exists():
+        try:
+            for line in hp.read_text(encoding="utf-8",
+                                     errors="replace").splitlines():
+                ls = line.strip()
+                if ls.startswith("generation:"):
+                    if ls.split(":", 1)[1].strip() == str(generation):
+                        return False
+                    break
+        except OSError:
+            pass
+    _write_handoff(root, seat, int(generation))
+    return True
+
+
 # ---- durable rotation record (hypothesis:l3-rotation-record-and-
 #      predecessor-guarantee) -----------------------------------------------
 
@@ -4539,6 +4991,33 @@ def _preserve_closeout(rec: dict, existing_path: Path | None) -> None:
         rec["closeout"] = doc["closeout"]
 
 
+def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
+    """Carry the Sensei's `audit` block from the on-disk rotation record into
+    a FRESH dict about to overwrite it, so the outcome rewrite ~60 s after the
+    wake audit never drops it (hypothesis:l4-a-started-record-keeps-its-audit-
+    and-the-verb-commits-what-it-wrote, part (a)).
+
+    Same mechanism (A) as `_preserve_swept_latches` / `_preserve_closeout`:
+    both `_write_rotate_self_started` and the in-place `_write_rotation_record`
+    rebuild the dict from arguments, so a key outside their argument list is
+    lost by construction. An `audit` THIS run measured always wins -- the
+    on-disk block is copied only when `rec` carries none of its own -- so a
+    re-run never inherits a stale audit. Absent on disk -> leaves `rec`
+    unchanged. Best-effort: never raises.
+    """
+    if "audit" in rec or existing_path is None:
+        return
+    p = Path(existing_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    if isinstance(doc, dict) and "audit" in doc:
+        rec["audit"] = doc["audit"]
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -4563,6 +5042,10 @@ def _write_rotation_record(root: Path, record: dict,
     # (SL7.84) an in-place OUTCOME rewrite of a closeout rotation must also
     #     keep the phase-3 captive-step log (`closeout: [...]`).
     _preserve_closeout(record, path)
+    # (SL7.134) nor the Sensei's `audit` block (`audit: {wake|out: {...}}`),
+    #     written between the join and the outcome: rebuilding the dict from
+    #     arguments drops it BY CONSTRUCTION (mechanism (A)).
+    _preserve_audit(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -4659,6 +5142,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     _preserve_closeout(rec, path)
     # (SL7.116) nor the stops_sha256 a rewrite seals, once written.
     _preserve_stops_sha(rec, path)
+    # (SL7.134) nor the Sensei's `audit` block, written on this same file
+    #     between the join and the outcome rewrite (mechanism (A)).
+    _preserve_audit(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
@@ -5566,6 +6052,43 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
     return seating
 
 
+def _first_seating_key(root: Path, seat: str,
+                       dry_run: bool = False) -> tuple[dict, str]:
+    """A first seating's KEYING half (hypothesis:l4-the-unkeyed-refusal-...
+    clause (2)): a real seat row that carries NO ``pubkey`` mints its FIRST
+    key through ``send._mint_seat_key`` -- the ONE key writer, no second key
+    path and no ed25519 literal -- IN THE SAME seating step, and its
+    ``pubkey``/``sig_scheme``/``enc_scheme`` cells ride the SAME
+    ``_write_identity_cells`` call the seating row already makes: one write,
+    one ``seating row`` commit, never a second commit.
+
+    A row that already names a pubkey, a THROWAWAY seat with no registry row,
+    and a seat whose ``<seat>.key`` already exists (``_mint_seat_key``
+    REFUSES rather than overwrite) are all left UNTOUCHED -- a re-seat never
+    rotates a key. Returns ``(cells, note)``: ``cells`` is the dict to merge
+    into the seating row (``{}`` when nothing was keyed) and ``note`` is the
+    ONE line the caller prints, empty when silent. ``dry_run`` mints and
+    writes NOTHING: it prints the ONE ``would key <seat>`` plan line."""
+    import write as _w  # local: same dir (send.py pattern, no cycle)
+    row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                if r.get("name") == seat), None)
+    if not row or row.get("pubkey"):
+        return {}, ""
+    if dry_run:
+        print(f"would key {seat}")
+        return {}, ""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    scheme = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is None:
+        return {}, ""
+    _path, pub = minted
+    return ({"pubkey": pub.hex(), "sig_scheme": scheme,
+             "enc_scheme": row.get("enc_scheme") or "none"},
+            f"[seating] seat {seat!r} was unkeyed: minted its first key at "
+            f"{_path} ({send.seatsig.fingerprint(pub)})")
+
+
 def _first_seating_spawn_writes(*, root: Path, seat: str,
                                 generation: int = FIRST_SEATING_GEN,
                                 transcript: str = "",
@@ -5608,16 +6131,24 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     ap = _write_ack(root=root, seat=seat, gen_after=generation,
                     session_ref="", answer=_answer, source="seating",
                     session_id=session_id, role=role)
+    # clause (2): the seating KEYS its successor row -- an unkeyed real row
+    # mints its FIRST key here and the three cells ride the SAME
+    # `_successor_row_write` (-> `_write_identity_cells`) the seating already
+    # makes, so the seating's ONE `seating row` commit carries them.
+    _key_cells, _key_note = _first_seating_key(root, seat)
+    if _key_note:
+        print(_key_note, file=sys.stderr)
     row = _successor_row_write(
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
-        session_id=session_id)
+        session_id=session_id, first_key_cells=_key_cells)
     # goal:g15.25 FIX-ONLY: a first seating has NO join to resolve a harness
     # name from, so session_name stays '' — the cell is still written (as
     # empty) from the seat's first spawn write, and a later ack back-fill
     # fills it when it joins (hypothesis:l4-a-post-row-carries-a-session-
     # name-cell...).
-    return {"meter_pin": mp, "ack_path": str(ap), "row": row}
+    return {"meter_pin": mp, "ack_path": str(ap), "row": row,
+            "keyed_at_seating": bool(_key_cells)}
 
 
 def _remove_first_seating_record(root: Path, seat: str) -> bool:
@@ -8080,9 +8611,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
             argv += ["--actor", seat]
         if role:
             argv += ["--role", role]
+        # THE CLOSEOUT HAZARD (conjunct 1, measured): this note runs AFTER the
+        # rotation wrote the seat's card, so a stamp on write.py would read as a
+        # FRESH act and re-stale the card the rotation just produced. The marker
+        # makes the subprocess WRITE, never stamp.
+        env = {**os.environ, last_act.INTERNAL_ENV: "1"}
         try:
             out = subprocess.run(argv, capture_output=True, text=True,
-                                 timeout=120, cwd=str(root))
+                                 timeout=120, cwd=str(root), env=env)
         except Exception as exc:  # noqa: BLE001
             return (False, "refused", f"g17_1_note could not run: {exc}")
         if out.returncode == 0:
@@ -8359,7 +8895,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          window: str, pid: int | None = None,
                          session_id: str | None = None,
                          session_name: str = "",
-                         key_rotation: dict | None = None) -> str:
+                         key_rotation: dict | None = None,
+                         first_key_cells: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
@@ -8448,6 +8985,11 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                             for h in _hist if isinstance(h, dict)):
             _hist.append(_ret)
         cells["key_history"] = _hist
+    # clause (2): a first-seating KEY mint's cells (pubkey/sig_scheme/
+    # enc_scheme from `_first_seating_key`) ride the SAME one row write --
+    # never a second `_write_identity_cells` call, never a second commit.
+    if first_key_cells:
+        cells.update(first_key_cells)
     if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
                                  cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
@@ -14123,6 +14665,23 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
+def _prepare_owner_guess(path: str) -> str:
+    """OWNER guess for a dirty path OUTSIDE the merge, parsed from the path
+    alone (SM.40). `.agi/sessions/iter-<ITER>/**` and root-level
+    `orders-<ITER>-*` -> `iter <ITER>`; `.agi/sessions/quorum/<SEAT>.md` ->
+    `post <SEAT>`; anything else -> `unknown`. A guess is never a claim: the
+    line is never-blocking, it only stops a reader committing dirt whose
+    owner the bare list hid (master-sensei 2026-09-16 10:04-10:05Z)."""
+    m = re.match(r"^\.agi/sessions/iter-([^/]+)/", path)
+    if not m:
+        m = re.match(r"^orders-([A-Za-z0-9]+\.[0-9]+)-", path)
+    if m:
+        return f"iter {m.group(1)}"
+    if re.match(r"^(?:\.agi/)?sessions/quorum/[^/]+\.md$", path):
+        return f"post {Path(path).stem}"
+    return "unknown"
+
+
 def _prepare_dirty_paths(porcelain: list[str] | None,
                          root: Path, top: Path | None) -> list[str]:
     """The NON-churn dirty/untracked paths `git status --porcelain` reports
@@ -14436,6 +14995,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     porcelain = _git_maybe(root, "status", "--porcelain")
     top = _git_toplevel(root)
     dirty_paths = _prepare_dirty_paths(porcelain, root, top)
+    # SM.40: the churn class is NAMED, never silently dropped -- a hidden
+    # class was the bug (the tree was dirty yet prepare printed a plain
+    # `[ok] dirty tree`). Same predicate that excludes them from the block.
+    churn_paths: list[str] = []
+    for ln in (porcelain or []):
+        if ln.strip() and _prepare_churn_path(ln):
+            p = _porcelain_path(ln)
+            if p and p not in churn_paths:
+                churn_paths.append(p)
     # claim 2 (one-serializer hypothesis): a dirty path whose ONLY delta vs
     # HEAD is trailing whitespace / a missing EOF newline reads CLEAN — named
     # on ONE benign (never-blocking, ok) line, never a dirty-tree blocker. A
@@ -14476,6 +15044,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     if _touch is not None:
         _foreign = [p for p in dirty_paths if p not in _touch]
         _block_paths = [p for p in dirty_paths if p in _touch]
+    # SM.40 own-card BLOCK: the rotating post's OWN card is dirty work a
+    # rotation must not proceed over, even though the merge would not touch
+    # it. Resolved from the path's OWNER guess, which needs only the seat
+    # (the rotating ITER is not resolvable at prepare time -- no own-iter
+    # rule is built, per the brief's fallback).
+    _own = [p for p in _foreign
+            if _prepare_owner_guess(p) == f"post {seat}"]
+    _block_paths += _own
+    _foreign = [p for p in _foreign if p not in _own]
     if dirty_paths:
         shown: list[str] = []
         for p in _block_paths:
@@ -14488,8 +15065,10 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if _index_staged_real_change(root, top, p):
                 shown.append(f"{p}: staged change (index differs from HEAD)")
             else:
-                shown.append(p + (f" (touched by origin/{_sb})"
-                                  if _touch is not None else ""))
+                note = (": your own card" if p in _own else
+                        (f" (touched by origin/{_sb})"
+                         if _touch is not None else ""))
+                shown.append(p + note)
         suffix = (f", +{len(_block_paths) - 5} more"
                   if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
@@ -14503,11 +15082,21 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # would NOT touch — NAMED as one never-blocking line (capped at 5, then
     # `+N more`), never a block, never a stop_commit (goal:g15.25).
     if _foreign:
-        _fs = _foreign[:5]
+        _fs = [f"{p} [owner: {_prepare_owner_guess(p)}]"
+               for p in _foreign[:5]]
         _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
         checks.append((False,
                        "foreign dirt (not in the merge): "
                        + ", ".join(_fs) + _suf, ""))
+    # SM.40 rotation churn: `_prepare_churn_path`'s paths, named on ONE
+    # never-blocking line. Never a BLOCK (grid_sync commits them); named so
+    # the class is visible rather than swallowed.
+    if churn_paths:
+        _cs = churn_paths[:5]
+        _csuf = (f", +{len(churn_paths) - 5} more"
+                 if len(churn_paths) > 5 else "")
+        checks.append((False, "rotation churn: " + ", ".join(_cs) + _csuf,
+                       ""))
     # claim 2 benign naming: each whitespace-only-delta path is named on ONE
     # never-blocking (ok) line so prepare both passes AND says why the path
     # was not a blocker. Name relative to the repo top so the familiar
@@ -14615,39 +15204,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # handoff writer use (hypothesis:l4-the-driven-handoff-writer-keys-on-
     # declared-titles-and-writes-the-seats-own-card).
     card = _own_card_path(root, seat)
-    # "Older than the last commit" means the last commit that is WORK: a
-    # merge from the season branch (a sync) is not, a commit of cron-owned
-    # churn (comms dms, rotation records) is not, and the commit that
-    # committed the card itself is not (Sensei 18:29Z: two porcelain syncs
-    # aged the card and blocked the rotation). Measured at the repo top so
-    # engine edits under extensions/ count, not only the graph dir.
-    top = _git_toplevel(root) or root
+    # "Older than the last commit" now means older than the SEAT'S OWN last
+    # act — ONE clock, shared with the hook (bin/last_act.py, conjunct 1/2).
+    # The old inline repo-wide spec (`git log -1 --no-merges -- .` excluding
+    # comms/rotations/card/seats) is gone: any foreign seat's commit used to
+    # re-age this card faster than a write/commit/recheck round trip.
     try:
-        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
-    except (ValueError, OSError):
-        card_rel = None
-    spec = ["log", "-1", "--no-merges", "--format=%ct", "--", ".",
-            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
-    if card_rel:
-        spec.append(f":(exclude){card_rel}")
-    # a rotate-out stops commit touching seats.md must not re-age the card
-    # (goal:g15.25 line (3)): seating/rotation bookkeeping is not WORK, the
-    # same reasoning that excludes comms + rotation records — a pure
-    # card+seats commit is fully invisible to this check, so the stops write
-    # satisfies this captive instead of re-triggering it. SL7.30: this
-    # exclusion is CONDITIONAL on the run being a --stops rotate-self. A
-    # plain `prepare` (or rotate-self --prepare) must still let a seats.md
-    # WORK commit age the card — SL7.12 over-applied it to every prepare.
-    if stops_rotation:
-        try:
-            _sres = str(_ack_seats_path(root).resolve()
-                        .relative_to(Path(top).resolve()))
-            spec.append(f":(exclude){_sres}")
-        except (ValueError, OSError):
-            pass
-    last_ts = _git_count_maybe(top, *spec)
-    card_stale = (last_ts is not None and card.exists()
-                  and card.stat().st_mtime < last_ts)
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import last_act  # noqa: PLC0415
+        card_stale, _last_ts = last_act.card_stale(root, seat, card)
+    except Exception:  # noqa: BLE001
+        card_stale = False   # unmeasurable reads NOT stale (P7)
     checks.append((card_stale, "card older than last commit",
                    f"rotate.py handoff --driven --seat {seat}"))
 
@@ -14828,8 +15395,13 @@ def _git_toplevel(root: Path) -> Path | None:
         return None
     if out.returncode != 0:
         return None
+    top = (out.stdout or "").strip()
+    if not top:
+        # an empty stdout (a fake/stubbed runner) must NOT collapse to
+        # Path(".") -- a relative cwd is not a toplevel.
+        return None
     try:
-        return Path(out.stdout.strip())
+        return Path(top)
     except ValueError:
         return None
 
@@ -15275,6 +15847,17 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     return 0
 
 
+#: THE canonical keygen recovery line -- every refusal that sends an operator
+#: to key a seat quotes THIS constant, never a hand-spelled copy. The spelling
+#: is `keygen --post <seat>` because send.py's argparse declares the seat as
+#: `--seat`/`--post` ONLY (send.py:~4978): the bare positional `keygen <seat>`
+#: tail was rejected by argparse, so a refusal that quoted it sent the operator
+#: straight into a usage error (hypothesis:l4-the-unkeyed-refusal-quotes-the-
+#: exact-keygen-line-and-a-seating-keys-the-successors-row-so-no-post-reaches-
+#: rotate-unkeyed, clause (1)).
+KEYGEN_LINE = "python3 extensions/agi/bin/send.py keygen --post {seat}"
+
+
 def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
     """rotate-self is KEY-GATED (hypothesis:l4-rotate-self-is-key-gated...
     piece 1). A KEYED seat -- its row already names a ``pubkey`` -- must hold
@@ -15295,7 +15878,8 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
     if key_path.exists():
         return None
     return (f"rotate-self refused: seat {seat!r} carries a pubkey but no "
-            f"signing key at {key_path} -- run `send.py keygen {seat}` "
+            f"signing key at {key_path} -- run "
+            f"`{KEYGEN_LINE.format(seat=seat)}` "
             f"first (rotate-self is key-gated: a keyed seat must hold its "
             f"own signing key to rotate).")
 
@@ -16082,6 +16666,20 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
                         f"({branch}) while the prime is frozen; {_why}")
         except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
             pass
+    # goal:g15.25 lines (1)+(2) (SM.250): a post/loop branch is LOCAL-ONLY --
+    # its tip goes to the ADDITIVE mirror ref `refs/agi/<kind>/<name>`, proved
+    # by ls-remote, and NEVER reaches origin as a head (falsifier: any engine
+    # path pushing refs/heads/season<n>/posts/*). Trunks and unrecognised
+    # names keep the head push below, unchanged.
+    _mirror = branches.mirror_ref_for_branch(branch)
+    if _mirror:
+        _ok, _detail, _info = branches.mirror_and_prove(
+            top, _mirror, run=subprocess.run, label=f"{label} push")
+        if not _ok:
+            return _detail
+        print(f"{label} push: OK -- {_info['ref']} <- {_info['sha']} "
+              f"(proved_by ls-remote)", file=sys.stderr)
+        return None
     try:
         push = subprocess.run(["git", "-C", str(top), "push", "origin",
                                branch], capture_output=True, text=True,
@@ -16142,13 +16740,14 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
     reads a key file without comparing its pub to the committed row). """
     import send  # local
     if not row or not row.get("pubkey"):
-        return None, None, f"post {seat!r} is unkeyed: send.py keygen {seat} first"
+        return None, None, (f"post {seat!r} is unkeyed: "
+                            f"{KEYGEN_LINE.format(seat=seat)} first")
     key_path = send._seat_key_path(root, seat)
     obj = send._signing_key_obj(root, seat, key_path)
     if obj is None:
         return None, None, (
             f"post {seat!r} carries a pubkey but holds no signing key at "
-            f"{key_path}: send.py keygen {seat} first")
+            f"{key_path}: {KEYGEN_LINE.format(seat=seat)} first")
     try:
         scheme = send.seatsig.get(str(obj.get("scheme") or "ed25519"))
         ours = send.seatsig.fingerprint(
@@ -16162,7 +16761,7 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
     if ours != row_fp:
         return None, None, (
             f"post {seat!r}: held key fingerprint {ours} does not match the "
-            f"committed row {row_fp}; send.py keygen {seat} first")
+            f"committed row {row_fp}; {KEYGEN_LINE.format(seat=seat)} first")
     return seat, row, how
 
 
@@ -19256,6 +19855,29 @@ def main(argv: list[str] | None = None) -> int:
     p_rp.add_argument("--root", default=None,
                       help="project root override (default: resolve from cwd)")
     p_rp.set_defaults(func=cmd_rename_post)
+
+    # merge-up --post <name>: the post merge-up WITHOUT the window ask
+    # (goal:g15.25 line (3), SM.250 slice B2). Takes the advisory suite lock
+    # itself when free, runs the suite, merges --no-ff into the parent season
+    # branch, pushes, mirrors, releases and sends the Prime ONE line.
+    p_mu = sub.add_parser(
+        "merge-up", help="merge a post branch up into its parent season "
+                           "branch without the grant window: take the suite "
+                           "lock, run the suite, merge --no-ff, push, mirror, "
+                           "send the Prime one line")
+    p_mu.add_argument("--post", default=None, metavar="NAME",
+                      help="the post whose branch to merge up (required)")
+    p_mu.add_argument("--name", default=None, metavar="NAME",
+                      help="alias for --post")
+    p_mu.add_argument("--dry-run", action="store_true",
+                      help="print the plan (lock state, suite cmd, merge "
+                           "target, mirror ref) and touch nothing")
+    p_mu.add_argument("--delete-old", dest="delete_old", action="store_true",
+                      help="drop the pre-existing origin HEAD "
+                           "refs/heads/<branch> after the mirror is proved "
+                           "AND a containment proof passes (default: print "
+                           "the plan, delete nothing)")
+    p_mu.set_defaults(func=cmd_merge_up)
 
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).

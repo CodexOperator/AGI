@@ -317,7 +317,12 @@ def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
     (wt_graph / "nodes" / "experiment" / "e1.md").write_text(
         "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
         "---\n\n# experiment:e1\n\nThe kid wrote this body.\n")
-    (wt_graph / "nodes" / "experiment" / "backer.md").write_text(
+    # A second uncommitted node write in the worktree. Its FILENAME carries
+    # the round's agent id, so it is in scope for the scoped done commit
+    # (hypothesis:l4-the-round-done-commit-scopes-to-the-round-own-paths-
+    # never-git-add-a) -- find_node_file resolves it by its frontmatter id,
+    # the filename only decides scope.
+    (wt_graph / "nodes" / "experiment" / "a00-p-backer.md").write_text(
         "---\nid: experiment:backer\ntype: experiment\nparents:\n"
         "- hypothesis:h1\n---\n\nbody\n")
     assert _ggit(wt, "status", "--porcelain").stdout.strip(), \
@@ -402,6 +407,170 @@ def test_done_does_not_commit_main_checkout(tmp_path, monkeypatch):
     assert _ggit(main, "status", "--porcelain").stdout.strip(), \
         "main's uncommitted work must survive done untouched"
     assert (main / "sibling.md").exists()
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-round-done-commit-scopes-to-the-round-own-paths-never-
+# git-add-a -- the worktree `done` commit names its own paths
+# --------------------------------------------------------------------------
+
+def test_done_worktree_commit_scopes_to_the_rounds_own_paths(tmp_path,
+                                                             monkeypatch,
+                                                             capsys):
+    """hypothesis:l4-the-round-done-commit-scopes-to-the-round-own-paths-never-
+    git-add-a. Measured on SM.41: `_auto_commit_worktree` ran `git add -A` at
+    round done, swept a SIBLING kid's dirty node into the commit, and the
+    agent-git pre-commit hook -- which admits only node files whose basename
+    carries the committing round's agent id -- refused it, so `done` failed.
+
+    The claim: the done commit adds only the round's OWN paths -- the hook's
+    scope rule, mirrored here -- never `add -A`. A foreign dirty path is
+    printed by name and left alone.
+    """
+    import argparse
+
+    agent = "a00-k1ab12cd"
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "sessions" / "quorum").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    # The evidence run the round cites lives in main, committed, so it is
+    # NOT one of the dirty paths under test (the gate must still resolve it).
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "season2/loops/round-a00-k1ab12cd"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+
+    # The round's session record (shared state: local-first resolution
+    # reads the worktree when the record is there).
+    (wt_graph / "sessions" / "iter-001" / agent).mkdir(parents=True)
+    (wt_graph / "sessions" / "iter-001" / agent / "agent.json").write_text(
+        '{"id": "%s", "node_id": "experiment:%s-own", '
+        '"parent": "hypothesis:h1", "status": "running"}' % (agent, agent))
+
+    # IN SCOPE: the round's OWN node (basename carries its agent id).
+    (wt_graph / "nodes" / "experiment" / f"{agent}-own.md").write_text(
+        "---\nid: experiment:%s-own\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\n# own\n" % agent)
+    # IN SCOPE: a non-node source edit the round made.
+    (wt / "extensions").mkdir()
+    (wt / "extensions" / "round_edit.py").write_text("print('round')\n")
+    # FOREIGN: a sibling kid's node (no `agent` substring in the basename).
+    (wt_graph / "nodes" / "experiment" / "a99-sibling-xyz.md").write_text(
+        "---\nid: experiment:a99-sibling-xyz\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\n# sibling\n")
+    # FOREIGN: config, and another post's quorum card.
+    (wt_graph / "config.json").write_text('{"tampered": true}')
+    (wt_graph / "sessions" / "quorum").mkdir(parents=True, exist_ok=True)
+    (wt_graph / "sessions" / "quorum" / "sanctuary-director.md").write_text(
+        "card\n")
+
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id=agent, verdict="proved", confidence=0.9,
+        node_id=f"experiment:{agent}-own", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 0
+
+    # Exactly ONE commit lands, carrying only the in-scope paths.
+    assert _ggit(main, "rev-list", "--count",
+                 f"season/s1..{br}").stdout.strip() == "1"
+    landed = _ggit(main, "show", "--name-only", "--format=", br).stdout
+    assert f".agi/nodes/experiment/{agent}-own.md" in landed
+    assert "extensions/round_edit.py" in landed
+    assert "a99-sibling-xyz.md" not in landed, \
+        "the sibling's node must NOT be swept into the round's commit"
+    assert ".agi/config.json" not in landed
+    assert "sanctuary-director.md" not in landed
+
+    # The foreign bytes are LEFT ALONE -- printed by name, still dirty.
+    dirty = _ggit(wt, "status", "--porcelain", "-uall").stdout
+    assert "a99-sibling-xyz.md" in dirty
+    assert ".agi/config.json" in dirty
+    assert "sanctuary-director.md" in dirty
+    err = capsys.readouterr().err
+    assert "a99-sibling-xyz.md" in err, \
+        "a foreign path must be named on stderr, not silently dropped"
+
+
+# --------------------------------------------------------------------------
+# item (5): done in a linked-worktree kid under the REAL agent-git hook
+# --------------------------------------------------------------------------
+
+def test_done_worktree_kid_commit_is_allowed_by_the_real_agent_git_hook(
+        tmp_path, monkeypatch, capsys):
+    """Item (5) verification, measured not assumed: a kid whose frontmatter
+    landed, resident in the linked worktree dispatch creates, commits its own
+    node under the REAL agent-git pre-commit hook with the dispatch env
+    (AGI_TIER=kid, AGI_TREE_PROJECT_ROOT=<worktree>). `done` must NOT print
+    `tier kid may not commit` -- the hook's kid branch admits exactly this
+    shape (basename carries the agent id)."""
+    import argparse
+    from pathlib import Path
+
+    agent = "a00-k1ab12cd"
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+    hook = Path(__file__).resolve().parents[1] / "hooks" / "agent-git"
+    _ggit(main, "config", "core.hooksPath", str(hook))
+
+    br = f"season2/loops/round-{agent}"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "sessions" / "iter-001" / agent).mkdir(parents=True)
+    (wt_graph / "sessions" / "iter-001" / agent / "agent.json").write_text(
+        '{"id": "%s", "node_id": "experiment:%s-own", '
+        '"parent": "hypothesis:h1", "status": "running"}' % (agent, agent))
+    (wt_graph / "nodes" / "experiment" / f"{agent}-own.md").write_text(
+        "---\nid: experiment:%s-own\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\n# own\n" % agent)
+
+    monkeypatch.setenv("AGI_TIER", "kid")
+    monkeypatch.setenv("AGI_PROJECT_ROOT", str(wt_graph))
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(wt))
+    monkeypatch.setenv("AGI_AGENT_ID", agent)
+
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id=agent, verdict="proved", confidence=0.9,
+        node_id=f"experiment:{agent}-own", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 0
+    cap = capsys.readouterr()
+    # the round's own node commit LANDS: the hook admitted it and no
+    # `tier kid may not commit` line is printed
+    assert "may not commit" not in cap.err, cap.err
+    assert "committed worktree" in cap.out, cap.out
+    assert "may not commit" not in cap.out, cap.out
+    assert _ggit(main, "rev-list", "--count",
+                 f"season/s1..{br}").stdout.strip() == "1"
 
 
 # --------------------------------------------------------------------------
@@ -1191,3 +1360,26 @@ def test_salvage_preserve_dry_run_names_the_preserved_tree_sha(tmp_path):
     real_sha, _ = cli._salvage_preserve(wt, "ag")
     assert real_sha == sha, (real_sha, sha)
     assert g("rev-parse", "HEAD^{tree}").stdout.strip() == sha
+
+
+def test_session_complete_stamps_the_acting_seat(tmp_path, monkeypatch):
+    """A `session-complete` is the seat's OWN work act (hypothesis:l4-the-card-
+    age-captive-...-the-rotating-seat-own-last-act, conjunct 1): the verb
+    stamps the acting seat's last-act through the ONE clock (bin/last_act.py),
+    and a `--dry-run` touches nothing."""
+    import argparse
+    cli = _load_cli()
+    graph = tmp_path / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    monkeypatch.setattr(cli, "_main_graph_root", lambda r: r)
+    monkeypatch.setattr(cli, "_session_complete", lambda *a, **k: 0)
+    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    stamp = graph / "sessions" / "seats" / "seat-a.last-act"
+    args = argparse.Namespace(iter_n="SM.1", worktree=None, dry_run=True)
+    assert cli.cmd_session_complete(args) == 0
+    assert not stamp.exists(), "a dry run must stamp nothing"
+    args.dry_run = False
+    assert cli.cmd_session_complete(args) == 0
+    assert stamp.exists(), "session-complete left no seat last-act stamp"
