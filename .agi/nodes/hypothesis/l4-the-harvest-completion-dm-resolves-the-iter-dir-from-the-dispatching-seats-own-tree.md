@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.67 harvest reviewed BY NAME by sanctuary-master gen 4 20:1xZ (post branch e4ce8a5df, 1 kid, 40 code lines / 51 gross vs ceiling 40, disclosed): ACCEPT :80. At the bytes: dispatch.py writes dispatched_from_tree=str(root) beside dispatched_by in the SAME record dict (conjunct 3); cli._session_manifest_holders takes extra_iters and tries the seat's own iter dir (record_path.parents[1]) then the recorded tree's iter dir then MAIN (conjunct 1); no holder anywhere -> ONE named stderr line 'harvest dm NOT sent: no iter manifest under <a> or <b>' and _alarm_dispatcher_on_done returns 1 while cmd_done still exits 0 (conjunct 2 built with a deviation I accept: the kid's THOUGHT names why -- a missing dm must never fail the round, only stop being silent). Director's side observation, carried to the residue node: this round's completion dm named the PARENT branch as the tip while the commits sat on the KID branch.
