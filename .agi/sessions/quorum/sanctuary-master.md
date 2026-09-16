@@ -51,15 +51,17 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (no flag, never `-h`, never `--force`); a stale 🔴 where-it-stops slot is refused BY NAME — write the card, or pass `--stops '<one line>'`. The card is current because you wrote it DURING the work. Meter: the `[meter] post=sanctuary-master <f>` line on every prompt; rotate when f ≥ 0.47 (never compare the second number to 0.47). master-sensei audits both sides of every rotation you make.
 
-## §4 STATE + NEXT (gen 4, 2026-09-16 18:1xZ live)
+## §4 STATE + NEXT (gen 4, 2026-09-16 18:3xZ live)
 ```
-MAIN: 865035947 at seat (gen 3 rotate-out) → c5dfb95b6 (SM.58 review note). Nodes 3065/201/3266 at the gen-3 stamp (baseline 324e3b2c7), no MAIN landing yet this gen.
-DIRECTOR LINE (sensei-director gen 28, post branch core/season2/posts/sensei-director/main @ b26066891; no --cap on any dispatch until residue item 15 lands):
-  SM.58 harness-quote  HARVESTED f00c93617 (1 kid, 66 prod lines vs ceiling 40, self-authorised under 2x) → REVIEWED BY NAME gen 4: ACCEPT :70 honest, ROUND 2 OWED on the same node (lone opening tag leaks read/send/strip; P1b half-quote). Round 2 being dispatched by the director.
-  SM.59 = SM.32b (v3 branch spelling)   LIVE parent a00-2b8d00ba → harvest → review by name → then the Prime stages the two renames (sanctuary-director→director-belam, sensei-director→director-sanctuary) at the boundaries — rows his.
-  SM.60 = SM.51-56 residue (15 items)   LIVE parent a00-08d3988f + kid a00-d2314637, item 15 FIRST (headroom gate = live un-expired keys minus usage; unblocks --cap), then 12-14, then 1-3; kid1 line_ceiling 40.
-  QUEUE after those: SM.48 residue (6 items, 2 kids) → rotate-card verb → banner-no-meter-command → 3 MS mints → 20/22/15/17 → 4 resume-seating.
-REVIEWED BY NAME gen 4: SM.58 :70 (honest, round 2 owed).
+MAIN: 865035947 at seat → c5dfb95b6 (SM.58 note) → 3f3d386e8 (card) → belam gen 24->25 rotated 18:1xZ (his rotation suite held the lock ~13 min; waited, WINDOW RULE) → SM.59/SM.61 notes + SM.62 mint + card committed 18:4xZ.
+DIRECTOR LINE (sensei-director gen 28, post branch core/season2/posts/sensei-director/main @ 08e76821c; no --cap until residue item 15 lands):
+  SM.58 harness-quote   HARVESTED f00c93617 → REVIEWED gen 4: ACCEPT :70 honest → SM.61 = round 2 LIVE a00-1ff1f5c7 (P1b checked at harvest, else round 3 on the sharpened node c1d7cf7af).
+  SM.59 = SM.32b        HARVESTED 3724ebb26 → REVIEWED gen 4: conjunct 1 ACCEPT (real refs, tuple kept, named refusals) · conjunct 2 DEMOTE :65 -- OWNER PREMISE (via the director 18:12Z): every perpetual post is SANCTUARY (home) town; the branch prefix core/ is the PROJECT town; SM.59 compared the two as one axis → refuses the universal state → the ordered sensei-director→director-sanctuary rename would be REFUSED today. Merge kept (fail-closed). [rule] line to belam 18:2xZ.
+  SM.62 = hypothesis:l4-rename-boundary-preserves-the-real-branch-project-town-and-never-compares-it-to-the-home-town  MINTED 18:4xZ, dispatch order sent; ceiling 30 net-negative, 1 kid; the two renames wait on it + the Prime/MS config half.
+  SM.61 harness-quote round 2  HARVESTED 4036fb67c → REVIEWED gen 4: ACCEPT :80 final (P1b closed; headless-tail caveat documented, my region-to-end-of-text withdrawn on the node).
+  SM.60 = SM.51-56 residue (15 items)   LIVE parent a00-08d3988f + kid a00-d2314637, item 15 FIRST.
+  QUEUE after: SM.48 residue (6 items, 2 kids) → rotate-card verb → banner-no-meter-command → 3 MS mints → 20/22/15/17 → 4 resume-seating. Renames: AFTER SM.62 lands + the Prime/MS settle the config half.
+REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :65 → SM.62 minted.
 ```
 
 ## §5 BANKED
@@ -70,13 +72,14 @@ REVIEWED BY NAME gen 4: SM.58 :70 (honest, round 2 owed).
 - TEMPLATE LINES WITH MASTER-SENSEI: parent answers a kid rebrief in-node AND dms its director; round ceiling across K kids → per-kid line_ceiling slices; 'the final card is one call: rotate.py card' (waits on the verb node); 3-Edits card habit.
 - SM.58 round 2 brief (sent 18:1xZ): (a) lone opening tag = region to end-of-text, (b) marker before the first region byte, (c) plain body byte-identical. If the parent's regex instead widens to `<system[-_]reminder>(?:.*?</system[-_]reminder>|.*)` check (b) explicitly — the P1b shape is the falsifier.
 - SUITE-LOCK PRIORITY (owner 17:5xZ via belam 18:06Z, verbatim in doc:l4-owner-decisions): thought-master's lane is an independent side pursuit that continues after the loop's posts finish; its lock requests are DEPRIORITIZED -- my landings + stamps, the point's and the Sensei's merge-ups take the lock first. Ask the window without deferring to TM.
+- HABIT NOTE (gen 4): never grep posts.md raw -- every row prints its whole key_history (~10k tokens); use write.py config:seats 'read body N:M' or a python one-liner over the name/town cells. Never peek (F25) -- the inbox was empty, the call was waste.
 - HABIT NOTE: never probe a WRITING verb; never put backticks inside a double-quoted send.py string (bash eats them); after_join [reap-proof] exit 1 = the grep found no predecessor pids = the reap succeeded.
 
 ## 🔴 Where it stops
 `````
 ````
 ```
-gen 4 18:1xZ: SM.58 reviewed by name → ACCEPT :70 honest, round 2 owed (note c5dfb95b6 on MAIN, pushed; brief to the director sent). SM.59 (SM.32b) + SM.60 (residue, item 15 first) LIVE under sensei-director gen 28, no --cap. Waiting on harvests; nothing held, no throwaway trees, no background task. NEXT: read the inbox when nudged → review SM.59 / SM.60 / SM.58-r2 by name (archive-probe recipe in §1) → three rules + stamp for the next MAIN landing → queue in §4. Renames after SM.32b lands (the Prime stages them).
+gen 4 18:4xZ: SM.58→SM.61 :80 final, SM.59 c1 accept/c2 :65 reviewed by name; SM.62 minted + dispatch order sent to sensei-director (gen 28; SM.60 residue still live, item 15 first). [rule] to belam on the home-vs-project-town axis (config half his + MS). Nothing held, no throwaway trees, no background task. NEXT: read the inbox when nudged → review SM.60 / SM.62 harvests by name → three rules + stamp for the next MAIN landing (post branch tip currently 4036fb67c, unlanded: SM.57/58/59/61) → queue in §4.
 ```
 ````
 `````
