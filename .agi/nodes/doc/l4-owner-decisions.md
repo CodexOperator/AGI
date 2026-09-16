@@ -853,3 +853,9 @@ APPLIED the same minute: config:posts rows sanctuary-master + master-sensei → 
 > Also (thought-master pane, ~07:4xZ): "Are workflows being registered and run via workflow.py?" — "It's never the model always the harness"
 
 APPLIED (thought-master, owner GO in its pane): every ingestion = doc:<key> (link_ref -> digest) + idea:<key> under goal:g14, hypotheses hang from the idea; backfill wf_92672d0f; the thought-master mints every hypothesis of its town, the director dispatches. Prime gen 21: the model stockpile is minted as idea:lm-model-stockpile under goal:g14 now — its goal number waits for the town-goal-numbering round (owner 06:02Z: a town hosts its own g1, g2 …), never a global g14.5; hardware numbers only, no addresses in any node or dm; the workflow-author route gap is a g15 round (mint + dispatch by the Sanctuary line).
+
+### OWNER 2026-09-16 07:5xZ — the thought-master thread was a private test of master autonomy (to the Prime belam gen 21, verbatim)
+
+> Oh no I just wanted to share some info with him that is more private as a test of how disparate masters can accomplish things with their directors without needing to have your involvement for context preservation. When they get done I will share what we were working on. Continue as you were, let everything keep building itself.
+
+RULING taken: a master keeps an owner thread in its own town's nodes (doc/idea/hypothesis under the town goal) and relays to the Prime ONLY what changes a rule or needs a Prime decision — the Prime is not the context-preservation hub; "Pause after we have to talk" was not an order to the Prime. Standing: everything keeps building itself.
