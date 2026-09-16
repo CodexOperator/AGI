@@ -600,13 +600,14 @@ def _write_root_join_absent(tmp_path: Path, shape: str):
         (`rotate._seating_record`): top-level `gen_after` (NO
         `observations.b_generation`) + top-level `transcript_path`, and NO
         `handover`.
-      - "seating_merged": the LITERAL product of
-        `rotate._seating_record_merge_handover` applied to a prime
-        first-seating record — `rotate._seating_record`'s keys and the same
-        in-memory handover merge the writer performs, with
-        `handover.seating_row_commit` merged in and NO `join` under
-        `handover`. It carries NO `observations.b_generation` anywhere (the
-        seating producer never writes it — that absence is the point).
+      - "seating_merged": the LITERAL product of BOTH producers on disk —
+        `rotate._write_seating_record` writes `rotate._seating_record`'s
+        prime first-seating record, `rotate._seating_record_merge_handover`
+        merges `handover.seating_row_commit` into it, and the merged file is
+        renamed onto PREV_STAMP's slot and read back from disk. It carries
+        NO `observations.b_generation` anywhere (the seating producer never
+        writes it — that absence is the point) and NO `join` under
+        `handover`.
     Returns `(graph, tr, prev_path)`."""
     graph, tr = _write_root(tmp_path, None)
     prev_path = graph / "sessions" / "rotations" / f"{SEAT}.{PREV_STAMP}.json"
@@ -621,26 +622,38 @@ def _write_root_join_absent(tmp_path: Path, shape: str):
                 "first-seating", "gen_before": 0, "gen_after": GEN,
                 "transcript_path": str(tr)}
     elif shape == "seating_merged":
-        # Built by the PRODUCER (`rotate._seating_record`) so key drift in the
-        # seating record shape fails HERE rather than silently in the fixture,
-        # then merged in memory exactly as `_seating_record_merge_handover`
-        # merges the handover back onto the record it already wrote (the
-        # writer's own `merged = dict(rec.get("handover") or {});
-        # merged.update(handover)`). `recorded_at` is pinned so the record
-        # lands on PREV_STAMP's slot.
-        prev = rotate._seating_record(
+        # Built by BOTH PRODUCERS, never by an inlined copy of the merger body:
+        # (1) `rotate._seating_record` + `rotate._write_seating_record` write
+        # the record to disk; (2) `rotate._seating_record_merge_handover`
+        # merges `handover.seating_row_commit` into THAT file and must name
+        # it. A drift in either producer (a renamed key, a dropped merge, a
+        # filename suffix the merger's glob no longer sees) fails HERE. The
+        # writer names the file by `utcnow`, so the merged file is renamed
+        # onto PREV_STAMP's slot — leaving the fixture-planted record beside
+        # it would let the resolver read that older record first (filename
+        # sort) and the test go green through the WRONG record.
+        rec = rotate._seating_record(
             seat=SEAT, role="prime_director", source="rotate",
             window_id=None, ref="", pid=None, session_id="",
             transcript_path=str(tr), first_turn=None, generation=GEN)
-        merged = dict(prev.get("handover") or {})
-        merged.update({"seating_row_commit": "abc123"})
-        prev["handover"] = merged
-        prev["recorded_at"] = "2026-09-11T10:00:00Z"
+        rec["recorded_at"] = "2026-09-11T10:00:00Z"
+        written = rotate._write_seating_record(graph, rec)
+        merged_path = rotate._seating_record_merge_handover(
+            graph, {"seat": SEAT, "recorded_at": rec["recorded_at"],
+                    "handover": {"seating_row_commit": "abc123"}})
+        assert merged_path == str(written), (merged_path, str(written))
+        written.replace(prev_path)
+        # (3) read the producers' merged output back from disk as `prev`
+        prev = json.loads(prev_path.read_text(encoding="utf-8"))
+        assert prev["handover"]["seating_row_commit"] == "abc123", prev
         assert "observations" not in prev, prev
         assert "join" not in prev["handover"], prev
     else:
         raise AssertionError(f"unknown shape {shape!r}")
-    prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    if shape != "seating_merged":
+        # seating_merged is already on disk as the producers wrote it; the
+        # other two shapes are fixture-built dicts and are serialized here.
+        prev_path.write_text(json.dumps(prev), encoding="utf-8")
     return graph, tr, prev_path
 
 
