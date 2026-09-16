@@ -1792,6 +1792,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the same files (a shared cwd is fine when they would not). One kid "
         f"when the work is one thing. Do NOT fan three kids onto one file "
         f"— that is the measured collision hazard with extra steps.",
+        # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+        # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
+        # re-brief it received, in the node, before it continues or stops.
+        "ANSWER EVERY RE-BRIEF BEFORE YOU CONTINUE. Before dispatching the "
+        "next kid or signalling done, read each owned kid's node for a "
+        "`rebrief_request`. A re-brief with no answer is the failure this "
+        "rule prevents: answer it IN THE NODE with\n"
+        "  python3 extensions/agi/bin/write.py <node-id> 'set rebrief_answer "
+        "<proceed with ceiling N | cut>'\n"
+        "and, if you proceed, also 'set line_ceiling <new N>' on that same "
+        "node, BEFORE that kid is resumed or a replacement is cut. A "
+        "`rebrief_request` left without a `rebrief_answer` is harvested as "
+        "a named defect.",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it

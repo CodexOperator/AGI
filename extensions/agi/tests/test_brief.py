@@ -206,6 +206,27 @@ def test_the_line_ceiling_is_kid_only():
     assert "PRODUCTION-LINE CEILING" not in director
 
 
+def test_parent_brief_names_the_rebrief_answer_protocol():
+    """conjunct (3): an answer with no channel is the same defect as a
+    request nobody reads. The PARENT brief must name the field it writes
+    (`rebrief_answer`), the field it reads (`rebrief_request`), and the
+    logged writer that carries the write.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "rebrief_answer" in parent, "the answer field the parent must write"
+    assert "rebrief_request" in parent, "the request field the parent reads"
+    assert "set rebrief_answer" in parent, "the exact verb the parent runs"
+    assert "line_ceiling" in parent, "the ceiling re-set when proceeding"
+
+
+def test_rebrief_answer_protocol_is_parent_only():
+    """The KID brief names `rebrief_request` (it writes it) but must NOT gain
+    the parent's answer segment -- the two tiers stay distinct."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "rebrief_request" in kid, "the kid writes the request"
+    assert "rebrief_answer" not in kid, "the answer is not the kid's to write"
+
+
 def test_kid_brief_requires_the_machine_readable_record():
     """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
     2x-for-a-parent-re-brief, conjunct (2): the ceiling segment is the ONE

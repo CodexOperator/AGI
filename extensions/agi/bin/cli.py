@@ -612,8 +612,10 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
     The kid's lines are MEASURED from its `done` commit; only when no anchor
     resolves does the node's own `production_lines` record stand in. Over 2x
     with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
-    `rebrief_request` present -> `rebrief=[id N/C]`; at or under 2x ->
-    nothing. A measured-zero kid with no commit at all still adds nothing.
+    `rebrief_request` present -> `rebrief=[id N/C]`, PLUS `unanswered=[id]`
+    when the node carries no `rebrief_answer` (the overage was disclosed, the
+    answer is outstanding -- conjunct (3)); at or under 2x -> nothing. A
+    measured-zero kid with no commit at all still adds nothing.
     """
     notes: list[str] = []
     for kid in kids:
@@ -637,6 +639,10 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
             continue
         if fm.get("rebrief_request"):
             notes.append(f"rebrief=[{nid} {lines}/{ceiling}]")
+            # conjunct (3): a re-brief the parent never answered is itself a
+            # named defect, kept alongside the disclosure token.
+            if not fm.get("rebrief_answer"):
+                notes.append(f"unanswered=[{nid}]")
         elif lines > 2 * ceiling:
             notes.append(f"overage=[{nid} {lines}/{ceiling} no-rebrief]")
     return notes

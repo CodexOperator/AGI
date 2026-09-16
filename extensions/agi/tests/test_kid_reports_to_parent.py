@@ -462,6 +462,47 @@ def test_harvest_names_a_rebrief_instead_of_an_overage(graph, monkeypatch,
     assert "overage=" not in text, text
 
 
+# conjunct (3): the parent's ANSWER, and the re-brief it never answered.
+
+def test_harvest_names_an_unanswered_rebrief(graph, monkeypatch, capsys):
+    """A `rebrief_request` with NO `rebrief_answer` -> the overage is still
+    disclosed (`rebrief=`) AND the outstanding answer is named
+    (`unanswered=`). The disclosure is not a defect; the silence is."""
+    _write_kid_node(graph, "experiment:k-ask",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ask")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-ask 90/40]" in text, text
+    assert "unanswered=[experiment:k-ask]" in text, text
+
+
+def test_harvest_is_silent_once_the_rebrief_is_answered(graph, monkeypatch,
+                                                        capsys):
+    """The SAME re-brief WITH a `rebrief_answer` -> the disclosure stands and
+    `unanswered=` is gone: the parent answered in the node."""
+    _write_kid_node(graph, "experiment:k-ans",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines",
+                    rebrief_answer="proceed with ceiling 120")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ans")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-ans 90/40]" in text, text
+    assert "unanswered=" not in text, text
+
+
+def test_harvest_never_invents_an_unanswered_rebrief(graph, monkeypatch,
+                                                     capsys):
+    """No `rebrief_request` at all -> no `unanswered=`, even when the node
+    carries a stray `rebrief_answer`."""
+    _write_kid_node(graph, "experiment:k-never",
+                    production_lines=90, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-never")
+    capsys.readouterr()
+    assert "overage=[experiment:k-never 90/40 no-rebrief]" in text, text
+    assert "unanswered=" not in text, text
+
+
 def test_harvest_is_unchanged_under_2x_or_without_a_resolvable_commit(
         graph, monkeypatch, capsys):
     """Under 2x adds nothing; a kid with no record and NO resolvable `done`
