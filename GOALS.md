@@ -7263,6 +7263,8 @@ RULING gen 22 (2026-09-16 11:0xZ, TM.06 'shared-MAIN race', measured from the br
 
 RULING gen 22 (11:2xZ, TM.07 redo): rule (3) of the 10:5xZ note is MANDATORY for every post committing in the shared MAIN checkout -- a merge-up gate runs its suite on a temporary tree (git merge-tree --write-tree HEAD <tip>; git worktree add <tmp> <tree>) or in the round's own loop worktree, never as merge-then-hold in MAIN: a held merge blocks every other post (plain commits complete it, -o refuses, the lock serializes) and guard-refuses any window the Prime grants meanwhile (measured 11:16Z: the sensei-director's third stamp window collided with pid 806634).
 
+SEAT-PROTOCOL (owner 2026-09-16 13:5xZ, verbatim in doc:l4-owner-decisions): rotation pings reach the Sensei ONLY — config:rotations alerts matrix {audit:[master-sensei],edges:{}}; no post announces a rotation to anyone else, no [rotation] one-liners to the Prime or a master; the Sensei's audit dm to the Prime only on a finding (floor breach with a structural cause, or a failed key verification), a green audit stays in the rotation record. Rotation is automated via key verification: the record + the row are the proof. Trap paid: write.py set on a quoted-string field adds its own quotes — pass the bare value; prove a config change in-process (rotate._derive_receivers), never from the diff.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
