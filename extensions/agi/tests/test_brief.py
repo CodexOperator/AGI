@@ -2023,6 +2023,30 @@ def test_parent_brief_hands_the_diff_and_probe_duty_not_the_kid():
     assert "one negative probe per claim conjunct" not in kid
 
 
+def test_parent_brief_checks_every_named_deliverable_against_the_diff():
+    """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
+    says-timed-out-and-the-done-tests-stay-hermetic item (4), from SM 20:33Z
+    director gen 29 and SL7.136 item 14 (a kid claimed a node edit its branch
+    never carried): the diff rule named the COMMAND but not the per-
+    deliverable duty. A claimed-but-absent deliverable demotes the kid, and is
+    never patched by the parent or the director.
+
+    The kid brief still must NOT acquire it.
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+    flat = " ".join(parent.split())
+    assert "CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF" in flat, \
+        "parent brief must check each named deliverable against the diff"
+    assert "never against its thought or its summary" in flat.lower(), flat
+    assert "inconclusive_lean_disproved" in parent, \
+        "a claimed-but-absent deliverable must name the demotion"
+    assert "never silently patched by you and never by the director" in flat, \
+        "the parent and the director must not patch a missing deliverable"
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "CHECK EVERY DELIVERABLE" not in kid, \
+        "the diff-per-deliverable duty is the PARENT's, never the kid's"
+
+
 def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):
     """goal:g15.25 SM.28 claim (2)+(3), in-process. Measured pre-fix: the
     survival profile and the advisor brief (a tier-3 parent's brief) both

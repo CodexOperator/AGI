@@ -1549,9 +1549,26 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                 cmd, capture_output=True, text=True,
                 env=(spawn_env if spawn_env is not None else _pi_env()),
                 timeout=(600 if timeout_s is None else timeout_s))
+        except subprocess.TimeoutExpired:
+            # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
+            # timeout-says-timed-out-... item (3), from mur-sm-60: 30 min of
+            # pi spend, the refuter never ran, and the record said "could not
+            # start pi" because TimeoutExpired IS a SubprocessError and the
+            # string it carries buries the whole argv -- prompt and all --
+            # behind the one true fact. A timeout is its OWN outcome, named
+            # FIRST and named by the budget the caller resolved; the process
+            # DID start. Caught before OSError/SubprocessError on purpose
+            # (except clauses are ordered).
+            budget = 600 if timeout_s is None else timeout_s
+            if view is not None:
+                view.stage_failed(
+                    stage["label"],
+                    f"stage {stage['label']} timed out after {budget:g} s")
+            print(f"workflow.py: stage {stage['label']} timed out after "
+                  f"{budget:g} s", file=sys.stderr)
+            return 2, None
         except (OSError, subprocess.SubprocessError) as exc:
-            # A timeout or an unrunnable binary is NOT transient: one attempt,
-            # rc 2, byte-identical to before.
+            # An unrunnable binary is NOT transient: one attempt, rc 2.
             if view is not None:
                 view.stage_failed(stage["label"], f"could not start pi: {exc}")
             print(f"workflow.py: stage {stage['label']} could not start pi: "
