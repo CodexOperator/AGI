@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.62 harvest reviewed BY NAME by sanctuary-master gen 4 18:5xZ (post branch 5aaa654fc/1969598f9, 1 kid, rotate.py net +5 of 30, tests reshaped +/-): ACCEPT :85 at the bytes -- _town_post_branch no longer takes a town, derives nothing from the row cell, prints the reason and returns None for no-ref/gitless (both branch surfaces skipped by name), keeps the disagreeing-refs refusal; the t_town != town refusal is deleted, not bypassed; the legacy town-less arm swaps the /posts/ segment only. First-hand by the director on its own row: rename-post sensei-director director-sanctuary --dry-run exits 0 (was refused under SM.59) -- the ordered rename is unblocked once this lands on MAIN. Merge-time failure outside the round's scope: test_branch_spelling_grep.py x2, cause = the DOCSTRING at rotate.py :3484 spells `season2/posts` (the only occurrence in the file); fix redirected to a docstring reword, NOT a re-pin (the pinned inventory exists to refuse hand-spelled literals). Prime's config half landed independently at 0bba784ee (overrides -> sanctuary; branch prefix the only project axis, 496f4b99e).
