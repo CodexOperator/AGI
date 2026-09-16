@@ -314,3 +314,63 @@ def test_seat_with_only_another_sessions_record_still_refuses(tmp_path):
         "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
     code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
     assert code == 2 and calls == [] and counts == {}
+
+
+# ── (2) the ambiguous PARTIAL stamp refuses by NAME ───────────────────────
+# clause (2) of hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-
+# stamps-by-name-and-latest-passes-the-session-gate: the old substring
+# fallback resolved `--record 20260916` (a day, not a stamp) to `hits[-1]`
+# while three of the seat's records carried that day. >= 2 substring hits must
+# REFUSE BY NAME and list every matching stamp; only an exact stamp resolves.
+
+def test_ambiguous_partial_stamp_refuses_by_name_and_lists_every_match(
+        tmp_path, capsys):
+    """FALSIFIER F1: `--record 20260916` on a post with three records that
+    day used to resolve silently to the newest. It must exit 2 and name every
+    matching stamp, so the caller can pass one of them whole."""
+    graph, _a, _b, _succ = _write_graph(tmp_path, genless=True)
+    code, calls, counts, window = sensei.rotate_out_audit(
+        graph, SEAT, None, None, record="20260916")
+    err = capsys.readouterr().err
+    assert code == 2
+    assert calls == [] and counts == {} and window == {}
+    assert "--record" in err
+    assert "20260916" in err
+    for stamp in (R0_STAMP, R1_STAMP, OUT_STAMP):
+        assert stamp in err, f"{stamp} missing from the refusal: {err!r}"
+
+
+def test_unique_partial_stamp_still_resolves(tmp_path):
+    """The substring fallback survives ONLY as a disambiguator: exactly one
+    substring hit resolves (the middle record's unique token), never a
+    ambiguity."""
+    graph, _a, _b, _succ = _write_graph(tmp_path, genless=True)
+    code, _calls, _counts, window = sensei.rotate_out_audit(
+        graph, SEAT, None, None, record="T063950")
+    assert code == 0
+    assert window["record"] == R1_STAMP
+
+
+# ── (1) both refusals carry their text, not only their rc ─────────────────
+
+def test_record_miss_refusal_names_the_record_flag(tmp_path, capsys):
+    """The exact-stamp miss refusal must name `--record` in its TEXT, not
+    only carry rc 2 (FALSIFIER F3: a refusal stderr that does not contain the
+    literal text `--record`)."""
+    graph, _a, _b, _succ = _write_graph(tmp_path, genless=True)
+    code, calls, counts, window = sensei.rotate_out_audit(
+        graph, SEAT, None, None, record="nope")
+    err = capsys.readouterr().err
+    assert code == 2 and calls == [] and counts == {} and window == {}
+    assert "--record" in err
+    assert "'nope'" in err
+
+
+def test_gen_miss_refusal_names_the_record_flag(tmp_path, capsys):
+    """The deprecated `--gen` miss also must name `--record`, so a future
+    edit cannot drop the pointer to the replacement flag."""
+    graph, _a, _b, _succ = _write_graph(tmp_path, genless=True)
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, 7, None)
+    err = capsys.readouterr().err
+    assert code == 2 and calls == [] and counts == {} and window == {}
+    assert "--record" in err and "--gen" in err
