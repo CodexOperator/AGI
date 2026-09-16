@@ -1715,3 +1715,134 @@ def test_prepare_check1_origin_mirror_behind_head_and_unread(tmp_path):
     assert blocker is False, (blocker, name)
     assert "unmeasured" in name, name
     assert "vs refs/agi/posts/adv-alive" not in name, name
+
+
+# SM.48 residue (1): `merge-up` is an act BY THE CALLER, never by the post it
+# merged. The pre-fix call site stamped the resolved --post TARGET, so a
+# Prime/SM merge-up of a director's post re-staled that DIRECTOR's card -- the
+# captive loop reopened from the other side. Fixture-only: every git seam
+# (merge, push, mirror, suite, lock, node counts, send) is injected, so no
+# remote, no lock and no real merge is ever touched.
+# --------------------------------------------------------------------------
+
+def test_merge_up_stamps_the_caller_never_the_post_target(tmp_path, monkeypatch):
+    """FALSIFIER: caller `prime` merges up post `director` -- the stamp must
+    land on `prime`, and `director`'s stamp must NOT move. Exercised end to
+    end through `cmd_merge_up` (not a source grep): the merge, push, mirror
+    and suite seams are injected, the last-act seam is recorded."""
+    import last_act as last_act_mod  # noqa: PLC0415
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True)
+    lock = tmp_path / "suite.lock"
+    lock.write_text("")
+    main = tmp_path / "main"
+    main.mkdir()
+
+    monkeypatch.setattr(rotate, "_caller_post",
+                        lambda root: ("prime", {"seat": "prime"}, "test"))
+    monkeypatch.setattr(rotate, "_find_seat", lambda root, seat: {"seat": seat})
+    monkeypatch.setattr(rotate, "_rank_gate", lambda *a, **k: "")
+    monkeypatch.setattr(rotate, "merge_up_plan", lambda root, post: {
+        "main": main, "branch": "core/season2/posts/director/main",
+        "target": "season2/main", "mirror": "refs/agi/posts/director"})
+    monkeypatch.setattr(rotate, "_shared_graph_root", lambda root: graph)
+    monkeypatch.setattr(rotate, "_closeout_branch", lambda cwd: "season2/main")
+    monkeypatch.setattr(rotate, "_closeout_main_clean",
+                        lambda m, b: (True, [], []))
+    import verification  # noqa: PLC0415
+    monkeypatch.setattr(verification, "acquire_suite_lock",
+                        lambda groot: (lock, None))
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda root, m: (True, "ok", {"passed": 2}))
+    monkeypatch.setattr(rotate, "_git_proc",
+                        lambda cwd, *a: SimpleNamespace(returncode=0,
+                                                        stdout="", stderr=""))
+    monkeypatch.setattr(rotate, "_git_maybe", lambda cwd, *a: ["abc1234"])
+    monkeypatch.setattr(rotate.branches, "mirror_and_prove",
+                        lambda *a, **k: (True, "ok", {"ref": "refs/agi/x",
+                                                      "sha": "deadbeefcafe"}))
+    monkeypatch.setattr(rotate, "_origin_head_delete_gate",
+                        lambda repo, branch, *, delete_old: ("dry", "no delete"))
+    monkeypatch.setattr(rotate, "_node_counts", lambda groot: (1, 2, 3))
+    monkeypatch.setattr(rotate, "_closeout_prime_seat", lambda root: "prime")
+    import send as send_mod  # noqa: PLC0415
+    monkeypatch.setattr(send_mod, "send", lambda *a, **k: ("prime", True))
+    stamped: list[str] = []
+    monkeypatch.setattr(last_act_mod, "touch_env",
+                        lambda root, explicit=None: stamped.append(explicit) or "")
+
+    args = SimpleNamespace(post="director", name=None, dry_run=False,
+                           delete_old=False)
+    assert rotate.cmd_merge_up(args, graph) == 0
+    assert stamped == ["prime"], stamped            # the CALLER, not the post
+    assert "director" not in stamped, stamped
+    # the TARGET's own stamp is untouched on disk as well
+    assert not (graph / "sessions" / "seats" / "director.last-act").exists()
+
+
+# SM.48 residue (2): check 1 (`rev-list --count <upstream>..HEAD`) scoped by
+# AUTHOR. A commit the acting checkout's own identity did not write -- a
+# `grid_sync` cron commit on a shared trunk -- is not this seat's unpushed
+# work and must not captive its rotation. Real fixture repo + bare origin.
+# --------------------------------------------------------------------------
+
+def _trunk_repo(tmp_path):
+    """A real repo on `season2/main` with its upstream set and its
+    user.email the SEAT's own identity; commits are then authored by
+    whoever the test names (`grid <grid@agi>` for the cron)."""
+    origin = tmp_path / "origin.git"
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    subprocess.run(["git", "init", "-q", "-b", "season2/main", str(repo)],
+                   check=True)
+    _git_in(repo, "config", "user.email", "seat-x@agi")
+    _git_in(repo, "config", "user.name", "seat-x")
+    (repo / "seed").write_text("s\n", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    _git_in(repo, "commit", "-qm", "seed")
+    _git_in(repo, "remote", "add", "origin", str(origin))
+    _git_in(repo, "push", "-q", "-u", "origin", "season2/main")
+    return repo
+
+
+def _commit_as(repo, path, who):
+    (repo / path).write_text("x\n", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", f"{who} work"],
+                   check=True, capture_output=True, text=True,
+                   env={"PATH": "/usr/bin:/bin", "HOME": str(repo / ".."),
+                        "GIT_AUTHOR_NAME": who, "GIT_AUTHOR_EMAIL": f"{who}@agi",
+                        "GIT_COMMITTER_NAME": who,
+                        "GIT_COMMITTER_EMAIL": f"{who}@agi"})
+
+
+def test_prepare_check1_foreign_authors_unpushed_commit_never_blocks(tmp_path):
+    """FALSIFIER: HEAD carries one unpushed commit authored by `grid` (the
+    cron identity), not by this checkout's own identity -> check 1 must NOT
+    block, and must NAME the foreign count rather than read a silent
+    'pushed'. An unpushed commit of the seat's OWN is still a BLOCK with
+    `git push` as the clear (SL7.113's auto-push path depends on it)."""
+    repo = _trunk_repo(tmp_path)
+    _commit_as(repo, "cron", "grid")
+
+    blocker, name, clear = rotate._prepare_checks(repo, "seat-x")[0]
+    assert blocker is False, (blocker, name)
+    assert "unpushed commits vs refs/agi" not in name, name
+    assert "other author" in name, name        # NAMED, never a silent pushed
+    assert "grid" not in name                  # the count, not the identity
+    assert "1" in name, name
+    assert clear == "git push", clear
+
+    # the pre-fix read (the unscoped count) really is 1 here -- the fixture
+    # is not vacuous.
+    raw = subprocess.run(["git", "-C", str(repo), "rev-list", "--count",
+                          "@{u}..HEAD"], capture_output=True, text=True)
+    assert raw.stdout.strip() == "1"
+
+    # the seat's OWN unpushed commit still BLOCKS, exactly as before
+    _commit_as(repo, "mine", "seat-x")
+    blocker, name, clear = rotate._prepare_checks(repo, "seat-x")[0]
+    assert blocker is True, (blocker, name)
+    assert name == "unpushed commits", name
+    assert clear == "git push", clear

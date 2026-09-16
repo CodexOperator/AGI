@@ -286,3 +286,68 @@ def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
     assert last_act.stamp_path(graph, "sensei-director").exists()
     assert not last_act.stamp_path(graph, "dry00-x").exists()
     assert last_act.card_stale(graph, "sensei-director", card)[0] is True
+
+
+# ── SM.48 residue (3): the floor is the card's WRITE time, never its
+# COMMIT time ────────────────────────────────────────────────────────────
+
+def test_card_written_before_an_act_and_committed_after_reads_stale(tmp_path):
+    """THE FALSIFIER (SM.48 residue 3): write the card (M) -> the seat acts
+    (S, a stamp after M) -> commit the unchanged card (C > S) reads FRESH
+    pre-fix, because `act > own` compared the act against the card's own
+    COMMIT time and C always beat S. The card predates the act, so it is
+    stale.
+
+    Also pins the two invariants the fix must not break: (i) committing a
+    card with NO intervening act stays FRESH -- the loop this node removes --
+    and (ii) a stamp BEFORE the card's write is not an act after it."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    _git(r, "init", "-q", "-b", "master")
+    _git(r, "config", "user.email", "t@example.com")
+    _git(r, "config", "user.name", "t")
+    (r / "seed").write_text("x\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-q", "-m", "seed")
+    graph = r / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    quorum = graph / "sessions" / "quorum"
+    quorum.mkdir(parents=True)
+
+    # (3) M -> S -> C: the card is WRITTEN (M), the seat acts (S > M), then
+    # the card is COMMITTED (C = now > S). No sleeps: M is stamped into the
+    # file's mtime and S into the stamp's CONTENT, so M < S < C by
+    # construction while C is the real commit second.
+    card = quorum / "seat-a.md"
+    card.write_text("# seat A card\n")
+    m = int(time.time()) - 300
+    os.utime(card, (m, m))                                    # M
+    stamp = last_act.stamp_path(graph, "seat-a")
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text(f"{m + 100}\n")                          # S
+    _git(r, "add", "-A")
+    _git(r, "commit", "-q", "-m", "C: commit the card written at M")
+    own = last_act.card_commit_ts(graph, card)
+    assert own is not None and own > m + 100, (own, m)        # M < S < C
+    stale, act = last_act.card_stale(graph, "seat-a", card)
+    assert stale is True, (stale, act)
+
+    # (i) the SAME shape with NO act: write the card, commit it -> FRESH.
+    # Committing an unchanged card is not itself an act after the card.
+    clean = quorum / "seat-b.md"
+    clean.write_text("# seat B card\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-q", "-m", "commit the card just written")
+    assert last_act.card_stale(graph, "seat-b", clean) == \
+        (False, last_act.card_commit_ts(graph, clean))
+
+    # (ii) a stamp BEFORE the card's write is not an act after it.
+    before = quorum / "seat-c.md"
+    c_stamp = last_act.stamp_path(graph, "seat-c")
+    c_stamp.parent.mkdir(parents=True, exist_ok=True)
+    c_stamp.write_text(f"{int(time.time()) - 600}\n")
+    before.write_text("# seat C card\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-q", "-m", "C card")
+    assert last_act.card_stale(graph, "seat-c", before)[0] is False
