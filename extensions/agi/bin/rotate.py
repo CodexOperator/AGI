@@ -13087,6 +13087,18 @@ def _derive_pred_pids(root: Path, seat: str,
                 pid = c.get("pid") if isinstance(c, dict) else c
                 if pid is not None and str(pid).lstrip("-").isdigit():
                     pids.append(str(pid))
+            # (b) when the own chain is absent/empty, fall back to the
+            # Belam FIFO-cap reap evidence (s12_self_reap.belam_reap.chain)
+            # so the reap-proof greps the reaped OLDEST chain, never '{pred_pids}
+            # empty'. Both shapes are the same (e) `{pid}` list `_record_s12_self_reap`
+            # writes for the own chain.
+            if not pids:
+                belam = reap.get("belam_reap")
+                if isinstance(belam, dict):
+                    for c in belam.get("chain") or []:
+                        pid = c.get("pid") if isinstance(c, dict) else c
+                        if pid is not None and str(pid).lstrip("-").isdigit():
+                            pids.append(str(pid))
             if pids:
                 return _pred_pids_alternation(pids)
     try:
@@ -14323,6 +14335,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     # on-disk block — not just the returned dict — names the
                     # bytes that ran it.
                     "code_head": _code_head(root),
+                    "code_loaded": _LOADED_ROTATE_IDENTITY,
                 }
                 if isinstance(_prev_aj, dict):
                     for _k in ("claimed_at", "claim_key"):
@@ -14397,6 +14410,24 @@ def _code_head(root: Path) -> str:
     any git refusal, never raising."""
     lines = _git_maybe(root, "rev-parse", "HEAD")
     return (lines[0][:7] if lines and lines[0] else "")
+
+
+def _code_loaded_identity() -> str:
+    """The LOADED rotate.py identity, captured AT IMPORT so a stale image is
+    visible by name: `code_loaded` (rotate.py mtime:size at import -- the bytes
+    these functions actually run) sits BESIDE `code_head` (the HEAD that
+    committed those bytes). When the on-disk image diverges from the loaded
+    one (a process started before an uncommitted/mid-merge edit), the two
+    cells disagree by name in the rotation record. Best-effort: '' on stat
+    failure."""
+    try:
+        _st = Path(__file__).resolve().stat()
+        return f"{int(_st.st_mtime)}:{int(_st.st_size)}"
+    except OSError:
+        return ""
+
+
+_LOADED_ROTATE_IDENTITY = _code_loaded_identity()
 
 
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
@@ -14554,7 +14585,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
                 "late": bool(late), "record_path": str(path),
-                "code_head": _code_head(root)}
+                "code_head": _code_head(root),
+                "code_loaded": _LOADED_ROTATE_IDENTITY}
 
     # (goal:g15.25 SL7.8x) JOIN GATE with an upper bound. A record whose
     # successor join was ATTEMPTED (a window @id captured) but has not landed
@@ -14647,6 +14679,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         role=row_role,
         type_input=type_input)
     result["code_head"] = _code_head(root)
+    result["code_loaded"] = _LOADED_ROTATE_IDENTITY
     return result
 
 
