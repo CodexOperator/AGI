@@ -1,0 +1,58 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:  32%|███▏      | 93/290 [00:00<00:00, 929.65it/s]Loading weights:  92%|█████████▏| 266/290 [00:00<00:00, 1388.76it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 1360.22it/s]
+{"revision": "060db6499f32faf8b98477b0a26969ef7d8b9987", "n_layers": 24, "per_layer_units": 4864, "hidden_size": 896, "total_units": 116736}
+k=5837 units, 10752 bytes/unit, 62.8 MB/token lever
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (298938 > 131072). Running this sequence through the model will result in indexing errors
+
+=== importance proxy ===
+{"min": 0.008112803101539612, "max": 11.460888862609863, "mean": 0.06522106379270554, "median": 0.04692825302481651}
+
+=== single-unit drop probes (proxy rank validation) ===
+{"proxy_rank": "high", "unit": 114377, "proxy": 11.460888862609863, "mean_abs": 31.858749389648438, "col_norm": 0.3597407042980194, "drop_loss_2win": 2.762122392654419, "drop_delta_2win": 0.019280433654785156, "wall_seconds": 8.24}
+{"proxy_rank": "high", "unit": 112993, "proxy": 10.752161026000977, "mean_abs": 34.46076583862305, "col_norm": 0.3120116591453552, "drop_loss_2win": 2.762709140777588, "drop_delta_2win": 0.0198671817779541, "wall_seconds": 8.21}
+{"proxy_rank": "high", "unit": 114411, "proxy": 9.83773422241211, "mean_abs": 28.29253578186035, "col_norm": 0.3477148115634918, "drop_loss_2win": 2.863309621810913, "drop_delta_2win": 0.1204676628112793, "wall_seconds": 8.2}
+{"proxy_rank": "high", "unit": 112409, "proxy": 9.350130081176758, "mean_abs": 20.823898315429688, "col_norm": 0.44900959730148315, "drop_loss_2win": 2.764425754547119, "drop_delta_2win": 0.02158379554748535, "wall_seconds": 9.02}
+{"proxy_rank": "high", "unit": 116356, "proxy": 6.390957832336426, "mean_abs": 18.301254272460938, "col_norm": 0.3492087423801422, "drop_loss_2win": 2.750685930252075, "drop_delta_2win": 0.007843971252441406, "wall_seconds": 8.15}
+{"proxy_rank": "high", "unit": 116016, "proxy": 6.080557823181152, "mean_abs": 14.655081748962402, "col_norm": 0.4149112105369568, "drop_loss_2win": 2.7562005519866943, "drop_delta_2win": 0.013358592987060547, "wall_seconds": 8.16}
+{"proxy_rank": "high", "unit": 113268, "proxy": 6.053797245025635, "mean_abs": 17.29216194152832, "col_norm": 0.35008910298347473, "drop_loss_2win": 2.753483533859253, "drop_delta_2win": 0.01064157485961914, "wall_seconds": 8.17}
+{"proxy_rank": "high", "unit": 115600, "proxy": 4.84756326675415, "mean_abs": 14.294751167297363, "col_norm": 0.3391149044036865, "drop_loss_2win": 2.744525909423828, "drop_delta_2win": 0.001683950424194336, "wall_seconds": 8.97}
+{"proxy_rank": "high", "unit": 108077, "proxy": 4.457249641418457, "mean_abs": 9.946807861328125, "col_norm": 0.4481085538864136, "drop_loss_2win": 2.7413830757141113, "drop_delta_2win": -0.001458883285522461, "wall_seconds": 8.22}
+{"proxy_rank": "high", "unit": 108230, "proxy": 4.316768169403076, "mean_abs": 9.242105484008789, "col_norm": 0.46707627177238464, "drop_loss_2win": 2.75439715385437, "drop_delta_2win": 0.011555194854736328, "wall_seconds": 8.17}
+{"proxy_rank": "low", "unit": 2781, "proxy": 0.008112803101539612, "mean_abs": 0.018175875768065453, "col_norm": 0.4463500380516052, "drop_loss_2win": 2.7428958415985107, "drop_delta_2win": 5.3882598876953125e-05, "wall_seconds": 8.25}
+{"proxy_rank": "low", "unit": 48373, "proxy": 0.009463363327085972, "mean_abs": 0.0156884603202343, "col_norm": 0.6032053828239441, "drop_loss_2win": 2.742828607559204, "drop_delta_2win": -1.33514404296875e-05, "wall_seconds": 9.0}
+{"proxy_rank": "low", "unit": 60747, "proxy": 0.01085206400603056, "mean_abs": 0.022871969267725945, "col_norm": 0.47447001934051514, "drop_loss_2win": 2.742792844772339, "drop_delta_2win": -4.9114227294921875e-05, "wall_seconds": 8.2}
+{"proxy_rank": "low", "unit": 2837, "proxy": 0.011393134482204914, "mean_abs": 0.020580826327204704, "col_norm": 0.5535800457000732, "drop_loss_2win": 2.74271821975708, "drop_delta_2win": -0.00012373924255371094, "wall_seconds": 8.17}
+{"proxy_rank": "low", "unit": 3663, "proxy": 0.011396384797990322, "mean_abs": 0.021205808967351913, "col_norm": 0.5374180674552917, "drop_loss_2win": 2.7430920600891113, "drop_delta_2win": 0.00025010108947753906, "wall_seconds": 8.16}
+{"proxy_rank": "low", "unit": 1883, "proxy": 0.012078935280442238, "mean_abs": 0.02323024906218052, "col_norm": 0.5199658274650574, "drop_loss_2win": 2.7429041862487793, "drop_delta_2win": 6.222724914550781e-05, "wall_seconds": 9.56}
+{"proxy_rank": "low", "unit": 2829, "proxy": 0.012143345549702644, "mean_abs": 0.022820279002189636, "col_norm": 0.5321295857429504, "drop_loss_2win": 2.742912530899048, "drop_delta_2win": 7.05718994140625e-05, "wall_seconds": 11.59}
+{"proxy_rank": "low", "unit": 62634, "proxy": 0.012165778316557407, "mean_abs": 0.027759894728660583, "col_norm": 0.4382501542568207, "drop_loss_2win": 2.742781162261963, "drop_delta_2win": -6.079673767089844e-05, "wall_seconds": 11.55}
+{"proxy_rank": "low", "unit": 171, "proxy": 0.012186042964458466, "mean_abs": 0.024283967912197113, "col_norm": 0.5018143057823181, "drop_loss_2win": 2.743332862854004, "drop_delta_2win": 0.0004909038543701172, "wall_seconds": 11.58}
+{"proxy_rank": "low", "unit": 1778, "proxy": 0.012267695739865303, "mean_abs": 0.02461349405348301, "col_norm": 0.49841341376304626, "drop_loss_2win": 2.742845296859741, "drop_delta_2win": 3.337860107421875e-06, "wall_seconds": 8.25}
+spearman(proxy, single-unit delta) = 0.779
+
+=== conditions at 5% budget (structural drop) ===
+baseline(4-win batch) = 2.883526 (conjunct-1 reference 2.88352552) wall=35.1s
+{"condition": "drop_low", "seed": null, "n_units": 5837, "loss": 3.277558445930481, "delta": 0.3940325975418091, "wall_seconds": 34.3}
+{"condition": "drop_high", "seed": null, "n_units": 5837, "loss": 10.806742668151855, "delta": 7.923216819763184, "wall_seconds": 34.26}
+{"condition": "drop_rand", "seed": 0, "n_units": 5837, "loss": 3.0802255868911743, "delta": 0.19669973850250244, "wall_seconds": 34.48}
+{"condition": "drop_rand", "seed": 1, "n_units": 5837, "loss": 3.0677937269210815, "delta": 0.18426787853240967, "wall_seconds": 34.18}
+{"condition": "drop_rand", "seed": 2, "n_units": 5837, "loss": 3.1163758039474487, "delta": 0.23284995555877686, "wall_seconds": 34.34}
+
+proposed verdict: disproved
+{
+  "delta_drop_low": 0.3940325975418091,
+  "delta_drop_high": 7.923216819763184,
+  "delta_drop_rand_mean": 0.20460585753122965,
+  "delta_drop_rand_seeds": [
+    0.19669973850250244,
+    0.18426787853240967,
+    0.23284995555877686
+  ],
+  "rand_seed_spread": 0.04858207702636719,
+  "conjunct1_mean_ablation_seed_spread": 0.015702,
+  "ordering_low_lt_rand_lt_high": false,
+  "separation_rand_minus_low": -0.18942674001057944,
+  "separation_over_rand_spread": -3.8991074817112272,
+  "separation_over_conjunct1_spread": -12.063860655367433
+}
+wrote /home/ubuntu/work/agi/.agi/worktrees/a00-3fbe2ef7/.agi/context/local-maxxing/d1/d1_predictiveness_results.json (wall 457.02s)
