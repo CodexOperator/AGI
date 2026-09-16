@@ -12,6 +12,7 @@ profile: balanced
 role: kid
 scaffold_hash: 057d66cdfac273f7
 season: 2
+status: deprecated
 title: A00 ab93dde5 a99e96
 town: core
 verdict: pending
