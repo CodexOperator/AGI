@@ -4281,8 +4281,11 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
                   f"{exc}", file=sys.stderr)
             return 4
         print(f"merge-up: {line}")
-        # The seat's OWN last act (conjunct 1): a post merged up.
-        last_act.touch_env(root, post)
+        # The CALLER's own last act (conjunct 1, SM.48 residue 1): a merge-up
+        # is an act BY WHOEVER RAN IT. Stamping `post` (the TARGET) re-stales
+        # the merged post's own card -- the captive loop from the other side.
+        if caller_post:
+            last_act.touch_env(root, caller_post)
         return 0
     finally:
         try:
@@ -14822,6 +14825,28 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+def _unpushed_by_author(root: Path, spec: str, label: str
+                        ) -> tuple[bool, str, str] | None:
+    """Check 1's verdict for `rev-list --count <spec>`, SCOPED BY AUTHOR
+    (SM.48 residue 2): a commit the acting checkout's OWN author identity did
+    not write -- a `grid_sync` cron commit on a shared trunk -- is not this
+    seat's unpushed work and must NOT captive its rotation. The unscoped
+    count is still NAMED (never a silent 'pushed'), `git push` stays the
+    clear, and an unmeasurable identity blocks exactly as before: this
+    narrows the gate, never widens it (P7)."""
+    raw = _git_count_maybe(root, "rev-list", "--count", spec)
+    if raw is None:
+        return None
+    me_lines = _git_maybe(root, "config", "user.email")
+    me = (me_lines[0].strip() if me_lines else "")
+    mine = (_git_count_maybe(root, "rev-list", "--count", f"--author={me}",
+                             spec) if me else raw)
+    if mine is not None and raw > 0 and mine <= 0:
+        return (False, f"{label} (other author: {raw}, not blocking)",
+                "git push")
+    return (raw > 0, label, "git push")
+
+
 def _git_unquote_path(s: str) -> str:
     """Decode ONE git `core.quotePath`-escaped path back to its literal name.
 
@@ -15245,16 +15270,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
                            f"({rsha[:12]}: {mn})",
                     f"git push origin HEAD:{mirror}")
     else:
-        n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
-        if n is not None:
-            unpushed, pname, pclear = (n > 0, "unpushed commits", "git push")
+        scoped = _unpushed_by_author(root, "@{u}..HEAD", "unpushed commits")
+        if scoped is not None:
+            unpushed, pname, pclear = scoped
         else:
-            alt = _git_count_maybe(root, "rev-list", "--count",
-                                   f"origin/{branch}..HEAD")
-            if alt is not None:
-                unpushed, pname, pclear = \
-                    (alt > 0, f"unpushed commits vs origin/{branch}",
-                     "git push")
+            scoped = _unpushed_by_author(
+                root, f"origin/{branch}..HEAD",
+                f"unpushed commits vs origin/{branch}")
+            if scoped is not None:
+                unpushed, pname, pclear = scoped
             else:
                 unpushed, pname, pclear = \
                     (True, f"no upstream for {branch}",
