@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.30 reviewed by name (mur-sl2-33): ACCEPT with residue. Reap-wait seaming 40s to 1.35s with no assertion weakened or deleted (asserts diffed, refuter reproduced); a Prime-tier production run observed during review stamped 485.379 s through the new plumbing. Residue 1: conjunct 5 (a SOLO run with loadavg recorded) was never produced, verdict honestly inconclusive_lean_proved:80 with evidence cited - close it when the box is quiet. Residue 2: verification.py:545-556 records suite_wall_s/slowest_15 with no status or counts beside them. 51 vs 40 lines disclosed, under the line, note only.

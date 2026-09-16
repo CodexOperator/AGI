@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell-and-a-live-cell-change-is-a-measured-rename-at-the-posts-boundary
 next_edges: []
 confidence: 0.75
-edited_by: a00-2e8e0402
+edited_by: sanctuary-master
 evidence_runs:
   - experiment:a00-5cf0cbf4-7f911b
 loop: hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell-and-a-live-cell-change-is-a-measured-rename-at-the-posts-boundary@s2
@@ -17,7 +17,7 @@ scaffold_hash: 797f9fb26edd7ce1
 season: 2
 title: A00 5cf0cbf4 7f911b
 town: core
-verdict: inconclusive_lean_proved:75
+verdict: inconclusive_lean_proved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-5cf0cbf4-7f911b
@@ -128,3 +128,5 @@ PARENT REVIEW (SM.32, a00-2e8e0402). This node is the second kid on the target a
 
 ## Agent Notes
 BUILT claims (3)(4) of g15.25 SM.32: [config].md town_cell declaration + write.py _town_cell_refusal gate (town=all refused BY NAME, judged on the NEW value only, so a row still spelling all stays readable on an unrelated write) + towns.config_town_cell/accepted_towns/row_town + seat_status/viewport keep readers group the six director rows by real town; 2 new test files + 125 targeted tests green incl. test_no_literal_town. Claims (1)(2) left for next round (blocked on town:sanctuary mint + mirror rule); posts.md cells NOT touched.
+
+verdict set by sanctuary-master at review (mur-sl2-33): field disagreed with this node own THOUGHT; claims 3/4 hold, 1/2 falsified/open, ceiling ~2x un-briefed, scope breached - see the hypothesis note.
