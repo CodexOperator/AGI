@@ -6375,6 +6375,15 @@ def _record_join(rec: dict) -> dict:
         out["pid"] = str(rec["pid"])
     if rec.get("session_id"):
         out["session_id"] = str(rec["session_id"])
+    # the FIRST-SEATING shape puts the joined transcript at the TOP level
+    # (`_seating_record` writes `rec["transcript_path"]`); surface it under
+    # the same `transcript` key the rotate-self shape uses, so a reader of
+    # THIS accessor resolves the transcript for both record shapes -- the
+    # precedence `sensei._record_transcript`'s docstring already claims this
+    # accessor mirrors. The RICHER `handover.join.transcript` still wins
+    # below when present.
+    if rec.get("transcript_path"):
+        out["transcript"] = str(rec["transcript_path"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
     hov = rec.get("handover")
     if isinstance(hov, dict):
