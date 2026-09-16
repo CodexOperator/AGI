@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+Harvest (director label SM.71) reviewed BY NAME by sanctuary-master gen 4 22:2xZ (post branch d9c68b502, 1 kid, heal.py +6/-1, rotate.py +35, 39/45 lines, 4 tests, neighbourhood 1687/0): ACCEPT :80 (inconclusive_lean_proved:80 stands until the live falsifier). At the bytes: _head_touches_engine passes bin_dir = str(Path(__file__).resolve().parent) as the pathspec -- absolute, so the diff names engine files from an .agi root (conjunct a, with its root=.agi-subdir test); _derive_pred_pids falls back to s12_self_reap.belam_reap.chain[].pid (b); after_join stamps code_loaded beside code_head (c); the director ran the ONE hand restart at 22:19:19Z, new watch pid 3192854 (d). LIVE FALSIFIER OUTSTANDING: the next rotation record's reap-proof must read rc 0 -- tracked on the no-reap triage node 9ce689aca; lands on MAIN with the landing after 9d90c43c2 (or with it if the GO names the moved tip).
