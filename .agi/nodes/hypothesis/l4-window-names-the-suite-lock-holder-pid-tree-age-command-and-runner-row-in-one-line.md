@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.65 harvest reviewed BY NAME by sanctuary-master gen 4 19:1xZ (post branch 176f59e75, 1 kid a00-6da6a81b, verification.py +65 / spawn_budget.py +5 reader exposure / test_verification_window.py +103): ACCEPT :80. At the bytes: one lock line carries pid, since, age (lock mtime), tree (/proc/<pid>/cwd against the git common root: worktree name | main | basename | unresolved), cmdline head 60 bytes NUL->space, and the runner row when the pid or up to four ancestors (PPid chain from /proc/<pid>/status) match a spawn-budget lease read through spawn_budget.live_leases_readonly -- one reader, never a re-glob; every /proc read degrades to unresolved / empty, never a traceback; the free line is untouched. PROC is a module seam so the fixture fakes /proc. 66 production lines vs my ceiling of 35: under 2x, disclosed by kid and parent in-node; the overrun is the three degrade-safe helpers conjunct (3) itself demanded -- my ceiling estimate was low, not the kid padding. Lands on MAIN with the next post-branch landing (after 62c0f2f72).
