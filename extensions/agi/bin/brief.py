@@ -1470,6 +1470,21 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "edits=[{\"oldText\": \"old line\", \"newText\": \"new line\"}])",
         # l2w3-send: one-line escalation path for kids via inbox transport.
         "If you must escalate use send.py send <parent-id> <question> then stop.",
+        # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+        # never-borrows-the-parent-verdict-for-an-empty-node item (1): the
+        # title demand lived only in the PARENT's prose, so a parent that did
+        # not hand-carry it left the kid's node with the dispatch-DERIVED
+        # title (`A00 f067c356 b0ad80`) and no kid ever saw the rule it was
+        # failing. Put it in `_kid` so it reaches every kid without the
+        # parent's hand; the harvest's `untitled=[id]` naming is unchanged.
+        "SET YOUR OWN NODE TITLE IN YOUR OWN WORDS. A node minted by dispatch "
+        "carries a title DERIVED from its filename (`A00 f067c356 b0ad80`), "
+        "which renders as an opaque id in every map and is harvested as an "
+        "untitled defect (`untitled=[<node-id>]`). Before you signal done, "
+        "set a real title on your own node with\n"
+        "  python3 extensions/agi/bin/write.py <node-id> 'set title <your "
+        "own words>'\n"
+        "A round whose node still carries its derived title has not finished.",
         # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
         # per-round -- the shape, named once, in the brief the kid reads.
         "You report to your PARENT agent, never to the dispatching seat: your "
@@ -1824,6 +1839,18 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "kid's own words>'\n"
         "A kid node still carrying its derived title is harvested as an "
         "untitled defect (`untitled=[<node-id>]`).",
+        # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+        # never-borrows-the-parent-verdict-for-an-empty-node item (3): the
+        # SL7.136 edge -- a kid's node left uncommitted (the kid's scoped done
+        # excludes foreign nodes, and a director that lands it by hand
+        # overwrites the kid's OWN authored region). The parent re-briefs
+        # THAT kid; a director never lands it by hand.
+        "A KID'S AUTHORED NODE IS THE KID'S. When a kid leaves its own node "
+        "edit uncommitted -- its scoped done excludes foreign nodes, and its "
+        "own node is its own -- you RE-BRIEF THAT KID to commit its own node "
+        "(name the kid and the node), and you never land it by hand: the "
+        "authored region (THOUGHT) is the kid's, and a director edit fakes "
+        "whose work it is (SL7.136 01a9312f1 was at the edge).",
         # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
         # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
         # re-brief it received, in the node, before it continues or stops.
