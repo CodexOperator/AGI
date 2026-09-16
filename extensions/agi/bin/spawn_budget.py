@@ -32,6 +32,7 @@ import errno
 import fcntl
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -39,6 +40,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+import frontmatter  # NOQA: E402
 import locations  # NOQA: E402
 
 #: THE ONE definition of a terminal agent status (hypothesis:l4-one-definition-
@@ -240,6 +242,107 @@ def parent_max_kids(cfg: dict, default: int = 4) -> int:
     if "parent_max_kids" in spawn:
         return int(spawn["parent_max_kids"])
     return int(default)
+
+
+def production_line_ceiling(cfg: dict, default: int = 40) -> int:
+    """The production-line ceiling a kid's brief must name
+    (hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    for-a-parent-re-brief).
+
+    A kid with no number to read cannot checkpoint against it: the re-brief
+    rule keyed on kid fan-out, so a single kid ran to 3.4x of its ceiling
+    with nothing to measure against (measured SM.39 ~2.25x, SM.44 3.4x).
+    `spawn.production_line_ceiling` wins; otherwise the ceiling is a small
+    constant, never the whole change. The ceiling is advisory-in-brief -- a
+    hard, visible number the kid plans around -- not a refusal: nothing here
+    blocks a write, it is the number the 2x checkpoint is taken against.
+    """
+    spawn = cfg.get("spawn") or {}
+    if "production_line_ceiling" in spawn:
+        return int(spawn["production_line_ceiling"])
+    return int(default)
+
+
+#: ONE parser of a node's own CEILING clause (hypothesis:l4-sm45b-...): both
+#: brief.py and cli.py import this module, so the number cannot drift between
+#: the brief a kid gets and the harvest that judges it.
+_CEILING_ANCHOR_RE = re.compile(r"CEILING", re.IGNORECASE)
+_CEILING_NUMBER_RES = (
+    re.compile(r"<=?\s*(\d+)"),                      # CEILING: <=N ...
+    re.compile(r"(\d+)\s+production\s+lines", re.I),  # N production lines
+    re.compile(r"(\d+)\s+lines", re.I),               # <=N lines
+)
+_CEILING_SENTENCE_MAX = 60
+
+
+def _ceiling_clause(text: str | None) -> int | None:
+    """The N of the node's own CEILING clause in `text`, or None. The LAST
+    match wins: the node's own ceiling is its trailing declaration while
+    earlier mentions are quoted examples (this node quotes `<=120`, declares
+    20). Malformed/absent/non-positive -> None, never a raise.
+    """
+    if not text:
+        return None
+    found: int | None = None
+    for anchor in _CEILING_ANCHOR_RE.finditer(text):
+        seg = text[anchor.start():anchor.start() + _CEILING_SENTENCE_MAX]
+        stops = [i for i in (seg.find("\n"), seg.find(".")) if i != -1]
+        if stops:
+            seg = seg[:min(stops)]
+        for pat in _CEILING_NUMBER_RES:
+            m = pat.search(seg)
+            if m:
+                n = int(m.group(1))
+                if n > 0:
+                    found = n
+                break
+    return found
+
+
+def _node_text(graph_root, node_id) -> str | None:
+    """Read a node by id: live `nodes/<type>/`, then `nodes/deprecated/`.
+    An abbreviated prefix (`exp:`/`hyp:`) falls through to `node_writer`."""
+    if not isinstance(node_id, str) or ":" not in node_id:
+        return None
+    ntype, slug = node_id.split(":", 1)
+    if slug.endswith(".md"):
+        slug = slug[:-3]
+    root = Path(graph_root)
+    for base in (root / "nodes", root / "nodes" / "deprecated"):
+        path = base / ntype / f"{slug}.md"
+        if path.is_file():
+            try:
+                return path.read_text(encoding="utf-8")
+            except OSError:
+                return None
+    try:
+        import node_writer  # local: keeps spawn_budget free of that import
+        path = node_writer.find_node_file(root, node_id)
+        return None if path is None else Path(path).read_text(encoding="utf-8")
+    except BaseException:
+        return None
+
+
+def node_line_ceiling(graph_root, node_id, cfg, default: int = 40
+                      ) -> tuple[int, str]:
+    """The kid's production-line ceiling as (N, source), ONE source.
+
+    The DISPATCHING node's own CEILING clause wins, then the config default;
+    `source` is `"clause"` or `"default"` so the brief can say which it used.
+    An unresolvable node is not a ceiling of zero, and not a crash either.
+
+    Read from the frontmatter `testable_claim` field alone when that field
+    exists: a body or Agent-Notes mention is prose about the ceiling, never
+    the ceiling (hypothesis:l4-sm46b...). No parseable frontmatter, or no such
+    field: the whole text, as before. `_ceiling_clause` stays THE ONE parser.
+    """
+    text = _node_text(graph_root, node_id)
+    fm = None if text is None else frontmatter.read_frontmatter(text)
+    claim = fm.get("testable_claim") if isinstance(fm, dict) else None
+    n = _ceiling_clause(claim if isinstance(claim, str) and claim else text)
+    if n is not None:
+        return n, "clause"
+    return production_line_ceiling(cfg or {}, default), "default"
 
 
 @dataclass

@@ -402,3 +402,220 @@ def test_real_done_zero_kids_is_still_exactly_one_seat_dm(tmp_path, monkeypatch,
     assert text.count("from:") == 1, "exactly ONE seat dm"
     assert "accepted=0 demoted=0 failed=0" in text, text
     assert "kids=[]" in text, text
+
+
+# --------------------------------------------------------------------------
+# 6. conjunct (4): the harvest names a measured overage against the record
+#
+# hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+# for-a-parent-re-brief. The kid records `production_lines` / `line_ceiling`
+# on its experiment node (conjunct 2); the harvest reads those fields off the
+# node file and names an overage with no `rebrief_request` as a defect. It is
+# a pure read -- no `git` runs here, because the parent already computes the
+# kid's diff in its own prompt.
+# --------------------------------------------------------------------------
+
+def _write_kid_node(graph: Path, node_id: str, **fm) -> None:
+    d = graph / "nodes" / "experiment"
+    d.mkdir(parents=True, exist_ok=True)
+    fields = {"id": node_id, "type": "experiment",
+              "parents": "[hypothesis:x]"}
+    fields.update(fm)
+    body = "\n".join(f"{k}: {v}" for k, v in fields.items())
+    (d / f"{node_id.split(':', 1)[1]}.md").write_text(
+        f"---\n{body}\n---\nbody\n")
+
+
+def _harvest_text(graph, monkeypatch, kid_node: str, target: str | None = None) -> str:
+    _write_manifest(graph, [
+        {"id": PARENT, "status": "running", "dispatched_by": SEAT,
+         "branch": ""},
+        {"id": "a00-kid-1", "status": "done", "node_id": kid_node,
+         "spawned_by_agent": PARENT, "target": target or ""},
+    ])
+    monkeypatch.setattr(cli, "_session_root", lambda: graph)
+    monkeypatch.setenv("AGI_TIER", "parent")
+    monkeypatch.setenv("AGI_AGENT_ID", PARENT)
+    cli._alarm_dispatcher_on_done(graph, ITER, PARENT, None, "pending")
+    return _inbox(graph, SEAT).read_text()
+
+
+def test_harvest_names_an_overage_with_no_rebrief(graph, monkeypatch, capsys):
+    """Over 2x, no `rebrief_request` -> the exact named-defect token."""
+    _write_kid_node(graph, "experiment:k-over",
+                    production_lines=90, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-over")
+    capsys.readouterr()
+    assert "overage=[experiment:k-over 90/40 no-rebrief]" in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_harvest_names_a_rebrief_instead_of_an_overage(graph, monkeypatch,
+                                                       capsys):
+    """The SAME overage WITH a `rebrief_request` -> `rebrief=`, no defect."""
+    _write_kid_node(graph, "experiment:k-over",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-over")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-over 90/40]" in text, text
+    assert "overage=" not in text, text
+
+
+# conjunct (3): the parent's ANSWER, and the re-brief it never answered.
+
+def test_harvest_names_an_unanswered_rebrief(graph, monkeypatch, capsys):
+    """A `rebrief_request` with NO `rebrief_answer` -> the overage is still
+    disclosed (`rebrief=`) AND the outstanding answer is named
+    (`unanswered=`). The disclosure is not a defect; the silence is."""
+    _write_kid_node(graph, "experiment:k-ask",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ask")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-ask 90/40]" in text, text
+    assert "unanswered=[experiment:k-ask]" in text, text
+
+
+def test_harvest_is_silent_once_the_rebrief_is_answered(graph, monkeypatch,
+                                                        capsys):
+    """The SAME re-brief WITH a `rebrief_answer` -> the disclosure stands and
+    `unanswered=` is gone: the parent answered in the node."""
+    _write_kid_node(graph, "experiment:k-ans",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines",
+                    rebrief_answer="proceed with ceiling 120")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ans")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-ans 90/40]" in text, text
+    assert "unanswered=" not in text, text
+
+
+def test_harvest_never_invents_an_unanswered_rebrief(graph, monkeypatch,
+                                                     capsys):
+    """No `rebrief_request` at all -> no `unanswered=`, even when the node
+    carries a stray `rebrief_answer`."""
+    _write_kid_node(graph, "experiment:k-never",
+                    production_lines=90, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-never")
+    capsys.readouterr()
+    assert "overage=[experiment:k-never 90/40 no-rebrief]" in text, text
+    assert "unanswered=" not in text, text
+
+
+def test_harvest_is_unchanged_under_2x_or_without_a_resolvable_commit(
+        graph, monkeypatch, capsys):
+    """Under 2x adds nothing; a kid with no record and NO resolvable `done`
+    commit adds nothing -- absent is not over-budget and no defect may be
+    fabricated from a missing anchor. (A no-record kid WITH an over-budget
+    commit IS named -- see the two measurement tests below.)"""
+    _write_kid_node(graph, "experiment:k-under",
+                    production_lines=30, line_ceiling=40)
+    under = _harvest_text(graph, monkeypatch, "experiment:k-under")
+    capsys.readouterr()
+    assert "overage=" not in under and "rebrief=" not in under, under
+    assert "kids=[experiment:k-under]" in under, under
+
+    _write_kid_node(graph, "experiment:k-bare")
+    bare = _harvest_text(graph, monkeypatch, "experiment:k-bare")
+    capsys.readouterr()
+    assert "overage=" not in bare and "rebrief=" not in bare, bare
+    assert "kids=[experiment:k-bare]" in bare, bare
+
+
+def _git_done_commit(root: Path, agent_id: str, added: int,
+                     rel: str = "extensions/agi/bin/thing.py") -> None:
+    """A real repo whose newest commit is `<agent_id> done:` adding `added`
+    PRODUCTION lines (the measurement anchor `_kid_measured_lines` greps
+    for), so the MEASUREMENT path is exercised, not the record path."""
+    def g(*a):
+        return subprocess.run(["git", "-C", str(root), *a],
+                              capture_output=True, text=True, check=True)
+    g("init", "-q")
+    g("config", "user.email", "t@example.invalid")
+    g("config", "user.name", "t")
+    (root / "seed.txt").write_text("seed\n")
+    g("add", "-A")
+    g("commit", "-qm", "seed")
+    p = root / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("x = 1\n" * added)
+    g("add", "-A")
+    g("commit", "-qm", f"{agent_id} done: work")
+
+
+def test_harvest_overage_uses_the_dispatching_nodes_ceiling_clause(graph,
+                                                                   monkeypatch,
+                                                                   capsys):
+    """hypothesis:l4-sm45b-...: brief and harvest agree on ONE number. The
+    kid row's `target` names a hypothesis whose own CEILING clause is 120, so
+    a 90-line kid is NOT an overage (against the config's 40 it would be).
+    The harvest reads the SAME resolver the brief was assembled with."""
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "c.md").write_text(
+        "---\nid: hypothesis:c\ntype: hypothesis\n---\n"
+        "CEILING: <=120 production lines\n")
+    _write_kid_node(graph, "experiment:k-clause", production_lines=90)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-clause",
+                         target="hypothesis:c")
+    capsys.readouterr()
+    assert "overage=" not in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_harvest_frontmatter_line_ceiling_beats_the_clause(graph, monkeypatch,
+                                                           capsys):
+    """An ANSWERED re-brief writes `line_ceiling` on the kid's own node and
+    that value WINS over the dispatching node's clause -- the parent's answer
+    is the newer fact."""
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "c.md").write_text(
+        "---\nid: hypothesis:c\ntype: hypothesis\n---\n"
+        "CEILING: <=120 production lines\n")
+    _write_kid_node(graph, "experiment:k-ans", production_lines=90,
+                    line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ans",
+                         target="hypothesis:c")
+    capsys.readouterr()
+    assert "overage=[experiment:k-ans 90/40 no-rebrief]" in text, text
+
+
+def test_harvest_measures_a_kid_that_records_nothing(project, graph,
+                                                     monkeypatch, capsys):
+    """THE FALSIFIER: a pre-fix kid with NO `production_lines` record whose
+    done commit IS over 2x -> the harvest still NAMES the defect. This is
+    the hole the record-only check failed open on."""
+    _git_done_commit(project, "a00-kid-1", 90)
+    _write_kid_node(graph, "experiment:k-bare")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-bare")
+    capsys.readouterr()
+    assert "overage=[experiment:k-bare 90/40 no-rebrief]" in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_measured_lines_beat_a_contradicting_record(project, graph,
+                                                    monkeypatch, capsys):
+    """The record says 30 (under 2x); git says 200 -> the MEASURED value
+    wins and the overage is named, so a stale/understated self-report cannot
+    launder an over-budget kid."""
+    _git_done_commit(project, "a00-kid-1", 200)
+    _write_kid_node(graph, "experiment:k-record",
+                    production_lines=30, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-record")
+    capsys.readouterr()
+    assert "overage=[experiment:k-record 200/40 no-rebrief]" in text, text
+
+
+def test_measured_overage_still_honours_a_rebrief(project, graph,
+                                                  monkeypatch, capsys):
+    """A measured overage WITH a `rebrief_request` is named as rebrief, not
+    as a defect -- measurement changes the count, not the naming rules."""
+    _git_done_commit(project, "a00-kid-1", 120)
+    _write_kid_node(graph, "experiment:k-asked",
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-asked")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-asked 120/40]" in text, text
+    assert "overage=" not in text, text

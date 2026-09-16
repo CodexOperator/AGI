@@ -2623,6 +2623,96 @@ def test_cmd_spawn_no_row_gen_no_handoff_still_reads_gen_1(monkeypatch,
         f"a gen-less, handoff-less seat stays at gen 1:\n{block}"
 
 
+# ---- goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-        #
+# ---- handoff-generation-header): a spawn's first seating rewrites         #
+# ---- seats/<seat>.handoff.md's generation header to _spawn_gen so a      #
+# ---- header-fallback reader never reads an older rotation's number.      #
+
+def _fs_run_spawn_seating(tmp_path, monkeypatch, rows, handoff_gen=None,
+                          name="handoff-seat"):
+    """Drive the REAL `rotate.cmd_spawn` seat path through a SUCCESSFUL
+    `spawn_window` (rc 0) so the first-seating WRITE block runs, and return
+    the seat's `<name>.handoff.md` path.
+
+    `rows` builds the config:seats sheet; `handoff_gen` (when not None)
+    pre-writes a `<name>.handoff.md` header at that generation -- the stale
+    header the defect leaves behind. The heavier side effects are stubbed:
+    `_first_seating_announce` (the bounded join poll), `_current_sequence`,
+    `_successor_window_id` (never a real `tmux list-windows`). No git runs:
+    the tmp root is not a repo, so `_commit_spawn_row` SKIPS."""
+    _fs_seats_sheet(tmp_path, rows)
+    _fs_director_first_turn(tmp_path, monkeypatch)
+    hands = rotate._sessions_dir(tmp_path) / "seats"
+    hands.mkdir(parents=True, exist_ok=True)
+    if handoff_gen is not None:
+        (hands / f"{name}.handoff.md").write_text(
+            f"seat: {name}\ngeneration: {handoff_gen}\nrotated_at: t\n",
+            encoding="utf-8")
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "win"))
+    monkeypatch.setattr(rotate, "_first_seating_announce",
+                        lambda *a, **k: {})
+    monkeypatch.setattr(rotate, "_current_sequence", lambda root: 1)
+    monkeypatch.setattr(rotate, "_successor_window_id",
+                        lambda *a, **k: "@9")
+    args = SimpleNamespace(name=name, tier="prime_director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=False,
+                           successor_argv=None, seat=name,
+                           registry_dir=None, pid=None, no_autopsy=True)
+    rc = rotate.cmd_spawn(args, tmp_path)
+    assert rc == 0, "the stubbed spawn must succeed to reach the write block"
+    return hands / f"{name}.handoff.md"
+
+
+def test_cmd_spawn_first_seating_rewrites_stale_handoff_gen(monkeypatch,
+                                                            tmp_path):
+    """THE FIX. A first seating onto a row at generation 31 whose handoff
+    header is stale at 32 must rewrite the header to 31 -- the SAME value
+    `_spawn_gen` threads into the meter pin, the ack and the row -- so a
+    reader falling back to the header never reads the older rotation's
+    number. Pre-fix nothing wrote the header and it stayed at 32."""
+    hp = _fs_run_spawn_seating(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": "", "generation": 31}],
+        handoff_gen=32)
+    txt = hp.read_text(encoding="utf-8")
+    assert "generation: 31" in txt, f"header must read the row gen 31:\n{txt}"
+    assert "generation: 32" not in txt, \
+        f"stale header gen 32 survived the seating:\n{txt}"
+
+
+def test_cmd_spawn_first_seating_writes_handoff_when_absent(monkeypatch,
+                                                            tmp_path):
+    """A row WITH a generation cell but NO handoff file still gets a header
+    written -- at the spawn's resolved generation -- never left absent."""
+    hp = _fs_run_spawn_seating(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": "", "generation": 5}],
+        handoff_gen=None)
+    assert hp.exists(), "a first seating must leave a handoff header behind"
+    assert "generation: 5" in hp.read_text(encoding="utf-8")
+
+
+def test_cmd_spawn_first_seating_handoff_write_is_idempotent(monkeypatch,
+                                                             tmp_path):
+    """A header ALREADY reading the resolved generation is left
+    byte-identical (no `rotated_at` churn, no needless diff). The fixture's
+    original `rotated_at: t` is the sentinel: the real writer stamps an ISO
+    timestamp, so its survival proves cmd_spawn did not rewrite the file."""
+    hp = _fs_run_spawn_seating(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": "", "generation": 31}],
+        handoff_gen=31)
+    txt = hp.read_text(encoding="utf-8")
+    assert "generation: 31" in txt
+    assert "\nrotated_at: t\n" in txt, \
+        f"an already-correct header was needlessly rewritten:\n{txt}"
+
+
 # ---- goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-seating- #
 # ---- run), round 2: the SECOND `_first_seating_run` caller, cmd_seats_    #
 # ---- launch (rotate.py ~4028), resolves the row generation ONCE per row   #

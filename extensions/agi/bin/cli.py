@@ -502,7 +502,14 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     is this parent (dispatch.py stamps it at spawn), in the same iteration
     manifest. Status is the terminal signal: `done` accepted, `failed`/
     `hung-healed` failed, everything else demoted. Branch tip via
-    `_branch_tip`."""
+    `_branch_tip`.
+
+    conjunct (4) of l4-a-kid-checkpoints-...-re-brief: the line also names
+    each owned kid's MEASURED overage against its ceiling -- measured from
+    the kid's own `done` commit, because a kid that records nothing must
+    still be measured (the record-only check failed open: no record, no
+    defect, clean harvest).
+    """
     kids = [a for a in manifest.get("agents", []) or []
             if a.get("spawned_by_agent") == agent_id]
     accepted = demoted = failed = 0
@@ -518,10 +525,129 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
             demoted += 1
     branch = row.get("branch") or ""
     tip = _branch_tip(root, branch)
+    notes = _kid_budget_notes(root, kids)
+    tail = (" " + " ".join(notes)) if notes else ""
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
-            f"branch={branch or '-'} tip={tip or '-'}")
+            f"branch={branch or '-'} tip={tip or '-'}{tail}")
+
+
+def _budget_num(value):
+    """A frontmatter count as a number, or None when absent/unreadable.
+
+    `bool` is refused (it is an int subclass and never a budget), and a
+    non-numeric value is None so a typo never fabricates a defect.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value) if value == int(value) else value
+    return None
+
+
+#: What the git measurement counts as a production file: source suffixes,
+#: never a `tests/` path and never a node/markdown file.
+_SOURCE_SUFFIXES = (".py", ".sh", ".bash", ".ts", ".tsx", ".js",
+                    ".rs", ".go", ".rb", ".c", ".h", ".cpp", ".java")
+
+
+def _kid_measured_lines(root, agent_id: str):
+    """Added PRODUCTION lines in the kid's own `<id> done:` commit, or None.
+
+    conjunct (4): the harvest measures the kid from git instead of trusting
+    its self-report. Read-only `git log` / `git show --numstat` from the MAIN
+    checkout, wrapped exactly like `_branch_tip`. None means no anchor
+    resolved -- never fabricate a measurement the repo cannot support.
+    """
+    if not agent_id:
+        return None
+    main = locations.git_common_root(root) or root
+
+    def g(*a):
+        try:
+            r = subprocess.run(["git", "-C", str(main), *a],
+                               capture_output=True, text=True, timeout=30)
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+        return r.stdout if r.returncode == 0 else ""
+
+    shas = g("log", "--all", "--format=%H",
+             "--grep", f"^{re.escape(agent_id)} done:").split()
+    if not shas:
+        return None
+    total = 0
+    for line in g("show", "--numstat", "--format=", shas[0]).splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3 or not parts[0].isdigit():
+            continue
+        path = parts[2]
+        if "tests" in path.split("/") or not path.endswith(_SOURCE_SUFFIXES):
+            continue
+        total += int(parts[0])
+    return total
+
+
+def _kid_line_ceiling(root, fm: dict, target: str | None = None) -> int:
+    """The 2x checkpoint's ceiling: the node's own `line_ceiling` when > 0
+    (an answered re-brief wins), else the DISPATCHING node's own CEILING clause
+    (or config default) via `spawn_budget.node_line_ceiling` -- the SAME
+    resolver `brief.assemble()` uses, so the two cannot name two numbers.
+    """
+    ceiling = _budget_num(fm.get("line_ceiling"))
+    if ceiling is not None and ceiling > 0:
+        return int(ceiling)
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError):
+        cfg = {}
+    return spawn_budget.node_line_ceiling(root, target, cfg)[0]
+
+
+def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
+    """conjunct (4): name each owned kid's overage, or nothing.
+
+    The kid's lines are MEASURED from its `done` commit; only when no anchor
+    resolves does the node's own `production_lines` record stand in. Over 2x
+    with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
+    `rebrief_request` present -> `rebrief=[id N/C]`, PLUS `unanswered=[id]`
+    when the node carries no `rebrief_answer` (the overage was disclosed, the
+    answer is outstanding -- conjunct (3)); at or under 2x -> nothing. A
+    measured-zero kid with no commit at all still adds nothing.
+    """
+    notes: list[str] = []
+    for kid in kids:
+        nid = str(kid.get("node_id") or "-")
+        if nid == "-":
+            continue
+        fm: dict = {}
+        nf = _find_node_file(root, nid)
+        if nf is not None:
+            try:
+                fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+            except OSError:
+                fm = {}
+            if not isinstance(fm, dict):
+                fm = {}
+        measured = _kid_measured_lines(root, str(kid.get("id") or ""))
+        lines = measured if measured is not None \
+            else _budget_num(fm.get("production_lines"))
+        ceiling = _kid_line_ceiling(root, fm,
+                                    str(kid.get("target") or "") or None)
+        if lines is None or ceiling <= 0:
+            continue
+        if fm.get("rebrief_request"):
+            notes.append(f"rebrief=[{nid} {lines}/{ceiling}]")
+            # conjunct (3): a re-brief the parent never answered is itself a
+            # named defect, kept alongside the disclosure token.
+            if not fm.get("rebrief_answer"):
+                notes.append(f"unanswered=[{nid}]")
+        elif lines > 2 * ceiling:
+            notes.append(f"overage=[{nid} {lines}/{ceiling} no-rebrief]")
+    return notes
 
 
 def _session_manifest_holders(root: Path, iter_n) -> list[Path]:
@@ -1672,6 +1798,55 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                   file=sys.stderr)
 
 
+def _round_scope_ok(rel: str, agent_id: str, own_paths: set) -> bool:
+    """Is `rel` a path this round's `done` commit may add?
+
+    hypothesis:l4-the-round-done-commit-scopes-to-the-round-own-paths-never-
+    git-add-a -- the round-done commit names its own paths instead of `git
+    add -A`, and the rule it names them by is the SAME one the agent-git
+    pre-commit hook already enforces on a --branch kid (hooks/agent-git/
+    pre-commit): everything the round touched is its own EXCEPT
+    `.agi/config.json`, `.agi/sessions/quorum/*`, and a node file whose
+    basename does not carry this round's agent id. `own_paths` holds the
+    round's explicit node files (`--node-id` / `--owns`, resolved), so a
+    round whose node filename is a human slug still commits its own node.
+
+    Measured on SM.41: `add -A` swept a SIBLING kid's dirty node into the
+    round commit, the hook refused it by name, and `done` failed.
+    """
+    p = rel.replace(os.sep, "/")
+    if p in own_paths:
+        return True
+    if p.endswith("/"):
+        # An untracked DIRECTORY git collapsed (only reachable without
+        # `-uall`); its contents cannot be judged from here, so never sweep
+        # it -- fail-closed, the quorum-card hazard lives in this shape.
+        return False
+    if p == ".agi/config.json":
+        return False
+    if p.startswith(".agi/sessions/quorum/"):
+        return False
+    if p.startswith(".agi/nodes/"):
+        return bool(agent_id) and agent_id in p.rsplit("/", 1)[-1]
+    return True
+
+
+def _round_own_node_paths(root: Path, checkout_root: Path,
+                          node_id: str | None, owns: list | None) -> set:
+    """The round's own node files, relative to the checkout toplevel."""
+    out = set()
+    for nid in [node_id, *(owns or [])]:
+        if not nid:
+            continue
+        nf = _find_node_file(root, nid)
+        if nf and nf.exists():
+            try:
+                out.add(Path(os.path.relpath(nf, checkout_root)).as_posix())
+            except ValueError:
+                pass
+    return out
+
+
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
@@ -1717,16 +1892,35 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
         return None
 
     status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain"],
+        ["git", "-C", str(checkout_root), "status", "--porcelain", "-z",
+         "--no-renames", "-uall"],
         capture_output=True, text=True)
     if status.returncode != 0 or not status.stdout.strip():
         return None   # clean worktree -> nothing to commit
+
+    # Scope the add the way the pre-commit hook scopes a --branch kid: only
+    # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
+    # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
+    # path is named on stderr and left where it is.
+    own = _round_own_node_paths(root, checkout_root, node_id, owns)
+    in_scope, foreign = [], []
+    for rec in status.stdout.split("\0"):
+        if len(rec) < 4:
+            continue
+        p = rec[3:]
+        (in_scope if _round_scope_ok(p, agent_id, own) else foreign).append(p)
+    if foreign:
+        print(f"leaving {len(foreign)} foreign path(s) uncommitted in "
+              f"{checkout_root}: {', '.join(foreign)}", file=sys.stderr)
+    if not in_scope:
+        return None   # nothing of the round's own -> not our commit
 
     # `<agent_id> done: <node_id or owns[0]> verdict=<verdict>`
     ref = node_id or (owns[0] if owns else "node")
     subject = f"{agent_id} done: {ref} verdict={verdict}"
 
-    add = subprocess.run(["git", "-C", str(checkout), "add", "-A"],
+    add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
+                          *in_scope],
                          capture_output=True, text=True)
     if add.returncode != 0:
         print(f"ERR: worktree commit add failed in {checkout_root}: "
@@ -1735,7 +1929,7 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
         return None
 
     commit = subprocess.run(
-        ["git", "-C", str(checkout),
+        ["git", "-C", str(checkout_root),
          "-c", "user.email=agi@local", "-c", "user.name=agi",
          "commit", "-qm", subject],
         capture_output=True, text=True)
@@ -2710,6 +2904,59 @@ def _rs_v3_successor(tuples: list[dict], job: dict) -> str | None:
     return None
 
 
+def _rs_mirror_ref_for_name(name: str, season: int) -> str | None:
+    """The `refs/agi/<kind>/<leaf>` MIRROR ref a LOCAL-ONLY post/loop branch's
+    tip lives at, else None for a trunk/unknown name. The name goes through
+    branches.parse -- the ONE grammar -- and BOTH spellings are handled: a
+    season-first `season<n>/posts|x/<leaf>` and a v3 town-first
+    `v3_post`/`v3_loop`. An alias is canonicalised first. NEVER raises: an
+    unparseable name is simply not a post/loop.
+
+    hypothesis:l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-
+    and-the-merge-up-takes-the-suite-lock-itself-no-window-ask, clause (6):
+    a post/loop branch never reaches origin as a head (clause (1)) -- its tip
+    is mirrored to the flat namespace of clause (2) -- so the mirror, not
+    `refs/heads/<name>`, is what the delete gates must read."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        p = branches.parse(name)
+    except ValueError:
+        return None
+    if p.get("kind") == "alias":
+        try:
+            p = branches.parse(p.get("canonical") or "")
+        except ValueError:
+            return None
+    kind, leaf = p.get("kind"), p.get("name")
+    if not leaf:
+        return None
+    if kind in ("post", "v3_post"):
+        return branches.mirror_ref(season, "posts", leaf)
+    if kind in ("loop", "v3_loop"):
+        return branches.mirror_ref(season, "loops", leaf)
+    return None
+
+
+def _rs_v3_gate_ref(tuples: list[dict], job: dict, season: int) -> str | None:
+    """The FULL ref whose ORIGIN PRESENCE proves a `new is None` delete job's
+    work reached origin, per kind (clause (6)): a POST/LOOP branch is
+    LOCAL-ONLY by contract, so its clause-(2) mirror `refs/agi/posts|loops/
+    <leaf>` is the proof -- never `refs/heads/<name>`, which a local-only
+    branch can never satisfy. A town_main keeps its v3 town-first HEAD
+    (`_rs_v3_successor`). None when no ref derives: the caller REFUSES by
+    name, never guesses."""
+    kind = job.get("kind")
+    if kind in ("post", "loop"):
+        return _rs_mirror_ref_for_name(job.get("old") or "", season)
+    if kind == "town_main":
+        # `_rs_v3_successor` consults the tuples only for the POST arm (the
+        # town-first leaf is derived from the job's own name), so an empty
+        # tuple list still resolves a town_main successor.
+        succ = _rs_v3_successor(tuples, job)
+        return f"refs/heads/{succ}" if succ else None
+    return None
+
+
 def _rs_containment_state(repo: Path, old: str,
                           targets: list) -> tuple[str, str | None]:
     """Content containment of a `--delete-old` job's origin tip in the first
@@ -2728,14 +2975,17 @@ def _rs_containment_state(repo: Path, old: str,
     reading as containment. This is the rc-honest idiom cmd_loop_prune
     already uses, applied to the REMOTE tips rather than local branches
     (hypothesis:l4-delete-old-requires-content-containment-every-job-
-    ancestor-of-successor-or-trunk, mur-52)."""
+    ancestor-of-successor-or-trunk, mur-52). `old` is ALWAYS an origin HEAD
+    (that is what `--delete-old` deletes), but each TARGET is a FULL ref
+    (clause (6): a post/loop target is its `refs/agi/...` mirror), so the
+    two probes use different readers."""
     old_sha = _rs_ls_remote_sha(repo, old)
     if not old_sha:
         return "failed", None
     for target in targets:
         if not target:
             continue
-        tgt_sha = _rs_ls_remote_sha(repo, target)
+        tgt_sha = _rs_ls_remote_ref_sha(repo, target)
         if not tgt_sha:
             continue  # absent on origin: try the next target, never guess
         r = subprocess.run(
@@ -2751,17 +3001,43 @@ def _rs_containment_state(repo: Path, old: str,
 
 def _rs_containment_targets(tuples: list[dict], job: dict,
                             season: int) -> list:
-    """The ordered content-containment candidates for one delete job: its
-    own rename target (`new`) when it has one, else its derived v3 successor
-    (`_rs_v3_successor`, the SAME derivation the presence gate already uses),
-    else the file's own season trunk main (`branches.season_main(season)` --
-    the ONE grammar source, never a hand-spelled `season<n>/main`).
-    `_rs_containment_state` skips a candidate ABSENT on origin, so the order
-    is a preference among resolvable targets, never a boundary that lets an
-    absent ref read as containment."""
+    """The ordered content-containment candidates for one delete job, as
+    FULL refs (never bare branch names) so the state reader can ls-remote
+    each one verbatim (clause (6)). A POST/LOOP successor is LOCAL-ONLY by
+    contract, so its clause-(2) mirror `refs/agi/posts|loops/<leaf>` is the
+    FIRST candidate -- the mirror holds exactly the tip the head delete would
+    otherwise destroy. The rename job's own `new` target keeps its kind's ref
+    (a post `new` resolves to the mirror too, never a head). town_main/trunk
+    kinds stay `refs/heads/<name>` (unchanged origin HEAD), and the file's own
+    season trunk main (`branches.season_main(season)` -- the ONE grammar
+    source, never a hand-spelled `season<n>/main`) remains the final
+    fallback. `_rs_containment_state` skips a candidate ABSENT on origin, so
+    the order is a preference among resolvable targets, never a boundary that
+    lets an absent ref read as containment."""
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    kind = job.get("kind")
+    new = job.get("new")
     succ = _rs_v3_successor(tuples, job) if tuples else None
-    return [job.get("new"), succ, branches.season_main(season)]
+    refs: list[str] = []
+    if kind in ("post", "loop"):
+        # the local-only branch's OWN mirror (clause (2)): the tip the origin
+        # head delete would destroy, and the only ref that holds it.
+        m = _rs_mirror_ref_for_name(new or job.get("old") or "", season)
+        if m:
+            refs.append(m)
+    for name in (new, succ):
+        if not name:
+            continue
+        refs.append(_rs_mirror_ref_for_name(name, season)
+                    or f"refs/heads/{name}")
+    refs.append(f"refs/heads/{branches.season_main(season)}")
+    out: list[str] = []
+    seen: set[str] = set()
+    for ref in refs:
+        if ref not in seen:
+            seen.add(ref)
+            out.append(ref)
+    return out
 
 
 def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
@@ -3762,6 +4038,19 @@ def _rs_ls_remote_sha(repo: Path, old: str) -> str:
     return line.split("\t")[0] if line else ""
 
 
+def _rs_ls_remote_ref_sha(repo: Path, ref: str) -> str:
+    """The current origin tip sha of a FULL ref (e.g. `refs/heads/<b>` or the
+    clause-(2) mirror `refs/agi/posts/<leaf>`), or '' when origin has no such
+    ref. The full-ref twin of `_rs_ls_remote_sha`, which hardcodes the
+    `refs/heads/` prefix and keeps its existing callers: the clause-(6)
+    containment reader must be able to probe the `refs/agi/*` mirror verbatim
+    rather than a head that a local-only post/loop contractually never has."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref],
+                       cwd=repo, capture_output=True, text=True)
+    line = (r.stdout or "").strip()
+    return line.split("\t")[0] if line else ""
+
+
 # --------------------------------------------------------------------------
 # I-3a-2 Region A — the v3 TOWN-FIRST plan (hypothesis:l4-the-reshuffle-
 # plans-the-final-town-first-tree-from-the-town-tuples-and-the-mirror-line-
@@ -4562,16 +4851,26 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # same refusal (honest, still deletes nothing). A v3-off tree keeps
         # the old direct-delete behaviour — there is no v3 successor to
         # require when the town set is undeclared.
+        # hypothesis:l4-post-branches-are-local-only-...-no-window-ask,
+        # clause (6): the presence proof is READ BY KIND. A post/loop
+        # successor is LOCAL-ONLY (clause (1)), never an origin head, so the
+        # gate reads its clause-(2) mirror `refs/agi/posts|loops/<leaf>`
+        # (`_rs_v3_gate_ref`); a town_main keeps its v3 town-first head. A
+        # post delete job whose mirror is ABSENT on origin is REFUSED BY
+        # NAME -- deleting the head without the mirror would destroy the only
+        # copy of the work.
         v3_gate_refused: list[str] = []
         if _v3_on:
             for j in djobs:
-                if j["new"] or j.get("kind") not in ("post", "town_main"):
+                if j["new"] or j.get("kind") not in ("post", "town_main",
+                                                     "loop"):
                     continue
-                succ = _rs_v3_successor(_rs_tuples, j)
-                if succ is not None and _post_rename_remote_ref_state(
-                        repo, f"refs/heads/{succ}") == "present":
+                gate_ref = _rs_v3_gate_ref(_rs_tuples, j, season)
+                if gate_ref is not None and _post_rename_remote_ref_state(
+                        repo, gate_ref) == "present":
                     continue
-                j["v3_successor"] = succ
+                j["v3_successor"] = gate_ref or _rs_v3_successor(
+                    _rs_tuples, j)
                 v3_gate_refused.append(j["old"])
         # hypothesis:l4-delete-old-requires-content-containment-every-job-
         # ancestor-of-successor-or-trunk (SAFETY-CRITICAL, mur-52): origin

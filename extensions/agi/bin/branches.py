@@ -32,6 +32,7 @@ them.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 
 __all__ = [
@@ -46,10 +47,20 @@ __all__ = [
     "derive_names",
     "is_remote_visible",
     "assert_remote_visible",
+    "mirror_ref",
+    "mirror_ref_for_branch",
+    "mirror_and_prove",
+    "MIRROR_NAMESPACE",
     "RESERVED",
 ]
 
 RESERVED = ("main", "posts", "loops")
+
+#: The origin ref namespace a LOCAL-ONLY post/loop branch tip is mirrored to
+#: (goal:g15.25 lines (1)+(2)): `refs/agi/posts/<name>`,
+#: `refs/agi/loops/<name>`. Flat, per the owner order -- never `refs/heads`.
+MIRROR_NAMESPACE = "refs/agi"
+_MIRROR_KINDS = ("posts", "loops")
 
 # One-time-per-process alias warning.
 _warned = False
@@ -349,6 +360,84 @@ def assert_remote_visible(name: str) -> None:
             f"(master, season<n>/main, <town>/main, <town>/season<m>/main) "
             f"reaches origin, so {name!r} is not remote-visible")
     return None
+
+
+def mirror_ref(season: int, kind: str, name: str) -> str:
+    """`refs/agi/<kind>/<name>` -- the ADDITIVE mirror ref for a local-only
+    post/loop branch tip (goal:g15.25 line (2)). `kind` is the plural leaf
+    word (`posts` | `loops`); `season` is accepted for call parity and does
+    NOT enter the ref (the owner order's namespace is flat)."""
+    if kind not in _MIRROR_KINDS:
+        raise ValueError(
+            f"mirror kind must be one of {_MIRROR_KINDS}, got {kind!r}")
+    if not name:
+        raise ValueError("mirror name must be non-empty")
+    return f"{MIRROR_NAMESPACE}/{kind}/{name}"
+
+
+def mirror_ref_for_branch(branch: str) -> str | None:
+    """The mirror ref a post/loop branch's tip belongs at, else None. A
+    trunk is already remote-visible as its own head; an unrecognised name is
+    not this helper's business. NEVER raises.
+
+    SM.25b defect (1): `parse` returns the v3 TOWN-FIRST kinds (`v3_post`,
+    `v3_loop`) for the spellings every live seat actually carries, so
+    recognising only the season-first `post`/`loop` made this return None on
+    the branches that matter -- the mirror never resolved, rotate-out kept
+    pushing post heads and `merge-up --post` refused for every real seat.
+    The v3 records carry `town_season` and no `season` key; `season` is
+    passed for call parity only and does not enter the ref."""
+    try:
+        p = parse(branch)
+    except ValueError:
+        return None
+    kind = p.get("kind")
+    if kind in ("post", "v3_post"):
+        return mirror_ref(int(p.get("season") or 0), "posts", p["name"])
+    if kind in ("loop", "v3_loop"):
+        return mirror_ref(int(p.get("season") or 0), "loops", p["name"])
+    return None
+
+
+def mirror_and_prove(local_root, ref: str, *, tip: str = "HEAD", run=None,
+                     label: str = "mirror") -> tuple[bool, str, dict]:
+    """Push a local tips' sha to `ref` on origin and PROVE it by
+    `ls-remote` -- ADDITIVE: never a delete, never a force, never a head.
+    rc != 0 from the rev-parse, the push, or the ls-remote, or a sha
+    mismatch, is a REFUSAL BY NAME. Returns (ok, detail,
+    {ref, sha, proved_by})."""
+    run = run or subprocess.run
+    info = {"ref": ref, "sha": "", "proved_by": "ls-remote"}
+
+    def _git(*argv):
+        return run(["git", "-C", str(local_root), *argv],
+                   capture_output=True, text=True, timeout=60)
+
+    try:
+        tip_o = _git("rev-parse", tip)
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{label} refused: could not resolve {tip}: {exc}", info
+    sha = (tip_o.stdout or "").strip()
+    if tip_o.returncode != 0 or not sha:
+        return False, (f"{label} refused: could not resolve {tip} "
+                       f"({(tip_o.stderr or '').strip()})"), info
+    info["sha"] = sha
+    for step, argv in (("push", ("push", "origin", f"{sha}:{ref}")),
+                       ("ls-remote", ("ls-remote", "origin", ref))):
+        try:
+            r = _git(*argv)
+        except Exception as exc:  # noqa: BLE001
+            return False, f"{label} refused: {step} {ref}: {exc}", info
+        if r.returncode != 0:
+            return False, (f"{label} refused: {step} {ref} failed: "
+                           f"{(r.stderr or r.stdout or '').strip()}"), info
+        if step == "ls-remote":
+            got = (r.stdout or "").strip().split()
+            if not got or got[0] != sha:
+                return False, (f"{label} refused: ls-remote {ref} proves "
+                               f"{got[0] if got else '(absent)'}, "
+                               f"expected {sha}"), info
+    return True, f"{label}: {ref} <- {sha} (proved_by ls-remote)", info
 
 
 def merge_target(branch: str) -> str:
