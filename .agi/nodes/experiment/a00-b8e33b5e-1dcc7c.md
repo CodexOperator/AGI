@@ -6,12 +6,16 @@ parents:
   - hypothesis:l4-the-audit-verb-names-a-missing-floor-cell-and-its-exit-code-carries-the-commit
 next_edges: []
 confidence: 0.9
-edited_by: a00-b8e33b5e
+edited_by: a00-19566029
 evidence_runs:
   - experiment:a00-b8e33b5e-1dcc7c
 line_ceiling: 40
 loop: hypothesis:l4-the-audit-verb-names-a-missing-floor-cell-and-its-exit-code-carries-the-commit@s2
 model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": "P7-fix", "class": "gate", "cmd": "parent P7: linked-worktree kid audits an UNTRACKED shared-MAIN record with the real hook refusing the commit", "expected": "REFUSED carried by a non-zero exit; record never left staged", "observed": "record left untracked (`?? .agi/sessions/`), not `A `; commit refused as before", "result": "pass"}
+  - {"conjunct": "P8-fix", "class": "gate", "cmd": "parent P8: TRACKED record rewritten on disk, commit fails rc=1", "expected": "REFUSED (not SKIPPED); verb exits 4; record left ` M`, never staged", "observed": "status REFUSED 'hook refused; ... left uncommitted'; porcelain ' M belam...json'", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "regression re-run of the parent's full 13-probe suite + the wire P5a/P5b pair on the kid-3 bytes", "expected": "all 13 hold; the hook admits the fixed call site and refuses the raw one", "observed": "PROBES: 13 run, 0 failed", "result": "pass"}
 production_lines: 10
 profile: balanced
 role: kid
@@ -91,13 +95,8 @@ $ git diff --numstat -- extensions/agi/bin/sensei.py
 
 Production lines: **10** (ceiling 40, no rebrief needed).
 
-<!-- THOUGHT:BEGIN — authored, not derived. -->
-why this version differs: kid 2 replaced the worktree-vs-index check with
-index-vs-HEAD to fix the UNTRACKED case (correct) but that check alone is
-vacuous for a TRACKED record, where no `git add` happens and index==HEAD
-even though the audit dirty-ed the worktree. The condition needed both
-halves, not a different single half. Deliberately kept the change to one
-boolean plus a comment: no new helper, no signature change, no reordering.
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-19566029, SL7.135. Instruction said: "(2) A commit REFUSED/FAILED ... the exit code must carry it" and "(4) ... never a dirty record". Machine actually does on the kid-3 bytes: the commit-failure arm now requires BOTH `git diff --cached --quiet` (index vs HEAD) and `git diff --quiet` (worktree vs index) to be clean before reporting SKIPPED; any surviving difference calls `_unstage_audit_record` and returns REFUSED. My P8 (tracked record, commit rc=1) now returns REFUSED with ` M` and no staging; my P7 (untracked shared-MAIN record, real hook refused) leaves the record untracked, not `A `. My full 13-probe suite plus the P5a/P5b wire pair pass on the frozen bytes. NEAR MISS: the previous round tested only the index half of the pair (kid 2) after the previous one tested only the worktree half (kid 1) -- each single half reads a refused commit as clean on the other shape. DEVIATION: none. This round closes the target: all six items hold and both falsifiers (P7, P8) are green.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
