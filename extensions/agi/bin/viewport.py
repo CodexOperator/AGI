@@ -418,8 +418,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
 
 
 # --------------------------------------------------------------------------
-# The sanctuary theme — a third live render, per goal:g9.4 under goal:g9.7
-# (hypothesis:l3w4-sanctuary-theme). `--theme sanctuary`.
+# The keep theme — a third live render, per goal:g9.4 under goal:g9.7
+# (hypothesis:l3w4-sanctuary-theme). `--theme keep`; the theme is a VIEW of
+# the keep, so the flag names the view, never a town (goal:g8.2).
 #
 # Same one-render-two-readers discipline as the graph frame: `sanctuary_frame`
 # builds a single frozen `SanctuaryScene` and `render_sanctuary_human` /
@@ -454,11 +455,19 @@ def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
             "name": str(r.get("name") or ""),
             "label": str(r.get("role") or ""),
             "fraction": r.get("fraction"),
+            "town": str(r.get("town") or "core"),
         }
         if r.get("tier") == 3 or r.get("mantled"):
             spirits.append(rec)
         else:
             probes.append(rec)
+    # goal:g15.25 SM.32 -- group by the row's REAL town, sanctuary rows first
+    # (the keep's own people), core rows after. STABLE: within a town the
+    # registry order is preserved, so a fixture whose rows all read `core`
+    # keeps its original order. `towns.row_town` resolves a row still
+    # spelling `town: all`.
+    spirits.sort(key=lambda x: x["town"] == "core")
+    probes.sort(key=lambda x: x["town"] == "core")
     return SanctuaryScene(tuple(spirits), tuple(probes),
                           len(ephemeral_leases or []), rotating, True)
 
@@ -499,6 +508,11 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             if not rows:
                 rows = (gf.get("config:seats") or {}).get("seats")
             rows = rows or []
+        try:
+            import towns as _towns
+            rows = [{**r, "town": _towns.row_town(root, r)} for r in rows]
+        except Exception:  # noqa: BLE001  (a row still renders without a town)
+            pass
     return list(rows), present
 
 
@@ -538,10 +552,11 @@ def render_sanctuary_human(scene: SanctuaryScene, width: int = 120) -> list[str]
     ]
     for s in scene.spirits:
         frac = f"  {s['fraction']:.0%}" if s["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']}{frac}")
+        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']} "
+                     f"[{s['town']}]{frac}")
     for p in scene.probes:
         frac = f"  {p['fraction']:.0%}" if p["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['wisp']}  {p['name']}  probe{frac}")
+        lines.append(f"  {GLYPH['wisp']}  {p['name']}  {p['town']} probe{frac}")
     lines.append(f"  {scene.ephemeral_wisps} ephemeral wisps")
     if scene.rotating:
         holder, seat = scene.rotating
@@ -553,16 +568,18 @@ def render_sanctuary_llm(scene: SanctuaryScene) -> str:
     """Exactly what a kid is handed, from the same `SanctuaryScene`."""
     if not scene.registry_present:
         return "# sanctuary viewport\n\nno seat registry yet\n"
-    body = [f"- spirit {s['name']} ({s['label']})" for s in scene.spirits]
-    body += [f"- probe {p['name']} ({p['label']})" for p in scene.probes]
+    body = [f"- spirit {s['name']} ({s['label']}) town={s['town']}"
+            for s in scene.spirits]
+    body += [f"- probe {p['name']} ({p['label']}) town={p['town']}"
+             for p in scene.probes]
     body.append(f"- ephemeral_wisps: {scene.ephemeral_wisps}")
     if scene.rotating:
         body.append(f"- rotating: {scene.rotating[0]} ~~~✧~~~> {scene.rotating[1]}")
     return "# sanctuary viewport\n\n" + "\n".join(body) + "\n"
 
 
-def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
-    """Static `--theme sanctuary` path for `--emit human|llm|both`."""
+def _render_keep(args, root: Path, fm_by_id: dict) -> int:
+    """Static `--theme keep` path for `--emit human|llm|both`."""
     seat_rows, present = load_seat_rows(root, fm_by_id)
     ephemeral = []
     try:
@@ -577,7 +594,7 @@ def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
     except Exception:
         pass
     scene = sanctuary_frame(seat_rows, ephemeral, rotating_seat(seat_rows, windows))
-    status = f"theme=sanctuary registry={'yes' if present else 'absent'}"
+    status = f"theme=keep registry={'yes' if present else 'absent'}"
     mode = args.emit or "human"
     if mode in ("human", "both"):
         if mode == "both":
@@ -1049,7 +1066,7 @@ def main() -> int:
     ap.add_argument("--left", type=int, default=0)
     ap.add_argument("--height", type=int, default=40)
     ap.add_argument("--width", type=int, default=120)
-    ap.add_argument("--theme", choices=("graph", "sanctuary"), default="graph",
+    ap.add_argument("--theme", choices=("graph", "keep"), default="graph",
                     help="live-axis view theme (default: graph)")
     ap.add_argument("--layer", choices=("graph", "hierarchy"), default="graph",
                     help="layered map (round 2): which layer sits on top")
@@ -1073,8 +1090,8 @@ def main() -> int:
         if d.is_dir():
             fm_by_id.update(zoom._frontmatter_for(root, d.name))
 
-    if args.theme == "sanctuary":
-        return _render_sanctuary(args, root, fm_by_id)
+    if args.theme == "keep":
+        return _render_keep(args, root, fm_by_id)
 
     iter_name = args.iter
     if args.live and not iter_name:
