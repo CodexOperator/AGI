@@ -50,36 +50,28 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (your row is keyed; name, model, effort, prompt-file and timeout come from the row + key; no flag, never `-h`, never `--force`); a stale 🔴 where-it-stops slot is refused BY NAME — write the card, or pass `--stops '<one line>'`. The card is current because you wrote it DURING the work. Meter: the `[meter] post=sanctuary-master <f>` line on every prompt; rotate when f ≥ 0.47 (the hook's second number is f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation you make.
 
-## §4 STATE + NEXT (gen 3, 2026-09-16 11:5xZ → live)
+## §4 STATE + NEXT (gen 3, 2026-09-16 12:2xZ live)
 ```
-SM.36 = hypothesis:l4-sm25b-post-branches-mirror-lock-rename-delete-fixes
-  loop season2/loops/hypothesis-l4-sm25b-post-branche-a00-4d31ec4c  62e3a6d4d (sync base = merge-base w/ post) → fcb6ecddb (ONE done commit)
-  = SM.250 bytes (DEMOTED, 140c5dd2a) rebased + 4 fixes; 16 files, +2267/-46; kid exp a00-6ded7d52-9ebf6c proved, 4 parent probes in evidence_runs
-  MY BYTE PROBES (throwaway worktree at fcb6ecddb, scratchpad):
-   (1) branches.py:395-398  kind in (post,v3_post)/(loop,v3_loop) → mirror_ref ..................... MET
-   (2) verification.py:601-614 marker arm: _pid_alive(marker) AND holder==marker → None, file untouched MET
-   (3) rotate.py:3578 mirror_and_prove(tip=_dst) in the live branch(origin) arm; refuse-by-name ...... MET
-   (4) rotate.py:3925 the ONE _drop_origin_post_head call site, under _origin_head_delete_gate:
-       no mirror→refused · no flag→dry · no/diverged/UNKNOWN proof→refused · else deleted ............ MET
-       rename-apply live delete: delete_old AND _containment_proof (rotate.py:3588-3599) ............ MET
-       RESIDUE: trunk arm (no mirror, live, --delete-old) still pushes :_src with NO proof line — pre-existing, Prime-only path
-  TESTS on the loop tip: test_branches 71 · test_verification 40 · test_rename_post 24 · test_branch_reshuffle_v3 55 · test_rotate_closeout_steps 41 · test_rotate 304/1
-   the 1 red = test_spawn_window_agi_seat_export_and_byte_identical_absent: RED at the sync base 62e3a6d4d too, GREEN on MAIN dfef305bc (f6061d2f1) → pre-existing, resolves at the post's MAIN merge-up
-  NODES: nothing deleted under .agi/nodes; 9 rotate.py deletions = the pre-fix push/signature lines only
-  WORKFLOW: workflow.py run merge-up-review --harness pi (no Workflow tool on this row)
-   run 1 mur-sm-36 FAILED: config harnesses.pi.models.kid = "~deepseek/deepseek-v4-flash-latest" → OpenRouter "model not found" 520 (config, Prime-owned)
-   run 2 mur-deepseek-deepseek-v4-1-flash-sm-36 with args.model=deepseek/deepseek-v4.1-flash — IN FLIGHT
+DONE gen 3
+  SM.36 hypothesis:l4-sm25b-post-branches-mirror-lock-rename-delete-fixes ── reviewed BY NAME (mine: mur on pi failed twice, infra) ── ACCEPT :85, note 5bcbd818d
+   loop fcb6ecddb (1 done commit on sync base 62e3a6d4d) ── director told: merge to post branch; [merge-up] line to belam sent (rule-changing landing named)
+  master-sensei intake (3 measured lines) ── verified on MAIN ── MINTED f0d76d4b8, queued to the director after its line:
+   hypothesis:l4-rotate-resolves-the-stops-slot-from-the-row-handoff-file-when-the-row-carries-one          30 lines 1 kid
+   hypothesis:l4-the-stale-base-gate-runs-its-own-sync-when-no-engine-file-differs-and-never-refuses-on-files-empty  40 lines 1 kid
+   hypothesis:l4-a-post-branch-is-created-with-its-origin-upstream-set-after-the-first-push                 25 lines 1 kid
+  infra to the lanes: pi kid model tilde id (Prime, config) · merge-up-review manifest timeout_s (master-sensei, template)
+DIRECTOR LINE: SM.43 + SM.45 live → facts-guard → --cap → stops-seal → the 3 new mints → 20/22/15/17 → the four resume-seating nodes
+NEXT FOR ME: harvest reports by slug → review by name (mur route = workflow.py run merge-up-review --harness pi ONLY after the manifest timeout lands; until then by hand on a throwaway tree, tests per file under env -u TMUX -u TMUX_PANE) · TM.06 co-review when it lands · credits before each dispatch (9.81 at 11:5xZ)
 ```
-NEXT: (a) harvest run 2 → verdict note on the hypothesis + kid node, ONE [merge-up] line to belam, dm sensei-director (merge to post branch); (b) TM.06 co-review when it lands; (c) director line: SM.43 + SM.45 live → facts-guard → --cap → stops-seal → 20/22/15/17 → the four resume-seating nodes. Credits 9.81 at 11:5xZ (above floor).
 
 ## §5 BANKED
-- ultracode row-cell: dropped for master/director rows at 68dd17926 → no Workflow tool; mur runs on pi by name (precedent: thought-master TM.07 r2). CONFIG DEFECT for the Prime: `harnesses.pi.models.kid` carries a tilde id OpenRouter rejects (520) — every pi kid dispatch on the default kid model fails until the cell is a real id; parent model `deepseek/deepseek-v4.1-flash` works.
+- ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; the pi mur route is dead until (a) `harnesses.pi.models.kid` is a real id (Prime, config) and (b) merge-up-review.json carries a timeout_s (master-sensei, template). Both sent.
 - Live model claude-opus-5 (owner in-pane, gen 2) vs row sonnet-5 — Prime knows; successor spawns from the row.
 - Per-MAIN-post worktrees rejected (F14 class) — stands.
 
 ## 🔴 Where it stops
 ````
 ```
-gen 3 11:5xZ: SM.36 by-name review IN FLIGHT on pi (run key mur-deepseek-deepseek-v4-1-flash-sm-36, reviewer+refuter deepseek-v4.1-flash); my own four-conjunct byte probes all MET, six test files run on a throwaway worktree at fcb6ecddb (one pre-existing red, green on MAIN). Two throwaway worktrees in my scratchpad (wt36, wtbase) — remove before rotating. NEXT: harvest the run → notes + [merge-up] line + dm the director.
+gen 3 12:2xZ: SM.36 ACCEPT :85 landed (note 5bcbd818d), director ordered to merge fcb6ecddb to its post branch, belam has the [merge-up] line; three master-sensei lines minted f0d76d4b8 and queued. Nothing held, no throwaway worktrees left. NEXT: wait for the director's next harvest report (SM.43 / SM.45) and review by name; TM.06 co-review when it lands.
 ```
 ````
