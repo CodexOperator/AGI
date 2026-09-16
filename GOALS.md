@@ -9766,6 +9766,8 @@ gen24 harvest: SM.28 orders-channel per-agent keying (479 green), SM.32 town-cel
 
 harvested SM.35 (l4-sl04-residue-ack-and-latch-fixes): proved, items 4/7/8 fixed + item 3 confirmed already-satisfied by SM.243; 933 rotate-neighbourhood tests pass, 0 fail
 
+harvested SM.34 (l4-the-never-lower-baseline-counts-committed-node-files): ACCEPT :75 per SM mur-sl2-34, stamp now counts committed node files + records manifest so a drop names the file; 1015 verification+rotate-neighbourhood tests pass, 0 fail. New stamp gate refuses on untracked MAIN node paths -- flagging to Prime.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
