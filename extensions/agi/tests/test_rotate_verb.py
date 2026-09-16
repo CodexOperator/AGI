@@ -483,3 +483,33 @@ def test_check4_one_line_exit_first_and_saved_card_clear(tmp_path, monkeypatch):
     # a card SAVED after the seat's last act reads NOT stale, no walk needed.
     os.utime(card, (3000000000, 3000000000))
     assert c4()[0] is False
+
+
+# --- (19) explicit --stops on a card with NO slot creates it, delegates -----
+def test_explicit_stops_on_card_with_no_slot_delegates(tmp_path, monkeypatch):
+    """P1 falsifier: the pre-check that refused a MISSING slot removed a
+    capability the delegated path already had -- `_write_stops_section`
+    CREATES the slot when the card has none. An explicit --stops on such a
+    card must delegate (exit 0), not refuse."""
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    card = tmp_path / "sessions" / "quorum" / "prime.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# card\n\nlead only, no stops slot\n", encoding="utf-8")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse(["--stops", "fresh one line"]), tmp_path)
+    assert code == 0                             # delegated, not refused
+    assert captured.get("ns") is not None        # the stub WAS called
+    assert captured["ns"].stops == "fresh one line"
+    # the write the delegation performs CREATES the missing slot.
+    import shutil
+    copy = tmp_path / "copy.md"
+    shutil.copyfile(card, copy)
+    full, slot = rotate._write_stops_section(copy, "prime", "fresh one line")
+    assert slot == "created"
+    assert full is not None and "fresh one line" in full
