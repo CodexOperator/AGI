@@ -496,6 +496,65 @@ def _branch_tip(root, branch: str | None) -> str:
     return ""
 
 
+# hypothesis:l4-the-harvest-demotes-a-claimed-but-absent-deliverable: the
+# rule existed only as PARENT-BRIEF PROSE; these are the code that enforces it.
+def _branch_change_paths(root, branch: str | None) -> set:
+    """Path set the round's `branch` carries as changes, read from the MAIN
+    checkout like `_kid_measured_lines`: committed-vs-fork-base (the parent
+    brief's `diff merge-base..<kid-branch>`, falling back to the tip tree) plus
+    uncommitted + untracked work."""
+    if not branch:
+        return set()
+    main = locations.git_common_root(root) or root
+
+    def g(*a):
+        try:
+            r = subprocess.run(["git", "-C", str(main), *a],
+                               capture_output=True, text=True, timeout=30)
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+        return r.stdout if r.returncode == 0 else ""
+
+    out: set[str] = set()
+    base = ""
+    for ref in ("origin/master", "origin/main", "master", "main"):
+        if g("rev-parse", "--verify", "-q", ref).strip():
+            mb = g("merge-base", ref, branch).strip()
+            if mb:
+                base = mb
+                break
+    if base:
+        out.update(p for p in g("diff", "--name-only", f"{base}...{branch}").splitlines() if p)
+    else:
+        out.update(p for p in g("ls-tree", "-r", "--name-only", branch).splitlines() if p)
+    out.update(p for p in g("diff", "--name-only").splitlines() if p)
+    out.update(p for p in g("ls-files", "--others", "--exclude-standard").splitlines() if p)
+    return out
+
+
+def _parse_deliverables(value):
+    """A `--deliverables` JSON list of path strings, else None."""
+    if not value:
+        return None
+    try:
+        data = json.loads(value)
+    except Exception:
+        return None
+    if isinstance(data, str):
+        return [data]
+    if isinstance(data, list) and all(isinstance(x, str) for x in data):
+        return data
+    return None
+
+
+def _missing_claimed_deliverables(root, branch, declared) -> list:
+    """Declared paths the round's diff does NOT carry, in declaration order."""
+    if not declared:
+        return []
+    carried = _branch_change_paths(root, branch)
+    return [d for d in declared if d and d not in carried]
+
+
 def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     """hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
     per-round, clause 2 -- the ONE seat dm a parent sends at harvest. Counts
@@ -1390,6 +1449,21 @@ def cmd_done(args: argparse.Namespace) -> int:
         rec["demote_reason"] = gate.reason
     if gate.bypassed:
         rec["evidence_gate"] = "bypassed"
+    # claimed-but-absent deliverable: the round NAMES a file its diff lacks -> demote.
+    _declared = _parse_deliverables(getattr(args, "deliverables", None))
+    _missing = (_missing_claimed_deliverables(root, rec.get("branch"), _declared)
+                if _declared else [])
+    if _missing:
+        _names = ", ".join(_missing)
+        rec["demoted_from"] = verdict
+        rec["demote_reason"] = (f"claimed-but-absent deliverable(s) not carried "
+                                 f"by the round diff: {_names}")
+        rec["missing_deliverables"] = _missing
+        verdict = "inconclusive_lean_disproved:50"
+        rec["verdict"] = verdict
+        rec["confidence"] = 0.5
+        print(f"demoted {args.agent_id}: claimed-but-absent deliverable(s) "
+              f"missing from the round diff: {_names}", file=sys.stderr)
     ap.write_text(json.dumps(rec, indent=2))
     # hypothesis:l4-the-manifest-mirrors-terminal-agent-status -- the round's
     # own exit mirrors terminal status into the iteration manifest beside the
@@ -5279,6 +5353,11 @@ def main() -> int:
              "'result':'refused'}]. Hypothesis:l4-cli-done-for-tier-parent-...: "
              "required (refused by name, nothing written) for a tier-parent "
              "recording a verdict >= inconclusive_lean_proved:50 or proved.")
+    p_done.add_argument(
+        "--deliverables", default=None,
+        help="JSON list of file-path strings the round NAMES as its "
+             "deliverables; one the round diff does not carry demotes the "
+             "record to inconclusive_lean_disproved naming it.")
     p_done.add_argument(
         "--salvage", action="store_true",
         help="finalize a REAPED parent's round from its manifest death "
