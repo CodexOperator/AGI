@@ -1096,6 +1096,19 @@ def cmd_meter(args: argparse.Namespace, root: Path) -> int:
     if source.startswith("seat_pin-stale:"):
         _, written_gen, cur_gen = source.split(":")
         seat = getattr(args, "seat", None)
+        _srow = _find_seat(root, seat) if seat is not None else None
+        if _is_nonprime_row(_srow):
+            # clause (7) READERS: a NON-prime seat is generation-less, so its
+            # reader never names a generation, not even in a refusal. The
+            # pin's stamped generation is an INTERNAL mechanism (clause (0a));
+            # it is not reprinted on this surface.
+            print(f"ERR: seat pin for {seat!r} was written by a different "
+                  f"rotation of this non-prime post (session "
+                  f"{_session_id8(root, seat, _srow) or '?'}) -- refusing a "
+                  f"cross-generation read. Re-pin with `rotate.py meter "
+                  f"--pin {_sessions_dir(root)}/{seat}.meter` to claim the "
+                  f"seat before trusting --seat {seat}.", file=sys.stderr)
+            return 1
         print(f"ERR: seat pin for {seat!r} was written by generation "
               f"{written_gen} but this session is generation {cur_gen} -- "
               f"refusing a cross-generation read (hypothesis:l3-seat-pin-"
@@ -1919,6 +1932,18 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             if _srow is not None and _srow.get("role"):
                 _fs_role = _srow["role"]
             _rowgen = _seat_row_generation(root, seat)
+            if _rowgen is None:
+                # goal:g15.25 clause (0a) (hypothesis:l4-non-prime-genless-
+                # clauses-0-2-7-records-readers-migration): a gen-less
+                # non-prime row must pin the HANDOFF header generation, never
+                # fall to FIRST_SEATING_GEN=1 -- otherwise the seat's own
+                # meter pin reads `seat_pin-stale:1:<N>` on the next
+                # `meter --seat`. `_read_generation` is row-FIRST with the
+                # handoff as its fallback, so a row WITH a generation cell is
+                # already handled above, byte-identically.
+                _hg = _read_generation(root, seat)
+                if _hg > 0:
+                    _rowgen = _hg
             if _rowgen is not None:
                 _spawn_gen = _rowgen
             # goal:g15.25 (hypothesis:l4-a-re-seat-after-a-dead-predecessor-
@@ -2795,6 +2820,9 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     name = args.name or _derive_successor_name(
         existing, prefix=args.name_prefix or "belam")
 
+    # clause (2): the loop record/announce shape keys on the ONE predicate
+    # (the seat row's role; `--role` is the fallback for a rowless fixture).
+    _loop_role = _seat_role(root, name) or role
     continuation = (
         "ROTATION CONTINUATION: acknowledge your handoff with the explicit "
         "ACK channel, not a bare word. First act after reading: run "
@@ -2842,7 +2870,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     succ = _observed_windows(tmux_session, args.window_path)
     if name not in succ["names"]:
         _write_rotation_record(root, _loop_record(
-            name=name, result="refused",
+            name=name, role=_loop_role, result="refused",
             succ=succ, readback_log=Path(debug_file).expanduser().resolve(),
             refusal="successor window absent"))
         print(f"ERR: successor window {name!r} is NOT present in tmux session "
@@ -2882,7 +2910,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         # diff-stands-the-handoff).
         if answer == "diff" and (ack.get("text") or "").strip():
             _write_rotation_record(root, _loop_record(
-                name=name, result="diff", succ=succ,
+                name=name, role=_loop_role, result="diff", succ=succ,
                 readback_log=Path(ack_path).expanduser().resolve(),
                 reply_decision="diff"))
             print("successor acked diff (handoff needs change):",
@@ -2895,7 +2923,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         # answer == continue, OR diff with an EMPTY text: the handoff stands.
         reply = "diff-empty" if answer == "diff" else "continue"
         _write_rotation_record(root, _loop_record(
-            name=name, result="success", succ=succ,
+            name=name, role=_loop_role, result="success", succ=succ,
             readback_log=Path(ack_path).expanduser().resolve(),
             reply_decision=reply))
         print("handoff stood: successor acked an EMPTY diff (no change)."
@@ -2926,7 +2954,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # -> PRESENT-BUT-SILENT, recorded inconclusive; never confirmed.
     rb = Path(ack_path).expanduser().resolve()
     _write_rotation_record(root, _loop_record(
-        name=name, result="inconclusive-no-reply", succ=succ,
+        name=name, role=_loop_role, result="inconclusive-no-reply", succ=succ,
         readback_log=rb, reply_decision="no_reply"))
     print("warn: successor window present but no ACK arrived (give it time, "
           "then re-run loop).", file=sys.stderr)
@@ -2970,8 +2998,9 @@ def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in sessions whose name starts with agi-master or
     belam; with `--seats`, list the registry seats instead — one line per
-    row of seat/generation/fraction/age ("each layer lasts longer" is read
-    here, never enforced).
+    row of seat/fraction/age, plus `gen=<N>` for the Prime and
+    `session=<id8>` for a generation-less non-prime post ("each layer lasts
+    longer" is read here, never enforced).
 
     `--seats` is the graph-reading half and needs the project root; tmux is
     never touched for it."""
@@ -3036,7 +3065,15 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             gen = _read_generation(root, seat)
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
-            print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
+            if _is_nonprime_row(row):
+                # clause (7) READERS: a NON-prime post prints session id8 +
+                # seated_at (from the latest record), never `gen=`.
+                print(f"row: {seat}"
+                      f"\tsession={_session_id8(root, seat, row)}"
+                      f"\tseated_at={_seat_seated_at(root, seat) or '-'}"
+                      f"\tfrac={frac_str}")
+            else:
+                print(f"row: {seat}\tgen={gen}\tfrac={frac_str}")
             # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-
             # name-cell...): status FLAGS a 36-char session uuid lingering in
             # session_ref as STALE (a session id, pre-F15) — a row written
@@ -3089,7 +3126,13 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                     age_str = f"{age_sec // 60}m{age_sec % 60}s"
                 except (OSError, ValueError):
                     pass
-            print(f"{seat}\tgen={gen}\tfrac={frac_str}\tage={age_str}")
+            if _is_nonprime_row(row):
+                # clause (7) READERS: a NON-prime post is generation-less --
+                # no `gen=` token, its session id8 instead.
+                print(f"{seat}\tsession={_session_id8(root, seat, row)}"
+                      f"\tfrac={frac_str}\tage={age_str}")
+            else:
+                print(f"{seat}\tgen={gen}\tfrac={frac_str}\tage={age_str}")
         return 0
 
     try:
@@ -4230,6 +4273,46 @@ def _is_prime_role(role: str | None) -> bool:
     return str(role or "") in PRIME_ROLES
 
 
+def _is_nonprime_row(row: dict | None) -> bool:
+    """THE non-prime test (clause (7) READERS of hypothesis:l4-non-prime-
+    genless-clauses-0-2-7-records-readers-migration), built on the ONE
+    role predicate: a row whose role is present and is not the Prime. A row
+    with NO role (a throwaway, or no row at all) is not non-prime and keeps
+    the gen line -- exactly the predicate send.py spells inline."""
+    role = (row or {}).get("role")
+    return role is not None and not _is_prime_role(role)
+
+
+def _session_id8(root: Path | None, seat: str, row: dict | None = None) -> str:
+    """The first 8 chars of a seat's session id -- the GENLESS identity token
+    a NON-prime reader surface prints in place of `gen=` (clause (7)). Row
+    first; the latest rotation record is the fallback, since a re-seat lands
+    its id there before the row is re-read."""
+    sid = str((row or {}).get("session_id") or "")
+    if not sid:
+        sid = str(_latest_record_dict(root, seat).get("session_id") or "")
+    return sid[:8]
+
+
+def _seat_seated_at(root: Path | None, seat: str) -> str:
+    """The latest rotation record's `seated_at` (falling back to
+    `recorded_at`) -- the timestamp a NON-prime reader prints beside
+    `session=` in place of a generation (clause (7)). Empty when no record
+    parses."""
+    rec = _latest_record_dict(root, seat)
+    return str(rec.get("seated_at") or rec.get("recorded_at") or "")
+
+
+def _seat_role(root: Path | None, seat: str) -> str | None:
+    """The role string of `seat`'s own config:seats row, or None when the
+    seat has no row (a throwaway) -- THE ONE predicate read every genless
+    decision (clause (2) of hypothesis:l4-non-prime-genless-clauses-0-2-7-
+    records-readers-migration) keys on, via `_is_prime_role` on its result.
+    Never inferred from the seat NAME."""
+    row = _find_seat(root, seat) if root is not None else None
+    return (row.get("role") or None) if row else None
+
+
 def _ack_call_args(*, seat: str, role: str | None, gen: int) -> str:
     """The `ack` argv tail a successor should run — clause (1) IDENTITY-aware.
 
@@ -4492,7 +4575,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
                                gen_before: int | None = None,
                                gen_after: int | None = None,
                                template_source: str | None = None,
-                               stops_sha256: str | None = None) -> None:
+                               stops_sha256: str | None = None,
+                               role: str | None = None) -> None:
     """Write/refresh the IN-PROGRESS rotate-self record.
 
     `result` stays `started` until the rotation reaches an outcome (success or
@@ -4522,9 +4606,14 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
         rec["template_source"] = template_source
     if stops_sha256 is not None:
         rec["stops_sha256"] = stops_sha256
-    if gen_before is not None:
+    if gen_before is not None and not (
+            role is not None and not _is_prime_role(role)):
         rec["gen_before"] = gen_before
         rec["gen_after"] = gen_after
+    if role is not None and not _is_prime_role(role):
+        # clause (2): a NON-prime started record is genless too -- the
+        # in-progress surface must not print a gen the terminal one drops.
+        rec["seated_at"] = rec["recorded_at"]
     # (SL7.83) a later rebuild of this same file must not drop the pre-spawn
     #     sweep fact: merge it back from the on-disk doc (mechanism (A)).
     _preserve_swept_latches(rec, path)
@@ -4558,7 +4647,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
                         cursor_offset: int | None = None,
                         handover: dict | None = None,
                         steps_reached: list[str] | None = None,
-                        reply_decision: str | None = None) -> dict:
+                        reply_decision: str | None = None,
+                        role: str | None = None) -> dict:
     """One durable JSON record for a rotate-self rotation: observations (a)-(e)
     of hypothesis:l3-rotation-record-and-predecessor-guarantee, each an
     observed fact with the command output that established it.
@@ -4571,7 +4661,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
             "windows": succ["names"],
             "source": succ["source"],
         }
-    if gen_before is not None:
+    if gen_before is not None and not (
+            role is not None and not _is_prime_role(role)):
         obs["b_generation"] = {"before": gen_before, "after": gen_after}
     if readback_log is not None:
         obs["c_readback_log_path"] = str(readback_log)
@@ -4599,6 +4690,19 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
         "result": result,
         "observations": obs,
     }
+    if role is not None and not _is_prime_role(role):
+        # clause (2): a NON-prime rotation record is genless -- seated_at +
+        # session_id + pid + window, never gen_before/gen_after.
+        rec["seated_at"] = rec["recorded_at"]
+        _h = handover or {}
+        _sw = _h.get("successor_window") or {}
+        if _sw.get("name"):
+            rec["window"] = _sw["name"]
+        _j = _h.get("join") or {}
+        if _j.get("session_id"):
+            rec["session_id"] = _j["session_id"]
+        if _j.get("pid") is not None:
+            rec["pid"] = _j["pid"]
     if refusal:
         rec["refusal_reason"] = refusal
     if steps_reached is not None:
@@ -4610,7 +4714,8 @@ def _rotate_self_record(*, seat: str, result: str, refusal: str | None = None,
 
 def _loop_record(*, name: str, result: str, refusal: str | None = None,
                  succ=None, readback_log=None,
-                 reply_decision: str | None = None) -> dict:
+                 reply_decision: str | None = None,
+                 role: str | None = None) -> dict:
     """One durable JSON record for a cmd_loop rotation: the successor window
     (observed, never tool-return), the read-back log path, and the reply
     decision. `loop` does not rename a predecessor aside, so it has no (e)
@@ -4635,6 +4740,11 @@ def _loop_record(*, name: str, result: str, refusal: str | None = None,
         "result": result,
         "observations": obs,
     }
+    if role is not None and not _is_prime_role(role):
+        # clause (2): a NON-prime loop record carries the genless identity too
+        # (it never carried gen_before/gen_after; `seated_at` is the same
+        # timestamp a prime reader finds under `recorded_at`).
+        rec["seated_at"] = rec["recorded_at"]
     if refusal:
         rec["refusal_reason"] = refusal
     return rec
@@ -4732,7 +4842,10 @@ def _successor_address(name: str, ref: str = "",
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
                           trigger, handoff_path, in_flight, seq=0,
                           successor_ref: str = "",
-                          successor_window: str = "") -> str:
+                          successor_window: str = "",
+                          role: str | None = None,
+                          seated_at: str = "",
+                          session_id: str = "") -> str:
     """The five-field announcement payload — one message, never more.
 
     Every field is spelled because each has already cost a peer a turn: the
@@ -4745,6 +4858,14 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
     round is orphaned.
     """
     addr = _successor_address(successor, successor_ref, successor_window)
+    if role is not None and not _is_prime_role(role):
+        # clause (2): a NON-prime post is generation-less -- the gen field is
+        # replaced by the genless identity a peer keys on, and the string
+        # "generation" never appears on a non-prime announce.
+        return (f"{ROTATION_ALERT_TAG} {seat} re-seated {seated_at or '-'} "
+                f"session {(session_id or '')[:8] or '-'} | "
+                f"trigger: {trigger} | handoff: {handoff_path} | "
+                f"seq: {seq} | in flight: {in_flight}")
     return (f"{ROTATION_ALERT_TAG} {seat} -> {addr} | "
             f"generation {gen_before} -> {gen_after} | "
             f"trigger: {trigger} | handoff: {handoff_path} | "
@@ -4916,7 +5037,9 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
                        successor_window: str = "",
                        seating: dict | None = None,
                        ask_diff: bool = False,
-                       record_path: str | None = None) -> list[str]:
+                       record_path: str | None = None,
+                       seated_at: str = "",
+                       session_id: str = "") -> list[str]:
     """Emit exactly ONE announcement to every derived live recipient.
 
     The PRIME is inbox-only (send_dm refuses it), so it posts the same payload
@@ -4946,7 +5069,8 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
         # (goal:g15.25): a re-spawn's record and its alert can never disagree,
         # because the dm is composed FROM the record it shares.
         text = _compose_seating_announcement(
-            seat=seat, window_id=seating.get("window_id") or "",
+            seat=seat,
+            window_id=(seating.get("window_id") or seating.get("window") or ""),
             ref=seating.get("ref") or "",
             pid=seating.get("pid"),
             session_id=seating.get("session_id") or "",
@@ -4954,13 +5078,22 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
             seq=seq, in_flight=in_flight, ask_diff=ask_diff,
             generation=(seating.get("gen_after")
                         if seating.get("gen_after") is not None
-                        else FIRST_SEATING_GEN))
+                        else FIRST_SEATING_GEN),
+            role=seating.get("role"),
+            seated_at=(seating.get("seated_at")
+                       or seating.get("recorded_at") or ""))
     else:
+        # clause (2): the ONE predicate decides the shape -- a NON-prime post
+        # announces genless (record's seated_at + session id8).
+        _role = _seat_role(root, seat)
+        _srow = _find_seat(root, seat) or {}
         text = _compose_announcement(
             seat=seat, successor=successor, gen_before=gen_before,
             gen_after=gen_after, trigger=trigger, handoff_path=handoff_path,
             in_flight=in_flight, seq=seq, successor_ref=successor_ref,
-            successor_window=successor_window)
+            successor_window=successor_window, role=_role,
+            seated_at=seated_at,
+            session_id=session_id or (_srow.get("session_id") or ""))
     declared = "first seating" if seating is not None else "rotation"
     if seat == send.PRIME or seat.startswith(send.PRIME + "-"):
         # OWNER ORDER (hypothesis:l4-rotation-alerts-follow-a-routing-matrix-
@@ -5090,15 +5223,21 @@ def _seating_record(*, seat: str, role: str, source: str,
         "role": role,
         "source": source,
         "recorded_at": datetime.utcnow().isoformat() + "Z",
-        "gen_before": 0,
-        "gen_after": generation,
         "trigger": "first-seating",
     }
+    if _is_prime_role(role):
+        # the prime chain stays byte-identical: gen keys, `window_id`.
+        rec["gen_before"] = 0
+        rec["gen_after"] = generation
+    else:
+        # clause (2): a NON-prime seating record carries the genless identity
+        # (seated_at + session_id + pid + window) and NO gen_before/gen_after.
+        rec["seated_at"] = rec["recorded_at"]
     box = _box_fact()
     if box is not None:
         rec["box"] = box
     if window_id:
-        rec["window_id"] = window_id
+        rec["window_id" if _is_prime_role(role) else "window"] = window_id
     if ref:
         rec["ref"] = ref
     if pid is not None:
@@ -5190,12 +5329,20 @@ def _seating_record_exists(root: Path, seat: str,
     rot = _rotations_dir(root)
     if not rot.is_dir():
         return False
+    def _matches(rec: dict) -> bool:
+        if rec.get("gen_after") == generation:
+            return True
+        # clause (2): a NON-prime seating record carries no gen_after at all
+        # (the post is genless), so ANY genless record for this seat IS the
+        # seating -- there is no generation to discriminate on.
+        return "gen_after" not in rec
+
     for p in rot.glob(f"{seat}.*.seating.json"):
         try:
             rec = json.loads(p.read_text(encoding="utf-8", errors="replace"))
         except (OSError, ValueError):
             continue
-        if rec.get("gen_after") == generation:
+        if _matches(rec):
             return True
     return False
 
@@ -5252,7 +5399,9 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
                                   seq: int = 0,
                                   in_flight: str = "",
                                   ask_diff: bool = False,
-                                  generation: int = FIRST_SEATING_GEN) -> str:
+                                  generation: int = FIRST_SEATING_GEN,
+                                  role: str | None = None,
+                                  seated_at: str = "") -> str:
     """The first-seating `[rotation-alert]` payload — one message, never more.
 
     `generation` is the GEN_AFTER the alert names (default FIRST_SEATING_GEN);
@@ -5281,16 +5430,30 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
     else:
         addr += " ref: (pending ack)"
     pid_s = str(pid) if pid is not None else "-"
+    if role is not None and not _is_prime_role(role):
+        # clause (2): a NON-prime seating is generation-less -- `generation 0
+        # -> N` becomes the genless line ("generation" never appears).
+        gen_field = (f"re-seated {seated_at or '-'} "
+                     f"session {(session_id or '')[:8] or '-'} | ")
+    else:
+        gen_field = f"generation 0 -> {generation} | "
     body = (f"{ROTATION_ALERT_TAG} first seating {addr} | "
-            f"generation 0 -> {generation} | "
+            f"{gen_field}"
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
             f"transcript: {transcript_path or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
     if ask_diff:
         _ref = ref or "<your ListAgents ref>"
-        body += (f"\nrotate.py ack --seat {seat} --gen {generation} "
-                 f"--ref {_ref} diff --text -")
+        if role is not None and not _is_prime_role(role):
+            # clause (2) + (1): a NON-prime post acks by `--post`, never `--gen`
+            # (the genless announce must not carry a gen-bearing ack line).
+            body += (f"\nrotate.py ack "
+                     f"{_ack_call_args(seat=seat, role=role, gen=generation)} "
+                     f"--ref {_ref} diff --text -")
+        else:
+            body += (f"\nrotate.py ack --seat {seat} --gen {generation} "
+                     f"--ref {_ref} diff --text -")
     return body
 
 
@@ -5835,14 +5998,36 @@ def cmd_sequence(args: argparse.Namespace, root: Path) -> int:
 
 
 def _rename_own_window(seat: str, new_name: str, tmux_session: str,
-                       window_path: str | None = None) -> None:
+                       window_path: str | None = None) -> str | None:
     """Rename the seat's own tmux window `<seat>` aside to `new_name`.
+
+    clause (0b) UNIQUENESS: a window ALREADY bearing `new_name` (a previous
+    rotation whose renamed own window was never reaped) is killed BEFORE the
+    rename, so afterwards `new_name` names exactly ONE window and a reader
+    that resolves it by name (`pred_alive` at the "successor window present"
+    gate, the s12 kill) can never address the stale one.
+
+    The own window's @id is captured BEFORE the rename, from the PLAIN seat
+    name: a tmux rename PRESERVES the @id, so this is the predecessor's true
+    identity, and resolving `new_name` by name AFTER the rename would be
+    first-match-by-name — the defect this clause names. The @id is RETURNED so
+    the s2 handover carries it (or None when no @id resolves, e.g. a
+    plain-name fixture).
 
     With `window_path` (tests) the new name is written as the file's new
     window-name list instead of calling tmux."""
     if window_path is not None:
+        stale_id = _successor_window_id(new_name, tmux_session, window_path)
+        if stale_id:
+            _kill_window(new_name, tmux_session, window_path,
+                         window_id=stale_id)
+        own_id = _successor_window_id(seat, tmux_session, window_path)
         _replace_window_name(window_path, seat, new_name)
-        return
+        return own_id
+    stale_id = _successor_window_id(new_name, tmux_session, None)
+    if stale_id:
+        _kill_window(new_name, tmux_session, None, window_id=stale_id)
+    own_id = _successor_window_id(seat, tmux_session, None)
     try:
         subprocess.run(
             ["tmux", "rename-window", "-t", f"{tmux_session}:{seat}",
@@ -5852,16 +6037,30 @@ def _rename_own_window(seat: str, new_name: str, tmux_session: str,
     except Exception:
         # rename is best-effort; the successor spawn is the load-bearing step
         pass
+    return own_id
 
 
 def _replace_window_name(window_path: str, old: str, new: str) -> None:
-    """Swap `old` for `new` in a window-name file (test seam)."""
+    """Swap `old` for `new` in a window-name file (test seam).
+
+    An `@<id> <old>` line is rewritten as `@<id> <new>` — a real tmux rename
+    preserves the window's @id and only changes its name, so the seam must
+    too, or an @id-bearing own window would keep the seat name while the
+    s2/s12 reads look for the renamed one."""
     p = Path(window_path)
     if not p.exists():
         p.write_text(new + "\n", encoding="utf-8")
         return
     lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
-    out = [new if ln == old else ln for ln in lines]
+    out = []
+    for ln in lines:
+        ident, _, nm = ln.partition(" ")
+        if ident.startswith("@") and nm.strip() == old:
+            out.append(f"{ident} {new}")
+        elif ln == old:
+            out.append(new)
+        else:
+            out.append(ln)
     p.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
@@ -6060,6 +6259,24 @@ def _rotation_record_files(root: Path, seat: str) -> list:
             continue           # a crash-recovery is NEVER a rotation
         out.append(p)
     return out
+
+
+def _latest_record_dict(root: Path | None, seat: str) -> dict:
+    """The parsed LATEST rotation record for `seat`, or {} when none parses.
+    A reader (status --record/--post, clause (7) of hypothesis:l4-non-prime-
+    genless-clauses-0-2-7-records-readers-migration) reads its genless
+    identity fields -- `seated_at`/`recorded_at` and `session_id` -- from
+    here, never from the record prose."""
+    if root is None:
+        return {}
+    files = _rotation_record_files(root, seat)
+    if not files:
+        return {}
+    try:
+        rec = json.loads(files[-1].read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return rec if isinstance(rec, dict) else {}
 
 
 def _latest_rotation_record(root: Path, seat: str) -> dict | None:
@@ -8800,14 +9017,54 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     show = subprocess.run(["git", "-C", str(top), "show", "--format=",
                            head.stdout.strip(), "--", rel],
                           capture_output=True, text=True)
-    lines = []
+    # CLAUSES (1)-(4) (hypothesis:l4-the-ack-prints-only-the-changed-cells-of-
+    # its-own-row-never-the-whole-row-twice): the own row is ONE JSON line, so
+    # a whole-line +/- pair repeats the whole row twice (~3k tokens/wake) --
+    # parse the row lines and print ONE line per CHANGED cell, sorted, values
+    # truncated to 40 chars; an unparsable diff FALLS BACK to today's
+    # whole-line output, saying so (never a traceback); push line stays LAST.
+    hdr = "ack: committed own row write (" + str(rel) + "):"
+    tails = "\ngit -C " + str(top) + " push"
+    raw: list[str] = []
+    rowd: dict[str, dict | None] = {"-": None, "+": None}
     for ln in (show.stdout if show.returncode == 0 else "").splitlines():
         if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
             continue
-        if ln.startswith(("+", "-")):
-            lines.append(ln)
-    return (True, "ack: committed own row write (" + str(rel) + "):\n"
-            + "\n".join(lines) + f"\ngit -C {top} push")
+        if not ln.startswith(("+", "-")):
+            continue
+        raw.append(ln)
+        try:
+            rowd[ln[0]] = json.loads(ln[1:][ln[1:].index("{"):])
+        except (ValueError, json.JSONDecodeError):
+            pass
+    if not isinstance(rowd["-"], dict) or not isinstance(rowd["+"], dict):
+        if not raw:
+            return (True, hdr + " no cell changed" + tails)
+        return (True, hdr + "\nack: row diff is not JSON -- whole +/- lines "
+                "follow\n" + "\n".join(raw) + tails)
+    miss = object()
+
+    def _cell(v):
+        if v is miss:
+            return "-"
+        s = v if isinstance(v, str) else json.dumps(v, sort_keys=True)
+        s = str(s).replace("\n", " ")
+        return s if len(s) <= 40 else s[:39] + "\u2026"
+
+    lines = []
+    for k in sorted(set(rowd["-"]) | set(rowd["+"])):
+        ov, nv = rowd["-"].get(k, miss), rowd["+"].get(k, miss)
+        if ov == nv:
+            continue
+        if k == "key_history":
+            lines.append(f"  key_history: "
+                         f"{len(rowd['-'].get(k) or [])} -> "
+                         f"{len(rowd['+'].get(k) or [])} entries")
+            continue
+        lines.append(f"  {k}: {_cell(ov)} -> {_cell(nv)}")
+    if not lines:
+        return (True, hdr + " no cell changed" + tails)
+    return (True, hdr + "\n" + "\n".join(lines) + tails)
 
 
 def _push_season_branch(root: Path) -> str:
@@ -9726,7 +9983,8 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
                        window_path: str | None = None,
                        pids: list[int] | None = None,
                        s12_reap: dict | None = None,
-                       record_path: Path | None = None) -> dict:
+                       record_path: Path | None = None,
+                       wait_secs: float = 5.0) -> dict:
     """r5 — reap the OLDEST Belam predecessor by PID when the chain would
     exceed FIVE (FIFO per the owner: 'rotation reaps from the wrong end, filo
     not fifo').
@@ -9812,7 +10070,7 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     _write_belam_planned({"planned": True, "oldest": oldest,
                           "window_id": oldest_id, "pids": pids,
                           "chain": pids})
-    observed = _reap_chain(pids)
+    observed = _reap_chain(pids, wait_secs=wait_secs)
     reaped = bool(observed["chain"]) and all(
         (not p["was_alive"]) or p["gone_after"]
         for p in observed["chain"])
@@ -16390,7 +16648,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 rec_path = _rotate_self_started_path(root, seat)
                 _write_rotate_self_started(
                     rec_path, seat=seat, steps=steps_reached,
-                    template_source=geom_src, stops_sha256=_ss)
+                    template_source=geom_src, stops_sha256=_ss,
+                    role=_co_role)
             _co_seams = _closeout_cli_seams(cfg_root, _co_seams_json)
             # (SL7.103) pass the in-progress rotation record to the captive
             # driver so the Prime's numbers line / note is composed FROM it
@@ -16580,6 +16839,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # successor `seat`, `.gen<N>` own-window rename, generation = gen_before+1.
     _existing_for_chain = _existing_windows(tmux_session, args.window_path)
     is_chain_seat = (role == "prime_director")
+    # clause (0b): the own window's @id captured AT the rename (from the plain
+    # seat name), threaded into the s2 handover below so the predecessor is
+    # addressed by identity, never by a post-rename first-match-by-name.
+    _renamed_own_id: str | None = None
     if is_chain_seat:
         # the predecessor's own (pre-rotation) window is the highest live
         # numeral in the chain (its numeral is the successor's minus one line)
@@ -16672,7 +16935,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _write_rotate_self_started(
             rec_path, seat=seat, steps=steps_reached,
             gen_before=gen_before, gen_after=gen,
-            template_source=geom_src, stops_sha256=_ss)
+            template_source=geom_src, stops_sha256=_ss, role=role)
 
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
@@ -16682,7 +16945,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "handoff", "1")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src, stops_sha256=_ss)
+                                   template_source=geom_src, stops_sha256=_ss, role=role)
     print(f"(1) handoff -> .agi/sessions/seats/{seat}.handoff.md "
           f"generation {gen}")
 
@@ -16699,7 +16962,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
                                        template_source=geom_src,
-                                       stops_sha256=_ss)
+                                       stops_sha256=_ss, role=role)
         print(f"(2) own-window rename: SKIPPED for numeral-chain seat "
               f"{seat!r} (`.genN` applies only to plain-named seats; the "
               f"own-window reap is GATED OFF at step (8) on a numeral- "
@@ -16707,13 +16970,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"the chain would exceed FIVE)")
     else:
         if not args.dry_run:
-            _rename_own_window(seat, new_name, tmux_session, args.window_path)
+            _renamed_own_id = _rename_own_window(
+                seat, new_name, tmux_session, args.window_path)
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
                                        template_source=geom_src,
-                                       stops_sha256=_ss)
+                                       stops_sha256=_ss, role=role)
         print(f"(2) rename own window {seat!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
@@ -16874,7 +17138,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "spawn", "3")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src, stops_sha256=_ss)
+                                   template_source=geom_src, stops_sha256=_ss, role=role)
     print(f"(3) spawn successor under the "
           f"{'numeral-chain name' if is_chain_seat else 'plain name'} "
           f"{spawn_name!r} (role {role!r})")
@@ -17075,7 +17339,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if spawn_name not in succ["names"]:
         pred_o = _observed_windows(tmux_session, args.window_path)
         _write_rotation_record(root, _rotate_self_record(
-            seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
+            seat=seat, role=role, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred={"name": pred_name, "windows": pred_o["names"],
                              "source": pred_o["source"]},
             readback_log=Path(dbg).expanduser().resolve(),
@@ -17108,8 +17372,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #      (pred_name), never a constructed `.genN` name.
     handover["own_window"] = {
         "name": pred_name,
-        "id": (_successor_window_id(pred_name, tmux_session, args.window_path)
-               if pred_name else None)}
+        "id": (_renamed_own_id if _renamed_own_id is not None else
+               (_successor_window_id(pred_name, tmux_session, args.window_path)
+                if pred_name else None))}
     handover["successor_window"] = {"name": spawn_name, "id": succ_window_id}
 
     succ_session_id = None
@@ -17194,7 +17459,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             handover["spawn_row_failed_dm"] = _dm_rotation_spawn_row_failed(
                 root, seat, handover["successor_row"])
             _write_rotation_record(root, _rotate_self_record(
-                seat=seat, result="refused",
+                seat=seat, role=role, result="refused",
                 gen_before=gen_before, gen_after=gen, succ=succ,
                 handover=handover,
                 readback_log=Path(dbg).expanduser().resolve(),
@@ -17317,13 +17582,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "handover", "4.5")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src, stops_sha256=_ss)
+                                   template_source=geom_src, stops_sha256=_ss, role=role)
     elif joined is not None and not joined["found"]:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
         # `registry file for @<id>` (proof a).
         _write_rotation_record(root, _rotate_self_record(
-            seat=seat, result="skipped",
+            seat=seat, role=role, result="skipped",
             gen_before=gen_before, gen_after=gen,
             succ=succ, handover=handover,
             readback_log=Path(dbg).expanduser().resolve(),
@@ -17339,7 +17604,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rs_mark(steps_reached, tmpl_steps, "readback", "4")
         _write_rotate_self_started(rec_path, seat=seat, steps=steps_reached,
                                    gen_before=gen_before, gen_after=gen,
-                                   template_source=geom_src, stops_sha256=_ss)
+                                   template_source=geom_src, stops_sha256=_ss, role=role)
     log = Path(dbg).expanduser().resolve()
     offset = log.stat().st_size if log.exists() else 0
     timeout = getattr(args, "timeout", 600)
@@ -17366,7 +17631,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             reply_decision = "diff-empty"
         else:
             _write_rotation_record(root, _rotate_self_record(
-                seat=seat, result="diff", gen_before=gen_before, gen_after=gen,
+                seat=seat, role=role, result="diff", gen_before=gen_before, gen_after=gen,
                 succ=succ,
                 readback_log=Path(_ack_path(root, seat)).expanduser(),
                 refusal="successor acked diff: handoff needs change"),
@@ -17383,7 +17648,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if not acked_continue:
         if not args.dry_run:
             _write_rotation_record(root, _rotate_self_record(
-                seat=seat, result="unwitnessed", gen_before=gen_before, gen_after=gen,
+                seat=seat, role=role, result="unwitnessed", gen_before=gen_before, gen_after=gen,
                 succ=succ, readback_log=log, cursor_offset=offset,
                 refusal=("successor did not ACK; window present but silent; "
                          "rotation SUCCEEDED BUT UNWITNESSED")), path=rec_path)
@@ -17403,7 +17668,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     pred_alive = (pred_name is not None) and (pred_name in pred_raw["names"])
     if not pred_alive:
         _write_rotation_record(root, _rotate_self_record(
-            seat=seat, result="refused", gen_before=gen_before, gen_after=gen,
+            seat=seat, role=role, result="refused", gen_before=gen_before, gen_after=gen,
             succ=succ, pred=pred, readback_log=log, cursor_offset=offset,
             # merge-up 24 residue (P): the refusal record names pred_name
             # (the real predecessor window being reaped), never the
@@ -17498,7 +17763,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     #     only when the successor actually registered, OMITTED (never null)
     #     otherwise.
     _rec = _rotate_self_record(
-        seat=seat, result="success", gen_before=gen_before, gen_after=gen,
+        seat=seat, role=role, result="success", gen_before=gen_before, gen_after=gen,
         succ=_observed_windows(tmux_session, args.window_path),
         pred=pred, readback_log=log, cursor_offset=offset,
         handover=handover, steps_reached=steps_reached,
@@ -17674,6 +17939,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # carries the ACK's ref, and NAMES pre-join when the ack had none.
         successor_ref=((ack or {}).get("session_ref") or ""),
         successor_window=succ_window_id or "",
+        # clause (2): a non-prime announce names the record's seated_at + the
+        # successor's session id8, never a generation.
+        seated_at=(_rec.get("seated_at") or _rec.get("recorded_at") or ""),
+        session_id=(succ_session_id or ""),
         record_path=(record_path if record_path else None))
 
     # (7) s12 LAST ACT — the LIVE SELF-REAP (L4.118/R2; SEVENTH dispatch
@@ -18663,8 +18932,9 @@ def main(argv: list[str] | None = None) -> int:
     p_status = sub.add_parser(
         "status", help="list agi-master and belam tmux sessions")
     p_status.add_argument("--seats", action="store_true",
-                          help="list registry seats instead (seat/generation/"
-                               "fraction/age, one line per row)")
+                          help="list registry seats instead (seat/fraction/"
+                               "age, plus gen=<N> for the Prime or "
+                               "session=<id8> for a non-prime post)")
     p_status.add_argument("--seat", "--post", action=geometry_config.SeatAction, default=None,
                           help="seat name to read with --record")
     p_status.add_argument("--record", default=None,

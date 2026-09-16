@@ -837,6 +837,55 @@ def _self_row_refusal(root, schema, actor, set_fm, unset_fm, where: str):
     return None
 
 
+def _town_cell_refusal(root, schema, set_fm, unset_fm, where: str):
+    """goal:g15.25 SM.32 claim (3): a row write that CHANGES the `town` cell
+    is judged on the NEW value alone -- a value outside the accepted set is
+    refused WHOLE, BY NAME, and `all` is retired from the vocabulary. A row
+    still spelling `town: all` stays readable: an untouched cell is never
+    judged, so an unrelated write (session_name, pid, ...) is not refused.
+
+    The declaration is the `[config]` schema's `town_cell` block (field,
+    match_key, list_keys); the accepted set and the transitional row -> town
+    map live there as DATA, never as a literal town name in this module
+    (test_no_literal_town.py). Returns None when the write does not touch the
+    cell or the schema declares no `town_cell`.
+    """
+    tc = schema.frontmatter.get("town_cell")
+    if not isinstance(tc, dict):
+        return None
+    field = str(tc.get("field") or "town")
+    match_key = str(tc.get("match_key") or "name")
+    rows = None
+    for k in (tc.get("list_keys") or ["posts", "seats"]):
+        if isinstance(set_fm, dict) and k in set_fm:
+            rows = set_fm[k]
+            break
+    if not isinstance(rows, list):
+        return None
+    try:
+        import towns as _towns
+        accepted = _towns.accepted_towns(root)
+    except Exception:  # noqa: BLE001 (an unreadable vocabulary gates nothing)
+        return None
+    try:
+        old_by = {r.get(match_key): r for r in _load_seats(root)
+                  if isinstance(r, dict)}
+    except Exception:  # noqa: BLE001
+        old_by = {}
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        name = r.get(match_key)
+        if (old_by.get(name) or {}).get(field) == r.get(field):
+            continue  # cell untouched by this write -> never judged
+        val = r.get(field)
+        if val not in accepted:
+            return (f"`{field}` {val!r} on row {name!r} is refused BY NAME; "
+                    f"the accepted town vocabulary is "
+                    f"{', '.join(sorted(accepted))} (goal:g15.25)")
+    return None
+
+
 def _read_node_fm(root, node_id):
     """Read a node's CURRENT frontmatter as a dict, or None if unreadable.
 
@@ -1301,6 +1350,15 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     if schema is None:
         return
     written_by = schema.frontmatter.get("written_by")
+
+    # goal:g15.25 SM.32 claim (3): the row `town` cell is a declared
+    # vocabulary -- a write that CHANGES it to a value outside the accepted
+    # set is refused WHOLE, BY NAME (the schema's `town_cell` declaration;
+    # the accepted set is the ladder's towns plus `core`).
+    _tcr = _town_cell_refusal(root, schema, set_fm, unset_fm, where)
+    if _tcr and _refuse(out_decision, preview,
+                        f"{node_type} nodes ({where}): {_tcr}"):
+        return
 
     # RUNG 3 HUMAN GATE (hypothesis:l4-a-veto-freezes-never-frees): a
     # config-row edit OUTSIDE self_row is a GATED Prime-scope act. While a

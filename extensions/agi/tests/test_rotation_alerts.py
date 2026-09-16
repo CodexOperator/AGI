@@ -132,7 +132,7 @@ def test_after_join_dm_to_silent_post_refused(tmp_path):
         root, seat="stream-master",
         startup={}, values={"succ_ref": "x"},
         send_dm=lambda to, text: sent.append((to, text)) or ("heal", False),
-        dry_run=False)
+        dry_run=False, delay_override=0)
     assert sent == [], f"silent successor must receive no after_join dm: {sent}"
 
 
@@ -182,7 +182,7 @@ def test_after_join_type_seam_to_silent_never_fires(tmp_path):
         startup={}, values={"succ_ref": "x"},
         type_input=lambda s, t: typed.append((s, t)) or True,
         send_dm=lambda to, text: sent.append((to, text)) or ("heal", False),
-        dry_run=False)
+        dry_run=False, delay_override=0)
     assert typed == [], (
         f"silent successor pane must receive no typed input: {typed}")
     assert sent == [], f"silent successor must receive no dm: {sent}"

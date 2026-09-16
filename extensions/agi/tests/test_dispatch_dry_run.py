@@ -188,6 +188,31 @@ def test_parent_orders_reach_the_brief_and_are_printed_by_the_dry_run(
     assert "SCOPE: touch only dispatch.py" in r.stdout
 
 
+def test_a_dispatch_refused_at_the_zoom_gate_leaves_no_orders_copy(
+        project, tmp_path):
+    """goal:g15.25 SM.28 claim (4), ORPHAN half -- measured pre-fix: the
+    orders copy was written ABOVE the per-slot refusal gates, so a LIVE
+    dispatch refused at the zoom gate (rc 1, no spawn) left
+    `<iter>/orders.<from>.md` on disk with no manifest record to name it. A
+    bogus target refuses at the zoom render inside the slot loop -- before
+    Popen -- so this test exercises the real path end to end and spawns
+    nothing (claude-code harness: no provider key floor to refuse earlier)."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: only dispatch.py\n")
+    r = _run(project, "--harness", "claude-code", "--tier", "parent",
+             "--target", "hypothesis:no-such-node", "--orders", str(orders),
+             "--from", "SAME")
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "no context for target" in r.stderr, r.stderr
+    iter_dir = project / ".agi" / "sessions" / "iter-001"
+    leftovers = sorted(iter_dir.glob("orders.*")) if iter_dir.exists() else []
+    assert leftovers == [], (
+        f"a dispatch refused at the zoom gate left an orphan orders copy: "
+        f"{leftovers}")
+    assert not (iter_dir / "manifest.json").exists(), (
+        "a refused round must not have a manifest for the orphan to hide in")
+
+
 def test_kid_orders_is_the_carry_forward_alias(project, tmp_path):
     """goal:g15.25 SM.26 -- at KID tier `--orders` is the same per-kid
     carry-forward as `--prompt-file` (ONE implementation), landing as the
@@ -557,3 +582,98 @@ def test_dispatch_threads_project_root_into_the_assembled_brief(
     capsys.readouterr()
     assert code == 0
     assert any(c.get("project_root") == project / ".agi" for c in calls), calls
+
+
+# ---- goal:g15.25 SM.28 -- the orders channel refuses what it cannot deliver --
+
+
+def test_orders_at_a_tier_that_cannot_deliver_is_refused_by_name(project,
+                                                                tmp_path):
+    """SM.28 claim (1). `--orders` is consumed by exactly two tiers -- `kid`
+    (carry-forward) and `parent` (the orders section). Measured pre-fix:
+    `--tier director --orders <path>` exited 0 with the file never opened,
+    no heading and no note. A tier that neither threads nor carries it
+    forward must be REFUSED BY NAME, exit 2, naming itself and the two
+    tiers that accept it -- never accepted-and-dropped."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\n")
+    for tier in ("director", "advisor"):
+        r = _run(project, "--harness", "claude-code", "--tier", tier,
+                 "--target", "hypothesis:x", "--dry-run",
+                 "--orders", str(orders))
+        assert r.returncode == 2, (tier, r.returncode, r.stderr)
+        assert f"`{tier}` neither threads nor carries it forward" in r.stderr
+        assert "`kid` (per-kid carry-forward)" in r.stderr
+        assert "`parent` (the dispatch-orders section)" in r.stderr
+
+
+def test_an_absent_orders_path_is_a_named_refusal_not_a_traceback(
+        project, tmp_path):
+    """SM.28 claim (5). Measured pre-fix: `--tier parent --orders <missing>`
+    exited 1 with a FileNotFoundError traceback out of `_read_prompt_file`.
+    A missing path is an operator error and must read like one."""
+    missing = tmp_path / "nope.md"
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run",
+             "--orders", str(missing))
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "path does not exist or is not a file" in r.stderr
+    assert str(missing) in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_whitespace_only_orders_are_absent_and_leave_the_brief_identical(
+        project, tmp_path):
+    """SM.28 claim (3). The presence gate is `text.strip()`: measured pre-fix
+    a `"   \\n\\t\\n"` file rendered `## DISPATCH ORDERS` with a blank body and
+    was copied and recorded. It must instead be ABSENT -- no heading, no
+    dry-run `orders:` line, and a brief byte-identical to the no-orders run.
+    A non-empty file is still rendered, unstripped."""
+    base = _run(project, "--harness", "pi", "--tier", "parent",
+                "--target", "hypothesis:x", "--dry-run")
+    assert base.returncode == 0, base.stderr
+    ws = tmp_path / "ws.md"
+    ws.write_text("   \n\t\n")
+    r = _run(project, "--harness", "pi", "--tier", "parent",
+             "--target", "hypothesis:x", "--dry-run", "--orders", str(ws))
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "DISPATCH ORDERS" not in r.stdout
+    assert "orders:" not in r.stdout
+    assert _brief_line_count(r.stdout) == _brief_line_count(base.stdout), (
+        "a whitespace-only orders file must leave the brief byte-identical")
+
+
+def test_parent_orders_ride_the_survival_and_advisor_briefs_the_dry_run_reports(
+        project, tmp_path):
+    """SM.28 claim (2). Measured pre-fix on the survival profile and on the
+    advisor route (--tier parent --ladder-tier 3 --target vision:<id>): the
+    dry run printed `orders: N lines` and the manifest recorded
+    {from,sha256,bytes,path}, while the assembled brief carried NO section --
+    the record said delivered, the brief did not. The heading must appear in
+    the SEGMENTS the harness is handed (the `command:` line inlines every
+    segment), so dry-run line, manifest record and brief agree on every
+    route that accepts --orders."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\nCOUPLE: SM.24\n")
+    cases = [
+        ("pi", ["--tier", "parent", "--target", "hypothesis:x"]),
+        ("claude-code", ["--tier", "parent", "--ladder-tier", "3",
+                         "--target", "vision:alive"]),
+    ]
+    for harness, argv in cases:
+        r = _run(project, "--harness", harness, *argv, "--dry-run",
+                 "--orders", str(orders), "--from", "sanctuary-director",
+                 env={"AGI_BRIEF_PROFILE": "survival"})
+        assert r.returncode == 0, (harness, r.returncode, r.stderr)
+        assert "orders:" in r.stdout, harness
+        command = r.stdout.split("command:", 1)[1]
+        assert "## DISPATCH ORDERS" in command, (
+            f"{harness}: the dry run claims orders but no brief segment "
+            f"carries them")
+
+
+def _brief_line_count(out: str) -> str:
+    import re as _re
+    m = _re.search(r"brief: tier=\S+ (\d+) lines", out)
+    assert m, out
+    return m.group(1)

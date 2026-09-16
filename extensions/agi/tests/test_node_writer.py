@@ -137,12 +137,12 @@ def test_dispatch_no_longer_touches_the_node_tree_at_all():
     # (hypothesis:l4-dispatch-echoes-less-than-it-knows): the redacted env,
     # argv and full brief, written into the SESSION dir beside agent.json --
     # a session file, never a node.
-    # `orders.md` is SM.26's dispatch-orders carry-forward
-    # (hypothesis:l4-dispatch-orders-reach-a-parents-own-brief-verbatim-under-one-heading-and-ride-the-manifest):
-    # a byte-identical copy of the --orders source file into the SESSION
-    # (iter) dir beside agent.json -- a session file, never a node.
+    # `_orders_file` is the dispatch-orders copy (goal:g15.25 SM.26, re-keyed
+    # per agent in SM.28): a byte-identical copy of the `--orders` source file
+    # into the SESSION (iter) dir as `<iter>/orders.<agent>.md`, named by the
+    # manifest record's own id -- a session file, never a node.
     session_artefacts = ("agent.json", "manifest.json", "manifest_tmp",
-                         "spawn.json", "orders.md")
+                         "spawn.json", "_orders_file")
     for ln in writes:
         assert any(a in ln for a in session_artefacts), ln
 
@@ -1424,7 +1424,51 @@ def _iter_live_node_files():
         yield p, text
 
 
-def test_live_tree_corpus_round_trip_is_value_preserving():
+@pytest.fixture(scope="session")
+def live_node_round_trip():
+    """ONE session-scoped read->render->read-back pass over the real live
+    corpus, shared by the two round-trip tests below.
+
+    The corpus is ~2800 real `.agi/nodes/` files. Reading them is cheap (~0.1
+    s, measured); the per-node `split_frontmatter` + YAML read +
+    `render_frontmatter` + `_serialize_node` + read-back is the cost (~8.5 s),
+    and each test used to pay that pass in full (measured 10.38 s + 8.77 s).
+    The corpus bytes and the pure render are stable for the life of a session,
+    so ONE pass serves both; each test still makes every assertion it made
+    before, over the same records. Strictly read-only. A record is a dict:
+    {path, reason, fm, fm2, byte_diff, non_fixpoint} where a non-None `reason`
+    is the unreadable message and the remaining keys are then absent.
+    """
+    import frontmatter
+    records = []
+    for p, text in _iter_live_node_files():
+        path = str(p)
+        parts = frontmatter.split_frontmatter(text)
+        fm = frontmatter.read_frontmatter(text)
+        if parts is None:
+            records.append({"path": path, "reason": "no frontmatter shape"})
+            continue
+        if fm is None:
+            records.append({"path": path,
+                            "reason": "frontmatter did not parse"})
+            continue
+        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
+        fm2 = frontmatter.read_frontmatter(rerendered)
+        records.append({
+            "path": path,
+            "reason": None,
+            "fm": fm,
+            "fm2": fm2,
+            "byte_diff": ("\n".join(nw.render_frontmatter(fm))
+                          != parts[0].strip("\n")),
+            "non_fixpoint": (False if fm2 is None else
+                             nw.render_frontmatter(fm)
+                             != nw.render_frontmatter(fm2)),
+        })
+    return records
+
+
+def test_live_tree_corpus_round_trip_is_value_preserving(live_node_round_trip):
     """claim (d), honest form — EVERY live node read->render->read-back.
 
     One pass over the whole live tree asserting four invariants at once:
@@ -1437,36 +1481,29 @@ def test_live_tree_corpus_round_trip_is_value_preserving():
       (iv)  the re-render is a FIXPOINT: rendering the read-back value again
             is byte-identical, so the representation is stable, not churning.
     """
-    import frontmatter
     checked = 0
     unreadable = []
     drift = []
     byte_diffs = 0
     non_fixpoint = []
-    for p, text in _iter_live_node_files():
-        parts = frontmatter.split_frontmatter(text)
-        if parts is None:
-            unreadable.append((str(p), "no frontmatter shape"))
-            continue
-        fm = frontmatter.read_frontmatter(text)
-        if fm is None:
-            unreadable.append((str(p), "frontmatter did not parse"))
+    for r in live_node_round_trip:
+        if r["reason"]:
+            unreadable.append((r["path"], r["reason"]))
             continue
         checked += 1
-        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
-        fm2 = frontmatter.read_frontmatter(rerendered)
-        if fm2 is None:
-            drift.append((str(p), "re-render unreadable"))
+        if r["fm2"] is None:
+            drift.append((r["path"], "re-render unreadable"))
             continue
+        fm, fm2 = r["fm"], r["fm2"]
         # (ii) value preservation — the whole point of claim (d)
         if fm != fm2:
-            drift.append((str(p), "top-level value drift"))
+            drift.append((r["path"], "top-level value drift"))
         # (iii) representation-only byte diffs are tracked (not asserted off)
-        if "\n".join(nw.render_frontmatter(fm)) != parts[0].strip("\n"):
+        if r["byte_diff"]:
             byte_diffs += 1
         # (iv) stable representation: rendering the read-back again is stable
-        if nw.render_frontmatter(fm) != nw.render_frontmatter(fm2):
-            non_fixpoint.append(str(p))
+        if r["non_fixpoint"]:
+            non_fixpoint.append(r["path"])
     assert not unreadable, \
         f"{len(unreadable)} live nodes unreadable: {unreadable[:5]}"
     assert not drift, \
@@ -1512,29 +1549,26 @@ def test_none_list_item_stays_none_and_is_distinct_from_empty_string():
         f"None vs empty-string lost: {items!r} -> {back!r}"
 
 
-def test_live_tree_round_trip_zero_drift_and_reports_byte_change_count():
+def test_live_tree_round_trip_zero_drift_and_reports_byte_change_count(
+        live_node_round_trip):
     """claim (2) — one pass over every live node: value drift MUST be 0, and
     the number of nodes whose BYTES change (read->render) is a PROBED,
     one-time representation change, not drift. Prints the count + node ids so
-    a run captures them into the node without pinning a tree that evolves."""
-    import frontmatter
-
+    a run captures them into the node without pinning a tree that evolves.
+    Shares the session-scoped `live_node_round_trip` pass with
+    `test_live_tree_corpus_round_trip_is_value_preserving` above."""
     checked = 0
     drift = []
     byte_changed = []
-    for p, text in _iter_live_node_files():
-        fm = frontmatter.read_frontmatter(text)
-        if fm is None:
+    for r in live_node_round_trip:
+        if r["reason"]:
             continue
         checked += 1
-        parts = frontmatter.split_frontmatter(text)
-        rerendered = nw._serialize_node(nw.render_frontmatter(fm), parts[1])
-        fm2 = frontmatter.read_frontmatter(rerendered)
-        if fm2 != fm:
-            drift.append((str(p), "top-level value drift"))
+        if r["fm2"] != r["fm"]:
+            drift.append((r["path"], "top-level value drift"))
             continue
-        if "\n".join(nw.render_frontmatter(fm)) != parts[0].strip("\n"):
-            byte_changed.append(fm.get("id", str(p)))
+        if r["byte_diff"]:
+            byte_changed.append(r["fm"].get("id", r["path"]))
     assert not drift, f"{len(drift)} live nodes drifted: {drift[:5]}"
     assert checked > 1000, f"corpus walk unexpectedly small: {checked}"
     print(f"LIVE_TREE checked={checked} value_drift=0 "

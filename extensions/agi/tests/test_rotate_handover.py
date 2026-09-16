@@ -835,8 +835,10 @@ def test_ack_keep_both_ref_equal_identity_differs_writes_pid(
     assert "row already carries session_ref=r1" not in out   # NOT already
     assert "back-filled session_ref=r1" in out
     assert "pid=4242" in out                   # the differing cell was written
-    assert any(ln.startswith("+") for ln in out.splitlines())   # +/- lines
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    # g15.25 clauses (1)-(3): the ack prints the CHANGED CELLS, never the
+    # whole JSON row twice as +/- -- pid moved, so its cell line prints.
+    assert "  pid: 999999 -> 4242" in out.splitlines(), out
+    assert not any(ln.startswith(("+", "-")) for ln in out.splitlines())
     # SECOND identical ack: nothing differs -> `already` short-circuit fires.
     code2 = rotate.cmd_ack(_ack_args(ref="r1", gen=None, reg=reg), root)
     assert code2 == 0
