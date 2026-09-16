@@ -1647,6 +1647,106 @@ def test_g_above_floor_cap_with_drained_remaining_still_refuses(monkeypatch):
         "the refusal is not the sub-floor skip marker")
 
 
+# --------------------------------------------------------------------------
+# hypothesis:(6) — item (6) provisioning pre-flight: a dispatch threads its OWN
+# iteration into the check, so an outstanding key belonging to a DIFFERENT
+# iteration (a proxy for this spawn's FRESH mint) does NOT gate this spawn,
+# while a same-iteration drained key refuses by name of the owning iter. These
+# tests drive `check_key_floor(..., iter_n=...)` directly; wiring `iter_n` at
+# the dispatch call site (dispatch.py pre-flight) is the follow-up that makes
+# it live, and the `iter_n=None` fallback keeps EVERY older caller unchanged.
+# --------------------------------------------------------------------------
+
+
+def test_l4p6_another_iters_drained_key_does_not_refuse_this_spawn(monkeypatch):
+    """falsifier (1) — THE falsifier, the TM.20 incident: a key of a DIFFERENT
+    iteration at its first cent of spend (cap 1.0, remaining 0.9999 < floor
+    1.0) must NOT refuse this spawn when dispatch threads its OWN iter_n. The
+    fresh mint this spawn gets is the credential it runs on, not that drained
+    proxy key."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterTM.20-kid-a00",
+                            "limit": 1.0, "usage": 0.0001}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}}, iter_n="SM.70")
+    assert ok is True and msg is None
+
+
+def test_l4p6_owning_it_iter_drained_key_refuses_and_names_the_iter(monkeypatch):
+    """falsifier (2) — an outstanding key of the SAME iteration still refuses
+    this round, and the refusal NAMES the owning iter so a reader knows whose
+    drained key stopped the spawn."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterSM.70-kid-a01",
+                            "limit": 5.0, "usage": 4.6}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}}, iter_n="SM.70")
+    assert ok is False
+    assert "SM.70" in msg, "the refusal must name the owning iteration"
+    assert "agi-iterSM.70-kid-a01" in msg
+
+
+def test_l4p6_cap_equal_to_floor_is_skipped_not_refused(monkeypatch, capsys):
+    """falsifier (3) — the `<=` boundary: a key whose cap EQUALS the floor
+    (1.0 == 1.0) is at its first cent of spend every TTL it lives (remaining
+    0.9999 < floor), yet its cap can never pass the floor — so it is SKIPPED,
+    never refused. This is the exact TM.20 key shape."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterTM.20-kid-a00",
+                            "limit": 1.0, "usage": 0.0001}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is not None
+    assert "sub-floor" in msg
+    assert capsys.readouterr().err.strip().splitlines()[-1] == msg
+
+
+def test_l4p6_non_dispatch_no_iter_n_keeps_todays_scan(monkeypatch):
+    """falsifier (4) fallback — without `iter_n` (a non-dispatch caller) the
+    scan consults EVERY machine-minted key byte-for-byte as today: a drained
+    one still refuses. The absence of an owning iteration fails OPEN to the
+    pre-iter_n behaviour, so no older caller changes shape."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterTM.20-kid-a00",
+                            "limit": 5.0, "usage": 4.6}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False and "agi-iterTM.20-kid-a00" in msg
+
+
+def test_l4p6_runtime_leg_unchanged_when_provisioning_absent(monkeypatch):
+    """falsifier (4) — the inherited-runtime-key path (provisioning ABSENT)
+    is untouched by the ownership gate: a drained runtime key still refuses,
+    whether or not `iter_n` is threaded."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(provisioning, "key_usage", _drained_runtime_key())
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}}, iter_n="SM.70")
+    assert ok is False and "backup" in msg
+
+
+def test_l4p6_config_min_key_floor_is_restored_to_1_0():
+    """falsifier (5) — the INTERIM: the round that lands this fix RESTORES
+    provisioning.min_key_remaining_usd to 1.0 in the same commit (the Prime had
+    dropped it to 0.25). Read from the LIVE config so a copied list cannot
+    satisfy it."""
+    import locations  # noqa: E402
+    this = Path(__file__).resolve()
+    root = (locations.find_project_root(this)
+            or this.parents[3])  # tests/../agi/../extensions/../ → repo root
+    cfg = locations.load_config(root)
+    assert provisioning.min_key_remaining_floor(cfg) == 1.0
+
+
 # --- hypothesis:l4-dispatch-takes-a-per-round-cap-and-refuses-when-cap-
 # exceeds-pool-headroom — the headroom helper behind dispatch's `--cap`.
 
