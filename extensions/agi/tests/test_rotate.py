@@ -9272,6 +9272,37 @@ def test_merge_up_dry_run_touches_nothing(tmp_path, capsys, monkeypatch):
     assert after == before
 
 
+def test_merge_up_main_on_another_branch_refusal_text_pinned(
+        tmp_path, capsys, monkeypatch):
+    """SM.53 item 4: the CURRENT `merge-up --post` refusal is pinned
+    VERBATIM, so the text a live seat reads cannot drift silently. With MAIN
+    on `master` (not the post's resolved trunk `season2/main`), the verb
+    exits 3 and names both branches on stderr with `, not ` and
+    `-- nothing merged` -- the by-name refusal the v3 trunk-spelling gap
+    (docstring MAP in branches.merge_target) is deliberately left to. The
+    fix is the NAMING, not a widened resolution: nothing merges."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(top), "checkout", "-q", "master"],
+                   check=True)
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "merge-up refused: MAIN is on" in err, err
+    assert ", not " in err, err
+    assert "-- nothing merged" in err, err
+    assert "'master'" in err and "'season2/main'" in err, err
+    assert not (root / "sessions" / "verify-suite.lock").exists()
+    after = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == before, "a refused merge-up moved MAIN"
+    assert _ls(bare, "refs/heads/season2/main")[0] == before
+
+
 def test_merge_up_unkeyed_caller_refused_nothing_merged(tmp_path, capsys,
                                                         monkeypatch):
     """C1 falsifier (the parent's probe, now asserted): an UNKEYED caller --
