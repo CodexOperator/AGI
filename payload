@@ -314,8 +314,25 @@ def restart(
 
 
 def needs_credential(harness: dict) -> bool:
-    """Pi agents authenticate through a minted OpenRouter key."""
-    return True
+    """Pi agents authenticate through a minted OpenRouter key -- but only
+    when the resolved provider IS OpenRouter.
+
+    `goal:s34 item 2` gated this on the adapter (`claude_code` returns
+    False); a pi row whose provider is not OpenRouter (e.g. the
+    `pi-local` harness, provider `local-town`, cost 0) reaches a local
+    endpoint that never sees the key, so minting one for it issued a
+    spent-but-unused provisioning key on every spawn
+    (hypothesis:l4-needs-credential-is-provider-gated).
+
+    A harness with no `provider` keeps the old answer: the legacy
+    `agent_dispatch` synthesis is OpenRouter by default, and
+    test_provisioning.py's `needs_credential({"adapter": "pi"})` must
+    stay True.
+    """
+    provider = harness.get("provider")
+    if provider is None or provider == "":
+        return True
+    return provider == "openrouter"
 
 
 def import_sys_stderr():
