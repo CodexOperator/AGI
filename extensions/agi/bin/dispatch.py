@@ -1212,6 +1212,12 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             # the real values (AGI_*, CLAUDE_CODE_WORKFLOWS) without a spawn.
             env = adapter.child_env(harness=dispatch_harness,
                                     base=scrubbed_env(), tier=args.tier)
+            # hypothesis:l4-needs-credential-is-provider-gated -- a harness
+            # that needs no credential must not be HANDED one either. The
+            # inherited runtime key (scrubbed_env keeps it for the no-
+            # provisioning fallback) is dropped before the env is shown.
+            if not adapters.needs_credential(dispatch_harness):
+                env.pop(provisioning.RUNTIME_KEY_VAR, None)
             env["AGI_TIER"] = args.tier
             # hypothesis:l4-spawn-paths-export-the-reaper-knob -- mirror of
             # the live spawn_env export, so the dry report SHOWS the reaper
@@ -1908,7 +1914,12 @@ def main() -> int:
         cred_limit = _ut_limit
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
-    if issuing:
+    # hypothesis:l4-needs-credential-is-provider-gated -- this banner is a
+    # claim about THIS spawn, so it obeys the same allowlist the mint site
+    # below does. A harness row marked `credential: "none"` (pi-local, and
+    # claude-code/copilot-cli through their own adapters) mints nothing and
+    # must not announce that it will.
+    if issuing and adapters.needs_credential(dispatch_harness):
         print(f"credentials: minting per spawn, limit=${cred_limit} "
               f"ttl={cred_ttl}min"
               + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
@@ -2354,6 +2365,13 @@ def main() -> int:
             )
             spawn_env = adapter.child_env(harness=dispatch_harness, base=scrubbed_env(),
                                            tier=args.tier)
+            # hypothesis:l4-needs-credential-is-provider-gated -- a harness
+            # that needs no credential must not be HANDED one either. The
+            # inherited runtime key (scrubbed_env keeps it for the no-
+            # provisioning fallback) is dropped before the child exists, so
+            # a pi-local kid's environment never carries OPENROUTER_API_KEY.
+            if not adapters.needs_credential(dispatch_harness):
+                spawn_env.pop(provisioning.RUNTIME_KEY_VAR, None)
             # hypothesis:l4-spawn-paths-export-the-reaper-knob -- the harness
             # reaps "background" shells on a Bun memoryPressure signal; the
             # only gate is CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP (read
