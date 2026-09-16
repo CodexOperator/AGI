@@ -288,6 +288,27 @@ def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
     assert last_act.card_stale(graph, "sensei-director", card)[0] is True
 
 
+def test_no_tier_director_shape_resolves_the_agent_id(monkeypatch):
+    """SM.68 residue (4) — the CAVEAT the SM.48b node did not name: the
+    tier literal is what selects the key order (`env_seat`, last_act.py:76).
+    A director-tier process with `AGI_SEAT` + `AGI_AGENT_ID` and NO
+    `AGI_TIER` takes the agent branch, so AGI_AGENT_ID wins and the seat is
+    ignored -- the director's own act stamps a clock no seat gate reads and
+    its card never goes stale, i.e. exactly the rotation loop the
+    AGI_TIER=director arm exists to fix, surviving undetected for any spawn
+    that does not set the tier. The paired arm shows the literal flipping it."""
+    monkeypatch.delenv("AGI_ACTOR", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_AGENT_ID", "dry00-x")
+    for tier in ("kid", "parent"):
+        monkeypatch.setenv("AGI_TIER", tier)
+        assert last_act.env_seat() == "dry00-x", tier
+    monkeypatch.delenv("AGI_TIER", raising=False)   # the undetected shape
+    assert last_act.env_seat() == "dry00-x"
+    monkeypatch.setenv("AGI_TIER", "director")       # the literal flips it
+    assert last_act.env_seat() == "sensei-director"
+
+
 # ── SM.48 residue (3): the floor is the card's WRITE time, never its
 # COMMIT time ────────────────────────────────────────────────────────────
 

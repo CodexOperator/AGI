@@ -15168,18 +15168,17 @@ def _prepare_merge_target(root: Path) -> str:
     return season_branch(root)
 
 
-def _prepare_checks(root: Path, seat: str, perform: bool = False,
-                    stops_rotation: bool = False
+def _prepare_checks(root: Path, seat: str, perform: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
-    `stops_rotation` marks a `rotate-self --stops/--stops-file` run. Only such
-    a run exempts the seat's ack seats path (seats.md/posts.md) from check 4's
-    "last WORK commit" scan: a --stops run's OWN card+seats commit must not
-    re-age the card (goal:g15.25 line (3)). A plain `prepare`, or a
-    `rotate-self --prepare` which delegates to it, must NOT carry the
-    exclusion (SL7.30) — seating bookkeeping on a non-stops run is still WORK
-    worth ageing the card against (SL7.12 had applied it unconditionally).
+    The `stops_rotation` parameter is RETIRED (SM.68 residue 6): it gated the
+    SL7.30 seats/posts exclusion from check 4's scan, but check 4 then moved
+    to the seat-scoped `bin/last_act.py` clock, so the exclusion — and the
+    parameter nothing read — stopped meaning anything. The stoppable flow
+    keeps its own `_stops_has` branch; an unused parameter a docstring claims
+    changes behaviour is a lie the next reader believes, so it is gone by
+    name (a test asserts the signature, not the docstring).
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
@@ -15518,7 +15517,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         card_stale, _last_ts = last_act.card_stale(root, seat, card)
     except Exception:  # noqa: BLE001
         card_stale = False   # unmeasurable reads NOT stale (P7)
-    checks.append((card_stale, "card older than last commit",
+        _last_ts = None
+    # SM.68 residue (5): NAME the unmeasurable state. `card_stale` returns
+    # `(False, None)` when NO own act is measurable (no stamp AND no card
+    # commit) -- the SAME False a measured-fresh seat returns, but with a
+    # real `_last_ts`. Both used to print `[ok] card older than last commit`,
+    # so a seat whose clock could not be read was indistinguishable from one
+    # read and found fresh. The measured-fresh and blocked labels stay
+    # byte-identical; only the no-clock case gains a suffix.
+    _card_label = "card older than last commit"
+    if card_stale is False and _last_ts is None:
+        _card_label += " (unmeasured: no own act)"
+    checks.append((card_stale, _card_label,
                    "write your card (a save is enough: the check reads mtime), "
                    "commit it, then rotate; fallback: rotate.py handoff "
                    f"--driven --seat {seat}"))
@@ -17703,8 +17713,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
     # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
     _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
-    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate,
-                                          stops_rotation=_stops_has)
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
     # background tasks BEFORE it spawns, so it knows what to leave behind
