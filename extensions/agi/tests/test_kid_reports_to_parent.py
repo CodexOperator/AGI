@@ -402,3 +402,79 @@ def test_real_done_zero_kids_is_still_exactly_one_seat_dm(tmp_path, monkeypatch,
     assert text.count("from:") == 1, "exactly ONE seat dm"
     assert "accepted=0 demoted=0 failed=0" in text, text
     assert "kids=[]" in text, text
+
+
+# --------------------------------------------------------------------------
+# 6. conjunct (4): the harvest names a measured overage against the record
+#
+# hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+# for-a-parent-re-brief. The kid records `production_lines` / `line_ceiling`
+# on its experiment node (conjunct 2); the harvest reads those fields off the
+# node file and names an overage with no `rebrief_request` as a defect. It is
+# a pure read -- no `git` runs here, because the parent already computes the
+# kid's diff in its own prompt.
+# --------------------------------------------------------------------------
+
+def _write_kid_node(graph: Path, node_id: str, **fm) -> None:
+    d = graph / "nodes" / "experiment"
+    d.mkdir(parents=True, exist_ok=True)
+    fields = {"id": node_id, "type": "experiment",
+              "parents": "[hypothesis:x]"}
+    fields.update(fm)
+    body = "\n".join(f"{k}: {v}" for k, v in fields.items())
+    (d / f"{node_id.split(':', 1)[1]}.md").write_text(
+        f"---\n{body}\n---\nbody\n")
+
+
+def _harvest_text(graph, monkeypatch, kid_node: str) -> str:
+    _write_manifest(graph, [
+        {"id": PARENT, "status": "running", "dispatched_by": SEAT,
+         "branch": ""},
+        {"id": "a00-kid-1", "status": "done", "node_id": kid_node,
+         "spawned_by_agent": PARENT},
+    ])
+    monkeypatch.setattr(cli, "_session_root", lambda: graph)
+    monkeypatch.setenv("AGI_TIER", "parent")
+    monkeypatch.setenv("AGI_AGENT_ID", PARENT)
+    cli._alarm_dispatcher_on_done(graph, ITER, PARENT, None, "pending")
+    return _inbox(graph, SEAT).read_text()
+
+
+def test_harvest_names_an_overage_with_no_rebrief(graph, monkeypatch, capsys):
+    """Over 2x, no `rebrief_request` -> the exact named-defect token."""
+    _write_kid_node(graph, "experiment:k-over",
+                    production_lines=90, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-over")
+    capsys.readouterr()
+    assert "overage=[experiment:k-over 90/40 no-rebrief]" in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_harvest_names_a_rebrief_instead_of_an_overage(graph, monkeypatch,
+                                                       capsys):
+    """The SAME overage WITH a `rebrief_request` -> `rebrief=`, no defect."""
+    _write_kid_node(graph, "experiment:k-over",
+                    production_lines=90, line_ceiling=40,
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-over")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-over 90/40]" in text, text
+    assert "overage=" not in text, text
+
+
+def test_harvest_is_unchanged_under_2x_or_with_no_record(graph, monkeypatch,
+                                                         capsys):
+    """Under 2x adds nothing; a pre-fix kid with no fields adds nothing --
+    absent is not over-budget and no defect may be fabricated from it."""
+    _write_kid_node(graph, "experiment:k-under",
+                    production_lines=30, line_ceiling=40)
+    under = _harvest_text(graph, monkeypatch, "experiment:k-under")
+    capsys.readouterr()
+    assert "overage=" not in under and "rebrief=" not in under, under
+    assert "kids=[experiment:k-under]" in under, under
+
+    _write_kid_node(graph, "experiment:k-bare")
+    bare = _harvest_text(graph, monkeypatch, "experiment:k-bare")
+    capsys.readouterr()
+    assert "overage=" not in bare and "rebrief=" not in bare, bare
+    assert "kids=[experiment:k-bare]" in bare, bare
