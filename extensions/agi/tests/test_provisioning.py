@@ -1666,11 +1666,66 @@ def test_cap_headroom_refuses_and_names_pool_floor_and_live(monkeypatch):
     assert "pool $6.00" in msg and "floor $1.00" in msg and "live $3.50" in msg
     # item 15: the conservatism is NAMED, not implied (the house shape:
     # a parenthesised clause after the arithmetic).
-    assert "live counts every agi- key's full limit" in msg, msg
-    assert "disabled, expired and already-spent keys included" in msg, msg
+    # item 15 (built by a00-4a19ce42): live is now what is still SPENDABLE,
+    # and the clause says so. These rows carry no `usage`, so the numbers are
+    # the pre-fix numbers -- that is the compatibility proof.
+    assert "live counts each un-expired agi- key's limit minus usage" in msg, msg
+    assert "disabled and expired keys are free" in msg, msg
+
+
+def test_cap_headroom_live_is_limit_minus_usage_on_live_keys(monkeypatch):
+    """item 15: a spent key frees its headroom. `limit - usage`, not `limit`.
+
+    The falsifier the parent runs: hand `cap_headroom` a live un-expired key
+    with limit=10.0, usage=9.5 and show live drops by 9.5, not by 0."""
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (10.0, 4.0, 6.0))
+    # the SAME row, twice: once unspent, once 9.50 spent.
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: [{"name": "agi-a", "limit": 10.0}])
+    ok, msg = provisioning.cap_headroom(
+        {"provisioning": {"min_account_remaining_usd": 1.0}}, None, 1.0)
+    assert ok is False and "live $10.00" in msg, msg
+
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: [
+                            {"name": "agi-a", "limit": 10.0, "usage": 9.5}])
+    ok, msg = provisioning.cap_headroom(
+        {"provisioning": {"min_account_remaining_usd": 1.0}}, None, 1.0)
+    assert (ok, msg) == (True, None), (
+        "usage 9.50 must free 9.50 of live, leaving 0.50 live and 4.50 "
+        f"headroom; got {msg!r}")
+
+
+def test_cap_headroom_live_skips_expired_disabled_and_uncapped(monkeypatch):
+    """item 15: dead keys and non-engine keys do not consume headroom.
+
+    live = 0.50 (spent) + 1.50 (no TTL, half spent) + 1.00 (future TTL)
+         + 0.00 (expired) + 0.00 (disabled) + 0.00 (overdrawn) + 0.00 (human)
+    """
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (10.0, 4.0, 6.0))
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [
+        {"name": "agi-spent", "limit": 10.0, "usage": 9.5},
+        {"name": "agi-expired", "limit": 4.0, "usage": 0.25,
+         "expires_at": "2020-01-01T00:00:00Z"},
+        {"name": "agi-disabled", "limit": 3.0, "usage": 0.0,
+         "disabled": True},
+        {"name": "agi-no-ttl", "limit": 2.0, "usage": 0.5,
+         "expires_at": None},
+        {"name": "agi-future", "limit": 1.0,
+         "expires_at": "2999-01-01T00:00:00Z"},
+        {"name": "agi-overdrawn", "limit": 1.0, "usage": 4.0},
+        {"name": "human-key", "limit": 99.0, "usage": 0.0},
+    ])
+    ok, msg = provisioning.cap_headroom(
+        {"provisioning": {"min_account_remaining_usd": 1.0}}, None, 2.5)
+    assert ok is False
+    assert "live $3.00" in msg and "headroom $2.00" in msg, msg
 
 
 def test_cap_headroom_admits_a_cap_inside_headroom(monkeypatch):
+    """A row with no `usage` key still means usage 0.0 -- unchanged numbers."""
     monkeypatch.setattr(provisioning, "credit_balance",
                         lambda root=None: (10.0, 4.0, 6.0))
     monkeypatch.setattr(provisioning, "list_all_keys",
