@@ -68,6 +68,8 @@ History (wake / out): point 11·5·4·5·5·8*·7§·11 / 6·7·5·4·3·4 — h
 - Dirty nodes in MAIN's tree that are not mine are other posts' in-flight writes — never bundled.
 
 ## 🔴 Where it stops
+````
 ```
 2026-09-16 14:5xZ: gen 8 closes at ~0.38 of the window by ONE bare `rotate`. Landed today: SL7.128-133 (six rounds; verbs record-keyed + writing the record), tree stamped aa839b221 (11/11 after SL7.133), merge-up-review timeout_s 1800, upstreams on 3 post branches, 5 code lines minted by SM. SL7.134 in flight (parent a00-ba912100) — successor harvests it per NEXT (1); commit every audited record by exact path the same turn (NEXT 0); drop the Prime row's sensei-wake after_join entry (NEXT 3); facts-2 waits on SM's code half.
 ```
+````
