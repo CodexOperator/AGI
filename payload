@@ -492,26 +492,45 @@ def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool
 
 
 def cap_headroom(cfg: dict, root: Path | str | None,
-                 cap: float) -> tuple[bool, str | None]:
+                 cap: float, slots: int = 1) -> tuple[bool, str | None]:
     """(ok, msg): does `cap` fit pool minus floor minus live caps?
     Fail-open on an absent key or a network error (check_account_floor idiom).
+
+    `slots` prices the round at `cap * slots` (one minted key per slot,
+    `spawn.parallel`); the refusal names the multiplier when it is > 1.
+
+    🔴 Every fail-open carries a MARKER, never `(True, None)` (the
+    `check_key_floor` idiom): `(True, <marker>)` names what could not be read
+    and that the cap was therefore NOT measured, so a tuple-reading caller can
+    tell "proceeded unmeasured" from "measured and fits". `(True, None)` is
+    reserved for the genuinely silent path — the caller already decided to
+    pass a `--cap`, so here it means exactly "measured, fits".
     """
     try:
         bal = credit_balance(root)
         if bal is None:
-            return True, None
+            return True, (
+                f"cap not measured: no provisioning key and no readable "
+                f"account balance; round cap ${cap:.2f} proceeds unmeasured")
         keys = list_all_keys(root)
     except ProvisioningError:
-        return True, None
+        return True, (
+            f"cap not measured: the account/key listing was unreadable "
+            f"(provisioning API error); round cap ${cap:.2f} proceeds "
+            f"unmeasured")
     floor = min_account_remaining_floor(cfg) or 0.0
     live = sum(float(r["limit"]) for r in keys
                if str(r.get("name") or "").startswith(f"{NAME_PREFIX}-")
                and r.get("limit") is not None)
     avail = bal[2] - floor - live
     if cap > avail:
+        _head = (f"round cap ${cap / slots:.2f} x {slots} slots = ${cap:.2f}"
+                 if slots > 1 else f"round cap ${cap:.2f}")
         return False, (
-            f"round cap ${cap:.2f} exceeds pool headroom ${avail:.2f} "
-            f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f})")
+            f"{_head} exceeds pool headroom ${avail:.2f} "
+            f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f}) "
+            f"(live counts every {NAME_PREFIX}- key's full limit; disabled, "
+            f"expired and already-spent keys included)")
     return True, None
 
 
