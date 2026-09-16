@@ -9726,7 +9726,8 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
                        window_path: str | None = None,
                        pids: list[int] | None = None,
                        s12_reap: dict | None = None,
-                       record_path: Path | None = None) -> dict:
+                       record_path: Path | None = None,
+                       wait_secs: float = 5.0) -> dict:
     """r5 — reap the OLDEST Belam predecessor by PID when the chain would
     exceed FIVE (FIFO per the owner: 'rotation reaps from the wrong end, filo
     not fifo').
@@ -9812,7 +9813,7 @@ def _reap_belam_oldest(*, tmux_session: str, oldest: str,
     _write_belam_planned({"planned": True, "oldest": oldest,
                           "window_id": oldest_id, "pids": pids,
                           "chain": pids})
-    observed = _reap_chain(pids)
+    observed = _reap_chain(pids, wait_secs=wait_secs)
     reaped = bool(observed["chain"]) and all(
         (not p["was_alive"]) or p["gone_after"]
         for p in observed["chain"])
