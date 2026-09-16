@@ -60,6 +60,18 @@
         "deepseek/deepseek-v4.1-flash"
       ]
     },
+    "pi-local": {
+      "adapter": "pi",
+      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "provider": "local-town",
+      "models": {
+        "kid": "Qwen3.5-9B-Q4_K_M",
+        "parent": "Qwen3.5-9B-Q4_K_M"
+      },
+      "allowed_extra": [
+        "Qwen3.5-9B-Q4_K_M"
+      ]
+    },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
