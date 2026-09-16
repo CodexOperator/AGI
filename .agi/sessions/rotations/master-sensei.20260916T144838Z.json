@@ -164,5 +164,35 @@
     "claimed_at": "2026-09-16T14:50:17.443603+00:00",
     "claim_key": "2026-09-16T14:49:38.943618Z",
     "performed_after_s": 37.988356590270996
+  },
+  "audit": {
+    "out": {
+      "calls": 3,
+      "a": 0,
+      "b": 2,
+      "c": 0,
+      "d": 1,
+      "floor": 1,
+      "excess": 2,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/59ca602d-64ea-4556-957e-a4027ea6c1ab.jsonl",
+      "window_start": 1625,
+      "window_end": "2026-09-16T14:49:38.943618Z",
+      "audited_at": "2026-09-16T14:51:22Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 2,
+      "a": 0,
+      "b": 2,
+      "c": 0,
+      "d": 0,
+      "floor": 0,
+      "excess": 2,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
+      "window_start": 1,
+      "window_end": 2,
+      "audited_at": "2026-09-16T14:51:23Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
