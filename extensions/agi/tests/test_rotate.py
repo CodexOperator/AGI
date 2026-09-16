@@ -9512,3 +9512,24 @@ def test_origin_head_delete_refuses_without_a_containment_proof(tmp_path):
     assert _ls(bare, "refs/heads/season2/posts/adv"), "head deleted anyway"
     assert _ls(bare, "refs/agi/posts/adv")[0] == master_sha
 
+
+
+def test_rename_post_default_reader_is_real_git_and_refuses_by_name(
+        tmp_path, capsys):
+    """SM.32b ROUND 2: the DEFAULT branch reader is real git, not only the
+    injected one. `_git_with_post_branch` creates the real ref
+    `season2/posts/adv` (NO town segment) while the row cell declares
+    `core` -> the rename refuses BY NAME before anything is staged."""
+    row = {"name": "adv", "role": "director", "town": "core"}
+    root, top, bare, head = _git_with_post_branch(tmp_path, seat_row=[row])
+    # sanity: the reader really reaches the ref the fixture created
+    assert "season2/posts/adv" in rotate._local_branches(root)
+    capsys.readouterr()
+    rc = rotate.cmd_rename_post(SimpleNamespace(
+        old_name="adv", new_name="adv2", dry_run=False, now=False,
+        apply=False, root=None), root)
+    err = capsys.readouterr().err
+    assert rc == 4, (rc, err)
+    assert "REFUSED" in err and "core" in err, err
+    assert "season2/posts/adv" in err, err
+    assert not (root / "sessions" / "seats" / "adv.rename.json").exists()
