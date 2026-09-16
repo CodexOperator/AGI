@@ -32,6 +32,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import towns as _towns  # noqa: E402  (sibling module; adds src to sys.path itself)
+
 #: Report node types the roll-up writes its `*_total` fields to. Mirrors
 #: `telemetry_rollup.py`'s accepted types — never restated here.
 REPORT_TYPES = ("outcome", "bigger_outcome", "overview")
@@ -223,6 +225,7 @@ def collect(root: Path, fm_by_id: dict) -> SeatsView:
         seats.append({
             "name": name,
             "role": str(r.get("role") or ""),
+            "town": _towns.row_town(root, r),
             "session_kind": str(r.get("session_kind") or ""),
             "rotated_by": str(r.get("rotated_by") or ""),
             "worktree": str(r.get("worktree") or ""),
@@ -255,6 +258,7 @@ def to_markdown(v: SeatsView) -> list[str]:
         wt = f" worktree={s['worktree']}" if s.get("worktree") else ""
         addr = f" [{s['session_ref']}]" if s.get("session_ref") else ""
         out.append(f"- seat {s['name']}{addr} ({s['role']}/{s['session_kind']})"
+                   f" town={s.get('town') or 'core'}"
                    f" rotated_by={s['rotated_by'] or '-'}{frac}{wt}")
     out.append(f"- ephemeral live/cap: {v.ephemeral_live}/{v.ephemeral_cap}"
                + ("" if v.rollup_config_read else " (spawn-budget unread)"))
@@ -270,7 +274,7 @@ def to_compact(v: SeatsView) -> list[str]:
     out = []
     for s in v.seats:
         frac = f" {s['fraction']:.0%}" if s["fraction"] is not None else ""
-        out.append(f"{s['name']} ({s['role']}){frac}")
+        out.append(f"{s['name']} ({s['role']}) [{s.get('town') or 'core'}]{frac}")
     out.append(f"ephemeral {v.ephemeral_live}/{v.ephemeral_cap} · "
                f"rollup ${v.rollup_cost_usd_total:.2f} "
                f"({v.rollup_reports_measured})")
@@ -307,6 +311,7 @@ def main(argv: list[str] | None = None) -> int:
                         if s['fraction'] is not None else "")
                 print("\t".join([
                     s['name'], s['role'], s['session_kind'],
+                    s.get('town') or 'core',
                     s['rotated_by'] or '-', s['worktree'] or '-',
                     s['session_ref'] or '-', frac, s['fraction_source']]))
         return 0
