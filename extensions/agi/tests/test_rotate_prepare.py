@@ -172,9 +172,15 @@ def test_prepare_dirty_names_the_non_churn_paths(prep_root, capsys,
     assert "a.py" in out and "b.py" in out and "c.py" in out
     # five shown, eight non-churn dirty -> three more, named count, not bare
     assert ", +3 more" in out
-    # churn paths are never named, and the paths past the +N more cut
-    # (d.py, e.py, f.py) are NOT listed as separate dirty paths either.
-    assert "dm/x.md" not in out and "sequence.json" not in out
+    # SM.40: churn paths ARE named -- but on their OWN never-blocking
+    # `[ok] rotation churn:` line, never in the dirty-tree BLOCK line (a
+    # hidden class was the bug). The paths past the +N more cut (d.py, e.py,
+    # f.py) are still NOT listed.
+    _block_line = next(ln for ln in out.splitlines()
+                       if ln.startswith("[BLOCK] dirty tree"))
+    assert "dm/x.md" not in _block_line and "sequence.json" not in _block_line
+    assert ("[ok] rotation churn: .agi/comms/season-2/dm/x.md, "
+            ".agi/sessions/rotations/sequence.json") in out, out
     assert ", d.py" not in out and ", e.py" not in out and ", f.py" not in out
 
 
@@ -1474,3 +1480,132 @@ def test_prepare_check2_quoted_dirty_path_touch_set_real_fixture(
     assert "[ok] foreign dirt (not in the merge): café.py" in out_b, out_b
     assert rc_b == 3, out_b
     assert "[BLOCK] behind" in out_b, out_b
+
+
+# SM.40 (hypothesis:l4-rotate-dirty-tree-refusal-partitions-blocking-from-
+# foreign-dirt-like-the-merge-gate) — check 2 on a MAIN post names THREE
+# classes, never one bare list: BLOCKING (merge touch-set PLUS the rotating
+# post's OWN card), ROTATION CHURN (`_prepare_churn_path`'s paths — NAMED,
+# never silently dropped: a hidden class was the bug), FOREIGN (owner guess
+# parsed from the path). Measured defect: master-sensei 2026-09-16 10:04-10:05Z
+# committed `.agi/tmp/kid1_thought.txt` and a root `orders-SL7.126-*.md`
+# leftover to "unblock" a rotate because the bare list hid whose dirt it was.
+# NO `.gitignore` rule: an ignore hides the class, the partition names it.
+# The ROTATING ITER is NOT resolvable at prepare time (MEASURED: `_prepare_checks`
+# receives only `seat`; dispatch.py sets AGI_LOOP to a loop ref like
+# `hypothesis:...@s2`, never the `SL7.126` round slug), so no own-iter
+# own-card BLOCK is shipped — the brief's F2 fallback (named iter owner) is.
+
+
+def test_prepare_check2_untracked_kid_scratch_names_owner_unknown(
+        prep_root, capsys, monkeypatch):
+    """F1 — an untracked scratch file outside the merge
+    (`.agi/tmp/kid1_thought.txt`) exits 0 and the foreign line NAMES it WITH
+    an owner guess. Nothing in the path attributes it, so `[owner: unknown]`
+    is the honest guess — never a bare path a reader commits to unblock."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): ["?? .agi/tmp/kid1_thought.txt"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("[ok] foreign dirt (not in the merge): "
+            ".agi/tmp/kid1_thought.txt [owner: unknown]") in out, out
+
+
+def test_prepare_check2_orders_leftover_names_the_iter_owner(
+        prep_root, capsys, monkeypatch):
+    """F2 (the brief's fallback — the ROTATING iter is not resolvable at
+    prepare time, see the block comment above) — a root-level
+    `orders-<ITER>-*` leftover is FOREIGN, never a block, and its owner guess
+    is parsed from the path: `iter SL7.126`, the master-sensei 10:05Z
+    leftover a director committed to unblock."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              ["?? orders-SL7.126-a00-fabd2604.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("orders-SL7.126-a00-fabd2604.md [owner: iter SL7.126]") in out, out
+
+
+def test_prepare_check2_iter_session_dir_names_its_iter_owner(
+        prep_root, capsys, monkeypatch):
+    """The other iter-owned spelling the brief names: `.agi/sessions/
+    iter-<ITER>/**` -> `iter <ITER>`. A kid's own scratch dir is never a
+    block and never `unknown`."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): ["?? .agi/sessions/iter-SL7.126/note.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "note.md [owner: iter SL7.126]" in out, out
+
+
+def test_prepare_check2_rotation_churn_named_never_silently_dropped(
+        prep_root, capsys, monkeypatch):
+    """F3 — the churn class `_prepare_churn_path` matches (`.agi/comms/**`,
+    `.agi/sessions/rotations/*.json`) is NAMED on one never-blocking
+    `[ok] rotation churn:` line. Before SM.40 it was silently swallowed:
+    prepare printed a plain `[ok] dirty tree` while the tree WAS dirty, and
+    the class a reader most needs to recognise was invisible."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              [" M .agi/sessions/rotations/sequence.json",
+               "?? .agi/comms/season-2/dm/x--y.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert ("[ok] rotation churn: .agi/sessions/rotations/sequence.json, "
+            ".agi/comms/season-2/dm/x--y.md") in out, out
+
+
+def test_prepare_check2_main_post_own_card_blocks(
+        prep_root, capsys, monkeypatch):
+    """The own-card BLOCK: on a MAIN post a dirty `.agi/sessions/quorum/
+    <seat>.md` is the rotating post's OWN uncommitted work — its owner guess
+    IS this post — so it BLOCKS by name, even though the merge would not
+    touch it. A post must not rotate over its own card."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"):
+              [" M .agi/sessions/quorum/adv-alive.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert ("[BLOCK] dirty tree: .agi/sessions/quorum/adv-alive.md"
+            in out), out
+    assert "your own card" in out, out
+
+
+def test_prepare_check2_another_posts_card_is_foreign_named(
+        prep_root, capsys, monkeypatch):
+    """The boundary of the own-card BLOCK, asserted so the rule cannot widen:
+    ANOTHER post's card is foreign, owner-named `post belam`, and never
+    blocks."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post
+    gm = {("status", "--porcelain"): [" M .agi/sessions/quorum/belam.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"],
+          ("diff", "--name-only", "HEAD...origin/season/s2"): []}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert (".agi/sessions/quorum/belam.md [owner: post belam]") in out, out
