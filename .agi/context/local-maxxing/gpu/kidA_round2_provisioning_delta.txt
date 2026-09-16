@@ -1,0 +1,33 @@
+provisioning.py status -- BEFORE (kidA round 2)
+
+provisioning: available  keys_visible=9  engine_minted=8
+  outstanding: agi-iterSL7.129-kid-a00-39aeb1ef used=0.020589222 expires=2026-09-16T14:28:28.522Z
+  outstanding: agi-iterTM.09-parent-a00-cd68ae51 used=0.01645491 expires=2026-09-16T14:28:06.777Z
+  outstanding: agi-iterSM.43-parent-a00-e2977dc6 used=0.00840117 expires=2026-09-16T14:27:45.808Z
+  outstanding: agi-iterTM.08-kid-a00-9d2ad822 used=0.031614642 expires=2026-09-16T14:27:02.315Z
+  outstanding: agi-iterSL7.129-parent-a00-4fcaf2ee used=0.017057682 expires=2026-09-16T14:26:38.409Z
+  outstanding: agi-itermur-62bab19c7-2-0-workflow:mur-62bab19c7-2 used=0.023509332 expires=2026-09-16T14:26:11.515Z
+  outstanding: agi-iterTM.08-parent-a00-2034dafc used=0.013252308 expires=2026-09-16T14:25:57.033Z
+  outstanding: agi-2 used=0.59690858 expires=None
+  OPENROUTER_API_KEY: unknown — key_usage failed: HTTP 401 {"error":{"message":"User not found.","code":401}}
+
+controlled pi-local credential decision (no spawn performed):
+  harnesses.pi-local row: adapter=pi provider=local-town credential='none'
+  adapters.needs_credential(pi-local row) = False
+  dispatch mint site is `if issuing and adapters.needs_credential(dispatch_harness):`
+  -> with needs_credential=False, the provisioning.mint() call for a
+     pi-local spawn is NOT REACHED, so no engine-minted key can appear.
+  provisioning.available(root) = True (the left conjunct; the right one is False)
+
+provisioning.py status -- AFTER (nothing spawned; pi-local mints nothing by construction)
+
+provisioning: available  keys_visible=9  engine_minted=8
+  outstanding: agi-iterSL7.129-kid-a00-39aeb1ef used=0.020589222 expires=2026-09-16T14:28:28.522Z
+  outstanding: agi-iterTM.09-parent-a00-cd68ae51 used=0.01645491 expires=2026-09-16T14:28:06.777Z
+  outstanding: agi-iterSM.43-parent-a00-e2977dc6 used=0.00840117 expires=2026-09-16T14:27:45.808Z
+  outstanding: agi-iterTM.08-kid-a00-9d2ad822 used=0.031614642 expires=2026-09-16T14:27:02.315Z
+  outstanding: agi-iterSL7.129-parent-a00-4fcaf2ee used=0.017057682 expires=2026-09-16T14:26:38.409Z
+  outstanding: agi-itermur-62bab19c7-2-0-workflow:mur-62bab19c7-2 used=0.023509332 expires=2026-09-16T14:26:11.515Z
+  outstanding: agi-iterTM.08-parent-a00-2034dafc used=0.013252308 expires=2026-09-16T14:25:57.033Z
+  outstanding: agi-2 used=0.59690858 expires=None
+  OPENROUTER_API_KEY: unknown — key_usage failed: HTTP 401 {"error":{"message":"User not found.","code":401}}
