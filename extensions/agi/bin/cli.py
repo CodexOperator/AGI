@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
@@ -2611,12 +2612,16 @@ def _main_graph_root(root: Path) -> Path:
 def cmd_session_complete(args: argparse.Namespace) -> int:
     root = _find_root()
     main_graph = _main_graph_root(root)
-    return _session_complete(
+    rc = _session_complete(
         main_graph,
         args.iter_n,
         worktree=args.worktree,
         dry_run=args.dry_run,
     )
+    if not args.dry_run:
+        # The seat's OWN last act (conjunct 1): a round came home.
+        last_act.touch_env(root)
+    return rc
 
 
 def cmd_trimguard(args: argparse.Namespace) -> int:

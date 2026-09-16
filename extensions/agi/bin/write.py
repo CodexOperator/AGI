@@ -63,6 +63,7 @@ import locations  # noqa: E402
 import node_writer  # noqa: E402
 import links  # noqa: E402
 import geometry_config  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import frontmatter  # noqa: E402  # the ONE line-anchored boundary rule
 
 #: Frontmatter keys this module stamps on every submitted edit.
@@ -2584,6 +2585,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(f"{res.status}: {edit.node_id}"
           + (f" — {res.reason}" if res.reason else ""))
+    if res.status != node_writer.REJECTED:
+        # The seat's OWN last act (conjunct 1): --actor first, then the env.
+        last_act.touch_env(root, args.actor)
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
