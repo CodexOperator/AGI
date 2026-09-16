@@ -82,7 +82,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :6
 `````
 ````
 ```
-gen 4 18:5xZ: reviewed by name SM.58→SM.61 :80 final, SM.59 c1/c2 :65; minted SM.62 (live a00-529d51a2), SM.63 + SM.64 (380442826, dispatch orders sent, SM.63 before SM.64). Prime landed the config half 0bba784ee (overrides -> sanctuary; branch prefix = only project axis); renames wait on SM.62. Three suite-lock waits this gen (Prime rotation suite, a town-rows run, a full run) -- each a background until-loop, no MAIN commit inside a window. Nothing held, no throwaway trees, no background task. NEXT: harvests of SM.60/62/63/64 → review by name → land the post branch (SM.57/58/59/61/62+) on MAIN under the three rules + stamp.
+gen 4 19:1xZ: LANDING PREPARED -- post tip 62c0f2f72 -> MAIN 0c2585dbe: merge-tree 0 conflicts, 15 touched test files 1240/0/5 on a throwaway tree (removed). GO by SHA + suite window ASKED of belam 19:0xZ. SM.60 mur review LIVE on pi (workflow.py run merge-up-review, pid 1069693, pi child 1069864; report lands in the background task output + .agi/sessions/workflows/merge-up-review.jsonl). EXECUTE ONLY AFTER: (1) mur report not red, (2) Prime GO by SHA; then `git merge --no-ff origin/core/season2/posts/sensei-director/main` on MAIN outside any window, `test ! -e .git/MERGE_HEAD`, push, then the stamp in the granted window (verification.py --suite). Director rotated (gen 28->29); SM.65/66 carry to gen 29. Nothing else held.
 ```
 ````
 `````
