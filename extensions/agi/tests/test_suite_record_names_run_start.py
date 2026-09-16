@@ -110,6 +110,56 @@ def test_stamp_refuses_when_head_moved_mid_run(tmp_path, monkeypatch):
     assert "same111" in ok.note
 
 
+def test_live_stamp_names_the_recorded_run_not_the_invocation_start(
+        tmp_path, monkeypatch, capsys):
+    """(2) at the LIVE `--stamp` call site the refusal names the sha the SUITE
+    ran on. An invocation that runs no pytest (the merge-up step) has its own
+    start sha == HEAD, so only the RECORD can see the movement. HEAD shaB vs
+    record shaA: FAIL by name, baseline untouched; HEAD shaA: PASS, stamps
+    shaA."""
+    groot = tmp_path / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    monkeypatch.setattr(verification.locations, "find_project_root",
+                        lambda p: groot)
+    monkeypatch.setattr(verification.commands, "engine_for", lambda g: str(groot))
+    monkeypatch.setattr(verification, "_suite_lock_guard", lambda g: None)
+    monkeypatch.setattr(verification, "_node_dirt", lambda g: [])
+    monkeypatch.setattr(verification, "check_seat_model",
+                        lambda g: verification.CheckResult(
+                            "seat-model", "PASS", 0.0, None))
+
+    def fake_run_check(g, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(
+                "smoke", "PASS", 0.0,
+                {"active": 7, "deprecated": 0, "total": 7})
+        return verification.CheckResult(name, "PASS", 0.0, None)
+
+    monkeypatch.setattr(verification, "run_check", fake_run_check)
+    verification._record_suite_ts(groot, ran_at=1.0, ran_on="shaA")
+    state_p = groot / "sessions" / verification.STATE_FILE
+    state_p.write_text(json.dumps({
+        "active": 7, "deprecated": 0, "total": 7, "sha": "baseline0",
+        "stamped_at": 1.0, "reason": "kept"}), encoding="utf-8")
+
+    # HEAD has moved past the run the suite record names: REFUSE BY NAME.
+    monkeypatch.setattr(verification, "_git", lambda g, a: "shaB")
+    rc = verification.main(["--level", "quick", "--stamp",
+                            "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc != 0
+    assert "HEAD shaB moved past the run shaA: re-run" in out
+    assert json.loads(state_p.read_text())["sha"] == "baseline0", (
+        "the baseline was re-stamped on a HEAD the recorded suite never ran on")
+
+    # HEAD IS the recorded run: PASS, and the stamp names shaA.
+    monkeypatch.setattr(verification, "_git", lambda g, a: "shaA")
+    rc = verification.main(["--level", "quick", "--stamp",
+                            "--root", str(tmp_path)])
+    assert rc == 0, capsys.readouterr().out
+    assert json.loads(state_p.read_text())["sha"] == "shaA"
+
+
 def test_window_prints_the_sha_the_suite_ran_on(tmp_path):
     """(4) `ran on <sha>` beside the stamped sha."""
     groot = tmp_path / ".agi"

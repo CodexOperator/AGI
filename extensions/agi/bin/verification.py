@@ -433,6 +433,11 @@ def compare_count(groot: Path, current: dict | None,
     (the falsifier: a red or dropped read that stamps). A recorded baseline
     whose `sha` is no longer an ancestor of HEAD is stale: REPORTED and
     treated as absent, never silently leaned on.
+
+    With `--stamp` the sha recorded is the one the last recorded `--suite`
+    actually RAN ON (`suite_ran_on`), and HEAD past it refuses by name. A tree
+    with NO suite record at all does not refuse: a first-ever stamp keeps its
+    old behaviour.
     """
     start = time.monotonic()
     if current is None or current.get("active", -1) < 0:
@@ -441,11 +446,16 @@ def compare_count(groot: Path, current: dict | None,
     if stamp:
         can_stamp, why = True, "explicit --stamp"
         head_sha = _git(groot, ["rev-parse", "HEAD"])
+        suite_ran_on = _read_suite_ran_on(groot)
+        if suite_ran_on and head_sha and head_sha != suite_ran_on:
+            return CheckResult(
+                "node-count", "FAIL", time.monotonic() - start, current,
+                note=f"HEAD {head_sha} moved past the run {suite_ran_on}: re-run")
         if run_sha and head_sha and head_sha != run_sha:
             return CheckResult(
                 "node-count", "FAIL", time.monotonic() - start, current,
                 note=f"HEAD {head_sha} moved past the run {run_sha}: re-run")
-        head_sha = run_sha or head_sha
+        head_sha = suite_ran_on or run_sha or head_sha
     else:
         can_stamp, head_sha, why = _stamp_context(groot)
     manifest = _node_manifest(groot)
