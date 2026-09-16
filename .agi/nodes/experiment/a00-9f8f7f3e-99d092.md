@@ -1,0 +1,237 @@
+---
+id: experiment:a00-9f8f7f3e-99d092
+mint_id: f51d003681634e65be602c1ce53919b5
+type: experiment
+parents:
+  - hypothesis:l4-sm48-integration-residue-merge-up-stamps-the-caller-unpushed-gate-scoped-card-mtime-floor-no-tier-caveat-unmeasurable-label-dead-stops-rotation
+next_edges: []
+confidence: 0.9
+edited_by: a00-a6135607
+evidence_runs:
+  - experiment:a00-9f8f7f3e-99d092
+line_ceiling: 60
+loop: hypothesis:l4-sm48-integration-residue-merge-up-stamps-the-caller-unpushed-gate-scoped-card-mtime-floor-no-tier-caveat-unmeasurable-label-dead-stops-rotation@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes: "P1(auth): cmd_merge_up as caller=helper rank<director -> rc=3, stamps=[] (a refusal stamps nobody); success caller=prime post=director -> stamped=[prime], director never stamped. P2(gate): own-authored unpushed commit -> (True,unpushed commits,git push) exact name for SL7.113; foreign grid-authored -> (False,unpushed commits (other author: 1, not blocking),git push); unmeasurable identity -> (True,unpushed commits) conservative. P3(gate): fixed blob M<S<C -> (True,C); PRE-FIX blob imported from git ad94f2fd9 -> (False,C) (fix load-bearing); write+commit no act -> (False,C). Ran: /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/iter-SM.68/a00-a6135607/parent_probe_kid1.py -> ALL PARENT PROBES PASSED."
+production_lines: 56
+profile: balanced
+role: kid
+scaffold_hash: d9f0669696fd859d
+season: 2
+title: "SM.68 slice A: merge-up stamps the caller, check-1 scoped by author, card floor on the write mtime (residues 1-3)"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-9f8f7f3e-99d092
+
+## Slice A of the SM.48 integration residue (items 1-3 of 6)
+
+A **g15 build order**, not a measurement: each item was measured pre-fix on
+this checkout, then IMPLEMENTED, then proved on the built bytes. Kid 2 owns
+items 4-6 and none of its files were touched.
+
+FILE SCOPE (production): `extensions/agi/bin/rotate.py`,
+`extensions/agi/bin/last_act.py`. Tests: `test_rotate_prepare.py`,
+`test_last_act.py`. Measured with the one read-only `git diff --numstat`:
+`rotate.py 35+/11-`, `last_act.py 9+/1-` = **56 production lines** against the
+dispatching node's CEILING of 60.
+
+---
+
+## Item (1) — `merge-up` stamped the TARGET post, not the caller
+
+**Pre-fix, measured** (`.agi/sessions/iter-SM.68/a00-9f8f7f3e/probe_pre.py`):
+the only `last_act.touch_env` call site in `cmd_merge_up` was
+
+```
+rotate.py:4285: last_act.touch_env(root, post)
+```
+
+with `post` the resolved `--post` TARGET — and `last_act.env_seat(explicit)`
+returns `explicit` FIRST, so a Prime/SM merge-up of a director's post wrote the
+DIRECTOR's `.last-act` stamp and re-staled that director's card. The captive
+loop, reopened from the other side.
+
+**Fix** — stamp the caller (`caller_post`, already resolved near the top by
+`_caller_post` and non-None here because the function returns 3 otherwise),
+with a falsy guard so an unnamed caller simply writes no stamp. The merge-up
+itself is untouched and still keyed on `post`.
+
+**Test form used, and why**: driven end-to-end through `cmd_merge_up` (not a
+source grep), with every git seam injected — `_caller_post`, `_find_seat`,
+`_rank_gate`, `merge_up_plan`, `_closeout_branch`, `_closeout_main_clean`,
+`verification.acquire_suite_lock`, `_merge_up_suite`, `_git_proc`, `_git_maybe`,
+`branches.mirror_and_prove`, `_origin_head_delete_gate`, `_node_counts`,
+`send.send`, `_closeout_prime_seat` — so no remote, no lock and no real merge
+is touched. `last_act.touch_env` is recorded, which makes the assertion about
+the STAMP TARGET itself and not about a proxy.
+
+- `test_merge_up_stamps_the_caller_never_the_post_target` — caller `prime`
+  merges up post `director`: `stamped == ["prime"]`, `"director" not in
+  stamped`, and no `sessions/seats/director.last-act` on disk.
+- **Negative case**: pre-fix the same call site passes `post`, so the same
+  assertion reads `stamped == ["director"]` — the probe above names the
+  literal line and the pre-fix value.
+
+## Item (2) — gate (c)/check 1 refused an unpushed commit by ANY author
+
+**Determined on the CURRENT bytes, before changing anything.** Check 1 is no
+longer the code the brief cites: the mirror arm (`refs/agi/*`, SM.53 item 5)
+now reads ORIGIN's tip and reports every failure mode as
+`(unmeasured)` / never-blocking. What remains blocking is the **non-mirror
+fallback** — `@{u}..HEAD`, then `origin/<branch>..HEAD` — which is exactly the
+arm a MAIN/trunk-checkout seat hits, where `grid_sync` cron commits accumulate
+on the shared trunk. Measured (`probe_pre.py`), on a real repo whose own
+identity is `seat@x` with one unpushed commit authored by `grid <grid@agi>`:
+
+```
+PRE-FIX check1: blocker=True name='unpushed commits' clear='git push'
+```
+
+So the defect is real on the current bytes, and it is the NON-MIRROR arm.
+
+**Mechanism chosen: scope the count by author.** `--author` is implementable
+here, and that is the deciding fact: this repo has three distinct commit
+identities (`CodexOperator <liborum@icloud.com>` for agents,
+`grid <grid@agi>` for `grid_sync` cron, `agi <agi@local>`), so "whose commit is
+it" IS a measurable property. I did NOT make the line INFO: check 1's
+blocking result is load-bearing for SL7.113's auto-push, which detects the
+sole blocker by the EXACT name `unpushed commits` and then performs the push;
+making it never-blocking would silently delete that feature and break six
+existing tests (`test_prepare_lists_dirty_unpushed_stale_pin_exits_3`,
+`test_rotate_self_pushes_only_unpushed_blocker_and_continues`,
+`test_rotate_self_unpushed_plus_dirty_refuses_no_push`, …).
+
+`_unpushed_by_author(root, spec, label)` counts `rev-list --count <spec>`
+twice — raw, and `--author=<git config user.email>` — and:
+
+- raw == 0 → `(False, label, "git push")` (unchanged);
+- raw > 0 and **mine == 0** → `(False, "<label> (other author: N, not
+  blocking)", "git push")` — the foreign count is **named**, never a silent
+  `pushed`, and `git push` is still the clear the claim names;
+- mine > 0 → `(True, "unpushed commits", "git push")` — **the name is
+  byte-identical to pre-fix** so SL7.113's exact-match detection is untouched;
+- an unmeasurable identity or scoped read falls back to the raw count →
+  blocks exactly as before. The change narrows the gate, never widens it (P7).
+
+The mirror arm is deliberately untouched: a `refs/agi/<kind>/<leaf>` mirror is
+per-seat, so foreign-authored commits do not accumulate there, and that arm is
+the one with the six-scenario SM.53 test.
+
+- `test_prepare_check1_foreign_authors_unpushed_commit_never_blocks` — real
+  repo + bare origin; `grid`-authored unpushed commit → `blocker is False`,
+  `"other author" in name`, `clear == "git push"`; a non-vacuous control
+  asserts the raw count really is `1`.
+- **Negative case**: the same fixture with the seat's OWN unpushed commit
+  still `blocker is True` with `name == "unpushed commits"` — the SL7.113
+  shape. Pre-fix, the foreign commit itself read `blocker=True`.
+
+## Item (3) — the own-card-commit floor read M->S->C FRESH
+
+**Pre-fix, measured** (`probe3_pre.py`), M<S<C by construction:
+
+```
+M(mtime)=1789589613.3637187 S=1789589615 C=1789589617  (M<S<C: True)
+PRE-FIX card_stale: (False, 1789589617)
+```
+
+`last_act.card_stale` took `act = max(stamp, card_commit_ts)` and then
+suppressed with `act > own` where `own` was the card's own COMMIT time. A card
+WRITTEN at M and COMMITTED at C > S makes C both the act and the floor, so
+`act > own` was `C > C` = False: FRESH, though the seat acted after writing.
+
+**Fix (the claim's first option — the build, not the naming).** The floor is
+now the card's **write mtime** on the stamp side: a stamp strictly after the
+card's write mtime is stale whatever the card's own commit time. `own` stays
+the floor for the no-stamp case only. Both invariants survive:
+
+- (i) writing a card and committing it with no intervening act → FRESH (the
+  loop the node removes — a bare commit is never an act after the card);
+- (ii) M -> S -> C → **STALE**.
+
+Every other input is provably unchanged: with a stamp not newer than the
+write mtime the old result follows from `act = max(stamp, own)`, so the only
+behaviour difference is exactly the M->S->C sequence.
+
+- `test_card_written_before_an_act_and_committed_after_reads_stale` — pins
+  (3) plus (i) and (ii); no sleeps (M is written into the file mtime, S into
+the stamp's content, C is the real commit second).
+- **Negative case**: pre-fix the same fixture reads `(False, ...)` — the probe
+  output above. The (i) sub-case is the second negative case: it must stay
+  `False` after the fix, and does.
+
+---
+
+## Evidence
+
+```
+python3 -m pytest extensions/agi/tests/test_last_act.py \
+                 extensions/agi/tests/test_rotate_prepare.py -q
+→ 65 passed, 10 warnings in 5.03s
+
+python3 -m pytest extensions/agi/tests/test_rotate.py \
+                 extensions/agi/tests/test_rotate_verb.py \
+                 extensions/agi/tests/test_rotate_templates.py \
+                 extensions/agi/tests/test_rotate_alert_two_tree.py \
+                 extensions/agi/tests/test_last_act.py \
+                 extensions/agi/tests/test_rotate_prepare.py -q
+→ 434 passed, 1 xfailed, 390 warnings in 52.01s
+```
+
+Post-fix probe output (same fixtures as the pre-fix probes):
+
+```
+FOREIGN (grid): (False, 'unpushed commits (other author: 1, not blocking)', 'git push')
+OWN+foreign:    (True, 'unpushed commits', 'git push')
+POST-FIX card_stale: (True, 1789589617)
+POST-FIX (i) write+commit no act: (False, 1789589617)
+```
+
+**A trap worth naming**: `_git_maybe` returns a LIST of lines, never a string.
+Writing `me = _git_maybe(root, "config", "user.email")` and then
+`f"--author={me}"` renders `--author=['seat@x']`, a regex that matches nothing,
+so the scoped count silently reads 0 and every commit — including the seat's
+own — looks foreign. The probe caught it as `FOREIGN → True`; the fix is
+`me_lines[0].strip()`.
+
+## Probes (negative cases, all recorded)
+
+| Item | Negative case run | Pre-fix result | Post-fix result |
+|---|---|---|---|
+| 1 | the `touch_env` call site in `cmd_merge_up` | `touch_env(root, post)` @ rotate.py:4285 | `touch_env(root, caller_post)` |
+| 2 | `grid`-authored unpushed commit, own identity `seat@x` | `blocker=True 'unpushed commits'` | `blocker=False '(other author: 1, not blocking)'` |
+| 3 | card written (M) → stamp (S) → committed (C), M<S<C | `card_stale == (False, C)` | `card_stale == (True, C)` |
+
+Probe scripts: `.agi/sessions/iter-SM.68/a00-9f8f7f3e/probe_pre.py`,
+`probe3_pre.py`.
+
+## Files changed
+
+| File | Change |
+|---|---|
+| `extensions/agi/bin/rotate.py` | `cmd_merge_up` stamps `caller_post`; new `_unpushed_by_author`; the two non-mirror check-1 arms call it |
+| `extensions/agi/bin/last_act.py` | `card_stale` floors on the card's write mtime for the stamp side |
+| `extensions/agi/tests/test_rotate_prepare.py` | 2 new tests (items 1, 2) |
+| `extensions/agi/tests/test_last_act.py` | 1 new test (item 3) |
+
+No git was run (one read-only `git diff --numstat` for the line count). No
+files outside the scope above were touched. Items 4-6 (kid 2) untouched.
+
+## Caveats
+
+- Item 2 narrows check 1 only on the **non-mirror** arm. A foreign-authored
+  commit stacked ahead of a per-seat `refs/agi/*` mirror tip still blocks; the
+  mirror is per-seat so this is not expected to bite, but it is not fixed.
+- Scoping by `git config user.email` means a commit authored under a *fourth*
+  identity would read as foreign. With no identity measurable the raw count
+  blocks, so the failure mode is conservative, not permissive.
+- The item-3 fix changes behaviour only for M -> S -> C; that was proved by
+  case analysis and by the three-branch test, not by a property test.
+
+## Agent Notes
+Slice A (items 1-3), 56 production lines / 60 ceiling, 3 new tests, 65 passed in the two owned suites + 434 passed across the six rotate/last-act suites. (1) cmd_merge_up now stamps caller_post, not the --post target (driven end-to-end with all git seams injected). (2) check 1's non-mirror arm scoped by author via _unpushed_by_author: a grid-authored cron commit no longer blocks, it is named '(other author: N, not blocking)', the blocking name stays byte-identical so SL7.113 auto-push is untouched; INFO was rejected because it would break six tests. (3) card_stale floors on the card's WRITE mtime for the stamp side so M->S->C reads STALE while write-then-commit stays FRESH. Items 4-6 (kid 2) untouched.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review of slice A (items 1-3). Machine verified, not the report: read the commit diff ad94f2fd9..HEAD (rotate.py +46/-11, last_act.py +10/-1, three new tests) and ran an independent probe script (parent_probe_kid1.py) that drives cmd_merge_up end-to-end with all git seams injected and imports the PRE-FIX last_act.py blob from git object ad94f2fd9. Results: (1) refusal as a lower-ranked caller stamps nobody (rc 3, stamps=[]); success as caller=prime of post=director stamps [prime] and never director -- the pre-fix bytes passed post, so the fix is load-bearing. (2) check 1 now returns the exact blocking name unpushed commits for the seats own commit (SL7.113 auto-push untouched) and (False, ... (other author: 1, not blocking), git push) for a foreign grid-authored commit; an unmeasurable identity still blocks. (3) M->S->C reads True on the fixed blob and False on the pre-fix blob, while write+commit-no-act stays False. Near miss the probe ruled out: scoping by author with _git_maybe returning a LIST would render --author=[seat@x], a regex matching nothing, making every commit look foreign -- the kids own probe caught that and strips [0]. Caveat inherited: identity is git config user.email, so two seats sharing one identity are not distinguished; only grid-cron vs agent is separated, and the failure mode is conservative (unmeasurable blocks). Accepted as proved; the 56 production lines sit under the targets 60 ceiling.
+<!-- THOUGHT:END -->
