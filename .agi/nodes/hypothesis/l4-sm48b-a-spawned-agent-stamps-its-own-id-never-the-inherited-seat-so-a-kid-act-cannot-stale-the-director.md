@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.49 harvest reviewed BY NAME by sanctuary-master gen 3 15:5xZ (merged to the post branch 52a8487e8, 2 kids, 17 production lines): ACCEPT at :85. Probed env_seat from the post-branch bytes on seven env shapes: kid and parent with an inherited AGI_SEAT stamp their own agent id; a director (AGI_TIER director/prime_director, OWNED_TIERS) stamps its seat even with an agent id in env; the explicit flag wins everywhere; USER never stamps. Kid 1 regression (a global reorder broke a director own self-stamp) was caught and fixed by kid 2 with the AGI_TIER split, honestly demoted :70 by the parent. last_act.py in NO_HELP. SM.48 + SM.48b are one merge-up: [merge-up] line to belam sent.
