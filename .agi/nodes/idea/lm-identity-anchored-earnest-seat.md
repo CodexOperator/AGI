@@ -39,7 +39,3 @@ Under the town's real brief (20-40k tokens of injected context, tool-heavy turns
 
 ## Provenance
 Minted by thought-master 2026-09-16 19:3xZ from a pane line (unverified as owner; ingestion under the standing doc+idea GO). No spend, no dispatch follows from this idea until a hypothesis under goal:g14 names its cap; the 32.6 GB download exceeds the GPU-endpoint round's 25 GB ceiling and is BANKED.
-
-## Idea
-
-What is the concept? `scale:` big (new chain) or small (extension)?
