@@ -50,30 +50,30 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (your row is keyed; name, model, effort, prompt-file and timeout come from the row + key; no flag, never `-h`, never `--force`); a stale 🔴 where-it-stops slot is refused BY NAME — write the card, or pass `--stops '<one line>'`. The card is current because you wrote it DURING the work. Meter: the `[meter] post=sanctuary-master <f>` line on every prompt; rotate when f ≥ 0.47 (the hook's second number is f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation you make.
 
-## §4 STATE + NEXT (gen 3, 2026-09-16 16:2xZ live)
+## §4 STATE + NEXT (gen 3, 2026-09-16 17:4xZ live)
 ```
-LANDED ON MAIN BY ME (Prime GO, three rules each: merge-tree gate → throwaway-tree tests → ONE --no-ff → push → stamped suite, my window):
-  15:2xZ  sensei-director post branch @cd50cf027 → 477e87546   suite 5085/1 (red = stale keygen assert, Prime wrote it in 90f7d8978)
-  16:0xZ  SM.48 + SM.48b (card-age captive) @52a8487e8 → 68abd19e8   suite 5108/1, nodes 3042/200/3242 stamped never-lower (baseline 2a87fb4dd)
-          the 1 red = test_workflow::test_geometry_node_resolves_all_live_workflows: hand-enumerated fixture types list lacks g15-close-triage (Prime lane 23d3b8c2b 12:07Z) -- one test row, NOT SM.48; Prime direct-write asked
-REVIEWED BY NAME gen 3: SM.36 :85 · SM.45 :65 (demote, re-cut) · SM.46 :70 · SM.47 :85 · SM.43 :85 · SM.48 :70 · SM.49 :85 · SM.51 :85 · SM.52 :70 (kid2 exhaustion path orphans a scaffold -- 1-line fix named on the node, direct-write candidate; round ceiling read per-kid → 3.5x, template line to MS) · SM.53 :80 (all nine SM.36 residues at the bytes, 1.26x disclosed) · SM.54 :80 (audit classifier; 2.4x, parent caught its own kid) · SM.55 :85 (facts-guard, test-only, clean)
-MINTED gen 3 (all on MAIN): 3 MS lines (stops-slot-from-row-handoff-file / stale-base-gate-syncs / post-branch-upstream) · pi-retry · SM.45b · SM.46b · SM.48b · pred_pids · audit-classifier · launch-wrapper tests (Prime-landed) · card-age captive (PRIORITY) · SM.36 residue (9 items) · SM.48 residue (6 items)
-SM.54 :80 + SM.55 :85 landed on the post branch → the pending merge-up = SM.51-55 (belam has the 51-53 line; 54/55 ride the same window). Director dispatching --cap next, credits ~7.5. Director gen 28 at ~73%, rotating soon.
-DIRECTOR LINE after SM.53: SM.48 residue node hypothesis:l4-sm48-integration-residue-merge-up-stamps-the-caller-unpushed-gate-scoped-card-mtime-floor-no-tier-caveat-unmeasurable-label-dead-stops-rotation (2 kids) → audit-classifier → facts-guard → --cap → stops-seal → 3 MS mints → 20/22/15/17 → 4 resume-seating
-HOUSE ROUTE for the by-name review on this row: workflow.py run merge-up-review --harness pi --args '{...,"model":"deepseek/deepseek-v4.1-flash"}' (manifest timeout 1800/stage since b31eaef3c) -- or by hand on a throwaway tree, tests per file under env -u TMUX -u TMUX_PANE (what I did all gen: the pi route died twice on transient 520s before the retry node existed)
+LANDED ON MAIN BY ME (Prime GO by SHA, three rules each; stamped suite in my window after):
+  15:2xZ  post branch @cd50cf027 → 477e87546   suite 5085/1 (stale keygen assert → Prime direct 90f7d8978)
+  16:0xZ  SM.48+48b @52a8487e8 → 68abd19e8      suite 5108/1 (fixture lacked g15-close-triage row → Prime lane)  nodes 3042/200/3242
+  17:4xZ  post branch @74d3a119f → 9282640ad    (SM.51-56) gate merge-tree a8f6b06d 0 conflicts + 13 test files 707/0; STAMPED SUITE RUNNING in the background (waits for every worktree lock, then --suite --stamp) → numbers line to belam from its output
+REVIEWED BY NAME gen 3: SM.36 :85 · SM.45 :65 · SM.46 :70 · SM.47 :85 · SM.43 :85 · SM.48 :70 · SM.49 :85 · SM.51 :85 · SM.52 :70 · SM.53 :80 · SM.54 :80 · SM.55 :85 · SM.56 :85
+RESIDUE NODES (mine, all on MAIN): SM.36 residue (9, LANDED as SM.53) · SM.48 residue (6, queued) · SM.51-56 residue (15 items, 3 kids, 7de245005, queued)
+OWNER IN-PANE THIS GEN: (a) card-age captive bug = PRIORITY → SM.48/48b landed; (b) "set up a round to fix" the reminder-in-dm sighting → hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-quoted-block-reads-as-marked-data (ordered); (c) RENAMES sensei-director → director-sanctuary and sanctuary-director → director-belam, "session names and messaging IDs as well" → rename-post covers 52 surfaces incl. both; SM.32b (v3 branch spelling) ordered FIRST, then the two stagings at the boundaries (Prime runs them, rows his; banked verbatim in doc:l4-owner-decisions by the Prime 17:34Z)
+DIRECTOR LINE (sensei-director gen 28, credits ~7.5): SM.57 stops-seal live → SM.32b → harness-quote node → rotate-card verb → banner-no-meter-command → SM.48 residue (2 kids) → SM.51-56 residue (3 kids) → 3 MS mints → 20/22/15/17 → 4 resume-seating. Per-kid line_ceiling slices before spawn; merge origin before every dispatch.
 ```
 
 ## §5 BANKED
-- ROTATION PINGS (owner 13:5xZ via the Prime, 4db48fbbe): rotation is automated via key verification; alerts matrix {audit:[master-sensei]}; NO [rotation] line to the Prime or a master; the Sensei dms the Prime only on a finding.
-- WINDOW-ASK RULING (Prime 12:17Z): keep asking until SM.36 is in MAIN (it is, 477e87546) and ONE merge-up has run under the new function with proof (own lock taken+released, no post head pushed, mirror refs written, --delete-old dry plan shown) -- not yet: the SM.36 residue node items (1)-(2) block `merge-up --post` for every v3 seat until SM.53 lands.
-- FLOOR (owner 13:3xZ via the Prime, 8e29dd8d2): 1.6; the account runs to $0; the Prime swaps the key when the gate refuses; a 520 is transient.
-- TRANSITION FACT (Prime 16:02Z, relayed to MS as F30 + the masters): the card-age captive clocks each post's OWN acts (write/send/dispatch/session-complete/merge-up) via last_act.py; another post's commit no longer stales you; card write LAST still holds; directors stamp their seat, kids/parents their agent id.
-- TEMPLATE LINES WITH MASTER-SENSEI: parent answers a kid rebrief in-node AND dms its director; a round ceiling across K kids → per-kid line_ceiling slices set before spawn.
-- Live model claude-opus-5 vs row sonnet-5 (owner in-pane, gen 2) -- Prime knows; successor spawns from the row. Per-MAIN-post worktrees rejected (F14 class) -- stands.
+- ROTATION PINGS (owner 13:5xZ): no [rotation] line to the Prime or a master; the Sensei audits from the record.
+- WINDOW-ASK RULING (Prime 12:17Z): keep asking until one merge-up has run under the new function with proof; item 4 of the SM.51-56 residue names why `merge-up --post` still refuses on this tree (v3 trunk = core/season2/main vs live season2/main) -- not chased in L4.
+- FLOOR: provisioning.min_account_remaining_usd = 1.6 (owner 13:3xZ); cap_headroom reads a MISSING cell as 0.00 silently; account runs to $0, the Prime swaps the key; a 520 is transient (retry landed, SM.52).
+- TRANSITION FACT (F30, MS): the card-age captive clocks each post's OWN acts (last_act.py); card write LAST; directors stamp their seat, kids/parents their agent id.
+- TEMPLATE LINES WITH MASTER-SENSEI: parent answers a kid rebrief in-node AND dms its director; round ceiling across K kids → per-kid line_ceiling slices; 'the final card is one call: rotate.py card' (waits on the verb node); 3-Edits card habit.
+- Live model claude-opus-5 vs row sonnet-5 (owner in-pane, gen 2) -- Prime knows; successor spawns from the row. Per-MAIN-post worktrees rejected (F14 class).
+- HABIT NOTE for a successor: never probe a WRITING verb (I ran `send.py keygen --post fresh` once to test a flag -- harmless only because the key already existed); never put backticks inside a double-quoted send.py string (bash eats them).
 
 ## 🔴 Where it stops
 ````
 ```
-gen 3 16:2xZ: two merge-ups landed on MAIN by me (477e87546 at cd50cf027; 68abd19e8 = SM.48+48b), both stamped (5085/1, 5108/1; the reds are stale test fixtures named on the card, Prime direct-writes). Nine rounds reviewed by name (verdicts on the nodes). SM.53 :80, SM.54 :80, SM.55 :85 (ride the pending window); [merge-up] line for SM.51+52+53 with belam; SM.48 residue node next on the director line. Nothing held, no throwaway worktrees left (gate/gate2 removed). NEXT: the Prime's GO on SM.51+52+53 (if handed to me: the three rules); the SM.48 residue round; credits ~8.0, floor 1.6.
+gen 3 17:4xZ: 74d3a119f (SM.51-56) MERGED to MAIN 9282640ad + pushed; the stamped suite is running in the background under my lock (waits for the two round-worktree locks first). SUCCESSOR, if the suite result has not been reported when you wake: read .agi/sessions/verify-suite-ts.json + the last verification output (the record of this session's background task is gone with the session -- re-run `verification.py --level rotation --suite --stamp` in MAIN only if the lock is free and the ts predates 9282640ad), then ONE [merge-up] numbers line to belam (passed/failed/skipped, node count, baseline sha, any red named). The fifteen-item residue node 7de245005 is minted and queued (its id reported to belam in that same line). Then the director line above; SM.57 stops-seal harvest → review by name.
 ```
 ````

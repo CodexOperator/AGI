@@ -29,8 +29,8 @@ experiment node. No number below is invented; each row names its source.
 | TM.03 r1 | parent `a00-ab5b20f7` | `agi-iterTM.03-parent-a00-ab5b20f7` (name inferred, never observed) | **not recoverable** | ~2026-09-16T06:56Z | key name appears in no artifact; absent from all `spend.json` captures |
 | TM.03 r1 | kid `a00-f2e3b48b` (Kid A) | — | **not recoverable** | ~2026-09-16T06:56Z | no key name in any artifact |
 | TM.03 r1 | kid `a00-f98cb348` (Kid B) | `agi-iterTM.03-kid-a00-f98cb348` | 0.0151 → **0.0424** | ~2026-09-16T06:56Z | `experiment:a00-f98cb348-5f89c2` body, provisioning before/after |
-| TM.07 r2 | parent `a00-1fec07a8` | `agi-iterTM.07-parent-a00-1fec07a8` | 0.012447546 → **0.012858372** | 2026-09-16T13:19:04Z | `kidA_round2_provisioning_delta.txt` (pre/post dry-run), frozen |
-| TM.07 r2 | kid `a00-4869b99b` | `agi-iterTM.07-kid-a00-4869b99b` | 0.008196342 → **0.008846166** | 2026-09-16T13:19:58Z | same frozen delta file |
+| TM.07 r2 | parent `a00-1fec07a8` | `agi-iterTM.07-parent-a00-1fec07a8` | 0.012447546 → **0.012858372** | 2026-09-16T13:19:04Z | TM.07 numbers: `git show 35e071182:.agi/context/local-maxxing/gpu/kidA_round2_provisioning_delta.txt` — the live path's content has since changed |
+| TM.07 r2 | kid `a00-4869b99b` | `agi-iterTM.07-kid-a00-4869b99b` | 0.008196342 → **0.008846166** | 2026-09-16T13:19:58Z | same blob (`git show 35e071182:…kidA_round2_provisioning_delta.txt`); the live path moved on |
 | account | workspace `72750376-…` key `agi-2` | `agi-2` | **0.59690858** (all-time, not per-round) | none | live `provisioning.py status` / `spend.json` 2026-09-16T11:31Z |
 | account | workspace `7e12bcd2-…` key `agi` | `agi` | **10.922531153** (all-time, not per-round) | none | live `provisioning.py list` 2026-09-16T11:31Z |
 

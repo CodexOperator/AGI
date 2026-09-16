@@ -61,27 +61,22 @@ fi
 if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${AGI_AGENT_ID:-}" ]; then
     REAL_TREE=$(cd "$AGI_TREE_PROJECT_ROOT" && pwd -P 2>/dev/null)
     if [ -n "${REAL_TREE:-}" ] && [ "$REAL_TREE" = "$REAL_TOPLEVEL" ]; then
-        SCOPE_OK=1
-        # Read the INDEX NUL-separated (`-z`): git then neither C-quotes a
-        # non-ASCII path (core.quotePath) nor splits one containing whitespace,
-        # either of which made every `case` arm miss. `--no-renames` lists a
-        # rename as D old + A new, so BOTH paths are judged (plain --name-only
-        # printed only the destination — the kid-id-named half). No
-        # `--diff-filter`: `T` (typechange) is a scope change too, and
-        # `--diff-filter=ACDMR` omitted it entirely, so a tracked node swapped
-        # for a symlink was never even listed.
-        while IFS= read -r -d '' P; do
-            case "$P" in
-                .agi/config.json) SCOPE_OK=0 ;;
-                .agi/nodes/*)
-                    case "${P##*/}" in
-                        *"${AGI_AGENT_ID}"*) ;;
-                        *) SCOPE_OK=0 ;;
-                    esac ;;
-                .agi/sessions/quorum/*) SCOPE_OK=0 ;;
-            esac
-        done < <(git diff --cached --name-only -z --no-renames)
-        [ "$SCOPE_OK" = "1" ] && exit 0
+        # hypothesis:l4-sm36-...-one-scope-rule -- ONE rule, ONE implementation:
+        # delegate to the SAME predicate cli.py uses (`cli._round_scope_ok`), so
+        # the two can no longer diverge on a round's OWN human-slug node. The
+        # round's explicit own node paths travel in AGI_ROUND_OWN_PATHS
+        # (newline-separated), exported by cli.py's worktree commit and read by
+        # `scope-check`; empty for a direct kid commit, where the rule reduces
+        # to "a node basename carrying this agent id". The INDEX is read
+        # NUL-separated (`-z`) so git neither C-quotes a non-ASCII path nor
+        # splits one containing whitespace; `--no-renames` lists a rename as D
+        # old + A new so BOTH paths are judged, and no `--diff-filter` keeps a
+        # `T` typechange judged too.
+        HOOK_BIN=$(cd "$(dirname "$0")/../../bin" && pwd -P)
+        if git diff --cached --name-only -z --no-renames \
+            | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"; then
+            exit 0
+        fi
     fi
 fi
 # The ONE authorised commit: a --branch PARENT committing onto its own
