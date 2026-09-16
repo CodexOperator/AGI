@@ -964,6 +964,65 @@ def _kid_dm_refusal(root: Path, target: str, sender: str | None) -> str | None:
             f"not {target}")
 
 
+#: hypothesis:l4-the-prime-hears-only-needed-comms -- owner 2026-09-10 05:0xZ
+#: standing order (every director messages the Prime ONLY when necessary: a
+#: merge-up, a decision only the Prime can make, a rotation, a red merge or a
+#: rule-changing finding; never progress, status, acknowledgements, harvests
+#: or restated plans) + owner 2026-09-16 06:3xZ, verbatim in
+#: doc:l4-owner-decisions: "let's make it asap that Prime doesn't get the
+#: useless status DMs only direct comms that are needed". Measured cause: six
+#: thought-master status dms in 42 min (2026-09-14 17:14-17:56Z) and a
+#: director's done-line, all in the Prime's STARTUP inbox at gen 21. A dm to
+#: the Prime's inbox from anyone but the Prime itself (or the owner at a
+#: terminal, AGI_ROLE=owner) must OPEN with one of these tags, else it is
+#: refused BEFORE any write (exit 3, like the kid gate). Machine paths that
+#: call send() in-process (closeout ask, reaper alarm, harvest line) are not
+#: CLI dms and already address the dispatcher/parent (L4.366, L4.372).
+PRIME_DM_TAGS = ("[merge-up]", "[decision]", "[rotation]", "[red]",
+                 "[rule]", "[complete]", "[owner]")
+
+
+def _prime_seat_name(root: Path) -> str:
+    """The Prime's inbox name: the config:seats row with role
+    `prime_director`, else the standing name `belam`."""
+    try:
+        rows = _seats_rows(_main_graph_root(root)) or []
+    except Exception:  # noqa: BLE001 -- a fixture root without rows
+        rows = []
+    for r in rows:
+        if (r.get("role") or "") == "prime_director" and r.get("name"):
+            return str(r["name"])
+    return "belam"
+
+
+def _prime_dm_refusal(root: Path, target: str, text: str,
+                      sender: str | None) -> str | None:
+    """The one-line refusal when a CLI dm to the Prime opens with none of
+    PRIME_DM_TAGS, or None when it is allowed (not the Prime's inbox, the
+    Prime's own service dm, the owner, or a tagged line)."""
+    prime = _prime_seat_name(root)
+    if target != prime:
+        return None
+    me = _detect_sender(sender) or ""
+    if me == prime or me.startswith(prime + "-"):
+        return None
+    if (os.environ.get("AGI_ROLE") or "").strip() == "owner":
+        return None
+    head = (text or "").lstrip().lower()
+    if any(head.startswith(tag) for tag in PRIME_DM_TAGS):
+        return None
+    return ("REFUSED: a dm to the Prime carries only needed comms (owner "
+            "2026-09-10 standing order; owner 2026-09-16: only direct comms "
+            "that are needed) -- open it with one of " + " ".join(PRIME_DM_TAGS)
+            + " ([merge-up] numbers only; [decision] only the Prime can make it; "
+            "[rotation] one line, seating included; [red] a red merge or a dead "
+            "post; [rule] a rule-changing finding; [complete] a master's "
+            "figure-eight completion; [owner] owner text relayed verbatim); "
+            "status, progress, acks, harvests and restated plans live in your "
+            "card + commit log; a kid or parent reports to its dispatcher; "
+            "nothing was written")
+
+
 def _kid_room_refusal(root: Path, room: str, sender: str | None) -> str | None:
     """The one-line refusal when a kid posts to ANY room, or None when the
     post is allowed.
@@ -5053,6 +5112,13 @@ def main(argv: list[str] | None = None) -> int:
         # per-round -- a kid's dm reaches its parent or no inbox at all. The
         # refusal is checked BEFORE `send`, so nothing is written on refusal.
         refusal = _kid_dm_refusal(root, resolved_target, sender)
+        if refusal is not None:
+            print(refusal, file=sys.stderr)
+            return 3
+        # hypothesis:l4-the-prime-hears-only-needed-comms -- the Prime's inbox
+        # takes tagged, needed lines only; checked BEFORE `send`, nothing is
+        # written on refusal.
+        refusal = _prime_dm_refusal(root, resolved_target, text, sender)
         if refusal is not None:
             print(refusal, file=sys.stderr)
             return 3

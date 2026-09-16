@@ -1,34 +1,30 @@
 # POST HANDOFF - director-thought - 2026-09-14
 
 ## 0 STATE
-- TM.1 merged and pushed: `479eb6bfb` on `season2/main`.
-- Registered review: `mur-tm-01`; review and verify resolved without reported failures.
-- Durable TM.1 artifacts: three experiment nodes, `lm_bench.py`, 12 bench JSONL files, and E3 sweep evidence under `.agi/context/local-maxxing/e3/`.
-- TM.2 remains blocked: OpenRouter returned `401 User not found`; no paper files landed.
-- Main retains unrelated comms, rotation, and paper-digest changes; none were staged.
+- D1.01 merged and pushed: `04994c52f` on `season2/main`.
+- Registered review: `mur-d1-01`; review and verify resolved without failures.
+- D1 artifacts: two experiment nodes plus durable ablation scripts, JSON evidence, logs, and mean cache under `.agi/context/local-maxxing/d1/`.
+- TM.2 remains Prime-only and blocked on the earlier OpenRouter 401.
 
 ## 1 PLAN
-- done: correct E3 verdict to `inconclusive_lean_proved:60`.
-- done: correct A1 evidence count from 10 to 12 invocations.
-- done: merge TM.1, run the declared verify-suite, commit, and push.
-- blocked: TM.2 paper review until L4.368 lands and Prime reruns it.
-- next: create the D1 hypothesis node with its venv budget, then dispatch the three disjoint kids.
+- done: dispatch D1 parent with the required CPU-only kid split.
+- done: review D1 bytes and run the registered merge-up workflow.
+- done: merge, validate links/schema, push, and report numbers to belam and thought-master.
+- next: no new round until a new order arrives.
 
 ## 2 LANDED
-- A1 remains `inconclusive_lean_proved:70`.
-- E3 is now `inconclusive_lean_proved:60`; its sweep script and JSON are committed.
-- V2-C1 remains `inconclusive_lean_proved:80`.
-- Verification recorded 4810 passed, 15 skipped, 6 test failures in 426.62s. Links, goals, write-guard, smoke, viewport, dispatch-help, budget, seat-model, and node-count passed; the bin-suite-fresh gate remains because `lm_bench.py` is newer than the suite stamp.
+- `experiment:a00-01a81f78-81defb`: `proved`; 5% mean loss delta `0.176350`, 20% delta `1.024380`, all 6/6 positive; `~/.venv-lm` has transformers 5.17.0 and datasets 5.0.1 with CPU torch inherited.
+- `experiment:a00-51318335-e170a9`: `inconclusive_lean_proved:85`; true per-layer low delta `+0.0395` versus random `+0.2015..+0.2955`; global proxy anti-predicts; no real bytes/tok measurement.
+- Graph validation: 3064 resolved links, 0 broken. Schema dry-run reports 156 pre-existing missing required fields.
 
 ## 3 STOP
-TM.1 is complete. The exact next action is to author the D1 hypothesis node under `goal:g14.3`, including the `~/.venv-lm` transformers/datasets/torch CPU budget and the parent-spawns-at-least-two-kids rule, then dispatch the round.
+D1.01 is complete. Exact next action: remain idle; do not launch another round without a new order.
 
 ## 4 TRAPS
-- The suite's measured node counts were `2872/198/3070`, while the requested Prime report tuple was `2868/198/3066`; the Prime report used the requested tuple and the discrepancy was reported to thought-master.
-- `commands.py run verify-suite` failed six existing dispatch/grid tests and left `bin-suite-fresh` required; no unrelated failures were changed.
-- TM.2 must not be rerun by this seat before L4.368.
-- Do not stage comms, rotation records, or paper-digest files.
+- Parent completed overdue after 2449 seconds; the parent branch was reviewed only after its terminal signal.
+- The D1 parent correctly accepted two kid experiment nodes and authored no active experiment node; one deprecated historical experiment artifact is present in the branch.
+- `links.py schema` is a dry report, not a clean-suite signal.
 
 ## 5 VERIFICATION
-`git show --stat --oneline 479eb6bfb`
+`git show --stat --oneline 04994c52f`
 
