@@ -2126,3 +2126,26 @@ def test_kid_brief_ceiling_names_the_config_default_when_no_clause(tmp_path):
     assert "PRODUCTION-LINE CEILING: 40 lines" in kid
     assert "project config default" in kid
     assert "dispatching node's own CEILING clause" not in kid
+
+
+def test_parent_brief_dms_the_director_the_rebrief_answer():
+    """A rebrief answer that stays in the node and never reaches the seat is
+    the measured SL7.135 failure (F31). The parent brief must name the dm,
+    the answer-line shape and the moment it is sent."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "DM YOUR DIRECTOR" in parent
+    assert "proceed-with-N | cut" in parent
+    assert "N/C (the new ceiling)" in parent
+    assert "BEFORE the kid resumes" in parent
+
+
+def test_parent_brief_slices_the_ceiling_across_kids():
+    """A `ceiling across K kids` target gives each kid its SLICE, written on
+    the KID NODE before the spawn -- the harvest measures overage against
+    that node's `line_ceiling` (SM.52: `60-across-2` ran to 212)."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "across K kids" in parent
+    assert "GETS ITS SLICE" in parent
+    assert "N = ceiling / K" in parent
+    assert "set line_ceiling" in parent
+    assert "60-across-2" in parent
