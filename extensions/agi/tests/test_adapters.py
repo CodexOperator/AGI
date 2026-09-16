@@ -327,3 +327,34 @@ def test_derived_allowed_models_empty_when_nothing_names_a_model():
     assert adapters.derived_allowed_models(ROWS, "nobody", {}) == set()
     assert adapters.derived_allowed_models([], "pi",
                                            {"allowed_extra": []}) == set()
+
+
+# ------------------------------------- credential allowlist (needs_credential)
+# hypothesis:l4-needs-credential-is-provider-gated — the predicate is an
+# ALLOWLIST read from the harness row, not a provider check. A row that
+# explicitly carries `credential: "none"` gets no minted key; every other
+# row, known or unknown, keeps the pre-existing default of minting.
+
+def test_pi_local_harness_row_with_credential_none_needs_no_credential():
+    """The pi adapter is shared by `pi` and `pi-local`; only the row
+    distinguishes them. `pi-local` speaks to a $0 local model and must
+    not mint an OpenRouter key it never uses."""
+    pi = adapters.load("pi")
+    row = {"adapter": "pi", "provider": "local-town", "credential": "none",
+           "models": {"kid": "Qwen3.5-9B-Q4_K_M"}}
+    assert pi.needs_credential(row) is False
+
+
+def test_needs_credential_defaults_true_for_unmarked_and_unknown_rows():
+    """The default mint direction is unchanged from before the fix: rows
+    without the key — including the placeholder providers test fixtures
+    use and providers nobody has written yet — still mint."""
+    pi = adapters.load("pi")
+    for row in (
+        {"adapter": "pi", "provider": "openrouter"},
+        {"adapter": "pi", "provider": "fake"},          # scaffold-test fixture
+        {"adapter": "pi", "provider": "some-future-provider"},
+        {"adapter": "pi"},                              # no provider at all
+        {"adapter": "pi", "credential": "openrouter"},  # any other value
+    ):
+        assert pi.needs_credential(row) is True, row
