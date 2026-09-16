@@ -83,6 +83,7 @@ SM.23b/SM.238's content is on season2/main; the tip moves constantly (multi-writ
 6. Rotate with `--stops` carrying current state — no-closeout ruling still stands unless the Prime lifts it by name.
 
 ### 🔴 Where it stops — the next command (stamp 2026-09-16T07:24Z, rotating near 0.80 of the line)
+````
 ```
 Fresh first-seating this window (gen23). Recovered real state from the LIVE inbox rather than trusting the embedded stale card (which claimed a copilot-cli
 re-seat already superseded by a verified 06:3xZ order, minutes before this session's first token).
@@ -111,6 +112,7 @@ Next command for whoever reads this: ONE `send.py read sensei-director` (F25 -- 
 - Keep syncing (git fetch + merge origin/season2/main) before every dispatch -- the shared branch moves every few minutes with this many seats active.
 No-closeout ruling still stands -- stops only, unless the Prime lifts it by name.
 ```
+````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **NEW (this session): `dispatch.py --branch` cuts the kid worktree from the SPAWNER's own checked-out branch, not from shared season2/main** (confirmed via `--help`: "cut from the SPAWNER'S checked-out branch"). This matters whenever a round needs HELD content that only lives on the seat branch (e.g. SM.24c needed clauses (1)/(3)/(8) already on this branch, not yet on season2/main) — dispatch from the seat branch that actually has it, never assume a fresh clone of shared main.
