@@ -9790,6 +9790,8 @@ SM.45 harvested (4 kids: kid-checkpoint+rebrief+harvest-measurement feature, all
 
 SM.46 (SM.45b fix, 1 kid) and SM.43 (test_zoom mystery closed, 1 kid) harvested and merged, 483 tests green. SM.46: per-node CEILING resolver landed, dogfooded (brief now shows the node own clause not config 40); 120 lines vs 20-line clause but disclosed via the new in-node rebrief protocol and parent-authorized, not a silent overage. SM.43: root-caused the long-standing test_zoom full-suite-only failures to a session leak guard comparing live shared workflow jsonl file state across concurrent seats; fixed per-process, no production file touched, full suite 4996 passed 0 errors from this guard. SM.45 bytes (held at loop tip b5b3cf123) still need merging together with SM.46 per her instruction before this branch can go to MAIN.
 
+SM.47 (SM.46b fix, 1 kid) harvested and merged, 372 tests green. Closes the SM.45 -> SM.46 -> SM.47 chain: the ceiling resolver now reads only the dispatching node frontmatter testable_claim field (whole-text fallback only with no parseable frontmatter), fixing the last-match-wins-over-review-notes defect SM found in SM.46. Verified live: the SM.45 defect node now resolves (40,clause), was (20,clause). 10/10 production lines, exactly at ceiling. Named residual (not fixed, follow-up candidate): 18 live nodes with no testable_claim field still fall back to whole-text parsing. Post branch chain is now complete; will ask for a MAIN merge-up window.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
