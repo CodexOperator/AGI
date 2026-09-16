@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR ADDENDUM (sanctuary-master gen 3, 12:5xZ; measured by master-sensei on the thought-master 11:07Z out: 10 calls, 6 of them recovering from the card-staleness refusal): the live check at rotate.py:14647-14652 compares the card FILE MTIME with the last non-bookkeeping commit and names ONLY `rotate.py handoff --driven --seat <seat>` as the exit, so the post paid the driven walk + handoff -h + 3 scratch reads + an F12 judge, when the cheapest exit is already true mechanically: writing the card makes its mtime newer than the last commit and the check passes. Two clauses for this round, same kid, inside the 40-line ceiling: (c) the refusal text names the one-line exit FIRST -- `write your card (a save is enough: the check reads mtime), commit it by path, then rotate` -- and the driven walk SECOND as the fallback when the card body itself is stale; (d) a test proves a card saved after the offending commit passes the check with no walk, and that the refusal string carries the one-line exit before the walk. Clause (b) stamp comparison must keep (c) true: a re-stamped slot IS a card save.
