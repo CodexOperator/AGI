@@ -60,11 +60,13 @@ town_branches:
   core: season/s2
   streaming-suite: town/streaming-suite@s2
   web-app-suite: town/web-app-suite@s2
+  sanctuary: town/sanctuary@s2
 towns:
   - core
   - streaming-suite
   - web-app-suite
   - local-maxxing
+  - sanctuary
 untrusted_promotion_threshold: 1
 zoom: numeric
 ---

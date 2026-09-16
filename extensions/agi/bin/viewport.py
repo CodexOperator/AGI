@@ -418,8 +418,9 @@ def render_llm(frames: list[Frame], top: int, left: int,
 
 
 # --------------------------------------------------------------------------
-# The sanctuary theme — a third live render, per goal:g9.4 under goal:g9.7
-# (hypothesis:l3w4-sanctuary-theme). `--theme sanctuary`.
+# The keep theme — a third live render, per goal:g9.4 under goal:g9.7
+# (hypothesis:l3w4-sanctuary-theme). `--theme keep`; the theme is a VIEW of
+# the keep, so the flag names the view, never a town (goal:g8.2).
 #
 # Same one-render-two-readers discipline as the graph frame: `sanctuary_frame`
 # builds a single frozen `SanctuaryScene` and `render_sanctuary_human` /
@@ -561,8 +562,8 @@ def render_sanctuary_llm(scene: SanctuaryScene) -> str:
     return "# sanctuary viewport\n\n" + "\n".join(body) + "\n"
 
 
-def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
-    """Static `--theme sanctuary` path for `--emit human|llm|both`."""
+def _render_keep(args, root: Path, fm_by_id: dict) -> int:
+    """Static `--theme keep` path for `--emit human|llm|both`."""
     seat_rows, present = load_seat_rows(root, fm_by_id)
     ephemeral = []
     try:
@@ -577,7 +578,7 @@ def _render_sanctuary(args, root: Path, fm_by_id: dict) -> int:
     except Exception:
         pass
     scene = sanctuary_frame(seat_rows, ephemeral, rotating_seat(seat_rows, windows))
-    status = f"theme=sanctuary registry={'yes' if present else 'absent'}"
+    status = f"theme=keep registry={'yes' if present else 'absent'}"
     mode = args.emit or "human"
     if mode in ("human", "both"):
         if mode == "both":
@@ -1049,7 +1050,7 @@ def main() -> int:
     ap.add_argument("--left", type=int, default=0)
     ap.add_argument("--height", type=int, default=40)
     ap.add_argument("--width", type=int, default=120)
-    ap.add_argument("--theme", choices=("graph", "sanctuary"), default="graph",
+    ap.add_argument("--theme", choices=("graph", "keep"), default="graph",
                     help="live-axis view theme (default: graph)")
     ap.add_argument("--layer", choices=("graph", "hierarchy"), default="graph",
                     help="layered map (round 2): which layer sits on top")
@@ -1073,8 +1074,8 @@ def main() -> int:
         if d.is_dir():
             fm_by_id.update(zoom._frontmatter_for(root, d.name))
 
-    if args.theme == "sanctuary":
-        return _render_sanctuary(args, root, fm_by_id)
+    if args.theme == "keep":
+        return _render_keep(args, root, fm_by_id)
 
     iter_name = args.iter
     if args.live and not iter_name:
