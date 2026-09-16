@@ -9812,6 +9812,8 @@ SM.54 reviewed by name: ACCEPT :80 (SM) -- parent falsifying its own kid and re-
 
 SM.55 harvested + merged (facts-guard): 1 kid as briefed, proved, parent ACCEPT :90. 0/30 production lines by design -- the guard lives in test_rotate_templates.py so master-sensei template half has a green target. 29/29 tests independently re-verified.
 
+SM.56 harvested + merged (--cap): 1 kid as briefed, proved, parent ACCEPT. dispatch.py --cap + provisioning.cap_headroom, 40/40 lines exactly at ceiling. 3 real-binary adversarial probes all hold; two disclosed correctly-justified deviations from literal claim text; one latent multi-slot pricing gap named (unreachable today). 352/352 tests independently re-verified (5 pre-existing skips).
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
