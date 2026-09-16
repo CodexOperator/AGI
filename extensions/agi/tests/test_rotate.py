@@ -9514,12 +9514,14 @@ def test_origin_head_delete_refuses_without_a_containment_proof(tmp_path):
 
 
 
-def test_rename_post_default_reader_is_real_git_and_refuses_by_name(
+def test_rename_post_default_reader_is_real_git_and_preserves_the_real_ref(
         tmp_path, capsys):
-    """SM.32b ROUND 2: the DEFAULT branch reader is real git, not only the
-    injected one. `_git_with_post_branch` creates the real ref
-    `season2/posts/adv` (NO town segment) while the row cell declares
-    `core` -> the rename refuses BY NAME before anything is staged."""
+    """SM.32b ROUND 2 + SM.62: the DEFAULT branch reader is real git, not only
+    the injected one. `_git_with_post_branch` creates the real ref
+    `season2/posts/adv` (NO town segment) while the row cell declares `core`;
+    SM.62 deletes the row-town-vs-branch comparison, so the ref's own shape
+    is carried VERBATIM -- `season2/posts/adv2` -- never re-spelled into
+    `core/season2/...` and never refused."""
     row = {"name": "adv", "role": "director", "town": "core"}
     root, top, bare, head = _git_with_post_branch(tmp_path, seat_row=[row])
     # sanity: the reader really reaches the ref the fixture created
@@ -9528,8 +9530,9 @@ def test_rename_post_default_reader_is_real_git_and_refuses_by_name(
     rc = rotate.cmd_rename_post(SimpleNamespace(
         old_name="adv", new_name="adv2", dry_run=False, now=False,
         apply=False, root=None), root)
-    err = capsys.readouterr().err
-    assert rc == 4, (rc, err)
-    assert "REFUSED" in err and "core" in err, err
-    assert "season2/posts/adv" in err, err
-    assert not (root / "sessions" / "seats" / "adv.rename.json").exists()
+    assert rc == 0, (rc, capsys.readouterr().err)
+    staged = root / "sessions" / "seats" / "adv.rename.json"
+    assert staged.exists()
+    surfs = {s["kind"]: s for s in json.loads(staged.read_text())["surfaces"]}
+    assert surfs["branch"]["src"] == "season2/posts/adv", surfs["branch"]
+    assert surfs["branch"]["dst"] == "season2/posts/adv2", surfs["branch"]
