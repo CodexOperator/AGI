@@ -1256,3 +1256,38 @@ def test_production_line_ceiling_reads_config_and_defaults_small():
     assert spawn_budget.production_line_ceiling({}, default=5) == 5
     # a config with no `spawn` mapping must not raise
     assert spawn_budget.production_line_ceiling({"spawn": None}) == 40
+
+
+def test_node_line_ceiling_parses_the_clause_and_defaults(tmp_path):
+    """hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-
+    clause-one-number-for-brief-and-harvest: ONE resolver, the dispatching
+    node's own CEILING clause first, the config default otherwise. The three
+    corpus spellings resolve; a quoted example before the node's own trailing
+    clause does not win; malformed/absent/unreadable returns the default and
+    never raises.
+    """
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    node = graph / "nodes" / "hypothesis" / "h.md"
+    node.write_text(
+        "---\nid: hypothesis:h\ntype: hypothesis\n---\n"
+        "e.g. `CEILING: <=120 production lines` never reaches.\n"
+        "CEILING: <=20 production lines, 1 kid\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:h", {}) == (20, "clause")
+    # absent clause -> config default, named as such
+    (graph / "nodes" / "hypothesis" / "bare.md").write_text(
+        "---\nid: hypothesis:bare\ntype: hypothesis\n---\nno ceiling\n")
+    assert spawn_budget.node_line_ceiling(
+        graph, "hypothesis:bare", {"spawn": {"production_line_ceiling": 17}}
+    ) == (17, "default")
+    # unresolvable node -> default, never a crash
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:nope", {}) == (40, "default")
+    assert spawn_budget.node_line_ceiling(graph, None, {}) == (40, "default")
+    # the three accepted spellings
+    assert spawn_budget._ceiling_clause("CEILING: <=7 lines") == 7
+    assert spawn_budget._ceiling_clause("CEILING: 33 production lines") == 33
+    assert spawn_budget._ceiling_clause("CEILING: <=120 production lines") == 120
+    # malformed and non-matching are None -> the caller's default
+    assert spawn_budget._ceiling_clause("CEILING: <=abc production lines") is None
+    assert spawn_budget._ceiling_clause("HARD CEILING: 2 kids") is None
+    assert spawn_budget._ceiling_clause(None) is None
