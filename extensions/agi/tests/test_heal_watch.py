@@ -1886,6 +1886,32 @@ def test_head_touches_engine_directly(monkeypatch):
     probe[0] = ([], 0)          # empty old_head (first pass) -> touches
     assert heal._head_touches_engine(None, "", "bbbbbbb") is True
 
+
+def test_head_touches_engine_uses_absolute_bin_dir_pathspec(tmp_path, monkeypatch):
+    """(a) SM.71 regression: `_head_touches_engine` diffs with an ABSOLUTE
+    pathspec (bin_dir), not the repo-relative `extensions/agi/bin/`. Under a
+    root that is an `.agi` subdir (git `-C <root>` resolves pathspecs against
+    that cwd), the relative spelling silently misses every engine file, so a
+    genuine engine commit would be reported as prose-only and the watch would
+    NOT re-exec. This passes a `.agi`-style root and proves the pathspec sent
+    to git is the absolute bin_dir AND that an engine-file diff -> True."""
+    captured = {}
+    probe = [(["extensions/agi/bin/heal.py"], 0)]
+    def _fake_git(args, cwd):
+        captured["args"] = list(args)
+        captured["cwd"] = cwd
+        return probe[0]
+    monkeypatch.setattr(heal, "_git", _fake_git)
+    root = tmp_path / "grid" / ".agi"  # a .agi subdir, not the repo toplevel
+    root.mkdir(parents=True)
+    assert heal._head_touches_engine(root, "aaaaaaa", "bbbbbbb") is True
+    joined = " ".join(captured["args"])
+    want = str(Path(heal.__file__).resolve().parent)
+    assert want in joined.lstrip("-"), \
+        f"pathspec must be the ABSOLUTE bin_dir ({want!r}): {captured}"
+    assert "extensions/agi/bin/" != want
+    assert captured["cwd"] == root, f"git must run in the .agi root: {captured}"
+
 # --- hypothesis:l4-the-heal-watch-performs-the-late-s12-reap --------------
 def _mk_skipped(seat, own_name, own_id, succ_name, succ_id, role="director",
                 recorded_at="2026-09-13T01:00:00Z"):
