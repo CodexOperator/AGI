@@ -2162,6 +2162,25 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # is byte-identical because it never takes this branch.
             if _jpid is None:
                 _jpid = 0
+            # goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-
+            # handoff-generation-header): rotate-self step (1) writes the
+            # successor's identity into seats/<seat>.handoff.md's HEADER. A
+            # first seating wrote no such header, so a seat hand-spawned onto
+            # a row whose HEADER carried an EARLIER rotation's number kept
+            # it (measured: header 32 while the live pin read 31 -- belam,
+            # 09-16) and any reader that falls back to the header when the
+            # row has no `generation:` cell (`_generation_measured` /
+            # `_read_generation`) read the stale number. Rewrite it here, at
+            # the SAME `_spawn_gen` the pin/ack/row below carry, through the
+            # ONE writer `_write_handoff`. Idempotent: an already-correct
+            # header is left byte-identical (no `rotated_at` churn, no
+            # needless diff). Best-effort: a header failure never fails the
+            # seating.
+            try:
+                _first_seating_handoff_write(root, seat, _spawn_gen)
+            except Exception as exc:                # noqa: BLE001
+                print(f"warn: first-seating handoff header failed: {exc}",
+                      file=sys.stderr)
             try:
                 _fs_writes = _first_seating_spawn_writes(
                     root=root, seat=seat, generation=_spawn_gen,
@@ -4440,6 +4459,39 @@ def _write_handoff(root: Path, name: str, generation: int,
         encoding="utf-8",
     )
     return hp
+
+
+def _first_seating_handoff_write(root: Path, seat: str,
+                                 generation: int) -> bool:
+    """Rewrite `<seat>.handoff.md`'s generation header to `generation`.
+
+    goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-handoff-
+    generation-header). rotate-self rewrites the header at step (1); a FIRST
+    seating (`rotate.py spawn --seat S`) never did, so the header sat at
+    whatever an EARLIER rotation stamped it and a reader that falls back to
+    the header when the seat row carries no `generation:` cell
+    (`_generation_measured` / `_read_generation`) read an older rotation's
+    number. This writes the SAME `_spawn_gen` the spawn's meter pin, ack and
+    seating row already use, through the ONE writer `_write_handoff`.
+
+    IDEMPOTENT: a header already reading `generation` is left byte-identical
+    -- no `rotated_at` churn, no needless diff. Returns True when the file
+    was written (a missing header is written, never left absent).
+    """
+    hp = _seat_hands(root) / f"{seat}.handoff.md"
+    if hp.exists():
+        try:
+            for line in hp.read_text(encoding="utf-8",
+                                     errors="replace").splitlines():
+                ls = line.strip()
+                if ls.startswith("generation:"):
+                    if ls.split(":", 1)[1].strip() == str(generation):
+                        return False
+                    break
+        except OSError:
+            pass
+    _write_handoff(root, seat, int(generation))
+    return True
 
 
 # ---- durable rotation record (hypothesis:l3-rotation-record-and-
