@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: sanctuary-helper
+edited_by: belam
 scaffold_hash: 0d9026580e2783cb
 season: 2
 testable_claim: "When provisioning.available(root) is False AND the runtime key (OPENROUTER_API_KEY) is absent or unusable, dispatch.py's pre-flight currently admits the spawn (check_runtime_key_floor fail-opens on key_usage()==None) rather than refusing before a budget slot is spent. Falsifiable: reproduce that exact state (no provisioning key, no/invalid runtime key) and confirm a spawn is admitted and the spawned agent's first LLM call 401s, before a fix; after the fix, the same state must refuse pre-flight with a named message. Disproved if the current pre-flight already refuses this state somewhere not yet found."
@@ -110,3 +110,5 @@ No further round needed here; re-dispatching would re-derive already-
 landed, already-wired work. If a future reader finds this gap again, check
 provisioning.check_runtime_key_usable's wiring is still live at the
 dispatch.py pre-flight before treating it as new.
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): KEEP for the next stream (KEEP) -- live defect: Half-fixed: DEAD runtime key now refuses pre-flight (provisioning.py:513-519, wired dispatch.py:2080-2083, sha 5f4570c55) but ABSENT runtime key + absent provisioning still fails open (provisioning.py:511-512, pinned by test_provisioning.py:1375) and no other gate exists in dispatch.py; the node's DIRECTION (a named "no credential" refusal, distinct from the floor wording) was never built. Narrow the claim to the absent-key half and re-adjudicate against the later round's deliberate fail-open-on-absence idiom. EVIDENCE: provisioning.py:494-525; test_provisioning.py:1375-1381; dispatch.py:2080-2083,2453-2459 Never rounded at close (owner 14:1xZ).

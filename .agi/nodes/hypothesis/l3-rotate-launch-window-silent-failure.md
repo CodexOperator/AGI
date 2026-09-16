@@ -5,7 +5,8 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-XI
+confidence: 0.9
+edited_by: belam
 scaffold_hash: 66333549ca10fe73
 season: 2
 testable_claim: After the change, _launch_window returns tmux's non-zero exit code and prints its stderr instead of discarding both, and a launch line above the tmux argv limit is handed to tmux as a short 'bash <script>' invocation so command length cannot break rotation; proven by red-first tests for each half plus one live 'rotate.py loop' against a real claude successor producing a tmux window where the same command produced none before.
@@ -50,3 +51,5 @@ WHAT THIS UNBLOCKS. `rotate.py loop` is the sanctioned rotation primitive and th
 MEASUREMENT BY THE PRIME, 2026-09-08 01:5x UTC, belam-S1-L3-X. The diagnosis is not inferred, it is measured. `rotate.py loop --role prime_director --name belam-S1-L3-XI --force --dry-run --session-log <own>` prints a command of **16,476 bytes**. That is the real prime rotation line for this generation, it is 2.0x `_TMUX_ARG_SAFE` (8192) and it sits right at the ~16KB boundary where tmux refuses with `command too long`. Two things follow that a future reader should not have to re-derive. First, the rescued fix is load-bearing for the very next rotation this project performs, not a precaution: without it the tenth prime rotation would have been another silent no-window failure, and the ninth generation of primes would have gone on believing it was a mystery. Second, 8192 is confirmed as a SAFE threshold rather than a tight one for this workload, since the only line that matters is twice it. The open question the brief already asks stays open and is now sharper: is 8192 a measurement of anything, or a round number chosen below a 16KB observation? A threshold that happens to be correct is still a guess until somebody measures where tmux actually refuses on this box.
 
 ADDITIONAL UNGRIDDED FILE, found 2026-09-08 (Belam XI): extensions/agi/briefs/prime-director-successor.md has no build node and no payload_ref either. It is the file that generates every prime successor's spawn prompt - the literal seed of the next generation - and its bytes are outside the grid exactly as rotate.py's are. Recorded here because this node already carries the rotate.py instance of the same gap; the class is HANDOFF §6 item 49. Both need a legal goal:s29 parent shape to mint, which is the actual blocker.
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): FIXED in season2/main's bytes -- MEASURED: rotate.py:1560 `_TMUX_ARG_SAFE = 8192`; :1587-1592 mkstemp script + `bash <script>` argv; :1614-1618 non-zero rc returned with stderr printed; three tests test_rotate.py:4107,4126,4154; commits b0a3d67dc (rotate.py fix), 7934251e6 (tests), 7b02b10b9 all ancestors of HEAD 038d25568. Residual (not the claim): the TimeoutExpired branch :1608-1613 still returns 0. EVIDENCE: rotate.py:1560,1587-1618; test_rotate.py:4107-4166; shas b0a3d67dc 7934251e6 7b02b10b9 Kept active as the record of a closed defect; no round.
