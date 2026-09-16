@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ADDENDUM from belam (Prime review of the sibling R4 round, mur-sd-10, gen 25 20:4xZ): R4 (just landed, hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-written) left one named hole -- node_writer.py write_node()s new check requires `rules.schemas` non-empty (forced by the pre-existing pin test_write.py:1542), so a graph with ZERO active schemas loaded still lets any type through uncaught at create time. This round(R5)s stray-directory check runs independently of that pin and would catch the SAME hole after the fact (a stray dir from a zero-schema create still gets flagged here). As part of this round, read that carve-out (node_writer.py, the `and rules.schemas` clause R4 added) and DECIDE, with reasons in the node: does this round(R5)s check make the zero-schema carve-out in R4 safe-to-keep as belt-and-suspenders (R5 catches what R4 cannot), or does it argue for tightening test_write.py:1542s pin and removing the carve-out instead? Either answer is acceptable if argued from the bytes; do not silently ignore the question.
