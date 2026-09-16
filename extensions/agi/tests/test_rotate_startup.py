@@ -1868,11 +1868,13 @@ def test_first_seating_no_row_still_records_gen_1(monkeypatch,
 def test_first_seating_respawn_record_and_alert_carry_row_gen(
         monkeypatch, tmp_path):
     """A RE-spawn onto an EXISTING seat whose config:seats row carries
-    `generation: 4` threads that ONE resolved generation to the seating
-    RECORD (gen_after) AND the rotation-alert dm (which names `generation
-    0 -> 4`), byte-for-byte with the bootstrap `_first_seating_run` already
-    wrote — never a hard-coded gen-1 (hypothesis:l4-one-resolved-generation-
-    for-the-seating-record-the-alert-and-the-bootstrap-on-a-re-spawn)."""
+    `generation: 4` threads that ONE resolved generation to the bootstrap
+    AND the announce CALL, byte-for-byte with `_first_seating_run` — never a
+    hard-coded gen-1. Clause (2): the NON-prime seating RECORD and the
+    announce dm are genless, so the resolved gen is proven on the bootstrap
+    and the threaded announce call, not on the record
+    (hypothesis:l4-one-resolved-generation-for-the-seating-record-the-alert-
+    and-the-bootstrap-on-a-re-spawn + l4-non-prime-genless-clauses-...)."""
     _fs_seats_sheet(tmp_path, [
         {"name": "re-seated", "role": "director", "generation": 4},
     ])
@@ -1894,22 +1896,23 @@ def test_first_seating_respawn_record_and_alert_carry_row_gen(
     assert _win_calls, \
         "_successor_window_id must be consulted (and stubbed) for the announce"
     seating = captured["seating"]
-    # the ONE record the alert shares reports gen_after 4, never a hard-coded 1.
-    assert seating["gen_after"] == 4, \
-        f"seating record gen_after must follow the row (4), got {seating['gen_after']}"
-    assert seating["gen_before"] == 0
-    # the same gen_after was threaded to the announce rotation call.
+    # clause (2): a NON-prime seating record is genless -- no gen_after at
+    # all; the resolved row gen reaches the bootstrap and the announce CALL.
+    assert "gen_after" not in seating and "gen_before" not in seating, seating
+    assert seating["seated_at"] and seating["role"] == "director"
+    # the same resolved gen was threaded to the announce rotation call.
     assert captured["gen_after"] == 4, \
         f"_announce_rotation gen_after must be 4, got {captured['gen_after']}"
-    # the ALERT dm names the same generation — `generation 0 -> 4`, never 1.
+    # the ALERT dm is genless too -- `re-seated ... session`, never a gen,
+    # and a non-prime acks by `--post`, never `--gen`.
     text = rotate._compose_seating_announcement(
-        seat="re-seated", ref=seating.get("ref") or "",
+        seat="re-seated", role="director", ref=seating.get("ref") or "",
         pid=seating.get("pid"), in_flight="",
-        generation=seating.get("gen_after") or 1, ask_diff=True)
-    assert "generation 0 -> 4" in text, \
-        f"alert dm must name generation 0 -> 4:\n{text}"
-    assert "generation 0 -> 1" not in text
-    assert "--gen 4" in text, f"alert ack line must name gen 4:\n{text}"
+        seated_at=seating.get("seated_at") or "",
+        generation=4, ask_diff=True)
+    assert "re-seated" in text and "generation" not in text, text
+    assert "--gen" not in text, text
+    assert "rotate.py ack --post re-seated" in text, text
 
 
 def test_first_seating_row_generation_zero_is_kept_as_zero(
@@ -1942,27 +1945,24 @@ def test_first_seating_row_generation_zero_is_kept_as_zero(
         tmux_session="t", live_names=[])
     assert _win_calls, \
         "_successor_window_id must be consulted (and stubbed) for the announce"
-    assert captured["seating"]["gen_after"] == 0, \
-        f"seating record must keep a row gen 0, got {captured['seating']['gen_after']}"
+    # clause (2): the non-prime seating RECORD is genless; a resolved 0
+    # survives on the bootstrap (asserted above) and the threaded announce
+    # call, never coerced to 1.
+    assert "gen_after" not in captured["seating"], captured["seating"]
     assert captured["gen_after"] == 0
     text = rotate._compose_seating_announcement(
-        seat="zero-seat", in_flight="",
-        generation=captured["gen_after"])
-    assert "generation 0 -> 0" in text, \
-        f"alert dm must name generation 0 -> 0:\n{text}"
-    assert "generation 0 -> 1" not in text
+        seat="zero-seat", role="director", in_flight="",
+        seated_at=captured["seating"].get("seated_at") or "")
+    assert "re-seated" in text and "generation" not in text, text
 
 
 def test_seating_base_block_checks_record_at_resolved_row_gen(
         monkeypatch, tmp_path):
-    """Claim (b): the `[seating]` base block checks `_seating_record_exists`
-    at the seat's OWN resolved generation, never only gen 1 — a RE-seated
-    seat at gen N with a gen-N record on disk must read `record: present`,
-    never 'none yet (never seated)' merely because a GEN-1 record is absent
-    (the falsifier: the pre-fix base block only looked at gen 1). And the
-    block reads THE ROW, not a stray gen-1 record: row gen 3 with only a
-    gen-1 record on disk must still read 'none yet' (this seating's gen-3
-    record has not been written yet)."""
+    """Claim (b) + clause (2): the `[seating]` base block checks
+    `_seating_record_exists` for the seat and reads `record: present` when a
+    seating record for it is on disk, `none yet` when none is (the falsifier:
+    a stray record for ANOTHER seat must not stand in). A NON-prime seating
+    record is genless, so there is no gen to discriminate on."""
     (tmp_path / "sessions").mkdir(parents=True, exist_ok=True)
     _fs_seats_sheet(tmp_path, [
         {"name": "re-seated", "role": "director", "generation": 3},
@@ -1977,24 +1977,22 @@ def test_seating_base_block_checks_record_at_resolved_row_gen(
         seat="re-seated", source="cmd_spawn", now=now,
         pred_pid=None, pred_death="-", seq=1, root=tmp_path)
     assert "record: present" in block[0], \
-        f"gen-3 re-seating with a gen-3 record must read present:\n{block[0]}"
-    # complementary: a STRAY gen-1 record must NOT mask an absent gen-3 one.
-    _fs_seats_sheet(tmp_path, [
-        {"name": "re-seated", "role": "director", "generation": 3},
-    ])
+        f"a seating record for the seat must read present:\n{block[0]}"
+    # complementary (clause (2)): a record for ANOTHER seat must NOT mask the
+    # absent one -- a non-prime seating is keyed by the seat, not a gen.
     (tmp_path / "sessions" / "rotations").mkdir(parents=True, exist_ok=True)
     for p in (tmp_path / "sessions" / "rotations").glob("*.seating.json"):
         p.unlink()
-    gen1 = rotate._seating_record(
-        seat="re-seated", role="director", source="test",
+    other = rotate._seating_record(
+        seat="other-seat", role="director", source="test",
         window_id="@3", ref="", pid=None, session_id="",
         transcript_path="", first_turn=None, generation=1)
-    rotate._write_seating_record(tmp_path, gen1)
+    rotate._write_seating_record(tmp_path, other)
     block1 = rotate._compose_seating_base_block(
         seat="re-seated", source="cmd_spawn", now=now,
         pred_pid=None, pred_death="-", seq=1, root=tmp_path)
     assert "record: none yet" in block1[0], \
-        f"a stray gen-1 record must not stand in for the missing gen-3:\n{block1[0]}"
+        f"another seat's record must not stand in:\n{block1[0]}"
 
 
 def test_first_seating_announce_reads_row_gen_zero_when_passed(
