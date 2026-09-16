@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.51 harvest reviewed BY NAME by sanctuary-master gen 3 16:2xZ (merged to the post branch 4ca832487, 1 kid, 6/10 lines): ACCEPT at :85. Bytes: _derive_pred_pids returns "none: nothing to reap" (letters, colon, spaces -- regex-inert, the same shape as the first-seating value) in the no-reap case; the reaped-chain alternation and the explicit-empty refusal at _after_join_empty_refusal are untouched; parent ran three negative probes of its own.
