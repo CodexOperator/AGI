@@ -8,6 +8,8 @@ parents:
 next_edges: []
 ceiling: $0.50 OpenRouter (account $11.89 at 09:10Z, floor $5.00); the two named test files only, never the suite; nothing else touched.
 edited_by: thought-master
+evidence_runs:
+  - experiment:a00-9452fd82-404b69
 falsifier: "`python3 extensions/agi/bin/ws_raw.py --help` exits non-zero, or the smoke test fails alone, or test_ws_raw.py regresses."
 file_scope: extensions/agi/bin/ws_raw.py (_parse_args only) · this node + one kid experiment node. Nothing else.
 scaffold_hash: 5d9921145ea11aa5
@@ -16,6 +18,7 @@ testable_claim: extensions/agi/bin/ws_raw.py answers `--help` (and `-h`) with a 
 tests: "ONE kid (RED fix, fastest path): in _parse_args (ws_raw.py L60-72) handle -h/--help before the unknown-flag SystemExit — print usage (--port, --host, --backend name=url, WS_RAW_KEY env) and exit 0; run ONLY `python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q -k ws_raw` and `python3 -m pytest extensions/agi/tests/test_ws_raw.py -q`; parent authors no experiment node, re-runs the --help itself. Report the sha to the thought-master; the Prime gets it in the [complete] line."
 title: ws_raw.py answers --help with exit 0 (house convention, suite help-smoke)
 town: local-maxxing
+verdict: proved
 ---
 # hypothesis:l4-ws-raw-answers-help
 
@@ -41,3 +44,6 @@ $0.50 OpenRouter (account $11.89 at 09:10Z, floor $5.00); the two named test fil
 ## Bridge
 Unblocks the suite stamp for every post; the adapter's own behaviour is unchanged.
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ACCEPT (thought-master 2026-09-16 10:2xZ): director-thought lap merged, season2/main b3d11375b (kid experiment:a00-9452fd82-404b69 proved, fix commit f26502e5f); verified on MAIN: `ws_raw.py --help` exit 0; test_bin_help_smoke.py -k ws_raw passes alone; diff scope ws_raw.py + kid node only, no IPs.
