@@ -30,7 +30,12 @@ record):
   - the floor in the record equals the config:rotations CELL it was read
     from;
   - the audited record is committed by exact path (temp repo, never this
-    one) and a merge in progress / an untracked record refuses by name.
+    one), a merge in progress refuses by name, and an UNTRACKED record is
+    `git add`ed and committed alone so the audited record is never left dirty;
+  - a REFUSED/FAILED commit makes the verb exit non-zero (SKIPPED stays 0);
+  - a missing `floor_wake`/`floor_out` cell is NAMED on the result line;
+  - the wake excess is a+b+c (the cut call d excluded); the out excess is the
+    full call count.
 
 The write path's byte-preservation rests on the record being in the canonical
 form `rotate.py` writes (`json.dumps(record, indent=2) + "\n"`,
@@ -162,7 +167,7 @@ def test_wake_writes_audit_key_and_preserves_every_other_byte(tmp_path, capsys):
     assert audit["calls"] == 3
     assert (audit["a"], audit["b"], audit["c"], audit["d"]) == (0, 2, 0, 1)
     assert audit["floor"] == 0
-    assert audit["excess"] == 3
+    assert audit["excess"] == 2
     assert audit["transcript"] == str(tr)
     # ONE shape on both sides: named keys, present-or-null
     assert audit["window_start"] == {"call_index": 1, "line": None,
@@ -432,9 +437,19 @@ def test_floors_are_the_owners_numbers_and_have_one_reader(tmp_path):
     fallback dict exists only for a cell-less node and is not a second live
     copy."""
     fm, _facts = sensei._read_rotations(_graph_skeleton(tmp_path))
-    assert sensei._audit_floors(fm) == {"wake": 0, "out": 1}
+    floors = sensei._audit_floors(fm)
+    assert (floors["wake"], floors["out"]) == (0, 1)
+    assert floors["_misses"] == []   # both cells present -> nothing missed
     # a node whose cells are absent falls back to the recorded owner numbers
-    assert sensei._audit_floors("") == sensei.FALLBACK_AUDIT_FLOOR
+    # AND NAMES the two missing cells (the silent-fallback trap)
+    fell_back = sensei._audit_floors("")
+    assert (fell_back["wake"], fell_back["out"]) == \
+        (sensei.FALLBACK_AUDIT_FLOOR["wake"], sensei.FALLBACK_AUDIT_FLOOR["out"])
+    assert fell_back["_misses"] == ["floor_wake", "floor_out"]
+    miss_line = sensei.audit_finding_line(
+        SEAT, "wake", "S", 0, 0, None, fell_back["_misses"])
+    assert miss_line.startswith(f"green {SEAT} wake --record S 0 (floor 0")
+    assert "MISS floor_wake/floor_out -> fallback 0" in miss_line
     # a CHANGED cell moves the floor the payload records (ONE reader)
     changed = fm.replace("floor_out: 1", "floor_out: 7")
     assert sensei._audit_floors(changed)["out"] == 7
@@ -643,7 +658,9 @@ def test_merge_in_progress_refuses_the_commit_by_name(tmp_path, capsys):
     (tmp_path / ".git" / "MERGE_HEAD").write_text("0" * 40 + "\n",
                                                   encoding="utf-8")
 
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    # a REFUSED commit makes the verb exit non-zero (the commit line is
+    # unchanged; only the exit code carries it)
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 4
     out = capsys.readouterr().out
     assert "merge in progress" in out
     # the audit is still written; only the commit refused
@@ -651,14 +668,89 @@ def test_merge_in_progress_refuses_the_commit_by_name(tmp_path, capsys):
     assert _git(tmp_path, "status", "--porcelain", "--", rel).strip() != ""
 
 
-def test_untracked_record_refuses_the_commit_by_name(tmp_path, capsys):
+def test_exact_path_commit_leaves_a_second_dirty_file_alone(tmp_path, capsys):
+    """The one-pathspec commit takes ONLY the audited record: a second dirty
+    file beside it stays dirty and is never swept in."""
     graph, rec_path, _tr = _write_wake_project(tmp_path, [])
     _git_init(tmp_path)
-    # the record exists but git has never seen it
+    rel = str(rec_path.relative_to(tmp_path))
+    _git(tmp_path, "add", "--", rel)
+    _git(tmp_path, "commit", "-q", "-m", "seed", "--", rel)
+    (tmp_path / "other.txt").write_text("foreign\n", encoding="utf-8")
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    capsys.readouterr()
+    landed = _git(tmp_path, "log", "-1", "--name-only", "--format=")
+    assert rel in landed and "other.txt" not in landed
+    assert (tmp_path / "other.txt").read_text(encoding="utf-8") == "foreign\n"
+    assert "other.txt" in _git(tmp_path, "status", "--porcelain")
+
+
+def test_commit_failed_branch_prints_failed_and_exits_nonzero(
+        tmp_path, capsys, monkeypatch):
+    """A commit that RAISES is the FAILED branch: the line says FAILED and
+    the verb exits non-zero (never a silent dropped audit)."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [])
+    _git_init(tmp_path)
+    rel = str(rec_path.relative_to(tmp_path))
+    _git(tmp_path, "add", "--", rel)
+    _git(tmp_path, "commit", "-q", "-m", "seed", "--", rel)
+    real = subprocess.run
+
+    def boom(cmd, *a, **kw):
+        if isinstance(cmd, list) and "commit" in cmd:
+            raise RuntimeError("simulated git crash")
+        return real(cmd, *a, **kw)
+
+    monkeypatch.setattr(sensei.subprocess, "run", boom)
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 4
+    assert "audit_record_commit: FAILED" in capsys.readouterr().out
+
+
+def test_untracked_record_is_added_and_committed_alone(tmp_path, capsys):
+    """An UNTRACKED live rotation record (the MAIN `?? belam.*.json` case) is
+    `git add`ed and committed alone: the audit wrote it, so it is never left
+    dirty -- one record, one commit."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [])
+    _git_init(tmp_path)
+    rel = str(rec_path.relative_to(tmp_path))
     assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
     out = capsys.readouterr().out
-    assert "not tracked by git" in out
-    assert _git(tmp_path, "rev-list", "--count", "HEAD").strip() in ("0", "")
+    assert "audit_record_commit: committed" in out
+    assert _git(tmp_path, "status", "--porcelain", "--", rel).strip() == ""
+    assert _git(tmp_path, "rev-list", "--count", "HEAD").strip() == "1"
+    assert rel in _git(tmp_path, "log", "-1", "--name-only", "--format=")
+
+
+def test_wake_excess_excludes_the_cut_call_d(tmp_path, capsys):
+    """The wake excess is a+b+c - floor; d is the cut call itself (belam
+    20260916T151713Z reported excess 4 where a+b+c=3). The out side keeps the
+    full call count (its floor 1 IS the rotate)."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [
+        ("Bash", "tmux capture-pane -t sanctuary-director -p | tail -20"),
+        ("Bash", "ps -o pid,ppid -p 1234 2>/dev/null"),
+        ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py -q"),
+    ])
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    out = capsys.readouterr().out
+    audit = json.loads(rec_path.read_text(encoding="utf-8"))["audit"]["wake"]
+    assert audit["calls"] == 3 and audit["d"] == 1
+    assert audit["excess"] == 2   # a+b+c=2, NOT calls-floor=3
+    assert f"FINDING {SEAT} wake --record {STAMP} excess 2 over floor 0" in out
+
+
+def test_wake_names_a_missing_floor_cell(tmp_path, capsys):
+    """A config:rotations with no `floor_wake` cell falls back AND names the
+    missing cell on the result line -- never a silent fallback."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [
+        ("Bash", "tmux capture-pane -t sanctuary-director -p | tail -20")])
+    rot = graph / "nodes" / ".geometry" / "rotations.md"
+    rot.write_text(rot.read_text(encoding="utf-8").replace("floor_wake: 0\n", ""),
+                   encoding="utf-8")
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    out = capsys.readouterr().out
+    assert "MISS floor_wake -> fallback 0" in out
+    audit = json.loads(rec_path.read_text(encoding="utf-8"))["audit"]["wake"]
+    assert audit["floor"] == 0
 
 
 def test_gitless_root_skips_the_commit_without_failing(tmp_path, capsys):

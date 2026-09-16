@@ -1928,11 +1928,20 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
               file=sys.stderr)
         return None
 
+    commit_env = dict(os.environ)
+    # Item (5): dispatch exports AGI_PROJECT_ROOT as the GRAPH dir (<wt>/.agi),
+    # and git exports GIT_DIR to hooks, so the agent-git hook's
+    # `git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel` resolved to
+    # <wt>/.agi and it read the commit as coming from a DIFFERENT checkout --
+    # refusing the round's own node with `tier kid may not commit`. Point the
+    # hook at the checkout root for THIS commit: the worktree is the round's
+    # own branch and `_round_scope_ok` already scoped the add.
+    commit_env["AGI_PROJECT_ROOT"] = str(checkout_root)
     commit = subprocess.run(
         ["git", "-C", str(checkout_root),
          "-c", "user.email=agi@local", "-c", "user.name=agi",
          "commit", "-qm", subject],
-        capture_output=True, text=True)
+        capture_output=True, text=True, env=commit_env)
     if commit.returncode != 0:
         print(f"ERR: worktree commit failed in {checkout_root}: "
               f"{commit.stderr.strip() or '(no stderr from git)'}",

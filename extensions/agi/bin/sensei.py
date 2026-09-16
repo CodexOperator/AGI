@@ -1437,8 +1437,11 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     # side has no such measure), same as the rotate-out side.
     window_counts["_window_start"] = audit_window_point(call_index=1)
     window_counts["_window_end"] = audit_window_point(call_index=window_end)
-    # the floor comes from the config:rotations CELL this verb already read.
-    window_counts["_floor"] = _audit_floors(fm)["wake"]
+    # the floor comes from the config:rotations CELL this verb already read;
+    # a missing/malformed cell is NAMED on the result line, never silent.
+    floors = _audit_floors(fm)
+    window_counts["_floor"] = floors["wake"]
+    window_counts["_floor_misses"] = floors["_misses"]
     return 0, window_calls, window_counts
 
 
@@ -1497,18 +1500,24 @@ FALLBACK_AUDIT_FLOOR = {"wake": 0, "out": 1}
 
 
 def _audit_floors(fm: str) -> dict:
-    """`{"wake": N, "out": M}` from config:rotations' frontmatter cells.
+    """`{"wake": N, "out": M, "_misses": [cell,...]}` from config:rotations.
 
     `_read_rotations` already hands both audit verbs the frontmatter text, so
     the floors are read where they are declared and never carried as a second
     live copy in this file. A missing/unparseable cell falls back to the
-    owner's number recorded in `FALLBACK_AUDIT_FLOOR`. Never raises.
+    owner's number recorded in `FALLBACK_AUDIT_FLOOR`, and the cell NAME
+    travels back on `_misses` so the verb's result line can name it -- a
+    silent fallback was the `cell nothing reads` trap. Never raises.
     """
     out = dict(FALLBACK_AUDIT_FLOOR)
+    misses: list[str] = []
     for side, cell in (("wake", "floor_wake"), ("out", "floor_out")):
         m = re.search(rf"^{cell}:\s*(-?\d+)\s*$", fm or "", re.M)
         if m:
             out[side] = int(m.group(1))
+        else:
+            misses.append(cell)
+    out["_misses"] = misses
     return out
 
 
@@ -1547,14 +1556,20 @@ def audit_payload(side: str, calls: int, counts: dict, transcript: str,
     if floor is None:
         floor = FALLBACK_AUDIT_FLOOR[side]
     floor = int(floor)
+    a, b, c, d = (int(counts.get(k, 0)) for k in ("a", "b", "c", "d"))
+    # the wake window EXCLUDES the cut call (d): only a/b/c span it (the
+    # verb's own note). The out window keeps the full call count -- its floor
+    # 1 IS the rotate and d there is the genuine decision. ONE rule; the
+    # printed line and this payload compute the excess the same way.
+    measured = a + b + c if side == "wake" else int(calls)
     return {
         "calls": int(calls),
-        "a": int(counts.get("a", 0)),
-        "b": int(counts.get("b", 0)),
-        "c": int(counts.get("c", 0)),
-        "d": int(counts.get("d", 0)),
+        "a": a,
+        "b": b,
+        "c": c,
+        "d": d,
         "floor": floor,
-        "excess": max(0, int(calls) - floor),
+        "excess": max(0, measured - floor),
         "transcript": transcript,
         "window_start": window_start,
         "window_end": window_end,
@@ -1565,16 +1580,25 @@ def audit_payload(side: str, calls: int, counts: dict, transcript: str,
 
 
 def audit_finding_line(seat: str, side: str, record_stamp: str | None,
-                       calls: int, floor: int) -> str:
+                       calls: int, floor: int, counts: dict | None = None,
+                       floor_misses=None) -> str:
     """The ONE line the owner asked for. `excess == 0` is `green`; anything
     over the floor is a `FINDING` naming the excess and the floor. Every
-    spelling of the line names the RECORD stamp, never a generation."""
+    spelling of the line names the RECORD stamp, never a generation. The wake
+    excess is a+b+c (the cut call d is excluded); the out excess is the full
+    call count. A fallback floor names the missing config cell it replaced."""
     stamp = record_stamp if record_stamp else "?"
-    excess = max(0, int(calls) - int(floor))
+    measured = int(calls)
+    if side == "wake" and counts is not None:
+        measured = sum(int(counts.get(k, 0)) for k in ("a", "b", "c"))
+    excess = max(0, measured - int(floor))
+    miss = (f" [MISS {'/'.join(floor_misses)} -> fallback {int(floor)}]"
+            if floor_misses else "")
     if excess == 0:
-        return f"green {seat} {side} --record {stamp} {calls} (floor {floor})"
+        return (f"green {seat} {side} --record {stamp} {calls} "
+                f"(floor {int(floor)}{miss})")
     return (f"FINDING {seat} {side} --record {stamp} excess {excess} "
-            f"over floor {floor}")
+            f"over floor {int(floor)}{miss}")
 
 
 def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
@@ -1616,15 +1640,15 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
 
 
 def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
-                         stamp: str | None, line: str) -> str:
+                         stamp: str | None, line: str) -> tuple[str, str]:
     """Commit the audited record as ITS OWN one-pathspec commit (g17.1: the
     Sensei commits the audited record by exact path in the same turn).
 
-    ONE `git commit -q -o -m <msg> -- <record>`, never `-A`, never bundled,
-    never a grid commit, never a push. Precedent: the after_join rewrite in
-    rotate.py commits its own path the same way. Best-effort: a SKIPPED line
-    for a gitless root (a tmp fixture), and the two named REFUSALS leave the
-    rewrite uncommitted with a greppable reason. Never raises.
+    Returns `(status, printed_line)`, status in COMMITTED / SKIPPED /
+    REFUSED / FAILED -- a REFUSED or FAILED commit makes the verb exit
+    non-zero, so a dropped audit is never silent. An UNTRACKED record is
+    `git add`ed then committed alone (one record, one commit): the audit
+    wrote it, so leaving it dirty is the defect. Best-effort: never raises.
     """
     try:
         graph = rotate._shared_graph_root(Path(root))
@@ -1632,28 +1656,33 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
     except Exception:  # noqa: BLE001
         top = None
     if top is None:
-        return ("audit_record_commit: SKIPPED \u2014 no git repo; the audit "
-                "rewrite stays uncommitted (gitless fixture/root)")
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 no git repo; "
+                "the audit rewrite stays uncommitted (gitless fixture/root)")
     rp = Path(rec_path)
     if not rp.exists():
-        return "audit_record_commit: SKIPPED \u2014 no rotation record to commit"
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 no rotation "
+                "record to commit")
     try:
         rel = str(rp.resolve().relative_to(top.resolve()))
     except ValueError:
-        return ("audit_record_commit: SKIPPED \u2014 record lies outside the "
-                "git repo")
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record lies "
+                "outside the git repo")
     merge = subprocess.run(
         ["git", "-C", str(top), "rev-parse", "-q", "--verify", "MERGE_HEAD"],
         capture_output=True, text=True, timeout=10)
     if merge.returncode == 0:
-        return (f"audit_record_commit: REFUSED \u2014 merge in progress "
-                f"(MERGE_HEAD present); {rel} left uncommitted")
+        return ("REFUSED", f"audit_record_commit: REFUSED \u2014 merge in "
+                f"progress (MERGE_HEAD present); {rel} left uncommitted")
     tracked = subprocess.run(
         ["git", "-C", str(top), "ls-files", "--error-unmatch", "--", rel],
         capture_output=True, text=True, timeout=10)
     if tracked.returncode != 0:
-        return (f"audit_record_commit: REFUSED \u2014 {rel} is not tracked by "
-                f"git; nothing committed")
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=10)
+        if add.returncode != 0:
+            return ("REFUSED", f"audit_record_commit: REFUSED \u2014 {rel} is "
+                    f"not tracked by git and could not be added; nothing "
+                    f"committed")
     msg = f"audit record: {seat} {side} {stamp or '?'} \u2014 {line}"
     try:
         cm = subprocess.run(
@@ -1664,9 +1693,9 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
                 ["git", "-C", str(top), "diff", "--quiet", "--", rel],
                 capture_output=True, text=True, timeout=10)
             if dirty.returncode == 0:
-                return (f"audit_record_commit: SKIPPED \u2014 record already "
-                        f"clean after the rewrite")
-            return (f"audit_record_commit: REFUSED \u2014 "
+                return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record "
+                        "already clean after the rewrite")
+            return ("REFUSED", f"audit_record_commit: REFUSED \u2014 "
                     f"{(cm.stderr or cm.stdout or '').strip()}; {rel} left "
                     f"uncommitted")
         sha = ""
@@ -1677,35 +1706,41 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
             sha = (out.stdout or "").strip()
         except Exception:  # noqa: BLE001
             sha = ""
-        return f"audit_record_commit: committed (sha {sha}) \u2014 {rel}"
+        return ("COMMITTED", f"audit_record_commit: committed (sha {sha}) "
+                f"\u2014 {rel}")
     except Exception as exc:  # noqa: BLE001
-        return f"audit_record_commit: FAILED \u2014 {exc}"
+        return ("FAILED", f"audit_record_commit: FAILED \u2014 {exc}")
 
 
 def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
                  rec_path, stamp: str | None, transcript: str,
                  window_start, window_end, no_record: bool,
-                 floor: int | None = None) -> str:
+                 floor: int | None = None,
+                 floor_misses: list | None = None) -> tuple[str, str | None]:
     """Write the result into the audited record (unless `--no-record`) and
-    return the ONE line to print. The write is keyed on the record PATH the
+    return `(line, commit_status)`. The write is keyed on the record PATH the
     audit itself resolved -- never a second selector call that could name a
     different record. On a real write the audited record is committed by
     exact path in the same turn; the commit outcome is printed as its own
-    line (`audit_record_commit: ...`).
+    line (`audit_record_commit: ...`) and its STATUS is returned so the verb's
+    exit code carries a REFUSED/FAILED commit.
 
     Raises `AuditRefusal` (from `write_audit_into_record`) BEFORE the rewrite
     when the record is still STARTED or is not byte-canonical; the verb's
     caller turns that into a non-zero exit with the named reason."""
     if floor is None:
         floor = FALLBACK_AUDIT_FLOOR[side]
-    line = audit_finding_line(seat, side, stamp, calls, floor)
+    line = audit_finding_line(seat, side, stamp, calls, floor, counts,
+                              floor_misses)
     payload = audit_payload(side, calls, counts, transcript,
                             window_start, window_end, floor)
+    status = None
     if rec_path is not None and not no_record:
         write_audit_into_record(rec_path, side, payload)
-        print(_commit_audit_record(root, rec_path, seat=seat, side=side,
-                                   stamp=stamp, line=line))
-    return line
+        status, cline = _commit_audit_record(root, rec_path, seat=seat,
+                                             side=side, stamp=stamp, line=line)
+        print(cline)
+    return line, status
 
 
 def cmd_wake_audit(root: Path, args) -> int:
@@ -1747,17 +1782,19 @@ def cmd_wake_audit(root: Path, args) -> int:
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
     try:
-        print(finish_audit(
+        line, status = finish_audit(
             root, args.seat, "wake", counts.get("_calls", len(calls)), counts,
             counts.get("_record_path"), counts.get("record"),
             counts.get("_transcript", ""),
             counts.get("_window_start") or audit_window_point(call_index=1),
             counts.get("_window_end"), getattr(args, "no_record", False),
-            floor=counts.get("_floor")))
+            floor=counts.get("_floor"),
+            floor_misses=counts.get("_floor_misses"))
     except AuditRefusal as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 3
-    return 0
+    print(line)
+    return 4 if status in ("REFUSED", "FAILED") else 0
 
 
 # ── calls ─────────────────────────────────────────────────────────────────
@@ -2109,12 +2146,14 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label})
         counts[cat] += 1
+    floors = _audit_floors(fm)
     window = {"gen": gen_out, "record": record_stamp, "basis": basis,
               "record_path": str(rec_path),
               "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
               "log_path": str(log_path),
-              "floor": _audit_floors(fm)["out"],
+              "floor": floors["out"],
+              "floor_misses": floors["_misses"],
               "window_reason": "predecessor window, bounded by record (rotate-out; "
                               "d is the decision, not a cut)"}
     return 0, calls, counts, window
@@ -2153,17 +2192,19 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
     try:
-        print(finish_audit(
+        line, status = finish_audit(
             root, args.seat, "out", len(calls), counts, window["record_path"],
             window["record"], window["log_path"],
             audit_window_point(line=window["start_line"],
                                ts=window["start_ts"] or None),
             audit_window_point(ts=window["recorded_at"] or None),
-            getattr(args, "no_record", False), floor=window.get("floor")))
+            getattr(args, "no_record", False), floor=window.get("floor"),
+            floor_misses=window.get("floor_misses"))
     except AuditRefusal as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 3
-    return 0
+    print(line)
+    return 4 if status in ("REFUSED", "FAILED") else 0
 
 
 # ── apply_note (the one place write.py can be reached from) ──────────────
