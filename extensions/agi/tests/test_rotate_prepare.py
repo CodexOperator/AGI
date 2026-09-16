@@ -71,6 +71,14 @@ def _git_map(lines):
     return fake
 
 
+def _stamp(prep_root, ts):
+    """Write the seat's OWN last-act stamp (bin/last_act.py) with `ts`."""
+    p = prep_root / "sessions" / "seats" / "adv-alive.last-act"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(f"{ts}\n", encoding="utf-8")
+    return p
+
+
 def _args(**over):
     base = dict(seat="adv-alive")
     base.update(over)
@@ -198,102 +206,59 @@ def test_prepare_clean_names_no_paths(prep_root, capsys, monkeypatch):
     assert "dirty tree:" not in out
 
 
-def test_prepare_card_check_reads_the_last_work_commit_only(
+def test_prepare_card_check_reads_the_seats_own_last_act(
         prep_root, capsys, monkeypatch):
-    """Sensei 18:29Z: two porcelain sync commits aged the card and blocked
-    the rotation. The card check now reads the last NON-MERGE commit that
-    touched something other than cron-owned churn (.agi/comms, the rotation
-    records) or the card itself — that spec, and no bare `log -1`. A stale
-    card against THAT commit still blocks."""
-    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    card.parent.mkdir(parents=True, exist_ok=True)
-    card.write_text("# card\n", encoding="utf-8")
+    """Check 4 is the SEAT'S OWN clock (bin/last_act.py), NEVER the repo-wide
+    `git log -1 --no-merges -- .` spec: an unmeasurable own act reads NOT
+    stale (P7), and an own act after the card blocks. A foreign seat's commit
+    is invisible to it (conjunct 2)."""
     import os
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
     os.utime(card, (1000000000, 1000000000))   # long before any commit
-    spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
-            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations",
-            ":(exclude)sessions/quorum/adv-alive.md")
-    # SL7.30: the seats/posts exclusion is CONDITIONAL on a --stops
-    # rotate-self (test_stops_rotation_flag_controls_seats_exclusion below).
-    # A plain `prepare` carries NO seats exclusion — a seats.md WORK commit
-    # must still age the card (SL7.12 had edited THIS spec tuple to add
-    # `:(exclude)nodes/.geometry/posts.md` to every prepare; that over-
-    # application is the defect this round fixes).
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
-    # the bare `log -1` answer is NOT consulted any more
-    monkeypatch.setattr(rotate, "_git_maybe",
-                        _git_map({**ok, ("log", "-1", "--format=%ct"):
-                                  ["9999999999"]}))
+    seen = []
+    def recorder(cwd, *args):
+        seen.append(args)
+        return ok.get(args)
+    monkeypatch.setattr(rotate, "_git_maybe", recorder)
+    # no own act measurable -> ok, the ancient card is NOT stale (P7).
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
     assert rc == 0, out
     assert "[ok] card older than last commit" in out
-    # the work-commit spec IS, and a card older than it blocks
-    monkeypatch.setattr(rotate, "_git_maybe",
-                        _git_map({**ok, spec: ["9999999999"]}))
+    # an own act AFTER the card blocks.
+    _stamp(prep_root, "9999999999")
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
     assert rc == 3, out
     assert "[BLOCK] card older than last commit" in out
+    # FALSIFIER (no second implementation of the clock): check 4 issues NO
+    # repo-wide `log --no-merges` spec of its own.
+    assert all("--no-merges" not in a for a in seen), seen
 
 
-def test_stops_rotation_flag_controls_seats_exclusion(
+def test_check_4_is_identical_under_stops_and_plain(
         prep_root, capsys, monkeypatch):
-    """SL7.30 — the seats/posts exclusion on check 4 ('card older than last
-    commit') is CONDITIONAL on the run being a --stops rotate-self
-    (goal:g15.25 line (3): the rotate-out's OWN card+seats commit must not
-    re-age the card). A plain prepare (stops_rotation=False) scans WITHOUT
-    the exclusion, so a pure seats.md WORK commit still ages the card and a
-    card older than it BLOCKS; a --stops rotate-self (stops_rotation=True)
-    carries the exclusion so that same commit is invisible and check 4 reads
-    ok. FALSIFIER for SL7.12, which appended the exclusion to EVERY prepare:
-    revert the conditionality and the plain case can no longer block on a
-    seats-only commit."""
+    """The SL7.30 conditional seats/posts exclusion is GONE: the clock is
+    already seat-scoped, so check 4 reads the SAME verdict with and without
+    `stops_rotation`."""
     import os
     card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    os.utime(card, (1000000000, 1000000000))   # older than any injected ts
+    os.utime(card, (1000000000, 1000000000))
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
-    plain_spec = ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
-                  ":(exclude).agi/comms",
-                  ":(exclude).agi/sessions/rotations",
-                  ":(exclude)sessions/quorum/adv-alive.md")
-    stops_spec = plain_spec + (":(exclude)nodes/.geometry/posts.md",)
-    # a seats.md-only WORK commit (the plain scan sees it: ts > card); the
-    # stops scan EXCLUDES seats, so its 'last WORK commit' is older than the
-    # card (ts < card) — check 4 reads ok either way the mtime lands.
-    map_ = dict(ok)
-    map_[plain_spec] = ["9999999999"]
-    map_[stops_spec] = ["900000000"]
-    monkeypatch.setattr(rotate, "_git_maybe", _git_map(map_))
-    # plain prepare: no seats exclusion -> the seats-only commit ages the
-    # card -> BLOCK
-    rc = rotate.cmd_prepare(_args(), prep_root)
-    out = capsys.readouterr().out
-    assert rc == 3, out
-    assert "[BLOCK] card older than last commit" in out
-    # --stops rotate-self: carries the seats exclusion -> the seats-only
-    # commit is invisible to check 4 -> the card is NOT stale
-    checks = rotate._prepare_checks(prep_root, "adv-alive",
-                                    stops_rotation=True)
-    stale = [c for c in checks if c[1] == "card older than last commit"][0]
-    assert not stale[0], stale  # not blocked
-    # and the SAME fixture at stops must still read ok end-to-end; the
-    # flagged spec IS the one consulted
-    seen = []
-    def recorder(_cwd, *args):
-        if args and args[0] == "log":
-            seen.append(args)
-        return map_.get(args)
-    monkeypatch.setattr(rotate, "_git_maybe", recorder)
-    rotate._prepare_checks(prep_root, "adv-alive", stops_rotation=True)
-    assert stops_spec in seen, seen
-    assert plain_spec not in seen  # plain scan is what the OTHER path runs
-    rotate._prepare_checks(prep_root, "adv-alive")
-    assert plain_spec in seen, seen
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(ok))
+    _stamp(prep_root, "9999999999")   # the seat acted after the card
+    plain = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
+             if c[1] == "card older than last commit"][0]
+    stops = [c for c in rotate._prepare_checks(prep_root, "adv-alive",
+                                               stops_rotation=True)
+             if c[1] == "card older than last commit"][0]
+    assert plain[0] is True, plain     # blocked, the own act is newer
+    assert stops == plain, (plain, stops)
 
 
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
