@@ -724,3 +724,116 @@ def test_suite_stamp_round_trips_across_groots(monkeypatch, tmp_path):
     verification._record_suite_ts(main_groot)
     ts_seat_read = verification._read_suite_ts(seat_groot)
     assert ts_seat_read is not None and abs(ts_seat_read - time.time()) < 60
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-verify-suite-check-refuses-a-node-directory-outside-the-
+# active-schema-set -- the stray-directory guard. Fixture-rooted for the FAIL
+# case, the live tree read-only for the PASS case. The check never writes.
+# --------------------------------------------------------------------------
+
+def _stray_fixture(tmp_path, dirs, schema_files):
+    """A throwaway `.agi` graph: `<groot>/nodes/<dir>` for each `dirs` entry
+    and `<groot>/context/schemas/<file>` for each `schema_files` entry. The
+    live tree is never touched."""
+    groot = tmp_path / ".agi"
+    (groot / "nodes").mkdir(parents=True)
+    (groot / "context" / "schemas").mkdir(parents=True)
+    for name in dirs:
+        (groot / "nodes" / name).mkdir()
+    for name in schema_files:
+        stem = name[:-3] if name.endswith(".md") else name
+        canonical = stem[1:-1] if stem.startswith("[") else stem
+        (groot / "context" / "schemas" / name).write_text(
+            f"---\nname: {canonical}\n---\n\nbody\n", encoding="utf-8")
+    return groot
+
+
+def test_node_dirs_fails_by_name_on_a_stray_and_is_read_only(tmp_path):
+    """Clause 1+2: a directory matching no schema FAILS by name; the check
+    writes nothing, and every other directory (`deprecated`, `.geometry`, the
+    legitimate active type) is not named."""
+    groot = _stray_fixture(
+        tmp_path,
+        dirs=["hypothesis", ".geometry", "deprecated", "notown"],
+        schema_files=["[hypothesis].md"],
+    )
+    stray_file = groot / "nodes" / "notown" / "missing-thing.md"
+    stray_file.write_text("a stray node of a non-existent type\n",
+                          encoding="utf-8")
+    r = verification.check_node_dirs(groot)
+    assert r.status == "FAIL", r.note
+    assert "STRAY NODE DIR(S): notown" in r.note
+    named = r.note.split(" -- ")[0].removeprefix("STRAY NODE DIR(S): ")
+    assert named.split(", ") == ["notown"], (
+        f"named more than the stray: {named}")
+    assert r.number["stray"] == 1
+    assert stray_file.exists(), "the check must not touch what it finds"
+
+
+def test_node_dirs_names_every_stray_not_just_the_first(tmp_path):
+    """Clause 2: every stray directory is named, not the first one found."""
+    groot = _stray_fixture(tmp_path, dirs=["hypothesis", "alpha", "zeta"],
+                          schema_files=["[hypothesis].md"])
+    r = verification.check_node_dirs(groot)
+    assert r.status == "FAIL"
+    assert "alpha" in r.note and "zeta" in r.note
+    assert r.number["stray"] == 2
+
+
+def test_node_dirs_passes_with_no_stray(tmp_path):
+    """Clause 1 PROOF: a fixture with only legitimate dirs PASSES."""
+    groot = _stray_fixture(tmp_path, dirs=["hypothesis", ".geometry",
+                                           "deprecated"],
+                          schema_files=["[hypothesis].md"])
+    r = verification.check_node_dirs(groot)
+    assert r.status == "PASS", r.note
+    assert r.number["stray"] == 0
+
+
+def test_node_dirs_passes_on_a_deprecated_type_directory(tmp_path):
+    """Clause 3: a directory whose schema file is NOT bracket-named (an
+    inactive/deprecated type) is legitimate -- only a name matching NO schema
+    at all is stray. `agent_session.md` is the live tree's own inactive
+    schema, spelled exactly as it exists today."""
+    groot = _stray_fixture(
+        tmp_path,
+        dirs=["hypothesis", "agent_session", ".geometry", "deprecated"],
+        schema_files=["[hypothesis].md", "agent_session.md"],
+    )
+    r = verification.check_node_dirs(groot)
+    assert r.status == "PASS", r.note
+
+
+def test_node_dirs_passes_on_the_live_tree_read_only():
+    """PROOF on the real tree: today it has no stray directory, so the check
+    PASSES. Read-only -- this only ever reads `.agi/nodes/`."""
+    groot = locations.find_project_root(Path(__file__).resolve().parent)
+    if groot is None:
+        pytest.skip("no live graph root enclosing this checkout")
+    r = verification.check_node_dirs(groot)
+    assert r.status == "PASS", r.note
+    assert r.number["stray"] == 0
+
+
+def test_node_dirs_runs_at_rotation_and_full_never_quick(monkeypatch, tmp_path):
+    """Clause 4: wired like bin-suite-fresh / seat-model -- appended by level
+    at rotation and full, absent from quick (the pre-commit set)."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+
+    def fake_run(groot, name, verbose):
+        if name == "smoke":
+            return verification.CheckResult(
+                "smoke", "PASS", 0.1,
+                {"active": 5, "deprecated": 1, "total": 6})
+        return verification.CheckResult(name, "PASS", 0.0, None)
+
+    monkeypatch.setattr(verification, "run_check", fake_run)
+    rot = verification.run_level(groot, "rotation", suite=False, verbose=False)
+    full = verification.run_level(groot, "full", suite=False, verbose=False)
+    quick = verification.run_level(groot, "quick", suite=False, verbose=False)
+    assert "node-dirs" in [r.name for r in rot]
+    assert "node-dirs" in [r.name for r in full]
+    assert "node-dirs" not in [r.name for r in quick]
+    assert rot[-1].name == "node-count", "node-count stays the closing check"
