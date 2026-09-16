@@ -100,7 +100,7 @@
       "ttl_minutes": 180,
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     },
-    "parent_max_kids": 5
+    "parent_max_kids": 10
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
