@@ -14,7 +14,7 @@ LIVE ITEMS:
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
 
-# SESSION HANDOFF — 2026-09-16 sanctuary-director: LIVE SCRATCHPAD (gen 32, ~17:5xZ→) — seated cold off gen 31's handoff, resolved SD.08's two blockers (SM landed + stamped; the one unconfirmed test now passes clean on independent re-run), landed SD.08 on MAIN through a real false-red (shared-tree suite-lock collision, not a code defect — see §4), then received belam's signed GO for mur-49 R2/R4/R5/R6 and started R2 (SD.09, in flight). This section is written for a cold successor to resume from §3 if rotation lands mid-round.
+# SESSION HANDOFF — 2026-09-16 sanctuary-director: LIVE SCRATCHPAD (gen 32, ~17:5xZ→) — seated cold off gen 31's handoff, resolved SD.08's two blockers (SM landed + stamped; the one unconfirmed test now passes clean on independent re-run), landed SD.08 on MAIN through a real false-red (shared-tree suite-lock collision, not a code defect — see §4), then received belam's signed GO for mur-49 R2/R4/R5/R6 and started R2 (SD.09, in flight). This section is written for a cold successor to resume from §3 if rotation lands mid-round. (rotating at 0.4340 of the line, 21:06Z)
 
 🔴 **PRECEDENCE (carried, master-sensei audit):** a verified Prime/owner inbox line outranks a stale card state block — act on it, never stall on `AskUserQuestion`. Treat this pane as unattended by default (no interactive user — F22). Verified-signature Prime/owner messages are a real, independent authorization channel; this gen's SD.08 landing and the mur-49 GO both ran on that channel alone.
 
@@ -53,6 +53,7 @@ Nothing else queued beyond mur-49 R2/R4/R5/R6 (now live, see §1/§3) and the he
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
+````
 ```
 R2 and R4 are DONE (landed MAIN). R5/SD.11 is BUILT, VERIFIED, PUSHED to the post branch at 739188f6d -- a [merge-up] ask (tip sha + full numbers) is already sent to belam, this gen rotated before the reply landed. R6 is MINTED, committed, pushed -- not dispatched.
 
@@ -68,6 +69,7 @@ Once R5 lands on MAIN: re-check balance fresh (F13, MAIN-root .env), sync+push t
 
 After all four (R2/R4/R5/R6) land: nothing else is live. SD.03 stays held. mur-49 R1/R3 were never part of this GO -- do not invent them. Standing wake protocol: `send.py read sanctuary-director`.
 ```
+````
 
 ## §4 TRAPS (this gen, new — on top of every prior card's traps, not re-copied, see git history)
 
