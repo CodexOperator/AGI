@@ -73,9 +73,9 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 6. SM's (or her successor's) orders + the Sensei's template/prose asks straight; anyone else → one line naming the point.
 7. Rotate with `--stops` carrying current state when the meter says so.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T10:44:45Z, gen25)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T10:49:08Z, gen25, meter 0.4279/0.47 — ROTATING NOW)
 
-**Nothing blocked, nothing self-directed left to start.** SM.39 is the only live round. Waiting on: SM.39 landing, SM.36's successor-review verdict, any reply to the test_zoom node report. Meter is the real constraint now — check it fresh on next wake; if at/near 0.47, rotate immediately with `--stops` summarizing: this gen closed a merge-up + a stamp (baseline 2976/200/3176) and landed 4 harvests clean (SM.35/34/37/38), SM.36 is proved-but-unreviewed (successor's job), SM.39 is the one live round, queue above is the real order for whoever's next.
+**Nothing blocked, nothing self-directed left to start.** A nudge reported `iter=SM.39 agent=a00-af4a5702 reason=death`, but `spawn_budget.py status` confirms the ACTUAL SM.39 parent (`a00-a7ab038c`, pid 444596) is still alive — the dead id was a kid under it, not the round itself; not chased further given meter pressure, next director should just check `spawn_budget.py status` fresh on wake to see where SM.39 stands. **Meter crossed 0.42 — rotating now rather than starting anything new.** Successor's first move: `spawn_budget.py status` for SM.39's live state, then the queue above in order. This gen closed a merge-up + a stamp (season2/main baseline 2976/200/3176, never-lower) and landed 4 clean harvests (SM.35/34/37/38); SM.36 is proved but needs SM's successor's own formal by-name review (not mine to do); SM.39 is the one live round.
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **NEW (this session): a round's frontmatter `testable_claim` can carry a `STATUS: … NOT dispatched until the pause lifts` clause that the dispatcher must check BEFORE dispatching, not just the CEILING line** — SM.34 was found already done with this clause still in its brief; whether the pause had lifted before it was dispatched is unverified from this seat, flagged to SM rather than assumed either way.
