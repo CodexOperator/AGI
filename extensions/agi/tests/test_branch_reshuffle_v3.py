@@ -916,6 +916,12 @@ def test_v3_delete_old_admits_a_local_post_and_removes_its_origin_alias(
     for alias in ("post/sanctuary-director@s2", "post/sanctuary-helper@s2"):
         _git(r, "branch", alias)
         _git(r, "push", "-q", "origin", f"{alias}:refs/heads/{alias}")
+    # clause (2)/(6): mirror the two posts' tips to refs/agi/posts/<name>.
+    # The season-first origin heads are now LOCAL-ONLY successors, so their
+    # mirror -- never a trunk head -- is what admits their deletion.
+    for post in ("sanctuary-director", "sanctuary-helper"):
+        _git(r, "push", "-q", "origin",
+             f"season2/posts/{post}:refs/agi/posts/{post}")
     root = r / ".agi"
     stamp = root / "sessions/verified.stamp"
     stamp.parent.mkdir(parents=True, exist_ok=True)
@@ -1340,6 +1346,12 @@ def test_v3_delete_old_admits_when_the_successor_is_present_on_origin(
     stamp = root / "sessions/verified.stamp"
     stamp.parent.mkdir(parents=True, exist_ok=True)
     stamp.write_text("green\n")
+    # clause (2)/(6): mirror both posts' tips BEFORE the apply renames the
+    # local branches (the mirror, not the trunk, is the post's presence
+    # proof); the trunk pair push by the apply is the town_main proof.
+    for post in ("sanctuary-director", "sanctuary-helper"):
+        _git(r, "push", "-q", "origin",
+             f"season2/posts/{post}:refs/agi/posts/{post}")
     res = _run_cli(root, "--apply", "--kinds", "main,posts,towns")
     assert res.returncode == 0, res.stdout + res.stderr
     got = _git(r, "ls-remote", "origin",
@@ -1455,11 +1467,14 @@ def test_v3_apply_zero_legacy_prints_refs_grid_line_on_refusal(tmp_path: Path):
 # to an old name after its local rename is destroyed unchecked without this.
 # --------------------------------------------------------------------------
 
-def _containment_repo(tmp_path: Path, diverged: bool) -> Path:
+def _containment_repo(tmp_path: Path, diverged: bool,
+                      mirror: bool = True) -> Path:
     """A bare-origin fixture with `season2/main` at the seed and a season-first
-    LOOP branch (kind the presence gate does not reach). `diverged=True` puts
-    the loop tip on a commit `season2/main` does not contain; False leaves it
-    at the shared seed (contained)."""
+    LOOP branch. `diverged=True` puts the loop tip on a commit `season2/main`
+    does not contain; False leaves it at the shared seed (contained).
+    `mirror=True` pushes the clause-(2) mirror `refs/agi/loops/x-a00-1` at the
+    seed (the presence proof the re-keyed gate reads); `mirror=False` leaves
+    it absent."""
     r = tmp_path / "repo"
     r.mkdir()
     bare = tmp_path / "origin.git"
@@ -1490,6 +1505,13 @@ def _containment_repo(tmp_path: Path, diverged: bool) -> Path:
     _git(r, "remote", "add", "origin", str(bare))
     _git(r, "branch", "season2/main")
     _git(r, "push", "-q", "origin", "season2/main:refs/heads/season2/main")
+    # clause (2): a LOOP branch is local-only too, so the fixture mirrors its
+    # tip to `refs/agi/loops/<name>` at the seed -- the presence proof the
+    # gate reads. A head that then diverges is a CONTENT divergence, which is
+    # the gate these tests are about; mirror=False leaves it absent.
+    if mirror:
+        _git(r, "push", "-q", "origin",
+             "season2/main:refs/agi/loops/x-a00-1")
     _git(r, "checkout", "-q", "-b", "season2/loops/x-a00-1")
     if diverged:
         _write(r, "loop.txt", "unmerged loop work\n")
@@ -1568,13 +1590,16 @@ def test_delete_old_admits_a_contained_loop(tmp_path: Path):
 # --------------------------------------------------------------------------
 
 
-def _presence_pass_repo(tmp_path: Path, contained: bool) -> Path:
+def _presence_pass_repo(tmp_path: Path, contained: bool,
+                        mirror: bool = True) -> Path:
     """A bare-origin fixture where a season-first POST is a `new is None`
-    direct-delete job whose v3 successor `core/season2/main` IS present on
-    origin (so the PRESENCE gate passes it). `contained=True` leaves the post
-    tip an ancestor of `core/season2/main`; `contained=False` (mur-52's shape)
-    moves the post tip onto a stray commit the successor does NOT contain, so
-    presence looks fine while containment FAILS."""
+    direct-delete job. Clause (6): the post's presence proof is its clause-(2)
+    MIRROR `refs/agi/posts/sanctuary-director`, so `mirror=True` pushes it
+    (from `core/season2/main`, == the seed) and the PRESENCE gate passes;
+    `mirror=False` leaves it absent and the gate must refuse. `contained=True`
+    leaves the post tip at the mirror's sha; `contained=False` (mur-52's
+    shape) moves the post tip onto a stray commit the mirror does NOT contain,
+    so presence looks fine while containment FAILS."""
     r = tmp_path / "repo"
     r.mkdir()
     bare = tmp_path / "origin.git"
@@ -1607,6 +1632,13 @@ def _presence_pass_repo(tmp_path: Path, contained: bool) -> Path:
     _git(r, "branch", "core/season2/main")
     _git(r, "push", "-q", "origin",
          "core/season2/main:refs/heads/core/season2/main")
+    # clause (2): the post's tip is mirrored to the flat refs/agi/posts/<name>
+    # namespace -- the ONLY proof that survives the origin head's deletion.
+    # Taken at the SEED so a head that moves AFTER the mirror is a containment
+    # divergence (mur-52's shape), and absent entirely when mirror=False.
+    if mirror:
+        _git(r, "push", "-q", "origin",
+             "core/season2/main:refs/agi/posts/sanctuary-director")
     _git(r, "checkout", "-q", "-b", "season2/posts/sanctuary-director")
     if not contained:
         # a stray commit the successor does not contain: presence is fine,
@@ -1657,3 +1689,123 @@ def test_delete_old_admits_a_contained_post_whose_successor_is_present(
     gone = _git(r, "ls-remote", "origin",
                 "refs/heads/season2/posts/sanctuary-director").stdout.strip()
     assert not gone, gone
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-and-
+# the-merge-up-takes-the-suite-lock-itself-no-window-ask, clause (6): the
+# delete gates key BY KIND -- a post/loop successor is LOCAL-ONLY, so its
+# clause-(2) mirror (refs/agi/posts|loops/<leaf>), never refs/heads/<name>,
+# is the presence and containment proof. These four tests are the clause's
+# own discriminating evidence: the SAME post job ADMITTED with the mirror
+# present+contained and REFUSED with it ABSENT (even though its old
+# successor `core/season2/main` is present, which is what the pre-fix
+# head-keyed gate keyed on), the loop arm admitted only after ls-remote
+# proves the mirror, and the town_main arm keeping its HEAD (no regression).
+# --------------------------------------------------------------------------
+
+
+def test_delete_old_admits_a_post_whose_mirror_is_present_and_contained(
+        tmp_path: Path):
+    """Clause (6): a kind=post delete job whose clause-(2) mirror
+    `refs/agi/posts/sanctuary-director` is PRESENT on origin and holds the
+    head's own tip is ADMITTED, and the mirrored copy survives the head's
+    deletion."""
+    r = _presence_pass_repo(tmp_path, contained=True, mirror=True)
+    _containment_stamp(r)
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSES" not in res.stderr, res.stdout + res.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert not gone, gone
+    kept = _git(r, "ls-remote", "origin",
+                "refs/agi/posts/sanctuary-director").stdout.strip()
+    assert kept, "the mirror is the copy that must survive the head delete"
+
+
+def test_delete_old_refuses_a_post_by_name_when_its_mirror_is_absent(
+        tmp_path: Path):
+    """THE CLAUSE-(6) FALSIFIER: a kind=post delete job whose clause-(2)
+    mirror is ABSENT on origin is REFUSED BY NAME and nothing is deleted.
+    The post's OLD successor `core/season2/main` IS present on origin here,
+    so the pre-fix head-keyed gate ADMITTED this job -- it would have deleted
+    the only copy of the post's work."""
+    r = _presence_pass_repo(tmp_path, contained=True, mirror=False)
+    _containment_stamp(r)
+    trunk = _git(r, "ls-remote", "origin",
+                 "refs/heads/core/season2/main").stdout.strip()
+    assert trunk, "fixture precondition: the old head-keyed successor exists"
+    # the dry preview names the ref the gate actually gated on -- the MIRROR
+    dry = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "posts")
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+    assert "would need refs/agi/posts/sanctuary-director" in dry.stdout, \
+        dry.stdout
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "posts")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "REFUSES" in res.stderr, res.stderr
+    assert "season2/posts/sanctuary-director" in res.stderr, res.stderr
+    got = _git(r, "ls-remote", "origin",
+               "refs/heads/season2/posts/sanctuary-director").stdout.strip()
+    assert got, "a post whose mirror is absent must survive --delete-old"
+
+
+def test_delete_old_loop_is_refused_without_its_mirror_and_admitted_with_it(
+        tmp_path: Path):
+    """Clause (6) for the LOOP kind: the presence proof is
+    `refs/agi/loops/x-a00-1`, not the season trunk head. Absent -> refused by
+    name and nothing deleted; once ls-remote proves the mirror, the SAME job
+    is admitted and deleted."""
+    r = _containment_repo(tmp_path, diverged=False, mirror=False)
+    _containment_stamp(r)
+    dry = _run_cli(r / ".agi", "--dry-run", "--delete-old", "--kinds",
+                   "loops")
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+    assert "would need refs/agi/loops/x-a00-1" in dry.stdout, dry.stdout
+    res = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "REFUSES" in res.stderr, res.stderr
+    kept = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert kept, "a loop with no mirror must survive --delete-old"
+    _git(r, "push", "-q", "origin", "season2/main:refs/agi/loops/x-a00-1")
+    res2 = _run_cli(r / ".agi", "--delete-old", "--kinds", "loops")
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    assert "REFUSES" not in res2.stderr, res2.stdout + res2.stderr
+    gone = _git(r, "ls-remote", "origin",
+                "refs/heads/season2/loops/x-a00-1").stdout.strip()
+    assert not gone, gone
+
+
+def test_rs_v3_gate_ref_keys_by_kind_and_never_returns_a_bare_name():
+    """Clause (6), unit: the presence proof is a FULL ref, keyed by kind. A
+    post/loop job reads its clause-(2) mirror in BOTH spellings
+    (`season2/posts/x`, `core/season2/posts/x/main`, `season2/loops/r-a`,
+    `core/season2/posts/x/loops/r/a`) and an alias canonicalises first; a
+    town_main keeps its v3 town-first HEAD -- the no-regression arm. An
+    unparseable name yields None so the caller REFUSES, never guesses."""
+    sys.path.insert(0, str(BIN))
+    import cli  # noqa: E402
+    cases = [
+        ({"old": "season2/posts/x", "new": None, "kind": "post"}, 2,
+         "refs/agi/posts/x"),
+        ({"old": "core/season2/posts/x/main", "new": None,
+          "kind": "post"}, 2, "refs/agi/posts/x"),
+        ({"old": "post/x@s2", "new": "season2/posts/x", "kind": "post"},
+         2, "refs/agi/posts/x"),
+        ({"old": "season2/loops/r-a", "new": None, "kind": "loop"}, 2,
+         "refs/agi/loops/r-a"),
+        ({"old": "core/season2/posts/x/loops/r/a", "new": None,
+          "kind": "loop"}, 2, "refs/agi/loops/r-a"),
+        ({"old": "season2/web-app-suite/season1/main", "new": None,
+          "kind": "town_main"}, 2,
+         "refs/heads/web-app-suite/season1/main"),
+    ]
+    for job, season, want in cases:
+        got = cli._rs_v3_gate_ref([], job, season)
+        assert got == want, (job, got, want)
+        assert got.startswith("refs/"), "a bare branch name is never a gate ref"
+    assert cli._rs_v3_gate_ref(
+        [], {"old": "not/a/grammar/name/@@", "new": None, "kind": "post"},
+        2) is None

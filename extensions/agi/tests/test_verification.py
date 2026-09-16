@@ -427,6 +427,33 @@ def test_suite_lock_guard_stale_proceeds(tmp_path, monkeypatch):
     assert not lock.exists()
 
 
+def test_suite_lock_guard_marker_naming_the_holder_proceeds(tmp_path,
+                                                            monkeypatch):
+    """SM.25b defect (2): a caller that ALREADY holds the lock (cmd_merge_up)
+    exports SUITE_LOCK_MARKER = its own live pid. When that marked pid IS the
+    lock's live holder this is NOT a foreign hold: the spawned runner
+    PROCEEDS, the lock file is left untouched (still held across the suite),
+    and nothing hangs. A marker naming any OTHER pid changes nothing -- that
+    is still a foreign hold and refuses."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+    monkeypatch.setenv(verification.SUITE_LOCK_MARKER, "424242")
+
+    assert verification._suite_lock_guard(tmp_path) is None  # proceed
+    # the lock is NOT released: the caller still holds it across the suite
+    assert lock.exists() and lock.read_text().strip() == "424242"
+
+    # a marker naming a DIFFERENT live pid is still a foreign hold: refuse
+    monkeypatch.setenv(verification.SUITE_LOCK_MARKER, "7")
+    monkeypatch.setattr(verification, "_pid_alive",
+                        lambda pid: pid in (424242, 7))
+    msg = verification._suite_lock_guard(tmp_path)
+    assert msg is not None and "lock held by 424242" in msg, msg
+    assert lock.read_text().strip() == "424242"
+
+
 def test_suite_lock_guard_free_proceeds(tmp_path, monkeypatch):
     """A FREE lock is no reason to refuse: the guard returns None and leaves
     no lock on file, so the child pytest (conftest) acquires as the single
