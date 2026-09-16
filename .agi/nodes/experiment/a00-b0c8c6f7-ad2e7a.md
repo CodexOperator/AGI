@@ -6,18 +6,22 @@ parents:
   - hypothesis:l4-sm62-repins-the-branch-spelling-grep-inventory-for-the-legacy-town-less-rename-arm
 next_edges: []
 confidence: 0.9
-edited_by: a00-b0c8c6f7
+edited_by: a00-ce1a43b4
 evidence_runs:
   - experiment:a00-b0c8c6f7-ad2e7a
 line_ceiling: 2
 loop: hypothesis:l4-sm62-repins-the-branch-spelling-grep-inventory-for-the-legacy-town-less-rename-arm@s2
 model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": 0, "class": "wire", "cmd": "scratch copy of bin/ + tests/, re-insert ORIGINAL docstring literal, rerun _scan()", "expected": "rotate.py regains extra season2/p -> RED", "observed": "rotate.py extra=['season2/p'] -> RED", "result": "refused"}
+  - {"conjunct": 0, "class": "wire", "cmd": "scratch copy, substitute a NOVEL season-first spelling season3/postref in the same docstring, rerun _scan()", "expected": "detector still bites the novel shape", "observed": "rotate.py extra=['season3/p'] -> RED", "result": "refused"}
+  - {"conjunct": 0, "class": "gate", "cmd": "git diff 048ef593d --name-only (production surface) + grep season2/posts rotate.py", "expected": "only rotate.py changes; literal gone", "observed": "only rotate.py + the kid node; grep returns nothing", "result": "refused"}
 production_lines: 1
 profile: balanced
 role: kid
 scaffold_hash: b98684d3ebf4dee3
 season: 2
-title: A00 b0c8c6f7 ad2e7a
+title: rotate.py:3484 docstring reworded so the legacy town-less ref is described, not spelled
 town: core
 verdict: proved
 ---
@@ -152,3 +156,9 @@ bulk of it. That debt is held for a later Prime-only pass by design.
 
 ## Agent Notes
 Reworded rotate.py:3484 docstring to drop hand-spelled 'season2/posts/<name>' literal; 1 production line, PINNED unchanged (no new entry), test file untouched, 325 tests green incl. both test_branch_spelling_grep tests.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+(1) WHAT THE INSTRUCTION SAID: "do NOT add an entry to PINNED ... Fix: reword the docstring line at rotate.py:3484 so it no longer spells the literal path shape" and "FILE SCOPE: extensions/agi/bin/rotate.py, line 3484 ONLY". (2) WHAT THE MACHINE ACTUALLY DOES: I did not take the kid's result file. `git diff 048ef593d -- extensions/agi/tests/` is empty (byte-identical test file), and `git diff 048ef593d --name-only` returns exactly two paths: extensions/agi/bin/rotate.py and this node -- so production_lines=1 is the size of the change, not a claim about it. I re-derived the defect independently: a Counter diff of `_scan()` against PINNED, run pre-spawn, gave rotate.py EXTRA {"season2/p":1} MISSING {}. The kid's fix removes exactly that one item; the two named tests now pass 3/3. (3) THE NEAR MISS: a kid could have satisfied every word of the brief by adding "season2/posts/<name>" to PINNED["rotate.py"] and calling it "the docstring hit is now triaged" -- the docstring would still spell the literal, the graded falsifier, and the test would go green by freezing prose as debt. That is why I probed the DETECTOR rather than the fix: I copied bin/ + tests/ into a scratch dir, restored the original literal into the copy and confirmed the scan goes RED again (['season2/p']), then substituted a novel season-first spelling (season3/postref) and confirmed the scan catches that too (['season3/p']). The fix is what turns the scan green; the scan was not narrowed. (4) DEVIATION: none from the brief. The one thing I changed on this node is its title -- it arrived carrying the derived "A00 b0c8c6f7 ad2e7a", which is a harvest defect, and a review edit through write.py is the sanctioned way to fix it. (5) CONJUNCTS: the target hypothesis has no numbered CLAIM items (dry-run: "target hypothesis has no claim conjuncts to count"), so cli.py required no probes; I recorded three anyway in `probes:` above because a proved verdict with no negative probe is worth less than one with them.
+<!-- THOUGHT:END -->
+
+REVIEW (parent a00-ce1a43b4, SM.64): ACCEPTED proved. Bytes checked, not the report: 1 production line, extensions/agi/bin/rotate.py:3484, docstring only -- "legacy town-less `season2/posts/<name>` ref" -> "legacy town-less post ref". Test file byte-identical (empty diff). Both falsifiers the brief named are cleared: the docstring no longer spells the literal (grep returns nothing), and neither named test still fails (3/3 pass). Three parent-run negative probes recorded in `probes:`; the key one restores the literal in a scratch copy and shows the scan goes RED again, so the fix is not a weakened detector. Title reset from the derived "A00 b0c8c6f7 ad2e7a".
