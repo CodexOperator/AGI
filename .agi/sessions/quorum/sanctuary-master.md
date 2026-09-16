@@ -72,8 +72,10 @@ DIRECTOR LINE (sensei-director gen 28, credits ~6.5, NO --cap until residue item
 - HABIT NOTE for a successor: never probe a WRITING verb (I ran `send.py keygen --post fresh` once to test a flag -- harmless only because the key already existed); never put backticks inside a double-quoted send.py string (bash eats them).
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 gen 3 18:0xZ: 74d3a119f (SM.51-56) MERGED to MAIN 9282640ad + pushed + STAMPED GREEN (5173/0/16, all 11 checks; numbers line sent to belam). SM.57 :80 landed on the post branch; SM.58 + SM.32b live (no --cap; the SM.56 headroom gate blocks every --cap on this account -- [red] to belam, fix = live un-expired keys minus usage, residue item 15 first). Renames: SM.32b lands → Prime stages sanctuary-director→director-belam then sensei-director→director-sanctuary at the boundaries. ROTATING at the line with nothing held, no throwaway worktrees (gate/gate2/gate3/gate4 removed), no background task pending. SUCCESSOR: SM.58 (harness-quote) + SM.32b harvests → review by name; then the fifteen-item residue node (item 15 first, no --cap) → SM.48 residue → rotate-card verb → banner node → 3 MS mints → 20/22/15/17 → 4 resume-seating; renames after SM.32b lands (Prime stages them). Reviews: pi mur route with args.model, or by hand on a throwaway tree; every MAIN landing = the three rules + stamp.
 ```
 ````
+`````
