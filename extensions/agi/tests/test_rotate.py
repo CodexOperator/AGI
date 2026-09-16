@@ -3354,6 +3354,26 @@ def test_write_stops_section_headerless_card_round_trips(tmp_path):
     assert _r._locate_where_it_stops(secs) == (0, -1)
 
 
+def test_write_stops_section_created_shape_is_a_hash_hash_section(tmp_path):
+    """SM.69 item (1) residue FALSIFIER: the CREATED stops slot is a `## `
+    SECTION at the card's end, never a bare `### ` block. The LEVEL is what
+    closes the write->locate round trip (`_split_card_sections` splits on
+    `## ` only), so a future change back to `### ` must fail HERE rather
+    than silently reopen the preamble hole (the live six-stack)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# Seat card\n\nsome prose, no titled slot\n",
+                    encoding="utf-8")
+    _r._write_stops_section(card, "s", "first cmd")
+    _r._write_stops_section(card, "s", "second cmd")
+    lines = [ln for ln in card.read_text(encoding="utf-8").splitlines()
+             if "where it stops" in ln.lower()]
+    assert len(lines) == 1, lines
+    assert lines[0].startswith("## "), lines[0]
+    assert not lines[0].startswith("### "), lines[0]
+
+
 def test_rotate_self_closeout_dry_run_touches_no_card(
         fake_ladder, tmp_path, monkeypatch, capsys):
     """SM.69 item (1b) FALSIFIER: `rotate-self --closeout --form F --dry-run`
