@@ -356,6 +356,48 @@ def test_rotate_out_read_of_record_is_b_and_edit_of_card_is_d(tmp_path):
     assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
 
 
+def test_rotate_out_threads_the_session_id_like_wake_audit(tmp_path,
+                                                           monkeypatch):
+    # clause (1): rotate_out_audit must derive its hand-read paths with the
+    # seat's OWN session id, exactly as wake_audit does, so a session-keyed
+    # ack Read classifies the SAME (b) in both audits. A helper tested
+    # directly but never threaded from this call site fails the second half.
+    sid = "deadbeef-1111-2222-3333-444444444444"
+    graph, _ = _write_root(tmp_path, None)
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        f'  - {{"name": "{SEAT}", "role": "director", "tier": 1, '
+        f'"session_id": "{sid}"}}\n'
+        "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
+    ack = graph / "sessions" / "seats" / f"{SEAT}.ack.{sid[:8]}.json"
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text("{}\n", encoding="utf-8")
+    tr = graph / "keyed_ack.jsonl"
+    tr.write_text("\n".join([
+        json.dumps({"type": "user", "message": {"role": "user",
+                    "content": [{"type": "text",
+                                 "text": "merge-up 14: go"}]}}),
+        json.dumps({"type": "assistant", "message": {"role": "assistant",
+                    "content": [{"type": "tool_use", "name": "Read",
+                                 "input": {"path": str(ack)}}]}}),
+    ]) + "\n", encoding="utf-8")
+    assert rotate._ack_session_id(graph, SEAT) == sid
+    _, r_calls, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, tr)
+    _, w_calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+    assert [c["cat"] for c in r_calls] == ["b"]
+    assert [c["cat"] for c in w_calls] == ["b"]
+    assert r_calls[0]["tool"] == "Read" and w_calls[0]["tool"] == "Read"
+    assert [(c["cat"], c["label"]) for c in r_calls] == \
+           [(c["cat"], c["label"]) for c in w_calls]
+    # the signal is the THREADED identity, never a physical path: stub the
+    # identity to "" and the SAME read must fall to (d) in both audits.
+    monkeypatch.setattr(rotate, "_ack_session_id", lambda root, seat: "")
+    _, r_calls2, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, tr)
+    _, w_calls2, _ = sensei.wake_audit(graph, SEAT, None, tr)
+    assert [c["cat"] for c in r_calls2] == ["d"]
+    assert [c["cat"] for c in w_calls2] == ["d"]
+
+
 def test_rotate_out_and_wake_classify_the_same_tool_use_identically(tmp_path):
     # the SAME Read-of-a-record and Edit-of-a-card fed to BOTH audits yield
     # identical (cat, label) — the shared-wrapper parity guarantee.
