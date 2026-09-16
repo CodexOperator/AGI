@@ -9816,6 +9816,8 @@ SM.56 harvested + merged (--cap): 1 kid as briefed, proved, parent ACCEPT. dispa
 
 SM.57 landed: rotate.py stops-slot seal (l4-rotate-seals-the-stops-slot-on-the-bare-path). Kid1 built 4 clauses, parent falsified clause (b) pre-check via a negative probe (refused a missing slot instead of creating it, redundant with the delegate-side writer), kid2 deleted the 7-line pre-check (net -5 lines), parent re-verified, verdict proved. Rotate neighbourhood 538 passed/4 skipped post-merge.
 
+SM.58 harvested+merged: comms harness-text quoting (l4-comms-never-re-deliver-harness-shaped-text-raw). Fixed the PAIRED tag case (send.py read/peek quote a stored harness block as marked data; send refuses raw unless --quote-harness; rotate strips harness regions from both after_join composers via one shared signature/regex). Parent self-falsified: a LONE/truncated opening tag -- the byte-capped shape a real after_join output can produce, and likely the actual incident trigger -- still leaks raw on all three fronts. Verdict demoted proved -> inconclusive_lean_disproved:70. 66 prod lines (ceiling 40, under 2x, no re-brief owed). Neighbourhood 639 passed/4 skipped post-merge. Following up against the same node to close the lone-tag gap (parent named the exact 1-line fix).
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
