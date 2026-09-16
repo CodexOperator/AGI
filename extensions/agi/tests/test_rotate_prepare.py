@@ -19,7 +19,9 @@ versa) fails these tests.
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -240,26 +242,47 @@ def test_prepare_card_check_reads_the_seats_own_last_act(
     assert all("--no-merges" not in a for a in seen), seen
 
 
-def test_check_4_is_identical_under_stops_and_plain(
+def test_stops_rotation_parameter_is_retired_by_name():
+    """SM.68 residue (6): `_prepare_checks` no longer takes `stops_rotation`.
+    The SL7.30 seats/posts exclusion it gated was removed when check 4 moved
+    to the seat-scoped `bin/last_act.py` clock, leaving a parameter NOTHING
+    read while its docstring still claimed it changed behaviour -- SL7.30's
+    original assertion had been DELETED, not re-anchored. This names the
+    retirement in the SIGNATURE; the old test only asserted the dead argument
+    was inert, which would pass forever."""
+    assert "stops_rotation" not in inspect.signature(
+        rotate._prepare_checks).parameters
+
+
+def test_card_check_names_the_unmeasurable_state(
         prep_root, capsys, monkeypatch):
-    """The SL7.30 conditional seats/posts exclusion is GONE: the clock is
-    already seat-scoped, so check 4 reads the SAME verdict with and without
-    `stops_rotation`."""
-    import os
-    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    os.utime(card, (1000000000, 1000000000))
+    """SM.68 residue (5): no stamp AND no card commit -> NOTHING measurable.
+    That used to print the SAME `[ok] card older than last commit` a
+    measured-fresh seat prints, so a seat whose clock could not be read was
+    indistinguishable from one read and found fresh. The unmeasurable verdict
+    is named; the measured-fresh label stays byte-identical."""
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(ok))
-    _stamp(prep_root, "9999999999")   # the seat acted after the card
-    plain = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
-             if c[1] == "card older than last commit"][0]
-    stops = [c for c in rotate._prepare_checks(prep_root, "adv-alive",
-                                               stops_rotation=True)
-             if c[1] == "card older than last commit"][0]
-    assert plain[0] is True, plain     # blocked, the own act is newer
-    assert stops == plain, (plain, stops)
+    # no stamp, git absent -> card_stale returns (False, None): unmeasured.
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    line = next(ln for ln in out.splitlines()
+                if "card older than last commit" in ln)
+    assert line.startswith("[ok]"), line
+    assert "unmeasured" in line, line
+    # measured-fresh: a real own act BEHIND the card -> the plain label, no
+    # suffix (the existing test pins the same string for the fresh case).
+    _stamp(prep_root, "1000000000")
+    os.utime(prep_root / "sessions" / "quorum" / "adv-alive.md",
+             (2000000000, 2000000000))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    line = next(ln for ln in out.splitlines()
+                if "card older than last commit" in ln)
+    assert line == "[ok] card older than last commit", line
 
 
 def test_hook_and_rotate_agree_on_the_card_stale_verdict(prep_root, monkeypatch):
@@ -1715,3 +1738,134 @@ def test_prepare_check1_origin_mirror_behind_head_and_unread(tmp_path):
     assert blocker is False, (blocker, name)
     assert "unmeasured" in name, name
     assert "vs refs/agi/posts/adv-alive" not in name, name
+
+
+# SM.48 residue (1): `merge-up` is an act BY THE CALLER, never by the post it
+# merged. The pre-fix call site stamped the resolved --post TARGET, so a
+# Prime/SM merge-up of a director's post re-staled that DIRECTOR's card -- the
+# captive loop reopened from the other side. Fixture-only: every git seam
+# (merge, push, mirror, suite, lock, node counts, send) is injected, so no
+# remote, no lock and no real merge is ever touched.
+# --------------------------------------------------------------------------
+
+def test_merge_up_stamps_the_caller_never_the_post_target(tmp_path, monkeypatch):
+    """FALSIFIER: caller `prime` merges up post `director` -- the stamp must
+    land on `prime`, and `director`'s stamp must NOT move. Exercised end to
+    end through `cmd_merge_up` (not a source grep): the merge, push, mirror
+    and suite seams are injected, the last-act seam is recorded."""
+    import last_act as last_act_mod  # noqa: PLC0415
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True)
+    lock = tmp_path / "suite.lock"
+    lock.write_text("")
+    main = tmp_path / "main"
+    main.mkdir()
+
+    monkeypatch.setattr(rotate, "_caller_post",
+                        lambda root: ("prime", {"seat": "prime"}, "test"))
+    monkeypatch.setattr(rotate, "_find_seat", lambda root, seat: {"seat": seat})
+    monkeypatch.setattr(rotate, "_rank_gate", lambda *a, **k: "")
+    monkeypatch.setattr(rotate, "merge_up_plan", lambda root, post: {
+        "main": main, "branch": "core/season2/posts/director/main",
+        "target": "season2/main", "mirror": "refs/agi/posts/director"})
+    monkeypatch.setattr(rotate, "_shared_graph_root", lambda root: graph)
+    monkeypatch.setattr(rotate, "_closeout_branch", lambda cwd: "season2/main")
+    monkeypatch.setattr(rotate, "_closeout_main_clean",
+                        lambda m, b: (True, [], []))
+    import verification  # noqa: PLC0415
+    monkeypatch.setattr(verification, "acquire_suite_lock",
+                        lambda groot: (lock, None))
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda root, m: (True, "ok", {"passed": 2}))
+    monkeypatch.setattr(rotate, "_git_proc",
+                        lambda cwd, *a: SimpleNamespace(returncode=0,
+                                                        stdout="", stderr=""))
+    monkeypatch.setattr(rotate, "_git_maybe", lambda cwd, *a: ["abc1234"])
+    monkeypatch.setattr(rotate.branches, "mirror_and_prove",
+                        lambda *a, **k: (True, "ok", {"ref": "refs/agi/x",
+                                                      "sha": "deadbeefcafe"}))
+    monkeypatch.setattr(rotate, "_origin_head_delete_gate",
+                        lambda repo, branch, *, delete_old: ("dry", "no delete"))
+    monkeypatch.setattr(rotate, "_node_counts", lambda groot: (1, 2, 3))
+    monkeypatch.setattr(rotate, "_closeout_prime_seat", lambda root: "prime")
+    import send as send_mod  # noqa: PLC0415
+    monkeypatch.setattr(send_mod, "send", lambda *a, **k: ("prime", True))
+    stamped: list[str] = []
+    monkeypatch.setattr(last_act_mod, "touch_env",
+                        lambda root, explicit=None: stamped.append(explicit) or "")
+
+    args = SimpleNamespace(post="director", name=None, dry_run=False,
+                           delete_old=False)
+    assert rotate.cmd_merge_up(args, graph) == 0
+    assert stamped == ["prime"], stamped            # the CALLER, not the post
+    assert "director" not in stamped, stamped
+    # the TARGET's own stamp is untouched on disk as well
+    assert not (graph / "sessions" / "seats" / "director.last-act").exists()
+
+
+# SM.48 residue (2): check 1 (`rev-list --count <upstream>..HEAD`) scoped by
+# AUTHOR. A commit the acting checkout's own identity did not write -- a
+# `grid_sync` cron commit on a shared trunk -- is not this seat's unpushed
+# work and must not captive its rotation. Real fixture repo + bare origin.
+# --------------------------------------------------------------------------
+
+def _trunk_repo(tmp_path):
+    """A real repo on `season2/main` with its upstream set and its
+    user.email the SEAT's own identity; commits are then authored by
+    whoever the test names (`grid <grid@agi>` for the cron)."""
+    origin = tmp_path / "origin.git"
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    subprocess.run(["git", "init", "-q", "-b", "season2/main", str(repo)],
+                   check=True)
+    _git_in(repo, "config", "user.email", "seat-x@agi")
+    _git_in(repo, "config", "user.name", "seat-x")
+    (repo / "seed").write_text("s\n", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    _git_in(repo, "commit", "-qm", "seed")
+    _git_in(repo, "remote", "add", "origin", str(origin))
+    _git_in(repo, "push", "-q", "-u", "origin", "season2/main")
+    return repo
+
+
+def _commit_as(repo, path, who):
+    (repo / path).write_text("x\n", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", f"{who} work"],
+                   check=True, capture_output=True, text=True,
+                   env={"PATH": "/usr/bin:/bin", "HOME": str(repo / ".."),
+                        "GIT_AUTHOR_NAME": who, "GIT_AUTHOR_EMAIL": f"{who}@agi",
+                        "GIT_COMMITTER_NAME": who,
+                        "GIT_COMMITTER_EMAIL": f"{who}@agi"})
+
+
+def test_prepare_check1_foreign_authors_unpushed_commit_never_blocks(tmp_path):
+    """FALSIFIER: HEAD carries one unpushed commit authored by `grid` (the
+    cron identity), not by this checkout's own identity -> check 1 must NOT
+    block, and must NAME the foreign count rather than read a silent
+    'pushed'. An unpushed commit of the seat's OWN is still a BLOCK with
+    `git push` as the clear (SL7.113's auto-push path depends on it)."""
+    repo = _trunk_repo(tmp_path)
+    _commit_as(repo, "cron", "grid")
+
+    blocker, name, clear = rotate._prepare_checks(repo, "seat-x")[0]
+    assert blocker is False, (blocker, name)
+    assert "unpushed commits vs refs/agi" not in name, name
+    assert "other author" in name, name        # NAMED, never a silent pushed
+    assert "grid" not in name                  # the count, not the identity
+    assert "1" in name, name
+    assert clear == "git push", clear
+
+    # the pre-fix read (the unscoped count) really is 1 here -- the fixture
+    # is not vacuous.
+    raw = subprocess.run(["git", "-C", str(repo), "rev-list", "--count",
+                          "@{u}..HEAD"], capture_output=True, text=True)
+    assert raw.stdout.strip() == "1"
+
+    # the seat's OWN unpushed commit still BLOCKS, exactly as before
+    _commit_as(repo, "mine", "seat-x")
+    blocker, name, clear = rotate._prepare_checks(repo, "seat-x")[0]
+    assert blocker is True, (blocker, name)
+    assert name == "unpushed commits", name
+    assert clear == "git push", clear
