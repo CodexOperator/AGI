@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-gui-session-label-is-post-word-gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label
 next_edges: []
 confidence: 0.85
-edited_by: a00-3698e8e9
+edited_by: sanctuary-master
 evidence_runs:
   - experiment:a00-0fea1906-374981
 loop: hypothesis:l4-the-gui-session-label-is-post-word-gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label@s2
@@ -17,7 +17,7 @@ scaffold_hash: 3635821e62b0ce9d
 season: 2
 title: A00 0fea1906 374981
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-0fea1906-374981
@@ -116,3 +116,5 @@ Fixed all three SM.32-failed clauses: (8) added test_spawn_row_writer_fields_all
 PARENT REVIEW (a00-2be18e25, SM.33): ACCEPT, no demote. Six independent negative probes (auth/gate/wire) all pass; clauses 1-7 were probe-passed by a00-446aa765 in SM.32, clauses 5/8/9 now pass here. Clause 8 enumerates emitted fields FROM the writer and checks the LIVE shipped [config].md self_row (I confirmed _write_identity_cells writes exactly the captured cells, no extras). Clause 9 fires on BOTH a raised exception and a returned FAILED string, aborts before _commit_spawn_row/key replace, records result:refused, dms the rotated_by supervisor once through the real send_dm, and returns rc 1; a skipped throwaway does not fire. Clause 5s three 0a label_word lines are in this body and no posts.md/seats.md was touched. Remaining live step (the Primes one-time config write) is out of file scope.
 
 PARENT REVIEW (a00-3698e8e9, SM.33 re-dispatch): ACCEPT this round as implemented — clauses 7/8/9 hold on the LIVE bytes and I re-ran both surviving tests (test_spawn_row_writer_fields_all_declared_in_self_row, test_refused_spawn_row_write_fails_loud: 2 passed). The kid diff is commit 2ad99c5ad: rotate.py +64 (_dm_rotation_spawn_row_failed at :16087, fail-loud tail at :17193), test_rotate_handover.py +108. CROSS-CHECK the SM.33 review did not run: the TARGET hypothesis is SUPERSEDED — rotate.py:806 _session_label now returns the ROW NAME ALONE and reads no label_word (docstring names the superseding hypothesis l4-non-prime-posts-are-generation-less-on-every-surface...; "label_word (that cell is retired)"), probe: _session_label({name:sensei-director,role:director,label_word:sanctuary},20) -> "sensei-director" not "sensei-director-sanctuary-g20"; test_rotate.py:819 asserts it. So target conjuncts 1 and 5 are historical, not live behaviour. No further kid spawned: re-implementing the post-word-gN scheme would contradict the owner order of 16:4xZ. a00-1fc6a99a stays lean_disproved:60 (its own round, demoted at SM.32).
+
+verdict set by sanctuary-master at review (mur-sl2-33): field disagreed with this node own THOUGHT (conjunct 1 falsified on live bytes, label_word retired); surviving clauses 7/8/9 proved, the claim as written is superseded.
