@@ -356,6 +356,48 @@ def test_rotate_out_read_of_record_is_b_and_edit_of_card_is_d(tmp_path):
     assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
 
 
+def test_rotate_out_threads_the_session_id_like_wake_audit(tmp_path,
+                                                           monkeypatch):
+    # clause (1): rotate_out_audit must derive its hand-read paths with the
+    # seat's OWN session id, exactly as wake_audit does, so a session-keyed
+    # ack Read classifies the SAME (b) in both audits. A helper tested
+    # directly but never threaded from this call site fails the second half.
+    sid = "deadbeef-1111-2222-3333-444444444444"
+    graph, _ = _write_root(tmp_path, None)
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        f'  - {{"name": "{SEAT}", "role": "director", "tier": 1, '
+        f'"session_id": "{sid}"}}\n'
+        "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
+    ack = graph / "sessions" / "seats" / f"{SEAT}.ack.{sid[:8]}.json"
+    ack.parent.mkdir(parents=True, exist_ok=True)
+    ack.write_text("{}\n", encoding="utf-8")
+    tr = graph / "keyed_ack.jsonl"
+    tr.write_text("\n".join([
+        json.dumps({"type": "user", "message": {"role": "user",
+                    "content": [{"type": "text",
+                                 "text": "merge-up 14: go"}]}}),
+        json.dumps({"type": "assistant", "message": {"role": "assistant",
+                    "content": [{"type": "tool_use", "name": "Read",
+                                 "input": {"path": str(ack)}}]}}),
+    ]) + "\n", encoding="utf-8")
+    assert rotate._ack_session_id(graph, SEAT) == sid
+    _, r_calls, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, tr)
+    _, w_calls, _ = sensei.wake_audit(graph, SEAT, None, tr)
+    assert [c["cat"] for c in r_calls] == ["b"]
+    assert [c["cat"] for c in w_calls] == ["b"]
+    assert r_calls[0]["tool"] == "Read" and w_calls[0]["tool"] == "Read"
+    assert [(c["cat"], c["label"]) for c in r_calls] == \
+           [(c["cat"], c["label"]) for c in w_calls]
+    # the signal is the THREADED identity, never a physical path: stub the
+    # identity to "" and the SAME read must fall to (d) in both audits.
+    monkeypatch.setattr(rotate, "_ack_session_id", lambda root, seat: "")
+    _, r_calls2, _, _ = sensei.rotate_out_audit(graph, SEAT, GEN, tr)
+    _, w_calls2, _ = sensei.wake_audit(graph, SEAT, None, tr)
+    assert [c["cat"] for c in r_calls2] == ["d"]
+    assert [c["cat"] for c in w_calls2] == ["d"]
+
+
 def test_rotate_out_and_wake_classify_the_same_tool_use_identically(tmp_path):
     # the SAME Read-of-a-record and Edit-of-a-card fed to BOTH audits yield
     # identical (cat, label) — the shared-wrapper parity guarantee.
@@ -534,3 +576,166 @@ def test_fallback_pids_reads_dict_chain_and_bare_ints():
     # no s12 / no chain -> []
     assert sensei._fallback_pids({}) == []
     assert sensei._fallback_pids({"s12_self_reap": {"chain": []}}) == []
+
+
+# ── hypothesis:l4-predecessor-transcript-shares-the-record-precedence-chain-
+# ── and-the-join-absent-shape-resolves: the PREDECESSOR side resolves through
+# ── the SAME precedence chain `_record_transcript` applies, and the two
+# ── producer shapes rotate._seating_record_merge_handover leaves behind
+# ── (handover PRESENT / join ABSENT / top-level transcript_path set; and a
+# ── first-SEATING record whose generation rides top-level `gen_after`) are
+# ── no longer silent misses. FALSIFIER before the fix: `_resolve_predecessor_
+# ── transcript` reads only `handover.join.transcript`, so both shapes returned
+# ── `(None, "no predecessor transcript resolved")` and the audit exited 2.
+
+def _write_root_join_absent(tmp_path: Path, shape: str):
+    """`_write_root` with the PREV (gen 14 joining) record written in a shape
+    that carries NO `handover.join.transcript`:
+      - "near_miss": a HYBRID — `observations.b_generation` (the rotate-self
+        gen spelling) PLUS a `handover.seating_row_commit` and the top-level
+        `transcript_path`. Kept because it is what the pre-fix producer left
+        behind and it exercises the top-level fallback under the OLD gen
+        spelling.
+      - "first_seating": the prime first-SEATING record shape
+        (`rotate._seating_record`): top-level `gen_after` (NO
+        `observations.b_generation`) + top-level `transcript_path`, and NO
+        `handover`.
+      - "seating_merged": the LITERAL product of BOTH producers on disk —
+        `rotate._write_seating_record` writes `rotate._seating_record`'s
+        prime first-seating record, `rotate._seating_record_merge_handover`
+        merges `handover.seating_row_commit` into it, and the merged file is
+        renamed onto PREV_STAMP's slot and read back from disk. It carries
+        NO `observations.b_generation` anywhere (the seating producer never
+        writes it — that absence is the point) and NO `join` under
+        `handover`.
+    Returns `(graph, tr, prev_path)`."""
+    graph, tr = _write_root(tmp_path, None)
+    prev_path = graph / "sessions" / "rotations" / f"{SEAT}.{PREV_STAMP}.json"
+    if shape == "near_miss":
+        prev = {"seat": SEAT, "recorded_at": "2026-09-11T10:00:00Z",
+                "observations": {"b_generation": {"before": 13, "after": 14}},
+                "handover": {"seating_row_commit": "abc123"},
+                "transcript_path": str(tr)}
+    elif shape == "first_seating":
+        prev = {"rotation": "seating", "seat": SEAT,
+                "recorded_at": "2026-09-11T10:00:00Z", "trigger":
+                "first-seating", "gen_before": 0, "gen_after": GEN,
+                "transcript_path": str(tr)}
+    elif shape == "seating_merged":
+        # Built by BOTH PRODUCERS, never by an inlined copy of the merger body:
+        # (1) `rotate._seating_record` + `rotate._write_seating_record` write
+        # the record to disk; (2) `rotate._seating_record_merge_handover`
+        # merges `handover.seating_row_commit` into THAT file and must name
+        # it. A drift in either producer (a renamed key, a dropped merge, a
+        # filename suffix the merger's glob no longer sees) fails HERE. The
+        # writer names the file by `utcnow`, so the merged file is renamed
+        # onto PREV_STAMP's slot — leaving the fixture-planted record beside
+        # it would let the resolver read that older record first (filename
+        # sort) and the test go green through the WRONG record.
+        rec = rotate._seating_record(
+            seat=SEAT, role="prime_director", source="rotate",
+            window_id=None, ref="", pid=None, session_id="",
+            transcript_path=str(tr), first_turn=None, generation=GEN)
+        rec["recorded_at"] = "2026-09-11T10:00:00Z"
+        written = rotate._write_seating_record(graph, rec)
+        merged_path = rotate._seating_record_merge_handover(
+            graph, {"seat": SEAT, "recorded_at": rec["recorded_at"],
+                    "handover": {"seating_row_commit": "abc123"}})
+        assert merged_path == str(written), (merged_path, str(written))
+        written.replace(prev_path)
+        # (3) read the producers' merged output back from disk as `prev`
+        prev = json.loads(prev_path.read_text(encoding="utf-8"))
+        assert prev["handover"]["seating_row_commit"] == "abc123", prev
+        assert "observations" not in prev, prev
+        assert "join" not in prev["handover"], prev
+    else:
+        raise AssertionError(f"unknown shape {shape!r}")
+    if shape != "seating_merged":
+        # seating_merged is already on disk as the producers wrote it; the
+        # other two shapes are fixture-built dicts and are serialized here.
+        prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    return graph, tr, prev_path
+
+
+@pytest.mark.parametrize("shape",
+                         ["near_miss", "first_seating", "seating_merged"])
+def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
+    """The near-miss shape (handover present, join absent, top-level path), the
+    first-seating shape (top-level `gen_after`) and the merged seating record
+    `rotate._seating_record_merge_handover` actually writes ALL resolve to the
+    predecessor's transcript, and the printed `source` names the spelling the
+    chain actually took — never a `handover.join.transcript` lie."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
+    p, source = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == tr, f"{shape}: resolved {p}, expected {tr}"
+    assert source == f"previous record gen_after=={GEN} transcript_path"
+
+
+@pytest.mark.parametrize("shape",
+                         ["near_miss", "first_seating", "seating_merged"])
+def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path, shape):
+    """End-to-end: the audit exits 0 and classifies the predecessor's window
+    for EVERY join-absent predecessor shape the producers leave behind — the
+    near-miss hybrid, the first-seating record and the merged seating record.
+    Before the fix each exited 2 ("no predecessor transcript resolved")."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert str(window["log_path"]) == str(tr)
+    assert window["source"] == f"previous record gen_after=={GEN} transcript_path"
+    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
+
+
+def test_predecessor_precedence_join_wins_over_top_level(tmp_path):
+    """The chain is SHARED with `_record_transcript`: when the previous record
+    carries BOTH the join spelling and the top-level path, the JOIN wins — the
+    fix must not turn the top-level fallback into an override."""
+    graph, tr, prev_path = _write_root_join_absent(tmp_path, "near_miss")
+    join_tr = tmp_path / "join-wins.jsonl"
+    join_tr.write_text(tr.read_text(encoding="utf-8"), encoding="utf-8")
+    prev = json.loads(prev_path.read_text(encoding="utf-8"))
+    prev["handover"]["join"] = {"transcript": str(join_tr)}
+    prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    p, source = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == join_tr
+    assert source == f"previous record gen_after=={GEN} handover.join.transcript"
+
+
+def test_predecessor_never_resolves_the_out_records_own_transcript(tmp_path):
+    """The OUT record (b_generation.before==GEN) carries a top-level
+    `transcript_path` in the near-miss fixture-adjacent shape; it must NOT be
+    the answer — resolution step (2) is the record that brought gen N IN."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, "near_miss")
+    out_path = graph / "sessions" / "rotations" / f"{SEAT}.{OUT_STAMP}.json"
+    out = json.loads(out_path.read_text(encoding="utf-8"))
+    decoy = tmp_path / "out-own.jsonl"
+    decoy.write_text(tr.read_text(encoding="utf-8"), encoding="utf-8")
+    out["transcript_path"] = str(decoy)
+    out_path.write_text(json.dumps(out), encoding="utf-8")
+    p, _ = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == tr, f"resolved the OUT record's own transcript: {p}"
+
+
+def test_transcript_spelling_names_each_link():
+    """`_transcript_spelling` names the link `_record_transcript` took, in the
+    same order, and '' when none names a transcript."""
+    assert sensei._transcript_spelling({}) == ""
+    assert sensei._transcript_spelling(
+        {"session_log": "/a.jsonl", "transcript_path": "/b.jsonl"}) == \
+        "session_log"
+    assert sensei._transcript_spelling(
+        {"handover": {"session_log": "/a.jsonl"},
+         "transcript_path": "/b.jsonl"}) == "handover.session_log"
+    assert sensei._transcript_spelling(
+        {"handover": {"join": {"transcript": "/j.jsonl"}},
+         "transcript_path": "/b.jsonl"}) == "handover.join.transcript"
+    assert sensei._transcript_spelling({"transcript_path": "/b.jsonl"}) == \
+        "transcript_path"
+    assert sensei._transcript_spelling(
+        {"observations": {"c_readback_log_path": "/c.log"}}) == ""
+    assert sensei._transcript_spelling(
+        {"observations": {"c_readback_log_path": "/c.jsonl"}}) == \
+        "observations.c_readback_log_path"

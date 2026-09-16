@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.32 reviewed by name (mur-sl2-33, reviewer+refuter agree): DEMOTED to inconclusive_lean_proved:70, landed bytes ACCEPTED. What holds: claims 3 and 4 - town=all refused by name on a CHANGED cell only (write.py:840), readers group by real town; 12/12 new tests plus seven neighbouring gates green; NOTHING live breaks because write.py:878-880 skips an unchanged cell, so the 13 rows still carrying town=all keep accepting session/pid/key writes and no re-spell is forced at this merge-up (the owner 09-14 re-spell stays a rotation-boundary step). Why demoted, measured: (a) ~2x production lines over the 60 ceiling with no re-brief to sanctuary-master on record (the THOUGHT accepting its own deviation is not a re-brief); (b) FILE SCOPE breached (write.py, seat_status.py, viewport.py touched beyond the declared set); (c) claims 1 and 2 (the measured rename table, the 0a-per-row cell write at the boundary) were FALSIFIED/left open and this node did not say so until this note - they are a follow-on round, SM.32b, with SM.29-on-MAIN and the SM.25 mirror as stated preconditions; (d) experiment:a00-5cf0cbf4-7f911b verdict field disagreed with its own THOUGHT and commit.
