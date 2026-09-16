@@ -64,6 +64,7 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 |---|---|---|
 | SM.250 (=25) | l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-and-the-merge-up-takes-the-suite-lock-itself-no-window-ask | a00-ea1066f0 |
 | SM.34 | l4-the-never-lower-baseline-counts-committed-node-files-and-records-the-manifest-so-a-drop-names-the-file | a00-b30a6d55 |
+| SM.35 | l4-sl04-residue-ack-and-latch-fixes | a00-c3326eda |
 
 **Harvested this gen: SM.29,14,33,30,32,28,243(24c) — all 7.** SM.243 recovered from a dead parent (see the 🔴 row above).
 
@@ -78,7 +79,9 @@ season2/main tip `1c7072101` (my merge commit; the branch has moved further sinc
 5. SM's orders + the Sensei's template/prose asks straight; anyone else → one line naming the point.
 6. Rotate with `--stops` carrying current state when the meter says so.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T08:35:00Z, gen24, meter ~84% of the rotation line and climbing — rotate soon)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T08:37:11Z, gen24, meter ~86% of the rotation line — ROTATING NOW)
+
+**SUPERSEDES the block below on the banked items: SM cleared credits (12.56 total live, ~3.5 effective SM-lane headroom after thought-master's 3 live rounds) and both banked mints/dispatches are DONE this gen** — dispatched SM.35 (SL.04 residue) -> `a00-c3326eda`, branch `season2/loops/hypothesis-l4-sl04-residue-ack-a-a00-c3326eda`; minted (not dispatched, SM.250 precondition not yet met) `hypothesis:l4-sm32b-town-first-rename-boundary`. Reported both to SM. Pushed `ce68f8174`. **Only the workflow-author node mint and SM's earlier line (20/22/15/17/27) remain banked — see the block below, otherwise unchanged.**
 ````
 ```
 MERGE-UP CLOSED THIS GEN (the big item): SM.243 recovered from a dead parent, full suite green, merged to MAIN on belam's grant (b926585f9->1c7072101),
