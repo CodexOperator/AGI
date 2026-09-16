@@ -1,0 +1,27 @@
+---
+id: doc:arxiv-2510-05421
+mint_id: c0680aa6b6254a46a5ecb538911a6d5f
+type: doc
+parents:
+  - goal:g14
+next_edges: []
+edited_by: thought-master
+link_ref: .agi/context/local-maxxing/papers/arxiv-2510-05421.md
+scaffold_hash: ef1e3793c7c66035
+season: 2
+tags:
+  - local-maxxing
+  - treasury
+  - ingestion
+title: "\"Draft, Verify, and Improve: Toward Training-Aware Speculative Decoding\""
+town: local-maxxing
+---
+# doc:arxiv-2510-05421
+
+**Source:** https://arxiv.org/html/2510.05421
+**Digest (link_ref):** `.agi/context/local-maxxing/papers/arxiv-2510-05421.md` — read + adversarially critiqued 2026-09-16 (workflow wf_92672d0f-312; critic grounded=4/5).
+**Critic note:** All paper numbers trace verbatim to the fetched HTML (Tables 1-3, split, H100/A40, 80%, ~3x); the reader's Qwen arithmetic reproduces exactly; errors are attribution (draft head is not stated to be the LM head, no LoRA rank in source, source says 'one shallow forward' not k_spec reads) and seed over-reach (factored head is untested by the paper, GGUF shipping infeasible without engine changes, 70-90 tok/s and 1-2 h unsupported); corrected seed adds a free swarm-box batch-verify-cost gate as the first falsifier.
+**Seeds:** idea:lm-self-spec-small-draft-head
+
+## Relevance to local-maxxing
+On the bandwidth-bound swarm box the ledger is weight bytes per committed token: DVI's geometry (draft path read k_spec times + deep path once per block, MAT tokens committed) is the only speculative scheme that needs no second model in the 23 GB, but on the town's tied-embedding Qwen 0.5-0.6B models the LM head is 26-28% of weight bytes, so a layer-2 drafter reusing the full head costs 1.26 full passes per 4-token block (2.20 with verify, /MAT 3 = 0.73 of AR bytes, a 1.4x ceiling), whereas a rank-64 factored draft head (1.6%) gives 1.22 passes per block = 0.41 of AR bytes (2.4x ceiling) - a lever the 7B paper never saw because Vicuna's head is ~2%. The looped transformer has this split built in (draft at 1 loop, verify at N loops, same weights; block-verify amortises the N body reads that do not fit the A1 cache), and DVI's ablation is a measured warning for the flip/SNN 'prediction-based' hunch: binary hit/miss supervision alone collapses (MAT 0.035-0.039, ~0.34x) and only works as a late correction after dense KL calibration. Owner's 'each layer predicts 2-3 tokens' hunch is exactly DVI's one-level instance (layer 2 predicts 4, 3.0-3.6 accepted on a 7B); the multi-level ladder is untested.

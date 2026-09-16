@@ -1993,10 +1993,20 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                                       f"{_conv} {_old}->{_new}")
                 except Exception:                   # noqa: BLE001
                     pass
+            # goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-
+            # seating-run): pass the `_spawn_gen` cmd_spawn already resolved
+            # (row-first, HANDOFF-header fallback) into the first seating, so
+            # a gen-less seat row whose HANDOFF carries gen N composes its
+            # first-turn block at gen N -- the SAME value the meter pin, the
+            # seating record and the row commit use. Without the kwarg
+            # `_first_seating_run` re-resolved from the row ONLY and fell to
+            # FIRST_SEATING_GEN=1, so the printed block disagreed with the
+            # pin (a gen-less re-spawn).
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
                 tmux_session=tmux_session, dry_run=args.dry_run,
-                ask_diff=bool(getattr(args, "ask_diff", False)))
+                ask_diff=bool(getattr(args, "ask_diff", False)),
+                generation=_spawn_gen)
     # The SEAT ROW is the model source for a seated spawn, the flags only an
     # override — the same precedence rotate-self (`cmd_rotate_self`), the
     # reaper's crash-recovery respawn (heal.py) and seats-launch already use.
@@ -2426,10 +2436,21 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     _ack_key = (getattr(args, "session", None) or _row_sid) if _row_sid else ""
     if _row_sid:
         if args.gen is not None:
+            # (SL.04 residue item 8) the corrective line is COMPLETE and
+            # PASTEABLE: the engine-relative entry point (as every sibling
+            # refusal prints), `--ref` (never omitted -- a `diff` without a
+            # ref cannot name its subject) and `--text -` for a streamed
+            # `diff` body, so a pasted refusal line submits the body instead
+            # of reading as an empty `continue`.
+            _fix = (f"python3 extensions/agi/bin/rotate.py ack --post {seat} "
+                    f"--session {str(_ack_key)[:8] or '<sid8>'} "
+                    "--ref <your ListAgents ref> "
+                    f"{args.answer}")
+            if args.answer == "diff":
+                _fix += " --text -"
             print(f"ERR: --gen is refused on non-prime post {seat!r}: a "
                   "non-prime seating is keyed by session id, never a "
-                  f"generation. Run: rotate.py ack --post {seat} --session "
-                  f"{_ack_key} {args.answer}", file=sys.stderr)
+                  f"generation. Run: {_fix}", file=sys.stderr)
             return 2
         try:
             _pd = json.loads(_ack_path(root, seat, _ack_key).read_text(
@@ -4014,9 +4035,24 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
         # rotate-self runs and appends the composed `## STARTUP OUTPUT` block
         # to the seat's first input. Fail-soft: a role with no template or no
         # first_turn yields the empty string (byte-identical to before).
+        #
+        # goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-
+        # seating-run), round 2: this is the SECOND `_first_seating_run`
+        # caller (cmd_spawn was the first). Resolve the row's generation ONCE
+        # here, the SAME way cmd_spawn does -- row-first, HANDOFF-header
+        # fallback -- and thread it into BOTH the run and the announce, so a
+        # gen-less row whose HANDOFF carries gen N stops composing `gen=1`.
+        # Keep 0 as 0: only a `None` rowgen falls back (never `or`, never
+        # `or FIRST_SEATING_GEN`).
+        _rowgen = _seat_row_generation(root, name)
+        if _rowgen is None:
+            _hg = _read_generation(root, name)
+            if _hg > 0:
+                _rowgen = _hg
         startup_block, first_turn = _first_seating_run(
             root, seat=name, role=tier, succ_name=name,
-            tmux_session=tmux_session, dry_run=args.dry_run)
+            tmux_session=tmux_session, dry_run=args.dry_run,
+            generation=_rowgen)
         rc, _ = spawn_window(
             name=name,
             tier=tier,
@@ -4050,7 +4086,8 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
                     tmux_session=tmux_session,
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
-                    registry_dir=getattr(args, "registry_dir", None))
+                    registry_dir=getattr(args, "registry_dir", None),
+                    generation=_rowgen)
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
                       file=sys.stderr)
@@ -6364,6 +6401,15 @@ def _record_join(rec: dict) -> dict:
         out["pid"] = str(rec["pid"])
     if rec.get("session_id"):
         out["session_id"] = str(rec["session_id"])
+    # the FIRST-SEATING shape puts the joined transcript at the TOP level
+    # (`_seating_record` writes `rec["transcript_path"]`); surface it under
+    # the same `transcript` key the rotate-self shape uses, so a reader of
+    # THIS accessor resolves the transcript for both record shapes -- the
+    # precedence `sensei._record_transcript`'s docstring already claims this
+    # accessor mirrors. The RICHER `handover.join.transcript` still wins
+    # below when present.
+    if rec.get("transcript_path"):
+        out["transcript"] = str(rec["transcript_path"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
     hov = rec.get("handover")
     if isinstance(hov, dict):
@@ -9556,11 +9602,26 @@ def _sweep_dead_hook_latches(root: Path, seat: str,
     prompt reads a new latch key anyway), but it sits there until the hook
     fires again -- and a Prime that notices it spends a WAKE call removing it
     by hand (the P4 code-line edit the sensei made by hand at belam XV->XVI
-    141419Z). The sweep therefore unlinks every `hook-<seat>-gen*.lock` for
-    THIS seat whose holder pid is not alive (`_pid_alive` fails, or the pid is
+    141419Z). The sweep therefore unlinks EVERY latch for THIS seat whose
+    holder pid is not alive (`_pid_alive` fails, or the pid is
     unparseable/None), printing ONE stderr line naming each swept file. A
     latch whose holder pid IS alive is left alone (its rotate-self is still
-    mid-flight). Best-effort: a read or unlink failure NEVER refuses the
+    mid-flight).
+
+    (SL.04 residue item 7) a latch comes in the TWO shapes the hook's own
+    `rotation_alert._latch_path` WRITES, and BOTH are swept: the PRIME gen key
+    `hook-<seat>-gen<N>.lock` and the post-SM.243 NON-prime session key
+    `hook-<seat>-<session_id[:8]>.lock`. Matching the gen shape alone leaked
+    one dead file per non-prime re-seat. Both patterns stay ANCHORED on
+    `hook-<seat>-` (never a bare `hook-<seat>-*`, which would swallow every
+    longer seat name's latch). Known limit, recorded not hidden: the 8-char
+    session pattern can also match a LONGER seat name whose remainder is
+    exactly 8 characters before `.lock` (seat `adv` vs a seat `adv-ab` with
+    latch `hook-adv-ab-gen1.lock`). That collision can only ever unlink a
+    latch whose holder pid is ALREADY DEAD -- the liveness gate runs before
+    the unlink for every candidate, so a live rotate-self is never unlinked in
+    either shape -- and a dead latch is by definition not held, which is why
+    this is a sweep-timing wrinkle rather than a correctness hole. Best-effort: a read or unlink failure NEVER refuses the
     rotation and never raises.
 
     Returns the NAMES of the latches swept (empty list when none). Each line
@@ -9576,7 +9637,8 @@ def _sweep_dead_hook_latches(root: Path, seat: str,
     lockstep so the sweep and the hook's release can never disagree."""
     swept: list[str] = []
     for latch_dir in _latches_dirs(root, seat):
-        latches = sorted(latch_dir.glob(f"hook-{seat}-gen*.lock"))
+        latches = sorted(set(latch_dir.glob(f"hook-{seat}-gen*.lock"))
+                         | set(latch_dir.glob(f"hook-{seat}-????????.lock")))
         for latch in latches:
             pid = _latch_holder_pid_read(latch)
             holder = "unreadable" if pid is None else str(pid)
@@ -12787,7 +12849,8 @@ def _run_after_join_command(entry, values: dict, timeout_s: int,
 def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
                            results: list, *,
                            dm_byte_cap: int | None = None,
-                           record_path: str | None = None) -> str:
+                           record_path: str | None = None,
+                           role: str | None = None) -> str:
     """The successor's SECOND input — ONE LINE PER ENTRY (label + outcome),
     detail only where a reader must see it, and the ONE CAPTIVE copy-paste
     line for the single remaining decision (`diff` against the handoff). Pure
@@ -12807,6 +12870,14 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
     and the RESOLVED gen — never `--seat`, and never a blank `--gen`. When gen
     is unresolved (no gen_after on the record and no generation on the row)
     there is no runnable ack, so the copy-paste line is omitted entirely.
+
+    (SL.04 residue item 4) the ack argv tail is built by the ONE shared helper
+    `_ack_call_args`, never spelled here, so a NON-prime post emits
+    `--post <seat>` (session-id-keyed) and NEVER `--gen` — the by-name refusal
+    at `cmd_ack` is unreachable by a pasted line. `role` is the seat's row
+    role, resolved by the caller; an UNKNOWN role (None: a direct call in a
+    test, or a caller with no row) keeps the legacy `--post <seat> --gen <gen>`
+    bytes, because a row-less/prime seat genuinely needs the gen.
 
     POLICY (goal:g15.25, sensei-director XVII 19:0xZ under delegated
     authority): the heal WATCH signs the after_join dm with the SEAT's private
@@ -12835,11 +12906,16 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
     ]
     ack = []
     if gen not in (None, ""):
+        # (SL.04 residue item 4) ONE helper owns the ack argv tail: a non-prime
+        # role emits `--post <seat>` (session-keyed), never `--gen` (refused by
+        # name at cmd_ack); an UNKNOWN role keeps the legacy gen-bearing tail.
+        _ack_args = (f"--post {seat} --gen {gen}" if role is None
+                     else _ack_call_args(seat=seat, role=role, gen=int(gen)))
         ack = [
             "Where a decision remains (only a `diff` against the "
             "handoff), emit EXACTLY this copy-paste line:",
             "python3 extensions/agi/bin/rotate.py "
-            f"ack --post {seat} --gen {gen} "
+            f"ack {_ack_args} "
             f"--ref {succ_ref or '<your ListAgents ref>'} diff --text -",
         ]
 
@@ -13135,6 +13211,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                    gen_unresolved_reason: str | None = None,
                    dm_byte_cap: int | None = None,
                    join_unresolved_wait_s: int | None = None,
+                   role: str | None = None,
                    type_input=None) -> dict:
     """THE captive after_join first turn, performed by the SERVICE — never by
     the successor (hypothesis:l4-startup-first-turn-is-performed-by-the-
@@ -13286,7 +13363,8 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         seat, gen, values.get("succ_ref", ""), results,
         dm_byte_cap=(dm_byte_cap if dm_byte_cap is not None
                      else startup.get("dm_byte_cap")),
-        record_path=record_path)
+        record_path=record_path,
+        role=(role if role is not None else _seat_role(root, seat)))
     # (hypothesis:l4-the-after-join-second-input-is-typed-into-the-successors-
     # pane-as-the-input-itself-never-a-nudge-that-points-at-the-inbox) the
     # DELIVERY decision: when a type_input seam is provided (production
@@ -13574,7 +13652,12 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # below refetches). `_prime_rows_fetch_clear` had NO production caller.
     _prime_rows_fetch_clear()
     row = _row if _row is not None else _find_seat(root, seat)
-    role = (row or {}).get("role") or "parent"
+    # (SL.04 residue item 4) the ROLE that decides the ack argv shape is the
+    # ROW's own role, or None when there is no row — the template default
+    # (`parent`) is a template-resolution concern and must NOT be mistaken for
+    # a measured non-prime role (a row-less seat still needs `--gen`).
+    row_role = (row or {}).get("role") or None
+    role = row_role or "parent"
     # (goal:g15.25 SL7.54) the service passes the REQUIRED `explicit` arg
     # (None = role default) so `_resolve_template(root, role, None)` matches
     # its 4-arg signature — the old 2-arg call raised TypeError every run.
@@ -13773,6 +13856,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         performer=performer, late=late, performed_after_s=age_s,
         gen_unresolved_reason=gen_reason,
         join_unresolved_wait_s=_join_wait_s,
+        role=row_role,
         type_input=type_input)
     result["code_head"] = _code_head(root)
     return result
@@ -17315,7 +17399,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 root, seat, _load_record_best_effort(rec_path))
             plan = run_after_join(root, seat=seat, gen=gen,
                                   startup=startup, values=aj_values,
-                                  dry_run=True,
+                                  dry_run=True, role=role,
                                   record_path=str(rec_path) if rec_path else None)
             print(f"(9) after_join dry-run: {len(plan['results'])} command(s) "
                   f"resolved after a {plan['delay_s']}s delay; NOTHING run, no "

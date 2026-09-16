@@ -1665,9 +1665,13 @@ def test_pi_run_mints_one_credential_for_all_stages(tmp_path_factory,
         assert kw["agent_id"].startswith("workflow:"), kw
         assert str(kw["iter_n"]) in kw["agent_id"], kw
         assert kw["agent_id"] == f"workflow:{kw['iter_n']}", kw
-        # limit/ttl/workspace come from provisioning.settings/workspace(cfg)
-        assert kw["limit_usd"] == 5.0 and kw["ttl_minutes"] == 180, kw
-        assert kw["workspace_id"] == "72750376-2d45-452e-8273-197fdaabae95"
+        # limit/ttl/workspace come from provisioning.settings/workspace(cfg):
+        # compare against the LIVE cells, never a literal -- the cap is a
+        # Prime config edit and a pinned 5.0 turned the suite red at 5de4ef940
+        _cred = json.loads((REPO / ".agi" / "config.json").read_text())["spawn"]["credential"]
+        assert kw["limit_usd"] == float(_cred["per_spawn_limit_usd"]), kw
+        assert kw["ttl_minutes"] == int(_cred["ttl_minutes"]), kw
+        assert kw["workspace_id"] == _cred["workspace_id"], kw
     finally:
         restore()
 

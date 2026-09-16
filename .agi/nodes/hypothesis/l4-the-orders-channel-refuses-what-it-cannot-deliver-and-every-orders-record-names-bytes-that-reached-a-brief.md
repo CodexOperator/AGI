@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.28 reviewed by name (mur-sl2-33): ACCEPT with residue. All five conjuncts MET on the bytes at c36f471ed; kid2 fixed the mechanism, assertions not loosened (refuter reproduced). Residue, outside the parent seam: at kid tier the --orders carry-forward alias keeps a plain truthiness gate (dispatch.py:1093-1094 -> brief.py:1303-1312), so a whitespace-only orders file renders the WHAT THE LAST KID PRODUCED label with an empty body - follow-on, one test.

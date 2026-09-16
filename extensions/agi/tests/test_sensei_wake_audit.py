@@ -135,6 +135,26 @@ class TestClassifyCall:
         cat, _ = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "b"
 
+    def test_session_keyed_ack_cat_is_a_by_hand_read(self):
+        # clause (3) of hypothesis:l4-sensei-audits-agree-on-session-keyed-
+        # acks-and-top-level-session-records: `seats/<seat>.ack.<sid8>.json`
+        # (the name rotate._ack_path writes for a non-prime seat) carries no
+        # `sessions` segment, so the legacy `.ack.json` alternative never sees
+        # it. Both spellings must be (b); an unrelated `.json` stays (d).
+        assert sensei.classify_call(
+            f"cat sessions/seats/{SEAT}.ack.deadbeef.json", "Bash",
+            SEAT, [])[0] == "b"
+        assert sensei.classify_call(
+            f"cat seats/{SEAT}.ack.deadbeef.json", "Bash", SEAT, [])[0] == "b"
+        assert sensei.classify_call(
+            f"cat seats/{SEAT}.ack.json", "Bash", SEAT, [])[0] == "b"
+        # not over-matched: a bare unrelated `.json` read, and a `.ack.` name
+        # whose middle token is not an 8-char session prefix
+        assert sensei.classify_call(
+            "cat reports/summary.json", "Bash", SEAT, [])[0] == "d"
+        assert sensei.classify_call(
+            f"cat seats/{SEAT}.ack.dead.json", "Bash", SEAT, [])[0] == "d"
+
     def test_absent_first_turn_list_means_everything_is_hand_read_or_work(self):
         # no template for the role → caller refuses BEFORE classifying, but the
         # pure function must not silently use another role's template; [] means
@@ -198,9 +218,25 @@ def _write_root(tmp_path: Path, tools_and_cmds, *, posts: bool = False):
     return graph, tr
 
 
+def _set_seat_row(graph: Path, row: dict, *, posts: bool = False) -> None:
+    """Rewrite the geometry seat config with ONE synthetic row (used by the
+    session-key tests, which need `session_id` / `role` on the row)."""
+    cfg_name = "posts" if posts else "seats"
+    cfg = graph / "nodes" / ".geometry" / f"{cfg_name}.md"
+    cfg.write_text(
+        "---\n"
+        f"id: config:{cfg_name}\n"
+        "type: config\n"
+        f"{cfg_name}:\n"
+        f"  - {json.dumps(row)}\n"
+        "edited_by: test\n---\n<!-- BODY:BEGIN -->\n", encoding="utf-8")
+
+
 def _write_rotation_record(graph: Path, seed: str, *, session_log: Path | None = None,
                            gen: int | None = None, ts: str = "20260911T120000Z",
-                           join_transcript: Path | None = None):
+                           join_transcript: Path | None = None,
+                           session_id: str | None = None,
+                           top_session_id: str | None = None):
     """A synthetic durable rotation record for a seat, matching the shape
     `rotate.py` writes under `sessions/rotations/<seat>.<ts>.json`."""
     sessions = graph / "sessions" / "rotations"
@@ -217,10 +253,20 @@ def _write_rotation_record(graph: Path, seed: str, *, session_log: Path | None =
                                                 "after": gen}
     if session_log is not None:
         rec["session_log"] = str(session_log)
-    if join_transcript is not None:
-        # the name every LIVE rotation record carries (handover.join.transcript)
+    if top_session_id is not None:
+        # clause (2): rotate.py ALSO writes the session id at the record TOP
+        # level (rotate.py:4702-4703), which is how a FIRST-SEATING record
+        # carries it -- never under handover.join on that shape.
+        rec["session_id"] = top_session_id
+    if join_transcript is not None or session_id is not None:
+        # the shape every LIVE rotation record carries
+        # (handover.join.transcript + handover.join.session_id)
         ho = rec.setdefault("handover", {})
-        ho["join"] = {"transcript": str(join_transcript)}
+        join = ho.setdefault("join", {})
+        if join_transcript is not None:
+            join["transcript"] = str(join_transcript)
+        if session_id is not None:
+            join["session_id"] = session_id
     path = sessions / f"{SEAT}.{seed}.json"
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
     return path
@@ -1030,6 +1076,318 @@ class TestRedact:
         out2 = capsys.readouterr().out
         assert "sk-or-v1-0123456789abcdef0123456789abcdef" in out2
         assert "someone@example.com" in out2
+
+
+class TestSessionKeyedWakeAudit:
+    """hypothesis:l4-sensei-wake-audit-keys-on-the-session-not-gen-or-the-
+    prime-ack-name: a non-prime post's record and ack are keyed on the
+    `session_id` its row carries (rotate._ack_session_id / rotate._ack_path,
+    landed 1c7072101), never on a generation and never on the Prime
+    `.ack.json` name."""
+
+    def test_record_selected_by_row_session_not_latest(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid_a = "aaaaaaaa-1111-2222-3333-444444444444"
+        sid_b = "bbbbbbbb-1111-2222-3333-444444444444"
+        tr_a = graph / "sess_a.jsonl"
+        tr_a.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                 "input": {"command": "whois 8.8.8.8"}}]),
+                        encoding="utf-8")
+        tr_b = graph / "sess_b.jsonl"
+        tr_b.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                 "input": {"command": "true"}}]),
+                        encoding="utf-8")
+        # the row names session A, and A's record is the OLDER one -- so a
+        # "latest record" rule and a "session" rule disagree by construction.
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid_a})
+        _write_rotation_record(graph, "20260911T100000Z", join_transcript=tr_a,
+                               session_id=sid_a, ts="20260911T100000Z")
+        _write_rotation_record(graph, "20260911T110000Z", join_transcript=tr_b,
+                               session_id=sid_b, ts="20260911T110000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        # session A's transcript (a whois -> F2 re-derive), NOT B's (`true`)
+        assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+        assert calls[0]["label"] == "F2"
+        assert calls[0]["source"].endswith("20260911T100000Z.json")
+
+    def test_two_session_keyed_acks_selects_the_matching_session(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid_a = "aaaaaaaa-1111-2222-3333-444444444444"
+        sid_b = "bbbbbbbb-1111-2222-3333-444444444444"
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid_a})
+        seats = graph / "sessions" / "seats"
+        seats.mkdir(parents=True, exist_ok=True)
+        own_ack = seats / f"{SEAT}.ack.{sid_a[:8]}.json"
+        other_ack = seats / f"{SEAT}.ack.{sid_b[:8]}.json"
+        own_ack.write_text("{}\n", encoding="utf-8")
+        other_ack.write_text("{}\n", encoding="utf-8")
+        tr = graph / "ack_reads.jsonl"
+        tr.write_text(_events([
+            {"type": "tool_use", "name": "Read",
+             "input": {"path": str(own_ack)}},
+            {"type": "tool_use", "name": "Read",
+             "input": {"path": str(other_ack)}},
+        ]), encoding="utf-8")
+        # explicit transcript: this conjunct is exactly the ack SIGNAL set.
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+        assert code == 0
+        assert calls[0]["cat"] == "b"      # the row's OWN session-keyed ack
+        assert calls[1]["cat"] == "d"      # the OTHER session's ack is not
+
+    def test_prime_legacy_ack_and_latest_record_unchanged(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        _set_seat_row(graph, {"name": SEAT, "role": "prime_director",
+                              "tier": 0})
+        legacy = graph / "sessions" / "seats" / f"{SEAT}.ack.json"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        legacy.write_text("{}\n", encoding="utf-8")
+        tr = graph / "prime.jsonl"
+        tr.write_text(_events([{"type": "tool_use", "name": "Read",
+                                "input": {"path": str(legacy)}}]),
+                      encoding="utf-8")
+        older = graph / "prime_old.jsonl"
+        older.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                   "input": {"command": "true"}}]),
+                         encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", join_transcript=older,
+                               gen=12, ts="20260911T100000Z")
+        _write_rotation_record(graph, "20260911T110000Z", join_transcript=tr,
+                               gen=13, ts="20260911T110000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert calls[0]["cat"] == "b"      # the legacy Prime `.ack.json`
+        assert calls[0]["source"].endswith("20260911T110000Z.json")  # latest
+        paths = sensei._hand_read_paths([], [], SEAT, "")
+        assert f"seats/{SEAT}.ack.json" in paths
+
+    def test_nonprime_row_without_session_id_falls_back(self, tmp_path):
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])  # row: no session_id
+        old_tr = graph / "nb_old.jsonl"
+        old_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                    "input": {"command": "true"}}]),
+                          encoding="utf-8")
+        new_tr = graph / "nb_new.jsonl"
+        new_tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                    "input": {"command": "whois 1.1.1.1"}}]),
+                          encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", join_transcript=old_tr,
+                               gen=12, ts="20260911T100000Z")
+        _write_rotation_record(graph, "20260911T110000Z", join_transcript=new_tr,
+                               gen=13, ts="20260911T110000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert calls[0]["label"] == "F2"     # the LATEST record, as before
+        assert calls[0]["source"].endswith("20260911T110000Z.json")
+        # the documented fallback is the legacy name, never a silent re-key
+        paths = sensei._hand_read_paths([], [], SEAT, "")
+        assert f"seats/{SEAT}.ack.json" in paths
+        assert len([p for p in paths if p.startswith(f"seats/{SEAT}.ack.")]) == 1
+
+    def test_record_selected_by_top_level_session_id(self, tmp_path):
+        # clause (2): rotate.py writes the session id in TWO places -- the
+        # record TOP level (rotate.py:4702-4703) for a first-seating record,
+        # and handover.join for a rotate-self record. The matcher must read
+        # BOTH, mirroring rotate._record_join, or a first-seating record is
+        # invisible and the audit refuses the very session it was given.
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid = "aaaa1111-2222-3333-4444-555566667777"
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid})
+        tr = graph / "top_only.jsonl"
+        tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                "input": {"command": "whois 9.9.9.9"}}]),
+                      encoding="utf-8")
+        rec_path = _write_rotation_record(graph, "20260911T100000Z",
+                                          join_transcript=tr,
+                                          ts="20260911T100000Z",
+                                          top_session_id=sid)
+        # the fixture really is top-level-only: handover.join carries no id
+        doc = json.loads(rec_path.read_text(encoding="utf-8"))
+        assert doc["session_id"] == sid
+        assert "session_id" not in doc["handover"]["join"]
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        assert calls[0]["label"] == "F2"
+        assert calls[0]["source"].endswith("20260911T100000Z.json")
+
+    def test_only_another_sessions_record_refuses_by_name(self, tmp_path,
+                                                         capsys):
+        # P1 (auth, committed from /tmp/probe_sl7124_parent.py): the row names
+        # session A; the ONLY record on disk belongs to session B. The audit
+        # must refuse BY NAME (listing the session), never silently fall back
+        # to "latest" -- which is exactly what a half-fix does.
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid_a = "aaaaaaaa-1111-2222-3333-444444444444"
+        sid_b = "bbbbbbbb-1111-2222-3333-444444444444"
+        _set_seat_row(graph, {"name": SEAT, "role": "director", "tier": 1,
+                              "session_id": sid_a})
+        tr_b = graph / "only_b.jsonl"
+        tr_b.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                  "input": {"command": "true"}}]),
+                        encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z",
+                               join_transcript=tr_b, session_id=sid_b,
+                               ts="20260911T100000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        err = capsys.readouterr().err
+        assert code == 2
+        assert calls == []
+        assert sid_a[:8] in err and "session" in err
+
+    def test_prime_row_with_session_id_stays_on_latest_and_legacy_ack(
+            self, tmp_path):
+        # P3 (auth, committed from /tmp/probe_sl7124_parent.py): a PRIME row
+        # carrying a session_id ANYWAY stays on the latest-record /
+        # legacy `.ack.json` arm. rotate._ack_session_id is "" for a prime
+        # seat, so the legacy read is (b), the session-keyed read is (d), and
+        # _hand_read_paths("") carries no session-keyed signal.
+        graph, _ = _write_root(tmp_path, [("Bash", "true")])
+        sid = "cccccccc-1111-2222-3333-444444444444"
+        _set_seat_row(graph, {"name": SEAT, "role": "prime_director",
+                              "tier": 0, "session_id": sid})
+        seats = graph / "sessions" / "seats"
+        seats.mkdir(parents=True, exist_ok=True)
+        legacy = seats / f"{SEAT}.ack.json"
+        legacy.write_text("{}\n", encoding="utf-8")
+        keyed = seats / f"{SEAT}.ack.{sid[:8]}.json"
+        keyed.write_text("{}\n", encoding="utf-8")
+        assert rotate._ack_session_id(graph, SEAT) == ""
+        old = graph / "prime_old.jsonl"
+        old.write_text(_events([{"type": "tool_use", "name": "Bash",
+                                 "input": {"command": "true"}}]),
+                       encoding="utf-8")
+        new = graph / "prime_new.jsonl"
+        new.write_text(_events([
+            {"type": "tool_use", "name": "Read",
+             "input": {"path": str(legacy)}},
+            {"type": "tool_use", "name": "Read",
+             "input": {"path": str(keyed)}},
+        ]), encoding="utf-8")
+        _write_rotation_record(graph, "20260911T100000Z", join_transcript=old,
+                               gen=12, ts="20260911T100000Z")
+        _write_rotation_record(graph, "20260911T110000Z", join_transcript=new,
+                               gen=13, ts="20260911T110000Z")
+        code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+        assert code == 0
+        # the LATEST record (no session selection for a prime)
+        assert calls[0]["source"].endswith("20260911T110000Z.json")
+        # legacy `.ack.json` by hand -> (b); the session-keyed name -> (d)
+        assert [c["cat"] for c in calls] == ["b", "d"]
+        paths = sensei._hand_read_paths([], [], SEAT, "")
+        assert f"seats/{SEAT}.ack.json" in paths
+        assert f"seats/{SEAT}.ack.{sid[:8]}.json" not in paths
+
+    def test_hand_read_paths_adds_session_keyed_ack_only_when_given(self):
+        plain = sensei._hand_read_paths([], [], SEAT, "")
+        assert f"seats/{SEAT}.ack.json" in plain
+        keyed = sensei._hand_read_paths([], [], SEAT, "abcdef1234567890")
+        assert f"seats/{SEAT}.ack.abcdef12.json" in keyed
+        assert f"seats/{SEAT}.ack.json" in keyed
+
+
+# ── direct unit tests for the two record readers (hypothesis:l4-record-
+# ── transcript-reads-the-top-level-transcript-path-and-join-wins-over-top-
+# ── level-session-id): the top-level `transcript_path` a FIRST-SEATING
+# ── record carries must resolve, with `handover.join.transcript` still
+# ── winning when present, and `_record_matches_session` must mirror
+# ── `rotate._record_join`'s top-level-then-join-overwrites precedence.
+
+class TestRecordTranscriptDirect:
+    def test_top_level_transcript_path_alone_resolves(self):
+        # the first-seating shape (rotate.py _seating_record): the ONLY
+        # spelling such a record carries.
+        assert sensei._record_transcript(
+            {"transcript_path": "/tmp/seat.jsonl"}) == Path("/tmp/seat.jsonl")
+
+    def test_join_transcript_wins_over_top_level_transcript_path(self):
+        # both spellings present -> the join spelling, exactly as
+        # rotate._record_join lets handover.join.* overwrite the top level.
+        assert sensei._record_transcript({
+            "transcript_path": "/tmp/top.jsonl",
+            "handover": {"join": {"transcript": "/tmp/join.jsonl"}},
+        }) == Path("/tmp/join.jsonl")
+
+    def test_join_transcript_alone_still_resolves(self):
+        assert sensei._record_transcript({
+            "handover": {"join": {"transcript": "/tmp/join.jsonl"}},
+        }) == Path("/tmp/join.jsonl")
+
+    def test_session_log_still_wins_over_top_level_transcript_path(self):
+        # no regression: the pre-existing reads keep their order.
+        assert sensei._record_transcript({
+            "session_log": "/tmp/log.jsonl",
+            "transcript_path": "/tmp/top.jsonl",
+        }) == Path("/tmp/log.jsonl")
+
+    def test_c_readback_log_path_is_jsonl_only(self):
+        assert sensei._record_transcript(
+            {"observations": {"c_readback_log_path": "/tmp/dbg.log"}}) is None
+        assert sensei._record_transcript(
+            {"observations": {"c_readback_log_path": "/tmp/dbg.jsonl"}}) \
+            == Path("/tmp/dbg.jsonl")
+
+    def test_record_with_none_of_the_keys_returns_none(self):
+        assert sensei._record_transcript({}) is None
+        assert sensei._record_transcript({"transcript_path": ""}) is None
+
+
+class TestRecordMatchesSessionDirect:
+    A = "aaaaaaaa-1111-2222-3333-444444444444"
+    B = "bbbbbbbb-1111-2222-3333-444444444444"
+
+    def test_join_session_id_wins_over_top_level_session_id(self):
+        # rotate._record_join's rule: top level first, handover.join wins.
+        rec = {"session_id": self.A,
+               "handover": {"join": {"session_id": self.B}}}
+        assert sensei._record_matches_session(rec, self.B) is True
+        assert sensei._record_matches_session(rec, self.A) is False
+
+    def test_top_level_session_id_alone_still_matches(self):
+        # the first-seating shape; no regression.
+        assert sensei._record_matches_session(
+            {"session_id": self.A}, self.A) is True
+
+    def test_empty_caller_id_matches_nothing(self):
+        assert sensei._record_matches_session({"session_id": self.A}, "") \
+            is False
+
+    def test_record_with_neither_spelling_matches_nothing(self):
+        assert sensei._record_matches_session({}, self.A) is False
+        assert sensei._record_matches_session(
+            {"handover": {"join": {}}}, self.A) is False
+
+    def test_full_id_matches_its_eight_char_prefix_and_not_seven(self):
+        rec = {"session_id": self.A}
+        assert sensei._record_matches_session(rec, self.A[:8]) is True
+        assert sensei._record_matches_session(rec, self.A[:7]) is False
+
+
+def test_wake_audit_reads_a_seating_only_records_top_level_transcript(
+        tmp_path):
+    # wire probe for the changed bytes: a FIRST-SEATING record carries ONLY
+    # the top-level `transcript_path` (no session_log, no handover.join), and
+    # the audit must audit it rather than refuse "names no transcript".
+    graph, _ = _write_root(tmp_path, [("Bash", "true")])
+    tr = graph / "seating.jsonl"
+    tr.write_text(_events([{"type": "tool_use", "name": "Bash",
+                            "input": {"command": "whois 1.1.1.1"}}]),
+                  encoding="utf-8")
+    d = graph / "sessions" / "rotations"
+    d.mkdir(parents=True, exist_ok=True)
+    sid = "dddddddd-1111-2222-3333-444444444444"
+    (d / f"{SEAT}.20260911T160000Z.seating.json").write_text(json.dumps({
+        "rotation": "first-seating", "seat": SEAT, "session_id": sid,
+        "transcript_path": str(tr),
+        "recorded_at": "20260911T160000Z",
+    }, indent=2) + "\n", encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, None)
+    assert code == 0, counts
+    assert _cats(counts) == {"a": 1, "b": 0, "c": 0, "d": 0, "s": 0}
+    assert calls[0]["label"] == "F2"
+    assert calls[0]["source"].endswith(".seating.json")
 
 
 def test_wake_audit_help_exits_zero():

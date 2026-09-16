@@ -1,0 +1,3 @@
+<|im_start|>user
+Count from one to twenty.<|im_end|>
+<|im_start|>assistant

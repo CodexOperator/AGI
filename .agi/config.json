@@ -60,6 +60,18 @@
         "deepseek/deepseek-v4.1-flash"
       ]
     },
+    "pi-local": {
+      "adapter": "pi",
+      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "provider": "local-town",
+      "models": {
+        "kid": "Qwen3.5-9B-Q4_K_M",
+        "parent": "Qwen3.5-9B-Q4_K_M"
+      },
+      "allowed_extra": [
+        "Qwen3.5-9B-Q4_K_M"
+      ]
+    },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
@@ -96,7 +108,7 @@
     "max_live": 25,
     "credential": {
       "provider": "openrouter",
-      "per_spawn_limit_usd": 5.0,
+      "per_spawn_limit_usd": 1.5,
       "ttl_minutes": 180,
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     },
