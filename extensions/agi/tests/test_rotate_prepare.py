@@ -19,7 +19,9 @@ versa) fails these tests.
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -240,26 +242,47 @@ def test_prepare_card_check_reads_the_seats_own_last_act(
     assert all("--no-merges" not in a for a in seen), seen
 
 
-def test_check_4_is_identical_under_stops_and_plain(
+def test_stops_rotation_parameter_is_retired_by_name():
+    """SM.68 residue (6): `_prepare_checks` no longer takes `stops_rotation`.
+    The SL7.30 seats/posts exclusion it gated was removed when check 4 moved
+    to the seat-scoped `bin/last_act.py` clock, leaving a parameter NOTHING
+    read while its docstring still claimed it changed behaviour -- SL7.30's
+    original assertion had been DELETED, not re-anchored. This names the
+    retirement in the SIGNATURE; the old test only asserted the dead argument
+    was inert, which would pass forever."""
+    assert "stops_rotation" not in inspect.signature(
+        rotate._prepare_checks).parameters
+
+
+def test_card_check_names_the_unmeasurable_state(
         prep_root, capsys, monkeypatch):
-    """The SL7.30 conditional seats/posts exclusion is GONE: the clock is
-    already seat-scoped, so check 4 reads the SAME verdict with and without
-    `stops_rotation`."""
-    import os
-    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
-    os.utime(card, (1000000000, 1000000000))
+    """SM.68 residue (5): no stamp AND no card commit -> NOTHING measurable.
+    That used to print the SAME `[ok] card older than last commit` a
+    measured-fresh seat prints, so a seat whose clock could not be read was
+    indistinguishable from one read and found fresh. The unmeasurable verdict
+    is named; the measured-fresh label stays byte-identical."""
     ok = {("status", "--porcelain"): [],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"],
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(ok))
-    _stamp(prep_root, "9999999999")   # the seat acted after the card
-    plain = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
-             if c[1] == "card older than last commit"][0]
-    stops = [c for c in rotate._prepare_checks(prep_root, "adv-alive",
-                                               stops_rotation=True)
-             if c[1] == "card older than last commit"][0]
-    assert plain[0] is True, plain     # blocked, the own act is newer
-    assert stops == plain, (plain, stops)
+    # no stamp, git absent -> card_stale returns (False, None): unmeasured.
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    line = next(ln for ln in out.splitlines()
+                if "card older than last commit" in ln)
+    assert line.startswith("[ok]"), line
+    assert "unmeasured" in line, line
+    # measured-fresh: a real own act BEHIND the card -> the plain label, no
+    # suffix (the existing test pins the same string for the fresh case).
+    _stamp(prep_root, "1000000000")
+    os.utime(prep_root / "sessions" / "quorum" / "adv-alive.md",
+             (2000000000, 2000000000))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    line = next(ln for ln in out.splitlines()
+                if "card older than last commit" in ln)
+    assert line == "[ok] card older than last commit", line
 
 
 def test_hook_and_rotate_agree_on_the_card_stale_verdict(prep_root, monkeypatch):
