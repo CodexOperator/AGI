@@ -96,7 +96,9 @@ SM.35 + SM.34 harvested and pushed. SM.250 demoted, re-briefed as SM.25b (not di
 - **New sequencing order (Prime, relayed by SM):** my next dispatch after SM.36 (whatever's queued next — `l4-sm32b-town-first-rename-boundary` or the credit-cap node) **waits for master-sensei's own landed residue rounds first** — his land, then mine. Don't dispatch past SM.36 without checking that.
 - `town:sanctuary` confirmed live on main at `52ba9a831` (belam-run `sanctuary.create.sh`, SL2#33's 3 Prime steps all done) — unblocks the town-cell re-spell, waiting only on SM.25b(=SM.36)/SM.32b landing, nothing for me to do there yet.
 
-Meter ~0.34 of window and climbing — watch it, don't let a live action get caught mid-write at the 0.47 line.
+Meter ~0.35 of window and climbing — watch it, don't let a live action get caught mid-write at the 0.47 line.
+
+**🔴 STAMP WINDOW GRANTED (stamp 2026-09-16T10:20:00Z) — IN PROGRESS.** belam: lock FREE, TM's ws_raw fix (`b3d11375b`) on main, season2/main tip `91cd21ab5`, MAIN has no untracked node paths. Merged origin/season2/main into my branch (clean, brought in the ws_raw fix + SL7.126/director-thought/master-sensei content). **ONE stamped `commands.py run verify-suite` running now in background** (log `/tmp/stamp-suite-window.log`, task `b4fg33mxh`) — belam's exact order: push, stamp, report stamp sha + the 11/11 line, any red by test id (first red = genuine until re-read, don't chase). **NEXT ACTION: check task `b4fg33mxh`.** If 11/11 green: push `HEAD:season2/main`, `verification.py --level rotation --stamp`, report stamp sha to belam + SM immediately (window closes on my line, meter climbing).
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **NEW (this session): a round's frontmatter `testable_claim` can carry a `STATUS: … NOT dispatched until the pause lifts` clause that the dispatcher must check BEFORE dispatching, not just the CEILING line** — SM.34 was found already done with this clause still in its brief; whether the pause had lifted before it was dispatched is unverified from this seat, flagged to SM rather than assumed either way.
