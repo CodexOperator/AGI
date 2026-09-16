@@ -26,6 +26,21 @@ AGI_DISPATCH_VARS = (
     "AGI_TREE_PROJECT_ROOT", "AUTORESEARCH_TREE_PROJECT_ROOT",
 )
 
+# The dispatcher's OTHER spawn channel: a kid/parent is spawned with
+# `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath
+# GIT_CONFIG_VALUE_0=<engine>/hooks/agent-git` (dispatch.py, tier kid|parent),
+# which is how the commit guard reaches a spawned agent's git at all. Those
+# three keys are NOT AGI_*-prefixed, so the glob above leaves them set and
+# every `git` a test shells out to silently runs the guard hook -- the leak
+# hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-says-
+# timed-out-and-the-done-tests-stay-hermetic item (1) names, already being
+# papered over by hand in test_rotate.py and
+# test_sensei_audit_record_writeback.py. Tests that WANT the guard pin these
+# themselves in their own body (monkeypatch setenv runs after this strip).
+GIT_CONFIG_SPAWN_VARS = (
+    "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0",
+)
+
 
 # Restore the original key map so a pytest process is never the worse for
 # having hosted the session (paranoia; the subprocess ends anyway).
@@ -33,9 +48,17 @@ _AGI_STRIPPED: dict[str, str | None] = {}
 
 
 def _strip_agi_env() -> None:
-    """Delete every AGI_* key from os.environ, remembering what we removed."""
+    """Delete every AGI_* key from os.environ, remembering what we removed.
+
+    Also deletes the GIT_CONFIG_* spawn channel above -- a test repo that
+    inherits `core.hooksPath` runs the commit guard, so the suite would be
+    green or red depending on who spawned it.
+    """
     for key in list(os.environ):
         if key.startswith("AGI_") or key.startswith("AUTORESEARCH_"):
+            _AGI_STRIPPED[key] = os.environ.pop(key, None)
+    for key in GIT_CONFIG_SPAWN_VARS:
+        if key in os.environ:
             _AGI_STRIPPED[key] = os.environ.pop(key, None)
 
 
