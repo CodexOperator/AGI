@@ -2044,6 +2044,12 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         if seat is not None and root is not None:
             _remove_first_seating_record(root, seat)
         return rc
+    if args.dry_run and seat is not None and root is not None:
+        # clause (3): the dry-run PLAN names the first key this seating would
+        # mint -- the ONE `would key <seat>` line -- and mints / writes
+        # NOTHING (the seating writes below never run on a dry-run).
+        _first_seating_key(root, seat, dry_run=True)
+
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         if getattr(args, "harness", None) == "copilot-cli":
@@ -2181,12 +2187,14 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating handoff header failed: {exc}",
                       file=sys.stderr)
+            _keyed = False
             try:
                 _fs_writes = _first_seating_spawn_writes(
                     root=root, seat=seat, generation=_spawn_gen,
                     ask_diff=ask_diff, role=_fs_role,
                     session_id=_jsess, window=_window_id or "",
                     pid=_jpid)
+                _keyed = bool(_fs_writes.get("keyed_at_seating"))
             except Exception as exc:                # noqa: BLE001
                 print(f"warn: first-seating meter pin / ack failed: {exc}",
                       file=sys.stderr)
@@ -2218,11 +2226,18 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             # `handover.spawn_row_commit`.
             if _commit:
                 print(_commit, file=sys.stderr)
-                if isinstance(_seating_rec, dict):
-                    _seating_rec["handover"] = dict(
-                        _seating_rec.get("handover") or {})
+            # clause (4): the seating record carries `keyed_at_seating` --
+            # true when THIS seating minted the row's first key, false when
+            # it found the row already keyed -- merged in the SAME one
+            # handover merge the commit outcome rides (a record already
+            # carrying a handover is never double-merged).
+            if isinstance(_seating_rec, dict):
+                _seating_rec["handover"] = dict(
+                    _seating_rec.get("handover") or {})
+                _seating_rec["handover"]["keyed_at_seating"] = _keyed
+                if _commit:
                     _seating_rec["handover"]["seating_row_commit"] = _commit
-                    _seating_record_merge_handover(root, _seating_rec)
+                _seating_record_merge_handover(root, _seating_rec)
     return 0
 
 
@@ -5618,6 +5633,43 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
     return seating
 
 
+def _first_seating_key(root: Path, seat: str,
+                       dry_run: bool = False) -> tuple[dict, str]:
+    """A first seating's KEYING half (hypothesis:l4-the-unkeyed-refusal-...
+    clause (2)): a real seat row that carries NO ``pubkey`` mints its FIRST
+    key through ``send._mint_seat_key`` -- the ONE key writer, no second key
+    path and no ed25519 literal -- IN THE SAME seating step, and its
+    ``pubkey``/``sig_scheme``/``enc_scheme`` cells ride the SAME
+    ``_write_identity_cells`` call the seating row already makes: one write,
+    one ``seating row`` commit, never a second commit.
+
+    A row that already names a pubkey, a THROWAWAY seat with no registry row,
+    and a seat whose ``<seat>.key`` already exists (``_mint_seat_key``
+    REFUSES rather than overwrite) are all left UNTOUCHED -- a re-seat never
+    rotates a key. Returns ``(cells, note)``: ``cells`` is the dict to merge
+    into the seating row (``{}`` when nothing was keyed) and ``note`` is the
+    ONE line the caller prints, empty when silent. ``dry_run`` mints and
+    writes NOTHING: it prints the ONE ``would key <seat>`` plan line."""
+    import write as _w  # local: same dir (send.py pattern, no cycle)
+    row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                if r.get("name") == seat), None)
+    if not row or row.get("pubkey"):
+        return {}, ""
+    if dry_run:
+        print(f"would key {seat}")
+        return {}, ""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    scheme = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is None:
+        return {}, ""
+    _path, pub = minted
+    return ({"pubkey": pub.hex(), "sig_scheme": scheme,
+             "enc_scheme": row.get("enc_scheme") or "none"},
+            f"[seating] seat {seat!r} was unkeyed: minted its first key at "
+            f"{_path} ({send.seatsig.fingerprint(pub)})")
+
+
 def _first_seating_spawn_writes(*, root: Path, seat: str,
                                 generation: int = FIRST_SEATING_GEN,
                                 transcript: str = "",
@@ -5660,16 +5712,24 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
     ap = _write_ack(root=root, seat=seat, gen_after=generation,
                     session_ref="", answer=_answer, source="seating",
                     session_id=session_id, role=role)
+    # clause (2): the seating KEYS its successor row -- an unkeyed real row
+    # mints its FIRST key here and the three cells ride the SAME
+    # `_successor_row_write` (-> `_write_identity_cells`) the seating already
+    # makes, so the seating's ONE `seating row` commit carries them.
+    _key_cells, _key_note = _first_seating_key(root, seat)
+    if _key_note:
+        print(_key_note, file=sys.stderr)
     row = _successor_row_write(
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
-        session_id=session_id)
+        session_id=session_id, first_key_cells=_key_cells)
     # goal:g15.25 FIX-ONLY: a first seating has NO join to resolve a harness
     # name from, so session_name stays '' — the cell is still written (as
     # empty) from the seat's first spawn write, and a later ack back-fill
     # fills it when it joins (hypothesis:l4-a-post-row-carries-a-session-
     # name-cell...).
-    return {"meter_pin": mp, "ack_path": str(ap), "row": row}
+    return {"meter_pin": mp, "ack_path": str(ap), "row": row,
+            "keyed_at_seating": bool(_key_cells)}
 
 
 def _remove_first_seating_record(root: Path, seat: str) -> bool:
@@ -8411,7 +8471,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          window: str, pid: int | None = None,
                          session_id: str | None = None,
                          session_name: str = "",
-                         key_rotation: dict | None = None) -> str:
+                         key_rotation: dict | None = None,
+                         first_key_cells: dict | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
@@ -8500,6 +8561,11 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                             for h in _hist if isinstance(h, dict)):
             _hist.append(_ret)
         cells["key_history"] = _hist
+    # clause (2): a first-seating KEY mint's cells (pubkey/sig_scheme/
+    # enc_scheme from `_first_seating_key`) ride the SAME one row write --
+    # never a second `_write_identity_cells` call, never a second commit.
+    if first_key_cells:
+        cells.update(first_key_cells)
     if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
                                  cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
@@ -15327,6 +15393,17 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
     return 0
 
 
+#: THE canonical keygen recovery line -- every refusal that sends an operator
+#: to key a seat quotes THIS constant, never a hand-spelled copy. The spelling
+#: is `keygen --post <seat>` because send.py's argparse declares the seat as
+#: `--seat`/`--post` ONLY (send.py:~4978): the bare positional `keygen <seat>`
+#: tail was rejected by argparse, so a refusal that quoted it sent the operator
+#: straight into a usage error (hypothesis:l4-the-unkeyed-refusal-quotes-the-
+#: exact-keygen-line-and-a-seating-keys-the-successors-row-so-no-post-reaches-
+#: rotate-unkeyed, clause (1)).
+KEYGEN_LINE = "python3 extensions/agi/bin/send.py keygen --post {seat}"
+
+
 def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
     """rotate-self is KEY-GATED (hypothesis:l4-rotate-self-is-key-gated...
     piece 1). A KEYED seat -- its row already names a ``pubkey`` -- must hold
@@ -15347,7 +15424,8 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
     if key_path.exists():
         return None
     return (f"rotate-self refused: seat {seat!r} carries a pubkey but no "
-            f"signing key at {key_path} -- run `send.py keygen {seat}` "
+            f"signing key at {key_path} -- run "
+            f"`{KEYGEN_LINE.format(seat=seat)}` "
             f"first (rotate-self is key-gated: a keyed seat must hold its "
             f"own signing key to rotate).")
 
@@ -16194,13 +16272,14 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
     reads a key file without comparing its pub to the committed row). """
     import send  # local
     if not row or not row.get("pubkey"):
-        return None, None, f"post {seat!r} is unkeyed: send.py keygen {seat} first"
+        return None, None, (f"post {seat!r} is unkeyed: "
+                            f"{KEYGEN_LINE.format(seat=seat)} first")
     key_path = send._seat_key_path(root, seat)
     obj = send._signing_key_obj(root, seat, key_path)
     if obj is None:
         return None, None, (
             f"post {seat!r} carries a pubkey but holds no signing key at "
-            f"{key_path}: send.py keygen {seat} first")
+            f"{key_path}: {KEYGEN_LINE.format(seat=seat)} first")
     try:
         scheme = send.seatsig.get(str(obj.get("scheme") or "ed25519"))
         ours = send.seatsig.fingerprint(
@@ -16214,7 +16293,7 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
     if ours != row_fp:
         return None, None, (
             f"post {seat!r}: held key fingerprint {ours} does not match the "
-            f"committed row {row_fp}; send.py keygen {seat} first")
+            f"committed row {row_fp}; {KEYGEN_LINE.format(seat=seat)} first")
     return seat, row, how
 
 
