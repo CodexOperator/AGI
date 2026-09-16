@@ -9804,6 +9804,8 @@ SM.52 landed: pi-runner (workflow.py, proved, 117/19 lines) + dispatcher (dispat
 
 SM.53 landed (9-item sm36 integration residue, all items 1-9 now done): merge_target maps v3_post/v3_loop to the derived trunk; prepare check1 measures against the local mirror ref instead of blocking forever; alias spellings refused by name in the rename trunk arm; rename-apply prints an unconditional PLAN line; first-seating preserves predecessor_session/session_ref; the no-engine-path-push test is now structural (argv recorder); spawn_budget._node_text catches Exception not BaseException; the died-no-work scaffold moved to deprecated/ (completed by hand after the kid proved it but the rounds own new commit-scope hook correctly refused the commit -- named as a push_further follow-up); agent-git pre-commit and cli._round_scope_ok are now ONE rule. 151/120 lines (~1.26x, disclosed, under the 2x demotion line). 1191/1191 tests green on my own re-run.
 
+SM.54 harvested (audit-classifier): 2 kids not 1, final inconclusive_lean_proved:90, sensei.py 36/-3 vs ceiling 15 (approx 2.4x, no re-brief to SM before kid 2 -- flagged, not self-adjudicated). 179/179 sensei tests re-verified independently.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
