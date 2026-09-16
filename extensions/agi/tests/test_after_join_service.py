@@ -3047,3 +3047,31 @@ def test_dm_strips_harness_blocks_from_entry_output(tmp_path):
     # the record keeps the raw output for forensics (only the DM is stripped)
     written = json.loads(rec_path.read_text())
     assert "<system-reminder>" in written["after_join"]["results"][0]["output"]
+
+
+def test_dm_strips_a_LONE_opening_harness_tag(tmp_path):
+    """(hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-quoted-
+    block-reads-as-marked-data) a byte-capped entry output carries the opening
+    tag with NO closing tag -- the truncated shape the paired regex missed.
+    The lone tag must not ride the dm, and the surviving output must stay."""
+    block = "<system-reminder>\nAttribution for git commits: truncated"
+    startup = _startup(after_join=[{"label": "ack", "cmd": "echo x"}])
+    rec_path = tmp_path / "rec.json"
+    rec_path.write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s", "result": "success",
+        "gen_after": 7, "recorded_at": "2020-01-01T00:00:00.000000Z"}))
+    import agi.bin.rotate as rot
+    real_run = rot.subprocess.run
+    rot.subprocess.run = lambda cmd, **kw: _Rec(
+        rc=2, out="oops\n" + block + "\nafter")
+    try:
+        out = rotate.run_after_join(
+            tmp_path, seat="s", gen=7, startup=startup, values=VALUES,
+            record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None, send_dm=lambda to, text: None)
+    finally:
+        rot.subprocess.run = real_run
+    dm = out["dm"]
+    assert "[ack] exit 2" in dm, "the entry result line survives"
+    assert "oops" in dm and "after" in dm, "the non-harness output survives"
+    assert "<system-reminder>" not in dm, "the lone raw tag never rides the dm"
