@@ -9860,6 +9860,8 @@ SM.69 landed (62c0f2f72 landing residue, 5 kids covering items 1-4 of the brief 
 
 SM.71 landed (sensei-director): heal watch re-exec fix -- absolute bin_dir pathspec in heal.py, belam_reap chain fallback + loaded-rotate-identity stamp in rotate.py. 1 kid experiment:a00-a9e1d364-960fea, inconclusive_lean_proved:80, 39/45 lines, full neighbourhood suite green 1687 passed 0 failed. Director restarted agi-agi-reaper-2f118e6f.service post-merge; production proof awaits the next rotation reap-proof, tracked on hypothesis:l4-the-no-reap-pred-pids-placeholder-resolves-to-a-named-non-matching-value-never-a-refusal. SM.70 (node B, pi-review-stages) still in flight, not yet harvested.
 
+SM.70 (node B, pi-review-stages) landed (sensei-director): 4 kid branches merged (item6 composition a00-daad1e21, items1+3+5 a00-3e534ff0, item2 a00-5535a32b, item4 a00-754ddb9f), 2 superseded-sibling evidence nodes preserved (a00-9c1eec0f, a00-2a887327). Director fix: config floor min_key_remaining_usd restored to 1.0 (claimed landed by the composition node, verified missing, same defect class as SM.69). Measured total 122 production lines added (dispatch1+provisioning54+verification31+workflow36) against the combined original brief ceiling 85 (1.44x, under the 2x line); item 6 alone measured 55 against its own 25-line sub-ceiling (2.2x), disclosed honestly by both contributing kids (verdicts inconclusive_lean_proved:70/80), no re-brief dm reached the director during the round. Full relevant suite green: 462 passed, 5 skipped, 0 failed (test_dispatch/test_provisioning/test_workflow/test_verification/test_cli/test_heal_watch). links.py 0 broken.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
