@@ -692,3 +692,167 @@ def _load_dispatch():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+# ---------------------------------------------------------------------------
+# --branch KID commits its OWN bytes in its OWN worktree
+# (hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook)
+# ---------------------------------------------------------------------------
+
+AGENT_ID = "a00-41d3e782"
+
+
+@pytest.fixture
+def branch_kid(tmp_path: Path):
+    """A MAIN checkout plus a LINKED worktree cut off it — the exact shape
+    dispatch.py `--branch` authors. The `.agi/` graph root is committed in
+    main and therefore present in the worktree, so AGI_PROJECT_ROOT resolves
+    to `<worktree>/.agi` whose git toplevel IS the worktree.
+
+    Returns (main, worktree)."""
+    main = tmp_path / "main"
+    main.mkdir()
+    for args in (["git", "init"],):
+        subprocess.run(args, cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test"], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=main, capture_output=True, check=True)
+    (main / "readme.md").write_text("# main")
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "sessions" / "quorum").mkdir(parents=True)
+    (graph / "config.json").write_text('{"metric_primary": "x"}')
+    subprocess.run(["git", "add", "."], cwd=main, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=main, capture_output=True, check=True)
+    wt = tmp_path / "wt"
+    subprocess.run(
+        ["git", "worktree", "add", "-b", "season2/loops/slug-a00-x", str(wt)],
+        cwd=main, capture_output=True, check=True,
+    )
+    return main, wt
+
+
+def branch_kid_env(wt: Path, agent_id: str = AGENT_ID,
+                   tree_root: "str | None" = None) -> dict:
+    """The env a `--branch` kid is spawned under, exactly as dispatch.py wires
+    it, and exactly as the dispatch orders measured it: `branch_root =
+    locations.source_root(root)` (dispatch.py:2175) is the worktree CHECKOUT
+    root, so AGI_PROJECT_ROOT == AGI_TREE_PROJECT_ROOT == the worktree
+    toplevel for a --branch kid. AGI_TREE_PROJECT_ROOT is set ONLY under
+    --branch. hook_env() pins core.hooksPath at the copy under test."""
+    env = {
+        **hook_env(),
+        "AGI_TIER": "kid",
+        "AGI_PROJECT_ROOT": str(wt),
+        "AGI_AGENT_ID": agent_id,
+    }
+    if tree_root is not None:
+        env["AGI_TREE_PROJECT_ROOT"] = tree_root
+    return env
+
+
+def _kid_commit(wt: Path, env: dict, message: str = "kid: own bytes"):
+    return subprocess.run(
+        ["git", "commit", "-m", message],
+        cwd=wt, capture_output=True, text=True, env=env,
+    )
+
+
+def _stage(wt: Path, rel: str, text: str = "x") -> None:
+    p = wt / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(text)
+    subprocess.run(["git", "add", rel], cwd=wt, capture_output=True, check=True)
+
+
+def test_branch_kid_commits_in_scope_bytes(branch_kid):
+    """The FIX's positive falsifier: a `--branch` kid with AGI_TIER=kid,
+    AGI_TREE_PROJECT_ROOT == its own toplevel, AGI_AGENT_ID set, and only
+    in-scope paths staged (a source edit + its OWN node file) COMMITS.
+    Red on the pre-change hook: every kid commit in the project repo exited 1,
+    so the parent had to adopt the bytes by hand and kid authorship was lost."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/source.py", "print('kid bytes')\n")
+    _stage(wt, f".agi/nodes/experiment/{AGENT_ID}-abc123.md", "---\ntype: experiment\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 0, (
+        f"in-scope branch-kid commit REFUSED: {res.stdout} / {res.stderr}"
+    )
+
+
+def test_branch_kid_refuses_staged_config_json(branch_kid):
+    """Out-of-scope (a): `.agi/config.json` at the checkout root is refused BY
+    NAME. Red on the pre-change hook only in that it refused everything; this
+    pins the denial survives the new admission."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/config.json", '{"metric_primary": "tampered"}')
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed .agi/config.json: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_another_authors_node(branch_kid):
+    """Out-of-scope (b): a path under `.agi/nodes/` whose basename does not
+    contain AGI_AGENT_ID is another author's node — refused by name."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/nodes/hypothesis/somebody-elses-node.md", "---\ntype: hypothesis\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed another node: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_other_agents_experiment_node(branch_kid):
+    """Out-of-scope (c): an experiment node whose basename carries a DIFFERENT
+    agent id refuses, even though it is the same type directory as the kid's own.
+    Also covers `.agi/nodes/.geometry/*` — no agent id in the basename."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/nodes/experiment/a99-deadbeef-abc123.md", "---\ntype: experiment\n---\n")
+    _stage(wt, ".agi/nodes/.geometry/crons.md", "geometry")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed another agent's node: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_another_posts_quorum_card(branch_kid):
+    """Out-of-scope (d): another post's card lives at
+    `<tree>/.agi/sessions/quorum/<seat>.md` (rotate.py::_own_card_path). A kid
+    has no business staging ANY seat's card — refused by the quorum prefix."""
+    main, wt = branch_kid
+    _stage(wt, ".agi/sessions/quorum/sanctuary-director.md", "card")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"branch kid committed a quorum card: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_plain_kid_in_main_checkout_still_refuses(branch_kid):
+    """Out-of-scope (e): a PLAIN kid (no AGI_TREE_PROJECT_ROOT — dispatch only
+    exports it under --branch) committing in the shared MAIN checkout still
+    refuses. This is the goal:g4.1 sweep-up hazard the admission must not open."""
+    main, wt = branch_kid
+    _stage(main, "extensions/plain_kid.py", "print('shared tree')\n")
+    res = _kid_commit(main, branch_kid_env(wt, tree_root=None), "plain kid commit")
+    assert res.returncode == 1, f"plain kid in MAIN committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_when_tree_root_is_not_the_toplevel(branch_kid):
+    """Out-of-scope (e), second spelling: AGI_TREE_PROJECT_ROOT names a
+    DIFFERENT checkout (here MAIN) while the commit happens in the worktree,
+    so the equality leg fails and the kid is refused. This is what makes the
+    admission specific to the kid's OWN isolated round worktree."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/wrong_tree.py", "print('x')\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(main)))
+    assert res.returncode == 1, f"kid with foreign AGI_TREE_PROJECT_ROOT committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_without_agent_id(branch_kid):
+    """Defence-in-depth: with AGI_AGENT_ID unset the node-scope test would
+    match everything (`*""*`), so the admission must require an agent id.
+    A branch kid with no id refuses."""
+    main, wt = branch_kid
+    _stage(wt, "extensions/no_id.py", "print('x')\n")
+    env = branch_kid_env(wt, tree_root=str(wt))
+    env.pop("AGI_AGENT_ID")
+    res = _kid_commit(wt, env)
+    assert res.returncode == 1, f"id-less branch kid committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr

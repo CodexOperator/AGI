@@ -51,6 +51,31 @@ if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
     fi
     exit 0
 fi
+# hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook —
+# a --branch KID owns an ISOLATED worktree (dispatch exports
+# AGI_TREE_PROJECT_ROOT only under --branch, and it equals its own toplevel),
+# so it may commit its OWN bytes there; the parent no longer adopts them by
+# hand and kid authorship is kept. A plain kid in the shared MAIN checkout
+# still refuses (goal:g4.1). In scope: everything in this checkout EXCEPT
+# .agi/config.json, another author's node, or a post's quorum card.
+if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${AGI_AGENT_ID:-}" ]; then
+    REAL_TREE=$(cd "$AGI_TREE_PROJECT_ROOT" && pwd -P 2>/dev/null)
+    if [ -n "${REAL_TREE:-}" ] && [ "$REAL_TREE" = "$REAL_TOPLEVEL" ]; then
+        SCOPE_OK=1
+        for P in $(git diff --cached --name-only --diff-filter=ACDMR); do
+            case "$P" in
+                .agi/config.json) SCOPE_OK=0 ;;
+                .agi/nodes/*)
+                    case "${P##*/}" in
+                        *"${AGI_AGENT_ID}"*) ;;
+                        *) SCOPE_OK=0 ;;
+                    esac ;;
+                .agi/sessions/quorum/*) SCOPE_OK=0 ;;
+            esac
+        done
+        [ "$SCOPE_OK" = "1" ] && exit 0
+    fi
+fi
 # The ONE authorised commit: a --branch PARENT committing onto its own
 # loop branch. hypothesis:l3-parent-brief-forbids-the-only-commit — the
 # loop branch is the only route a parent's kids' work has to the season
