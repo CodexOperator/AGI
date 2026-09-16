@@ -524,6 +524,9 @@ def _fake_pi_bin(tmp_path: Path) -> Path:
         "elif mode == 'fenced':\n"
         "    sys.stdout.write('Here is the review:\\n```json\\n'"
         "                     + " + repr(_REVIEW_BOTH_JSON) + " + '\\n```\\nthanks')\n"
+        "elif mode == 'yaml-fenced':\n"
+        "    sys.stdout.write('Review:\\n```yaml\\n'"
+        "                     + " + repr(_REVIEW_BOTH_JSON) + " + '\\n```\\nbyebye')\n"
         "else:\n"
         "    sys.stdout.write(" + repr(_REVIEW_BOTH_JSON) + ")\n",
         encoding="utf-8")
@@ -580,6 +583,19 @@ def test_pi_fenced_json_stage_is_ok_with_prose_around_it(tmp_path_factory,
     assert rc == 0, text
     assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
     # fenced parse resolves EXACTLY the same object the bare case did
+    assert rows[0]["stages"] == {"global-checks": "ok", "review:t1": "ok"}, rows
+
+
+def test_pi_yaml_fenced_json_stage_is_ok(tmp_path_factory, tmp_path, monkeypatch):
+    """hypothesis:l4-pi-review-stages-return-structured-reports item (2): a
+    ```yaml fence whose payload is JSON bytes is lifted like a ```json fence.
+    The model tagged the block `yaml` but the block holds JSON, which is the
+    residue that used to read `unstructured`."""
+    fake = _fake_pi_bin(tmp_path)
+    rc, text, rows, _tmp = _run_review_pi(tmp_path_factory, fake, "yaml-fenced",
+                                          monkeypatch)
+    assert rc == 0, text
+    assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
     assert rows[0]["stages"] == {"global-checks": "ok", "review:t1": "ok"}, rows
 
 
