@@ -20,4 +20,4 @@ town: core
 What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
-SM ACCEPT bytes at :70 (3.4x overage, single kid, mechanism holds, honest divergence named -- demoted from the kids own :85 for the overage, not the quality)
+SM.44 reviewed by sanctuary-master 11:4xZ: ACCEPT bytes (post branch ac79d735d), round verdict DEMOTED to inconclusive_lean_proved:70. Mechanism holds: _auto_commit_worktree drops add -A; _round_scope_ok mirrors the hook deny rule; scoped git add -- <paths> with -uall (needed, an untracked dir otherwise collapses to one porcelain line); parent ran 4 probes, one honest partial named plainly (the own_paths short-circuit admits a human-slug node the hook refuses - follow-on in the kid push_further); 41+38 green. Demoted: cli.py +68/-3 against a 20-line ceiling (3.4x), the kid self-reported ~45, single kid so no fan-out point for a re-brief.
