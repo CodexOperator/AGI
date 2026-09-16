@@ -426,12 +426,12 @@ def _write_kid_node(graph: Path, node_id: str, **fm) -> None:
         f"---\n{body}\n---\nbody\n")
 
 
-def _harvest_text(graph, monkeypatch, kid_node: str) -> str:
+def _harvest_text(graph, monkeypatch, kid_node: str, target: str | None = None) -> str:
     _write_manifest(graph, [
         {"id": PARENT, "status": "running", "dispatched_by": SEAT,
          "branch": ""},
         {"id": "a00-kid-1", "status": "done", "node_id": kid_node,
-         "spawned_by_agent": PARENT},
+         "spawned_by_agent": PARENT, "target": target or ""},
     ])
     monkeypatch.setattr(cli, "_session_root", lambda: graph)
     monkeypatch.setenv("AGI_TIER", "parent")
@@ -542,6 +542,44 @@ def _git_done_commit(root: Path, agent_id: str, added: int,
     p.write_text("x = 1\n" * added)
     g("add", "-A")
     g("commit", "-qm", f"{agent_id} done: work")
+
+
+def test_harvest_overage_uses_the_dispatching_nodes_ceiling_clause(graph,
+                                                                   monkeypatch,
+                                                                   capsys):
+    """hypothesis:l4-sm45b-...: brief and harvest agree on ONE number. The
+    kid row's `target` names a hypothesis whose own CEILING clause is 120, so
+    a 90-line kid is NOT an overage (against the config's 40 it would be).
+    The harvest reads the SAME resolver the brief was assembled with."""
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "c.md").write_text(
+        "---\nid: hypothesis:c\ntype: hypothesis\n---\n"
+        "CEILING: <=120 production lines\n")
+    _write_kid_node(graph, "experiment:k-clause", production_lines=90)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-clause",
+                         target="hypothesis:c")
+    capsys.readouterr()
+    assert "overage=" not in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_harvest_frontmatter_line_ceiling_beats_the_clause(graph, monkeypatch,
+                                                           capsys):
+    """An ANSWERED re-brief writes `line_ceiling` on the kid's own node and
+    that value WINS over the dispatching node's clause -- the parent's answer
+    is the newer fact."""
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "c.md").write_text(
+        "---\nid: hypothesis:c\ntype: hypothesis\n---\n"
+        "CEILING: <=120 production lines\n")
+    _write_kid_node(graph, "experiment:k-ans", production_lines=90,
+                    line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-ans",
+                         target="hypothesis:c")
+    capsys.readouterr()
+    assert "overage=[experiment:k-ans 90/40 no-rebrief]" in text, text
 
 
 def test_harvest_measures_a_kid_that_records_nothing(project, graph,

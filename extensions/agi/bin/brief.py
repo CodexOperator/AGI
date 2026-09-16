@@ -83,21 +83,20 @@ def _configured_profile(project_root: Path | None = None) -> str | None:
     return mode if mode in PROFILES else None
 
 
-def _configured_line_ceiling(project_root: Path | None = None) -> int:
-    """The production-line ceiling for the assembled kid brief.
+def _config_data(project_root: Path | None = None) -> dict:
+    """The project's parsed ``config.json`` as a dict, or ``{}``.
 
-    Read once, in ``assemble()``, from the project's own ``config.json`` --
-    never inside ``_kid()``, which has no ``project_root`` and no business
-    resolving config. Missing/unreadable config or an absent key falls back
-    to ``spawn_budget.production_line_ceiling``'s own default, so the brief
-    stays deterministic for every caller that does not thread it.
+    Read once, in ``assemble()``; ``_kid()`` has no ``project_root`` and no
+    business resolving config. Missing/unreadable config or a non-dict body
+    falls back to ``{}``, so the ceiling resolver's own default applies and the
+    brief stays deterministic for every caller that does not thread a number.
     """
     cfg_path = _resolve_graph_root(project_root) / "config.json"
     try:
         data = json.loads(cfg_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        data = {}
-    return spawn_budget.production_line_ceiling(data)
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def _effective_profile(profile: str | None = None,
@@ -1302,7 +1301,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
           source_root: str | None = None,
           addendum: str | None = None,
           session_dir: Path | str | None = None,
-          line_ceiling: int | None = None) -> list[str]:
+          line_ceiling: int | None = None,
+          ceiling_source: str = "default") -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1357,8 +1357,17 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
     # caller that does not thread it still gets the default, never a missing
     # segment, because a brief that says nothing is the defect this fixes.
     ceiling = 40 if line_ceiling is None else int(line_ceiling)
+    ceiling_origin = {
+        "clause": " This number is the dispatching node's own CEILING clause,"
+                  " so the brief and the harvest agree on it.",
+        "explicit": " This number was set explicitly by the caller that"
+                    " assembled this brief.",
+    }.get(ceiling_source,
+          " This number is the project config default; the dispatching node"
+          " carries no CEILING clause.")
     segs.append(
-        f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines. Your production "
+        f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines.{ceiling_origin} "
+        f"Your production "
         f"lines are measured with `git diff --numstat` over the production "
         f"paths you were given (test files excluded). Checkpoint at your "
         f"FIRST commit or first test run: measure those lines. If you are "
@@ -2079,17 +2088,26 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         # profile and the advisor brief.
         return _finish(segs, tier)
 
-    # Resolve ONCE here from the project config; `_kid` never reads config.
-    # An explicit kwarg wins (tests, hand assembles); otherwise the project's
-    # `spawn.production_line_ceiling`, defaulting to 40.
-    resolved_line_ceiling = (int(line_ceiling) if line_ceiling is not None
-                             else _configured_line_ceiling(project_root))
+    # Resolve ONCE here from the dispatching node's own CEILING clause, then
+    # the project config default -- ONE number from ONE source, so a kid's
+    # brief and the harvest's `overage=` cannot name two different ceilings
+    # (hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-
+    # clause-one-number-for-brief-and-harvest). `target` is the dispatching
+    # node id every dispatcher already passes; an explicit kwarg still wins
+    # (tests, hand assembles). `_kid` never reads config or the node.
+    if line_ceiling is not None:
+        resolved_line_ceiling, ceiling_source = int(line_ceiling), "explicit"
+    else:
+        resolved_line_ceiling, ceiling_source = spawn_budget.node_line_ceiling(
+            _resolve_graph_root(project_root), target,
+            _config_data(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
                 session_dir=session_dir,
                 addendum=addendum,
-                line_ceiling=resolved_line_ceiling)
+                line_ceiling=resolved_line_ceiling,
+                ceiling_source=ceiling_source)
     return _finish(segs, tier)
 
 
