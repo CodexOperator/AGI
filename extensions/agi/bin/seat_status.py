@@ -11,7 +11,7 @@ roll-up; seat status is what the owner's text adds to it.
 
 Like `briefing.py` and the `frame_stream`, this module computes a single
 `SeatsView` once and `viewport.py --live` renders that same object in both
-`render_human` and `render_llm` — and `--theme sanctuary` already falls back
+`render_human` and `render_llm` — and `--theme keep` already falls back
 to it through `load_seat_rows`. Two renderings, one set of facts.
 
 ## It computes, it never writes
