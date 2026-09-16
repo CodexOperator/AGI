@@ -6,7 +6,6 @@ parents:
   - goal:g15
 next_edges: []
 edited_by: sensei-director
-scaffold_hash: 16b0892489b83dc6
 season: 2
 testable_claim: "The copilot-cli harness is declared and resolved through config: adapters.load validates its adapter contract, needs_credential is false for GitHub-authenticated children, model_listing and transcript_path expose adapter-owned diagnostics, and workflow.py --harness accepts only declared harness names while resolving models from the selected harness namespace; proven by the focused adapter/workflow test suite and dry-run output."
 title: Copilot cli workflow harness parity

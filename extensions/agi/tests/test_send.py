@@ -7078,3 +7078,86 @@ def test_status_prints_one_read_only_line(project: Path, monkeypatch):
     assert "in_mode=1" in line and "lastread=" in line, line
     assert pane.in_mode is True, "status must not cancel copy mode"
     assert not pane.submitted, "status must type nothing"
+
+
+# hypothesis:l4-the-prime-hears-only-needed-comms -- owner 2026-09-10 05:0xZ
+# standing order + owner 2026-09-16 06:3xZ ("only direct comms that are
+# needed"): a CLI dm to the Prime's inbox must OPEN with one of
+# send.PRIME_DM_TAGS or it is refused BEFORE any write (exit 3, nothing
+# written); the Prime's own service dms, the owner, and any other inbox stay
+# as today. The fixture root carries NO config:seats rows, so the Prime's
+# name resolves to the standing default `belam`.
+def _prime_gate_root(tmp_path, monkeypatch):
+    root = tmp_path / "proj"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / ".agi" / "sessions" / "inbox").mkdir(parents=True)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_TIER", raising=False)
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    return root
+
+
+def test_prime_dm_untagged_status_is_refused_before_any_write(tmp_path, monkeypatch, capsys):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    rc = send_mod.main(["--from", "thought-master", "send", "belam",
+                        "seated on copilot successor; charter read"])
+    assert rc == 3
+    err = capsys.readouterr().err
+    assert err.startswith("REFUSED: a dm to the Prime carries only needed comms"), err
+    for tag in send_mod.PRIME_DM_TAGS:
+        assert tag in err, (tag, err)
+    assert not (root / ".agi" / "sessions" / "inbox" / "belam.md").exists()
+
+
+@pytest.mark.parametrize("tag", list(send_mod.PRIME_DM_TAGS))
+def test_prime_dm_with_a_needed_tag_is_written(tmp_path, monkeypatch, tag):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    rc = send_mod.main(["--from", "sanctuary-director", "send", "belam",
+                        f"{tag} 2885/199/3084; suite 4844/15; tip dbe33422e"])
+    assert rc == 0
+    content = (root / ".agi" / "sessions" / "inbox" / "belam.md").read_text()
+    assert f"{tag} 2885/199/3084" in content
+
+
+def test_prime_dm_tag_match_is_case_insensitive_after_leading_space(tmp_path, monkeypatch):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    rc = send_mod.main(["--from", "master-sensei", "send", "belam",
+                        "  [Complete] figure-eight lap 2 done"])
+    assert rc == 0
+    assert (root / ".agi" / "sessions" / "inbox" / "belam.md").is_file()
+
+
+def test_prime_own_service_dm_and_owner_and_other_inboxes_bypass_the_gate(tmp_path, monkeypatch):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    inbox = root / ".agi" / "sessions" / "inbox"
+    # the Prime's own service dm (after_join is sent AS the seat): allowed
+    assert send_mod.main(["--from", "belam", "send", "belam",
+                          "## AFTER_JOIN OUTPUT"]) == 0
+    # a numeral-suffixed Prime id: allowed
+    assert send_mod.main(["--from", "belam-S1-L4-XXI", "send", "belam",
+                          "predecessor note"]) == 0
+    # the owner at a terminal: allowed
+    monkeypatch.setenv("AGI_ROLE", "owner")
+    assert send_mod.main(["--from", "owner", "send", "belam",
+                          "resume order"]) == 0
+    monkeypatch.delenv("AGI_ROLE", raising=False)
+    # any OTHER inbox is untouched by the gate
+    assert send_mod.main(["--from", "director-thought", "send", "thought-master",
+                          "D1.01 done; 3064/0"]) == 0
+    assert "predecessor note" in (inbox / "belam.md").read_text()
+    assert "D1.01 done" in (inbox / "thought-master.md").read_text()
+
+
+def test_prime_seat_name_comes_from_the_prime_director_row(tmp_path, monkeypatch):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    monkeypatch.setattr(send_mod, "_seats_rows",
+                        lambda graph: [{"name": "prime-x", "role": "prime_director"},
+                                       {"name": "belam", "role": "director"}])
+    assert send_mod._prime_seat_name(root) == "prime-x"
+    # the row named belam is a director here, so an untagged dm to it passes
+    assert send_mod.main(["--from", "alive", "send", "belam", "status"]) == 0
+    assert send_mod.main(["--from", "alive", "send", "prime-x", "status"]) == 3

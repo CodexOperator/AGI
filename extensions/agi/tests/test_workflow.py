@@ -167,7 +167,7 @@ def test_stage_return_is_schema_validated():
 
 from workflow import (  # noqa: E402
     render_stage_prompt, _parse_last_json, _effort_to_thinking,
-    _run_stage_pi,
+    _run_stage_pi, _stage_context,
 )
 
 
@@ -266,6 +266,31 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     # the pi child env must not inherit Claude subscription credentials
     env = captured["env"] or {}
     assert "ANTHROPIC_API_KEY" not in env, env
+
+
+def test_stage_context_uses_shared_viewport_and_brief_surfaces():
+    import subprocess as _sp
+    from unittest import mock
+
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append((cmd, kw))
+        if "viewport.py" in cmd[1]:
+            return _sp.CompletedProcess(cmd, 0, stdout="VIEWPORT FRAME", stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="BRIEF HEAD", stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        context = _stage_context(
+            REPO, REPO / ".agi",
+            {"label": "review", "role": "parent"},
+        )
+
+    assert "BRIEF HEAD" in context
+    assert "VIEWPORT FRAME" in context
+    assert "write.py" in context
+    assert any("--emit" in cmd and "llm" in cmd for cmd, _ in calls)
+    assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
 
 
 def test_run_stage_pi_schema_violating_json_is_unstructured():
@@ -707,7 +732,8 @@ def test_pi_run_chains_investigate_to_refute(tmp_path_factory):
     calls = []
 
     def fake_run(cmd, **kw):
-        calls.append(" ".join(cmd))
+        if "--provider" in cmd:
+            calls.append(" ".join(cmd))
         prompt = " ".join(cmd[6:])  # prompt text follows provider/model/thinking
         body = verdict if "ANSWER:" in prompt else finding
         return _sp.CompletedProcess(cmd, 0, stdout=json.dumps(body), stderr="")
@@ -1094,6 +1120,10 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             # commit 2c78f3edf, config:workflows row) alongside the
             # thought-master/local-maxxing town bootstrap.
             {"name": "trove-survey", "harness": "claude-code"},
+            # recovery-survey: registered by the Prime belam gen 21
+            # (2026-09-16, commit 5180aa1a6): a re-seated Prime learns a
+            # bounded window by NAME (survey:{key} -> refute:{key}).
+            {"name": "recovery-survey", "harness": "claude-code"},
         ],
         workflows=[
             {"name": "review", "type": "review"},
@@ -1106,6 +1136,7 @@ def test_geometry_node_resolves_all_live_workflows(tmp_path, monkeypatch):
             {"name": "merge-up-review", "type": "merge-up-review"},
             {"name": "desktop-check", "type": "desktop-check"},
             {"name": "trove-survey", "type": "trove-survey"},
+            {"name": "recovery-survey", "type": "recovery-survey"},
         ],
     ), encoding="utf-8")
     monkeypatch.setattr(workflow, "_geometry_node_path", lambda root: node)
@@ -1610,7 +1641,8 @@ def test_pi_run_mints_one_credential_for_all_stages(tmp_path_factory,
     seen = []
 
     def fake_run(cmd, **kw):
-        seen.append(kw.get("env") or {})
+        if "--provider" in cmd:
+            seen.append(kw.get("env") or {})
         return _sp.CompletedProcess(cmd, 0, stdout=_GOOD_REVIEW_JSON,
                                     stderr="")
 
