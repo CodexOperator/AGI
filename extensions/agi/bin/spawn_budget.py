@@ -242,6 +242,25 @@ def parent_max_kids(cfg: dict, default: int = 4) -> int:
     return int(default)
 
 
+def production_line_ceiling(cfg: dict, default: int = 40) -> int:
+    """The production-line ceiling a kid's brief must name
+    (hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    for-a-parent-re-brief).
+
+    A kid with no number to read cannot checkpoint against it: the re-brief
+    rule keyed on kid fan-out, so a single kid ran to 3.4x of its ceiling
+    with nothing to measure against (measured SM.39 ~2.25x, SM.44 3.4x).
+    `spawn.production_line_ceiling` wins; otherwise the ceiling is a small
+    constant, never the whole change. The ceiling is advisory-in-brief -- a
+    hard, visible number the kid plans around -- not a refusal: nothing here
+    blocks a write, it is the number the 2x checkpoint is taken against.
+    """
+    spawn = cfg.get("spawn") or {}
+    if "production_line_ceiling" in spawn:
+        return int(spawn["production_line_ceiling"])
+    return int(default)
+
+
 @dataclass
 class Lease:
     """One admitted agent's claim on the budget."""
