@@ -1,0 +1,20 @@
+real dispatch spawn: the ACTUAL env the live --harness pi-local pi child was
+spawned with, captured in that spawn's own record; prints KEY NAMES ONLY.
+No secret value is ever printed.
+
+provenance: real dispatch spawn, iter-001, agent a00-ddf1e8d0, pid 1844317,
+  argv = a real pi/local-town command (/home/ubuntu/.npm-global/bin/pi
+  --provider local-town --model Qwen3.5-9B-Q4_K_M -p ...);
+  recovery source path /tmp/pi-local-realkid-u066pvip
+  (files staged for this round at sessions/iter-TM.12/a00-32db73ce/recovered_kid/).
+  The pid is gone, so no live /proc/<pid>/environ grep is shown --
+  the captured spawn record's env dict IS the evidence. Nothing here is fabricated.
+
+harness=pi-local  adapter=pi  provider=local-town  credential='none'  needs_credential=False
+  OPENROUTER_API_KEY present: False
+  key names containing OPENROUTER: []
+  key names containing KEY/TOKEN: ['CLAUDE_CODE_MESSAGING_TOKEN', 'GIT_CONFIG_KEY_0']
+
+NOTE: the dispatcher process env carries its own inherited
+OPENROUTER_API_KEY, which is why the allowlist must DROP it for a
+credential-none harness rather than merely skip minting a new one.

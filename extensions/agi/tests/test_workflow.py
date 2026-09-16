@@ -310,6 +310,135 @@ def test_run_stage_pi_schema_violating_json_is_unstructured():
     assert any("slug" in v for v in value["violations"]), value
 
 
+# ---------- transient 5xx retry: bounded, by name, never a real failure ----
+# hypothesis:l4-the-pi-runners-retry-a-transient-5xx-with-bounded-backoff-
+# logged-by-name-never-a-real-failure. `subprocess.run` is a fixture and the
+# sleep is injected -- no live spawn, no network, no real sleep.
+
+_SIG_520 = "Model not found for provider openrouter - using custom model id\n" \
+           "error code: 520"
+
+import io  # noqa: E402  -- the retry tests build a RunView with a sink
+
+
+def _retry_stage():
+    return {"label": "draft:a", "prompt": "p",
+            "_repeat_item": {"slug": "a"},
+            "schema": {"type": "object",
+                       "properties": {"slug": {"type": "string"}},
+                       "required": ["slug"]}}
+
+
+def test_transient_5xx_retries_bounded_and_named(monkeypatch, capsys):
+    """Two 520s then valid JSON -> rc 0 on attempt 3; the record names all
+    three attempts with sleeps 15, 45, 0 and stderr names the stage + attempt."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+
+    replies = ["rc1", "rc1", "ok"]
+
+    def fake_run(cmd, **kw):
+        r = replies.pop(0)
+        if r == "rc1":
+            return _sp.CompletedProcess(cmd, 1, stdout=_SIG_520, stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout='{"slug": "a"}', stderr="")
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
+    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter"}}}
+    view = _wf.RunView("k", [_retry_stage()], "pi", out=io.StringIO())
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi(
+            cfg, _retry_stage(), {"draft:a": {"model": "m", "effort": "x"}},
+            {}, view=view)
+    assert rc == 0 and value == {"slug": "a"}, (rc, value)
+    assert sleeps == [15, 45], sleeps          # bounded, injected, never real
+    att = view.state["draft:a"]["attempts"]
+    assert [a["attempt"] for a in att] == [1, 2, 3], att
+    assert [a["sleep_s"] for a in att] == [15, 45, 0], att
+    assert all(a["signature"] == "error code: 520" for a in att[:2]), att
+    assert view.state["draft:a"]["status"] == "ok"   # retried run ends ok
+    err = capsys.readouterr().err
+    assert "draft:a" in err and "attempt 1/3" in err and "15s" in err, err
+    assert "error code: 520" in err, err
+
+
+def test_non_transient_rc_is_never_retried(monkeypatch):
+    """rc != 0 with NO 5xx signature -> rc 3 on the FIRST attempt, no sleep."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        return _sp.CompletedProcess(cmd, 1, stdout="boom: bad prompt", stderr="")
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
+    cfg = {"harnesses": {"pi": {}}}
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi(
+            cfg, _retry_stage(), {"draft:a": {"model": "m", "effort": "x"}}, {})
+    assert rc == 3 and value is None, (rc, value)
+    assert len(calls) == 1, calls
+    assert sleeps == [], sleeps
+
+
+def test_timeout_is_one_attempt_no_retry(monkeypatch):
+    """A timeout is NOT transient: rc 2, exactly one attempt, no sleep."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        raise _sp.TimeoutExpired(cmd, 600)
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
+    cfg = {"harnesses": {"pi": {}}}
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi(
+            cfg, _retry_stage(), {"draft:a": {"model": "m", "effort": "x"}}, {})
+    assert rc == 2 and value is None, (rc, value)
+    assert len(calls) == 1, calls
+    assert sleeps == [], sleeps
+
+
+def test_transient_5xx_exhausts_at_three_attempts(monkeypatch):
+    """520 on every attempt -> rc 3 after exactly 3 calls, all named."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        return _sp.CompletedProcess(cmd, 1, stdout=_SIG_520, stderr="")
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
+    cfg = {"harnesses": {"pi": {}}}
+    view = _wf.RunView("k", [_retry_stage()], "pi", out=io.StringIO())
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi(
+            cfg, _retry_stage(), {"draft:a": {"model": "m", "effort": "x"}},
+            {}, view=view)
+    assert rc == 3 and value is None, (rc, value)
+    assert len(calls) == 3, calls
+    assert sleeps == [15, 45], sleeps
+    att = view.state["draft:a"]["attempts"]
+    assert [a["attempt"] for a in att] == [1, 2, 3], att
+    assert all(a["signature"] == "error code: 520" for a in att), att
+    assert view.state["draft:a"]["status"] == "failed"
+
+
 # ---------- lenient pi stage return: bare / fenced / prose ----------------
 # hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-dispatched-
 # spawn conjunct (h). The strict `find('{') : rfind('}')` parse lost a valid

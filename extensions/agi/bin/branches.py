@@ -444,17 +444,32 @@ def merge_target(branch: str) -> str:
     """The main of the node a post/loop branch sits under.
 
     A post/loop under season<n>/main -> season<n>/main; under
-    season<n>/<town>/season<k>/main -> that town main. Given the leaf itself
-    (a token set A name), returns it unchanged.
+    season<n>/<town>/season<k>/main -> that town main. A v3 TOWN-FIRST
+    post/loop -- the spelling every live seat actually carries -- resolves
+    the trunk of the SAME tuple, `<town>/season<m>/main` (derive_names),
+    never the branch itself. Given the leaf itself (a token set A name),
+    returns it unchanged.
     """
     parsed = parse(branch)
-    if parsed["kind"] in ("post", "loop"):
+    kind = parsed["kind"]
+    if kind in ("post", "loop"):
         season = parsed["season"]
         town = parsed.get("town")
         if town is not None:
             return town_main(season, town, parsed["town_season"])
         return season_main(season)
-    if parsed.get("kind") == "alias":
+    if kind in ("v3_post", "v3_loop"):
+        # SM.36 residue (1): a v3 record carries `town` and `town_season` and
+        # NO `season` key, so the pre-fix `kind in ("post", "loop")` test
+        # fell through to "a /main leaf is its own merge target" and
+        # merge_target returned the POST BRANCH ITSELF -- `merge-up --post`
+        # then refused `MAIN is on <trunk>` for every live seat. The trunk is
+        # derived through the module's OWN tuple helper (never a second
+        # hand-spelled name), exactly as mirror_ref_for_branch resolves the
+        # mirror from the keys `parse` actually returns.
+        return derive_names(parsed["town"],
+                            parsed["town_season"])["town_season_main"]
+    if kind == "alias":
         try:
             return merge_target(parsed["canonical"])
         except ValueError:
