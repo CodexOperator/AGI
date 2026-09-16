@@ -1645,3 +1645,53 @@ def test_g_above_floor_cap_with_drained_remaining_still_refuses(monkeypatch):
     assert "$0.50" in msg  # 5.0 - 4.5
     assert "sub-floor" not in msg, (
         "the refusal is not the sub-floor skip marker")
+
+
+# --- hypothesis:l4-dispatch-takes-a-per-round-cap-and-refuses-when-cap-
+# exceeds-pool-headroom — the headroom helper behind dispatch's `--cap`.
+
+
+def test_cap_headroom_refuses_and_names_pool_floor_and_live(monkeypatch):
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (10.0, 4.0, 6.0))
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [
+        {"name": "agi-iter1-kid-a", "limit": 2.0},
+        {"name": "human-key", "limit": 99.0},   # not engine-minted → excluded
+        {"name": "agi-iter1-parent-b", "limit": 1.5},
+    ])
+    ok, msg = provisioning.cap_headroom(
+        {"provisioning": {"min_account_remaining_usd": 1.0}}, None, 2.0)
+    assert ok is False
+    assert "pool headroom $1.50" in msg, msg
+    assert "pool $6.00" in msg and "floor $1.00" in msg and "live $3.50" in msg
+
+
+def test_cap_headroom_admits_a_cap_inside_headroom(monkeypatch):
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (10.0, 4.0, 6.0))
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: [{"name": "agi-x", "limit": 3.5}])
+    assert provisioning.cap_headroom(
+        {"provisioning": {"min_account_remaining_usd": 1.0}}, None, 1.0) == \
+        (True, None)
+
+
+def test_cap_headroom_fails_open_on_absent_key_and_network_error(monkeypatch):
+    monkeypatch.setattr(provisioning, "credit_balance", lambda root=None: None)
+    assert provisioning.cap_headroom({}, None, 5.0) == (True, None)
+
+    def _boom(root=None):
+        raise provisioning.ProvisioningError("unreachable")
+
+    monkeypatch.setattr(provisioning, "credit_balance", _boom)
+    assert provisioning.cap_headroom({}, None, 5.0) == (True, None)
+
+
+def test_cap_headroom_with_no_declared_floor_treats_it_as_zero(monkeypatch):
+    """A project with no `min_account_remaining_usd` keeps a 0.00 floor —
+    the declaration is what makes the floor a floor, not a hidden default."""
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (10.0, 9.5, 0.5))
+    monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
+    ok, msg = provisioning.cap_headroom({}, None, 1.0)
+    assert ok is False and "floor $0.00" in msg, msg
