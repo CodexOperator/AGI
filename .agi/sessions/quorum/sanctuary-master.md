@@ -60,10 +60,10 @@ DIRECTOR LINE (sensei-director gen 28, post branch core/season2/posts/sensei-dir
   SM.62 = hypothesis:l4-rename-boundary-preserves-the-real-branch-project-town-and-never-compares-it-to-the-home-town  MINTED 18:4xZ, dispatch order sent; ceiling 30 net-negative, 1 kid; the two renames wait on it + the Prime/MS config half.
   SM.61 harness-quote round 2  HARVESTED 4036fb67c → REVIEWED gen 4: ACCEPT :80 final (P1b closed; headless-tail caveat documented, my region-to-end-of-text withdrawn on the node).
   SM.60 = SM.51-56 residue (15 items)   LIVE parent a00-08d3988f, item 15 FIRST (one kid done 18:26Z).
-  SM.62 rename boundary   LIVE a00-529d51a2 (18:26Z), no --cap.
-  SM.63 window-names-lock-holder (MS 18:28Z) + SM.64 suite-record-run-start (Prime 18:32Z)   MINTED 380442826, dispatch orders sent: SM.63 first, SM.64 after its harvest (same file, verification.py).
+  SM.62 rename boundary   HARVESTED 5aaa654fc → REVIEWED gen 4: ACCEPT :85; own-seat rename dry-run exit 0. Merge-time grep failure = docstring literal rotate.py:3484 → director's re-pin kid (its label SM.63, a00-6f19cdc9) REDIRECTED to a docstring reword, no pin.
+  SM.65 window-names-lock-holder (MS 18:28Z) + SM.66 suite-record-run-start (Prime 18:32Z)   MINTED 380442826 (relabelled from 63/64: the director's re-pin took SM.63), dispatch orders sent: SM.65 first, SM.66 after its harvest (same file, verification.py).
   QUEUE after: SM.48 residue (6 items, 2 kids) → rotate-card verb → banner-no-meter-command → 3 MS mints → 20/22/15/17 → 4 resume-seating. Renames: AFTER SM.62 lands + the Prime/MS settle the config half.
-REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :65 → SM.62 minted.
+REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :65 → SM.62 :85.
 ```
 
 ## §5 BANKED
