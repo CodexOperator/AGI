@@ -8,7 +8,7 @@ LIVE ITEMS:
 - **SD.02/L4.373 — CLOSED, merged to MAIN** (prior session; see git log/prior card versions, not re-summarized here).
 - **SD.06/residue — CLOSED, merged to MAIN** (prior session).
 - **SD.08/residue — CLOSED, merged to MAIN this gen.** merge `b6bc563a0`→`f8c5e6299`, stamped clean at `4f140778` (10/10). Belam cross-checked the stamp independently and confirmed receipt. See §1.
-- **mur-49 residues R2/R4/R5/R6 — SIGNED GO this gen (belam gen 25, 18:44Z).** Mint each as its own g15 hypothesis (parents goal:g15), one pi parent each, `--harness pi`, no `--cap`, SEQUENTIAL (loadavg gate). R2 = SD.09 **CLOSED, landed MAIN** (stamp `1c447db9d`). R4 = SD.10 **CLOSED, landed MAIN** (merge `7147f0ace` over reviewed sha `3787ddf1d`, stamp `a6a14f015e`). R5 = SD.11 **DISPATCHED, IN FLIGHT** (kid `a00-bcb1991c`, pid 2215932, branch `season2/loops/hypothesis-l4-a-verify-suite-che-a00-bcb1991c`) — node also carries belam's R4-review addendum (decide whether R5's check makes R4's zero-schema carve-out safe-to-keep or argues for tightening it; see §1). R6 **minted+committed+pushed, not yet dispatched** (SD.12 next, only after R5 lands). See §1/§3.
+- **mur-49 residues R2/R4/R5/R6 — SIGNED GO this gen (belam gen 25, 18:44Z).** Mint each as its own g15 hypothesis (parents goal:g15), one pi parent each, `--harness pi`, no `--cap`, SEQUENTIAL (loadavg gate). R2 = SD.09 **CLOSED, landed MAIN** (stamp `1c447db9d`). R4 = SD.10 **CLOSED, landed MAIN** (merge `7147f0ace` over reviewed sha `3787ddf1d`, stamp `a6a14f015e`). R5 = SD.11 **built+verified+pushed to POST branch (`739188f6d`), asked `[merge-up]` for Prime GO-by-SHA, NOT yet in MAIN — waiting on reply.** R6 **minted+committed+pushed, not yet dispatched** (SD.12 next, only after R5 lands). See §1/§3.
 - 🔴 **NEW PROCESS, belam 19:5xZ, binding for R4/R5/R6 (retroactively NOT applied to R2, which landed post-hoc-accepted under the OLDER ask-and-grant pattern):** the 18:44Z GO covers MINT+DISPATCH+report only. A MAIN landing now needs an explicit Prime **GO BY SHA** after belam runs `merge-up-review` on pi: send `[merge-up]` with the **POST-BRANCH TIP SHA + numbers** BEFORE merging to MAIN, wait for the GO-by-SHA reply naming that sha, THEN `git merge --no-ff`, stamp, send the numbers line. **Do not merge ahead of that reply, for R4, R5 or R6.**
 - **SD.03 = L4.371 (copilot harness rest).** HOLD — copilot stays only on the owner's own word; ask the Prime before dispatching. Untouched.
 
@@ -54,14 +54,17 @@ Nothing else queued beyond mur-49 R2/R4/R5/R6 (now live, see §1/§3) and the he
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
 ```
-R2 and R4 are DONE (landed MAIN). R5/SD.11 is DISPATCHED, IN FLIGHT -- kid a00-bcb1991c, pid 2215932, branch season2/loops/hypothesis-l4-a-verify-suite-che-a00-bcb1991c. R6 is MINTED, committed, pushed -- not dispatched.
+R2 and R4 are DONE (landed MAIN). R5/SD.11 is BUILT, VERIFIED, PUSHED to the post branch at 739188f6d -- a [merge-up] ask (tip sha + full numbers) is already sent to belam, this gen rotated before the reply landed. R6 is MINTED, committed, pushed -- not dispatched.
 
-FIRST: `send.py read sanctuary-director` -- check for anything new.
-Then: `ps -p 2215932` / `spawn_budget.py status` -- is R5's parent still live?
+FIRST: `send.py read sanctuary-director` -- check for belam's reply.
 
-If R5's parent has exited: read its report (.agi/sessions/iter-SD.11/a00-bcb1991c/output.log), check the round's own worktree (/home/ubuntu/work/agi/.agi/worktrees/a00-bcb1991c) for any uncommitted note on the target node the way SD.10 left one (git status -sb there -- if dirty, read the diff, fold in by hand if legitimate, same as R4's c05c1afd7 pattern), independently re-verify (real diff read, fresh pytest matching claimed numbers, live-tree invariant), merge to this post branch, run the post-branch suite, push, then send the `[merge-up]` ASK with the post-branch tip SHA + full numbers to belam and WAIT FOR THE GO-BY-SHA REPLY before touching MAIN (belam's binding process from 19:5xZ/20:4xZ -- do not merge ahead of that reply, for R5 same as R4). Once belam's GO-by-SHA lands: merge --no-ff at that exact sha, snapshot-goals render+check, MAIN suite, grid commit --all, push both refs, verification.py --level rotation --stamp (cd into MAIN explicitly first -- cwd silently resets to the post-worktree between commands on this box, see §4), report `[merge-up]` numbers+hash.
+Case A -- belam replied with a GO BY SHA naming 739188f6d (or a later tip you produce after re-syncing, name it in your numbers line): proceed with the MAIN merge-up recipe for R5 exactly as it ran for R4 (git status/fetch fresh in MAIN -- cd into MAIN explicitly, cwd silently resets to the post-worktree between commands on this box, see §4 -- merge --no-ff 739188f6d -F <file>, snapshot-goals render+check, commands.py run verify-suite backgrounded/read RESULT line, grid.py commit --all, push season2/main + refs/grid/*, verification.py --level rotation --stamp, ONE [merge-up] numbers+hash line to belam).
 
-Once R5 lands: mint nothing new for R6 (already minted, committed, pushed at commit in §1) -- just re-check balance fresh (F13), sync+push the post branch, dispatch R6 as SD.12 the same way (dry-run first, sync-and-retry on any stale-base exit 3), same full cycle.
+Case B -- belam replied but named a different sha or asked for changes: read in full, decide/document, do not merge on the old sha.
+
+Case C -- no reply yet: do NOT merge R5 to MAIN under any circumstance (belam's binding process, 19:5xZ/20:4xZ: "do not merge ahead of that line", applies identically to R5). Wait for the reply naturally, do not hand-poll.
+
+Once R5 lands on MAIN: re-check balance fresh (F13, MAIN-root .env), sync+push the post branch, dispatch R6 as SD.12 the same full cycle (dry-run first, sync-and-retry on any stale-base exit 3, verify, merge to post branch, suite, push, ASK for GO-by-SHA, wait, merge to MAIN, suite, stamp, report). R6's node: hypothesis:l4-a-refused-town-set-is-never-reported-as-an-absent-one.
 
 After all four (R2/R4/R5/R6) land: nothing else is live. SD.03 stays held. mur-49 R1/R3 were never part of this GO -- do not invent them. Standing wake protocol: `send.py read sanctuary-director`.
 ```
