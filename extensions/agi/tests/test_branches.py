@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import pytest
 
 import branches as b
@@ -437,3 +440,117 @@ def test_post_at_malformed_without_season_raises():
         b.parse("post/foo")
     with pytest.raises(ValueError):
         b.parse("post/foo@s")
+
+
+# --- goal:g15.25 lines (1)+(2) (SM.250): the mirror ref -------------------
+def _mirror_fixture(tmp_path, branch="season2/posts/adv"):
+    """A work repo ON `branch` with one commit and a bare origin. Returns
+    (repo, bare)."""
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "-q", "-b", branch, str(repo)], check=True)
+    for k, v in (("user.email", "t@t"), ("user.name", "t")):
+        subprocess.run(["git", "-C", str(repo), "config", k, v], check=True)
+    (repo / "f.txt").write_text("x", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m", "i"],
+                   check=True)
+    subprocess.run(["git", "-C", str(repo), "remote", "add", "origin",
+                    str(bare)], check=True)
+    return repo, bare
+
+
+def _ls_remote(bare, pattern):
+    """The sha list `git ls-remote <bare> <pattern>` reports."""
+    out = subprocess.run(["git", "ls-remote", str(bare), pattern],
+                         capture_output=True, text=True).stdout
+    return [ln.split("\t")[0] for ln in out.splitlines() if ln.strip()]
+
+
+def test_mirror_ref_shapes_and_branch_lookup():
+    """`mirror_ref` returns `refs/agi/posts/<name>` and `refs/agi/loops/<name>`
+    (goal:g15.25 (a)); `mirror_ref_for_branch` maps a post/loop branch to its
+    mirror ref and every trunk to None; a bad kind refuses by name."""
+    assert b.mirror_ref(2, "posts", "sanctuary-director") == \
+        "refs/agi/posts/sanctuary-director"
+    assert b.mirror_ref(2, "loops", "slug-a00") == "refs/agi/loops/slug-a00"
+    assert b.mirror_ref_for_branch("season2/posts/adv") == \
+        "refs/agi/posts/adv"
+    assert b.mirror_ref_for_branch("season2/loops/l4-round-a00") == \
+        "refs/agi/loops/l4-round-a00"
+    assert b.mirror_ref_for_branch("season2/main") is None
+    assert b.mirror_ref_for_branch("master") is None
+    assert b.mirror_ref_for_branch("not a branch!!") is None
+    with pytest.raises(ValueError):
+        b.mirror_ref(2, "heads", "adv")
+
+
+def test_mirror_ref_for_branch_resolves_v3_town_first_post_and_loop():
+    """SM.25b defect (1): the TOWN-FIRST spellings every live seat carries
+    parse to `v3_post`/`v3_loop`, which the helper must recognise exactly as
+    it recognises the season-first arms. Pre-fix both returned None, so the
+    mirror never resolved on the branches that matter and `merge-up --post`
+    refused for every real seat. FALSIFIER: None for any live seat spelling."""
+    assert b.parse("core/season2/posts/sanctuary-director/main")["kind"] \
+        == "v3_post"
+    assert b.parse(
+        "core/season2/posts/sanctuary-director/loops/L4.332/a00-x")[
+            "kind"] == "v3_loop"
+    assert b.mirror_ref_for_branch(
+        "core/season2/posts/sanctuary-director/main") == \
+        "refs/agi/posts/sanctuary-director"
+    assert b.mirror_ref_for_branch(
+        "core/season2/posts/sanctuary-director/loops/L4.332/a00-x") == \
+        "refs/agi/loops/L4.332-a00-x"
+    # a v3 trunk still maps to no mirror (unchanged)
+    assert b.mirror_ref_for_branch("core/season2/main") is None
+
+
+def test_mirror_and_prove_is_additive_and_proves_by_ls_remote(tmp_path):
+    """goal:g15.25 (c)+(f): the tip lands at `refs/agi/posts/<name>` on the
+    bare origin, ls-remote proves the sha, and NO head is created. The helper
+    is ADDITIVE -- its source never deletes and never forces."""
+    import inspect
+    repo, bare = _mirror_fixture(tmp_path)
+    ref = b.mirror_ref_for_branch("season2/posts/adv")
+    head = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    ok, detail, info = b.mirror_and_prove(repo, ref)
+    assert ok, detail
+    assert info["ref"] == ref and info["sha"] == head
+    assert info["proved_by"] == "ls-remote"
+    assert _ls_remote(bare, ref) == [head]
+    assert _ls_remote(bare, "refs/heads/season2/posts/*") == []
+    src = inspect.getsource(b.mirror_and_prove)
+    assert "--delete" not in src and "--force" not in src
+
+
+def test_mirror_and_prove_refuses_by_name_on_failed_push(tmp_path):
+    """goal:g15.25 (d): a receive that fails is a REFUSAL BY NAME (rc-gated),
+    the ok flag is False, and nothing landed on origin."""
+    repo, bare = _mirror_fixture(tmp_path)
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    hook.chmod(0o755)
+    ref = b.mirror_ref_for_branch("season2/posts/adv")
+    ok, detail, _info = b.mirror_and_prove(repo, ref)
+    assert ok is False
+    assert "refused" in detail and ref in detail
+    assert _ls_remote(bare, ref) == []
+    assert _ls_remote(bare, "refs/heads/season2/posts/*") == []
+
+
+def test_no_engine_path_pushes_a_post_head():
+    """goal:g15.25 (e): no engine source names a post branch as a pushed
+    HEAD ref (`refs/heads/season<n>/posts/...`)."""
+    bin_dir = Path(b.__file__).parent
+    offenders = []
+    for p in sorted(bin_dir.glob("*.py")):
+        for i, line in enumerate(
+                p.read_text(encoding="utf-8").splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue                      # a comment names it to refuse it
+            if "refs/heads/season" in line and "posts" in line:
+                offenders.append(f"{p.name}:{i}")
+    assert not offenders, offenders

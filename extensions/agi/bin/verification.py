@@ -75,6 +75,12 @@ SUITE_CMD = "tests"
 
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+#: The env marker a caller that ALREADY holds the suite lock exports into the
+#: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
+#: the spawned runner PROCEEDS against a lock its own caller holds, instead of
+#: reading that caller as a live FOREIGN pid and refusing itself
+#: (SM.25b defect (2)). conftest.py is the other reader (same string).
+SUITE_LOCK_MARKER = "VERIFY_SUITE_LOCK_PID"
 
 #: Named non-zero exit when --suite is refused because another LIVE runner
 #: holds the suite window. Named, not a bare 1, so the caller abroad can tell
@@ -584,7 +590,28 @@ def _suite_lock_guard(groot: Path) -> str | None:
 
     Returns the one refusal line when a LIVE foreign pid holds the window,
     else None (proceed -- the purpose-built acquirer rules).
+
+    SM.25b defect (2): when the CALLER already holds the lock (cmd_merge_up
+    takes it, then spawns this runner with SUITE_LOCK_MARKER naming its own
+    pid), the marker pid IS the lock's live holder -- that is not a foreign
+    hold, so PROCEED without touching the file. The lock stays held across
+    the suite (the falsifier 'a merge-up that runs the suite without holding
+    the lock' must stay false); this arm never releases it.
     """
+    marker = os.environ.get(SUITE_LOCK_MARKER)
+    if marker:
+        try:
+            _mpid = int(marker)
+        except ValueError:
+            _mpid = None
+        if _mpid is not None and _pid_alive(_mpid):
+            path = Path(groot) / "sessions" / SUITE_LOCK
+            try:
+                _holder = int(path.read_text(encoding="utf-8").strip())
+            except (OSError, ValueError):
+                _holder = None
+            if _holder == _mpid:
+                return None  # our own caller holds it: proceed, do not touch
     lock_path, holder = acquire_suite_lock(groot)
     if lock_path is None and holder is not None:
         try:

@@ -1334,11 +1334,18 @@ def test_nonprime_rotateself_merge_and_push_proceed_while_prime_frozen(
         push_calls.append(argv)
         if "rev-parse" in argv:
             return _FakeProc(0, "season2/posts/adv")
+        if "ls-remote" in argv:
+            return _FakeProc(0, "season2/posts/adv\trefs/agi/posts/adv")
         return _FakeProc(0)
 
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)
     assert rotate._stops_push(tmp_path, "merge") is None
     assert any("push" in c for c in push_calls)
+    # goal:g15.25 (2): the post branch tip goes to the ADDITIVE mirror ref,
+    # never to `refs/heads/season2/posts/adv`.
+    assert any("refs/agi/posts/adv" in " ".join(c) for c in push_calls)
+    assert not any("refs/heads/season2/posts" in " ".join(c)
+                   for c in push_calls)
 
     # a GENUINE push failure is a real refusal, never a HELD line
     def failing_run(argv, **kw):
@@ -1365,6 +1372,9 @@ def _faked_stops_push_git(monkeypatch, resolved_branch):
         calls.append(argv)
         if "rev-parse" in argv:
             return _FakeProc(0, resolved_branch)
+        if "ls-remote" in argv:
+            return _FakeProc(
+                0, f"{resolved_branch}\trefs/agi/posts/adv")
         return _FakeProc(0)
 
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)
@@ -1404,11 +1414,15 @@ def test_frozen_prime_still_pushes_an_ordinary_post_branch(
         tmp_path, monkeypatch):
     """Conjunct 2: the SAME frozen prime fixture whose resolved branch is an
     ordinary post branch still pushes exactly as before -- RUNG 4's fix is
-    not regressed by the conditional gate."""
+    not regressed by the conditional gate. goal:g15.25 (2): since SM.250 that
+    push is the ADDITIVE mirror ref (`refs/agi/posts/adv`), never
+    `refs/heads/season2/posts/adv`."""
     _freeze(monkeypatch, True)
     calls = _faked_stops_push_git(monkeypatch, "season2/posts/adv")
     assert rotate._stops_push(tmp_path, "merge") is None
     assert _pushed(calls), "a post-branch rotate-self push must proceed"
+    assert any("refs/agi/posts/adv" in " ".join(c) for c in calls)
+    assert not any("refs/heads/season2/posts" in " ".join(c) for c in calls)
 
 
 def test_unfrozen_prime_pushes_a_trunk_resolved_stops_push(

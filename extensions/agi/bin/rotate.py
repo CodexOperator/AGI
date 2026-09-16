@@ -3496,7 +3496,8 @@ def _resolve_tmux_id(kind: str, src: str, run_tmux) -> str | None:
 
 
 def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
-                    run_git=None, run_tmux=None) -> tuple[int, int]:
+                    run_git=None, run_tmux=None, live: bool = False,
+                    ) -> tuple[int, int]:
     """ONE function, ONE pass over the surface table. Pure-filesystem
     surfaces (session files, dm logs, dm .state.json sidecar FILES, and their
     JSON KEYS) are renamed FOR REAL, each step idempotent (skip by name when
@@ -3509,6 +3510,7 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
     PRINTED. Returns (applied, skipped). Never writes config."""
     run_git = run_git or _seam_git
     run_tmux = run_tmux or _seam_tmux
+    live = bool(live)
     applied = skipped = 0
 
     # Pass 1: sidecar JSON KEY rewrites FIRST, so each sidecar is still at its
@@ -3559,10 +3561,58 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                         else dst)
                 _src = (s["src"].split("/", 1)[1]
                         if s["src"].startswith("origin/") else s["src"])
-                run_git("push", "origin", _dst)
-                if delete_old:
-                    run_git("push", "origin", f":{_src}")
-                applied += 1
+                # goal:g15.25 lines (1)+(2) (SM.250 round slice B, B1): a
+                # post/loop branch is LOCAL-ONLY -- the rename-apply mirrors
+                # its NEW tip to `refs/agi/<kind>/<name>` and PROVES the sha
+                # by ls-remote BEFORE the old head is dropped; the head push
+                # of the post branch straight to origin is the clause-(1)
+                # falsifier and is gone. Never delete first. Trunks (an
+                # unrecognised kind) keep today's head rename unchanged.
+                _mirror = branches.mirror_ref_for_branch(_dst)
+                if _mirror and live:
+                    _top = _git_toplevel(root) or Path(root)
+                    # SM.25b defect (3): prove the RENAMED BRANCH'S OWN tip --
+                    # `tip=_dst`, never the caller's toplevel HEAD. A tip that
+                    # cannot resolve is a refusal by name (mirror_and_prove),
+                    # never a silent fall back to HEAD.
+                    _mok, _md, _mi = branches.mirror_and_prove(
+                        _top, _mirror, tip=_dst, run=subprocess.run,
+                        label=f"rename-post mirror {_dst}")
+                    if not _mok:
+                        print(f"rename-post REFUSED: {_md}; old head "
+                              f"{_src} NOT deleted", file=sys.stderr)
+                        return applied, skipped
+                    print(f"rename-post mirror: {_mi['ref']} <- "
+                          f"{_mi['sha']} (proved_by ls-remote)",
+                          file=sys.stderr)
+                    if delete_old:
+                        # clause (4): a REAL origin-head delete only behind a
+                        # containment proof (cli.py's ONE implementation, both
+                        # tips read from origin). No proof => refuse by name and
+                        # delete nothing; the rename itself still stands.
+                        _cok, _cdet = _containment_proof(_top, _src, _mirror)
+                        if _cok:
+                            run_git("push", "origin", f":{_src}")
+                            print(f"rename-post: {_cdet}", file=sys.stderr)
+                        else:
+                            print(f"rename-post REFUSED: {_cdet}; {_src} "
+                                  f"NOT deleted", file=sys.stderr)
+                    applied += 1
+                elif _mirror:
+                    # print-only seam: the additive mirror, never a head push.
+                    # The delete line is a PLAN, not a deletion: this seam
+                    # runs no subprocess, and the live path above is where
+                    # clause (4)'s containment proof gates a real delete.
+                    run_git("push", "origin", f"{_dst}:{_mirror}")
+                    if delete_old:
+                        run_git("push", "origin", f":{_src}")
+                    applied += 1
+                else:
+                    # print-only trunk seam (no mirror, nothing deleted here).
+                    run_git("push", "origin", _dst)
+                    if delete_old:
+                        run_git("push", "origin", f":{_src}")
+                    applied += 1
             elif kind == "worktree dir":
                 run_git("worktree", "move", s["src"], dst)
                 applied += 1
@@ -3604,7 +3654,7 @@ def newk_present_in(data: dict, newk: str) -> bool:
 
 
 def _apply_staged(root: Path, old: str, delete_old: bool = False,
-                  run_git=None, run_tmux=None) -> int:
+                  run_git=None, run_tmux=None, live: bool = False) -> int:
     """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
     apply EVERY appliable surface in ONE pass. This is what the next
     rotate-self of `old` runs between the predecessor rotate-out and the
@@ -3634,7 +3684,7 @@ def _apply_staged(root: Path, old: str, delete_old: bool = False,
     # here: this path applies the staged table UNCONDITIONALLY and consumes
     # it on success (a second call, stage gone, is a no-op).
     _apply_surfaces(root, surfaces, delete_old=delete_old,
-                    run_git=run_git, run_tmux=run_tmux)
+                    run_git=run_git, run_tmux=run_tmux, live=live)
     # consume the stage once applied so the next boundary call is a no-op
     if stage.exists():
         stage.unlink()
@@ -3696,7 +3746,8 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         applied, skipped = _apply_surfaces(
             root, surfaces, delete_old=bool(getattr(args, "delete_old", False)),
             run_git=(lambda *a: _live_git(root, *a)) if live else None,
-            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None)
+            run_tmux=(lambda *a: _live_tmux(root, *a)) if live else None,
+            live=live)
         nship = sum(1 for s in surfaces if s["action"] == "ship")
         ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
         print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
@@ -3719,6 +3770,337 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
           f"{seats_dir / (old + '.rename.json')}; applied at the next rotation "
           f"boundary of {old} (rename-post: _apply_staged)")
     return 0
+
+
+# --- merge-up --post <name> (goal:g15.25 line (3), SM.250 slice B2) --------
+# The window ask is RETIRED for posts: this verb takes the advisory suite
+# lock ITSELF, runs the suite, merges --no-ff into the parent season branch,
+# pushes MAIN, mirrors the post branch tip and sends the Prime ONE numbers
+# line. No GRANT card, no wait. The GRANT protocol stays for other acts.
+def _suite_counts(output: str) -> dict:
+    """The suite's pytest counts, from EITHER shape verification.py emits:
+    the raw pytest summary (`2300 passed`) via the shared
+    `verification._parse_pytest_counts`, or the summary bracket that
+    `--suite` actually prints on a PASS (`[passed=2300, skipped=3]`). A
+    caller that only looked for the raw form would report no numbers on a
+    green suite -- the exact silence the numbers line exists to break. Never
+    raises: an unparseable output yields {}."""
+    counts: dict = {}
+    try:
+        import verification  # lazy: verification imports rotate
+        counts = dict(verification._parse_pytest_counts(output or ""))
+    except Exception:  # noqa: BLE001
+        counts = {}
+    for k, v in re.findall(r"(\w+)=(\d+)", output or ""):
+        if k in ("passed", "skipped", "failed", "errors", "deselected"):
+            counts.setdefault(k, int(v))
+    return counts
+
+
+def _node_counts(graph_root: Path) -> tuple[int, int, int] | None:
+    """(active, deprecated, total) counted LIVE from `<graph_root>/nodes`,
+    reusing metrics' ONE definition of 'retired'
+    (`node_lifecycle_stats` over `_iter_frontmatter`) rather than deriving a
+    second predicate. None when the graph has no nodes dir (a fixture root)."""
+    nodes = Path(graph_root) / "nodes"
+    if not nodes.is_dir():
+        return None
+    try:
+        import metrics  # lazy: a heavy-ish import, only for the numbers line
+        total = sum(1 for _ in metrics._iter_frontmatter(nodes))
+        st = metrics.node_lifecycle_stats(nodes, total)
+        return (int(st["active_node_count"]),
+                int(st["deprecated_node_count"]), total)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _merge_up_suite(root: Path, main: Path) -> tuple[bool, str, dict]:
+    """Run `verification.py --level quick --suite` in MAIN WHILE THE CALLER
+    HOLDS THE SUITE LOCK (the falsifier 'a merge-up that runs the suite
+    without holding the lock' must be provably false). We acquired the lock
+    ourselves, so the suite's own conftest -- the ONE live acquirer -- must
+    NO-OP instead of refusing itself against our live pid: SUITE_LOCK_MARKER
+    is exported into the child's env for exactly that. This is the seam the
+    tests monkeypatch so a merge-up test never spawns pytest. Returns
+    (ok, detail, pytest-counts) -- the counts feed the Prime numbers line."""
+    binp = Path(__file__).with_name("verification.py")
+    import verification  # lazy: verification imports rotate
+    env = dict(os.environ)
+    env[verification.SUITE_LOCK_MARKER] = str(os.getpid())
+    sink = Path(_sessions_dir(root)) / "merge-up-suite.log"
+    try:
+        sink.parent.mkdir(parents=True, exist_ok=True)
+        with open(sink, "a", encoding="utf-8") as fh:
+            out = subprocess.run(
+                [sys.executable, str(binp), "--level", "quick", "--suite"],
+                capture_output=True, text=True, timeout=1800, cwd=str(main),
+                env=env)  # noqa: S603
+            fh.write(out.stdout or "")
+            fh.write(out.stderr or "")
+    except Exception as exc:  # noqa: BLE001
+        return False, f"suite could not run: {exc}", {}
+    counts = _suite_counts((out.stdout or "") + (out.stderr or ""))
+    if out.returncode == 0:
+        return True, f"suite passed; log {sink}", counts
+    return False, f"suite failed (rc {out.returncode}); log {sink}", counts
+
+
+def merge_up_plan(root: Path, post: str) -> dict:
+    """The resolved merge-up plan for `post`: {main, branch, target, mirror}.
+    Raises ValueError NAMING the missing piece, never returns a partial
+    plan."""
+    main = _closeout_main(root)
+    if main is None:
+        raise ValueError(f"could not resolve MAIN for post {post!r}")
+    branch = _fd_seat_branch(root, main, post)
+    if not branch:
+        raise ValueError(f"no branch resolves for post {post!r}")
+    mirror = branches.mirror_ref_for_branch(branch)
+    if not mirror:
+        raise ValueError(
+            f"post {post!r} branch {branch!r} has no mirror ref (not a "
+            f"post/loop branch)")
+    return {"main": main, "branch": branch,
+            "target": branches.merge_target(branch), "mirror": mirror}
+
+
+def _drop_origin_post_head(main: Path, branch: str) -> tuple[bool, str]:
+    """Clause (2) migration tail: drop the PRE-EXISTING origin head
+    `refs/heads/<branch>` for a local-only post/loop branch. The CALLER MUST
+    have already proved the `refs/agi/<kind>/<name>` mirror -- this is a
+    delete and the order is load-bearing ('never delete first'). rc-gated:
+    a failed delete is REPORTED by name, never silent, and the head survives
+    it. Additive mirror first, delete second, always."""
+    ref = f"refs/heads/{branch}"
+    proc = _git_proc(main, "push", "origin", f":{ref}")
+    if proc is None:
+        return False, f"could not run push origin :{ref}"
+    if proc.returncode != 0:
+        return False, (f"delete {ref} failed (rc {proc.returncode}): "
+                       f"{(proc.stderr or proc.stdout or '').strip()}")
+    return True, f"{ref} deleted on origin"
+
+
+def _containment_proof(repo: Path, head_branch: str,
+                       mirror: str) -> tuple[bool, str]:
+    """Clause (4)'s containment proof for a real origin-head delete: the
+    `mirror` ref's content CONTAINS the origin tip of `refs/heads/head_branch`.
+    Both tips are read from origin by `ls-remote` (never a stale tracking ref,
+    never a guess) and the walk REUSES cli.py's ONE containment implementation
+    (`_rs_containment_state` -> `merge-base --is-ancestor`) rather than
+    minting a second one. An ls-remote that FAILS is UNKNOWN, never 'absent',
+    and refuses; 'diverged'/'absent'/'failed' all refuse by name."""
+    import cli  # lazy: same dir; cli.py is the ONE containment implementation
+    head = f"refs/heads/{head_branch}"
+    if not cli._rs_ls_remote_sha(repo, head_branch):
+        return False, (f"ls-remote {head} failed or absent -- UNKNOWN, "
+                       f"refusing to delete")
+    state, tgt = cli._rs_containment_state(repo, head_branch, [mirror])
+    if state != "contained":
+        return False, (f"no containment proof for {head} in {mirror} "
+                       f"({state})")
+    return True, f"{head} contained in {tgt}"
+
+
+def _origin_head_delete_gate(repo: Path, branch: str, *,
+                             delete_old: bool) -> tuple[str, str]:
+    """SM.25b clause (4): EVERY origin-head deletion is flag-gated, dry-run by
+    DEFAULT, and refused without a containment proof. Returns
+    ('deleted'|'dry'|'refused', detail) and NEVER deletes unless `delete_old`,
+    the branch resolves a `refs/agi/<kind>/<leaf>` mirror, and that mirror
+    CONTAINS the head's origin tip."""
+    head = f"refs/heads/{branch}"
+    mirror = branches.mirror_ref_for_branch(branch)
+    if not mirror:
+        return "refused", (f"{branch} has no refs/agi mirror (not a post/loop "
+                           f"branch) -- {head} NOT deleted")
+    if not delete_old:
+        return "dry", (f"plan: would delete {head} on origin, justified by "
+                       f"the containment proof in {mirror}; pass "
+                       f"--delete-old to delete")
+    ok, detail = _containment_proof(repo, branch, mirror)
+    if not ok:
+        return "refused", f"{detail} -- {head} NOT deleted"
+    dok, ddetail = _drop_origin_post_head(repo, branch)
+    return ("deleted" if dok else "refused"), ddetail
+
+
+def _suite_lock_state_readonly(groot: Path) -> str:
+    """The dry-run's lock line -- READ-ONLY, touches nothing (a dry run must
+    not create or delete the lock file). Names the holder pid when the file
+    holds a live pid, else 'free'."""
+    import verification  # lazy: verification imports rotate
+    path = Path(groot) / "sessions" / verification.SUITE_LOCK
+    if not path.exists():
+        return "free"
+    try:
+        holder = int(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return "free (stale/unreadable)"
+    if verification._pid_alive(holder):
+        return f"held by pid {holder}"
+    return "free (stale)"
+
+
+def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
+    """`rotate.py merge-up --post <name>` (goal:g15.25 line (3), owner
+    18:4xZ via belam XIX): the post merge-up WITHOUT the window ask. Order:
+      (0)  AUTH (SM.250 slice C1): resolve the caller with _caller_post exactly
+           as rotate does and refuse BY NAME before any git read or the lock;
+           a --post other than the caller's own post must pass the same
+           _rank_gate rotate applies.
+      (i)  --dry-run prints the plan (lock state, suite cmd, merge target,
+           mirror ref) and touches NOTHING (no lock, no suite, no git).
+      (ii) take the advisory suite lock ITSELF when FREE
+           (verification.acquire_suite_lock); when HELD, refuse BY NAME
+           naming the holder pid. The lock is held across the suite and
+           released in a `finally` (even on failure); SUITE_LOCK_MARKER
+           makes the suite's conftest no-op rather than refuse itself.
+      (iii) run the suite (verification.py --level quick --suite) in MAIN.
+      (iv) merge --no-ff the post branch into branches.merge_target in MAIN,
+           push MAIN, mirror the post branch tip (mirror + ls-remote prove),
+           THEN drop the pre-existing origin head for that branch (slice C2
+           migration tail -- never delete before the mirror proves), release
+           the lock, and send the Prime ONE line carrying suite n/n, nodes
+           a/d/t, the tip sha and the mirror ref/sha (slice C3).
+    The locked suite is a BLOCK: a failure or any refusal stops with NOTHING
+    merged and the lock released. Never a force-push, never a delete."""
+    if root is None:
+        print("ERR: merge-up needs an agi project root.", file=sys.stderr)
+        return 1
+    post = getattr(args, "post", None) or getattr(args, "name", None)
+    if not post:
+        print("merge-up refused: --post is required", file=sys.stderr)
+        return 2
+    # (C1) AUTH -- 'bare keyed like rotate'. Resolve the caller EXACTLY as
+    # rotate does and refuse by name BEFORE any git read or the lock: an
+    # unkeyed/foreign caller must not merge a post up and publish MAIN. When
+    # --post differs from the caller's own post, the SAME rank gate rotate
+    # applies decides; the caller's own held key only ever acts on itself or
+    # a strictly lower-ranked post.
+    caller_post, caller_row, how = _caller_post(root)
+    if caller_post is None:
+        print(f"merge-up refused: {how} (nothing merged)", file=sys.stderr)
+        return 3
+    if post != caller_post:
+        target_row = _find_seat(root, post)
+        if target_row is None:
+            print(f"merge-up refused: no seat {post!r} in the seats registry "
+                  f"(nothing merged)", file=sys.stderr)
+            return 3
+        gate = _rank_gate(caller_row, target_row, _ranks(root))
+        if gate:
+            print(f"merge-up refused: {gate} (nothing merged)",
+                  file=sys.stderr)
+            return 3
+    try:
+        plan = merge_up_plan(root, post)
+    except ValueError as exc:
+        print(f"merge-up refused: {exc}", file=sys.stderr)
+        return 3
+    main, branch = plan["main"], plan["branch"]
+    target, mirror = plan["target"], plan["mirror"]
+    groot = _shared_graph_root(root)
+    _suite_cmd = f"{sys.executable} verification.py --level quick --suite"
+    if getattr(args, "dry_run", False):
+        print(f"merge-up plan for {post}: branch {branch} -> target {target} "
+              f"in {main}; mirror {mirror}; suite {_suite_cmd}; "
+              f"suite lock {_suite_lock_state_readonly(groot)}; "
+              f"delete-old plan: refs/heads/{branch} only behind "
+              f"--delete-old AND a containment proof in {mirror}")
+        print("merge-up: dry-run, nothing changed")
+        return 0
+    cur = _closeout_branch(main)
+    if cur != target:
+        print(f"merge-up refused: MAIN is on {cur or '<detached>'!r}, not "
+              f"{target!r} -- nothing merged", file=sys.stderr)
+        return 3
+    clean, blockers, ignored = _closeout_main_clean(main, branch)
+    if clean is None or not clean:
+        named = ", ".join(blockers[:5]) if blockers else "unmeasurable"
+        print(f"merge-up refused: MAIN tracked tree dirty/unknown on "
+              f"{named} -- nothing merged", file=sys.stderr)
+        return 3
+    import verification  # lazy: verification imports rotate
+    lock_path, holder = verification.acquire_suite_lock(groot)
+    if lock_path is None:
+        print(f"merge-up refused: suite lock held by pid {holder} -- "
+              f"nothing merged", file=sys.stderr)
+        return 3
+    try:
+        suite_res = _merge_up_suite(root, main)
+        ok, detail = suite_res[0], suite_res[1]
+        suite_counts = suite_res[2] if len(suite_res) > 2 else {}
+        if not ok:
+            print(f"merge-up refused (lock held, nothing merged): {detail}",
+                  file=sys.stderr)
+            return 3
+        proc = _git_proc(main, "merge", "--no-ff", branch, "-m",
+                         f"merge-up: merge {branch} into {target} "
+                         f"(post {post})")
+        if proc is None or proc.returncode != 0:
+            _git_maybe(main, "merge", "--abort")
+            err = ((proc.stderr or proc.stdout or "nonzero exit").strip()
+                   if proc is not None else "merge could not run")
+            print(f"merge-up refused: merge --no-ff {branch} into {target} "
+                  f"failed (aborted): {err}", file=sys.stderr)
+            return 3
+        lines = _git_maybe(main, "rev-parse", "--short", "HEAD")
+        tip = lines[0].strip() if lines else "?"
+        push = _git_proc(main, "push", "origin", target)
+        if push is None or push.returncode != 0:
+            err = ((push.stderr or push.stdout or "nonzero exit").strip()
+                   if push is not None else "push could not run")
+            print(f"merge-up refused: push origin {target} failed: {err}",
+                  file=sys.stderr)
+            return 3
+        mok, mdetail, minfo = branches.mirror_and_prove(
+            main, mirror, tip=branch, run=subprocess.run,
+            label=f"merge-up mirror {post}")
+        if not mok:
+            print(f"merge-up refused: {mdetail}", file=sys.stderr)
+            return 3
+        # (C2) MIGRATION TAIL -- clause (4): the mirror is PROVED above, so
+        # the legacy origin head for this post may now be dropped -- but ONLY
+        # behind an explicit --delete-old AND a containment proof. Without
+        # the flag this prints the plan and deletes nothing; a failed or
+        # absent ls-remote is UNKNOWN and refuses. Never first: a mirror that
+        # did not prove returned above with the head untouched.
+        _st, _det = _origin_head_delete_gate(
+            main, branch, delete_old=bool(getattr(args, "delete_old", False)))
+        if _st == "refused":
+            print(f"merge-up: {branch} head NOT deleted: {_det} "
+                  f"(merge landed; mirror is the durable ref)", file=sys.stderr)
+        else:
+            print(f"merge-up: {_det}", file=sys.stderr)
+        # (C3) the numbers the claim names: suite n/n, nodes a/d/t, tip sha,
+        # mirror ref/sha -- ONE line to the Prime.
+        sc = suite_counts or {}
+        _passed_n = int(sc.get("passed", 0) or 0)
+        _total_n = _passed_n + sum(int(sc.get(k, 0) or 0)
+                                   for k in ("failed", "errors", "skipped"))
+        suite_s = (f"suite {_passed_n}/{_total_n}" if sc else "suite ok")
+        nc = _node_counts(groot)
+        nodes_s = (f"nodes {nc[0]}/{nc[1]}/{nc[2]}" if nc else "nodes n/a")
+        import send  # local: same dir
+        line = (f"MERGE-UP {post}: {suite_s} | {nodes_s} | merge {branch} "
+                f"-> {target} @{tip} | mirror {minfo['ref']} @{minfo['sha'][:7]} "
+                f"(proved_by ls-remote)")
+        try:
+            send.send(root, _closeout_prime_seat(root), line, sender=post,
+                      nudge=False)
+        except Exception as exc:  # noqa: BLE001
+            print(f"merge-up: landed, but the Prime line could not be sent: "
+                  f"{exc}", file=sys.stderr)
+            return 4
+        print(f"merge-up: {line}")
+        return 0
+    finally:
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:  # noqa: BLE001
+            pass
 
 
 # --- rotation templates (.geometry/rotations.md) ---------------------------
@@ -14793,8 +15175,13 @@ def _git_toplevel(root: Path) -> Path | None:
         return None
     if out.returncode != 0:
         return None
+    top = (out.stdout or "").strip()
+    if not top:
+        # an empty stdout (a fake/stubbed runner) must NOT collapse to
+        # Path(".") -- a relative cwd is not a toplevel.
+        return None
     try:
-        return Path(out.stdout.strip())
+        return Path(top)
     except ValueError:
         return None
 
@@ -16047,6 +16434,20 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
                         f"({branch}) while the prime is frozen; {_why}")
         except Exception:  # noqa: BLE001  (a broken veto cell never un-gates)
             pass
+    # goal:g15.25 lines (1)+(2) (SM.250): a post/loop branch is LOCAL-ONLY --
+    # its tip goes to the ADDITIVE mirror ref `refs/agi/<kind>/<name>`, proved
+    # by ls-remote, and NEVER reaches origin as a head (falsifier: any engine
+    # path pushing refs/heads/season<n>/posts/*). Trunks and unrecognised
+    # names keep the head push below, unchanged.
+    _mirror = branches.mirror_ref_for_branch(branch)
+    if _mirror:
+        _ok, _detail, _info = branches.mirror_and_prove(
+            top, _mirror, run=subprocess.run, label=f"{label} push")
+        if not _ok:
+            return _detail
+        print(f"{label} push: OK -- {_info['ref']} <- {_info['sha']} "
+              f"(proved_by ls-remote)", file=sys.stderr)
+        return None
     try:
         push = subprocess.run(["git", "-C", str(top), "push", "origin",
                                branch], capture_output=True, text=True,
@@ -19221,6 +19622,29 @@ def main(argv: list[str] | None = None) -> int:
     p_rp.add_argument("--root", default=None,
                       help="project root override (default: resolve from cwd)")
     p_rp.set_defaults(func=cmd_rename_post)
+
+    # merge-up --post <name>: the post merge-up WITHOUT the window ask
+    # (goal:g15.25 line (3), SM.250 slice B2). Takes the advisory suite lock
+    # itself when free, runs the suite, merges --no-ff into the parent season
+    # branch, pushes, mirrors, releases and sends the Prime ONE line.
+    p_mu = sub.add_parser(
+        "merge-up", help="merge a post branch up into its parent season "
+                           "branch without the grant window: take the suite "
+                           "lock, run the suite, merge --no-ff, push, mirror, "
+                           "send the Prime one line")
+    p_mu.add_argument("--post", default=None, metavar="NAME",
+                      help="the post whose branch to merge up (required)")
+    p_mu.add_argument("--name", default=None, metavar="NAME",
+                      help="alias for --post")
+    p_mu.add_argument("--dry-run", action="store_true",
+                      help="print the plan (lock state, suite cmd, merge "
+                           "target, mirror ref) and touch nothing")
+    p_mu.add_argument("--delete-old", dest="delete_old", action="store_true",
+                      help="drop the pre-existing origin HEAD "
+                           "refs/heads/<branch> after the mirror is proved "
+                           "AND a containment proof passes (default: print "
+                           "the plan, delete nothing)")
+    p_mu.set_defaults(func=cmd_merge_up)
 
     # bootstrap-block: the SessionStart hook's reader — emit the successor's
     # bootstrap record as ONE injected block, or REFUSE (exit 1, silent).
