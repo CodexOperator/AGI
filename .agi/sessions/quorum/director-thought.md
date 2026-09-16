@@ -75,7 +75,9 @@ Landed TWO rounds (TM.20, TM.21), fixed a real leak in gen2's own card, correctl
 - **TM.22, TM.24, q4-KV Kid A dispatched** — all three running, none landed yet. q4-KV Kid B deliberately withheld (see §0).
 
 ## 5 🔴 WHERE THIS STOPS — exact next command
-Read inbox on wake (`send.py read director-thought`). Three live rounds to poll and eventually audit+land the same way as TM.20/TM.21:
+**TM.25 QUEUED, NOT YET DISPATCHED** — thought-master order, ~23:56Z: `hypothesis:lm-typesafe-replay-200` (chain goal:g14 -> idea:lm-typed-decisions-in-the-loop -> this; mint `3f8b357cf`). One pi parent, ONE kid, $1 OpenRouter cap, `--level small --tier parent --harness pi --branch`, A1 only, curl+stdlib no SDK/pip. Replays 200 cases (100 from experiment frontmatter verdicts + 100 from belam dm Prime-tags) through a third-party "TypeSafe" API; delivers agreement/confusion/AUROC/latency/429-profile/ledger. **`TYPESAFE_KEY` lives in MAIN `.env`, passed to the kid via dispatch's credential allowlist — NEVER printed or written anywhere; if the allowlist strips it the kid STOPS and asks sanctuary-master by name, no workaround.** Spend is on a separate owner TypeSafe account ($5 preloaded), this round <= $0.10 — NOT the OpenRouter pool tracked elsewhere in this card. May run beside TM.22; wait only while a q4-KV row is actually in flight (not just "dispatched"). **I have not yet read the hypothesis/idea nodes for this one** — do that first (same pattern as every other dispatch this session: read node fully, quote ceiling/tests/file_scope verbatim into `--orders`, `--dry-run` before the real spend) before dispatching. This is next, ahead of polling the other three rounds, since thought-master is waiting on it specifically.
+
+Read inbox on wake (`send.py read director-thought`). Three other live rounds to poll and eventually audit+land the same way as TM.20/TM.21:
 ```
 cd /home/ubuntu/work/agi/.agi/worktrees/a00-ec4d1114 && python3 extensions/agi/bin/cli.py status TM.22; cd /home/ubuntu/work/agi
 cd /home/ubuntu/work/agi/.agi/worktrees/a00-8ad8fa70 && python3 extensions/agi/bin/cli.py status TM.24; cd /home/ubuntu/work/agi
