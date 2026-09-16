@@ -918,6 +918,9 @@ def test_stale_card_delays_and_prints_card_line(tmp_path, run_hook, monkeypatch,
     assert "ROTATION OWED" in out
     assert "card-age captive" in out, out
     assert "rotate.py handoff --driven --seat probe-director" in out, out
+    # conjunct (4): the ONE-LINE EXIT prints FIRST, never buried under prose.
+    assert (out.index("rotate.py handoff --driven --seat probe-director")
+            < out.index("card-age captive")), out
     assert _SPAWNS == []                   # the hook does NOT rotate a stale card
 
 
@@ -1089,11 +1092,12 @@ def test_merge_head_present_holds_rotation(tmp_path, run_hook, monkeypatch, caps
     assert _SPAWNS == []                   # the hook does NOT rotate mid-merge
 
 
-def test_unpushed_merge_commit_holds_rotation(tmp_path, run_hook, monkeypatch, capsys):
-    """Signal (3) of gate (b): an UNPUSHED commit on the season branch (the
-    `origin/<season>..<season>` non-zero the claim names) defers the rotation —
-    the hook prints the deferral and does NOT rotate (_SPAWNS == []). No
-    MERGE_HEAD, no suite lock: the season-ahead signal ALONE holds the gate."""
+def test_ahead_of_origin_is_info_not_a_captive(tmp_path, run_hook, monkeypatch, capsys):
+    """Being AHEAD of origin on the season branch is NOT a merge in flight: the
+    hook prints it as an INFO line and gate (b) does not hold. Under the old
+    gate (b) this was labelled `unpushed merge commit on the season branch`, the
+    normal state between pushes in a shared checkout, usually another seat's
+    commit (hypothesis:...-merge-up-in-flight-means-a-real-merge, conjunct 3)."""
     repo, graph, cwd = _real_repo_with_seat(tmp_path)
     # the season branch, with a remote origin pushed and then one commit AHEAD.
     _git_run(repo, "checkout", "-q", "-b", "season/s2")
@@ -1103,20 +1107,27 @@ def test_unpushed_merge_commit_holds_rotation(tmp_path, run_hook, monkeypatch, c
     _git_run(repo, "push", "-q", "-u", "origin", "season/s2")
     (repo / "season-note").write_text("ahead\n")
     _git_run(repo, "add", "season-note")
-    _git_run(repo, "commit", "-q", "-m", "unpushed merge commit")
+    _git_run(repo, "commit", "-q", "-m", "unpushed commit")
     # sanity: origin/season/s2..season/s2 really is non-zero
     n = subprocess.run(["git", "-C", str(repo), "rev-list", "--count",
                         "origin/season/s2..season/s2"],
                        capture_output=True, text=True, check=True).stdout.strip()
     assert n == "1", n
+    # THE FALSIFIER: ahead-only is NOT a merge in flight.
+    assert hook._merge_in_flight(graph) is None
+    assert hook._season_unpushed_count(graph) == 1   # ...but it IS measured
     tp = tmp_path / "up.jsonl"
     code, out, err = _over_line_run(graph, cwd, tp, tmp_path / "state-up",
                                     tmp_path, run_hook, monkeypatch, capsys)
     assert code == 0, err
     assert "ROTATION OWED" in out
-    assert ("rotation deferred: merge-up in flight "
-            "(unpushed merge commit on the season branch)") in out, out
-    assert _SPAWNS == []                   # the hook does NOT rotate
+    assert ("info: 1 unpushed commit(s) on season/s2 "
+            "(not a merge in flight)") in out, out
+    # the old label is GONE: no captivation, no deferral, on the ahead-only
+    # signal. (prepare's own unpushed check may still hold the rotation — a
+    # different captive, named as prepare's, never as a merge in flight.)
+    assert "merge-up in flight (unpushed merge commit" not in out, out
+    assert "(merge in progress on MAIN)" not in out, out
 
 
 def test_clean_real_git_repo_rotates(tmp_path, run_hook, monkeypatch, capsys):

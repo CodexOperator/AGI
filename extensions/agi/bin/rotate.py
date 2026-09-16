@@ -15162,39 +15162,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # handoff writer use (hypothesis:l4-the-driven-handoff-writer-keys-on-
     # declared-titles-and-writes-the-seats-own-card).
     card = _own_card_path(root, seat)
-    # "Older than the last commit" means the last commit that is WORK: a
-    # merge from the season branch (a sync) is not, a commit of cron-owned
-    # churn (comms dms, rotation records) is not, and the commit that
-    # committed the card itself is not (Sensei 18:29Z: two porcelain syncs
-    # aged the card and blocked the rotation). Measured at the repo top so
-    # engine edits under extensions/ count, not only the graph dir.
-    top = _git_toplevel(root) or root
+    # "Older than the last commit" now means older than the SEAT'S OWN last
+    # act — ONE clock, shared with the hook (bin/last_act.py, conjunct 1/2).
+    # The old inline repo-wide spec (`git log -1 --no-merges -- .` excluding
+    # comms/rotations/card/seats) is gone: any foreign seat's commit used to
+    # re-age this card faster than a write/commit/recheck round trip.
     try:
-        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
-    except (ValueError, OSError):
-        card_rel = None
-    spec = ["log", "-1", "--no-merges", "--format=%ct", "--", ".",
-            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
-    if card_rel:
-        spec.append(f":(exclude){card_rel}")
-    # a rotate-out stops commit touching seats.md must not re-age the card
-    # (goal:g15.25 line (3)): seating/rotation bookkeeping is not WORK, the
-    # same reasoning that excludes comms + rotation records — a pure
-    # card+seats commit is fully invisible to this check, so the stops write
-    # satisfies this captive instead of re-triggering it. SL7.30: this
-    # exclusion is CONDITIONAL on the run being a --stops rotate-self. A
-    # plain `prepare` (or rotate-self --prepare) must still let a seats.md
-    # WORK commit age the card — SL7.12 over-applied it to every prepare.
-    if stops_rotation:
-        try:
-            _sres = str(_ack_seats_path(root).resolve()
-                        .relative_to(Path(top).resolve()))
-            spec.append(f":(exclude){_sres}")
-        except (ValueError, OSError):
-            pass
-    last_ts = _git_count_maybe(top, *spec)
-    card_stale = (last_ts is not None and card.exists()
-                  and card.stat().st_mtime < last_ts)
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import last_act  # noqa: PLC0415
+        card_stale, _last_ts = last_act.card_stale(root, seat, card)
+    except Exception:  # noqa: BLE001
+        card_stale = False   # unmeasurable reads NOT stale (P7)
     checks.append((card_stale, "card older than last commit",
                    f"rotate.py handoff --driven --seat {seat}"))
 
