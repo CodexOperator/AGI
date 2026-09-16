@@ -1,0 +1,120 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-16T12:21:52.560337Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sensei-director",
+      "windows": [
+        "sensei-director",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "sanctuary-helper",
+        "master-sensei",
+        "sanctuary-director",
+        "belam-S1-L4-XXIII",
+        "sensei-director.prev",
+        "belam-S1-L4-XX",
+        "belam-S1-L4-XXII",
+        "director-thought",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 6870199,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sensei-director.prev",
+      "windows": [
+        "sensei-director",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "sanctuary-helper",
+        "master-sensei",
+        "sanctuary-director",
+        "belam-S1-L4-XXIII",
+        "sensei-director.prev",
+        "belam-S1-L4-XX",
+        "belam-S1-L4-XXII",
+        "director-thought",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -3.318
+  },
+  "seated_at": "2026-09-16T12:21:52.560337Z",
+  "window": "sensei-director",
+  "session_id": "fa66e386-fd67-4fce-8eef-39d39299e76c",
+  "pid": 1665011,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sensei-director.prev",
+      "id": "@392"
+    },
+    "successor_window": {
+      "name": "sensei-director",
+      "id": "@397"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@397",
+      "pid": 1665011,
+      "session_id": "fa66e386-fd67-4fce-8eef-39d39299e76c",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/fa66e386-fd67-4fce-8eef-39d39299e76c.jsonl",
+      "name": "post-sensei-director-dc",
+      "path": "/home/ubuntu/.claude/sessions/1665011.json",
+      "note": "joined by @397 in registry file 1665011.json"
+    },
+    "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-dc session_label=sensei-director session_id=fa66e386-fd67-4fce-8eef-39d39299e76c pid=1665011 generation=(none: non-prime is generation-less) window='@397' source=registry pubkey=213c20dc17c35392... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 739fe4000) -- own-row only: sensei-director spawn row: gen 27, session_id fa66e386-fd67-4fce-8eef-39d39299e76c, window @397, pid 1665011\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.fa66e386.json",
+    "own_authority_released": "generation 26 of seat 'sensei-director' retired; successor generation 27 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
+    "livestream_repoint": {
+      "session": "view-sensei-director",
+      "target": "@397",
+      "skipped": "view session view-sensei-director absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [
+    "master-sensei",
+    "sanctuary-master"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      491834,
+      491838,
+      491845,
+      491846
+    ],
+    "reap_source": "derived from own window @id @392 pane 491834: chain [491834, 491838, 491845, 491846] (deepest-first; authority row pid 491846)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-16T12:22:25.485618+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-16T12:21:52.560337Z"
+  }
+}
