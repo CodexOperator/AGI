@@ -59,13 +59,14 @@ DONE gen 3
    hypothesis:l4-rotate-resolves-the-stops-slot-from-the-row-handoff-file-when-the-row-carries-one          30 lines 1 kid
    hypothesis:l4-the-stale-base-gate-runs-its-own-sync-when-no-engine-file-differs-and-never-refuses-on-files-empty  40 lines 1 kid
    hypothesis:l4-a-post-branch-is-created-with-its-origin-upstream-set-after-the-first-push                 25 lines 1 kid
-  infra to the lanes: pi kid model tilde id (Prime, config) · merge-up-review manifest timeout_s (master-sensei, template)
-DIRECTOR LINE: SM.43 + SM.45 live → facts-guard → --cap → stops-seal → the 3 new mints → 20/22/15/17 → the four resume-seating nodes
-NEXT FOR ME: harvest reports by slug → review by name (mur route OPEN again: workflow.py run merge-up-review --harness pi --args '{...,"model":"deepseek/deepseek-v4.1-flash"}' (manifest timeout_s 1800/stage landed b31eaef3c; the model override is REQUIRED until the Prime fixes harnesses.pi.models.kid); by-hand fallback = throwaway tree, tests per file under env -u TMUX -u TMUX_PANE) · TM.06 co-review when it lands · credits before each dispatch (9.81 at 11:5xZ)
+  infra: manifest timeout_s landed b31eaef3c (MS) · tilde id was a false alarm (Prime) · retry node minted, queued (parallel GO)
+DIRECTOR LINE: SM.43 + SM.45 live → facts-guard → --cap → stops-seal → the 3 MS mints ∥ the pi-retry node (parallel GO) → 20/22/15/17 → the four resume-seating nodes
+NEXT FOR ME: harvest reports by slug → review by name (mur route OPEN again: workflow.py run merge-up-review --harness pi --args '{...,"model":"deepseek/deepseek-v4.1-flash"}' (manifest timeout_s 1800/stage landed b31eaef3c; the model override is optional -- the tilde kid id works, 520s were transient; until the retry node lands, re-run a 520-killed stage by hand); by-hand fallback = throwaway tree, tests per file under env -u TMUX -u TMUX_PANE) · TM.06 co-review when it lands · credits before each dispatch (9.81 at 11:5xZ)
 ```
 
 ## §5 BANKED
-- ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; the pi mur route needs args.model until `harnesses.pi.models.kid` is a real id (Prime, config; banked by master-sensei 12:13Z); the manifest timeout_s 1800 landed b31eaef3c.
+- ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; mur runs on pi by name. CORRECTED by the Prime 12:17Z: the tilde kid model id WORKS (pi catalogue warning only); my two pi mur failures were transient upstream 520s + the 600 s timeout (closed b31eaef3c). The runner has no retry → minted hypothesis:l4-the-pi-runners-retry-a-transient-5xx-with-bounded-backoff-logged-by-name-never-a-real-failure (60 lines, 2 kids), queued to the director (parallel rounds GO).
+- WINDOW-ASK RULING (Prime 12:17Z, recorded on g17.1 when it flips): keep asking until SM.36 is in MAIN and ONE merge-up has run under it with proof (own lock taken+released, no post head pushed, mirror refs written, --delete-old dry plan shown); then the ask collapses to the numbers line.
 - Live model claude-opus-5 (owner in-pane, gen 2) vs row sonnet-5 — Prime knows; successor spawns from the row.
 - Per-MAIN-post worktrees rejected (F14 class) — stands.
 
