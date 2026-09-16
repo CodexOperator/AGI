@@ -944,6 +944,25 @@ def _preview_detail(text: str) -> str:
     return f"{flat[:_TREE_DETAIL_PREVIEW_CHARS]}… (+{omitted} chars)"
 
 
+
+def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
+    """Write a pi stage's WHOLE return to
+    `<sessions>/workflows/runs/<run_key>/<label>.json` -- the view keeps 200
+    chars and an `unstructured` return otherwise lives only in this process,
+    so a reviewer that answered in prose was unreadable by the Prime (measured
+    mur-sl7-137, 2026-09-16 20:02Z: both stages unstructured, both lost).
+    Best effort: a persistence failure never fails the run."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+        d = Path(sess) / "sessions" / "workflows" / "runs" / run_key
+        d.mkdir(parents=True, exist_ok=True)
+        safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", label)
+        (d / f"{safe}.json").write_text(
+            json.dumps(value, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        print(f"workflow.py: could not persist stage {label!r}: {exc}",
+              file=sys.stderr)
+
 def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = None) -> None:
     """Append one row per real workflow run to `.agi/sessions/workflows/<key>.jsonl`.
 
@@ -1820,6 +1839,8 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 cfg, st, knobs, args, out=out, view=view, prior=prior,
                 spawn_env=spawn_env, context_text=context_text,
                 timeout_s=stage_timeout)
+            if value is not None:
+                _persist_stage_value(root, run_key, st["label"], value)
             if rc != 0:
                 print(f"workflow.py: workflow={key} failed at stage "
                       f"{st['label']} (rc={rc})", file=sys.stderr)
