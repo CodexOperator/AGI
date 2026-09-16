@@ -37,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from graph_core.persistence.frontmatter import load_node_file as _load_node_file  # noqa: E402
 
-__all__ = ["Town", "TownError", "load_towns", "town_tuples", "derive_names",
+__all__ = ["Town", "TownError", "TownAbsentError", "load_towns", "town_tuples", "derive_names",
            "config_town_cell", "accepted_towns", "row_town"]
 
 AUTO = "auto"
@@ -45,6 +45,15 @@ AUTO = "auto"
 
 class TownError(Exception):
     """A town node violates the schema — refused BY NAME (see message)."""
+
+
+class TownAbsentError(TownError):
+    """The ONE TRUE ABSENCE: no town:* node exists at all. Distinguished
+    from a present-but-broken town set by TYPE, never by message text (the
+    SAME shape R2 used for the ledger: ledger rings.py:326-340). Subclasses
+    TownError so existing `except towns.TownError:` callers still catch the
+    absence; a NEW except clause catches the validation-refusal subclass-
+    siblings separately."""
 
 
 @dataclass
@@ -246,7 +255,7 @@ def load_towns(root) -> list[Town]:
                 )
 
     if not towns:
-        raise TownError("no town:* nodes found under nodes/town (or nodes/deprecated/town)")
+        raise TownAbsentError("no town:* nodes found under nodes/town (or nodes/deprecated/town)")
 
     row_map = _read_council_rows(root)
     _resolve_visions(root, towns)
