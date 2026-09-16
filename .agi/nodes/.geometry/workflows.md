@@ -25,7 +25,6 @@ types:
   - {"name": "desktop-check", "harness": "claude-code", "stage_shapes": ["capture-and-read"]}
   - {"name": "trove-survey", "harness": "claude-code", "stage_shapes": ["read:{key}", "critique:{key}", "panel:{key}", "judge"]}
   - {"name": "recovery-survey", "harness": "claude-code", "stage_shapes": ["survey:{key}", "refute:{key}"]}
-  - {"name": "g15-close-triage", "harness": "claude-code", "stage_shapes": ["triage:{key}", "refute:{key}"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
@@ -37,7 +36,6 @@ workflows:
   - {"name": "desktop-check", "type": "desktop-check"}
   - {"name": "trove-survey", "type": "trove-survey"}
   - {"name": "recovery-survey", "type": "recovery-survey"}
-  - {"name": "g15-close-triage", "type": "g15-close-triage"}
 ---
 <!-- BODY:BEGIN -->
 # config:workflows
