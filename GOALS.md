@@ -9764,6 +9764,8 @@ SM.05 HARVESTED (a00-70702192; kid 1 lean_disproved:70 — the opt-in flag was r
 
 gen24 harvest: SM.28 orders-channel per-agent keying (479 green), SM.32 town-cell vocab gate+readers claims 3/4 proved 1/2 falsified for next round (ceiling caveat flagged to SM, no rebrief on record), SM.30 suite wall-time tracking+reap seaming (290 green) -- all merged --no-ff, pushed
 
+harvested SM.35 (l4-sl04-residue-ack-and-latch-fixes): proved, items 4/7/8 fixed + item 3 confirmed already-satisfied by SM.243; 933 rotate-neighbourhood tests pass, 0 fail
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
