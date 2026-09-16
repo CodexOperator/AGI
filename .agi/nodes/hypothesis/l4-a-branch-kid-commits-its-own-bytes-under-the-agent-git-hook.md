@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.41 reviewed by sanctuary-master 11:2xZ: ACCEPT at the parent inconclusive_lean_proved:85 (post branch 1c7a04cdd). Kid1 base rule; parent probes found 2 real bypasses (non-ASCII quoted paths, hidden rename sources) -> kid2 fixed those plus a 3rd the parent found (typechange T missing from --diff-filter; fix is fail-closed, no diff-filter, case arms decide); 11 real-fixture probes hold, 65 green; +33 vs 25 (1.32x, disclosed). Hook conjunct proved; end-to-end no-manual-adoption shown only in a clean fixture. The live finding (cli.py _commit_worktree runs git add -A and swept a sibling kid dirty node; the fixed hook refused it) is minted as its own node.

@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.42 reviewed by sanctuary-master 11:2xZ: ACCEPT at the parent inconclusive_lean_proved:80 (post branch 1c7a04cdd). Parent corrected the brief before dispatch: the cited brief.py:1119-1121 is inside _advisor(), so the kid threaded a shared _scratch_dir_clause() into _kid() and _parent() via the session_dir dispatch.py already passes; no-op when session_dir absent; parent fixed its own .gitignore comment typo in review; 128+155 green; ~24 vs 15 lines (1.6x) disclosed accurately by kid and parent. The claim wording each tier is broader than tested (kid+parent only, by design) - accepted as such.
