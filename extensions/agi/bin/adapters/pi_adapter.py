@@ -26,6 +26,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import adapters
 import brief
 
 NAME = "pi"
@@ -89,7 +90,12 @@ def child_env(*, harness: dict, base: dict[str, str],
     obvious place to do it, and no caller has to ask which adapters have one.
     """
     extra = harness.get("env") or {}
-    return {**base, **{k: str(v) for k, v in extra.items()}}
+    env = {**base, **{k: str(v) for k, v in extra.items()}}
+    # hypothesis:l4-needs-credential-is-provider-gated -- the credential-none
+    # rule lives in ONE place (`adapters.drop_unneeded_credential`) and every
+    # child_env calls it, so this spawn path -- and the restart path that
+    # funnels through here -- applies the same rule as main dispatch.
+    return adapters.drop_unneeded_credential(env, harness)
 
 
 def build_command(
