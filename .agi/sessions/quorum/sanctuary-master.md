@@ -69,6 +69,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 (honest, round 2 owed).
 - TRANSITION FACT (F30, MS): the card-age captive clocks each post's OWN acts (last_act.py); card write LAST; directors stamp their seat, kids/parents their agent id.
 - TEMPLATE LINES WITH MASTER-SENSEI: parent answers a kid rebrief in-node AND dms its director; round ceiling across K kids → per-kid line_ceiling slices; 'the final card is one call: rotate.py card' (waits on the verb node); 3-Edits card habit.
 - SM.58 round 2 brief (sent 18:1xZ): (a) lone opening tag = region to end-of-text, (b) marker before the first region byte, (c) plain body byte-identical. If the parent's regex instead widens to `<system[-_]reminder>(?:.*?</system[-_]reminder>|.*)` check (b) explicitly — the P1b shape is the falsifier.
+- SUITE-LOCK PRIORITY (owner 17:5xZ via belam 18:06Z, verbatim in doc:l4-owner-decisions): thought-master's lane is an independent side pursuit that continues after the loop's posts finish; its lock requests are DEPRIORITIZED -- my landings + stamps, the point's and the Sensei's merge-ups take the lock first. Ask the window without deferring to TM.
 - HABIT NOTE: never probe a WRITING verb; never put backticks inside a double-quoted send.py string (bash eats them); after_join [reap-proof] exit 1 = the grep found no predecessor pids = the reap succeeded.
 
 ## 🔴 Where it stops
