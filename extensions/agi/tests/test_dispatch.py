@@ -2703,7 +2703,7 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
 #   (c) cap over pool-minus-floor-minus-live-caps -> exit 1, stderr names
 #       pool/floor/live, and NO mint happened.
 
-def _cap_project(tmp_path):
+def _cap_project(tmp_path, parallel=1):
     """A scratch openrouter project whose standing per-spawn cap is 1.5 and
     whose account floor is 1.0."""
     import json
@@ -2714,7 +2714,7 @@ def _cap_project(tmp_path):
     (graph / "config.json").write_text(json.dumps({
         "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
                              "models": {"kid": "deepseek/deepseek-v4"}}},
-        "spawn": {"harness": "pi", "parallel": 1, "max_live": 25,
+        "spawn": {"harness": "pi", "parallel": parallel, "max_live": 25,
                   "credential": {"per_spawn_limit_usd": 1.5,
                                  "ttl_minutes": 180}},
         "provisioning": {"min_account_remaining_usd": 1.0},
@@ -2734,14 +2734,14 @@ def _cap_project(tmp_path):
 
 
 def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0),
-                      keys=()):
+                      keys=(), parallel=1):
     """Drive dispatch.main() for one openrouter kid slot with the network and
     the child process stubbed. Returns (exit_code, [mint kwargs], captured)."""
     import json
     import os
     import provisioning
     import sys as _sys
-    project = _cap_project(tmp_path)
+    project = _cap_project(tmp_path, parallel=parallel)
     mint_calls: list = []
 
     class _Minted:
@@ -2840,3 +2840,47 @@ def test_cap_over_pool_headroom_is_refused_by_name_and_mints_nothing(
     assert mints == [], "a refused cap must never mint"
     assert "round cap $5.00 exceeds pool headroom $1.50" in err, err
     assert "pool $6.00" in err and "floor $1.00" in err and "live $3.50" in err
+    # item 15: the refusal NAMES its own conservatism.
+    assert "live counts every agi- key's full limit" in err, err
+
+
+def test_cap_prices_every_slot_and_names_the_multiplier(
+        tmp_path, monkeypatch, capsys):
+    """item 13: the slot loop mints ONE key per slot, so at spawn.parallel=3
+    a 5.00 cap is priced 15.00 -- it fits once but not three times, and the
+    refusal names the multiplier rather than leaving a $10.00 phantom."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00", parallel=3,
+        balance=(10.0, 0.0, 10.0))
+    err = capsys.readouterr().err
+    assert code == 1
+    assert mints == [], "a refused cap must never mint"
+    assert ("round cap $5.00 x 3 slots = $15.00 exceeds pool headroom $9.00"
+            in err), err
+
+
+def test_cap_fail_open_is_a_named_notice_never_silence(
+        tmp_path, monkeypatch, capsys):
+    """item 12: an unreadable account is a fail-open WITH a marker -- the
+    round proceeds but a `notice:` line names that the cap was not measured,
+    the same string cap_headroom returned."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00", balance=None)
+    err = capsys.readouterr().err
+    assert code == 0, f"a fail-open must still mint, got {code}: {err}"
+    assert len(mints) == 1, mints
+    assert "notice: cap not measured" in err, err
+
+
+def test_non_positive_cap_is_refused_by_name_before_any_mint(
+        tmp_path, monkeypatch, capsys):
+    """item 14: `--cap 0` and `--cap -1` always fit the comparison, so they
+    must never reach it -- each exits non-zero naming the value and no key is
+    minted."""
+    for bad in ("0", "-1"):
+        sub = tmp_path / ("cap_zero" if bad == "0" else "cap_neg")
+        code, mints, _p = _run_cap_dispatch(sub, monkeypatch, "--cap", bad)
+        err = capsys.readouterr().err
+        assert code == 1, (bad, code)
+        assert mints == [], (bad, "a refused cap must never mint")
+        assert f"ERR: --cap must be > 0, got {bad}" in err, (bad, err)

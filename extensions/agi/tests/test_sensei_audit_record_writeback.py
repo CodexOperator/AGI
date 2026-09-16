@@ -291,6 +291,24 @@ def test_wake_audit_never_sends_a_dm(tmp_path, capsys, monkeypatch):
     assert "FINDING" in capsys.readouterr().out
 
 
+def test_wake_payload_reconciles_and_prints_one_count(tmp_path, capsys):
+    """SM.51-56 item 8 (wake side): `calls` equals the sum of every bucket
+    the payload reports, INCLUDING the service-owed `s` that the a+b+c floor
+    set excludes; the printed line's count is that same payload read."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [
+        ("Bash", "python3 extensions/agi/bin/rotate.py ack --seat " + SEAT),
+        ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py -q"),
+    ])
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    out = capsys.readouterr().out
+    audit = json.loads(rec_path.read_text(encoding="utf-8"))["audit"]["wake"]
+    assert audit["s"] == 1                       # the named, additive bucket
+    assert audit["calls"] == sum(int(audit[k])
+                                 for k in ("a", "b", "c", "d", "s"))
+    assert (f"green {SEAT} wake --record {STAMP} {audit['calls']} "
+            f"(floor 0)") in out
+
+
 # ── rotate-out side ──────────────────────────────────────────────────────
 
 GEN = 14

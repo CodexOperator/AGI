@@ -1958,6 +1958,14 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     ref = node_id or (owns[0] if owns else "node")
     subject_verdict = verdict
     if node_id is None and owns:
+        # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+        # never-borrows-the-parent-verdict-for-an-empty-node item (2): the
+        # kid node is the ONLY source of truth for the subject verdict. When
+        # it carries NO or an EMPTY verdict key, the parent's gate-resolved
+        # `--verdict` must NOT stand in for it -- the same false-claim shape
+        # b3523f325 fixed, one branch over. Name the empty case (`unset`)
+        # rather than borrow the parent's value.
+        subject_verdict = "unset"
         nf = _find_node_file(root, ref)
         if nf is not None:
             try:
