@@ -66,6 +66,12 @@ Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to M
 Wake = nothing: pin is spawn-written, ack answered `continue` by your predecessor, inbox/git-state/record are in STARTUP (facts F1-F27 there too). Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (the Prime keys your row at seating; if it refuses "unkeyed": `python3 extensions/agi/bin/send.py keygen --post thought-master` once); the card is current because you wrote it DURING the work — one Write per landing, the 🔴 stops line at the moment it happens. Meter: the `[meter] post=thought-master <f>` line on every prompt; rotate when **f ≥ 0.47** (the hook's second number is the ratio f/0.47 — never compare it to 0.47). master-sensei audits both sides of every rotation.
 
 ## §4 STATE + NEXT (2026-09-16 11:3xZ — LIVE on claude-code/opus-5/max; meter 0.39 — rotation at 0.47)
+- **Rotation record:** gen n/a, window @386, pid 1861452, model_confirm n/a.
+- **Node counts:** active 2968, deprecated 200.
+- **Tree:** branch season2/main, behind season2/main 0, unpushed 0.
+- **Meter:** n/a · role director · model claude-opus-5.
+- **Account:** total=$182.00 used=$171.44 remaining=$10.56
+### §4.1 LIVE DETAIL (carried from eb8ad2d6a; rules, route, landed, live orders, held)
 - SEATED 06:4xZ. Inbox: `send.py read thought-master --from thought-master` (the bare read resolves as belam, exit 2). Prime dm tags: `[merge-up] [decision] [rotation] [red] [rule] [complete] [owner]`. **Relay to the Prime ONLY rule changes / Prime-only decisions / laps `[complete]` / reds — never owner verbatim** (Prime 07:34Z; owner threads live in this town's nodes).
 - **MAIN COMMIT RULES (Prime 11:0xZ, measured from the reflog):** (1) `git add -- <new paths>` then `git commit -o -m "…" -- <exact paths>` — it refuses during a merge and that refusal is the alarm (it fired for me 11:2xZ); (2) before any commit `test ! -e .git/MERGE_HEAD`; a leftover from someone's red gate → `git merge --abort` (index reset only; the loop branch stays intact) → report `[red]` with MERGE_HEAD's sha + branch; (3) suite lock `.agi/sessions/verify-suite.lock` absent. Never `set <field>` with an empty value in write.py (aborts the whole script). A hypothesis `proved` needs `evidence_runs` ON THAT NODE (the kid ids) or the cron's grid evidence gate demotes it to lean:50 silently.
 - **ROUTE (F29+F5):** reviews by name = `workflow.py run merge-up-review --harness claude-code --args '{"rounds":[{key,hypothesis,experiments,files,focus,merge_up,old_tip,new_tip}]}'` (resolves + tracks a run key) → Workflow tool with scriptPath `extensions/agi/workflows/agi-merge-up-review.js` and the same args → `workflow.py note <run_key> --harness-id wf_…`. The ad-hoc shapes (harvest-review, design-panel, ingest) live at .agi/context/local-maxxing/workflows-unregistered/ for the accepted g15 registration round (author learns [repeat…, then global]).
@@ -75,16 +81,10 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 - UNCOMMITTED ON DISK (lock was up): .agi/nodes/hypothesis/l4-merge-up-gate-leaves-no-merge-in-progress.md + this card — a waiter commits them (`-o`) when the lock clears; if you inherit them dirty: `git add -- <both> && git commit -o -m … -- <both>` then push.
 
 ## §5 BANKED (owner-only)
-- ai-local repo URL / CodexOperator read access. "deepseek derisked" + qwen abliterated HF ids; HF token + ssh path for farm-box downloads = Prime + encryption-town.
-- Direct overlay port for the endpoint (ufw on <overlay-if> + README row via silicon-town) — only when two boxes need it; per-kid endpoint keys via g14.4 — only for revocation.
-- OpenRouter top-up (floor $5) if ORDER 6 + the queued g15 rounds are wanted today.
-- Whether masters keep the `ultracode` settings cell = Prime.
-
+BANKED (owner-only): ai-local repo URL / CodexOperator read access; "deepseek derisked" + qwen abliterated HF ids; HF token + ssh path for farm-box downloads (Prime + encryption-town); direct overlay port for the endpoint only when two boxes need it; per-kid endpoint keys only for revocation (g14.4); OpenRouter top-up above the $5 floor if ORDER 6 + queued g15 rounds are wanted today; `ultracode` settings cell = Prime.
 ## 🔴 Where it stops
+``````
 `````
-````
-```
-11:3xZ LIVE. NEXT for the successor: (1) inbox → each director lap: review BY NAME (route above) → accept/demote note (+ evidence_runs on the node if proved) → `[complete]` belam; (2) TM.07 redo → its lap; TM.06 r2 → its lap → then dispatch l4-merge-up-gate-leaves-no-merge-in-progress; (3) C2 lap → same; (4) ORDER 6 only after a fresh account read ≥ $8; (5) owner's ai-local URL → ingest → doc+idea. Before every MAIN commit: no MERGE_HEAD, no suite lock, `commit -o -- paths`. Launch nothing yourself. Rotate at f ≥ 0.47.
-```
-````
+11:4xZ ROTATING at meter 0.40 (card §4-§5 current, committed eb8ad2d6a + stop 49a2941fe). NEXT: (1) `send.py read thought-master --from thought-master` → each director-thought lap (C2 ORDER 3; TM.06 r2 l4-needs-credential-is-provider-gated; TM.07 GPU r2 redo after my MERGE_HEAD abort; then l4-merge-up-gate-leaves-no-merge-in-progress) → review BY NAME: `workflow.py run merge-up-review --harness claude-code --args '{"rounds":[…]}'` → Workflow tool scriptPath extensions/agi/workflows/agi-merge-up-review.js same args → `workflow.py note <run_key> --harness-id wf_…` → accept/demote note (+ evidence_runs on the node if proved) → `[complete]` belam; (2) ORDER 6 only after a fresh account read ≥ $8 (floor $5); (3) owner's ai-local URL → ingest → doc+idea. Before every MAIN commit: `test ! -e .git/MERGE_HEAD`, no suite lock, `git commit -o -m … -- <paths>`. Launch nothing yourself.
 `````
+``````
