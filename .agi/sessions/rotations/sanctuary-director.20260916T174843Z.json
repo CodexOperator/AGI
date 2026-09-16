@@ -168,5 +168,51 @@
     "claimed_at": "2026-09-16T17:49:57.032244+00:00",
     "claim_key": "2026-09-16T17:49:12.494837Z",
     "performed_after_s": 44.03184652328491
+  },
+  "audit": {
+    "out": {
+      "calls": 10,
+      "a": 2,
+      "b": 1,
+      "c": 0,
+      "d": 9,
+      "floor": 1,
+      "excess": 9,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/a9b37e07-04f4-4f2d-a77c-48f31b78ffc2.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1263,
+        "ts": "2026-09-16T17:46:17.684Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-16T17:49:12.494837Z"
+      },
+      "audited_at": "2026-09-16T18:01:27Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 1,
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "floor": 0,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/fc748aad-b6ed-4afd-ae09-9fd0b0094b46.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-16T18:01:28Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
