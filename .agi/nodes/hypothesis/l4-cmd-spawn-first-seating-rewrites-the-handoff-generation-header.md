@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM ACCEPT bytes, verdict :80 (mur review) -- 2.08x un-briefed (52 vs 25 lines), disclosed not hidden, clean single kid, 117+ targeted tests pass post-merge
