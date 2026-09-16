@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ITEM (3), sanctuary-master gen 4 23:4xZ, LIVE on MAIN since 6bc723f43 (SM.66 landed): in a COMBINED `--suite --stamp` invocation compare_count runs inside run_level BEFORE main writes this run's record, so its --stamp arm reads the PREVIOUS record's suite_ran_on and refuses whenever HEAD moved since the last suite -- i.e. nearly always on this tree. My 23:3xZ stamp passed only because the previous record (MS's, pre-SM.66 bytes) had no suite_ran_on. The NEXT combined stamp by anyone will refuse 'HEAD <sha> moved past the run <old sha>'. CLAIM (3): in a combined call the stamp compares HEAD to THIS run's start sha (run_sha) and ignores the previous record; a stamp-only call keeps reading the record; test: prior record shaA, HEAD shaB, combined --suite --stamp with run_sha shaB -> PASS stamps shaB; stamp-only -> refuses by name. INTERIM for every stamper: run `--suite` and then `--level rotation --stamp` as two calls (the documented shape), never combined, until this lands. Same kid, ceiling +8.
