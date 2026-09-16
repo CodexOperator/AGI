@@ -184,3 +184,19 @@ def test_parse_form_accepts_keep_and_unknown_slot_is_refused_by_name():
     filled_map, perr = rotate._closeout_parse_form(
         json.dumps([{"slot": "s2", "value": "keep"}]))
     assert perr is None and filled_map["s2"] == "keep"
+
+def test_apply_write_false_composes_bytes_and_touches_no_card(co_root):
+    """SM.69 item (1b): `_closeout_apply(..., write=False)` is the dry-run
+    seam — it returns the SAME composed card bytes a real apply would write
+    and leaves the seat's card byte-identical (the caller passes
+    `write=not args.dry_run`)."""
+    import hashlib
+    card = co_root / "sessions" / "quorum" / "adv-alive.md"
+    before = hashlib.sha256(card.read_bytes()).hexdigest()
+    filled_map, _ = rotate._closeout_parse_form(
+        json.dumps([{"slot": "s2", "value": "- dry landed"}]))
+    full, s3, aerr = rotate._closeout_apply(co_root, "adv-alive", "parent",
+                                            filled_map, None, write=False)
+    assert aerr is None and full is not None
+    assert "- dry landed" in full
+    assert hashlib.sha256(card.read_bytes()).hexdigest() == before

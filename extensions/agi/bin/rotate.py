@@ -7477,7 +7477,7 @@ def _resolved_stops_slot_text(card_path: Path) -> str:
         _sec = _secs[_slot[0]]
         _hdr = _sec[0] if _slot[1] < 0 else _sec[1].splitlines()[_slot[1]]
         return f"stops slot: {_hdr.strip()} (replace)"
-    return "stops slot: none — will append at end"
+    return "stops slot: none — will create at end"
 
 
 def _locate_banked(sections) -> tuple[int, int] | str | None:
@@ -7988,7 +7988,8 @@ def _closeout_quote_refused(root: Path, value: str) -> str | None:
 
 
 def _closeout_apply(root: Path, seat: str, role: str,
-                    filled: dict[str, str], template: dict | None):
+                    filled: dict[str, str], template: dict | None,
+                    write: bool = True):
     """Apply a filled form to the seat's own card BY CODE. Non-§3 slots
     replace their section's BODY (header kept), `keep` carries the current
     value, and a missing section is appended; §3 is NOT written here — its
@@ -8046,8 +8047,9 @@ def _closeout_apply(root: Path, seat: str, role: str,
             f"composed card is {line_count} lines, over the "
             f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
             f"section ({biggest})")
-    card.parent.mkdir(parents=True, exist_ok=True)
-    card.write_text(full, encoding="utf-8")
+    if write:                     # `--dry-run` gets the composed bytes and
+        card.parent.mkdir(parents=True, exist_ok=True)   # touches nothing
+        card.write_text(full, encoding="utf-8")
     return full, s3_value, None
 
 
@@ -16768,10 +16770,17 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         return None, "ambiguous where-it-stops slot on the own card; " \
                      "refused (rotate-self --stops never guesses)"
     if stops is None:
-        extra = (f"### 🔴 Where it stops\n"
-                 + _render_stops_block(stops_text, diff_gap))
+        # CREATED as a `## ` SECTION, never appended as a bare `### ` block:
+        # a bare block lands in the PREAMBLE, which `_locate_where_it_stops`
+        # never scans, so the next write saw `None` again and appended a
+        # SECOND block (the live six-stack; SM.69 item 1a). A `## ` section
+        # is what the locator reads, so the write->locate round trip closes.
+        sections = list(sections) + [
+            ("## 🔴 Where it stops",
+             _render_stops_block(stops_text, diff_gap))]
+        if preamble:
+            preamble += "\n"      # keep the blank line before the new slot
         full = _render_card(preamble, sections)
-        full = full.rstrip("\n") + "\n\n" + extra + "\n"
         if frac is not None:
             full = _stamp_rotating_header(
                 full, frac, datetime.utcnow().strftime("%H:%MZ"))
@@ -17286,7 +17295,12 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return _o[0] if _o else ""
     _acts = [(_act("log", "-1", "--format=%cs", "--", rel),
               "the card's last commit"),
-             (_act("log", "-1", "--format=%cs", "--grep",
+             # `--extended-regexp`: without it `|` and the parens are
+             # BRE-literal, so this pattern matched the literal string
+             # `(harvest|merge-up)` and never a commit (0 vs 1480 hits;
+             # SM.69 item 1c).
+             (_act("log", "-1", "--format=%cs", "--extended-regexp",
+                   "--grep",
                    f"^{re.escape(seat)} .*(harvest|merge-up)"),
               "the post's newest harvest/merge-up commit")]
     try:
@@ -17562,7 +17576,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             print(f"ERR: rotate-self --closeout: {_co_perr}", file=sys.stderr)
             return 2
         _co_full, _co_s3, _co_aerr = _closeout_apply(
-            cfg_root, seat, _co_role, _co_filled, _co_tmpl)
+            cfg_root, seat, _co_role, _co_filled, _co_tmpl,
+            write=not args.dry_run)
+        if args.dry_run:
+            print(f"(--closeout) would apply the filled form to "
+                  f"{_own_card_path(cfg_root, seat)} (dry-run, nothing "
+                  f"written)")
         if _co_aerr:
             print(f"ERR: rotate-self --closeout: {_co_aerr} "
                   f"(nothing rotated)", file=sys.stderr)
