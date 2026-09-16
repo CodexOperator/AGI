@@ -72,7 +72,56 @@ _DEATH_STREAM_RE = re.compile(
     # provider line "HTTP/1.1 500 Internal Server Error" -- the form the
     # first cut missed because it required the digit straight after `http`.
     r"stream error|h2 protocol error|upstream error|"
+    r"error code:\s*5\d\d|"   # the provider's own literal 520 bytes
     r"http(?:/\d+(?:\.\d+)?)?\s*5\d\d", re.I)
+
+# hypothesis:l4-the-pi-runners-retry-a-transient-5xx-with-bounded-backoff-
+# logged-by-name-never-a-real-failure conjunct (2) -- the dispatcher's startup
+# grace: 20 s in 2 s steps, re-spawn backoff 15/45 s, 3 attempts. `_GRACE_SLEEP`
+# is the ONE injectable sleep seam, so a grace poll NEVER sleeps for real.
+_GRACE_SLEEP = time.sleep
+_GRACE_STEP_S = 2
+_GRACE_MAX_S = 20
+_GRACE_BACKOFF_S = (15, 45)
+_GRACE_MAX_ATTEMPTS = 3
+
+# pi's own LOCAL catalogue warning -- it prints for WORKING ids too.
+_PI_CATALOGUE_RE = re.compile(
+    r'Model "[^"]*" not found for provider "[^"]*"\. '
+    r'Using custom model id\.', re.I)
+
+
+def _await_startup(proc, max_s: int = _GRACE_MAX_S,
+                   step_s: int = _GRACE_STEP_S) -> bool:
+    """True when `proc` OUTLIVED the startup grace, False the moment it
+    exited; polls in `step_s`-second steps through the `_GRACE_SLEEP` seam."""
+    waited = 0
+    while waited < max_s:
+        if proc.poll() is not None:
+            return False
+        _GRACE_SLEEP(step_s)
+        waited += step_s
+    return proc.poll() is None
+
+
+def _startup_death_is_transient(log_file: Path) -> "str | None":
+    """The MATCHED signature when a child that died inside the startup grace
+    left ONLY transient bytes, else None: EVERY non-empty `output.log` line
+    must be pi's catalogue warning or a 5xx signature line. Any other byte
+    (a JSON line, a commit, a traceback) makes the death real."""
+    try:
+        text = log_file.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    sig = None
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        m = _PI_CATALOGUE_RE.search(line) or _DEATH_STREAM_RE.search(line)
+        if not m:
+            return None
+        sig = sig or m.group(0)
+    return sig
 
 
 def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
@@ -2503,9 +2552,13 @@ def main() -> int:
             # the iter dir's per-agent orders copy -- a session artefact
             _orders_file.write_text(_orders_text, encoding="utf-8")
         log_file = sess_dir / "output.log"
-        try:
-            with open(log_file, "wb") as logf:
-                proc = subprocess.Popen(
+        # A round that dies at its FIRST call leaving only the catalogue
+        # warning and a 5xx signature is a dead round nobody re-runs. The
+        # lease is held by THIS process here, so a re-spawn lands under the
+        # SAME lease, agent id, worktree and log.
+        def _open_round(mode: str):
+            with open(log_file, mode) as logf:
+                return subprocess.Popen(
                     spawn_args,
                     stdout=logf,
                     stderr=subprocess.STDOUT,
@@ -2514,6 +2567,11 @@ def main() -> int:
                     cwd=str(branch_root),
                     env=spawn_env,
                 )
+
+        _attempt = 1
+        _sig = None
+        try:
+            proc = _open_round("wb")
         except BaseException:
             # Nothing was started, so nothing holds the slot. Give it back
             # now rather than leaving it to expire with this process, and if
@@ -2536,6 +2594,40 @@ def main() -> int:
             # NAMED code -- never 0 over an orphan.
             _report_unregistered_scaffold(root, scaffold_info, agent_id)
             return 4
+        while True:
+            if _await_startup(proc) or proc.returncode == 0:
+                break
+            _sig = _startup_death_is_transient(log_file)
+            if _sig is None:
+                break
+            if _attempt >= _GRACE_MAX_ATTEMPTS:
+                # Exhausted on a transient death: refuse BY NAME and give the
+                # slot back, never register a round that will do no work.
+                print(f"ERR: dispatch {agent_id} died transiently "
+                      f"(signature: {_sig}) on all {_GRACE_MAX_ATTEMPTS} "
+                      f"attempts; refusing", file=sys.stderr)
+                if branch_ref:
+                    drop_branch_worktree(root, branch_ref["worktree"])
+                spawn_budget.release(lease)
+                return 5
+            _sleep_s = _GRACE_BACKOFF_S[_attempt - 1]
+            with open(log_file, "ab") as _af:
+                _af.write(
+                    ("\n# dispatch: transient startup death (signature: "
+                     f"{_sig}); re-spawning (attempt {_attempt + 1}/"
+                     f"{_GRACE_MAX_ATTEMPTS}) in {_sleep_s}s\n").encode())
+            _GRACE_SLEEP(_sleep_s)
+            _attempt += 1
+            try:
+                proc = _open_round("ab")
+            except BaseException:
+                if branch_ref:
+                    drop_branch_worktree(root, branch_ref["worktree"])
+                spawn_budget.release(lease)
+                if _orders_file is not None:
+                    _orders_file.unlink(missing_ok=True)
+                _report_unregistered_scaffold(root, scaffold_info, agent_id)
+                return 4
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
         # Until this line the reservation is held by THIS process; after it,
         # by the agent. That is what makes the bound survive a dispatcher
