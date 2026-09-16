@@ -8800,14 +8800,54 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     show = subprocess.run(["git", "-C", str(top), "show", "--format=",
                            head.stdout.strip(), "--", rel],
                           capture_output=True, text=True)
-    lines = []
+    # CLAUSES (1)-(4) (hypothesis:l4-the-ack-prints-only-the-changed-cells-of-
+    # its-own-row-never-the-whole-row-twice): the own row is ONE JSON line, so
+    # a whole-line +/- pair repeats the whole row twice (~3k tokens/wake) --
+    # parse the row lines and print ONE line per CHANGED cell, sorted, values
+    # truncated to 40 chars; an unparsable diff FALLS BACK to today's
+    # whole-line output, saying so (never a traceback); push line stays LAST.
+    hdr = "ack: committed own row write (" + str(rel) + "):"
+    tails = "\ngit -C " + str(top) + " push"
+    raw: list[str] = []
+    rowd: dict[str, dict | None] = {"-": None, "+": None}
     for ln in (show.stdout if show.returncode == 0 else "").splitlines():
         if ln.startswith(("+++", "---", "@@", "diff --git", "index ")):
             continue
-        if ln.startswith(("+", "-")):
-            lines.append(ln)
-    return (True, "ack: committed own row write (" + str(rel) + "):\n"
-            + "\n".join(lines) + f"\ngit -C {top} push")
+        if not ln.startswith(("+", "-")):
+            continue
+        raw.append(ln)
+        try:
+            rowd[ln[0]] = json.loads(ln[1:][ln[1:].index("{"):])
+        except (ValueError, json.JSONDecodeError):
+            pass
+    if not isinstance(rowd["-"], dict) or not isinstance(rowd["+"], dict):
+        if not raw:
+            return (True, hdr + " no cell changed" + tails)
+        return (True, hdr + "\nack: row diff is not JSON -- whole +/- lines "
+                "follow\n" + "\n".join(raw) + tails)
+    miss = object()
+
+    def _cell(v):
+        if v is miss:
+            return "-"
+        s = v if isinstance(v, str) else json.dumps(v, sort_keys=True)
+        s = str(s).replace("\n", " ")
+        return s if len(s) <= 40 else s[:39] + "\u2026"
+
+    lines = []
+    for k in sorted(set(rowd["-"]) | set(rowd["+"])):
+        ov, nv = rowd["-"].get(k, miss), rowd["+"].get(k, miss)
+        if ov == nv:
+            continue
+        if k == "key_history":
+            lines.append(f"  key_history: "
+                         f"{len(rowd['-'].get(k) or [])} -> "
+                         f"{len(rowd['+'].get(k) or [])} entries")
+            continue
+        lines.append(f"  {k}: {_cell(ov)} -> {_cell(nv)}")
+    if not lines:
+        return (True, hdr + " no cell changed" + tails)
+    return (True, hdr + "\n" + "\n".join(lines) + tails)
 
 
 def _push_season_branch(root: Path) -> str:

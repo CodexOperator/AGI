@@ -6452,11 +6452,12 @@ def test_ack_refuses_any_uuid_shaped_ref_by_name(tmp_path, monkeypatch,
     assert belam.get("session_ref") in (None, "")
 
 
-def _ack_seed_git(tmp_path, session_ref=""):
+def _ack_seed_git(tmp_path, session_ref="", extra=None):
     """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
     COMMITTED seats.md carrying one row — the r3b `ack ... continue` COMMITS
     path. sessions/ is gitignored so the ack.json the ack writes stays out of
-    `git status`. Returns (graph_root, repo_top)."""
+    `git status`. `extra` folds further cells into the row (a fat row, like a
+    live one carrying key_history). Returns (graph_root, repo_top)."""
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
                     "ack@test"], check=True)
@@ -6467,9 +6468,11 @@ def _ack_seed_git(tmp_path, session_ref=""):
     # the graph root carries the project marker (write.submit resolves the
     # graph root DESCEND-ONLY inside `root`, like `.agi/config.json` in live)
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
-    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
-                               "model": "x", "effort": "max",
-                               "settings": "", "session_ref": session_ref}])
+    row = {"name": "belam", "role": "prime_director",
+           "model": "x", "effort": "max",
+           "settings": "", "session_ref": session_ref}
+    row.update(extra or {})
+    _write_seats_sheet(root, [row])
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "seats seed"], check=True)
@@ -6595,8 +6598,8 @@ def test_ack_continue_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert msg == "belam ack: gen 7, session_ref f52a4c, window , pid"
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "  session_ref:  -> f52a4c" in out.splitlines()  # cell, sorted
+    assert not any(ln.startswith(("+", "-")) for ln in out.splitlines())
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
 
@@ -6695,10 +6698,78 @@ def test_ack_diff_empty_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert files == ["proj/nodes/.geometry/seats.md"]   # seats.md ONLY
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert not any(ln.startswith(("+", "-")) for ln in out.splitlines())
+    assert "  session_ref:  -> f52a4c" in out.splitlines()
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
+
+
+def test_ack_cell_printer_names_only_changed_cells(
+        tmp_path, monkeypatch, capsys):
+    """g15.25 clauses (1)+(3) (hypothesis:l4-the-ack-prints-only-the-changed-
+    cells-of-its-own-row-never-the-whole-row-twice): on a FAT row (key_history
+    + 60-char note, the live shape) a commit that moves exactly two cells
+    prints exactly two `  <cell>: <old> -> <new>` lines, sorted, NO line
+    starting +/- (never the whole JSON row twice), no line over 120 chars, and
+    the unchanged key_history/note cells are never printed. The exact
+    `git -C <top> push` line stays the LAST line (SL4.03 / clause (3))."""
+    extra = {"session_name": "belam", "session_id": "2717-aaaa",
+             "window": "@42", "pid": 0,
+             "key_history": [{"k": "a" * 40}, {"k": "b" * 40}],
+             "note": "n" * 60}
+    root, top = _ack_seed_git(tmp_path, extra=extra)
+    reg = _seating_registry(tmp_path)      # window @42, pid 999, sid 2717-a
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=str(reg)), root)
+    assert code == 0, capsys.readouterr().err
+    lines = capsys.readouterr().out.splitlines()
+    assert "ack: committed own row write (proj/nodes/.geometry/seats.md):" \
+        in lines
+    cells = [ln for ln in lines if ln.startswith("  ")]
+    assert cells == ["  pid: 0 -> 999", "  session_ref:  -> f52a4c"], lines
+    assert not any(ln.startswith(("+", "-")) for ln in lines), lines
+    assert "key_history" not in "\n".join(lines)   # unchanged, never printed
+    assert lines[-1] == f"git -C {top} push"           # push line LAST
+    assert all(len(ln) <= 120 for ln in lines), [len(ln) for ln in lines]
+
+
+def test_ack_cell_printer_summarises_key_history(tmp_path, capsys):
+    """claim (1): a key_history change prints `N -> M entries`, never the
+    array itself (one line per changed cell, whatever the cell's size)."""
+    root, top = _ack_seed_git(tmp_path, extra={"key_history": [{"k": "a"}]})
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '[{"k": "a"}]', '[{"k": "a"}, {"k": "b"}, {"k": "c"}]'),
+        encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam",
+        SimpleNamespace(seat="belam", gen=7, ref="f52a4c", text=""),
+        "f52a4c")
+    assert ok, out
+    assert "  key_history: 1 -> 3 entries" in out.splitlines(), out
+    assert '{"k"' not in out                    # the array is never printed
+    assert out.splitlines()[-1] == f"git -C {top} push"
+
+
+def test_ack_cell_printer_falls_back_on_non_json_diff(tmp_path, capsys):
+    """claim (1) falsifier: a NON-JSON row diff FALLS BACK to today's
+    whole-line +/- output and SAYS SO -- never a traceback, never a silent
+    empty cell list."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"session_ref": ""', '"session_ref": "f52a4c",'), encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam",
+        SimpleNamespace(seat="belam", gen=7, ref="f52a4c", text=""),
+        "f52a4c")
+    assert ok, out
+    assert "not JSON" in out
+    assert any(ln.startswith("+") for ln in out.splitlines())  # today's lines
+    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert out.splitlines()[-1] == f"git -C {top} push"
 
 
 def test_ack_own_row_pre_dirty_refused_before_write(tmp_path, monkeypatch, capsys):
