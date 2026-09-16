@@ -2182,8 +2182,37 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
 # channel is the explicit, identity-supplied ACK below.
 
 
-def _ack_path(root: Path, seat: str) -> Path:
-    """`<graph>/sessions/seats/<seat>.ack.json` — the explicit reply channel.
+def _ack_session_id(root: Path | None, seat: str) -> str:
+    """The session id a non-prime seat's ack is keyed on, or '' when the seat
+    is prime, has no row, or its row carries no session_id.
+
+    clause (1) IDENTITY of hypothesis:l4-non-prime-genless-remaining-five-
+    identity-records-latch-readers-sensei-handoff: a non-prime seating is
+    generation-less, so its ack is named after the session that owns it. The
+    row is read through `_shared_graph_root` — the SAME identity root
+    `_write_identity_cells` writes MAIN's row through — so a worktree caller
+    resolves the same session id every other reader does. A prime seat and a
+    row-less throwaway both return '' and keep the legacy `.ack.json` name
+    (byte-identical); a non-prime row with no session_id is the documented
+    fallback and is named at the `ack` call site, never silently re-keyed.
+    """
+    if root is None:
+        return ""
+    g = _shared_graph_root(Path(root))
+    row = _find_seat(g, seat)
+    if not row or _is_prime_role(row.get("role")):
+        return ""
+    return str(row.get("session_id") or "")
+
+
+def _ack_path(root: Path, seat: str, session_id: str | None = None) -> Path:
+    """The seat's explicit reply channel.
+
+    A PRIME post (and a row-less throwaway) keeps
+    `<graph>/sessions/seats/<seat>.ack.json`, byte-identical to before.
+    clause (1) IDENTITY: a NON-prime seat whose row carries a `session_id`
+    keys on it — `seats/<seat>.ack.<session_id8>.json` — so a re-seat (a new
+    session) can never collide with nor be silenced by the prior seating.
 
     The replacement for the debug-log read-back (hypothesis:l4-rotate-
     readback-false-negative-and-the-orphan-by-design): the successor writes
@@ -2191,8 +2220,14 @@ def _ack_path(root: Path, seat: str) -> Path:
     of the predecessor trying to read a reply out of a DEBUG LOGGER that can
     never carry prose (42 seat logs, ~295k lines, 0 non-noise). Same seats
     dir as the handoff, because that is the one place both sides already
-    address from any cwd.
+    address from any cwd. `session_id` may be supplied explicitly (the
+    predecessor writing the ack for the session it just spawned); when None
+    it is resolved from the seat row.
     """
+    if session_id is None:
+        session_id = _ack_session_id(root, seat)
+    if session_id:
+        return _seat_hands(root) / f"{seat}.ack.{session_id[:8]}.json"
     return _seat_hands(root) / f"{seat}.ack.json"
 
 
@@ -2209,7 +2244,14 @@ def _rotate_ack_file(root: Path, seat: str, gen: int) -> str:
     shape, so the next generation starts with NO live ack. Returns a one-line
     outcome ('' when there was no live ack to rotate, or it was already
     consumed/rotated).
+
+    clause (1) IDENTITY: a session-keyed non-prime ack is a NO-OP here. It
+    already belongs to ITS seating — a re-seat carries a NEW session id, so
+    the old file can never silence the next one — and rotating it to
+    `.ack.gen<N>.json` would stamp a generation onto a generation-less post.
     """
+    if _ack_session_id(root, seat):
+        return ""
     path = _ack_path(root, seat)
     if not path.exists():
         return ""
@@ -2346,13 +2388,42 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # `--text -` reads the diff body from stdin: a long diff can exceed
         # one shell argument, so the successor streams it in.
         text = sys.stdin.read()
+    # clause (1) IDENTITY (hypothesis:l4-non-prime-genless-remaining-five-
+    # identity-records-latch-readers-sensei-handoff): a registered NON-prime
+    # post whose row carries a `session_id` is generation-less. Its ack is
+    # keyed on that session id (`seats/<seat>.ack.<sid8>.json`), `--gen` is
+    # REFUSED BY NAME, and the ack's `gen_after` is taken from the pending ack
+    # the predecessor wrote (the row has NO generation cell by clause (6-rows),
+    # so the row is not the source). A PRIME row (and a row-less throwaway, or
+    # a non-prime row carrying NO session_id — the documented legacy fallback)
+    # keeps `.ack.json` + `--gen`, byte-identical to today.
+    _row_sid = _ack_session_id(root, seat)
+    _ack_key = (getattr(args, "session", None) or _row_sid) if _row_sid else ""
+    if _row_sid:
+        if args.gen is not None:
+            print(f"ERR: --gen is refused on non-prime post {seat!r}: a "
+                  "non-prime seating is keyed by session id, never a "
+                  f"generation. Run: rotate.py ack --post {seat} --session "
+                  f"{_ack_key} {args.answer}", file=sys.stderr)
+            return 2
+        try:
+            _pd = json.loads(_ack_path(root, seat, _ack_key).read_text(
+                encoding="utf-8", errors="replace"))
+            args.gen = _pd.get("gen_after") if isinstance(_pd, dict) else None
+        except (OSError, ValueError):
+            args.gen = None
+    elif args.gen is None:
+        print(f"ERR: --gen is required for post {seat!r} (prime or "
+              "unregistered); only a non-prime post whose row carries a "
+              "session_id is keyed by --session.", file=sys.stderr)
+        return 2
     # g15.25 FIX-ONLY (SL7.87): a generation is NEVER < 1. cmd_ack writes
     # gen_after straight from args.gen with no lower bound, so a `--gen 0`
     # ack (the stale service ran exactly `ack --post belam --gen 0 --ref
     # continue`) writes a gen-0 file that prepare check 6 then REFUSES at
     # the seat's next rotate-out as a stale ack. Refuse by name BEFORE any
     # write: no ack file, no row write, nothing back-filled.
-    if args.gen < 1:
+    if args.gen is not None and args.gen < 1:
         print("ERR: --gen 0: a generation is never 0 (SL7.87); the ack "
               "confirms the ROTATION generation the row records, so a "
               "placeholder 0 can never match it.", file=sys.stderr)
@@ -2368,7 +2439,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         _prev_ans = None
         _prev_gen = None
         try:
-            _ap = Path(_ack_path(root, seat))
+            _ap = Path(_ack_path(root, seat, _ack_key or None))
             if _ap.exists():
                 _pa = json.loads(_ap.read_text(encoding="utf-8", errors="replace"))
                 if isinstance(_pa, dict):
@@ -2395,9 +2466,14 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         # any pending `diff-requested` for this seat+gen refuses a continue.
         if (_prev_ans == "diff-requested" and _prev_gen == args.gen):
             _ref = args.ref or "<your ListAgents ref>"
+            # clause (1) IDENTITY: the printed command must be runnable. A
+            # non-prime post is keyed by session id, so it prints the
+            # `--post/--session` form; a prime post keeps `--seat/--gen`.
+            _ackcl = (f"--post {seat} --session {_ack_key}" if _row_sid
+                      else f"--seat {seat} --gen {args.gen}")
             print("REFUSED: the predecessor asked for a diff \u2014 run: "
-                  f"python3 extensions/agi/bin/rotate.py ack --seat {seat} "
-                  f"--gen {args.gen} --ref {_ref} diff --text -",
+                  f"python3 extensions/agi/bin/rotate.py ack {_ackcl} "
+                  f"--ref {_ref} diff --text -",
                   file=sys.stderr)
             return 3
         if _prev_src == "predecessor" and _prev_ans == "continue":
@@ -2531,7 +2607,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
         "text": text or "",
         "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
-    path = _ack_path(root, seat)
+    path = _ack_path(root, seat, _ack_key or None)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
     print(f"ack written: {path}")
@@ -4154,6 +4230,19 @@ def _is_prime_role(role: str | None) -> bool:
     return str(role or "") in PRIME_ROLES
 
 
+def _ack_call_args(*, seat: str, role: str | None, gen: int) -> str:
+    """The `ack` argv tail a successor should run — clause (1) IDENTITY-aware.
+
+    A PRIME post confirms with `--gen N` (its ack path and call form are
+    byte-identical to today). A NON-prime post is generation-less: it is keyed
+    on its session id, so `--post <seat>` (which resolves that session id from
+    the row in cmd_ack) replaces `--seat <seat> --gen N`, and `--gen` is never
+    printed — following the line must never hit the by-name refusal."""
+    if _is_prime_role(role):
+        return f"--seat {seat} --gen {gen}"
+    return f"--post {seat}"
+
+
 def _seat_row_generation(root: Path | None, name: str) -> int | None:
     """The seat's OWN `generation` field from its config:seats row, or None
     when the seat has no live row or its row carries no generation. THE
@@ -5317,7 +5406,8 @@ def _first_seating_spawn_writes(*, root: Path, seat: str,
                               transcript=transcript)
     _answer = "diff-requested" if ask_diff else "continue"
     ap = _write_ack(root=root, seat=seat, gen_after=generation,
-                    session_ref="", answer=_answer, source="seating")
+                    session_ref="", answer=_answer, source="seating",
+                    session_id=session_id, role=role)
     row = _successor_row_write(
         root, actor=seat, seat=seat, role=role, session_ref="",
         generation=generation, window=window, pid=pid,
@@ -7897,7 +7987,8 @@ def _record_closeout(record_path: Path | None, entries: list[dict]) -> None:
 
 def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
                answer: str = "continue", text: str = "",
-               source: str = "predecessor") -> Path:
+               source: str = "predecessor", session_id: str = "",
+               role: str = "") -> Path:
     """Write the successor's ACK file on ITS behalf (kid-2 step 6).
 
     The predecessor writes into the same ack channel `cmd_ack` used, so the
@@ -7917,7 +8008,15 @@ def _write_ack(*, root: Path, seat: str, gen_after: int, session_ref: str,
         "source": source,
         "ts": datetime.utcnow().isoformat() + "Z",
     }
-    path = _ack_path(root, seat)
+    # clause (1) IDENTITY: the predecessor answers for the session it just
+    # spawned, so it passes that session id explicitly (the successor's row
+    # may not be readable yet on the seating path, where this write lands
+    # BEFORE `_successor_row_write`). A PRIME seat keeps the gen-less
+    # `.ack.json` name, so an explicit id is DROPPED for a prime role — the
+    # prime chain's ack path stays byte-identical. With no explicit id the
+    # row resolves.
+    _sid = "" if _is_prime_role(role) else session_id
+    path = _ack_path(root, seat, _sid or None)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(ack, indent=2) + "\n", encoding="utf-8")
     return path
@@ -16659,8 +16758,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # and-ask-diff-hands-the-successor-exactly-one-call).
         ack_gate = (
             "ROTATION CONTINUATION (--ask-diff): your ONE wake action is "
-            f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} "
-            f"--gen {gen} --ref <your own ListAgents ref> diff --text -` -- "
+            "`python3 extensions/agi/bin/rotate.py ack "
+            f"{_ack_call_args(seat=seat, role=role, gen=gen)} "
+            "--ref <your own ListAgents ref> diff --text -` -- "
             "run it to review the handoff (the predecessor has NOT answered "
             "it). The handoff STANDS on an EMPTY diff text (`--text -` with "
             "no stdin, or `--text ''`); a non-empty diff text halts it for "
@@ -16672,8 +16772,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             "predecessor -- nothing to run. The handoff needs no action on "
             "your first turn: your predecessor already answered the ack "
             "channel. (If the handoff actually needs change, you may still "
-            f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} "
-            f"--gen {gen} --ref <your own ListAgents ref> diff --text -` "
+            "run `python3 extensions/agi/bin/rotate.py ack "
+            f"{_ack_call_args(seat=seat, role=role, gen=gen)} "
+            "--ref <your own ListAgents ref> diff --text -` "
             "to halt the rotation for inspection.)"
         )
     extra = ack_gate + ("\n\n" + startup_block if startup_block else "")
@@ -16960,8 +17061,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     else "dry-run"
                 print(f"    [{r.get('label', '')}] {state}: {r.get('cmd', '')}")
             print("    captive dm decision line (the successor's SECOND input):")
-            print(f"    python3 extensions/agi/bin/rotate.py ack --post {seat} "
-                  f"--gen {gen} --ref <your ListAgents ref> diff --text -")
+            print(f"    python3 extensions/agi/bin/rotate.py ack "
+                  f"{_ack_call_args(seat=seat, role=role, gen=gen)} "
+                  f"--ref <your ListAgents ref> diff --text -")
         return 0
 
     # (4) SUCCESSOR-WINDOW GUARANTEE: a NEW tmux window must exist under the
@@ -17169,11 +17271,13 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         try:
             handover["ack_written"] = str(_write_ack(
                 root=root, seat=seat, gen_after=gen,
-                session_ref="", answer=_ack_answer))
+                session_ref="", answer=_ack_answer,
+                session_id=succ_session_id, role=role))
             if ask_diff:
                 print("(s6.3) --ask-diff: the successor's ONE wake call is:\n"
-                      f"    python3 extensions/agi/bin/rotate.py ack --seat "
-                      f"{seat} --gen {gen} --ref <your ListAgents ref> "
+                      f"    python3 extensions/agi/bin/rotate.py ack "
+                      f"{_ack_call_args(seat=seat, role=role, gen=gen)} "
+                      "--ref <your ListAgents ref> "
                       "diff --text -", file=sys.stderr)
             else:
                 print("(s6.3) default: answered `continue` for the successor "
@@ -18516,8 +18620,16 @@ def main(argv: list[str] | None = None) -> int:
                     "generation as a fallback only")
     p_ack.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True,
                        help="the successor's seat name", dest="seat")
-    p_ack.add_argument("--gen", type=int, required=True, dest="gen",
-                       help="the generation this ACK confirms (gen_after)")
+    p_ack.add_argument("--gen", type=int, default=None, dest="gen",
+                       help="the generation this ACK confirms (gen_after); "
+                            "required for a prime post, REFUSED BY NAME on a "
+                            "non-prime post (which is keyed by --session)")
+    # clause (1) IDENTITY: a non-prime post's ack is named after the session
+    # that owns it, `seats/<seat>.ack.<session_id8>.json`.
+    p_ack.add_argument("--session", default=None, dest="session",
+                       help="the successor session id a non-prime post's ack "
+                            "is keyed on (seats/<seat>.ack.<sid8>.json); "
+                            "defaults to the seat row's session_id")
     p_ack.add_argument("--ref", default=None, dest="ref",
                        help="the successor's own ListAgents session ref")
     p_ack.add_argument("answer", choices=("continue", "diff"),

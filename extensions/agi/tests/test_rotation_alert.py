@@ -951,8 +951,9 @@ def test_over_line_clean_state_rotates_from_hook(tmp_path, run_hook, monkeypatch
     assert "rotation: spawned rotate-self" in out, out
     assert "probe-director" in out
     # once-per-generation latch under the shared sessions dir.
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
-    assert latch.exists(), "once-per-generation latch not written"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-cle.lock"
+    assert latch.exists(), "once-per-seating latch not written"
+    assert "session sess-clean" in latch.read_text()
     assert "rotation deferred" not in out
 
 
@@ -962,7 +963,7 @@ def test_latch_prevents_double_rotation(tmp_path, run_hook, monkeypatch, capsys)
     a next prompt does NOT re-spawn — a slow spawn is never doubled."""
     graph, cwd = _over_line_seat_fixture(tmp_path)
     monkeypatch.setenv("AGI_SEAT", "probe-director")
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-onc.lock"
     latch.parent.mkdir(parents=True, exist_ok=True)
     latch.write_text("pid 1\n")          # as if a spawn had just started
     tp = tmp_path / "once.jsonl"
@@ -972,8 +973,35 @@ def test_latch_prevents_double_rotation(tmp_path, run_hook, monkeypatch, capsys)
     code, out, err = run_hook(_payload(graph, tp, "sess-once", cwd=str(cwd)),
                               state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert "already rotating probe-director gen 0" in out, out
+    assert "already rotating probe-director session sess-onc" in out, out
     assert _SPAWNS == []                  # a slow spawn is NEVER doubled
+
+
+def test_latch_keys_session_for_nonprime_and_gen_for_prime(tmp_path):
+    """Clause (3) LATCH: a NON-prime post keys its once-per-seating latch on
+    the row's session id (`hook-<seat>-<sid8>.lock`, body `session <id>`); the
+    PRIME post keeps the gen key BYTE-IDENTICAL (`hook-<seat>-gen<N>.lock`,
+    body `gen <N>`). FALSIFIERS: a non-prime latch still keyed on gen; a prime
+    latch path changed in any byte."""
+    graph = tmp_path / "g" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nseats:\n"
+        "  - {\"name\": \"probe-director\", \"role\": \"director\", "
+        "\"session_id\": \"a1b2c3d4-1111-2222-3333-444455556666\"}\n"
+        "  - {\"name\": \"belam\", \"role\": \"prime_director\", "
+        "\"session_id\": \"ffffffff-0000-0000-0000-000000000000\"}\n---\n")
+    # non-prime: the row's session id keys the latch (row wins the fallback).
+    prime, sid = hook._seat_latch_identity(graph, "probe-director", "fallback")
+    assert prime is False and sid == "a1b2c3d4-1111-2222-3333-444455556666"
+    lp = hook._latch_path(graph, "probe-director", 7, session_id=sid, prime=prime)
+    assert lp.name == "hook-probe-director-a1b2c3d4.lock", lp
+    # prime: the gen key is unchanged, byte for byte.
+    prime, sid = hook._seat_latch_identity(graph, "belam", "")
+    assert prime is True
+    lp = hook._latch_path(graph, "belam", 20, session_id=sid, prime=prime)
+    assert lp.name == "hook-belam-gen20.lock", lp
 
 
 # --------------------------------------------------------------------------
@@ -1143,7 +1171,7 @@ def test_dead_latch_is_released_and_rerotates(tmp_path, run_hook, monkeypatch, c
     assert code == 0, err
     assert "ROTATION OWED" in out, out
     assert len(_SPAWNS) == 1, (out, _SPAWNS)
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-dea.lock"
     assert latch.exists()
     assert hook._latch_holder_pid(latch) == _RECORDER_PID  # the ROTATE-SELF pid
 
@@ -1234,7 +1262,7 @@ def test_dead_latch_released_before_gate_c_captive(tmp_path, run_hook, monkeypat
     (repo / "dirty-marker").write_text("uncommitted\n")
     # a DEAD-pid latch (a REAPED child's pid, PROVED dead — never a hard-coded
     # 999999, which can be a live process on this box) for this seat + gen 0.
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-gc.lock"
     latch.parent.mkdir(parents=True, exist_ok=True)
     latch.write_text(f"pid {_dead_pid()}\n")
     tp = tmp_path / "gc.jsonl"
@@ -1286,7 +1314,7 @@ def test_spawn_launch_goes_through_the_popen_seam_and_no_spawn_honoured(
     assert "declined: AGI_HOOK_NO_SPAWN" in out, out
     assert "rotation: spawned" not in out, out    # declined, NOT spawned
     assert calls == [], "AGI_HOOK_NO_SPAWN must short-circuit BEFORE _Popen"
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-ns.lock"
     assert not latch.exists(), "NO_SPAWN must write NO latch (ibid. phantom 12345)"
     # the argv stays provable via the builder even under NO_SPAWN (the
     # suppression never routes around the seam that carries the argv).
@@ -1392,7 +1420,7 @@ def test_out_of_process_no_spawn_declines_and_writes_no_latch(tmp_path):
     assert "declined: AGI_HOOK_NO_SPAWN" in proc.stdout, proc.stdout[-600:]
     assert "rotation: spawned" not in proc.stdout, proc.stdout[-600:]
     # NO latch written (the phantom 12345 must never land in a latch).
-    latch = graph / "sessions" / "rotations" / "hook-probe-director-gen0.lock"
+    latch = graph / "sessions" / "rotations" / "hook-probe-director-sess-oop.lock"
     assert not latch.exists(), "out-of-process NO_SPAWN still wrote a latch"
     # the manual rotate advice is still offered (suppression disables the
     # SPAWN, not the guidance) — and the decline only ever prints from the

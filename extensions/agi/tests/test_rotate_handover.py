@@ -198,7 +198,10 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     # SL7.15 (goal:g15.25): a completed rotation ROTATES the ack — the live
     # `adv-alive.ack.json` is renamed to `adv-alive.ack.gen1.json`, so the
     # NEXT generation starts with NO live ack.
-    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    # clause (1) IDENTITY: this seat is NON-prime, so the ack is keyed on its
+    # session id and is NEVER rotated to a gen name.
+    rot = (tmp_path / "sessions" / "seats"
+           / "adv-alive.ack.00000000.json")
     assert rot.exists()
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
     ack = json.loads(rot.read_text(encoding="utf-8"))
@@ -367,7 +370,8 @@ def test_rotate_self_diff_empty_completes_rotation(_fix, tmp_path,
     assert rec["result"] == "success"
     assert rec["observations"]["d_reply_decision"] == "diff-empty"
     # the ack file was rotated exactly like a `continue`: no live ack remains.
-    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    rot = (tmp_path / "sessions" / "seats"
+           / "adv-alive.ack.00000000.json")
     assert rot.exists()
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
 
@@ -730,7 +734,7 @@ def test_ack_rotate_self_shaped_row_stays_byte_identical(_fix, tmp_path,
     reg = tmp_path / "registry"
     _reg_file(reg, 4242, "abc-def-123", "/home/usr/foo/.bar", "@77")
     before = (sess / "adv-s.meter").read_text(encoding="utf-8")
-    rc = rotate.cmd_ack(_ack_args(reg=reg), root)
+    rc = rotate.cmd_ack(_ack_args(gen=None, reg=reg), root)
     assert rc == 0
     own = next(r for r in rotate._load_seats(root) if r["name"] == "adv-s")
     # joined pid/sid EQUAL the row's -> nothing written except session_ref
@@ -834,7 +838,7 @@ def test_ack_keep_both_ref_equal_identity_differs_writes_pid(
     assert any(ln.startswith("+") for ln in out.splitlines())   # +/- lines
     assert any(ln.startswith("-") for ln in out.splitlines())
     # SECOND identical ack: nothing differs -> `already` short-circuit fires.
-    code2 = rotate.cmd_ack(_ack_args(ref="r1", reg=reg), root)
+    code2 = rotate.cmd_ack(_ack_args(ref="r1", gen=None, reg=reg), root)
     assert code2 == 0
     out2 = capsys.readouterr().out
     assert "row already carries session_ref=r1" in out2
@@ -865,7 +869,7 @@ def test_ack_backfills_session_ref_and_whois(_fix, tmp_path):
     # calls-and-the-successor-one, mechanism 2) refuses a ref that does NOT
     # resolve to this seat's row, so a legitimate successor ref agrees by
     # construction. Back-fill itself is unchanged.
-    args = SimpleNamespace(seat="adv-alive", gen=1, ref="abcdef",
+    args = SimpleNamespace(seat="adv-alive", gen=None, ref="abcdef",
                            answer="continue", text=None)
     rc = rotate.cmd_ack(args, tmp_path)
     assert rc == 0
@@ -1357,16 +1361,20 @@ def test_rotate_self_ask_diff_writes_diff_requested_and_one_call(
     # SL7.15 (goal:g15.25): the completed rotation rotates the ack file — the
     # live name is gone, the generation-stamped name carries the predecessor's
     # written state.
-    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    # clause (1) IDENTITY: non-prime -> session-keyed, never gen-rotated.
+    rot = (tmp_path / "sessions" / "seats"
+           / "adv-alive.ack.00000000.json")
     assert rot.exists()
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
     ack = json.loads(rot.read_text(encoding="utf-8"))
     assert ack["gen_after"] == 1
     assert ack["answer"] == "diff-requested"
     assert ack["source"] == "predecessor"
-    # the ONE wake call is named verbatim.
+    # the ONE wake call is named verbatim — clause (1): a NON-prime post is
+    # generation-less, so the line is `--post`, never `--gen`.
     err = capsys.readouterr().err
-    assert "rotate.py ack --seat adv-alive --gen 1 --ref <your ListAgents ref> diff --text -" in err
+    assert ("rotate.py ack --post adv-alive --ref <your ListAgents ref> "
+            "diff --text -") in err
 
 
 def test_rotate_self_default_ack_is_continue_wake_zero(
@@ -1396,7 +1404,9 @@ def test_rotate_self_default_ack_is_continue_wake_zero(
     # SL7.15 (goal:g15.25): the completed rotation rotates the ack file — the
     # live name is gone, the generation-stamped name carries the predecessor's
     # own `continue` (the wake-0 proof, preserved verbatim by the rename).
-    rot = tmp_path / "sessions" / "seats" / "adv-alive.ack.gen1.json"
+    # clause (1) IDENTITY: non-prime -> session-keyed, never gen-rotated.
+    rot = (tmp_path / "sessions" / "seats"
+           / "adv-alive.ack.00000000.json")
     assert rot.exists()
     assert not (tmp_path / "sessions" / "seats" / "adv-alive.ack.json").exists()
     ack = json.loads(rot.read_text(encoding="utf-8"))

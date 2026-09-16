@@ -744,8 +744,39 @@ def _stops_line(root: Path, seat: str) -> str:
 _LATCH_SUBDIR = "rotations"
 
 
-def _latch_path(root: Path, seat: str, gen: int) -> Path:
-    """The once-per-generation latch, keyed to the seat's OWN tree's sessions
+def _seat_latch_identity(root: Path, seat: str,
+                         fallback_session: str = "") -> tuple[bool, str]:
+    """(prime, session_id) for the once-per-seating latch key.
+
+    The PRIME role (`rotate.PRIME_ROLES`) keeps its gen-keyed latch; every
+    NON-prime post keys on its seated session id instead (clause (3) of
+    hypothesis:l4-non-prime-genless-remaining-five-identity-records-latch-
+    readers-sensei-handoff). The session id is read from the seat's OWN row —
+    `session_id`, then the harness `session_ref` — and falls back to the
+    caller's handed payload session id when neither is present (a seat whose
+    row has not been back-filled yet). Never raises (P7): an unreadable
+    registry means role '', i.e. non-prime."""
+    row = None
+    for r in _seat_rows(root):
+        if r.get("name") == seat:
+            row = r
+            break
+    role = str((row or {}).get("role") or "")
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415
+        prime = bool(rotate._is_prime_role(role))
+    except Exception:  # noqa: BLE001
+        prime = role in ("prime", "prime_director")
+    sid = ""
+    if row:
+        sid = str(row.get("session_id") or row.get("session_ref") or "")
+    return prime, (sid or fallback_session)
+
+
+def _latch_path(root: Path, seat: str, gen: int, session_id: str = "",
+                prime: bool = True) -> Path:
+    """The once-per-seating latch, keyed to the seat's OWN tree's sessions
     dir — NOT the shared MAIN-sessions dir — so a worktree seat's transient
     hook latch NEVER lands under MAIN's checkout (a live git-status churn
     source and a cross-tree name collision). `root` here is the GRAPH root
@@ -753,7 +784,17 @@ def _latch_path(root: Path, seat: str, gen: int) -> Path:
     directly under it: `<root>/sessions` — identity for a non-worktree seat,
     whose own tree IS the shared graph, so nothing changes on MAIN. Durable
     rotation records in `rotations/` stay tracked; only this transient
-    `hook-*.lock` is ignored (see .gitignore)."""
+    `hook-*.lock` is ignored (see .gitignore).
+
+    KEY: the PRIME seat (the DEFAULT here) keeps the former gen key BYTE-
+    IDENTICAL — `hook-{seat}-gen{gen}.lock`; a NON-prime post with a known
+    session id keys on it instead — `hook-{seat}-{session_id[:8]}.lock` —
+    because its row is generation-less. A non-prime seat with NO session id
+    (nothing to key on) falls back to the gen key rather than a latch named
+    after an empty string."""
+    if not prime and session_id:
+        return (root / "sessions" / _LATCH_SUBDIR
+                / f"hook-{seat}-{session_id[:8]}.lock")
     return root / "sessions" / _LATCH_SUBDIR / f"hook-{seat}-gen{gen}.lock"
 
 
@@ -832,7 +873,7 @@ def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
     return proc.pid
 
 
-def _gated_rotate(root: Path, seat: str) -> str | None:
+def _gated_rotate(root: Path, seat: str, session_id: str = "") -> str | None:
     """goal:g15.25 line (4) — the hook's auto-rotation decision for an over-line
     seat. Runs the FOUR gates IN ORDER; each gate that HOLDS prints its reason
     and does NOTHING (re-check next prompt). Every gate clean → spawns the
@@ -864,7 +905,9 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
     # rotation. Gate (c) used to return first, stranding the dead latch so it
     # blocked every later rotation until a human removed it by hand.
     gen = _read_generation(root, seat)
-    latch = _latch_path(root, seat, gen)
+    prime, sid = _seat_latch_identity(root, seat, session_id)
+    key_session = bool(sid) and not prime
+    latch = _latch_path(root, seat, gen, session_id=sid, prime=prime)
     if latch.exists() and not _latch_held(latch):
         # STALE-broken: the rotate-self that held this generation died (a
         # mid-flight FAILURE — the exact hole — or completion, which bumped
@@ -889,10 +932,12 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
     # release for this generation already ran BEFORE gate (c)); a slow spawn
     # is never doubled.
     if _latch_held(latch):
-        print(f"rotation deferred: already rotating {seat} gen {gen} "
+        key = f"session {sid[:8]}" if key_session else f"gen {gen}"
+        print(f"rotation deferred: already rotating {seat} {key} "
               f"(latch {latch.name} held by a live rotate-self); re-check on "
               f"the next prompt.")
-        return f"latch-gen-{gen}"
+        return (f"latch-session-{sid[:8]}" if key_session
+                else f"latch-gen-{gen}")
 
     # gate (e) OPERATOR SUPPRESSION — AGI_HOOK_NO_SPAWN in the hook's env
     # (an operator export leaking into the hook) must NEVER latch the seat
@@ -915,7 +960,9 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
     try:
         latch.parent.mkdir(parents=True, exist_ok=True)
         latch.write_text(f"pid {os.getpid()} hook\n"
-                         f"seat {seat}\ngen {gen}\n", encoding="utf-8")
+                         f"seat {seat}\n"
+                         + (f"session {sid}\n" if key_session
+                            else f"gen {gen}\n"), encoding="utf-8")
     except OSError:
         pass   # a latch we cannot write must not block the rotation (P7)
 
@@ -936,7 +983,9 @@ def _gated_rotate(root: Path, seat: str) -> str | None:
     # on-failure hole, closed) rather than latching this generation forever.
     try:
         latch.write_text(f"pid {pid} rotate-self\n"
-                         f"seat {seat}\ngen {gen}\n", encoding="utf-8")
+                         f"seat {seat}\n"
+                         + (f"session {sid}\n" if key_session
+                            else f"gen {gen}\n"), encoding="utf-8")
     except OSError:
         pass   # a latch we cannot rewrite must not fail the rotation (P7)
     print(f"rotation: spawned rotate-self for {seat} in the background "
@@ -1152,7 +1201,7 @@ def main(argv: list[str] | None = None) -> int:
         # goal:g15.25 line (4) — the hook ROTATES at threshold (gated); when a
         # gate holds it prints the deferral so the operator sees WHY an
         # over-line seat has not rotated, and re-checks next prompt.
-        deferral = _gated_rotate(root, seat)
+        deferral = _gated_rotate(root, seat, session_id or "")
         if deferral:
             suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
                       "rotating this seat while that holds; it re-checks on "
