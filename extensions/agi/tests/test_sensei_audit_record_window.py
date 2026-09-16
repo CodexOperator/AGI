@@ -127,7 +127,7 @@ def _write_graph(tmp_path: Path, genless=True):
           "recorded_at": "2026-09-16T00:00:00.000000Z",
           "gen_before": 0, "gen_after": 1, "transcript_path": str(a)}
     (rot / f"{SEAT}.{R0_STAMP}.seating.json").write_text(
-        json.dumps(r0), encoding="utf-8")
+        json.dumps(r0, indent=2) + "\n", encoding="utf-8")
 
     # R1: a genless non-prime rotate-self record (the shape measured on
     # thought-master.20260916T063950Z.json / sensei-director).
@@ -148,10 +148,11 @@ def _write_graph(tmp_path: Path, genless=True):
     if not genless:
         r1["observations"] = {"b_generation": {"before": 13, "after": 14}}
         r2["observations"] = {"b_generation": {"before": 14, "after": 15}}
-    (rot / f"{SEAT}.{R1_STAMP}.json").write_text(json.dumps(r1),
-                                                 encoding="utf-8")
-    (rot / f"{SEAT}.{OUT_STAMP}.json").write_text(json.dumps(r2),
-                                                  encoding="utf-8")
+    (rot / f"{SEAT}.{R1_STAMP}.json").write_text(json.dumps(r1, indent=2)
+                                                 + "\n", encoding="utf-8")
+    (rot / f"{SEAT}.{OUT_STAMP}.json").write_text(json.dumps(r2, indent=2)
+                                                   + "\n",
+                                                   encoding="utf-8")
     return graph, a, b, succ
 
 
